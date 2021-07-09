@@ -1,1 +1,1 @@
-# VAST -- Verbous AST
+# VAST — Verbous AST
