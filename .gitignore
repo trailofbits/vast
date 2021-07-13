@@ -47,3 +47,8 @@ build/*
 
 # VIM
 *.swp
+
+# CMake
+
+CMakeFiles/*
+CMakeCache.txt

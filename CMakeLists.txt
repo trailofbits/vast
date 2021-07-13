@@ -13,6 +13,10 @@ if (POLICY CMP0025)
   cmake_policy(SET CMP0025 NEW)
 endif ()
 
+if (POLICY CMP0116)
+  cmake_policy(SET CMP0116 NEW)
+endif ()
+
 include(cmake/vcpkg_helper.cmake)
 
 project(vast
@@ -32,18 +36,34 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils.cmake")
 FindAndSelectClangCompiler()
 
 #
-# LLVM
+# LLVM & MLIR
 #
 
 find_package(LLVM REQUIRED CONFIG)
-
-#
-# MLIR
-#
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 find_package(MLIR REQUIRED CONFIG)
 message(STATUS "Using MLIRConfig.cmake in: ${MLIR_DIR}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+set(LLVM_RUNTIME_OUTPUT_INTDIR ${CMAKE_BINARY_DIR}/bin)
+set(LLVM_LIBRARY_OUTPUT_INTDIR ${CMAKE_BINARY_DIR}/lib)
+set(MLIR_BINARY_DIR ${CMAKE_BINARY_DIR})
+
+list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
+list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+
+include(TableGen)
+include(AddLLVM)
+include(AddMLIR)
+include(HandleLLVMOptions)
+
+# TODO(Heno): clean up & modernize
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${MLIR_INCLUDE_DIRS})
+include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_BINARY_DIR}/include)
+link_directories(${LLVM_BUILD_LIBRARY_DIR})
+add_definitions(${LLVM_DEFINITIONS})
 
 #
 # google log module
@@ -88,8 +108,9 @@ enable_sanitizers(vast_settings)
 include(cmake/static_analyzers.cmake)
 
 #
-# VAST librarries
+# VAST libraries
 #
+add_subdirectory(include/vast)
 add_subdirectory(lib)
 
 #
