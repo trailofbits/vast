@@ -1,15 +1,2 @@
-add_mlir_dialect_library(MLIRVast
-    VastDialect.cpp
-    VastOps.cpp
-
-    ADDITIONAL_HEADER_DIRS
-    ${PROJECT_SOURCE_DIR}/include/vast
-
-    DEPENDS
-    MLIRVastOpsIncGen
-
-    LINK_LIBS PUBLIC
-    MLIRIR
-)
-
-target_link_libraries(MLIRVast PRIVATE vast_settings)
+add_subdirectory(Dialect)
+add_subdirectory(Translation)

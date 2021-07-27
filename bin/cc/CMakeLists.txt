@@ -23,6 +23,10 @@ target_link_libraries(vast-cc
         MLIRSPIRV
         MLIRTranslation
         MLIRSupport
+
+        FromSourceParser
+
+        cppast
 )
 
 mlir_check_link_libraries(vast-cc)
