@@ -25,8 +25,6 @@ target_link_libraries(vast-cc
         MLIRSupport
 
         FromSourceParser
-
-        cppast
 )
 
 mlir_check_link_libraries(vast-cc)

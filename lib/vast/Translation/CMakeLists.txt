@@ -1,7 +1,5 @@
-add_mlir_library( FromSourceParser
+add_library( FromSourceParser
     FromSource.cpp
-
-    ADDITIONAL_HEADER_DIRS
-
-    MLIRTranslation
 )
+
+target_link_libraries(FromSourceParser PRIVATE cppast)
