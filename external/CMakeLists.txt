@@ -1,1 +1,1 @@
-add_subdirectory(cppast)
+add_subdirectory(pasta)
