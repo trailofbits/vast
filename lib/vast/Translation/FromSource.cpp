@@ -1,5 +1,6 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
+#include "clang/Frontend/FrontendAction.h"
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/DeclBase.h>
 #include <clang/Tooling/Tooling.h>
@@ -38,32 +39,11 @@ namespace vast
         }
     };
 
-    struct ASTConsumer : clang::ASTConsumer
-    {
-        virtual void HandleTranslationUnit(clang::ASTContext &ctx) override
-        {
-            visitor.TraverseDecl(ctx.getTranslationUnitDecl());
-        }
-
-    private:
-        ASTVisitor visitor;
-    };
-
-    struct ASTAction : clang::ASTFrontendAction
-    {
-        using Compiler = clang::CompilerInstance;
-        using Consumer = std::unique_ptr< clang::ASTConsumer >;
-
-        virtual Consumer CreateASTConsumer(Compiler &cc, llvm::StringRef in) override
-        {
-            return std::make_unique< ASTConsumer >();
-        }
-    };
-
     static mlir::OwningModuleRef from_source_parser(const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx)
     {
-        clang::tooling::runToolOnCode(std::make_unique<ASTAction>(), input->getBuffer());
-
+        ASTVisitor visitor;
+        auto ast = clang::tooling::buildASTFromCode(input->getBuffer());
+        visitor.TraverseDecl(ast->getASTContext().getTranslationUnitDecl());
         return {};
     }
 
