@@ -1,49 +1,68 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
+#include <clang/AST/ASTConsumer.h>
+#include <clang/AST/DeclBase.h>
+#include <clang/Tooling/Tooling.h>
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/Translation.h>
 #include <mlir/Support/LogicalResult.h>
 
+#include <clang/AST/RecursiveASTVisitor.h>
+#include <clang/Frontend/CompilerInstance.h>
+#include <clang/Frontend/ASTConsumers.h>
+#include <clang/Frontend/FrontendActions.h>
+
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
-
-#include "cppast/libclang_parser.hpp"
 
 #include <iostream>
 #include <filesystem>
 #include <memory>
+#include <stdexcept>
+#include <string>
 
 namespace vast
 {
-    std::unique_ptr<cppast::cpp_file> parse(const std::string path)
+
+    struct ASTVisitor : clang::RecursiveASTVisitor<ASTVisitor>
     {
-        cppast::cpp_entity_index idx;
+        virtual ~ASTVisitor() = default;
 
-        cppast::stderr_diagnostic_logger logger;
-        cppast::libclang_parser parser(type_safe::ref(logger));
+        virtual bool VisitDecl(clang::Decl *decl)
+        {
+            return decl->dump(), true;
+        }
+    };
 
-        cppast::libclang_compile_config cfg;
-        auto file = parser.parse(idx, path, cfg);
-        return parser.error() ? nullptr : std::move(file);
-    }
+    struct ASTConsumer : clang::ASTConsumer
+    {
+        virtual void HandleTranslationUnit(clang::ASTContext &ctx) override
+        {
+            visitor.TraverseDecl(ctx.getTranslationUnitDecl());
+        }
+
+    private:
+        ASTVisitor visitor;
+    };
+
+    struct ASTAction : clang::ASTFrontendAction
+    {
+        using Compiler = clang::CompilerInstance;
+        using Consumer = std::unique_ptr< clang::ASTConsumer >;
+
+        virtual Consumer CreateASTConsumer(Compiler &cc, llvm::StringRef in) override
+        {
+            return std::make_unique< ASTConsumer >();
+        }
+    };
 
     static mlir::OwningModuleRef from_source_parser(const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx)
     {
-
-        auto path = std::filesystem::temp_directory_path();
-        path += "vast-input.tmp";
-
-        {
-            std::ofstream filestream(path);
-            filestream << input->getBuffer().str();
-        }
-
-        auto ast = parse(path);
-        std::cout << ast->name() << std::endl;
-        // TODO AST to MLIR
+        clang::tooling::runToolOnCode(std::make_unique<ASTAction>(), input->getBuffer());
 
         return {};
     }
