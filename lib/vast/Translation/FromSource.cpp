@@ -9,6 +9,8 @@
 #include <clang/AST/RecursiveASTVisitor.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/ASTConsumers.h>
+#include "clang/AST/Decl.h"
+#include "clang/AST/Stmt.h"
 #include "clang/Frontend/FrontendAction.h"
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/DeclBase.h>
@@ -16,6 +18,7 @@
 
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
+#include <llvm/Support/Debug.h>
 
 #include <vast/Dialect/VastDialect.hpp>
 
@@ -27,6 +30,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+
+#define DEBUG_TYPE "vast-from-source"
 
 namespace vast
 {
@@ -41,7 +46,38 @@ namespace vast
 
         virtual bool VisitDecl(clang::Decl *decl)
         {
-            return decl->dump(), true;
+            LLVM_DEBUG(llvm::dbgs() << "Visit Decl\n");
+            return true;
+        }
+
+        virtual bool VisitStmt(clang::Stmt *stmt)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit Stmt\n");
+            return true;
+        }
+
+        bool VisitTranslationUnitDecl(clang::TranslationUnitDecl *tu)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit Translation Unit\n");
+            return true;
+        }
+
+        bool VisitTypedefDecl(clang::TypedefDecl *tdef)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit Typedef\n");
+            return true;
+        }
+
+        bool VisitFunctionDecl(clang::FunctionDecl *fndecl)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit FunctionDecl\n");
+            return true;
+        }
+
+        bool VisitCompoundStmt(clang::CompoundStmt *stmt)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit CompoundStmt\n");
+            return true;
         }
 
         mlir::ModuleOp module;
