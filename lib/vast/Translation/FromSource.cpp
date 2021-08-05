@@ -1,9 +1,11 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
+#include "vast/Dialect/VastOps.hpp"
 #include <mlir/IR/Location.h>
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/Translation.h>
+#include <mlir/IR/Builders.h>
 #include <mlir/Support/LogicalResult.h>
 
 #include <clang/AST/RecursiveASTVisitor.h>
@@ -21,6 +23,8 @@
 #include <llvm/Support/Debug.h>
 
 #include <vast/Dialect/VastDialect.hpp>
+#include <vast/Dialect/VastOps.hpp>
+
 
 #include <iostream>
 #include <filesystem>
@@ -35,9 +39,10 @@
 
 namespace vast
 {
-
     struct ASTVisitor : clang::RecursiveASTVisitor<ASTVisitor>
     {
+        using Builder = mlir::OpBuilder;
+
         ASTVisitor(mlir::ModuleOp module)
             : module(module)
         {}
@@ -70,7 +75,13 @@ namespace vast
 
         bool VisitFunctionDecl(clang::FunctionDecl *fndecl)
         {
-            LLVM_DEBUG(llvm::dbgs() << "Visit FunctionDecl\n");
+            LLVM_DEBUG(llvm::dbgs() << "Visit FunctionDecl: " << fndecl->getName() << "\n");
+
+            Builder bld(module.getBodyRegion());
+            auto loc = fileLineColLoc(fndecl);
+
+            bld.create< VastFuncOp >(loc, fndecl->getName());
+
             return true;
         }
 
@@ -78,6 +89,18 @@ namespace vast
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit CompoundStmt\n");
             return true;
+        }
+
+        mlir::Location fileLineColLoc(clang::Decl *decl)
+        {
+            auto loc = decl->getLocation();
+            auto &mgr = decl->getASTContext().getSourceManager();
+
+            auto name = mgr.getFilename(loc);
+            auto line = mgr.getPresumedLineNumber(loc);
+            auto col = mgr.getPresumedColumnNumber(loc);
+
+            return mlir::FileLineColLoc::get(name, line, col, module->getContext());
         }
 
         mlir::ModuleOp module;
@@ -113,4 +136,5 @@ namespace vast
 
         return mlir::success();
     }
+
 } // namespace vast

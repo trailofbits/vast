@@ -4,19 +4,36 @@
 #define VAST_OPS
 
 include "VastDialect.td"
+
+include "mlir/IR/OpBase.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
 
-def Vast_TestOp : Vast_Op<"test", [NoSideEffect, SameOperandsAndResultType]> {
-    let summary = "Test operation.";
-    let description = [{
-        The `vast.test` operation.
-    }];
-    let arguments = (ins I32:$input);
-    let results = (outs I32:$res);
+def Vast_VastFuncOp : Vast_Op< "func", [] >
+{
+    let summary = "VAST high-level function.";
 
-    let assemblyFormat = [{
-        $input attr-dict `:` type($input)
+    let description = [{
+        VAST function
     }];
+
+    // let arguments =
+
+    let regions = (region AnyRegion:$body);
+
+    let skipDefaultBuilders = 1;
+
+    let builders = [
+        OpBuilderDAG< (
+            ins "llvm::StringRef":$name
+        ) >
+    ];
+
+    // let verifier =
+
+
+    // let printer =
+
+    // let parser =
 }
 
 #endif // VAST_OPS
