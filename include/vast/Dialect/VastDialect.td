@@ -17,6 +17,9 @@ def Vast_Dialect : Dialect {
         for further program analysis.
     }];
     let cppNamespace = "::vast::hl";
+    let extraClassDeclaration = [{
+        void registerTypes();
+    }];
 }
 
 //===----------------------------------------------------------------------===//
