@@ -7,7 +7,7 @@
 #include "vast/Dialect/VastDialect.hpp"
 #include "mlir/IR/OpImplementation.h"
 
-namespace vast
+namespace vast::hl
 {
     using builder = mlir::OpBuilder;
 
@@ -17,7 +17,7 @@ namespace vast
         st.addAttribute(mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name));
     }
 
-} // namespace vast
+} // namespace vast::hl
 
 //===----------------------------------------------------------------------===//
 // TableGen generated logic.

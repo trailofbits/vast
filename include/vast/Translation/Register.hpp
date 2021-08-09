@@ -5,13 +5,16 @@
 
 namespace vast
 {
-    mlir::LogicalResult registerFromSourceParser();
+    namespace hl
+    {
+        mlir::LogicalResult registerFromSourceParser();
+    } // namespace hl
 
     inline void registerAllTranslations()
     {
         static std::once_flag once;
         std::call_once(once, [] {
-            vast::registerFromSourceParser();
+            vast::hl::registerFromSourceParser();
         });
     }
 
