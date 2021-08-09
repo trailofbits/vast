@@ -7,11 +7,11 @@
 // Vast dialect.
 //===----------------------------------------------------------------------===//
 
-namespace vast {
+namespace vast::hl {
     void VastDialect::initialize() {
         addOperations<
             #define GET_OP_LIST
             #include "vast/Dialect/VastOps.cpp.inc"
         >();
     }
-} // namespace vast
+} // namespace vast::hl

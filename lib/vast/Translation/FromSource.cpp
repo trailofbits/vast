@@ -37,7 +37,7 @@
 
 #define DEBUG_TYPE "vast-from-source"
 
-namespace vast
+namespace vast::hl
 {
     struct ASTVisitor : clang::RecursiveASTVisitor<ASTVisitor>
     {
@@ -137,4 +137,4 @@ namespace vast
         return mlir::success();
     }
 
-} // namespace vast
+} // namespace vast::hl

@@ -16,7 +16,7 @@ def Vast_Dialect : Dialect {
         This dialect intends capture higher level constructs of C/C++
         for further program analysis.
     }];
-    let cppNamespace = "::vast";
+    let cppNamespace = "::vast::hl";
 }
 
 //===----------------------------------------------------------------------===//

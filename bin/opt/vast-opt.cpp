@@ -21,7 +21,7 @@ int main(int argc, char **argv)
     // Register VAST passes here
 
     mlir::DialectRegistry registry;
-    registry.insert<vast::VastDialect>();
+    registry.insert<vast::hl::VastDialect>();
     registry.insert<mlir::StandardOpsDialect>();
 
     mlir::registerAllDialects(registry);
