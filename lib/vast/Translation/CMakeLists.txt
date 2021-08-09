@@ -1,4 +1,5 @@
 add_library( FromSourceParser
+    Types.cpp
     FromSource.cpp
 )
 
