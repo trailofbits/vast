@@ -13,6 +13,7 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/ToolOutputFile.h"
 
+#include "vast/Dialect/HighLevel/IR/HighLevel.hpp"
 #include "vast/Dialect/VastDialect.hpp"
 
 int main(int argc, char **argv)
@@ -21,8 +22,8 @@ int main(int argc, char **argv)
     // Register VAST passes here
 
     mlir::DialectRegistry registry;
-    registry.insert<vast::hl::VastDialect>();
-    registry.insert<mlir::StandardOpsDialect>();
+    registry.insert< vast::hl::HighLevelDialect >();
+    registry.insert< mlir::StandardOpsDialect >();
 
     mlir::registerAllDialects(registry);
     return failed(
