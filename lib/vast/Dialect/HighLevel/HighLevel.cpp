@@ -24,11 +24,6 @@ namespace vast::hl
         >();
     }
 
-    void HighLevelDialect::registerTypes()
-    {
-        addTypes< void_type >();
-    }
-
     using string_ref = llvm::StringRef;
     using dialect_parser = mlir::DialectAsmParser;
     using dialect_printer = mlir::DialectAsmPrinter;
@@ -52,7 +47,7 @@ namespace vast::hl
             using type_parser = llvm::function_ref< type() >;
 
             return llvm::StringSwitch< type_parser >(key)
-                .Case("void", [&] { return void_type::get(ctx); })
+                .Case("void", [&] { return VoidType::get(ctx); })
                 .Default([&] { return failure(parser); })();
         }
 
@@ -64,7 +59,7 @@ namespace vast::hl
         string_ref get_type_keyword(type ty)
         {
             return llvm::TypeSwitch< type, string_ref >(ty)
-                .Case< void_type >([&] (type) { return "void"; })
+                .Case< VoidType >([&] (type) { return "void"; })
                 .Default([] (type) -> string_ref {
                     llvm_unreachable("unexpected 'highlevel' type kind");
                 });

@@ -38,41 +38,6 @@ namespace vast::hl
     };
 
     using context = mlir::MLIRContext;
-
     using type = mlir::Type;
-
-    template< typename ConcreteType, typename BaseType, typename StorageType, template <typename T> class ...Traits >
-    using type_base = type::TypeBase< ConcreteType, BaseType, StorageType, Traits... >;
-
-    namespace detail
-    {
-        using default_type_storage = mlir::TypeStorage;
-
-        struct integer_type_storage;
-    } // namespace detail
-
-    struct void_type : type_base< void_type, type, detail::default_type_storage >
-    {
-        using Base::Base;
-
-        static void_type get(context *ctx);
-
-        static bool kindof(unsigned kind) noexcept
-        {
-            return type_kind(kind) == type_kind::vast_void;
-        }
-    };
-
-    // struct integer_type : type_base< integer_type, type, detail::integer_type_storage >
-    // {
-    //     using Base::Base;
-
-    //     static integer_type get(context *ctx, integer_qualifier qual, integer_kind kind);
-
-    //     static bool kindof(unsigned kind) noexcept
-    //     {
-    //         return type_kind(kind) == type_kind::vast_integer;
-    //     }
-    // };
 
 } // namespace vast::hl

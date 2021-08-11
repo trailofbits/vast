@@ -13,9 +13,6 @@ def HighLevel_Dialect : Dialect {
         for further program analysis.
     }];
     let cppNamespace = "::vast::hl";
-    let extraClassDeclaration = [{
-        void registerTypes();
-    }];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELBASE
