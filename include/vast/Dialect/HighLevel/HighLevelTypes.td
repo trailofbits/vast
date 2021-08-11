@@ -11,4 +11,12 @@ class HighLevel_Type< string name, string type_mnemonic >
     let mnemonic = type_mnemonic;
 }
 
+// Builtin C Types
+
+def Void : HighLevel_Type< "void_type", "void" >
+{
+    let summary = "An high level void type representation.";
+    let description = [{ void type }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
