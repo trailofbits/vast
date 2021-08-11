@@ -12,7 +12,7 @@ target_link_libraries(vast-opt
         ${DIALECT_LIBS}
         ${CONVERSION_LIBS}
         MLIROptLib
-        MLIRVast
+        MLIRHighLevel
 )
 
 mlir_check_all_link_libraries(vast-opt)

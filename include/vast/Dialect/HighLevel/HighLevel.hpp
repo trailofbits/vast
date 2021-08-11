@@ -7,13 +7,13 @@
 #include "mlir/IR/Dialect.h"
 #include "mlir/Interfaces/SideEffectInterfaces.h"
 
-#include "vast/Dialect/HighLevel/IR/HighLevelDialect.h.inc"
+#include "vast/Dialect/HighLevel/HighLevelDialect.h.inc"
 
 // #define GET_ATTRDEF_CLASSES
-// #include "vast/Dialect/HighLevel/IR/HighLevelAttributes.h.inc"
+// #include "vast/Dialect/HighLevel/HighLevelAttributes.h.inc"
 
 #define GET_TYPEDEF_CLASSES
-#include "vast/Dialect/HighLevel/IR/HighLevelTypes.h.inc"
+#include "vast/Dialect/HighLevel/HighLevelTypes.h.inc"
 
 #define GET_OP_CLASSES
-#include "vast/Dialect/HighLevel/IR/HighLevel.h.inc"
+#include "vast/Dialect/HighLevel/HighLevel.h.inc"

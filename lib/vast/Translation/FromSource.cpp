@@ -1,6 +1,5 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
-#include "vast/Dialect/VastOps.hpp"
 #include <mlir/IR/Location.h>
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/IR/BuiltinOps.h>
@@ -11,9 +10,9 @@
 #include <clang/AST/RecursiveASTVisitor.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/ASTConsumers.h>
-#include "clang/AST/Decl.h"
-#include "clang/AST/Stmt.h"
-#include "clang/Frontend/FrontendAction.h"
+#include <clang/AST/Decl.h>
+#include <clang/AST/Stmt.h>
+#include <clang/Frontend/FrontendAction.h>
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/DeclBase.h>
 #include <clang/Tooling/Tooling.h>
@@ -22,9 +21,8 @@
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/Debug.h>
 
-#include <vast/Dialect/VastDialect.hpp>
-#include <vast/Dialect/VastOps.hpp>
-
+#include "vast/Dialect/HighLevel/HighLevel.hpp"
+#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
 #include <iostream>
 #include <filesystem>
@@ -80,7 +78,7 @@ namespace vast::hl
             Builder bld(module.getBodyRegion());
             auto loc = fileLineColLoc(fndecl);
 
-            bld.create< VastFuncOp >(loc, fndecl->getName());
+            bld.create< FuncOp >(loc, fndecl->getName());
 
             return true;
         }
@@ -108,7 +106,7 @@ namespace vast::hl
 
     static mlir::OwningModuleRef from_source_parser(const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx)
     {
-        ctx->loadDialect< VastDialect >();
+        ctx->loadDialect< HighLevelDialect >();
 
         mlir::OwningModuleRef module(
             mlir::ModuleOp::create(
