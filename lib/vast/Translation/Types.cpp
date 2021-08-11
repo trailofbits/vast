@@ -1,7 +1,7 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
 #include "vast/Translation/Types.hpp"
-#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Dialect/HighLevel/HighLevel.hpp"
 
 #include "clang/AST/Type.h"
 
@@ -12,7 +12,7 @@ namespace vast::hl
     {
         // TODO(Heno) qualifiers
         if (ty->isVoidType())
-            return void_type::get(&ctx);
+            return VoidType::get(&ctx);
 
         llvm_unreachable("unknown builtin type");
     }
