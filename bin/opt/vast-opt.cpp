@@ -13,8 +13,7 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/ToolOutputFile.h"
 
-#include "vast/Dialect/HighLevel/IR/HighLevel.hpp"
-#include "vast/Dialect/VastDialect.hpp"
+#include "vast/Dialect/HighLevel/HighLevel.hpp"
 
 int main(int argc, char **argv)
 {
