@@ -11,20 +11,12 @@
 
 namespace vast::hl
 {
-    enum class type_kind {
-        vast_integer,
-        vast_floating,
-        vast_void
-    };
-
     enum class integer_qualifier {
         vast_signed,
         vast_unsigned
     };
 
     enum class integer_kind {
-        vast_bool,
-        vast_char,
         vast_short,
         vast_int,
         vast_long,
