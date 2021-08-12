@@ -32,7 +32,7 @@ namespace vast::hl
     {
         type failure(dialect_parser &parser)
         {
-            parser.emitError(parser.getNameLoc(), "Failed to parse HighLevel type");
+            parser.emitError(parser.getNameLoc(), "Failed to parse high-level type");
             return {};
         }
 
@@ -61,7 +61,7 @@ namespace vast::hl
             return llvm::TypeSwitch< type, string_ref >(ty)
                 .Case< VoidType >([&] (type) { return "void"; })
                 .Default([] (type) -> string_ref {
-                    llvm_unreachable("unexpected 'highlevel' type kind");
+                    llvm_unreachable("unexpected high-level type kind");
                 });
         }
 
@@ -82,7 +82,5 @@ namespace vast::hl
     {
         return detail::print_type(ty, os);
     }
-
-
 
 } // namespace vast::hl
