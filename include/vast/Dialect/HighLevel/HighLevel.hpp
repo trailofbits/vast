@@ -7,6 +7,7 @@
 #include "mlir/IR/Dialect.h"
 #include "mlir/Interfaces/SideEffectInterfaces.h"
 
+#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.h.inc"
 
 // #define GET_ATTRDEF_CLASSES

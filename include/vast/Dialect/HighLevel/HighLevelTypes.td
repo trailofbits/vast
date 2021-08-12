@@ -23,6 +23,11 @@ def Integer : HighLevel_Type< "Integer", "integer" >
 {
     let summary = "An high level generic integer type representation.";
     let description = [{ integer type }];
+
+    let parameters = (ins
+        "integer_qualifier":$qualifier,
+        "integer_kind":$kind
+    );
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
