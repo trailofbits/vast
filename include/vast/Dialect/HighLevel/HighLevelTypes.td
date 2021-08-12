@@ -19,6 +19,12 @@ def Void : HighLevel_Type< "Void", "void" >
     let description = [{ void type }];
 }
 
+def Bool : HighLevel_Type< "Bool", "bool" >
+{
+    let summary = "An high level bool type representation.";
+    let description = [{ bool type }];
+}
+
 def Integer : HighLevel_Type< "Integer", "integer" >
 {
     let summary = "An high level generic integer type representation.";

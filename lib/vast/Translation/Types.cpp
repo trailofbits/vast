@@ -29,17 +29,23 @@ namespace vast::hl
             case builtin_type::LongLong:
             case builtin_type::ULongLong:
                 return integer_kind::vast_long_long;
+            default:
+                llvm_unreachable("unknown integer kind");
         }
-
-        llvm_unreachable("unknown integer kind");
     }
+
+    constexpr bool is_void_type(const builtin_type *ty) { return ty->isVoidType(); }
+    constexpr bool is_bool_type(const builtin_type *ty) { return ty->getKind() == builtin_type::Bool; }
+    constexpr bool is_integer_type(const builtin_type *ty) { return ty->isIntegerType(); }
 
     mlir::Type TypeConverter::convert(const builtin_type *ty)
     {
         // TODO(Heno) qualifiers
-        if (ty->isVoidType())
+        if (is_bool_type(ty)) {
             return VoidType::get(&ctx);
-        else if (ty->isInteger()) {
+        } else if (is_bool_type(ty)) {
+            return BoolType::get(&ctx);
+        } else if (is_integer_type(ty)) {
             auto qual = get_integer_qualifier(ty);
             auto kind = get_integer_kind(ty);
             return IntegerType::get(&ctx, qual, kind);
