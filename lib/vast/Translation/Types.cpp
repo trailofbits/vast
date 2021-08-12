@@ -11,7 +11,7 @@ namespace vast::hl
 
     constexpr integer_qualifier get_integer_qualifier(const builtin_type *ty)
     {
-        return ty->isSignedInteger() ? integer_qualifier::vast_signed : integer_qualifier::vast_unsigned;
+        return ty->isSignedInteger() ? integer_qualifier::Signed : integer_qualifier::Unsigned;
     }
 
     constexpr integer_kind get_integer_kind(const builtin_type *ty)
@@ -19,19 +19,19 @@ namespace vast::hl
         switch (ty->getKind()) {
             case builtin_type::SChar:
             case builtin_type::UChar:
-                return integer_kind::vast_char;
+                return integer_kind::Char;
             case builtin_type::Short:
             case builtin_type::UShort:
-                return integer_kind::vast_short;
+                return integer_kind::Short;
             case builtin_type::Int:
             case builtin_type::UInt:
-                return integer_kind::vast_int;
+                return integer_kind::Int;
             case builtin_type::Long:
             case builtin_type::ULong:
-                return integer_kind::vast_long;
+                return integer_kind::Long;
             case builtin_type::LongLong:
             case builtin_type::ULongLong:
-                return integer_kind::vast_long_long;
+                return integer_kind::LongLong;
             default:
                 llvm_unreachable("unknown integer kind");
         }

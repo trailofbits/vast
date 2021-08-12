@@ -12,21 +12,22 @@
 namespace vast::hl
 {
     enum class integer_qualifier {
-        vast_signed,
-        vast_unsigned
+        Signed,
+        Unsigned
     };
 
     enum class integer_kind {
-        vast_short,
-        vast_int,
-        vast_long,
-        vast_long_long
+        Char,
+        Short,
+        Int,
+        Long,
+        LongLong
     };
 
     enum class floating_kind {
-        vast_float,
-        vast_double,
-        vast_long_double
+        Float,
+        Double,
+        LongDouble
     };
 
     using context = mlir::MLIRContext;
