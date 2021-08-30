@@ -10,6 +10,9 @@
 #include <mlir/IR/DialectImplementation.h>
 #include <llvm/ADT/TypeSwitch.h>
 
+#define  GET_TYPEDEF_CLASSES
+#include "vast/Dialect/HighLevel/HighLevelTypes.cpp.inc"
+
 namespace vast::hl
 {
     void HighLevelDialect::initialize()
@@ -43,12 +46,7 @@ namespace vast::hl
                 return {};
 
             auto ctx = parser.getBuilder().getContext();
-
-            using type_parser = llvm::function_ref< type() >;
-
-            return llvm::StringSwitch< type_parser >(key)
-                .Case("void", [&] { return VoidType::get(ctx); })
-                .Default([&] { return failure(parser); })();
+            return generatedTypeParser(ctx, parser, key);
         }
 
         type parse_type(dialect_parser &parser)
@@ -67,7 +65,8 @@ namespace vast::hl
 
         void print_type(type ty, dialect_printer &os)
         {
-            os.printType(ty);
+            if (failed(generatedTypePrinter(ty, os)))
+                llvm_unreachable("unexpected high level type kind");
         }
     } // namespace detail
 

@@ -33,4 +33,6 @@ namespace vast::hl
     using context = mlir::MLIRContext;
     using type = mlir::Type;
 
+    std::string to_string(integer_kind kind) noexcept;
+
 } // namespace vast::hl

@@ -21,8 +21,13 @@
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/Debug.h>
 
+#include "mlir/Dialect/StandardOps/IR/Ops.h"
+#include "mlir/IR/Identifier.h"
+#include "vast/Translation/Types.hpp"
 #include "vast/Dialect/HighLevel/HighLevel.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "clang/AST/ASTContext.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include <iostream>
 #include <filesystem>
@@ -41,8 +46,8 @@ namespace vast::hl
     {
         using Builder = mlir::OpBuilder;
 
-        ASTVisitor(mlir::ModuleOp module)
-            : module(module)
+        ASTVisitor(mlir::ModuleOp module, clang::ASTContext &ast_ctx)
+            : module(module), types(module->getContext()), ast_ctx(ast_ctx)
         {}
 
         virtual ~ASTVisitor() = default;
@@ -71,14 +76,26 @@ namespace vast::hl
             return true;
         }
 
-        bool VisitFunctionDecl(clang::FunctionDecl *fndecl)
+        bool VisitFunctionDecl(clang::FunctionDecl *decl)
         {
-            LLVM_DEBUG(llvm::dbgs() << "Visit FunctionDecl: " << fndecl->getName() << "\n");
+            LLVM_DEBUG(llvm::dbgs() << "Visit FunctionDecl: " << decl->getName() << "\n");
 
             Builder bld(module.getBodyRegion());
-            auto loc = fileLineColLoc(fndecl);
 
-            bld.create< FuncOp >(loc, fndecl->getName());
+            auto loc = getLocation(decl->getSourceRange());
+            auto type = types.convert(decl->getFunctionType());
+            assert( type );
+
+            auto fn = bld.create< mlir::FuncOp >(loc, decl->getName(), type);
+
+            auto entry = fn.addEntryBlock();
+            bld.setInsertionPointToStart(entry);
+
+            // emit function body
+            TraverseStmt(decl->getBody());
+
+            // TODO(Heno): fix return generation
+            bld.create< mlir::ReturnOp >(getLocation(decl->getEndLoc()));
 
             return true;
         }
@@ -89,24 +106,37 @@ namespace vast::hl
             return true;
         }
 
-        mlir::Location fileLineColLoc(clang::Decl *decl)
+        bool VisitReturnStmt(clang::ReturnStmt *stmt)
         {
-            auto loc = decl->getLocation();
-            auto &mgr = decl->getASTContext().getSourceManager();
+            LLVM_DEBUG(llvm::dbgs() << "Visit ReturnStmt\n");
+            return true;
+        }
 
-            auto name = mgr.getFilename(loc);
-            auto line = mgr.getPresumedLineNumber(loc);
-            auto col = mgr.getPresumedColumnNumber(loc);
+        mlir::Location getLocation(clang::SourceRange range)
+        {
+            auto ctx = module.getContext();
 
-            return mlir::FileLineColLoc::get(name, line, col, module->getContext());
+            auto beg = range.getBegin();
+            auto loc = ast_ctx.getSourceManager().getPresumedLoc(beg);
+
+            Builder bld(module.getBodyRegion());
+            if (loc.isInvalid())
+                return bld.getUnknownLoc();
+
+            auto file = mlir::Identifier::get(loc.getFilename(), ctx);
+            return bld.getFileLineColLoc(file, loc.getLine(), loc.getColumn());
         }
 
         mlir::ModuleOp module;
+        TypeConverter types;
+
+        const clang::ASTContext &ast_ctx;
     };
 
     static mlir::OwningModuleRef from_source_parser(const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx)
     {
         ctx->loadDialect< HighLevelDialect >();
+        ctx->loadDialect< mlir::StandardOpsDialect >();
 
         mlir::OwningModuleRef module(
             mlir::ModuleOp::create(
@@ -114,8 +144,9 @@ namespace vast::hl
             )
         );
 
-        ASTVisitor visitor(*module);
         auto ast = clang::tooling::buildASTFromCode(input->getBuffer());
+
+        ASTVisitor visitor(*module, ast->getASTContext());
         visitor.TraverseDecl(ast->getASTContext().getTranslationUnitDecl());
 
         // TODO(Heno): verify module

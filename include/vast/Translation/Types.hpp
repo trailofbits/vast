@@ -12,15 +12,16 @@ namespace vast::hl
     {
         using context = mlir::MLIRContext;
 
-        TypeConverter(context &ctx, clang::ASTContext &ast)
-            : ctx(ctx)/*, ast(ast)*/
-        {}
+        TypeConverter(context *ctx) : ctx(ctx) {}
 
+        mlir::Type convert(clang::QualType ty);
+
+        mlir::Type convert(const clang::Type *ty);
         mlir::Type convert(const clang::BuiltinType *ty);
+        mlir::FunctionType convert(const clang::FunctionType *ty);
 
     private:
-        context &ctx;
-        //clang::ASTContext &ast;
+        context *ctx;
     };
 
 } // namespace vast::hl

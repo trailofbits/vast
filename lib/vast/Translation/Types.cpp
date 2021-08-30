@@ -4,6 +4,10 @@
 #include "vast/Dialect/HighLevel/HighLevel.hpp"
 
 #include "clang/AST/Type.h"
+#include "clang/AST/TypeLoc.h"
+#include "clang/Basic/LLVM.h"
+
+#include <iostream>
 
 namespace vast::hl
 {
@@ -41,20 +45,49 @@ namespace vast::hl
     constexpr bool is_bool_type(const builtin_type *ty) { return ty->getKind() == builtin_type::Bool; }
     constexpr bool is_integer_type(const builtin_type *ty) { return ty->isIntegerType(); }
 
+    mlir::Type TypeConverter::convert(clang::QualType ty)
+    {
+        return convert(ty.getTypePtr());
+    }
+
+    mlir::Type TypeConverter::convert(const clang::Type *ty)
+    {
+        ty = ty->getUnqualifiedDesugaredType();
+
+        if (ty->isBuiltinType())
+            return convert(clang::cast<builtin_type>(ty));
+
+        llvm_unreachable("unknown clang type");
+    }
+
     mlir::Type TypeConverter::convert(const builtin_type *ty)
     {
         // TODO(Heno) qualifiers
-        if (is_bool_type(ty)) {
-            return VoidType::get(&ctx);
+        if (is_void_type(ty)) {
+            return VoidType::get(ctx);
         } else if (is_bool_type(ty)) {
-            return BoolType::get(&ctx);
+            return BoolType::get(ctx);
         } else if (is_integer_type(ty)) {
             auto qual = get_integer_qualifier(ty);
             auto kind = get_integer_kind(ty);
-            return IntegerType::get(&ctx, qual, kind);
+            return IntegerType::get(ctx, qual, kind);
         }
 
         llvm_unreachable("unknown builtin type");
+    }
+
+    mlir::FunctionType TypeConverter::convert(const clang::FunctionType *ty)
+    {
+        llvm::SmallVector< mlir::Type, 2 > args;
+
+        if (auto prototype = clang::dyn_cast< clang::FunctionProtoType >(ty)) {
+            for (auto param : prototype->getParamTypes()) {
+                args.push_back(convert(param));
+            }
+        }
+
+        auto rty = convert(ty->getReturnType());
+        return mlir::FunctionType::get(ctx, rty, args);
     }
 
 } // namseapce vast::hl
