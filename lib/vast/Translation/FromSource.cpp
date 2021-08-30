@@ -19,6 +19,7 @@
 
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
+#include <llvm/ADT/ScopedHashTable.h>
 #include <llvm/Support/Debug.h>
 
 #include "mlir/Dialect/StandardOps/IR/Ops.h"
@@ -42,6 +43,9 @@
 
 namespace vast::hl
 {
+    using string_ref = llvm::StringRef;
+    using logical_result = mlir::LogicalResult;
+
     struct ASTVisitor : clang::RecursiveASTVisitor<ASTVisitor>
     {
         using Builder = mlir::OpBuilder;
@@ -79,6 +83,7 @@ namespace vast::hl
         bool VisitFunctionDecl(clang::FunctionDecl *decl)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit FunctionDecl: " << decl->getName() << "\n");
+            llvm::ScopedHashTableScope scope(symbols);
 
             Builder bld(module.getBodyRegion());
 
@@ -89,13 +94,24 @@ namespace vast::hl
             auto fn = bld.create< mlir::FuncOp >(loc, decl->getName(), type);
 
             auto entry = fn.addEntryBlock();
+
+            // In MLIR the entry block of the function must have the same argument list as the function itself.
+            for (const auto &[arg, earg] : llvm::zip(decl->parameters(), entry->getArguments())) {
+                if (failed(declare(arg->getName(), earg)))
+                    module->emitError("multiple declarations of a same symbol");
+            }
+
             bld.setInsertionPointToStart(entry);
 
             // emit function body
             TraverseStmt(decl->getBody());
 
             // TODO(Heno): fix return generation
-            bld.create< mlir::ReturnOp >(getLocation(decl->getEndLoc()));
+            if (entry->empty())
+                bld.create< mlir::ReturnOp >( getLocation(decl->getEndLoc()) );
+
+            if (decl->getName() != "main")
+                fn.setVisibility( mlir::FuncOp::Visibility::Private );
 
             return true;
         }
@@ -131,6 +147,22 @@ namespace vast::hl
         TypeConverter types;
 
         const clang::ASTContext &ast_ctx;
+
+        // Declare a variable in the current scope, return success if the variable
+        // wasn't declared yet.
+        logical_result declare(string_ref var, mlir::Value value)
+        {
+            if (symbols.count(var))
+                return mlir::failure();
+            symbols.insert(var, value);
+            return mlir::success();
+        }
+
+        // The symbol table maps a variable name to a value in the current scope.
+        // Entering a function creates a new scope, and the function arguments are
+        // added to the mapping. When the processing of a function is terminated, the
+        // scope is destroyed and the mappings created in this scope are dropped.
+        llvm::ScopedHashTable<string_ref, mlir::Value> symbols;
     };
 
     static mlir::OwningModuleRef from_source_parser(const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx)
