@@ -1,5 +1,6 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
+#include "mlir/Support/LogicalResult.h"
 #include "vast/Dialect/HighLevel/HighLevel.hpp"
 
 #include "mlir/IR/Builders.h"
@@ -10,12 +11,7 @@
 namespace vast::hl
 {
     using builder = mlir::OpBuilder;
-
-    void FuncOp::build(builder &bld, mlir::OperationState &st, llvm::StringRef name)
-    {
-        st.addRegion();
-        st.addAttribute(mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name));
-    }
+    using logical_result = mlir::LogicalResult;
 }
 
 //===----------------------------------------------------------------------===//
