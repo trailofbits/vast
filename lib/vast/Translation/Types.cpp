@@ -87,7 +87,7 @@ namespace vast::hl
         }
 
         auto rty = convert(ty->getReturnType());
-        return mlir::FunctionType::get(ctx, rty, args);
+        return mlir::FunctionType::get(ctx, args, rty);
     }
 
 } // namseapce vast::hl
