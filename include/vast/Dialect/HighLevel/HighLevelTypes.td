@@ -34,6 +34,21 @@ def Integer : HighLevel_Type< "Integer", "integer" >
         "integer_qualifier":$qualifier,
         "integer_kind":$kind
     );
+
+    let printer = [{
+        if (getQualifier() == vast::hl::integer_qualifier::Unsigned)
+            $_printer << "unsigned ";
+        $_printer << to_string(getKind());
+    }];
+
+    let parser = [{
+        vast::hl::integer_qualifier qual = vast::hl::integer_qualifier::Signed;
+
+        if ($_parser.parseOptionalKeyword("unsigned"))
+            qual = vast::hl::integer_qualifier::Unsigned;
+        // TODO(Heno): integer kinds
+        return get($_ctxt, qual, vast::hl::integer_kind::Int);
+    }];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
