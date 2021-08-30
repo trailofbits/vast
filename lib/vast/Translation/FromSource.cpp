@@ -6,6 +6,8 @@
 #include <mlir/Translation.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/Support/LogicalResult.h>
+#include <mlir/Dialect/StandardOps/IR/Ops.h>
+#include <mlir/IR/Identifier.h>
 
 #include <clang/AST/RecursiveASTVisitor.h>
 #include <clang/Frontend/CompilerInstance.h>
@@ -16,19 +18,18 @@
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/DeclBase.h>
 #include <clang/Tooling/Tooling.h>
+#include <clang/AST/ASTContext.h>
 
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/ADT/ScopedHashTable.h>
 #include <llvm/Support/Debug.h>
+#include <llvm/ADT/None.h>
+#include <llvm/Support/ErrorHandling.h>
 
-#include "mlir/Dialect/StandardOps/IR/Ops.h"
-#include "mlir/IR/Identifier.h"
 #include "vast/Translation/Types.hpp"
 #include "vast/Dialect/HighLevel/HighLevel.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
-#include "clang/AST/ASTContext.h"
-#include "llvm/Support/ErrorHandling.h"
 
 #include <iostream>
 #include <filesystem>
@@ -98,20 +99,20 @@ namespace vast::hl
             // In MLIR the entry block of the function must have the same argument list as the function itself.
             for (const auto &[arg, earg] : llvm::zip(decl->parameters(), entry->getArguments())) {
                 if (failed(declare(arg->getName(), earg)))
-                    module->emitError("multiple declarations of a same symbol");
+                    module->emitError("multiple declarations of a same symbol" + arg->getName());
             }
 
             bld.setInsertionPointToStart(entry);
 
-            // emit function body
-            TraverseStmt(decl->getBody());
+            // emit function body TODO(Heno):
+            // TraverseStmt(decl->getBody());
 
             // TODO(Heno): fix return generation
             if (entry->empty())
-                bld.create< mlir::ReturnOp >( getLocation(decl->getEndLoc()) );
+                bld.create< ReturnOp >(getLocation(decl->getEndLoc()), llvm::None);
 
             if (decl->getName() != "main")
-                fn.setVisibility( mlir::FuncOp::Visibility::Private );
+                fn.setVisibility(mlir::FuncOp::Visibility::Private);
 
             return true;
         }

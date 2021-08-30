@@ -3,4 +3,15 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 
+
+def HighLevel_ReturnOp : HighLevel_Op<"return", [Terminator]> {
+  let summary = "VAST return operation.";
+  let description = [{ VAST return opearation. }];
+
+  let arguments = (ins Variadic<AnyType>:$operands);
+
+  // Fully specified by traits.
+  let verifier = ?;
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
