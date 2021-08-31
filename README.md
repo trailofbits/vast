@@ -11,3 +11,11 @@ cmake \
     -DVCPKG_TARGET_TRIPLET=<vcpkg triplet> \
     ..
 ```
+
+## Run
+
+To run mlir codegen of highlevel dialect use:
+
+```
+./build/bin/vast-cc --from-source <input.c>
+```
