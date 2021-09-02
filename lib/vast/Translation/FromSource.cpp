@@ -29,6 +29,8 @@
 #include <llvm/ADT/None.h>
 #include <llvm/Support/ErrorHandling.h>
 
+#include "mlir/IR/Attributes.h"
+#include "mlir/IR/Value.h"
 #include "vast/Translation/Types.hpp"
 #include "vast/Dialect/HighLevel/HighLevel.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
@@ -49,24 +51,128 @@ namespace vast::hl
     using string_ref = llvm::StringRef;
     using logical_result = mlir::LogicalResult;
 
+    struct VastBuilder
+    {
+        using OpBuilder = mlir::OpBuilder;
+
+        VastBuilder(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod, clang::ASTContext &actx)
+            : mctx(mctx), actx(actx), builder(mod->getBodyRegion())
+        {}
+
+        mlir::Location getLocation(clang::SourceRange range)
+        {
+            auto beg = range.getBegin();
+            auto loc = actx.getSourceManager().getPresumedLoc(beg);
+
+            if (loc.isInvalid())
+                return builder.getUnknownLoc();
+
+            auto file = mlir::Identifier::get(loc.getFilename(), &mctx);
+            return builder.getFileLineColLoc(file, loc.getLine(), loc.getColumn());
+        }
+
+        template< typename Op, typename ...Args >
+        auto create(Args &&... args)
+        {
+            return builder.create< Op >( std::forward< Args >(args)... );
+        }
+
+        void setInsertionPointToStart(mlir::Block *block)
+        {
+            builder.setInsertionPointToStart(block);
+        }
+
+        mlir::Attribute constant_attr(const IntegerType &ty, int64_t value)
+        {
+            // TODO(Heno): make datalayout aware
+            switch(ty.getKind()) {
+                case vast::hl::integer_kind::Char:      return builder.getI8IntegerAttr(value);
+                case vast::hl::integer_kind::Short:     return builder.getI16IntegerAttr(value);
+                case vast::hl::integer_kind::Int:       return builder.getI32IntegerAttr(value);
+                case vast::hl::integer_kind::Long:      return builder.getI64IntegerAttr(value);
+                case vast::hl::integer_kind::LongLong:  return builder.getI64IntegerAttr(value);
+            }
+        }
+
+        mlir::Value constant(mlir::Location loc, mlir::Type ty, int64_t value)
+        {
+            assert(ty.isa< IntegerType >());
+            auto ity = ty.cast< IntegerType >();
+            auto attr = constant_attr(ity, value);
+            return builder.create< ConstantOp >(loc, ity, attr);
+        }
+
+    private:
+        mlir::MLIRContext &mctx;
+        clang::ASTContext &actx;
+
+        OpBuilder builder;
+    };
+
+    struct VastExprVisitor : clang::StmtVisitor< VastExprVisitor, mlir::Value >
+    {
+        VastExprVisitor(VastBuilder &builder, TypeConverter &types)
+            : builder(builder), types(types)
+        {}
+
+        mlir::Value VisitIntegerLiteral(const clang::IntegerLiteral *lit)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit IntegerLiteral\n");
+            auto val = lit->getValue().getSExtValue();
+            auto type = types.convert(lit->getType());
+            auto loc = builder.getLocation(lit->getSourceRange());
+            return builder.constant(loc, type, val);
+        }
+
+    private:
+
+        VastBuilder &builder;
+        TypeConverter &types;
+    };
+
     struct VastStmtVisitor : clang::StmtVisitor< VastStmtVisitor >
     {
+        VastStmtVisitor(VastBuilder &builder, TypeConverter &types)
+            : builder(builder), types(types)
+        {}
+
         void VisitCompoundStmt(clang::CompoundStmt *stmt)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit CompoundStmt\n");
+
             for (auto s : stmt->body()) {
                 LLVM_DEBUG(llvm::dbgs() << "Visit Stmt " << s->getStmtClassName() << "\n");
                 Visit(s);
             }
         }
+
+        void VisitReturnStmt(clang::ReturnStmt *stmt)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit ReturnStmt\n");
+            auto loc = builder.getLocation(stmt->getSourceRange());
+
+            if (stmt->getRetValue()) {
+                VastExprVisitor visitor(builder, types);
+                auto val = visitor.Visit(stmt->getRetValue());
+
+                // TODO(Heno): cast return values
+                builder.create< mlir::ReturnOp >(loc, val);
+            } else {
+                builder.create< mlir::ReturnOp >(loc);
+            }
+        }
+
+    private:
+
+        VastBuilder &builder;
+        TypeConverter &types;
     };
 
     struct VastDeclVisitor : clang::DeclVisitor< VastDeclVisitor >
     {
-        using OpBuilder = mlir::OpBuilder;
 
         VastDeclVisitor(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod, clang::ASTContext &actx)
-            : mctx(mctx), mod(mod),  actx(actx), builder(mod->getBodyRegion()), types(&mctx)
+            : mctx(mctx), mod(mod),  actx(actx), builder(mctx, mod, actx), types(&mctx)
         {}
 
         void VisitFunctionDecl(clang::FunctionDecl *decl)
@@ -74,7 +180,7 @@ namespace vast::hl
             LLVM_DEBUG(llvm::dbgs() << "Visit FunctionDecl: " << decl->getName() << "\n");
             llvm::ScopedHashTableScope scope(symbols);
 
-            auto loc = getLocation(decl->getSourceRange());
+            auto loc = builder.getLocation(decl->getSourceRange());
             auto type = types.convert(decl->getFunctionType());
             assert( type );
 
@@ -90,12 +196,12 @@ namespace vast::hl
 
             builder.setInsertionPointToStart(entry);
 
-            VastStmtVisitor visitor;
+            VastStmtVisitor visitor(builder, types);
             visitor.Visit(decl->getBody());
 
             // TODO(Heno): fix return generation
             if (entry->empty())
-                builder.create< ReturnOp >(getLocation(decl->getEndLoc()), llvm::None);
+                builder.create< ReturnOp >(builder.getLocation(decl->getEndLoc()), llvm::None);
 
             if (decl->isMain())
                 fn.setVisibility(mlir::FuncOp::Visibility::Private);
@@ -106,20 +212,8 @@ namespace vast::hl
         mlir::OwningModuleRef &mod;
         clang::ASTContext     &actx;
 
-        OpBuilder builder;
+        VastBuilder builder;
         TypeConverter types;
-
-        mlir::Location getLocation(clang::SourceRange range)
-        {
-            auto beg = range.getBegin();
-            auto loc = actx.getSourceManager().getPresumedLoc(beg);
-
-            if (loc.isInvalid())
-                return builder.getUnknownLoc();
-
-            auto file = mlir::Identifier::get(loc.getFilename(), &mctx);
-            return builder.getFileLineColLoc(file, loc.getLine(), loc.getColumn());
-        }
 
         // Declare a variable in the current scope, return success if the variable
         // wasn't declared yet.
