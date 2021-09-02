@@ -1,5 +1,5 @@
 # Copyright (c) 2021-present, Trail of Bits, Inc.
-add_mlir_dialect(HighLevel highlevel)
+add_mlir_dialect(HighLevel hl)
 add_mlir_doc(HighLevel -gen-dialect-doc HighLevel Dialects/)
 
 # set(LLVM_TARGET_DEFINITIONS HighLevelAttributes.td)

@@ -1,4 +1,4 @@
 // RUN: vast-cc --from-source %s | FileCheck %s
 
-// CHECK-LABEL: func @main() -> !highlevel.int
+// CHECK-LABEL: func @main() -> !hl.int
 int main() {}

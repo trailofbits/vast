@@ -6,7 +6,7 @@
 include "mlir/IR/OpBase.td"
 
 def HighLevel_Dialect : Dialect {
-    let name = "highlevel";
+    let name = "hl";
     let summary = "A high-level verbose program analysis MLIR dialect.";
     let description = [{
         This dialect intends capture highevel constructs of C/C++
