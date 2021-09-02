@@ -49,6 +49,18 @@ namespace vast::hl
     using string_ref = llvm::StringRef;
     using logical_result = mlir::LogicalResult;
 
+    struct VastStmtVisitor : clang::StmtVisitor< VastStmtVisitor >
+    {
+        void VisitCompoundStmt(clang::CompoundStmt *stmt)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit CompoundStmt\n");
+            for (auto s : stmt->body()) {
+                LLVM_DEBUG(llvm::dbgs() << "Visit Stmt " << s->getStmtClassName() << "\n");
+                Visit(s);
+            }
+        }
+    };
+
     struct VastDeclVisitor : clang::DeclVisitor< VastDeclVisitor >
     {
         using OpBuilder = mlir::OpBuilder;
@@ -78,8 +90,8 @@ namespace vast::hl
 
             builder.setInsertionPointToStart(entry);
 
-            // emit function body TODO(Heno):
-            // TraverseStmt(decl->getBody());
+            VastStmtVisitor visitor;
+            visitor.Visit(decl->getBody());
 
             // TODO(Heno): fix return generation
             if (entry->empty())
