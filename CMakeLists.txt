@@ -125,7 +125,7 @@ add_subdirectory(bin)
 
 
 # test options
-option(ENABLE_TESTING "Enable Test Builds" ON)
+option(ENABLE_TESTING "Enable Test Builds" OFF)
 
 if (ENABLE_TESTING)
   enable_testing()
