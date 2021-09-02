@@ -16,7 +16,7 @@ namespace vast::hl
             case integer_kind::Short:    return "short";
             case integer_kind::Int:      return "int";
             case integer_kind::Long:     return "long";
-            case integer_kind::LongLong: return "long long";
+            case integer_kind::LongLong: return "longlong";
         }
     }
 
