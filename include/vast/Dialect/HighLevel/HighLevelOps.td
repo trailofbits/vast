@@ -3,6 +3,26 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 
+def HighLevel_ConstantOp : HighLevel_Op< "constant", [] > {
+  let summary = "VAST constant";
+  let description = [{ VAST constant }];
+
+  let arguments = (ins AnyAttr:$value);
+
+  // FIXME: More specific type.
+  let results = (outs AnyType);
+
+  let builders = [OpBuilderDAG< (
+      ins "mlir::Attribute":$value
+    ) >
+  ];
+
+  let verifier = ? ;
+  let printer = [{ p << getOperationName()
+                     << "( " <<  value() << " )";
+                   p << ": " << getResult().getType();
+  }];
+}
 
 def HighLevel_ReturnOp : HighLevel_Op<"return", [Terminator]> {
   let summary = "VAST return operation.";
