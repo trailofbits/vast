@@ -19,6 +19,8 @@
 #include <clang/AST/DeclBase.h>
 #include <clang/Tooling/Tooling.h>
 #include <clang/AST/ASTContext.h>
+#include <clang/AST/DeclVisitor.h>
+
 
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
@@ -47,107 +49,65 @@ namespace vast::hl
     using string_ref = llvm::StringRef;
     using logical_result = mlir::LogicalResult;
 
-    struct ASTVisitor : clang::RecursiveASTVisitor<ASTVisitor>
+    struct VastDeclVisitor : clang::DeclVisitor< VastDeclVisitor >
     {
-        using Builder = mlir::OpBuilder;
+        using OpBuilder = mlir::OpBuilder;
 
-        ASTVisitor(mlir::ModuleOp module, clang::ASTContext &ast_ctx)
-            : module(module), types(module->getContext()), ast_ctx(ast_ctx)
+        VastDeclVisitor(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod, clang::ASTContext &actx)
+            : mctx(mctx), mod(mod),  actx(actx), builder(mod->getBodyRegion()), types(&mctx)
         {}
 
-        virtual ~ASTVisitor() = default;
-
-        virtual bool VisitDecl(clang::Decl *decl)
-        {
-            LLVM_DEBUG(llvm::dbgs() << "Visit Decl\n");
-            return true;
-        }
-
-        virtual bool VisitStmt(clang::Stmt *stmt)
-        {
-            LLVM_DEBUG(llvm::dbgs() << "Visit Stmt\n");
-            return true;
-        }
-
-        bool VisitTranslationUnitDecl(clang::TranslationUnitDecl *tu)
-        {
-            LLVM_DEBUG(llvm::dbgs() << "Visit Translation Unit\n");
-            return true;
-        }
-
-        bool VisitTypedefDecl(clang::TypedefDecl *tdef)
-        {
-            LLVM_DEBUG(llvm::dbgs() << "Visit Typedef\n");
-            return true;
-        }
-
-        bool VisitFunctionDecl(clang::FunctionDecl *decl)
+        void VisitFunctionDecl(clang::FunctionDecl *decl)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit FunctionDecl: " << decl->getName() << "\n");
             llvm::ScopedHashTableScope scope(symbols);
-
-            Builder bld(module.getBodyRegion());
 
             auto loc = getLocation(decl->getSourceRange());
             auto type = types.convert(decl->getFunctionType());
             assert( type );
 
-            auto fn = bld.create< mlir::FuncOp >(loc, decl->getName(), type);
+            auto fn = builder.create< mlir::FuncOp >(loc, decl->getName(), type);
 
             auto entry = fn.addEntryBlock();
 
             // In MLIR the entry block of the function must have the same argument list as the function itself.
             for (const auto &[arg, earg] : llvm::zip(decl->parameters(), entry->getArguments())) {
                 if (failed(declare(arg->getName(), earg)))
-                    module->emitError("multiple declarations of a same symbol" + arg->getName());
+                    mod->emitError("multiple declarations of a same symbol" + arg->getName());
             }
 
-            bld.setInsertionPointToStart(entry);
+            builder.setInsertionPointToStart(entry);
 
             // emit function body TODO(Heno):
             // TraverseStmt(decl->getBody());
 
             // TODO(Heno): fix return generation
             if (entry->empty())
-                bld.create< ReturnOp >(getLocation(decl->getEndLoc()), llvm::None);
+                builder.create< ReturnOp >(getLocation(decl->getEndLoc()), llvm::None);
 
-            if (decl->getName() != "main")
+            if (decl->isMain())
                 fn.setVisibility(mlir::FuncOp::Visibility::Private);
-
-            return true;
         }
 
-        bool VisitCompoundStmt(clang::CompoundStmt *stmt)
-        {
-            LLVM_DEBUG(llvm::dbgs() << "Visit CompoundStmt\n");
-            return true;
-        }
+    private:
+        mlir::MLIRContext     &mctx;
+        mlir::OwningModuleRef &mod;
+        clang::ASTContext     &actx;
 
-        bool VisitReturnStmt(clang::ReturnStmt *stmt)
-        {
-            LLVM_DEBUG(llvm::dbgs() << "Visit ReturnStmt\n");
-            return true;
-        }
+        OpBuilder builder;
+        TypeConverter types;
 
         mlir::Location getLocation(clang::SourceRange range)
         {
-            auto ctx = module.getContext();
-
             auto beg = range.getBegin();
-            auto loc = ast_ctx.getSourceManager().getPresumedLoc(beg);
+            auto loc = actx.getSourceManager().getPresumedLoc(beg);
 
-            Builder bld(module.getBodyRegion());
             if (loc.isInvalid())
-                return bld.getUnknownLoc();
+                return builder.getUnknownLoc();
 
-            auto file = mlir::Identifier::get(loc.getFilename(), ctx);
-            return bld.getFileLineColLoc(file, loc.getLine(), loc.getColumn());
+            auto file = mlir::Identifier::get(loc.getFilename(), &mctx);
+            return builder.getFileLineColLoc(file, loc.getLine(), loc.getColumn());
         }
-
-        mlir::ModuleOp module;
-        TypeConverter types;
-
-        const clang::ASTContext &ast_ctx;
 
         // Declare a variable in the current scope, return success if the variable
         // wasn't declared yet.
@@ -166,6 +126,35 @@ namespace vast::hl
         llvm::ScopedHashTable<string_ref, mlir::Value> symbols;
     };
 
+    struct VastCodeGen : clang::ASTConsumer
+    {
+        VastCodeGen(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod, clang::ASTContext &actx)
+            : mctx(mctx), mod(mod), actx(actx)
+        {}
+
+        bool HandleTopLevelDecl(clang::DeclGroupRef decls) override
+        {
+            llvm_unreachable("not implemented");
+        }
+
+        void HandleTranslationUnit(clang::ASTContext &ctx) override
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Process Translation Unit\n");
+            auto tu = actx.getTranslationUnitDecl();
+
+            VastDeclVisitor visitor(mctx, mod, actx);
+
+            for (const auto &decl : tu->decls())
+                visitor.Visit(decl);
+        }
+
+    private:
+        mlir::MLIRContext     &mctx;
+        mlir::OwningModuleRef &mod;
+        clang::ASTContext     &actx;
+    };
+
+
     static mlir::OwningModuleRef from_source_parser(const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx)
     {
         ctx->loadDialect< HighLevelDialect >();
@@ -179,8 +168,8 @@ namespace vast::hl
 
         auto ast = clang::tooling::buildASTFromCode(input->getBuffer());
 
-        ASTVisitor visitor(*module, ast->getASTContext());
-        visitor.TraverseDecl(ast->getASTContext().getTranslationUnitDecl());
+        VastCodeGen codegen(*ctx, module, ast->getASTContext());
+        codegen.HandleTranslationUnit(ast->getASTContext());
 
         // TODO(Heno): verify module
         return module;
