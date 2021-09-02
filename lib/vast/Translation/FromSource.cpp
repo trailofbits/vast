@@ -30,6 +30,7 @@
 #include <llvm/Support/ErrorHandling.h>
 
 #include "mlir/IR/Attributes.h"
+#include "mlir/IR/Block.h"
 #include "mlir/IR/Value.h"
 #include "vast/Translation/Types.hpp"
 #include "vast/Dialect/HighLevel/HighLevel.hpp"
@@ -81,6 +82,8 @@ namespace vast::hl
         {
             builder.setInsertionPointToStart(block);
         }
+
+        mlir::Block * getBlock() const { return builder.getBlock(); }
 
         mlir::Attribute constant_attr(const IntegerType &ty, int64_t value)
         {
@@ -186,6 +189,13 @@ namespace vast::hl
 
             auto fn = builder.create< mlir::FuncOp >(loc, decl->getName(), type);
 
+            // TODO(Heno): move to function prototype lifting
+            if (!decl->isMain())
+                fn.setVisibility(mlir::FuncOp::Visibility::Private);
+
+            if (!decl->hasBody() || !fn.isExternal())
+                return;
+
             auto entry = fn.addEntryBlock();
 
             // In MLIR the entry block of the function must have the same argument list as the function itself.
@@ -196,15 +206,20 @@ namespace vast::hl
 
             builder.setInsertionPointToStart(entry);
 
-            VastStmtVisitor visitor(builder, types);
-            visitor.Visit(decl->getBody());
+            if (decl->hasBody()) {
+                VastStmtVisitor visitor(builder, types);
+                visitor.Visit(decl->getBody());
+            }
 
-            // TODO(Heno): fix return generation
-            if (entry->empty())
-                builder.create< ReturnOp >(builder.getLocation(decl->getEndLoc()), llvm::None);
-
-            if (decl->isMain())
-                fn.setVisibility(mlir::FuncOp::Visibility::Private);
+            auto end = builder.getBlock();
+            auto &ops = end->getOperations();
+            if (ops.empty() || ops.back().isKnownNonTerminator()) {
+                if (decl->getReturnType()->isVoidType()) {
+                    builder.create< mlir::ReturnOp >(builder.getLocation(decl->getEndLoc()));
+                } else {
+                    builder.create< UnreachableOp >(builder.getLocation(decl->getBeginLoc()));
+                }
+            }
         }
 
     private:
