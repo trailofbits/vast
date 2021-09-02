@@ -34,4 +34,20 @@ def HighLevel_ReturnOp : HighLevel_Op<"return", [Terminator]> {
   let verifier = ?;
 }
 
+def HighLevel_UnreachableOp : HighLevel_Op<"unreachable", [Terminator]> {
+  let summary = "VAST unreachable operation";
+  let description = [{ VAST unreachable operation }];
+
+  let arguments = (ins Variadic<AnyType>:$operands);
+
+  let builders = [OpBuilderDAG<(ins), [{ }]>];
+
+  let verifier = ?;
+  let printer = [{
+    p << getOperationName() << " ";
+    if (!operands().empty())
+      p << *operand_begin();
+  }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
