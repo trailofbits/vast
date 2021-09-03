@@ -33,6 +33,7 @@
 #include "mlir/IR/Block.h"
 #include "mlir/IR/Types.h"
 #include "mlir/IR/Value.h"
+#include "mlir/Support/LLVM.h"
 #include "vast/Translation/Types.hpp"
 #include "vast/Dialect/HighLevel/HighLevel.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
@@ -63,14 +64,24 @@ namespace vast::hl
 
         mlir::Location getLocation(clang::SourceRange range)
         {
-            auto beg = range.getBegin();
-            auto loc = actx.getSourceManager().getPresumedLoc(beg);
+            return getLocationImpl(range.getBegin());
+        }
+
+        mlir::Location getEndLocation(clang::SourceRange range)
+        {
+            return getLocationImpl(range.getEnd());
+        }
+
+        mlir::Location getLocationImpl(clang::SourceLocation at)
+        {
+            auto loc = actx.getSourceManager().getPresumedLoc(at);
 
             if (loc.isInvalid())
                 return builder.getUnknownLoc();
 
             auto file = mlir::Identifier::get(loc.getFilename(), &mctx);
             return builder.getFileLineColLoc(file, loc.getLine(), loc.getColumn());
+
         }
 
         template< typename Op, typename ...Args >
@@ -134,10 +145,12 @@ namespace vast::hl
         TypeConverter &types;
     };
 
+    struct VastDeclVisitor;
+
     struct VastStmtVisitor : clang::StmtVisitor< VastStmtVisitor >
     {
-        VastStmtVisitor(VastBuilder &builder, TypeConverter &types)
-            : builder(builder), types(types)
+        VastStmtVisitor(VastBuilder &builder, TypeConverter &types, VastDeclVisitor &decls)
+            : builder(builder), types(types), decls(decls)
         {}
 
         void VisitCompoundStmt(clang::CompoundStmt *stmt)
@@ -166,21 +179,32 @@ namespace vast::hl
             }
         }
 
+        void VisitDeclStmt(clang::DeclStmt *stmt);
+
     private:
 
-        VastBuilder &builder;
-        TypeConverter &types;
+        VastBuilder     &builder;
+        TypeConverter   &types;
+        VastDeclVisitor &decls;
     };
 
     struct VastDeclVisitor : clang::DeclVisitor< VastDeclVisitor >
     {
         VastDeclVisitor(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod, clang::ASTContext &actx)
-            : mctx(mctx), mod(mod),  actx(actx), builder(mctx, mod, actx), types(&mctx)
+            : mctx(mctx), mod(mod),  actx(actx)
+            , builder(mctx, mod, actx)
+            , types(&mctx)
+            , stmts(builder, types, *this)
         {}
 
         mlir::Location getLocation(clang::SourceRange range)
         {
             return builder.getLocation(range);
+        }
+
+        mlir::Location getEndLocation(clang::SourceRange range)
+        {
+            return builder.getEndLocation(range);
         }
 
         template< typename T >
@@ -215,8 +239,7 @@ namespace vast::hl
             builder.setInsertionPointToStart(entry);
 
             if (decl->hasBody()) {
-                VastStmtVisitor visitor(builder, types);
-                visitor.Visit(decl->getBody());
+                stmts.Visit(decl->getBody());
             }
 
             auto end = builder.getBlock();
@@ -239,6 +262,17 @@ namespace vast::hl
             }
         }
 
+        void VisitVarDecl(clang::VarDecl *decl)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit VarDecl\n");
+            auto ty    = convert(decl->getType());
+            auto named = decl->getUnderlyingDecl();
+            auto loc   = getEndLocation(decl->getSourceRange());
+
+            // TODO(Heno): add init sections
+            builder.create< VarOp >(loc, ty, named->getName());
+        }
+
     private:
         mlir::MLIRContext     &mctx;
         mlir::OwningModuleRef &mod;
@@ -246,6 +280,8 @@ namespace vast::hl
 
         VastBuilder builder;
         TypeConverter types;
+
+        VastStmtVisitor stmts;
 
         // Declare a variable in the current scope, return success if the variable
         // wasn't declared yet.
@@ -263,6 +299,15 @@ namespace vast::hl
         // scope is destroyed and the mappings created in this scope are dropped.
         llvm::ScopedHashTable<string_ref, mlir::Value> symbols;
     };
+
+    void VastStmtVisitor::VisitDeclStmt(clang::DeclStmt *stmt)
+    {
+        LLVM_DEBUG(llvm::dbgs() << "Visit DeclStmt\n");
+        for (auto decl : stmt->decls()) {
+            LLVM_DEBUG(llvm::dbgs() << "Visit Decl "  << decl->getDeclKindName() << "\n");
+            decls.Visit(decl);
+        }
+    }
 
     struct VastCodeGen : clang::ASTConsumer
     {
