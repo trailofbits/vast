@@ -111,6 +111,7 @@ jobs:
           fetch-depth: 0
 
       - name: Checkout submodules
+        working-directory: ${{ steps.build_paths.outputs.REL_SOURCE }}/vast
         shell: bash
         run: |
           auth_header="$(git config --local --get http.https://github.com/.extraheader)"
