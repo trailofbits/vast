@@ -3,6 +3,21 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 
+def HighLevel_VarOp : HighLevel_Op< "var", [] > {
+  let summary = "VAST variable declaration";
+  let description = [{ VAST variable delaration }];
+
+  let arguments = (ins StrAttr:$name);
+
+  let results = (outs AnyType);
+
+  let verifier = ? ;
+  let printer = [{ p << getOperationName()
+                     << "( " <<  name() << " )";
+                   p << ": " << getResult().getType();
+  }];
+}
+
 def HighLevel_ConstantOp : HighLevel_Op< "constant", [] > {
   let summary = "VAST constant";
   let description = [{ VAST constant }];
