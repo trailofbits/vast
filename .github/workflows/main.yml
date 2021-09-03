@@ -107,6 +107,7 @@ jobs:
       - name: Clone the vast repository
         uses: actions/checkout@v2
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           path: ${{ steps.build_paths.outputs.REL_SOURCE }}/vast
           fetch-depth: 0
           submodules: true
