@@ -31,6 +31,7 @@
 
 #include "mlir/IR/Attributes.h"
 #include "mlir/IR/Block.h"
+#include "mlir/IR/Types.h"
 #include "mlir/IR/Value.h"
 #include "vast/Translation/Types.hpp"
 #include "vast/Dialect/HighLevel/HighLevel.hpp"
@@ -173,18 +174,25 @@ namespace vast::hl
 
     struct VastDeclVisitor : clang::DeclVisitor< VastDeclVisitor >
     {
-
         VastDeclVisitor(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod, clang::ASTContext &actx)
             : mctx(mctx), mod(mod),  actx(actx), builder(mctx, mod, actx), types(&mctx)
         {}
+
+        mlir::Location getLocation(clang::SourceRange range)
+        {
+            return builder.getLocation(range);
+        }
+
+        template< typename T >
+        decltype(auto) convert(T type) { return types.convert(type); }
 
         void VisitFunctionDecl(clang::FunctionDecl *decl)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit FunctionDecl: " << decl->getName() << "\n");
             llvm::ScopedHashTableScope scope(symbols);
 
-            auto loc = builder.getLocation(decl->getSourceRange());
-            auto type = types.convert(decl->getFunctionType());
+            auto loc  = getLocation(decl->getSourceRange());
+            auto type = convert(decl->getFunctionType());
             assert( type );
 
             auto fn = builder.create< mlir::FuncOp >(loc, decl->getName(), type);
@@ -213,11 +221,20 @@ namespace vast::hl
 
             auto end = builder.getBlock();
             auto &ops = end->getOperations();
+
             if (ops.empty() || ops.back().isKnownNonTerminator()) {
+                auto beg_loc = getLocation(decl->getBeginLoc());
+                auto end_loc = getLocation(decl->getEndLoc());
                 if (decl->getReturnType()->isVoidType()) {
-                    builder.create< mlir::ReturnOp >(builder.getLocation(decl->getEndLoc()));
+                    builder.create< mlir::ReturnOp >(end_loc);
                 } else {
-                    builder.create< UnreachableOp >(builder.getLocation(decl->getBeginLoc()));
+                    if (decl->isMain()) {
+                        // return zero if no return is present in main
+                        auto zero = builder.constant(end_loc, type.getResult(0), 0);
+                        builder.create< mlir::ReturnOp >(end_loc, zero);
+                    } else {
+                        builder.create< UnreachableOp >(beg_loc);
+                    }
                 }
             }
         }
