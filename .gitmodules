@@ -1,0 +1,3 @@
+[submodule "external/pasta"]
+	path = external/pasta
+	url = https://github.com/trailofbits/pasta.git
