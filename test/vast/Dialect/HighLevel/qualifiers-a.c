@@ -16,10 +16,10 @@ unsigned int ui;
 unsigned short us;
 
 // CHECK: hl.var( ci ): !hl<"const int">
-const int ci;
+const int ci = 0;
 
 // CHECK: hl.var( cui ): !hl<"const unsigned int">
-const unsigned cui;
+const unsigned cui = 0;
 
 // CHECK: hl.var( vi ): !hl<"volatile int">
 volatile int vi;
@@ -28,16 +28,16 @@ volatile int vi;
 volatile unsigned vui;
 
 // CHECK: hl.var( cvi ): !hl<"const volatile int">
-const volatile int cvi;
+const volatile int cvi = 0;
 
-// CHECK: hl.var( cvi ): !hl<"const volatile unsigned int">
-const volatile unsigned int cvi;
+// CHECK: hl.var( cvui ): !hl<"const volatile unsigned int">
+const volatile unsigned int cvui = 0U;
 
 // CHECK: hl.var( b ): !hl.bool
 bool b;
 
 // CHECK: hl.var( cb ): !hl<"const bool">
-const bool cb;
+const bool cb = false;
 
 // CHECK: hl.var( cvb ): !hl<"const volatile bool">
-const volatile bool cvb;
+const volatile bool cvb = false;
