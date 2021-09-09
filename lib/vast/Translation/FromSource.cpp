@@ -111,10 +111,18 @@ namespace vast::hl
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, int64_t value)
         {
-            assert(ty.isa< IntegerType >());
-            auto ity = ty.cast< IntegerType >();
-            auto attr = constant_attr(ity, value);
-            return builder.create< ConstantOp >(loc, ity, attr);
+            if (ty.isa< IntegerType >()) {
+                auto ity = ty.cast< IntegerType >();
+                auto attr = constant_attr(ity, value);
+                return builder.create< ConstantOp >(loc, ity, attr);
+            }
+
+            if (ty.isa< BoolType >()) {
+                auto attr = builder.getBoolAttr(value);
+                return builder.create< ConstantOp >(loc, ty, attr);
+            }
+
+            llvm_unreachable( "unsupported constant type" );
         }
 
     private:
@@ -134,6 +142,15 @@ namespace vast::hl
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit IntegerLiteral\n");
             auto val = lit->getValue().getSExtValue();
+            auto type = types.convert(lit->getType());
+            auto loc = builder.getLocation(lit->getSourceRange());
+            return builder.constant(loc, type, val);
+        }
+
+        mlir::Value VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *lit)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit CXXBoolLiteralExpr\n");
+            bool val = lit->getValue();
             auto type = types.convert(lit->getType());
             auto loc = builder.getLocation(lit->getSourceRange());
             return builder.constant(loc, type, val);
