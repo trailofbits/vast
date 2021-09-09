@@ -285,9 +285,15 @@ namespace vast::hl
             auto ty    = convert(decl->getType());
             auto named = decl->getUnderlyingDecl();
             auto loc   = getEndLocation(decl->getSourceRange());
+            auto init  = decl->getInit();
 
-            // TODO(Heno): add init sections
-            builder.create< VarOp >(loc, ty, named->getName());
+            if (init) {
+                VastExprVisitor visitor(builder, types);
+                auto initializer = visitor.Visit(init);
+                builder.create< VarOp >(loc, ty, named->getName(), initializer);
+            } else {
+                builder.create< VarOp >(loc, ty, named->getName());
+            }
         }
 
     private:

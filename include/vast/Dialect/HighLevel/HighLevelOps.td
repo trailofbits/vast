@@ -7,14 +7,33 @@ def HighLevel_VarOp : HighLevel_Op< "var", [] > {
   let summary = "VAST variable declaration";
   let description = [{ VAST variable delaration }];
 
-  let arguments = (ins StrAttr:$name);
+  let arguments = (ins
+    StrAttr:$name,
+    Optional<AnyType>:$initializer
+  );
 
-  let results = (outs AnyType);
+
+  let results = (outs AnyType:$result);
+
+  let builders = [
+    OpBuilderDAG< ( ins "mlir::Type":$result, "llvm::StringRef":$name ),
+    [{
+      build($_builder, $_state, result, $_builder.getStringAttr(name));
+    }] >,
+    OpBuilderDAG< ( ins "mlir::Type":$result, "mlir::StringAttr":$name ),
+    [{
+      build($_builder, $_state, result, name, mlir::Value());
+    }] >
+  ];
 
   let verifier = ? ;
-  let printer = [{ p << getOperationName()
-                     << "( " <<  name() << " )";
-                   p << ": " << getResult().getType();
+  let printer = [{
+    p << getOperationName()
+      << "( " <<  name();
+    if (auto init = initializer())
+      p << ", " << init;
+    p << " )";
+    p << ": " << getResult().getType();
   }];
 }
 
