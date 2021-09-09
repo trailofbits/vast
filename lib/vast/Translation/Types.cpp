@@ -12,10 +12,11 @@
 namespace vast::hl
 {
     using builtin_type = clang::BuiltinType;
+    using qualifiers   = clang::Qualifiers;
 
-    constexpr integer_qualifier get_integer_qualifier(const builtin_type *ty)
+    constexpr signedness_qualifier get_signedness_qualifier(const builtin_type *ty)
     {
-        return ty->isSignedInteger() ? integer_qualifier::Signed : integer_qualifier::Unsigned;
+        return ty->isSignedInteger() ? signedness_qualifier::Signed : signedness_qualifier::Unsigned;
     }
 
     constexpr integer_kind get_integer_kind(const builtin_type *ty)
@@ -47,30 +48,30 @@ namespace vast::hl
 
     mlir::Type TypeConverter::convert(clang::QualType ty)
     {
-        return convert(ty.getTypePtr());
+        return convert(ty.getTypePtr(), ty.getQualifiers());
     }
 
-    mlir::Type TypeConverter::convert(const clang::Type *ty)
+    mlir::Type TypeConverter::convert(const clang::Type *ty, qualifiers quals)
     {
         ty = ty->getUnqualifiedDesugaredType();
 
         if (ty->isBuiltinType())
-            return convert(clang::cast<builtin_type>(ty));
+            return convert(clang::cast<builtin_type>(ty), quals);
 
         llvm_unreachable("unknown clang type");
     }
 
-    mlir::Type TypeConverter::convert(const builtin_type *ty)
+    mlir::Type TypeConverter::convert(const builtin_type *ty, qualifiers quals)
     {
         // TODO(Heno) qualifiers
         if (is_void_type(ty)) {
             return VoidType::get(ctx);
         } else if (is_bool_type(ty)) {
-            return BoolType::get(ctx);
+            return BoolType::get(ctx, quals.hasVolatile(), quals.hasConst());
         } else if (is_integer_type(ty)) {
-            auto qual = get_integer_qualifier(ty);
+            auto sign = get_signedness_qualifier(ty);
             auto kind = get_integer_kind(ty);
-            return IntegerType::get(ctx, qual, kind);
+            return IntegerType::get(ctx, sign, kind, quals.hasVolatile(), quals.hasConst());
         }
 
         llvm_unreachable("unknown builtin type");

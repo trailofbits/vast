@@ -11,7 +11,7 @@
 
 namespace vast::hl
 {
-    enum class integer_qualifier {
+    enum class signedness_qualifier {
         Signed,
         Unsigned
     };

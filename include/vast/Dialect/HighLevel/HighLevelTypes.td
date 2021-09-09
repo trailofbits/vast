@@ -23,6 +23,35 @@ def Bool : HighLevel_Type< "Bool", "bool" >
 {
     let summary = "An high level bool type representation.";
     let description = [{ bool type }];
+
+    let parameters = (ins
+        "bool":$isVolatile,
+        "bool":$isConst
+    );
+
+    let builders = [
+        TypeBuilder< (ins
+            CArg<"bool", "false">:$isVolatile,
+            CArg<"bool", "false">:$isConst ),
+        [{
+            return Base::get($_ctxt, isVolatile, isConst);
+        }]>
+    ];
+
+    let skipDefaultBuilders = 1;
+
+    let printer = [{
+        if (getIsConst())
+            $_printer << "const ";
+        if (getIsVolatile())
+            $_printer << "volatile ";
+        $_printer << "bool";
+    }];
+
+    let parser = [{
+        // TODO(Heno): parse qualifiers
+        return get($_ctxt);
+    }];
 }
 
 def Integer : HighLevel_Type< "Integer", "integer" >
@@ -31,23 +60,46 @@ def Integer : HighLevel_Type< "Integer", "integer" >
     let description = [{ integer type }];
 
     let parameters = (ins
-        "integer_qualifier":$qualifier,
-        "integer_kind":$kind
+        "signedness_qualifier":$signedness,
+        "integer_kind":$kind,
+        "bool":$isVolatile,
+        "bool":$isConst
     );
 
+    let builders = [
+        TypeBuilder< (ins
+            "signedness_qualifier":$signedness,
+            "integer_kind":$kind,
+            CArg<"bool", "false">:$isVolatile,
+            CArg<"bool", "false">:$isConst ),
+        [{
+            return Base::get($_ctxt, signedness, kind, isVolatile, isConst);
+        }]>
+    ];
+
+    let skipDefaultBuilders = 1;
+
     let printer = [{
-        if (getQualifier() == vast::hl::integer_qualifier::Unsigned)
+        if (getIsConst())
+            $_printer << "const ";
+        if (getIsVolatile())
+            $_printer << "volatile ";
+        if (getSignedness() == vast::hl::signedness_qualifier::Unsigned)
             $_printer << "unsigned ";
         $_printer << to_string(getKind());
     }];
 
     let parser = [{
-        vast::hl::integer_qualifier qual = vast::hl::integer_qualifier::Signed;
+        auto sign = vast::hl::signedness_qualifier::Signed;
+
+        // TODO(Heno): qualifier parser
 
         if ($_parser.parseOptionalKeyword("unsigned"))
-            qual = vast::hl::integer_qualifier::Unsigned;
+            sign = vast::hl::signedness_qualifier::Unsigned;
+
         // TODO(Heno): integer kinds
-        return get($_ctxt, qual, vast::hl::integer_kind::Int);
+
+        return get($_ctxt, sign, vast::hl::integer_kind::Int);
     }];
 }
 
