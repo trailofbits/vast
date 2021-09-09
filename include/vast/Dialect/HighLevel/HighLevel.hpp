@@ -10,6 +10,13 @@
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.h.inc"
 
+namespace vast::hl
+{
+    // fixes missing namespace in the tablegen code
+    using Value = mlir::Value;
+
+} // namespace vast::hl
+
 // #define GET_ATTRDEF_CLASSES
 // #include "vast/Dialect/HighLevel/HighLevelAttributes.h.inc"
 
