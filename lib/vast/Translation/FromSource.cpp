@@ -132,13 +132,47 @@ namespace vast::hl
         OpBuilder builder;
     };
 
-    struct VastExprVisitor : clang::StmtVisitor< VastExprVisitor, mlir::Value >
+    struct VastDeclVisitor;
+
+    struct VastStmtVisitor : clang::StmtVisitor< VastStmtVisitor, Value >
     {
-        VastExprVisitor(VastBuilder &builder, TypeConverter &types)
-            : builder(builder), types(types)
+        VastStmtVisitor(VastBuilder &builder, TypeConverter &types, VastDeclVisitor &decls)
+            : builder(builder), types(types), decls(decls)
         {}
 
-        mlir::Value VisitIntegerLiteral(const clang::IntegerLiteral *lit)
+
+        Value VisitCompoundStmt(clang::CompoundStmt *stmt)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit CompoundStmt\n");
+
+            for (auto s : stmt->body()) {
+                LLVM_DEBUG(llvm::dbgs() << "Visit Stmt " << s->getStmtClassName() << "\n");
+                Visit(s);
+            }
+
+            return Value(); // dummy return
+        }
+
+        Value VisitReturnStmt(clang::ReturnStmt *stmt)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit ReturnStmt\n");
+            auto loc = builder.getLocation(stmt->getSourceRange());
+
+            if (stmt->getRetValue()) {
+                auto val = Visit(stmt->getRetValue());
+
+                // TODO(Heno): cast return values
+                builder.create< mlir::ReturnOp >(loc, val);
+            } else {
+                builder.create< mlir::ReturnOp >(loc);
+            }
+
+            return Value(); // dummy value
+        }
+
+        Value VisitDeclStmt(clang::DeclStmt *stmt);
+
+        Value VisitIntegerLiteral(const clang::IntegerLiteral *lit)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit IntegerLiteral\n");
             auto val = lit->getValue().getSExtValue();
@@ -147,7 +181,7 @@ namespace vast::hl
             return builder.constant(loc, type, val);
         }
 
-        mlir::Value VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *lit)
+        Value VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *lit)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit CXXBoolLiteralExpr\n");
             bool val = lit->getValue();
@@ -156,47 +190,70 @@ namespace vast::hl
             return builder.constant(loc, type, val);
         }
 
-    private:
-
-        VastBuilder &builder;
-        TypeConverter &types;
-    };
-
-    struct VastDeclVisitor;
-
-    struct VastStmtVisitor : clang::StmtVisitor< VastStmtVisitor >
-    {
-        VastStmtVisitor(VastBuilder &builder, TypeConverter &types, VastDeclVisitor &decls)
-            : builder(builder), types(types), decls(decls)
-        {}
-
-        void VisitCompoundStmt(clang::CompoundStmt *stmt)
+        Value VisitBinaryOperator(clang::BinaryOperator *expr)
         {
-            LLVM_DEBUG(llvm::dbgs() << "Visit CompoundStmt\n");
+            LLVM_DEBUG(llvm::dbgs() << "Visit BinaryOperator\n");
+            auto lhs = Visit(expr->getLHS());
+            auto rhs = Visit(expr->getRHS());
+            auto loc = builder.getEndLocation(expr->getSourceRange());
 
-            for (auto s : stmt->body()) {
-                LLVM_DEBUG(llvm::dbgs() << "Visit Stmt " << s->getStmtClassName() << "\n");
-                Visit(s);
+            // TODO(Heno): deal with relational op
+
+            // TODO(Heno): deal with assign
+
+            // TODO(Heno): deal with integer casts
+
+            auto ty = expr->getType();
+
+            auto lhsty = lhs.getType();
+            auto rhsty = rhs.getType();
+            // auto rty = types.convert(ty);
+
+            switch (expr->getOpcode()) {
+                case clang::BinaryOperatorKind::BO_Add: {
+                    if (ty->isIntegerType()) {
+                        // TODO(Heno): integer casts
+                        assert(lhsty == rhsty);
+                        return builder.create< mlir::AddIOp >( loc, rhs, lhs );
+                    }
+
+                    llvm_unreachable( "unhandled addition type" );
+                }
+                default: {
+                    llvm_unreachable( "unhandled binary operation" );
+                }
             }
+
+            return Value();
         }
 
-        void VisitReturnStmt(clang::ReturnStmt *stmt)
+        Value VisitUnaryOperator(clang::UnaryOperator *expr)
         {
-            LLVM_DEBUG(llvm::dbgs() << "Visit ReturnStmt\n");
-            auto loc = builder.getLocation(stmt->getSourceRange());
-
-            if (stmt->getRetValue()) {
-                VastExprVisitor visitor(builder, types);
-                auto val = visitor.Visit(stmt->getRetValue());
-
-                // TODO(Heno): cast return values
-                builder.create< mlir::ReturnOp >(loc, val);
-            } else {
-                builder.create< mlir::ReturnOp >(loc);
-            }
+            LLVM_DEBUG(llvm::dbgs() << "Visit UnaryOperator\n");
+            llvm_unreachable( "unsupported unary operator" );
         }
 
-        void VisitDeclStmt(clang::DeclStmt *stmt);
+        Value VisitImplicitCastExpr(clang::ImplicitCastExpr *expr)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit ImplicitCastExpr\n");
+            // TODO(Heno): implement implicit casts
+            return Visit(expr->getSubExpr());
+        }
+
+        Value VisitDeclRefExpr(clang::DeclRefExpr *decl)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit DeclRefExpr\n");
+            auto loc = builder.getLocation(decl->getSourceRange());
+
+            // TODO(Heno): deal with function declaration
+
+            // TODO(Heno): deal with enum constant declaration
+
+            auto named = decl->getDecl()->getUnderlyingDecl();
+            auto rty = types.convert(decl->getType());
+            return builder.create< DeclRefOp >( loc, rty, named->getNameAsString() );
+
+        }
 
     private:
 
@@ -205,7 +262,7 @@ namespace vast::hl
         VastDeclVisitor &decls;
     };
 
-    struct VastDeclVisitor : clang::DeclVisitor< VastDeclVisitor >
+    struct VastDeclVisitor : clang::DeclVisitor< VastDeclVisitor, mlir::Value >
     {
         VastDeclVisitor(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod, clang::ASTContext &actx)
             : mctx(mctx), mod(mod),  actx(actx)
@@ -227,7 +284,7 @@ namespace vast::hl
         template< typename T >
         decltype(auto) convert(T type) { return types.convert(type); }
 
-        void VisitFunctionDecl(clang::FunctionDecl *decl)
+        Value VisitFunctionDecl(clang::FunctionDecl *decl)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit FunctionDecl: " << decl->getName() << "\n");
             llvm::ScopedHashTableScope scope(symbols);
@@ -243,7 +300,7 @@ namespace vast::hl
                 fn.setVisibility(mlir::FuncOp::Visibility::Private);
 
             if (!decl->hasBody() || !fn.isExternal())
-                return;
+                return Value(); // dummy value
 
             auto entry = fn.addEntryBlock();
 
@@ -277,9 +334,11 @@ namespace vast::hl
                     }
                 }
             }
+
+            return Value(); // dummy value
         }
 
-        void VisitVarDecl(clang::VarDecl *decl)
+        Value VisitVarDecl(clang::VarDecl *decl)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit VarDecl\n");
             auto ty    = convert(decl->getType());
@@ -288,11 +347,10 @@ namespace vast::hl
             auto init  = decl->getInit();
 
             if (init) {
-                VastExprVisitor visitor(builder, types);
-                auto initializer = visitor.Visit(init);
-                builder.create< VarOp >(loc, ty, named->getName(), initializer);
+                auto initializer = stmts.Visit(init);
+                return builder.create< VarOp >(loc, ty, named->getName(), initializer);
             } else {
-                builder.create< VarOp >(loc, ty, named->getName());
+                return builder.create< VarOp >(loc, ty, named->getName());
             }
         }
 
@@ -323,13 +381,15 @@ namespace vast::hl
         llvm::ScopedHashTable<string_ref, mlir::Value> symbols;
     };
 
-    void VastStmtVisitor::VisitDeclStmt(clang::DeclStmt *stmt)
+    Value VastStmtVisitor::VisitDeclStmt(clang::DeclStmt *stmt)
     {
         LLVM_DEBUG(llvm::dbgs() << "Visit DeclStmt\n");
         for (auto decl : stmt->decls()) {
             LLVM_DEBUG(llvm::dbgs() << "Visit Decl "  << decl->getDeclKindName() << "\n");
             decls.Visit(decl);
         }
+
+        return Value(); // dummy value
     }
 
     struct VastCodeGen : clang::ASTConsumer
