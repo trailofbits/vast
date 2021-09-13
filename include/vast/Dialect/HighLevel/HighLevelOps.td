@@ -83,14 +83,21 @@ def HighLevel_ConstantOp : HighLevel_Op< "constant", [] > {
 }
 
 
-def HighLevel_ReturnOp : HighLevel_Op<"return", [Terminator]> {
-  let summary = "VAST return operation.";
-  let description = [{ VAST return opearation. }];
+def HighLevel_VoidOp : HighLevel_Op<"void", []> {
+  let summary = "VAST void operation";
+  let description = [{ VAST void operation }];
 
-  let arguments = (ins Variadic<AnyType>:$operands);
+  let results = (outs Void);
 
-  // Fully specified by traits.
+  let builders = [
+    OpBuilderDAG<(ins),
+    [{
+      build($_builder, $_state, VoidType::get($_builder.getContext()));
+    }] >
+  ];
+
   let verifier = ?;
+  let printer = [{ p << getOperationName(); }];
 }
 
 
