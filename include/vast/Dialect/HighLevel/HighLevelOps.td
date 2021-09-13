@@ -126,4 +126,18 @@ def HighLevel_ImplicitCastOp : HighLevel_Op< "implicit_cast", [] > {
   }];
 }
 
+
+def HighLevel_AddIOp  : HighLevel_BinOp<"addi",  [Commutative]>;
+def HighLevel_AddFOp  : HighLevel_BinOp<"addf",  []>;
+def HighLevel_SubIOp  : HighLevel_BinOp<"subi",  []>;
+def HighLevel_SubFOp  : HighLevel_BinOp<"subf",  []>;
+def HighLevel_MulIOp  : HighLevel_BinOp<"muli",  [Commutative]>;
+def HighLevel_MulFOp  : HighLevel_BinOp<"mulf",  []>;
+def HighLevel_DivIOp  : HighLevel_BinOp<"divi",  []>;
+def HighLevel_DivFOp  : HighLevel_BinOp<"divf",  []>;
+def HighLevel_ModIOp  : HighLevel_BinOp<"modi",  []>;
+def HighLevel_ModFOp  : HighLevel_BinOp<"modf",  []>;
+def HighLevel_ModUIOp : HighLevel_BinOp<"modui", []>;
+
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
