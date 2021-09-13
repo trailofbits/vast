@@ -22,8 +22,10 @@ namespace vast::hl
     constexpr integer_kind get_integer_kind(const builtin_type *ty)
     {
         switch (ty->getKind()) {
-            case builtin_type::SChar:
+            case builtin_type::Char_U:
             case builtin_type::UChar:
+            case builtin_type::Char_S:
+            case builtin_type::SChar:
                 return integer_kind::Char;
             case builtin_type::Short:
             case builtin_type::UShort:
