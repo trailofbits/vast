@@ -6,6 +6,7 @@ int main()
     // CHECK: hl.var( x, [[V1]] ): !hl.int
     int x = 0;
     // CHECK: [[V2:%[0-9]+]] = hl.declref( @x ): !hl.int
-    // CHECK: %3 = hl.var( y, [[V2]] ): !hl.int
+    // CHECK: [[V3:%[0-9]+]]  = hl.implicit_cast ( [[V2]] ): !hl.int
+    // CHECK: hl.var( y, [[V3]] ): !hl.int
     int y = x;
 }
