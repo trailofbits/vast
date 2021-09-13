@@ -8,6 +8,11 @@
 #include <mlir/Support/LogicalResult.h>
 #include <mlir/Dialect/StandardOps/IR/Ops.h>
 #include <mlir/IR/Identifier.h>
+#include <mlir/IR/Attributes.h>
+#include <mlir/IR/Block.h>
+#include <mlir/IR/Types.h>
+#include <mlir/IR/Value.h>
+#include <mlir/Support/LLVM.h>
 
 #include <clang/AST/RecursiveASTVisitor.h>
 #include <clang/Frontend/CompilerInstance.h>
@@ -29,11 +34,6 @@
 #include <llvm/ADT/None.h>
 #include <llvm/Support/ErrorHandling.h>
 
-#include "mlir/IR/Attributes.h"
-#include "mlir/IR/Block.h"
-#include "mlir/IR/Types.h"
-#include "mlir/IR/Value.h"
-#include "mlir/Support/LLVM.h"
 #include "vast/Translation/Types.hpp"
 #include "vast/Dialect/HighLevel/HighLevel.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
@@ -57,6 +57,7 @@ namespace vast::hl
     struct VastBuilder
     {
         using OpBuilder = mlir::OpBuilder;
+        using InsertPoint = OpBuilder::InsertPoint;
 
         VastBuilder(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod, clang::ASTContext &actx)
             : mctx(mctx), actx(actx), builder(mod->getBodyRegion())
@@ -89,6 +90,9 @@ namespace vast::hl
         {
             return builder.create< Op >( std::forward< Args >(args)... );
         }
+
+        InsertPoint saveInsertionPoint() { return builder.saveInsertionPoint(); }
+        void restoreInsertionPoint(InsertPoint ip) { builder.restoreInsertionPoint(ip); }
 
         void setInsertionPointToStart(mlir::Block *block)
         {
@@ -132,6 +136,24 @@ namespace vast::hl
         OpBuilder builder;
     };
 
+
+    struct ScopedInsertPoint
+    {
+        using InsertPoint = VastBuilder::InsertPoint;
+
+        ScopedInsertPoint(VastBuilder &builder)
+            : builder(builder), point(builder.saveInsertionPoint())
+        {}
+
+        ~ScopedInsertPoint()
+        {
+            builder.restoreInsertionPoint(point);
+        }
+
+        VastBuilder &builder;
+        InsertPoint point;
+    };
+
     struct VastDeclVisitor;
 
     struct VastStmtVisitor : clang::StmtVisitor< VastStmtVisitor, Value >
@@ -139,7 +161,6 @@ namespace vast::hl
         VastStmtVisitor(VastBuilder &builder, TypeConverter &types, VastDeclVisitor &decls)
             : builder(builder), types(types), decls(decls)
         {}
-
 
         Value VisitCompoundStmt(clang::CompoundStmt *stmt)
         {
@@ -200,8 +221,6 @@ namespace vast::hl
             // TODO(Heno): deal with relational op
 
             // TODO(Heno): deal with assign
-
-            // TODO(Heno): deal with integer casts
 
             auto ty = expr->getType();
 
@@ -289,6 +308,7 @@ namespace vast::hl
         Value VisitFunctionDecl(clang::FunctionDecl *decl)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit FunctionDecl: " << decl->getName() << "\n");
+            ScopedInsertPoint builder_scope(builder);
             llvm::ScopedHashTableScope scope(symbols);
 
             auto loc  = getLocation(decl->getSourceRange());
