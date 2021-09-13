@@ -12,15 +12,14 @@ def HighLevel_VarOp : HighLevel_Op< "var", [] > {
     Optional<AnyType>:$initializer
   );
 
-
   let results = (outs AnyType:$result);
 
   let builders = [
-    OpBuilderDAG< ( ins "mlir::Type":$result, "llvm::StringRef":$name ),
+    OpBuilderDAG< (ins "mlir::Type":$result, "llvm::StringRef":$name),
     [{
       build($_builder, $_state, result, $_builder.getStringAttr(name));
     }] >,
-    OpBuilderDAG< ( ins "mlir::Type":$result, "mlir::StringAttr":$name ),
+    OpBuilderDAG< (ins "mlir::Type":$result, "mlir::StringAttr":$name),
     [{
       build($_builder, $_state, result, name, mlir::Value());
     }] >
@@ -36,6 +35,31 @@ def HighLevel_VarOp : HighLevel_Op< "var", [] > {
     p << ": " << getResult().getType();
   }];
 }
+
+
+def HighLevel_DeclRefOp : HighLevel_Op< "declref", [] > {
+  let summary = "VAST reference declaration";
+  let description = [{ VAST reference delaration }];
+
+  let arguments = (ins SymbolRefAttr:$decl);
+
+  let results = (outs AnyType);
+
+  let builders = [
+    OpBuilderDAG< (ins "mlir::Type":$rty, "llvm::StringRef":$name),
+    [{
+      build($_builder, $_state, rty, $_builder.getSymbolRefAttr(name));
+    }] >
+  ];
+
+  let printer = [{
+    p << getOperationName()
+      << "( " <<  decl() << " )"
+      << ": " << getResult().getType();
+  }];
+
+}
+
 
 def HighLevel_ConstantOp : HighLevel_Op< "constant", [] > {
   let summary = "VAST constant";
@@ -58,6 +82,7 @@ def HighLevel_ConstantOp : HighLevel_Op< "constant", [] > {
   }];
 }
 
+
 def HighLevel_ReturnOp : HighLevel_Op<"return", [Terminator]> {
   let summary = "VAST return operation.";
   let description = [{ VAST return opearation. }];
@@ -67,6 +92,7 @@ def HighLevel_ReturnOp : HighLevel_Op<"return", [Terminator]> {
   // Fully specified by traits.
   let verifier = ?;
 }
+
 
 def HighLevel_UnreachableOp : HighLevel_Op<"unreachable", [Terminator]> {
   let summary = "VAST unreachable operation";
