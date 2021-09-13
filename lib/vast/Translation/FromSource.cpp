@@ -236,8 +236,10 @@ namespace vast::hl
         Value VisitImplicitCastExpr(clang::ImplicitCastExpr *expr)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit ImplicitCastExpr\n");
-            // TODO(Heno): implement implicit casts
-            return Visit(expr->getSubExpr());
+            auto loc = builder.getLocation(expr->getSourceRange());
+            auto value = Visit(expr->getSubExpr());
+            auto rty = types.convert(expr->getType());
+            return builder.create< ImplicitCastOp >( loc, rty, value );
         }
 
         Value VisitDeclRefExpr(clang::DeclRefExpr *decl)

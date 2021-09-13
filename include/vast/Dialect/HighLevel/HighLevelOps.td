@@ -110,4 +110,20 @@ def HighLevel_UnreachableOp : HighLevel_Op<"unreachable", [Terminator]> {
   }];
 }
 
+
+def HighLevel_ImplicitCastOp : HighLevel_Op< "implicit_cast", [] > {
+  let summary = "VAST implicit cast";
+  let description = [{ VAST implicit cast }];
+
+  let arguments = (ins AnyType:$value);
+  let results = (outs AnyType);
+
+  let verifier = ?;
+  let printer = [{
+    p << getOperationName()
+      << " ( " << value() << " ): "
+      << getResult().getType();
+  }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
