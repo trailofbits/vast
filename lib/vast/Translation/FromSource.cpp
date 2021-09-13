@@ -214,7 +214,7 @@ namespace vast::hl
                     if (ty->isIntegerType()) {
                         // TODO(Heno): integer casts
                         assert(lhsty == rhsty);
-                        return builder.create< mlir::AddIOp >( loc, rhs, lhs );
+                        return builder.create< AddIOp >( loc, rhs, lhs );
                     }
 
                     llvm_unreachable( "unhandled addition type" );
