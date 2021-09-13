@@ -85,6 +85,11 @@ namespace vast::hl
 
         }
 
+        Value create_void(mlir::Location loc)
+        {
+            return builder.create< VoidOp >(loc);
+        }
+
         template< typename Op, typename ...Args >
         auto create(Args &&... args)
         {
@@ -178,14 +183,14 @@ namespace vast::hl
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit ReturnStmt\n");
             auto loc = builder.getLocation(stmt->getSourceRange());
-
             if (stmt->getRetValue()) {
                 auto val = Visit(stmt->getRetValue());
 
                 // TODO(Heno): cast return values
                 builder.create< mlir::ReturnOp >(loc, val);
             } else {
-                builder.create< mlir::ReturnOp >(loc);
+                auto val = builder.create_void(loc);
+                builder.create< mlir::ReturnOp >(loc, val);
             }
 
             return Value(); // dummy value
@@ -345,7 +350,8 @@ namespace vast::hl
                 auto beg_loc = getLocation(decl->getBeginLoc());
                 auto end_loc = getLocation(decl->getEndLoc());
                 if (decl->getReturnType()->isVoidType()) {
-                    builder.create< mlir::ReturnOp >(end_loc);
+                    auto val = builder.create_void(end_loc);
+                    builder.create< mlir::ReturnOp >(end_loc, val);
                 } else {
                     if (decl->isMain()) {
                         // return zero if no return is present in main
