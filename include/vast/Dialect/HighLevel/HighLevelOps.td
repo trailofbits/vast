@@ -121,7 +121,7 @@ def HighLevel_ImplicitCastOp : HighLevel_Op< "implicit_cast", [] > {
   let verifier = ?;
   let printer = [{
     p << getOperationName()
-      << " ( " << value() << " ): "
+      << "( " << value() << " ): "
       << getResult().getType();
   }];
 }
