@@ -3,6 +3,31 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 
+// TODO(Heno): remove when NoTerminator is in mlir.
+def HighLevel_ScopeEndOp : HighLevel_Op<"scope-end", [
+  Terminator, HasParent<"ScopeOp">
+]> {
+  let summary = "A pseudo op that marks the end of a hl.scope";
+  let description = [{
+    This op terminates the only block inside the only region of a `hl.scope`.
+  }];
+
+  let parser = [{ return mlir::success(); }];
+  let printer = [{ p << getOperationName(); }];
+}
+def HighLevel_ScopeOp
+  : HighLevel_Op< "scope", [] >
+{
+  let arguments = (ins);
+  let results = (outs);
+  let regions = (region AnyRegion:$body);
+
+  let printer = [{
+    p << getOperationName();
+    p.printRegion(body(), false /* print entry blocks */);
+  }];
+}
+
 def HighLevel_VarOp : HighLevel_Op< "var", [] > {
   let summary = "VAST variable declaration";
   let description = [{ VAST variable delaration }];
