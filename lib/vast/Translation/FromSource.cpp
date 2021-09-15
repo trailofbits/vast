@@ -7,6 +7,7 @@
 #include <mlir/IR/Builders.h>
 #include <mlir/Support/LogicalResult.h>
 #include <mlir/Dialect/StandardOps/IR/Ops.h>
+#include <mlir/IR/BlockAndValueMapping.h>
 #include <mlir/IR/Identifier.h>
 #include <mlir/IR/Attributes.h>
 #include <mlir/IR/Block.h>
@@ -104,7 +105,14 @@ namespace vast::hl
             builder.setInsertionPointToStart(block);
         }
 
+        void setInsertionPointToEnd(mlir::Block *block)
+        {
+            builder.setInsertionPointToEnd(block);
+        }
+
         mlir::Block * getBlock() const { return builder.getBlock(); }
+
+        mlir::Block * createBlock(mlir::Region *parent) { return builder.createBlock(parent); }
 
         mlir::Attribute constant_attr(const IntegerType &ty, int64_t value)
         {
@@ -167,13 +175,37 @@ namespace vast::hl
             : builder(builder), types(types), decls(decls)
         {}
 
+        void VisitFunction(clang::Stmt *body)
+        {
+            Visit(body);
+        }
+
         Value VisitCompoundStmt(clang::CompoundStmt *stmt)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit CompoundStmt\n");
 
+            ScopedInsertPoint builder_scope(builder);
+
+            std::optional< ScopeOp > scope = std::nullopt;
+            auto loc = builder.getLocation(stmt->getSourceRange());
+
+            scope = builder.create< ScopeOp >(loc);
+            auto &body = scope->body();
+            body.push_back( new mlir::Block() );
+            builder.setInsertionPointToStart( &body.front() );
+
             for (auto s : stmt->body()) {
                 LLVM_DEBUG(llvm::dbgs() << "Visit Stmt " << s->getStmtClassName() << "\n");
                 Visit(s);
+            }
+
+            if (scope.has_value()) {
+                auto &body = scope->body();
+                auto &lastblock = body.back();
+                if (lastblock.empty() || lastblock.back().isKnownNonTerminator()) {
+                    builder.setInsertionPointToEnd(&lastblock);
+                    builder.create< ScopeEndOp >(loc);
+                }
             }
 
             return Value(); // dummy return
@@ -310,6 +342,51 @@ namespace vast::hl
         template< typename T >
         decltype(auto) convert(T type) { return types.convert(type); }
 
+        void spliceTrailingScopeBlocks(mlir::FuncOp &fn)
+        {
+            if (fn.empty())
+                return;
+
+            auto &blocks = fn.getBlocks();
+
+            auto has_trailing_scope = [&] {
+                if (blocks.empty())
+                    return false;
+                auto &last_block = blocks.back();
+                if (last_block.empty())
+                    return false;
+                return mlir::isa< ScopeOp >(last_block.back());
+            };
+
+            while (has_trailing_scope()) {
+                auto &last_block = blocks.back();
+
+                auto scope  = mlir::cast< ScopeOp >(last_block.back());
+                auto parent = scope.body().getParentRegion();
+                scope->remove();
+
+                auto &last_scope_block = scope.body().back();
+                if (!last_scope_block.empty()) {
+                    if (mlir::isa< ScopeEndOp >(last_scope_block.back())) {
+                        last_scope_block.back().erase();
+                    }
+                }
+
+                auto &prev = parent->getBlocks().back();
+
+                mlir::BlockAndValueMapping mapping;
+                scope.body().cloneInto(parent, mapping);
+
+                auto next = prev.getNextNode();
+
+                auto &ops = last_block.getOperations();
+                ops.splice(ops.end(), next->getOperations());
+
+                next->erase();
+                scope.erase();
+            }
+        }
+
         Value VisitFunctionDecl(clang::FunctionDecl *decl)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit FunctionDecl: " << decl->getName() << "\n");
@@ -339,12 +416,16 @@ namespace vast::hl
 
             builder.setInsertionPointToStart(entry);
 
+            // emit function body
             if (decl->hasBody()) {
-                stmts.Visit(decl->getBody());
+                stmts.VisitFunction(decl->getBody());
             }
 
-            auto end = builder.getBlock();
-            auto &ops = end->getOperations();
+            spliceTrailingScopeBlocks(fn);
+
+            auto &last_block = fn.getBlocks().back();
+            auto &ops = last_block.getOperations();
+            builder.setInsertionPointToEnd(&last_block);
 
             if (ops.empty() || ops.back().isKnownNonTerminator()) {
                 auto beg_loc = getLocation(decl->getBeginLoc());
