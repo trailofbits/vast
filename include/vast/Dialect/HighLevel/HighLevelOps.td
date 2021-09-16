@@ -30,7 +30,7 @@ def HighLevel_ScopeOp
 
 def HighLevel_VarOp : HighLevel_Op< "var", [] > {
   let summary = "VAST variable declaration";
-  let description = [{ VAST variable delaration }];
+  let description = [{ VAST variable declaration }];
 
   let arguments = (ins
     StrAttr:$name,
@@ -64,7 +64,7 @@ def HighLevel_VarOp : HighLevel_Op< "var", [] > {
 
 def HighLevel_DeclRefOp : HighLevel_Op< "declref", [] > {
   let summary = "VAST reference declaration";
-  let description = [{ VAST reference delaration }];
+  let description = [{ VAST reference declaration }];
 
   let arguments = (ins SymbolRefAttr:$decl);
 
@@ -82,7 +82,6 @@ def HighLevel_DeclRefOp : HighLevel_Op< "declref", [] > {
       << "( " <<  decl() << " )"
       << ": " << getResult().getType();
   }];
-
 }
 
 
@@ -171,5 +170,45 @@ def HighLevel_ModIOp  : HighLevel_BinOp<"modi",  []>;
 def HighLevel_ModFOp  : HighLevel_BinOp<"modf",  []>;
 def HighLevel_ModUIOp : HighLevel_BinOp<"modui", []>;
 
+
+class PredicateAttr< string name, int val > : I64EnumAttrCase< name, val > {}
+
+class PredicateList< string name, string summary, list<PredicateAttr> cases >
+  : I64EnumAttr< name, summary, cases > {}
+
+def ICmpPredicateEQ  : PredicateAttr< "eq", 0>;
+def ICmpPredicateNE  : PredicateAttr< "ne", 1>;
+def ICmpPredicateSLT : PredicateAttr<"slt", 2>;
+def ICmpPredicateSLE : PredicateAttr<"sle", 3>;
+def ICmpPredicateSGT : PredicateAttr<"sgt", 4>;
+def ICmpPredicateSGE : PredicateAttr<"sge", 5>;
+def ICmpPredicateULT : PredicateAttr<"ult", 6>;
+def ICmpPredicateULE : PredicateAttr<"ule", 7>;
+def ICmpPredicateUGT : PredicateAttr<"ugt", 8>;
+def ICmpPredicateUGE : PredicateAttr<"uge", 9>;
+
+let cppNamespace = "::vast::hl" in
+def Predicate : PredicateList< "Predicate", "comparison predicate", [
+  ICmpPredicateEQ,  ICmpPredicateNE,  ICmpPredicateSLT, ICmpPredicateSLE,
+  ICmpPredicateSGT, ICmpPredicateSGE, ICmpPredicateULT, ICmpPredicateULE,
+  ICmpPredicateUGT, ICmpPredicateUGE
+] >;
+
+def HighLevel_IfOp : HighLevel_Op< "if", [NoSideEffect, SameTypeOperands] >
+{
+  let summary = "VAST if statement";
+  let description = [{ VAST if statement }];
+
+  let arguments = (ins Predicate:$predicate, AnyType:$lhs, AnyType:$rhs);
+  let results = (outs I1:$result);
+
+  let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type($lhs)";
+
+  let builders = [
+    OpBuilderDAG<(ins "Predicate":$pred, "Value":$lhs, "Value":$rhs), [{
+      return build($_builder, $_state, $_builder.getI1Type(), pred, lhs, rhs);
+    }]>
+  ];
+}
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS

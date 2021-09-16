@@ -5,6 +5,7 @@
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/Translation.h>
 #include <mlir/IR/Builders.h>
+#include <mlir/Dialect/SCF/SCF.h>
 #include <mlir/Support/LogicalResult.h>
 #include <mlir/Dialect/StandardOps/IR/Ops.h>
 #include <mlir/IR/BlockAndValueMapping.h>
@@ -20,6 +21,8 @@
 #include <clang/Frontend/ASTConsumers.h>
 #include <clang/AST/Decl.h>
 #include <clang/AST/Stmt.h>
+#include <clang/AST/Expr.h>
+#include <clang/AST/Type.h>
 #include <clang/Frontend/FrontendAction.h>
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/DeclBase.h>
@@ -211,6 +214,16 @@ namespace vast::hl
             return Value(); // dummy return
         }
 
+        Value VisitIfStmt(clang::IfStmt *stmt)
+        {
+            auto loc = builder.getLocation(stmt->getSourceRange());
+
+            auto cond = Visit(stmt->getCond());
+            builder.create< mlir::scf::IfOp >(loc, cond, /*withElseRegion=*/false);
+
+            return Value(); // dummy return
+        }
+
         Value VisitReturnStmt(clang::ReturnStmt *stmt)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit ReturnStmt\n");
@@ -248,14 +261,51 @@ namespace vast::hl
             return builder.constant(loc, type, val);
         }
 
-        Value VisitBinaryOperator(clang::BinaryOperator *expr)
+        Predicate integer_prdicate(clang::BinaryOperator *expr)
         {
-            LLVM_DEBUG(llvm::dbgs() << "Visit BinaryOperator\n");
+            assert(expr->isComparisonOp());
+            switch (expr->getOpcode()) {
+                case clang::BinaryOperatorKind::BO_LT: return Predicate::slt;
+                case clang::BinaryOperatorKind::BO_LE: return Predicate::sle;
+                case clang::BinaryOperatorKind::BO_GT: return Predicate::sgt;
+                case clang::BinaryOperatorKind::BO_GE: return Predicate::sge;
+                case clang::BinaryOperatorKind::BO_EQ: return Predicate::eq;
+                case clang::BinaryOperatorKind::BO_NE: return Predicate::ne;
+                default: llvm_unreachable("unknown integer predicate");
+            }
+        }
+
+        Value VisitComparisonOperator(clang::BinaryOperator *expr)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit ComparisonOperator\n");
+            assert(expr->isComparisonOp());
+
             auto lhs = Visit(expr->getLHS());
             auto rhs = Visit(expr->getRHS());
             auto loc = builder.getEndLocation(expr->getSourceRange());
 
-            // TODO(Heno): deal with relational op
+            // TODO(Heno): deal with floating point operations
+
+            // TODO(Heno): zero extend arguments
+
+            assert(lhs.getType() == rhs.getType());
+
+            // TODO(Heno): deal with pointer comparisons
+            auto pred = integer_prdicate(expr);
+            return builder.create< IfOp >(loc, pred, lhs, rhs);
+        }
+
+        Value VisitBinaryOperator(clang::BinaryOperator *expr)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit BinaryOperator\n");
+
+            if (expr->isComparisonOp()) {
+                return VisitComparisonOperator(expr);
+            }
+
+            auto lhs = Visit(expr->getLHS());
+            auto rhs = Visit(expr->getRHS());
+            auto loc = builder.getEndLocation(expr->getSourceRange());
 
             // TODO(Heno): deal with assign
 
@@ -534,6 +584,7 @@ namespace vast::hl
     {
         ctx->loadDialect< HighLevelDialect >();
         ctx->loadDialect< mlir::StandardOpsDialect >();
+        ctx->loadDialect< mlir::scf::SCFDialect >();
 
         mlir::OwningModuleRef module(
             mlir::ModuleOp::create(

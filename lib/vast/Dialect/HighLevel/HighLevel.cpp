@@ -12,7 +12,6 @@
 
 #define  GET_TYPEDEF_CLASSES
 #include "vast/Dialect/HighLevel/HighLevelTypes.cpp.inc"
-
 namespace vast::hl
 {
     void HighLevelDialect::initialize()
@@ -83,3 +82,6 @@ namespace vast::hl
     }
 
 } // namespace vast::hl
+
+// Provide implementations for the enums we use.
+#include "vast/Dialect/HighLevel/HighLevelEnums.cpp.inc"
