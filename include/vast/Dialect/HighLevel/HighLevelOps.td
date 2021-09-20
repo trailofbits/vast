@@ -28,6 +28,19 @@ def HighLevel_ScopeOp
   }];
 }
 
+def HighLevel_ReturnOp
+  : HighLevel_Op< "return", [Terminator, NoSideEffect] >
+{
+  let arguments = (ins Variadic<AnyType>:$result);
+
+  let assemblyFormat = "($result^ `:` type($result))? attr-dict ";
+
+  // Allow building a ReturnOp with no return operand.
+  let builders = [
+    OpBuilderDAG<(ins), [{ build($_builder, $_state, llvm::None); }]>
+  ];
+}
+
 def HighLevel_VarOp : HighLevel_Op< "var", [] > {
   let summary = "VAST variable declaration";
   let description = [{ VAST variable declaration }];
