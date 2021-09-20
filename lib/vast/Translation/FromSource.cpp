@@ -232,10 +232,10 @@ namespace vast::hl
                 auto val = Visit(stmt->getRetValue());
 
                 // TODO(Heno): cast return values
-                builder.create< mlir::ReturnOp >(loc, val);
+                builder.create< ReturnOp >(loc, val);
             } else {
                 auto val = builder.create_void(loc);
-                builder.create< mlir::ReturnOp >(loc, val);
+                builder.create< ReturnOp >(loc, val);
             }
 
             return Value(); // dummy value
@@ -482,12 +482,12 @@ namespace vast::hl
                 auto end_loc = getLocation(decl->getEndLoc());
                 if (decl->getReturnType()->isVoidType()) {
                     auto val = builder.create_void(end_loc);
-                    builder.create< mlir::ReturnOp >(end_loc, val);
+                    builder.create< ReturnOp >(end_loc, val);
                 } else {
                     if (decl->isMain()) {
                         // return zero if no return is present in main
                         auto zero = builder.constant(end_loc, type.getResult(0), 0);
-                        builder.create< mlir::ReturnOp >(end_loc, zero);
+                        builder.create< ReturnOp >(end_loc, zero);
                     } else {
                         builder.create< UnreachableOp >(beg_loc);
                     }
