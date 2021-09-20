@@ -76,13 +76,6 @@ namespace vast::hl
             auto parent = scope.body().getParentRegion();
             scope->remove();
 
-            auto &last_scope_block = scope.body().back();
-            if (!last_scope_block.empty()) {
-                if (mlir::isa< ScopeEndOp >(last_scope_block.back())) {
-                    last_scope_block.back().erase();
-                }
-            }
-
             auto &prev = parent->getBlocks().back();
 
             mlir::BlockAndValueMapping mapping;

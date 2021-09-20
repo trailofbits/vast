@@ -4,7 +4,7 @@
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 
 // TODO(Heno): remove when NoTerminator is in mlir.
-def HighLevel_ScopeEndOp : HighLevel_Op<"scope-end", [
+def HighLevel_ScopeEndOp : HighLevel_Op<"scope.end", [
   Terminator
 ]> {
   let summary = "A pseudo op that marks the end of a hl.scope";
