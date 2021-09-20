@@ -14,12 +14,14 @@ class HighLevel_Type< string name, string type_mnemonic >
 // Builtin C Types
 
 def Void : HighLevel_Type< "Void", "void" >
+         , BuildableType< "VoidType::get($_builder.getContext())" >
 {
     let summary = "An high level void type representation.";
     let description = [{ void type }];
 }
 
 def Bool : HighLevel_Type< "Bool", "bool" >
+         , BuildableType< "BoolType::get($_builder.getContext())" >
 {
     let summary = "An high level bool type representation.";
     let description = [{ bool type }];
