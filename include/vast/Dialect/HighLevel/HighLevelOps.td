@@ -5,7 +5,7 @@
 
 // TODO(Heno): remove when NoTerminator is in mlir.
 def HighLevel_ScopeEndOp : HighLevel_Op<"scope-end", [
-  Terminator, HasParent<"ScopeOp">
+  Terminator
 ]> {
   let summary = "A pseudo op that marks the end of a hl.scope";
   let description = [{
@@ -15,6 +15,8 @@ def HighLevel_ScopeEndOp : HighLevel_Op<"scope-end", [
   let parser = [{ return mlir::success(); }];
   let printer = [{ p << getOperationName(); }];
 }
+
+
 def HighLevel_ScopeOp
   : HighLevel_Op< "scope", [] >
 {
