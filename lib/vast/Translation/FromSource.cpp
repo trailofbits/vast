@@ -263,8 +263,21 @@ namespace vast::hl
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
 
+            auto create_builder = [this] (auto stmt) {
+                return [this, stmt] (auto &bld, auto loc) {
+                    Visit(stmt);
+                    spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
+                };
+            };
+
+            BuilderCallback then_builder = create_builder(stmt->getThen());
+            BuilderCallback else_builder = nullptr;
+            if (stmt->getElse()) {
+                else_builder = create_builder(stmt->getElse());
+            }
+
             auto cond = Visit(stmt->getCond());
-            builder.create< mlir::scf::IfOp >(loc, cond, /*withElseRegion=*/false);
+            builder.create< IfOp >(loc, cond, then_builder, else_builder);
 
             return Value(); // dummy return
         }
