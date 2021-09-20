@@ -194,19 +194,21 @@ def Predicate : PredicateList< "Predicate", "comparison predicate", [
   ICmpPredicateUGT, ICmpPredicateUGE
 ] >;
 
-def HighLevel_IfOp : HighLevel_Op< "if", [NoSideEffect, SameTypeOperands] >
+
+def HighLevel_CmpOp : HighLevel_Op< "cmp", [NoSideEffect, SameTypeOperands] >
 {
-  let summary = "VAST if statement";
-  let description = [{ VAST if statement }];
+  let summary = "VAST comparison operation";
+  let description = [{ VAST comparison operation }];
 
   let arguments = (ins Predicate:$predicate, AnyType:$lhs, AnyType:$rhs);
-  let results = (outs I1:$result);
+  let results = (outs Bool:$result);
 
   let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type($lhs)";
 
   let builders = [
     OpBuilderDAG<(ins "Predicate":$pred, "Value":$lhs, "Value":$rhs), [{
-      return build($_builder, $_state, $_builder.getI1Type(), pred, lhs, rhs);
+      auto boolty = BoolType::get($_builder.getContext());
+      return build($_builder, $_state, boolty, pred, lhs, rhs);
     }]>
   ];
 }

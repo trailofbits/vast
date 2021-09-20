@@ -292,7 +292,7 @@ namespace vast::hl
 
             // TODO(Heno): deal with pointer comparisons
             auto pred = integer_prdicate(expr);
-            return builder.create< IfOp >(loc, pred, lhs, rhs);
+            return builder.create< CmpOp >(loc, pred, lhs, rhs);
         }
 
         Value VisitBinaryOperator(clang::BinaryOperator *expr)
