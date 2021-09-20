@@ -28,6 +28,47 @@ namespace vast::hl
         bld.setInsertionPoint(&block, block.end());
         bld.create< ScopeEndOp >(loc);
     }
+
+    void IfOp::build(Builder &bld, State &st, Value cond, bool withElseRegion)
+    {
+        build(bld, st, /*resultTypes=*/llvm::None, cond, withElseRegion);
+    }
+
+    void IfOp::build(Builder &bld, State &st, TypeRange result, Value cond, bool withElseRegion)
+    {
+        auto add_terminator = [&] (Builder &nested, Location loc) {
+            if (result.empty())
+                ensure_terminator(nested.getInsertionBlock()->getParent(), nested, loc);
+        };
+
+        auto else_terminator = withElseRegion ? add_terminator : BuilderCallback();
+        build(bld, st, result, cond, add_terminator, else_terminator);
+    }
+
+    void IfOp::build(Builder &bld, State &st, TypeRange result, Value cond, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
+    {
+        assert(thenBuilder && "the builder callback for 'then' must be present");
+
+        st.addOperands(cond);
+        st.addTypes(result);
+
+        Builder::InsertionGuard guard(bld);
+        auto thenRegion = st.addRegion();
+        bld.createBlock(thenRegion);
+        thenBuilder(bld, st.location);
+
+        auto elseRegion = st.addRegion();
+        if (!elseBuilder)
+            return;
+
+        bld.createBlock(elseRegion);
+        elseBuilder(bld, st.location);
+    }
+
+    void IfOp::build(Builder &bld, State &st, Value cond, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
+    {
+        build(bld, st, TypeRange(), cond, thenBuilder, elseBuilder);
+    }
 }
 
 //===----------------------------------------------------------------------===//

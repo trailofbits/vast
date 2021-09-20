@@ -228,4 +228,43 @@ def HighLevel_CmpOp : HighLevel_Op< "cmp", [NoSideEffect, SameTypeOperands] >
   ];
 }
 
+
+def HighLevel_IfOp : HighLevel_Op< "if", [RecursiveSideEffects] >
+{
+  let summary = "VAST if statement";
+  let description = [{ VAST if statement }];
+
+  let arguments = (ins Bool:$cond);
+  let regions = (region SizedRegion<1>:$thenRegion, AnyRegion:$elseRegion);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilderDAG<(
+      ins "Value":$cond, "bool":$withElseRegion
+    )>,
+    OpBuilderDAG<(
+      ins "TypeRange":$result, "Value":$cond, "bool":$withElseRegion
+    )>,
+    OpBuilderDAG<(
+      ins "TypeRange":$result, "Value":$cond,
+          CArg< "BuilderCallback", "terminate_body" >:$thenBuilder,
+          CArg< "BuilderCallback", "nullptr">:$elseBuilder
+    )>,
+    OpBuilderDAG<(
+      ins "Value":$cond,
+          CArg< "BuilderCallback", "terminate_body" >:$thenBuilder,
+          CArg< "BuilderCallback", "nullptr">:$elseBuilder
+    )>
+  ];
+
+  let printer = [{
+    p << getOperationName() << " " << cond();
+    p.printRegion(thenRegion());
+    if (!elseRegion().empty()) {
+      p << " else";
+      p.printRegion(elseRegion());
+    }
+  }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
