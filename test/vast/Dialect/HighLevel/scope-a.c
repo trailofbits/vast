@@ -4,7 +4,7 @@
 int test1()
 {
     // CHECK: hl.scope
-    // CHECK: hl.scope-end
+    // CHECK: hl.scope.end
     {
         int a = 0;
     }
@@ -19,24 +19,24 @@ void test2()
 {
     // CHECK: hl.scope
     // CHECK: hl.var( a ): !hl.int
-    // CHECK: hl.scope-end
+    // CHECK: hl.scope.end
     {
         int a;
     }
 
     // CHECK: hl.scope
     // CHECK: hl.var( a ): !hl.int
-    // CHECK: hl.scope-end
+    // CHECK: hl.scope.end
     {
         int a;
     }
 
-    // CHECK-NOT: hl.scope
+    // CHECK: hl.scope
     // CHECK: hl.var( a ): !hl.int
     {
         int a;
     }
-    // CHECK: return [[C2:%[0-9]+]] : !hl.void
+    // CHECK: hl.scope.end
 }
 
 // CHECK-LABEL: func private @test3() -> !hl.int
@@ -46,10 +46,10 @@ int test3()
     int b;
 
     // CHECK: hl.scope
-    // CHECK: hl.scope-end
     {
         // CHECK: hl.var( a ): !hl.int
         int a;
+        // CHECK: hl.scope.end
     }
 
     // CHECK-NOT: hl.scope
@@ -61,9 +61,11 @@ int test3()
 // CHECK-LABEL: func private @test4() -> !hl.int
 int test4()
 {
-    // CHECK-NOT: hl.scope
+    // CHECK: hl.scope
     {
         int a = 0;
+        // CHECK: hl.return
         return a;
     }
+    // CHECK: hl.scope.end
 }
