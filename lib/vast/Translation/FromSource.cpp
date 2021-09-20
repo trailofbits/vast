@@ -58,6 +58,58 @@ namespace vast::hl
     using string_ref = llvm::StringRef;
     using logical_result = mlir::LogicalResult;
 
+    void spliceTrailingScopeBlocks(mlir::Region::BlockListType &blocks)
+    {
+        auto has_trailing_scope = [&] {
+            if (blocks.empty())
+                return false;
+            auto &last_block = blocks.back();
+            if (last_block.empty())
+                return false;
+            return mlir::isa< ScopeOp >(last_block.back());
+        };
+
+        while (has_trailing_scope()) {
+            auto &last_block = blocks.back();
+
+            auto scope  = mlir::cast< ScopeOp >(last_block.back());
+            auto parent = scope.body().getParentRegion();
+            scope->remove();
+
+            auto &last_scope_block = scope.body().back();
+            if (!last_scope_block.empty()) {
+                if (mlir::isa< ScopeEndOp >(last_scope_block.back())) {
+                    last_scope_block.back().erase();
+                }
+            }
+
+            auto &prev = parent->getBlocks().back();
+
+            mlir::BlockAndValueMapping mapping;
+            scope.body().cloneInto(parent, mapping);
+
+            auto next = prev.getNextNode();
+
+            auto &ops = last_block.getOperations();
+            ops.splice(ops.end(), next->getOperations());
+
+            next->erase();
+            scope.erase();
+        }
+    }
+
+    void spliceTrailingScopeBlocks(mlir::FuncOp &fn)
+    {
+        if (fn.empty())
+            return;
+        spliceTrailingScopeBlocks(fn.getBlocks());
+    }
+
+    void spliceTrailingScopeBlocks(mlir::Region &reg)
+    {
+        spliceTrailingScopeBlocks(reg.getBlocks());
+    }
+
     struct VastBuilder
     {
         using OpBuilder = mlir::OpBuilder;
@@ -391,51 +443,6 @@ namespace vast::hl
 
         template< typename T >
         decltype(auto) convert(T type) { return types.convert(type); }
-
-        void spliceTrailingScopeBlocks(mlir::FuncOp &fn)
-        {
-            if (fn.empty())
-                return;
-
-            auto &blocks = fn.getBlocks();
-
-            auto has_trailing_scope = [&] {
-                if (blocks.empty())
-                    return false;
-                auto &last_block = blocks.back();
-                if (last_block.empty())
-                    return false;
-                return mlir::isa< ScopeOp >(last_block.back());
-            };
-
-            while (has_trailing_scope()) {
-                auto &last_block = blocks.back();
-
-                auto scope  = mlir::cast< ScopeOp >(last_block.back());
-                auto parent = scope.body().getParentRegion();
-                scope->remove();
-
-                auto &last_scope_block = scope.body().back();
-                if (!last_scope_block.empty()) {
-                    if (mlir::isa< ScopeEndOp >(last_scope_block.back())) {
-                        last_scope_block.back().erase();
-                    }
-                }
-
-                auto &prev = parent->getBlocks().back();
-
-                mlir::BlockAndValueMapping mapping;
-                scope.body().cloneInto(parent, mapping);
-
-                auto next = prev.getNextNode();
-
-                auto &ops = last_block.getOperations();
-                ops.splice(ops.end(), next->getOperations());
-
-                next->erase();
-                scope.erase();
-            }
-        }
 
         Value VisitFunctionDecl(clang::FunctionDecl *decl)
         {
