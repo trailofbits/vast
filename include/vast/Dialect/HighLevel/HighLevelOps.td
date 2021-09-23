@@ -185,6 +185,17 @@ def HighLevel_ModIOp  : HighLevel_BinOp<"modi",  []>;
 def HighLevel_ModFOp  : HighLevel_BinOp<"modf",  []>;
 def HighLevel_ModUIOp : HighLevel_BinOp<"modui", []>;
 
+def HighLevel_AssignOp : HighLevel_Op< "assign", [SameTypeOperands] > {
+  let summary = "VAST assign operation";
+  let description = [{ VAST assign operation }];
+
+  let arguments = (ins AnyType:$src, AnyType:$dst);
+
+  let verifier = ?;
+  let printer = [{
+    p << getOperationName() << " " << src() << " → " << dst();
+  }];
+}
 
 class PredicateAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
