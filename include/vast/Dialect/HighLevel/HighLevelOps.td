@@ -173,17 +173,19 @@ def HighLevel_ImplicitCastOp : HighLevel_Op< "implicit_cast", [] > {
 }
 
 
-def HighLevel_AddIOp  : HighLevel_BinOp<"addi",  [Commutative]>;
-def HighLevel_AddFOp  : HighLevel_BinOp<"addf",  []>;
-def HighLevel_SubIOp  : HighLevel_BinOp<"subi",  []>;
-def HighLevel_SubFOp  : HighLevel_BinOp<"subf",  []>;
-def HighLevel_MulIOp  : HighLevel_BinOp<"muli",  [Commutative]>;
-def HighLevel_MulFOp  : HighLevel_BinOp<"mulf",  []>;
-def HighLevel_DivIOp  : HighLevel_BinOp<"divi",  []>;
-def HighLevel_DivFOp  : HighLevel_BinOp<"divf",  []>;
-def HighLevel_ModIOp  : HighLevel_BinOp<"modi",  []>;
-def HighLevel_ModFOp  : HighLevel_BinOp<"modf",  []>;
-def HighLevel_ModUIOp : HighLevel_BinOp<"modui", []>;
+def HighLevel_AddIOp : HighLevel_BinOp< "add",  [Commutative]>;
+def HighLevel_AddFOp : HighLevel_BinOp<"fadd",  []>;
+def HighLevel_SubIOp : HighLevel_BinOp< "sub",  []>;
+def HighLevel_SubFOp : HighLevel_BinOp<"fsub",  []>;
+def HighLevel_MulIOp : HighLevel_BinOp< "mul",  [Commutative]>;
+def HighLevel_MulFOp : HighLevel_BinOp<"fmul",  []>;
+def HighLevel_DivSOp : HighLevel_BinOp<"sdiv",  []>;
+def HighLevel_DivUOp : HighLevel_BinOp<"udiv",  []>;
+def HighLevel_DivFOp : HighLevel_BinOp<"fdiv",  []>;
+def HighLevel_RemSOp : HighLevel_BinOp<"srem",  []>;
+def HighLevel_RemUOp : HighLevel_BinOp<"urem", []>;
+def HighLevel_RemFOp : HighLevel_BinOp<"frem",  []>;
+
 
 def HighLevel_AssignOp : HighLevel_Op< "assign", [SameTypeOperands] > {
   let summary = "VAST assign operation";
