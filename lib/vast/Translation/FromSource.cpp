@@ -282,6 +282,23 @@ namespace vast::hl
             return Value(); // dummy return
         }
 
+        Value VisitWhileStmt(clang::WhileStmt *stmt)
+        {
+            auto loc = builder.getLocation(stmt->getSourceRange());
+
+            auto body = stmt->getBody();
+
+            auto body_builder = [this, body] (auto &bld, auto loc) {
+                Visit(body);
+                spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
+            };
+
+            auto cond = Visit(stmt->getCond());
+            builder.create< WhileOp >(loc, cond, body_builder);
+
+            return Value(); // dummy return
+        }
+
         Value VisitReturnStmt(clang::ReturnStmt *stmt)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit ReturnStmt\n");
@@ -365,23 +382,40 @@ namespace vast::hl
             auto rhs = Visit(expr->getRHS());
             auto loc = builder.getEndLocation(expr->getSourceRange());
 
-            // TODO(Heno): deal with assign
-
             auto ty = expr->getType();
-
-            auto lhsty = lhs.getType();
-            auto rhsty = rhs.getType();
-            // auto rty = types.convert(ty);
-
             switch (expr->getOpcode()) {
                 case clang::BinaryOperatorKind::BO_Add: {
-                    if (ty->isIntegerType()) {
-                        // TODO(Heno): integer casts
-                        assert(lhsty == rhsty);
+                    if (ty->isIntegerType())
                         return builder.create< AddIOp >( loc, rhs, lhs );
-                    }
-
                     llvm_unreachable( "unhandled addition type" );
+                }
+                case clang::BinaryOperatorKind::BO_Sub: {
+                    if (ty->isIntegerType())
+                        return builder.create< SubIOp >( loc, rhs, lhs );
+                    llvm_unreachable( "unhandled subtraction type" );
+                }
+                case clang::BinaryOperatorKind::BO_Mul: {
+                    if (ty->isIntegerType())
+                        return builder.create< MulIOp >( loc, rhs, lhs );
+                    llvm_unreachable( "unhandled multiplication type" );
+                }
+                case clang::BinaryOperatorKind::BO_Div: {
+                    if (ty->isUnsignedIntegerType())
+                        return builder.create< DivUOp >( loc, rhs, lhs );
+                    if (ty->isIntegerType())
+                        return builder.create< DivSOp >( loc, rhs, lhs );
+                    llvm_unreachable( "unhandled multiplication type" );
+                }
+                case clang::BinaryOperatorKind::BO_Rem: {
+                    if (ty->isUnsignedIntegerType())
+                        return builder.create< RemUOp >( loc, rhs, lhs );
+                    if (ty->isIntegerType())
+                        return builder.create< RemSOp >( loc, rhs, lhs );
+                    llvm_unreachable( "unhandled multiplication type" );
+                }
+                case clang::BinaryOperatorKind::BO_Assign: {
+                    builder.create< AssignOp >( loc, rhs, lhs );
+                    return Value();
                 }
                 default: {
                     llvm_unreachable( "unhandled binary operation" );
