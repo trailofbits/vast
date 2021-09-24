@@ -173,31 +173,34 @@ def HighLevel_ImplicitCastOp : HighLevel_Op< "implicit_cast", [] > {
 }
 
 
-def HighLevel_AddIOp : HighLevel_BinOp< "add",  [Commutative]>;
-def HighLevel_AddFOp : HighLevel_BinOp<"fadd",  []>;
-def HighLevel_SubIOp : HighLevel_BinOp< "sub",  []>;
-def HighLevel_SubFOp : HighLevel_BinOp<"fsub",  []>;
-def HighLevel_MulIOp : HighLevel_BinOp< "mul",  [Commutative]>;
-def HighLevel_MulFOp : HighLevel_BinOp<"fmul",  []>;
-def HighLevel_DivSOp : HighLevel_BinOp<"sdiv",  []>;
-def HighLevel_DivUOp : HighLevel_BinOp<"udiv",  []>;
-def HighLevel_DivFOp : HighLevel_BinOp<"fdiv",  []>;
-def HighLevel_RemSOp : HighLevel_BinOp<"srem",  []>;
+def HighLevel_AddIOp : HighLevel_BinOp< "add", [Commutative]>;
+def HighLevel_AddFOp : HighLevel_BinOp<"fadd", []>;
+def HighLevel_SubIOp : HighLevel_BinOp< "sub", []>;
+def HighLevel_SubFOp : HighLevel_BinOp<"fsub", []>;
+def HighLevel_MulIOp : HighLevel_BinOp< "mul", [Commutative]>;
+def HighLevel_MulFOp : HighLevel_BinOp<"fmul", []>;
+def HighLevel_DivSOp : HighLevel_BinOp<"sdiv", []>;
+def HighLevel_DivUOp : HighLevel_BinOp<"udiv", []>;
+def HighLevel_DivFOp : HighLevel_BinOp<"fdiv", []>;
+def HighLevel_RemSOp : HighLevel_BinOp<"srem", []>;
 def HighLevel_RemUOp : HighLevel_BinOp<"urem", []>;
-def HighLevel_RemFOp : HighLevel_BinOp<"frem",  []>;
+def HighLevel_RemFOp : HighLevel_BinOp<"frem", []>;
 
 
-def HighLevel_AssignOp : HighLevel_Op< "assign", [SameTypeOperands] > {
-  let summary = "VAST assign operation";
-  let description = [{ VAST assign operation }];
+def HighLevel_AssignOp     : HighLevel_CompoundAssignOp< "assign", []>;
+def HighLevel_AddIAssignOp : HighLevel_CompoundAssignOp< "assign.add",  []>;
+def HighLevel_AddFAssignOp : HighLevel_CompoundAssignOp< "assign.fadd", []>;
+def HighLevel_SubIAssignOp : HighLevel_CompoundAssignOp< "assign.sub",  []>;
+def HighLevel_SubFAssignOp : HighLevel_CompoundAssignOp< "assign.fsub", []>;
+def HighLevel_MulIAssignOp : HighLevel_CompoundAssignOp< "assign.mul",  []>;
+def HighLevel_MulFAssignOp : HighLevel_CompoundAssignOp< "assign.fmul", []>;
+def HighLevel_DivSAssignOp : HighLevel_CompoundAssignOp< "assign.sdiv", []>;
+def HighLevel_DivUAssignOp : HighLevel_CompoundAssignOp< "assign.udiv", []>;
+def HighLevel_DivFAssignOp : HighLevel_CompoundAssignOp< "assign.fdiv", []>;
+def HighLevel_RemSAssignOp : HighLevel_CompoundAssignOp< "assign.srem", []>;
+def HighLevel_RemUAssignOp : HighLevel_CompoundAssignOp< "assign.urem", []>;
+def HighLevel_RemFAssignOp : HighLevel_CompoundAssignOp< "assign.frem", []>;
 
-  let arguments = (ins AnyType:$src, AnyType:$dst);
-
-  let verifier = ?;
-  let printer = [{
-    p << getOperationName() << " " << src() << " → " << dst();
-  }];
-}
 
 class PredicateAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
