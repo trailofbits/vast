@@ -370,6 +370,67 @@ namespace vast::hl
             return builder.create< CmpOp >(loc, pred, lhs, rhs);
         }
 
+        Value VisitCompoundAssignOperator(clang::CompoundAssignOperator *expr)
+        {
+            LLVM_DEBUG(llvm::dbgs() << "Visit CompoundAssignOperator\n");
+
+            auto lhs = Visit(expr->getLHS());
+            auto rhs = Visit(expr->getRHS());
+            auto loc = builder.getEndLocation(expr->getSourceRange());
+
+            auto ty = expr->getType();
+            switch (expr->getOpcode()) {
+                case clang::BinaryOperatorKind::BO_AddAssign: {
+                    if (ty->isIntegerType()) {
+                        builder.create< AddIAssignOp >( loc, rhs, lhs );
+                        break;
+                    }
+                    llvm_unreachable( "unhandled addition assign operation" );
+                }
+                case clang::BinaryOperatorKind::BO_SubAssign: {
+                    if (ty->isIntegerType()) {
+                        builder.create< SubIAssignOp >( loc, rhs, lhs );
+                        break;
+                    }
+                    llvm_unreachable( "unhandled subtraction assign operation" );
+                }
+                case clang::BinaryOperatorKind::BO_MulAssign: {
+                    if (ty->isIntegerType()) {
+                        builder.create< MulIAssignOp >( loc, rhs, lhs );
+                        break;
+                    }
+                    llvm_unreachable( "unhandled multiplication assign operation" );
+                }
+                case clang::BinaryOperatorKind::BO_DivAssign: {
+                    if (ty->isUnsignedIntegerType()) {
+                        builder.create< DivUAssignOp >( loc, rhs, lhs );
+                        break;
+                    }
+                    if (ty->isIntegerType()) {
+                        builder.create< DivSAssignOp >( loc, rhs, lhs );
+                        break;
+                    }
+                    llvm_unreachable( "unhandled division assign operation" );
+                }
+                case clang::BinaryOperatorKind::BO_RemAssign: {
+                    if (ty->isUnsignedIntegerType()) {
+                        builder.create< RemUAssignOp >( loc, rhs, lhs );
+                        break;
+                    }
+                    if (ty->isIntegerType()) {
+                        builder.create< RemSAssignOp >( loc, rhs, lhs );
+                        break;
+                    }
+                    llvm_unreachable( "unhandled reminder assign operation" );
+                }
+                default: {
+                    llvm_unreachable( "unhandled compound assign operation" );
+                }
+            }
+
+            return Value(); // dummy value
+        }
+
         Value VisitBinaryOperator(clang::BinaryOperator *expr)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit BinaryOperator\n");
@@ -386,32 +447,32 @@ namespace vast::hl
             switch (expr->getOpcode()) {
                 case clang::BinaryOperatorKind::BO_Add: {
                     if (ty->isIntegerType())
-                        return builder.create< AddIOp >( loc, rhs, lhs );
+                        return builder.create< AddIOp >( loc, lhs, rhs );
                     llvm_unreachable( "unhandled addition type" );
                 }
                 case clang::BinaryOperatorKind::BO_Sub: {
                     if (ty->isIntegerType())
-                        return builder.create< SubIOp >( loc, rhs, lhs );
+                        return builder.create< SubIOp >( loc, lhs, rhs );
                     llvm_unreachable( "unhandled subtraction type" );
                 }
                 case clang::BinaryOperatorKind::BO_Mul: {
                     if (ty->isIntegerType())
-                        return builder.create< MulIOp >( loc, rhs, lhs );
+                        return builder.create< MulIOp >( loc, lhs, rhs );
                     llvm_unreachable( "unhandled multiplication type" );
                 }
                 case clang::BinaryOperatorKind::BO_Div: {
                     if (ty->isUnsignedIntegerType())
-                        return builder.create< DivUOp >( loc, rhs, lhs );
+                        return builder.create< DivUOp >( loc, lhs, rhs );
                     if (ty->isIntegerType())
-                        return builder.create< DivSOp >( loc, rhs, lhs );
-                    llvm_unreachable( "unhandled multiplication type" );
+                        return builder.create< DivSOp >( loc, lhs, rhs );
+                    llvm_unreachable( "unhandled division type" );
                 }
                 case clang::BinaryOperatorKind::BO_Rem: {
                     if (ty->isUnsignedIntegerType())
-                        return builder.create< RemUOp >( loc, rhs, lhs );
+                        return builder.create< RemUOp >( loc, lhs, rhs );
                     if (ty->isIntegerType())
-                        return builder.create< RemSOp >( loc, rhs, lhs );
-                    llvm_unreachable( "unhandled multiplication type" );
+                        return builder.create< RemSOp >( loc, lhs, rhs );
+                    llvm_unreachable( "unhandled reminder type" );
                 }
                 case clang::BinaryOperatorKind::BO_Assign: {
                     builder.create< AssignOp >( loc, rhs, lhs );
