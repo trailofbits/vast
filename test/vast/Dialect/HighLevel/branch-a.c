@@ -39,7 +39,7 @@ int branch_then_noreturn(int a, int b)
     // CHECK: [[V1:%[0-9]+]] = hl.cmp sgt
     // CHECK-NEXT: hl.if [[V1]]
     if (a > b) {
-        // CHECK: [[V2:%[0-9]+]] = hl.addi
+        // CHECK: [[V2:%[0-9]+]] = hl.add
         // CHECK-NEXT: hl.var( c, [[V2]] )
         // CHECK-NEXT: hl.scope.end
         int c = a + b;
