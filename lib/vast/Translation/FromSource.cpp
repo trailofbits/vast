@@ -489,7 +489,41 @@ namespace vast::hl
         Value VisitUnaryOperator(clang::UnaryOperator *expr)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit UnaryOperator\n");
-            llvm_unreachable( "unsupported unary operator" );
+            auto loc = builder.getEndLocation(expr->getSourceRange());
+            auto arg =  Visit(expr->getSubExpr());
+
+            switch (expr->getOpcode()) {
+                case clang::UnaryOperatorKind::UO_PostInc:
+                    builder.create< PostIncOp >( loc, arg ); break;
+                case clang::UnaryOperatorKind::UO_PostDec:
+                    builder.create< PostDecOp >( loc, arg ); break;
+                case clang::UnaryOperatorKind::UO_PreInc:
+                    builder.create< PreIncOp >( loc, arg ); break;
+                case clang::UnaryOperatorKind::UO_PreDec:
+                    builder.create< PreDecOp >( loc, arg ); break;
+                case clang::UnaryOperatorKind::UO_AddrOf:
+                    llvm_unreachable( "unsupported unary address of operator" );
+                case clang::UnaryOperatorKind::UO_Deref:
+                    llvm_unreachable( "unsupported unary dereference operator" );
+                case clang::UnaryOperatorKind::UO_Plus:
+                    return builder.create< PlusOp >( loc, arg );
+                case clang::UnaryOperatorKind::UO_Minus:
+                    return builder.create< MinusOp >( loc, arg );
+                case clang::UnaryOperatorKind::UO_Not:
+                    return builder.create< NotOp >( loc, arg );
+                case clang::UnaryOperatorKind::UO_LNot:
+                    return builder.create< LNotOp >( loc, arg );
+                case clang::UnaryOperatorKind::UO_Real:
+                    llvm_unreachable( "unsupported `real` operator" );
+                case clang::UnaryOperatorKind::UO_Imag:
+                    llvm_unreachable( "unsupported `imag` operator" );
+                case clang::UnaryOperatorKind::UO_Coawait:
+                    llvm_unreachable( "unsupported `coawait` operator" );
+                case clang::UnaryOperatorKind::UO_Extension:
+                    llvm_unreachable( "unsupported `extension` operator" );
+            }
+
+            return Value(); // dummy value
         }
 
         Value VisitImplicitCastExpr(clang::ImplicitCastExpr *expr)
