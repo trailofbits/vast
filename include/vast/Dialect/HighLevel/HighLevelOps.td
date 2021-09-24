@@ -245,6 +245,18 @@ def HighLevel_CmpOp : HighLevel_Op< "cmp", [NoSideEffect, SameTypeOperands] >
 }
 
 
+def HighLevel_PostIncOp : HighLevel_UnInplaceOp< "post.inc", [] >;
+def HighLevel_PostDecOp : HighLevel_UnInplaceOp< "post.dec", [] >;
+def HighLevel_PreIncOp  : HighLevel_UnInplaceOp<  "pre.inc", [] >;
+def HighLevel_PreDecOp  : HighLevel_UnInplaceOp<  "pre.dec", [] >;
+
+
+def HighLevel_PlusOp  : HighLevel_UnOp< "plus", [] >;
+def HighLevel_MinusOp : HighLevel_UnOp< "minus", [] >;
+def HighLevel_NotOp   : HighLevel_UnOp< "not", [] >;
+def HighLevel_LNotOp  : HighLevel_UnOp< "lnot", [] >;
+
+
 def HighLevel_IfOp : HighLevel_Op< "if", [RecursiveSideEffects] >
 {
   let summary = "VAST if statement";
