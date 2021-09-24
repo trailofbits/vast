@@ -32,6 +32,39 @@ class HighLevel_BinOp< string mnemonic, list< OpTrait > traits = [] >
     }];
 }
 
+
+class HighLevel_UnInplaceOp< string mnemonic, list< OpTrait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, []) >
+{
+    let summary = "VAST unary inplace operation";
+    let description = [{ VAST unary inplace operation }];
+
+    let arguments = (ins AnyType:$arg);
+
+    let verifier = ? ;
+
+    let printer = [{
+        p << getOperationName() << " " << arg() << " : " << arg().getType();
+    }];
+}
+
+class HighLevel_UnOp< string mnemonic, list< OpTrait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [SameOperandsAndResultType]) >
+{
+    let summary = "VAST unary inplace operation";
+    let description = [{ VAST unary inplace operation }];
+
+    let arguments = (ins AnyType:$arg);
+    let results = (outs AnyType:$res);
+
+    let verifier = ? ;
+
+    let printer = [{
+        p << getOperationName() << " " << arg() << " : " << arg().getType();
+    }];
+}
+
+
 class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [SameTypeOperands]) >
 {
