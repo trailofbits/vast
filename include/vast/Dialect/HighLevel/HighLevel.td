@@ -15,7 +15,7 @@ class HighLevel_Op< string mnemonic, list< OpTrait > traits = [] >
 }
 
 class HighLevel_BinOp< string mnemonic, list< OpTrait > traits = [] >
-    : HighLevel_Op< mnemonic, traits >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
 {
     let summary = "VAST binary operation";
     let description = [{ VAST binary operation }];
@@ -23,20 +23,27 @@ class HighLevel_BinOp< string mnemonic, list< OpTrait > traits = [] >
     let arguments = (ins AnyType:$lhs, AnyType:$rhs);
     let results = (outs AnyType:$res);
 
-    let builders = [
-        OpBuilderDAG< (ins "mlir::Value":$lhs, "mlir::Value":$rhs),
-        [{
-            assert(lhs.getType() == rhs.getType());
-            build($_builder, $_state, lhs.getType(), lhs, rhs);
-        }] >
-    ];
-
     let verifier = ? ;
 
     let printer = [{
         p << getOperationName();
         p << " " << lhs() << ", " << rhs();
         p << " : " << getResult().getType();
+    }];
+}
+
+class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [SameTypeOperands]) >
+{
+    let summary = "VAST compound assign operation";
+    let description = [{ VAST compound assign operation }];
+
+    let arguments = (ins AnyType:$src, AnyType:$dst);
+
+    let verifier = ? ;
+
+    let printer = [{
+        p << getOperationName() << " " << src() << " → " << dst();
     }];
 }
 
