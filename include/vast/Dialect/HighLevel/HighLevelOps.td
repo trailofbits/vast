@@ -280,4 +280,30 @@ def HighLevel_IfOp : HighLevel_Op< "if", [RecursiveSideEffects] >
   }];
 }
 
+
+def HighLevel_WhileOp : HighLevel_Op< "while", [RecursiveSideEffects] >
+{
+  let summary = "VAST while statement";
+  let description = [{ VAST while statement }];
+
+  let arguments = (ins Bool:$cond);
+  let regions = (region SizedRegion<1>:$body);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilderDAG<(
+      ins "TypeRange":$result, "Value":$cond, CArg< "BuilderCallback", "terminate_body" >:$bodyBuilder
+    )>,
+    OpBuilderDAG<(
+      ins "Value":$cond, CArg< "BuilderCallback", "terminate_body" >:$bodyBuilder
+    )>
+  ];
+
+  let printer = [{
+    p << getOperationName() << " " << cond();
+    p.printRegion(body());
+  }];
+
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS

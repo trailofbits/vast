@@ -69,6 +69,23 @@ namespace vast::hl
     {
         build(bld, st, TypeRange(), cond, thenBuilder, elseBuilder);
     }
+
+    void WhileOp::build(Builder &bld, State &st, TypeRange result, Value cond, BuilderCallback bodyBuilder)
+    {
+        assert(bodyBuilder && "the builder callback for 'body' must be present");
+
+        st.addOperands(cond);
+
+        Builder::InsertionGuard guard(bld);
+        auto bodyRegion = st.addRegion();
+        bld.createBlock(bodyRegion);
+        bodyBuilder(bld, st.location);
+    }
+
+    void WhileOp::build(Builder &bld, State &st, Value cond, BuilderCallback bodyBuilder)
+    {
+        build(bld, st, TypeRange(), cond, bodyBuilder);
+    }
 }
 
 //===----------------------------------------------------------------------===//
