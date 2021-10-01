@@ -28,3 +28,7 @@ target_link_libraries(vast-cc
 )
 
 mlir_check_link_libraries(vast-cc)
+
+if (NOT LLVM_ENABLE_RTTI)
+  set_target_properties(vast-cc PROPERTIES COMPILE_FLAGS "-fno-rtti")
+endif()
