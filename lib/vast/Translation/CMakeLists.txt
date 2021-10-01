@@ -16,3 +16,8 @@ target_link_libraries( FromSourceParser
 
         vast_settings
 )
+
+
+if (NOT LLVM_ENABLE_RTTI)
+  set_target_properties(FromSourceParser PROPERTIES COMPILE_FLAGS "-fno-rtti")
+endif()
