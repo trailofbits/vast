@@ -65,32 +65,13 @@ include(HandleLLVMOptions)
 # TODO(Heno): clean up & modernize
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_INCLUDE_DIRS})
+
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_BINARY_DIR}/include)
 link_directories(${LLVM_BUILD_LIBRARY_DIR})
 add_definitions(${LLVM_DEFINITIONS})
 add_definitions(${CLANG_DEFINITIONS})
 
-#
-# google log module
-#
-find_package(glog CONFIG QUIET)
-if (NOT glog_FOUND)
-  find_package(glog REQUIRED)
-  list(APPEND PROJECT_LIBRARIES glog)
-else()
-  list(APPEND PROJECT_LIBRARIES glog::glog)
-endif()
-
-#
-# gflags
-#
-
-find_package(gflags CONFIG QUIET)
-if (NOT gflags_FOUND)
-  find_package(gflags REQUIRED)
-endif()
-list(APPEND PROJECT_LIBRARIES gflags)
 
 #
 # VAST build settings
