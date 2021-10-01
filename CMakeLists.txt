@@ -17,7 +17,6 @@ if (POLICY CMP0116)
   cmake_policy(SET CMP0116 NEW)
 endif ()
 
-include(cmake/vcpkg_helper.cmake)
 
 project(vast
     LANGUAGES C CXX
@@ -26,12 +25,15 @@ project(vast
     HOMEPAGE_URL "https://github.com/trailofbits/vast.git"
 )
 
-include(cmake/prevent_in_source_builds.cmake)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+
+include(prevent_in_source_builds)
 
 include(GNUInstallDirs)
 
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/settings.cmake")
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils.cmake")
+include(project_settings)
+include(project_utils)
 
 FindAndSelectClangCompiler()
 
