@@ -108,11 +108,6 @@ enable_sanitizers(vast_settings)
 include(cmake/static_analyzers.cmake)
 
 #
-# External libraries
-#
-add_subdirectory(external)
-
-#
 # VAST libraries
 #
 add_subdirectory(include/vast)
