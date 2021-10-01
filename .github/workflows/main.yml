@@ -110,22 +110,10 @@ jobs:
           path: ${{ steps.build_paths.outputs.REL_SOURCE }}/vast
           fetch-depth: 0
 
-      - name: Checkout submodules
-        working-directory: ${{ steps.build_paths.outputs.REL_SOURCE }}/vast
-        shell: bash
-        run: |
-          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
-          git submodule sync --recursive
-          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
-
-
       - name: Install vast requirements
         shell: bash
         run: |
-          pip install --no-cache-dir -r lit
-          pip show lit
-          ls $HOME/.local/bin
-          echo $PATH
+          pip install lit
 
       - name: Download the cxx-common ${{ matrix.cxxcommon_version}} package
         shell: bash
