@@ -162,7 +162,7 @@ jobs:
               -DVCPKG_ROOT="${{ steps.cxxcommon_installer.outputs.PATH }}" \
               -DVCPKG_TARGET_TRIPLET=x64-linux-rel \
               -G Ninja \
-              -ENABLE_TESTING=ON \
+              -DENABLE_TESTING=ON \
               ${{ steps.build_paths.outputs.SOURCE }}/vast
 
       - name: Build vast
