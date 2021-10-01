@@ -166,10 +166,10 @@ namespace vast::hl
         {
             // TODO(Heno): make datalayout aware
             switch(ty.getKind()) {
-                case vast::hl::integer_kind::Char:      return builder.getI8IntegerAttr(value);
-                case vast::hl::integer_kind::Short:     return builder.getI16IntegerAttr(value);
-                case vast::hl::integer_kind::Int:       return builder.getI32IntegerAttr(value);
-                case vast::hl::integer_kind::Long:      return builder.getI64IntegerAttr(value);
+                case vast::hl::integer_kind::Char:      return builder.getI8IntegerAttr(  char(value) );
+                case vast::hl::integer_kind::Short:     return builder.getI16IntegerAttr( short(value) );
+                case vast::hl::integer_kind::Int:       return builder.getI32IntegerAttr( int(value) );
+                case vast::hl::integer_kind::Long:      return builder.getI64IntegerAttr( long(value) );
                 case vast::hl::integer_kind::LongLong:  return builder.getI64IntegerAttr(value);
             }
         }
@@ -264,7 +264,7 @@ namespace vast::hl
             auto loc = builder.getLocation(stmt->getSourceRange());
 
             auto create_builder = [this] (auto stmt) {
-                return [this, stmt] (auto &bld, auto loc) {
+                return [this, stmt] (auto &bld, auto) {
                     Visit(stmt);
                     spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
                 };
@@ -288,7 +288,7 @@ namespace vast::hl
 
             auto body = stmt->getBody();
 
-            auto body_builder = [this, body] (auto &bld, auto loc) {
+            auto body_builder = [this, body] (auto &bld, auto) {
                 Visit(body);
                 spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
             };
@@ -560,7 +560,7 @@ namespace vast::hl
     struct VastDeclVisitor : clang::DeclVisitor< VastDeclVisitor, mlir::Value >
     {
         VastDeclVisitor(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod, clang::ASTContext &actx)
-            : mctx(mctx), mod(mod),  actx(actx)
+            : mod(mod)
             , builder(mctx, mod, actx)
             , types(&mctx)
             , stmts(builder, types, *this)
@@ -656,9 +656,7 @@ namespace vast::hl
         }
 
     private:
-        mlir::MLIRContext     &mctx;
         mlir::OwningModuleRef &mod;
-        clang::ASTContext     &actx;
 
         VastBuilder builder;
         TypeConverter types;
@@ -699,12 +697,12 @@ namespace vast::hl
             : mctx(mctx), mod(mod), actx(actx)
         {}
 
-        bool HandleTopLevelDecl(clang::DeclGroupRef decls) override
+        bool HandleTopLevelDecl(clang::DeclGroupRef) override
         {
             llvm_unreachable("not implemented");
         }
 
-        void HandleTranslationUnit(clang::ASTContext &ctx) override
+        void HandleTranslationUnit(clang::ASTContext&) override
         {
             LLVM_DEBUG(llvm::dbgs() << "Process Translation Unit\n");
             auto tu = actx.getTranslationUnitDecl();
