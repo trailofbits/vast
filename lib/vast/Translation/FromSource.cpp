@@ -1,5 +1,8 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
+#include "vast/Util/Warnings.hpp"
+
+VAST_RELAX_WARNINGS
 #include <mlir/IR/Location.h>
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/IR/BuiltinOps.h>
@@ -37,6 +40,7 @@
 #include <llvm/Support/Debug.h>
 #include <llvm/ADT/None.h>
 #include <llvm/Support/ErrorHandling.h>
+VAST_UNRELAX_WARNINGS
 
 #include "vast/Translation/Types.hpp"
 #include "vast/Dialect/HighLevel/HighLevel.hpp"
@@ -50,6 +54,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#include <optional>
 
 #define DEBUG_TYPE "vast-from-source"
 

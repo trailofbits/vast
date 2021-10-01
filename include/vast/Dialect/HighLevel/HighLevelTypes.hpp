@@ -2,12 +2,18 @@
 
 #pragma once
 
-#include "mlir/IR/MLIRContext.h"
-#include "mlir/IR/TypeSupport.h"
-#include "clang/AST/Type.h"
-#include "llvm/ADT/Hashing.h"
-#include "mlir/IR/Builders.h"
-#include "mlir/IR/Dialect.h"
+#include "vast/Util/Warnings.hpp"
+
+VAST_RELAX_WARNINGS
+#include <mlir/IR/MLIRContext.h>
+#include <mlir/IR/TypeSupport.h>
+#include <mlir/IR/Builders.h>
+#include <mlir/IR/Dialect.h>
+
+#include <clang/AST/Type.h>
+
+#include <llvm/ADT/Hashing.h>
+VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {

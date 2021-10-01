@@ -1,10 +1,17 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
+#pragma once
+
+#include "vast/Util/Warnings.hpp"
+
+VAST_RELAX_WARNINGS
 #include <mlir/IR/BuiltinTypes.h>
-#include <clang/AST/Type.h>
 #include <mlir/IR/MLIRContext.h>
-#include <clang/AST/ASTContext.h>
+
 #include <clang/AST/AST.h>
+#include <clang/AST/ASTContext.h>
+#include <clang/AST/Type.h>
+VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
