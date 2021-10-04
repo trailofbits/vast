@@ -110,8 +110,8 @@ jobs:
             wget "${llvm_url_path}"
           fi
 
-          mkdir "${{ steps.build_paths.outputs.INSTALL }}/llvm-${{ matrix.llvm }}"
-          tar -xf -C "${llvm_archive}" --strip-components=1 -C "${{ steps.build_paths.outputs.INSTALL }}/llvm-${{ matrix.llvm }}"
+          mkdir "${{ steps.build_paths.outputs.INSTALL }}/llvm"
+          tar -xf "${llvm_archive}" -C "${{ steps.build_paths.outputs.INSTALL }}/llvm" --strip-components=1
 
       - name: Configure vast
         working-directory: ${{ steps.build_paths.outputs.BUILD }}
