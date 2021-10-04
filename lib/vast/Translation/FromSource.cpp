@@ -264,25 +264,27 @@ namespace vast::hl
             return Value(); // dummy return
         }
 
+        auto make_scope_builder(clang::Stmt *stmt)
+        {
+            return [stmt, this] (auto &bld, auto) {
+                Visit(stmt);
+                spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
+            };
+        }
+
         Value VisitIfStmt(clang::IfStmt *stmt)
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
 
-            auto create_builder = [this] (auto stmt) {
-                return [this, stmt] (auto &bld, auto) {
-                    Visit(stmt);
-                    spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
-                };
-            };
-
-            BuilderCallback then_builder = create_builder(stmt->getThen());
-            BuilderCallback else_builder = nullptr;
-            if (stmt->getElse()) {
-                else_builder = create_builder(stmt->getElse());
-            }
+            auto then_builder = make_scope_builder(stmt->getThen());
 
             auto cond = Visit(stmt->getCond());
-            builder.create< IfOp >(loc, cond, then_builder, else_builder);
+            if (stmt->getElse()) {
+                auto else_builder = make_scope_builder(stmt->getElse());
+                builder.create< IfOp >(loc, cond, then_builder, else_builder);
+            } else {
+                builder.create< IfOp >(loc, cond, then_builder);
+            }
 
             return Value(); // dummy return
         }
@@ -290,13 +292,7 @@ namespace vast::hl
         Value VisitWhileStmt(clang::WhileStmt *stmt)
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
-
-            auto body = stmt->getBody();
-
-            auto body_builder = [this, body] (auto &bld, auto) {
-                Visit(body);
-                spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
-            };
+            auto body_builder = make_scope_builder(stmt->getBody());
 
             auto cond = Visit(stmt->getCond());
             builder.create< WhileOp >(loc, cond, body_builder);
