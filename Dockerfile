@@ -21,8 +21,11 @@ RUN tar -xf clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04.tar.xz -C .
     rm clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 
 RUN apt-get update && \
-    apt-get install -y clang-12 libstdc++-11-dev cmake ninja-build && \
+    apt-get install -y clang-12 libstdc++-11-dev cmake ninja-build python3-pip && \
     rm -rf /var/lib/apt/lists/*
+
+RUN pip install lit
+RUN ln -s /usr/bin/FileCheck-12 /usr/bin/FileCheck
 
 # Source code build
 FROM deps AS build
@@ -38,5 +41,8 @@ RUN cmake -G Ninja -B build -S . \
     -DCMAKE_CXX_COMPILER=clang++-12 \
     -DCMAKE_INSTALL_PREFIX="${LIBRARIES}" \
     -DCMAKE_VERBOSE_MAKEFILE=True \
+    -DENABLE_TESTING=ON \
+    -DLLVM_EXTERNAL_LIT=/usr/local/bin/lit \
     -DLLVM_INSTALL_DIR=/dependencies/llvm-${LLVM_VERSION}
 RUN cmake --build build --target install
+RUN cmake --build build --target check-vast
