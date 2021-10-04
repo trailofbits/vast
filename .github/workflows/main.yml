@@ -157,4 +157,5 @@ jobs:
         working-directory: ${{ steps.build_paths.outputs.BUILD }}
 
         run: |
+          export LLVM_SYMBOLIZER_PATH="${{ steps.build_paths.outputs.INSTALL }}/llvm/bin/llvm-symbolizer"
           cmake --build build --target check-vast
