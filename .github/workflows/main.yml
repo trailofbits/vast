@@ -120,7 +120,7 @@ jobs:
           CCACHE_DIR: ${{ steps.build_paths.outputs.CCACHE }}
 
         run: |
-          llvm_dir="${{ steps.build_paths.outputs.INSTALL }}/llvm-${{ matrix.llvm }}"
+          llvm_dir="${{ steps.build_paths.outputs.INSTALL }}/llvm"
 
           cmake -G Ninja -B build \
             -S ${{ steps.build_paths.outputs.SOURCE }}/vast \
