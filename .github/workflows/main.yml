@@ -122,7 +122,8 @@ jobs:
         run: |
           llvm_dir="${{ steps.build_paths.outputs.INSTALL }}/llvm-${{ matrix.llvm }}"
 
-          cmake -G Ninja -B build -S . \
+          cmake -G Ninja -B build \
+            -S ${{ steps.build_paths.outputs.SOURCE }}/vast \
             -DCMAKE_C_COMPILER=clang-12 \
             -DCMAKE_CXX_COMPILER=clang++-12 \
             -DCMAKE_VERBOSE_MAKEFILE=True \
