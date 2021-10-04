@@ -6,7 +6,6 @@ configure_lit_site_cfg(
 )
 
 set(VAST_TEST_DEPENDS
-  FileCheck count not
   vast-opt
   vast-cc
 )
