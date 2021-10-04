@@ -1,5 +1,5 @@
 ARG LLVM_VERSION=12.0.1
-ARG UBUNTU_VERSION=21.04
+ARG UBUNTU_VERSION=20.04
 ARG BUILD_BASE=ubuntu:${UBUNTU_VERSION}
 ARG LIBRARIES=/opt/trailofbits
 
@@ -21,7 +21,7 @@ RUN tar -xf clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04.tar.xz -C .
     rm clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 
 RUN apt-get update && \
-    apt-get install -y clang-12 libstdc++-11-dev cmake ninja-build python3-pip && \
+    apt-get install -y clang-12 libstdc++-10-dev cmake ninja-build python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
 RUN pip install lit
