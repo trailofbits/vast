@@ -1,4 +1,4 @@
-[![Build](https://github.com/trailofbits/vast/actions/workflows/main.yml/badge.svg)](https://github.com/trailofbits/vast/actions/workflows/main.yml)
+[![Build](https://github.com/trailofbits/vast/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/trailofbits/vast/actions/workflows/main.yml)
 
 # VAST — Verbose AST
 
