@@ -26,21 +26,13 @@ jobs:
       fail-fast: false
       matrix:
         image:
-          - { name: 'ubuntu', tag: '20.04' }
+          - { name: 'ubuntu', tag: '21.04' }
 
         llvm: [ '12' ]
-        cxxcommon_version: [ 'v0.1.4' ]
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-21.04
 
     timeout-minutes: 15
-
-    container:
-      image: docker.pkg.github.com/lifting-bits/cxx-common/vcpkg-builder-${{ matrix.image.name }}:${{ matrix.image.tag }}
-
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Setup the build paths
@@ -86,23 +78,13 @@ jobs:
           restore-keys: |
             gitmodules_${{ matrix.image.name }}_${{ matrix.image.tag }}_${{ matrix.llvm }}
 
-      - name: Install system requirements
+      - name: Install build requirements
         shell: bash
         run: |
-          apt-get update
-          apt-get install -y software-properties-common
-
-          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
-
-          add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main"
-
-          apt-get update
-          apt-get install -y clang-12 libstdc++-10-dev
-
-          update-alternatives \
-            --install /usr/bin/clang clang /usr/bin/clang-12 10 \
-            --slave   /usr/bin/clang++ clang++ /usr/bin/clang++-12
-
+          sudo apt-get update
+          sudo apt-get install -y \
+            software-properties-common tar wget \
+            clang-12 libstdc++-10-dev cmake ninja-build python3-pip
 
       - name: Clone the vast repository
         uses: actions/checkout@v2
@@ -110,41 +92,26 @@ jobs:
           path: ${{ steps.build_paths.outputs.REL_SOURCE }}/vast
           fetch-depth: 0
 
-      - name: Install vast requirements
+      - name: Install vast test requirements
         shell: bash
         run: |
           pip install lit
+          ln -s /usr/bin/FileCheck-12 /usr/bin/FileCheck
 
-      - name: Download the cxx-common ${{ matrix.cxxcommon_version}} package
+      - name: Download the llvm ${{ matrix.llvm }} package
         shell: bash
-        id: cxxcommon_installer
         working-directory: ${{ steps.build_paths.outputs.DOWNLOADS }}
         run: |
-          folder_name="vcpkg_${{ matrix.image.name }}-${{ matrix.image.tag }}_llvm-${{ matrix.llvm }}_amd64"
-          archive_name="${folder_name}.tar.xz"
+          llvm_archive="clang+llvm-${{ matrix.llvm }}-x86_64-linux-gnu-ubuntu-16.04.tar.xz"
+          llvm_url_path="https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ matrix.llvm }}/${llvm_archive}"
 
-          url="https://github.com/lifting-bits/cxx-common/releases/download/${{ matrix.cxxcommon_version}}/${archive_name}"
-          local_path="${{ steps.build_paths.outputs.DOWNLOADS }}/${archive_name}"
-
-          if [[ ! -f "${local_path}" ]] ; then
-            echo "Downloading: ${url}"
-            curl "${url}" -L -o "${local_path}"
-
-            ls -t ${{ steps.build_paths.outputs.DOWNLOADS }}/vcpkg_* | tail -n +2 | while read archive_file ; do
-              rm "${archive_file}"
-            done
+          if [[ ! -f "${llvm_archive}" ]] ; then
+            echo "Downloading: ${llvm_url_path}"
+            wget "${llvm_url_path}"
           fi
 
-          tar xf "${local_path}" -C "${{ steps.build_paths.outputs.INSTALL }}"
-
-          destination_path="${{ steps.build_paths.outputs.INSTALL }}/vcpkg"
-
-          mv "${{ steps.build_paths.outputs.INSTALL }}/${folder_name}" \
-             "${destination_path}"
-
-          echo "${destination_path}/installed/x64-linux-rel/tools/llvm-${{matrix.llvm}}" >> $GITHUB_PATH
-
-          echo ::set-output name=PATH::${destination_path}
+          mkdir "${{ steps.build_paths.outputs.INSTALL }}/llvm-${{ matrix.llvm }}"
+          tar -xf -C "${llvm_archive}" --strip-components=1 -C "${{ steps.build_paths.outputs.INSTALL }}/llvm-${{ matrix.llvm }}"
 
       - name: Configure vast
         working-directory: ${{ steps.build_paths.outputs.BUILD }}
@@ -153,17 +120,15 @@ jobs:
           CCACHE_DIR: ${{ steps.build_paths.outputs.CCACHE }}
 
         run: |
-          mkdir vast_build && cd vast_build
+          llvm_dir="${{ steps.build_paths.outputs.INSTALL }}/llvm-${{ matrix.llvm }}"
 
-          cmake \
-              -DCMAKE_C_COMPILER=clang-12 \
-              -DCMAKE_CXX_COMPILER=clang++-12 \
-              -DCMAKE_VERBOSE_MAKEFILE=true \
-              -DVCPKG_ROOT="${{ steps.cxxcommon_installer.outputs.PATH }}" \
-              -DVCPKG_TARGET_TRIPLET=x64-linux-rel \
-              -G Ninja \
-              -DENABLE_TESTING=ON \
-              ${{ steps.build_paths.outputs.SOURCE }}/vast
+          cmake -G Ninja -B build -S . \
+            -DCMAKE_C_COMPILER=clang-12 \
+            -DCMAKE_CXX_COMPILER=clang++-12 \
+            -DCMAKE_VERBOSE_MAKEFILE=True \
+            -DENABLE_TESTING=ON \
+            -DLLVM_EXTERNAL_LIT=/usr/local/bin/lit \
+            -DLLVM_INSTALL_DIR=${llvm_dir}
 
       - name: Build vast
         working-directory: ${{ steps.build_paths.outputs.BUILD }}
@@ -172,7 +137,7 @@ jobs:
           CCACHE_DIR: ${{ steps.build_paths.outputs.CCACHE }}
 
         run: |
-          cmake --build vast_build -j $(nproc)
+          cmake --build build -j $(nproc)
 
       - name: Install vast
         id: vast_installer
@@ -183,7 +148,7 @@ jobs:
 
         run: |
           export DESTDIR=${{ steps.build_paths.outputs.INSTALL }}/vast
-          cmake --build vast_build \
+          cmake --build build \
                 --target install
           echo ::set-output name=PATH::${DESTDIR}
 
@@ -191,4 +156,4 @@ jobs:
         working-directory: ${{ steps.build_paths.outputs.BUILD }}
 
         run: |
-          cmake --build vast_build --target check-vast
+          cmake --build build --target check-vast
