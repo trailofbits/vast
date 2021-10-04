@@ -95,8 +95,8 @@ jobs:
       - name: Install vast test requirements
         shell: bash
         run: |
-          pip install lit
-          ln -s /usr/bin/FileCheck-12 /usr/bin/FileCheck
+          sudo pip install lit
+          sudo ln -s /usr/bin/FileCheck-12 /usr/bin/FileCheck
 
       - name: Download the llvm ${{ matrix.llvm }} package
         shell: bash
