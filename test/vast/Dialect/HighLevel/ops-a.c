@@ -3,9 +3,9 @@
 int add1(int a, int b)
 {
     // CHECK: [[V1:%[0-9]+]] = hl.declref( @a ): !hl.int
-    // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] ): !hl.int
+    // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] ) LValueToRValue: !hl.int
     // CHECK: [[V3:%[0-9]+]] = hl.declref( @b ): !hl.int
-    // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast( [[V3]] ): !hl.int
+    // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast( [[V3]] ) LValueToRValue: !hl.int
     // CHECK: hl.add [[V2]], [[V4]] : !hl.int
     return a + b;
 }
@@ -13,15 +13,15 @@ int add1(int a, int b)
 int add2(int a, int b)
 {
     // CHECK: [[V1:%[0-9]+]] = hl.declref( @a ): !hl.int
-    // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] ): !hl.int
+    // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] ) LValueToRValue: !hl.int
     // CHECK: [[V3:%[0-9]+]] = hl.declref( @b ): !hl.int
-    // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast( [[V3]] ): !hl.int
+    // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast( [[V3]] ) LValueToRValue: !hl.int
     // CHECK: [[V5:%[0-9]+]] = hl.add [[V2]], [[V4]] : !hl.int
     // CHECK: [[V6:%[0-9]+]] = hl.var( r, [[V5]] ): !hl.int
     int r = a + b;
 
     // CHECK: [[V7:%[0-9]+]] = hl.declref( @r ): !hl.int
-    // CHECK: [[V8:%[0-9]+]] = hl.implicit_cast( [[V7]] ): !hl.int
+    // CHECK: [[V8:%[0-9]+]] = hl.implicit_cast( [[V7]] ) LValueToRValue: !hl.int
     // CHECK: return [[V8]] : !hl.int
     return r;
 }
