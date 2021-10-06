@@ -272,6 +272,22 @@ namespace vast::hl
             };
         }
 
+        auto make_nonterminated_scope_builder(clang::Stmt *stmt)
+        {
+            return [stmt, this] (auto &bld, auto loc) {
+                if (stmt)
+                    Visit(stmt);
+                spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
+                // TODO(Heno): remove with noterminator attribute
+                auto &blocks = bld.getBlock()->getParent()->getBlocks();
+                auto &lastblock = blocks.back();
+                if (lastblock.empty() || lastblock.back().isKnownNonTerminator()) {
+                    builder.setInsertionPointToEnd(&lastblock);
+                    builder.create< ScopeEndOp >(loc);
+                }
+            };
+        }
+
         Value VisitIfStmt(clang::IfStmt *stmt)
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
@@ -298,6 +314,21 @@ namespace vast::hl
             builder.create< WhileOp >(loc, cond, body_builder);
 
             return Value(); // dummy return
+        }
+
+        Value VisitForStmt(clang::ForStmt *stmt)
+        {
+            auto loc = builder.getLocation(stmt->getSourceRange());
+
+            // auto incr = Visit(stmt->getInc());
+            auto init_builder = make_nonterminated_scope_builder(stmt->getInit());
+            auto cond_builder = make_nonterminated_scope_builder(stmt->getCond());
+            auto inc_builder  = make_nonterminated_scope_builder(stmt->getInc());
+            auto body_builder = make_scope_builder(stmt->getBody());
+
+            builder.create< ForOp >(loc, init_builder, cond_builder, inc_builder, body_builder);
+
+            return Value(); // dummy value
         }
 
         Value VisitReturnStmt(clang::ReturnStmt *stmt)

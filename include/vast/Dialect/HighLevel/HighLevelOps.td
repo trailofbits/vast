@@ -30,6 +30,7 @@ def HighLevel_ScopeOp
   }];
 }
 
+
 def HighLevel_ReturnOp
   : HighLevel_Op< "return", [Terminator, NoSideEffect] >
 {
@@ -318,7 +319,37 @@ def HighLevel_WhileOp : HighLevel_Op< "while", [RecursiveSideEffects] >
     p << getOperationName() << " " << cond();
     p.printRegion(body());
   }];
+}
 
+
+def HighLevel_ForOp : HighLevel_Op< "for", [RecursiveSideEffects] >
+{
+  let summary = "VAST for statement";
+  let description = [{ VAST for statement }];
+
+  let regions = (region AnyRegion:$init, AnyRegion:$cond, AnyRegion:$incr, SizedRegion<1>:$body);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilderDAG<( ins
+      CArg< "BuilderCallback", "terminate_body" >:$init,
+      CArg< "BuilderCallback", "terminate_body" >:$cond,
+      CArg< "BuilderCallback", "terminate_body" >:$incr,
+      CArg< "BuilderCallback", "terminate_body" >:$body
+    )>
+  ];
+
+  let printer = [{
+    p << getOperationName();
+    p << " init";
+    p.printRegion(init());
+    p << " cond";
+    p.printRegion(cond());
+    p << " incr";
+    p.printRegion(incr());
+    p << " body";
+    p.printRegion(body());
+  }];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS

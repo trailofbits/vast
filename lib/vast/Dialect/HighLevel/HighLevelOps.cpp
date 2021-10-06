@@ -86,6 +86,34 @@ namespace vast::hl
     {
         build(bld, st, TypeRange(), cond, bodyBuilder);
     }
+
+    void ForOp::build(Builder &bld, State &st, BuilderCallback init, BuilderCallback cond, BuilderCallback incr, BuilderCallback body)
+    {
+        assert(body && "the builder callback for 'body' must be present");
+        Builder::InsertionGuard guard(bld);
+
+        if (init) {
+            auto region = st.addRegion();
+            bld.createBlock(region);
+            init(bld, st.location);
+        }
+
+        if (cond) {
+            auto region = st.addRegion();
+            bld.createBlock(region);
+            cond(bld, st.location);
+        }
+
+        if (incr) {
+            auto region = st.addRegion();
+            bld.createBlock(region);
+            incr(bld, st.location);
+        }
+
+        auto region = st.addRegion();
+        bld.createBlock(region);
+        body(bld, st.location);
+    }
 }
 
 //===----------------------------------------------------------------------===//
