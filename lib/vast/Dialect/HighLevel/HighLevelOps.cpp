@@ -92,27 +92,18 @@ namespace vast::hl
         assert(body && "the builder callback for 'body' must be present");
         Builder::InsertionGuard guard(bld);
 
-        if (init) {
-            auto region = st.addRegion();
-            bld.createBlock(region);
-            init(bld, st.location);
-        }
+        auto generate_region = [&] (auto callback) {
+            if (callback) {
+                auto region = st.addRegion();
+                bld.createBlock(region);
+                callback(bld, st.location);
+            }
+        };
 
-        if (cond) {
-            auto region = st.addRegion();
-            bld.createBlock(region);
-            cond(bld, st.location);
-        }
-
-        if (incr) {
-            auto region = st.addRegion();
-            bld.createBlock(region);
-            incr(bld, st.location);
-        }
-
-        auto region = st.addRegion();
-        bld.createBlock(region);
-        body(bld, st.location);
+        generate_region(init);
+        generate_region(cond);
+        generate_region(incr);
+        generate_region(body);
     }
 }
 
