@@ -157,21 +157,192 @@ def HighLevel_UnreachableOp : HighLevel_Op<"unreachable", [Terminator]> {
   }];
 }
 
+class CastKindAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
-def HighLevel_ImplicitCastOp : HighLevel_Op< "implicit_cast", [] > {
-  let summary = "VAST implicit cast";
-  let description = [{ VAST implicit cast }];
+class CastKindList< string name, string summary, list<CastKindAttr> cases >
+  : I64EnumAttr< name, summary, cases > {}
 
-  let arguments = (ins AnyType:$value);
-  let results = (outs AnyType);
+def Dependent : CastKindAttr<"Dependent", 0>;
+def BitCast : CastKindAttr<"BitCast", 1>;
+def LValueBitCast : CastKindAttr<"LValueBitCast", 2>;
+def LValueToRValueBitCast : CastKindAttr<"LValueToRValueBitCast", 3>;
+def LValueToRValue : CastKindAttr<"LValueToRValue", 4>;
 
-  let verifier = ?;
-  let printer = [{
-    p << getOperationName()
-      << "( " << value() << " ): "
-      << getResult().getType();
-  }];
+def NoOp : CastKindAttr<"NoOp", 5>;
+
+def BaseToDerived : CastKindAttr<"BaseToDerived", 6>;
+def DerivedToBase : CastKindAttr<"DerivedToBase", 7>;
+def UncheckedDerivedToBase : CastKindAttr<"UncheckedDerivedToBase", 8>;
+def Dynamic : CastKindAttr<"Dynamic", 9>;
+def ToUnion : CastKindAttr<"ToUnion", 10>;
+
+def ArrayToPointerDecay : CastKindAttr<"ArrayToPointerDecay", 11>;
+def FunctionToPointerDecay : CastKindAttr<"FunctionToPointerDecay", 12>;
+def NullToPointer : CastKindAttr<"NullToPointer", 13>;
+def NullToMemberPointer : CastKindAttr<"NullToMemberPointer", 14>;
+def BaseToDerivedMemberPointer : CastKindAttr<"BaseToDerivedMemberPointer", 15>;
+def DerivedToBaseMemberPointer : CastKindAttr<"DerivedToBaseMemberPointer", 16>;
+def MemberPointerToBoolean : CastKindAttr<"MemberPointerToBoolean", 17>;
+def ReinterpretMemberPointer : CastKindAttr<"ReinterpretMemberPointer", 18>;
+def UserDefinedConversion : CastKindAttr<"UserDefinedConversion", 19>;
+def ConstructorConversion : CastKindAttr<"ConstructorConversion", 20>;
+
+def IntegralToPointer : CastKindAttr<"IntegralToPointer", 21>;
+def PointerToIntegral : CastKindAttr<"PointerToIntegral", 22>;
+def PointerToBoolean  : CastKindAttr<"PointerToBoolean", 23>;
+
+def ToVoid : CastKindAttr<"ToVoid", 24>;
+
+def VectorSplat : CastKindAttr<"VectorSplat", 25>;
+
+def IntegralCast : CastKindAttr<"IntegralCast", 26>;
+def IntegralToBoolean : CastKindAttr<"IntegralToBoolean", 27>;
+def IntegralToFloating : CastKindAttr<"IntegralToFloating", 28>;
+def FloatingToFixedPoint : CastKindAttr<"FloatingToFixedPoint", 29>;
+def FixedPointToFloating : CastKindAttr<"FixedPointToFloating", 30>;
+def FixedPointCast : CastKindAttr<"FixedPointCast", 31>;
+def FixedPointToIntegral : CastKindAttr<"FixedPointToIntegral", 32>;
+def IntegralToFixedPoint : CastKindAttr<"IntegralToFixedPoint", 33>;
+def FixedPointToBoolean : CastKindAttr<"FixedPointToBoolean", 34>;
+def FloatingToIntegral : CastKindAttr<"FloatingToIntegral", 35>;
+def FloatingToBoolean : CastKindAttr<"FloatingToBoolean", 36>;
+def BooleanToSignedIntegral : CastKindAttr<"BooleanToSignedIntegral", 37>;
+def FloatingCast : CastKindAttr<"FloatingCast", 38>;
+
+def CPointerToObjCPointerCast : CastKindAttr<"CPointerToObjCPointerCast", 39>;
+def BlockPointerToObjCPointerCast : CastKindAttr<"BlockPointerToObjCPointerCast", 40>;
+def AnyPointerToBlockPointerCast : CastKindAttr<"AnyPointerToBlockPointerCast", 41>;
+def ObjCObjectLValueCast : CastKindAttr<"ObjCObjectLValueCast", 42>;
+
+def FloatingRealToComplex : CastKindAttr<"FloatingRealToComplex", 43>;
+def FloatingComplexToReal : CastKindAttr<"FloatingComplexToReal", 44>;
+def FloatingComplexToBoolean : CastKindAttr<"FloatingComplexToBoolean", 45>;
+def FloatingComplexCast : CastKindAttr<"FloatingComplexCast", 46>;
+def FloatingComplexToIntegralComplex : CastKindAttr<"FloatingComplexToIntegralComplex", 47>;
+def IntegralRealToComplex : CastKindAttr<"IntegralRealToComplex", 48>;
+def IntegralComplexToReal : CastKindAttr<"IntegralComplexToReal", 49>;
+def IntegralComplexToBoolean : CastKindAttr<"IntegralComplexToBoolean", 50>;
+def IntegralComplexCast : CastKindAttr<"IntegralComplexCast", 51>;
+def IntegralComplexToFloatingComplex : CastKindAttr<"IntegralComplexToFloatingComplex", 52>;
+
+def ARCProduceObject : CastKindAttr<"ARCProduceObject", 53>;
+def ARCConsumeObject : CastKindAttr<"ARCConsumeObject", 54>;
+def ARCReclaimReturnedObject : CastKindAttr<"ARCReclaimReturnedObject", 55>;
+def ARCExtendBlockObject : CastKindAttr<"ARCExtendBlockObject", 56>;
+
+def AtomicToNonAtomic : CastKindAttr<"AtomicToNonAtomic", 57>;
+def NonAtomicToAtomic : CastKindAttr<"NonAtomicToAtomic", 58>;
+
+def CopyAndAutoreleaseBlockObject : CastKindAttr<"CopyAndAutoreleaseBlockObject", 59>;
+def BuiltinFnToFnPtr : CastKindAttr<"BuiltinFnToFnPtr", 60>;
+
+def ZeroToOCLOpaqueType : CastKindAttr<"ZeroToOCLOpaqueType", 61>;
+def AddressSpaceConversion : CastKindAttr<"AddressSpaceConversion", 62>;
+def IntToOCLSampler : CastKindAttr<"IntToOCLSampler", 63>;
+
+let cppNamespace = "::vast::hl" in
+def CastKind : CastKindList< "CastKind", "cast kind", [
+  Dependent,
+  BitCast,
+  LValueBitCast,
+  LValueToRValueBitCast,
+  LValueToRValue,
+
+  NoOp,
+
+  BaseToDerived,
+  DerivedToBase,
+  UncheckedDerivedToBase,
+  Dynamic,
+  ToUnion,
+
+  ArrayToPointerDecay,
+  FunctionToPointerDecay,
+  NullToPointer,
+  NullToMemberPointer,
+  BaseToDerivedMemberPointer,
+  DerivedToBaseMemberPointer,
+  MemberPointerToBoolean,
+  ReinterpretMemberPointer,
+  UserDefinedConversion,
+  ConstructorConversion,
+
+  IntegralToPointer,
+  PointerToIntegral,
+  PointerToBoolean ,
+
+  ToVoid,
+
+  VectorSplat,
+
+  IntegralCast,
+  IntegralToBoolean,
+  IntegralToFloating,
+  FloatingToFixedPoint,
+  FixedPointToFloating,
+  FixedPointCast,
+  FixedPointToIntegral,
+  IntegralToFixedPoint,
+  FixedPointToBoolean,
+  FloatingToIntegral,
+  FloatingToBoolean,
+  BooleanToSignedIntegral,
+  FloatingCast,
+
+  CPointerToObjCPointerCast,
+  BlockPointerToObjCPointerCast,
+  AnyPointerToBlockPointerCast,
+  ObjCObjectLValueCast,
+
+  FloatingRealToComplex,
+  FloatingComplexToReal,
+  FloatingComplexToBoolean,
+  FloatingComplexCast,
+  FloatingComplexToIntegralComplex,
+  IntegralRealToComplex,
+  IntegralComplexToReal,
+  IntegralComplexToBoolean,
+  IntegralComplexCast,
+  IntegralComplexToFloatingComplex,
+
+  ARCProduceObject,
+  ARCConsumeObject,
+  ARCReclaimReturnedObject,
+  ARCExtendBlockObject,
+
+  AtomicToNonAtomic,
+  NonAtomicToAtomic,
+
+  CopyAndAutoreleaseBlockObject,
+  BuiltinFnToFnPtr,
+
+  ZeroToOCLOpaqueType,
+  AddressSpaceConversion,
+  IntToOCLSampler
+] >;
+
+class HighLevel_CastOp< string mnemonic, list< OpTrait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
+{
+    let summary = "VAST cast operation";
+    let description = [{ VAST cast operation }];
+
+    let arguments = (ins AnyType:$value, CastKind:$kind);
+    let results = (outs AnyType:$res);
+
+    let verifier = ? ;
+
+    let printer = [{
+        p << getOperationName()
+        << "( " << value() << " ) " << stringifyCastKind(kind()) << ": "
+        << getResult().getType();
+    }];
 }
+
+
+def HighLevel_ImplicitCastOp   : HighLevel_CastOp< "implicit_cast", [] >;
+def HighLevel_CStyleCastOp     : HighLevel_CastOp< "cstyle_cast", [] >;
+def HighLevel_BuiltinBitCastOp : HighLevel_CastOp< "builtin_bit_cast", [] >;
 
 
 def HighLevel_AddIOp : HighLevel_BinOp< "add", [Commutative]>;
