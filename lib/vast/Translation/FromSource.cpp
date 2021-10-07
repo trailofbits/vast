@@ -644,6 +644,36 @@ namespace vast::hl
             llvm_unreachable( "unhandled MSAsmStmt" );
         }
 
+        ValueOrStmt VisitCoroutineBodyStmt(clang::CoroutineBodyStmt *stmt)
+        {
+            llvm_unreachable( "unhandled CoroutineBodyStmt" );
+        }
+
+        ValueOrStmt VisitCoreturnStmt(clang::CoreturnStmt *stmt)
+        {
+            llvm_unreachable( "unhandled CoreturnStmt" );
+        }
+
+        ValueOrStmt VisitCoroutineSuspendExpr(clang::CoroutineSuspendExpr *expr)
+        {
+            llvm_unreachable( "unhandled CoroutineSuspendExpr" );
+        }
+
+        ValueOrStmt VisitCoawaitExpr(clang::CoawaitExpr *expr)
+        {
+            llvm_unreachable( "unhandled CoawaitExpr" );
+        }
+
+        ValueOrStmt VisitCoyieldExpr(clang::CoyieldExpr *expr)
+        {
+            llvm_unreachable( "unhandled CoyieldExpr" );
+        }
+
+        ValueOrStmt VisitDependentCoawaitExpr(clang::DependentCoawaitExpr *expr)
+        {
+            llvm_unreachable( "unhandled DependentCoawaitExpr" );
+        }
+
         ValueOrStmt VisitAttributedStmt(clang::AttributedStmt *stmt)
         {
             llvm_unreachable( "unhandled AttributedStmt" );
