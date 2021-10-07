@@ -1,7 +1,5 @@
 // RUN: vast-cc --from-source %s | FileCheck %s
 
-#include <stdbool.h>
-
 // CHECK: hl.var( i ): !hl.int
 int i;
 
@@ -43,7 +41,7 @@ const volatile unsigned int cvui = 0U;
 bool b;
 
 // CHECK: hl.var( b ): !hl<"volatile bool">
-volatile bool b;
+volatile bool vb;
 
 // CHECK: [[C5:%[0-9]+]] = hl.constant( false ): !hl.bool
 // CHECK-NEXT: hl.var( cb, [[C5]] ): !hl<"const bool">
