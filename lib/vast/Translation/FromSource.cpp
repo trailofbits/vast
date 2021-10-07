@@ -1511,6 +1511,115 @@ namespace vast::hl
 
         // Declarations
 
+        ValueOrStmt VisitImportDecl(clang::ImportDecl *decl)
+        {
+            llvm_unreachable( "unsupported ImportDecl" );
+        }
+
+        ValueOrStmt VisitEmptyDecl(clang::EmptyDecl *decl)
+        {
+            llvm_unreachable( "unsupported EmptyDecl" );
+        }
+
+        ValueOrStmt VisitAccessSpecDecl(clang::AccessSpecDecl *decl)
+        {
+            llvm_unreachable( "unsupported AccessSpecDecl" );
+        }
+
+        ValueOrStmt VisitCapturedDecl(clang::CapturedDecl *decl)
+        {
+            llvm_unreachable( "unsupported CapturedDecl" );
+        }
+
+        ValueOrStmt VisitClassScopeFunctionSpecializationDecl(clang::ClassScopeFunctionSpecializationDecl *decl)
+        {
+            llvm_unreachable( "unsupported ClassScopeFunctionSpecializationDecl" );
+        }
+
+        ValueOrStmt VisitExportDecl(clang::ExportDecl *decl)
+        {
+            llvm_unreachable( "unsupported ExportDecl" );
+        }
+
+        ValueOrStmt VisitExternCContextDecl(clang::ExternCContextDecl *decl)
+        {
+            llvm_unreachable( "unsupported ExternCContextDecl" );
+        }
+
+        ValueOrStmt VisitFileScopeAsmDecl(clang::FileScopeAsmDecl *decl)
+        {
+            llvm_unreachable( "unsupported FileScopeAsmDecl" );
+        }
+
+        ValueOrStmt VisitStaticAssertDecl(clang::StaticAssertDecl *decl)
+        {
+            llvm_unreachable( "unsupported StaticAssertDecl" );
+        }
+
+        ValueOrStmt VisitTranslationUnitDecl(clang::TranslationUnitDecl *decl)
+        {
+            llvm_unreachable( "unsupported TranslationUnitDecl" );
+        }
+
+        ValueOrStmt VisitBindingDecl(clang::BindingDecl *decl)
+        {
+            llvm_unreachable( "unsupported BindingDecl" );
+        }
+
+        // ValueOrStmt VisitNamespaceDecl(clang::NamespaceDecl *decl)
+        // {
+        //     llvm_unreachable( "unsupported NamespaceDecl" );
+        // }
+
+        ValueOrStmt VisitNamespaceAliasDecl(clang::NamespaceAliasDecl *decl)
+        {
+            llvm_unreachable( "unsupported NamespaceAliasDecl" );
+        }
+
+        // ValueOrStmt VisitTypedefNameDecl(clang::TypedefNameDecl *decl)
+        // {
+        //     llvm_unreachable( "unsupported TypedefNameDecl" );
+        // }
+
+        // ValueOrStmt VisitTypedefDecl(clang::TypedefDecl *decl)
+        // {
+        //     llvm_unreachable( "unsupported TypedefDecl" );
+        // }
+
+        ValueOrStmt VisitTypeAliasDecl(clang::TypeAliasDecl *decl)
+        {
+            llvm_unreachable( "unsupported TypeAliasDecl" );
+        }
+        ValueOrStmt VisitTemplateDecl(clang::TemplateDecl *decl)
+        {
+            llvm_unreachable( "unsupported TemplateDecl" );
+        }
+
+        ValueOrStmt VisitTypeAliasTemplateDecl(clang::TypeAliasTemplateDecl *decl)
+        {
+            llvm_unreachable( "unsupported TypeAliasTemplateDecl" );
+        }
+
+        ValueOrStmt VisitLabelDecl(clang::LabelDecl *decl)
+        {
+            llvm_unreachable( "unsupported LabelDecl" );
+        }
+
+        ValueOrStmt VisitEnumDecl(clang::EnumDecl *decl)
+        {
+            llvm_unreachable( "unsupported EnumDecl" );
+        }
+
+        ValueOrStmt VisitRecordDecl(clang::RecordDecl *decl)
+        {
+            llvm_unreachable( "unsupported RecordDecl" );
+        }
+
+        ValueOrStmt VisitEnumConstantDecl(clang::EnumConstantDecl *decl)
+        {
+            llvm_unreachable( "unsupported EnumConstantDecl" );
+        }
+
         ValueOrStmt VisitFunctionDecl(clang::FunctionDecl *decl)
         {
             ScopedInsertPoint builder_scope(builder);
@@ -1570,6 +1679,71 @@ namespace vast::hl
             return fn;
         }
 
+        ValueOrStmt VisitCXXMethodDecl(clang::CXXMethodDecl *decl)
+        {
+            llvm_unreachable( "unsupported CXXMethodDecl" );
+        }
+
+        ValueOrStmt VisitCXXConstructorDecl(clang::CXXConstructorDecl *decl)
+        {
+            llvm_unreachable( "unsupported CXXConstructorDecl" );
+        }
+
+        ValueOrStmt VisitCXXDestructorDecl(clang::CXXDestructorDecl *decl)
+        {
+            llvm_unreachable( "unsupported CXXDestructorDecl" );
+        }
+
+        ValueOrStmt VisitCXXConversionDecl(clang::CXXConversionDecl *decl)
+        {
+            llvm_unreachable( "unsupported CXXConversionDecl" );
+        }
+
+        ValueOrStmt VisitCXXDeductionGuideDecl(clang::CXXDeductionGuideDecl *decl)
+        {
+            llvm_unreachable( "unsupported CXXDeductionGuideDecl" );
+        }
+
+        ValueOrStmt VisitMSPropertyDecl(clang::MSPropertyDecl *decl)
+        {
+            llvm_unreachable( "unsupported MSPropertyDecl" );
+        }
+
+        ValueOrStmt VisitMSGuidDecl(clang::MSGuidDecl *decl)
+        {
+            llvm_unreachable( "unsupported MSGuidDecl" );
+        }
+
+        ValueOrStmt VisitFieldDecl(clang::FieldDecl *decl)
+        {
+            llvm_unreachable( "unsupported FieldDecl" );
+        }
+
+        ValueOrStmt VisitIndirectFieldDecl(clang::IndirectFieldDecl *decl)
+        {
+            llvm_unreachable( "unsupported IndirectFieldDecl" );
+        }
+
+        ValueOrStmt VisitFriendDecl(clang::FriendDecl *decl)
+        {
+            llvm_unreachable( "unsupported FriendDecl" );
+        }
+
+        ValueOrStmt VisitFriendTemplateDecl(clang::FriendTemplateDecl *decl)
+        {
+            llvm_unreachable( "unsupported FriendTemplateDecl" );
+        }
+
+        ValueOrStmt VisitObjCAtDefsFieldDecl(clang::ObjCAtDefsFieldDecl *decl)
+        {
+            llvm_unreachable( "unsupported ObjCAtDefsFieldDecl" );
+        }
+
+        ValueOrStmt VisitObjCIvarDecl(clang::ObjCIvarDecl *decl)
+        {
+            llvm_unreachable( "unsupported ObjCIvarDecl" );
+        }
+
         ValueOrStmt VisitVarDecl(clang::VarDecl *decl)
         {
             auto ty    = convert(decl->getType());
@@ -1585,6 +1759,246 @@ namespace vast::hl
             }
         }
 
+        ValueOrStmt VisitDecompositionDecl(clang::DecompositionDecl *decl)
+        {
+            llvm_unreachable( "unsupported DecompositionDecl" );
+        }
+
+
+        ValueOrStmt VisitImplicitParamDecl(clang::ImplicitParamDecl *decl)
+        {
+            llvm_unreachable( "unsupported ImplicitParamDecl" );
+        }
+
+        // ValueOrStmt VisitUnresolvedUsingIfExistsDecl(clang::UnresolvedUsingIfExistsDecl *decl)
+        // {
+        //     llvm_unreachable( "unsupported UnresolvedUsingIfExistsDecl" );
+        // }
+
+        ValueOrStmt VisitParmVarDecl(clang::ParmVarDecl *decl)
+        {
+            llvm_unreachable( "unsupported ParmVarDecl" );
+        }
+
+        ValueOrStmt VisitObjCMethodDecl(clang::ObjCMethodDecl *decl)
+        {
+            llvm_unreachable( "unsupported ObjCMethodDecl" );
+        }
+
+        ValueOrStmt VisitObjCTypeParamDecl(clang::ObjCTypeParamDecl *decl)
+        {
+            llvm_unreachable( "unsupported ObjCTypeParamDecl" );
+        }
+
+        ValueOrStmt VisitObjCProtocolDecl(clang::ObjCProtocolDecl *decl)
+        {
+            llvm_unreachable( "unsupported ObjCProtocolDecl" );
+        }
+
+        ValueOrStmt VisitLinkageSpecDecl(clang::LinkageSpecDecl *decl)
+        {
+            llvm_unreachable( "unsupported LinkageSpecDecl" );
+        }
+
+        ValueOrStmt VisitUsingDecl(clang::UsingDecl *decl)
+        {
+            llvm_unreachable( "unsupported UsingDecl" );
+        }
+
+        ValueOrStmt VisitUsingShadowDecl(clang::UsingShadowDecl *decl)
+        {
+            llvm_unreachable( "unsupported UsingShadowDecl" );
+        }
+
+        ValueOrStmt VisitUsingDirectiveDecl(clang::UsingDirectiveDecl *decl)
+        {
+            llvm_unreachable( "unsupported UsingDirectiveDecl" );
+        }
+
+        ValueOrStmt VisitUsingPackDecl(clang::UsingPackDecl *decl)
+        {
+            llvm_unreachable( "unsupported UsingPackDecl" );
+        }
+
+        // ValueOrStmt VisitUsingEnumDecl(clang::UsingEnumDecl *decl)
+        // {
+        //     llvm_unreachable( "unsupported UsingEnumDecl" );
+        // }
+
+        ValueOrStmt VisitUnresolvedUsingValueDecl(clang::UnresolvedUsingValueDecl *decl)
+        {
+            llvm_unreachable( "unsupported UnresolvedUsingValueDecl" );
+        }
+
+        ValueOrStmt VisitUnresolvedUsingTypenameDecl(clang::UnresolvedUsingTypenameDecl *decl)
+        {
+            llvm_unreachable( "unsupported UnresolvedUsingTypenameDecl" );
+        }
+
+        ValueOrStmt VisitBuiltinTemplateDecl(clang::BuiltinTemplateDecl *decl)
+        {
+            llvm_unreachable( "unsupported BuiltinTemplateDecl" );
+        }
+
+        ValueOrStmt VisitConceptDecl(clang::ConceptDecl *decl)
+        {
+            llvm_unreachable( "unsupported ConceptDecl" );
+        }
+
+        ValueOrStmt VisitRedeclarableTemplateDecl(clang::RedeclarableTemplateDecl *decl)
+        {
+            llvm_unreachable( "unsupported RedeclarableTemplateDecl" );
+        }
+
+        ValueOrStmt VisitLifetimeExtendedTemporaryDecl(clang::LifetimeExtendedTemporaryDecl *decl)
+        {
+            llvm_unreachable( "unsupported LifetimeExtendedTemporaryDecl" );
+        }
+
+        ValueOrStmt VisitPragmaCommentDecl(clang::PragmaCommentDecl *decl)
+        {
+            llvm_unreachable( "unsupported PragmaCommentDecl" );
+        }
+
+        ValueOrStmt VisitPragmaDetectMismatchDecl(clang::PragmaDetectMismatchDecl *decl)
+        {
+            llvm_unreachable( "unsupported PragmaDetectMismatchDecl" );
+        }
+
+        ValueOrStmt VisitRequiresExprBodyDecl(clang::RequiresExprBodyDecl *decl)
+        {
+            llvm_unreachable( "unsupported RequiresExprBodyDecl" );
+        }
+
+        ValueOrStmt VisitObjCCompatibleAliasDecl(clang::ObjCCompatibleAliasDecl *decl)
+        {
+            llvm_unreachable( "unsupported ObjCCompatibleAliasDecl" );
+        }
+
+        ValueOrStmt VisitObjCCategoryDecl(clang::ObjCCategoryDecl *decl)
+        {
+            llvm_unreachable( "unsupported ObjCCategoryDecl" );
+        }
+
+        ValueOrStmt VisitObjCImplDecl(clang::ObjCImplDecl *decl)
+        {
+            llvm_unreachable( "unsupported ObjCImplDecl" );
+        }
+
+        ValueOrStmt VisitObjCInterfaceDecl(clang::ObjCInterfaceDecl *decl)
+        {
+            llvm_unreachable( "unsupported ObjCInterfaceDecl" );
+        }
+
+        ValueOrStmt VisitObjCCategoryImplDecl(clang::ObjCCategoryImplDecl *decl)
+        {
+            llvm_unreachable( "unsupported ObjCCategoryImplDecl" );
+        }
+
+        ValueOrStmt VisitObjCImplementationDecl(clang::ObjCImplementationDecl *decl)
+        {
+            llvm_unreachable( "unsupported ObjCImplementationDecl" );
+        }
+
+        ValueOrStmt VisitObjCPropertyDecl(clang::ObjCPropertyDecl *decl)
+        {
+            llvm_unreachable( "unsupported ObjCPropertyDecl" );
+        }
+
+        ValueOrStmt VisitObjCPropertyImplDecl(clang::ObjCPropertyImplDecl *decl)
+        {
+            llvm_unreachable( "unsupported ObjCPropertyImplDecl" );
+        }
+
+        ValueOrStmt VisitTemplateParamObjectDecl(clang::TemplateParamObjectDecl *decl)
+        {
+            llvm_unreachable( "unsupported TemplateParamObjectDecl" );
+        }
+
+        ValueOrStmt VisitTemplateTypeParmDecl(clang::TemplateTypeParmDecl *decl)
+        {
+            llvm_unreachable( "unsupported TemplateTypeParmDecl" );
+        }
+
+        ValueOrStmt VisitNonTypeTemplateParmDecl(clang::NonTypeTemplateParmDecl *decl)
+        {
+            llvm_unreachable( "unsupported NonTypeTemplateParmDecl" );
+        }
+
+        ValueOrStmt VisitTemplateTemplateParmDecl(clang::TemplateTemplateParmDecl *decl)
+        {
+            llvm_unreachable( "unsupported TemplateTemplateParmDecl" );
+        }
+
+        ValueOrStmt VisitClassTemplateDecl(clang::ClassTemplateDecl *decl)
+        {
+            llvm_unreachable( "unsupported ClassTemplateDecl" );
+        }
+
+        ValueOrStmt VisitClassTemplatePartialSpecializationDecl(clang::ClassTemplatePartialSpecializationDecl *decl)
+        {
+            llvm_unreachable( "unsupported ClassTemplatePartialSpecializationDecl" );
+        }
+
+        ValueOrStmt VisitClassTemplateSpecializationDecl(clang::ClassTemplateSpecializationDecl *decl)
+        {
+            llvm_unreachable( "unsupported ClassTemplateSpecializationDecl" );
+        }
+
+        ValueOrStmt VisitVarTemplateDecl(clang::VarTemplateDecl *decl)
+        {
+            llvm_unreachable( "unsupported VarTemplateDecl" );
+        }
+
+        ValueOrStmt VisitVarTemplateSpecializationDecl(clang::VarTemplateSpecializationDecl *decl)
+        {
+            llvm_unreachable( "unsupported VarTemplateSpecializationDecl" );
+        }
+
+        ValueOrStmt VisitVarTemplatePartialSpecializationDecl(clang::VarTemplatePartialSpecializationDecl *decl)
+        {
+            llvm_unreachable( "unsupported VarTemplatePartialSpecializationDecl" );
+        }
+
+        ValueOrStmt VisitFunctionTemplateDecl(clang::FunctionTemplateDecl *decl)
+        {
+            llvm_unreachable( "unsupported FunctionTemplateDecl" );
+        }
+
+        ValueOrStmt VisitConstructorUsingShadowDecl(clang::ConstructorUsingShadowDecl *decl)
+        {
+            llvm_unreachable( "unsupported ConstructorUsingShadowDecl" );
+        }
+
+        ValueOrStmt VisitOMPAllocateDecl(clang::OMPAllocateDecl *decl)
+        {
+            llvm_unreachable( "unsupported OMPAllocateDecl" );
+        }
+
+        ValueOrStmt VisitOMPRequiresDecl(clang::OMPRequiresDecl *decl)
+        {
+            llvm_unreachable( "unsupported OMPRequiresDecl" );
+        }
+
+        ValueOrStmt VisitOMPThreadPrivateDecl(clang::OMPThreadPrivateDecl *decl)
+        {
+            llvm_unreachable( "unsupported OMPThreadPrivateDecl" );
+        }
+
+        ValueOrStmt VisitOMPCapturedExprDecl(clang::OMPCapturedExprDecl *decl)
+        {
+            llvm_unreachable( "unsupported OMPCapturedExprDecl" );
+        }
+
+        ValueOrStmt VisitOMPDeclareReductionDecl(clang::OMPDeclareReductionDecl *decl)
+        {
+            llvm_unreachable( "unsupported OMPDeclareReductionDecl" );
+        }
+
+        ValueOrStmt VisitOMPDeclareMapperDecl(clang::OMPDeclareMapperDecl *decl)
+        {
+            llvm_unreachable( "unsupported OMPDeclareMapperDecl" );
+        }
 
     private:
         mlir::OwningModuleRef &mod;
