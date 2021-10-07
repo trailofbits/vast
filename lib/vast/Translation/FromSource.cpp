@@ -331,12 +331,12 @@ namespace vast::hl
 
         ValueOrStmt VisitBinPtrMemD(clang::BinaryOperator *expr)
         {
-            llvm_unreachable( "unhandled BinPtrMemD" );
+            llvm_unreachable( "unsupported BinPtrMemD" );
         }
 
         ValueOrStmt VisitBinPtrMemI(clang::BinaryOperator *expr)
         {
-            llvm_unreachable( "unhandled BinPtrMemI" );
+            llvm_unreachable( "unsupported BinPtrMemI" );
         }
 
         ValueOrStmt VisitBinMul(clang::BinaryOperator *expr)
@@ -344,7 +344,7 @@ namespace vast::hl
             auto ty = expr->getType();
             if (ty->isIntegerType())
                 return build_binary< MulIOp >(expr);
-            llvm_unreachable( "unhandled BinMul" );
+            llvm_unreachable( "unsupported BinMul" );
         }
 
         ValueOrStmt VisitBinDiv(clang::BinaryOperator *expr)
@@ -354,7 +354,7 @@ namespace vast::hl
                 return build_binary< DivUOp >(expr);
             if (ty->isIntegerType())
                 return build_binary< DivSOp >(expr);
-            llvm_unreachable( "unhandled BinDiv" );
+            llvm_unreachable( "unsupported BinDiv" );
         }
 
         ValueOrStmt VisitBinRem(clang::BinaryOperator *expr)
@@ -364,7 +364,7 @@ namespace vast::hl
                 return build_binary< RemUOp >(expr);
             if (ty->isIntegerType())
                 return build_binary< RemSOp >(expr);
-            llvm_unreachable( "unhandled BinRem" );
+            llvm_unreachable( "unsupported BinRem" );
         }
 
         ValueOrStmt VisitBinAdd(clang::BinaryOperator *expr)
@@ -372,7 +372,7 @@ namespace vast::hl
             auto ty = expr->getType();
             if (ty->isIntegerType())
                 return build_binary< AddIOp >(expr);
-            llvm_unreachable( "unhandled addition type" );
+            llvm_unreachable( "unsupported addition type" );
         }
 
         ValueOrStmt VisitBinSub(clang::BinaryOperator *expr)
@@ -380,17 +380,17 @@ namespace vast::hl
             auto ty = expr->getType();
             if (ty->isIntegerType())
                 return build_binary< SubIOp >(expr);
-            llvm_unreachable( "unhandled BinSub" );
+            llvm_unreachable( "unsupported BinSub" );
         }
 
         ValueOrStmt VisitBinShl(clang::BinaryOperator *expr)
         {
-            llvm_unreachable( "unhandled BinShl" );
+            llvm_unreachable( "unsupported BinShl" );
         }
 
         ValueOrStmt VisitBinShr(clang::BinaryOperator *expr)
         {
-            llvm_unreachable( "unhandled BinShr" );
+            llvm_unreachable( "unsupported BinShr" );
         }
 
         ValueOrStmt VisitBinLT(clang::BinaryOperator *expr)
@@ -400,7 +400,7 @@ namespace vast::hl
                 return build_comparison< Predicate::ult >(expr);
             if (ty->isIntegerType())
                 return build_comparison< Predicate::slt >(expr);
-            llvm_unreachable( "unhandled BinLT" );
+            llvm_unreachable( "unsupported BinLT" );
         }
 
         ValueOrStmt VisitBinGT(clang::BinaryOperator *expr)
@@ -410,7 +410,7 @@ namespace vast::hl
                 return build_comparison< Predicate::ugt >(expr);
             if (ty->isIntegerType())
                 return build_comparison< Predicate::sgt >(expr);
-            llvm_unreachable( "unhandled BinGT" );
+            llvm_unreachable( "unsupported BinGT" );
         }
 
         ValueOrStmt VisitBinLE(clang::BinaryOperator *expr)
@@ -420,7 +420,7 @@ namespace vast::hl
                 return build_comparison< Predicate::ule >(expr);
             if (ty->isIntegerType())
                 return build_comparison< Predicate::sle >(expr);
-            llvm_unreachable( "unhandled BinLE" );
+            llvm_unreachable( "unsupported BinLE" );
         }
 
         ValueOrStmt VisitBinGE(clang::BinaryOperator *expr)
@@ -430,7 +430,7 @@ namespace vast::hl
                 return build_comparison< Predicate::uge >(expr);
             if (ty->isIntegerType())
                 return build_comparison< Predicate::sge >(expr);
-            llvm_unreachable( "unhandled BinGE" );
+            llvm_unreachable( "unsupported BinGE" );
         }
 
         ValueOrStmt VisitBinEQ(clang::BinaryOperator *expr)
@@ -438,7 +438,7 @@ namespace vast::hl
             auto ty = expr->getLHS()->getType();
             if (ty->isIntegerType())
                 return build_comparison< Predicate::eq >(expr);
-            llvm_unreachable( "unhandled BinEQ" );
+            llvm_unreachable( "unsupported BinEQ" );
         }
 
         ValueOrStmt VisitBinNE(clang::BinaryOperator *expr)
@@ -446,32 +446,32 @@ namespace vast::hl
             auto ty = expr->getLHS()->getType();
             if (ty->isIntegerType())
                 return build_comparison< Predicate::ne >(expr);
-            llvm_unreachable( "unhandled BinNE" );
+            llvm_unreachable( "unsupported BinNE" );
         }
 
         ValueOrStmt VisitBinAnd(clang::BinaryOperator *expr)
         {
-            llvm_unreachable( "unhandled BinAnd" );
+            llvm_unreachable( "unsupported BinAnd" );
         }
 
         ValueOrStmt VisitBinXor(clang::BinaryOperator *expr)
         {
-            llvm_unreachable( "unhandled BinXor" );
+            llvm_unreachable( "unsupported BinXor" );
         }
 
         ValueOrStmt VisitBinOr(clang::BinaryOperator *expr)
         {
-            llvm_unreachable( "unhandled BinOr" );
+            llvm_unreachable( "unsupported BinOr" );
         }
 
         ValueOrStmt VisitBinLAnd(clang::BinaryOperator *expr)
         {
-            llvm_unreachable( "unhandled BinLAnd" );
+            llvm_unreachable( "unsupported BinLAnd" );
         }
 
         ValueOrStmt VisitBinLOr(clang::BinaryOperator *expr)
         {
-            llvm_unreachable( "unhandled BinLOr" );
+            llvm_unreachable( "unsupported BinLOr" );
         }
 
         ValueOrStmt VisitBinAssign(clang::BinaryOperator *expr)
@@ -486,7 +486,7 @@ namespace vast::hl
             auto ty = expr->getType();
             if (ty->isIntegerType())
                 return build_binary< MulIAssignOp >(expr);
-            llvm_unreachable( "unhandled BinMulAssign" );
+            llvm_unreachable( "unsupported BinMulAssign" );
         }
 
         ValueOrStmt VisitBinDivAssign(clang::CompoundAssignOperator *expr)
@@ -496,7 +496,7 @@ namespace vast::hl
                 return build_binary< DivUAssignOp >(expr);
             if (ty->isIntegerType())
                 return build_binary< DivSAssignOp >(expr);
-            llvm_unreachable( "unhandled BinDivAssign" );
+            llvm_unreachable( "unsupported BinDivAssign" );
         }
 
         ValueOrStmt VisitBinRemAssign(clang::CompoundAssignOperator *expr)
@@ -506,7 +506,7 @@ namespace vast::hl
                 return build_binary< RemUAssignOp >(expr);
             if (ty->isIntegerType())
                 return build_binary< RemSAssignOp >(expr);
-            llvm_unreachable( "unhandled BinRemAssign" );
+            llvm_unreachable( "unsupported BinRemAssign" );
         }
 
         ValueOrStmt VisitBinAddAssign(clang::CompoundAssignOperator *expr)
@@ -514,7 +514,7 @@ namespace vast::hl
             auto ty = expr->getType();
             if (ty->isIntegerType())
                 return build_binary< AddIAssignOp >(expr);
-            llvm_unreachable( "unhandled BinAddAssign" );
+            llvm_unreachable( "unsupported BinAddAssign" );
         }
 
         ValueOrStmt VisitBinSubAssign(clang::CompoundAssignOperator *expr)
@@ -522,37 +522,37 @@ namespace vast::hl
             auto ty = expr->getType();
             if (ty->isIntegerType())
                 return build_binary< SubIAssignOp >(expr);
-            llvm_unreachable( "unhandled BinSubAssign" );
+            llvm_unreachable( "unsupported BinSubAssign" );
         }
 
         ValueOrStmt VisitBinShlAssign(clang::CompoundAssignOperator *expr)
         {
-            llvm_unreachable( "unhandled BinShlAssign" );
+            llvm_unreachable( "unsupported BinShlAssign" );
         }
 
         ValueOrStmt VisitBinShrAssign(clang::CompoundAssignOperator *expr)
         {
-            llvm_unreachable( "unhandled BinShrAssign" );
+            llvm_unreachable( "unsupported BinShrAssign" );
         }
 
         ValueOrStmt VisitBinAndAssign(clang::CompoundAssignOperator *expr)
         {
-            llvm_unreachable( "unhandled BinAndAssign" );
+            llvm_unreachable( "unsupported BinAndAssign" );
         }
 
         ValueOrStmt VisitBinOrAssign(clang::CompoundAssignOperator *expr)
         {
-            llvm_unreachable( "unhandled BinOrAssign" );
+            llvm_unreachable( "unsupported BinOrAssign" );
         }
 
         ValueOrStmt VisitBinXorAssign(clang::CompoundAssignOperator *expr)
         {
-            llvm_unreachable( "unhandled BinXorAssign" );
+            llvm_unreachable( "unsupported BinXorAssign" );
         }
 
         ValueOrStmt VisitBinComma(clang::BinaryOperator *expr)
         {
-            llvm_unreachable( "unhandled BinComma" );
+            llvm_unreachable( "unsupported BinComma" );
         }
 
         // Unary Operations
@@ -579,12 +579,12 @@ namespace vast::hl
 
         ValueOrStmt VisitUnaryAddrOf(clang::UnaryOperator *expr)
         {
-            llvm_unreachable( "unhandled UnaryAddrOf" );
+            llvm_unreachable( "unsupported UnaryAddrOf" );
         }
 
         ValueOrStmt VisitUnaryDeref(clang::UnaryOperator *expr)
         {
-            llvm_unreachable( "unhandled UnaryDeref" );
+            llvm_unreachable( "unsupported UnaryDeref" );
         }
 
         ValueOrStmt VisitUnaryPlus(clang::UnaryOperator *expr)
@@ -609,101 +609,101 @@ namespace vast::hl
 
         ValueOrStmt VisitUnaryReal(clang::UnaryOperator *expr)
         {
-            llvm_unreachable( "unhandled UnaryReal" );
+            llvm_unreachable( "unsupported UnaryReal" );
         }
 
         ValueOrStmt VisitUnaryImag(clang::UnaryOperator *expr)
         {
-            llvm_unreachable( "unhandled UnaryImag" );
+            llvm_unreachable( "unsupported UnaryImag" );
         }
 
         ValueOrStmt VisitUnaryExtension(clang::UnaryOperator *expr)
         {
-            llvm_unreachable( "unhandled UnaryExtension" );
+            llvm_unreachable( "unsupported UnaryExtension" );
         }
 
         ValueOrStmt VisitUnaryCoawait(clang::UnaryOperator *expr)
         {
-            llvm_unreachable( "unhandled UnaryCoawait" );
+            llvm_unreachable( "unsupported UnaryCoawait" );
         }
 
         // Assembky Statements
 
         ValueOrStmt VisitAsmStmt(clang::AsmStmt *stmt)
         {
-            llvm_unreachable( "unhandled AsmStmt" );
+            llvm_unreachable( "unsupported AsmStmt" );
         }
 
         ValueOrStmt VisitGCCAsmStmt(clang::GCCAsmStmt *stmt)
         {
-            llvm_unreachable( "unhandled GCCAsmStmt" );
+            llvm_unreachable( "unsupported GCCAsmStmt" );
         }
 
         ValueOrStmt VisitMSAsmStmt(clang::MSAsmStmt *stmt)
         {
-            llvm_unreachable( "unhandled MSAsmStmt" );
+            llvm_unreachable( "unsupported MSAsmStmt" );
         }
 
         ValueOrStmt VisitCoroutineBodyStmt(clang::CoroutineBodyStmt *stmt)
         {
-            llvm_unreachable( "unhandled CoroutineBodyStmt" );
+            llvm_unreachable( "unsupported CoroutineBodyStmt" );
         }
 
         ValueOrStmt VisitCoreturnStmt(clang::CoreturnStmt *stmt)
         {
-            llvm_unreachable( "unhandled CoreturnStmt" );
+            llvm_unreachable( "unsupported CoreturnStmt" );
         }
 
         ValueOrStmt VisitCoroutineSuspendExpr(clang::CoroutineSuspendExpr *expr)
         {
-            llvm_unreachable( "unhandled CoroutineSuspendExpr" );
+            llvm_unreachable( "unsupported CoroutineSuspendExpr" );
         }
 
         ValueOrStmt VisitCoawaitExpr(clang::CoawaitExpr *expr)
         {
-            llvm_unreachable( "unhandled CoawaitExpr" );
+            llvm_unreachable( "unsupported CoawaitExpr" );
         }
 
         ValueOrStmt VisitCoyieldExpr(clang::CoyieldExpr *expr)
         {
-            llvm_unreachable( "unhandled CoyieldExpr" );
+            llvm_unreachable( "unsupported CoyieldExpr" );
         }
 
         ValueOrStmt VisitDependentCoawaitExpr(clang::DependentCoawaitExpr *expr)
         {
-            llvm_unreachable( "unhandled DependentCoawaitExpr" );
+            llvm_unreachable( "unsupported DependentCoawaitExpr" );
         }
 
         ValueOrStmt VisitAttributedStmt(clang::AttributedStmt *stmt)
         {
-            llvm_unreachable( "unhandled AttributedStmt" );
+            llvm_unreachable( "unsupported AttributedStmt" );
         }
 
         // Statements
 
         ValueOrStmt VisitBreakStmt(clang::BreakStmt *stmt)
         {
-            llvm_unreachable( "unhandled BreakStmt" );
+            llvm_unreachable( "unsupported BreakStmt" );
         }
 
         ValueOrStmt VisitCXXCatchStmt(clang::CXXCatchStmt *stmt)
         {
-            llvm_unreachable( "unhandled CXXCatchStmt" );
+            llvm_unreachable( "unsupported CXXCatchStmt" );
         }
 
         ValueOrStmt VisitCXXForRangeStmt(clang::CXXForRangeStmt *stmt)
         {
-            llvm_unreachable( "unhandled CXXForRangeStmt" );
+            llvm_unreachable( "unsupported CXXForRangeStmt" );
         }
 
         ValueOrStmt VisitCXXTryStmt(clang::CXXTryStmt *stmt)
         {
-            llvm_unreachable( "unhandled CXXTryStmt" );
+            llvm_unreachable( "unsupported CXXTryStmt" );
         }
 
         ValueOrStmt VisitCapturedStmt(clang::CapturedStmt *stmt)
         {
-            llvm_unreachable( "unhandled CapturedStmt" );
+            llvm_unreachable( "unsupported CapturedStmt" );
         }
 
         ValueOrStmt VisitCompoundStmt(clang::CompoundStmt *stmt)
@@ -732,66 +732,66 @@ namespace vast::hl
 
         ValueOrStmt VisitContinueStmt(clang::ContinueStmt *stmt)
         {
-            llvm_unreachable( "unhandled ContinueStmt" );
+            llvm_unreachable( "unsupported ContinueStmt" );
         }
 
         ValueOrStmt VisitDeclStmt(clang::DeclStmt *stmt);
 
         ValueOrStmt VisitDoStmt(clang::DoStmt *stmt)
         {
-            llvm_unreachable( "unhandled DoStmt" );
+            llvm_unreachable( "unsupported DoStmt" );
         }
 
         // Expressions
 
         ValueOrStmt VisitAbstractConditionalOperator(clang::AbstractConditionalOperator *stmt)
         {
-            llvm_unreachable( "unhandled AbstractConditionalOperator" );
+            llvm_unreachable( "unsupported AbstractConditionalOperator" );
         }
 
         ValueOrStmt VisitBinaryConditionalOperator(clang::BinaryConditionalOperator *stmt)
         {
-            llvm_unreachable( "unhandled BinaryConditionalOperator" );
+            llvm_unreachable( "unsupported BinaryConditionalOperator" );
         }
 
         ValueOrStmt VisitConditionalOperator(clang::ConditionalOperator *stmt)
         {
-            llvm_unreachable( "unhandled ConditionalOperator" );
+            llvm_unreachable( "unsupported ConditionalOperator" );
         }
 
         ValueOrStmt VisitAddrLabelExpr(clang::AddrLabelExpr *expr)
         {
-            llvm_unreachable( "unhandled AddrLabelExpr" );
+            llvm_unreachable( "unsupported AddrLabelExpr" );
         }
 
         ValueOrStmt VisitArraySubscriptExpr(clang::ArraySubscriptExpr *expr)
         {
-            llvm_unreachable( "unhandled ArraySubscriptExpr" );
+            llvm_unreachable( "unsupported ArraySubscriptExpr" );
         }
 
         ValueOrStmt VisitArrayTypeTraitExpr(clang::ArrayTypeTraitExpr *expr)
         {
-            llvm_unreachable( "unhandled ArrayTypeTraitExpr" );
+            llvm_unreachable( "unsupported ArrayTypeTraitExpr" );
         }
 
         ValueOrStmt VisitAsTypeExpr(clang::AsTypeExpr *expr)
         {
-            llvm_unreachable( "unhandled AsTypeExpr" );
+            llvm_unreachable( "unsupported AsTypeExpr" );
         }
 
         ValueOrStmt VisitAtomicExpr(clang::AtomicExpr *expr)
         {
-            llvm_unreachable( "unhandled AtomicExpr" );
+            llvm_unreachable( "unsupported AtomicExpr" );
         }
 
         ValueOrStmt VisitBlockExpr(clang::BlockExpr *expr)
         {
-            llvm_unreachable( "unhandled BlockExpr" );
+            llvm_unreachable( "unsupported BlockExpr" );
         }
 
         ValueOrStmt VisitCXXBindTemporaryExpr(clang::CXXBindTemporaryExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXBindTemporaryExpr" );
+            llvm_unreachable( "unsupported CXXBindTemporaryExpr" );
         }
 
         ValueOrStmt VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *lit)
@@ -801,112 +801,112 @@ namespace vast::hl
 
         ValueOrStmt VisitCXXConstructExpr(clang::CXXConstructExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXConstructExpr" );
+            llvm_unreachable( "unsupported CXXConstructExpr" );
         }
 
         ValueOrStmt VisitCXXTemporaryObjectExpr(clang::CXXTemporaryObjectExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXTemporaryObjectExpr" );
+            llvm_unreachable( "unsupported CXXTemporaryObjectExpr" );
         }
 
         ValueOrStmt VisitCXXDefaultArgExpr(clang::CXXDefaultArgExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXDefaultArgExpr" );
+            llvm_unreachable( "unsupported CXXDefaultArgExpr" );
         }
 
         ValueOrStmt VisitCXXDefaultInitExpr(clang::CXXDefaultInitExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXDefaultInitExpr" );
+            llvm_unreachable( "unsupported CXXDefaultInitExpr" );
         }
 
         ValueOrStmt VisitCXXDeleteExpr(clang::CXXDeleteExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXDeleteExpr" );
+            llvm_unreachable( "unsupported CXXDeleteExpr" );
         }
 
         ValueOrStmt VisitCXXDependentScopeMemberExpr(clang::CXXDependentScopeMemberExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXDependentScopeMemberExpr" );
+            llvm_unreachable( "unsupported CXXDependentScopeMemberExpr" );
         }
 
         ValueOrStmt VisitCXXNewExpr(clang::CXXNewExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXNewExpr" );
+            llvm_unreachable( "unsupported CXXNewExpr" );
         }
 
         ValueOrStmt VisitCXXNoexceptExpr(clang::CXXNoexceptExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXNoexceptExpr" );
+            llvm_unreachable( "unsupported CXXNoexceptExpr" );
         }
 
         ValueOrStmt VisitCXXNullPtrLiteralExpr(clang::CXXNullPtrLiteralExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXNullPtrLiteralExpr" );
+            llvm_unreachable( "unsupported CXXNullPtrLiteralExpr" );
         }
 
         ValueOrStmt VisitCXXPseudoDestructorExpr(clang::CXXPseudoDestructorExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXPseudoDestructorExpr" );
+            llvm_unreachable( "unsupported CXXPseudoDestructorExpr" );
         }
 
         ValueOrStmt VisitCXXScalarValueInitExpr(clang::CXXScalarValueInitExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXScalarValueInitExpr" );
+            llvm_unreachable( "unsupported CXXScalarValueInitExpr" );
         }
 
         ValueOrStmt VisitCXXStdInitializerListExpr(clang::CXXStdInitializerListExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXStdInitializerListExpr" );
+            llvm_unreachable( "unsupported CXXStdInitializerListExpr" );
         }
 
         ValueOrStmt VisitCXXThisExpr(clang::CXXThisExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXThisExpr" );
+            llvm_unreachable( "unsupported CXXThisExpr" );
         }
 
         ValueOrStmt VisitCXXThrowExpr(clang::CXXThrowExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXThrowExpr" );
+            llvm_unreachable( "unsupported CXXThrowExpr" );
         }
 
         ValueOrStmt VisitCXXTypeidExpr(clang::CXXTypeidExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXTypeidExpr" );
+            llvm_unreachable( "unsupported CXXTypeidExpr" );
         }
 
         ValueOrStmt VisitCXXUnresolvedConstructExpr(clang::CXXUnresolvedConstructExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXUnresolvedConstructExpr" );
+            llvm_unreachable( "unsupported CXXUnresolvedConstructExpr" );
         }
 
         ValueOrStmt VisitCXXUuidofExpr(clang::CXXUuidofExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXUuidofExpr" );
+            llvm_unreachable( "unsupported CXXUuidofExpr" );
         }
 
         ValueOrStmt VisitCallExpr(clang::CallExpr *expr)
         {
-            llvm_unreachable( "unhandled CallExpr" );
+            llvm_unreachable( "unsupported CallExpr" );
         }
 
         ValueOrStmt VisitCUDAKernelCallExpr(clang::CUDAKernelCallExpr *expr)
         {
-            llvm_unreachable( "unhandled CUDAKernelCallExpr" );
+            llvm_unreachable( "unsupported CUDAKernelCallExpr" );
         }
 
         ValueOrStmt VisitCXXMemberCallExpr(clang::CXXMemberCallExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXMemberCallExpr" );
+            llvm_unreachable( "unsupported CXXMemberCallExpr" );
         }
 
         ValueOrStmt VisitCXXOperatorCallExpr(clang::CXXOperatorCallExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXOperatorCallExpr" );
+            llvm_unreachable( "unsupported CXXOperatorCallExpr" );
         }
 
         ValueOrStmt VisitUserDefinedLiteral(clang::UserDefinedLiteral *lit)
         {
-            llvm_unreachable( "unhandled UserDefinedLiteral" );
+            llvm_unreachable( "unsupported UserDefinedLiteral" );
         }
 
         ValueOrStmt VisitCStyleCastExpr(clang::CStyleCastExpr *expr)
@@ -916,32 +916,32 @@ namespace vast::hl
 
         ValueOrStmt VisitCXXFunctionalCastExpr(clang::CXXFunctionalCastExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXFunctionalCastExpr" );
+            llvm_unreachable( "unsupported CXXFunctionalCastExpr" );
         }
 
         ValueOrStmt VisitCXXConstCastExpr(clang::CXXConstCastExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXConstCastExpr" );
+            llvm_unreachable( "unsupported CXXConstCastExpr" );
         }
 
         ValueOrStmt VisitCXXDynamicCastExpr(clang::CXXDynamicCastExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXDynamicCastExpr" );
+            llvm_unreachable( "unsupported CXXDynamicCastExpr" );
         }
 
         ValueOrStmt VisitCXXReinterpretCastExpr(clang::CXXReinterpretCastExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXReinterpretCastExpr" );
+            llvm_unreachable( "unsupported CXXReinterpretCastExpr" );
         }
 
         ValueOrStmt VisitCXXStaticCastExpr(clang::CXXStaticCastExpr *expr)
         {
-            llvm_unreachable( "unhandled CXXStaticCastExpr" );
+            llvm_unreachable( "unsupported CXXStaticCastExpr" );
         }
 
         ValueOrStmt VisitObjCBridgedCastExpr(clang::ObjCBridgedCastExpr *expr)
         {
-            llvm_unreachable( "unhandled ObjCBridgedCastExpr" );
+            llvm_unreachable( "unsupported ObjCBridgedCastExpr" );
         }
 
         ValueOrStmt VisitImplicitCastExpr(clang::ImplicitCastExpr *expr)
@@ -951,22 +951,22 @@ namespace vast::hl
 
         ValueOrStmt VisitCharacterLiteral(clang::CharacterLiteral *lit)
         {
-            llvm_unreachable( "unhandled CharacterLiteral" );
+            llvm_unreachable( "unsupported CharacterLiteral" );
         }
 
         ValueOrStmt VisitChooseExpr(clang::ChooseExpr *expr)
         {
-            llvm_unreachable( "unhandled ChooseExpr" );
+            llvm_unreachable( "unsupported ChooseExpr" );
         }
 
         ValueOrStmt VisitCompoundLiteralExpr(clang::CompoundLiteralExpr *expr)
         {
-            llvm_unreachable( "unhandled CompoundLiteralExpr" );
+            llvm_unreachable( "unsupported CompoundLiteralExpr" );
         }
 
         ValueOrStmt VisitConvertVectorExpr(clang::ConvertVectorExpr *expr)
         {
-            llvm_unreachable( "unhandled ConvertVectorExpr" );
+            llvm_unreachable( "unsupported ConvertVectorExpr" );
         }
 
         ValueOrStmt VisitDeclRefExpr(clang::DeclRefExpr *expr)
@@ -984,62 +984,62 @@ namespace vast::hl
 
         ValueOrStmt VisitDependentScopeDeclRefExpr(clang::DependentScopeDeclRefExpr *expr)
         {
-            llvm_unreachable( "unhandled DependentScopeDeclRefExpr" );
+            llvm_unreachable( "unsupported DependentScopeDeclRefExpr" );
         }
 
         ValueOrStmt VisitDesignatedInitExpr(clang::DesignatedInitExpr *expr)
         {
-            llvm_unreachable( "unhandled DesignatedInitExpr" );
+            llvm_unreachable( "unsupported DesignatedInitExpr" );
         }
 
         ValueOrStmt VisitExprWithCleanups(clang::ExprWithCleanups *expr)
         {
-            llvm_unreachable( "unhandled ExprWithCleanups" );
+            llvm_unreachable( "unsupported ExprWithCleanups" );
         }
 
         ValueOrStmt VisitExpressionTraitExpr(clang::ExpressionTraitExpr *expr)
         {
-            llvm_unreachable( "unhandled ExpressionTraitExpr" );
+            llvm_unreachable( "unsupported ExpressionTraitExpr" );
         }
 
         ValueOrStmt VisitExtVectorElementExpr(clang::ExtVectorElementExpr *expr)
         {
-            llvm_unreachable( "unhandled ExtVectorElementExpr" );
+            llvm_unreachable( "unsupported ExtVectorElementExpr" );
         }
 
         ValueOrStmt VisitFloatingLiteral(clang::FloatingLiteral *lit)
         {
-            llvm_unreachable( "unhandled FloatingLiteral" );
+            llvm_unreachable( "unsupported FloatingLiteral" );
         }
 
         ValueOrStmt VisitFunctionParmPackExpr(clang::FunctionParmPackExpr *expr)
         {
-            llvm_unreachable( "unhandled FunctionParmPackExpr" );
+            llvm_unreachable( "unsupported FunctionParmPackExpr" );
         }
 
         ValueOrStmt VisitGNUNullExpr(clang::GNUNullExpr *expr)
         {
-            llvm_unreachable( "unhandled GNUNullExpr" );
+            llvm_unreachable( "unsupported GNUNullExpr" );
         }
 
         ValueOrStmt VisitGenericSelectionExpr(clang::GenericSelectionExpr *expr)
         {
-            llvm_unreachable( "unhandled GenericSelectionExpr" );
+            llvm_unreachable( "unsupported GenericSelectionExpr" );
         }
 
         ValueOrStmt VisitImaginaryLiteral(clang::ImaginaryLiteral *lit)
         {
-            llvm_unreachable( "unhandled ImaginaryLiteral" );
+            llvm_unreachable( "unsupported ImaginaryLiteral" );
         }
 
         ValueOrStmt VisitImplicitValueInitExpr(clang::ImplicitValueInitExpr *expr)
         {
-            llvm_unreachable( "unhandled ImplicitValueInitExpr" );
+            llvm_unreachable( "unsupported ImplicitValueInitExpr" );
         }
 
         ValueOrStmt VisitInitListExpr(clang::InitListExpr *expr)
         {
-            llvm_unreachable( "unhandled InitListExpr" );
+            llvm_unreachable( "unsupported InitListExpr" );
         }
 
         ValueOrStmt VisitIntegerLiteral(const clang::IntegerLiteral *lit)
@@ -1049,187 +1049,187 @@ namespace vast::hl
 
         ValueOrStmt VisitLambdaExpr(clang::LambdaExpr *expr)
         {
-            llvm_unreachable( "unhandled LambdaExpr" );
+            llvm_unreachable( "unsupported LambdaExpr" );
         }
 
         ValueOrStmt VisitMSPropertyRefExpr(clang::MSPropertyRefExpr *expr)
         {
-            llvm_unreachable( "unhandled MSPropertyRefExpr" );
+            llvm_unreachable( "unsupported MSPropertyRefExpr" );
         }
 
         ValueOrStmt VisitMaterializeTemporaryExpr(clang::MaterializeTemporaryExpr *expr)
         {
-            llvm_unreachable( "unhandled MaterializeTemporaryExpr" );
+            llvm_unreachable( "unsupported MaterializeTemporaryExpr" );
         }
 
         ValueOrStmt VisitMemberExpr(clang::MemberExpr *expr)
         {
-            llvm_unreachable( "unhandled MemberExpr" );
+            llvm_unreachable( "unsupported MemberExpr" );
         }
 
         ValueOrStmt VisitObjCArrayLiteral(clang::ObjCArrayLiteral *expr)
         {
-            llvm_unreachable( "unhandled ObjCArrayLiteral" );
+            llvm_unreachable( "unsupported ObjCArrayLiteral" );
         }
 
         ValueOrStmt VisitObjCBoolLiteralExpr(clang::ObjCBoolLiteralExpr *expr)
         {
-            llvm_unreachable( "unhandled ObjCBoolLiteralExpr" );
+            llvm_unreachable( "unsupported ObjCBoolLiteralExpr" );
         }
 
         ValueOrStmt VisitObjCBoxedExpr(clang::ObjCBoxedExpr *expr)
         {
-            llvm_unreachable( "unhandled ObjCBoxedExpr" );
+            llvm_unreachable( "unsupported ObjCBoxedExpr" );
         }
 
         ValueOrStmt VisitObjCDictionaryLiteral(clang::ObjCDictionaryLiteral *lit)
         {
-            llvm_unreachable( "unhandled ObjCDictionaryLiteral" );
+            llvm_unreachable( "unsupported ObjCDictionaryLiteral" );
         }
 
         ValueOrStmt VisitObjCEncodeExpr(clang::ObjCEncodeExpr *expr)
         {
-            llvm_unreachable( "unhandled ObjCEncodeExpr" );
+            llvm_unreachable( "unsupported ObjCEncodeExpr" );
         }
 
         ValueOrStmt VisitObjCIndirectCopyRestoreExpr(clang::ObjCIndirectCopyRestoreExpr *expr)
         {
-            llvm_unreachable( "unhandled ObjCIndirectCopyRestoreExpr" );
+            llvm_unreachable( "unsupported ObjCIndirectCopyRestoreExpr" );
         }
 
         ValueOrStmt VisitObjCIsaExpr(clang::ObjCIsaExpr *expr)
         {
-            llvm_unreachable( "unhandled ObjCIsaExpr" );
+            llvm_unreachable( "unsupported ObjCIsaExpr" );
         }
 
         ValueOrStmt VisitObjCIvarRefExpr(clang::ObjCIvarRefExpr *expr)
         {
-            llvm_unreachable( "unhandled ObjCIvarRefExpr" );
+            llvm_unreachable( "unsupported ObjCIvarRefExpr" );
         }
 
         ValueOrStmt VisitObjCMessageExpr(clang::ObjCMessageExpr *expr)
         {
-            llvm_unreachable( "unhandled ObjCMessageExpr" );
+            llvm_unreachable( "unsupported ObjCMessageExpr" );
         }
 
         ValueOrStmt VisitObjCPropertyRefExpr(clang::ObjCPropertyRefExpr *expr)
         {
-            llvm_unreachable( "unhandled ObjCPropertyRefExpr" );
+            llvm_unreachable( "unsupported ObjCPropertyRefExpr" );
         }
 
         ValueOrStmt VisitObjCProtocolExpr(clang::ObjCProtocolExpr *expr)
         {
-            llvm_unreachable( "unhandled ObjCProtocolExpr" );
+            llvm_unreachable( "unsupported ObjCProtocolExpr" );
         }
 
         ValueOrStmt VisitObjCSelectorExpr(clang::ObjCSelectorExpr *expr)
         {
-            llvm_unreachable( "unhandled ObjCSelectorExpr" );
+            llvm_unreachable( "unsupported ObjCSelectorExpr" );
         }
 
         ValueOrStmt VisitObjCStringLiteral(clang::ObjCStringLiteral *lit)
         {
-            llvm_unreachable( "unhandled ObjCStringLiteral" );
+            llvm_unreachable( "unsupported ObjCStringLiteral" );
         }
 
         ValueOrStmt VisitObjCSubscriptRefExpr(clang::ObjCSubscriptRefExpr *expr)
         {
-            llvm_unreachable( "unhandled ObjCSubscriptRefExpr" );
+            llvm_unreachable( "unsupported ObjCSubscriptRefExpr" );
         }
 
         ValueOrStmt VisitOffsetOfExpr(clang::OffsetOfExpr *expr)
         {
-            llvm_unreachable( "unhandled OffsetOfExpr" );
+            llvm_unreachable( "unsupported OffsetOfExpr" );
         }
 
         ValueOrStmt VisitOpaqueValueExpr(clang::OpaqueValueExpr *expr)
         {
-            llvm_unreachable( "unhandled OpaqueValueExpr" );
+            llvm_unreachable( "unsupported OpaqueValueExpr" );
         }
 
         ValueOrStmt VisitOverloadExpr(clang::OverloadExpr *expr)
         {
-            llvm_unreachable( "unhandled OverloadExpr" );
+            llvm_unreachable( "unsupported OverloadExpr" );
         }
 
         ValueOrStmt VisitUnresolvedLookupExpr(clang::UnresolvedLookupExpr *expr)
         {
-            llvm_unreachable( "unhandled UnresolvedLookupExpr" );
+            llvm_unreachable( "unsupported UnresolvedLookupExpr" );
         }
 
         ValueOrStmt VisitUnresolvedMemberExpr(clang::UnresolvedMemberExpr *expr)
         {
-            llvm_unreachable( "unhandled UnresolvedMemberExpr" );
+            llvm_unreachable( "unsupported UnresolvedMemberExpr" );
         }
 
         ValueOrStmt VisitPackExpansionExpr(clang::PackExpansionExpr *expr)
         {
-            llvm_unreachable( "unhandled PackExpansionExpr" );
+            llvm_unreachable( "unsupported PackExpansionExpr" );
         }
 
         ValueOrStmt VisitParenExpr(clang::ParenExpr *expr)
         {
-            llvm_unreachable( "unhandled ParenExpr" );
+            llvm_unreachable( "unsupported ParenExpr" );
         }
 
         ValueOrStmt VisitParenListExpr(clang::ParenListExpr *expr)
         {
-            llvm_unreachable( "unhandled ParenListExpr" );
+            llvm_unreachable( "unsupported ParenListExpr" );
         }
 
         ValueOrStmt VisitPredefinedExpr(clang::PredefinedExpr *expr)
         {
-            llvm_unreachable( "unhandled PredefinedExpr" );
+            llvm_unreachable( "unsupported PredefinedExpr" );
         }
 
         ValueOrStmt VisitPseudoObjectExpr(clang::PseudoObjectExpr *expr)
         {
-            llvm_unreachable( "unhandled PseudoObjectExpr" );
+            llvm_unreachable( "unsupported PseudoObjectExpr" );
         }
 
         ValueOrStmt VisitShuffleVectorExpr(clang::ShuffleVectorExpr *expr)
         {
-            llvm_unreachable( "unhandled ShuffleVectorExpr" );
+            llvm_unreachable( "unsupported ShuffleVectorExpr" );
         }
 
         ValueOrStmt VisitSizeOfPackExpr(clang::SizeOfPackExpr *expr)
         {
-            llvm_unreachable( "unhandled SizeOfPackExpr" );
+            llvm_unreachable( "unsupported SizeOfPackExpr" );
         }
 
         ValueOrStmt VisitStmtExpr(clang::StmtExpr *expr)
         {
-            llvm_unreachable( "unhandled StmtExpr" );
+            llvm_unreachable( "unsupported StmtExpr" );
         }
 
         ValueOrStmt VisitStringLiteral(clang::StringLiteral *lit)
         {
-            llvm_unreachable( "unhandled StringLiteral" );
+            llvm_unreachable( "unsupported StringLiteral" );
         }
 
         ValueOrStmt VisitSubstNonTypeTemplateParmExpr(clang::SubstNonTypeTemplateParmExpr *expr)
         {
-            llvm_unreachable( "unhandled SubstNonTypeTemplateParmExpr" );
+            llvm_unreachable( "unsupported SubstNonTypeTemplateParmExpr" );
         }
 
         ValueOrStmt VisitSubstNonTypeTemplateParmPackExpr(clang::SubstNonTypeTemplateParmPackExpr *expr)
         {
-            llvm_unreachable( "unhandled SubstNonTypeTemplateParmPackExpr" );
+            llvm_unreachable( "unsupported SubstNonTypeTemplateParmPackExpr" );
         }
 
         ValueOrStmt VisitTypeTraitExpr(clang::TypeTraitExpr *expr)
         {
-            llvm_unreachable( "unhandled TypeTraitExpr" );
+            llvm_unreachable( "unsupported TypeTraitExpr" );
         }
 
         ValueOrStmt VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr *expr)
         {
-            llvm_unreachable( "unhandled UnaryExprOrTypeTraitExpr" );
+            llvm_unreachable( "unsupported UnaryExprOrTypeTraitExpr" );
         }
 
         ValueOrStmt VisitVAArgExpr(clang::VAArgExpr *expr)
         {
-            llvm_unreachable( "unhandled VAArgExpr" );
+            llvm_unreachable( "unsupported VAArgExpr" );
         }
 
         // Statements
@@ -1248,7 +1248,7 @@ namespace vast::hl
 
         ValueOrStmt VisitGotoStmt(clang::GotoStmt *stmt)
         {
-            llvm_unreachable( "unhandled GotoStmt" );
+            llvm_unreachable( "unsupported GotoStmt" );
         }
 
         ValueOrStmt VisitIfStmt(clang::IfStmt *stmt)
@@ -1268,132 +1268,132 @@ namespace vast::hl
 
         ValueOrStmt VisitIndirectGotoStmt(clang::IndirectGotoStmt *stmt)
         {
-            llvm_unreachable( "unhandled IndirectGotoStmt" );
+            llvm_unreachable( "unsupported IndirectGotoStmt" );
         }
 
         ValueOrStmt VisitLabelStmt(clang::LabelStmt *stmt)
         {
-            llvm_unreachable( "unhandled LabelStmt" );
+            llvm_unreachable( "unsupported LabelStmt" );
         }
 
         ValueOrStmt VisitMSDependentExistsStmt(clang::MSDependentExistsStmt *stmt)
         {
-            llvm_unreachable( "unhandled MSDependentExistsStmt" );
+            llvm_unreachable( "unsupported MSDependentExistsStmt" );
         }
 
         ValueOrStmt VisitNullStmt(clang::NullStmt *stmt)
         {
-            llvm_unreachable( "unhandled NullStmt" );
+            llvm_unreachable( "unsupported NullStmt" );
         }
 
         ValueOrStmt VisitOMPBarrierDirective(clang::OMPBarrierDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPBarrierDirective" );
+            llvm_unreachable( "unsupported OMPBarrierDirective" );
         }
 
         ValueOrStmt VisitOMPCriticalDirective(clang::OMPCriticalDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPCriticalDirective" );
+            llvm_unreachable( "unsupported OMPCriticalDirective" );
         }
 
         ValueOrStmt VisitOMPFlushDirective(clang::OMPFlushDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPFlushDirective" );
+            llvm_unreachable( "unsupported OMPFlushDirective" );
         }
 
         ValueOrStmt VisitOMPForDirective(clang::OMPForDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPForDirective" );
+            llvm_unreachable( "unsupported OMPForDirective" );
         }
 
         ValueOrStmt VisitOMPMasterDirective(clang::OMPMasterDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPMasterDirective" );
+            llvm_unreachable( "unsupported OMPMasterDirective" );
         }
 
         ValueOrStmt VisitOMPParallelDirective(clang::OMPParallelDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPParallelDirective" );
+            llvm_unreachable( "unsupported OMPParallelDirective" );
         }
 
         ValueOrStmt VisitOMPParallelForDirective(clang::OMPParallelForDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPParallelForDirective" );
+            llvm_unreachable( "unsupported OMPParallelForDirective" );
         }
 
         ValueOrStmt VisitOMPParallelSectionsDirective(clang::OMPParallelSectionsDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPParallelSectionsDirective" );
+            llvm_unreachable( "unsupported OMPParallelSectionsDirective" );
         }
 
         ValueOrStmt VisitOMPSectionDirective(clang::OMPSectionDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPSectionDirective" );
+            llvm_unreachable( "unsupported OMPSectionDirective" );
         }
 
         ValueOrStmt VisitOMPSectionsDirective(clang::OMPSectionsDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPSectionsDirective" );
+            llvm_unreachable( "unsupported OMPSectionsDirective" );
         }
 
         ValueOrStmt VisitOMPSimdDirective(clang::OMPSimdDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPSimdDirective" );
+            llvm_unreachable( "unsupported OMPSimdDirective" );
         }
 
         ValueOrStmt VisitOMPSingleDirective(clang::OMPSingleDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPSingleDirective" );
+            llvm_unreachable( "unsupported OMPSingleDirective" );
         }
 
         ValueOrStmt VisitOMPTaskDirective(clang::OMPTaskDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPTaskDirective" );
+            llvm_unreachable( "unsupported OMPTaskDirective" );
         }
 
         ValueOrStmt VisitOMPTaskwaitDirective(clang::OMPTaskwaitDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPTaskwaitDirective" );
+            llvm_unreachable( "unsupported OMPTaskwaitDirective" );
         }
 
         ValueOrStmt VisitOMPTaskyieldDirective(clang::OMPTaskyieldDirective *dir)
         {
-            llvm_unreachable( "unhandled OMPTaskyieldDirective" );
+            llvm_unreachable( "unsupported OMPTaskyieldDirective" );
         }
 
         ValueOrStmt VisitObjCAtCatchStmt(clang::ObjCAtCatchStmt *stmt)
         {
-            llvm_unreachable( "unhandled ObjCAtCatchStmt" );
+            llvm_unreachable( "unsupported ObjCAtCatchStmt" );
         }
 
         ValueOrStmt VisitObjCAtFinallyStmt(clang::ObjCAtFinallyStmt *stmt)
         {
-            llvm_unreachable( "unhandled ObjCAtFinallyStmt" );
+            llvm_unreachable( "unsupported ObjCAtFinallyStmt" );
         }
 
         ValueOrStmt VisitObjCAtSynchronizedStmt(clang::ObjCAtSynchronizedStmt *stmt)
         {
-            llvm_unreachable( "unhandled ObjCAtSynchronizedStmt" );
+            llvm_unreachable( "unsupported ObjCAtSynchronizedStmt" );
         }
 
         ValueOrStmt VisitObjCAtThrowStmt(clang::ObjCAtThrowStmt *stmt)
         {
-            llvm_unreachable( "unhandled ObjCAtThrowStmt" );
+            llvm_unreachable( "unsupported ObjCAtThrowStmt" );
         }
 
         ValueOrStmt VisitObjCAtTryStmt(clang::ObjCAtTryStmt *stmt)
         {
-            llvm_unreachable( "unhandled ObjCAtTryStmt" );
+            llvm_unreachable( "unsupported ObjCAtTryStmt" );
         }
 
         ValueOrStmt VisitObjCAutoreleasePoolStmt(clang::ObjCAutoreleasePoolStmt *stmt)
         {
-            llvm_unreachable( "unhandled ObjCAutoreleasePoolStmt" );
+            llvm_unreachable( "unsupported ObjCAutoreleasePoolStmt" );
         }
 
         ValueOrStmt VisitObjCForCollectionStmt(clang::ObjCForCollectionStmt *stmt)
         {
-            llvm_unreachable( "unhandled ObjCForCollectionStmt" );
+            llvm_unreachable( "unsupported ObjCForCollectionStmt" );
         }
 
         ValueOrStmt VisitReturnStmt(clang::ReturnStmt *stmt)
@@ -1410,42 +1410,42 @@ namespace vast::hl
 
         ValueOrStmt VisitSEHExceptStmt(clang::SEHExceptStmt *stmt)
         {
-            llvm_unreachable( "unhandled SEHExceptStmt" );
+            llvm_unreachable( "unsupported SEHExceptStmt" );
         }
 
         ValueOrStmt VisitSEHFinallyStmt(clang::SEHFinallyStmt *stmt)
         {
-            llvm_unreachable( "unhandled SEHFinallyStmt" );
+            llvm_unreachable( "unsupported SEHFinallyStmt" );
         }
 
         ValueOrStmt VisitSEHLeaveStmt(clang::SEHLeaveStmt *stmt)
         {
-            llvm_unreachable( "unhandled SEHLeaveStmt" );
+            llvm_unreachable( "unsupported SEHLeaveStmt" );
         }
 
         ValueOrStmt VisitSEHTryStmt(clang::SEHTryStmt *stmt)
         {
-            llvm_unreachable( "unhandled SEHTryStmt" );
+            llvm_unreachable( "unsupported SEHTryStmt" );
         }
 
         ValueOrStmt VisitSwitchCase(clang::SwitchCase *stmt)
         {
-            llvm_unreachable( "unhandled SwitchCase" );
+            llvm_unreachable( "unsupported SwitchCase" );
         }
 
         ValueOrStmt VisitCaseStmt(clang::CaseStmt *stmt)
         {
-            llvm_unreachable( "unhandled CaseStmt" );
+            llvm_unreachable( "unsupported CaseStmt" );
         }
 
         ValueOrStmt VisitDefaultStmt(clang::DefaultStmt *stmt)
         {
-            llvm_unreachable( "unhandled DefaultStmt" );
+            llvm_unreachable( "unsupported DefaultStmt" );
         }
 
         ValueOrStmt VisitSwitchStmt(clang::SwitchStmt *stmt)
         {
-            llvm_unreachable( "unhandled SwitchStmt" );
+            llvm_unreachable( "unsupported SwitchStmt" );
         }
 
         ValueOrStmt VisitWhileStmt(clang::WhileStmt *stmt)
