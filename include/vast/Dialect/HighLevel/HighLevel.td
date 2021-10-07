@@ -71,7 +71,7 @@ class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
     let summary = "VAST compound assign operation";
     let description = [{ VAST compound assign operation }];
 
-    let arguments = (ins AnyType:$src, AnyType:$dst);
+    let arguments = (ins AnyType:$dst, AnyType:$src);
 
     let verifier = ? ;
 
