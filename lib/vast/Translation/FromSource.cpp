@@ -1,6 +1,7 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
 #include "vast/Util/Warnings.hpp"
+#include "vast/Util/Functions.hpp"
 
 VAST_RELAX_WARNINGS
 #include <mlir/IR/Location.h>
@@ -55,6 +56,7 @@ VAST_UNRELAX_WARNINGS
 #include <cstdlib>
 #include <fstream>
 #include <optional>
+#include <variant>
 
 #define DEBUG_TYPE "vast-from-source"
 
@@ -62,6 +64,9 @@ namespace vast::hl
 {
     using string_ref = llvm::StringRef;
     using logical_result = mlir::LogicalResult;
+
+    using Stmt = mlir::Operation*;
+    using ValueOrStmt = std::variant< mlir::Value, Stmt >;
 
     void spliceTrailingScopeBlocks(mlir::Region::BlockListType &blocks)
     {
@@ -144,10 +149,29 @@ namespace vast::hl
             return builder.create< VoidOp >(loc);
         }
 
+        static inline auto to_value = [] (ValueOrStmt &&v) -> Value
+        {
+            return std::get< Value >(std::forward< ValueOrStmt >(v));
+        };
+
+        static inline auto convert = overloaded{ to_value, identity };
+
+        template< typename Op, typename ...Args >
+        Value create_value(Args &&... args)
+        {
+            return builder.create< Op >( convert( std::forward< Args >(args) )... );
+        }
+
+        template< typename Op, typename ...Args >
+        Stmt create_stmt(Args &&... args)
+        {
+            return builder.create< Op >( convert( std::forward< Args >(args) )... );
+        }
+
         template< typename Op, typename ...Args >
         auto create(Args &&... args)
         {
-            return builder.create< Op >( std::forward< Args >(args)... );
+            return builder.create< Op >( convert( std::forward< Args >(args) )... );
         }
 
         InsertPoint saveInsertionPoint() { return builder.saveInsertionPoint(); }
@@ -222,9 +246,9 @@ namespace vast::hl
 
     struct VastDeclVisitor;
 
-    struct VastStmtVisitor : clang::StmtVisitor< VastStmtVisitor, Value >
+    struct VastCodeGenVisitor : clang::StmtVisitor< VastCodeGenVisitor, ValueOrStmt >
     {
-        VastStmtVisitor(VastBuilder &builder, TypeConverter &types, VastDeclVisitor &decls)
+        VastCodeGenVisitor(VastBuilder &builder, TypeConverter &types, VastDeclVisitor &decls)
             : builder(builder), types(types), decls(decls)
         {}
 
@@ -233,17 +257,16 @@ namespace vast::hl
             Visit(body);
         }
 
-        Value VisitCompoundStmt(clang::CompoundStmt *stmt)
+        ValueOrStmt VisitCompoundStmt(clang::CompoundStmt *stmt)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit CompoundStmt\n");
 
             ScopedInsertPoint builder_scope(builder);
 
-            std::optional< ScopeOp > scope = std::nullopt;
             auto loc = builder.getLocation(stmt->getSourceRange());
 
-            scope = builder.create< ScopeOp >(loc);
-            auto &body = scope->body();
+            ScopeOp scope = builder.create< ScopeOp >(loc);
+            auto &body = scope.body();
             body.push_back( new mlir::Block() );
             builder.setInsertionPointToStart( &body.front() );
 
@@ -252,16 +275,13 @@ namespace vast::hl
                 Visit(s);
             }
 
-            if (scope.has_value()) {
-                auto &body = scope->body();
-                auto &lastblock = body.back();
-                if (lastblock.empty() || lastblock.back().isKnownNonTerminator()) {
-                    builder.setInsertionPointToEnd(&lastblock);
-                    builder.create< ScopeEndOp >(loc);
-                }
+            auto &lastblock = body.back();
+            if (lastblock.empty() || lastblock.back().isKnownNonTerminator()) {
+                builder.setInsertionPointToEnd(&lastblock);
+                builder.create< ScopeEndOp >(loc);
             }
 
-            return Value(); // dummy return
+            return scope;
         }
 
         auto make_scope_builder(clang::Stmt *stmt)
@@ -288,13 +308,13 @@ namespace vast::hl
             };
         }
 
-        Value VisitIfStmt(clang::IfStmt *stmt)
+        ValueOrStmt VisitIfStmt(clang::IfStmt *stmt)
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
 
             auto then_builder = make_scope_builder(stmt->getThen());
 
-            auto cond = Visit(stmt->getCond());
+            auto cond = std::get< Value >( Visit(stmt->getCond()) );
             if (stmt->getElse()) {
                 auto else_builder = make_scope_builder(stmt->getElse());
                 builder.create< IfOp >(loc, cond, then_builder, else_builder);
@@ -305,18 +325,18 @@ namespace vast::hl
             return Value(); // dummy return
         }
 
-        Value VisitWhileStmt(clang::WhileStmt *stmt)
+        ValueOrStmt VisitWhileStmt(clang::WhileStmt *stmt)
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
             auto body_builder = make_scope_builder(stmt->getBody());
 
-            auto cond = Visit(stmt->getCond());
+            auto cond = std::get< Value >( Visit(stmt->getCond()) );
             builder.create< WhileOp >(loc, cond, body_builder);
 
             return Value(); // dummy return
         }
 
-        Value VisitForStmt(clang::ForStmt *stmt)
+        ValueOrStmt VisitForStmt(clang::ForStmt *stmt)
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
 
@@ -331,14 +351,12 @@ namespace vast::hl
             return Value(); // dummy value
         }
 
-        Value VisitReturnStmt(clang::ReturnStmt *stmt)
+        ValueOrStmt VisitReturnStmt(clang::ReturnStmt *stmt)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit ReturnStmt\n");
             auto loc = builder.getLocation(stmt->getSourceRange());
             if (stmt->getRetValue()) {
-                auto val = Visit(stmt->getRetValue());
-
-                // TODO(Heno): cast return values
+                auto val = std::get< Value >( Visit(stmt->getRetValue()) );
                 builder.create< ReturnOp >(loc, val);
             } else {
                 auto val = builder.create_void(loc);
@@ -348,9 +366,9 @@ namespace vast::hl
             return Value(); // dummy value
         }
 
-        Value VisitDeclStmt(clang::DeclStmt *stmt);
+        ValueOrStmt VisitDeclStmt(clang::DeclStmt *stmt);
 
-        Value VisitIntegerLiteral(const clang::IntegerLiteral *lit)
+        ValueOrStmt VisitIntegerLiteral(const clang::IntegerLiteral *lit)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit IntegerLiteral\n");
             auto val = lit->getValue().getSExtValue();
@@ -359,7 +377,7 @@ namespace vast::hl
             return builder.constant(loc, type, val);
         }
 
-        Value VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *lit)
+        ValueOrStmt VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *lit)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit CXXBoolLiteralExpr\n");
             bool val = lit->getValue();
@@ -382,13 +400,13 @@ namespace vast::hl
             }
         }
 
-        Value VisitComparisonOperator(clang::BinaryOperator *expr)
+        ValueOrStmt VisitComparisonOperator(clang::BinaryOperator *expr)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit ComparisonOperator\n");
             assert(expr->isComparisonOp());
 
-            auto lhs = Visit(expr->getLHS());
-            auto rhs = Visit(expr->getRHS());
+            auto lhs = std::get< Value >( Visit(expr->getLHS()) );
+            auto rhs = std::get< Value >( Visit(expr->getRHS()) );
             auto loc = builder.getEndLocation(expr->getSourceRange());
 
             // TODO(Heno): deal with floating point operations
@@ -399,15 +417,15 @@ namespace vast::hl
 
             // TODO(Heno): deal with pointer comparisons
             auto pred = integer_prdicate(expr);
-            return builder.create< CmpOp >(loc, pred, lhs, rhs);
+            return builder.create_value< CmpOp >(loc, pred, lhs, rhs);
         }
 
-        Value VisitCompoundAssignOperator(clang::CompoundAssignOperator *expr)
+        ValueOrStmt VisitCompoundAssignOperator(clang::CompoundAssignOperator *expr)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit CompoundAssignOperator\n");
 
-            auto lhs = Visit(expr->getLHS());
-            auto rhs = Visit(expr->getRHS());
+            auto lhs = std::get< Value >( Visit(expr->getLHS()) );
+            auto rhs = std::get< Value >( Visit(expr->getRHS()) );
             auto loc = builder.getEndLocation(expr->getSourceRange());
 
             auto ty = expr->getType();
@@ -463,7 +481,7 @@ namespace vast::hl
             return Value(); // dummy value
         }
 
-        Value VisitBinaryOperator(clang::BinaryOperator *expr)
+        ValueOrStmt VisitBinaryOperator(clang::BinaryOperator *expr)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit BinaryOperator\n");
 
@@ -471,39 +489,39 @@ namespace vast::hl
                 return VisitComparisonOperator(expr);
             }
 
-            auto lhs = Visit(expr->getLHS());
-            auto rhs = Visit(expr->getRHS());
+            auto lhs = std::get< Value >( Visit(expr->getLHS()) );
+            auto rhs = std::get< Value >( Visit(expr->getRHS()) );
             auto loc = builder.getEndLocation(expr->getSourceRange());
 
             auto ty = expr->getType();
             switch (expr->getOpcode()) {
                 case clang::BinaryOperatorKind::BO_Add: {
                     if (ty->isIntegerType())
-                        return builder.create< AddIOp >( loc, lhs, rhs );
+                        return builder.create_value< AddIOp >( loc, lhs, rhs );
                     llvm_unreachable( "unhandled addition type" );
                 }
                 case clang::BinaryOperatorKind::BO_Sub: {
                     if (ty->isIntegerType())
-                        return builder.create< SubIOp >( loc, lhs, rhs );
+                        return builder.create_value< SubIOp >( loc, lhs, rhs );
                     llvm_unreachable( "unhandled subtraction type" );
                 }
                 case clang::BinaryOperatorKind::BO_Mul: {
                     if (ty->isIntegerType())
-                        return builder.create< MulIOp >( loc, lhs, rhs );
+                        return builder.create_value< MulIOp >( loc, lhs, rhs );
                     llvm_unreachable( "unhandled multiplication type" );
                 }
                 case clang::BinaryOperatorKind::BO_Div: {
                     if (ty->isUnsignedIntegerType())
-                        return builder.create< DivUOp >( loc, lhs, rhs );
+                        return builder.create_value< DivUOp >( loc, lhs, rhs );
                     if (ty->isIntegerType())
-                        return builder.create< DivSOp >( loc, lhs, rhs );
+                        return builder.create_value< DivSOp >( loc, lhs, rhs );
                     llvm_unreachable( "unhandled division type" );
                 }
                 case clang::BinaryOperatorKind::BO_Rem: {
                     if (ty->isUnsignedIntegerType())
-                        return builder.create< RemUOp >( loc, lhs, rhs );
+                        return builder.create_value< RemUOp >( loc, lhs, rhs );
                     if (ty->isIntegerType())
-                        return builder.create< RemSOp >( loc, lhs, rhs );
+                        return builder.create_value< RemSOp >( loc, lhs, rhs );
                     llvm_unreachable( "unhandled reminder type" );
                 }
                 case clang::BinaryOperatorKind::BO_Assign: {
@@ -518,11 +536,11 @@ namespace vast::hl
             return Value();
         }
 
-        Value VisitUnaryOperator(clang::UnaryOperator *expr)
+        ValueOrStmt VisitUnaryOperator(clang::UnaryOperator *expr)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit UnaryOperator\n");
             auto loc = builder.getEndLocation(expr->getSourceRange());
-            auto arg =  Visit(expr->getSubExpr());
+            auto arg = std::get< Value >( Visit(expr->getSubExpr()) );
 
             switch (expr->getOpcode()) {
                 case clang::UnaryOperatorKind::UO_PostInc:
@@ -538,13 +556,13 @@ namespace vast::hl
                 case clang::UnaryOperatorKind::UO_Deref:
                     llvm_unreachable( "unsupported unary dereference operator" );
                 case clang::UnaryOperatorKind::UO_Plus:
-                    return builder.create< PlusOp >( loc, arg );
+                    return builder.create_value< PlusOp >( loc, arg );
                 case clang::UnaryOperatorKind::UO_Minus:
-                    return builder.create< MinusOp >( loc, arg );
+                    return builder.create_value< MinusOp >( loc, arg );
                 case clang::UnaryOperatorKind::UO_Not:
-                    return builder.create< NotOp >( loc, arg );
+                    return builder.create_value< NotOp >( loc, arg );
                 case clang::UnaryOperatorKind::UO_LNot:
-                    return builder.create< LNotOp >( loc, arg );
+                    return builder.create_value< LNotOp >( loc, arg );
                 case clang::UnaryOperatorKind::UO_Real:
                     llvm_unreachable( "unsupported `real` operator" );
                 case clang::UnaryOperatorKind::UO_Imag:
@@ -642,32 +660,32 @@ namespace vast::hl
         }
 
         template< typename Cast >
-        Value build_cast(clang::Expr *expr, clang::QualType to, CastKind kind)
+        ValueOrStmt build_cast(clang::Expr *expr, clang::QualType to, CastKind kind)
         {
             auto loc = builder.getLocation(expr->getSourceRange());
             auto rty = types.convert(to);
-            return builder.create< Cast >( loc, rty, Visit(expr), kind );
+            return builder.create_value< Cast >( loc, rty, Visit(expr), kind );
         }
 
-        Value VisitImplicitCastExpr(clang::ImplicitCastExpr *expr)
+        ValueOrStmt VisitImplicitCastExpr(clang::ImplicitCastExpr *expr)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit ImplicitCastExpr\n");
             return build_cast< ImplicitCastOp >( expr->getSubExpr(), expr->getType(), cast_kind(expr) );
         }
 
-        Value VisitCStyleCastExpr(clang::CStyleCastExpr *expr)
+        ValueOrStmt VisitCStyleCastExpr(clang::CStyleCastExpr *expr)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit CStyleCastExpr\n");
             return build_cast< CStyleCastOp >( expr->getSubExpr(), expr->getType(), cast_kind(expr) );
         }
 
-        Value VisitBuiltinBitCastExpr(clang::BuiltinBitCastExpr *expr)
+        ValueOrStmt VisitBuiltinBitCastExpr(clang::BuiltinBitCastExpr *expr)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit BuiltinBitCastExpr\n");
             return build_cast< BuiltinBitCastOp >( expr->getSubExpr(), expr->getType(), cast_kind(expr) );
         }
 
-        Value VisitDeclRefExpr(clang::DeclRefExpr *decl)
+        ValueOrStmt VisitDeclRefExpr(clang::DeclRefExpr *decl)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit DeclRefExpr\n");
             auto loc = builder.getLocation(decl->getSourceRange());
@@ -678,8 +696,7 @@ namespace vast::hl
 
             auto named = decl->getDecl()->getUnderlyingDecl();
             auto rty = types.convert(decl->getType());
-            return builder.create< DeclRefOp >( loc, rty, named->getNameAsString() );
-
+            return builder.create_value< DeclRefOp >( loc, rty, named->getNameAsString() );
         }
 
     private:
@@ -780,7 +797,7 @@ namespace vast::hl
             auto init  = decl->getInit();
 
             if (init) {
-                auto initializer = stmts.Visit(init);
+                auto initializer = std::get< Value >( stmts.Visit(init) );
                 return builder.create< VarOp >(loc, ty, named->getName(), initializer);
             } else {
                 return builder.create< VarOp >(loc, ty, named->getName());
@@ -793,7 +810,7 @@ namespace vast::hl
         VastBuilder builder;
         TypeConverter types;
 
-        VastStmtVisitor stmts;
+        VastCodeGenVisitor stmts;
 
         // Declare a variable in the current scope, return success if the variable
         // wasn't declared yet.
@@ -812,7 +829,7 @@ namespace vast::hl
         llvm::ScopedHashTable<string_ref, mlir::Value> symbols;
     };
 
-    Value VastStmtVisitor::VisitDeclStmt(clang::DeclStmt *stmt)
+    ValueOrStmt VastCodeGenVisitor::VisitDeclStmt(clang::DeclStmt *stmt)
     {
         LLVM_DEBUG(llvm::dbgs() << "Visit DeclStmt\n");
         for (auto decl : stmt->decls()) {
