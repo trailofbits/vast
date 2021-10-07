@@ -149,29 +149,29 @@ namespace vast::hl
             return builder.create< VoidOp >(loc);
         }
 
-        static inline auto to_value = [] (ValueOrStmt &&v) -> Value
+        static inline auto to_value = [] (ValueOrStmt v) -> Value
         {
-            return std::get< Value >(std::forward< ValueOrStmt >(v));
+            return std::get< Value >(v);
         };
 
         static inline auto convert = overloaded{ to_value, identity };
 
         template< typename Op, typename ...Args >
-        Value create_value(Args &&... args)
+        auto create(Args &&... args)
         {
             return builder.create< Op >( convert( std::forward< Args >(args) )... );
+        }
+
+        template< typename Op, typename ...Args >
+        Value create_value(Args &&... args)
+        {
+            return create< Op >( std::forward< Args >(args)... );
         }
 
         template< typename Op, typename ...Args >
         Stmt create_stmt(Args &&... args)
         {
-            return builder.create< Op >( convert( std::forward< Args >(args) )... );
-        }
-
-        template< typename Op, typename ...Args >
-        auto create(Args &&... args)
-        {
-            return builder.create< Op >( convert( std::forward< Args >(args) )... );
+            return create< Op >( std::forward< Args >(args)... );
         }
 
         InsertPoint saveInsertionPoint() { return builder.saveInsertionPoint(); }
@@ -314,15 +314,13 @@ namespace vast::hl
 
             auto then_builder = make_scope_builder(stmt->getThen());
 
-            auto cond = std::get< Value >( Visit(stmt->getCond()) );
+            auto cond = Visit(stmt->getCond());
             if (stmt->getElse()) {
                 auto else_builder = make_scope_builder(stmt->getElse());
-                builder.create< IfOp >(loc, cond, then_builder, else_builder);
+                return builder.create< IfOp >(loc, cond, then_builder, else_builder);
             } else {
-                builder.create< IfOp >(loc, cond, then_builder);
+                return builder.create< IfOp >(loc, cond, then_builder);
             }
-
-            return Value(); // dummy return
         }
 
         ValueOrStmt VisitWhileStmt(clang::WhileStmt *stmt)
@@ -330,25 +328,20 @@ namespace vast::hl
             auto loc = builder.getLocation(stmt->getSourceRange());
             auto body_builder = make_scope_builder(stmt->getBody());
 
-            auto cond = std::get< Value >( Visit(stmt->getCond()) );
-            builder.create< WhileOp >(loc, cond, body_builder);
-
-            return Value(); // dummy return
+            auto cond = Visit(stmt->getCond());
+            return builder.create< WhileOp >(loc, cond, body_builder);
         }
 
         ValueOrStmt VisitForStmt(clang::ForStmt *stmt)
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
 
-            // auto incr = Visit(stmt->getInc());
             auto init_builder = make_nonterminated_scope_builder(stmt->getInit());
             auto cond_builder = make_nonterminated_scope_builder(stmt->getCond());
-            auto inc_builder  = make_nonterminated_scope_builder(stmt->getInc());
+            auto incr_builder = make_nonterminated_scope_builder(stmt->getInc());
             auto body_builder = make_scope_builder(stmt->getBody());
 
-            builder.create< ForOp >(loc, init_builder, cond_builder, inc_builder, body_builder);
-
-            return Value(); // dummy value
+            return builder.create< ForOp >(loc, init_builder, cond_builder, incr_builder, body_builder);
         }
 
         ValueOrStmt VisitReturnStmt(clang::ReturnStmt *stmt)
@@ -356,34 +349,36 @@ namespace vast::hl
             LLVM_DEBUG(llvm::dbgs() << "Visit ReturnStmt\n");
             auto loc = builder.getLocation(stmt->getSourceRange());
             if (stmt->getRetValue()) {
-                auto val = std::get< Value >( Visit(stmt->getRetValue()) );
-                builder.create< ReturnOp >(loc, val);
+                auto val = Visit(stmt->getRetValue());
+                return builder.create< ReturnOp >(loc, val);
             } else {
                 auto val = builder.create_void(loc);
-                builder.create< ReturnOp >(loc, val);
+                return builder.create< ReturnOp >(loc, val);
             }
-
-            return Value(); // dummy value
         }
 
         ValueOrStmt VisitDeclStmt(clang::DeclStmt *stmt);
+
+        template< typename Value, typename Literal >
+        ValueOrStmt VisitLiteral(Value val, Literal lit)
+        {
+            auto type = types.convert(lit->getType());
+            auto loc = builder.getLocation(lit->getSourceRange());
+            return builder.constant(loc, type, val);
+        }
 
         ValueOrStmt VisitIntegerLiteral(const clang::IntegerLiteral *lit)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit IntegerLiteral\n");
             auto val = lit->getValue().getSExtValue();
-            auto type = types.convert(lit->getType());
-            auto loc = builder.getLocation(lit->getSourceRange());
-            return builder.constant(loc, type, val);
+            return VisitLiteral(val, lit);
         }
 
         ValueOrStmt VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *lit)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit CXXBoolLiteralExpr\n");
             bool val = lit->getValue();
-            auto type = types.convert(lit->getType());
-            auto loc = builder.getLocation(lit->getSourceRange());
-            return builder.constant(loc, type, val);
+            return VisitLiteral(val, lit);
         }
 
         Predicate integer_prdicate(clang::BinaryOperator *expr)
@@ -405,17 +400,13 @@ namespace vast::hl
             LLVM_DEBUG(llvm::dbgs() << "Visit ComparisonOperator\n");
             assert(expr->isComparisonOp());
 
-            auto lhs = std::get< Value >( Visit(expr->getLHS()) );
-            auto rhs = std::get< Value >( Visit(expr->getRHS()) );
+            auto lhs = Visit(expr->getLHS());
+            auto rhs = Visit(expr->getRHS());
             auto loc = builder.getEndLocation(expr->getSourceRange());
 
             // TODO(Heno): deal with floating point operations
-
-            // TODO(Heno): zero extend arguments
-
-            assert(lhs.getType() == rhs.getType());
-
             // TODO(Heno): deal with pointer comparisons
+
             auto pred = integer_prdicate(expr);
             return builder.create_value< CmpOp >(loc, pred, lhs, rhs);
         }
@@ -424,61 +415,45 @@ namespace vast::hl
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit CompoundAssignOperator\n");
 
-            auto lhs = std::get< Value >( Visit(expr->getLHS()) );
-            auto rhs = std::get< Value >( Visit(expr->getRHS()) );
+            auto lhs = Visit(expr->getLHS());
+            auto rhs = Visit(expr->getRHS());
             auto loc = builder.getEndLocation(expr->getSourceRange());
 
             auto ty = expr->getType();
             switch (expr->getOpcode()) {
                 case clang::BinaryOperatorKind::BO_AddAssign: {
-                    if (ty->isIntegerType()) {
-                        builder.create< AddIAssignOp >( loc, rhs, lhs );
-                        break;
-                    }
+                    if (ty->isIntegerType())
+                        return builder.create< AddIAssignOp >( loc, rhs, lhs );
                     llvm_unreachable( "unhandled addition assign operation" );
                 }
                 case clang::BinaryOperatorKind::BO_SubAssign: {
-                    if (ty->isIntegerType()) {
-                        builder.create< SubIAssignOp >( loc, rhs, lhs );
-                        break;
-                    }
+                    if (ty->isIntegerType())
+                        return builder.create< SubIAssignOp >( loc, rhs, lhs );
                     llvm_unreachable( "unhandled subtraction assign operation" );
                 }
                 case clang::BinaryOperatorKind::BO_MulAssign: {
-                    if (ty->isIntegerType()) {
+                    if (ty->isIntegerType())
                         builder.create< MulIAssignOp >( loc, rhs, lhs );
-                        break;
-                    }
                     llvm_unreachable( "unhandled multiplication assign operation" );
                 }
                 case clang::BinaryOperatorKind::BO_DivAssign: {
-                    if (ty->isUnsignedIntegerType()) {
-                        builder.create< DivUAssignOp >( loc, rhs, lhs );
-                        break;
-                    }
-                    if (ty->isIntegerType()) {
-                        builder.create< DivSAssignOp >( loc, rhs, lhs );
-                        break;
-                    }
+                    if (ty->isUnsignedIntegerType())
+                        return builder.create< DivUAssignOp >( loc, rhs, lhs );
+                    if (ty->isIntegerType())
+                        return builder.create< DivSAssignOp >( loc, rhs, lhs );
                     llvm_unreachable( "unhandled division assign operation" );
                 }
                 case clang::BinaryOperatorKind::BO_RemAssign: {
-                    if (ty->isUnsignedIntegerType()) {
-                        builder.create< RemUAssignOp >( loc, rhs, lhs );
-                        break;
-                    }
-                    if (ty->isIntegerType()) {
-                        builder.create< RemSAssignOp >( loc, rhs, lhs );
-                        break;
-                    }
+                    if (ty->isUnsignedIntegerType())
+                        return builder.create< RemUAssignOp >( loc, rhs, lhs );
+                    if (ty->isIntegerType())
+                        return builder.create< RemSAssignOp >( loc, rhs, lhs );
                     llvm_unreachable( "unhandled reminder assign operation" );
                 }
                 default: {
                     llvm_unreachable( "unhandled compound assign operation" );
                 }
             }
-
-            return Value(); // dummy value
         }
 
         ValueOrStmt VisitBinaryOperator(clang::BinaryOperator *expr)
@@ -489,8 +464,8 @@ namespace vast::hl
                 return VisitComparisonOperator(expr);
             }
 
-            auto lhs = std::get< Value >( Visit(expr->getLHS()) );
-            auto rhs = std::get< Value >( Visit(expr->getRHS()) );
+            auto lhs = Visit(expr->getLHS());
+            auto rhs = Visit(expr->getRHS());
             auto loc = builder.getEndLocation(expr->getSourceRange());
 
             auto ty = expr->getType();
@@ -525,32 +500,29 @@ namespace vast::hl
                     llvm_unreachable( "unhandled reminder type" );
                 }
                 case clang::BinaryOperatorKind::BO_Assign: {
-                    builder.create< AssignOp >( loc, rhs, lhs );
-                    return Value();
+                    return builder.create< AssignOp >( loc, rhs, lhs );
                 }
                 default: {
                     llvm_unreachable( "unhandled binary operation" );
                 }
             }
-
-            return Value();
         }
 
         ValueOrStmt VisitUnaryOperator(clang::UnaryOperator *expr)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit UnaryOperator\n");
             auto loc = builder.getEndLocation(expr->getSourceRange());
-            auto arg = std::get< Value >( Visit(expr->getSubExpr()) );
+            auto arg = Visit(expr->getSubExpr());
 
             switch (expr->getOpcode()) {
                 case clang::UnaryOperatorKind::UO_PostInc:
-                    builder.create< PostIncOp >( loc, arg ); break;
+                    return builder.create< PostIncOp >( loc, arg );
                 case clang::UnaryOperatorKind::UO_PostDec:
-                    builder.create< PostDecOp >( loc, arg ); break;
+                    return builder.create< PostDecOp >( loc, arg );
                 case clang::UnaryOperatorKind::UO_PreInc:
-                    builder.create< PreIncOp >( loc, arg ); break;
+                    return builder.create< PreIncOp >( loc, arg );
                 case clang::UnaryOperatorKind::UO_PreDec:
-                    builder.create< PreDecOp >( loc, arg ); break;
+                    return builder.create< PreDecOp >( loc, arg );
                 case clang::UnaryOperatorKind::UO_AddrOf:
                     llvm_unreachable( "unsupported unary address of operator" );
                 case clang::UnaryOperatorKind::UO_Deref:
@@ -572,8 +544,6 @@ namespace vast::hl
                 case clang::UnaryOperatorKind::UO_Extension:
                     llvm_unreachable( "unsupported `extension` operator" );
             }
-
-            return Value(); // dummy value
         }
 
         CastKind cast_kind(clang::CastExpr *expr)
@@ -706,7 +676,7 @@ namespace vast::hl
         VastDeclVisitor &decls;
     };
 
-    struct VastDeclVisitor : clang::DeclVisitor< VastDeclVisitor, mlir::Value >
+    struct VastDeclVisitor : clang::DeclVisitor< VastDeclVisitor, ValueOrStmt >
     {
         VastDeclVisitor(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod, clang::ASTContext &actx)
             : mod(mod)
@@ -728,7 +698,7 @@ namespace vast::hl
         template< typename T >
         decltype(auto) convert(T type) { return types.convert(type); }
 
-        Value VisitFunctionDecl(clang::FunctionDecl *decl)
+        ValueOrStmt VisitFunctionDecl(clang::FunctionDecl *decl)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit FunctionDecl: " << decl->getName() << "\n");
             ScopedInsertPoint builder_scope(builder);
@@ -785,10 +755,10 @@ namespace vast::hl
                 }
             }
 
-            return Value(); // dummy value
+            return fn;
         }
 
-        Value VisitVarDecl(clang::VarDecl *decl)
+        ValueOrStmt VisitVarDecl(clang::VarDecl *decl)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit VarDecl\n");
             auto ty    = convert(decl->getType());
@@ -797,10 +767,10 @@ namespace vast::hl
             auto init  = decl->getInit();
 
             if (init) {
-                auto initializer = std::get< Value >( stmts.Visit(init) );
-                return builder.create< VarOp >(loc, ty, named->getName(), initializer);
+                auto initializer = stmts.Visit(init);
+                return builder.create_value< VarOp >(loc, ty, named->getName(), initializer);
             } else {
-                return builder.create< VarOp >(loc, ty, named->getName());
+                return builder.create_value< VarOp >(loc, ty, named->getName());
             }
         }
 
@@ -832,12 +802,8 @@ namespace vast::hl
     ValueOrStmt VastCodeGenVisitor::VisitDeclStmt(clang::DeclStmt *stmt)
     {
         LLVM_DEBUG(llvm::dbgs() << "Visit DeclStmt\n");
-        for (auto decl : stmt->decls()) {
-            LLVM_DEBUG(llvm::dbgs() << "Visit Decl "  << decl->getDeclKindName() << "\n");
-            decls.Visit(decl);
-        }
-
-        return Value(); // dummy value
+        assert(stmt->isSingleDecl());
+        return decls.Visit( *(stmt->decls().begin()) );
     }
 
     struct VastCodeGen : clang::ASTConsumer
