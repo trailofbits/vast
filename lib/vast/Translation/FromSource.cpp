@@ -264,16 +264,13 @@ namespace vast::hl
             auto lhs = Visit(expr->getLHS());
             auto rhs = Visit(expr->getRHS());
             auto loc = builder.getEndLocation(expr->getSourceRange());
-            return builder.create_value< Op >( loc, lhs, rhs );
-        }
+            auto res = builder.create< Op >( loc, lhs, rhs );
 
-        template< typename Op >
-        ValueOrStmt build_compound(clang::BinaryOperator *expr)
-        {
-            auto lhs = Visit(expr->getLHS());
-            auto rhs = Visit(expr->getRHS());
-            auto loc = builder.getEndLocation(expr->getSourceRange());
-            return builder.create< Op >( loc, lhs, rhs );
+            if constexpr ( std::is_convertible_v< decltype(res), Value > ) {
+                return Value(res);
+            } else {
+                return res;
+            }
         }
 
         template< Predicate pred >
@@ -283,6 +280,27 @@ namespace vast::hl
             auto rhs = Visit(expr->getRHS());
             auto loc = builder.getEndLocation(expr->getSourceRange());
             return builder.create_value< CmpOp >( loc, pred, lhs, rhs );
+        }
+
+        template< typename Op >
+        ValueOrStmt build_unary(clang::UnaryOperator *expr)
+        {
+            auto loc = builder.getEndLocation(expr->getSourceRange());
+            auto arg = Visit(expr->getSubExpr());
+            auto res = builder.create< Op >( loc, arg );
+            if constexpr ( std::is_convertible_v< decltype(res), Value > ) {
+                return Value(res);
+            } else {
+                return res;
+            }
+        }
+
+        template< typename Cast >
+        ValueOrStmt build_cast(clang::Expr *expr, clang::QualType to, CastKind kind)
+        {
+            auto loc = builder.getLocation(expr->getSourceRange());
+            auto rty = types.convert(to);
+            return builder.create_value< Cast >( loc, rty, Visit(expr), kind );
         }
 
         ValueOrStmt VisitBinPtrMemD(clang::BinaryOperator *expr)
@@ -432,14 +450,14 @@ namespace vast::hl
 
         ValueOrStmt VisitAssign(clang::BinaryOperator *expr)
         {
-            return build_compound< AssignOp >(expr);
+            return build_binary< AssignOp >(expr);
         }
 
         ValueOrStmt VisitBinMulAssign(clang::CompoundAssignOperator *expr)
         {
             auto ty = expr->getType();
             if (ty->isIntegerType())
-                return build_compound< MulIAssignOp >(expr);
+                return build_binary< MulIAssignOp >(expr);
             llvm_unreachable( "unhandled BinMulAssign" );
         }
 
@@ -447,9 +465,9 @@ namespace vast::hl
         {
             auto ty = expr->getType();
             if (ty->isUnsignedIntegerType())
-                return build_compound< DivUAssignOp >(expr);
+                return build_binary< DivUAssignOp >(expr);
             if (ty->isIntegerType())
-                return build_compound< DivSAssignOp >(expr);
+                return build_binary< DivSAssignOp >(expr);
             llvm_unreachable( "unhandled BinDivAssign" );
         }
 
@@ -457,9 +475,9 @@ namespace vast::hl
         {
             auto ty = expr->getType();
             if (ty->isUnsignedIntegerType())
-                return build_compound< RemUAssignOp >(expr);
+                return build_binary< RemUAssignOp >(expr);
             if (ty->isIntegerType())
-                return build_compound< RemSAssignOp >(expr);
+                return build_binary< RemSAssignOp >(expr);
             llvm_unreachable( "unhandled BinRemAssign" );
         }
 
@@ -467,7 +485,7 @@ namespace vast::hl
         {
             auto ty = expr->getType();
             if (ty->isIntegerType())
-                return build_compound< AddIAssignOp >(expr);
+                return build_binary< AddIAssignOp >(expr);
             llvm_unreachable( "unhandled BinAddAssign" );
         }
 
@@ -475,7 +493,7 @@ namespace vast::hl
         {
             auto ty = expr->getType();
             if (ty->isIntegerType())
-                return build_compound< SubIAssignOp >(expr);
+                return build_binary< SubIAssignOp >(expr);
             llvm_unreachable( "unhandled BinSubAssign" );
         }
 
@@ -507,6 +525,76 @@ namespace vast::hl
         ValueOrStmt VisitBinComma(clang::BinaryOperator *expr)
         {
             llvm_unreachable( "unhandled BinComma" );
+        }
+
+        ValueOrStmt VisitUnaryPostInc(clang::UnaryOperator *expr)
+        {
+            return build_unary< PostIncOp >(expr);
+        }
+
+        ValueOrStmt VisitUnaryPostDec(clang::UnaryOperator *expr)
+        {
+            return build_unary< PostDecOp >(expr);
+        }
+
+        ValueOrStmt VisitUnaryPreInc(clang::UnaryOperator *expr)
+        {
+            return build_unary< PreIncOp >(expr);
+        }
+
+        ValueOrStmt VisitUnaryPreDec(clang::UnaryOperator *expr)
+        {
+            return build_unary< PreDecOp >(expr);
+        }
+
+        ValueOrStmt VisitUnaryAddrOf(clang::UnaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled UnaryAddrOf" );
+        }
+
+        ValueOrStmt VisitUnaryDeref(clang::UnaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled UnaryDeref" );
+        }
+
+        ValueOrStmt VisitUnaryPlus(clang::UnaryOperator *expr)
+        {
+            return build_unary< PlusOp >(expr);
+        }
+
+        ValueOrStmt VisitUnaryMinus(clang::UnaryOperator *expr)
+        {
+            return build_unary< MinusOp >(expr);
+        }
+
+        ValueOrStmt VisitUnaryNot(clang::UnaryOperator *expr)
+        {
+            return build_unary< NotOp >(expr);
+        }
+
+        ValueOrStmt VisitUnaryLNot(clang::UnaryOperator *expr)
+        {
+            return build_unary< LNotOp >(expr);
+        }
+
+        ValueOrStmt VisitUnaryReal(clang::UnaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled UnaryReal" );
+        }
+
+        ValueOrStmt VisitUnaryImag(clang::UnaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled UnaryImag" );
+        }
+
+        ValueOrStmt VisitUnaryExtension(clang::UnaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled UnaryExtension" );
+        }
+
+        ValueOrStmt VisitUnaryCoawait(clang::UnaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled UnaryCoawait" );
         }
 
         ValueOrStmt VisitCompoundStmt(clang::CompoundStmt *stmt)
@@ -631,57 +719,6 @@ namespace vast::hl
             LLVM_DEBUG(llvm::dbgs() << "Visit CXXBoolLiteralExpr\n");
             bool val = lit->getValue();
             return VisitLiteral(val, lit);
-        }
-
-        ValueOrStmt VisitBinaryOperator(clang::BinaryOperator *expr)
-        {
-            llvm_unreachable( "unhandled binary operation" );
-        }
-
-        ValueOrStmt VisitUnaryOperator(clang::UnaryOperator *expr)
-        {
-            LLVM_DEBUG(llvm::dbgs() << "Visit UnaryOperator\n");
-            auto loc = builder.getEndLocation(expr->getSourceRange());
-            auto arg = Visit(expr->getSubExpr());
-
-            switch (expr->getOpcode()) {
-                case clang::UnaryOperatorKind::UO_PostInc:
-                    return builder.create< PostIncOp >( loc, arg );
-                case clang::UnaryOperatorKind::UO_PostDec:
-                    return builder.create< PostDecOp >( loc, arg );
-                case clang::UnaryOperatorKind::UO_PreInc:
-                    return builder.create< PreIncOp >( loc, arg );
-                case clang::UnaryOperatorKind::UO_PreDec:
-                    return builder.create< PreDecOp >( loc, arg );
-                case clang::UnaryOperatorKind::UO_AddrOf:
-                    llvm_unreachable( "unsupported unary address of operator" );
-                case clang::UnaryOperatorKind::UO_Deref:
-                    llvm_unreachable( "unsupported unary dereference operator" );
-                case clang::UnaryOperatorKind::UO_Plus:
-                    return builder.create_value< PlusOp >( loc, arg );
-                case clang::UnaryOperatorKind::UO_Minus:
-                    return builder.create_value< MinusOp >( loc, arg );
-                case clang::UnaryOperatorKind::UO_Not:
-                    return builder.create_value< NotOp >( loc, arg );
-                case clang::UnaryOperatorKind::UO_LNot:
-                    return builder.create_value< LNotOp >( loc, arg );
-                case clang::UnaryOperatorKind::UO_Real:
-                    llvm_unreachable( "unsupported `real` operator" );
-                case clang::UnaryOperatorKind::UO_Imag:
-                    llvm_unreachable( "unsupported `imag` operator" );
-                case clang::UnaryOperatorKind::UO_Coawait:
-                    llvm_unreachable( "unsupported `coawait` operator" );
-                case clang::UnaryOperatorKind::UO_Extension:
-                    llvm_unreachable( "unsupported `extension` operator" );
-            }
-        }
-
-        template< typename Cast >
-        ValueOrStmt build_cast(clang::Expr *expr, clang::QualType to, CastKind kind)
-        {
-            auto loc = builder.getLocation(expr->getSourceRange());
-            auto rty = types.convert(to);
-            return builder.create_value< Cast >( loc, rty, Visit(expr), kind );
         }
 
         ValueOrStmt VisitImplicitCastExpr(clang::ImplicitCastExpr *expr)
