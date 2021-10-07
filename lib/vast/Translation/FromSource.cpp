@@ -764,6 +764,11 @@ namespace vast::hl
             llvm_unreachable( "unsupported AddrLabelExpr" );
         }
 
+        ValueOrStmt VisitConstantExpr(clang::ConstantExpr *expr)
+        {
+            llvm_unreachable( "unsupported ConstantExpr" );
+        }
+
         ValueOrStmt VisitArraySubscriptExpr(clang::ArraySubscriptExpr *expr)
         {
             llvm_unreachable( "unsupported ArraySubscriptExpr" );
@@ -872,6 +877,11 @@ namespace vast::hl
         ValueOrStmt VisitCXXTypeidExpr(clang::CXXTypeidExpr *expr)
         {
             llvm_unreachable( "unsupported CXXTypeidExpr" );
+        }
+
+        ValueOrStmt VisitCXXFoldExpr(clang::CXXFoldExpr *expr)
+        {
+            llvm_unreachable( "unsupported CXXFoldExpr" );
         }
 
         ValueOrStmt VisitCXXUnresolvedConstructExpr(clang::CXXUnresolvedConstructExpr *expr)
@@ -1030,6 +1040,11 @@ namespace vast::hl
         ValueOrStmt VisitImaginaryLiteral(clang::ImaginaryLiteral *lit)
         {
             llvm_unreachable( "unsupported ImaginaryLiteral" );
+        }
+
+        ValueOrStmt VisitFixedPointLiteral(clang::FixedPointLiteral *lit)
+        {
+            llvm_unreachable( "unsupported FixedPointLiteral" );
         }
 
         ValueOrStmt VisitImplicitValueInitExpr(clang::ImplicitValueInitExpr *expr)
@@ -1225,6 +1240,11 @@ namespace vast::hl
         ValueOrStmt VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr *expr)
         {
             llvm_unreachable( "unsupported UnaryExprOrTypeTraitExpr" );
+        }
+
+        ValueOrStmt VisitSourceLocExpr(clang::SourceLocExpr *expr)
+        {
+            llvm_unreachable( "unsupported SourceLocExpr" );
         }
 
         ValueOrStmt VisitVAArgExpr(clang::VAArgExpr *expr)
