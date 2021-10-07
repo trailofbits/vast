@@ -448,7 +448,7 @@ namespace vast::hl
             llvm_unreachable( "unhandled BinLOr" );
         }
 
-        ValueOrStmt VisitAssign(clang::BinaryOperator *expr)
+        ValueOrStmt VisitBinAssign(clang::BinaryOperator *expr)
         {
             return build_binary< AssignOp >(expr);
         }
