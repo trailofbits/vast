@@ -303,6 +303,32 @@ namespace vast::hl
             return builder.create_value< Cast >( loc, rty, Visit(expr), kind );
         }
 
+        auto make_scope_builder(clang::Stmt *stmt)
+        {
+            return [stmt, this] (auto &bld, auto) {
+                Visit(stmt);
+                spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
+            };
+        }
+
+        auto make_nonterminated_scope_builder(clang::Stmt *stmt)
+        {
+            return [stmt, this] (auto &bld, auto loc) {
+                if (stmt)
+                    Visit(stmt);
+                spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
+                // TODO(Heno): remove with noterminator attribute
+                auto &blocks = bld.getBlock()->getParent()->getBlocks();
+                auto &lastblock = blocks.back();
+                if (lastblock.empty() || lastblock.back().isKnownNonTerminator()) {
+                    builder.setInsertionPointToEnd(&lastblock);
+                    builder.create< ScopeEndOp >(loc);
+                }
+            };
+        }
+
+        // Binary Operations
+
         ValueOrStmt VisitBinPtrMemD(clang::BinaryOperator *expr)
         {
             llvm_unreachable( "unhandled BinPtrMemD" );
@@ -453,6 +479,8 @@ namespace vast::hl
             return build_binary< AssignOp >(expr);
         }
 
+        // Compound Assignment Operations
+
         ValueOrStmt VisitBinMulAssign(clang::CompoundAssignOperator *expr)
         {
             auto ty = expr->getType();
@@ -527,6 +555,8 @@ namespace vast::hl
             llvm_unreachable( "unhandled BinComma" );
         }
 
+        // Unary Operations
+
         ValueOrStmt VisitUnaryPostInc(clang::UnaryOperator *expr)
         {
             return build_unary< PostIncOp >(expr);
@@ -597,10 +627,57 @@ namespace vast::hl
             llvm_unreachable( "unhandled UnaryCoawait" );
         }
 
+        // Assembky Statements
+
+        ValueOrStmt VisitAsmStmt(clang::AsmStmt *stmt)
+        {
+            llvm_unreachable( "unhandled AsmStmt" );
+        }
+
+        ValueOrStmt VisitGCCAsmStmt(clang::GCCAsmStmt *stmt)
+        {
+            llvm_unreachable( "unhandled GCCAsmStmt" );
+        }
+
+        ValueOrStmt VisitMSAsmStmt(clang::MSAsmStmt *stmt)
+        {
+            llvm_unreachable( "unhandled MSAsmStmt" );
+        }
+
+        ValueOrStmt VisitAttributedStmt(clang::AttributedStmt *stmt)
+        {
+            llvm_unreachable( "unhandled AttributedStmt" );
+        }
+
+        // Statements
+
+        ValueOrStmt VisitBreakStmt(clang::BreakStmt *stmt)
+        {
+            llvm_unreachable( "unhandled BreakStmt" );
+        }
+
+        ValueOrStmt VisitCXXCatchStmt(clang::CXXCatchStmt *stmt)
+        {
+            llvm_unreachable( "unhandled CXXCatchStmt" );
+        }
+
+        ValueOrStmt VisitCXXForRangeStmt(clang::CXXForRangeStmt *stmt)
+        {
+            llvm_unreachable( "unhandled CXXForRangeStmt" );
+        }
+
+        ValueOrStmt VisitCXXTryStmt(clang::CXXTryStmt *stmt)
+        {
+            llvm_unreachable( "unhandled CXXTryStmt" );
+        }
+
+        ValueOrStmt VisitCapturedStmt(clang::CapturedStmt *stmt)
+        {
+            llvm_unreachable( "unhandled CapturedStmt" );
+        }
+
         ValueOrStmt VisitCompoundStmt(clang::CompoundStmt *stmt)
         {
-            LLVM_DEBUG(llvm::dbgs() << "Visit CompoundStmt\n");
-
             ScopedInsertPoint builder_scope(builder);
 
             auto loc = builder.getLocation(stmt->getSourceRange());
@@ -611,7 +688,6 @@ namespace vast::hl
             builder.setInsertionPointToStart( &body.front() );
 
             for (auto s : stmt->body()) {
-                LLVM_DEBUG(llvm::dbgs() << "Visit Stmt " << s->getStmtClassName() << "\n");
                 Visit(s);
             }
 
@@ -624,28 +700,525 @@ namespace vast::hl
             return scope;
         }
 
-        auto make_scope_builder(clang::Stmt *stmt)
+        ValueOrStmt VisitContinueStmt(clang::ContinueStmt *stmt)
         {
-            return [stmt, this] (auto &bld, auto) {
-                Visit(stmt);
-                spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
-            };
+            llvm_unreachable( "unhandled ContinueStmt" );
         }
 
-        auto make_nonterminated_scope_builder(clang::Stmt *stmt)
+        ValueOrStmt VisitDeclStmt(clang::DeclStmt *stmt);
+
+        ValueOrStmt VisitDoStmt(clang::DoStmt *stmt)
         {
-            return [stmt, this] (auto &bld, auto loc) {
-                if (stmt)
-                    Visit(stmt);
-                spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
-                // TODO(Heno): remove with noterminator attribute
-                auto &blocks = bld.getBlock()->getParent()->getBlocks();
-                auto &lastblock = blocks.back();
-                if (lastblock.empty() || lastblock.back().isKnownNonTerminator()) {
-                    builder.setInsertionPointToEnd(&lastblock);
-                    builder.create< ScopeEndOp >(loc);
-                }
-            };
+            llvm_unreachable( "unhandled DoStmt" );
+        }
+
+        // Expressions
+
+        ValueOrStmt VisitAbstractConditionalOperator(clang::AbstractConditionalOperator *stmt)
+        {
+            llvm_unreachable( "unhandled AbstractConditionalOperator" );
+        }
+
+        ValueOrStmt VisitBinaryConditionalOperator(clang::BinaryConditionalOperator *stmt)
+        {
+            llvm_unreachable( "unhandled BinaryConditionalOperator" );
+        }
+
+        ValueOrStmt VisitConditionalOperator(clang::ConditionalOperator *stmt)
+        {
+            llvm_unreachable( "unhandled ConditionalOperator" );
+        }
+
+        ValueOrStmt VisitAddrLabelExpr(clang::AddrLabelExpr *expr)
+        {
+            llvm_unreachable( "unhandled AddrLabelExpr" );
+        }
+
+        ValueOrStmt VisitArraySubscriptExpr(clang::ArraySubscriptExpr *expr)
+        {
+            llvm_unreachable( "unhandled ArraySubscriptExpr" );
+        }
+
+        ValueOrStmt VisitArrayTypeTraitExpr(clang::ArrayTypeTraitExpr *expr)
+        {
+            llvm_unreachable( "unhandled ArrayTypeTraitExpr" );
+        }
+
+        ValueOrStmt VisitAsTypeExpr(clang::AsTypeExpr *expr)
+        {
+            llvm_unreachable( "unhandled AsTypeExpr" );
+        }
+
+        ValueOrStmt VisitAtomicExpr(clang::AtomicExpr *expr)
+        {
+            llvm_unreachable( "unhandled AtomicExpr" );
+        }
+
+        ValueOrStmt VisitBlockExpr(clang::BlockExpr *expr)
+        {
+            llvm_unreachable( "unhandled BlockExpr" );
+        }
+
+        ValueOrStmt VisitCXXBindTemporaryExpr(clang::CXXBindTemporaryExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXBindTemporaryExpr" );
+        }
+
+        ValueOrStmt VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *lit)
+        {
+            return VisitLiteral(lit->getValue(), lit);
+        }
+
+        ValueOrStmt VisitCXXConstructExpr(clang::CXXConstructExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXConstructExpr" );
+        }
+
+        ValueOrStmt VisitCXXTemporaryObjectExpr(clang::CXXTemporaryObjectExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXTemporaryObjectExpr" );
+        }
+
+        ValueOrStmt VisitCXXDefaultArgExpr(clang::CXXDefaultArgExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXDefaultArgExpr" );
+        }
+
+        ValueOrStmt VisitCXXDefaultInitExpr(clang::CXXDefaultInitExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXDefaultInitExpr" );
+        }
+
+        ValueOrStmt VisitCXXDeleteExpr(clang::CXXDeleteExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXDeleteExpr" );
+        }
+
+        ValueOrStmt VisitCXXDependentScopeMemberExpr(clang::CXXDependentScopeMemberExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXDependentScopeMemberExpr" );
+        }
+
+        ValueOrStmt VisitCXXNewExpr(clang::CXXNewExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXNewExpr" );
+        }
+
+        ValueOrStmt VisitCXXNoexceptExpr(clang::CXXNoexceptExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXNoexceptExpr" );
+        }
+
+        ValueOrStmt VisitCXXNullPtrLiteralExpr(clang::CXXNullPtrLiteralExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXNullPtrLiteralExpr" );
+        }
+
+        ValueOrStmt VisitCXXPseudoDestructorExpr(clang::CXXPseudoDestructorExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXPseudoDestructorExpr" );
+        }
+
+        ValueOrStmt VisitCXXScalarValueInitExpr(clang::CXXScalarValueInitExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXScalarValueInitExpr" );
+        }
+
+        ValueOrStmt VisitCXXStdInitializerListExpr(clang::CXXStdInitializerListExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXStdInitializerListExpr" );
+        }
+
+        ValueOrStmt VisitCXXThisExpr(clang::CXXThisExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXThisExpr" );
+        }
+
+        ValueOrStmt VisitCXXThrowExpr(clang::CXXThrowExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXThrowExpr" );
+        }
+
+        ValueOrStmt VisitCXXTypeidExpr(clang::CXXTypeidExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXTypeidExpr" );
+        }
+
+        ValueOrStmt VisitCXXUnresolvedConstructExpr(clang::CXXUnresolvedConstructExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXUnresolvedConstructExpr" );
+        }
+
+        ValueOrStmt VisitCXXUuidofExpr(clang::CXXUuidofExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXUuidofExpr" );
+        }
+
+        ValueOrStmt VisitCallExpr(clang::CallExpr *expr)
+        {
+            llvm_unreachable( "unhandled CallExpr" );
+        }
+
+        ValueOrStmt VisitCUDAKernelCallExpr(clang::CUDAKernelCallExpr *expr)
+        {
+            llvm_unreachable( "unhandled CUDAKernelCallExpr" );
+        }
+
+        ValueOrStmt VisitCXXMemberCallExpr(clang::CXXMemberCallExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXMemberCallExpr" );
+        }
+
+        ValueOrStmt VisitCXXOperatorCallExpr(clang::CXXOperatorCallExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXOperatorCallExpr" );
+        }
+
+        ValueOrStmt VisitUserDefinedLiteral(clang::UserDefinedLiteral *lit)
+        {
+            llvm_unreachable( "unhandled UserDefinedLiteral" );
+        }
+
+        ValueOrStmt VisitCStyleCastExpr(clang::CStyleCastExpr *expr)
+        {
+            return build_cast< CStyleCastOp >( expr->getSubExpr(), expr->getType(), cast_kind(expr) );
+        }
+
+        ValueOrStmt VisitCXXFunctionalCastExpr(clang::CXXFunctionalCastExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXFunctionalCastExpr" );
+        }
+
+        ValueOrStmt VisitCXXConstCastExpr(clang::CXXConstCastExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXConstCastExpr" );
+        }
+
+        ValueOrStmt VisitCXXDynamicCastExpr(clang::CXXDynamicCastExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXDynamicCastExpr" );
+        }
+
+        ValueOrStmt VisitCXXReinterpretCastExpr(clang::CXXReinterpretCastExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXReinterpretCastExpr" );
+        }
+
+        ValueOrStmt VisitCXXStaticCastExpr(clang::CXXStaticCastExpr *expr)
+        {
+            llvm_unreachable( "unhandled CXXStaticCastExpr" );
+        }
+
+        ValueOrStmt VisitObjCBridgedCastExpr(clang::ObjCBridgedCastExpr *expr)
+        {
+            llvm_unreachable( "unhandled ObjCBridgedCastExpr" );
+        }
+
+        ValueOrStmt VisitImplicitCastExpr(clang::ImplicitCastExpr *expr)
+        {
+            return build_cast< ImplicitCastOp >( expr->getSubExpr(), expr->getType(), cast_kind(expr) );
+        }
+
+        ValueOrStmt VisitCharacterLiteral(clang::CharacterLiteral *lit)
+        {
+            llvm_unreachable( "unhandled CharacterLiteral" );
+        }
+
+        ValueOrStmt VisitChooseExpr(clang::ChooseExpr *expr)
+        {
+            llvm_unreachable( "unhandled ChooseExpr" );
+        }
+
+        ValueOrStmt VisitCompoundLiteralExpr(clang::CompoundLiteralExpr *expr)
+        {
+            llvm_unreachable( "unhandled CompoundLiteralExpr" );
+        }
+
+        ValueOrStmt VisitConvertVectorExpr(clang::ConvertVectorExpr *expr)
+        {
+            llvm_unreachable( "unhandled ConvertVectorExpr" );
+        }
+
+        ValueOrStmt VisitDeclRefExpr(clang::DeclRefExpr *expr)
+        {
+            auto loc = builder.getLocation(expr->getSourceRange());
+
+            // TODO(Heno): deal with function declaration
+
+            // TODO(Heno): deal with enum constant declaration
+
+            auto named = expr->getDecl()->getUnderlyingDecl();
+            auto rty = types.convert(expr->getType());
+            return builder.create_value< DeclRefOp >( loc, rty, named->getNameAsString() );
+        }
+
+        ValueOrStmt VisitDependentScopeDeclRefExpr(clang::DependentScopeDeclRefExpr *expr)
+        {
+            llvm_unreachable( "unhandled DependentScopeDeclRefExpr" );
+        }
+
+        ValueOrStmt VisitDesignatedInitExpr(clang::DesignatedInitExpr *expr)
+        {
+            llvm_unreachable( "unhandled DesignatedInitExpr" );
+        }
+
+        ValueOrStmt VisitExprWithCleanups(clang::ExprWithCleanups *expr)
+        {
+            llvm_unreachable( "unhandled ExprWithCleanups" );
+        }
+
+        ValueOrStmt VisitExpressionTraitExpr(clang::ExpressionTraitExpr *expr)
+        {
+            llvm_unreachable( "unhandled ExpressionTraitExpr" );
+        }
+
+        ValueOrStmt VisitExtVectorElementExpr(clang::ExtVectorElementExpr *expr)
+        {
+            llvm_unreachable( "unhandled ExtVectorElementExpr" );
+        }
+
+        ValueOrStmt VisitFloatingLiteral(clang::FloatingLiteral *lit)
+        {
+            llvm_unreachable( "unhandled FloatingLiteral" );
+        }
+
+        ValueOrStmt VisitFunctionParmPackExpr(clang::FunctionParmPackExpr *expr)
+        {
+            llvm_unreachable( "unhandled FunctionParmPackExpr" );
+        }
+
+        ValueOrStmt VisitGNUNullExpr(clang::GNUNullExpr *expr)
+        {
+            llvm_unreachable( "unhandled GNUNullExpr" );
+        }
+
+        ValueOrStmt VisitGenericSelectionExpr(clang::GenericSelectionExpr *expr)
+        {
+            llvm_unreachable( "unhandled GenericSelectionExpr" );
+        }
+
+        ValueOrStmt VisitImaginaryLiteral(clang::ImaginaryLiteral *lit)
+        {
+            llvm_unreachable( "unhandled ImaginaryLiteral" );
+        }
+
+        ValueOrStmt VisitImplicitValueInitExpr(clang::ImplicitValueInitExpr *expr)
+        {
+            llvm_unreachable( "unhandled ImplicitValueInitExpr" );
+        }
+
+        ValueOrStmt VisitInitListExpr(clang::InitListExpr *expr)
+        {
+            llvm_unreachable( "unhandled InitListExpr" );
+        }
+
+        ValueOrStmt VisitIntegerLiteral(const clang::IntegerLiteral *lit)
+        {
+            return VisitLiteral(lit->getValue().getSExtValue(), lit);
+        }
+
+        ValueOrStmt VisitLambdaExpr(clang::LambdaExpr *expr)
+        {
+            llvm_unreachable( "unhandled LambdaExpr" );
+        }
+
+        ValueOrStmt VisitMSPropertyRefExpr(clang::MSPropertyRefExpr *expr)
+        {
+            llvm_unreachable( "unhandled MSPropertyRefExpr" );
+        }
+
+        ValueOrStmt VisitMaterializeTemporaryExpr(clang::MaterializeTemporaryExpr *expr)
+        {
+            llvm_unreachable( "unhandled MaterializeTemporaryExpr" );
+        }
+
+        ValueOrStmt VisitMemberExpr(clang::MemberExpr *expr)
+        {
+            llvm_unreachable( "unhandled MemberExpr" );
+        }
+
+        ValueOrStmt VisitObjCArrayLiteral(clang::ObjCArrayLiteral *expr)
+        {
+            llvm_unreachable( "unhandled ObjCArrayLiteral" );
+        }
+
+        ValueOrStmt VisitObjCBoolLiteralExpr(clang::ObjCBoolLiteralExpr *expr)
+        {
+            llvm_unreachable( "unhandled ObjCBoolLiteralExpr" );
+        }
+
+        ValueOrStmt VisitObjCBoxedExpr(clang::ObjCBoxedExpr *expr)
+        {
+            llvm_unreachable( "unhandled ObjCBoxedExpr" );
+        }
+
+        ValueOrStmt VisitObjCDictionaryLiteral(clang::ObjCDictionaryLiteral *lit)
+        {
+            llvm_unreachable( "unhandled ObjCDictionaryLiteral" );
+        }
+
+        ValueOrStmt VisitObjCEncodeExpr(clang::ObjCEncodeExpr *expr)
+        {
+            llvm_unreachable( "unhandled ObjCEncodeExpr" );
+        }
+
+        ValueOrStmt VisitObjCIndirectCopyRestoreExpr(clang::ObjCIndirectCopyRestoreExpr *expr)
+        {
+            llvm_unreachable( "unhandled ObjCIndirectCopyRestoreExpr" );
+        }
+
+        ValueOrStmt VisitObjCIsaExpr(clang::ObjCIsaExpr *expr)
+        {
+            llvm_unreachable( "unhandled ObjCIsaExpr" );
+        }
+
+        ValueOrStmt VisitObjCIvarRefExpr(clang::ObjCIvarRefExpr *expr)
+        {
+            llvm_unreachable( "unhandled ObjCIvarRefExpr" );
+        }
+
+        ValueOrStmt VisitObjCMessageExpr(clang::ObjCMessageExpr *expr)
+        {
+            llvm_unreachable( "unhandled ObjCMessageExpr" );
+        }
+
+        ValueOrStmt VisitObjCPropertyRefExpr(clang::ObjCPropertyRefExpr *expr)
+        {
+            llvm_unreachable( "unhandled ObjCPropertyRefExpr" );
+        }
+
+        ValueOrStmt VisitObjCProtocolExpr(clang::ObjCProtocolExpr *expr)
+        {
+            llvm_unreachable( "unhandled ObjCProtocolExpr" );
+        }
+
+        ValueOrStmt VisitObjCSelectorExpr(clang::ObjCSelectorExpr *expr)
+        {
+            llvm_unreachable( "unhandled ObjCSelectorExpr" );
+        }
+
+        ValueOrStmt VisitObjCStringLiteral(clang::ObjCStringLiteral *lit)
+        {
+            llvm_unreachable( "unhandled ObjCStringLiteral" );
+        }
+
+        ValueOrStmt VisitObjCSubscriptRefExpr(clang::ObjCSubscriptRefExpr *expr)
+        {
+            llvm_unreachable( "unhandled ObjCSubscriptRefExpr" );
+        }
+
+        ValueOrStmt VisitOffsetOfExpr(clang::OffsetOfExpr *expr)
+        {
+            llvm_unreachable( "unhandled OffsetOfExpr" );
+        }
+
+        ValueOrStmt VisitOpaqueValueExpr(clang::OpaqueValueExpr *expr)
+        {
+            llvm_unreachable( "unhandled OpaqueValueExpr" );
+        }
+
+        ValueOrStmt VisitOverloadExpr(clang::OverloadExpr *expr)
+        {
+            llvm_unreachable( "unhandled OverloadExpr" );
+        }
+
+        ValueOrStmt VisitUnresolvedLookupExpr(clang::UnresolvedLookupExpr *expr)
+        {
+            llvm_unreachable( "unhandled UnresolvedLookupExpr" );
+        }
+
+        ValueOrStmt VisitUnresolvedMemberExpr(clang::UnresolvedMemberExpr *expr)
+        {
+            llvm_unreachable( "unhandled UnresolvedMemberExpr" );
+        }
+
+        ValueOrStmt VisitPackExpansionExpr(clang::PackExpansionExpr *expr)
+        {
+            llvm_unreachable( "unhandled PackExpansionExpr" );
+        }
+
+        ValueOrStmt VisitParenExpr(clang::ParenExpr *expr)
+        {
+            llvm_unreachable( "unhandled ParenExpr" );
+        }
+
+        ValueOrStmt VisitParenListExpr(clang::ParenListExpr *expr)
+        {
+            llvm_unreachable( "unhandled ParenListExpr" );
+        }
+
+        ValueOrStmt VisitPredefinedExpr(clang::PredefinedExpr *expr)
+        {
+            llvm_unreachable( "unhandled PredefinedExpr" );
+        }
+
+        ValueOrStmt VisitPseudoObjectExpr(clang::PseudoObjectExpr *expr)
+        {
+            llvm_unreachable( "unhandled PseudoObjectExpr" );
+        }
+
+        ValueOrStmt VisitShuffleVectorExpr(clang::ShuffleVectorExpr *expr)
+        {
+            llvm_unreachable( "unhandled ShuffleVectorExpr" );
+        }
+
+        ValueOrStmt VisitSizeOfPackExpr(clang::SizeOfPackExpr *expr)
+        {
+            llvm_unreachable( "unhandled SizeOfPackExpr" );
+        }
+
+        ValueOrStmt VisitStmtExpr(clang::StmtExpr *expr)
+        {
+            llvm_unreachable( "unhandled StmtExpr" );
+        }
+
+        ValueOrStmt VisitStringLiteral(clang::StringLiteral *lit)
+        {
+            llvm_unreachable( "unhandled StringLiteral" );
+        }
+
+        ValueOrStmt VisitSubstNonTypeTemplateParmExpr(clang::SubstNonTypeTemplateParmExpr *expr)
+        {
+            llvm_unreachable( "unhandled SubstNonTypeTemplateParmExpr" );
+        }
+
+        ValueOrStmt VisitSubstNonTypeTemplateParmPackExpr(clang::SubstNonTypeTemplateParmPackExpr *expr)
+        {
+            llvm_unreachable( "unhandled SubstNonTypeTemplateParmPackExpr" );
+        }
+
+        ValueOrStmt VisitTypeTraitExpr(clang::TypeTraitExpr *expr)
+        {
+            llvm_unreachable( "unhandled TypeTraitExpr" );
+        }
+
+        ValueOrStmt VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr *expr)
+        {
+            llvm_unreachable( "unhandled UnaryExprOrTypeTraitExpr" );
+        }
+
+        ValueOrStmt VisitVAArgExpr(clang::VAArgExpr *expr)
+        {
+            llvm_unreachable( "unhandled VAArgExpr" );
+        }
+
+        // Statements
+
+        ValueOrStmt VisitForStmt(clang::ForStmt *stmt)
+        {
+            auto loc = builder.getLocation(stmt->getSourceRange());
+
+            auto init_builder = make_nonterminated_scope_builder(stmt->getInit());
+            auto cond_builder = make_nonterminated_scope_builder(stmt->getCond());
+            auto incr_builder = make_nonterminated_scope_builder(stmt->getInc());
+            auto body_builder = make_scope_builder(stmt->getBody());
+
+            return builder.create< ForOp >(loc, init_builder, cond_builder, incr_builder, body_builder);
+        }
+
+        ValueOrStmt VisitGotoStmt(clang::GotoStmt *stmt)
+        {
+            llvm_unreachable( "unhandled GotoStmt" );
         }
 
         ValueOrStmt VisitIfStmt(clang::IfStmt *stmt)
@@ -663,30 +1236,138 @@ namespace vast::hl
             }
         }
 
-        ValueOrStmt VisitWhileStmt(clang::WhileStmt *stmt)
+        ValueOrStmt VisitIndirectGotoStmt(clang::IndirectGotoStmt *stmt)
         {
-            auto loc = builder.getLocation(stmt->getSourceRange());
-            auto body_builder = make_scope_builder(stmt->getBody());
-
-            auto cond = Visit(stmt->getCond());
-            return builder.create< WhileOp >(loc, cond, body_builder);
+            llvm_unreachable( "unhandled IndirectGotoStmt" );
         }
 
-        ValueOrStmt VisitForStmt(clang::ForStmt *stmt)
+        ValueOrStmt VisitLabelStmt(clang::LabelStmt *stmt)
         {
-            auto loc = builder.getLocation(stmt->getSourceRange());
+            llvm_unreachable( "unhandled LabelStmt" );
+        }
 
-            auto init_builder = make_nonterminated_scope_builder(stmt->getInit());
-            auto cond_builder = make_nonterminated_scope_builder(stmt->getCond());
-            auto incr_builder = make_nonterminated_scope_builder(stmt->getInc());
-            auto body_builder = make_scope_builder(stmt->getBody());
+        ValueOrStmt VisitMSDependentExistsStmt(clang::MSDependentExistsStmt *stmt)
+        {
+            llvm_unreachable( "unhandled MSDependentExistsStmt" );
+        }
 
-            return builder.create< ForOp >(loc, init_builder, cond_builder, incr_builder, body_builder);
+        ValueOrStmt VisitNullStmt(clang::NullStmt *stmt)
+        {
+            llvm_unreachable( "unhandled NullStmt" );
+        }
+
+        ValueOrStmt VisitOMPBarrierDirective(clang::OMPBarrierDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPBarrierDirective" );
+        }
+
+        ValueOrStmt VisitOMPCriticalDirective(clang::OMPCriticalDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPCriticalDirective" );
+        }
+
+        ValueOrStmt VisitOMPFlushDirective(clang::OMPFlushDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPFlushDirective" );
+        }
+
+        ValueOrStmt VisitOMPForDirective(clang::OMPForDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPForDirective" );
+        }
+
+        ValueOrStmt VisitOMPMasterDirective(clang::OMPMasterDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPMasterDirective" );
+        }
+
+        ValueOrStmt VisitOMPParallelDirective(clang::OMPParallelDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPParallelDirective" );
+        }
+
+        ValueOrStmt VisitOMPParallelForDirective(clang::OMPParallelForDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPParallelForDirective" );
+        }
+
+        ValueOrStmt VisitOMPParallelSectionsDirective(clang::OMPParallelSectionsDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPParallelSectionsDirective" );
+        }
+
+        ValueOrStmt VisitOMPSectionDirective(clang::OMPSectionDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPSectionDirective" );
+        }
+
+        ValueOrStmt VisitOMPSectionsDirective(clang::OMPSectionsDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPSectionsDirective" );
+        }
+
+        ValueOrStmt VisitOMPSimdDirective(clang::OMPSimdDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPSimdDirective" );
+        }
+
+        ValueOrStmt VisitOMPSingleDirective(clang::OMPSingleDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPSingleDirective" );
+        }
+
+        ValueOrStmt VisitOMPTaskDirective(clang::OMPTaskDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPTaskDirective" );
+        }
+
+        ValueOrStmt VisitOMPTaskwaitDirective(clang::OMPTaskwaitDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPTaskwaitDirective" );
+        }
+
+        ValueOrStmt VisitOMPTaskyieldDirective(clang::OMPTaskyieldDirective *dir)
+        {
+            llvm_unreachable( "unhandled OMPTaskyieldDirective" );
+        }
+
+        ValueOrStmt VisitObjCAtCatchStmt(clang::ObjCAtCatchStmt *stmt)
+        {
+            llvm_unreachable( "unhandled ObjCAtCatchStmt" );
+        }
+
+        ValueOrStmt VisitObjCAtFinallyStmt(clang::ObjCAtFinallyStmt *stmt)
+        {
+            llvm_unreachable( "unhandled ObjCAtFinallyStmt" );
+        }
+
+        ValueOrStmt VisitObjCAtSynchronizedStmt(clang::ObjCAtSynchronizedStmt *stmt)
+        {
+            llvm_unreachable( "unhandled ObjCAtSynchronizedStmt" );
+        }
+
+        ValueOrStmt VisitObjCAtThrowStmt(clang::ObjCAtThrowStmt *stmt)
+        {
+            llvm_unreachable( "unhandled ObjCAtThrowStmt" );
+        }
+
+        ValueOrStmt VisitObjCAtTryStmt(clang::ObjCAtTryStmt *stmt)
+        {
+            llvm_unreachable( "unhandled ObjCAtTryStmt" );
+        }
+
+        ValueOrStmt VisitObjCAutoreleasePoolStmt(clang::ObjCAutoreleasePoolStmt *stmt)
+        {
+            llvm_unreachable( "unhandled ObjCAutoreleasePoolStmt" );
+        }
+
+        ValueOrStmt VisitObjCForCollectionStmt(clang::ObjCForCollectionStmt *stmt)
+        {
+            llvm_unreachable( "unhandled ObjCForCollectionStmt" );
         }
 
         ValueOrStmt VisitReturnStmt(clang::ReturnStmt *stmt)
         {
-            LLVM_DEBUG(llvm::dbgs() << "Visit ReturnStmt\n");
             auto loc = builder.getLocation(stmt->getSourceRange());
             if (stmt->getRetValue()) {
                 auto val = Visit(stmt->getRetValue());
@@ -697,7 +1378,54 @@ namespace vast::hl
             }
         }
 
-        ValueOrStmt VisitDeclStmt(clang::DeclStmt *stmt);
+        ValueOrStmt VisitSEHExceptStmt(clang::SEHExceptStmt *stmt)
+        {
+            llvm_unreachable( "unhandled SEHExceptStmt" );
+        }
+
+        ValueOrStmt VisitSEHFinallyStmt(clang::SEHFinallyStmt *stmt)
+        {
+            llvm_unreachable( "unhandled SEHFinallyStmt" );
+        }
+
+        ValueOrStmt VisitSEHLeaveStmt(clang::SEHLeaveStmt *stmt)
+        {
+            llvm_unreachable( "unhandled SEHLeaveStmt" );
+        }
+
+        ValueOrStmt VisitSEHTryStmt(clang::SEHTryStmt *stmt)
+        {
+            llvm_unreachable( "unhandled SEHTryStmt" );
+        }
+
+        ValueOrStmt VisitSwitchCase(clang::SwitchCase *stmt)
+        {
+            llvm_unreachable( "unhandled SwitchCase" );
+        }
+
+        ValueOrStmt VisitCaseStmt(clang::CaseStmt *stmt)
+        {
+            llvm_unreachable( "unhandled CaseStmt" );
+        }
+
+        ValueOrStmt VisitDefaultStmt(clang::DefaultStmt *stmt)
+        {
+            llvm_unreachable( "unhandled DefaultStmt" );
+        }
+
+        ValueOrStmt VisitSwitchStmt(clang::SwitchStmt *stmt)
+        {
+            llvm_unreachable( "unhandled SwitchStmt" );
+        }
+
+        ValueOrStmt VisitWhileStmt(clang::WhileStmt *stmt)
+        {
+            auto loc = builder.getLocation(stmt->getSourceRange());
+            auto body_builder = make_scope_builder(stmt->getBody());
+
+            auto cond = Visit(stmt->getCond());
+            return builder.create< WhileOp >(loc, cond, body_builder);
+        }
 
         template< typename Value, typename Literal >
         ValueOrStmt VisitLiteral(Value val, Literal lit)
@@ -707,50 +1435,9 @@ namespace vast::hl
             return builder.constant(loc, type, val);
         }
 
-        ValueOrStmt VisitIntegerLiteral(const clang::IntegerLiteral *lit)
-        {
-            LLVM_DEBUG(llvm::dbgs() << "Visit IntegerLiteral\n");
-            auto val = lit->getValue().getSExtValue();
-            return VisitLiteral(val, lit);
-        }
-
-        ValueOrStmt VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *lit)
-        {
-            LLVM_DEBUG(llvm::dbgs() << "Visit CXXBoolLiteralExpr\n");
-            bool val = lit->getValue();
-            return VisitLiteral(val, lit);
-        }
-
-        ValueOrStmt VisitImplicitCastExpr(clang::ImplicitCastExpr *expr)
-        {
-            LLVM_DEBUG(llvm::dbgs() << "Visit ImplicitCastExpr\n");
-            return build_cast< ImplicitCastOp >( expr->getSubExpr(), expr->getType(), cast_kind(expr) );
-        }
-
-        ValueOrStmt VisitCStyleCastExpr(clang::CStyleCastExpr *expr)
-        {
-            LLVM_DEBUG(llvm::dbgs() << "Visit CStyleCastExpr\n");
-            return build_cast< CStyleCastOp >( expr->getSubExpr(), expr->getType(), cast_kind(expr) );
-        }
-
         ValueOrStmt VisitBuiltinBitCastExpr(clang::BuiltinBitCastExpr *expr)
         {
-            LLVM_DEBUG(llvm::dbgs() << "Visit BuiltinBitCastExpr\n");
             return build_cast< BuiltinBitCastOp >( expr->getSubExpr(), expr->getType(), cast_kind(expr) );
-        }
-
-        ValueOrStmt VisitDeclRefExpr(clang::DeclRefExpr *decl)
-        {
-            LLVM_DEBUG(llvm::dbgs() << "Visit DeclRefExpr\n");
-            auto loc = builder.getLocation(decl->getSourceRange());
-
-            // TODO(Heno): deal with function declaration
-
-            // TODO(Heno): deal with enum constant declaration
-
-            auto named = decl->getDecl()->getUnderlyingDecl();
-            auto rty = types.convert(decl->getType());
-            return builder.create_value< DeclRefOp >( loc, rty, named->getNameAsString() );
         }
 
     private:
@@ -784,7 +1471,6 @@ namespace vast::hl
 
         ValueOrStmt VisitFunctionDecl(clang::FunctionDecl *decl)
         {
-            LLVM_DEBUG(llvm::dbgs() << "Visit FunctionDecl: " << decl->getName() << "\n");
             ScopedInsertPoint builder_scope(builder);
             llvm::ScopedHashTableScope scope(symbols);
 
@@ -844,7 +1530,6 @@ namespace vast::hl
 
         ValueOrStmt VisitVarDecl(clang::VarDecl *decl)
         {
-            LLVM_DEBUG(llvm::dbgs() << "Visit VarDecl\n");
             auto ty    = convert(decl->getType());
             auto named = decl->getUnderlyingDecl();
             auto loc   = getEndLocation(decl->getSourceRange());
@@ -885,7 +1570,6 @@ namespace vast::hl
 
     ValueOrStmt VastCodeGenVisitor::VisitDeclStmt(clang::DeclStmt *stmt)
     {
-        LLVM_DEBUG(llvm::dbgs() << "Visit DeclStmt\n");
         assert(stmt->isSingleDecl());
         return decls.Visit( *(stmt->decls().begin()) );
     }
@@ -903,7 +1587,6 @@ namespace vast::hl
 
         void HandleTranslationUnit(clang::ASTContext&) override
         {
-            LLVM_DEBUG(llvm::dbgs() << "Process Translation Unit\n");
             auto tu = actx.getTranslationUnitDecl();
 
             VastDeclVisitor visitor(mctx, mod, actx);
