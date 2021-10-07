@@ -925,7 +925,7 @@ namespace vast::hl
         ctx->loadDialect< mlir::StandardOpsDialect >();
         ctx->loadDialect< mlir::scf::SCFDialect >();
 
-        mlir::OwningModuleRef module(
+        mlir::OwningModuleRef mod(
             mlir::ModuleOp::create(
                 mlir::FileLineColLoc::get(input->getBufferIdentifier(), /* line */ 0, /* column */ 0, ctx)
             )
@@ -933,11 +933,11 @@ namespace vast::hl
 
         auto ast = clang::tooling::buildASTFromCode(input->getBuffer());
 
-        VastCodeGen codegen(*ctx, module, ast->getASTContext());
+        VastCodeGen codegen(*ctx, mod, ast->getASTContext());
         codegen.HandleTranslationUnit(ast->getASTContext());
 
         // TODO(Heno): verify module
-        return module;
+        return mod;
     }
 
     mlir::LogicalResult registerFromSourceParser()
