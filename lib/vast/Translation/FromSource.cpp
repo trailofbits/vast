@@ -258,6 +258,257 @@ namespace vast::hl
             Visit(body);
         }
 
+        template< typename Op >
+        ValueOrStmt build_binary(clang::BinaryOperator *expr)
+        {
+            auto lhs = Visit(expr->getLHS());
+            auto rhs = Visit(expr->getRHS());
+            auto loc = builder.getEndLocation(expr->getSourceRange());
+            return builder.create_value< Op >( loc, lhs, rhs );
+        }
+
+        template< typename Op >
+        ValueOrStmt build_compound(clang::BinaryOperator *expr)
+        {
+            auto lhs = Visit(expr->getLHS());
+            auto rhs = Visit(expr->getRHS());
+            auto loc = builder.getEndLocation(expr->getSourceRange());
+            return builder.create< Op >( loc, lhs, rhs );
+        }
+
+        template< Predicate pred >
+        ValueOrStmt build_comparison(clang::BinaryOperator *expr)
+        {
+            auto lhs = Visit(expr->getLHS());
+            auto rhs = Visit(expr->getRHS());
+            auto loc = builder.getEndLocation(expr->getSourceRange());
+            return builder.create_value< CmpOp >( loc, pred, lhs, rhs );
+        }
+
+        ValueOrStmt VisitBinPtrMemD(clang::BinaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinPtrMemD" );
+        }
+
+        ValueOrStmt VisitBinPtrMemI(clang::BinaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinPtrMemI" );
+        }
+
+        ValueOrStmt VisitBinMul(clang::BinaryOperator *expr)
+        {
+            auto ty = expr->getType();
+            if (ty->isIntegerType())
+                return build_binary< MulIOp >(expr);
+            llvm_unreachable( "unhandled BinMul" );
+        }
+
+        ValueOrStmt VisitBinDiv(clang::BinaryOperator *expr)
+        {
+            auto ty = expr->getType();
+            if (ty->isUnsignedIntegerType())
+                return build_binary< DivUOp >(expr);
+            if (ty->isIntegerType())
+                return build_binary< DivSOp >(expr);
+            llvm_unreachable( "unhandled BinDiv" );
+        }
+
+        ValueOrStmt VisitBinRem(clang::BinaryOperator *expr)
+        {
+            auto ty = expr->getType();
+            if (ty->isUnsignedIntegerType())
+                return build_binary< RemUOp >(expr);
+            if (ty->isIntegerType())
+                return build_binary< RemSOp >(expr);
+            llvm_unreachable( "unhandled BinRem" );
+        }
+
+        ValueOrStmt VisitBinAdd(clang::BinaryOperator *expr)
+        {
+            auto ty = expr->getType();
+            if (ty->isIntegerType())
+                return build_binary< AddIOp >(expr);
+            llvm_unreachable( "unhandled addition type" );
+        }
+
+        ValueOrStmt VisitBinSub(clang::BinaryOperator *expr)
+        {
+            auto ty = expr->getType();
+            if (ty->isIntegerType())
+                return build_binary< SubIOp >(expr);
+            llvm_unreachable( "unhandled BinSub" );
+        }
+
+        ValueOrStmt VisitBinShl(clang::BinaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinShl" );
+        }
+
+        ValueOrStmt VisitBinShr(clang::BinaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinShr" );
+        }
+
+        ValueOrStmt VisitBinLT(clang::BinaryOperator *expr)
+        {
+            auto ty = expr->getLHS()->getType();
+            if (ty->isUnsignedIntegerType())
+                return build_comparison< Predicate::ult >(expr);
+            if (ty->isIntegerType())
+                return build_comparison< Predicate::slt >(expr);
+            llvm_unreachable( "unhandled BinLT" );
+        }
+
+        ValueOrStmt VisitBinGT(clang::BinaryOperator *expr)
+        {
+            auto ty = expr->getLHS()->getType();
+            if (ty->isUnsignedIntegerType())
+                return build_comparison< Predicate::ugt >(expr);
+            if (ty->isIntegerType())
+                return build_comparison< Predicate::sgt >(expr);
+            llvm_unreachable( "unhandled BinGT" );
+        }
+
+        ValueOrStmt VisitBinLE(clang::BinaryOperator *expr)
+        {
+            auto ty = expr->getLHS()->getType();
+            if (ty->isUnsignedIntegerType())
+                return build_comparison< Predicate::ule >(expr);
+            if (ty->isIntegerType())
+                return build_comparison< Predicate::sle >(expr);
+            llvm_unreachable( "unhandled BinLE" );
+        }
+
+        ValueOrStmt VisitBinGE(clang::BinaryOperator *expr)
+        {
+            auto ty = expr->getLHS()->getType();
+            if (ty->isUnsignedIntegerType())
+                return build_comparison< Predicate::uge >(expr);
+            if (ty->isIntegerType())
+                return build_comparison< Predicate::sge >(expr);
+            llvm_unreachable( "unhandled BinGE" );
+        }
+
+        ValueOrStmt VisitBinEQ(clang::BinaryOperator *expr)
+        {
+            auto ty = expr->getLHS()->getType();
+            if (ty->isIntegerType())
+                return build_comparison< Predicate::eq >(expr);
+            llvm_unreachable( "unhandled BinEQ" );
+        }
+
+        ValueOrStmt VisitBinNE(clang::BinaryOperator *expr)
+        {
+            auto ty = expr->getLHS()->getType();
+            if (ty->isIntegerType())
+                return build_comparison< Predicate::ne >(expr);
+            llvm_unreachable( "unhandled BinNE" );
+        }
+
+        ValueOrStmt VisitBinAnd(clang::BinaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinAnd" );
+        }
+
+        ValueOrStmt VisitBinXor(clang::BinaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinXor" );
+        }
+
+        ValueOrStmt VisitBinOr(clang::BinaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinOr" );
+        }
+
+        ValueOrStmt VisitBinLAnd(clang::BinaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinLAnd" );
+        }
+
+        ValueOrStmt VisitBinLOr(clang::BinaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinLOr" );
+        }
+
+        ValueOrStmt VisitAssign(clang::BinaryOperator *expr)
+        {
+            return build_compound< AssignOp >(expr);
+        }
+
+        ValueOrStmt VisitBinMulAssign(clang::CompoundAssignOperator *expr)
+        {
+            auto ty = expr->getType();
+            if (ty->isIntegerType())
+                return build_compound< MulIAssignOp >(expr);
+            llvm_unreachable( "unhandled BinMulAssign" );
+        }
+
+        ValueOrStmt VisitBinDivAssign(clang::CompoundAssignOperator *expr)
+        {
+            auto ty = expr->getType();
+            if (ty->isUnsignedIntegerType())
+                return build_compound< DivUAssignOp >(expr);
+            if (ty->isIntegerType())
+                return build_compound< DivSAssignOp >(expr);
+            llvm_unreachable( "unhandled BinDivAssign" );
+        }
+
+        ValueOrStmt VisitBinRemAssign(clang::CompoundAssignOperator *expr)
+        {
+            auto ty = expr->getType();
+            if (ty->isUnsignedIntegerType())
+                return build_compound< RemUAssignOp >(expr);
+            if (ty->isIntegerType())
+                return build_compound< RemSAssignOp >(expr);
+            llvm_unreachable( "unhandled BinRemAssign" );
+        }
+
+        ValueOrStmt VisitBinAddAssign(clang::CompoundAssignOperator *expr)
+        {
+            auto ty = expr->getType();
+            if (ty->isIntegerType())
+                return build_compound< AddIAssignOp >(expr);
+            llvm_unreachable( "unhandled BinAddAssign" );
+        }
+
+        ValueOrStmt VisitBinSubAssign(clang::CompoundAssignOperator *expr)
+        {
+            auto ty = expr->getType();
+            if (ty->isIntegerType())
+                return build_compound< SubIAssignOp >(expr);
+            llvm_unreachable( "unhandled BinSubAssign" );
+        }
+
+        ValueOrStmt VisitBinShlAssign(clang::CompoundAssignOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinShlAssign" );
+        }
+
+        ValueOrStmt VisitBinShrAssign(clang::CompoundAssignOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinShrAssign" );
+        }
+
+        ValueOrStmt VisitBinAndAssign(clang::CompoundAssignOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinAndAssign" );
+        }
+
+        ValueOrStmt VisitBinOrAssign(clang::CompoundAssignOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinOrAssign" );
+        }
+
+        ValueOrStmt VisitBinXorAssign(clang::CompoundAssignOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinXorAssign" );
+        }
+
+        ValueOrStmt VisitBinComma(clang::BinaryOperator *expr)
+        {
+            llvm_unreachable( "unhandled BinComma" );
+        }
+
         ValueOrStmt VisitCompoundStmt(clang::CompoundStmt *stmt)
         {
             LLVM_DEBUG(llvm::dbgs() << "Visit CompoundStmt\n");
@@ -382,131 +633,9 @@ namespace vast::hl
             return VisitLiteral(val, lit);
         }
 
-        Predicate integer_prdicate(clang::BinaryOperator *expr)
-        {
-            assert(expr->isComparisonOp());
-            switch (expr->getOpcode()) {
-                case clang::BinaryOperatorKind::BO_LT: return Predicate::slt;
-                case clang::BinaryOperatorKind::BO_LE: return Predicate::sle;
-                case clang::BinaryOperatorKind::BO_GT: return Predicate::sgt;
-                case clang::BinaryOperatorKind::BO_GE: return Predicate::sge;
-                case clang::BinaryOperatorKind::BO_EQ: return Predicate::eq;
-                case clang::BinaryOperatorKind::BO_NE: return Predicate::ne;
-                default: llvm_unreachable("unknown integer predicate");
-            }
-        }
-
-        ValueOrStmt VisitComparisonOperator(clang::BinaryOperator *expr)
-        {
-            LLVM_DEBUG(llvm::dbgs() << "Visit ComparisonOperator\n");
-            assert(expr->isComparisonOp());
-
-            auto lhs = Visit(expr->getLHS());
-            auto rhs = Visit(expr->getRHS());
-            auto loc = builder.getEndLocation(expr->getSourceRange());
-
-            // TODO(Heno): deal with floating point operations
-            // TODO(Heno): deal with pointer comparisons
-
-            auto pred = integer_prdicate(expr);
-            return builder.create_value< CmpOp >(loc, pred, lhs, rhs);
-        }
-
-        ValueOrStmt VisitCompoundAssignOperator(clang::CompoundAssignOperator *expr)
-        {
-            LLVM_DEBUG(llvm::dbgs() << "Visit CompoundAssignOperator\n");
-
-            auto lhs = Visit(expr->getLHS());
-            auto rhs = Visit(expr->getRHS());
-            auto loc = builder.getEndLocation(expr->getSourceRange());
-
-            auto ty = expr->getType();
-            switch (expr->getOpcode()) {
-                case clang::BinaryOperatorKind::BO_AddAssign: {
-                    if (ty->isIntegerType())
-                        return builder.create< AddIAssignOp >( loc, rhs, lhs );
-                    llvm_unreachable( "unhandled addition assign operation" );
-                }
-                case clang::BinaryOperatorKind::BO_SubAssign: {
-                    if (ty->isIntegerType())
-                        return builder.create< SubIAssignOp >( loc, rhs, lhs );
-                    llvm_unreachable( "unhandled subtraction assign operation" );
-                }
-                case clang::BinaryOperatorKind::BO_MulAssign: {
-                    if (ty->isIntegerType())
-                        builder.create< MulIAssignOp >( loc, rhs, lhs );
-                    llvm_unreachable( "unhandled multiplication assign operation" );
-                }
-                case clang::BinaryOperatorKind::BO_DivAssign: {
-                    if (ty->isUnsignedIntegerType())
-                        return builder.create< DivUAssignOp >( loc, rhs, lhs );
-                    if (ty->isIntegerType())
-                        return builder.create< DivSAssignOp >( loc, rhs, lhs );
-                    llvm_unreachable( "unhandled division assign operation" );
-                }
-                case clang::BinaryOperatorKind::BO_RemAssign: {
-                    if (ty->isUnsignedIntegerType())
-                        return builder.create< RemUAssignOp >( loc, rhs, lhs );
-                    if (ty->isIntegerType())
-                        return builder.create< RemSAssignOp >( loc, rhs, lhs );
-                    llvm_unreachable( "unhandled reminder assign operation" );
-                }
-                default: {
-                    llvm_unreachable( "unhandled compound assign operation" );
-                }
-            }
-        }
-
         ValueOrStmt VisitBinaryOperator(clang::BinaryOperator *expr)
         {
-            LLVM_DEBUG(llvm::dbgs() << "Visit BinaryOperator\n");
-
-            if (expr->isComparisonOp()) {
-                return VisitComparisonOperator(expr);
-            }
-
-            auto lhs = Visit(expr->getLHS());
-            auto rhs = Visit(expr->getRHS());
-            auto loc = builder.getEndLocation(expr->getSourceRange());
-
-            auto ty = expr->getType();
-            switch (expr->getOpcode()) {
-                case clang::BinaryOperatorKind::BO_Add: {
-                    if (ty->isIntegerType())
-                        return builder.create_value< AddIOp >( loc, lhs, rhs );
-                    llvm_unreachable( "unhandled addition type" );
-                }
-                case clang::BinaryOperatorKind::BO_Sub: {
-                    if (ty->isIntegerType())
-                        return builder.create_value< SubIOp >( loc, lhs, rhs );
-                    llvm_unreachable( "unhandled subtraction type" );
-                }
-                case clang::BinaryOperatorKind::BO_Mul: {
-                    if (ty->isIntegerType())
-                        return builder.create_value< MulIOp >( loc, lhs, rhs );
-                    llvm_unreachable( "unhandled multiplication type" );
-                }
-                case clang::BinaryOperatorKind::BO_Div: {
-                    if (ty->isUnsignedIntegerType())
-                        return builder.create_value< DivUOp >( loc, lhs, rhs );
-                    if (ty->isIntegerType())
-                        return builder.create_value< DivSOp >( loc, lhs, rhs );
-                    llvm_unreachable( "unhandled division type" );
-                }
-                case clang::BinaryOperatorKind::BO_Rem: {
-                    if (ty->isUnsignedIntegerType())
-                        return builder.create_value< RemUOp >( loc, lhs, rhs );
-                    if (ty->isIntegerType())
-                        return builder.create_value< RemSOp >( loc, lhs, rhs );
-                    llvm_unreachable( "unhandled reminder type" );
-                }
-                case clang::BinaryOperatorKind::BO_Assign: {
-                    return builder.create< AssignOp >( loc, rhs, lhs );
-                }
-                default: {
-                    llvm_unreachable( "unhandled binary operation" );
-                }
-            }
+            llvm_unreachable( "unhandled binary operation" );
         }
 
         ValueOrStmt VisitUnaryOperator(clang::UnaryOperator *expr)
