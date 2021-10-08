@@ -40,7 +40,7 @@ const volatile unsigned int cvui = 0U;
 // CHECK: hl.var( b ): !hl.bool
 bool b;
 
-// CHECK: hl.var( b ): !hl<"volatile bool">
+// CHECK: hl.var( vb ): !hl<"volatile bool">
 volatile bool vb;
 
 // CHECK: [[C5:%[0-9]+]] = hl.constant( false ): !hl.bool
