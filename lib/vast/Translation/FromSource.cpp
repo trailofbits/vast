@@ -163,21 +163,21 @@ namespace vast::hl
         static inline auto convert = overloaded{ to_value, identity };
 
         template< typename Op, typename ...Args >
-        auto create(Args &&... args)
+        auto make(Args &&... args)
         {
             return builder.create< Op >( convert( std::forward< Args >(args) )... );
         }
 
         template< typename Op, typename ...Args >
-        Value create_value(Args &&... args)
+        Value make_value(Args &&... args)
         {
-            return create< Op >( std::forward< Args >(args)... );
+            return make< Op >( std::forward< Args >(args)... );
         }
 
         template< typename Op, typename ...Args >
-        Stmt create_stmt(Args &&... args)
+        Stmt make_stmt(Args &&... args)
         {
-            return create< Op >( std::forward< Args >(args)... );
+            return make< Op >( std::forward< Args >(args)... );
         }
 
         InsertPoint saveInsertionPoint() { return builder.saveInsertionPoint(); }
@@ -214,12 +214,12 @@ namespace vast::hl
             if (ty.isa< IntegerType >()) {
                 auto ity = ty.cast< IntegerType >();
                 auto attr = constant_attr(ity, value);
-                return builder.create< ConstantOp >(loc, ity, attr);
+                return make< ConstantOp >(loc, ity, attr);
             }
 
             if (ty.isa< BoolType >()) {
                 auto attr = builder.getBoolAttr(value);
-                return builder.create< ConstantOp >(loc, ty, attr);
+                return make< ConstantOp >(loc, ty, attr);
             }
 
             llvm_unreachable( "unsupported constant type" );
@@ -265,6 +265,23 @@ namespace vast::hl
         using clang::StmtVisitor< VastCodeGenVisitor, ValueOrStmt >::Visit;
         using clang::DeclVisitor< VastCodeGenVisitor, ValueOrStmt >::Visit;
 
+        template< typename Op, typename ...Args >
+        auto make(Args &&... args)
+        {
+            return builder.make< Op >( std::forward< Args >(args)... );
+        }
+
+        template< typename Op, typename ...Args >
+        Value make_value(Args &&... args)
+        {
+            return builder.make_value< Op >( std::forward< Args >(args)... );
+        }
+
+        template< typename Op, typename ...Args >
+        Stmt make_stmt(Args &&... args)
+        {
+            return builder.make_stmt< Op >( std::forward< Args >(args)... );
+        }
 
         template< typename Op >
         ValueOrStmt make_bin(clang::BinaryOperator *expr)
@@ -272,7 +289,7 @@ namespace vast::hl
             auto lhs = Visit(expr->getLHS());
             auto rhs = Visit(expr->getRHS());
             auto loc = builder.getEndLocation(expr->getSourceRange());
-            auto res = builder.create< Op >( loc, lhs, rhs );
+            auto res = make< Op >( loc, lhs, rhs );
 
             if constexpr ( std::is_convertible_v< decltype(res), Value > ) {
                 return Value(res);
@@ -307,7 +324,7 @@ namespace vast::hl
             auto lhs = Visit(expr->getLHS());
             auto rhs = Visit(expr->getRHS());
             auto loc = builder.getEndLocation(expr->getSourceRange());
-            return builder.create_value< CmpOp >( loc, pred, lhs, rhs );
+            return make_value< CmpOp >( loc, pred, lhs, rhs );
         }
 
         template< Predicate pred >
@@ -336,7 +353,7 @@ namespace vast::hl
         {
             auto loc = builder.getEndLocation(expr->getSourceRange());
             auto arg = Visit(expr->getSubExpr());
-            auto res = builder.create< Op >( loc, arg );
+            auto res = make< Op >( loc, arg );
             if constexpr ( std::is_convertible_v< decltype(res), Value > ) {
                 return Value(res);
             } else {
@@ -349,7 +366,7 @@ namespace vast::hl
         {
             auto loc = builder.getLocation(expr->getSourceRange());
             auto rty = types.convert(to);
-            return builder.create_value< Cast >( loc, rty, Visit(expr), kind );
+            return make_value< Cast >( loc, rty, Visit(expr), kind );
         }
 
         auto make_scope_builder(clang::Stmt *stmt)
@@ -371,7 +388,7 @@ namespace vast::hl
                 auto &lastblock = blocks.back();
                 if (lastblock.empty() || lastblock.back().isKnownNonTerminator()) {
                     builder.setInsertionPointToEnd(&lastblock);
-                    builder.create< ScopeEndOp >(loc);
+                    make_stmt< ScopeEndOp >(loc);
                 }
             };
         }
@@ -742,7 +759,7 @@ namespace vast::hl
 
             auto loc = builder.getLocation(stmt->getSourceRange());
 
-            ScopeOp scope = builder.create< ScopeOp >(loc);
+            ScopeOp scope = make< ScopeOp >(loc);
             auto &body = scope.body();
             body.push_back( new mlir::Block() );
             builder.setInsertionPointToStart( &body.front() );
@@ -754,7 +771,7 @@ namespace vast::hl
             auto &lastblock = body.back();
             if (lastblock.empty() || lastblock.back().isKnownNonTerminator()) {
                 builder.setInsertionPointToEnd(&lastblock);
-                builder.create< ScopeEndOp >(loc);
+                make_stmt< ScopeEndOp >(loc);
             }
 
             return scope;
@@ -1023,7 +1040,7 @@ namespace vast::hl
 
             auto named = expr->getDecl()->getUnderlyingDecl();
             auto rty = types.convert(expr->getType());
-            return builder.create_value< DeclRefOp >( loc, rty, named->getNameAsString() );
+            return make_value< DeclRefOp >( loc, rty, named->getNameAsString() );
         }
 
         ValueOrStmt VisitDependentScopeDeclRefExpr(clang::DependentScopeDeclRefExpr *expr)
@@ -1297,7 +1314,7 @@ namespace vast::hl
             auto incr_builder = make_nonterminated_scope_builder(stmt->getInc());
             auto body_builder = make_scope_builder(stmt->getBody());
 
-            return builder.create< ForOp >(loc, init_builder, cond_builder, incr_builder, body_builder);
+            return make< ForOp >(loc, init_builder, cond_builder, incr_builder, body_builder);
         }
 
         ValueOrStmt VisitGotoStmt(clang::GotoStmt *stmt)
@@ -1312,12 +1329,9 @@ namespace vast::hl
             auto then_builder = make_scope_builder(stmt->getThen());
 
             auto cond = Visit(stmt->getCond());
-            if (stmt->getElse()) {
-                auto else_builder = make_scope_builder(stmt->getElse());
-                return builder.create< IfOp >(loc, cond, then_builder, else_builder);
-            } else {
-                return builder.create< IfOp >(loc, cond, then_builder);
-            }
+            if (stmt->getElse())
+                return make< IfOp >(loc, cond, then_builder, make_scope_builder(stmt->getElse()));
+            return make< IfOp >(loc, cond, then_builder);
         }
 
         ValueOrStmt VisitIndirectGotoStmt(clang::IndirectGotoStmt *stmt)
@@ -1455,7 +1469,7 @@ namespace vast::hl
             auto loc = builder.getLocation(stmt->getSourceRange());
             auto ret = stmt->getRetValue();
             auto val = ret ? Visit(ret) : builder.make_void(loc);
-            return builder.create< ReturnOp >(loc, val);
+            return make< ReturnOp >(loc, val);
         }
 
         ValueOrStmt VisitSEHExceptStmt(clang::SEHExceptStmt *stmt)
@@ -1502,9 +1516,8 @@ namespace vast::hl
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
             auto body_builder = make_scope_builder(stmt->getBody());
-
             auto cond = Visit(stmt->getCond());
-            return builder.create< WhileOp >(loc, cond, body_builder);
+            return make< WhileOp >(loc, cond, body_builder);
         }
 
         template< typename Value, typename Literal >
@@ -1640,7 +1653,7 @@ namespace vast::hl
             auto type = convert(decl->getFunctionType());
             assert( type );
 
-            auto fn = builder.create< mlir::FuncOp >(loc, decl->getName(), type);
+            auto fn = make< mlir::FuncOp >(loc, decl->getName(), type);
 
             // TODO(Heno): move to function prototype lifting
             if (!decl->isMain())
@@ -1675,14 +1688,14 @@ namespace vast::hl
                 auto end_loc = getLocation(decl->getEndLoc());
                 if (decl->getReturnType()->isVoidType()) {
                     auto val = builder.make_void(end_loc);
-                    builder.create< ReturnOp >(end_loc, val);
+                    make< ReturnOp >(end_loc, val);
                 } else {
                     if (decl->isMain()) {
                         // return zero if no return is present in main
                         auto zero = builder.constant(end_loc, type.getResult(0), 0);
-                        builder.create< ReturnOp >(end_loc, zero);
+                        make< ReturnOp >(end_loc, zero);
                     } else {
-                        builder.create< UnreachableOp >(beg_loc);
+                        make< UnreachableOp >(beg_loc);
                     }
                 }
             }
@@ -1757,17 +1770,14 @@ namespace vast::hl
 
         ValueOrStmt VisitVarDecl(clang::VarDecl *decl)
         {
-            auto ty    = convert(decl->getType());
-            auto named = decl->getUnderlyingDecl();
-            auto loc   = getEndLocation(decl->getSourceRange());
-            auto init  = decl->getInit();
+            auto ty   = convert(decl->getType());
+            auto name = decl->getUnderlyingDecl()->getName();
+            auto loc  = getEndLocation(decl->getSourceRange());
+            auto init = decl->getInit();
 
-            if (init) {
-                auto initializer = Visit(init);
-                return builder.create_value< VarOp >(loc, ty, named->getName(), initializer);
-            } else {
-                return builder.create_value< VarOp >(loc, ty, named->getName());
-            }
+            if (init)
+                return make_value< VarOp >(loc, ty, name, Visit(init));
+            return make_value< VarOp >(loc, ty, name);
         }
 
         ValueOrStmt VisitDecompositionDecl(clang::DecompositionDecl *decl)
