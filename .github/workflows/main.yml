@@ -28,7 +28,7 @@ jobs:
         image:
           - { name: 'ubuntu', tag: '20.04' }
 
-        llvm: [ '12.0.1' ]
+        llvm: [ '13' ]
 
     runs-on: ubuntu-20.04
 
@@ -102,7 +102,7 @@ jobs:
         shell: bash
         working-directory: ${{ steps.build_paths.outputs.DOWNLOADS }}
         run: |
-          llvm_archive="clang+llvm-${{ matrix.llvm }}-x86_64-linux-gnu-ubuntu-16.04.tar.xz"
+          llvm_archive="clang+llvm-${{ matrix.llvm }}-x86_64-linux-gnu-ubuntu-20.04.tar.xz"
           llvm_url_path="https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ matrix.llvm }}/${llvm_archive}"
 
           if [[ ! -f "${llvm_archive}" ]] ; then
