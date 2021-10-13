@@ -1,6 +1,8 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
-#include "mlir/Support/LogicalResult.h"
+#include <mlir/Support/LogicalResult.h>
+#include <llvm/Support/raw_ostream.h>
+
 #include <mutex>
 
 namespace vast
@@ -14,7 +16,9 @@ namespace vast
     {
         static std::once_flag once;
         std::call_once(once, [] {
-            vast::hl::registerFromSourceParser();
+             if (vast::hl::registerFromSourceParser().failed()) {
+                llvm::errs() << "Registracion of FromSource pass failed.\n";
+             }
         });
     }
 
