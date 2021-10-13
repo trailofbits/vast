@@ -386,7 +386,7 @@ namespace vast::hl
                 // TODO(Heno): remove with noterminator attribute
                 auto &blocks = bld.getBlock()->getParent()->getBlocks();
                 auto &lastblock = blocks.back();
-                if (lastblock.empty() || lastblock.back().isKnownNonTerminator()) {
+                if (lastblock.empty() || lastblock.back().template hasTrait< mlir::OpTrait::IsTerminator >()) {
                     builder.setInsertionPointToEnd(&lastblock);
                     make_stmt< ScopeEndOp >(loc);
                 }
@@ -769,7 +769,7 @@ namespace vast::hl
             }
 
             auto &lastblock = body.back();
-            if (lastblock.empty() || lastblock.back().isKnownNonTerminator()) {
+            if (lastblock.empty() || lastblock.back().hasTrait< mlir::OpTrait::IsTerminator >()) {
                 builder.setInsertionPointToEnd(&lastblock);
                 make_stmt< ScopeEndOp >(loc);
             }
@@ -1683,7 +1683,7 @@ namespace vast::hl
             auto &ops = last_block.getOperations();
             builder.setInsertionPointToEnd(&last_block);
 
-            if (ops.empty() || ops.back().isKnownNonTerminator()) {
+            if (ops.empty() || ops.back().hasTrait< mlir::OpTrait::IsTerminator >()) {
                 auto beg_loc = getLocation(decl->getBeginLoc());
                 auto end_loc = getLocation(decl->getEndLoc());
                 if (decl->getReturnType()->isVoidType()) {

@@ -23,7 +23,7 @@ namespace vast::hl
             bld.createBlock(region);
 
         auto &block = region->back();
-        if (!block.empty() && block.back().isKnownTerminator())
+        if (!block.empty() && block.back().hasTrait< mlir::OpTrait::IsTerminator >())
             return;
         bld.setInsertionPoint(&block, block.end());
         bld.create< ScopeEndOp >(loc);
