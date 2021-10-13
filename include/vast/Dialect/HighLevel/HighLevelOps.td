@@ -40,7 +40,7 @@ def HighLevel_ReturnOp
 
   // Allow building a ReturnOp with no return operand.
   let builders = [
-    OpBuilderDAG<(ins), [{ build($_builder, $_state, llvm::None); }]>
+    OpBuilder<(ins), [{ build($_builder, $_state, llvm::None); }]>
   ];
 }
 
@@ -56,11 +56,11 @@ def HighLevel_VarOp : HighLevel_Op< "var", [] > {
   let results = (outs AnyType:$result);
 
   let builders = [
-    OpBuilderDAG< (ins "mlir::Type":$result, "llvm::StringRef":$name),
+    OpBuilder< (ins "mlir::Type":$result, "llvm::StringRef":$name),
     [{
       build($_builder, $_state, result, $_builder.getStringAttr(name));
     }] >,
-    OpBuilderDAG< (ins "mlir::Type":$result, "mlir::StringAttr":$name),
+    OpBuilder< (ins "mlir::Type":$result, "mlir::StringAttr":$name),
     [{
       build($_builder, $_state, result, name, mlir::Value());
     }] >
@@ -87,7 +87,7 @@ def HighLevel_DeclRefOp : HighLevel_Op< "declref", [] > {
   let results = (outs AnyType);
 
   let builders = [
-    OpBuilderDAG< (ins "mlir::Type":$rty, "llvm::StringRef":$name),
+    OpBuilder< (ins "mlir::Type":$rty, "llvm::StringRef":$name),
     [{
       build($_builder, $_state, rty, $_builder.getSymbolRefAttr(name));
     }] >
@@ -110,7 +110,7 @@ def HighLevel_ConstantOp : HighLevel_Op< "constant", [] > {
   // FIXME: More specific type.
   let results = (outs AnyType);
 
-  let builders = [OpBuilderDAG< (
+  let builders = [OpBuilder< (
       ins "mlir::Attribute":$value
     ) >
   ];
@@ -130,7 +130,7 @@ def HighLevel_VoidOp : HighLevel_Op<"void", []> {
   let results = (outs Void);
 
   let builders = [
-    OpBuilderDAG<(ins),
+    OpBuilder<(ins),
     [{
       build($_builder, $_state, VoidType::get($_builder.getContext()));
     }] >
@@ -147,7 +147,7 @@ def HighLevel_UnreachableOp : HighLevel_Op<"unreachable", [Terminator]> {
 
   let arguments = (ins Variadic<AnyType>:$operands);
 
-  let builders = [OpBuilderDAG<(ins), [{ }]>];
+  let builders = [OpBuilder<(ins), [{ }]>];
 
   let verifier = ?;
   let printer = [{
@@ -413,7 +413,7 @@ def HighLevel_CmpOp : HighLevel_Op< "cmp", [NoSideEffect, SameTypeOperands] >
   let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type($lhs)";
 
   let builders = [
-    OpBuilderDAG<(ins "Predicate":$pred, "Value":$lhs, "Value":$rhs), [{
+    OpBuilder<(ins "Predicate":$pred, "Value":$lhs, "Value":$rhs), [{
       auto boolty = BoolType::get($_builder.getContext());
       return build($_builder, $_state, boolty, pred, lhs, rhs);
     }]>
@@ -443,18 +443,18 @@ def HighLevel_IfOp : HighLevel_Op< "if", [RecursiveSideEffects] >
 
   let skipDefaultBuilders = 1;
   let builders = [
-    OpBuilderDAG<(
+    OpBuilder<(
       ins "Value":$cond, "bool":$withElseRegion
     )>,
-    OpBuilderDAG<(
+    OpBuilder<(
       ins "TypeRange":$result, "Value":$cond, "bool":$withElseRegion
     )>,
-    OpBuilderDAG<(
+    OpBuilder<(
       ins "TypeRange":$result, "Value":$cond,
           CArg< "BuilderCallback", "terminate_body" >:$thenBuilder,
           CArg< "BuilderCallback", "nullptr">:$elseBuilder
     )>,
-    OpBuilderDAG<(
+    OpBuilder<(
       ins "Value":$cond,
           CArg< "BuilderCallback", "terminate_body" >:$thenBuilder,
           CArg< "BuilderCallback", "nullptr">:$elseBuilder
@@ -482,10 +482,10 @@ def HighLevel_WhileOp : HighLevel_Op< "while", [RecursiveSideEffects] >
 
   let skipDefaultBuilders = 1;
   let builders = [
-    OpBuilderDAG<(
+    OpBuilder<(
       ins "TypeRange":$result, "Value":$cond, CArg< "BuilderCallback", "terminate_body" >:$bodyBuilder
     )>,
-    OpBuilderDAG<(
+    OpBuilder<(
       ins "Value":$cond, CArg< "BuilderCallback", "terminate_body" >:$bodyBuilder
     )>
   ];
@@ -506,7 +506,7 @@ def HighLevel_ForOp : HighLevel_Op< "for", [RecursiveSideEffects] >
 
   let skipDefaultBuilders = 1;
   let builders = [
-    OpBuilderDAG<( ins
+    OpBuilder<( ins
       CArg< "BuilderCallback", "terminate_body" >:$init,
       CArg< "BuilderCallback", "terminate_body" >:$cond,
       CArg< "BuilderCallback", "terminate_body" >:$incr,
