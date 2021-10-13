@@ -1,6 +1,8 @@
 # Copyright (c) 2021-present, Trail of Bits, Inc.
 add_mlir_dialect(HighLevel hl)
-add_mlir_doc(HighLevel -gen-dialect-doc HighLevel Dialects/)
+add_mlir_doc(HighLevel HighLevel HighLevel/ -gen-dialect-doc)
+add_mlir_doc(HighLevelOps HighLevelOps HighLevel/ -gen-op-doc)
+
 
 set(LLVM_TARGET_DEFINITIONS HighLevel.td)
 mlir_tablegen(HighLevelEnums.h.inc -gen-enum-decls)

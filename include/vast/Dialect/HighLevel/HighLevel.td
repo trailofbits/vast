@@ -9,10 +9,7 @@ include "vast/Dialect/HighLevel/HighLevelTypes.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
 
 class HighLevel_Op< string mnemonic, list< OpTrait > traits = [] >
-    : Op< HighLevel_Dialect, mnemonic, traits >
-{
-    // let verifier = "return ::verify(*this)";
-}
+    : Op< HighLevel_Dialect, mnemonic, traits >;
 
 class HighLevel_BinOp< string mnemonic, list< OpTrait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
