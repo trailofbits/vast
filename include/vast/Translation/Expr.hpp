@@ -88,6 +88,8 @@ namespace vast::hl
             case clang::CastKind::CK_ZeroToOCLOpaqueType: return CastKind::ZeroToOCLOpaqueType;
             case clang::CastKind::CK_AddressSpaceConversion: return CastKind::AddressSpaceConversion;
             case clang::CastKind::CK_IntToOCLSampler: return CastKind::IntToOCLSampler;
+
+            case clang::CastKind::CK_MatrixCast: return CastKind::MatrixCast;
         }
 
         llvm_unreachable( "unsupported cast kind" );

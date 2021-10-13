@@ -240,6 +240,8 @@ def ZeroToOCLOpaqueType : CastKindAttr<"ZeroToOCLOpaqueType", 61>;
 def AddressSpaceConversion : CastKindAttr<"AddressSpaceConversion", 62>;
 def IntToOCLSampler : CastKindAttr<"IntToOCLSampler", 63>;
 
+def MatrixCast : CastKindAttr<"MatrixCast", 64>;
+
 let cppNamespace = "::vast::hl" in
 def CastKind : CastKindList< "CastKind", "cast kind", [
   Dependent,
@@ -318,7 +320,9 @@ def CastKind : CastKindList< "CastKind", "cast kind", [
 
   ZeroToOCLOpaqueType,
   AddressSpaceConversion,
-  IntToOCLSampler
+  IntToOCLSampler,
+
+  MatrixCast
 ] >;
 
 class HighLevel_CastOp< string mnemonic, list< OpTrait > traits = [] >
