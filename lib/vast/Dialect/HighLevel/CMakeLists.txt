@@ -10,6 +10,7 @@ add_mlir_dialect_library(MLIRHighLevel
 
     DEPENDS
     MLIRHighLevelIncGen
+    MLIRHighLevelAttributesIncGen
     MLIRHighLevelEnumsIncGen
 
     LINK_LIBS PUBLIC

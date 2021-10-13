@@ -32,8 +32,8 @@ namespace vast::hl
 
 } // namespace vast::hl
 
-// #define GET_ATTRDEF_CLASSES
-// #include "vast/Dialect/HighLevel/HighLevelAttributes.h.inc"
+#define GET_ATTRDEF_CLASSES
+#include "vast/Dialect/HighLevel/HighLevelAttributes.h.inc"
 
 // Pull in all enum type definitions and utility function declarations.
 #include "vast/Dialect/HighLevel/HighLevelEnums.h.inc"
