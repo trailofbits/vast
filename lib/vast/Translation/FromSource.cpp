@@ -146,7 +146,7 @@ namespace vast::hl
                 return builder.getUnknownLoc();
 
             auto file = mlir::Identifier::get(loc.getFilename(), &mctx);
-            return builder.getFileLineColLoc(file, loc.getLine(), loc.getColumn());
+            return mlir::FileLineColLoc::get(file, loc.getLine(), loc.getColumn());
 
         }
 
@@ -2080,7 +2080,7 @@ namespace vast::hl
 
         mlir::OwningModuleRef mod(
             mlir::ModuleOp::create(
-                mlir::FileLineColLoc::get(input->getBufferIdentifier(), /* line */ 0, /* column */ 0, ctx)
+                mlir::FileLineColLoc::get(ctx, input->getBufferIdentifier(), /* line */ 0, /* column */ 0)
             )
         );
 
