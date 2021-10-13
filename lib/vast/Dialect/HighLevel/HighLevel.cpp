@@ -45,7 +45,13 @@ namespace vast::hl
                 return {};
 
             auto ctx = parser.getBuilder().getContext();
-            return generatedTypeParser(ctx, parser, key);
+
+            type result;
+            auto parse_result = generatedTypeParser(ctx, parser, key, result);
+            if (parse_result.hasValue())
+                return result;
+            parser.emitError(parser.getNameLoc(), "unknown type: ") << key;
+            return {};
         }
 
         type parse_type(dialect_parser &parser)
