@@ -89,5 +89,7 @@ namespace vast::hl
 
 } // namespace vast::hl
 
+#include "vast/Dialect/HighLevel/HighLevelDialect.cpp.inc"
+
 // Provide implementations for the enums we use.
 #include "vast/Dialect/HighLevel/HighLevelEnums.cpp.inc"
