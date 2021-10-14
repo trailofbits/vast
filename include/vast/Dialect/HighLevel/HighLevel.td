@@ -78,5 +78,6 @@ class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
 }
 
 include "HighLevelOps.td"
+include "HighLevelCF.td"
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVEL

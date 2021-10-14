@@ -383,13 +383,6 @@ namespace vast::hl
                 if (stmt)
                     Visit(stmt);
                 spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
-                // TODO(Heno): remove with noterminator attribute
-                auto &blocks = bld.getBlock()->getParent()->getBlocks();
-                auto &lastblock = blocks.back();
-                if (lastblock.empty() || lastblock.back().template hasTrait< mlir::OpTrait::IsTerminator >()) {
-                    builder.setInsertionPointToEnd(&lastblock);
-                    make_stmt< ScopeEndOp >(loc);
-                }
             };
         }
 
@@ -766,12 +759,6 @@ namespace vast::hl
 
             for (auto s : stmt->body()) {
                 Visit(s);
-            }
-
-            auto &lastblock = body.back();
-            if (lastblock.empty() || lastblock.back().hasTrait< mlir::OpTrait::IsTerminator >()) {
-                builder.setInsertionPointToEnd(&lastblock);
-                make_stmt< ScopeEndOp >(loc);
             }
 
             return scope;
@@ -1326,12 +1313,12 @@ namespace vast::hl
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
 
+            auto cond_builder = make_scope_builder(stmt->getCond());
             auto then_builder = make_scope_builder(stmt->getThen());
 
-            auto cond = Visit(stmt->getCond());
             if (stmt->getElse())
-                return make< IfOp >(loc, cond, then_builder, make_scope_builder(stmt->getElse()));
-            return make< IfOp >(loc, cond, then_builder);
+                return make< IfOp >(loc, cond_builder, then_builder, make_scope_builder(stmt->getElse()));
+            return make< IfOp >(loc, cond_builder, then_builder);
         }
 
         ValueOrStmt VisitIndirectGotoStmt(clang::IndirectGotoStmt *stmt)
@@ -1683,7 +1670,7 @@ namespace vast::hl
             auto &ops = last_block.getOperations();
             builder.setInsertionPointToEnd(&last_block);
 
-            if (ops.empty() || ops.back().hasTrait< mlir::OpTrait::IsTerminator >()) {
+            if (ops.empty() || !ops.back().hasTrait< mlir::OpTrait::IsTerminator >()) {
                 auto beg_loc = getLocation(decl->getBeginLoc());
                 auto end_loc = getLocation(decl->getEndLoc());
                 if (decl->getReturnType()->isVoidType()) {
@@ -2089,6 +2076,7 @@ namespace vast::hl
         VastCodeGen codegen(*ctx, mod, ast->getASTContext());
         codegen.HandleTranslationUnit(ast->getASTContext());
 
+        mod->print(llvm::errs());
         // TODO(Heno): verify module
         return mod;
     }
