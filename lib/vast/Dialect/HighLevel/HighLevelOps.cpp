@@ -29,45 +29,28 @@ namespace vast::hl
         bld.create< ScopeEndOp >(loc);
     }
 
-    void IfOp::build(Builder &bld, State &st, Value cond, bool withElseRegion)
+    namespace detail
     {
-        build(bld, st, /*resultTypes=*/llvm::None, cond, withElseRegion);
-    }
+        void build_region(Builder &bld, State &st, BuilderCallback callback)
+        {
+            auto reg = st.addRegion();
+            if (callback) {
+                bld.createBlock(reg);
+                callback(bld, st.location);
+            }
+        }
+    } // namespace detail
 
-    void IfOp::build(Builder &bld, State &st, TypeRange result, Value cond, bool withElseRegion)
+    void IfOp::build(Builder &bld, State &st, BuilderCallback condBuilder, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
     {
-        auto add_terminator = [&] (Builder &nested, Location loc) {
-            if (result.empty())
-                ensure_terminator(nested.getInsertionBlock()->getParent(), nested, loc);
-        };
-
-        auto else_terminator = withElseRegion ? add_terminator : BuilderCallback();
-        build(bld, st, result, cond, add_terminator, else_terminator);
-    }
-
-    void IfOp::build(Builder &bld, State &st, TypeRange result, Value cond, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
-    {
-        assert(thenBuilder && "the builder callback for 'then' must be present");
-
-        st.addOperands(cond);
-        st.addTypes(result);
+        assert(condBuilder && "the builder callback for 'condition' block must be present");
+        assert(thenBuilder && "the builder callback for 'then' block must be present");
 
         Builder::InsertionGuard guard(bld);
-        auto thenRegion = st.addRegion();
-        bld.createBlock(thenRegion);
-        thenBuilder(bld, st.location);
 
-        auto elseRegion = st.addRegion();
-        if (!elseBuilder)
-            return;
-
-        bld.createBlock(elseRegion);
-        elseBuilder(bld, st.location);
-    }
-
-    void IfOp::build(Builder &bld, State &st, Value cond, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
-    {
-        build(bld, st, TypeRange(), cond, thenBuilder, elseBuilder);
+        detail::build_region(bld, st, condBuilder);
+        detail::build_region(bld, st, thenBuilder);
+        detail::build_region(bld, st, elseBuilder);
     }
 
     void WhileOp::build(Builder &bld, State &st, TypeRange result, Value cond, BuilderCallback bodyBuilder)
@@ -92,18 +75,10 @@ namespace vast::hl
         assert(body && "the builder callback for 'body' must be present");
         Builder::InsertionGuard guard(bld);
 
-        auto generate_region = [&] (auto callback) {
-            if (callback) {
-                auto region = st.addRegion();
-                bld.createBlock(region);
-                callback(bld, st.location);
-            }
-        };
-
-        generate_region(init);
-        generate_region(cond);
-        generate_region(incr);
-        generate_region(body);
+        detail::build_region(bld, st, init);
+        detail::build_region(bld, st, cond);
+        detail::build_region(bld, st, incr);
+        detail::build_region(bld, st, body);
     }
 }
 

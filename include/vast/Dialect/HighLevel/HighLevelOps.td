@@ -18,7 +18,7 @@ def HighLevel_ScopeEndOp : HighLevel_Op<"scope.end", [
 
 
 def HighLevel_ScopeOp
-  : HighLevel_Op< "scope", [] >
+  : HighLevel_Op< "scope", [NoTerminator] >
 {
   let arguments = (ins);
   let results = (outs);
@@ -431,45 +431,6 @@ def HighLevel_PlusOp  : HighLevel_UnOp< "plus", [] >;
 def HighLevel_MinusOp : HighLevel_UnOp< "minus", [] >;
 def HighLevel_NotOp   : HighLevel_UnOp< "not", [] >;
 def HighLevel_LNotOp  : HighLevel_UnOp< "lnot", [] >;
-
-
-def HighLevel_IfOp : HighLevel_Op< "if", [RecursiveSideEffects] >
-{
-  let summary = "VAST if statement";
-  let description = [{ VAST if statement }];
-
-  let arguments = (ins Bool:$cond);
-  let regions = (region SizedRegion<1>:$thenRegion, AnyRegion:$elseRegion);
-
-  let skipDefaultBuilders = 1;
-  let builders = [
-    OpBuilder<(
-      ins "Value":$cond, "bool":$withElseRegion
-    )>,
-    OpBuilder<(
-      ins "TypeRange":$result, "Value":$cond, "bool":$withElseRegion
-    )>,
-    OpBuilder<(
-      ins "TypeRange":$result, "Value":$cond,
-          CArg< "BuilderCallback", "terminate_body" >:$thenBuilder,
-          CArg< "BuilderCallback", "nullptr">:$elseBuilder
-    )>,
-    OpBuilder<(
-      ins "Value":$cond,
-          CArg< "BuilderCallback", "terminate_body" >:$thenBuilder,
-          CArg< "BuilderCallback", "nullptr">:$elseBuilder
-    )>
-  ];
-
-  let printer = [{
-    p << getOperationName() << " " << cond();
-    p.printRegion(thenRegion());
-    if (!elseRegion().empty()) {
-      p << " else";
-      p.printRegion(elseRegion());
-    }
-  }];
-}
 
 
 def HighLevel_WhileOp : HighLevel_Op< "while", [RecursiveSideEffects] >
