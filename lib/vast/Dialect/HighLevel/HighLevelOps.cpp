@@ -41,22 +41,6 @@ namespace vast::hl
         }
     } // namespace detail
 
-    static void print(mlir::OpAsmPrinter &p, IfOp op)
-    {
-        p << IfOp::getOperationName();
-        p.printRegion(op.condRegion(), /* entry block args */ false, /* block terminators */ true);
-
-        p << " then";
-        p.printRegion(op.thenRegion(), /* entry block args */ false, /* block terminators */ true);
-
-        if (!op.elseRegion().front().empty()) {
-            p << " else";
-            p.printRegion(op.elseRegion(), /* entry block args */ false, /* block terminators */ true);
-        }
-
-        p.printOptionalAttrDict(op->getAttrs());
-    }
-
     void IfOp::build(Builder &bld, State &st, BuilderCallback condBuilder, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
     {
         assert(condBuilder && "the builder callback for 'condition' block must be present");
