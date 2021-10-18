@@ -377,6 +377,15 @@ namespace vast::hl
             };
         }
 
+        auto make_cond_builder(clang::Stmt *stmt)
+        {
+            return [stmt, this] (auto &bld, auto loc) {
+                Visit(stmt);
+                auto cond = mlir::cast< CmpOp >( &bld.getBlock()->back() );
+                bld.template create< CondYieldOp >(loc, cond);
+            };
+        }
+
         auto make_nonterminated_scope_builder(clang::Stmt *stmt)
         {
             return [stmt, this] (auto &bld, auto loc) {
@@ -1313,7 +1322,7 @@ namespace vast::hl
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
 
-            auto cond_builder = make_scope_builder(stmt->getCond());
+            auto cond_builder = make_cond_builder(stmt->getCond());
             auto then_builder = make_scope_builder(stmt->getThen());
 
             if (stmt->getElse())
