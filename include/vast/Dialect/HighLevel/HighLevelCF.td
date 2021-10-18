@@ -43,7 +43,7 @@ def HighLevel_IfOp : HighLevel_Op< "if", [SingleBlock, NoTerminator, NoRegionArg
     bool hasElse() { return !elseRegion().empty(); }
   }];
 
-  let printer = [{ vast::hl::print(p, *this); }];
+  let assemblyFormat = [{ $condRegion `then` $thenRegion (`else` $elseRegion^)? attr-dict }];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
