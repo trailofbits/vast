@@ -381,7 +381,9 @@ namespace vast::hl
         {
             return [stmt, this] (auto &bld, auto loc) {
                 Visit(stmt);
-                auto cond = mlir::cast< CmpOp >( &bld.getBlock()->back() );
+                auto &op = bld.getBlock()->back();
+                assert(op.getNumResults() == 1);
+                auto cond = op.getResult(0);
                 bld.template create< CondYieldOp >(loc, cond);
             };
         }
