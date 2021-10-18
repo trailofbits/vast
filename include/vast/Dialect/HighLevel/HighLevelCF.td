@@ -3,6 +3,20 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
 
+def HighLevel_CondYieldOp : HighLevel_Op< "cond.yield", [
+  // TODO(HEno): add ReturnLike trait
+  NoSideEffect, Terminator, ParentOneOf<["IfOp"]>
+] > {
+  let summary = "condition yield operation";
+  let description = [{ "condition yield operation" }];
+
+  let arguments = (ins Bool:$result);
+  let results = (outs);
+
+  let assemblyFormat = [{ attr-dict $result `:` type($result) }];
+}
+
+
 def HasOneBlock : CPred<"$_self.hasOneBlock()">;
 
 // TODO(Heno): constraints on cond region
@@ -24,7 +38,12 @@ def HighLevel_IfOp : HighLevel_Op< "if", [SingleBlock, NoTerminator, NoRegionArg
     )>
   ];
 
-  let assemblyFormat = "$condRegion `then` $thenRegion (`else` $elseRegion^)? attr-dict";
+  let extraClassDeclaration = [{
+    /// Returns true if an else block exists.
+    bool hasElse() { return !elseRegion().empty(); }
+  }];
+
+  let printer = [{ vast::hl::print(p, *this); }];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
