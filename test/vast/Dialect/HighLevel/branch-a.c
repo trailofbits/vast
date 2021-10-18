@@ -106,3 +106,17 @@ int branch_empty(int a, int b)
     // CHECK-NEXT: hl.return [[V2]]
     return 1;
 }
+
+// CHECK-LABEL: func private @branch_true
+int branch_true(int a, int b)
+{
+    // CHECK: hl.if
+    // CHECK: [[V1:%[0-9]+]] = hl.constant( true )
+    // CHECK: hl.cond.yield [[V1]]
+    if (true) {
+        // CHECK: } then {
+    }
+    // CHECK: [[V2:%[0-9]+]] = hl.constant( 1 : i32 )
+    // CHECK-NEXT: hl.return [[V2]]
+    return 1;
+}
