@@ -1513,9 +1513,9 @@ namespace vast::hl
         ValueOrStmt VisitWhileStmt(clang::WhileStmt *stmt)
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
+            auto cond_builder = make_cond_builder(stmt->getCond());
             auto body_builder = make_scope_builder(stmt->getBody());
-            auto cond = Visit(stmt->getCond());
-            return make< WhileOp >(loc, cond, body_builder);
+            return make< WhileOp >(loc, cond_builder, body_builder);
         }
 
         template< typename Value, typename Literal >

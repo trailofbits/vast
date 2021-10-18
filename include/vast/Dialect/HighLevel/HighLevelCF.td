@@ -5,7 +5,7 @@
 
 def HighLevel_CondYieldOp : HighLevel_Op< "cond.yield", [
   // TODO(HEno): add ReturnLike trait
-  NoSideEffect, Terminator, ParentOneOf<["IfOp"]>
+  NoSideEffect, Terminator, ParentOneOf<["IfOp", "WhileOp"]>
 ] > {
   let summary = "condition yield operation";
   let description = [{ "condition yield operation" }];
@@ -44,6 +44,25 @@ def HighLevel_IfOp : HighLevel_Op< "if", [SingleBlock, NoTerminator, NoRegionArg
   }];
 
   let assemblyFormat = [{ $condRegion `then` $thenRegion (`else` $elseRegion^)? attr-dict }];
+}
+
+
+def HighLevel_WhileOp : HighLevel_Op< "while", [SingleBlock, NoTerminator, NoRegionArguments, RecursiveSideEffects] >
+{
+  let summary = "VAST while statement";
+  let description = [{ VAST while statement }];
+
+  let regions = (region CondRegion:$condRegion, SizedRegion<1>:$bodyRegion);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+          "BuilderCallback":$condBuilder,
+          "BuilderCallback":$bodyBuilder
+    )>
+  ];
+
+  let assemblyFormat = [{ $condRegion `do` $bodyRegion attr-dict }];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
