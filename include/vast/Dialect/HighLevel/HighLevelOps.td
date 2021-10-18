@@ -433,31 +433,6 @@ def HighLevel_NotOp   : HighLevel_UnOp< "not", [] >;
 def HighLevel_LNotOp  : HighLevel_UnOp< "lnot", [] >;
 
 
-def HighLevel_WhileOp : HighLevel_Op< "while", [RecursiveSideEffects] >
-{
-  let summary = "VAST while statement";
-  let description = [{ VAST while statement }];
-
-  let arguments = (ins Bool:$cond);
-  let regions = (region SizedRegion<1>:$body);
-
-  let skipDefaultBuilders = 1;
-  let builders = [
-    OpBuilder<(
-      ins "TypeRange":$result, "Value":$cond, CArg< "BuilderCallback", "terminate_body" >:$bodyBuilder
-    )>,
-    OpBuilder<(
-      ins "Value":$cond, CArg< "BuilderCallback", "terminate_body" >:$bodyBuilder
-    )>
-  ];
-
-  let printer = [{
-    p << getOperationName() << " " << cond();
-    p.printRegion(body());
-  }];
-}
-
-
 def HighLevel_ForOp : HighLevel_Op< "for", [RecursiveSideEffects] >
 {
   let summary = "VAST for statement";

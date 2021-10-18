@@ -49,26 +49,19 @@ namespace vast::hl
         Builder::InsertionGuard guard(bld);
 
         detail::build_region(bld, st, condBuilder);
-
         detail::build_region(bld, st, thenBuilder);
         detail::build_region(bld, st, elseBuilder);
     }
 
-    void WhileOp::build(Builder &bld, State &st, TypeRange result, Value cond, BuilderCallback bodyBuilder)
+    void WhileOp::build(Builder &bld, State &st, BuilderCallback condBuilder, BuilderCallback bodyBuilder)
     {
+        assert(condBuilder && "the builder callback for 'condition' block must be present");
         assert(bodyBuilder && "the builder callback for 'body' must be present");
 
-        st.addOperands(cond);
-
         Builder::InsertionGuard guard(bld);
-        auto bodyRegion = st.addRegion();
-        bld.createBlock(bodyRegion);
-        bodyBuilder(bld, st.location);
-    }
 
-    void WhileOp::build(Builder &bld, State &st, Value cond, BuilderCallback bodyBuilder)
-    {
-        build(bld, st, TypeRange(), cond, bodyBuilder);
+        detail::build_region(bld, st, condBuilder);
+        detail::build_region(bld, st, bodyBuilder);
     }
 
     void ForOp::build(Builder &bld, State &st, BuilderCallback init, BuilderCallback cond, BuilderCallback incr, BuilderCallback body)
