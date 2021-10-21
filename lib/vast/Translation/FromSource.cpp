@@ -749,7 +749,7 @@ namespace vast::hl
 
         ValueOrStmt VisitBreakStmt(clang::BreakStmt *stmt)
         {
-            llvm_unreachable( "unsupported BreakStmt" );
+            return make< BreakOp >(builder.getLocation(stmt->getSourceRange()));
         }
 
         ValueOrStmt VisitCXXCatchStmt(clang::CXXCatchStmt *stmt)

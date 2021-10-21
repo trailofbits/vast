@@ -118,4 +118,12 @@ def HighLevel_DoOp : ControlFlowOp< "do" >
   }];
 }
 
+def HighLevel_BreakOp : ControlFlowOp< "break" >
+{
+  let summary = "VAST break statement";
+  let description = [{ VAST break statement }];
+
+  let assemblyFormat = [{ attr-dict }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
