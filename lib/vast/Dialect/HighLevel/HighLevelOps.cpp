@@ -12,23 +12,6 @@
 
 namespace vast::hl
 {
-    void terminate_body(Builder &bld, Location loc)
-    {
-        bld.create< ScopeEndOp >(loc);
-    }
-
-    void ensure_terminator(Region *region, Builder &bld, Location loc)
-    {
-        if (region->empty())
-            bld.createBlock(region);
-
-        auto &block = region->back();
-        if (!block.empty() && block.back().hasTrait< mlir::OpTrait::IsTerminator >())
-            return;
-        bld.setInsertionPoint(&block, block.end());
-        bld.create< ScopeEndOp >(loc);
-    }
-
     namespace detail
     {
         void build_region(Builder &bld, State &st, BuilderCallback callback)
@@ -53,15 +36,15 @@ namespace vast::hl
         detail::build_region(bld, st, elseBuilder);
     }
 
-    void WhileOp::build(Builder &bld, State &st, BuilderCallback condBuilder, BuilderCallback bodyBuilder)
+    void WhileOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback body)
     {
-        assert(condBuilder && "the builder callback for 'condition' block must be present");
-        assert(bodyBuilder && "the builder callback for 'body' must be present");
+        assert(cond && "the builder callback for 'condition' block must be present");
+        assert(body && "the builder callback for 'body' must be present");
 
         Builder::InsertionGuard guard(bld);
 
-        detail::build_region(bld, st, condBuilder);
-        detail::build_region(bld, st, bodyBuilder);
+        detail::build_region(bld, st, cond);
+        detail::build_region(bld, st, body);
     }
 
     void ForOp::build(Builder &bld, State &st, BuilderCallback init, BuilderCallback cond, BuilderCallback incr, BuilderCallback body)
