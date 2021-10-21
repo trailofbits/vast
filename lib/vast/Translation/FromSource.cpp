@@ -792,7 +792,7 @@ namespace vast::hl
 
         ValueOrStmt VisitContinueStmt(clang::ContinueStmt *stmt)
         {
-            llvm_unreachable( "unsupported ContinueStmt" );
+            return make< ContinueOp >(builder.getLocation(stmt->getSourceRange()));
         }
 
         ValueOrStmt VisitDeclStmt(clang::DeclStmt *stmt)

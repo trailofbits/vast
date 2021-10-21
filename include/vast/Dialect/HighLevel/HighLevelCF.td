@@ -126,4 +126,12 @@ def HighLevel_BreakOp : ControlFlowOp< "break" >
   let assemblyFormat = [{ attr-dict }];
 }
 
+def HighLevel_ContinueOp : ControlFlowOp< "continue" >
+{
+  let summary = "VAST continue statement";
+  let description = [{ VAST bcontinue statement }];
+
+  let assemblyFormat = [{ attr-dict }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
