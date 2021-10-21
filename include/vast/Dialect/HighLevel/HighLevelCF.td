@@ -129,7 +129,7 @@ def HighLevel_BreakOp : ControlFlowOp< "break" >
 def HighLevel_ContinueOp : ControlFlowOp< "continue" >
 {
   let summary = "VAST continue statement";
-  let description = [{ VAST bcontinue statement }];
+  let description = [{ VAST continue statement }];
 
   let assemblyFormat = [{ attr-dict }];
 }

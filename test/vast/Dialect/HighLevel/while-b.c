@@ -13,3 +13,17 @@ void while_break()
     }
     // CHECK: }
 }
+
+// CHECK-LABEL: func private @while_continue
+void while_continue()
+{
+    // CHECK: hl.while
+    // CHECK: [[V1:%[0-9]+]] = hl.constant( true )
+    // CHECK: hl.cond.yield [[V1]]
+    while (true) {
+        // CHECK: } do {
+        // CHECK: hl.continue
+        continue;
+    }
+    // CHECK: }
+}
