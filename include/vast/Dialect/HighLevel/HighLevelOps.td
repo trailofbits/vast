@@ -3,20 +3,6 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 
-// TODO(Heno): remove when NoTerminator is in mlir.
-def HighLevel_ScopeEndOp : HighLevel_Op<"scope.end", [
-  Terminator
-]> {
-  let summary = "A pseudo op that marks the end of a hl.scope";
-  let description = [{
-    This op terminates the only block inside the only region of a `hl.scope`.
-  }];
-
-  let parser = [{ return mlir::success(); }];
-  let printer = [{ p << getOperationName(); }];
-}
-
-
 def HighLevel_ScopeOp
   : HighLevel_Op< "scope", [NoTerminator] >
 {
@@ -431,36 +417,5 @@ def HighLevel_PlusOp  : HighLevel_UnOp< "plus", [] >;
 def HighLevel_MinusOp : HighLevel_UnOp< "minus", [] >;
 def HighLevel_NotOp   : HighLevel_UnOp< "not", [] >;
 def HighLevel_LNotOp  : HighLevel_UnOp< "lnot", [] >;
-
-
-def HighLevel_ForOp : HighLevel_Op< "for", [RecursiveSideEffects] >
-{
-  let summary = "VAST for statement";
-  let description = [{ VAST for statement }];
-
-  let regions = (region AnyRegion:$init, AnyRegion:$cond, AnyRegion:$incr, SizedRegion<1>:$body);
-
-  let skipDefaultBuilders = 1;
-  let builders = [
-    OpBuilder<( ins
-      CArg< "BuilderCallback", "terminate_body" >:$init,
-      CArg< "BuilderCallback", "terminate_body" >:$cond,
-      CArg< "BuilderCallback", "terminate_body" >:$incr,
-      CArg< "BuilderCallback", "terminate_body" >:$body
-    )>
-  ];
-
-  let printer = [{
-    p << getOperationName();
-    p << " init";
-    p.printRegion(init());
-    p << " cond";
-    p.printRegion(cond());
-    p << " incr";
-    p.printRegion(incr());
-    p << " body";
-    p.printRegion(body());
-  }];
-}
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS

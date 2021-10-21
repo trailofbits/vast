@@ -209,6 +209,20 @@ namespace vast::hl
             }
         }
 
+        mlir::Value true_value(mlir::Location loc)
+        {
+            auto attr = builder.getBoolAttr(true);
+            auto bty = BoolType::get(&mctx);
+            return make< ConstantOp >(loc, bty, attr);
+        }
+
+        mlir::Value false_value(mlir::Location loc)
+        {
+            auto attr = builder.getBoolAttr(false);
+            auto bty = BoolType::get(&mctx);
+            return make< ConstantOp >(loc, bty, attr);
+        }
+
         mlir::Value constant(mlir::Location loc, mlir::Type ty, int64_t value)
         {
             if (ty.isa< IntegerType >()) {
@@ -369,10 +383,12 @@ namespace vast::hl
             return make_value< Cast >( loc, rty, Visit(expr), kind );
         }
 
-        auto make_scope_builder(clang::Stmt *stmt)
+        auto make_region_builder(clang::Stmt *stmt)
         {
             return [stmt, this] (auto &bld, auto) {
-                Visit(stmt);
+                if (stmt) {
+                    Visit(stmt);
+                }
                 spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
             };
         }
@@ -388,12 +404,11 @@ namespace vast::hl
             };
         }
 
-        auto make_nonterminated_scope_builder(clang::Stmt *stmt)
+        auto make_yield_true()
         {
-            return [stmt, this] (auto &bld, auto loc) {
-                if (stmt)
-                    Visit(stmt);
-                spliceTrailingScopeBlocks(*bld.getBlock()->getParent());
+            return [this] (auto &bld, auto loc) {
+                auto t = builder.true_value(loc);
+                bld.template create< CondYieldOp >(loc, t);
             };
         }
 
@@ -1307,12 +1322,17 @@ namespace vast::hl
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
 
-            auto init_builder = make_nonterminated_scope_builder(stmt->getInit());
-            auto cond_builder = make_nonterminated_scope_builder(stmt->getCond());
-            auto incr_builder = make_nonterminated_scope_builder(stmt->getInc());
-            auto body_builder = make_scope_builder(stmt->getBody());
+            auto init_builder = make_region_builder(stmt->getInit());
+            auto incr_builder = make_region_builder(stmt->getInc());
+            auto body_builder = make_region_builder(stmt->getBody());
 
-            return make< ForOp >(loc, init_builder, cond_builder, incr_builder, body_builder);
+            auto cond = stmt->getCond();
+
+            if (cond) {
+                auto cond_builder = make_cond_builder(cond);
+                return make< ForOp >(loc, init_builder, cond_builder, incr_builder, body_builder);
+            }
+            return make< ForOp >(loc, init_builder, make_yield_true(), incr_builder, body_builder);
         }
 
         ValueOrStmt VisitGotoStmt(clang::GotoStmt *stmt)
@@ -1325,10 +1345,11 @@ namespace vast::hl
             auto loc = builder.getLocation(stmt->getSourceRange());
 
             auto cond_builder = make_cond_builder(stmt->getCond());
-            auto then_builder = make_scope_builder(stmt->getThen());
+            auto then_builder = make_region_builder(stmt->getThen());
 
-            if (stmt->getElse())
-                return make< IfOp >(loc, cond_builder, then_builder, make_scope_builder(stmt->getElse()));
+            if (stmt->getElse()) {
+                return make< IfOp >(loc, cond_builder, then_builder, make_region_builder(stmt->getElse()));
+            }
             return make< IfOp >(loc, cond_builder, then_builder);
         }
 
@@ -1514,7 +1535,7 @@ namespace vast::hl
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
             auto cond_builder = make_cond_builder(stmt->getCond());
-            auto body_builder = make_scope_builder(stmt->getBody());
+            auto body_builder = make_region_builder(stmt->getBody());
             return make< WhileOp >(loc, cond_builder, body_builder);
         }
 

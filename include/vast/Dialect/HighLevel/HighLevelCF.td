@@ -3,9 +3,18 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
 
+class ControlFlowOp< string mnemonic, list< OpTrait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits,
+        [SingleBlock, NoTerminator, NoRegionArguments, RecursiveSideEffects]
+      ) >
+{
+    let summary = "VAST control flow operation";
+    let description = [{ VAST control flow operation }];
+}
+
 def HighLevel_CondYieldOp : HighLevel_Op< "cond.yield", [
-  // TODO(HEno): add ReturnLike trait
-  NoSideEffect, Terminator, ParentOneOf<["IfOp", "WhileOp"]>
+  // TODO(Heno): add ReturnLike trait
+  NoSideEffect, Terminator, ParentOneOf<["IfOp", "WhileOp", "ForOp"]>
 ] > {
   let summary = "condition yield operation";
   let description = [{ "condition yield operation" }];
@@ -22,7 +31,7 @@ def HasOneBlock : CPred<"$_self.hasOneBlock()">;
 // TODO(Heno): constraints on cond region
 def CondRegion : Region< HasOneBlock, "condition region" >;
 
-def HighLevel_IfOp : HighLevel_Op< "if", [SingleBlock, NoTerminator, NoRegionArguments, RecursiveSideEffects] >
+def HighLevel_IfOp : ControlFlowOp< "if" >
 {
   let summary = "VAST if statement";
   let description = [{ VAST if statement }];
@@ -32,9 +41,9 @@ def HighLevel_IfOp : HighLevel_Op< "if", [SingleBlock, NoTerminator, NoRegionArg
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
-          "BuilderCallback":$condBuilder,
-          "BuilderCallback":$thenBuilder,
-          CArg< "BuilderCallback", "nullptr">:$elseBuilder
+      "BuilderCallback":$condBuilder,
+      "BuilderCallback":$thenBuilder,
+      CArg< "BuilderCallback", "nullptr">:$elseBuilder
     )>
   ];
 
@@ -47,7 +56,7 @@ def HighLevel_IfOp : HighLevel_Op< "if", [SingleBlock, NoTerminator, NoRegionArg
 }
 
 
-def HighLevel_WhileOp : HighLevel_Op< "while", [SingleBlock, NoTerminator, NoRegionArguments, RecursiveSideEffects] >
+def HighLevel_WhileOp : ControlFlowOp< "while" >
 {
   let summary = "VAST while statement";
   let description = [{ VAST while statement }];
@@ -57,12 +66,36 @@ def HighLevel_WhileOp : HighLevel_Op< "while", [SingleBlock, NoTerminator, NoReg
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
-          "BuilderCallback":$condBuilder,
-          "BuilderCallback":$bodyBuilder
+      "BuilderCallback":$condBuilder,
+      "BuilderCallback":$bodyBuilder
     )>
   ];
 
   let assemblyFormat = [{ $condRegion `do` $bodyRegion attr-dict }];
+}
+
+
+def HighLevel_ForOp : ControlFlowOp< "for" >
+{
+  let summary = "VAST for statement";
+  let description = [{ VAST for statement }];
+
+  let regions = (region SizedRegion<1>:$initRegion, CondRegion:$condRegion,
+                        SizedRegion<1>:$incrRegion, SizedRegion<1>:$bodyRegion);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "BuilderCallback":$initBuilder,
+      "BuilderCallback":$condBuilder,
+      "BuilderCallback":$incrBuilder,
+      "BuilderCallback":$bodyBuilder
+    )>
+  ];
+
+  let assemblyFormat = [{
+    $initRegion `cond` $condRegion `incr` $incrRegion attr-dict `do` $bodyRegion
+  }];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
