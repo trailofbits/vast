@@ -803,7 +803,10 @@ namespace vast::hl
 
         ValueOrStmt VisitDoStmt(clang::DoStmt *stmt)
         {
-            llvm_unreachable( "unsupported DoStmt" );
+            auto loc = builder.getLocation(stmt->getSourceRange());
+            auto cond_builder = make_cond_builder(stmt->getCond());
+            auto body_builder = make_region_builder(stmt->getBody());
+            return make< DoOp >(loc, body_builder, cond_builder);
         }
 
         // Expressions
@@ -2108,7 +2111,6 @@ namespace vast::hl
         VastCodeGen codegen(*ctx, mod, ast->getASTContext());
         codegen.HandleTranslationUnit(ast->getASTContext());
 
-        mod->print(llvm::errs());
         // TODO(Heno): verify module
         return mod;
     }
