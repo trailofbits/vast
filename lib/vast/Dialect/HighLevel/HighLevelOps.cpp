@@ -57,6 +57,15 @@ namespace vast::hl
         detail::build_region(bld, st, incr);
         detail::build_region(bld, st, body);
     }
+
+    void DoOp::build(Builder &bld, State &st, BuilderCallback body, BuilderCallback cond)
+    {
+        assert(body && "the builder callback for 'body' must be present");
+        Builder::InsertionGuard guard(bld);
+
+        detail::build_region(bld, st, body);
+        detail::build_region(bld, st, cond);
+    }
 }
 
 //===----------------------------------------------------------------------===//

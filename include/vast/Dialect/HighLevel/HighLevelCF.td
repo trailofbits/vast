@@ -14,7 +14,7 @@ class ControlFlowOp< string mnemonic, list< OpTrait > traits = [] >
 
 def HighLevel_CondYieldOp : HighLevel_Op< "cond.yield", [
   // TODO(Heno): add ReturnLike trait
-  NoSideEffect, Terminator, ParentOneOf<["IfOp", "WhileOp", "ForOp"]>
+  NoSideEffect, Terminator, ParentOneOf<["IfOp", "WhileOp", "ForOp", "DoOp"]>
 ] > {
   let summary = "condition yield operation";
   let description = [{ "condition yield operation" }];
@@ -95,6 +95,26 @@ def HighLevel_ForOp : ControlFlowOp< "for" >
 
   let assemblyFormat = [{
     $initRegion `cond` $condRegion `incr` $incrRegion attr-dict `do` $bodyRegion
+  }];
+}
+
+def HighLevel_DoOp : ControlFlowOp< "do" >
+{
+  let summary = "VAST do-while statement";
+  let description = [{ VAST do-while statement }];
+
+  let regions = (region SizedRegion<1>:$bodyRegion, CondRegion:$condRegion);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "BuilderCallback":$bodyBuilder,
+      "BuilderCallback":$condBuilder
+    )>
+  ];
+
+  let assemblyFormat = [{
+    $bodyRegion `while` $condRegion attr-dict
   }];
 }
 
