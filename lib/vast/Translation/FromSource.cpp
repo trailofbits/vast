@@ -2093,6 +2093,9 @@ namespace vast::hl
         clang::ASTContext     &actx;
     };
 
+    static llvm::cl::list<std::string> compiler_args(
+        "ccopts", llvm::cl::ZeroOrMore, llvm::cl::desc("Specify output filename"), llvm::cl::value_desc("filename")
+    );
 
     static mlir::OwningModuleRef from_source_parser(const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx)
     {
@@ -2106,7 +2109,7 @@ namespace vast::hl
             )
         );
 
-        auto ast = clang::tooling::buildASTFromCode(input->getBuffer());
+        auto ast = clang::tooling::buildASTFromCodeWithArgs(input->getBuffer(), compiler_args);
 
         VastCodeGen codegen(*ctx, mod, ast->getASTContext());
         codegen.HandleTranslationUnit(ast->getASTContext());
