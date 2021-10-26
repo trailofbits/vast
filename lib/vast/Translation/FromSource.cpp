@@ -404,6 +404,17 @@ namespace vast::hl
             };
         }
 
+        auto make_value_builder(clang::Stmt *stmt)
+        {
+            return [stmt, this] (auto &bld, auto loc) {
+                Visit(stmt);
+                auto &op = bld.getBlock()->back();
+                assert(op.getNumResults() == 1);
+                auto cond = op.getResult(0);
+                bld.template create< ValueYieldOp >(loc, cond);
+            };
+        }
+
         auto make_yield_true()
         {
             return [this] (auto &bld, auto loc) {
@@ -833,7 +844,10 @@ namespace vast::hl
 
         ValueOrStmt VisitConstantExpr(clang::ConstantExpr *expr)
         {
-            llvm_unreachable( "unsupported ConstantExpr" );
+            auto loc = builder.getLocation(expr->getSourceRange());
+            auto type = types.convert(expr->getType());
+            // TODO(Heno): rework APSInt work
+            return builder.constant(loc, type, expr->getResultAsAPSInt().getExtValue() );
         }
 
         ValueOrStmt VisitArraySubscriptExpr(clang::ArraySubscriptExpr *expr)
@@ -1514,24 +1528,30 @@ namespace vast::hl
             llvm_unreachable( "unsupported SEHTryStmt" );
         }
 
-        ValueOrStmt VisitSwitchCase(clang::SwitchCase *stmt)
-        {
-            llvm_unreachable( "unsupported SwitchCase" );
-        }
-
         ValueOrStmt VisitCaseStmt(clang::CaseStmt *stmt)
         {
-            llvm_unreachable( "unsupported CaseStmt" );
+            auto loc = builder.getLocation(stmt->getSourceRange());
+            auto lhs_builder = make_value_builder(stmt->getLHS());
+            auto body_builder = make_region_builder(stmt->getSubStmt());
+            return make< CaseOp >(loc, lhs_builder, body_builder);
         }
 
         ValueOrStmt VisitDefaultStmt(clang::DefaultStmt *stmt)
         {
-            llvm_unreachable( "unsupported DefaultStmt" );
+            auto loc = builder.getLocation(stmt->getSourceRange());
+            auto body_builder = make_region_builder(stmt->getSubStmt());
+            return make< DefaultOp >(loc, body_builder);
         }
 
         ValueOrStmt VisitSwitchStmt(clang::SwitchStmt *stmt)
         {
-            llvm_unreachable( "unsupported SwitchStmt" );
+            auto loc = builder.getLocation(stmt->getSourceRange());
+            auto cond_builder = make_value_builder(stmt->getCond());
+            auto body_builder = make_region_builder(stmt->getBody());
+            if (stmt->getInit()) {
+                return make< SwitchOp >(loc, make_region_builder(stmt->getInit()), cond_builder, body_builder);
+            }
+            return make< SwitchOp >(loc, nullptr, cond_builder, body_builder);
         }
 
         ValueOrStmt VisitWhileStmt(clang::WhileStmt *stmt)
