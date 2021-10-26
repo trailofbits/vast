@@ -25,11 +25,27 @@ def HighLevel_CondYieldOp : HighLevel_Op< "cond.yield", [
   let assemblyFormat = [{ attr-dict $result `:` type($result) }];
 }
 
+def HighLevel_ValueYieldOp : HighLevel_Op< "value.yield", [
+  // TODO(Heno): add ReturnLike trait
+  NoSideEffect, Terminator
+] > {
+  let summary = "value yield operation";
+  let description = [{ "value yield operation" }];
+
+  // TODO(Heno): check on type
+  let arguments = (ins AnyType:$result);
+  let results = (outs);
+
+  let assemblyFormat = [{ attr-dict $result `:` type($result) }];
+}
+
 
 def HasOneBlock : CPred<"$_self.hasOneBlock()">;
 
-// TODO(Heno): constraints on cond region
-def CondRegion : Region< HasOneBlock, "condition region" >;
+// TODO(Heno): constraints on regions
+def CondRegion  : Region< HasOneBlock, "condition region" >;
+def ValueRegion : Region< HasOneBlock, "value region" >;
+def CasesRegion : Region< HasOneBlock, "cases region" >;
 
 def HighLevel_IfOp : ControlFlowOp< "if" >
 {
@@ -132,6 +148,62 @@ def HighLevel_ContinueOp : ControlFlowOp< "continue" >
   let description = [{ VAST continue statement }];
 
   let assemblyFormat = [{ attr-dict }];
+}
+
+def HighLevel_SwitchOp : ControlFlowOp< "switch" >
+{
+  let summary = "VAST switch statement";
+  let description = [{ VAST switch statement }];
+
+  let regions = (region AnyRegion:$initRegion, ValueRegion:$condRegion, VariadicRegion<AnyRegion>:$cases);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "BuilderCallback":$initBuilder,
+      "BuilderCallback":$condBuilder,
+      "BuilderCallback":$casesBuilder
+    )>
+  ];
+
+  let assemblyFormat = [{
+    (`init` $initRegion^)? `cond` $condRegion `cases` $cases attr-dict
+  }];
+}
+
+def HighLevel_CaseOp : ControlFlowOp< "case" >
+{
+  let summary = "VAST case statement";
+  let description = [{ VAST case statement }];
+
+  let regions = (region ValueRegion:$lhs, SizedRegion<1>:$body);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "BuilderCallback":$lhsBuilder,
+      "BuilderCallback":$bodyBuilder
+    )>
+  ];
+
+  let assemblyFormat = [{ $lhs $body attr-dict }];
+}
+
+def HighLevel_DefaultOp : ControlFlowOp< "default" >
+{
+  let summary = "VAST default statement";
+  let description = [{ VAST default statement }];
+
+  let regions = (region SizedRegion<1>:$body);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "BuilderCallback":$bodyBuilder
+    )>
+  ];
+
+  let assemblyFormat = [{ $body attr-dict }];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
