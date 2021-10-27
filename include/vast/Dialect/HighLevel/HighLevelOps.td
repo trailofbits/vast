@@ -92,24 +92,6 @@ def HighLevel_ConstantOp : HighLevel_Op< "constant",
 }
 
 
-def HighLevel_VoidOp : HighLevel_Op<"void", []> {
-  let summary = "VAST void operation";
-  let description = [{ VAST void operation }];
-
-  let results = (outs Void);
-
-  let builders = [
-    OpBuilder<(ins),
-    [{
-      build($_builder, $_state, VoidType::get($_builder.getContext()));
-    }] >
-  ];
-
-  let verifier = ?;
-  let printer = [{ p << getOperationName(); }];
-}
-
-
 def HighLevel_UnreachableOp : HighLevel_Op<"unreachable", [Terminator]> {
   let summary = "VAST unreachable operation";
   let description = [{ VAST unreachable operation }];

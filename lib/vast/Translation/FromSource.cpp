@@ -150,11 +150,6 @@ namespace vast::hl
 
         }
 
-        Value make_void(mlir::Location loc)
-        {
-            return builder.create< VoidOp >(loc);
-        }
-
         static inline auto to_value = [] (ValueOrStmt v) -> Value
         {
             return std::get< Value >(v);
@@ -1503,9 +1498,9 @@ namespace vast::hl
         ValueOrStmt VisitReturnStmt(clang::ReturnStmt *stmt)
         {
             auto loc = builder.getLocation(stmt->getSourceRange());
-            auto ret = stmt->getRetValue();
-            auto val = ret ? Visit(ret) : builder.make_void(loc);
-            return make< ReturnOp >(loc, val);
+            if ( auto ret = stmt->getRetValue() )
+                return make< ReturnOp >(loc, Visit(ret));
+            return make< ReturnOp >(loc);
         }
 
         ValueOrStmt VisitSEHExceptStmt(clang::SEHExceptStmt *stmt)
@@ -1729,8 +1724,7 @@ namespace vast::hl
                 auto beg_loc = getLocation(decl->getBeginLoc());
                 auto end_loc = getLocation(decl->getEndLoc());
                 if (decl->getReturnType()->isVoidType()) {
-                    auto val = builder.make_void(end_loc);
-                    make< ReturnOp >(end_loc, val);
+                    make< ReturnOp >(end_loc);
                 } else {
                     if (decl->isMain()) {
                         // return zero if no return is present in main
