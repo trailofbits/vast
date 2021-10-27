@@ -10,10 +10,7 @@ def HighLevel_ScopeOp
   let results = (outs);
   let regions = (region AnyRegion:$body);
 
-  let printer = [{
-    p << getOperationName();
-    p.printRegion(body(), false /* print entry blocks */);
-  }];
+  let assemblyFormat = [{ $body attr-dict }];
 }
 
 
