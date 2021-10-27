@@ -4,33 +4,33 @@ void arithemtic_signed(int a, int b)
 {
     int c;
     // CHECK: [[V1:%[0-9]+]] = hl.declref @a
-    // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] )
+    // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
     // CHECK: [[V3:%[0-9]+]] = hl.declref @b
-    // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast( [[V3]] )
+    // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast [[V3]]
     // CHECK: hl.add [[V2]], [[V4]]
     c = a + b;
     // CHECK: [[V1:%[0-9]+]] = hl.declref @a
-    // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] )
+    // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
     // CHECK: [[V3:%[0-9]+]] = hl.declref @b
-    // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast( [[V3]] )
+    // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast [[V3]]
     // CHECK: hl.sub [[V2]], [[V4]]
     c = a - b;
     // CHECK: [[V1:%[0-9]+]] = hl.declref @a
-    // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] )
+    // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
     // CHECK: [[V3:%[0-9]+]] = hl.declref @b
-    // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast( [[V3]] )
+    // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast [[V3]]
     // CHECK: hl.mul [[V2]], [[V4]]
     c = a * b;
     // CHECK: [[V1:%[0-9]+]] = hl.declref @a
-    // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] )
+    // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
     // CHECK: [[V3:%[0-9]+]] = hl.declref @b
-    // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast( [[V3]] )
+    // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast [[V3]]
     // CHECK: hl.sdiv [[V2]], [[V4]]
     c = a / b;
     // CHECK: [[V1:%[0-9]+]] = hl.declref @a
-    // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] )
+    // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
     // CHECK: [[V3:%[0-9]+]] = hl.declref @b
-    // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast( [[V3]] )
+    // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast [[V3]]
     // CHECK: hl.srem [[V2]], [[V4]]
     c = a % b;
 }
@@ -48,27 +48,27 @@ void assign_signed(int a, int b)
 {
     // CHECK: [[V1:%[0-9]+]] = hl.declref @a
     // CHECK: [[V2:%[0-9]+]] = hl.declref @b
-    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast( [[V2]] )
+    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast [[V2]]
     // CHECK: hl.assign.add [[V3]] to [[V1]]
     a += b;
     // CHECK: [[V1:%[0-9]+]] = hl.declref @a
     // CHECK: [[V2:%[0-9]+]] = hl.declref @b
-    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast( [[V2]] )
+    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast [[V2]]
     // CHECK: hl.assign.sub [[V3]] to [[V1]]
     a -= b;
     // CHECK: [[V1:%[0-9]+]] = hl.declref @a
     // CHECK: [[V2:%[0-9]+]] = hl.declref @b
-    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast( [[V2]] )
+    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast [[V2]]
     // CHECK: hl.assign.mul [[V3]] to [[V1]]
     a *= b;
     // CHECK: [[V1:%[0-9]+]] = hl.declref @a
     // CHECK: [[V2:%[0-9]+]] = hl.declref @b
-    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast( [[V2]] )
+    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast [[V2]]
     // CHECK: hl.assign.sdiv [[V3]] to [[V1]]
     a /= b;
     // CHECK: [[V1:%[0-9]+]] = hl.declref @a
     // CHECK: [[V2:%[0-9]+]] = hl.declref @b
-    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast( [[V2]] )
+    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast [[V2]]
     // CHECK: hl.assign.srem [[V3]] to [[V1]]
     a %= b;
 }
@@ -77,12 +77,12 @@ void assign_unsigned(unsigned a, unsigned b)
 {
     // CHECK: [[V1:%[0-9]+]] = hl.declref @a
     // CHECK: [[V2:%[0-9]+]] = hl.declref @b
-    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast( [[V2]] )
+    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast [[V2]]
     // CHECK: hl.assign.udiv [[V3]] to [[V1]]
     a /= b;
     // CHECK: [[V1:%[0-9]+]] = hl.declref @a
     // CHECK: [[V2:%[0-9]+]] = hl.declref @b
-    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast( [[V2]] )
+    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast [[V2]]
     // CHECK: hl.assign.urem [[V3]] to [[V1]]
     a %= b;
 }
