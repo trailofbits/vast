@@ -69,8 +69,7 @@ def HighLevel_DeclRefOp : HighLevel_Op< "declref", [] > {
   let description = [{ VAST reference declaration }];
 
   let arguments = (ins SymbolRefAttr:$decl);
-
-  let results = (outs AnyType);
+  let results = (outs AnyType:$result);
 
   let builders = [
     OpBuilder< (ins "mlir::Type":$rty, "llvm::StringRef":$name),
@@ -79,11 +78,7 @@ def HighLevel_DeclRefOp : HighLevel_Op< "declref", [] > {
     }] >
   ];
 
-  let printer = [{
-    p << getOperationName()
-      << "( " <<  decl() << " )"
-      << ": " << getResult().getType();
-  }];
+  let assemblyFormat = "$decl attr-dict `:` type($result) ";
 }
 
 
