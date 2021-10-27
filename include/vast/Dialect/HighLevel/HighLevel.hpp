@@ -28,8 +28,6 @@ namespace vast::hl
 
     using BuilderCallback = llvm::function_ref< void(Builder &, Location) >;
 
-    void terminate_body(Builder &bld, Location loc);
-
 } // namespace vast::hl
 
 #define GET_ATTRDEF_CLASSES
