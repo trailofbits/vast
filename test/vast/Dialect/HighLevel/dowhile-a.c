@@ -15,7 +15,7 @@ void basic() {
 void inner_cond() {
     int i = 0;
     // CHECK: hl.do {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref( @i )
+    // CHECK: [[V1:%[0-9]+]] = hl.declref @i
     // CHECK: hl.post.inc [[V1]]
     do {
         i++;

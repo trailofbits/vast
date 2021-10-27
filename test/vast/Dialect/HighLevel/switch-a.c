@@ -4,7 +4,7 @@
 int switch_simple(int num)
 {
     // CHECK: hl.switch cond {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref( @num )
+    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] )
     // CHECK: hl.value.yield [[V2]]
     switch (num) {
@@ -41,7 +41,7 @@ int switch_init(int num)
     // CHECK: hl.switch init {
     // CHECK: hl.var( v, [[V1:%[0-9]+]] )
     // CHECK: } cond {
-    // CHECK: [[V2:%[0-9]+]] = hl.declref( @v )
+    // CHECK: [[V2:%[0-9]+]] = hl.declref @v
     // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast( [[V2]] )
     // CHECK: hl.value.yield [[V3]]
     switch (int v = num; v) {
@@ -58,7 +58,7 @@ int switch_init(int num)
 int switch_fallthorugh_1(int num)
 {
     // CHECK: hl.switch cond {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref( @num )
+    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] )
     // CHECK: hl.value.yield [[V2]]
     switch (num) {
@@ -81,7 +81,7 @@ int switch_fallthorugh_1(int num)
 int switch_fallthorugh_2(int num)
 {
     // CHECK: hl.switch cond {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref( @num )
+    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] )
     // CHECK: hl.value.yield [[V2]]
     switch (num) {
@@ -104,7 +104,7 @@ int switch_fallthorugh_2(int num)
 int switch_nodefault(int num)
 {
     // CHECK: hl.switch cond {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref( @num )
+    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] )
     // CHECK: hl.value.yield [[V2]]
     switch (num) {
@@ -125,7 +125,7 @@ int switch_nodefault(int num)
 int switch_break(int num)
 {
     // CHECK: hl.switch cond {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref( @num )
+    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] )
     // CHECK: hl.value.yield [[V2]]
     switch (num) {
@@ -147,7 +147,7 @@ int switch_break(int num)
 int switch_block(int num)
 {
     // CHECK: hl.switch cond {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref( @num )
+    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] )
     // CHECK: hl.value.yield [[V2]]
     switch (num) {
@@ -173,7 +173,7 @@ void switch_single(int num)
 {
     int v = 0;
     // CHECK: hl.switch cond {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref( @num )
+    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] )
     // CHECK: hl.value.yield [[V2]]
     switch (num)
@@ -189,7 +189,7 @@ void switch_no_compound(int num)
 {
     int v = 0;
     // CHECK: hl.switch cond {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref( @num )
+    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast( [[V1]] )
     // CHECK: hl.value.yield [[V2]]
     switch (num)
