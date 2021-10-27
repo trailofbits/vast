@@ -24,6 +24,30 @@ namespace vast::hl
         }
     } // namespace detail
 
+    static ParseResult parseConstantOp(Parser &parser, State &st) {
+        Attribute val;
+        Type type;
+        if (parser.parseAttribute(val, "value", st.attributes) || parser.parseOptionalAttrDict(st.attributes))
+            return LogicalResult::failure();
+        if (parser.parseOptionalColon() || !parser.parseOptionalType(type).hasValue())
+            type = val.getType();
+        return parser.addTypeToList(val.getType(), st.types);
+    }
+
+    static void printConstantOp(Printer &printer, ConstantOp op)
+    {
+        printer << op.getOperationName() << " ";
+        printer.printAttributeWithoutType(op.valueAttr());
+        printer.printOptionalAttrDict(op->getAttrs(), {"value"});
+        printer << " : " << op.getType();
+    }
+
+    FoldResult ConstantOp::fold(llvm::ArrayRef<Attribute> operands)
+    {
+        assert(operands.empty() && "const has no operands");
+        return value();
+    }
+
     void IfOp::build(Builder &bld, State &st, BuilderCallback condBuilder, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
     {
         assert(condBuilder && "the builder callback for 'condition' block must be present");

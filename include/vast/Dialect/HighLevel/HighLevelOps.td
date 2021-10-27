@@ -41,14 +41,11 @@ def HighLevel_VarOp : HighLevel_Op< "var", [] > {
   let builders = [
     OpBuilder< (ins "mlir::Type":$result, "llvm::StringRef":$name),
     [{
-      build($_builder, $_state, result, $_builder.getStringAttr(name));
-    }] >,
-    OpBuilder< (ins "mlir::Type":$result, "mlir::StringAttr":$name),
-    [{
-      build($_builder, $_state, result, name, mlir::Value());
+      build($_builder, $_state, result, $_builder.getStringAttr(name), Value());
     }] >
   ];
 
+  // FIXME(Heno): use assemblyFormat
   let verifier = ? ;
   let printer = [{
     p << getOperationName()
@@ -61,7 +58,7 @@ def HighLevel_VarOp : HighLevel_Op< "var", [] > {
 }
 
 
-def HighLevel_DeclRefOp : HighLevel_Op< "declref", [] > {
+def HighLevel_DeclRefOp : HighLevel_Op< "declref", [NoSideEffect] > {
   let summary = "VAST reference declaration";
   let description = [{ VAST reference declaration }];
 
@@ -79,25 +76,19 @@ def HighLevel_DeclRefOp : HighLevel_Op< "declref", [] > {
 }
 
 
-def HighLevel_ConstantOp : HighLevel_Op< "constant", [] > {
+def HighLevel_ConstantOp : HighLevel_Op< "constant",
+  [ConstantLike, NoSideEffect, FirstAttrDerivedResultType]
+> {
   let summary = "VAST constant";
   let description = [{ VAST constant }];
 
   let arguments = (ins AnyAttr:$value);
+  let results = (outs AnyType:$result);
 
-  // FIXME: More specific type.
-  let results = (outs AnyType);
+  let hasFolder = 1;
 
-  let builders = [OpBuilder< (
-      ins "mlir::Attribute":$value
-    ) >
-  ];
-
-  let verifier = ? ;
-  let printer = [{ p << getOperationName()
-                     << "( " <<  value() << " )";
-                   p << ": " << getResult().getType();
-  }];
+  let printer = "return print$cppClass(p, *this);";
+  let parser = "return parse$cppClass(parser, result);";
 }
 
 
@@ -380,7 +371,7 @@ def Predicate : PredicateList< "Predicate", "comparison predicate", [
 ] >;
 
 
-def HighLevel_CmpOp : HighLevel_Op< "cmp", [NoSideEffect, SameTypeOperands] >
+def HighLevel_CmpOp : HighLevel_Op< "cmp", [NoSideEffect, SameTypeOperands, Commutative] >
 {
   let summary = "VAST comparison operation";
   let description = [{ VAST comparison operation }];

@@ -36,7 +36,7 @@ class HighLevel_UnInplaceOp< string mnemonic, list< OpTrait > traits = [] >
 }
 
 class HighLevel_UnOp< string mnemonic, list< OpTrait > traits = [] >
-    : HighLevel_Op< mnemonic, !listconcat(traits, [SameOperandsAndResultType]) >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
 {
     let summary = "VAST unary inplace operation";
     let description = [{ VAST unary inplace operation }];
