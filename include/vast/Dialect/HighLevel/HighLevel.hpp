@@ -17,14 +17,24 @@ VAST_RELAX_WARNINGS
 
 namespace vast::hl
 {
-    // fixes missing namespace in the tablegen code
+    using Type = mlir::Type;
     using Value = mlir::Value;
+    using Attribute = mlir::Attribute;
 
     using Region    = mlir::Region;
     using Builder   = mlir::OpBuilder;
     using Location  = mlir::Location;
     using State     = mlir::OperationState;
     using TypeRange = mlir::TypeRange;
+
+    using Parser      = mlir::OpAsmParser;
+    using ParseResult = mlir::ParseResult;
+
+    using Printer     = mlir::OpAsmPrinter;
+
+    using LogicalResult = mlir::LogicalResult;
+
+    using FoldResult = mlir::OpFoldResult;
 
     using BuilderCallback = llvm::function_ref< void(Builder &, Location) >;
 
