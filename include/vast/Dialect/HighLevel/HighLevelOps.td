@@ -273,21 +273,15 @@ class HighLevel_CastOp< string mnemonic, list< OpTrait > traits = [] >
     let description = [{ VAST cast operation }];
 
     let arguments = (ins AnyType:$value, CastKind:$kind);
-    let results = (outs AnyType:$res);
+    let results = (outs AnyType:$result);
 
-    let verifier = ? ;
-
-    let printer = [{
-        p << getOperationName()
-        << "( " << value() << " ) " << stringifyCastKind(kind()) << ": "
-        << getResult().getType();
-    }];
+    let assemblyFormat = "$value $kind attr-dict `:` type($value)`->` type($result)";
 }
 
 
 def HighLevel_ImplicitCastOp   : HighLevel_CastOp< "implicit_cast", [] >;
 def HighLevel_CStyleCastOp     : HighLevel_CastOp< "cstyle_cast", [] >;
-def HighLevel_BuiltinBitCastOp : HighLevel_CastOp< "builtin_bit_cast", [] >;
+def HighLevel_BuiltinBitCastOp : HighLevel_CastOp< "builtin_bitcast", [] >;
 
 
 def HighLevel_AddIOp : HighLevel_BinOp< "add", [Commutative]>;
