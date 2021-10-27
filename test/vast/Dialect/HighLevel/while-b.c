@@ -4,7 +4,7 @@
 void while_break()
 {
     // CHECK: hl.while
-    // CHECK: [[V1:%[0-9]+]] = hl.constant( true )
+    // CHECK: [[V1:%[0-9]+]] = hl.constant true
     // CHECK: hl.cond.yield [[V1]]
     while (true) {
         // CHECK: } do {
@@ -18,7 +18,7 @@ void while_break()
 void while_continue()
 {
     // CHECK: hl.while
-    // CHECK: [[V1:%[0-9]+]] = hl.constant( true )
+    // CHECK: [[V1:%[0-9]+]] = hl.constant true
     // CHECK: hl.cond.yield [[V1]]
     while (true) {
         // CHECK: } do {
