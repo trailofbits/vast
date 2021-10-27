@@ -18,15 +18,9 @@ class HighLevel_BinOp< string mnemonic, list< OpTrait > traits = [] >
     let description = [{ VAST binary operation }];
 
     let arguments = (ins AnyType:$lhs, AnyType:$rhs);
-    let results = (outs AnyType:$res);
+    let results = (outs AnyType:$result);
 
-    let verifier = ? ;
-
-    let printer = [{
-        p << getOperationName();
-        p << " " << lhs() << ", " << rhs();
-        p << " : " << getResult().getType();
-    }];
+    let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` type($result) }];
 }
 
 
@@ -38,11 +32,7 @@ class HighLevel_UnInplaceOp< string mnemonic, list< OpTrait > traits = [] >
 
     let arguments = (ins AnyType:$arg);
 
-    let verifier = ? ;
-
-    let printer = [{
-        p << getOperationName() << " " << arg() << " : " << arg().getType();
-    }];
+    let assemblyFormat = [{ $arg attr-dict `:` type($arg) }];
 }
 
 class HighLevel_UnOp< string mnemonic, list< OpTrait > traits = [] >
@@ -52,13 +42,9 @@ class HighLevel_UnOp< string mnemonic, list< OpTrait > traits = [] >
     let description = [{ VAST unary inplace operation }];
 
     let arguments = (ins AnyType:$arg);
-    let results = (outs AnyType:$res);
+    let results = (outs AnyType:$result);
 
-    let verifier = ? ;
-
-    let printer = [{
-        p << getOperationName() << " " << arg() << " : " << arg().getType();
-    }];
+    let assemblyFormat = [{ $arg attr-dict `:` type($result) }];
 }
 
 
@@ -70,11 +56,7 @@ class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
 
     let arguments = (ins AnyType:$dst, AnyType:$src);
 
-    let verifier = ? ;
-
-    let printer = [{
-        p << getOperationName() << " " << src() << " → " << dst();
-    }];
+    let assemblyFormat = [{ $src `to` $dst attr-dict `:` type($src) }];
 }
 
 include "HighLevelOps.td"
