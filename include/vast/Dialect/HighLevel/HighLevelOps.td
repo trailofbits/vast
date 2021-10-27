@@ -92,20 +92,10 @@ def HighLevel_ConstantOp : HighLevel_Op< "constant",
 }
 
 
-def HighLevel_UnreachableOp : HighLevel_Op<"unreachable", [Terminator]> {
+def HighLevel_UnreachableOp : HighLevel_Op<"unreachable", [Terminator, NoSideEffect]> {
   let summary = "VAST unreachable operation";
   let description = [{ VAST unreachable operation }];
-
-  let arguments = (ins Variadic<AnyType>:$operands);
-
-  let builders = [OpBuilder<(ins), [{ }]>];
-
-  let verifier = ?;
-  let printer = [{
-    p << getOperationName() << " ";
-    if (!operands().empty())
-      p << *operand_begin();
-  }];
+  let assemblyFormat = "attr-dict";
 }
 
 class CastKindAttr< string name, int val > : I64EnumAttrCase< name, val > {}
