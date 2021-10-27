@@ -50,7 +50,7 @@ void loop_infinite()
 {
     // CHECK: hl.for {
     // CHECK: } cond {
-    // CHECK: [[V1:%[0-9]+]] = hl.constant( true )
+    // CHECK: [[V1:%[0-9]+]] = hl.constant true
     // CHECK: hl.cond.yield [[V1]]
     // CHECK: } incr {
     // CHECK: } do {

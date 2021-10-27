@@ -28,8 +28,8 @@ int add2(int a, int b)
 
 void add3()
 {
-    // CHECK: [[V1:%[0-9]+]] = hl.constant( 1 : i32 ): !hl.int
-    // CHECK: [[V2:%[0-9]+]] = hl.constant( 2 : i32 ): !hl.int
+    // CHECK: [[V1:%[0-9]+]] = hl.constant 1 : !hl.int
+    // CHECK: [[V2:%[0-9]+]] = hl.constant 2 : !hl.int
     // CHECK: [[V3:%[0-9]+]] = hl.add %0, %1 : !hl.int
     // CHECK: [[V4:%[0-9]+]] = hl.var( v, %2 ): !hl.int
     int v = 1 + 2;
