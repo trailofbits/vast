@@ -43,6 +43,7 @@ VAST_RELAX_WARNINGS
 #include <llvm/Support/ErrorHandling.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Util/Types.hpp"
 #include "vast/Translation/Types.hpp"
 #include "vast/Translation/Expr.hpp"
 #include "vast/Dialect/HighLevel/HighLevel.hpp"
@@ -192,43 +193,27 @@ namespace vast::hl
 
         mlir::Block * createBlock(mlir::Region *parent) { return builder.createBlock(parent); }
 
-        mlir::Attribute constant_attr(const IntegerType &ty, int64_t value)
+        mlir::Value integer_value(mlir::Location loc, IntegerType ty, llvm::APInt value)
         {
-            // TODO(Heno): make datalayout aware
-            switch(ty.getKind()) {
-                case vast::hl::integer_kind::Char:      return builder.getI8IntegerAttr(  char(value) );
-                case vast::hl::integer_kind::Short:     return builder.getI16IntegerAttr( short(value) );
-                case vast::hl::integer_kind::Int:       return builder.getI32IntegerAttr( int(value) );
-                case vast::hl::integer_kind::Long:      return builder.getI64IntegerAttr( long(value) );
-                case vast::hl::integer_kind::LongLong:  return builder.getI64IntegerAttr(value);
-            }
+            return make< ConstantOp >(loc, ty, value);
         }
 
-        mlir::Value true_value(mlir::Location loc)
+        mlir::Value bool_value(mlir::Location loc, bool value)
         {
-            auto attr = builder.getBoolAttr(true);
-            auto bty = BoolType::get(&mctx);
-            return make< ConstantOp >(loc, bty, attr);
+            return make< ConstantOp >(loc, value);
         }
 
-        mlir::Value false_value(mlir::Location loc)
-        {
-            auto attr = builder.getBoolAttr(false);
-            auto bty = BoolType::get(&mctx);
-            return make< ConstantOp >(loc, bty, attr);
-        }
+        mlir::Value true_value(mlir::Location loc)  { return bool_value(loc, true);  }
+        mlir::Value false_value(mlir::Location loc) { return bool_value(loc, false); }
 
-        mlir::Value constant(mlir::Location loc, mlir::Type ty, int64_t value)
+        mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APInt value)
         {
             if (ty.isa< IntegerType >()) {
-                auto ity = ty.cast< IntegerType >();
-                auto attr = constant_attr(ity, value);
-                return make< ConstantOp >(loc, ity, attr);
+                return integer_value(loc, ty.cast< IntegerType >(), value);
             }
 
             if (ty.isa< BoolType >()) {
-                auto attr = builder.getBoolAttr(value);
-                return make< ConstantOp >(loc, ty, attr);
+                return bool_value(loc, value.getBoolValue());
             }
 
             llvm_unreachable( "unsupported constant type" );
@@ -842,7 +827,7 @@ namespace vast::hl
             auto loc = builder.getLocation(expr->getSourceRange());
             auto type = types.convert(expr->getType());
             // TODO(Heno): rework APSInt work
-            return builder.constant(loc, type, expr->getResultAsAPSInt().getExtValue() );
+            return builder.constant(loc, type, expr->getResultAsAPSInt() );
         }
 
         ValueOrStmt VisitArraySubscriptExpr(clang::ArraySubscriptExpr *expr)
@@ -1562,7 +1547,7 @@ namespace vast::hl
         {
             auto type = types.convert(lit->getType());
             auto loc = builder.getLocation(lit->getSourceRange());
-            return builder.constant(loc, type, val);
+            return builder.constant(loc, type, apint(val) );
         }
 
         ValueOrStmt VisitBuiltinBitCastExpr(clang::BuiltinBitCastExpr *expr)
@@ -1728,7 +1713,7 @@ namespace vast::hl
                 } else {
                     if (decl->isMain()) {
                         // return zero if no return is present in main
-                        auto zero = builder.constant(end_loc, type.getResult(0), 0);
+                    auto zero = builder.constant(end_loc, type.getResult(0), apint(0));
                         make< ReturnOp >(end_loc, zero);
                     } else {
                         make< UnreachableOp >(beg_loc);

@@ -75,22 +75,23 @@ def HighLevel_DeclRefOp : HighLevel_Op< "declref", [NoSideEffect] > {
   let assemblyFormat = "$decl attr-dict `:` type($result) ";
 }
 
-
 def HighLevel_ConstantOp : HighLevel_Op< "constant",
   [ConstantLike, NoSideEffect, FirstAttrDerivedResultType]
 > {
   let summary = "VAST constant";
   let description = [{ VAST constant }];
 
-  let arguments = (ins AnyAttr:$value);
+  let arguments = (ins APIntAttr:$value);
   let results = (outs AnyType:$result);
 
-  let hasFolder = 1;
+  let builders = [
+    OpBuilder<(ins "IntegerType":$type, "llvm::APInt":$value)>,
+    OpBuilder<(ins "bool":$value)>
+  ];
 
   let printer = "return print$cppClass(p, *this);";
   let parser = "return parse$cppClass(parser, result);";
 }
-
 
 def HighLevel_UnreachableOp : HighLevel_Op<"unreachable", [Terminator, NoSideEffect]> {
   let summary = "VAST unreachable operation";
@@ -275,7 +276,7 @@ class HighLevel_CastOp< string mnemonic, list< OpTrait > traits = [] >
     let arguments = (ins AnyType:$value, CastKind:$kind);
     let results = (outs AnyType:$result);
 
-    let assemblyFormat = "$value $kind attr-dict `:` type($value)`->` type($result)";
+    let assemblyFormat = "$value $kind attr-dict `:` type($value) `->` type($result)";
 }
 
 
@@ -343,7 +344,7 @@ def HighLevel_CmpOp : HighLevel_Op< "cmp", [NoSideEffect, SameTypeOperands, Comm
   let description = [{ VAST comparison operation }];
 
   let arguments = (ins Predicate:$predicate, AnyType:$lhs, AnyType:$rhs);
-  let results = (outs Bool:$result);
+  let results = (outs HighLevel_Bool:$result);
 
   let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type($lhs)";
 
