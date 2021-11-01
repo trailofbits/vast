@@ -1,17 +1,22 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
 #include "vast/Dialect/HighLevel/HighLevel.hpp"
-#include "mlir/IR/TypeSupport.h"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/SMLoc.h"
 
+#include <mlir/IR/TypeSupport.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/DialectImplementation.h>
+
 #include <llvm/ADT/TypeSwitch.h>
+#include <llvm/Support/ErrorHandling.h>
+#include <llvm/Support/SMLoc.h>
 
 #define  GET_TYPEDEF_CLASSES
 #include "vast/Dialect/HighLevel/HighLevelTypes.cpp.inc"
+
+#define GET_ATTRDEF_CLASSES
+#include "vast/Dialect/HighLevel/HighLevelAttributes.cpp.inc"
+
 namespace vast::hl
 {
     void HighLevelDialect::initialize()
@@ -23,6 +28,10 @@ namespace vast::hl
         addTypes<
             #define GET_TYPEDEF_LIST
             #include "vast/Dialect/HighLevel/HighLevelTypes.cpp.inc"
+        >();
+        addAttributes<
+            #define GET_ATTRDEF_LIST
+            #include "vast/Dialect/HighLevel/HighLevelAttributes.cpp.inc"
         >();
     }
 
