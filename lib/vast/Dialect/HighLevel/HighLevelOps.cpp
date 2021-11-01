@@ -24,6 +24,20 @@ namespace vast::hl
         }
     } // namespace detail
 
+    void ConstantOp::build(Builder &bld, State &st, bool value)
+    {
+        auto type = BoolType::get(bld.getContext());
+        auto attr = bld.getBoolAttr(value);
+        return build(bld, st, type, attr);
+    }
+
+    void ConstantOp::build(Builder &bld, State &st, IntegerType type, llvm::APInt value)
+    {
+        auto ity = mlir::IntegerType::get(bld.getContext(), value.getBitWidth());
+        auto attr = bld.getIntegerAttr(ity, value);
+        return build(bld, st, type, attr);
+    }
+
     static ParseResult parseConstantOp(Parser &parser, State &st) {
         Attribute val;
         Type type;
@@ -38,15 +52,16 @@ namespace vast::hl
     {
         printer << op.getOperationName() << " ";
         printer.printAttributeWithoutType(op.valueAttr());
+        printer << " : ";
+        printer.printType(op.getType());
         printer.printOptionalAttrDict(op->getAttrs(), {"value"});
-        printer << " : " << op.getType();
     }
 
-    FoldResult ConstantOp::fold(llvm::ArrayRef<Attribute> operands)
-    {
-        assert(operands.empty() && "const has no operands");
-        return value();
-    }
+    // FoldResult ConstantOp::fold(llvm::ArrayRef<Attribute> operands)
+    // {
+    //     assert(operands.empty() && "const has no operands");
+    //     return value();
+    // }
 
     void IfOp::build(Builder &bld, State &st, BuilderCallback condBuilder, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
     {
