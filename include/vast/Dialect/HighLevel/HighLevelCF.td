@@ -19,7 +19,7 @@ def HighLevel_CondYieldOp : HighLevel_Op< "cond.yield", [
   let summary = "condition yield operation";
   let description = [{ "condition yield operation" }];
 
-  let arguments = (ins Bool:$result);
+  let arguments = (ins HighLevel_Bool:$result);
   let results = (outs);
 
   let assemblyFormat = [{ attr-dict $result `:` type($result) }];
