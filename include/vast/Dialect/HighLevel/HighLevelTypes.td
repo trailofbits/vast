@@ -13,18 +13,18 @@ class HighLevel_Type< string name, string type_mnemonic >
 
 // Builtin C Types
 
-def Void : HighLevel_Type< "Void", "void" >
+def HighLevel_Void : HighLevel_Type< "Void", "void" >
          , BuildableType< "VoidType::get($_builder.getContext())" >
 {
-    let summary = "An high level void type representation.";
-    let description = [{ void type }];
+    let summary = "VAST high level void type";
+    let description = [{ VAST high level void type }];
 }
 
-def Bool : HighLevel_Type< "Bool", "bool" >
+def HighLevel_Bool : HighLevel_Type< "Bool", "bool" >
          , BuildableType< "BoolType::get($_builder.getContext())" >
 {
-    let summary = "An high level bool type representation.";
-    let description = [{ bool type }];
+    let summary = "VAST high level bool type";
+    let description = [{ VAST high level bool type }];
 
     let parameters = (ins
         "bool":$isVolatile,
@@ -56,7 +56,7 @@ def Bool : HighLevel_Type< "Bool", "bool" >
     }];
 }
 
-def Integer : HighLevel_Type< "Integer", "integer" >
+def HighLevel_Integer : HighLevel_Type< "Integer", "integer" >
 {
     let summary = "An high level generic integer type representation.";
     let description = [{ integer type }];
