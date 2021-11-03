@@ -18,11 +18,13 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevel.hpp"
+#include "vast/Dialect/HighLevel/Passes.hpp"
 
 int main(int argc, char **argv)
 {
     mlir::registerAllPasses();
     // Register VAST passes here
+    vast::hl::registerPasses();
 
     mlir::DialectRegistry registry;
     registry.insert< vast::hl::HighLevelDialect >();

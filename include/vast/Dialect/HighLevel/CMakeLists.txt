@@ -10,3 +10,8 @@ add_public_tablegen_target(MLIRHighLevelEnumsIncGen)
 mlir_tablegen(HighLevelAttributes.h.inc -gen-attrdef-decls)
 mlir_tablegen(HighLevelAttributes.cpp.inc -gen-attrdef-defs)
 add_public_tablegen_target(MLIRHighLevelAttributesIncGen)
+
+set(LLVM_TARGET_DEFINITIONS Passes.td)
+mlir_tablegen(Passes.h.inc -gen-pass-decls)
+add_public_tablegen_target(HighLevelTransformsIncGen)
+add_mlir_doc(Passes -gen-pass-doc HighLevelPasses ./)

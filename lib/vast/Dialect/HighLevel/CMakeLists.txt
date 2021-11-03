@@ -19,3 +19,5 @@ add_mlir_dialect_library(MLIRHighLevel
 )
 
 target_link_libraries(MLIRHighLevel PRIVATE vast_settings)
+
+add_subdirectory(Transforms)
