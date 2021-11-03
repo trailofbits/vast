@@ -1,5 +1,8 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
+#include "vast/Util/Warnings.hpp"
+
+VAST_RELAX_WARNINGS
 #include "mlir/IR/Dialect.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/InitAllDialects.h"
@@ -12,6 +15,7 @@
 #include "llvm/Support/InitLLVM.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/ToolOutputFile.h"
+VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevel.hpp"
 

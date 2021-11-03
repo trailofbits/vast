@@ -11,7 +11,8 @@
   _Pragma( "clang diagnostic ignored \"-Wold-style-cast\"" ) \
   _Pragma( "clang diagnostic ignored \"-Wunused-parameter\"" ) \
   _Pragma( "clang diagnostic ignored \"-Wcast-align\"" ) \
-  _Pragma( "clang diagnostic ignored \"-Wimplicit-int-conversion\"" )
+  _Pragma( "clang diagnostic ignored \"-Wimplicit-int-conversion\"" ) \
+  _Pragma( "clang diagnostic ignored \"-Wambiguous-reversed-operator\"" )
 
 #define VAST_UNRELAX_WARNINGS \
   _Pragma( "clang diagnostic pop" )
