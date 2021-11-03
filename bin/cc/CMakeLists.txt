@@ -16,6 +16,7 @@ target_link_libraries(vast-cc
 
         MLIROptLib
         MLIRHighLevel
+        MLIRHighLevelTransforms
 
         MLIRIR
         MLIRParser
