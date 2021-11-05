@@ -14,9 +14,9 @@ namespace vast::hl
 {
     using BuiltinType = clang::BuiltinType;
 
-    constexpr SignednessQualifier get_signedness_qualifier(const BuiltinType *ty)
+    constexpr Signedness get_signedness_qualifier(const BuiltinType *ty)
     {
-        return ty->isSignedInteger() ? SignednessQualifier::Signed : SignednessQualifier::Unsigned;
+        return ty->isSignedInteger() ? Signedness::Signed : Signedness::Unsigned;
     }
 
     constexpr IntegerKind get_integer_kind(const BuiltinType *ty)
@@ -52,11 +52,11 @@ namespace vast::hl
     {
         std::vector< Qualifier > qualifiers;
         if (ty->isUnsignedInteger() && !is_bool_type(ty))
-            qualifiers.push_back(SignednessQualifier::Unsigned);
+            qualifiers.push_back(Signedness::Unsigned);
         if (quals.hasConst())
-            qualifiers.push_back(ConstQualifier());
+            qualifiers.push_back(Const());
         if (quals.hasVolatile())
-            qualifiers.push_back(VolatileQualifier());
+            qualifiers.push_back(Volatile());
         return qualifiers;
     }
 

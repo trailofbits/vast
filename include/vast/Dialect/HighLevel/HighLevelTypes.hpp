@@ -68,39 +68,39 @@ namespace vast::hl
     /* qualifiers */
 
     /* volatile qualifier */
-    struct VolatileQualifier {};
+    struct Volatile {};
 
-    inline std::string to_string(VolatileQualifier) { return "volatile"; }
-    constexpr llvm::hash_code hash_value(VolatileQualifier) { return llvm::hash_code(); }
+    inline std::string to_string(Volatile) { return "volatile"; }
+    constexpr llvm::hash_code hash_value(Volatile) { return llvm::hash_code(); }
 
-    constexpr bool operator==(const VolatileQualifier& lhs, const VolatileQualifier& rhs) { return true; }
+    constexpr bool operator==(const Volatile& lhs, const Volatile& rhs) { return true; }
 
     /* const qualifier */
-    struct ConstQualifier {};
+    struct Const {};
 
-    inline std::string to_string(ConstQualifier) { return "const"; }
-    constexpr llvm::hash_code hash_value(ConstQualifier) { return llvm::hash_code(); }
+    inline std::string to_string(Const) { return "const"; }
+    constexpr llvm::hash_code hash_value(Const) { return llvm::hash_code(); }
 
-    constexpr bool operator==(const ConstQualifier& lhs, const ConstQualifier& rhs) { return true; }
+    constexpr bool operator==(const Const& lhs, const Const& rhs) { return true; }
 
     /* signedness qualifier */
-    enum class SignednessQualifier { Signed, Unsigned };
+    enum class Signedness { Signed, Unsigned };
 
-    inline std::string to_string(SignednessQualifier qual)
+    inline std::string to_string(Signedness qual)
     {
         switch (qual) {
-            case SignednessQualifier::Signed:   return "signed";
-            case SignednessQualifier::Unsigned: return "unsigned";
+            case Signedness::Signed:   return "signed";
+            case Signedness::Unsigned: return "unsigned";
         }
     }
 
-    constexpr llvm::hash_code hash_value(const SignednessQualifier &qual)
+    constexpr llvm::hash_code hash_value(const Signedness &qual)
     {
         return llvm::hash_value(qual);
     }
 
     /* variants of possible qualifiers */
-    using Qualifier = std::variant< VolatileQualifier, ConstQualifier, SignednessQualifier >;
+    using Qualifier = std::variant< Volatile, Const, Signedness >;
 
     std::string to_string(const Qualifier &qual);
 
@@ -187,17 +187,17 @@ namespace vast::hl
     }
 
     /* qualifier parsers */
-    constexpr parser< SignednessQualifier > auto SignednessQualifier_parser()
+    constexpr parser< Signedness > auto Signedness_parser()
     {
-        return enum_parser( SignednessQualifier::Signed ) |
-               enum_parser( SignednessQualifier::Unsigned );
+        return enum_parser( Signedness::Signed ) |
+               enum_parser( Signedness::Unsigned );
     }
 
     constexpr parser< Qualifier > auto qualifier_parser()
     {
-        auto con = construct< Qualifier >( trivial_parser< ConstQualifier >() );
-        auto vol = construct< Qualifier >( trivial_parser< VolatileQualifier >() );
-        auto sig = construct< Qualifier >( SignednessQualifier_parser() );
+        auto con = construct< Qualifier >( trivial_parser< Const >() );
+        auto vol = construct< Qualifier >( trivial_parser< Volatile >() );
+        auto sig = construct< Qualifier >( Signedness_parser() );
 
         return con | vol | sig;
     }
@@ -318,7 +318,7 @@ namespace vast::hl
     std::string to_string(VoidType type);
 
     /* Bool Type */
-    using BoolStorage = QualifiersStorage< ConstQualifier, VolatileQualifier >;
+    using BoolStorage = QualifiersStorage< Const, Volatile >;
 
     struct BoolType : WithQualifiers< WithStorage< BoolType, BoolStorage > >
     {
@@ -337,7 +337,7 @@ namespace vast::hl
     std::string to_string(BoolType type);
 
     /* Integer Types */
-    using IntegerStorage = KindQualifiersStorage< IntegerKind, ConstQualifier, VolatileQualifier, SignednessQualifier >;
+    using IntegerStorage = KindQualifiersStorage< IntegerKind, Const, Volatile, Signedness >;
 
     struct IntegerType : WithKind< IntegerKind, WithQualifiers< WithStorage< IntegerType, IntegerStorage > > >
     {
@@ -355,7 +355,7 @@ namespace vast::hl
     std::string to_string(IntegerType type);
 
     /* Floating Types */
-    using FloatingStorage = KindQualifiersStorage< FloatingKind, ConstQualifier, VolatileQualifier, SignednessQualifier >;
+    using FloatingStorage = KindQualifiersStorage< FloatingKind, Const, Volatile, Signedness >;
 
     struct FloatingType : WithKind< FloatingKind, WithQualifiers< WithStorage< FloatingType, FloatingStorage > > >
     {
