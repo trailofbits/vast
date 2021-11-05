@@ -12,4 +12,13 @@ def LowerHighLevelTypes : Pass<"vast-hl-lower-types"> {
   let constructor = "vast::hl::createLowerHighLevelTypesPass()";
 }
 
+
+def LowerHighLevelControlFlow : Pass<"vast-hl-lower-cf"> {
+  let summary = "Lower high-level types to standard types";
+  let description = [{ }];
+
+  let constructor = "vast::hl::createLowerHighLevelControlFlowPass()";
+}
+
+
 #endif // VAST_DIALECT_HIGHLEVEL_PASSES_TD
