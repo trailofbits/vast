@@ -19,9 +19,9 @@ namespace vast::hl
 
     struct TypeConverter
     {
-        using context = mlir::MLIRContext;
+        using Context = mlir::MLIRContext;
 
-        TypeConverter(context *ctx) : ctx(ctx) {}
+        TypeConverter(Context *ctx) : ctx(ctx) {}
 
         mlir::Type convert(clang::QualType ty);
 
@@ -30,7 +30,7 @@ namespace vast::hl
         mlir::FunctionType convert(const clang::FunctionType *ty);
 
     private:
-        context *ctx;
+        Context *ctx;
     };
 
 } // namespace vast::hl

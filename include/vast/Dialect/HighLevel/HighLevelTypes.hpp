@@ -22,103 +22,128 @@ VAST_UNRELAX_WARNINGS
 #define GET_TYPEDEF_CLASSES
 #include "vast/Dialect/HighLevel/HighLevelTypes.h.inc"
 
+#include <set>
+
 namespace vast::hl
 {
     using Type = mlir::Type;
     using Context = mlir::MLIRContext;
 
     /* void type */
-    struct void_mnemonic {};
+    struct VoidMnemonic {};
 
-    constexpr std::string_view to_string(void_mnemonic) { return "void"; }
+    inline std::string to_string(VoidMnemonic) { return "void"; }
 
     /* bool type */
-    struct bool_mnemonic {};
+    struct BoolMnemonic {};
 
-    constexpr std::string_view to_string(bool_mnemonic) { return "bool"; }
+    inline std::string to_string(BoolMnemonic) { return "bool"; }
 
     /* integer types */
-    enum class integer_kind { Char, Short, Int, Long, LongLong };
+    enum class IntegerKind { Char, Short, Int, Long, LongLong };
 
-    constexpr std::string_view to_string(integer_kind kind)
+    inline std::string to_string(IntegerKind kind)
     {
         switch (kind) {
-            case integer_kind::Char:     return "char";
-            case integer_kind::Short:    return "short";
-            case integer_kind::Int:      return "int";
-            case integer_kind::Long:     return "long";
-            case integer_kind::LongLong: return "longlong";
+            case IntegerKind::Char:     return "char";
+            case IntegerKind::Short:    return "short";
+            case IntegerKind::Int:      return "int";
+            case IntegerKind::Long:     return "long";
+            case IntegerKind::LongLong: return "longlong";
         }
     }
 
     /* floating point types */
-    enum class floating_kind { Float, Double, LongDouble };
+    enum class FloatingKind { Float, Double, LongDouble };
 
-    constexpr std::string_view to_string(floating_kind kind)
+    inline std::string to_string(FloatingKind kind)
     {
         switch (kind) {
-            case floating_kind::Float:      return "float";
-            case floating_kind::Double:     return "double";
-            case floating_kind::LongDouble: return "longdouble";
+            case FloatingKind::Float:      return "float";
+            case FloatingKind::Double:     return "double";
+            case FloatingKind::LongDouble: return "longdouble";
         }
     }
 
     /* qualifiers */
-    struct volatile_qualifier {};
 
-    constexpr std::string_view to_string(volatile_qualifier) { return "volatile"; }
+    /* volatile qualifier */
+    struct VolatileQualifier {};
 
-    struct const_qualifier {};
+    inline std::string to_string(VolatileQualifier) { return "volatile"; }
+    constexpr llvm::hash_code hash_value(VolatileQualifier) { return llvm::hash_code(); }
 
-    constexpr std::string_view to_string(const_qualifier) { return "const"; }
+    constexpr bool operator==(const VolatileQualifier& lhs, const VolatileQualifier& rhs) { return true; }
 
-    enum class signedness_qualifier { Signed, Unsigned };
+    /* const qualifier */
+    struct ConstQualifier {};
 
-    constexpr std::string_view to_string(signedness_qualifier qual)
+    inline std::string to_string(ConstQualifier) { return "const"; }
+    constexpr llvm::hash_code hash_value(ConstQualifier) { return llvm::hash_code(); }
+
+    constexpr bool operator==(const ConstQualifier& lhs, const ConstQualifier& rhs) { return true; }
+
+    /* signedness qualifier */
+    enum class SignednessQualifier { Signed, Unsigned };
+
+    inline std::string to_string(SignednessQualifier qual)
     {
         switch (qual) {
-            case signedness_qualifier::Signed:   return "signed";
-            case signedness_qualifier::Unsigned: return "unsigned";
+            case SignednessQualifier::Signed:   return "signed";
+            case SignednessQualifier::Unsigned: return "unsigned";
         }
     }
 
-    /* variants of possible qualifiers */
-    using qualifier = std::variant< volatile_qualifier, const_qualifier, signedness_qualifier >;
+    constexpr llvm::hash_code hash_value(const SignednessQualifier &qual)
+    {
+        return llvm::hash_value(qual);
+    }
 
-    constexpr std::string_view to_string(const qualifier &qual);
+    /* variants of possible qualifiers */
+    using Qualifier = std::variant< VolatileQualifier, ConstQualifier, SignednessQualifier >;
+
+    std::string to_string(const Qualifier &qual);
+
+    constexpr llvm::hash_code hash_value(const Qualifier &qual);
 
     /* variants of possible type mnemonics */
-    using mnemonic = std::variant< integer_kind, floating_kind >;
+    using Mnemonic = std::variant< VoidMnemonic, BoolMnemonic, IntegerKind, FloatingKind >;
 
-    constexpr std::string_view to_string(const mnemonic &mnem);
+    std::string to_string(const Mnemonic &mnem);
 
     /* possible type name tokens */
-    using token = std::variant< qualifier, mnemonic >;
+    using TypeToken = std::variant< Qualifier, Mnemonic >;
 
-    constexpr std::string_view to_string(const token &tok);
+    std::string to_string(const TypeToken &token);
 
     namespace detail
     {
-        static constexpr auto to_string = [] (const auto &v) { return vast::hl::to_string(v); };
+        static constexpr auto to_string  = [] (const auto &v) { return vast::hl::to_string(v); };
+        static constexpr auto hash_value = [] (const auto &v) { return vast::hl::hash_value(v); };
     }
 
-    constexpr std::string_view to_string(const qualifier &qual)
+    inline std::string to_string(const Qualifier &qual)
     {
         return std::visit(detail::to_string, qual);
     }
 
-    constexpr std::string_view to_string(const mnemonic &mnem)
+    constexpr llvm::hash_code hash_value(const Qualifier &qual)
+    {
+        return std::visit(detail::hash_value, qual);
+    }
+
+    inline std::string to_string(const Mnemonic &mnem)
     {
         return std::visit(detail::to_string, mnem);
     }
 
-    constexpr std::string_view to_string(const token &tok)
+    inline std::string to_string(const TypeToken &tok)
     {
         return std::visit(detail::to_string, tok);
     }
 
     template< typename stream >
-    auto operator<<(stream &os, const token &tok) -> decltype(os << "")
+    auto operator<<(stream &os, const TypeToken &tok) -> decltype(os << "")
     {
         return os << to_string(tok);
     }
@@ -138,56 +163,58 @@ namespace vast::hl
     }
 
     /* type mnemonic parsers */
-    constexpr parser< integer_kind > auto integer_kind_parser()
+    constexpr parser< IntegerKind > auto IntegerKind_parser()
     {
-        return enum_parser( integer_kind::Char  ) |
-               enum_parser( integer_kind::Short ) |
-               enum_parser( integer_kind::Int   ) |
-               enum_parser( integer_kind::Long  ) |
-               enum_parser( integer_kind::LongLong );
+        return enum_parser( IntegerKind::Char  ) |
+               enum_parser( IntegerKind::Short ) |
+               enum_parser( IntegerKind::Int   ) |
+               enum_parser( IntegerKind::Long  ) |
+               enum_parser( IntegerKind::LongLong );
     }
 
-    constexpr parser< floating_kind > auto float_kind_parser()
+    constexpr parser< FloatingKind > auto float_kind_parser()
     {
-        return enum_parser( floating_kind::Float  ) |
-               enum_parser( floating_kind::Double ) |
-               enum_parser( floating_kind::LongDouble );
+        return enum_parser( FloatingKind::Float  ) |
+               enum_parser( FloatingKind::Double ) |
+               enum_parser( FloatingKind::LongDouble );
     }
 
-    constexpr parser< mnemonic > auto mnemonic_parser()
+    constexpr parser< Mnemonic > auto mnemonic_parser()
     {
-        auto integer  = construct< mnemonic >( integer_kind_parser() );
-        auto floating = construct< mnemonic >( float_kind_parser() );
+        auto integer  = construct< Mnemonic >( IntegerKind_parser() );
+        auto floating = construct< Mnemonic >( float_kind_parser() );
         return integer | floating;
     }
 
     /* qualifier parsers */
-    constexpr parser< signedness_qualifier > auto signedness_qualifier_parser()
+    constexpr parser< SignednessQualifier > auto SignednessQualifier_parser()
     {
-        return enum_parser( signedness_qualifier::Signed ) |
-               enum_parser( signedness_qualifier::Unsigned );
+        return enum_parser( SignednessQualifier::Signed ) |
+               enum_parser( SignednessQualifier::Unsigned );
     }
 
-    constexpr parser< qualifier > auto qualifier_parser()
+    constexpr parser< Qualifier > auto qualifier_parser()
     {
-        auto con = construct< qualifier >( trivial_parser< const_qualifier >() );
-        auto vol = construct< qualifier >( trivial_parser< volatile_qualifier >() );
-        auto sig = construct< qualifier >( signedness_qualifier_parser() );
+        auto con = construct< Qualifier >( trivial_parser< ConstQualifier >() );
+        auto vol = construct< Qualifier >( trivial_parser< VolatileQualifier >() );
+        auto sig = construct< Qualifier >( SignednessQualifier_parser() );
 
         return con | vol | sig;
     }
 
     /* top level type name token parser */
-    constexpr parser< token > auto type_parser()
+    constexpr parser< TypeToken > auto type_parser()
     {
-        auto mnem = construct< token >( mnemonic_parser() );
-        auto qual = construct< token >( qualifier_parser() );
+        auto mnem = construct< TypeToken >( mnemonic_parser() );
+        auto qual = construct< TypeToken >( qualifier_parser() );
         return mnem | qual;
     }
 
     /* MLIR Type definitions */
 
     using TypeStorage = mlir::TypeStorage;
+
+    using TypeStorageAllocator = mlir::TypeStorageAllocator;
 
     struct HighLevelType : Type
     {
@@ -204,40 +231,147 @@ namespace vast::hl
             using Type::Type;
     };
 
-    template< typename Derived, typename Storage >
+    using QualifiersList = llvm::ArrayRef< Qualifier >;
+
+    template< typename ...Qualifiers >
+    struct QualifiersStorage : TypeStorage
+    {
+        using KeyTy = QualifiersList;
+
+        QualifiersStorage(QualifiersList qualifiers)
+            : qualifiers(qualifiers)
+        {}
+
+        bool operator==(const KeyTy &key) const { return key == qualifiers; }
+
+        static QualifiersStorage *construct(TypeStorageAllocator &allocator, const KeyTy &key)
+        {
+            QualifiersList qualifiers = allocator.copyInto(key);
+            return new (allocator.allocate<QualifiersStorage>()) QualifiersStorage(qualifiers);
+        }
+
+        static llvm::hash_code hashKey(const KeyTy &key) { return llvm::hash_value(key); }
+
+        QualifiersList qualifiers;
+    };
+
+    template< typename _Kind, typename ...Qualifiers >
+    struct KindQualifiersStorage : TypeStorage
+    {
+        using Kind  = _Kind;
+        using KeyTy = std::tuple< Kind, QualifiersList >;
+
+        KindQualifiersStorage(Kind kind, QualifiersList qualifiers)
+            : kind(kind), qualifiers(qualifiers)
+        {}
+
+        bool operator==(const KeyTy &key) const{ return key == KeyTy(kind, qualifiers); }
+
+        static KindQualifiersStorage *construct(TypeStorageAllocator &allocator, const KeyTy &key)
+        {
+            const auto &[kind, quals] = key;
+            QualifiersList qualifiers = allocator.copyInto(quals);
+            return new (allocator.allocate<KindQualifiersStorage>()) KindQualifiersStorage(kind, qualifiers);
+        }
+
+        static llvm::hash_code hashKey(const KeyTy &key) { return llvm::hash_value(key); }
+
+        Kind kind;
+        QualifiersList qualifiers;
+    };
+
+
+    template< typename Derived, typename Storage = TypeStorage >
     struct WithStorage : HighLevelType::TypeBase< Derived, HighLevelType, Storage >
     {
         using Base = HighLevelType::TypeBase< Derived, HighLevelType, Storage >;
-
         using Base::Base;
     };
 
-    struct VoidType : WithStorage< VoidType, TypeStorage >
+    template< typename Kind, typename Next >
+    struct WithKind : Next
     {
-        using WithStorage::WithStorage;
+        using Next::Next;
+        Kind kind() const { return this->getImpl()->kind; }
+
+        Mnemonic mnemonic() const { return kind(); }
+    };
+
+    template< typename Next >
+    struct WithQualifiers : Next
+    {
+        using Next::Next;
+        QualifiersList qualifiers() const { return this->getImpl()->qualifiers; }
+    };
+
+    /* Void Type */
+    struct VoidType : WithStorage< VoidType >
+    {
+        using Base = WithStorage< VoidType >;
+        using Base::Base;
+
+        Mnemonic mnemonic() const { return VoidMnemonic{}; }
 
         static VoidType get(Context *ctx);
     };
 
-    struct BoolType : WithStorage< BoolType, TypeStorage >
+    std::string to_string(VoidType type);
+
+    /* Bool Type */
+    using BoolStorage = QualifiersStorage< ConstQualifier, VolatileQualifier >;
+
+    struct BoolType : WithQualifiers< WithStorage< BoolType, BoolStorage > >
     {
-        using WithStorage::WithStorage;
+        using Base = WithQualifiers< WithStorage< BoolType, BoolStorage > >;
+        using Base::Base;
+
+        using Base::qualifiers;
+
+        Mnemonic mnemonic() const { return BoolMnemonic{}; }
 
         static BoolType get(Context *ctx);
+
+        static BoolType get(Context *ctx, QualifiersList qualifiers);
     };
 
-    struct IntegerType : WithStorage< IntegerType, TypeStorage >
+    std::string to_string(BoolType type);
+
+    /* Integer Types */
+    using IntegerStorage = KindQualifiersStorage< IntegerKind, ConstQualifier, VolatileQualifier, SignednessQualifier >;
+
+    struct IntegerType : WithKind< IntegerKind, WithQualifiers< WithStorage< IntegerType, IntegerStorage > > >
     {
-        using WithStorage::WithStorage;
+        using Base = WithKind< IntegerKind, WithQualifiers< WithStorage< IntegerType, IntegerStorage > > >;
+        using Base::Base;
 
-        static IntegerType get(Context *ctx);
+        using Base::kind;
+        using Base::mnemonic;
+        using Base::qualifiers;
+
+        static IntegerType get(Context *ctx, IntegerKind kind);
+        static IntegerType get(Context *ctx, IntegerKind kind, QualifiersList qualifiers);
     };
 
-    struct FloatingType : WithStorage< FloatingType, TypeStorage >
+    std::string to_string(IntegerType type);
+
+    /* Floating Types */
+    using FloatingStorage = KindQualifiersStorage< FloatingKind, ConstQualifier, VolatileQualifier, SignednessQualifier >;
+
+    struct FloatingType : WithKind< FloatingKind, WithQualifiers< WithStorage< FloatingType, FloatingStorage > > >
     {
-        using WithStorage::WithStorage;
+        using Base = WithKind< FloatingKind, WithQualifiers< WithStorage< FloatingType, FloatingStorage > > >;
+        using Base::Base;
 
-        static FloatingType get(Context *ctx);
+        using Base::kind;
+        using Base::mnemonic;
+        using Base::qualifiers;
+
+        static FloatingType get(Context *ctx, FloatingKind kind);
+        static FloatingType get(Context *ctx, FloatingKind kind, QualifiersList qualifiers);
     };
+
+    std::string to_string(FloatingType type);
+
+    std::string to_string(HighLevelType type);
 
 } // namespace vast::hl

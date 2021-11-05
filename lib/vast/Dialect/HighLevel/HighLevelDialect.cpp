@@ -18,34 +18,28 @@ namespace vast::hl
 {
     void HighLevelDialect::initialize()
     {
+        registerTypes();
+        registerAttributes();
+
         addOperations<
             #define GET_OP_LIST
             #include "vast/Dialect/HighLevel/HighLevel.cpp.inc"
         >();
-        addTypes<
-            #define GET_TYPEDEF_LIST
-            #include "vast/Dialect/HighLevel/HighLevelTypes.cpp.inc"
-        >();
-        addAttributes<
-            #define GET_ATTRDEF_LIST
-            #include "vast/Dialect/HighLevel/HighLevelAttributes.cpp.inc"
-        >();
     }
 
     using string_ref = llvm::StringRef;
-    using dialect_parser = mlir::DialectAsmParser;
-    using dialect_printer = mlir::DialectAsmPrinter;
+    using DialectParser = mlir::DialectAsmParser;
+    using DialectPrinter = mlir::DialectAsmPrinter;
 
     // Parse a type registered to this dialect.
-    Type HighLevelDialect::parseType(dialect_parser &parser) const
+    Type HighLevelDialect::parseType(DialectParser &parser) const
     {
         return Type(); //detail::parse_type(parser);
     }
 
-    // Print a type registered to this dialect.
-    void HighLevelDialect::printType(Type ty, dialect_printer &os) const
+    void HighLevelDialect::printType(Type type, DialectPrinter &os) const
     {
-        // return detail::print_type(ty, os);
+        os << to_string(type.cast<HighLevelType>());
     }
 
 } // namespace vast::hl

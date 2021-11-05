@@ -18,6 +18,10 @@ def HighLevel_Dialect : Dialect {
         for further program analysis.
     }];
     let cppNamespace = "::vast::hl";
+    let extraClassDeclaration = [{
+        void registerTypes();
+        void registerAttributes();
+    }];
 }
 
 class HighLevel_Op< string mnemonic, list< OpTrait > traits = [] >
