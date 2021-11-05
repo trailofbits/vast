@@ -1,7 +1,8 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
 #include "vast/Translation/Types.hpp"
-#include "vast/Dialect/HighLevel/HighLevel.hpp"
+#include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
 #include "clang/AST/Type.h"
 #include "clang/AST/TypeLoc.h"
@@ -69,11 +70,11 @@ namespace vast::hl
         if (is_void_type(ty)) {
             return VoidType::get(ctx);
         } else if (is_bool_type(ty)) {
-            return BoolType::get(ctx, quals.hasVolatile(), quals.hasConst());
+            return BoolType::get(ctx); // quals.hasVolatile(), quals.hasConst());
         } else if (is_integer_type(ty)) {
-            auto sign = get_signedness_qualifier(ty);
-            auto kind = get_integer_kind(ty);
-            return IntegerType::get(ctx, sign, kind, quals.hasVolatile(), quals.hasConst());
+            // auto sign = get_signedness_qualifier(ty);
+            // auto kind = get_integer_kind(ty);
+            return IntegerType::get(ctx); // sign, kind, quals.hasVolatile(), quals.hasConst());
         }
 
         llvm_unreachable("unknown builtin type");

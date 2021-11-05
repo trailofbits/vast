@@ -3,10 +3,22 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVEL
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVEL
 
-include "vast/Dialect/HighLevel/HighLevelAttributes.td"
-include "vast/Dialect/HighLevel/HighLevelTypes.td"
-
+include "mlir/IR/OpBase.td"
+include "mlir/IR/OpAsmInterface.td"
+include "mlir/IR/SymbolInterfaces.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
+include "mlir/Interfaces/InferTypeOpInterface.td"
+include "mlir/IR/RegionKindInterface.td"
+
+def HighLevel_Dialect : Dialect {
+    let name = "hl";
+    let summary = "A high-level verbose program analysis MLIR dialect.";
+    let description = [{
+        This dialect intends capture highevel constructs of C/C++
+        for further program analysis.
+    }];
+    let cppNamespace = "::vast::hl";
+}
 
 class HighLevel_Op< string mnemonic, list< OpTrait > traits = [] >
     : Op< HighLevel_Dialect, mnemonic, traits >;
@@ -59,6 +71,8 @@ class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
     let assemblyFormat = [{ $src `to` $dst attr-dict `:` type($src) }];
 }
 
+include "HighLevelAttributes.td"
+include "HighLevelTypes.td"
 include "HighLevelOps.td"
 include "HighLevelCF.td"
 

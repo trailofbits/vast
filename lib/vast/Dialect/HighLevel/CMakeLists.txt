@@ -1,9 +1,10 @@
 # Copyright (c) 2021-present, Trail of Bits, Inc.
 
 add_mlir_dialect_library(MLIRHighLevel
-    HighLevel.cpp
+    HighLevelDialect.cpp
     HighLevelOps.cpp
     HighLevelTypes.cpp
+    HighLevelAttributes.cpp
 
     ADDITIONAL_HEADER_DIRS
     ${PROJECT_SOURCE_DIR}/include/vast

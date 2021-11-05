@@ -5,8 +5,6 @@
 
 include "mlir/IR/OpBase.td"
 
-include "vast/Dialect/HighLevel/HighLevelBase.td"
-
 class HighLevel_Attr<string name, string attr_mnemonic>
     : AttrDef< HighLevel_Dialect, name >
 {

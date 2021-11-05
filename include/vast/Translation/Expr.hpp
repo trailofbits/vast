@@ -6,7 +6,7 @@ VAST_RELAX_WARNINGS
 #include <clang/AST/Expr.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Dialect/HighLevel/HighLevel.hpp"
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 namespace vast::hl
 {
