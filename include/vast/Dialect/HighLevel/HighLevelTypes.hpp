@@ -153,17 +153,23 @@ namespace vast::hl
     template< typename enum_type >
     constexpr parser< enum_type > auto enum_parser(enum_type value)
     {
-        return as_enum(value, string_parser( to_string(value) ));
+        return [value] (parse_input_t in) {
+            auto str = to_string(value);
+            return as_enum(value, string_parser(str))(in);
+        };
     }
 
     template< typename trivial >
     constexpr parser< trivial > auto trivial_parser()
     {
-        return as_enum( trivial(), string_parser( to_string(trivial()) ));
+        return [value = trivial()] (parse_input_t in) {
+            auto str = to_string(value);
+            return as_enum(value, string_parser(str))(in);
+        };
     }
 
     /* type mnemonic parsers */
-    constexpr parser< IntegerKind > auto IntegerKind_parser()
+    constexpr parser< IntegerKind > auto integer_kind_parser()
     {
         return enum_parser( IntegerKind::Char  ) |
                enum_parser( IntegerKind::Short ) |
@@ -181,13 +187,15 @@ namespace vast::hl
 
     constexpr parser< Mnemonic > auto mnemonic_parser()
     {
-        auto integer  = construct< Mnemonic >( IntegerKind_parser() );
+        auto _void    = construct< Mnemonic >( trivial_parser< VoidMnemonic >() );
+        auto boolean  = construct< Mnemonic >( trivial_parser< BoolMnemonic >() );
+        auto integer  = construct< Mnemonic >( integer_kind_parser() );
         auto floating = construct< Mnemonic >( float_kind_parser() );
-        return integer | floating;
+        return _void | boolean | integer | floating;
     }
 
     /* qualifier parsers */
-    constexpr parser< Signedness > auto Signedness_parser()
+    constexpr parser< Signedness > auto signedness_parser()
     {
         return enum_parser( Signedness::Signed ) |
                enum_parser( Signedness::Unsigned );
@@ -197,7 +205,7 @@ namespace vast::hl
     {
         auto con = construct< Qualifier >( trivial_parser< Const >() );
         auto vol = construct< Qualifier >( trivial_parser< Volatile >() );
-        auto sig = construct< Qualifier >( Signedness_parser() );
+        auto sig = construct< Qualifier >( signedness_parser() );
 
         return con | vol | sig;
     }

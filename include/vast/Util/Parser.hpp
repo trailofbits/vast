@@ -50,13 +50,13 @@ namespace vast
     constexpr parser<T> auto fmap(F &&f, P &&p)
     {
         return [f = std::forward< F >(f), p = std::forward< P >(p)] (parse_input_t in)
-        -> parse_result_t< T >
+            -> parse_result_t< T >
         {
-        if (auto res = p(in)) {
-            const auto [val, rest] = res.value();
-            return {{f(val), rest}};
-        }
-        return std::nullopt;
+            if (auto res = p(in)) {
+                const auto [val, rest] = res.value();
+                return {{f(val), rest}};
+            }
+            return std::nullopt;
         };
     }
 
@@ -65,11 +65,11 @@ namespace vast
     constexpr parser<T> auto bind(P&& p, F&& f)
     {
         return [=] (parse_input_t in) -> T {
-        if (auto res = p(in)) {
-            const auto [val, rest] = res.value();
-            return f(val, rest);
-        }
-        return std::nullopt;
+            if (auto res = p(in)) {
+                const auto [val, rest] = res.value();
+                return f(val, rest);
+            }
+            return std::nullopt;
         };
     }
 
@@ -78,7 +78,7 @@ namespace vast
     constexpr parser<T> auto lift(T &&t)
     {
         return [t = std::forward< T >(t)] (parse_input_t in) -> parse_result_t< T > {
-        return {{t, in}};
+            return {{t, in}};
         };
     }
 
@@ -87,7 +87,7 @@ namespace vast
     constexpr parser<T> auto fail(T)
     {
         return [=] (parse_input_t) -> parse_result_t< T > {
-        return std::nullopt;
+            return std::nullopt;
         };
     }
 
@@ -95,8 +95,8 @@ namespace vast
     constexpr parser<T> auto fail(T&&, Err &&err)
     {
         return [=] (parse_input_t) -> parse_result_t< T > {
-        err();
-        return std::nullopt;
+            err();
+            return std::nullopt;
         };
     }
 
@@ -109,9 +109,9 @@ namespace vast
     constexpr parser<T> auto operator|(P1&& p1, P2&& p2)
     {
         return [=] (parse_input_t in) {
-        if (auto r1 = p1(in))
-            return r1;
-        return p2(in);
+            if (auto r1 = p1(in))
+                return r1;
+            return p2(in);
         };
     }
 
@@ -121,10 +121,10 @@ namespace vast
     constexpr parser<T> auto combine(P1 &&p1, P2 &&p2, F&& f)
     {
         return [=] (parse_input_t in) -> parse_result_t< T > {
-        if (auto r1 = p1(in))
-            if (auto r2 = p2(rest(r1)))
-            return {{f(result(r1), result(r2)), rest(r2)}};
-        return std::nullopt;
+            if (auto r1 = p1(in))
+                if (auto r2 = p2(rest(r1)))
+                return {{f(result(r1), result(r2)), rest(r2)}};
+            return std::nullopt;
         };
     }
 
@@ -133,9 +133,9 @@ namespace vast
     constexpr parser<T> auto combine(P &&p)
     {
         return [=] (parse_input_t in) -> parse_result_t< T > {
-        if (auto r = p(in))
-            return {{std::make_tuple(result(r)), rest(r)}};
-        return std::nullopt;
+            if (auto r = p(in))
+                return {{std::make_tuple(result(r)), rest(r)}};
+            return std::nullopt;
         };
     }
 
@@ -144,10 +144,10 @@ namespace vast
     constexpr parser<T> auto combine(P &&p, Ps&&... ps)
     {
         return [=] (parse_input_t in) -> parse_result_t< T > {
-        if (auto r1 = combine(p)(in))
-            if (auto r2 = combine(ps...)(rest(r1)))
-            return {{std::tuple_cat(result(r1), result(r2)), rest(r2)}};
-        return std::nullopt;
+            if (auto r1 = combine(p)(in))
+                if (auto r2 = combine(ps...)(rest(r1)))
+                return {{std::tuple_cat(result(r1), result(r2)), rest(r2)}};
+            return std::nullopt;
         };
     }
 
@@ -162,9 +162,8 @@ namespace vast
                 typename L = parse_type<P1>, typename R = parse_type<P2> >
     constexpr parser<R> auto operator<(P1 &&p1, P2 &&p2)
     {
-        return combine(std::forward<P1>(p1),
-                    std::forward<P2>(p2),
-                    [] (auto, const auto& r) { return r; });
+        return combine(std::forward<P1>(p1), std::forward<P2>(p2),
+            [] (auto, const auto& r) { return r; });
     }
 
     // combine two parsers and return the result of the first one
@@ -172,9 +171,8 @@ namespace vast
                 typename L = parse_type<P1>, typename R = parse_type<P2> >
     constexpr parser<L> auto operator>(P1 &&p1, P2 &&p2)
     {
-        return combine(std::forward<P1>(p1),
-                    std::forward<P2>(p2),
-                    [] (const auto& l, auto) { return l; });
+        return combine(std::forward<P1>(p1), std::forward<P2>(p2),
+            [] (const auto& l, auto) { return l; });
     }
 
     // try to apply a parser, and if it fails, return a default value
@@ -182,11 +180,11 @@ namespace vast
     constexpr parser<T> auto option(T &&def, P &&p)
     {
         return [p = std::forward<P>(p), def = std::forward<T>(def)] (parse_input_t in)
-        -> parse_result_t< T >
+            -> parse_result_t< T >
         {
-        if (auto res = p(in))
-            return res;
-        return {{def, in}};
+            if (auto res = p(in))
+                return res;
+            return {{def, in}};
         };
     }
 
@@ -194,9 +192,9 @@ namespace vast
     constexpr parser<char> auto char_parser(char c)
     {
         return [=] (parse_input_t in) -> parse_result_t<char> {
-        if (in.empty() || in.front() != c)
-            return std::nullopt;
-        return {{c, in.substr(1)}};
+            if (in.empty() || in.front() != c)
+                return std::nullopt;
+            return {{c, in.substr(1)}};
         };
     }
 
@@ -204,9 +202,9 @@ namespace vast
     constexpr parser<std::string_view> auto string_parser(std::string_view pattern)
     {
         return [=] (parse_input_t in) -> parse_result_t<std::string_view> {
-        if (in.starts_with(pattern))
-            return {{pattern, in.substr(pattern.size())}};
-        return std::nullopt;
+            if (in.starts_with(pattern))
+                return {{pattern, in.substr(pattern.size())}};
+            return std::nullopt;
         };
     }
 
@@ -214,11 +212,11 @@ namespace vast
     constexpr parser<char> auto one_of(std::string_view chars)
     {
         return [=] (parse_input_t in) -> parse_result_t<char> {
-        if (in.empty())
+            if (in.empty())
+                return std::nullopt;
+            if (chars.find(in.front()) != chars.npos)
+                return {{in.front(), in.substr(1)}};
             return std::nullopt;
-        if (chars.find(in.front()) != chars.npos)
-            return {{in.front(), in.substr(1)}};
-        return std::nullopt;
         };
     }
 
@@ -226,11 +224,11 @@ namespace vast
     constexpr parser<char> auto none_of(std::string_view chars)
     {
         return [=] (parse_input_t in) -> parse_result_t<char> {
-        if (in.empty())
+            if (in.empty())
+                return std::nullopt;
+            if (chars.find(in.front()) == chars.npos)
+                return {{in.front(), in.substr(1)}};
             return std::nullopt;
-        if (chars.find(in.front()) == chars.npos)
-            return {{in.front(), in.substr(1)}};
-        return std::nullopt;
         };
     }
 
@@ -242,13 +240,13 @@ namespace vast
         return [p1 = std::forward< P1 >(p1), p2 = std::forward< P2 >(p2),
                 init = std::forward< T >(init), f = std::forward< F >(f)]
                 (parse_input_t s)
-        -> parse_result_t<T>
+            -> parse_result_t<T>
         {
-        if (auto r = p1(s)) {
-            auto p = p2 < p1;
-            return {accumulate(rest(r), p, f(std::move(init), std::move(result(r))), f)};
-        }
-        return {{init, s}};
+            if (auto r = p1(s)) {
+                auto p = p2 < p1;
+                return {accumulate(rest(r), p, f(std::move(init), std::move(result(r))), f)};
+            }
+            return {{init, s}};
         };
     }
 
@@ -258,7 +256,7 @@ namespace vast
     constexpr parser<T> auto from_tuple(P &&p)
     {
         return fmap([] (auto &&t) {
-        return std::make_from_tuple< T >(std::forward<decltype(t)>(t));
+            return std::make_from_tuple< T >(std::forward<decltype(t)>(t));
         }, std::forward<P>(p));
     }
 
