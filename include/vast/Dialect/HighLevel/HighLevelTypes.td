@@ -3,106 +3,20 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
 
-include "vast/Dialect/HighLevel/HighLevelBase.td"
+def HighLevelType : DialectType< HighLevel_Dialect, CPred< "$_self.isa<HighLevelType>()" >,
+  "HighLevelType", "::vast::hl::HighLevelType" >;
 
-class HighLevel_Type< string name, string type_mnemonic >
-    : TypeDef< HighLevel_Dialect, name >
-{
-    let mnemonic = type_mnemonic;
-}
 
-// Builtin C Types
+def VoidType : DialectType< HighLevel_Dialect, CPred< "$_self.isa<VoidType>()" >, "VoidType", "::vast::hl::VoidType" >
+             , BuildableType< "VoidType::get($_builder.getContext())" >;
 
-def HighLevel_Void : HighLevel_Type< "Void", "void" >
-         , BuildableType< "VoidType::get($_builder.getContext())" >
-{
-    let summary = "VAST high level void type";
-    let description = [{ VAST high level void type }];
-}
+def BoolType : DialectType< HighLevel_Dialect, CPred< "$_self.isa<BoolType>()" >, "BoolType", "::vast::hl::BoolType" >
+             , BuildableType< "BoolType::get($_builder.getContext())" >;
 
-def HighLevel_Bool : HighLevel_Type< "Bool", "bool" >
-         , BuildableType< "BoolType::get($_builder.getContext())" >
-{
-    let summary = "VAST high level bool type";
-    let description = [{ VAST high level bool type }];
+def IntegerType : DialectType< HighLevel_Dialect, CPred< "$_self.isa<IntegerType>()" >, "IntegerType", "::vast::hl::IntegerType" >;
 
-    let parameters = (ins
-        "bool":$isVolatile,
-        "bool":$isConst
-    );
+def FloatingType : DialectType< HighLevel_Dialect, CPred< "$_self.isa<FloatingType>()" >, "FloatingType", "::vast::hl::FloatingType" >;
 
-    let builders = [
-        TypeBuilder< (ins
-            CArg<"bool", "false">:$isVolatile,
-            CArg<"bool", "false">:$isConst ),
-        [{
-            return Base::get($_ctxt, isVolatile, isConst);
-        }]>
-    ];
 
-    let skipDefaultBuilders = 1;
-
-    let printer = [{
-        if (getIsConst())
-            $_printer << "const ";
-        if (getIsVolatile())
-            $_printer << "volatile ";
-        $_printer << "bool";
-    }];
-
-    let parser = [{
-        // TODO(Heno): parse qualifiers
-        return get($_ctxt);
-    }];
-}
-
-def HighLevel_Integer : HighLevel_Type< "Integer", "integer" >
-{
-    let summary = "An high level generic integer type representation.";
-    let description = [{ integer type }];
-
-    let parameters = (ins
-        "signedness_qualifier":$signedness,
-        "integer_kind":$kind,
-        "bool":$isVolatile,
-        "bool":$isConst
-    );
-
-    let builders = [
-        TypeBuilder< (ins
-            "signedness_qualifier":$signedness,
-            "integer_kind":$kind,
-            CArg<"bool", "false">:$isVolatile,
-            CArg<"bool", "false">:$isConst ),
-        [{
-            return Base::get($_ctxt, signedness, kind, isVolatile, isConst);
-        }]>
-    ];
-
-    let skipDefaultBuilders = 1;
-
-    let printer = [{
-        if (getIsConst())
-            $_printer << "const ";
-        if (getIsVolatile())
-            $_printer << "volatile ";
-        if (getSignedness() == vast::hl::signedness_qualifier::Unsigned)
-            $_printer << "unsigned ";
-        $_printer << to_string(getKind());
-    }];
-
-    let parser = [{
-        auto sign = vast::hl::signedness_qualifier::Signed;
-
-        // TODO(Heno): qualifier parser
-
-        if ($_parser.parseOptionalKeyword("unsigned"))
-            sign = vast::hl::signedness_qualifier::Unsigned;
-
-        // TODO(Heno): integer kinds
-
-        return get($_ctxt, sign, vast::hl::integer_kind::Int);
-    }];
-}
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES

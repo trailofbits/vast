@@ -12,8 +12,6 @@ VAST_RELAX_WARNINGS
 #include <mlir/Interfaces/SideEffectInterfaces.h>
 VAST_RELAX_WARNINGS
 
-#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
-#include "vast/Dialect/HighLevel/HighLevelDialect.h.inc"
 
 namespace vast::hl
 {
@@ -40,14 +38,10 @@ namespace vast::hl
 
 } // namespace vast::hl
 
-#define GET_ATTRDEF_CLASSES
-#include "vast/Dialect/HighLevel/HighLevelAttributes.h.inc"
+// Pull in the dialect definition.
+#include "vast/Dialect/HighLevel/HighLevelDialect.h.inc"
 
 // Pull in all enum type definitions and utility function declarations.
 #include "vast/Dialect/HighLevel/HighLevelEnums.h.inc"
 
-#define GET_TYPEDEF_CLASSES
-#include "vast/Dialect/HighLevel/HighLevelTypes.h.inc"
 
-#define GET_OP_CLASSES
-#include "vast/Dialect/HighLevel/HighLevel.h.inc"

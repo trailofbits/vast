@@ -15,13 +15,17 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/Hashing.h>
 VAST_UNRELAX_WARNINGS
 
-#include <variant>
-
 #include "vast/Util/Parser.hpp"
+
+#include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+
+#define GET_TYPEDEF_CLASSES
+#include "vast/Dialect/HighLevel/HighLevelTypes.h.inc"
 
 namespace vast::hl
 {
-    using type = mlir::Type;
+    using Type = mlir::Type;
+    using Context = mlir::MLIRContext;
 
     /* void type */
     struct void_mnemonic {};
@@ -180,5 +184,60 @@ namespace vast::hl
         auto qual = construct< token >( qualifier_parser() );
         return mnem | qual;
     }
+
+    /* MLIR Type definitions */
+
+    using TypeStorage = mlir::TypeStorage;
+
+    struct HighLevelType : Type
+    {
+        /// Return true if this is a 'ground' type, aka a non-aggregate type.
+        bool isGround();
+
+        /// Support method to enable LLVM-style type casting.
+        static bool classof(Type type)
+        {
+            return llvm::isa< HighLevelDialect >( type.getDialect() );
+        }
+
+        protected:
+            using Type::Type;
+    };
+
+    template< typename Derived, typename Storage >
+    struct WithStorage : HighLevelType::TypeBase< Derived, HighLevelType, Storage >
+    {
+        using Base = HighLevelType::TypeBase< Derived, HighLevelType, Storage >;
+
+        using Base::Base;
+    };
+
+    struct VoidType : WithStorage< VoidType, TypeStorage >
+    {
+        using WithStorage::WithStorage;
+
+        static VoidType get(Context *ctx);
+    };
+
+    struct BoolType : WithStorage< BoolType, TypeStorage >
+    {
+        using WithStorage::WithStorage;
+
+        static BoolType get(Context *ctx);
+    };
+
+    struct IntegerType : WithStorage< IntegerType, TypeStorage >
+    {
+        using WithStorage::WithStorage;
+
+        static IntegerType get(Context *ctx);
+    };
+
+    struct FloatingType : WithStorage< FloatingType, TypeStorage >
+    {
+        using WithStorage::WithStorage;
+
+        static FloatingType get(Context *ctx);
+    };
 
 } // namespace vast::hl

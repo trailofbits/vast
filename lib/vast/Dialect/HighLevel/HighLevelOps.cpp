@@ -1,14 +1,17 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
-#include "mlir/Support/LLVM.h"
-#include "mlir/Support/LogicalResult.h"
-#include "vast/Dialect/HighLevel/HighLevel.hpp"
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
-#include "mlir/IR/Builders.h"
-#include "mlir/IR/OperationSupport.h"
-#include "mlir/IR/SymbolTable.h"
-#include "mlir/IR/OpImplementation.h"
-#include "llvm/Support/ErrorHandling.h"
+#include <mlir/Support/LLVM.h>
+#include <mlir/Support/LogicalResult.h>
+#include <mlir/IR/Builders.h>
+#include <mlir/IR/OperationSupport.h>
+#include <mlir/IR/SymbolTable.h>
+#include <mlir/IR/OpImplementation.h>
+
+#include <llvm/Support/ErrorHandling.h>
+
+#include <optional>
 
 namespace vast::hl
 {
@@ -38,14 +41,53 @@ namespace vast::hl
         return build(bld, st, type, attr);
     }
 
-    static ParseResult parseConstantOp(Parser &parser, State &st) {
-        Attribute val;
+    using integer = llvm::APInt;
+
+    std::optional< integer > parse_integer(Parser &p)
+    {
+        integer value;
+        if (auto parsed = p.parseOptionalInteger(value); parsed.hasValue())
+            return value;
+        return std::nullopt;
+    }
+
+    std::optional< bool > parse_bool(Parser &p)
+    {
+        mlir::BoolAttr value;
+        mlir::NamedAttrList dummy;
+        if (auto parsed = p.parseOptionalAttribute(value, "", dummy); parsed.hasValue())
+            return false;
+        return std::nullopt;
+    }
+
+
+    std::optional< integer > parse_integral(Parser &p)
+    {
+        if (auto val = parse_integer(p))
+            return val;
+        if (auto val = parse_bool(p))
+            return integer(1, *val);
+        return std::nullopt;
+    }
+
+    static ParseResult parseConstantOp(Parser &parser, State &st)
+    {
+        auto loc = parser.getCurrentLocation();
+
+        auto value = parse_integral(parser);
+        if (!value.has_value()) {
+            return parser.emitError(loc, "expected integer value");
+        }
+
         Type type;
-        if (parser.parseAttribute(val, "value", st.attributes) || parser.parseOptionalAttrDict(st.attributes))
-            return LogicalResult::failure();
-        if (parser.parseOptionalColon() || !parser.parseOptionalType(type).hasValue())
-            type = val.getType();
-        return parser.addTypeToList(val.getType(), st.types);
+        if (parser.parseColonType(type) || parser.parseOptionalAttrDict(st.attributes))
+            return mlir::failure();
+        st.addTypes(type);
+
+        auto rty = parser.getBuilder().getIntegerType(value->getBitWidth(), true /* TODO */);
+        auto attr = parser.getBuilder().getIntegerAttr(rty, *value);
+        st.addAttribute("value", attr);
+        return mlir::success();
     }
 
     static void printConstantOp(Printer &printer, ConstantOp op)
@@ -56,12 +98,6 @@ namespace vast::hl
         printer.printType(op.getType());
         printer.printOptionalAttrDict(op->getAttrs(), {"value"});
     }
-
-    // FoldResult ConstantOp::fold(llvm::ArrayRef<Attribute> operands)
-    // {
-    //     assert(operands.empty() && "const has no operands");
-    //     return value();
-    // }
 
     void IfOp::build(Builder &bld, State &st, BuilderCallback condBuilder, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
     {

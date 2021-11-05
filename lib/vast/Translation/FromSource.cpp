@@ -46,7 +46,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Types.hpp"
 #include "vast/Translation/Types.hpp"
 #include "vast/Translation/Expr.hpp"
-#include "vast/Dialect/HighLevel/HighLevel.hpp"
+#include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
 #include <iostream>

@@ -45,15 +45,8 @@ def HighLevel_VarOp : HighLevel_Op< "var", [] > {
     }] >
   ];
 
-  // FIXME(Heno): use assemblyFormat
-  let verifier = ? ;
-  let printer = [{
-    p << getOperationName()
-      << "( " <<  name();
-    if (auto init = initializer())
-      p << ", " << init;
-    p << " )";
-    p << ": " << getResult().getType();
+  let assemblyFormat = [{
+    $name (`(`$initializer^ `:` type($initializer)`)`)? attr-dict `:` type($result)
   }];
 }
 
@@ -344,16 +337,9 @@ def HighLevel_CmpOp : HighLevel_Op< "cmp", [NoSideEffect, SameTypeOperands, Comm
   let description = [{ VAST comparison operation }];
 
   let arguments = (ins Predicate:$predicate, AnyType:$lhs, AnyType:$rhs);
-  let results = (outs HighLevel_Bool:$result);
+  let results = (outs BoolType:$result);
 
   let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type($lhs)";
-
-  let builders = [
-    OpBuilder<(ins "Predicate":$pred, "Value":$lhs, "Value":$rhs), [{
-      auto boolty = BoolType::get($_builder.getContext());
-      return build($_builder, $_state, boolty, pred, lhs, rhs);
-    }]>
-  ];
 }
 
 
