@@ -12,69 +12,82 @@
 
 namespace vast::hl
 {
-    using builtin_type = clang::BuiltinType;
-    using qualifiers   = clang::Qualifiers;
+    using BuiltinType = clang::BuiltinType;
 
-    constexpr signedness_qualifier get_signedness_qualifier(const builtin_type *ty)
+    constexpr SignednessQualifier get_signedness_qualifier(const BuiltinType *ty)
     {
-        return ty->isSignedInteger() ? signedness_qualifier::Signed : signedness_qualifier::Unsigned;
+        return ty->isSignedInteger() ? SignednessQualifier::Signed : SignednessQualifier::Unsigned;
     }
 
-    constexpr integer_kind get_integer_kind(const builtin_type *ty)
+    constexpr IntegerKind get_integer_kind(const BuiltinType *ty)
     {
         switch (ty->getKind()) {
-            case builtin_type::Char_U:
-            case builtin_type::UChar:
-            case builtin_type::Char_S:
-            case builtin_type::SChar:
-                return integer_kind::Char;
-            case builtin_type::Short:
-            case builtin_type::UShort:
-                return integer_kind::Short;
-            case builtin_type::Int:
-            case builtin_type::UInt:
-                return integer_kind::Int;
-            case builtin_type::Long:
-            case builtin_type::ULong:
-                return integer_kind::Long;
-            case builtin_type::LongLong:
-            case builtin_type::ULongLong:
-                return integer_kind::LongLong;
+            case BuiltinType::Char_U:
+            case BuiltinType::UChar:
+            case BuiltinType::Char_S:
+            case BuiltinType::SChar:
+                return IntegerKind::Char;
+            case BuiltinType::Short:
+            case BuiltinType::UShort:
+                return IntegerKind::Short;
+            case BuiltinType::Int:
+            case BuiltinType::UInt:
+                return IntegerKind::Int;
+            case BuiltinType::Long:
+            case BuiltinType::ULong:
+                return IntegerKind::Long;
+            case BuiltinType::LongLong:
+            case BuiltinType::ULongLong:
+                return IntegerKind::LongLong;
             default:
                 llvm_unreachable("unknown integer kind");
         }
     }
 
-    constexpr bool is_void_type(const builtin_type *ty) { return ty->isVoidType(); }
-    constexpr bool is_bool_type(const builtin_type *ty) { return ty->getKind() == builtin_type::Bool; }
-    constexpr bool is_integer_type(const builtin_type *ty) { return ty->isIntegerType(); }
+    constexpr bool is_void_type(const BuiltinType *ty)    { return ty->isVoidType(); }
+    constexpr bool is_bool_type(const BuiltinType *ty)    { return ty->getKind() == BuiltinType::Bool; }
+    constexpr bool is_integer_type(const BuiltinType *ty) { return ty->isIntegerType(); }
+
+    std::vector< Qualifier > qualifiers_list(const BuiltinType *ty, clang::Qualifiers quals)
+    {
+        std::vector< Qualifier > qualifiers;
+        if (ty->isUnsignedInteger() && !is_bool_type(ty))
+            qualifiers.push_back(SignednessQualifier::Unsigned);
+        if (quals.hasConst())
+            qualifiers.push_back(ConstQualifier());
+        if (quals.hasVolatile())
+            qualifiers.push_back(VolatileQualifier());
+        return qualifiers;
+    }
 
     mlir::Type TypeConverter::convert(clang::QualType ty)
     {
         return convert(ty.getTypePtr(), ty.getQualifiers());
     }
 
-    mlir::Type TypeConverter::convert(const clang::Type *ty, qualifiers quals)
+    mlir::Type TypeConverter::convert(const clang::Type *ty, clang::Qualifiers quals)
     {
         ty = ty->getUnqualifiedDesugaredType();
 
         if (ty->isBuiltinType())
-            return convert(clang::cast<builtin_type>(ty), quals);
+            return convert(clang::cast<BuiltinType>(ty), quals);
 
         llvm_unreachable("unknown clang type");
     }
 
-    mlir::Type TypeConverter::convert(const builtin_type *ty, qualifiers quals)
+    mlir::Type TypeConverter::convert(const BuiltinType *ty, clang::Qualifiers quals)
     {
-        // TODO(Heno) qualifiers
         if (is_void_type(ty)) {
             return VoidType::get(ctx);
-        } else if (is_bool_type(ty)) {
-            return BoolType::get(ctx); // quals.hasVolatile(), quals.hasConst());
-        } else if (is_integer_type(ty)) {
-            // auto sign = get_signedness_qualifier(ty);
-            // auto kind = get_integer_kind(ty);
-            return IntegerType::get(ctx); // sign, kind, quals.hasVolatile(), quals.hasConst());
+        }
+
+        if (is_bool_type(ty)) {
+            return BoolType::get(ctx, qualifiers_list(ty, quals));
+        }
+
+        if (is_integer_type(ty)) {
+            auto kind = get_integer_kind(ty);
+            return IntegerType::get(ctx, kind, qualifiers_list(ty, quals));
         }
 
         llvm_unreachable("unknown builtin type");
