@@ -15,8 +15,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    using qualifiers   = clang::Qualifiers;
-
     struct TypeConverter
     {
         using Context = mlir::MLIRContext;
@@ -25,8 +23,8 @@ namespace vast::hl
 
         mlir::Type convert(clang::QualType ty);
 
-        mlir::Type convert(const clang::Type *ty, qualifiers quals);
-        mlir::Type convert(const clang::BuiltinType *ty, qualifiers quals);
+        mlir::Type convert(const clang::Type *ty, clang::Qualifiers quals);
+        mlir::Type convert(const clang::BuiltinType *ty, clang::Qualifiers quals);
         mlir::FunctionType convert(const clang::FunctionType *ty);
 
     private:
