@@ -41,35 +41,6 @@ namespace vast::hl
         return build(bld, st, type, attr);
     }
 
-    using integer = llvm::APInt;
-
-    std::optional< integer > parse_integer(Parser &p)
-    {
-        integer value;
-        if (auto parsed = p.parseOptionalInteger(value); parsed.hasValue())
-            return value;
-        return std::nullopt;
-    }
-
-    std::optional< bool > parse_bool(Parser &p)
-    {
-        mlir::BoolAttr value;
-        mlir::NamedAttrList dummy;
-        if (auto parsed = p.parseOptionalAttribute(value, "", dummy); parsed.hasValue())
-            return false;
-        return std::nullopt;
-    }
-
-
-    std::optional< integer > parse_integral(Parser &p)
-    {
-        if (auto val = parse_integer(p))
-            return val;
-        if (auto val = parse_bool(p))
-            return integer(1, *val);
-        return std::nullopt;
-    }
-
     void VarOp::build(Builder &bld, State &st, Type type, llvm::StringRef name)
     {
         st.addAttribute( mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name) );
@@ -120,20 +91,19 @@ namespace vast::hl
 
     static ParseResult parseConstantOp(Parser &parser, State &st)
     {
-        auto loc = parser.getCurrentLocation();
+        mlir::Attribute attr;
 
-        auto value = parse_integral(parser);
-        if (!value.has_value()) {
-            return parser.emitError(loc, "expected integer value");
-        }
+        // pass default type so that attribute parser does not try
+        // to parse high evel type
+        auto i64 = parser.getBuilder().getIntegerType(64);
+        if (parser.parseAttribute(attr, i64))
+            return mlir::failure();
 
         Type type;
         if (parser.parseColonType(type) || parser.parseOptionalAttrDict(st.attributes))
             return mlir::failure();
-        st.addTypes(type);
 
-        auto rty = parser.getBuilder().getIntegerType(value->getBitWidth(), true /* TODO */);
-        auto attr = parser.getBuilder().getIntegerAttr(rty, *value);
+        st.addTypes(type);
         st.addAttribute("value", attr);
         return mlir::success();
     }
