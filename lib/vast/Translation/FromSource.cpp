@@ -1797,8 +1797,8 @@ namespace vast::hl
             auto init = decl->getInit();
 
             if (init)
-                return make_value< VarOp >(loc, ty, name, Visit(init));
-            return make_value< VarOp >(loc, ty, name);
+                return make< VarOp >(loc, ty, name, Visit(init));
+            return make< VarOp >(loc, ty, name);
         }
 
         ValueOrStmt VisitDecompositionDecl(clang::DecompositionDecl *decl)

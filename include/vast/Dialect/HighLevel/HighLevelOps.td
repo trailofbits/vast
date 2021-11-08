@@ -19,7 +19,7 @@ def HighLevel_ReturnOp
 {
   let arguments = (ins Variadic<AnyType>:$result);
 
-  let assemblyFormat = "($result^ `:` type($result))? attr-dict ";
+  let assemblyFormat = "($result^ `:` type($result))? attr-dict";
 
   // Allow building a ReturnOp with no return operand.
   let builders = [
@@ -27,27 +27,27 @@ def HighLevel_ReturnOp
   ];
 }
 
-def HighLevel_VarOp : HighLevel_Op< "var", [] > {
+def HighLevel_VarOp : HighLevel_Op< "var", [Symbol] > {
   let summary = "VAST variable declaration";
   let description = [{ VAST variable declaration }];
 
   let arguments = (ins
-    StrAttr:$name,
+    TypeAttr:$type,
+    SymbolNameAttr:$sym_name,
     Optional<AnyType>:$initializer
   );
 
-  let results = (outs AnyType:$result);
+  let results = (outs);
 
+  let skipDefaultBuilders = 1;
   let builders = [
-    OpBuilder< (ins "mlir::Type":$result, "llvm::StringRef":$name),
-    [{
-      build($_builder, $_state, result, $_builder.getStringAttr(name), Value());
-    }] >
+    OpBuilder< (ins "Type":$type, "llvm::StringRef":$name) >,
+    OpBuilder< (ins "Type":$type, "llvm::StringRef":$name, "Value":$initializer) >
   ];
 
-  let assemblyFormat = [{
-    $name (`(`$initializer^ `:` type($initializer)`)`)? attr-dict `:` type($result)
-  }];
+  // Need a custom parser/printer to avoid redundant type for the initializer and the op itself.
+  let parser = "return parse$cppClass(parser, result);";
+  let printer = "print$cppClass(p, *this);";
 }
 
 
@@ -82,8 +82,9 @@ def HighLevel_ConstantOp : HighLevel_Op< "constant",
     OpBuilder<(ins "bool":$value)>
   ];
 
-  let printer = "return print$cppClass(p, *this);";
+  // Need a custom parser/printer to avoid redundant type for the attribute and the op itself.
   let parser = "return parse$cppClass(parser, result);";
+  let printer = "print$cppClass(p, *this);";
 }
 
 def HighLevel_UnreachableOp : HighLevel_Op<"unreachable", [Terminator, NoSideEffect]> {
