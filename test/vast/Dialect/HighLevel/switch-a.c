@@ -1,4 +1,5 @@
 // RUN: vast-cc --ccopts -std=c++17 --from-source %s | FileCheck %s
+// RUN: vast-cc --ccopts -std=c++17 --from-source %s > %t && vast-opt %t | diff -B %t -
 
 // CHECK-LABEL: func private @switch_simple
 int switch_simple(int num)
