@@ -47,7 +47,7 @@ int branch_then_noreturn(int a, int b)
     if (a > b) {
         // CHECK: } then {
         // CHECK: [[V2:%[0-9]+]] = hl.add
-        // CHECK: hl.var( c, [[V2]] )
+        // CHECK: hl.var @c = [[V2]]
         int c = a + b;
     }
 
@@ -81,7 +81,7 @@ int branch_else_empty(int a, int b)
     if (a <= b) {
         // CHECK: } then {
         // CHECK: [[V2:%[0-9]+]] = hl.constant
-        // CHECK-NEXT: hl.var( c, [[V2]] )
+        // CHECK-NEXT: hl.var @c = [[V2]]
         int c = 7;
     } else {
         // CHECK: } else {
