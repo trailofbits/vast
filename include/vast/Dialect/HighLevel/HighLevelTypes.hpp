@@ -174,8 +174,8 @@ namespace vast::hl
         return enum_parser( IntegerKind::Char  ) |
                enum_parser( IntegerKind::Short ) |
                enum_parser( IntegerKind::Int   ) |
-               enum_parser( IntegerKind::Long  ) |
-               enum_parser( IntegerKind::LongLong );
+               enum_parser( IntegerKind::LongLong ) |
+               enum_parser( IntegerKind::Long  );
     }
 
     constexpr parser< FloatingKind > auto float_kind_parser()
