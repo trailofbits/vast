@@ -1796,8 +1796,13 @@ namespace vast::hl
             auto loc  = getEndLocation(decl->getSourceRange());
             auto init = decl->getInit();
 
-            if (init)
-                return make< VarOp >(loc, ty, name, Visit(init));
+            if (init) {
+                auto init_value = std::get<Value>( Visit(init) );
+                if (init_value.getType() != ty) {
+                    init_value = make_value< ImplicitCastOp >( loc, ty, init_value, CastKind::NoOp );
+                }
+                return make< VarOp >(loc, ty, name, init_value);
+            }
             return make< VarOp >(loc, ty, name);
         }
 
