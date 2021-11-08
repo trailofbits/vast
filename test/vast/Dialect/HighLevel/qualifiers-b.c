@@ -1,4 +1,6 @@
 // RUN: vast-cc --from-source %s | FileCheck %s
+// RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
+
 int main()
 {
     // CHECK: hl.var @c : !hl.char
