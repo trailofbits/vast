@@ -191,7 +191,7 @@ namespace vast::hl
         auto boolean  = construct< Mnemonic >( trivial_parser< BoolMnemonic >() );
         auto integer  = construct< Mnemonic >( integer_kind_parser() );
         auto floating = construct< Mnemonic >( float_kind_parser() );
-        return _void | boolean | integer | floating;
+        return _void | boolean | floating | integer;
     }
 
     /* qualifier parsers */
