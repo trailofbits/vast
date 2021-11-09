@@ -53,7 +53,7 @@ namespace vast
             -> parse_result_t< T >
         {
             if (auto res = p(in)) {
-                const auto [val, rest] = res.value();
+                const auto &[val, rest] = res.value();
                 return {{f(val), rest}};
             }
             return std::nullopt;
@@ -61,12 +61,12 @@ namespace vast
     }
 
     template< typename P, typename F,
-                typename T =  std::invoke_result_t< F, parse_type<P>, parse_input_t > >
+              typename T =  std::invoke_result_t< F, parse_type<P>, parse_input_t > >
     constexpr parser<T> auto bind(P&& p, F&& f)
     {
-        return [=] (parse_input_t in) -> T {
+        return [f = std::forward< F >(f), p = std::forward< P >(p)] (parse_input_t in) -> T {
             if (auto res = p(in)) {
-                const auto [val, rest] = res.value();
+                const auto &[val, rest] = res.value();
                 return f(val, rest);
             }
             return std::nullopt;
@@ -105,10 +105,10 @@ namespace vast
     // alternation: frirst try P1, and if it fails, try P2.
     // Both parsers have to return the same type.
     template< typename P1, typename P2,
-                typename T = std::enable_if_t< std::is_same_v< parse_type<P1>, parse_type<P2> > > >
+              typename T = std::enable_if_t< std::is_same_v< parse_type<P1>, parse_type<P2> > > >
     constexpr parser<T> auto operator|(P1&& p1, P2&& p2)
     {
-        return [=] (parse_input_t in) {
+        return [p1 = std::forward< P1 >(p1), p2 = std::forward< P2 >(p2)] (parse_input_t in) {
             if (auto r1 = p1(in))
                 return r1;
             return p2(in);
@@ -117,10 +117,12 @@ namespace vast
 
     // accumulation: combine results of sequential application of both parsers
     template< typename P1, typename P2, typename F,
-                typename T = std::invoke_result_t< F, parse_type<P1>, parse_type<P2> > >
+              typename T = std::invoke_result_t< F, parse_type<P1>, parse_type<P2> > >
     constexpr parser<T> auto combine(P1 &&p1, P2 &&p2, F&& f)
     {
-        return [=] (parse_input_t in) -> parse_result_t< T > {
+        return [p1 = std::forward< P1 >(p1), p2 = std::forward< P2 >(p2), f = std::forward< F >(f)] (parse_input_t in)
+            -> parse_result_t< T >
+        {
             if (auto r1 = p1(in))
                 if (auto r2 = p2(rest(r1)))
                 return {{f(result(r1), result(r2)), rest(r2)}};
@@ -132,7 +134,7 @@ namespace vast
     template< typename P, typename T = std::tuple< parse_type<P> > >
     constexpr parser<T> auto combine(P &&p)
     {
-        return [=] (parse_input_t in) -> parse_result_t< T > {
+        return [p = std::forward< P >(p)] (parse_input_t in) -> parse_result_t< T > {
             if (auto r = p(in))
                 return {{std::make_tuple(result(r)), rest(r)}};
             return std::nullopt;
@@ -143,7 +145,7 @@ namespace vast
             , typename T = std::tuple< parse_type<P>, parse_type<Ps>... > >
     constexpr parser<T> auto combine(P &&p, Ps&&... ps)
     {
-        return [=] (parse_input_t in) -> parse_result_t< T > {
+        return [p = std::forward< P >(p), ... ps = std::forward< Ps >(ps)] (parse_input_t in) -> parse_result_t< T > {
             if (auto r1 = combine(p)(in))
                 if (auto r2 = combine(ps...)(rest(r1)))
                 return {{std::tuple_cat(result(r1), result(r2)), rest(r2)}};
@@ -159,7 +161,7 @@ namespace vast
 
     // combine two parsers and return the result of the second one
     template< typename P1, typename P2,
-                typename L = parse_type<P1>, typename R = parse_type<P2> >
+              typename L = parse_type<P1>, typename R = parse_type<P2> >
     constexpr parser<R> auto operator<(P1 &&p1, P2 &&p2)
     {
         return combine(std::forward<P1>(p1), std::forward<P2>(p2),
@@ -168,7 +170,7 @@ namespace vast
 
     // combine two parsers and return the result of the first one
     template< typename P1, typename P2,
-                typename L = parse_type<P1>, typename R = parse_type<P2> >
+              typename L = parse_type<P1>, typename R = parse_type<P2> >
     constexpr parser<L> auto operator>(P1 &&p1, P2 &&p2)
     {
         return combine(std::forward<P1>(p1), std::forward<P2>(p2),
@@ -191,7 +193,7 @@ namespace vast
     // parse character 'c'
     constexpr parser<char> auto char_parser(char c)
     {
-        return [=] (parse_input_t in) -> parse_result_t<char> {
+        return [c] (parse_input_t in) -> parse_result_t<char> {
             if (in.empty() || in.front() != c)
                 return std::nullopt;
             return {{c, in.substr(1)}};
@@ -201,7 +203,7 @@ namespace vast
     // parse string 'pattern'
     constexpr parser<std::string_view> auto string_parser(std::string_view pattern)
     {
-        return [=] (parse_input_t in) -> parse_result_t<std::string_view> {
+        return [pattern] (parse_input_t in) -> parse_result_t<std::string_view> {
             if (in.starts_with(pattern))
                 return {{pattern, in.substr(pattern.size())}};
             return std::nullopt;
@@ -211,7 +213,7 @@ namespace vast
     // parse character ∈ chars
     constexpr parser<char> auto one_of(std::string_view chars)
     {
-        return [=] (parse_input_t in) -> parse_result_t<char> {
+        return [chars] (parse_input_t in) -> parse_result_t<char> {
             if (in.empty())
                 return std::nullopt;
             if (chars.find(in.front()) != chars.npos)
@@ -223,7 +225,7 @@ namespace vast
     // parse character ∉ chars
     constexpr parser<char> auto none_of(std::string_view chars)
     {
-        return [=] (parse_input_t in) -> parse_result_t<char> {
+        return [chars] (parse_input_t in) -> parse_result_t<char> {
             if (in.empty())
                 return std::nullopt;
             if (chars.find(in.front()) == chars.npos)
@@ -266,8 +268,11 @@ namespace vast
         return fmap([] (auto &&arg) { return T{std::forward<decltype(arg)>(arg)}; }, std::forward<P>(p) );
     }
 
-    template< typename E, typename P >
-    constexpr parser<E> auto as_enum(E value, P &&p)
+    template< typename V >
+    concept Trivial = std::is_trivially_constructible_v< V >;
+
+    template< Trivial E, typename P >
+    constexpr parser<E> auto as_trivial(E value, P &&p)
     {
         return fmap([value] (auto &&) { return value; }, std::forward<P>(p) );
     }

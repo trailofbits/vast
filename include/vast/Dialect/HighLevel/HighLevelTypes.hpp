@@ -155,7 +155,7 @@ namespace vast::hl
     {
         return [value] (parse_input_t in) {
             auto str = to_string(value);
-            return as_enum(value, string_parser(str))(in);
+            return as_trivial(value, string_parser(str))(in);
         };
     }
 
@@ -164,7 +164,7 @@ namespace vast::hl
     {
         return [value = trivial()] (parse_input_t in) {
             auto str = to_string(value);
-            return as_enum(value, string_parser(str))(in);
+            return as_trivial(value, string_parser(str))(in);
         };
     }
 
