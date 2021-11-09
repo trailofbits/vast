@@ -54,14 +54,20 @@ namespace vast::hl
         return Base::get(ctx, qualifiers);
     }
 
-    IntegerType IntegerType::get(Context *ctx, IntegerKind kind) { return Base::get(ctx, kind); }
+    IntegerType IntegerType::get(Context *ctx, IntegerKind kind)
+    {
+        return Base::get(ctx, kind, QualifiersList());
+    }
 
     IntegerType IntegerType::get(Context *ctx, IntegerKind kind, QualifiersList qualifiers)
     {
         return Base::get(ctx, kind, qualifiers);
     }
 
-    FloatingType FloatingType::get(Context *ctx, FloatingKind kind) { return Base::get(ctx, kind); }
+    FloatingType FloatingType::get(Context *ctx, FloatingKind kind)
+    {
+        return Base::get(ctx, kind, QualifiersList());
+    }
 
     FloatingType FloatingType::get(Context *ctx, FloatingKind kind, QualifiersList qualifiers)
     {
