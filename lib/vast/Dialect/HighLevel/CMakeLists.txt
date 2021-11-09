@@ -17,6 +17,11 @@ add_mlir_dialect_library(MLIRHighLevel
     LINK_LIBS PUBLIC
     MLIRIR
     MLIRSideEffectInterfaces
+
+    MLIRCallInterfaces
+    MLIRControlFlowInterfaces
+    MLIRDataLayoutInterfaces
+    MLIRInferTypeOpInterface
 )
 
 target_link_libraries(MLIRHighLevel PRIVATE vast_settings)
