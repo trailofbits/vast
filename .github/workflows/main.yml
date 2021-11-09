@@ -83,7 +83,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            software-properties-common tar wget \
+            software-properties-common tar wget libncurses5 \
             clang-12 libstdc++-10-dev cmake ninja-build python3-pip
 
       - name: Clone the vast repository
