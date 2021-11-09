@@ -269,6 +269,10 @@ namespace vast::hl
         using Kind  = _Kind;
         using KeyTy = std::tuple< Kind, QualifiersList >;
 
+        explicit KindQualifiersStorage(Kind kind)
+            : kind(kind)
+        {}
+
         KindQualifiersStorage(Kind kind, QualifiersList qualifiers)
             : kind(kind), qualifiers(qualifiers)
         {}
