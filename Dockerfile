@@ -12,7 +12,7 @@ ARG LIBRARIES
 WORKDIR /dependencies
 
 RUN apt-get update && \
-    apt-get install -y software-properties-common wget tar
+    apt-get install -y software-properties-common wget tar libncurses5
 
 RUN wget "https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-16.04.tar.xz" || \
     { echo 'Error downloading LLVM version ${LLVM_VERSION}' ; exit 1; }
