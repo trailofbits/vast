@@ -955,9 +955,30 @@ namespace vast::hl
             llvm_unreachable( "unsupported CXXUuidofExpr" );
         }
 
+        mlir::FuncOp VisitCallee(clang::Decl *decl)
+        {
+            auto func = mlir::cast< clang::FunctionDecl >(decl);
+
+            auto ip = builder.saveInsertionPoint();
+            auto op = std::get< Stmt >( VisitFunctionDecl(func) );
+            builder.restoreInsertionPoint(ip);
+
+            return mlir::cast< mlir::FuncOp >( op );
+        }
+
         ValueOrStmt VisitCallExpr(clang::CallExpr *expr)
         {
-            llvm_unreachable( "unsupported CallExpr" );
+            auto loc = builder.getLocation(expr->getSourceRange());
+
+            // TODO(Heno): indirect call
+            auto func = VisitCallee(expr->getCalleeDecl());
+
+            llvm::SmallVector< Value, 2 > args;
+            for (const auto &arg : expr->arguments()) {
+                args.push_back( std::get< Value >( Visit(arg) ) );
+            }
+
+            return make_value< CallOp >( loc, func, args );
         }
 
         ValueOrStmt VisitCUDAKernelCallExpr(clang::CUDAKernelCallExpr *expr)
@@ -1668,6 +1689,11 @@ namespace vast::hl
 
         ValueOrStmt VisitFunctionDecl(clang::FunctionDecl *decl)
         {
+            auto name = decl->getName();
+
+            if ( auto fn = mod->lookupSymbol< mlir::FuncOp >( name ) )
+                return fn;
+
             ScopedInsertPoint builder_scope(builder);
             llvm::ScopedHashTableScope scope(symbols);
 

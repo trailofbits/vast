@@ -117,6 +117,13 @@ namespace vast::hl
         printer.printOptionalAttrDict(op->getAttrs(), {"value"});
     }
 
+    mlir::CallInterfaceCallable CallOp::getCallableForCallee()
+    {
+        return (*this)->getAttrOfType< mlir::SymbolRefAttr >("callee");
+    }
+
+    mlir::Operation::operand_range CallOp::getArgOperands() { return operands(); }
+
     void IfOp::build(Builder &bld, State &st, BuilderCallback condBuilder, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
     {
         assert(condBuilder && "the builder callback for 'condition' block must be present");
