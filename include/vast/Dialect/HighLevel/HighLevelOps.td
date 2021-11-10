@@ -3,6 +3,8 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 
+include "mlir/Interfaces/CallInterfaces.td"
+
 def HighLevel_ScopeOp
   : HighLevel_Op< "scope", [NoTerminator] >
 {
@@ -13,6 +15,31 @@ def HighLevel_ScopeOp
   let assemblyFormat = [{ $body attr-dict }];
 }
 
+def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
+{
+  let summary = "VAST call operation";
+  let description = [{ VAST call operation }];
+
+  let arguments = (ins
+    FlatSymbolRefAttr:$callee,
+    Variadic<AnyType>:$operands
+  );
+
+  let results = (outs AnyType:$result);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder< (ins "mlir::FuncOp":$callee, CArg<"mlir::ValueRange", "{}">:$operands ), [{
+      $_state.addOperands(operands);
+      $_state.addAttribute("callee", $_builder.getSymbolRefAttr(callee));
+      $_state.addTypes(callee.getType().getResults());
+    }]>
+  ];
+
+  let assemblyFormat = [{
+    $callee `(` $operands `)` attr-dict `:` functional-type( $operands, $result )
+  }];
+}
 
 def HighLevel_ReturnOp
   : HighLevel_Op< "return", [Terminator, NoSideEffect] >
