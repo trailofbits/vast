@@ -44,14 +44,10 @@ namespace vast::hl
         }
     }
 
-    constexpr bool is_void_type(const BuiltinType *ty)    { return ty->isVoidType(); }
-    constexpr bool is_bool_type(const BuiltinType *ty)    { return ty->getKind() == BuiltinType::Bool; }
-    constexpr bool is_integer_type(const BuiltinType *ty) { return ty->isIntegerType(); }
-
-    std::vector< Qualifier > qualifiers_list(const BuiltinType *ty, clang::Qualifiers quals)
+    std::vector< Qualifier > qualifiers_list(const clang::Type *ty, clang::Qualifiers quals)
     {
         std::vector< Qualifier > qualifiers;
-        if (ty->isUnsignedInteger() && !is_bool_type(ty))
+        if (ty->isUnsignedIntegerType() && !ty->isBooleanType())
             qualifiers.push_back(Signedness::Unsigned);
         if (quals.hasConst())
             qualifiers.push_back(Const());
@@ -60,37 +56,46 @@ namespace vast::hl
         return qualifiers;
     }
 
-    mlir::Type TypeConverter::convert(clang::QualType ty)
+    HighLevelType TypeConverter::convert(clang::QualType ty)
     {
         return convert(ty.getTypePtr(), ty.getQualifiers());
     }
 
-    mlir::Type TypeConverter::convert(const clang::Type *ty, clang::Qualifiers quals)
+    HighLevelType TypeConverter::convert(const clang::Type *ty, clang::Qualifiers quals)
     {
         ty = ty->getUnqualifiedDesugaredType();
 
         if (ty->isBuiltinType())
-            return convert(clang::cast<BuiltinType>(ty), quals);
+            return convert(clang::cast< BuiltinType >(ty), quals);
+
+        if (ty->isPointerType())
+            return convert(clang::cast< clang::PointerType >(ty), quals);
 
         llvm_unreachable("unknown clang type");
     }
 
-    mlir::Type TypeConverter::convert(const BuiltinType *ty, clang::Qualifiers quals)
+    HighLevelType TypeConverter::convert(const BuiltinType *ty, clang::Qualifiers quals)
     {
-        if (is_void_type(ty)) {
+        if (ty->isVoidType()) {
             return VoidType::get(ctx);
         }
 
-        if (is_bool_type(ty)) {
+        if (ty->isBooleanType()) {
             return BoolType::get(ctx, qualifiers_list(ty, quals));
         }
 
-        if (is_integer_type(ty)) {
+        if (ty->isIntegerType()) {
             auto kind = get_integer_kind(ty);
             return IntegerType::get(ctx, kind, qualifiers_list(ty, quals));
         }
 
         llvm_unreachable("unknown builtin type");
+    }
+
+    HighLevelType TypeConverter::convert(const clang::PointerType *ty, clang::Qualifiers quals)
+    {
+        auto elementType = convert(ty->getPointeeType());
+        return PointerType::get(ctx, elementType, qualifiers_list(ty, quals));
     }
 
     mlir::FunctionType TypeConverter::convert(const clang::FunctionType *ty)

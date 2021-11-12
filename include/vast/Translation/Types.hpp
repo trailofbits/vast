@@ -13,6 +13,8 @@ VAST_RELAX_WARNINGS
 #include <clang/AST/Type.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+
 namespace vast::hl
 {
     struct TypeConverter
@@ -21,10 +23,11 @@ namespace vast::hl
 
         TypeConverter(Context *ctx) : ctx(ctx) {}
 
-        mlir::Type convert(clang::QualType ty);
+        HighLevelType convert(clang::QualType ty);
 
-        mlir::Type convert(const clang::Type *ty, clang::Qualifiers quals);
-        mlir::Type convert(const clang::BuiltinType *ty, clang::Qualifiers quals);
+        HighLevelType convert(const clang::Type *ty, clang::Qualifiers quals);
+        HighLevelType convert(const clang::BuiltinType *ty, clang::Qualifiers quals);
+        HighLevelType convert(const clang::PointerType *ty, clang::Qualifiers quals);
         mlir::FunctionType convert(const clang::FunctionType *ty);
 
     private:
