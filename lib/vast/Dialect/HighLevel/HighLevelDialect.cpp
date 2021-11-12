@@ -15,6 +15,7 @@
 #include <llvm/Support/ErrorHandling.h>
 #include <llvm/Support/SMLoc.h>
 #include <optional>
+#include <type_traits>
 #include <vector>
 
 
@@ -62,51 +63,79 @@ namespace vast::hl
         return parser.emitError(loc, "invalid type qualifier: ") << keyword, std::nullopt;
     }
 
-    std::vector< Qualifier > parse_qualifiers(DialectParser &parser)
+    std::vector< Qualifier > parse_qualifiers_list(DialectParser &parser)
     {
         std::vector< Qualifier > qualifiers;
-
-        if (succeeded(parser.parseOptionalLess())) {
-            do {
-                if (auto qual = parse_qualifier(parser))
-                    qualifiers.push_back(qual.value());
-            } while ( failed(parser.parseOptionalGreater()) );
-        }
-
+        do {
+            if (auto qual = parse_qualifier(parser))
+                qualifiers.push_back(qual.value());
+        } while ( failed(parser.parseOptionalGreater()) );
         return qualifiers;
     }
 
-    Type build_type(Context *ctx, Mnemonic mnemonic)
+    std::vector< Qualifier > parse_qualifiers(DialectParser &parser)
     {
-        return std::visit( overloaded {
-            [&] (VoidMnemonic)      -> Type { return VoidType::get(ctx); },
-            [&] (BoolMnemonic)      -> Type { return BoolType::get(ctx); },
-            [&] (IntegerKind kind)  -> Type { return IntegerType::get(ctx, kind); },
-            [&] (FloatingKind kind) -> Type { return FloatingType::get(ctx, kind); }
-        }, mnemonic);
+        if (succeeded(parser.parseOptionalLess()))
+            return parse_qualifiers_list(parser);
+        return {};
     }
 
-    Type build_type(Context *ctx, Mnemonic mnemonic, QualifiersList qualifiers)
+    HighLevelType parse_pointer_type(Context *ctx, DialectParser &parser);
+
+    HighLevelType parse_type(Context *ctx, DialectParser &parser)
     {
-        return std::visit( overloaded {
-            [&] (VoidMnemonic)      -> Type { return llvm_unreachable("void cannot be qualified"), Type(); },
-            [&] (BoolMnemonic)      -> Type { return BoolType::get(ctx, qualifiers); },
-            [&] (IntegerKind kind)  -> Type { return IntegerType::get(ctx, kind, qualifiers); },
-            [&] (FloatingKind kind) -> Type { return FloatingType::get(ctx, kind, qualifiers); }
-        }, mnemonic);
+        if (auto mnem = parse_mnemonic(parser)) {
+            return std::visit( overloaded {
+                [&] (VoidMnemonic) -> HighLevelType { return VoidType::get(ctx); },
+                [&] (BoolMnemonic) -> HighLevelType { return BoolType::get(ctx, parse_qualifiers(parser)); },
+                [&] (IntegerKind kind)  -> HighLevelType { return IntegerType::get(ctx, kind, parse_qualifiers(parser)); },
+                [&] (FloatingKind kind) -> HighLevelType { return FloatingType::get(ctx, kind, parse_qualifiers(parser)); },
+                [&] (PointerMnemonic)   -> HighLevelType { return parse_pointer_type(ctx, parser); }
+            }, mnem.value());
+        }
+
+        return HighLevelType();
+    }
+
+    HighLevelType parse_pointer_type(Context *ctx, DialectParser &parser)
+    {
+        HighLevelType result;
+
+        auto fail = [&] (std::string_view msg) {
+            auto loc = parser.getCurrentLocation();
+            return parser.emitError(loc, msg), HighLevelType();
+        };
+
+        if (parser.parseLess()) {
+            return HighLevelType();
+        }
+
+        auto element = parse_type(ctx, parser);
+        if (!element) {
+            return fail("wron pointer element type");
+        }
+
+        std::vector< Qualifier > qualifiers;
+        if (succeeded(parser.parseOptionalComma())) {
+            qualifiers = parse_qualifiers_list(parser);
+            if (qualifiers.empty()) {
+                return fail("expecting type qualifier list");
+            }
+        }
+
+        result = PointerType::get(ctx, element, qualifiers);
+
+        if (qualifiers.empty() && parser.parseGreater()) {
+            return HighLevelType();
+        }
+
+        return result;
     }
 
     // Parse a type registered to this dialect.
     Type HighLevelDialect::parseType(DialectParser &parser) const
     {
-        if (auto mnem = parse_mnemonic(parser)) {
-            auto ctx = getContext();
-            if (auto quals = parse_qualifiers(parser); !quals.empty())
-                return build_type(ctx, mnem.value(), quals);
-            return build_type(ctx, mnem.value());
-        }
-
-        return Type();
+        return parse_type(getContext(), parser);
     }
 
     void HighLevelDialect::printType(Type type, DialectPrinter &os) const

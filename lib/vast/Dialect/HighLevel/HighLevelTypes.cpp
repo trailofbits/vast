@@ -74,6 +74,16 @@ namespace vast::hl
         return Base::get(ctx, kind, qualifiers);
     }
 
+    PointerType PointerType::get(Context *ctx, HighLevelType elementType)
+    {
+        return Base::get(ctx, elementType, QualifiersList());
+    }
+
+    PointerType PointerType::get(Context *ctx, HighLevelType elementType, QualifiersList qualifiers)
+    {
+        return Base::get(ctx, elementType, qualifiers);
+    }
+
     std::string to_string(VoidType type)
     {
         return to_string(type.mnemonic());
@@ -94,17 +104,27 @@ namespace vast::hl
         return detail::to_string_with_qualifiers(type);
     }
 
+    std::string to_string(PointerType type)
+    {
+        auto repr = to_string(type.mnemonic()) + "<" + to_string(type.getElementType());
+        auto qualifiers = type.qualifiers();
+        if (!qualifiers.empty()) {
+            repr += ", " + detail::to_string_qualifiers(qualifiers);
+        }
+        return repr + ">";
+    }
+
     std::string to_string(HighLevelType type)
     {
         auto print = [&] (auto type) { return to_string(type); };
 
         return llvm::TypeSwitch< HighLevelType, std::string >(type)
-            .Case< VoidType, BoolType, IntegerType, FloatingType >(print)
+            .Case< VoidType, BoolType, IntegerType, FloatingType, PointerType >(print)
             .Default([&](auto) { return llvm_unreachable("unknown high-level type"), "invalid"; });
     }
 
     void HighLevelDialect::registerTypes() {
-        addTypes< VoidType, BoolType, IntegerType, FloatingType >();
+        addTypes< VoidType, BoolType, IntegerType, FloatingType, PointerType >();
 
         addTypes<
             #define GET_TYPEDEF_LIST
