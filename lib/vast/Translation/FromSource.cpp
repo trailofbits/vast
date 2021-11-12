@@ -343,16 +343,28 @@ namespace vast::hl
 
 
         template< typename Op >
-        ValueOrStmt make_unary(clang::UnaryOperator *expr)
+        ValueOrStmt make_type_preserving_unary(clang::UnaryOperator *expr)
         {
             auto loc = builder.getEndLocation(expr->getSourceRange());
             auto arg = Visit(expr->getSubExpr());
-            auto res = make< Op >( loc, arg );
-            if constexpr ( std::is_convertible_v< decltype(res), Value > ) {
-                return Value(res);
-            } else {
-                return res;
-            }
+            return make_value< Op >( loc, arg );
+        }
+
+        template< typename Op >
+        ValueOrStmt make_inplace_unary(clang::UnaryOperator *expr)
+        {
+            auto loc = builder.getLocation(expr->getSourceRange());
+            auto arg = Visit(expr->getSubExpr());
+            return make< Op >( loc, arg );
+        }
+
+        template< typename Op >
+        ValueOrStmt make_unary(clang::UnaryOperator *expr)
+        {
+            auto loc = builder.getLocation(expr->getSourceRange());
+            auto rty = types.convert(expr->getType());
+            auto arg = Visit(expr->getSubExpr());
+            return make_value< Op >( loc, rty, arg );
         }
 
         template< typename Cast >
@@ -616,52 +628,52 @@ namespace vast::hl
 
         ValueOrStmt VisitUnaryPostInc(clang::UnaryOperator *expr)
         {
-            return make_unary< PostIncOp >(expr);
+            return make_inplace_unary< PostIncOp >(expr);
         }
 
         ValueOrStmt VisitUnaryPostDec(clang::UnaryOperator *expr)
         {
-            return make_unary< PostDecOp >(expr);
+            return make_inplace_unary< PostDecOp >(expr);
         }
 
         ValueOrStmt VisitUnaryPreInc(clang::UnaryOperator *expr)
         {
-            return make_unary< PreIncOp >(expr);
+            return make_inplace_unary< PreIncOp >(expr);
         }
 
         ValueOrStmt VisitUnaryPreDec(clang::UnaryOperator *expr)
         {
-            return make_unary< PreDecOp >(expr);
+            return make_inplace_unary< PreDecOp >(expr);
         }
 
         ValueOrStmt VisitUnaryAddrOf(clang::UnaryOperator *expr)
         {
-            llvm_unreachable( "unsupported UnaryAddrOf" );
+            return make_unary< AddressOf >(expr);
         }
 
         ValueOrStmt VisitUnaryDeref(clang::UnaryOperator *expr)
         {
-            llvm_unreachable( "unsupported UnaryDeref" );
+            return make_unary< Deref >(expr);
         }
 
         ValueOrStmt VisitUnaryPlus(clang::UnaryOperator *expr)
         {
-            return make_unary< PlusOp >(expr);
+            return make_type_preserving_unary< PlusOp >(expr);
         }
 
         ValueOrStmt VisitUnaryMinus(clang::UnaryOperator *expr)
         {
-            return make_unary< MinusOp >(expr);
+            return make_type_preserving_unary< MinusOp >(expr);
         }
 
         ValueOrStmt VisitUnaryNot(clang::UnaryOperator *expr)
         {
-            return make_unary< NotOp >(expr);
+            return make_type_preserving_unary< NotOp >(expr);
         }
 
         ValueOrStmt VisitUnaryLNot(clang::UnaryOperator *expr)
         {
-            return make_unary< LNotOp >(expr);
+            return make_type_preserving_unary< LNotOp >(expr);
         }
 
         ValueOrStmt VisitUnaryReal(clang::UnaryOperator *expr)
