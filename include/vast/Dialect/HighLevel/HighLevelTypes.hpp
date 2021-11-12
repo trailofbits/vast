@@ -65,6 +65,11 @@ namespace vast::hl
         }
     }
 
+    /* pointer type */
+    struct PointerMnemonic {};
+
+    inline std::string to_string(PointerMnemonic) { return "ptr"; }
+
     /* qualifiers */
 
     /* volatile qualifier */
@@ -107,7 +112,7 @@ namespace vast::hl
     constexpr llvm::hash_code hash_value(const Qualifier &qual);
 
     /* variants of possible type mnemonics */
-    using Mnemonic = std::variant< VoidMnemonic, BoolMnemonic, IntegerKind, FloatingKind >;
+    using Mnemonic = std::variant< VoidMnemonic, BoolMnemonic, PointerMnemonic, IntegerKind, FloatingKind >;
 
     std::string to_string(const Mnemonic &mnem);
 
@@ -189,9 +194,10 @@ namespace vast::hl
     {
         auto _void    = construct< Mnemonic >( trivial_parser< VoidMnemonic >() );
         auto boolean  = construct< Mnemonic >( trivial_parser< BoolMnemonic >() );
+        auto pointer  = construct< Mnemonic >( trivial_parser< PointerMnemonic >() );
         auto integer  = construct< Mnemonic >( integer_kind_parser() );
         auto floating = construct< Mnemonic >( float_kind_parser() );
-        return _void | boolean | floating | integer;
+        return _void | boolean | pointer | floating | integer;
     }
 
     /* qualifier parsers */
@@ -263,32 +269,31 @@ namespace vast::hl
         QualifiersList qualifiers;
     };
 
-    template< typename _Kind, typename ...Qualifiers >
-    struct KindQualifiersStorage : TypeStorage
+    template< typename Value, typename ...Qualifiers >
+    struct ValueWithQualifiersStorage : TypeStorage
     {
-        using Kind  = _Kind;
-        using KeyTy = std::tuple< Kind, QualifiersList >;
+        using KeyTy = std::tuple< Value, QualifiersList >;
 
-        explicit KindQualifiersStorage(Kind kind)
-            : kind(kind)
+        explicit ValueWithQualifiersStorage(Value value)
+            : value(value)
         {}
 
-        KindQualifiersStorage(Kind kind, QualifiersList qualifiers)
-            : kind(kind), qualifiers(qualifiers)
+        ValueWithQualifiersStorage(Value value, QualifiersList qualifiers)
+            : value(value), qualifiers(qualifiers)
         {}
 
-        bool operator==(const KeyTy &key) const{ return key == KeyTy(kind, qualifiers); }
+        bool operator==(const KeyTy &key) const{ return key == KeyTy(value, qualifiers); }
 
-        static KindQualifiersStorage *construct(TypeStorageAllocator &allocator, const KeyTy &key)
+        static ValueWithQualifiersStorage *construct(TypeStorageAllocator &allocator, const KeyTy &key)
         {
-            const auto &[kind, quals] = key;
+            const auto &[value, quals] = key;
             QualifiersList qualifiers = allocator.copyInto(quals);
-            return new (allocator.allocate<KindQualifiersStorage>()) KindQualifiersStorage(kind, qualifiers);
+            return new (allocator.allocate<ValueWithQualifiersStorage>()) ValueWithQualifiersStorage(value, qualifiers);
         }
 
         static llvm::hash_code hashKey(const KeyTy &key) { return llvm::hash_value(key); }
 
-        Kind kind;
+        Value value;
         QualifiersList qualifiers;
     };
 
@@ -304,7 +309,7 @@ namespace vast::hl
     struct WithKind : Next
     {
         using Next::Next;
-        Kind kind() const { return this->getImpl()->kind; }
+        Kind kind() const { return this->getImpl()->value; }
 
         Mnemonic mnemonic() const { return kind(); }
     };
@@ -349,7 +354,7 @@ namespace vast::hl
     std::string to_string(BoolType type);
 
     /* Integer Types */
-    using IntegerStorage = KindQualifiersStorage< IntegerKind, Const, Volatile, Signedness >;
+    using IntegerStorage = ValueWithQualifiersStorage< IntegerKind, Const, Volatile, Signedness >;
 
     struct IntegerType : WithKind< IntegerKind, WithQualifiers< WithStorage< IntegerType, IntegerStorage > > >
     {
@@ -367,7 +372,7 @@ namespace vast::hl
     std::string to_string(IntegerType type);
 
     /* Floating Types */
-    using FloatingStorage = KindQualifiersStorage< FloatingKind, Const, Volatile, Signedness >;
+    using FloatingStorage = ValueWithQualifiersStorage< FloatingKind, Const, Volatile, Signedness >;
 
     struct FloatingType : WithKind< FloatingKind, WithQualifiers< WithStorage< FloatingType, FloatingStorage > > >
     {
@@ -383,6 +388,26 @@ namespace vast::hl
     };
 
     std::string to_string(FloatingType type);
+
+    /* Pointer Type */
+    using PointerStorage = ValueWithQualifiersStorage< HighLevelType, Const, Volatile >;
+
+    struct PointerType : WithQualifiers< WithStorage< PointerType, PointerStorage > >
+    {
+        using Base = WithQualifiers< WithStorage< PointerType, PointerStorage > >;
+        using Base::Base;
+
+        using Base::qualifiers;
+
+        Mnemonic mnemonic() const { return PointerMnemonic{}; }
+
+        HighLevelType getElementType() const { return this->getImpl()->value; }
+
+        static PointerType get(Context *ctx, HighLevelType elementType);
+        static PointerType get(Context *ctx, HighLevelType elementType, QualifiersList qualifiers);
+    };
+
+    std::string to_string(PointerType type);
 
     std::string to_string(HighLevelType type);
 
