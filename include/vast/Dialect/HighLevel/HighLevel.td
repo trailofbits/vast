@@ -51,16 +51,28 @@ class HighLevel_UnInplaceOp< string mnemonic, list< OpTrait > traits = [] >
     let assemblyFormat = [{ $arg attr-dict `:` type($arg) }];
 }
 
-class HighLevel_UnOp< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_TypePreservingUnOp< string mnemonic, list< OpTrait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
 {
-    let summary = "VAST unary inplace operation";
-    let description = [{ VAST unary inplace operation }];
+    let summary = "VAST unary type preserving operation";
+    let description = [{ VAST unary type preserving operation }];
 
     let arguments = (ins AnyType:$arg);
     let results = (outs AnyType:$result);
 
     let assemblyFormat = [{ $arg attr-dict `:` type($result) }];
+}
+
+class HighLevel_UnOp< string mnemonic, list< OpTrait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
+{
+    let summary = "VAST unary operation";
+    let description = [{ VAST unary operation }];
+
+    let arguments = (ins AnyType:$arg);
+    let results = (outs AnyType:$result);
+
+    let assemblyFormat = [{ $arg attr-dict `:` type($arg) `->` type($result) }];
 }
 
 
