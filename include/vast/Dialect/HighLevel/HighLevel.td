@@ -31,7 +31,15 @@ class HighLevel_BinOp< string mnemonic, list< OpTrait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
 {
     let summary = "VAST binary operation";
-    let description = [{ VAST binary operation }];
+    let description = [{
+        High-level binary operation. This operation takes two operands
+        and returns one result, each of these is required to be of the same
+        type.
+
+        The custom assembly form of the operation is as follows:
+
+        %result = <op> %lhs, %rhs  : type
+    }];
 
     let arguments = (ins AnyType:$lhs, AnyType:$rhs);
     let results = (outs AnyType:$result);
@@ -44,7 +52,14 @@ class HighLevel_UnInplaceOp< string mnemonic, list< OpTrait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, []) >
 {
     let summary = "VAST unary inplace operation";
-    let description = [{ VAST unary inplace operation }];
+    let description = [{
+        Inplace high-level unary operation changes its single argument in place.
+        It does not produce a new value.
+
+        The custom assembly form of the operation is as follows:
+
+        <op> %arg : type
+    }];
 
     let arguments = (ins AnyType:$arg);
 
@@ -55,7 +70,14 @@ class HighLevel_TypePreservingUnOp< string mnemonic, list< OpTrait > traits = []
     : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
 {
     let summary = "VAST unary type preserving operation";
-    let description = [{ VAST unary type preserving operation }];
+    let description = [{
+        Type preserving high-level unary operation assures that argument and
+        result has the same type.
+
+        The custom assembly form of the operation is as follows:
+
+        %result = <op> %arg : type
+    }];
 
     let arguments = (ins AnyType:$arg);
     let results = (outs AnyType:$result);
@@ -67,7 +89,13 @@ class HighLevel_UnOp< string mnemonic, list< OpTrait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
 {
     let summary = "VAST unary operation";
-    let description = [{ VAST unary operation }];
+    let description = [{
+        A generic high-level unary operation can change the type of its argument.
+
+        The custom assembly form of the operation is as follows:
+
+        %result = <op> %arg  : type -> result_type
+    }];
 
     let arguments = (ins AnyType:$arg);
     let results = (outs AnyType:$result);
@@ -80,7 +108,19 @@ class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [SameTypeOperands]) >
 {
     let summary = "VAST compound assign operation";
-    let description = [{ VAST compound assign operation }];
+    let description = [{
+        A compound assign operation represents an assignment operation joined
+        with an arithmetic operation. It requires the same types for both source
+        and destination arguments.
+
+        The custom assembly form of the operation is as follows:
+
+        <assign.op> src to dst : type
+
+        Its represents C compound assignment statement:
+
+        dst =<op> src;
+    }];
 
     let arguments = (ins AnyType:$dst, AnyType:$src);
 
