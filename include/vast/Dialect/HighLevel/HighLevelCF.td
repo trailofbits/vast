@@ -17,7 +17,15 @@ def HighLevel_CondYieldOp : HighLevel_Op< "cond.yield", [
   NoSideEffect, Terminator, ParentOneOf<["IfOp", "WhileOp", "ForOp", "DoOp"]>
 ] > {
   let summary = "condition yield operation";
-  let description = [{ "condition yield operation" }];
+  let description = [{
+      A condition yield operation is used to terminate the region representing
+      condition expression of control flow operations `IfOp`, `WhileOp`, `ForOp`
+      and `DoOp`. It yields a boolean value for the conditional branch.
+
+      The custom assembly form of the operation is as follows:
+
+      hl.cond.yield result : BoolType
+  }];
 
   let arguments = (ins BoolType:$result);
   let results = (outs);
@@ -30,7 +38,14 @@ def HighLevel_ValueYieldOp : HighLevel_Op< "value.yield", [
   NoSideEffect, Terminator
 ] > {
   let summary = "value yield operation";
-  let description = [{ "value yield operation" }];
+  let description = [{
+      A value yield operation is used to terminate the case region of a switch
+      statement. The yielded value triggers the parent case statement region.
+
+      The custom assembly form of the operation is as follows:
+
+      hl.value.yield result : type
+   }];
 
   // TODO(Heno): check on type
   let arguments = (ins AnyType:$result);
@@ -50,7 +65,22 @@ def CasesRegion : Region< HasOneBlock, "cases region" >;
 def HighLevel_IfOp : ControlFlowOp< "if" >
 {
   let summary = "VAST if statement";
-  let description = [{ VAST if statement }];
+  let description = [{
+    The operation takes builders of two mandatory regions -- condition and then
+    region -- and one builder optional region representing else block of C if statement.
+    Builders, given the location, build a particular region.
+
+    The generic form of the operation is as follows:
+
+    hl.if {
+      ... /* condition region */
+      hl.cond.yield %cond : !hl.bool
+    } then {
+      ... /* then region */
+    } else {
+      ... /* else region */
+    }
+  }];
 
   let regions = (region CondRegion:$condRegion, AnyRegion:$thenRegion, AnyRegion:$elseRegion);
 
@@ -75,7 +105,19 @@ def HighLevel_IfOp : ControlFlowOp< "if" >
 def HighLevel_WhileOp : ControlFlowOp< "while" >
 {
   let summary = "VAST while statement";
-  let description = [{ VAST while statement }];
+  let description = [{
+    The operation takes builders of two mandatory regions -- condition and body
+    region. Builders, given the location, build a particular region.
+
+    The generic form of the operation is as follows:
+
+    hl.while {
+      ... /* condition region */
+      hl.cond.yield %cond : !hl.bool
+    } do {
+      ... /* body region */
+    }
+  }];
 
   let regions = (region CondRegion:$condRegion, SizedRegion<1>:$bodyRegion);
 
@@ -94,7 +136,22 @@ def HighLevel_WhileOp : ControlFlowOp< "while" >
 def HighLevel_ForOp : ControlFlowOp< "for" >
 {
   let summary = "VAST for statement";
-  let description = [{ VAST for statement }];
+  let description = [{
+    Operation represents a for-loop statement.
+
+    The generic form of the operation is as follows:
+
+    hl.for {
+      ... /* init region */
+    } cond {
+      ... /* cond region */
+      hl.cond.yield %cond : !hl.bool
+    } incr {
+      ... /* increment/update region */
+    } do {
+      ... /* body region */
+    }
+  }];
 
   let regions = (region SizedRegion<1>:$initRegion, CondRegion:$condRegion,
                         SizedRegion<1>:$incrRegion, SizedRegion<1>:$bodyRegion);
@@ -117,7 +174,18 @@ def HighLevel_ForOp : ControlFlowOp< "for" >
 def HighLevel_DoOp : ControlFlowOp< "do" >
 {
   let summary = "VAST do-while statement";
-  let description = [{ VAST do-while statement }];
+  let description = [{
+    The operation represents a do-while statement.
+
+    The generic form of the operation is as follows:
+
+    hl.do {
+      ... /* body region */
+    } cond {
+      ... /* cond region */
+      hl.cond.yield %cond : !hl.bool
+    }
+  }];
 
   let regions = (region SizedRegion<1>:$bodyRegion, CondRegion:$condRegion);
 
@@ -153,7 +221,18 @@ def HighLevel_ContinueOp : ControlFlowOp< "continue" >
 def HighLevel_SwitchOp : ControlFlowOp< "switch" >
 {
   let summary = "VAST switch statement";
-  let description = [{ VAST switch statement }];
+  let description = [{
+    The operation represents a switch statement.
+
+    The generic form of the operation is as follows:
+
+    hl.switch {
+      ... /* cond region */
+      hl.value.yield %val : !hl.type
+    } cases {
+      ... /* casesregion */
+    }
+  }];
 
   let regions = (region AnyRegion:$initRegion, ValueRegion:$condRegion, VariadicRegion<AnyRegion>:$cases);
 
@@ -174,7 +253,20 @@ def HighLevel_SwitchOp : ControlFlowOp< "switch" >
 def HighLevel_CaseOp : ControlFlowOp< "case" >
 {
   let summary = "VAST case statement";
-  let description = [{ VAST case statement }];
+  let description = [{
+    The operation represents a single case of a switch statement.
+
+    The generic form of the operation is as follows:
+
+    hl.case {
+      ... /* lhs/check region */
+      hl.value.yield %val : !hl.type
+    } {
+      ... /* body region */
+    }
+
+    It represents a C statement of form `case lhs: body;`.
+  }];
 
   let regions = (region ValueRegion:$lhs, SizedRegion<1>:$body);
 
