@@ -30,6 +30,8 @@ namespace vast::hl
         HighLevelType convert(const clang::BuiltinType *ty, clang::Qualifiers quals);
         HighLevelType convert(const clang::PointerType *ty, clang::Qualifiers quals);
         HighLevelType convert(const clang::RecordType *ty, clang::Qualifiers quals);
+        HighLevelType convert(const clang::ArrayType *ty, clang::Qualifiers quals);
+
         mlir::FunctionType convert(const clang::FunctionType *ty);
 
         std::string format_type(const clang::Type *type) const;
