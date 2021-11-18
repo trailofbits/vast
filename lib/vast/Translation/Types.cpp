@@ -48,6 +48,9 @@ namespace vast::hl
             case BuiltinType::LongLong:
             case BuiltinType::ULongLong:
                 return IntegerKind::LongLong;
+            case BuiltinType::Int128:
+            case BuiltinType::UInt128:
+                return IntegerKind::Int128;
             default:
                 llvm_unreachable("unknown integer kind");
         }

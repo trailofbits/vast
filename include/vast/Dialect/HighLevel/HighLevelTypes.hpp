@@ -40,7 +40,7 @@ namespace vast::hl
     inline std::string to_string(BoolMnemonic) { return "bool"; }
 
     /* integer types */
-    enum class IntegerKind { Char, Short, Int, Long, LongLong };
+    enum class IntegerKind { Char, Short, Int, Long, LongLong, Int128 };
 
     inline std::string to_string(IntegerKind kind)
     {
@@ -50,6 +50,7 @@ namespace vast::hl
             case IntegerKind::Int:      return "int";
             case IntegerKind::Long:     return "long";
             case IntegerKind::LongLong: return "longlong";
+            case IntegerKind::Int128:   return "int128";
         }
     }
 
@@ -176,9 +177,10 @@ namespace vast::hl
     /* type mnemonic parsers */
     constexpr parser< IntegerKind > auto integer_kind_parser()
     {
-        return enum_parser( IntegerKind::Char  ) |
-               enum_parser( IntegerKind::Short ) |
-               enum_parser( IntegerKind::Int   ) |
+        return enum_parser( IntegerKind::Char  )  |
+               enum_parser( IntegerKind::Short )  |
+               enum_parser( IntegerKind::Int128 ) |
+               enum_parser( IntegerKind::Int   )  |
                enum_parser( IntegerKind::LongLong ) |
                enum_parser( IntegerKind::Long  );
     }
