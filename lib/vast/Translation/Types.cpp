@@ -94,6 +94,9 @@ namespace vast::hl
         if (ty->isRecordType())
             return convert(clang::cast< clang::RecordType >(ty), quals);
 
+        if (ty->isArrayType())
+            return convert(clang::cast< clang::ArrayType >(ty), quals);
+
         unreachable( "unknown clang type: {0}", format_type(ty) );
     }
 
@@ -125,6 +128,12 @@ namespace vast::hl
     {
         return RecordType::get(mctx);
     }
+
+    HighLevelType TypeConverter::convert(const clang::ArrayType *ty, clang::Qualifiers quals)
+    {
+        return ArrayType::get(mctx);
+    }
+
 
     mlir::FunctionType TypeConverter::convert(const clang::FunctionType *ty)
     {
