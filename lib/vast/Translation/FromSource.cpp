@@ -253,7 +253,7 @@ namespace vast::hl
         VastCodeGenVisitor(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod, clang::ASTContext &actx)
             : mod(mod)
             , builder(mctx, mod, actx)
-            , types(&mctx)
+            , types(&mctx, actx)
         {}
 
         using clang::StmtVisitor< VastCodeGenVisitor, ValueOrStmt >::Visit;

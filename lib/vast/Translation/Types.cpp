@@ -8,11 +8,20 @@
 #include "clang/AST/TypeLoc.h"
 #include "clang/Basic/LLVM.h"
 
+#include "llvm/Support/FormatVariadic.h"
+
 #include <iostream>
 
 namespace vast::hl
 {
     using BuiltinType = clang::BuiltinType;
+
+    template< typename ...Args >
+    [[noreturn]] void unreachable( const char *fmt, Args &&... args)
+    {
+        std::string msg = llvm::formatv(fmt, std::forward<Args>(args)... );
+        llvm_unreachable( msg.c_str() );
+    }
 
     constexpr Signedness get_signedness_qualifier(const BuiltinType *ty)
     {
@@ -61,6 +70,14 @@ namespace vast::hl
         return convert(ty.getTypePtr(), ty.getQualifiers());
     }
 
+    std::string TypeConverter::format_type(const clang::Type *type) const
+    {
+        std::string name;
+        llvm::raw_string_ostream os(name);
+        type->dump(os, actx);
+        return name;
+    }
+
     HighLevelType TypeConverter::convert(const clang::Type *ty, clang::Qualifiers quals)
     {
         ty = ty->getUnqualifiedDesugaredType();
@@ -71,31 +88,31 @@ namespace vast::hl
         if (ty->isPointerType())
             return convert(clang::cast< clang::PointerType >(ty), quals);
 
-        llvm_unreachable("unknown clang type");
+        unreachable( "unknown clang type: {0}", format_type(ty) );
     }
 
     HighLevelType TypeConverter::convert(const BuiltinType *ty, clang::Qualifiers quals)
     {
         if (ty->isVoidType()) {
-            return VoidType::get(ctx);
+            return VoidType::get(mctx);
         }
 
         if (ty->isBooleanType()) {
-            return BoolType::get(ctx, qualifiers_list(ty, quals));
+            return BoolType::get(mctx, qualifiers_list(ty, quals));
         }
 
         if (ty->isIntegerType()) {
             auto kind = get_integer_kind(ty);
-            return IntegerType::get(ctx, kind, qualifiers_list(ty, quals));
+            return IntegerType::get(mctx, kind, qualifiers_list(ty, quals));
         }
 
-        llvm_unreachable("unknown builtin type");
+        unreachable( "unknown builtin type: {0}", format_type(ty) );
     }
 
     HighLevelType TypeConverter::convert(const clang::PointerType *ty, clang::Qualifiers quals)
     {
         auto elementType = convert(ty->getPointeeType());
-        return PointerType::get(ctx, elementType, qualifiers_list(ty, quals));
+        return PointerType::get(mctx, elementType, qualifiers_list(ty, quals));
     }
 
     mlir::FunctionType TypeConverter::convert(const clang::FunctionType *ty)
@@ -109,7 +126,7 @@ namespace vast::hl
         }
 
         auto rty = convert(ty->getReturnType());
-        return mlir::FunctionType::get(ctx, args, rty);
+        return mlir::FunctionType::get(mctx, args, rty);
     }
 
 } // namseapce vast::hl

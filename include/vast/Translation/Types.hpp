@@ -19,9 +19,10 @@ namespace vast::hl
 {
     struct TypeConverter
     {
-        using Context = mlir::MLIRContext;
+        using MContext = mlir::MLIRContext;
+        using ASTContext = clang::ASTContext;
 
-        TypeConverter(Context *ctx) : ctx(ctx) {}
+        TypeConverter(MContext *mctx, ASTContext &actx) : mctx(mctx), actx(actx) {}
 
         HighLevelType convert(clang::QualType ty);
 
@@ -30,8 +31,11 @@ namespace vast::hl
         HighLevelType convert(const clang::PointerType *ty, clang::Qualifiers quals);
         mlir::FunctionType convert(const clang::FunctionType *ty);
 
+        std::string format_type(const clang::Type *type) const;
+
     private:
-        Context *ctx;
+        MContext *mctx;
+        ASTContext &actx;
     };
 
 } // namespace vast::hl
