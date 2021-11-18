@@ -90,7 +90,8 @@ namespace vast::hl
                 [&] (BoolMnemonic) -> HighLevelType { return BoolType::get(ctx, parse_qualifiers(parser)); },
                 [&] (IntegerKind kind)  -> HighLevelType { return IntegerType::get(ctx, kind, parse_qualifiers(parser)); },
                 [&] (FloatingKind kind) -> HighLevelType { return FloatingType::get(ctx, kind, parse_qualifiers(parser)); },
-                [&] (PointerMnemonic)   -> HighLevelType { return parse_pointer_type(ctx, parser); }
+                [&] (PointerMnemonic)   -> HighLevelType { return parse_pointer_type(ctx, parser); },
+                [&] (RecordMnemonic)    -> HighLevelType { return RecordType::get(ctx); }
             }, mnem.value());
         }
 
