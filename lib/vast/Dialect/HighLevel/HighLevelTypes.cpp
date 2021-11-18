@@ -84,6 +84,9 @@ namespace vast::hl
         return Base::get(ctx, elementType, qualifiers);
     }
 
+    RecordType RecordType::get(Context *ctx) { return Base::get(ctx); }
+
+
     std::string to_string(VoidType type)
     {
         return to_string(type.mnemonic());
@@ -114,6 +117,11 @@ namespace vast::hl
         return repr + ">";
     }
 
+    std::string to_string(RecordType type)
+    {
+        return to_string(type.mnemonic());
+    }
+
     std::string to_string(HighLevelType type)
     {
         auto print = [&] (auto type) { return to_string(type); };
@@ -124,7 +132,7 @@ namespace vast::hl
     }
 
     void HighLevelDialect::registerTypes() {
-        addTypes< VoidType, BoolType, IntegerType, FloatingType, PointerType >();
+        addTypes< VoidType, BoolType, IntegerType, FloatingType, PointerType, RecordType >();
 
         addTypes<
             #define GET_TYPEDEF_LIST

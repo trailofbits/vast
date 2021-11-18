@@ -91,6 +91,9 @@ namespace vast::hl
         if (ty->isPointerType())
             return convert(clang::cast< clang::PointerType >(ty), quals);
 
+        if (ty->isRecordType())
+            return convert(clang::cast< clang::RecordType >(ty), quals);
+
         unreachable( "unknown clang type: {0}", format_type(ty) );
     }
 
@@ -116,6 +119,11 @@ namespace vast::hl
     {
         auto elementType = convert(ty->getPointeeType());
         return PointerType::get(mctx, elementType, qualifiers_list(ty, quals));
+    }
+
+    HighLevelType TypeConverter::convert(const clang::RecordType *ty, clang::Qualifiers quals)
+    {
+        return RecordType::get(mctx);
     }
 
     mlir::FunctionType TypeConverter::convert(const clang::FunctionType *ty)

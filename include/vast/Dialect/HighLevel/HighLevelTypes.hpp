@@ -71,6 +71,12 @@ namespace vast::hl
 
     inline std::string to_string(PointerMnemonic) { return "ptr"; }
 
+    /* record type */
+    struct RecordMnemonic {};
+
+    inline std::string to_string(RecordMnemonic) { return "record"; }
+
+
     /* qualifiers */
 
     /* volatile qualifier */
@@ -113,7 +119,7 @@ namespace vast::hl
     constexpr llvm::hash_code hash_value(const Qualifier &qual);
 
     /* variants of possible type mnemonics */
-    using Mnemonic = std::variant< VoidMnemonic, BoolMnemonic, PointerMnemonic, IntegerKind, FloatingKind >;
+    using Mnemonic = std::variant< VoidMnemonic, BoolMnemonic, PointerMnemonic, RecordMnemonic, IntegerKind, FloatingKind >;
 
     std::string to_string(const Mnemonic &mnem);
 
@@ -197,9 +203,10 @@ namespace vast::hl
         auto _void    = construct< Mnemonic >( trivial_parser< VoidMnemonic >() );
         auto boolean  = construct< Mnemonic >( trivial_parser< BoolMnemonic >() );
         auto pointer  = construct< Mnemonic >( trivial_parser< PointerMnemonic >() );
+        auto record   = construct< Mnemonic >( trivial_parser< RecordMnemonic >() );
         auto integer  = construct< Mnemonic >( integer_kind_parser() );
         auto floating = construct< Mnemonic >( float_kind_parser() );
-        return _void | boolean | pointer | floating | integer;
+        return _void | boolean | pointer | record | floating | integer;
     }
 
     /* qualifier parsers */
@@ -412,5 +419,18 @@ namespace vast::hl
     std::string to_string(PointerType type);
 
     std::string to_string(HighLevelType type);
+
+    /* Record Type */
+    struct RecordType : WithStorage< RecordType >
+    {
+        using Base = WithStorage< RecordType >;
+        using Base::Base;
+
+        Mnemonic mnemonic() const { return RecordMnemonic{}; }
+
+        static RecordType get(Context *ctx);
+    };
+
+    std::string to_string(RecordType type);
 
 } // namespace vast::hl
