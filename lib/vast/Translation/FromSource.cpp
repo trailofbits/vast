@@ -1660,10 +1660,19 @@ namespace vast::hl
         //     llvm_unreachable( "unsupported TypedefNameDecl" );
         // }
 
-        // ValueOrStmt VisitTypedefDecl(clang::TypedefDecl *decl)
-        // {
-        //     llvm_unreachable( "unsupported TypedefDecl" );
-        // }
+        ValueOrStmt VisitTypedefDecl(clang::TypedefDecl *decl)
+        {
+            auto loc = getLocation(decl->getSourceRange());
+            auto name = decl->getName();
+
+            auto type = [this, underlying = decl->getUnderlyingType()] () -> mlir::Type {
+                if (underlying->isFunctionProtoType())
+                    return convert(clang::cast< clang::FunctionType >(underlying));
+                return convert(underlying);
+            } ();
+
+            return make< TypeDef >(loc, name, type);
+        }
 
         ValueOrStmt VisitTypeAliasDecl(clang::TypeAliasDecl *decl)
         {
