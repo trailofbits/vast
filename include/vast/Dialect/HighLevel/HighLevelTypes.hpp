@@ -208,7 +208,7 @@ namespace vast::hl
         auto boolean  = construct< Mnemonic >( trivial_parser< BoolMnemonic >() );
         auto pointer  = construct< Mnemonic >( trivial_parser< PointerMnemonic >() );
         auto record   = construct< Mnemonic >( trivial_parser< RecordMnemonic >() );
-        auto array   = construct< Mnemonic >( trivial_parser< RecordMnemonic >() );
+        auto array    = construct< Mnemonic >( trivial_parser< ArrayMnemonic >() );
         auto integer  = construct< Mnemonic >( integer_kind_parser() );
         auto floating = construct< Mnemonic >( float_kind_parser() );
         return _void | boolean | pointer | record | array | floating | integer;
