@@ -74,12 +74,12 @@ namespace vast::hl
         return Base::get(ctx, kind, qualifiers);
     }
 
-    PointerType PointerType::get(Context *ctx, HighLevelType elementType)
+    PointerType PointerType::get(Context *ctx, mlir::Type elementType)
     {
         return Base::get(ctx, elementType, QualifiersList());
     }
 
-    PointerType PointerType::get(Context *ctx, HighLevelType elementType, QualifiersList qualifiers)
+    PointerType PointerType::get(Context *ctx, mlir::Type elementType, QualifiersList qualifiers)
     {
         return Base::get(ctx, elementType, qualifiers);
     }
@@ -108,6 +108,23 @@ namespace vast::hl
         return detail::to_string_with_qualifiers(type);
     }
 
+    std::string to_string(mlir::FunctionType type)
+    {
+        std::string name;
+        llvm::raw_string_ostream os(name);
+        type.print(os);
+        return name;
+    }
+
+    std::string to_string(mlir::Type type)
+    {
+        if (auto hlty = type.dyn_cast< HighLevelType >())
+            return to_string(hlty);
+        if (auto fty = type.dyn_cast< mlir::FunctionType >())
+            return to_string(fty);
+        llvm_unreachable( "unsupported type" );
+    }
+
     std::string to_string(PointerType type)
     {
         auto repr = to_string(type.mnemonic()) + "<" + to_string(type.getElementType());
@@ -133,7 +150,7 @@ namespace vast::hl
         auto print = [&] (auto type) { return to_string(type); };
 
         return llvm::TypeSwitch< HighLevelType, std::string >(type)
-            .Case< VoidType, BoolType, IntegerType, FloatingType, PointerType >(print)
+            .Case< VoidType, BoolType, IntegerType, FloatingType, PointerType, RecordType, ArrayType >(print)
             .Default([&](auto) { return llvm_unreachable("unknown high-level type"), "invalid"; });
     }
 

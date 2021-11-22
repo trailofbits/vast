@@ -24,13 +24,13 @@ namespace vast::hl
 
         TypeConverter(MContext *mctx, ASTContext &actx) : mctx(mctx), actx(actx) {}
 
-        HighLevelType convert(clang::QualType ty);
+        mlir::Type convert(clang::QualType ty);
 
-        HighLevelType convert(const clang::Type *ty, clang::Qualifiers quals);
-        HighLevelType convert(const clang::BuiltinType *ty, clang::Qualifiers quals);
-        HighLevelType convert(const clang::PointerType *ty, clang::Qualifiers quals);
-        HighLevelType convert(const clang::RecordType *ty, clang::Qualifiers quals);
-        HighLevelType convert(const clang::ArrayType *ty, clang::Qualifiers quals);
+        mlir::Type convert(const clang::Type *ty, clang::Qualifiers quals);
+        mlir::Type convert(const clang::BuiltinType *ty, clang::Qualifiers quals);
+        mlir::Type convert(const clang::PointerType *ty, clang::Qualifiers quals);
+        mlir::Type convert(const clang::RecordType *ty, clang::Qualifiers quals);
+        mlir::Type convert(const clang::ArrayType *ty, clang::Qualifiers quals);
 
         mlir::FunctionType convert(const clang::FunctionType *ty);
 
