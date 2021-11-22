@@ -82,8 +82,13 @@ namespace vast::hl
 
     HighLevelType parse_pointer_type(Context *ctx, DialectParser &parser);
 
-    HighLevelType parse_type(Context *ctx, DialectParser &parser)
+    mlir::Type parse_type(Context *ctx, DialectParser &parser)
     {
+        mlir::Type result;
+        if (auto res = parser.parseOptionalType(result); res.hasValue() && succeeded(*res)) {
+            return result;
+        }
+
         if (auto mnem = parse_mnemonic(parser)) {
             return std::visit( overloaded {
                 [&] (VoidMnemonic) -> HighLevelType { return VoidType::get(ctx); },
@@ -114,7 +119,7 @@ namespace vast::hl
 
         auto element = parse_type(ctx, parser);
         if (!element) {
-            return fail("wron pointer element type");
+            return fail("wrong pointer element type");
         }
 
         std::vector< Qualifier > qualifiers;
