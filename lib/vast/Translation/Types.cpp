@@ -68,7 +68,7 @@ namespace vast::hl
         return qualifiers;
     }
 
-    HighLevelType TypeConverter::convert(clang::QualType ty)
+    mlir::Type TypeConverter::convert(clang::QualType ty)
     {
         return convert(ty.getTypePtr(), ty.getQualifiers());
     }
@@ -81,7 +81,7 @@ namespace vast::hl
         return name;
     }
 
-    HighLevelType TypeConverter::convert(const clang::Type *ty, clang::Qualifiers quals)
+    mlir::Type TypeConverter::convert(const clang::Type *ty, clang::Qualifiers quals)
     {
         ty = ty->getUnqualifiedDesugaredType();
 
@@ -97,10 +97,13 @@ namespace vast::hl
         if (ty->isArrayType())
             return convert(clang::cast< clang::ArrayType >(ty), quals);
 
+        if (ty->isFunctionType())
+            return convert(clang::cast< clang::FunctionType >(ty));
+
         unreachable( "unknown clang type: {0}", format_type(ty) );
     }
 
-    HighLevelType TypeConverter::convert(const BuiltinType *ty, clang::Qualifiers quals)
+    mlir::Type TypeConverter::convert(const BuiltinType *ty, clang::Qualifiers quals)
     {
         if (ty->isVoidType()) {
             return VoidType::get(mctx);
@@ -118,18 +121,18 @@ namespace vast::hl
         unreachable( "unknown builtin type: {0}", format_type(ty) );
     }
 
-    HighLevelType TypeConverter::convert(const clang::PointerType *ty, clang::Qualifiers quals)
+    mlir::Type TypeConverter::convert(const clang::PointerType *ty, clang::Qualifiers quals)
     {
         auto elementType = convert(ty->getPointeeType());
         return PointerType::get(mctx, elementType, qualifiers_list(ty, quals));
     }
 
-    HighLevelType TypeConverter::convert(const clang::RecordType *ty, clang::Qualifiers quals)
+    mlir::Type TypeConverter::convert(const clang::RecordType *ty, clang::Qualifiers quals)
     {
         return RecordType::get(mctx);
     }
 
-    HighLevelType TypeConverter::convert(const clang::ArrayType *ty, clang::Qualifiers quals)
+    mlir::Type TypeConverter::convert(const clang::ArrayType *ty, clang::Qualifiers quals)
     {
         return ArrayType::get(mctx);
     }

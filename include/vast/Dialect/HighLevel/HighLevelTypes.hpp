@@ -404,7 +404,7 @@ namespace vast::hl
     std::string to_string(FloatingType type);
 
     /* Pointer Type */
-    using PointerStorage = ValueWithQualifiersStorage< HighLevelType, Const, Volatile >;
+    using PointerStorage = ValueWithQualifiersStorage< mlir::Type, Const, Volatile >;
 
     struct PointerType : WithQualifiers< WithStorage< PointerType, PointerStorage > >
     {
@@ -415,10 +415,10 @@ namespace vast::hl
 
         Mnemonic mnemonic() const { return PointerMnemonic{}; }
 
-        HighLevelType getElementType() const { return this->getImpl()->value; }
+        mlir::Type getElementType() const { return this->getImpl()->value; }
 
-        static PointerType get(Context *ctx, HighLevelType elementType);
-        static PointerType get(Context *ctx, HighLevelType elementType, QualifiersList qualifiers);
+        static PointerType get(Context *ctx, mlir::Type elementType);
+        static PointerType get(Context *ctx, mlir::Type elementType, QualifiersList qualifiers);
     };
 
     std::string to_string(PointerType type);
