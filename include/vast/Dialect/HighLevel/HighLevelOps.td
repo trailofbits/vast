@@ -15,6 +15,17 @@ def HighLevel_ScopeOp
   let assemblyFormat = [{ $body attr-dict }];
 }
 
+def HighLevel_TypeDef : HighLevel_Op< "typedef", [] >
+{
+  let arguments = (ins
+    SymbolNameAttr:$name,
+    TypeAttr:$type
+  );
+  let results = (outs);
+
+  let assemblyFormat = [{ $name attr-dict `:` $type }];
+}
+
 def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
 {
   let summary = "VAST call operation";
