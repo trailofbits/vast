@@ -124,6 +124,13 @@ namespace vast::hl
 
     mlir::Operation::operand_range CallOp::getArgOperands() { return operands(); }
 
+    mlir::CallInterfaceCallable IndirectCallOp::getCallableForCallee()
+    {
+        return (*this)->getOperand(0);
+    }
+
+    mlir::Operation::operand_range IndirectCallOp::getArgOperands() { return operands(); }
+
     void IfOp::build(Builder &bld, State &st, BuilderCallback condBuilder, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
     {
         assert(condBuilder && "the builder callback for 'condition' block must be present");
