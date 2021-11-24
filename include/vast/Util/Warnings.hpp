@@ -16,3 +16,21 @@
 
 #define VAST_UNRELAX_WARNINGS \
   _Pragma( "clang diagnostic pop" )
+
+VAST_RELAX_WARNINGS
+#include <llvm/Support/FormatVariadic.h>
+#include <llvm/Support/Debug.h>
+VAST_UNRELAX_WARNINGS
+
+#define DEBUG_TYPE "vast"
+
+namespace vast
+{
+    #define UNREACHABLE(fmt, ...) llvm_unreachable( llvm::formatv(fmt __VA_OPT__(,) __VA_ARGS__).str().c_str() );
+
+    #define UNIMPLEMENTED UNREACHABLE("not implemented: {}", __PRETTY_FUNCTION__);
+
+    #define VAST_DEBUG(fmt, ...) LLVM_DEBUG(llvm::dbgs() << llvm::formatv(fmt, __VA_OPT__(,) __VA_ARGS__));
+
+    #define CHECK(cond, fmt, ...) if (!cond) { UNREACHABLE(fmt __VA_OPT__(,) __VA_ARGS__); }
+}
