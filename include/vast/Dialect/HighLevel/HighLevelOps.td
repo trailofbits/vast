@@ -52,6 +52,43 @@ def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpIn
   }];
 }
 
+def HighLevel_IndirectCallOp : HighLevel_Op< "indirect_call", [
+  DeclareOpInterfaceMethods<CallOpInterface>,
+  TypesMatchWith<
+    "callee input types match argument types",
+    "callee", "operands",
+    "getFunctionType($_self).getInputs()"
+  >,
+  TypesMatchWith<
+    "callee result type match result type",
+    "callee", "result",
+    "getFunctionType($_self).getResult(0)"
+  >
+] > {
+  let summary = "VAST call operation";
+  let description = [{ VAST call operation }];
+
+  let arguments = (ins
+    AnyPointer:$callee,
+    Variadic<AnyType>:$operands
+  );
+
+  let results = (outs AnyType:$result);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder< (ins "mlir::Value":$callee, CArg<"mlir::ValueRange", "{}">:$operands ), [{
+      $_state.addOperands(callee);
+      $_state.addOperands(operands);
+      $_state.addTypes(getFunctionType(callee.getType()).getResult(0));
+    }]>
+  ];
+
+  let assemblyFormat = [{
+    $callee `(` $operands `)` attr-dict `:` type( $callee )
+  }];
+}
+
 def HighLevel_ReturnOp
   : HighLevel_Op< "return", [Terminator, NoSideEffect] >
 {
