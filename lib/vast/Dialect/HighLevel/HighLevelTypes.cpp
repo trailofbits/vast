@@ -135,6 +135,16 @@ namespace vast::hl
         return repr + ">";
     }
 
+    mlir::FunctionType getFunctionType(PointerType functionPointer)
+    {
+        return functionPointer.getElementType().cast< mlir::FunctionType >();
+    }
+
+    mlir::FunctionType getFunctionType(mlir::Type functionPointer)
+    {
+        return getFunctionType(functionPointer.cast< PointerType >());
+    }
+
     std::string to_string(RecordType type)
     {
         return to_string(type.mnemonic());

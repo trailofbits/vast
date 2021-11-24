@@ -425,6 +425,9 @@ namespace vast::hl
 
     std::string to_string(HighLevelType type);
 
+    mlir::FunctionType getFunctionType(PointerType functionPointer);
+    mlir::FunctionType getFunctionType(mlir::Type functionPointer);
+
     /* Record Type */
     struct RecordType : WithStorage< RecordType >
     {
