@@ -967,30 +967,53 @@ namespace vast::hl
             llvm_unreachable( "unsupported CXXUuidofExpr" );
         }
 
-        mlir::FuncOp VisitCallee(clang::Decl *decl)
+        mlir::FuncOp VisitDirectCallee(clang::FunctionDecl *callee)
         {
-            auto func = mlir::cast< clang::FunctionDecl >(decl);
+            auto name = callee->getName();
+            auto fn = mod->lookupSymbol< mlir::FuncOp >( name );
+            CHECK( fn, "missing function symbol {}", name );
+            return fn;
+        }
 
-            auto ip = builder.saveInsertionPoint();
-            auto op = std::get< Stmt >( VisitFunctionDecl(func) );
-            builder.restoreInsertionPoint(ip);
+        mlir::Value VisitIndirectCallee(clang::Expr *callee)
+        {
+            return std::get< Value >( Visit(callee) );
+        }
 
-            return mlir::cast< mlir::FuncOp >( op );
+        using Arguments = llvm::SmallVector< Value, 2 >;
+
+        Arguments VisitArguments(clang::CallExpr *expr)
+        {
+            Arguments args;
+            for (const auto &arg : expr->arguments()) {
+                args.push_back( std::get< Value >( Visit(arg) ) );
+            }
+            return args;
+        }
+
+        ValueOrStmt VisitDirectCall(clang::CallExpr *expr)
+        {
+            auto loc = builder.getLocation(expr->getSourceRange());
+            auto callee = VisitDirectCallee(expr->getDirectCallee());
+            auto args = VisitArguments(expr);
+            return make_value< CallOp >( loc, callee, args );
+        }
+
+        ValueOrStmt VisitIndirectCall(clang::CallExpr *expr)
+        {
+            auto loc = builder.getLocation(expr->getSourceRange());
+            auto callee = VisitIndirectCallee(expr->getCallee());
+            auto args = VisitArguments(expr);
+            return make_value< IndirectCallOp >( loc, callee, args );
         }
 
         ValueOrStmt VisitCallExpr(clang::CallExpr *expr)
         {
-            auto loc = builder.getLocation(expr->getSourceRange());
-
-            // TODO(Heno): indirect call
-            auto func = VisitCallee(expr->getCalleeDecl());
-
-            llvm::SmallVector< Value, 2 > args;
-            for (const auto &arg : expr->arguments()) {
-                args.push_back( std::get< Value >( Visit(arg) ) );
+            if (expr->getDirectCallee()) {
+                return VisitDirectCall(expr);
             }
 
-            return make_value< CallOp >( loc, func, args );
+            return VisitIndirectCall(expr);
         }
 
         ValueOrStmt VisitCUDAKernelCallExpr(clang::CUDAKernelCallExpr *expr)
