@@ -8,20 +8,11 @@
 #include "clang/AST/TypeLoc.h"
 #include "clang/Basic/LLVM.h"
 
-#include "llvm/Support/FormatVariadic.h"
-
 #include <iostream>
 
 namespace vast::hl
 {
     using BuiltinType = clang::BuiltinType;
-
-    template< typename ...Args >
-    [[noreturn]] void unreachable( const char *fmt, Args &&... args)
-    {
-        std::string msg = llvm::formatv(fmt, std::forward<Args>(args)... );
-        llvm_unreachable( msg.c_str() );
-    }
 
     constexpr Signedness get_signedness_qualifier(const BuiltinType *ty)
     {
@@ -52,7 +43,7 @@ namespace vast::hl
             case BuiltinType::UInt128:
                 return IntegerKind::Int128;
             default:
-                llvm_unreachable("unknown integer kind");
+                UNREACHABLE("unknown integer kind");
         }
     }
 
@@ -100,7 +91,7 @@ namespace vast::hl
         if (ty->isFunctionType())
             return convert(clang::cast< clang::FunctionType >(ty));
 
-        unreachable( "unknown clang type: {0}", format_type(ty) );
+        UNREACHABLE( "unknown clang type: {0}", format_type(ty) );
     }
 
     mlir::Type TypeConverter::convert(const BuiltinType *ty, clang::Qualifiers quals)
@@ -118,7 +109,7 @@ namespace vast::hl
             return IntegerType::get(mctx, kind, qualifiers_list(ty, quals));
         }
 
-        unreachable( "unknown builtin type: {0}", format_type(ty) );
+        UNREACHABLE( "unknown builtin type: {0}", format_type(ty) );
     }
 
     mlir::Type TypeConverter::convert(const clang::PointerType *ty, clang::Qualifiers quals)
