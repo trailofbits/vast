@@ -9,6 +9,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/TypeSupport.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/Dialect.h>
+#include <mlir/Interfaces/DataLayoutInterfaces.h>
+#include <mlir/Dialect/DLTI/DLTI.h>
 
 #include <clang/AST/Type.h>
 
@@ -16,6 +18,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/TypeList.hpp"
+#include "vast/Util/DataLayout.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 

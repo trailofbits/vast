@@ -8,7 +8,9 @@
 #include "clang/AST/TypeLoc.h"
 #include "clang/Basic/LLVM.h"
 
+#include <cassert>
 #include <iostream>
+
 
 namespace vast::hl
 {
@@ -63,7 +65,24 @@ namespace vast::hl
         }
     }
 
-    mlir::Type TypeConverter::convert(clang::QualType ty)
+    bool DataLayoutBlueprint::try_emplace(mlir::Type mty, const clang::Type *aty,
+                                          const clang::ASTContext &actx)
+    {
+        // NOTE(lukas): clang changes size of `bool` to `1` when emitting llvm.
+        if (auto builtin_t = clang::dyn_cast< clang::BuiltinType >(aty);
+            builtin_t && builtin_t->getKind() == BuiltinType::Bool)
+        {
+            return std::get< 1 >(entries.try_emplace(mty, dl::DLEntry{ mty, 1 }));
+        }
+
+        // For other types this should be good-enough for now
+        auto info = actx.getTypeInfo(aty);
+        auto bw = static_cast< uint32_t >(info.Width);
+        const auto &[_, flag] = entries.try_emplace(mty, dl::DLEntry{ mty, bw });
+        return flag;
+    }
+
+    HighLevelType TypeConverter::convert(clang::QualType ty)
     {
         return convert(ty.getTypePtr(), ty.getQualifiers());
     }
