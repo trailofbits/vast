@@ -217,6 +217,8 @@ namespace vast::hl
             UNREACHABLE( "unsupported constant type" );
         }
 
+        mlir::Type bool_type() { return BoolType::get(&mctx); }
+
     private:
         mlir::MLIRContext &mctx;
         clang::ASTContext &actx;
@@ -316,7 +318,8 @@ namespace vast::hl
             auto lhs = Visit(expr->getLHS());
             auto rhs = Visit(expr->getRHS());
             auto loc = builder.getEndLocation(expr->getSourceRange());
-            return make_value< CmpOp >( loc, pred, lhs, rhs );
+            auto res = builder.bool_type();
+            return make_value< CmpOp >( loc, res, pred, lhs, rhs );
         }
 
         template< Predicate pred >

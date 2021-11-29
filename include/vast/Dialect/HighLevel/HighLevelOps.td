@@ -413,9 +413,9 @@ def HighLevel_CmpOp : HighLevel_Op< "cmp", [NoSideEffect, SameTypeOperands, Comm
   let description = [{ VAST comparison operation }];
 
   let arguments = (ins Predicate:$predicate, AnyType:$lhs, AnyType:$rhs);
-  let results = (outs BoolType:$result);
+  let results = (outs BoolLikeType:$result);
 
-  let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type($lhs)";
+  let assemblyFormat = "$predicate type($lhs) $lhs `,` $rhs  attr-dict `->` type($result)";
 }
 
 
