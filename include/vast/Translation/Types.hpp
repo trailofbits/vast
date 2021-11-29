@@ -13,10 +13,38 @@ VAST_RELAX_WARNINGS
 #include <clang/AST/Type.h>
 VAST_UNRELAX_WARNINGS
 
+#include <tuple>
+#include <unordered_map>
+
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Util/DataLayout.hpp"
 
 namespace vast::hl
 {
+    using AContext = clang::ASTContext;
+    using MContext = mlir::MLIRContext;
+
+    // For each type remember its data layout information.
+    struct DataLayoutBlueprint {
+        struct H { auto operator()(const mlir::Type &t) const { return mlir::hash_value(t); } };
+
+        bool try_emplace(mlir::Type, const clang::Type *, const clang::ASTContext &actx);
+
+        // [ byte size, bitsize ] - can differ due to alignment.
+        using record_t = std::tuple< uint64_t, uint64_t >;
+        std::unordered_map< mlir::Type, dl::DLEntry, H > entries;
+    };
+
+    template< typename Stream >
+    auto operator<<(Stream &os, const DataLayoutBlueprint &dl) -> decltype(os << "") {
+        for (const auto &[ty, sizes] : dl.entries) {
+            ty.print(os);
+            const auto &[byte_s, bit_s] = sizes;
+            os << "[ " << byte_s << ", " << bit_s << " ]\n";
+        }
+        return os;
+    }
+
     struct TypeConverter
     {
         using MContext = mlir::MLIRContext;
