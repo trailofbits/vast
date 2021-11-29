@@ -69,7 +69,7 @@ def HighLevel_IndirectCallOp : HighLevel_Op< "indirect_call", [
   let description = [{ VAST call operation }];
 
   let arguments = (ins
-    AnyPointer:$callee,
+    PointerLikeType:$callee,
     Variadic<AnyType>:$operands
   );
 
