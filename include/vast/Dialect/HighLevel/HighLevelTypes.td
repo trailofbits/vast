@@ -3,32 +3,56 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
 
-def HighLevelType : DialectType< HighLevel_Dialect, CPred< "$_self.isa<HighLevelType>()" >,
-  "HighLevelType", "::vast::hl::HighLevelType" >;
+def HighLevelType : DialectType< HighLevel_Dialect,
+  CPred< "$_self.isa<HighLevelType>()" >, "HighLevelType", "::vast::hl::HighLevelType"
+>;
 
 
-def VoidType : DialectType< HighLevel_Dialect,
-  CPred< "$_self.isa<VoidType>()" >, "VoidType", "::vast::hl::VoidType" >,
+def HLVoidType : DialectType< HighLevel_Dialect,
+    CPred< "$_self.isa<VoidType>()" >, "VoidType", "::vast::hl::VoidType"
+  >,
   BuildableType< "VoidType::get($_builder.getContext())"
 >;
 
-def BoolType : DialectType< HighLevel_Dialect,
-  CPred< "$_self.isa<BoolType>()" >, "BoolType", "::vast::hl::BoolType" >,
+def HLBoolType : DialectType< HighLevel_Dialect,
+    CPred< "$_self.isa<BoolType>()" >, "BoolType", "::vast::hl::BoolType"
+  >,
   BuildableType< "BoolType::get($_builder.getContext())"
 >;
 
-def IntegerType : DialectType< HighLevel_Dialect,
-  CPred< "$_self.isa<IntegerType>()" >, "IntegerType", "::vast::hl::IntegerType"
+def HLIntegerType : DialectType< HighLevel_Dialect,
+  CPred< "$_self.isa<IntegerType>()" >,
+  "IntegerType", "::vast::hl::IntegerType"
 >;
 
-def FloatingType : DialectType< HighLevel_Dialect,
-  CPred< "$_self.isa<FloatingType>()" >, "FloatingType", "::vast::hl::FloatingType"
+def HLFloatingType : DialectType< HighLevel_Dialect,
+  CPred< "$_self.isa<FloatingType>()" >,
+  "FloatingType", "::vast::hl::FloatingType"
 >;
 
-def PointerType : DialectType< HighLevel_Dialect,
-  CPred< "$_self.isa<PointerType>()">, "PointerType", "::vast::hl::PointerType"
+def HLPointerType : DialectType< HighLevel_Dialect,
+  CPred< "$_self.isa<PointerType>()">,
+  "PointerType", "::vast::hl::PointerType"
 >;
 
-def AnyPointer : TypeConstraint< PointerType.predicate, "any pointer" >;
+def PointerLikeType : TypeConstraint<
+  HLPointerType.predicate,
+  "pointer like type"
+>;
+
+def BoolLikeType : TypeConstraint<
+  Or< [HLBoolType.predicate, AnyI1.predicate] >,
+  "bool like type"
+>;
+
+def IntegerLikeType : TypeConstraint<
+  Or< [HLIntegerType.predicate, AnyInteger.predicate] >,
+  "integer like type"
+>;
+
+def FloatLikeType : TypeConstraint<
+  Or< [HLFloatingType.predicate, AnyFloat.predicate] >,
+  "float like type"
+>;
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
