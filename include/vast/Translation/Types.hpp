@@ -21,9 +21,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    using AContext = clang::ASTContext;
-    using MContext = mlir::MLIRContext;
-
     // For each type remember its data layout information.
     struct DataLayoutBlueprint {
         struct H { auto operator()(const mlir::Type &t) const { return mlir::hash_value(t); } };
@@ -47,26 +44,31 @@ namespace vast::hl
 
     struct TypeConverter
     {
+        using AContext = clang::ASTContext;
         using MContext = mlir::MLIRContext;
-        using ASTContext = clang::ASTContext;
 
-        TypeConverter(MContext *mctx, ASTContext &actx) : mctx(mctx), actx(actx) {}
+        TypeConverter(MContext &mctx, AContext &actx) : mctx(mctx), actx(actx) {}
 
         mlir::Type convert(clang::QualType ty);
-
         mlir::Type convert(const clang::Type *ty, clang::Qualifiers quals);
-        mlir::Type convert(const clang::BuiltinType *ty, clang::Qualifiers quals);
-        mlir::Type convert(const clang::PointerType *ty, clang::Qualifiers quals);
-        mlir::Type convert(const clang::RecordType *ty, clang::Qualifiers quals);
-        mlir::Type convert(const clang::ConstantArrayType *ty, clang::Qualifiers quals);
 
         mlir::FunctionType convert(const clang::FunctionType *ty);
 
+        mlir::Type dl_aware_convert(const clang::Type *ty, clang::Qualifiers quals);
+
+        mlir::Type _convert(const clang::Type *ty, clang::Qualifiers quals);
+        mlir::Type _convert(const clang::BuiltinType *ty, clang::Qualifiers quals);
+        mlir::Type _convert(const clang::PointerType *ty, clang::Qualifiers quals);
+        mlir::Type _convert(const clang::RecordType *ty, clang::Qualifiers quals);
+        mlir::Type _convert(const clang::ConstantArrayType *ty, clang::Qualifiers quals);
+
         std::string format_type(const clang::Type *type) const;
 
+        DataLayoutBlueprint take_dl() { return std::move(dl); }
     private:
-        MContext *mctx;
-        ASTContext &actx;
+        MContext &mctx;
+        AContext &actx;
+        DataLayoutBlueprint dl;
     };
 
 } // namespace vast::hl

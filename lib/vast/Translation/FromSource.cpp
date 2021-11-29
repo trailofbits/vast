@@ -10,6 +10,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Translation.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/Dialect/SCF/SCF.h>
+#include <mlir/Dialect/DLTI/DLTI.h>
 #include <mlir/Support/LogicalResult.h>
 #include <mlir/Dialect/StandardOps/IR/Ops.h>
 #include <mlir/IR/BlockAndValueMapping.h>
@@ -43,6 +44,7 @@ VAST_RELAX_WARNINGS
 #include <llvm/Support/ErrorHandling.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Util/DataLayout.hpp"
 #include "vast/Util/Types.hpp"
 #include "vast/Translation/Types.hpp"
 #include "vast/Translation/Expr.hpp"
@@ -267,7 +269,7 @@ namespace vast::hl
         VastCodeGenVisitor(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod, clang::ASTContext &actx)
             : mod(mod)
             , builder(mctx, mod, actx)
-            , types(&mctx, actx)
+            , types(mctx, actx)
         {}
 
         using clang::StmtVisitor< VastCodeGenVisitor, ValueOrStmt >::Visit;
@@ -2180,11 +2182,13 @@ namespace vast::hl
             UNREACHABLE( "unsupported OMPDeclareMapperDecl" );
         }
 
+
+        DataLayoutBlueprint take_dl() { return types.take_dl(); }
     private:
         mlir::OwningModuleRef &mod;
 
-        VastBuilder     builder;
-        TypeConverter   types;
+        VastBuilder   builder;
+        TypeConverter types;
 
         // Declare a variable in the current scope, return success if the variable
         // wasn't declared yet.
@@ -2214,6 +2218,16 @@ namespace vast::hl
             UNREACHABLE("not implemented");
         }
 
+        void emitDL(const DataLayoutBlueprint &dl)
+        {
+            std::vector< mlir::DataLayoutEntryInterface > entries;
+            for (const auto &[_, e] : dl.entries)
+                entries.push_back(e.wrap(mctx));
+            // TODO(lukas): Is the name relevant and should be exposed in public api?
+            (*mod)->setAttr("hl.dl", mlir::DataLayoutSpecAttr::get(&mctx, entries));
+
+        }
+
         void HandleTranslationUnit(clang::ASTContext&) override
         {
             auto tu = actx.getTranslationUnitDecl();
@@ -2222,6 +2236,7 @@ namespace vast::hl
 
             for (const auto &decl : tu->decls())
                 visitor.Visit(decl);
+            emitDL(visitor.take_dl());
         }
 
     private:
@@ -2235,10 +2250,12 @@ namespace vast::hl
         "ccopts", llvm::cl::ZeroOrMore, llvm::cl::desc("Specify compiler options")
     );
 
-    static mlir::OwningModuleRef from_source_parser(const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx)
+    static mlir::OwningModuleRef from_source_parser(
+            const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx)
     {
         ctx->loadDialect< HighLevelDialect >();
         ctx->loadDialect< mlir::StandardOpsDialect >();
+        ctx->loadDialect< mlir::DLTIDialect >();
         ctx->loadDialect< mlir::scf::SCFDialect >();
 
         mlir::OwningModuleRef mod(
