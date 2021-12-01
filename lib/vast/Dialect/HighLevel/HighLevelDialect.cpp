@@ -140,16 +140,6 @@ namespace vast::hl
     }
 
     // Parse a type registered to this dialect.
-    Type HighLevelDialect::parseType(DialectParser &parser) const
-    {
-        return parse_type(getContext(), parser);
-    }
-
-    void HighLevelDialect::printType(Type type, DialectPrinter &os) const
-    {
-        os << to_string(type.cast<HighLevelType>());
-    }
-
 } // namespace vast::hl
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.cpp.inc"
