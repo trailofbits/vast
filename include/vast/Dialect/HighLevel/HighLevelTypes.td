@@ -52,7 +52,7 @@ def PointerLikeType : TypeConstraint<
 >;
 
 def BoolLikeType : TypeConstraint<
-  Or< [HLBoolType.predicate, AnyI1.predicate] >,
+  Or< [BoolType.predicate, AnyI1.predicate] >,
   "bool like type"
 >;
 
