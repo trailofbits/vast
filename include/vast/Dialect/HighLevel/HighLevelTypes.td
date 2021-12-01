@@ -7,12 +7,13 @@ def HighLevelType : DialectType< HighLevel_Dialect,
   CPred< "$_self.isa<HighLevelType>()" >, "HighLevelType", "::vast::hl::HighLevelType"
 >;
 
+class HighLevelType< string name, list<Trait> traits = []>
+  : TypeDef< HighLevel_Dialect, name , traits >;
 
-def HLVoidType : DialectType< HighLevel_Dialect,
-    CPred< "$_self.isa<VoidType>()" >, "VoidType", "::vast::hl::VoidType"
-  >,
-  BuildableType< "VoidType::get($_builder.getContext())"
->;
+def VoidType : HighLevelType< "VoidType" > {
+  let mnemonic = "void";
+}
+
 
 def HLBoolType : DialectType< HighLevel_Dialect,
     CPred< "$_self.isa<BoolType>()" >, "BoolType", "::vast::hl::BoolType"
