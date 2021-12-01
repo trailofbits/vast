@@ -18,11 +18,18 @@ def BoolType : HighLevelType< "BoolType" > {
   let mnemonic = "bool";
 }
 
-def HLBoolType : DialectType< HighLevel_Dialect,
-    CPred< "$_self.isa<BoolType>()" >, "BoolType", "::vast::hl::BoolType"
-  >,
-  BuildableType< "BoolType::get($_builder.getContext())"
->;
+class IntegerType< string name, string mnem, list<Trait> traits = []>
+  : HighLevelType< name, traits >
+{
+  let mnemonic = mnem;
+}
+
+def CharType     : IntegerType< "Char", "char" >;
+def ShortType    : IntegerType< "Short", "short" >;
+def IntType      : IntegerType< "Int", "int" >;
+def LongType     : IntegerType< "Long", "long" >;
+def LongLongType : IntegerType< "LongLong", "longlong" >;
+def Int128Type   : IntegerType< "Int128", "int128" >;
 
 def HLIntegerType : DialectType< HighLevel_Dialect,
   CPred< "$_self.isa<IntegerType>()" >,
