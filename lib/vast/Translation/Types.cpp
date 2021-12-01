@@ -105,8 +105,14 @@ namespace vast::hl
         }
 
         if (ty->isIntegerType()) {
-            auto kind = get_integer_kind(ty);
-            return IntegerType::get(mctx, kind, qualifiers_list(ty, quals));
+            switch (get_integer_kind(ty)) {
+                case IntegerKind::Char:     return CharType::get(mctx);
+                case IntegerKind::Short:    return ShortType::get(mctx);
+                case IntegerKind::Int:      return IntType::get(mctx);
+                case IntegerKind::Long:     return LongType::get(mctx);
+                case IntegerKind::LongLong: return LongLongType::get(mctx);
+                case IntegerKind::Int128:   return Int128Type::get(mctx);
+            }
         }
 
         UNREACHABLE( "unknown builtin type: {0}", format_type(ty) );
