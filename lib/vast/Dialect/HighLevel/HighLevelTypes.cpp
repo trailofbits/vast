@@ -3,10 +3,14 @@
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include <sstream>
 
+VAST_RELAX_WARNINGS
+#include <llvm/ADT/TypeSwitch.h>
+#include <mlir/IR/OpImplementation.h>
+#include <mlir/IR/DialectImplementation.h>
+VAST_RELAX_WARNINGS
+
 #define  GET_TYPEDEF_CLASSES
 #include "vast/Dialect/HighLevel/HighLevelTypes.cpp.inc"
-
-#include <llvm/ADT/TypeSwitch.h>
 
 namespace vast::hl
 {
@@ -172,4 +176,27 @@ namespace vast::hl
             #include "vast/Dialect/HighLevel/HighLevelTypes.cpp.inc"
         >();
     }
+
+    Type HighLevelDialect::parseType(DialectParser &parser) const
+    {
+        auto loc = parser.getCurrentLocation();
+        string_ref mnemonic;
+        if (parser.parseKeyword(&mnemonic))
+            return Type();
+
+        Type result;
+        if (generatedTypeParser(getContext(), parser, mnemonic, result).hasValue()) {
+            return result;
+        }
+
+        parser.emitError(loc, "unknown high-level type");
+        return Type();
+    }
+
+    void HighLevelDialect::printType(Type type, DialectPrinter &os) const
+    {
+        if (failed(generatedTypePrinter(type, os)))
+            UNREACHABLE("unexpected high-level type kind");
+    }
+
 } // namespace vast::hl
