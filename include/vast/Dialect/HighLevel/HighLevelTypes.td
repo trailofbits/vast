@@ -14,6 +14,9 @@ def VoidType : HighLevelType< "VoidType" > {
   let mnemonic = "void";
 }
 
+def BoolType : HighLevelType< "BoolType" > {
+  let mnemonic = "bool";
+}
 
 def HLBoolType : DialectType< HighLevel_Dialect,
     CPred< "$_self.isa<BoolType>()" >, "BoolType", "::vast::hl::BoolType"
