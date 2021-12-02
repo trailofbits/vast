@@ -191,7 +191,7 @@ namespace vast::hl
 
         mlir::Block * createBlock(mlir::Region *parent) { return builder.createBlock(parent); }
 
-        mlir::Value integer_value(mlir::Location loc, IntegerType ty, llvm::APInt value)
+        mlir::Value integer_value(mlir::Location loc, Type ty, llvm::APInt value)
         {
             return make< ConstantOp >(loc, ty, value);
         }
@@ -206,8 +206,8 @@ namespace vast::hl
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APInt value)
         {
-            if (ty.isa< IntegerType >()) {
-                return integer_value(loc, ty.cast< IntegerType >(), value);
+            if (isIntegerType(ty)) {
+                return integer_value(loc, ty, value);
             }
 
             if (ty.isa< BoolType >()) {
@@ -2170,7 +2170,7 @@ namespace vast::hl
     };
 
     static llvm::cl::list<std::string> compiler_args(
-        "ccopts", llvm::cl::ZeroOrMore, llvm::cl::desc("Specify output filename"), llvm::cl::value_desc("filename")
+        "ccopts", llvm::cl::ZeroOrMore, llvm::cl::desc("Specify compiler options")
     );
 
     static mlir::OwningModuleRef from_source_parser(const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx)

@@ -153,7 +153,7 @@ def HighLevel_ConstantOp : HighLevel_Op< "constant",
   let results = (outs AnyType:$result);
 
   let builders = [
-    OpBuilder<(ins "IntegerType":$type, "llvm::APInt":$value)>,
+    OpBuilder<(ins "Type":$type, "llvm::APInt":$value)>,
     OpBuilder<(ins "bool":$value)>
   ];
 
