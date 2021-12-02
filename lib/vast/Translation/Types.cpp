@@ -140,8 +140,8 @@ namespace vast::hl
 
     mlir::Type TypeConverter::convert(const clang::PointerType *ty, clang::Qualifiers quals)
     {
-        // auto elementType = convert(ty->getPointeeType());
-        return PointerType::get(mctx); // elementType, qualifiers_list(ty, quals));
+        auto pointee = convert(ty->getPointeeType());
+        return PointerType::get(mctx, pointee, quals.hasConst(), quals.hasVolatile());
     }
 
     mlir::Type TypeConverter::convert(const clang::RecordType *ty, clang::Qualifiers quals)

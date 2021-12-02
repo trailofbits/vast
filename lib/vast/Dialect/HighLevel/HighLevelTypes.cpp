@@ -151,6 +151,50 @@ namespace vast::hl
         printer << ">";
     }
 
+    Type parse_pointer_type(Context *ctx, DialectParser &parser)
+    {
+        auto loc = parser.getCurrentLocation();
+        if (failed(parser.parseLess())) {
+            parser.emitError(loc, "expected <");
+            return Type();
+        }
+
+        Type element;
+        if (failed(parser.parseType(element))) {
+            auto loc = parser.getCurrentLocation();
+            parser.emitError(loc, "expected element type");
+            return Type();
+        }
+
+        bool c = false, v = false;
+        if (succeeded(parser.parseOptionalComma())) {
+            c = succeeded(parser.parseOptionalKeyword("const"));
+            v = succeeded(parser.parseOptionalKeyword("volatile"));
+        }
+
+
+        if (failed(parser.parseGreater())) {
+            parser.emitError(loc, "expected end of qualifier list");
+            return Type();
+        }
+
+        return PointerType::get(ctx, element, c, v);
+    }
+
+    void print_pointer_type(const PointerType &type, DialectPrinter &printer)
+    {
+        printer << type.getMnemonic() << "<";
+        printer.printType(type.getElementType());
+
+        if ( type.getIsVolatile() || type.getIsConst() ) {
+            printer << ",";
+            if (type.isConst())    { printer << " const"; }
+            if (type.isVolatile()) { printer << " volatile"; }
+        }
+
+        printer << ">";
+    }
+
 } // namespace vast::hl
 
 

@@ -120,6 +120,30 @@ def FloatLikeType : TypeConstraint<
 
 def PointerType : HighLevelType< "Pointer" > {
   let mnemonic = "ptr";
+
+  let parameters = (ins
+    "Type":$elementType,
+    "bool":$isConst,
+    "bool":$isVolatile
+  );
+
+  let extraClassDeclaration = [{
+    bool isConst() const { return this->getIsConst(); }
+    bool isVolatile() const { return this->getIsVolatile(); }
+  }];
+
+  let builders = [
+    TypeBuilder<(ins
+      "Type":$elementType,
+      CArg<"bool", "false">:$isConst,
+      CArg<"bool", "false">:$isVolatile
+    ), [{ return $_get($_ctxt, elementType, isConst, isVolatile); }]>
+  ];
+
+  let skipDefaultBuilders = 1;
+
+  let parser  = [{ return parse_pointer_type($_ctxt, parser); }];
+  let printer = [{ return print_pointer_type(*this, printer); }];
 }
 
 def RecordType : HighLevelType< "Record" > {
