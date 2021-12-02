@@ -29,7 +29,7 @@ namespace vast::hl
 
     mlir::FunctionType getFunctionType(PointerType functionPointer)
     {
-        return mlir::FunctionType(); // functionPointer.getElementType().cast< mlir::FunctionType >();
+        return functionPointer.getElementType().cast< mlir::FunctionType >();
     }
 
     mlir::FunctionType getFunctionType(mlir::Type functionPointer)
