@@ -9,139 +9,27 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/DialectImplementation.h>
 VAST_RELAX_WARNINGS
 
-#define  GET_TYPEDEF_CLASSES
-#include "vast/Dialect/HighLevel/HighLevelTypes.cpp.inc"
-
 namespace vast::hl
 {
     namespace detail
     {
-        using Storage = mlir::TypeStorage;
-
-        std::string to_string_qualifiers(QualifiersList qualifiers)
+        template< typename TypeList, std::size_t... Idx >
+        bool is_one_of(mlir::Type type, std::index_sequence<Idx...>)
         {
-            std::stringstream ss;
-
-            auto print = [&] (const auto &qual) { ss << qual; };
-            auto space = [&] { ss << " "; };
-            llvm::interleave(qualifiers, print, space);
-
-            return ss.str();
+            return (type.isa< std::tuple_element_t< Idx, TypeList > >() || ...);
         }
 
-        std::string to_string_with_qualifiers(const auto &type)
+        template< typename TypeList >
+        bool is_one_of(mlir::Type type)
         {
-            auto qualifiers = type.qualifiers();
-
-            auto result = to_string(type.mnemonic());
-            if (qualifiers.empty())
-                return result;
-
-            return result + "<" + to_string_qualifiers(qualifiers) + ">";
+            constexpr auto length = std::tuple_size_v< TypeList >;
+            return is_one_of< TypeList >( type, std::make_index_sequence< length >{} );
         }
-
-    } // namespace detail
-
-    bool HighLevelType::isGround()
-    {
-        return llvm::TypeSwitch< HighLevelType, bool >( *this )
-            .Case< VoidType, BoolType, IntegerType, FloatingType >( [] (Type) { return true; } )
-            .Default( [] (Type) { llvm_unreachable("unknown high-level type"); return false; } );
-    }
-
-    VoidType VoidType::get(Context *ctx) { return Base::get(ctx); }
-
-    BoolType BoolType::get(Context *ctx) { return Base::get(ctx); }
-
-    BoolType BoolType::get(Context *ctx, QualifiersList qualifiers)
-    {
-        return Base::get(ctx, qualifiers);
-    }
-
-    IntegerType IntegerType::get(Context *ctx, IntegerKind kind)
-    {
-        return Base::get(ctx, kind, QualifiersList());
-    }
-
-    IntegerType IntegerType::get(Context *ctx, IntegerKind kind, QualifiersList qualifiers)
-    {
-        return Base::get(ctx, kind, qualifiers);
-    }
-
-    FloatingType FloatingType::get(Context *ctx, FloatingKind kind)
-    {
-        return Base::get(ctx, kind, QualifiersList());
-    }
-
-    FloatingType FloatingType::get(Context *ctx, FloatingKind kind, QualifiersList qualifiers)
-    {
-        return Base::get(ctx, kind, qualifiers);
-    }
-
-    PointerType PointerType::get(Context *ctx, mlir::Type elementType)
-    {
-        return Base::get(ctx, elementType, QualifiersList());
-    }
-
-    PointerType PointerType::get(Context *ctx, mlir::Type elementType, QualifiersList qualifiers)
-    {
-        return Base::get(ctx, elementType, qualifiers);
-    }
-
-    RecordType RecordType::get(Context *ctx) { return Base::get(ctx); }
-
-    ArrayType ArrayType::get(Context *ctx) { return Base::get(ctx); }
-
-    std::string to_string(VoidType type)
-    {
-        return to_string(type.mnemonic());
-    }
-
-    std::string to_string(BoolType type)
-    {
-        return detail::to_string_with_qualifiers(type);
-    }
-
-    std::string to_string(IntegerType type)
-    {
-        return detail::to_string_with_qualifiers(type);
-    }
-
-    std::string to_string(FloatingType type)
-    {
-        return detail::to_string_with_qualifiers(type);
-    }
-
-    std::string to_string(mlir::FunctionType type)
-    {
-        std::string name;
-        llvm::raw_string_ostream os(name);
-        type.print(os);
-        return name;
-    }
-
-    std::string to_string(mlir::Type type)
-    {
-        if (auto hlty = type.dyn_cast< HighLevelType >())
-            return to_string(hlty);
-        if (auto fty = type.dyn_cast< mlir::FunctionType >())
-            return to_string(fty);
-        llvm_unreachable( "unsupported type" );
-    }
-
-    std::string to_string(PointerType type)
-    {
-        auto repr = to_string(type.mnemonic()) + "<" + to_string(type.getElementType());
-        auto qualifiers = type.qualifiers();
-        if (!qualifiers.empty()) {
-            repr += ", " + detail::to_string_qualifiers(qualifiers);
-        }
-        return repr + ">";
     }
 
     mlir::FunctionType getFunctionType(PointerType functionPointer)
     {
-        return functionPointer.getElementType().cast< mlir::FunctionType >();
+        return mlir::FunctionType(); // functionPointer.getElementType().cast< mlir::FunctionType >();
     }
 
     mlir::FunctionType getFunctionType(mlir::Type functionPointer)
@@ -149,34 +37,128 @@ namespace vast::hl
         return getFunctionType(functionPointer.cast< PointerType >());
     }
 
-    std::string to_string(RecordType type)
-    {
-        return to_string(type.mnemonic());
-    }
-
-    std::string to_string(ArrayType type)
-    {
-        return to_string(type.mnemonic());
-    }
-
-    std::string to_string(HighLevelType type)
-    {
-        auto print = [&] (auto type) { return to_string(type); };
-
-        return llvm::TypeSwitch< HighLevelType, std::string >(type)
-            .Case< VoidType, BoolType, IntegerType, FloatingType, PointerType, RecordType, ArrayType >(print)
-            .Default([&](auto) { return llvm_unreachable("unknown high-level type"), "invalid"; });
-    }
-
     void HighLevelDialect::registerTypes() {
-        addTypes< VoidType, BoolType, IntegerType, FloatingType, PointerType, RecordType, ArrayType >();
-
         addTypes<
             #define GET_TYPEDEF_LIST
             #include "vast/Dialect/HighLevel/HighLevelTypes.cpp.inc"
         >();
     }
 
+    using IntegerTypes = std::tuple<
+        CharType, ShortType, IntType, LongType, LongLongType, Int128Type
+    >;
+
+    using FloatingTypes = std::tuple<
+        FloatType, DoubleType, LongDoubleType
+    >;
+
+    bool isBoolType(mlir::Type type)
+    {
+        return type.isa< BoolType >();
+    }
+
+    bool isIntegerType(mlir::Type type)
+    {
+        return detail::is_one_of< IntegerTypes >(type);
+    }
+
+    bool isFloatingType(mlir::Type type)
+    {
+        return detail::is_one_of< FloatingTypes >(type);
+    }
+
+    template< typename CVType >
+    Type parse_cv_type(Context *ctx, DialectParser &parser)
+    {
+        if (failed(parser.parseOptionalLess())) {
+            return CVType::get(ctx);
+        }
+
+        bool c = succeeded(parser.parseOptionalKeyword("const"));
+        bool v = succeeded(parser.parseOptionalKeyword("volatile"));
+
+        auto loc = parser.getCurrentLocation();
+
+        if (failed(parser.parseGreater())) {
+            parser.emitError(loc, "expected end of qualifier list");
+            return Type();
+        }
+
+        return CVType::get(ctx, c, v);
+    }
+
+    template< typename CVType >
+    void print_cv_type(const CVType &type, DialectPrinter &printer)
+    {
+        printer << type.getMnemonic();
+
+        if ( !(type.getIsVolatile() || type.getIsConst()) ) {
+            return;
+        }
+
+        bool first = true;
+        auto print = [&] (auto qual) {
+            printer << (!first ? " " : "") << qual;
+            first = false;
+        };
+
+        printer << "<";
+        if (type.isConst())    { print("const"); }
+        if (type.isVolatile()) { print("volatile"); }
+        printer << ">";
+    }
+
+    template< typename IntegerType >
+    Type parse_integer_type(Context *ctx, DialectParser &parser)
+    {
+        if (failed(parser.parseOptionalLess())) {
+            return IntegerType::get(ctx);
+        }
+
+        bool u = succeeded(parser.parseOptionalKeyword("unsigned"));
+        bool c = succeeded(parser.parseOptionalKeyword("const"));
+        bool v = succeeded(parser.parseOptionalKeyword("volatile"));
+
+        auto loc = parser.getCurrentLocation();
+
+        if (failed(parser.parseGreater())) {
+            parser.emitError(loc, "expected end of qualifier list");
+            return Type();
+        }
+
+        return IntegerType::get(ctx, u, c, v);
+    }
+
+    template< typename IntegerType >
+    void print_integer_type(const IntegerType &type, DialectPrinter &printer)
+    {
+        printer << type.getMnemonic();
+
+        if ( !(type.getIsVolatile() || type.getIsConst() || type.getIsUnsigned()) ) {
+            return;
+        }
+
+        bool first = true;
+        auto print = [&] (auto qual) {
+            printer << (!first ? " " : "") << qual;
+            first = false;
+        };
+
+        printer << "<";
+        if (type.isUnsigned()) { print("unsigned"); }
+        if (type.isConst())    { print("const"); }
+        if (type.isVolatile()) { print("volatile"); }
+        printer << ">";
+    }
+
+} // namespace vast::hl
+
+
+#define  GET_TYPEDEF_CLASSES
+#include "vast/Dialect/HighLevel/HighLevelTypes.cpp.inc"
+
+namespace vast::hl
+{
     Type HighLevelDialect::parseType(DialectParser &parser) const
     {
         auto loc = parser.getCurrentLocation();

@@ -34,7 +34,7 @@ namespace vast::hl
         return build(bld, st, type, attr);
     }
 
-    void ConstantOp::build(Builder &bld, State &st, IntegerType type, llvm::APInt value)
+    void ConstantOp::build(Builder &bld, State &st, Type type, llvm::APInt value)
     {
         auto ity = mlir::IntegerType::get(bld.getContext(), value.getBitWidth());
         auto attr = bld.getIntegerAttr(ity, value);

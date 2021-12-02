@@ -14,11 +14,6 @@ namespace vast::hl
 {
     using BuiltinType = clang::BuiltinType;
 
-    constexpr Signedness get_signedness_qualifier(const BuiltinType *ty)
-    {
-        return ty->isSignedInteger() ? Signedness::Signed : Signedness::Unsigned;
-    }
-
     constexpr IntegerKind get_integer_kind(const BuiltinType *ty)
     {
         switch (ty->getKind()) {
@@ -47,16 +42,25 @@ namespace vast::hl
         }
     }
 
-    std::vector< Qualifier > qualifiers_list(const clang::Type *ty, clang::Qualifiers quals)
+    constexpr FloatingKind get_floating_kind(const BuiltinType *ty)
     {
-        std::vector< Qualifier > qualifiers;
-        if (ty->isUnsignedIntegerType() && !ty->isBooleanType())
-            qualifiers.push_back(Signedness::Unsigned);
-        if (quals.hasConst())
-            qualifiers.push_back(Const());
-        if (quals.hasVolatile())
-            qualifiers.push_back(Volatile());
-        return qualifiers;
+        switch (ty->getKind()) {
+            case BuiltinType::Half:
+            case BuiltinType::Float16:
+                return FloatingKind::Half;
+            case BuiltinType::BFloat16:
+                return FloatingKind::BFloat16;
+            case BuiltinType::Float:
+                return FloatingKind::Float;
+            case BuiltinType::Double:
+                return FloatingKind::Double;
+            case BuiltinType::LongDouble:
+                return FloatingKind::LongDouble;
+            case BuiltinType::Float128:
+                return FloatingKind::Float128;
+            default:
+                UNREACHABLE("unknown floating kind");
+        }
     }
 
     mlir::Type TypeConverter::convert(clang::QualType ty)
@@ -96,22 +100,38 @@ namespace vast::hl
 
     mlir::Type TypeConverter::convert(const BuiltinType *ty, clang::Qualifiers quals)
     {
+        auto v = quals.hasVolatile();
+        auto c = quals.hasConst();
+
         if (ty->isVoidType()) {
             return VoidType::get(mctx);
         }
 
         if (ty->isBooleanType()) {
-            return BoolType::get(mctx, qualifiers_list(ty, quals));
+            return BoolType::get(mctx, c, v);
         }
 
         if (ty->isIntegerType()) {
+            auto u = ty->isUnsignedIntegerType();
+
             switch (get_integer_kind(ty)) {
-                case IntegerKind::Char:     return CharType::get(mctx);
-                case IntegerKind::Short:    return ShortType::get(mctx);
-                case IntegerKind::Int:      return IntType::get(mctx);
-                case IntegerKind::Long:     return LongType::get(mctx);
-                case IntegerKind::LongLong: return LongLongType::get(mctx);
-                case IntegerKind::Int128:   return Int128Type::get(mctx);
+                case IntegerKind::Char:     return CharType::get(mctx, u, c, v);
+                case IntegerKind::Short:    return ShortType::get(mctx, u, c, v);
+                case IntegerKind::Int:      return IntType::get(mctx, u, c, v);
+                case IntegerKind::Long:     return LongType::get(mctx, u, c, v);
+                case IntegerKind::LongLong: return LongLongType::get(mctx, u, c, v);
+                case IntegerKind::Int128:   return Int128Type::get(mctx, u, c, v);
+            }
+        }
+
+        if (ty->isFloatingType()) {
+            switch (get_floating_kind(ty)) {
+                case FloatingKind::Half:       return HalfType::get(mctx, c, v);
+                case FloatingKind::BFloat16:   return BFloat16Type::get(mctx, c, v);
+                case FloatingKind::Float:      return FloatType::get(mctx, c, v);
+                case FloatingKind::Double:     return DoubleType::get(mctx, c, v);
+                case FloatingKind::LongDouble: return LongDoubleType::get(mctx, c, v);
+                case FloatingKind::Float128:   return Float128Type::get(mctx, c, v);
             }
         }
 
@@ -120,8 +140,8 @@ namespace vast::hl
 
     mlir::Type TypeConverter::convert(const clang::PointerType *ty, clang::Qualifiers quals)
     {
-        auto elementType = convert(ty->getPointeeType());
-        return PointerType::get(mctx, elementType, qualifiers_list(ty, quals));
+        // auto elementType = convert(ty->getPointeeType());
+        return PointerType::get(mctx); // elementType, qualifiers_list(ty, quals));
     }
 
     mlir::Type TypeConverter::convert(const clang::RecordType *ty, clang::Qualifiers quals)
