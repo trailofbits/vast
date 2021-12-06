@@ -1,6 +1,7 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+#include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
@@ -41,13 +42,43 @@ namespace vast::hl
         return build(bld, st, type, attr);
     }
 
-    void VarOp::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)
+    void build_var_decl(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)
     {
         st.addAttribute( mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name) );
         st.addAttribute( "type", mlir::TypeAttr::get(type) );
 
         Builder::InsertionGuard guard(bld);
         detail::build_region(bld, st, initBuilder);
+    }
+
+    void VarOp::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)
+    {
+        build_var_decl(bld, st, type, name, initBuilder);
+    }
+
+    void GlobalOp::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)
+    {
+        build_var_decl(bld, st, type, name, initBuilder);
+    }
+
+    void GlobalOp::setExternalStorage()
+    {
+        (*this)->setAttr(external_storage, mlir::UnitAttr::get(getContext()));
+    }
+
+    bool GlobalOp::hasExternalStorage()
+    {
+        return (*this)->hasAttr(external_storage);
+    }
+
+    void GlobalOp::setStaticStorage()
+    {
+        (*this)->setAttr(static_storage, mlir::UnitAttr::get(getContext()));
+    }
+
+    bool GlobalOp::hasStaticStorage()
+    {
+        return (*this)->hasAttr(static_storage);
     }
 
     static ParseResult parseConstantOp(Parser &parser, State &st)

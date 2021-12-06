@@ -206,7 +206,7 @@ namespace vast::hl
     Type HighLevelDialect::parseType(DialectParser &parser) const
     {
         auto loc = parser.getCurrentLocation();
-        string_ref mnemonic;
+        llvm::StringRef mnemonic;
         if (parser.parseKeyword(&mnemonic))
             return Type();
 
