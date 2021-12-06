@@ -1860,21 +1860,24 @@ namespace vast::hl
             UNREACHABLE( "unsupported ObjCIvarDecl" );
         }
 
+        template< typename... Args >
+        ValueOrStmt make_var_decl(clang::VarDecl *decl, Args &&... args)
+        {
+            return make< VarOp >( std::forward< Args >(args)... );
+        }
+
         ValueOrStmt VisitVarDecl(clang::VarDecl *decl)
         {
             auto ty   = convert(decl->getType());
             auto name = decl->getUnderlyingDecl()->getName();
             auto loc  = getEndLocation(decl->getSourceRange());
-            auto init = decl->getInit();
 
-            if (init) {
-                auto init_value = std::get<Value>( Visit(init) );
-                if (init_value.getType() != ty) {
-                    init_value = make_value< ImplicitCastOp >( loc, ty, init_value, CastKind::NoOp );
-                }
-                return make< VarOp >(loc, ty, name, init_value);
+            if (decl->getInit()) {
+                auto init = make_value_builder(decl->getInit());
+                return make_var_decl(decl, loc, ty, name, init);
             }
-            return make< VarOp >(loc, ty, name);
+
+            return make_var_decl(decl, loc, ty, name);
         }
 
         ValueOrStmt VisitDecompositionDecl(clang::DecompositionDecl *decl)

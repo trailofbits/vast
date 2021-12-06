@@ -26,6 +26,36 @@ def HighLevel_TypeDef : HighLevel_Op< "typedef", [] >
   let assemblyFormat = [{ $name attr-dict `:` $type }];
 }
 
+
+class HighLevel_VarDecl< string mnemonic, list< OpTrait > traits = [] >
+  : HighLevel_Op< "var", !listconcat(traits, [Symbol]) >
+{
+  let summary = "VAST variable declaration";
+  let description = [{ VAST variable declaration }];
+
+  let arguments = (ins
+    TypeAttr:$type,
+    SymbolNameAttr:$sym_name
+  );
+
+  let regions = (region AnyRegion:$initializer);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "Type":$type,
+      "llvm::StringRef":$name,
+      CArg< "BuilderCallback", "nullptr">:$initBuilder
+    )>
+  ];
+
+  let assemblyFormat = [{
+    $sym_name attr-dict `:` $type (`=` $initializer^)?
+  }];
+}
+
+def HighLevel_VarOp : HighLevel_VarDecl< "var" > {}
+
 def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
 {
   let summary = "VAST call operation";
@@ -101,30 +131,6 @@ def HighLevel_ReturnOp
     OpBuilder<(ins), [{ build($_builder, $_state, llvm::None); }]>
   ];
 }
-
-def HighLevel_VarOp : HighLevel_Op< "var", [Symbol] > {
-  let summary = "VAST variable declaration";
-  let description = [{ VAST variable declaration }];
-
-  let arguments = (ins
-    TypeAttr:$type,
-    SymbolNameAttr:$sym_name,
-    Optional<AnyType>:$initializer
-  );
-
-  let results = (outs);
-
-  let skipDefaultBuilders = 1;
-  let builders = [
-    OpBuilder< (ins "Type":$type, "llvm::StringRef":$name) >,
-    OpBuilder< (ins "Type":$type, "llvm::StringRef":$name, "Value":$initializer) >
-  ];
-
-  // Need a custom parser/printer to avoid redundant type for the initializer and the op itself.
-  let parser = "return parse$cppClass(parser, result);";
-  let printer = "print$cppClass(p, *this);";
-}
-
 
 def HighLevel_DeclRefOp : HighLevel_Op< "declref", [NoSideEffect] > {
   let summary = "VAST reference declaration";
