@@ -62,7 +62,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    using string_ref = llvm::StringRef;
     using logical_result = mlir::LogicalResult;
 
     using Stmt = mlir::Operation*;
@@ -1861,9 +1860,37 @@ namespace vast::hl
         }
 
         template< typename... Args >
-        ValueOrStmt make_var_decl(clang::VarDecl *decl, Args &&... args)
+        Stmt make_vardecl_value(clang::VarDecl *decl, Args &&... args)
         {
-            return make< VarOp >( std::forward< Args >(args)... );
+            if (decl->hasGlobalStorage()) {
+                return make_stmt< GlobalOp >(std::forward< Args >(args)...);
+            }
+
+            if (decl->isLocalVarDecl()) {
+                return make_stmt< VarOp >(std::forward< Args >(args)...);
+            }
+
+            UNREACHABLE( "unsupported variable declaration" );
+        }
+
+        template< typename... Args >
+        ValueOrStmt make_vardecl(clang::VarDecl *decl, Args &&... args)
+        {
+            auto value = make_vardecl_value(decl, std::forward< Args >(args)...);
+
+            // deal with global qualifiers;
+            if (decl->isFileVarDecl()) {
+                auto glob = mlir::cast< GlobalOp >( value );
+                switch (decl->getStorageClass()) {
+                    case clang::SC_None: break;
+                    case clang::SC_Static: glob.setStaticStorage(); break;
+                    case clang::SC_Extern: glob.setExternalStorage(); break;
+                    default:
+                        UNREACHABLE("unsupported storage type");
+                }
+            }
+
+            return value;
         }
 
         ValueOrStmt VisitVarDecl(clang::VarDecl *decl)
@@ -1874,10 +1901,10 @@ namespace vast::hl
 
             if (decl->getInit()) {
                 auto init = make_value_builder(decl->getInit());
-                return make_var_decl(decl, loc, ty, name, init);
+                return make_vardecl(decl, loc, ty, name, init);
             }
 
-            return make_var_decl(decl, loc, ty, name);
+            return make_vardecl(decl, loc, ty, name);
         }
 
         ValueOrStmt VisitDecompositionDecl(clang::DecompositionDecl *decl)
@@ -2129,7 +2156,7 @@ namespace vast::hl
 
         // Declare a variable in the current scope, return success if the variable
         // wasn't declared yet.
-        logical_result declare(string_ref var, mlir::Value value)
+        logical_result declare(llvm::StringRef var, mlir::Value value)
         {
             if (symbols.count(var))
                 return mlir::failure();
@@ -2141,7 +2168,7 @@ namespace vast::hl
         // Entering a function creates a new scope, and the function arguments are
         // added to the mapping. When the processing of a function is terminated, the
         // scope is destroyed and the mappings created in this scope are dropped.
-        llvm::ScopedHashTable<string_ref, mlir::Value> symbols;
+        llvm::ScopedHashTable<llvm::StringRef, mlir::Value> symbols;
     };
 
     struct VastCodeGen : clang::ASTConsumer
