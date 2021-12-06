@@ -127,6 +127,8 @@ class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
     let assemblyFormat = [{ $src `to` $dst attr-dict `:` type($src) }];
 }
 
+def HasOneBlock : CPred<"$_self.hasOneBlock()">;
+
 include "HighLevelAttributes.td"
 include "HighLevelTypes.td"
 include "HighLevelOps.td"

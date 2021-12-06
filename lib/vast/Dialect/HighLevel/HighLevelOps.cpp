@@ -41,52 +41,13 @@ namespace vast::hl
         return build(bld, st, type, attr);
     }
 
-    void VarOp::build(Builder &bld, State &st, Type type, llvm::StringRef name)
+    void VarOp::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)
     {
         st.addAttribute( mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name) );
         st.addAttribute( "type", mlir::TypeAttr::get(type) );
-    }
 
-    void VarOp::build(Builder &bld, State &st, Type type, llvm::StringRef name, Value initializer)
-    {
-        build(bld, st, type, name);
-        st.addOperands(initializer);
-    }
-
-    static void printVarOp(Printer &printer, VarOp op)
-    {
-        printer << op.getOperationName() << " ";
-        printer.printSymbolName(op.sym_name());
-        if (op.initializer()) {
-            printer << " = " << op.initializer();
-        }
-        printer << " : " << op.type();
-        printer.printOptionalAttrDict(op->getAttrs(), {"sym_name", "type"});
-    }
-
-    static ParseResult parseVarOp(Parser &parser, State &st)
-    {
-        mlir::StringAttr name;
-        if (parser.parseSymbolName(name, mlir::SymbolTable::getSymbolAttrName(), st.attributes))
-            return mlir::failure();
-
-        Parser::OperandType operand;
-        auto initializer = parser.parseOptionalEqual();
-        if (succeeded(initializer)) {
-            if (parser.parseOperand(operand))
-                return mlir::failure();
-        }
-
-        Type type;
-        if (parser.parseColonType(type) || parser.parseOptionalAttrDict(st.attributes))
-            return mlir::failure();
-        st.addAttribute( "type", mlir::TypeAttr::get(type) );
-
-        if (succeeded(initializer)) {
-            parser.resolveOperand(operand, type, st.operands);
-        }
-
-        return mlir::success();
+        Builder::InsertionGuard guard(bld);
+        detail::build_region(bld, st, initBuilder);
     }
 
     static ParseResult parseConstantOp(Parser &parser, State &st)

@@ -54,9 +54,6 @@ def HighLevel_ValueYieldOp : HighLevel_Op< "value.yield", [
   let assemblyFormat = [{ attr-dict $result `:` type($result) }];
 }
 
-
-def HasOneBlock : CPred<"$_self.hasOneBlock()">;
-
 // TODO(Heno): constraints on regions
 def CondRegion  : Region< HasOneBlock, "condition region" >;
 def ValueRegion : Region< HasOneBlock, "value region" >;
