@@ -1878,8 +1878,8 @@ namespace vast::hl
         {
             auto value = make_vardecl_value(decl, std::forward< Args >(args)...);
 
-            // deal with global qualifiers;
             if (decl->isFileVarDecl()) {
+                // deal with global storage qualifiers;
                 auto glob = mlir::cast< GlobalOp >( value );
                 switch (decl->getStorageClass()) {
                     case clang::SC_None: break;
@@ -1888,6 +1888,16 @@ namespace vast::hl
                     default:
                         UNREACHABLE("unsupported storage type");
                 }
+            } else {
+                // deal with local storage qualifiers;
+                auto local = mlir::cast< VarOp >( value );
+                switch (decl->getStorageClass()) {
+                    case clang::SC_None: break;
+                    case clang::SC_Static: local.setStaticStorage(); break;
+                    default:
+                        UNREACHABLE("unsupported storage type");
+                }
+
             }
 
             return value;
