@@ -16,14 +16,14 @@ unsigned int ui;
 // CHECK: hl.var @us : !hl.short<unsigned>
 unsigned short us;
 
+// CHECK: hl.var @ci : !hl.int<const> = {
 // CHECK: [[C1:%[0-9]+]] = hl.constant 0 : !hl.int
-// CHECK: [[C2:%[0-9]+]] =  hl.implicit_cast [[C1]] {{.*}} -> !hl.int<const>
-// CHECK: hl.var @ci = [[C2]] : !hl.int<const>
+// CHECK: hl.value.yield [[C1]]
 const int ci = 0;
 
-// CHECK: [[C3:%[0-9]+]] = hl.constant 0 : !hl.int<unsigned>
-// CHECK: [[C4:%[0-9]+]] =  hl.implicit_cast [[C3]] {{.*}} -> !hl.int<unsigned const>
-// CHECK: hl.var @cui = [[C4]] : !hl.int<unsigned const>
+// CHECK: hl.var @cui : !hl.int<unsigned const> = {
+// CHECK: [[C2:%[0-9]+]] = hl.constant 0 : !hl.int<unsigned>
+// CHECK: hl.value.yield [[C2]]
 const unsigned cui = 0U;
 
 // CHECK: hl.var @vi : !hl.int<volatile>
@@ -32,14 +32,14 @@ volatile int vi;
 // CHECK: hl.var @vui : !hl.int<unsigned volatile>
 volatile unsigned vui;
 
-// CHECK: [[C5:%[0-9]+]] = hl.constant 0 : !hl.int
-// CHECK: [[C6:%[0-9]+]] =  hl.implicit_cast [[C5]] {{.*}} -> !hl.int<const volatile>
-// CHECK: hl.var @cvi = [[C6]] : !hl.int<const volatile>
+// CHECK: hl.var @cvi : !hl.int<const volatile> = {
+// CHECK: [[C3:%[0-9]+]] = hl.constant 0 : !hl.int
+// CHECK: hl.value.yield [[C3]]
 const volatile int cvi = 0;
 
-// CHECK: [[C7:%[0-9]+]] = hl.constant 0 : !hl.int<unsigned>
-// CHECK: [[C8:%[0-9]+]] =  hl.implicit_cast [[C7]] {{.*}} -> !hl.int<unsigned const volatile>
-// CHECK: hl.var @cvui = [[C8]] : !hl.int<unsigned const volatile>
+// CHECK: hl.var @cvui : !hl.int<unsigned const volatile> = {
+// CHECK: [[C4:%[0-9]+]] = hl.constant 0 : !hl.int<unsigned>
+// CHECK: hl.value.yield [[C4]]
 const volatile unsigned int cvui = 0U;
 
 // CHECK: hl.var @b : !hl.bool
@@ -48,12 +48,12 @@ bool b;
 // CHECK: hl.var @vb : !hl.bool<volatile>
 volatile bool vb;
 
-// CHECK: [[C9:%[0-9]+]] = hl.constant false : !hl.bool
-// CHECK: [[C10:%[0-9]+]] =  hl.implicit_cast [[C9]] {{.*}} -> !hl.bool<const>
-// CHECK: hl.var @cb = [[C10]] : !hl.bool<const>
+// CHECK: hl.var @cb : !hl.bool<const> = {
+// CHECK: [[C5:%[0-9]+]] = hl.constant false : !hl.bool
+// CHECK: hl.value.yield [[C5]]
 const bool cb = false;
 
-// CHECK: [[C11:%[0-9]+]] = hl.constant true : !hl.bool
-// CHECK: [[C12:%[0-9]+]] =  hl.implicit_cast [[C11]] {{.*}} -> !hl.bool<const volatile>
-// CHECK: hl.var @cvb = [[C12]] : !hl.bool<const volatile>
+// CHECK: hl.var @cvb : !hl.bool<const volatile> = {
+// CHECK: [[C6:%[0-9]+]] = hl.constant true : !hl.bool
+// CHECK: hl.value.yield [[C6]]
 const volatile bool cvb = true;
