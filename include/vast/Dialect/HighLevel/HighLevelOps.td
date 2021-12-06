@@ -26,16 +26,17 @@ def HighLevel_TypeDef : HighLevel_Op< "typedef", [] >
   let assemblyFormat = [{ $name attr-dict `:` $type }];
 }
 
-
 class HighLevel_VarDecl< string mnemonic, list< OpTrait > traits = [] >
-  : HighLevel_Op< "var", !listconcat(traits, [Symbol]) >
+  : HighLevel_Op< mnemonic, !listconcat(traits, [Symbol]) >
 {
   let summary = "VAST variable declaration";
   let description = [{ VAST variable declaration }];
 
   let arguments = (ins
     TypeAttr:$type,
-    SymbolNameAttr:$sym_name
+    SymbolNameAttr:$sym_name,
+    UnitAttr:$is_external,
+    UnitAttr:$is_static
   );
 
   let regions = (region AnyRegion:$initializer);
@@ -50,11 +51,42 @@ class HighLevel_VarDecl< string mnemonic, list< OpTrait > traits = [] >
   ];
 
   let assemblyFormat = [{
-    $sym_name attr-dict `:` $type (`=` $initializer^)?
+    $sym_name
+      ( `external` $is_external^ )?
+      ( `static`   $is_static^   )?
+      attr-dict-with-keyword
+    `:` $type (`=` $initializer^)?
+  }];
+
+  let extraClassDeclaration = [{
+    void setExternalStorage();
+    bool hasExternalStorage();
+    void setStaticStorage();
+    bool hasStaticStorage();
   }];
 }
 
-def HighLevel_VarOp : HighLevel_VarDecl< "var" > {}
+def HighLevel_VarOp    : HighLevel_VarDecl< "var" > {}
+def HighLevel_GlobalOp : HighLevel_VarDecl< "global" >
+{
+  let arguments = (ins
+    TypeAttr:$type,
+    SymbolNameAttr:$sym_name
+  );
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "Type":$type,
+      "llvm::StringRef":$name,
+      CArg< "BuilderCallback", "nullptr">:$initBuilder
+    )>
+  ];
+
+  let assemblyFormat = [{
+    $sym_name attr-dict `:` $type (`=` $initializer^)?
+  }];
+}
 
 def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
 {

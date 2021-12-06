@@ -29,7 +29,6 @@ namespace vast::hl
     using Type = mlir::Type;
     using Context = mlir::MLIRContext;
 
-    using string_ref = llvm::StringRef;
     using DialectParser = mlir::DialectAsmParser;
     using DialectPrinter = mlir::DialectAsmPrinter;
 

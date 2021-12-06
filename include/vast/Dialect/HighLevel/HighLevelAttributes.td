@@ -11,5 +11,6 @@ class HighLevel_Attr<string name, string attr_mnemonic>
   let mnemonic = attr_mnemonic;
 }
 
+def DummyAttr : HighLevel_Attr< "DummyAttr", "dummy" >;
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES

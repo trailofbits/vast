@@ -32,7 +32,6 @@ namespace vast::hl
         >();
     }
 
-    using string_ref = llvm::StringRef;
     using DialectParser = mlir::DialectAsmParser;
     using DialectPrinter = mlir::DialectAsmPrinter;
 
