@@ -1859,48 +1859,44 @@ namespace vast::hl
             UNREACHABLE( "unsupported ObjCIvarDecl" );
         }
 
-        template< typename... Args >
-        Stmt make_vardecl_value(clang::VarDecl *decl, Args &&... args)
+        template< typename Var, typename... Args >
+        Var make_var(clang::VarDecl *decl, Args &&... args)
         {
-            if (decl->hasGlobalStorage()) {
-                return make_stmt< GlobalOp >(std::forward< Args >(args)...);
+            return make< Var >(std::forward< Args >(args)...);
+        }
+
+        template< typename Var >
+        Var set_storage_qualifiers(clang::VarDecl *decl, Var var)
+        {
+            switch (decl->getStorageClass()) {
+                case clang::SC_None: break;
+                case clang::SC_Static:   var.setStaticStorage(); break;
+                case clang::SC_Extern:   var.setExternalStorage(); break;
+                case clang::SC_Auto:     var.setAutoStorage(); break;
+                case clang::SC_Register: var.setRegisterStorage(); break;
+                default:
+                    UNREACHABLE("unsupported storage type");
             }
 
-            if (decl->isLocalVarDecl()) {
-                return make_stmt< VarOp >(std::forward< Args >(args)...);
+            if (decl->getStorageDuration() == clang::SD_Thread) {
+                var.setThreadLocalStorage();
             }
 
-            UNREACHABLE( "unsupported variable declaration" );
+            return var;
         }
 
         template< typename... Args >
         ValueOrStmt make_vardecl(clang::VarDecl *decl, Args &&... args)
         {
-            auto value = make_vardecl_value(decl, std::forward< Args >(args)...);
-
-            if (decl->isFileVarDecl()) {
-                // deal with global storage qualifiers;
-                auto glob = mlir::cast< GlobalOp >( value );
-                switch (decl->getStorageClass()) {
-                    case clang::SC_None: break;
-                    case clang::SC_Static: glob.setStaticStorage(); break;
-                    case clang::SC_Extern: glob.setExternalStorage(); break;
-                    default:
-                        UNREACHABLE("unsupported storage type");
+            return [&] () -> Stmt {
+                if (decl->isFileVarDecl()) {
+                    auto value = make_var< GlobalOp >(decl, std::forward< Args >(args)...);
+                    return set_storage_qualifiers(decl, value);
+                } else {
+                    auto value = make_var< VarOp >(decl, std::forward< Args >(args)...);
+                    return set_storage_qualifiers(decl, value);
                 }
-            } else {
-                // deal with local storage qualifiers;
-                auto local = mlir::cast< VarOp >( value );
-                switch (decl->getStorageClass()) {
-                    case clang::SC_None: break;
-                    case clang::SC_Static: local.setStaticStorage(); break;
-                    default:
-                        UNREACHABLE("unsupported storage type");
-                }
-
-            }
-
-            return value;
+            } ();
         }
 
         ValueOrStmt VisitVarDecl(clang::VarDecl *decl)
