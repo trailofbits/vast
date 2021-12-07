@@ -61,60 +61,6 @@ namespace vast::hl
         build_var_decl(bld, st, type, name, initBuilder);
     }
 
-    template< typename Self >
-    void set_unit_attr(Self &self, std::string_view attr) {
-        self->setAttr(external_storage, mlir::UnitAttr::get(self.getContext()));
-    }
-
-    template< typename Self >
-    void set_external_storage(Self &self) {
-        set_unit_attr(self, external_storage);
-    }
-
-    template< typename Self >
-    void set_static_storage(Self &self) {
-        set_unit_attr(self, static_storage);
-    }
-
-    template< typename Self >
-    bool has_unit_attr(const Self &self, std::string_view attr) {
-        return self->hasAttr(attr);
-    }
-
-    template< typename Self >
-    bool has_external_storage(const Self &self) {
-        return has_unit_attr(self, external_storage);
-    }
-
-    template< typename Self >
-    bool has_static_storage(const Self &self) {
-        return has_unit_attr(self, static_storage);
-    }
-
-    void GlobalOp::setExternalStorage() {
-        set_external_storage(*this);
-    }
-
-    bool GlobalOp::hasExternalStorage() {
-        return has_external_storage(*this);
-    }
-
-    void GlobalOp::setStaticStorage() {
-        set_static_storage(*this);
-    }
-
-    bool GlobalOp::hasStaticStorage() {
-        return has_static_storage(*this);
-    }
-
-    void VarOp::setStaticStorage() {
-        set_static_storage(*this);
-    }
-
-    bool VarOp::hasStaticStorage() {
-        return has_static_storage(*this);
-    }
-
     static ParseResult parseConstantOp(Parser &parser, State &st)
     {
         mlir::Attribute attr;

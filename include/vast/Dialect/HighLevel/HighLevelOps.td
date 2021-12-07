@@ -35,8 +35,11 @@ class HighLevel_VarDecl< string mnemonic, list< OpTrait > traits = [] >
   let arguments = (ins
     TypeAttr:$type,
     SymbolNameAttr:$sym_name,
+    UnitAttr:$is_static,
     UnitAttr:$is_external,
-    UnitAttr:$is_static
+    UnitAttr:$is_auto,
+    UnitAttr:$is_register,
+    UnitAttr:$is_thread_local
   );
 
   let regions = (region AnyRegion:$initializer);
@@ -52,41 +55,31 @@ class HighLevel_VarDecl< string mnemonic, list< OpTrait > traits = [] >
 
   let assemblyFormat = [{
     $sym_name
-      ( `external` $is_external^ )?
-      ( `static`   $is_static^   )?
-      attr-dict-with-keyword
+    attr-dict
+    (`extern` $is_external^)?
+    (`static` $is_static^)?
+    (`auto` $is_auto^)?
+    (`register` $is_register^)?
+    (`thread_local` $is_thread_local^)?
     `:` $type (`=` $initializer^)?
   }];
 
   let extraClassDeclaration = [{
-    void setExternalStorage();
-    bool hasExternalStorage();
-    void setStaticStorage();
-    bool hasStaticStorage();
+    void setExternalStorage()    { set_external_storage(*this); }
+    bool hasExternalStorage()    { return has_external_storage(*this); }
+    void setStaticStorage()      { set_static_storage(*this); }
+    bool hasStaticStorage()      { return has_static_storage(*this); }
+    void setAutoStorage()        { set_auto_storage(*this); }
+    bool hasAutoStorage()        { return has_auto_storage(*this); }
+    void setRegisterStorage()    { set_register_storage(*this); }
+    bool hasRegisterStorage()    { return has_register_storage(*this); }
+    void setThreadLocalStorage() { set_thread_local_storage(*this); }
+    bool hasThreadLocalStorage() { return has_thread_local_storage(*this); }
   }];
 }
 
 def HighLevel_VarOp    : HighLevel_VarDecl< "var" > {}
-def HighLevel_GlobalOp : HighLevel_VarDecl< "global" >
-{
-  let arguments = (ins
-    TypeAttr:$type,
-    SymbolNameAttr:$sym_name
-  );
-
-  let skipDefaultBuilders = 1;
-  let builders = [
-    OpBuilder<(ins
-      "Type":$type,
-      "llvm::StringRef":$name,
-      CArg< "BuilderCallback", "nullptr">:$initBuilder
-    )>
-  ];
-
-  let assemblyFormat = [{
-    $sym_name attr-dict `:` $type (`=` $initializer^)?
-  }];
-}
+def HighLevel_GlobalOp : HighLevel_VarDecl< "global" > {}
 
 def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
 {
