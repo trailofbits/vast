@@ -11,22 +11,6 @@ VAST_RELAX_WARNINGS
 
 namespace vast::hl
 {
-    namespace detail
-    {
-        template< typename TypeList, std::size_t... Idx >
-        bool is_one_of(mlir::Type type, std::index_sequence<Idx...>)
-        {
-            return (type.isa< std::tuple_element_t< Idx, TypeList > >() || ...);
-        }
-
-        template< typename TypeList >
-        bool is_one_of(mlir::Type type)
-        {
-            constexpr auto length = std::tuple_size_v< TypeList >;
-            return is_one_of< TypeList >( type, std::make_index_sequence< length >{} );
-        }
-    }
-
     mlir::FunctionType getFunctionType(PointerType functionPointer)
     {
         return functionPointer.getElementType().cast< mlir::FunctionType >();
@@ -44,13 +28,6 @@ namespace vast::hl
         >();
     }
 
-    using IntegerTypes = std::tuple<
-        CharType, ShortType, IntType, LongType, LongLongType, Int128Type
-    >;
-
-    using FloatingTypes = std::tuple<
-        FloatType, DoubleType, LongDoubleType
-    >;
 
     bool isBoolType(mlir::Type type)
     {
@@ -59,12 +36,12 @@ namespace vast::hl
 
     bool isIntegerType(mlir::Type type)
     {
-        return detail::is_one_of< IntegerTypes >(type);
+        return util::is_one_of< integer_types >(type);
     }
 
     bool isFloatingType(mlir::Type type)
     {
-        return detail::is_one_of< FloatingTypes >(type);
+        return util::is_one_of< floating_types >(type);
     }
 
     template< typename CVType >
