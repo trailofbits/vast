@@ -22,6 +22,8 @@ def HighLevel_Dialect : Dialect {
         void registerTypes();
         void registerAttributes();
     }];
+
+    let hasConstantMaterializer = 1;
 }
 
 class HighLevel_Op< string mnemonic, list< OpTrait > traits = [] >
