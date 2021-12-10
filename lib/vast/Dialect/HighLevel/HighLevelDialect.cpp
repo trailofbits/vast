@@ -35,6 +35,13 @@ namespace vast::hl
     using DialectParser = mlir::DialectAsmParser;
     using DialectPrinter = mlir::DialectAsmPrinter;
 
+    using OpBuilder = mlir::OpBuilder;
+    using Operation = mlir::Operation;
+
+    Operation *HighLevelDialect::materializeConstant(OpBuilder &builder, Attribute value, Type type, Location loc)
+    {
+        return builder.create<ConstantOp>(loc, type, value);
+    }
 } // namespace vast::hl
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.cpp.inc"
