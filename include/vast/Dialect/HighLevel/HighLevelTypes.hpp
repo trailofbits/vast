@@ -16,6 +16,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Parser.hpp"
+#include "vast/Util/TypeList.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 
@@ -31,6 +32,18 @@ namespace vast::hl
 
     using DialectParser = mlir::DialectAsmParser;
     using DialectPrinter = mlir::DialectAsmPrinter;
+
+    using integer_types = util::type_list<
+        CharType, ShortType, IntType, LongType, LongLongType, Int128Type
+    >;
+
+    using floating_types = util::type_list<
+        FloatType, DoubleType, LongDoubleType
+    >;
+
+    using scalar_types = util::concat<
+        util::type_list< BoolType >, integer_types, floating_types
+    >;
 
     /* integer types */
     enum class IntegerKind { Char, Short, Int, Long, LongLong, Int128 };
