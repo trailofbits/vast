@@ -4,6 +4,11 @@
 
 #pragma once
 
+#include <utility>
+VAST_RELAX_WARNINGS
+#include <mlir/IR/TypeSupport.h>
+VAST_UNRELAX_WARNINGS
+
 #include <type_traits>
 #include <tuple>
 #include <optional>
@@ -72,6 +77,9 @@ namespace vast::util {
 
     } // namespace detail
 
+    //
+    // generic type_list
+    //
     template< typename ...types >
     struct type_list
     {
@@ -88,6 +96,9 @@ namespace vast::util {
         using apply = typename detail::apply< fn, self >::type;
 
         using as_tuple = std::tuple< types... >;
+
+        template< std::size_t idx >
+        using at = typename std::tuple_element< idx, as_tuple >::type;
 
         template< template< typename > typename pred >
         static constexpr bool any_of = (pred<types>::value || ...);
@@ -108,6 +119,46 @@ namespace vast::util {
     template< typename ...types >
     using make_list = type_list< types... >;
 
+    namespace detail
+    {
+        using mlir_type = mlir::Type;
+
+        template< typename derived >
+        struct is_mlir_type
+        {
+            static constexpr bool value = std::is_base_of_v< mlir_type, derived >;
+        };
+
+        template< typename list, std::size_t ...idxs >
+        constexpr bool is_one_of(mlir_type type, std::index_sequence< idxs... >)
+        {
+            return (type.isa< std::tuple_element_t< idxs, list > >() || ...);
+        }
+
+        template< typename list >
+        constexpr bool is_one_of(mlir_type type)
+        {
+            // FIXME: use type_list::at
+            return is_one_of< typename list::as_tuple >(
+                type, std::make_index_sequence< list::size >{}
+            );
+        }
+
+    } // namespace detail
+
+    //
+    // mlir specific type list
+    //
+    template< typename ...types >
+    struct mlir_type_list : type_list< types... >
+    {
+        using base = type_list< types... >;
+        static_assert( base::template all_of< detail::is_mlir_type > );
+    };
+
+    template< typename list >
+    constexpr bool is_one_of(auto type) { return detail::is_one_of< list >(type); }
+
     namespace test
     {
         static_assert( std::is_same_v< type_list< int, char* >::front, int > );
@@ -125,6 +176,9 @@ namespace vast::util {
         static_assert( std::is_same_v< concat< type_list<>, type_list<> >, type_list<> > );
         static_assert( std::is_same_v< concat< type_list< int >, type_list<> >, type_list< int > > );
         static_assert( std::is_same_v< concat< type_list< void >, type_list< void > >, type_list< void, void > > );
+
+        static_assert( std::is_same_v< type_list< int, char >::at< 0 >, int > );
+        static_assert( std::is_same_v< type_list< int, char >::at< 1 >, char > );
 
         static_assert( type_list<>::size == 0 );
         static_assert( type_list< int, char >::size == 2 );
