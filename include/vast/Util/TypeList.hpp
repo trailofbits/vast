@@ -84,10 +84,16 @@ namespace vast::util {
     struct type_list
     {
         using self = type_list;
+
         static constexpr std::size_t size = sizeof...(types);
+
+        static constexpr bool empty = size == 0;
 
         using front      = typename detail::front< self >::type;
         using pop_front  = typename detail::pop_front< self >::type;
+
+        using head = typename self::front;
+        using tail = typename self::pop_front;
 
         template< typename type >
         using push_front = typename detail::push_front< type, self >::type;
@@ -119,9 +125,10 @@ namespace vast::util {
     template< typename ...types >
     using make_list = type_list< types... >;
 
+    using mlir_type = mlir::Type;
+
     namespace detail
     {
-        using mlir_type = mlir::Type;
 
         template< typename derived >
         struct is_mlir_type
@@ -144,6 +151,22 @@ namespace vast::util {
             );
         }
 
+        template< typename list, typename ret, typename fn >
+        constexpr ret dispatch(mlir_type type, fn &&f)
+        {
+            if constexpr ( list::empty ) {
+                UNREACHABLE( "missing type to dispatch" );
+            } else {
+                using head = typename list::head;
+
+                if (type.isa< head >()) {
+                    return f(type.cast< head >());
+                }
+
+                return dispatch< typename list::tail, ret >(type, std::forward< fn >(f));
+            }
+        }
+
     } // namespace detail
 
     //
@@ -157,7 +180,13 @@ namespace vast::util {
     };
 
     template< typename list >
-    constexpr bool is_one_of(auto type) { return detail::is_one_of< list >(type); }
+    constexpr bool is_one_of(mlir_type type) { return detail::is_one_of< list >(type); }
+
+    template< typename list, typename ret, typename fn >
+    constexpr auto dispatch(mlir_type type, fn &&f)
+    {
+        return detail::dispatch< list, ret >(type, std::forward< fn >(f));
+    }
 
     namespace test
     {
