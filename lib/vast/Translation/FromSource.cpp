@@ -190,14 +190,9 @@ namespace vast::hl
 
         mlir::Block * createBlock(mlir::Region *parent) { return builder.createBlock(parent); }
 
-        mlir::Value integer_value(mlir::Location loc, Type ty, llvm::APInt value)
-        {
-            return make< ConstantOp >(loc, ty, value);
-        }
-
         mlir::Value bool_value(mlir::Location loc, bool value)
         {
-            return make< ConstantOp >(loc, value);
+            return make< ConstantOp >(loc, bool_type(), value);
         }
 
         mlir::Value true_value(mlir::Location loc)  { return bool_value(loc, true);  }
@@ -226,7 +221,7 @@ namespace vast::hl
             return make< ConstantOp >(loc, ty.cast< ArrayType >(), value);
         }
 
-        mlir::Type bool_type() { return BoolType::get(&mctx); }
+        BoolType bool_type() { return BoolType::get(&mctx); }
 
     private:
         mlir::MLIRContext &mctx;

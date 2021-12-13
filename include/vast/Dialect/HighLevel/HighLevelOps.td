@@ -186,6 +186,10 @@ def HighLevel_ConstantOp : HighLevel_Op< "constant",
   let builders = [
     OpBuilder<(ins "Attribute":$value),
     [{ build($_builder, $_state, value.getType(), value); }]>,
+
+    OpBuilder<(ins "BoolType":$type, "bool":$value),
+    [{ build($_builder, $_state, type, HLBoolAttr::get($_state.getContext(), value)); }]>,
+
     OpBuilder<(ins "CharType":$type, "llvm::APInt":$value),
     [{ build($_builder, $_state, type, CharAttr::get($_state.getContext(), value)); }]>,
     OpBuilder<(ins "ShortType":$type, "llvm::APInt":$value),
