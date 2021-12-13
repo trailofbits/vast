@@ -12,23 +12,23 @@ int switch_simple(int num)
         // CHECK: } cases {
         case  1: return 1;
         // CHECK: hl.case {
-        // CHECK: [[V3:%[0-9]+]] = hl.constant
+        // CHECK: [[V3:%[0-9]+]] = hl.constant(#hl.int<1>)
         // CHECK: hl.value.yield [[V3]]
         // CHECK: } {
-        // CHECK: [[V4:%[0-9]+]] = hl.constant
+        // CHECK: [[V4:%[0-9]+]] = hl.constant(#hl.int<1>)
         // CHECK: hl.return [[V4]]
         // CHECK: }
         case  2: return 2;
         // CHECK: hl.case {
-        // CHECK: [[V5:%[0-9]+]] = hl.constant
+        // CHECK: [[V5:%[0-9]+]] = hl.constant(#hl.int<2>)
         // CHECK: hl.value.yield [[V5]]
         // CHECK: } {
-        // CHECK: [[V6:%[0-9]+]] = hl.constant
+        // CHECK: [[V6:%[0-9]+]] = hl.constant(#hl.int<2>)
         // CHECK: hl.return [[V6]]
         // CHECK: }
         default: return 0;
         // CHECK: hl.default {
-        // CHECK: [[V7:%[0-9]+]] = hl.constant
+        // CHECK: [[V7:%[0-9]+]] = hl.constant(#hl.int<0>)
         // CHECK: hl.return [[V7]]
         // CHECK: }
     }
