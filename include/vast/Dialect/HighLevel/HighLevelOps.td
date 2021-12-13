@@ -180,17 +180,42 @@ def HighLevel_ConstantOp : HighLevel_Op< "constant",
   let summary = "VAST constant";
   let description = [{ VAST constant }];
 
-  let arguments = (ins APIntAttr:$value);
-  let results = (outs AnyType:$result);
+  let arguments = (ins AnyAttr:$value);
+  let results   = (outs AnyType:$result);
 
   let builders = [
-    OpBuilder<(ins "Type":$type, "llvm::APInt":$value)>,
-    OpBuilder<(ins "bool":$value)>
+    OpBuilder<(ins "Attribute":$value),
+    [{ build($_builder, $_state, value.getType(), value); }]>,
+    OpBuilder<(ins "CharType":$type, "llvm::APInt":$value),
+    [{ build($_builder, $_state, type, CharAttr::get($_state.getContext(), value)); }]>,
+    OpBuilder<(ins "ShortType":$type, "llvm::APInt":$value),
+    [{ build($_builder, $_state, type, ShortAttr::get($_state.getContext(), value)); }]>,
+    OpBuilder<(ins "IntType":$type, "llvm::APInt":$value),
+    [{ build($_builder, $_state, type, IntAttr::get($_state.getContext(), value)); }]>,
+    OpBuilder<(ins "LongType":$type, "llvm::APInt":$value),
+    [{ build($_builder, $_state, type, LongAttr::get($_state.getContext(), value)); }]>,
+    OpBuilder<(ins "LongLongType":$type, "llvm::APInt":$value),
+    [{ build($_builder, $_state, type, LongLongAttr::get($_state.getContext(), value)); }]>,
+    OpBuilder<(ins "Int128Type":$type, "llvm::APInt":$value),
+    [{ build($_builder, $_state, type, Int128Attr::get($_state.getContext(), value)); }]>,
+
+    OpBuilder<(ins "FloatType":$type, "llvm::APFloat":$value),
+    [{ build($_builder, $_state, type, FloatAttr::get($_state.getContext(), value)); }]>,
+    OpBuilder<(ins "DoubleType":$type, "llvm::APFloat":$value),
+    [{ build($_builder, $_state, type, DoubleAttr::get($_state.getContext(), value)); }]>,
+    OpBuilder<(ins "LongDoubleType":$type, "llvm::APFloat":$value),
+    [{ build($_builder, $_state, type, LongDoubleAttr::get($_state.getContext(), value)); }]>,
+
   ];
 
-  // Need a custom parser/printer to avoid redundant type for the attribute and the op itself.
+  let extraClassDeclaration = [{
+    Attribute getValue() { return (*this)->getAttr("value"); }
+  }];
+
   let parser = "return parse$cppClass(parser, result);";
   let printer = "print$cppClass(p, *this);";
+
+  let hasFolder = 1;
 }
 
 def HighLevel_UnreachableOp : HighLevel_Op<"unreachable", [Terminator, NoSideEffect]> {
