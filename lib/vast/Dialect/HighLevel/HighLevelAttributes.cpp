@@ -8,6 +8,37 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/DialectImplementation.h>
 VAST_RELAX_WARNINGS
 
+namespace vast::hl
+{
+    using Context = mlir::MLIRContext;
+
+    template< typename IntegerAttr >
+    Attribute parse_integer_attr(Context *ctx, DialectParser &parser)
+    {
+        return Attribute();
+    }
+
+    template< typename IntegerAttr >
+    void print_integer_attr(const IntegerAttr &attr, DialectPrinter &printer)
+    {
+        printer << attr.getMnemonic() << "<" << attr.getValue() << ">";
+    }
+
+    template< typename IntegerAttr >
+    Attribute parse_floating_attr(Context *ctx, DialectParser &parser)
+    {
+        return Attribute();
+    }
+
+    template< typename FloatingAttr >
+    void print_floating_attr(const FloatingAttr &attr, DialectPrinter &printer)
+    {
+        printer << attr.getMnemonic() << "<" << attr.getValue() << ">";
+    }
+
+
+} // namespace vast::hl
+
 #define GET_ATTRDEF_CLASSES
 #include "vast/Dialect/HighLevel/HighLevelAttributes.cpp.inc"
 
