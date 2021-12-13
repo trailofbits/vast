@@ -15,18 +15,43 @@ namespace vast::hl
 
     Attribute parse_bool_attr(Context *ctx, DialectParser &parser)
     {
-        return Attribute();
+        if (parser.parseLess())
+            return Attribute();
+
+        bool value;
+        if (succeeded(parser.parseOptionalKeyword("true")))
+            value = true;
+        else if (succeeded(parser.parseOptionalKeyword("false")))
+            value = false;
+        else
+            return Attribute();
+
+        if (parser.parseGreater())
+            return Attribute();
+
+        return HLBoolAttr::get(ctx, value);
     }
 
     void print_bool_attr(const HLBoolAttr &attr, DialectPrinter &printer)
     {
-        printer << attr.getMnemonic() << "<" << attr.getValue() << ">";
+        auto value = attr.getValue() ? "true" : "false";
+        printer << attr.getMnemonic() << "<" << value << ">";
     }
 
     template< typename IntegerAttr >
     Attribute parse_integer_attr(Context *ctx, DialectParser &parser)
     {
-        return Attribute();
+        if (parser.parseLess())
+            return Attribute();
+
+        llvm::APInt value;
+        if (parser.parseInteger(value))
+            return Attribute();
+
+        if (parser.parseGreater())
+            return Attribute();
+
+        return IntegerAttr::get(ctx, value);
     }
 
     template< typename IntegerAttr >
@@ -35,10 +60,20 @@ namespace vast::hl
         printer << attr.getMnemonic() << "<" << attr.getValue() << ">";
     }
 
-    template< typename IntegerAttr >
+    template< typename FloatingAttr >
     Attribute parse_floating_attr(Context *ctx, DialectParser &parser)
     {
-        return Attribute();
+        if (parser.parseLess())
+            return Attribute();
+
+        double value;
+        if (parser.parseFloat(value))
+            return Attribute();
+
+        if (parser.parseGreater())
+            return Attribute();
+
+        return FloatingAttr::get(ctx, llvm::APFloat(value));
     }
 
     template< typename FloatingAttr >
