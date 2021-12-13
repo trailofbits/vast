@@ -855,11 +855,9 @@ namespace vast::hl
 
         ValueOrStmt VisitConstantExpr(clang::ConstantExpr *expr)
         {
-            UNREACHABLE( "unsupported ConstantExpr" );
-            // auto loc = builder.getLocation(expr->getSourceRange());
-            // auto type = types.convert(expr->getType());
-            // // TODO(Heno): rework APSInt work
-            // return builder.constant(loc, type, expr->getResultAsAPSInt() );
+            auto loc = builder.getLocation(expr->getSourceRange());
+            auto type = types.convert(expr->getType());
+            return builder.constant(loc, type, expr->getResultAsAPSInt() );
         }
 
         ValueOrStmt VisitArraySubscriptExpr(clang::ArraySubscriptExpr *expr)
