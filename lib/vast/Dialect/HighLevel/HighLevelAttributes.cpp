@@ -13,6 +13,16 @@ namespace vast::hl
 {
     using Context = mlir::MLIRContext;
 
+    Attribute parse_bool_attr(Context *ctx, DialectParser &parser)
+    {
+        return Attribute();
+    }
+
+    void print_bool_attr(const HLBoolAttr &attr, DialectPrinter &printer)
+    {
+        printer << attr.getMnemonic() << "<" << attr.getValue() << ">";
+    }
+
     template< typename IntegerAttr >
     Attribute parse_integer_attr(Context *ctx, DialectParser &parser)
     {

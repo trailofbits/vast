@@ -12,6 +12,15 @@ class HighLevel_Attr<string name, string attr_mnemonic>
   let mnemonic = attr_mnemonic;
 }
 
+def HLBoolAttr : HighLevel_Attr< "HLBool", "bool" >
+{
+  let valueType = BoolType;
+  let parameters = (ins "bool":$value );
+
+  let parser  = [{ return parse_bool_attr($_ctxt, parser); }];
+  let printer = [{ return print_bool_attr(*this, printer); }];
+}
+
 class HLIntegerAttr<string name, string attr_mnemonic, Type type >
   : HighLevel_Attr< name, attr_mnemonic >
 {
