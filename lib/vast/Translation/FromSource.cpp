@@ -205,15 +205,21 @@ namespace vast::hl
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APInt value)
         {
-            if (isIntegerType(ty)) {
-                return integer_value(loc, ty, value);
-            }
+            auto make_constant = [&] (auto ity) { return make< ConstantOp >(loc, ity, value); };
+            return util::dispatch< integer_types, mlir::Value >(ty, make_constant);
+        }
 
-            if (ty.isa< BoolType >()) {
-                return bool_value(loc, value.getBoolValue());
-            }
+        mlir::Value constant(mlir::Location loc, mlir::Type ty, unsigned int value)
+        {
+            return constant(loc, ty, llvm::APInt(32, value));
+        }
 
-            UNREACHABLE( "unsupported constant type" );
+        mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APFloat value)
+        {
+            auto make_constant = [&] (auto ity) { return make< ConstantOp >(loc, ity, value); };
+            return util::dispatch< floating_types, mlir::Value >(ty, make_constant);
+        }
+
         }
 
         mlir::Type bool_type() { return BoolType::get(&mctx); }
@@ -413,6 +419,14 @@ namespace vast::hl
                 auto t = builder.true_value(loc);
                 bld.template create< CondYieldOp >(loc, t);
             };
+        }
+
+        template< typename LiteralType >
+        auto make_scalar_literal(LiteralType *lit)
+        {
+            auto type = types.convert(lit->getType());
+            auto loc  = builder.getLocation(lit->getSourceRange());
+            return builder.constant(loc, type, lit->getValue());
         }
 
         mlir::Location getLocation(clang::SourceRange range)
@@ -874,7 +888,7 @@ namespace vast::hl
 
         ValueOrStmt VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *lit)
         {
-            return VisitLiteral(lit->getValue(), lit);
+            return make_scalar_literal(lit);
         }
 
         ValueOrStmt VisitCXXConstructExpr(clang::CXXConstructExpr *expr)
@@ -1078,7 +1092,7 @@ namespace vast::hl
 
         ValueOrStmt VisitCharacterLiteral(clang::CharacterLiteral *lit)
         {
-            UNREACHABLE( "unsupported CharacterLiteral" );
+            return make_scalar_literal(lit);
         }
 
         ValueOrStmt VisitChooseExpr(clang::ChooseExpr *expr)
@@ -1136,7 +1150,7 @@ namespace vast::hl
 
         ValueOrStmt VisitFloatingLiteral(clang::FloatingLiteral *lit)
         {
-            UNREACHABLE( "unsupported FloatingLiteral" );
+            return make_scalar_literal(lit);
         }
 
         ValueOrStmt VisitFunctionParmPackExpr(clang::FunctionParmPackExpr *expr)
@@ -1176,7 +1190,7 @@ namespace vast::hl
 
         ValueOrStmt VisitIntegerLiteral(const clang::IntegerLiteral *lit)
         {
-            return VisitLiteral(lit->getValue().getSExtValue(), lit);
+            return make_scalar_literal(lit);
         }
 
         ValueOrStmt VisitLambdaExpr(clang::LambdaExpr *expr)
@@ -1596,14 +1610,6 @@ namespace vast::hl
             auto cond_builder = make_cond_builder(stmt->getCond());
             auto body_builder = make_region_builder(stmt->getBody());
             return make< WhileOp >(loc, cond_builder, body_builder);
-        }
-
-        template< typename Value, typename Literal >
-        ValueOrStmt VisitLiteral(Value val, Literal lit)
-        {
-            auto type = types.convert(lit->getType());
-            auto loc = builder.getLocation(lit->getSourceRange());
-            return builder.constant(loc, type, apint(val) );
         }
 
         ValueOrStmt VisitBuiltinBitCastExpr(clang::BuiltinBitCastExpr *expr)
