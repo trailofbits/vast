@@ -206,6 +206,8 @@ def HighLevel_ConstantOp : HighLevel_Op< "constant",
     OpBuilder<(ins "LongDoubleType":$type, "llvm::APFloat":$value),
     [{ build($_builder, $_state, type, LongDoubleAttr::get($_state.getContext(), value)); }]>,
 
+    OpBuilder<(ins "ArrayType":$type, "llvm::StringRef":$value),
+    [{ build($_builder, $_state, type, StringAttr::get($_state.getContext(), value)); }]>,
   ];
 
   let extraClassDeclaration = [{

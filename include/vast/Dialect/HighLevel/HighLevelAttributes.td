@@ -54,4 +54,13 @@ def DoubleAttr     : HLFloatingAttr< "Double",     "double",     DoubleType >;
 def LongDoubleAttr : HLFloatingAttr< "LongDouble", "longdouble", LongDoubleType >;
 
 
+def StringAttr : HighLevel_Attr< "String", "string" >
+{
+  let valueType = ArrayType;
+  let parameters = (ins "llvm::StringRef":$value );
+
+  let parser  = [{ return parse_str_attr($_ctxt, parser); }];
+  let printer = [{ return print_str_attr(*this, printer); }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
