@@ -2,6 +2,8 @@
 
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
+#include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
@@ -28,18 +30,36 @@ namespace vast::hl
         }
     } // namespace detail
 
-    void ConstantOp::build(Builder &bld, State &st, bool value)
-    {
-        auto type = BoolType::get(bld.getContext());
-        auto attr = bld.getBoolAttr(value);
-        return build(bld, st, type, attr);
+    using NameBuilder = llvm::function_ref<void(Value, llvm::StringRef)>;
+
+    using FoldResult = mlir::OpFoldResult;
+
+    FoldResult ConstantOp::fold(mlir::ArrayRef<Attribute> operands) {
+        assert(operands.empty() && "constant has no operands");
+        return getValue();
     }
 
-    void ConstantOp::build(Builder &bld, State &st, Type type, llvm::APInt value)
+    static ParseResult parseConstantOp(Parser &parser, State &st)
     {
-        auto ity = mlir::IntegerType::get(bld.getContext(), value.getBitWidth());
-        auto attr = bld.getIntegerAttr(ity, value);
-        return build(bld, st, type, attr);
+        auto loc = parser.getCurrentLocation();
+        Attribute attr;
+        if (parser.parseAttribute(attr)) {
+            parser.emitError(loc, "unknown constant value");
+        }
+
+        st.addAttribute("value", attr);
+
+        if (parser.parseOptionalAttrDict(st.attributes)) {
+           return mlir::failure();
+        }
+        return mlir::success();
+    }
+
+    static void printConstantOp(Printer &printer, ConstantOp op)
+    {
+        printer << op.getOperationName() << " ";
+        printer.printAttribute(op.valueAttr());
+        printer.printOptionalAttrDict(op->getAttrs(), {"value"});
     }
 
     void build_var_decl(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)
@@ -59,34 +79,6 @@ namespace vast::hl
     void GlobalOp::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)
     {
         build_var_decl(bld, st, type, name, initBuilder);
-    }
-
-    static ParseResult parseConstantOp(Parser &parser, State &st)
-    {
-        mlir::Attribute attr;
-
-        // pass default type so that attribute parser does not try
-        // to parse high evel type
-        auto i64 = parser.getBuilder().getIntegerType(64);
-        if (parser.parseAttribute(attr, i64))
-            return mlir::failure();
-
-        Type type;
-        if (parser.parseColonType(type) || parser.parseOptionalAttrDict(st.attributes))
-            return mlir::failure();
-
-        st.addTypes(type);
-        st.addAttribute("value", attr);
-        return mlir::success();
-    }
-
-    static void printConstantOp(Printer &printer, ConstantOp op)
-    {
-        printer << op.getOperationName() << " ";
-        printer.printAttributeWithoutType(op.valueAttr());
-        printer << " : ";
-        printer.printType(op.getType());
-        printer.printOptionalAttrDict(op->getAttrs(), {"value"});
     }
 
     mlir::CallInterfaceCallable CallOp::getCallableForCallee()
