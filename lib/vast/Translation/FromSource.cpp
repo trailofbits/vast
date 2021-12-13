@@ -220,6 +220,10 @@ namespace vast::hl
             return util::dispatch< floating_types, mlir::Value >(ty, make_constant);
         }
 
+        mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::StringRef value)
+        {
+            CHECK( ty.isa< ArrayType >(), "string constant must have array type" );
+            return make< ConstantOp >(loc, ty.cast< ArrayType >(), value);
         }
 
         mlir::Type bool_type() { return BoolType::get(&mctx); }
@@ -1350,7 +1354,9 @@ namespace vast::hl
 
         ValueOrStmt VisitStringLiteral(clang::StringLiteral *lit)
         {
-            UNREACHABLE( "unsupported StringLiteral" );
+            auto type = types.convert(lit->getType());
+            auto loc  = builder.getLocation(lit->getSourceRange());
+            return builder.constant(loc, type, lit->getString());
         }
 
         ValueOrStmt VisitSubstNonTypeTemplateParmExpr(clang::SubstNonTypeTemplateParmExpr *expr)

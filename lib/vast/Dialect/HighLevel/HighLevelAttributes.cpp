@@ -1,6 +1,7 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
+#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
 VAST_RELAX_WARNINGS
 #include <llvm/ADT/TypeSwitch.h>
@@ -36,12 +37,20 @@ namespace vast::hl
         printer << attr.getMnemonic() << "<" << attr.getValue() << ">";
     }
 
+    Attribute parse_str_attr(Context *ctx, DialectParser &parser)
+    {
+        return Attribute();
+    }
+
+    void print_str_attr(const StringAttr &attr, DialectPrinter &printer)
+    {
+        printer << attr.getMnemonic() << "<" << attr.getValue() << ">";
+    }
 
 } // namespace vast::hl
 
 #define GET_ATTRDEF_CLASSES
 #include "vast/Dialect/HighLevel/HighLevelAttributes.cpp.inc"
-
 namespace vast::hl
 {
     using DialectParser = mlir::DialectAsmParser;
