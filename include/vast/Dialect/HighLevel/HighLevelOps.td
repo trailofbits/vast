@@ -218,8 +218,7 @@ def HighLevel_ConstantOp : HighLevel_Op< "constant",
     Attribute getValue() { return (*this)->getAttr("value"); }
   }];
 
-  let parser = "return parse$cppClass(parser, result);";
-  let printer = "print$cppClass(p, *this);";
+  let assemblyFormat = "`(`$value`)` attr-dict `:` type($result)";
 
   let hasFolder = 1;
 }
