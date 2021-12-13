@@ -198,6 +198,12 @@ namespace vast::hl
         mlir::Value true_value(mlir::Location loc)  { return bool_value(loc, true);  }
         mlir::Value false_value(mlir::Location loc) { return bool_value(loc, false); }
 
+        mlir::Value constant(mlir::Location loc, mlir::Type ty, bool value)
+        {
+            CHECK(ty.isa< BoolType >(), "mismatched boolean constant type");
+            return bool_value(loc, value);
+        }
+
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APInt value)
         {
             auto make_constant = [&] (auto ity) { return make< ConstantOp >(loc, ity, value); };
@@ -849,10 +855,11 @@ namespace vast::hl
 
         ValueOrStmt VisitConstantExpr(clang::ConstantExpr *expr)
         {
-            auto loc = builder.getLocation(expr->getSourceRange());
-            auto type = types.convert(expr->getType());
-            // TODO(Heno): rework APSInt work
-            return builder.constant(loc, type, expr->getResultAsAPSInt() );
+            UNREACHABLE( "unsupported ConstantExpr" );
+            // auto loc = builder.getLocation(expr->getSourceRange());
+            // auto type = types.convert(expr->getType());
+            // // TODO(Heno): rework APSInt work
+            // return builder.constant(loc, type, expr->getResultAsAPSInt() );
         }
 
         ValueOrStmt VisitArraySubscriptExpr(clang::ArraySubscriptExpr *expr)
