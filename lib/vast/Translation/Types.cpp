@@ -89,8 +89,8 @@ namespace vast::hl
         if (ty->isRecordType())
             return convert(clang::cast< clang::RecordType >(ty), quals);
 
-        if (ty->isArrayType())
-            return convert(clang::cast< clang::ArrayType >(ty), quals);
+        if (ty->isConstantArrayType())
+            return convert(clang::cast< clang::ConstantArrayType >(ty), quals);
 
         if (ty->isFunctionType())
             return convert(clang::cast< clang::FunctionType >(ty));
@@ -149,11 +149,13 @@ namespace vast::hl
         return RecordType::get(mctx);
     }
 
-    mlir::Type TypeConverter::convert(const clang::ArrayType *ty, clang::Qualifiers quals)
+    mlir::Type TypeConverter::convert(const clang::ConstantArrayType *ty, clang::Qualifiers quals)
     {
-        return ArrayType::get(mctx);
+        assert(clang::isa< clang::ConstantArrayType >(ty));
+        auto element_type = convert(ty->getElementType());
+        auto size = ty->getSize();
+        return ConstantArrayType::get(mctx, element_type, size, quals.hasConst(), quals.hasVolatile());
     }
-
 
     mlir::FunctionType TypeConverter::convert(const clang::FunctionType *ty)
     {

@@ -150,8 +150,20 @@ def RecordType : HighLevelType< "Record" > {
   let mnemonic = "record";
 }
 
-def ArrayType : HighLevelType< "Array" > {
-  let mnemonic = "array";
+def ConstantArrayType : HighLevelType< "ConstantArray" > {
+  let mnemonic = "const.array";
+
+  let parameters = (ins
+    "Type":$elementType,
+    "llvm::APInt":$size,
+    "bool":$isConst,
+    "bool":$isVolatile
+  );
+
+  let extraClassDeclaration = [{
+    bool isConst() const { return this->getIsConst(); }
+    bool isVolatile() const { return this->getIsVolatile(); }
+  }];
 }
 
 def PointerLikeType : TypeConstraint<

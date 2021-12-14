@@ -172,6 +172,62 @@ namespace vast::hl
         printer << ">";
     }
 
+    Type ConstantArrayType::parse(Context *ctx, DialectParser &parser)
+    {
+        auto loc = parser.getCurrentLocation();
+        if (failed(parser.parseLess())) {
+            parser.emitError(loc, "expected <");
+            return Type();
+        }
+
+        llvm::APInt size;
+        if (failed(parser.parseInteger(size))) {
+            auto loc = parser.getCurrentLocation();
+            parser.emitError(loc, "expected array size");
+            return Type();
+        }
+
+        if (parser.parseComma()) {
+            auto loc = parser.getCurrentLocation();
+            parser.emitError(loc, "expected comma after size");
+            return Type();
+        }
+
+        Type element;
+        if (failed(parser.parseType(element))) {
+            auto loc = parser.getCurrentLocation();
+            parser.emitError(loc, "expected element type");
+            return Type();
+        }
+
+        bool constness = false, volatility = false;
+        if (succeeded(parser.parseOptionalComma())) {
+            constness = succeeded(parser.parseOptionalKeyword("const"));
+            volatility = succeeded(parser.parseOptionalKeyword("volatile"));
+        }
+
+        if (failed(parser.parseGreater())) {
+            parser.emitError(loc, "expected end of qualifier list");
+            return Type();
+        }
+
+        return ConstantArrayType::get(ctx, element, size, constness, volatility);
+    }
+
+    void ConstantArrayType::print(DialectPrinter &printer) const
+    {
+        printer << getMnemonic() << "<" << getSize() << ", ";
+        printer.printType(getElementType());
+
+        if ( getIsVolatile() || getIsConst() ) {
+            printer << ",";
+            if (isConst())    { printer << " const"; }
+            if (isVolatile()) { printer << " volatile"; }
+        }
+
+        printer << ">";
+    }
+
 } // namespace vast::hl
 
 
