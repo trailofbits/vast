@@ -62,10 +62,9 @@ def FloatAttr      : HLFloatingAttr< "Float",      "float",      FloatType >;
 def DoubleAttr     : HLFloatingAttr< "Double",     "double",     DoubleType >;
 def LongDoubleAttr : HLFloatingAttr< "LongDouble", "longdouble", LongDoubleType >;
 
-
 def StringAttr : HighLevel_Attr< "String", "string" >
 {
-  let valueType = ArrayType;
+  let valueType = ConstantArrayType;
   let parameters = (ins "llvm::StringRef":$value );
 
   let parser  = [{ return parse_str_attr($_ctxt, parser); }];

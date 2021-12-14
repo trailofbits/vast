@@ -223,8 +223,8 @@ namespace vast::hl
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::StringRef value)
         {
-            CHECK( ty.isa< ArrayType >(), "string constant must have array type" );
-            return make< ConstantOp >(loc, ty.cast< ArrayType >(), value);
+            CHECK( ty.isa< ConstantArrayType >(), "string constant must have array type" );
+            return make< ConstantOp >(loc, ty.cast< ConstantArrayType >(), value);
         }
 
         BoolType bool_type() { return BoolType::get(&mctx); }

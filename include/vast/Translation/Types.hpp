@@ -30,7 +30,7 @@ namespace vast::hl
         mlir::Type convert(const clang::BuiltinType *ty, clang::Qualifiers quals);
         mlir::Type convert(const clang::PointerType *ty, clang::Qualifiers quals);
         mlir::Type convert(const clang::RecordType *ty, clang::Qualifiers quals);
-        mlir::Type convert(const clang::ArrayType *ty, clang::Qualifiers quals);
+        mlir::Type convert(const clang::ConstantArrayType *ty, clang::Qualifiers quals);
 
         mlir::FunctionType convert(const clang::FunctionType *ty);
 
