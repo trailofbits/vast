@@ -39,29 +39,6 @@ namespace vast::hl
         return getValue();
     }
 
-    // static ParseResult parseConstantOp(Parser &parser, State &st)
-    // {
-    //     auto loc = parser.getCurrentLocation();
-    //     Attribute attr;
-    //     if (parser.parseAttribute(attr)) {
-    //         parser.emitError(loc, "unknown constant value");
-    //     }
-
-    //     st.addAttribute("value", attr);
-
-    //     if (parser.parseOptionalAttrDict(st.attributes)) {
-    //        return mlir::failure();
-    //     }
-    //     return mlir::success();
-    // }
-
-    // static void printConstantOp(Printer &printer, ConstantOp op)
-    // {
-    //     printer << op.getOperationName() << " ";
-    //     printer.printAttribute(op.valueAttr());
-    //     printer.printOptionalAttrDict(op->getAttrs(), {"value"});
-    // }
-
     void build_var_decl(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)
     {
         st.addAttribute( mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name) );
