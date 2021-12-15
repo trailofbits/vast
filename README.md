@@ -24,8 +24,8 @@ cmake \
     -G Ninja \
     -DCMAKE_INSTALL_PREFIX=<install directory> \
     -DLLVM_INSTALL_DIR=<llvm instalation path> \
-    -ENABLE_TESTING=ON \
-    -LLVM_EXTERNAL_LIT=<path to lit>
+    -DENABLE_TESTING=ON \
+    -DLLVM_EXTERNAL_LIT=<path to lit>
 ```
 
 Finally build and install the binaries:
