@@ -5,13 +5,20 @@
 
 include "mlir/Pass/PassBase.td"
 
-def LowerHighLevelTypes : Pass<"vast-hl-lower-types"> {
+def LowerHighLevelTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
   let summary = "Lower high-level types to standard types";
   let description = [{ }];
 
   let constructor = "vast::hl::createLowerHighLevelTypesPass()";
 }
 
+def LowerHLToLL : Pass<"vast-hl-lower-to-ll", "mlir::ModuleOp"> {
+  let summary = "HL -> LL transformation. Expects types already lowered to standard.";
+  let description = [{ }];
+
+  let constructor = "vast::hl::createLowerHLToLLPass()";
+  let dependentDialects = ["mlir::LLVM::LLVMDialect"];
+}
 
 def StructsToTuples : Pass<"vast-hl-structs-to-tuples", "mlir::ModuleOp"> {
   let summary = "Transform hl.record into std tuples.";
