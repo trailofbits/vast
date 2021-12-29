@@ -15,52 +15,24 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
+#include <iostream>
+
 namespace vast::hl
 {
-
-    template< typename H, typename ... Ts > void try_functors_(mlir::Type, auto &);
-    void try_functors(mlir::Type, auto &);
-
-    void dispatch(mlir::TypeRange range, auto &f)
-    {
-        for (auto x : range)
-            try_functors(x, f);
-    }
-
-    void dispatch(mlir::FunctionType ft, auto &f)
-    {
-        dispatch(ft.getResults(), f);
-        dispatch(ft.getInputs(), f);
-    }
-
-    template< typename H, typename ... Tail >
-    void try_functors_(mlir::Type t, auto &f)
-    {
-        if (auto x = t.dyn_cast_or_null< H >())
-            return dispatch(x, f);
-
-        if constexpr (sizeof ... (Tail) != 0)
-            return try_functors_< Tail ... >(t, f);
-        else
-            return f(t);
-    }
-
-    void try_functors(mlir::Type t, auto &f)
-    {
-        return try_functors_< mlir::FunctionType >(t, f);
-    }
-
     bool contains_hl_type(mlir::Type t)
     {
-        assert(static_cast< bool >(t));
-        bool found = false;
+        CHECK(static_cast< bool >(t), "Argument of in `contains_hl_type` is not valid.");
+        // We need to manually check `t` itself.
+        bool found = t.isa< hl::HighLevelType >();
         auto is_hl = [&](auto t)
         {
             if (t.template isa< hl::RecordType >() || t.template isa< hl::ArrayType >())
                 return;
             found |= t.template isa< hl::HighLevelType >();
         };
-        try_functors(t, is_hl);
+        // If `t` is aggregate, walk over all nested types.
+        if (auto is_aggregate = t.dyn_cast< mlir::SubElementTypeInterface >())
+            is_aggregate.walkSubTypes(is_hl);
         return found;
     }
 
