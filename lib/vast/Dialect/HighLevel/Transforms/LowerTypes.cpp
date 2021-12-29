@@ -159,11 +159,12 @@ namespace vast::hl
         {
             mlir::SmallVector< mlir::Type > rty;
             auto status = this->getTypeConverter()->convertTypes(op->getResultTypes(), rty);
-            assert(mlir::succeeded(status));
+            // TODO(lukas): How to use `llvm::formatv` with `mlir::Operation *`?
+            CHECK(mlir::succeeded(status), "Was not able to type convert.");
 
             // We just change type, no need to copy everything
             auto lower_op = [&]() {
-                assert(rty.size() == op->getResults().size());
+                CHECK(rty.size() == op->getResults().size(), "Converted type mismatch.");
                 for (std::size_t i = 0; i < op->getResults().size(); ++i)
                     op->getResult(i).setType(rty[i]);
 
@@ -173,7 +174,7 @@ namespace vast::hl
                 if (auto fn = mlir::dyn_cast_or_null< mlir::FuncOp >(op))
                     if (mlir::failed(rewriter.convertRegionTypes(&fn.getBody(),
                                                                  *getTypeConverter())))
-                        assert(false && "Cannot handle failure to update block types.");
+                        UNREACHABLE("Cannot handle failure to update block types.");
                 // For example return type of function can be encoded in attributes
                 lower_attrs(op);
             };
@@ -189,9 +190,9 @@ namespace vast::hl
             if (!attr.hasValue())
                 return;
 
-            auto as_t = attr->second.dyn_cast< mlir::TypeAttr >();
-            assert(as_t);
-            auto converted = getTypeConverter()->convertType(as_t.getValue());
+            auto as_type_attr = attr->second.dyn_cast< mlir::TypeAttr >();
+            CHECK(as_type_attr, "Expected attr to be mlir::TypeAttr.");
+            auto converted = getTypeConverter()->convertType(as_type_attr.getValue());
             op->setAttr("type", mlir::TypeAttr::get(converted));
         }
     };
