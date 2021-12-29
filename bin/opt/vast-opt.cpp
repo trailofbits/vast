@@ -29,6 +29,7 @@ int main(int argc, char **argv)
     mlir::DialectRegistry registry;
     registry.insert< vast::hl::HighLevelDialect >();
     registry.insert< mlir::StandardOpsDialect >();
+    registry.insert< mlir::LLVM::LLVMDialect >();
 
     mlir::registerAllDialects(registry);
     return failed(
