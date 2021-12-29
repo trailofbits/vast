@@ -32,7 +32,7 @@ namespace vast
 
     #define VAST_DEBUG(fmt, ...) LLVM_DEBUG(llvm::dbgs() << llvm::formatv(fmt, __VA_OPT__(,) __VA_ARGS__));
 
-    #define CHECK(cond, fmt, ...) if (!cond) { UNREACHABLE(fmt __VA_OPT__(,) __VA_ARGS__); }
+    #define CHECK(cond, fmt, ...) if (!(cond)) { UNREACHABLE(fmt __VA_OPT__(,) __VA_ARGS__); }
 
     #define ASSERT(cond) if (!(cond)) { UNREACHABLE("assertion: " #cond " failed"); }
 }
