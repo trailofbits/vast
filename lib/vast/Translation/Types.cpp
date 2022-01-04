@@ -139,30 +139,30 @@ namespace vast::hl
         }
 
         if (ty->isBooleanType()) {
-            return BoolType::get(mctx, c, v);
+            return BoolType::get(&mctx, c, v);
         }
 
         if (ty->isIntegerType()) {
             auto u = ty->isUnsignedIntegerType();
 
             switch (get_integer_kind(ty)) {
-                case IntegerKind::Char:     return CharType::get(mctx, u, c, v);
-                case IntegerKind::Short:    return ShortType::get(mctx, u, c, v);
-                case IntegerKind::Int:      return IntType::get(mctx, u, c, v);
-                case IntegerKind::Long:     return LongType::get(mctx, u, c, v);
-                case IntegerKind::LongLong: return LongLongType::get(mctx, u, c, v);
-                case IntegerKind::Int128:   return Int128Type::get(mctx, u, c, v);
+                case IntegerKind::Char:     return CharType::get(&mctx, u, c, v);
+                case IntegerKind::Short:    return ShortType::get(&mctx, u, c, v);
+                case IntegerKind::Int:      return IntType::get(&mctx, u, c, v);
+                case IntegerKind::Long:     return LongType::get(&mctx, u, c, v);
+                case IntegerKind::LongLong: return LongLongType::get(&mctx, u, c, v);
+                case IntegerKind::Int128:   return Int128Type::get(&mctx, u, c, v);
             }
         }
 
         if (ty->isFloatingType()) {
             switch (get_floating_kind(ty)) {
-                case FloatingKind::Half:       return HalfType::get(mctx, c, v);
-                case FloatingKind::BFloat16:   return BFloat16Type::get(mctx, c, v);
-                case FloatingKind::Float:      return FloatType::get(mctx, c, v);
-                case FloatingKind::Double:     return DoubleType::get(mctx, c, v);
-                case FloatingKind::LongDouble: return LongDoubleType::get(mctx, c, v);
-                case FloatingKind::Float128:   return Float128Type::get(mctx, c, v);
+                case FloatingKind::Half:       return HalfType::get(&mctx, c, v);
+                case FloatingKind::BFloat16:   return BFloat16Type::get(&mctx, c, v);
+                case FloatingKind::Float:      return FloatType::get(&mctx, c, v);
+                case FloatingKind::Double:     return DoubleType::get(&mctx, c, v);
+                case FloatingKind::LongDouble: return LongDoubleType::get(&mctx, c, v);
+                case FloatingKind::Float128:   return Float128Type::get(&mctx, c, v);
             }
         }
 
@@ -172,7 +172,7 @@ namespace vast::hl
     mlir::Type TypeConverter::_convert(const clang::PointerType *ty, clang::Qualifiers quals)
     {
         auto pointee = convert(ty->getPointeeType());
-        return PointerType::get(mctx, pointee, quals.hasConst(), quals.hasVolatile());
+        return PointerType::get(&mctx, pointee, quals.hasConst(), quals.hasVolatile());
     }
 
     mlir::Type TypeConverter::_convert(const clang::RecordType *ty, clang::Qualifiers quals)
@@ -180,12 +180,12 @@ namespace vast::hl
         return RecordType::get(&mctx);
     }
 
-    mlir::Type TypeConverter::convert(const clang::ConstantArrayType *ty, clang::Qualifiers quals)
+    mlir::Type TypeConverter::_convert(const clang::ConstantArrayType *ty, clang::Qualifiers quals)
     {
         assert(clang::isa< clang::ConstantArrayType >(ty));
         auto element_type = convert(ty->getElementType());
         auto size = ty->getSize();
-        return ConstantArrayType::get(mctx, element_type, size, quals.hasConst(), quals.hasVolatile());
+        return ConstantArrayType::get(&mctx, element_type, size, quals.hasConst(), quals.hasVolatile());
     }
 
     mlir::FunctionType TypeConverter::convert(const clang::FunctionType *ty)

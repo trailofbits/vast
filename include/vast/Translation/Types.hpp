@@ -56,16 +56,17 @@ namespace vast::hl
 
         mlir::Type dl_aware_convert(const clang::Type *ty, clang::Qualifiers quals);
 
+        std::string format_type(const clang::Type *type) const;
+
+        DataLayoutBlueprint take_dl() { return std::move(dl); }
+
+    private:
         mlir::Type _convert(const clang::Type *ty, clang::Qualifiers quals);
         mlir::Type _convert(const clang::BuiltinType *ty, clang::Qualifiers quals);
         mlir::Type _convert(const clang::PointerType *ty, clang::Qualifiers quals);
         mlir::Type _convert(const clang::RecordType *ty, clang::Qualifiers quals);
         mlir::Type _convert(const clang::ConstantArrayType *ty, clang::Qualifiers quals);
 
-        std::string format_type(const clang::Type *type) const;
-
-        DataLayoutBlueprint take_dl() { return std::move(dl); }
-    private:
         MContext &mctx;
         AContext &actx;
         DataLayoutBlueprint dl;
