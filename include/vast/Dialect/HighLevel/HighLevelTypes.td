@@ -160,7 +160,10 @@ def FloatLikeType : TypeConstraint<
   "float like type"
 >;
 
-def PointerType : HighLevelType< "Pointer" > {
+def PointerType : HighLevelType< "Pointer",
+                                 [DeclareTypeInterfaceMethods< SubElementTypeInterface >,
+                                  MemRefElementTypeInterface]>
+{
   let mnemonic = "ptr";
 
   let parameters = (ins
@@ -188,11 +191,13 @@ def PointerType : HighLevelType< "Pointer" > {
   let printer = [{ return print_pointer_type(*this, printer); }];
 }
 
-def RecordType : HighLevelType< "Record" > {
+def RecordType : HighLevelType< "Record", [MemRefElementTypeInterface]> {
   let mnemonic = "record";
 }
 
-def ConstantArrayType : HighLevelType< "ConstantArray" > {
+def ConstantArrayType : HighLevelType< "ConstantArray",
+                        [DeclareTypeInterfaceMethods< SubElementTypeInterface >,
+                         MemRefElementTypeInterface]> {
   let mnemonic = "const.array";
 
   let parameters = (ins
