@@ -136,18 +136,18 @@ namespace vast::util {
             static constexpr bool value = std::is_base_of_v< mlir_type, derived >;
         };
 
-        template< typename list, std::size_t ...idxs >
-        constexpr bool is_one_of(mlir_type type, std::index_sequence< idxs... >)
+        template< typename list, typename elem, std::size_t ...idxs >
+        constexpr bool is_one_of(elem e, std::index_sequence< idxs... >)
         {
-            return (type.isa< std::tuple_element_t< idxs, list > >() || ...);
+            return (e.template isa< std::tuple_element_t< idxs, list > >() || ...);
         }
 
-        template< typename list >
-        constexpr bool is_one_of(mlir_type type)
+        template< typename list, typename elem >
+        constexpr bool is_one_of(elem e)
         {
             // FIXME: use type_list::at
             return is_one_of< typename list::as_tuple >(
-                type, std::make_index_sequence< list::size >{}
+                e, std::make_index_sequence< list::size >{}
             );
         }
 
@@ -179,8 +179,8 @@ namespace vast::util {
         static_assert( base::template all_of< detail::is_mlir_type > );
     };
 
-    template< typename list >
-    constexpr bool is_one_of(mlir_type type) { return detail::is_one_of< list >(type); }
+    template< typename list, typename elem >
+    constexpr bool is_one_of(elem e) { return detail::is_one_of< list >(e); }
 
     template< typename list, typename ret, typename fn >
     constexpr auto dispatch(mlir_type type, fn &&f)
