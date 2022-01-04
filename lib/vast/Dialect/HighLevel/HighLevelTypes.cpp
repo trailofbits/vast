@@ -29,7 +29,6 @@ namespace vast::hl
         >();
     }
 
-
     bool isBoolType(mlir::Type type)
     {
         return type.isa< BoolType >();
@@ -60,6 +59,11 @@ namespace vast::hl
     bool isUnsigned(mlir::Type type)
     {
         return !(isSigned(type));
+    }
+
+    bool isHighLevelType(mlir::Type type)
+    {
+        return util::is_one_of< high_level_types >(type);
     }
 
     template< typename CVType >
@@ -276,4 +280,35 @@ namespace vast::hl
             UNREACHABLE("unexpected high-level type kind");
     }
 
+    template< typename T >
+    using walk_fn = llvm::function_ref< void( T ) >;
+
+    using walk_types = walk_fn< mlir::Type >;
+    using walk_attrs = walk_fn< mlir::Attribute >;
+
+    void PointerType::walkImmediateSubElements(walk_attrs, walk_types tys) const
+    {
+        tys( this->getElementType() );
+    }
+
+    void ConstantArrayType::walkImmediateSubElements(walk_attrs, walk_types tys) const
+    {
+        tys( this->getElementType() );
+    }
+
+    // TODO(lukas): Generalize and pull into header as it will probably be needed
+    //              for all other array types as well.
+    auto ConstantArrayType::dim_and_type() -> std::tuple< dimensions_t, mlir::Type >
+    {
+        dimensions_t out;
+        // If this ever is generalised investigate if `SubElementTypeInterface` can be used
+        // do this recursion?
+        auto collect = [&](ConstantArrayType t, auto &fwd) -> mlir::Type {
+            out.push_back(t.getNumElems());
+            if (auto c_array = t.getElementType().dyn_cast< ConstantArrayType >())
+                return fwd(c_array, fwd);
+            return t.getElementType();
+        };
+        return { std::move(out), collect(*this, collect) };
+    }
 } // namespace vast::hl

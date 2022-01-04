@@ -207,10 +207,16 @@ def ConstantArrayType : HighLevelType< "ConstantArray",
     "bool":$isVolatile
   );
 
-  let extraClassDeclaration = [{
+  let extraClassDeclaration = !strconcat(WithDL.bleeh, [{
+    using dimensions_t = std::vector< uint32_t >;
+    std::tuple< dimensions_t, mlir::Type > dim_and_type();
+
+    dimensions_t dimensions() { return std::get< 0 >(dim_and_type()); }
+
     bool isConst() const { return this->getIsConst(); }
     bool isVolatile() const { return this->getIsVolatile(); }
-  }];
+    uint32_t getNumElems() const { return this->getSize().getLimitedValue(); }
+  }]);
 }
 
 def PointerLikeType : TypeConstraint<

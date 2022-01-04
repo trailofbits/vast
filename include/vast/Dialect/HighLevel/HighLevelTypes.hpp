@@ -98,6 +98,14 @@ namespace vast::hl
         util::type_list< BoolType >, integer_types, floating_types
     >;
 
+    using composite_types = util::type_list<
+        RecordType, ConstantArrayType, PointerType
+    >;
+
+    using high_level_types = util::concat<
+        scalar_types, composite_types
+    >;
+
     /* integer types */
     enum class IntegerKind { Char, Short, Int, Long, LongLong, Int128 };
 
@@ -137,5 +145,7 @@ namespace vast::hl
 
     bool isSigned(mlir::Type type);
     bool isUnsigned(mlir::Type type);
+
+    bool isHighLevelType(mlir::Type type);
 
 } // namespace vast::hl
