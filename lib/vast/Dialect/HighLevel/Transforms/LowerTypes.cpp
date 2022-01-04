@@ -14,21 +14,28 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+#include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
+
+#include "vast/Util/Maybe.hpp"
 
 #include <iostream>
 
 namespace vast::hl
 {
+    auto get_value() { return [](auto attr) { return attr.getValue(); }; }
+    template< typename T >
+    auto dyn_cast() { return [](auto x) { return x.template dyn_cast< T >(); }; }
+
     bool contains_hl_type(mlir::Type t)
     {
         CHECK(static_cast< bool >(t), "Argument of in `contains_hl_type` is not valid.");
         // We need to manually check `t` itself.
-        bool found = t.isa< hl::HighLevelType >();
+        bool found = isHighLevelType(t);
         auto is_hl = [&](auto t)
         {
-            if (t.template isa< hl::RecordType >() || t.template isa< hl::ArrayType >())
+            if (t.template isa< hl::RecordType >())
                 return;
-            found |= t.template isa< hl::HighLevelType >();
+            found |= isHighLevelType(t);
         };
         // If `t` is aggregate, walk over all nested types.
         if (auto is_aggregate = t.dyn_cast< mlir::SubElementTypeInterface >())
@@ -44,22 +51,27 @@ namespace vast::hl
         return false;
     }
 
-
-    auto get_typeattr(mlir::Operation *op, const std::string &key = "type")
+    bool isHighLevelType(mlir::TypeAttr type_attr)
     {
-        return op->template getAttrOfType< mlir::TypeAttr >(key);
+        return Maybe(type_attr).and_then(get_value())
+                               .and_then(dyn_cast< mlir::Type >())
+                               .keep_if(isHighLevelType)
+                               .has_value();
     }
 
-    template< typename Trg >
-    bool has_typeattr_of(mlir::Operation *op)
+    bool has_hl_typeattr(mlir::Operation *op)
     {
-        if (auto x = get_typeattr(op))
-            return contains_hl_type(x.getValue());
+        for (const auto &[_, attr] : op->getAttrs())
+        {
+            // `getType()` is not reliable in reality since for exmaple for `mlir::TypeAttr`
+            // it returns none. Lowering of types in attributes will be always best effort.
+            if (isHighLevelAttr(attr) || isHighLevelType(attr.getType()))
+                return true;
+            if (auto type_attr = attr.dyn_cast< mlir::TypeAttr >(); isHighLevelType(type_attr))
+                return true;
+
+        }
         return false;
-    }
-
-    bool has_hl_typeattr(mlir::Operation *op) {
-        return has_typeattr_of< hl::HighLevelType >(op);
     }
 
     bool has_hl_type(mlir::Operation *op)
@@ -72,6 +84,10 @@ namespace vast::hl
     bool should_lower(mlir::Operation *op) { return !has_hl_type(op); }
 
     struct TypeConverter : mlir::TypeConverter {
+        using types_t = mlir::SmallVector< mlir::Type >;
+        using maybe_type_t = llvm::Optional< mlir::Type >;
+        using maybe_types_t = llvm::Optional< types_t >;
+
         const mlir::DataLayout &dl;
         mlir::MLIRContext &mctx;
 
@@ -81,19 +97,22 @@ namespace vast::hl
             // Fallthrough option - we define it first as it seems the framework
             // goes from the last added conversion.
             addConversion([&](mlir::Type t) -> llvm::Optional< mlir::Type > {
-                if (!t.dyn_cast< hl::HighLevelType >())
-                    return t;
-                return llvm::None;
+                return Maybe(t).keep_if([](auto t){ return !isHighLevelType(t); })
+                               .take_wrapped< maybe_type_t >();
             });
-            // Use provided data layout to get the correct type.
-            addConversion([&](hl::IntegerType t) { return this->convert_int_t(t); });
-            addConversion([&](hl::BoolType t) { return this->convert_bool_t(t); });
-            addConversion([&](hl::PointerType t) { return this->convert_ptr_t(t); });
-            addConversion([&](mlir::FunctionType t) { return this->convert_fn_t(t); });
-        }
+            addConversion([&](mlir::Type t) { return this->try_convert_intlike(t); });
+            addConversion([&](mlir::Type t) { return this->try_convert_floatlike(t); });
 
-        using types_t = mlir::SmallVector< mlir::Type >;
-        using maybe_types_t = std::optional< types_t >;
+            // Use provided data layout to get the correct type.
+            addConversion([&](hl::PointerType t) { return this->convert_ptr_type(t); });
+            addConversion([&](mlir::FunctionType t) { return this->convert_fn_type(t); });
+            addConversion([&](hl::ConstantArrayType t) {
+                    return this->convert_const_arr_type(t);
+            });
+            // TODO(lukas): Support properly.
+            addConversion([&](hl::RecordType t) { return t; });
+
+        }
 
         maybe_types_t convert_type(mlir::Type t)
         {
@@ -103,32 +122,92 @@ namespace vast::hl
             return {};
         }
 
-        using maybe_t = llvm::Optional< mlir::Type >;
-        maybe_t convert_int_t(hl::IntegerType t)
+        auto bw(mlir::Type t) { return dl.getTypeSizeInBits(t); }
+
+        auto convert_type() { return [&](auto t) { return this->convert_type(t); }; }
+        auto convert_type_to_type()
         {
-            return mlir::IntegerType::get(&mctx, dl.getTypeSizeInBits(t));
+            return [&](auto t) { return this->convert_type_to_type(t); };
         }
 
-        maybe_t convert_bool_t(hl::BoolType t)
+        auto make_int_type()
         {
-            return mlir::IntegerType::get(&mctx, dl.getTypeSizeInBits(t));
+            return [&](auto t) { return mlir::IntegerType::get(&this->mctx, this->bw(t));};
         }
 
-        maybe_t convert_ptr_t(hl::PointerType t)
+        auto make_float_type()
         {
-            if (auto nested_tys = convert_type(t.getElementType());
-                nested_tys && nested_tys->size() == 1)
+            return [&](auto t)
             {
-                // TODO(lukas): Address spaces.
-                // TODO(lukas): Not sure if other than UnrankedMemRef can be constructed
-                //              generically.
-                return mlir::UnrankedMemRefType::get(*(nested_tys->begin()), 0);
-            }
-            return llvm::None;
+                auto target_bw = this->bw(t);
+                switch (target_bw)
+                {
+                    case 16: return mlir::FloatType::getF16(&mctx);
+                    case 32: return mlir::FloatType::getF32(&mctx);
+                    case 64: return mlir::FloatType::getF64(&mctx);
+                    case 80: return mlir::FloatType::getF80(&mctx);
+                    case 128: return mlir::FloatType::getF128(&mctx);
+                    default: UNREACHABLE("Cannot lower float bitsize {0}", target_bw);
+                }
+            };
+        }
+
+        auto make_ptr_type()
+        {
+            return [&](auto t) { return mlir::UnrankedMemRefType::get(t, 0); };
+        }
+
+        maybe_types_t convert_type_to_types(mlir::Type t, std::size_t count = 1)
+        {
+            return Maybe(t).and_then(convert_type())
+                           .keep_if([&](const auto &ts) { return ts->size() == count; })
+                           .take_wrapped< maybe_types_t >();
+        }
+
+        maybe_type_t convert_type_to_type(mlir::Type t)
+        {
+            return Maybe(t).and_then([&](auto t){ return this->convert_type_to_types(t, 1); })
+                           .and_then([&](auto ts){ return *ts->begin(); })
+                           .take_wrapped< maybe_type_t >();
         }
 
 
-        maybe_t convert_fn_t(mlir::FunctionType t)
+        maybe_type_t try_convert_intlike(mlir::Type t)
+        {
+            // For now `bool` behaves the same way as any other integer type.
+            return Maybe(t).keep_if([](auto t){ return isIntegerType(t) || isBoolType(t); })
+                           .and_then(make_int_type())
+                           .take_wrapped< maybe_type_t >();
+        }
+
+        maybe_type_t try_convert_floatlike(mlir::Type t)
+        {
+            return Maybe(t).keep_if(isFloatingType)
+                           .and_then(make_float_type())
+                           .take_wrapped< maybe_type_t >();
+        }
+
+        maybe_type_t convert_ptr_type(hl::PointerType t)
+        {
+            return Maybe(t.getElementType()).and_then(convert_type_to_type())
+                                            .unwrap()
+                                            .and_then(make_ptr_type())
+                                            .take_wrapped< maybe_type_t >();
+        }
+
+        maybe_type_t convert_const_arr_type(hl::ConstantArrayType t)
+        {
+            auto [dim, nested_ty] = t.dim_and_type();
+            std::vector< int64_t > coerced_dim;
+            for (auto x : dim)
+                coerced_dim.push_back(static_cast< int64_t >(x));
+
+            return Maybe(convert_type_to_type(nested_ty))
+                    .and_then([&](auto t) { return mlir::MemRefType::get({coerced_dim}, *t); })
+                    .take_wrapped< maybe_type_t >();
+        }
+
+        maybe_type_t convert_fn_type(mlir::FunctionType t)
         {
             mlir::SmallVector< mlir::Type > aty;
             mlir::SmallVector< mlir::Type > rty;
@@ -142,13 +221,50 @@ namespace vast::hl
         }
     };
 
+    struct AttributeConverter
+    {
+        mlir::MLIRContext &mctx;
+        TypeConverter &tc;
+
+        // `llvm::` instead of `std::` to be uniform with `TypeConverter`
+        using maybe_attr_t = llvm::Optional< mlir::Attribute >;
+
+        maybe_attr_t convertAttr(mlir::Identifier id, mlir::Attribute attr) const
+        {
+            if (isHighLevelAttr(attr))
+                return convert_hlattr(attr);
+            if (auto type_attr = attr.dyn_cast< mlir::TypeAttr >())
+            {
+                return Maybe(type_attr.getValue())
+                    .and_then(tc.convert_type_to_type())
+                    .unwrap()
+                    .and_then(mlir::TypeAttr::get)
+                    .take_wrapped< maybe_attr_t >();
+            }
+            return {};
+        }
+
+        maybe_attr_t convert_hlattr(mlir::Attribute a) const
+        {
+            if (auto char_a = a.dyn_cast< CharAttr >())
+                return {};
+            auto x = mlir::IntegerAttr::get(mlir::IntegerType::get(&mctx, 32), 0);
+            return {x};
+        }
+    };
+
     // `ConversionPattern` provides methods that can use `TypeConverter`, which
     // other patterns do not.
     struct LowerHLTypePattern : mlir::ConversionPattern
     {
-        LowerHLTypePattern(TypeConverter &tc, mlir::MLIRContext *mctx)
-            : mlir::ConversionPattern(tc, mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx)
+        AttributeConverter &_attribute_converter;
+
+        LowerHLTypePattern(TypeConverter &tc, AttributeConverter &ac, mlir::MLIRContext *mctx)
+            : mlir::ConversionPattern(tc, mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx),
+              _attribute_converter(ac)
         {}
+
+        const auto &getAttrConverter() const { return _attribute_converter; }
 
         // `ops` are remapped operands.
         // `op` is current operation (with old operands).
@@ -186,14 +302,15 @@ namespace vast::hl
 
         void lower_attrs(mlir::Operation *op) const
         {
-            auto attr = op->getAttrDictionary().getNamed("type");
-            if (!attr.hasValue())
-                return;
-
-            auto as_type_attr = attr->second.dyn_cast< mlir::TypeAttr >();
-            CHECK(as_type_attr, "Expected attr to be mlir::TypeAttr.");
-            auto converted = getTypeConverter()->convertType(as_type_attr.getValue());
-            op->setAttr("type", mlir::TypeAttr::get(converted));
+            mlir::SmallVector< mlir::NamedAttribute > new_attrs;
+            for (const auto &[id, attr] : op->getAttrs())
+            {
+                if (auto lowered = this->getAttrConverter().convertAttr(id, attr))
+                    new_attrs.emplace_back(id, *lowered);
+                else
+                    new_attrs.emplace_back(id, attr);
+            }
+            op->setAttrs(new_attrs);
         }
     };
 
@@ -210,15 +327,19 @@ namespace vast::hl
         trg.markUnknownOpDynamicallyLegal(should_lower);
 
         mlir::RewritePatternSet patterns(&this->getContext());
-        // TODO(lukas): This is expensive, construct once per module.
         const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
         TypeConverter type_converter(dl_analysis.getAtOrAbove(this->getOperation()),
                                      this->getContext());
-        patterns.add< LowerHLTypePattern >(type_converter, patterns.getContext());
+        AttributeConverter attr_converter{this->getContext(), type_converter};
+
+        patterns.add< LowerHLTypePattern >(type_converter, attr_converter,
+                                           patterns.getContext());
 
         if (mlir::failed(mlir::applyPartialConversion(
                         this->getOperation(),trg, std::move(patterns))))
             return signalPassFailure();
+        llvm::errs() << "Happily done\n";
+        llvm::errs().flush();
     }
 }
 
