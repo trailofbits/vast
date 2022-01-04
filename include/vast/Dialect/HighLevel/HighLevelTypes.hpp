@@ -7,6 +7,7 @@
 VAST_RELAX_WARNINGS
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/IR/TypeSupport.h>
+#include <mlir/IR/Types.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/Dialect.h>
 #include <mlir/Interfaces/DataLayoutInterfaces.h>
@@ -21,6 +22,56 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/DataLayout.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+
+namespace vast::hl
+{
+    template< typename ConcreteTy >
+    struct DefaultDL {
+        using dl_t = mlir::DataLayout;
+        using dl_entries_ref = mlir::DataLayoutEntryListRef;
+
+        static unsigned getTypeSizeInBits(const dl_t &dl, dl_entries_ref entries)
+        {
+            CHECK(entries.size() != 0,
+                  "Query for getTypeSizeinBits for {0} failed: Must have at least one entry!");
+
+            std::optional<uint32_t> out;
+            auto handle_entry = [&](auto &dl_entry) {
+                if (!out) out = dl_entry.bw;
+                CHECK(*out == dl_entry.bw, "Inconsistent entries");
+            };
+            apply_on_valid_entries(entries, handle_entry);
+            CHECK(out.has_value(), "getTypeSizeBits entries did not yield result.");
+            return *out;
+        }
+
+        static unsigned getABIAlignment(const dl_t &dl, dl_entries_ref entries)
+        {
+            UNIMPLEMENTED;
+        }
+
+        static unsigned getPreferredAlignment(const dl_t &dl, dl_entries_ref entries)
+        {
+            UNIMPLEMENTED;
+        }
+
+        static void apply_on_valid_entries(dl_entries_ref entries, auto &f)
+        {
+            for (const auto &entry : entries)
+            {
+                auto dl_entry = dl::DLEntry::unwrap(entry);
+                if (is_valid_entry_type(dl_entry.type))
+                    f(dl_entry);
+            }
+        }
+
+        // TODO(lukas): This may no longer be needed.
+        static bool is_valid_entry_type(mlir::Type t)
+        {
+            return t.isa< ConcreteTy >();
+        }
+    };
+} // namespace vast::hl
 
 #define GET_TYPEDEF_CLASSES
 #include "vast/Dialect/HighLevel/HighLevelTypes.h.inc"
