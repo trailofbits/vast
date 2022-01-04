@@ -3,8 +3,45 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
 
+include "mlir/Interfaces/DataLayoutInterfaces.td"
+include "mlir/IR/SubElementInterfaces.td"
+include "mlir/IR/BuiltinTypeInterfaces.td"
+
+// NOTE(lukas): I have no idea how to do this both in a sane way and in tablegen
+class DefaultDLTypeInterface {
+  code bleeh = [{
+    using dl_t = mlir::DataLayout;
+    using dl_entries_ref = mlir::DataLayoutEntryListRef;
+
+    unsigned getTypeSizeInBits(const mlir::DataLayout &dl,
+                               mlir::DataLayoutEntryListRef entries) const
+    {
+        using self_t = std::remove_cvref_t< decltype(*this) >;
+        return DefaultDL< self_t >::getTypeSizeInBits(dl, entries);
+    }
+    unsigned getABIAlignment(const mlir::DataLayout &dl,
+                             mlir::DataLayoutEntryListRef entries) const
+    {
+        using self_t = std::remove_cvref_t< decltype(*this) >;
+        return DefaultDL< self_t >::getABIAlignment(dl, entries);
+    }
+    unsigned getPreferredAlignment(const mlir::DataLayout &dl,
+                                   mlir::DataLayoutEntryListRef entries) const
+    {
+        using self_t = std::remove_cvref_t< decltype(*this) >;
+        return DefaultDL< self_t >::getPreferredAlignment(dl, entries);
+    }
+  }];
+}
+
+def WithDL : DefaultDLTypeInterface;
+
 class HighLevelType< string name, list<Trait> traits = []>
-  : TypeDef< HighLevel_Dialect, name , traits >;
+  : TypeDef< HighLevel_Dialect, name ,
+             !listconcat(traits, [DataLayoutTypeInterface]) >
+{
+    let extraClassDeclaration = WithDL.bleeh;
+}
 
 def VoidType : HighLevelType< "Void" > {
   let mnemonic = "void";
@@ -20,10 +57,10 @@ class CVQualified< string name, string mnem, list<Trait> traits = []>
     "bool":$isVolatile
   );
 
-  let extraClassDeclaration = [{
+  let extraClassDeclaration = !strconcat(WithDL.bleeh, [{
     bool isConst() const { return this->getIsConst(); }
     bool isVolatile() const { return this->getIsVolatile(); }
-  }];
+  }]);
 
   let builders = [
     TypeBuilder<(ins
@@ -59,12 +96,12 @@ class IntegerType< string name, string mnem, list<Trait> traits = []>
     "bool":$isVolatile
   );
 
-  let extraClassDeclaration = [{
+  let extraClassDeclaration = !strconcat(WithDL.bleeh, [{
     bool isUnsigned() const { return this->getIsUnsigned(); }
     bool isSigned() const { return !this->isUnsigned(); }
     bool isConst() const { return this->getIsConst(); }
     bool isVolatile() const { return this->getIsVolatile(); }
-  }];
+  }]);
 
   let builders = [
     TypeBuilder<(ins
@@ -132,10 +169,10 @@ def PointerType : HighLevelType< "Pointer" > {
     "bool":$isVolatile
   );
 
-  let extraClassDeclaration = [{
+  let extraClassDeclaration = !strconcat(WithDL.bleeh, [{
     bool isConst() const { return this->getIsConst(); }
     bool isVolatile() const { return this->getIsVolatile(); }
-  }];
+  }]);
 
   let builders = [
     TypeBuilder<(ins
