@@ -26,4 +26,4 @@ namespace vast
         return llvm::APInt( bits< I >(), uint64_t(value), std::numeric_limits< I >::is_signed );
     }
 
-} //anemspace vast
+} // namespace vast
