@@ -26,14 +26,6 @@ def APFloatAttr : Attr<CPred<"$_self.isa<::mlir::FloatAttr>()">,
   let convertFromStorage = [{ $_self.getValue() }];
 }
 
-def StringAttr : Attr<CPred<"$_self.isa<::mlir::StringAttr>()">, "string attribute">
-{
-  let storageType = [{ ::mlir::StringAttr }];
-  let returnType = [{ ::llvm::StringRef }];
-  let constBuilderCall = [{ mlir::StringAttr::get($0, $_builder.getNoneType()) }];
-  let convertFromStorage = [{ $_self.getValue() }];
-}
-
 class HighLevel_Attr<string name, string attr_mnemonic>
     : AttrDef< HighLevel_Dialect, name >
 {
