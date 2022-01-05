@@ -108,6 +108,34 @@ namespace vast::hl
         return mlir::success();
     }
 
+    FoldResult ConstantArrayOp::fold(mlir::ArrayRef<Attribute> operands) {
+        assert(operands.empty() && "constant has no operands");
+        return getValue();
+    }
+
+    static void printConstantArrayOp(Printer &printer, ConstantArrayOp &op) {
+        printConstantOp(printer, op);
+    }
+
+    static ParseResult parseConstantArrayOp(Parser &parser, State &st) {
+        UNREACHABLE("not imeplemented");
+        return mlir::success();
+    }
+
+        FoldResult ConstantStringOp::fold(mlir::ArrayRef<Attribute> operands) {
+        assert(operands.empty() && "constant has no operands");
+        return getValue();
+    }
+
+    static void printConstantStringOp(Printer &printer, ConstantStringOp &op) {
+        printConstantOp(printer, op);
+    }
+
+    static ParseResult parseConstantStringOp(Parser &parser, State &st) {
+        UNREACHABLE("not imeplemented");
+        return mlir::success();
+    }
+
     void build_var_decl(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)
     {
         st.addAttribute( mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name) );
