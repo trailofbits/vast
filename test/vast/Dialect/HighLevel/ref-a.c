@@ -4,7 +4,7 @@
 int main()
 {
     // CHECK: hl.var @x : !hl.int = {
-    // CHECK: [[V1:%[0-9]+]] = hl.constant(#hl.int<0>) : !hl.int
+    // CHECK: [[V1:%[0-9]+]] = hl.constant.int 0 : !hl.int
     int x = 0;
     // CHECK: hl.var @y : !hl.int = {
     // CHECK: [[V2:%[0-9]+]] = hl.declref @x : !hl.int

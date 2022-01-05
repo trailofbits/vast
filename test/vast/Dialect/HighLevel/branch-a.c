@@ -9,12 +9,12 @@ int branch_ret(int a, int b)
     // CHECK: hl.cond.yield [[V1]]
     if (a < b) {
         // CHECK: } then {
-        // CHECK: [[V2:%[0-9]+]] = hl.constant(#hl.int<0>)
+        // CHECK: [[V2:%[0-9]+]] = hl.constant.int 0 : !hl.int
         // CHECK: hl.return [[V2]]
         return 0;
     } else {
         // CHECK: } else {
-        // CHECK: [[V3:%[0-9]+]] = hl.constant(#hl.int<1>)
+        // CHECK: [[V3:%[0-9]+]] = hl.constant.int 1 : !hl.int
         // CHECK: hl.return [[V3]]
         return 1;
     }
@@ -29,12 +29,12 @@ int branch_then(int a, int b)
     // CHECK: hl.cond.yield [[V1]]
     if (a == b) {
         // CHECK: } then {
-        // CHECK: [[V2:%[0-9]+]] = hl.constant(#hl.int<0>)
+        // CHECK: [[V2:%[0-9]+]] = hl.constant.int 0 : !hl.int
         // CHECK-NEXT: hl.return [[V2]]
         return 0;
     }
     // CHECK-NOT: else
-    // CHECK: [[V3:%[0-9]+]] = hl.constant(#hl.int<1>)
+    // CHECK: [[V3:%[0-9]+]] = hl.constant.int 1 : !hl.int
     // CHECK-NEXT: hl.return [[V3]]
     return 1;
 }
@@ -54,7 +54,7 @@ int branch_then_noreturn(int a, int b)
     }
 
     // CHECK-NOT: else
-    // CHECK: [[V3:%[0-9]+]] = hl.constant(#hl.int<1>)
+    // CHECK: [[V3:%[0-9]+]] = hl.constant.int 1 : !hl.int
     // CHECK-NEXT: hl.return [[V3]]
     return 1;
 }
@@ -69,7 +69,7 @@ int branch_then_empty(int a, int b)
         // CHECK: } then {
     }
     // CHECK-NOT: else
-    // CHECK: [[V3:%[0-9]+]] = hl.constant(#hl.int<1>)
+    // CHECK: [[V3:%[0-9]+]] = hl.constant.int 1 : !hl.int
     // CHECK-NEXT: hl.return [[V3]]
     return 1;
 }
@@ -83,13 +83,13 @@ int branch_else_empty(int a, int b)
     if (a <= b) {
         // CHECK: } then {
         // CHECK-NEXT: hl.var @c : !hl.int =
-        // CHECK: [[V2:%[0-9]+]] = hl.constant(#hl.int<7>)
+        // CHECK: [[V2:%[0-9]+]] = hl.constant.int 7 : !hl.int
         // CHECK: hl.value.yield [[V2]]
         int c = 7;
     } else {
         // CHECK: } else {
     }
-    // CHECK: [[V3:%[0-9]+]] = hl.constant(#hl.int<1>)
+    // CHECK: [[V3:%[0-9]+]] = hl.constant.int 1 : !hl.int
     // CHECK-NEXT: hl.return [[V3]]
     return 1;
 }
@@ -105,7 +105,7 @@ int branch_empty(int a, int b)
     } else {
         // CHECK: } else {
     }
-    // CHECK: [[V2:%[0-9]+]] = hl.constant(#hl.int<1>)
+    // CHECK: [[V2:%[0-9]+]] = hl.constant.int 1 : !hl.int
     // CHECK-NEXT: hl.return [[V2]]
     return 1;
 }
@@ -114,12 +114,12 @@ int branch_empty(int a, int b)
 int branch_true(int a, int b)
 {
     // CHECK: hl.if
-    // CHECK: [[V1:%[0-9]+]] = hl.constant(#hl.bool<true>)
+    // CHECK: [[V1:%[0-9]+]] = hl.constant.int true : !hl.bool
     // CHECK: hl.cond.yield [[V1]]
     if (true) {
         // CHECK: } then {
     }
-    // CHECK: [[V2:%[0-9]+]] = hl.constant(#hl.int<1>)
+    // CHECK: [[V2:%[0-9]+]] = hl.constant.int 1 : !hl.int
     // CHECK-NEXT: hl.return [[V2]]
     return 1;
 }
