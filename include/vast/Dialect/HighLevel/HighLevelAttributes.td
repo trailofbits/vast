@@ -18,7 +18,7 @@ def APSIntAttr : Attr<CPred<"$_self.isa<::mlir::IntegerAttr>()">,
 }
 
 def APFloatAttr : Attr<CPred<"$_self.isa<::mlir::FloatAttr>()">,
-  "arbitrary integer attribute with sign">
+  "arbitrary floating-point attribute">
 {
   let storageType = [{ ::mlir::FloatAttr }];
   let returnType = [{ ::llvm::APFloat }];
