@@ -40,7 +40,7 @@ namespace vast::hl
 
     Operation *HighLevelDialect::materializeConstant(OpBuilder &builder, Attribute value, Type type, Location loc)
     {
-        return builder.create<ConstantOp>(loc, type, value);
+        return build_constant(builder, value, type, loc);
     }
 } // namespace vast::hl
 

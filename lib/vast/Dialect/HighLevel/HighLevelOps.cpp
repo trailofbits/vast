@@ -252,6 +252,27 @@ namespace vast::hl
 
         detail::build_region(bld, st, body);
     }
+
+    mlir::Operation* build_constant(Builder &builder, Attribute value, Type type, Location loc)
+    {
+        if (type.isa< BoolType >()) {
+            return builder.create< ConstantIntOp >(loc, type, value.cast< mlir::BoolAttr >());
+        }
+
+        if (util::is_one_of< integer_types >(type)) {
+            return builder.create< ConstantIntOp >(loc, type, value.cast< mlir::IntegerAttr >());
+        }
+
+        if (util::is_one_of< floating_types >(type)) {
+            return builder.create< ConstantFloatOp >(loc, type, value.cast< mlir::FloatAttr >());
+        }
+
+        if (type.isa< ConstantArrayType >()) {
+            return builder.create< ConstantArrayOp >(loc, type, value.cast< mlir::ArrayAttr >());
+        }
+
+        UNREACHABLE("unknown constant type");
+    }
 }
 
 //===----------------------------------------------------------------------===//
