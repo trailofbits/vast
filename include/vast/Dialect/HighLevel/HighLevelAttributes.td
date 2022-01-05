@@ -26,20 +26,17 @@ def APFloatAttr : Attr<CPred<"$_self.isa<::mlir::FloatAttr>()">,
   let convertFromStorage = [{ $_self.getValue() }];
 }
 
+def StringAttr : Attr<CPred<"$_self.isa<::mlir::StringAttr>()">, "string attribute">
+{
+  let storageType = [{ ::mlir::StringAttr }];
+  let returnType = [{ ::llvm::StringRef }];
+  let convertFromStorage = [{ $_self.getValue() }];
+}
 
 class HighLevel_Attr<string name, string attr_mnemonic>
     : AttrDef< HighLevel_Dialect, name >
 {
   let mnemonic = attr_mnemonic;
-}
-
-def StringAttr : HighLevel_Attr< "String", "string" >
-{
-  let valueType = ConstantArrayType;
-  let parameters = (ins "llvm::StringRef":$value );
-
-  let parser  = [{ return parse_str_attr($_ctxt, parser); }];
-  let printer = [{ return print_str_attr(*this, printer); }];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
