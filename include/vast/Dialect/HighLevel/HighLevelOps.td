@@ -495,4 +495,16 @@ def HighLevel_LNotOp  : HighLevel_TypePreservingUnOp< "lnot", [] >;
 def HighLevel_AddressOf  : HighLevel_UnOp< "addressof", [] >;
 def HighLevel_Deref   : HighLevel_UnOp< "deref", [] >;
 
+def HighLevel_InitListExpr : HighLevel_Op< "initlist",
+  [NoSideEffect]
+> {
+  let summary = "VAST initializer list expression";
+  let description = [{ VAST initializer list expression }];
+
+  let arguments = (ins Variadic<AnyType>:$elements);
+  let results = (outs Variadic<AnyType>);
+
+  let assemblyFormat = "$elements attr-dict `:` functional-type($elements, results)";
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
