@@ -30,6 +30,7 @@ def StringAttr : Attr<CPred<"$_self.isa<::mlir::StringAttr>()">, "string attribu
 {
   let storageType = [{ ::mlir::StringAttr }];
   let returnType = [{ ::llvm::StringRef }];
+  let constBuilderCall = [{ mlir::StringAttr::get($0, $_builder.getNoneType()) }];
   let convertFromStorage = [{ $_self.getValue() }];
 }
 
