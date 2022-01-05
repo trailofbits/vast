@@ -132,7 +132,21 @@ namespace vast::hl
     }
 
     static ParseResult parseConstantStringOp(Parser &parser, State &st) {
-        UNREACHABLE("not imeplemented");
+        auto loc = parser.getCurrentLocation();
+        auto ctx = parser.getBuilder().getContext();
+
+        Attribute value;
+        if (failed(parser.parseAttribute(value, mlir::NoneType::get(ctx)))) {
+            return parser.emitError(loc, "expected string value");
+        }
+        st.addAttribute("value", value);
+
+        Type rty;
+        if (parser.parseColonType(rty) || parser.parseOptionalAttrDict(st.attributes)) {
+            return mlir::failure();
+        }
+        st.addTypes(rty);
+
         return mlir::success();
     }
 
