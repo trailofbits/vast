@@ -43,16 +43,16 @@ namespace vast::hl
         printer.printOptionalAttrDict(op->getAttrs(), /*elidedAttrs=*/{"value"});
     }
 
-    FoldResult IConstantOp::fold(mlir::ArrayRef<Attribute> operands) {
+    FoldResult ConstantIntOp::fold(mlir::ArrayRef<Attribute> operands) {
         assert(operands.empty() && "constant has no operands");
         return getValue();
     }
 
-    static void printIConstantOp(Printer &printer, IConstantOp &op) {
+    static void printConstantIntOp(Printer &printer, ConstantIntOp &op) {
         printConstantOp(printer, op);
     }
 
-    static ParseResult parseIConstantOp(Parser &parser, State &st) {
+    static ParseResult parseConstantIntOp(Parser &parser, State &st) {
         auto loc = parser.getCurrentLocation();
         auto ctx = parser.getBuilder().getContext();
 
@@ -80,16 +80,16 @@ namespace vast::hl
         return mlir::success();
     }
 
-    FoldResult FConstantOp::fold(mlir::ArrayRef<Attribute> operands) {
+    FoldResult ConstantFloatOp::fold(mlir::ArrayRef<Attribute> operands) {
         assert(operands.empty() && "constant has no operands");
         return getValue();
     }
 
-    static void printFConstantOp(Printer &printer, FConstantOp &op) {
+    static void printConstantFloatOp(Printer &printer, ConstantFloatOp &op) {
         printConstantOp(printer, op);
     }
 
-    static ParseResult parseFConstantOp(Parser &parser, State &st) {
+    static ParseResult parseConstantFloatOp(Parser &parser, State &st) {
         auto loc = parser.getCurrentLocation();
 
         Attribute value;
