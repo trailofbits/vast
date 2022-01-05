@@ -1,6 +1,7 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Util/TypeList.hpp"
 #include <sstream>
 
 VAST_RELAX_WARNINGS
@@ -42,6 +43,23 @@ namespace vast::hl
     bool isFloatingType(mlir::Type type)
     {
         return util::is_one_of< floating_types >(type);
+    }
+
+    bool isSigned(mlir::Type type)
+    {
+        if (isBoolType(type)) {
+            return false;
+        }
+
+        ASSERT(isIntegerType(type));
+        return util::dispatch< integer_types, bool >(type, [] (auto ty) {
+            return ty.isSigned();
+        });
+    }
+
+    bool isUnsigned(mlir::Type type)
+    {
+        return !(isSigned(type));
     }
 
     template< typename CVType >

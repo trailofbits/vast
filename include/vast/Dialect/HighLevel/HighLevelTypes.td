@@ -99,6 +99,11 @@ def IntegerLikeType : TypeConstraint<
   "integer like type"
 >;
 
+def IntOrBoolType : TypeConstraint<
+  Or< [IntegerLikeType.predicate, BoolLikeType.predicate] >,
+  "bool or integer like type"
+>;
+
 class FloatingType< string name, string mnem, list<Trait> traits = []>
   : CVQualified< name, mnem, traits >;
 

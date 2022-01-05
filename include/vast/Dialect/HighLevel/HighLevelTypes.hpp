@@ -15,7 +15,6 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/Hashing.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Util/Parser.hpp"
 #include "vast/Util/TypeList.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
@@ -60,7 +59,7 @@ namespace vast::hl
         }
     }
 
-    /* floating point types */
+    /* floating-point types */
     enum class FloatingKind { Half, BFloat16, Float, Double, LongDouble, Float128 };
 
     inline std::string to_string(FloatingKind kind)
@@ -81,5 +80,8 @@ namespace vast::hl
     bool isBoolType(mlir::Type type);
     bool isIntegerType(mlir::Type type);
     bool isFloatingType(mlir::Type type);
+
+    bool isSigned(mlir::Type type);
+    bool isUnsigned(mlir::Type type);
 
 } // namespace vast::hl
