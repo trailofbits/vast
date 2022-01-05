@@ -7,7 +7,7 @@ void basic() {
     do {
     } while (true);
     // CHECK: } while {
-    // CHECK: [[V1:%[0-9]+]] = hl.constant(#hl.bool<true>)
+    // CHECK: [[V1:%[0-9]+]] = hl.constant.int true : !hl.bool
     // CHECK: hl.cond.yield [[V1]]
     // CHECK: }
 }
