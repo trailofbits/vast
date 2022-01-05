@@ -75,6 +75,8 @@ namespace vast::hl
     bool has_thread_local_storage(const Self &self) {
         return has_unit_attr(self, thread_storage);
     }
+
+    mlir::Operation* build_constant(Builder &builder, Attribute value, Type type, Location loc);
 } // namespace vast::hl
 
 #define GET_OP_CLASSES
