@@ -192,7 +192,7 @@ namespace vast::hl
 
         mlir::Value bool_value(mlir::Location loc, bool value)
         {
-            return make< IConstantOp >(loc, bool_type(), mlir::BoolAttr::get(&mctx, value));
+            return make< ConstantIntOp >(loc, bool_type(), mlir::BoolAttr::get(&mctx, value));
         }
 
         mlir::Value true_value(mlir::Location loc)  { return bool_value(loc, true);  }
@@ -206,12 +206,12 @@ namespace vast::hl
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APInt value)
         {
-            return make< IConstantOp >(loc, ty, value);
+            return make< ConstantIntOp >(loc, ty, value);
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APSInt value)
         {
-            return make< IConstantOp >(loc, ty, value);
+            return make< ConstantIntOp >(loc, ty, value);
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, unsigned int value)
@@ -221,7 +221,7 @@ namespace vast::hl
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APFloat value)
         {
-            return make< FConstantOp >(loc, ty, value);
+            return make< ConstantFloatOp >(loc, ty, value);
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::StringRef value)

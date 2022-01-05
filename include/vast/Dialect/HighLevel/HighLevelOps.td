@@ -188,7 +188,7 @@ class HighLevel_ConstantOp< string mnemonic, list< OpTrait > traits = [] >
 }
 
 
-def HighLevel_IConstantOp : HighLevel_ConstantOp< "constant.int" >
+def ConstantIntOp : HighLevel_ConstantOp< "constant.int" >
   , Arguments<(ins APSIntAttr:$value)>
   , Results<(outs IntOrBoolType:$result)>
 {
@@ -202,14 +202,13 @@ def HighLevel_IConstantOp : HighLevel_ConstantOp< "constant.int" >
   ];
 }
 
-def HighLevel_FConstantOp : HighLevel_ConstantOp< "constant.float" >
+def HighLevel_ConstantFloatOp : HighLevel_ConstantOp< "constant.float" >
   , Arguments<(ins APFloatAttr:$value)>
   , Results<(outs FloatLikeType:$result)>
 {
   let summary = "VAST floating constant";
   let description = [{ VAST floating constant }];
 }
-
 
 def HighLevel_UnreachableOp : HighLevel_Op<"unreachable", [Terminator, NoSideEffect]> {
   let summary = "VAST unreachable operation";
