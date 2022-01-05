@@ -15,6 +15,7 @@
 #include <llvm/Support/ErrorHandling.h>
 
 #include <optional>
+#include <variant>
 
 namespace vast::hl
 {
@@ -34,9 +35,77 @@ namespace vast::hl
 
     using FoldResult = mlir::OpFoldResult;
 
-    FoldResult ConstantOp::fold(mlir::ArrayRef<Attribute> operands) {
+    static void printConstantOp(Printer &printer, auto &op) {
+        printer << op.getOperationName() << " ";
+        printer.printAttributeWithoutType(op.getValue());
+        printer << " : ";
+        printer.printType(op.getType());
+        printer.printOptionalAttrDict(op->getAttrs(), /*elidedAttrs=*/{"value"});
+    }
+
+    FoldResult IConstantOp::fold(mlir::ArrayRef<Attribute> operands) {
         assert(operands.empty() && "constant has no operands");
         return getValue();
+    }
+
+    static void printIConstantOp(Printer &printer, IConstantOp &op) {
+        printConstantOp(printer, op);
+    }
+
+    static ParseResult parseIConstantOp(Parser &parser, State &st) {
+        auto loc = parser.getCurrentLocation();
+        auto ctx = parser.getBuilder().getContext();
+
+        Attribute attr;
+        llvm::APInt value;
+        if (succeeded(parser.parseOptionalKeyword("true")))
+            attr = mlir::BoolAttr::get(ctx, true);
+        else if (succeeded(parser.parseOptionalKeyword("false")))
+            attr = mlir::BoolAttr::get(ctx, false);
+        else if (failed(parser.parseInteger(value))) {
+            return parser.emitError(loc, "expected integer value");
+        }
+
+        Type rty;
+        if (parser.parseColonType(rty) || parser.parseOptionalAttrDict(st.attributes)) {
+            return mlir::failure();
+        }
+        st.addTypes(rty);
+
+        if (!attr) {
+            attr = mlir::IntegerAttr::get(ctx, llvm::APSInt(value, isSigned(rty)));
+        }
+
+        st.addAttribute("value", attr);
+        return mlir::success();
+    }
+
+    FoldResult FConstantOp::fold(mlir::ArrayRef<Attribute> operands) {
+        assert(operands.empty() && "constant has no operands");
+        return getValue();
+    }
+
+    static void printFConstantOp(Printer &printer, FConstantOp &op) {
+        printConstantOp(printer, op);
+    }
+
+    static ParseResult parseFConstantOp(Parser &parser, State &st) {
+        auto loc = parser.getCurrentLocation();
+
+        Attribute value;
+        auto f64 = parser.getBuilder().getF64Type();
+        if (failed(parser.parseAttribute(value, f64))) {
+            return parser.emitError(loc, "expected floating-point value");
+        }
+        st.addAttribute("value", value);
+
+        Type rty;
+        if (parser.parseColonType(rty) || parser.parseOptionalAttrDict(st.attributes)) {
+            return mlir::failure();
+        }
+        st.addTypes(rty);
+
+        return mlir::success();
     }
 
     void build_var_decl(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)

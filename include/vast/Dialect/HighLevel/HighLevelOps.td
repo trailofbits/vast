@@ -174,54 +174,42 @@ def HighLevel_DeclRefOp : HighLevel_Op< "declref", [NoSideEffect] > {
   let assemblyFormat = "$decl attr-dict `:` type($result) ";
 }
 
-def HighLevel_ConstantOp : HighLevel_Op< "constant",
-  [ConstantLike, NoSideEffect, FirstAttrDerivedResultType]
-> {
-  let summary = "VAST constant";
-  let description = [{ VAST constant }];
-
-  let arguments = (ins AnyAttr:$value);
-  let results   = (outs AnyType:$result);
-
-  let builders = [
-    OpBuilder<(ins "Attribute":$value),
-    [{ build($_builder, $_state, value.getType(), value); }]>,
-
-    OpBuilder<(ins "BoolType":$type, "bool":$value),
-    [{ build($_builder, $_state, type, HLBoolAttr::get($_state.getContext(), value)); }]>,
-
-    OpBuilder<(ins "CharType":$type, "llvm::APInt":$value),
-    [{ build($_builder, $_state, type, CharAttr::get($_state.getContext(), value)); }]>,
-    OpBuilder<(ins "ShortType":$type, "llvm::APInt":$value),
-    [{ build($_builder, $_state, type, ShortAttr::get($_state.getContext(), value)); }]>,
-    OpBuilder<(ins "IntType":$type, "llvm::APInt":$value),
-    [{ build($_builder, $_state, type, IntAttr::get($_state.getContext(), value)); }]>,
-    OpBuilder<(ins "LongType":$type, "llvm::APInt":$value),
-    [{ build($_builder, $_state, type, LongAttr::get($_state.getContext(), value)); }]>,
-    OpBuilder<(ins "LongLongType":$type, "llvm::APInt":$value),
-    [{ build($_builder, $_state, type, LongLongAttr::get($_state.getContext(), value)); }]>,
-    OpBuilder<(ins "Int128Type":$type, "llvm::APInt":$value),
-    [{ build($_builder, $_state, type, Int128Attr::get($_state.getContext(), value)); }]>,
-
-    OpBuilder<(ins "FloatType":$type, "llvm::APFloat":$value),
-    [{ build($_builder, $_state, type, FloatAttr::get($_state.getContext(), value)); }]>,
-    OpBuilder<(ins "DoubleType":$type, "llvm::APFloat":$value),
-    [{ build($_builder, $_state, type, DoubleAttr::get($_state.getContext(), value)); }]>,
-    OpBuilder<(ins "LongDoubleType":$type, "llvm::APFloat":$value),
-    [{ build($_builder, $_state, type, LongDoubleAttr::get($_state.getContext(), value)); }]>,
-
-    OpBuilder<(ins "ConstantArrayType":$type, "llvm::StringRef":$value),
-    [{ build($_builder, $_state, type, StringAttr::get($_state.getContext(), value)); }]>,
-  ];
-
+class HighLevel_ConstantOp< string mnemonic, list< OpTrait > traits = [] >
+  : HighLevel_Op< mnemonic, !listconcat(traits, [ConstantLike, NoSideEffect]) >
+{
   let extraClassDeclaration = [{
     Attribute getValue() { return (*this)->getAttr("value"); }
   }];
 
-  let assemblyFormat = "`(`$value`)` attr-dict `:` type($result)";
+  let parser = "return parse$cppClass(parser, result);";
+  let printer = "print$cppClass(p, *this);";
 
   let hasFolder = 1;
 }
+
+
+def HighLevel_IConstantOp : HighLevel_ConstantOp< "constant.int" >
+  , Arguments<(ins APSIntAttr:$value)>
+  , Results<(outs IntOrBoolType:$result)>
+{
+  let summary = "VAST integral constant";
+  let description = [{ VAST integral constant }];
+
+  let builders = [
+    OpBuilder<(ins "Type":$type, "llvm::APInt":$value), [{
+      build($_builder, $_state, type, llvm::APSInt(value, isSigned(type)));
+    }]>
+  ];
+}
+
+def HighLevel_FConstantOp : HighLevel_ConstantOp< "constant.float" >
+  , Arguments<(ins APFloatAttr:$value)>
+  , Results<(outs FloatLikeType:$result)>
+{
+  let summary = "VAST floating constant";
+  let description = [{ VAST floating constant }];
+}
+
 
 def HighLevel_UnreachableOp : HighLevel_Op<"unreachable", [Terminator, NoSideEffect]> {
   let summary = "VAST unreachable operation";
