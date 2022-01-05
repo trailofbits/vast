@@ -11,7 +11,9 @@ def APSIntAttr : Attr<CPred<"$_self.isa<::mlir::IntegerAttr>()">,
 {
   let storageType = [{ ::mlir::IntegerAttr }];
   let returnType = [{ ::llvm::APSInt }];
-  let constBuilderCall = "mlir::IntegerAttr::get($_builder.getContext(), $0)";
+  let constBuilderCall = [{
+    ::mlir::IntegerAttr::get($_builder.getContext(), $0)
+  }];
   let convertFromStorage = [{
     llvm::APSInt($_self.getValue(), isSigned(getType()));
   }];
@@ -22,7 +24,9 @@ def APFloatAttr : Attr<CPred<"$_self.isa<::mlir::FloatAttr>()">,
 {
   let storageType = [{ ::mlir::FloatAttr }];
   let returnType = [{ ::llvm::APFloat }];
-  let constBuilderCall = [{ mlir::FloatAttr::get($_builder.getF64Type(), $0) }];
+  let constBuilderCall = [{
+    ::mlir::FloatAttr::get($_builder.getF64Type(), $0)
+  }];
   let convertFromStorage = [{ $_self.getValue() }];
 }
 

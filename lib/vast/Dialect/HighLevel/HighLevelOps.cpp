@@ -44,7 +44,7 @@ namespace vast::hl
     }
 
     FoldResult ConstantIntOp::fold(mlir::ArrayRef<Attribute> operands) {
-        assert(operands.empty() && "constant has no operands");
+        CHECK(operands.empty(), "constant has no operands");
         return getValue();
     }
 
@@ -58,11 +58,11 @@ namespace vast::hl
 
         Attribute attr;
         llvm::APInt value;
-        if (succeeded(parser.parseOptionalKeyword("true")))
+        if (succeeded(parser.parseOptionalKeyword("true"))) {
             attr = mlir::BoolAttr::get(ctx, true);
-        else if (succeeded(parser.parseOptionalKeyword("false")))
+        } else if (succeeded(parser.parseOptionalKeyword("false"))) {
             attr = mlir::BoolAttr::get(ctx, false);
-        else if (failed(parser.parseInteger(value))) {
+        } else if (failed(parser.parseInteger(value))) {
             return parser.emitError(loc, "expected integer value");
         }
 
@@ -81,7 +81,7 @@ namespace vast::hl
     }
 
     FoldResult ConstantFloatOp::fold(mlir::ArrayRef<Attribute> operands) {
-        assert(operands.empty() && "constant has no operands");
+        CHECK(operands.empty(), "constant has no operands");
         return getValue();
     }
 
@@ -109,7 +109,7 @@ namespace vast::hl
     }
 
     FoldResult ConstantArrayOp::fold(mlir::ArrayRef<Attribute> operands) {
-        assert(operands.empty() && "constant has no operands");
+        CHECK(operands.empty(), "constant has no operands");
         return getValue();
     }
 
@@ -118,12 +118,11 @@ namespace vast::hl
     }
 
     static ParseResult parseConstantArrayOp(Parser &parser, State &st) {
-        UNREACHABLE("not imeplemented");
-        return mlir::success();
+        UNIMPLEMENTED;
     }
 
-        FoldResult ConstantStringOp::fold(mlir::ArrayRef<Attribute> operands) {
-        assert(operands.empty() && "constant has no operands");
+    FoldResult ConstantStringOp::fold(mlir::ArrayRef<Attribute> operands) {
+        ASSERT(operands.empty() && "constant has no operands");
         return getValue();
     }
 
