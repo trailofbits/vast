@@ -181,8 +181,8 @@ class HighLevel_ConstantOp< string mnemonic, list< OpTrait > traits = [] >
     Attribute getValue() { return (*this)->getAttr("value"); }
   }];
 
-  let parser = "return parse$cppClass(parser, result);";
-  let printer = "print$cppClass(p, *this);";
+  let parser = [{ return parse$cppClass(parser, result); }];
+  let printer = [{ print$cppClass(p, *this); }];
 
   let hasFolder = 1;
 }
