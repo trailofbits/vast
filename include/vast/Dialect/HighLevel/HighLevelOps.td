@@ -218,7 +218,7 @@ def HighLevel_ConstantArrayOp : HighLevel_ConstantOp< "constant.array" >
 }
 
 def HighLevel_ConstantStringOp : HighLevel_ConstantOp< "constant.string" >
-  , Arguments<(ins StringAttr:$value)>
+  , Arguments<(ins StrAttr:$value)>
   , Results<(outs ConstantArrayType:$result)>
 {
   let summary = "VAST constant string";
