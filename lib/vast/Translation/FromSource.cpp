@@ -1193,7 +1193,17 @@ namespace vast::hl
 
         ValueOrStmt VisitInitListExpr(clang::InitListExpr *expr)
         {
-            UNREACHABLE( "unsupported InitListExpr" );
+            CHECK(expr->getType()->isArrayType(), "non-arrray initializer list is not supported yet");
+
+            auto loc = builder.getLocation(expr->getSourceRange());
+            auto ty  = convert(expr->getType());
+
+            std::vector< Value > elements;
+            for (auto elem : expr->inits()) {
+                elements.push_back(std::get< Value >(Visit(elem)));
+            }
+
+            return make< InitListExpr >(loc, ty, elements);
         }
 
         ValueOrStmt VisitIntegerLiteral(const clang::IntegerLiteral *lit)
