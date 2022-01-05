@@ -13,16 +13,6 @@ namespace vast::hl
 {
     using Context = mlir::MLIRContext;
 
-    Attribute parse_str_attr(Context *ctx, DialectParser &parser)
-    {
-        return Attribute();
-    }
-
-    void print_str_attr(const StringAttr &attr, DialectPrinter &printer)
-    {
-        printer << attr.getMnemonic() << "<" << attr.getValue() << ">";
-    }
-
 } // namespace vast::hl
 
 #define GET_ATTRDEF_CLASSES
@@ -40,27 +30,28 @@ namespace vast::hl
         >();
     }
 
-    Attribute HighLevelDialect::parseAttribute(DialectParser &parser, Type type) const
-    {
-        auto loc = parser.getCurrentLocation();
+    // FIXME: commented out, because high-level dialect does not have any attributes yet
+    // Attribute HighLevelDialect::parseAttribute(DialectParser &parser, Type type) const
+    // {
+    //     auto loc = parser.getCurrentLocation();
 
-        llvm::StringRef mnemonic;
-        if (parser.parseKeyword(&mnemonic))
-            return Attribute();
+    //     llvm::StringRef mnemonic;
+    //     if (parser.parseKeyword(&mnemonic))
+    //         return Attribute();
 
-        Attribute result;
-        if (generatedAttributeParser(getContext(), parser, mnemonic, type, result).hasValue()) {
-            return result;
-        }
+    //     Attribute result;
+    //     if (generatedAttributeParser(getContext(), parser, mnemonic, type, result).hasValue()) {
+    //         return result;
+    //     }
 
-        parser.emitError(loc, "unexpected high-level attribute '" + mnemonic + "'");
-        return Attribute();
-    }
+    //     parser.emitError(loc, "unexpected high-level attribute '" + mnemonic + "'");
+    //     return Attribute();
+    // }
 
-    void HighLevelDialect::printAttribute(Attribute attr, DialectPrinter &p) const
-    {
-        if (failed(generatedAttributePrinter(attr, p)))
-            UNREACHABLE("Unexpected attribute");
-    }
+    // void HighLevelDialect::printAttribute(Attribute attr, DialectPrinter &p) const
+    // {
+    //     if (failed(generatedAttributePrinter(attr, p)))
+    //         UNREACHABLE("Unexpected attribute");
+    // }
 
 } // namespace vast::hl
