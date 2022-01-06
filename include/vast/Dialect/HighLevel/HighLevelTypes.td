@@ -9,7 +9,7 @@ include "mlir/IR/BuiltinTypeInterfaces.td"
 
 // NOTE(lukas): I have no idea how to do this both in a sane way and in tablegen
 class DefaultDLTypeInterface {
-  code bleeh = [{
+  code default_dl_interface_impl = [{
     using dl_t = mlir::DataLayout;
     using dl_entries_ref = mlir::DataLayoutEntryListRef;
 
@@ -40,7 +40,7 @@ class HighLevelType< string name, list<Trait> traits = []>
   : TypeDef< HighLevel_Dialect, name ,
              !listconcat(traits, [DataLayoutTypeInterface]) >
 {
-    let extraClassDeclaration = WithDL.bleeh;
+    let extraClassDeclaration = WithDL.default_dl_interface_impl;
 }
 
 def VoidType : HighLevelType< "Void" > {
@@ -57,10 +57,11 @@ class CVQualified< string name, string mnem, list<Trait> traits = []>
     "bool":$isVolatile
   );
 
-  let extraClassDeclaration = !strconcat(WithDL.bleeh, [{
+  let extraClassDeclaration = WithDL.default_dl_interface_impl #
+  [{
     bool isConst() const { return this->getIsConst(); }
     bool isVolatile() const { return this->getIsVolatile(); }
-  }]);
+  }];
 
   let builders = [
     TypeBuilder<(ins
@@ -96,12 +97,13 @@ class IntegerType< string name, string mnem, list<Trait> traits = []>
     "bool":$isVolatile
   );
 
-  let extraClassDeclaration = !strconcat(WithDL.bleeh, [{
+  let extraClassDeclaration = WithDL.default_dl_interface_impl #
+  [{
     bool isUnsigned() const { return this->getIsUnsigned(); }
     bool isSigned() const { return !this->isUnsigned(); }
     bool isConst() const { return this->getIsConst(); }
     bool isVolatile() const { return this->getIsVolatile(); }
-  }]);
+  }];
 
   let builders = [
     TypeBuilder<(ins
@@ -172,10 +174,11 @@ def PointerType : HighLevelType< "Pointer",
     "bool":$isVolatile
   );
 
-  let extraClassDeclaration = !strconcat(WithDL.bleeh, [{
+  let extraClassDeclaration = WithDL.default_dl_interface_impl #
+  [{
     bool isConst() const { return this->getIsConst(); }
     bool isVolatile() const { return this->getIsVolatile(); }
-  }]);
+  }];
 
   let builders = [
     TypeBuilder<(ins
@@ -207,7 +210,8 @@ def ConstantArrayType : HighLevelType< "ConstantArray",
     "bool":$isVolatile
   );
 
-  let extraClassDeclaration = !strconcat(WithDL.bleeh, [{
+  let extraClassDeclaration = WithDL.default_dl_interface_impl #
+  [{
     using dimensions_t = std::vector< uint32_t >;
     std::tuple< dimensions_t, mlir::Type > dim_and_type();
 
@@ -216,7 +220,7 @@ def ConstantArrayType : HighLevelType< "ConstantArray",
     bool isConst() const { return this->getIsConst(); }
     bool isVolatile() const { return this->getIsVolatile(); }
     uint32_t getNumElems() const { return this->getSize().getLimitedValue(); }
-  }]);
+  }];
 }
 
 def PointerLikeType : TypeConstraint<
