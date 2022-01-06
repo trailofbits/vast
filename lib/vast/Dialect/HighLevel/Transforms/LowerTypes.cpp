@@ -65,7 +65,7 @@ namespace vast::hl
         {
             // `getType()` is not reliable in reality since for exmaple for `mlir::TypeAttr`
             // it returns none. Lowering of types in attributes will be always best effort.
-            if (isHighLevelAttr(attr) || isHighLevelType(attr.getType()))
+            if (isHighLevelType(attr.getType()))
                 return true;
             if (auto type_attr = attr.dyn_cast< mlir::TypeAttr >(); isHighLevelType(type_attr))
                 return true;
@@ -231,8 +231,6 @@ namespace vast::hl
 
         maybe_attr_t convertAttr(mlir::Identifier id, mlir::Attribute attr) const
         {
-            if (isHighLevelAttr(attr))
-                return convert_hlattr(attr);
             if (auto type_attr = attr.dyn_cast< mlir::TypeAttr >())
             {
                 return Maybe(type_attr.getValue())
@@ -242,14 +240,6 @@ namespace vast::hl
                     .take_wrapped< maybe_attr_t >();
             }
             return {};
-        }
-
-        maybe_attr_t convert_hlattr(mlir::Attribute a) const
-        {
-            if (auto char_a = a.dyn_cast< CharAttr >())
-                return {};
-            auto x = mlir::IntegerAttr::get(mlir::IntegerType::get(&mctx, 32), 0);
-            return {x};
         }
     };
 
