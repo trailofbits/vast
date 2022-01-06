@@ -44,7 +44,6 @@ namespace vast
         template< class F >
         auto and_then(F &&f)
         {
-            llvm::errs() << "3";
             using rt = decltype( f(self) );
             return (has_value()) ? Maybe< rt >( f(self) ) : Maybe< rt >();
         }
@@ -70,7 +69,6 @@ namespace vast
         template< typename W >
         W take_wrapped()
         {
-            llvm::errs() << "2";
             return (has_value()) ? W( take() ) : W();
         }
 
@@ -79,7 +77,6 @@ namespace vast
             // Overall getting value_type is tricky, as types tend to have very
             // diffferent APIs.
             using rt = typename T::value_type;
-            llvm::errs() << "1";
             return (has_value()) ? Maybe< rt >( std::move( *self ) ) : Maybe< rt >();
         }
 
