@@ -103,7 +103,7 @@ namespace vast::hl
     >;
 
     using high_level_types = util::concat<
-        scalar_types, composite_types
+        scalar_types, composite_types, util::type_list< VoidType >
     >;
 
     /* integer types */
