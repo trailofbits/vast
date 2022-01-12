@@ -109,6 +109,15 @@ namespace vast::hl
             addConversion([&](hl::ConstantArrayType t) {
                     return this->convert_const_arr_type(t);
             });
+            // TODO(lukas): This one is tricky, because ideally `hl.void` is "no value".
+            //              But if we lowered it such, than we need to remove the previous
+            //              value and everything gets more complicated.
+            //              This approach should be fine as long as rest of `mlir` accepts
+            //              none type.
+            addConversion([&](hl::VoidType t) -> maybe_type_t
+            {
+                    return { mlir::NoneType::get(&mctx) };
+            });
             // TODO(lukas): Support properly.
             addConversion([&](hl::RecordType t) { return t; });
 
@@ -270,8 +279,7 @@ namespace vast::hl
 
             // We just change type, no need to copy everything
             auto lower_op = [&]() {
-                CHECK(rty.size() == op->getResults().size(), "Converted type mismatch.");
-                for (std::size_t i = 0; i < op->getResults().size(); ++i)
+                for (std::size_t i = 0; i < rty.size(); ++i)
                     op->getResult(i).setType(rty[i]);
 
                 // TODO(lukas): Investigate if moving to separate pattern is better
