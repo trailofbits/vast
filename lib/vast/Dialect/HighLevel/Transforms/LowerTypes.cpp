@@ -67,8 +67,11 @@ namespace vast::hl
             // it returns none. Lowering of types in attributes will be always best effort.
             if (isHighLevelType(attr.getType()))
                 return true;
-            if (auto type_attr = attr.dyn_cast< mlir::TypeAttr >(); isHighLevelType(type_attr))
+            if (auto type_attr = attr.dyn_cast< mlir::TypeAttr >();
+                type_attr && contains_hl_type(type_attr.getValue()))
+            {
                 return true;
+            }
 
         }
         return false;
