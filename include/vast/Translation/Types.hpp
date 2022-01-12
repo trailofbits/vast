@@ -22,14 +22,17 @@ VAST_UNRELAX_WARNINGS
 namespace vast::hl
 {
     // For each type remember its data layout information.
-    struct DataLayoutBlueprint {
-        struct H { auto operator()(const mlir::Type &t) const { return mlir::hash_value(t); } };
-
+    struct DataLayoutBlueprint
+    {
         bool try_emplace(mlir::Type, const clang::Type *, const clang::ASTContext &actx);
 
         // [ byte size, bitsize ] - can differ due to alignment.
         using record_t = std::tuple< uint64_t, uint64_t >;
-        std::unordered_map< mlir::Type, dl::DLEntry, H > entries;
+
+        inline static const auto hasher = [](const mlir::Type &t) {
+            return mlir::hash_value(t);
+        };
+        std::unordered_map< mlir::Type, dl::DLEntry, decltype(hasher) > entries;
     };
 
     template< typename Stream >
