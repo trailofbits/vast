@@ -38,9 +38,9 @@ namespace vast::hl
     template< typename Stream >
     auto operator<<(Stream &os, const DataLayoutBlueprint &dl) -> decltype(os << "") {
         for (const auto &[ty, sizes] : dl.entries) {
-            ty.print(os);
+            os << ty << " ";
             const auto &[byte_s, bit_s] = sizes;
-            os << "[ " << byte_s << ", " << bit_s << " ]\n";
+            os << llvm::formatv("[ {}, {} ]\n", byte_s, bit_s);
         }
         return os;
     }
@@ -64,11 +64,11 @@ namespace vast::hl
         DataLayoutBlueprint take_dl() { return std::move(dl); }
 
     private:
-        mlir::Type _convert(const clang::Type *ty, clang::Qualifiers quals);
-        mlir::Type _convert(const clang::BuiltinType *ty, clang::Qualifiers quals);
-        mlir::Type _convert(const clang::PointerType *ty, clang::Qualifiers quals);
-        mlir::Type _convert(const clang::RecordType *ty, clang::Qualifiers quals);
-        mlir::Type _convert(const clang::ConstantArrayType *ty, clang::Qualifiers quals);
+        mlir::Type do_convert(const clang::Type *ty, clang::Qualifiers quals);
+        mlir::Type do_convert(const clang::BuiltinType *ty, clang::Qualifiers quals);
+        mlir::Type do_convert(const clang::PointerType *ty, clang::Qualifiers quals);
+        mlir::Type do_convert(const clang::RecordType *ty, clang::Qualifiers quals);
+        mlir::Type do_convert(const clang::ConstantArrayType *ty, clang::Qualifiers quals);
 
         MContext &mctx;
         AContext &actx;
