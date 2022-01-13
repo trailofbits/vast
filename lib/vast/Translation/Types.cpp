@@ -69,8 +69,8 @@ namespace vast::hl
                                           const clang::ASTContext &actx)
     {
         // NOTE(lukas): clang changes size of `bool` to `1` when emitting llvm.
-        if (auto builtin_t = clang::dyn_cast< clang::BuiltinType >(aty);
-            builtin_t && builtin_t->getKind() == BuiltinType::Bool)
+        if (auto builtin_type = clang::dyn_cast< clang::BuiltinType >(aty);
+            builtin_type && builtin_type->isBooleanType())
         {
             return std::get< 1 >(entries.try_emplace(mty, dl::DLEntry{ mty, 1 }));
         }
@@ -94,7 +94,7 @@ namespace vast::hl
 
     mlir::Type TypeConverter::dl_aware_convert(const clang::Type *ty, clang::Qualifiers quals)
     {
-        auto out = _convert(ty, quals);
+        auto out = do_convert(ty, quals);
         dl.try_emplace(out, ty, actx);
         return out;
     }
@@ -107,21 +107,21 @@ namespace vast::hl
         return name;
     }
 
-    mlir::Type TypeConverter::_convert(const clang::Type *ty, clang::Qualifiers quals)
+    mlir::Type TypeConverter::do_convert(const clang::Type *ty, clang::Qualifiers quals)
     {
         ty = ty->getUnqualifiedDesugaredType();
 
         if (ty->isBuiltinType())
-            return _convert(clang::cast< BuiltinType >(ty), quals);
+            return do_convert(clang::cast< BuiltinType >(ty), quals);
 
         if (ty->isPointerType())
-            return _convert(clang::cast< clang::PointerType >(ty), quals);
+            return do_convert(clang::cast< clang::PointerType >(ty), quals);
 
         if (ty->isRecordType())
-            return _convert(clang::cast< clang::RecordType >(ty), quals);
+            return do_convert(clang::cast< clang::RecordType >(ty), quals);
 
         if (ty->isConstantArrayType())
-            return _convert(clang::cast< clang::ConstantArrayType >(ty), quals);
+            return do_convert(clang::cast< clang::ConstantArrayType >(ty), quals);
 
         if (ty->isFunctionType())
             return convert(clang::cast< clang::FunctionType >(ty));
@@ -129,7 +129,7 @@ namespace vast::hl
         UNREACHABLE( "unknown clang type: {0}", format_type(ty) );
     }
 
-    mlir::Type TypeConverter::_convert(const BuiltinType *ty, clang::Qualifiers quals)
+    mlir::Type TypeConverter::do_convert(const BuiltinType *ty, clang::Qualifiers quals)
     {
         auto v = quals.hasVolatile();
         auto c = quals.hasConst();
@@ -169,18 +169,18 @@ namespace vast::hl
         UNREACHABLE( "unknown builtin type: {0}", format_type(ty) );
     }
 
-    mlir::Type TypeConverter::_convert(const clang::PointerType *ty, clang::Qualifiers quals)
+    mlir::Type TypeConverter::do_convert(const clang::PointerType *ty, clang::Qualifiers quals)
     {
         auto pointee = convert(ty->getPointeeType());
         return PointerType::get(&mctx, pointee, quals.hasConst(), quals.hasVolatile());
     }
 
-    mlir::Type TypeConverter::_convert(const clang::RecordType *ty, clang::Qualifiers quals)
+    mlir::Type TypeConverter::do_convert(const clang::RecordType *ty, clang::Qualifiers quals)
     {
         return RecordType::get(&mctx);
     }
 
-    mlir::Type TypeConverter::_convert(const clang::ConstantArrayType *ty, clang::Qualifiers quals)
+    mlir::Type TypeConverter::do_convert(const clang::ConstantArrayType *ty, clang::Qualifiers quals)
     {
         assert(clang::isa< clang::ConstantArrayType >(ty));
         auto element_type = convert(ty->getElementType());
