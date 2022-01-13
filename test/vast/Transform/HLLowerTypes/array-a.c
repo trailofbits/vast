@@ -1,5 +1,4 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
-// RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt --vast-hl-lower-types %t | diff -B %t -
+// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-lower-types | FileCheck %s
 
 // CHECK: hl.global @ai : memref<10xi32>
 int ai[10];
