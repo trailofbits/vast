@@ -322,25 +322,25 @@ namespace vast::hl
 
     void LowerHighLevelTypesPass::runOnOperation()
     {
-        mlir::ConversionTarget trg(this->getContext());
+        auto op = this->getOperation();
+        auto &mctx = this->getContext();
+
+        mlir::ConversionTarget trg(mctx);
         // We want to check *everything* for presence of hl type
         // that can be lowered.
         trg.markUnknownOpDynamicallyLegal(should_lower);
 
-        mlir::RewritePatternSet patterns(&this->getContext());
+        mlir::RewritePatternSet patterns(&mctx);
         const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
-        TypeConverter type_converter(dl_analysis.getAtOrAbove(this->getOperation()),
-                                     this->getContext());
-        AttributeConverter attr_converter{this->getContext(), type_converter};
+        TypeConverter type_converter(dl_analysis.getAtOrAbove(op), mctx);
+        AttributeConverter attr_converter{mctx, type_converter};
 
         patterns.add< LowerHLTypePattern >(type_converter, attr_converter,
                                            patterns.getContext());
 
         if (mlir::failed(mlir::applyPartialConversion(
-                        this->getOperation(),trg, std::move(patterns))))
+                        op, trg, std::move(patterns))))
             return signalPassFailure();
-        llvm::errs() << "Happily done\n";
-        llvm::errs().flush();
     }
 }
 
