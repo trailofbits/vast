@@ -69,8 +69,7 @@ namespace vast::hl
                                           const clang::ASTContext &actx)
     {
         // NOTE(lukas): clang changes size of `bool` to `1` when emitting llvm.
-        if (auto builtin_type = clang::dyn_cast< clang::BuiltinType >(aty);
-            builtin_type && builtin_type->isBooleanType())
+        if (aty->isBooleanType())
         {
             return std::get< 1 >(entries.try_emplace(mty, dl::DLEntry{ mty, 1 }));
         }
