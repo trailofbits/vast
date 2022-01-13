@@ -124,8 +124,9 @@ namespace vast::hl
         using OpBuilder = mlir::OpBuilder;
         using InsertPoint = OpBuilder::InsertPoint;
 
-        VastBuilder(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod, clang::ASTContext &actx)
-            : mctx(mctx), actx(actx), builder(mod->getBodyRegion())
+        VastBuilder(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod,
+                    clang::ASTContext &actx, TypeConverter &types)
+            : mctx(mctx), actx(actx), builder(mod->getBodyRegion()), types(types)
         {}
 
         mlir::Location getLocation(clang::SourceRange range)
@@ -233,13 +234,23 @@ namespace vast::hl
             return make< ConstantStringOp >(loc, ty.cast< ConstantArrayType >(), attr);
         }
 
-        BoolType bool_type() { return BoolType::get(&mctx); }
+        BoolType bool_type()
+        {
+            // We go via `types.convert` since it may need to process the type in order
+            // to emit data layout.
+            return types.convert(actx.BoolTy).cast< BoolType >();
+        }
 
     private:
         mlir::MLIRContext &mctx;
         clang::ASTContext &actx;
 
         OpBuilder builder;
+        // TODO(lukas): Figure out how to get rid of this dependency.
+        //              Currently it is here because it is handy to be able to
+        //              directly ask for `bool_type` (and possibly others in future).
+        TypeConverter &types;
+
     };
 
 
@@ -266,10 +277,11 @@ namespace vast::hl
         : clang::StmtVisitor< VastCodeGenVisitor, ValueOrStmt >
         , clang::DeclVisitor< VastCodeGenVisitor, ValueOrStmt >
     {
-        VastCodeGenVisitor(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod, clang::ASTContext &actx)
+        VastCodeGenVisitor(mlir::MLIRContext &mctx, mlir::OwningModuleRef &mod,
+                           clang::ASTContext &actx)
             : mod(mod)
-            , builder(mctx, mod, actx)
             , types(mctx, actx)
+            , builder(mctx, mod, actx, types)
         {}
 
         using clang::StmtVisitor< VastCodeGenVisitor, ValueOrStmt >::Visit;
@@ -2187,8 +2199,8 @@ namespace vast::hl
     private:
         mlir::OwningModuleRef &mod;
 
-        VastBuilder   builder;
         TypeConverter types;
+        VastBuilder   builder;
 
         // Declare a variable in the current scope, return success if the variable
         // wasn't declared yet.
