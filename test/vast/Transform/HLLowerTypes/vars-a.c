@@ -22,6 +22,6 @@ int main()
 
     int ni = -1;
 
-    // CHECK: hl.implicit_cast [[V3:%[0-9]+]] IntegralCast: i32 -> i64
+    // CHECK:   [[V4:%[0-9]+]] = hl.implicit_cast [[V5:%[0-9]+]] IntegralCast : i32 -> i64
     long nl = -1;
 }

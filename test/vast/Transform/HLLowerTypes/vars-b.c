@@ -3,13 +3,13 @@
 // CHECK-LABEL: func @main() -> i32
 int main()
 {
-    // CHECK: hl.var @x : i1 {
+    // CHECK: hl.var @x : i1 =  {
     // CHECK:   [[V1:%[0-9]+]] = hl.constant.int false : i1
     // CHECK:   hl.value.yield [[V1]] : i1
     // CHECK: }
     bool x = false;
 
-    // CHECK: hl.var @y : i8 {
+    // CHECK: hl.var @y : i8 =  {
     // CHECK:   [[V2:%[0-9]+]] = hl.constant.int 72 : i8
     // CHECK:   hl.value.yield [[V2]] : i8
     // CHECK: }
@@ -44,11 +44,11 @@ int main()
 
     // CHECK: hl.var @fa : memref<3xf32> =  {
     // CHECK:   [[V11:%[0-9]+]] = hl.constant.float 0.000000e+00 : f64
-    // CHECK:   [[V12:%[0-9]+]] = hl.implicit_cast [[11]] FloatingCast : f64 -> f32
+    // CHECK:   [[V12:%[0-9]+]] = hl.implicit_cast [[V11]] FloatingCast : f64 -> f32
     // CHECK:   [[V13:%[0-9]+]] = hl.constant.float 5.000000e-01 : f64
     // CHECK:   [[V14:%[0-9]+]] = hl.implicit_cast [[V13]] FloatingCast : f64 -> f32
     // CHECK:   [[V15:%[0-9]+]] = hl.constant.float 1.000000e+00 : f64
-    // CHECK:   [[V16:%[0-9]+]] = hl.implicit_cast [[V14]] FloatingCast : f64 -> f32
+    // CHECK:   [[V16:%[0-9]+]] = hl.implicit_cast [[V15]] FloatingCast : f64 -> f32
     // CHECK:   [[V17:%[0-9]+]] = hl.initlist [[V12]], [[V14]], [[V16]] : (f32, f32, f32) -> memref<3xf32>
     // CHECK:   hl.value.yield [[V17]] : memref<3xf32>
     // CHECK: }
