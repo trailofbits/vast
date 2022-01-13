@@ -26,10 +26,12 @@ namespace vast::dl
     // TODO(lukas): Add alignment information & possibly ABI lowering relevant info?
     struct DLEntry
     {
-        mlir::Type type;
-        uint32_t bw;
+        using bitwidth_t = uint32_t;
 
-        DLEntry(mlir::Type t_, uint32_t bw_) : type(t_), bw(bw_) {}
+        mlir::Type type;
+        bitwidth_t bw;
+
+        DLEntry(mlir::Type t_, bitwidth_t bw_) : type(t_), bw(bw_) {}
 
     private:
         static mlir::Type bw_type(MContext &mctx) { return mlir::IntegerType::get(&mctx, 32); }
@@ -38,12 +40,12 @@ namespace vast::dl
         {
             // TODO(lukas): There is `UI64Attr` in `IR/OpBase.td` not sure how to include it
             //              though.
-            return mlir::IntegerAttr::get(bw_type(mctx), llvm::APInt(32, bw, false));
+            return mlir::IntegerAttr::get(bw_type(mctx), llvm::APInt(32, bw));
         }
 
-        static uint32_t unwrap_bw(const mlir::Attribute attr)
+        static bitwidth_t unwrap_bw(const mlir::Attribute attr)
         {
-            return static_cast< uint32_t >(attr.cast< mlir::IntegerAttr >().getInt());
+            return static_cast< bitwidth_t >(attr.cast< mlir::IntegerAttr >().getInt());
         }
 
     public:
