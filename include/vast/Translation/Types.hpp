@@ -57,6 +57,11 @@ namespace vast::hl
 
         mlir::FunctionType convert(const clang::FunctionType *ty);
 
+        // We need to emit data layout - that means we need to remember for
+        // converted type its bitsize. For now each conversion functions is *required*
+        // to use `dl_aware_convert` which handles the data layout information retrieval.
+        // Function that do the conversion itself are private as for now there is no
+        // use-case that would require them exposed.
         mlir::Type dl_aware_convert(const clang::Type *ty, clang::Qualifiers quals);
 
         std::string format_type(const clang::Type *type) const;
