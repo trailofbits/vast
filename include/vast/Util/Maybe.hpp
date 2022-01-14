@@ -82,7 +82,7 @@ namespace vast
 
         auto take() { return std::move( self ); }
 
-        operator bool() const { return has_value(); }
+        explicit operator bool() const { return has_value(); }
         bool has_value() const
         {
             assert(contains_value == static_cast< bool >(self));
