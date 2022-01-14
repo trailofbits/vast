@@ -223,6 +223,12 @@ def ConstantArrayType : HighLevelType< "ConstantArray",
   }];
 }
 
+def SubscriptableType : TypeConstraint<
+  Or< [ConstantArrayType.predicate, PointerType.predicate] >,
+  "array like type"
+>;
+
+
 def PointerLikeType : TypeConstraint<
   PointerType.predicate,
   "pointer like type"

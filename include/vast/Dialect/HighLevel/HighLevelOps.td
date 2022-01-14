@@ -507,4 +507,22 @@ def HighLevel_InitListExpr : HighLevel_Op< "initlist",
   let assemblyFormat = "$elements attr-dict `:` functional-type($elements, results)";
 }
 
+def HighLevel_SubscriptOp : HighLevel_Op< "subscript" >
+{
+  let summary = "VAST array subscript operator";
+  let description = [{ VAST array subscript operator }];
+
+  let arguments = (ins
+    SubscriptableType:$array,
+    IntegerLikeType:$index
+  );
+
+  let results = (outs AnyType:$result);
+
+  let assemblyFormat = [{
+    $array `at` ` ` `[` $index `:` type($index) `]` attr-dict
+      `:` type($array) `->` type($result)
+  }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
