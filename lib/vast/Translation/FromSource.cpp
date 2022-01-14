@@ -880,7 +880,11 @@ namespace vast::hl
 
         ValueOrStmt VisitArraySubscriptExpr(clang::ArraySubscriptExpr *expr)
         {
-            UNREACHABLE( "unsupported ArraySubscriptExpr" );
+            auto loc  = builder.getLocation(expr->getSourceRange());
+            auto rty  = types.convert(expr->getType());
+            auto base = Visit(expr->getBase());
+            auto offset = Visit(expr->getIdx());
+            return make_value< SubscriptOp >(loc, rty, base, offset);
         }
 
         ValueOrStmt VisitArrayTypeTraitExpr(clang::ArrayTypeTraitExpr *expr)
