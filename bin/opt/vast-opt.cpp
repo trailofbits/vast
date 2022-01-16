@@ -17,8 +17,8 @@ VAST_RELAX_WARNINGS
 #include "llvm/Support/ToolOutputFile.h"
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/Passes.hpp"
+#include "vast/Dialect/Dialects.hpp"
 
 int main(int argc, char **argv)
 {
@@ -27,10 +27,7 @@ int main(int argc, char **argv)
     vast::hl::registerPasses();
 
     mlir::DialectRegistry registry;
-    registry.insert< vast::hl::HighLevelDialect >();
-    registry.insert< mlir::StandardOpsDialect >();
-    registry.insert< mlir::LLVM::LLVMDialect >();
-
+    vast::registerAllDialects(registry);
     mlir::registerAllDialects(registry);
     return failed(
         mlir::MlirOptMain(argc, argv, "VAST Optimizer driver\n", registry)
