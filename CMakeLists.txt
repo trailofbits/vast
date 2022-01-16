@@ -146,7 +146,7 @@ add_subdirectory(lib)
 #
 # VAST executables
 #
-add_subdirectory(bin)
+add_subdirectory(tools)
 
 
 # test options
