@@ -13,7 +13,7 @@ namespace vast::hl
 
         HighLevelBuilder(TranslationContext &ctx)
             : ctx(ctx)
-            , builder(&ctx.getMLIRContext()) {}
+            , builder(ctx.getBodyRegion()) {}
 
         mlir::Location get_location(clang::SourceRange range) {
             return get_location_impl(range.getBegin());
@@ -37,13 +37,6 @@ namespace vast::hl
         template< typename Op, typename... Args >
         Stmt make_stmt(Args &&...args) {
             return make< Op >(std::forward< Args >(args)...);
-        }
-
-        template< typename... Args >
-        auto declare_record(Args &&...args) {
-            auto rec = make< RecordDecl >(std::forward< Args >(args)...);
-            // records[rec.getName()] = rec;
-            return rec;
         }
 
         InsertPoint save_insertion_point() { return builder.saveInsertionPoint(); }

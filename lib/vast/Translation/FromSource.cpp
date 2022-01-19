@@ -1233,10 +1233,14 @@ namespace vast::hl
             auto name = decl->getName();
 
             auto type = [this, underlying = decl->getUnderlyingType()]() -> mlir::Type {
-                if (underlying->isFunctionProtoType()) {
-                    auto fty = clang::cast< clang::FunctionType >(underlying);
+                if (auto fty = clang::dyn_cast< clang::FunctionType >(underlying)) {
                     return types.convert(fty);
                 }
+
+                if (auto rec = clang::dyn_cast< clang::RecordType >(underlying)) {
+                    return types.convert(rec, true /* declaration */);
+                }
+
                 return types.convert(underlying);
             }();
 
@@ -1261,8 +1265,13 @@ namespace vast::hl
         ValueOrStmt VisitRecordDecl(clang::RecordDecl *decl) {
             auto loc  = builder.get_location(decl->getSourceRange());
             auto name = decl->getName();
+
+            // declare record
+            builder.make< TypeDeclOp >(loc, name);
+
             auto type = clang::cast< clang::RecordType >(decl->getTypeForDecl());
-            return builder.declare_record(loc, name, types.convert(type));
+            auto record_type = types.convert(type, true /* decl */);
+            return builder.make< RecordDefOp >(loc, name, record_type);
         }
 
         ValueOrStmt VisitEnumConstantDecl(clang::EnumConstantDecl *decl) {

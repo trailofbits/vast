@@ -15,17 +15,6 @@ def HighLevel_ScopeOp
   let assemblyFormat = [{ $body attr-dict }];
 }
 
-def HighLevel_TypeDef : HighLevel_Op< "typedef", [] >
-{
-  let arguments = (ins
-    SymbolNameAttr:$sym_name,
-    TypeAttr:$type
-  );
-  let results = (outs);
-
-  let assemblyFormat = [{ $sym_name attr-dict `:` $type }];
-}
-
 class HighLevel_VarDecl< string mnemonic, list< OpTrait > traits = [] >
   : HighLevel_Op< mnemonic, !listconcat(traits, [Symbol]) >
 {
@@ -81,7 +70,7 @@ class HighLevel_VarDecl< string mnemonic, list< OpTrait > traits = [] >
 def HighLevel_VarOp    : HighLevel_VarDecl< "var" > {}
 def HighLevel_GlobalOp : HighLevel_VarDecl< "global", [HasParent<"mlir::ModuleOp">]> {}
 
-def HighLevel_RecordDecl : HighLevel_Op< "record.decl", [] >
+def HighLevel_TypeDef : HighLevel_Op< "typedef", [] >
 {
   let arguments = (ins
     SymbolNameAttr:$sym_name,
@@ -90,10 +79,37 @@ def HighLevel_RecordDecl : HighLevel_Op< "record.decl", [] >
   let results = (outs);
 
   let assemblyFormat = [{ $sym_name attr-dict `:` $type }];
+}
 
-  let extraClassDeclaration = [{
-    llvm::StringRef getName() { return sym_name(); }
-  }];
+def HighLevel_TypeDeclOp
+  : HighLevel_Op< "typedecl", [NoSideEffect, Symbol] >
+{
+  let summary = "VAST type declaration";
+  let description = [{ VAST type declaration }];
+
+  let arguments = (ins SymbolNameAttr:$sym_name);
+
+  let results = (outs);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins "llvm::StringRef":$name)>
+  ];
+
+  let assemblyFormat = [{ $sym_name attr-dict }];
+}
+
+def HighLevel_RecordDefOp
+  : HighLevel_Op< "record", [NoSideEffect] >
+{
+  let arguments = (ins
+    FlatSymbolRefAttr:$name,
+    TypeAttr:$type
+  );
+
+  let results = (outs);
+
+  let assemblyFormat = [{ $name attr-dict `:` $type }];
 }
 
 def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >

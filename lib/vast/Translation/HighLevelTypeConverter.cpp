@@ -100,13 +100,26 @@ namespace vast::hl
         return out;
     }
 
-    mlir::Type HighLevelTypeConverter::convert(const clang::RecordType *ty) {
-        llvm::SmallVector< FieldInfo, 2 > fields;
-        for (auto field : ty->getDecl()->fields()) {
-            auto name = mlir::StringAttr::get(&ctx.getMLIRContext(), field->getName());
-            fields.push_back({name, convert(field->getType())});
+    mlir::Type HighLevelTypeConverter::convert(const clang::RecordType *ty, bool definition) {
+        auto decl = ty->getDecl();
+        CHECK(decl->getIdentifier(), "anonymous records not supported yet");
+        auto name = decl->getName();
+
+        auto declared = ctx.lookup_typedecl(name);
+        auto mctx     = &ctx.getMLIRContext();
+
+        if (definition || !declared) {
+            llvm::SmallVector< FieldInfo, 2 > fields;
+            for (const auto &field : decl->fields()) {
+                auto field_name = mlir::StringAttr::get(mctx, field->getName());
+                auto field_type = convert(field->getType());
+                fields.push_back(FieldInfo{ field_name, field_type });
+            }
+
+            return RecordType::get(mctx, fields);
         }
-        return RecordType::get(&ctx.getMLIRContext(), fields);
+
+        return AliasType::get(mctx, mlir::SymbolRefAttr::get(mctx, name));
     }
 
     std::string HighLevelTypeConverter::format_type(const clang::Type *type) const {

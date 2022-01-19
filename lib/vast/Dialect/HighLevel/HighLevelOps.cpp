@@ -168,6 +168,10 @@ namespace vast::hl
         build_var_decl(bld, st, type, name, initBuilder);
     }
 
+    void TypeDeclOp::build(Builder &bld, State &st, llvm::StringRef name) {
+        st.addAttribute(mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name));
+    }
+
     mlir::CallInterfaceCallable CallOp::getCallableForCallee()
     {
         return (*this)->getAttrOfType< mlir::SymbolRefAttr >("callee");
