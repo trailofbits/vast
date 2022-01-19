@@ -1767,8 +1767,10 @@ namespace vast::hl
 
         ValueOrStmt VisitRecordDecl(clang::RecordDecl *decl)
         {
-            UNREACHABLE( "unsupported RecordDecl" );
-        }
+            auto loc = getLocation(decl->getSourceRange());
+            auto name = decl->getName();
+            auto type = clang::cast<clang::RecordType>(decl->getTypeForDecl());
+            return make<RecordDecl>(loc, name, convert(type));        }
 
         ValueOrStmt VisitEnumConstantDecl(clang::EnumConstantDecl *decl)
         {

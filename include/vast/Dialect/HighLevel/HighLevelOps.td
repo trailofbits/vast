@@ -81,6 +81,17 @@ class HighLevel_VarDecl< string mnemonic, list< OpTrait > traits = [] >
 def HighLevel_VarOp    : HighLevel_VarDecl< "var" > {}
 def HighLevel_GlobalOp : HighLevel_VarDecl< "global", [HasParent<"mlir::ModuleOp">]> {}
 
+def HighLevel_RecordDecl : HighLevel_Op< "record", [] >
+{
+  let arguments = (ins
+    SymbolNameAttr:$name,
+    TypeAttr:$type
+  );
+  let results = (outs);
+
+  let assemblyFormat = [{ $name attr-dict `:` $type }];
+}
+
 def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
 {
   let summary = "VAST call operation";
