@@ -18,12 +18,12 @@ def HighLevel_ScopeOp
 def HighLevel_TypeDef : HighLevel_Op< "typedef", [] >
 {
   let arguments = (ins
-    SymbolNameAttr:$name,
+    SymbolNameAttr:$sym_name,
     TypeAttr:$type
   );
   let results = (outs);
 
-  let assemblyFormat = [{ $name attr-dict `:` $type }];
+  let assemblyFormat = [{ $sym_name attr-dict `:` $type }];
 }
 
 class HighLevel_VarDecl< string mnemonic, list< OpTrait > traits = [] >
@@ -81,15 +81,19 @@ class HighLevel_VarDecl< string mnemonic, list< OpTrait > traits = [] >
 def HighLevel_VarOp    : HighLevel_VarDecl< "var" > {}
 def HighLevel_GlobalOp : HighLevel_VarDecl< "global", [HasParent<"mlir::ModuleOp">]> {}
 
-def HighLevel_RecordDecl : HighLevel_Op< "record", [] >
+def HighLevel_RecordDecl : HighLevel_Op< "record.decl", [] >
 {
   let arguments = (ins
-    SymbolNameAttr:$name,
+    SymbolNameAttr:$sym_name,
     TypeAttr:$type
   );
   let results = (outs);
 
-  let assemblyFormat = [{ $name attr-dict `:` $type }];
+  let assemblyFormat = [{ $sym_name attr-dict `:` $type }];
+
+  let extraClassDeclaration = [{
+    llvm::StringRef getName() { return sym_name(); }
+  }];
 }
 
 def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >

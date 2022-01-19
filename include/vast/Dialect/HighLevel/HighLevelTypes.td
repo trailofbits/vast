@@ -198,7 +198,7 @@ def RecordType : HighLevelType< "Record", [MemRefElementTypeInterface]> {
   let mnemonic = "record";
 
   let parameters = (ins
-    ArrayRefParameter<"FieldInfo", "Fields types">:$fields
+    ArrayRefParameter<"FieldInfo", "record fields">:$fields
   );
 
   let builders = [
@@ -235,6 +235,14 @@ def ConstantArrayType : HighLevelType< "ConstantArray",
     bool isVolatile() const { return this->getIsVolatile(); }
     uint32_t getNumElems() const { return this->getSize().getLimitedValue(); }
   }];
+}
+
+def TypeDef : HighLevelType< "TypeDef" > {
+  let mnemonic = "typedef";
+
+  let parameters = (ins
+    "mlir::SymbolRefAttr":$name
+  );
 }
 
 def SubscriptableType : TypeConstraint<
