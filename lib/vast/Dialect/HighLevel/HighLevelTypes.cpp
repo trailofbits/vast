@@ -311,4 +311,18 @@ namespace vast::hl
         };
         return { std::move(out), collect(*this, collect) };
     }
+
+    Type RecordType::parse(Context *ctx, DialectParser &parser)
+    {
+        return RecordType::get(ctx);
+    }
+
+    void RecordType::print(DialectPrinter &printer) const
+    {
+        printer << getMnemonic() << "<";
+        interleaveComma(getFields(), printer.getStream(), [&](const FieldInfo &field) {
+            printer << field.name.getValue() << ": " << field.type;
+        });
+        printer << ">";
+    }
 } // namespace vast::hl

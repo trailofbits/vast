@@ -71,6 +71,24 @@ namespace vast::hl
             return t.isa< ConcreteTy >();
         }
     };
+
+    struct FieldInfo {
+        mlir::StringAttr name;
+        mlir::Type type;
+
+        friend bool operator==(const FieldInfo &a, const FieldInfo &b)
+        {
+            return a.name == b.name && a.type == b.type;
+        }
+
+        friend llvm::hash_code hash_value(const FieldInfo &fi)
+        {
+            return llvm::hash_combine(fi.name, fi.type);
+        }
+    };
+
+    using FieldRange = llvm::ArrayRef<FieldInfo>;
+
 } // namespace vast::hl
 
 #define GET_TYPEDEF_CLASSES
