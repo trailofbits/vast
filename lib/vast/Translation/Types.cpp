@@ -98,6 +98,16 @@ namespace vast::hl
         return out;
     }
 
+    mlir::Type TypeConverter::convert(const clang::RecordType *ty)
+    {
+        llvm::SmallVector< FieldInfo, 2 > fields;
+        for (auto field : ty->getDecl()->fields()) {
+            auto name = mlir::StringAttr::get(mctx, field->getName());
+            fields.push_back({name, convert(field->getType())});
+        }
+        return RecordType::get(mctx, fields);
+    }
+
     std::string TypeConverter::format_type(const clang::Type *type) const
     {
         std::string name;

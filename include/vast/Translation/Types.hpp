@@ -53,6 +53,7 @@ namespace vast::hl
         TypeConverter(MContext &mctx, AContext &actx) : mctx(mctx), actx(actx) {}
 
         mlir::Type convert(clang::QualType ty);
+        mlir::Type convert(const clang::RecordType *ty);
         mlir::Type convert(const clang::Type *ty, clang::Qualifiers quals);
 
         mlir::FunctionType convert(const clang::FunctionType *ty);
