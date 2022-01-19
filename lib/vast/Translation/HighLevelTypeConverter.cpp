@@ -1,16 +1,20 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
-#include "vast/Translation/Types.hpp"
-#include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
-#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Translation/HighLevelTypeConverter.hpp"
 
+#include "vast/Util/Warnings.hpp"
+
+VAST_RELAX_WARNINGS
 #include "clang/AST/Type.h"
 #include "clang/AST/TypeLoc.h"
 #include "clang/Basic/LLVM.h"
+VAST_UNRELAX_WARNINGS
+
+#include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
 #include <cassert>
 #include <iostream>
-
 
 namespace vast::hl
 {
@@ -81,43 +85,38 @@ namespace vast::hl
         return flag;
     }
 
-    mlir::Type TypeConverter::convert(clang::QualType ty)
-    {
+    mlir::Type HighLevelTypeConverter::convert(clang::QualType ty) {
         return convert(ty.getTypePtr(), ty.getQualifiers());
     }
 
-    mlir::Type TypeConverter::convert(const clang::Type *ty, clang::Qualifiers quals)
-    {
+    mlir::Type HighLevelTypeConverter::convert(const clang::Type *ty, clang::Qualifiers quals) {
         return dl_aware_convert(ty, quals);
     }
 
-    mlir::Type TypeConverter::dl_aware_convert(const clang::Type *ty, clang::Qualifiers quals)
-    {
+    mlir::Type HighLevelTypeConverter::dl_aware_convert(
+        const clang::Type *ty, clang::Qualifiers quals) {
         auto out = do_convert(ty, quals);
-        dl.try_emplace(out, ty, actx);
+        dl.try_emplace(out, ty, ctx.getASTContext());
         return out;
     }
 
-    mlir::Type TypeConverter::convert(const clang::RecordType *ty)
-    {
+    mlir::Type HighLevelTypeConverter::convert(const clang::RecordType *ty) {
         llvm::SmallVector< FieldInfo, 2 > fields;
         for (auto field : ty->getDecl()->fields()) {
-            auto name = mlir::StringAttr::get(mctx, field->getName());
+            auto name = mlir::StringAttr::get(&ctx.getMLIRContext(), field->getName());
             fields.push_back({name, convert(field->getType())});
         }
-        return RecordType::get(mctx, fields);
+        return RecordType::get(&ctx.getMLIRContext(), fields);
     }
 
-    std::string TypeConverter::format_type(const clang::Type *type) const
-    {
+    std::string HighLevelTypeConverter::format_type(const clang::Type *type) const {
         std::string name;
         llvm::raw_string_ostream os(name);
-        type->dump(os, actx);
+        type->dump(os, ctx.getASTContext());
         return name;
     }
 
-    mlir::Type TypeConverter::do_convert(const clang::Type *ty, clang::Qualifiers quals)
-    {
+    mlir::Type HighLevelTypeConverter::do_convert(const clang::Type *ty, clang::Qualifiers quals) {
         ty = ty->getUnqualifiedDesugaredType();
 
         if (ty->isBuiltinType())
@@ -138,10 +137,11 @@ namespace vast::hl
         UNREACHABLE( "unknown clang type: {0}", format_type(ty) );
     }
 
-    mlir::Type TypeConverter::do_convert(const BuiltinType *ty, clang::Qualifiers quals)
-    {
+    mlir::Type HighLevelTypeConverter::do_convert(const BuiltinType *ty, clang::Qualifiers quals) {
         auto v = quals.hasVolatile();
         auto c = quals.hasConst();
+
+        auto &mctx = ctx.getMLIRContext();
 
         if (ty->isVoidType()) {
             return VoidType::get(&mctx);
@@ -178,27 +178,28 @@ namespace vast::hl
         UNREACHABLE( "unknown builtin type: {0}", format_type(ty) );
     }
 
-    mlir::Type TypeConverter::do_convert(const clang::PointerType *ty, clang::Qualifiers quals)
-    {
+    mlir::Type HighLevelTypeConverter::do_convert(
+        const clang::PointerType *ty, clang::Qualifiers quals) {
         auto pointee = convert(ty->getPointeeType());
-        return PointerType::get(&mctx, pointee, quals.hasConst(), quals.hasVolatile());
+        return PointerType::get(
+            &ctx.getMLIRContext(), pointee, quals.hasConst(), quals.hasVolatile());
     }
 
-    mlir::Type TypeConverter::do_convert(const clang::RecordType *ty, clang::Qualifiers quals)
-    {
-        return RecordType::get(&mctx);
+    mlir::Type HighLevelTypeConverter::do_convert(
+        const clang::RecordType *ty, clang::Qualifiers quals) {
+        return RecordType::get(&ctx.getMLIRContext());
     }
 
-    mlir::Type TypeConverter::do_convert(const clang::ConstantArrayType *ty, clang::Qualifiers quals)
-    {
+    mlir::Type HighLevelTypeConverter::do_convert(
+        const clang::ConstantArrayType *ty, clang::Qualifiers quals) {
         assert(clang::isa< clang::ConstantArrayType >(ty));
         auto element_type = convert(ty->getElementType());
         auto size = ty->getSize();
-        return ConstantArrayType::get(&mctx, element_type, size, quals.hasConst(), quals.hasVolatile());
+        return ConstantArrayType::get(
+            &ctx.getMLIRContext(), element_type, size, quals.hasConst(), quals.hasVolatile());
     }
 
-    mlir::FunctionType TypeConverter::convert(const clang::FunctionType *ty)
-    {
+    mlir::FunctionType HighLevelTypeConverter::convert(const clang::FunctionType *ty) {
         llvm::SmallVector< mlir::Type, 2 > args;
 
         if (auto prototype = clang::dyn_cast< clang::FunctionProtoType >(ty)) {
@@ -208,7 +209,7 @@ namespace vast::hl
         }
 
         auto rty = convert(ty->getReturnType());
-        return mlir::FunctionType::get(&mctx, args, rty);
+        return mlir::FunctionType::get(&ctx.getMLIRContext(), args, rty);
     }
 
 } // namseapce vast::hl

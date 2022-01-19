@@ -5,19 +5,16 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-#include <mlir/IR/BuiltinTypes.h>
-#include <mlir/IR/MLIRContext.h>
-
-#include <clang/AST/AST.h>
-#include <clang/AST/ASTContext.h>
 #include <clang/AST/Type.h>
+#include <mlir/IR/BuiltinTypes.h>
 VAST_UNRELAX_WARNINGS
+
+#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Translation/Context.hpp"
+#include "vast/Util/DataLayout.hpp"
 
 #include <tuple>
 #include <unordered_map>
-
-#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
-#include "vast/Util/DataLayout.hpp"
 
 namespace vast::hl
 {
@@ -45,12 +42,9 @@ namespace vast::hl
         return os;
     }
 
-    struct TypeConverter
-    {
-        using AContext = clang::ASTContext;
-        using MContext = mlir::MLIRContext;
-
-        TypeConverter(MContext &mctx, AContext &actx) : mctx(mctx), actx(actx) {}
+    struct HighLevelTypeConverter {
+        HighLevelTypeConverter(TranslationContext &ctx)
+            : ctx(ctx) {}
 
         mlir::Type convert(clang::QualType ty);
         mlir::Type convert(const clang::RecordType *ty);
@@ -76,8 +70,7 @@ namespace vast::hl
         mlir::Type do_convert(const clang::RecordType *ty, clang::Qualifiers quals);
         mlir::Type do_convert(const clang::ConstantArrayType *ty, clang::Qualifiers quals);
 
-        MContext &mctx;
-        AContext &actx;
+        TranslationContext &ctx;
         DataLayoutBlueprint dl;
     };
 
