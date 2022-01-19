@@ -43,8 +43,6 @@ namespace vast::hl
             , actx(actx)
             , mod(mod) {}
 
-        llvm::ScopedHashTable< StringRef, RecordDecl > records;
-
         // The symbol table maps a variable name to a value in the current scope.
         // Entering a function creates a new scope, and the function arguments are
         // added to the mapping. When the processing of a function is terminated, the
@@ -67,6 +65,8 @@ namespace vast::hl
         clang::SourceManager &getSourceManager() { return actx.getSourceManager(); }
 
         auto lookup_symbol(StringRef name) { return mod->lookupSymbol< mlir::FuncOp >(name); }
+
+        auto lookup_typedecl(StringRef name) { return mod->lookupSymbol< TypeDeclOp >(name); }
 
         void emitError(llvm::Twine msg) { mod->emitError(msg); }
     };

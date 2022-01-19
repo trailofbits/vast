@@ -237,7 +237,7 @@ def ConstantArrayType : HighLevelType< "ConstantArray",
   }];
 }
 
-def TypeDef : HighLevelType< "TypeDef" > {
+def Alias : HighLevelType< "Alias" > {
   let mnemonic = "typedef";
 
   let parameters = (ins

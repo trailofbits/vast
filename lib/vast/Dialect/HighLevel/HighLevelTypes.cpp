@@ -323,9 +323,9 @@ namespace vast::hl
         printer << ">";
     }
 
-    Type TypeDefType::parse(Context *ctx, DialectParser &parser) { UNIMPLEMENTED; }
+    Type AliasType::parse(Context *ctx, DialectParser &parser) { UNIMPLEMENTED; }
 
-    void TypeDefType::print(DialectPrinter &printer) const {
+    void AliasType::print(DialectPrinter &printer) const {
         printer << getMnemonic() << "<" << getName() << ">";
     }
 
