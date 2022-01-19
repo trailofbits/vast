@@ -196,6 +196,20 @@ def PointerType : HighLevelType< "Pointer",
 
 def RecordType : HighLevelType< "Record", [MemRefElementTypeInterface]> {
   let mnemonic = "record";
+
+  let parameters = (ins
+    ArrayRefParameter<"FieldInfo", "Fields types">:$fields
+  );
+
+  let builders = [
+    TypeBuilder<(ins "FieldRange":$fields), [{
+      return $_get($_ctxt, fields);
+    }]>,
+    TypeBuilder<(ins), [{
+      return $_get($_ctxt, FieldRange());
+    }]>
+  ];
+  let skipDefaultBuilders = 1;
 }
 
 def ConstantArrayType : HighLevelType< "ConstantArray",
