@@ -5,12 +5,13 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-#include <mlir/IR/MLIRContext.h>
-#include <mlir/IR/TypeSupport.h>
+#include <clang/AST/ASTContext.h>
+#include <mlir/Dialect/DLTI/DLTI.h>
 #include <mlir/IR/BuiltinTypes.h>
 #include <mlir/IR/Dialect.h>
+#include <mlir/IR/MLIRContext.h>
+#include <mlir/IR/TypeSupport.h>
 #include <mlir/Interfaces/DataLayoutInterfaces.h>
-#include <mlir/Dialect/DLTI/DLTI.h>
 VAST_UNRELAX_WARNINGS
 
 #include <type_traits>
@@ -18,6 +19,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::dl
 {
     using MContext = mlir::MLIRContext;
+    using AContext = clang::ASTContext;
 
     // We are currently using `DLTI` dialect to help encoding data layout information,
     // however in the future custom attributes will be probably preferable.
@@ -64,4 +66,32 @@ namespace vast::dl
             return mlir::DataLayoutEntryAttr::get(type, as_attr);
         }
     };
+
+    // For each type remember its data layout information.
+    struct DataLayoutBlueprint {
+        bool try_emplace(mlir::Type mty, const clang::Type *aty, const AContext &actx) {
+            // NOTE(lukas): clang changes size of `bool` to `1` when emitting llvm.
+            if (aty->isBooleanType()) {
+                return std::get< 1 >(entries.try_emplace(mty, dl::DLEntry{ mty, 1 }));
+            }
+
+            // For other types this should be good-enough for now
+            auto info = actx.getTypeInfo(aty);
+            auto bw   = static_cast< uint32_t >(info.Width);
+            return std::get< 1 >(entries.try_emplace(mty, dl::DLEntry{ mty, bw }));
+        }
+
+        llvm::DenseMap< mlir::Type, dl::DLEntry > entries;
+    };
+
+    template< typename Stream >
+    auto operator<<(Stream &os, const DataLayoutBlueprint &dl) -> decltype(os << "") {
+        for (const auto &[ty, sizes] : dl.entries) {
+            os << ty << " ";
+            const auto &[byte_s, bit_s] = sizes;
+            os << llvm::formatv("[ {}, {} ]\n", byte_s, bit_s);
+        }
+        return os;
+    }
+
 } // namespace vast::dl

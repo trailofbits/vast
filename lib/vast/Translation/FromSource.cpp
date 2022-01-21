@@ -1624,8 +1624,6 @@ namespace vast::hl
             UNREACHABLE("unsupported OMPDeclareMapperDecl");
         }
 
-        const DataLayoutBlueprint &data_layout() const { return types.data_layout(); }
-
       private:
         TranslationContext &ctx;
         HighLevelBuilder builder;
@@ -1638,7 +1636,7 @@ namespace vast::hl
 
         bool HandleTopLevelDecl(clang::DeclGroupRef) override { UNIMPLEMENTED; }
 
-        void emit_data_layout(const DataLayoutBlueprint &dl) {
+        void emit_data_layout(const dl::DataLayoutBlueprint &dl) {
             auto &mctx = ctx.getMLIRContext();
             std::vector< mlir::DataLayoutEntryInterface > entries;
             for (const auto &[_, e] : dl.entries)
@@ -1657,7 +1655,7 @@ namespace vast::hl
                 visitor.Visit(decl);
 
             // parform after we gather all types from the translation unit
-            emit_data_layout(visitor.data_layout());
+            emit_data_layout(ctx.data_layout());
         }
 
       private:

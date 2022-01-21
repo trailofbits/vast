@@ -38,6 +38,8 @@ namespace vast::hl
         AContext &actx;
         ModuleRef &mod;
 
+        dl::DataLayoutBlueprint dl;
+
         TranslationContext(MContext &mctx, AContext &actx, ModuleRef &mod)
             : mctx(mctx)
             , actx(actx)
@@ -59,6 +61,9 @@ namespace vast::hl
         MContext &getMLIRContext() { return mctx; }
         AContext &getASTContext() { return actx; }
         ModuleRef &getModule() { return mod; }
+
+        const dl::DataLayoutBlueprint &data_layout() const { return dl; }
+        dl::DataLayoutBlueprint &data_layout() { return dl; }
 
         mlir::Region &getBodyRegion() { return mod->getBodyRegion(); }
 
