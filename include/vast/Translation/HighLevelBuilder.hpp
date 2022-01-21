@@ -10,6 +10,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Translation/Context.hpp"
+#include "vast/Translation/HighLevelTypeConverter.hpp"
 
 namespace vast::hl
 {
@@ -59,7 +60,13 @@ namespace vast::hl
 
         mlir::Block *create_block(mlir::Region *parent) { return builder.createBlock(parent); }
 
-        BoolType bool_type() { return BoolType::get(&ctx.getMLIRContext()); }
+        BoolType bool_type() {
+            // We go via `types.convert` since it may need to process the type
+            // in order to emit data layout.
+            HighLevelTypeConverter types(ctx);
+            auto &actx = ctx.getASTContext();
+            return types.convert(actx.BoolTy).cast< BoolType >();
+        }
 
         mlir::Value bool_value(mlir::Location loc, bool value) {
             auto attr = mlir::BoolAttr::get(&ctx.getMLIRContext(), value);

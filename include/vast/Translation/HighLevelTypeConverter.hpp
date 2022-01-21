@@ -18,24 +18,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    // For each type remember its data layout information.
-    struct DataLayoutBlueprint
-    {
-        bool try_emplace(mlir::Type, const clang::Type *, const AContext &actx);
-
-        llvm::DenseMap< mlir::Type, dl::DLEntry > entries;
-    };
-
-    template< typename Stream >
-    auto operator<<(Stream &os, const DataLayoutBlueprint &dl) -> decltype(os << "") {
-        for (const auto &[ty, sizes] : dl.entries) {
-            os << ty << " ";
-            const auto &[byte_s, bit_s] = sizes;
-            os << llvm::formatv("[ {}, {} ]\n", byte_s, bit_s);
-        }
-        return os;
-    }
-
     using Quals = clang::Qualifiers;
 
     struct HighLevelTypeConverter {
@@ -56,8 +38,6 @@ namespace vast::hl
 
         std::string format_type(const clang::Type *type) const;
 
-        const DataLayoutBlueprint &data_layout() const { return dl; }
-
       private:
         mlir::Type do_convert(const clang::Type *ty, Quals quals);
         mlir::Type do_convert(const clang::BuiltinType *ty, Quals quals);
@@ -66,7 +46,6 @@ namespace vast::hl
         mlir::Type do_convert(const clang::ConstantArrayType *ty, Quals quals);
 
         TranslationContext &ctx;
-        DataLayoutBlueprint dl;
     };
 
 } // namespace vast::hl
