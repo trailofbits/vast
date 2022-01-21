@@ -810,8 +810,7 @@ namespace vast::hl
         }
 
         ValueOrStmt VisitInitListExpr(clang::InitListExpr *expr) {
-            CHECK(
-                expr->getType()->isArrayType(), "non-arrray initializer list is not supported yet");
+            CHECK(expr->getType()->isArrayType(), "non-array initializer list is not supported");
 
             auto loc = builder.get_location(expr->getSourceRange());
             auto ty  = types.convert(expr->getType());
@@ -1237,10 +1236,6 @@ namespace vast::hl
                     return types.convert(fty);
                 }
 
-                if (auto rec = clang::dyn_cast< clang::RecordType >(underlying)) {
-                    return types.convert(rec, true /* declaration */);
-                }
-
                 return types.convert(underlying);
             }();
 
@@ -1264,14 +1259,8 @@ namespace vast::hl
 
         ValueOrStmt VisitRecordDecl(clang::RecordDecl *decl) {
             auto loc  = builder.get_location(decl->getSourceRange());
-            auto name = decl->getName();
-
-            // declare record
-            builder.make< TypeDeclOp >(loc, name);
-
-            auto type = clang::cast< clang::RecordType >(decl->getTypeForDecl());
-            auto record_type = types.convert(type, true /* decl */);
-            return builder.make< RecordDefOp >(loc, name, record_type);
+            auto record_type = types.convert(decl->getTypeForDecl());
+            return builder.define_type(loc, record_type, decl->getName());
         }
 
         ValueOrStmt VisitEnumConstantDecl(clang::EnumConstantDecl *decl) {
