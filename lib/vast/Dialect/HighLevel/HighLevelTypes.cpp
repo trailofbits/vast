@@ -12,6 +12,7 @@ VAST_RELAX_WARNINGS
 
 namespace vast::hl
 {
+
     mlir::FunctionType getFunctionType(PointerType functionPointer)
     {
         return functionPointer.getElementType().cast< mlir::FunctionType >();
@@ -76,10 +77,7 @@ namespace vast::hl
         bool c = succeeded(parser.parseOptionalKeyword("const"));
         bool v = succeeded(parser.parseOptionalKeyword("volatile"));
 
-        auto loc = parser.getCurrentLocation();
-
         if (failed(parser.parseGreater())) {
-            parser.emitError(loc, "expected end of qualifier list");
             return Type();
         }
 
@@ -118,10 +116,7 @@ namespace vast::hl
         bool c = succeeded(parser.parseOptionalKeyword("const"));
         bool v = succeeded(parser.parseOptionalKeyword("volatile"));
 
-        auto loc = parser.getCurrentLocation();
-
         if (failed(parser.parseGreater())) {
-            parser.emitError(loc, "expected end of qualifier list");
             return Type();
         }
 
@@ -150,18 +145,15 @@ namespace vast::hl
         printer << ">";
     }
 
-    Type parse_pointer_type(Context *ctx, DialectParser &parser)
-    {
-        auto loc = parser.getCurrentLocation();
+    Type parse_pointer_type(Context *ctx, DialectParser &parser) {
         if (failed(parser.parseLess())) {
-            parser.emitError(loc, "expected <");
             return Type();
         }
 
         Type element;
         if (failed(parser.parseType(element))) {
             auto loc = parser.getCurrentLocation();
-            parser.emitError(loc, "expected element type");
+            parser.emitError(loc, "expected pointer element type");
             return Type();
         }
 
@@ -171,9 +163,7 @@ namespace vast::hl
             v = succeeded(parser.parseOptionalKeyword("volatile"));
         }
 
-
         if (failed(parser.parseGreater())) {
-            parser.emitError(loc, "expected end of qualifier list");
             return Type();
         }
 
@@ -194,11 +184,8 @@ namespace vast::hl
         printer << ">";
     }
 
-    Type ConstantArrayType::parse(Context *ctx, DialectParser &parser)
-    {
-        auto loc = parser.getCurrentLocation();
+    Type ConstantArrayType::parse(Context *ctx, DialectParser &parser) {
         if (failed(parser.parseLess())) {
-            parser.emitError(loc, "expected <");
             return Type();
         }
 
@@ -218,7 +205,7 @@ namespace vast::hl
         Type element;
         if (failed(parser.parseType(element))) {
             auto loc = parser.getCurrentLocation();
-            parser.emitError(loc, "expected element type");
+            parser.emitError(loc, "expected array element type");
             return Type();
         }
 
@@ -229,7 +216,6 @@ namespace vast::hl
         }
 
         if (failed(parser.parseGreater())) {
-            parser.emitError(loc, "expected end of qualifier list");
             return Type();
         }
 
@@ -286,13 +272,11 @@ namespace vast::hl
     using walk_types = walk_fn< mlir::Type >;
     using walk_attrs = walk_fn< mlir::Attribute >;
 
-    void PointerType::walkImmediateSubElements(walk_attrs, walk_types tys) const
-    {
+    void PointerType::walkImmediateSubElements(walk_attrs, walk_types tys) const {
         tys( this->getElementType() );
     }
 
-    void ConstantArrayType::walkImmediateSubElements(walk_attrs, walk_types tys) const
-    {
+    void ConstantArrayType::walkImmediateSubElements(walk_attrs, walk_types tys) const {
         tys( this->getElementType() );
     }
 
