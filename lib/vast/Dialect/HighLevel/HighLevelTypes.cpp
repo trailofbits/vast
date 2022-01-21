@@ -312,7 +312,40 @@ namespace vast::hl
         return { std::move(out), collect(*this, collect) };
     }
 
-    Type RecordType::parse(Context *ctx, DialectParser &parser) { UNIMPLEMENTED; }
+    using Fields = llvm::SmallVector< FieldInfo >;
+
+    static ParseResult parse_fields(DialectParser &p, Fields &fields) {
+        auto ctx = p.getBuilder().getContext();
+        while (true) {
+            llvm::StringRef name;
+            Type type;
+            if (p.parseKeyword(&name) || p.parseColon() || p.parseType(type))
+                return mlir::failure();
+            fields.push_back(FieldInfo{ mlir::StringAttr::get(ctx, name), type });
+
+            if (mlir::succeeded(p.parseOptionalGreater())) {
+                return mlir::success();
+            }
+
+            if (p.parseComma())
+                return mlir::failure();
+        }
+
+        return mlir::success();
+    }
+
+    Type RecordType::parse(Context *ctx, DialectParser &parser) {
+        if (failed(parser.parseLess())) {
+            return Type();
+        }
+
+        Fields fields;
+        if (failed(parse_fields(parser, fields))) {
+            return Type();
+        }
+
+        return RecordType::get(ctx, fields);
+    }
 
     void RecordType::print(DialectPrinter &printer) const
     {
@@ -323,7 +356,25 @@ namespace vast::hl
         printer << ">";
     }
 
-    Type AliasType::parse(Context *ctx, DialectParser &parser) { UNIMPLEMENTED; }
+    Type AliasType::parse(Context *ctx, DialectParser &parser) {
+        if (failed(parser.parseLess())) {
+            return Type();
+        }
+
+        mlir::SymbolRefAttr name;
+        // TODO(Heno): use parseSymbolName from MLIR 14
+        if (failed(parser.parseAttribute(name))) {
+            auto loc = parser.getCurrentLocation();
+            parser.emitError(loc, "expected alias name symbol");
+            return Type();
+        }
+
+        if (failed(parser.parseGreater())) {
+            return Type();
+        }
+
+        return AliasType::get(ctx, name);
+    }
 
     void AliasType::print(DialectPrinter &printer) const {
         printer << getMnemonic() << "<" << getName() << ">";
