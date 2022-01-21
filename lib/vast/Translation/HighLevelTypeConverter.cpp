@@ -12,6 +12,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Translation/HighLevelBuilder.hpp"
 
 #include <cassert>
 #include <iostream>
@@ -70,7 +71,7 @@ namespace vast::hl
     }
 
     bool DataLayoutBlueprint::try_emplace(mlir::Type mty, const clang::Type *aty,
-                                          const clang::ASTContext &actx)
+                                          const AContext &actx)
     {
         // NOTE(lukas): clang changes size of `bool` to `1` when emitting llvm.
         if (aty->isBooleanType())
@@ -81,47 +82,23 @@ namespace vast::hl
         // For other types this should be good-enough for now
         auto info = actx.getTypeInfo(aty);
         auto bw = static_cast< uint32_t >(info.Width);
-        const auto &[_, flag] = entries.try_emplace(mty, dl::DLEntry{ mty, bw });
-        return flag;
+        return std::get< 1 >(entries.try_emplace(mty, dl::DLEntry{ mty, bw }));
     }
 
     mlir::Type HighLevelTypeConverter::convert(clang::QualType ty) {
         return convert(ty.getTypePtr(), ty.getQualifiers());
     }
 
-    mlir::Type HighLevelTypeConverter::convert(const clang::Type *ty, clang::Qualifiers quals) {
+    mlir::Type HighLevelTypeConverter::convert(const clang::Type *ty, Quals quals) {
         return dl_aware_convert(ty, quals);
     }
 
-    mlir::Type HighLevelTypeConverter::dl_aware_convert(
-        const clang::Type *ty, clang::Qualifiers quals) {
+    mlir::Type HighLevelTypeConverter::dl_aware_convert(const clang::Type *ty, Quals quals) {
         auto out = do_convert(ty, quals);
         if (!ty->isFunctionType()) {
             dl.try_emplace(out, ty, ctx.getASTContext());
         }
         return out;
-    }
-
-    mlir::Type HighLevelTypeConverter::convert(const clang::RecordType *ty, bool definition) {
-        auto decl = ty->getDecl();
-        CHECK(decl->getIdentifier(), "anonymous records not supported yet");
-        auto name = decl->getName();
-
-        auto declared = ctx.lookup_typedecl(name);
-        auto mctx     = &ctx.getMLIRContext();
-
-        if (definition || !declared) {
-            llvm::SmallVector< FieldInfo, 2 > fields;
-            for (const auto &field : decl->fields()) {
-                auto field_name = mlir::StringAttr::get(mctx, field->getName());
-                auto field_type = convert(field->getType());
-                fields.push_back(FieldInfo{ field_name, field_type });
-            }
-
-            return RecordType::get(mctx, fields);
-        }
-
-        return AliasType::get(mctx, mlir::SymbolRefAttr::get(mctx, name));
     }
 
     std::string HighLevelTypeConverter::format_type(const clang::Type *type) const {
@@ -131,7 +108,7 @@ namespace vast::hl
         return name;
     }
 
-    mlir::Type HighLevelTypeConverter::do_convert(const clang::Type *ty, clang::Qualifiers quals) {
+    mlir::Type HighLevelTypeConverter::do_convert(const clang::Type *ty, Quals quals) {
         ty = ty->getUnqualifiedDesugaredType();
 
         if (ty->isBuiltinType())
@@ -152,7 +129,7 @@ namespace vast::hl
         UNREACHABLE( "unknown clang type: {0}", format_type(ty) );
     }
 
-    mlir::Type HighLevelTypeConverter::do_convert(const BuiltinType *ty, clang::Qualifiers quals) {
+    mlir::Type HighLevelTypeConverter::do_convert(const BuiltinType *ty, Quals quals) {
         auto v = quals.hasVolatile();
         auto c = quals.hasConst();
 
@@ -193,21 +170,40 @@ namespace vast::hl
         UNREACHABLE( "unknown builtin type: {0}", format_type(ty) );
     }
 
-    mlir::Type HighLevelTypeConverter::do_convert(
-        const clang::PointerType *ty, clang::Qualifiers quals) {
+    mlir::Type HighLevelTypeConverter::do_convert(const clang::PointerType *ty, Quals quals) {
         auto pointee = convert(ty->getPointeeType());
         return PointerType::get(
             &ctx.getMLIRContext(), pointee, quals.hasConst(), quals.hasVolatile());
     }
 
-    mlir::Type HighLevelTypeConverter::do_convert(
-        const clang::RecordType *ty, clang::Qualifiers quals) {
-        return RecordType::get(&ctx.getMLIRContext());
+    mlir::Type HighLevelTypeConverter::do_convert(const clang::RecordType *ty, Quals quals) {
+        auto decl = ty->getDecl();
+        CHECK(decl->getIdentifier(), "anonymous records not supported yet");
+        auto name = decl->getName();
+
+        auto mctx = &ctx.getMLIRContext();
+
+        if (!ctx.lookup_typedecl(name)) {
+            HighLevelBuilder builder(ctx);
+
+            auto loc = builder.get_location(decl->getSourceRange());
+            builder.declare_type(loc, name);
+
+            llvm::SmallVector< FieldInfo > fields;
+            for (const auto &field : decl->fields()) {
+                auto field_name = mlir::StringAttr::get(mctx, field->getName());
+                auto field_type = convert(field->getType());
+                fields.push_back(FieldInfo{ field_name, field_type });
+            }
+
+            auto rec = RecordType::get(mctx, fields);
+            builder.define_type(loc, rec, name);
+        }
+
+        return AliasType::get(mctx, mlir::SymbolRefAttr::get(mctx, name));
     }
 
-    mlir::Type HighLevelTypeConverter::do_convert(
-        const clang::ConstantArrayType *ty, clang::Qualifiers quals) {
-        assert(clang::isa< clang::ConstantArrayType >(ty));
+    Type HighLevelTypeConverter::do_convert(const clang::ConstantArrayType *ty, Quals quals) {
         auto element_type = convert(ty->getElementType());
         auto size = ty->getSize();
         return ConstantArrayType::get(
@@ -215,7 +211,7 @@ namespace vast::hl
     }
 
     mlir::FunctionType HighLevelTypeConverter::convert(const clang::FunctionType *ty) {
-        llvm::SmallVector< mlir::Type, 2 > args;
+        llvm::SmallVector< mlir::Type > args;
 
         if (auto prototype = clang::dyn_cast< clang::FunctionProtoType >(ty)) {
             for (auto param : prototype->getParamTypes()) {
