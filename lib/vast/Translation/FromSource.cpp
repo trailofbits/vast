@@ -1635,7 +1635,7 @@ namespace vast::hl
             UNREACHABLE("unsupported OMPDeclareMapperDecl");
         }
 
-        DataLayoutBlueprint take_dl() { return types.take_dl(); }
+        const DataLayoutBlueprint &data_layout() const { return types.data_layout(); }
 
       private:
         TranslationContext &ctx;
@@ -1647,15 +1647,16 @@ namespace vast::hl
         VastCodeGen(TranslationContext &ctx)
             : ctx(ctx) {}
 
-        bool HandleTopLevelDecl(clang::DeclGroupRef) override { UNREACHABLE("not implemented"); }
+        bool HandleTopLevelDecl(clang::DeclGroupRef) override { UNIMPLEMENTED; }
 
-        void emitDL(const DataLayoutBlueprint &dl) {
+        void emit_data_layout(const DataLayoutBlueprint &dl) {
             auto &mctx = ctx.getMLIRContext();
             std::vector< mlir::DataLayoutEntryInterface > entries;
             for (const auto &[_, e] : dl.entries)
                 entries.push_back(e.wrap(mctx));
-            // TODO(lukas): Is the name relevant and should be exposed in public api?
-            (*ctx.getModule())->setAttr("hl.dl", mlir::DataLayoutSpecAttr::get(&mctx, entries));
+            ctx.getModule().get()->setAttr(
+                mlir::DLTIDialect::kDataLayoutAttrName,
+                mlir::DataLayoutSpecAttr::get(&mctx, entries));
         }
 
         void HandleTranslationUnit(clang::ASTContext &) override {
@@ -1665,7 +1666,9 @@ namespace vast::hl
 
             for (const auto &decl : tu->decls())
                 visitor.Visit(decl);
-            emitDL(visitor.take_dl());
+
+            // parform after we gather all types from the translation unit
+            emit_data_layout(visitor.data_layout());
         }
 
       private:

@@ -23,6 +23,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::hl
 {
     auto get_value() { return [](auto attr) { return attr.getValue(); }; }
+
     template< typename T >
     auto dyn_cast() { return [](auto x) { return x.template dyn_cast< T >(); }; }
 
@@ -63,7 +64,7 @@ namespace vast::hl
     {
         for (const auto &[_, attr] : op->getAttrs())
         {
-            // `getType()` is not reliable in reality since for exmaple for `mlir::TypeAttr`
+            // `getType()` is not reliable in reality since for example for `mlir::TypeAttr`
             // it returns none. Lowering of types in attributes will be always best effort.
             if (isHighLevelType(attr.getType()))
                 return true;
@@ -134,8 +135,6 @@ namespace vast::hl
             return {};
         }
 
-        auto bw(mlir::Type t) { return dl.getTypeSizeInBits(t); }
-
         auto convert_type() { return [&](auto t) { return this->convert_type(t); }; }
         auto convert_type_to_type()
         {
@@ -144,14 +143,15 @@ namespace vast::hl
 
         auto make_int_type()
         {
-            return [&](auto t) { return mlir::IntegerType::get(&this->mctx, this->bw(t));};
+            return [&](auto t) {
+                return mlir::IntegerType::get(&this->mctx, dl.getTypeSizeInBits(t));
+            };
         }
 
         auto make_float_type()
         {
-            return [&](auto t)
-            {
-                auto target_bw = this->bw(t);
+            return [&](auto t) {
+                auto target_bw = dl.getTypeSizeInBits(t);
                 switch (target_bw)
                 {
                     case 16: return mlir::FloatType::getF16(&mctx);
