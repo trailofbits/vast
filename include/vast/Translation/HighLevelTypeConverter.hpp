@@ -21,15 +21,9 @@ namespace vast::hl
     // For each type remember its data layout information.
     struct DataLayoutBlueprint
     {
-        bool try_emplace(mlir::Type, const clang::Type *, const clang::ASTContext &actx);
+        bool try_emplace(mlir::Type, const clang::Type *, const AContext &actx);
 
-        // [ byte size, bitsize ] - can differ due to alignment.
-        using record_t = std::tuple< uint64_t, uint64_t >;
-
-        inline static const auto hasher = [](const mlir::Type &t) {
-            return mlir::hash_value(t);
-        };
-        std::unordered_map< mlir::Type, dl::DLEntry, decltype(hasher) > entries;
+        llvm::DenseMap< mlir::Type, dl::DLEntry > entries;
     };
 
     template< typename Stream >
@@ -42,13 +36,14 @@ namespace vast::hl
         return os;
     }
 
+    using Quals = clang::Qualifiers;
+
     struct HighLevelTypeConverter {
         HighLevelTypeConverter(TranslationContext &ctx)
             : ctx(ctx) {}
 
         mlir::Type convert(clang::QualType ty);
-        mlir::Type convert(const clang::RecordType *ty, bool definition = false);
-        mlir::Type convert(const clang::Type *ty, clang::Qualifiers quals);
+        mlir::Type convert(const clang::Type *ty, Quals quals = {});
 
         mlir::FunctionType convert(const clang::FunctionType *ty);
 
@@ -57,18 +52,18 @@ namespace vast::hl
         // to use `dl_aware_convert` which handles the data layout information retrieval.
         // Function that do the conversion itself are private as for now there is no
         // use-case that would require them exposed.
-        mlir::Type dl_aware_convert(const clang::Type *ty, clang::Qualifiers quals);
+        mlir::Type dl_aware_convert(const clang::Type *ty, Quals quals);
 
         std::string format_type(const clang::Type *type) const;
 
-        DataLayoutBlueprint take_dl() { return std::move(dl); }
+        const DataLayoutBlueprint &data_layout() const { return dl; }
 
-    private:
-        mlir::Type do_convert(const clang::Type *ty, clang::Qualifiers quals);
-        mlir::Type do_convert(const clang::BuiltinType *ty, clang::Qualifiers quals);
-        mlir::Type do_convert(const clang::PointerType *ty, clang::Qualifiers quals);
-        mlir::Type do_convert(const clang::RecordType *ty, clang::Qualifiers quals);
-        mlir::Type do_convert(const clang::ConstantArrayType *ty, clang::Qualifiers quals);
+      private:
+        mlir::Type do_convert(const clang::Type *ty, Quals quals);
+        mlir::Type do_convert(const clang::BuiltinType *ty, Quals quals);
+        mlir::Type do_convert(const clang::PointerType *ty, Quals quals);
+        mlir::Type do_convert(const clang::RecordType *ty, Quals quals);
+        mlir::Type do_convert(const clang::ConstantArrayType *ty, Quals quals);
 
         TranslationContext &ctx;
         DataLayoutBlueprint dl;
