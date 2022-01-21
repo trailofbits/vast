@@ -2,9 +2,14 @@
 
 #pragma once
 
+#include "vast/Util/Warnings.hpp"
+
+VAST_RELAX_WARNINGS
+#include <clang/Basic/SourceManager.h>
+VAST_UNRELAX_WARNINGS
+
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Translation/Context.hpp"
-#include "vast/Util/Warnings.hpp"
 
 namespace vast::hl
 {
@@ -89,6 +94,18 @@ namespace vast::hl
             CHECK(ty.isa< ConstantArrayType >(), "string constant must have array type");
             auto attr = mlir::StringAttr::get(value, ty);
             return make< ConstantStringOp >(loc, ty.cast< ConstantArrayType >(), attr);
+        }
+
+        auto declare_type(mlir::Location loc, llvm::StringRef name) {
+            return make< TypeDeclOp >(loc, name);
+        }
+
+        auto define_type(mlir::Location loc, mlir::Type type, llvm::StringRef name) {
+            if (!ctx.lookup_typedecl(name)) {
+                declare_type(loc, name);
+            }
+
+            return make< TypeDef >(loc, name, type);
         }
 
       private:
