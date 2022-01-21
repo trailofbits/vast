@@ -33,7 +33,7 @@ namespace vast::hl
         static unsigned getTypeSizeInBits(const dl_t &dl, dl_entries_ref entries)
         {
             CHECK(entries.size() != 0,
-                  "Query for getTypeSizeinBits for {0} failed: Must have at least one entry!");
+                "Query for getTypeSizeInBits failed: Must have at least one entry!");
 
             std::optional<uint32_t> out;
             auto handle_entry = [&](auto &dl_entry) {
