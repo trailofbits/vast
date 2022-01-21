@@ -96,7 +96,9 @@ namespace vast::hl
     mlir::Type HighLevelTypeConverter::dl_aware_convert(
         const clang::Type *ty, clang::Qualifiers quals) {
         auto out = do_convert(ty, quals);
-        dl.try_emplace(out, ty, ctx.getASTContext());
+        if (!ty->isFunctionType()) {
+            dl.try_emplace(out, ty, ctx.getASTContext());
+        }
         return out;
     }
 
