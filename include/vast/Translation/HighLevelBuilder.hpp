@@ -104,15 +104,30 @@ namespace vast::hl
         }
 
         auto declare_type(mlir::Location loc, llvm::StringRef name) {
-            return make< TypeDeclOp >(loc, name);
+            if (auto decl = ctx.type_decls.lookup(name)) {
+                return decl;
+            }
+
+            auto decl = make< TypeDeclOp >(loc, name);
+            if (failed(ctx.type_decls.declare(name, decl))) {
+                ctx.error("error: multiple type declarations with the same name");
+            }
+            return decl;
         }
 
         auto define_type(mlir::Location loc, mlir::Type type, llvm::StringRef name) {
-            if (!ctx.lookup_typedecl(name)) {
-                declare_type(loc, name);
+            // declare the type first to allow recursive type definitions
+            declare_type(loc, name);
+
+            if (auto def = ctx.type_defs.lookup(name))
+                return def;
+
+            auto def = make< TypeDefOp >(loc, name, type);
+            if (failed(ctx.type_defs.declare(name, def))) {
+                ctx.error("error: multiple type definitions with the same name");
             }
 
-            return make< TypeDef >(loc, name, type);
+            return def;
         }
 
       private:
