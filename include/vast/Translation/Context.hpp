@@ -33,6 +33,21 @@ namespace vast::hl
 
     using ModuleRef = mlir::OwningModuleRef;
 
+    template< typename T >
+    struct ScopedSymbolTable : llvm::ScopedHashTable< StringRef, T > {
+        using ValueType = T;
+
+        using Base = llvm::ScopedHashTable< StringRef, T >;
+        using Base::Base;
+
+        LogicalResult declare(StringRef name, T value) {
+            if (this->count(name))
+                return mlir::failure();
+            this->insert(name, value);
+            return mlir::success();
+        }
+    };
+
     struct TranslationContext {
         MContext &mctx;
         AContext &actx;
@@ -45,18 +60,10 @@ namespace vast::hl
             , actx(actx)
             , mod(mod) {}
 
-        // The symbol table maps a variable name to a value in the current scope.
-        // Entering a function creates a new scope, and the function arguments are
-        // added to the mapping. When the processing of a function is terminated, the
-        // scope is destroyed and the mappings created in this scope are dropped.
-        llvm::ScopedHashTable< StringRef, Value > symbols;
-
-        LogicalResult declare(StringRef var, Value value) {
-            if (symbols.count(var))
-                return mlir::failure();
-            symbols.insert(var, value);
-            return mlir::success();
-        }
+        ScopedSymbolTable< Value > variables;
+        ScopedSymbolTable< mlir::FuncOp > functions;
+        ScopedSymbolTable< TypeDefOp > type_defs;
+        ScopedSymbolTable< TypeDeclOp > type_decls;
 
         MContext &getMLIRContext() { return mctx; }
         AContext &getASTContext() { return actx; }
@@ -69,11 +76,31 @@ namespace vast::hl
 
         clang::SourceManager &getSourceManager() { return actx.getSourceManager(); }
 
-        auto lookup_symbol(StringRef name) { return mod->lookupSymbol< mlir::FuncOp >(name); }
+        auto error(llvm::Twine msg) { return mod->emitError(msg); }
 
-        auto lookup_typedecl(StringRef name) { return mod->lookupSymbol< TypeDeclOp >(name); }
+        template< typename Table, typename ValueType = typename Table::ValueType >
+        ValueType symbol(Table &table, StringRef name, llvm::Twine msg) {
+            if (auto val = table.lookup(name))
+                return val;
+            error(msg);
+            return nullptr;
+        }
 
-        void emitError(llvm::Twine msg) { mod->emitError(msg); }
+        mlir::FuncOp lookup_function(StringRef name) {
+            return symbol(functions, name, "error: undeclared function '" + name + "'");
+        }
+
+        Value lookup_variable(StringRef name) {
+            return symbol(variables, name, "error: undeclared variable '" + name + "'");
+        }
+
+        TypeDeclOp lookup_typedecl(StringRef name) {
+            return symbol(type_decls, name, "error: unknown type declaration '" + name + "'");
+        }
+
+        TypeDefOp lookup_typedef(StringRef name) {
+            return symbol(type_defs, name, "error: unknown type definition '" + name + "'");
+        }
     };
 
     inline bool check(const ValueOrStmt &val) {

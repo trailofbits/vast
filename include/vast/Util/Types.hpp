@@ -12,6 +12,12 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast
 {
+    // TODO(Heno): move to gap
+    template< typename F, typename... Args >
+    concept invocable = requires(F &&f, Args &&...args) {
+        std::invoke(std::forward< F >(f), std::forward< Args >(args)...);
+    };
+
     // TODO(Heno): use integral concepts
     template< typename I >
     constexpr int bits()

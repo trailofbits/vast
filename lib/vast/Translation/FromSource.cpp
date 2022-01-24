@@ -210,6 +210,20 @@ namespace vast::hl
             return builder.constant(loc, type, lit->getValue());
         }
 
+        void walk_type(clang::QualType type, invocable< clang::Type * > auto yield) {
+            if (yield(type)) {
+                return;
+            }
+
+            if (auto arr = clang::dyn_cast< clang::ArrayType >(type)) {
+                walk_type(arr->getElementType(), yield);
+            }
+
+            if (auto ptr = clang::dyn_cast< clang::PointerType >(type)) {
+                walk_type(ptr->getPointeeType(), yield);
+            }
+        }
+
         // Binary Operations
 
         ValueOrStmt VisitBinPtrMemD(clang::BinaryOperator *expr) {
@@ -643,9 +657,7 @@ namespace vast::hl
 
         mlir::FuncOp VisitDirectCallee(clang::FunctionDecl *callee) {
             auto name = callee->getName();
-            auto fn   = ctx.lookup_symbol(name);
-            CHECK(fn, "missing function symbol {}", name);
-            return fn;
+            return ctx.lookup_function(name);
         }
 
         mlir::Value VisitIndirectCallee(clang::Expr *callee) {
@@ -1231,15 +1243,28 @@ namespace vast::hl
             auto loc  = builder.get_location(decl->getSourceRange());
             auto name = decl->getName();
 
-            auto type = [this, underlying = decl->getUnderlyingType()]() -> mlir::Type {
+            auto type = [&]() -> mlir::Type {
+                auto underlying = decl->getUnderlyingType();
                 if (auto fty = clang::dyn_cast< clang::FunctionType >(underlying)) {
                     return types.convert(fty);
                 }
 
+                // predeclare named underlying types if necessery
+                walk_type(underlying, [&](auto ty) {
+                    if (auto tag = clang::dyn_cast< clang::TagType >(ty)) {
+                        auto tag_name = tag->getDecl()->getName();
+                        if (ctx.type_decls.lookup(tag_name))
+                            return true; // stop recursive yield
+                        builder.declare_type(loc, tag_name);
+                    }
+
+                    return false;
+                });
+
                 return types.convert(underlying);
             }();
 
-            return builder.make< TypeDef >(loc, name, type);
+            return builder.define_type(loc, type, name);
         }
 
         ValueOrStmt VisitTypeAliasDecl(clang::TypeAliasDecl *decl) {
@@ -1259,6 +1284,8 @@ namespace vast::hl
 
         ValueOrStmt VisitRecordDecl(clang::RecordDecl *decl) {
             auto loc  = builder.get_location(decl->getSourceRange());
+            auto name = decl->getName();
+            builder.declare_type(loc, name);
             auto record_type = types.convert(decl->getTypeForDecl());
             return builder.define_type(loc, record_type, decl->getName());
         }
@@ -1270,17 +1297,20 @@ namespace vast::hl
         ValueOrStmt VisitFunctionDecl(clang::FunctionDecl *decl) {
             auto name = decl->getName();
 
-            if (auto fn = ctx.lookup_symbol(name))
+            if (auto fn = ctx.functions.lookup(name))
                 return fn;
 
             ScopedInsertPoint builder_scope(builder);
-            llvm::ScopedHashTableScope scope(ctx.symbols);
+            llvm::ScopedHashTableScope scope(ctx.variables);
 
             auto loc  = builder.get_location(decl->getSourceRange());
             auto type = types.convert(decl->getFunctionType());
             assert(type);
 
             auto fn = builder.make< mlir::FuncOp >(loc, name, type);
+            if (failed(ctx.functions.declare(name, fn))) {
+                ctx.error("error: multiple declarations of a same function" + name);
+            }
 
             // TODO(Heno): move to function prototype lifting
             if (!decl->isMain())
@@ -1294,8 +1324,8 @@ namespace vast::hl
             // In MLIR the entry block of the function must have the same argument list as the
             // function itself.
             for (const auto &[arg, earg] : llvm::zip(decl->parameters(), entry->getArguments())) {
-                if (failed(ctx.declare(arg->getName(), earg)))
-                    ctx.emitError("multiple declarations of a same symbol" + arg->getName());
+                if (failed(ctx.variables.declare(arg->getName(), earg)))
+                    ctx.error("error: multiple declarations of a same symbol" + arg->getName());
             }
 
             builder.set_insertion_point_to_start(entry);
@@ -1678,6 +1708,11 @@ namespace vast::hl
         auto ast = clang::tooling::buildASTFromCodeWithArgs(input->getBuffer(), compiler_args);
 
         TranslationContext tctx(*ctx, ast->getASTContext(), mod);
+
+        // TODO(Heno): verify correct scopes of type names
+        llvm::ScopedHashTableScope type_def_scope(tctx.type_defs);
+        llvm::ScopedHashTableScope type_dec_scope(tctx.type_decls);
+        llvm::ScopedHashTableScope func_scope(tctx.functions);
 
         VastCodeGen codegen(tctx);
         codegen.HandleTranslationUnit(ast->getASTContext());

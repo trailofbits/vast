@@ -88,7 +88,7 @@ def HighLevel_TypeDeclOp
   let assemblyFormat = [{ $sym_name attr-dict }];
 }
 
-def HighLevel_TypeDef : HighLevel_Op< "typedef", [] >
+def HighLevel_TypeDefOp : HighLevel_Op< "typedef", [] >
 {
   let arguments = (ins
     FlatSymbolRefAttr:$sym_name,

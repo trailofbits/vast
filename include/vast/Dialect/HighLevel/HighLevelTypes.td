@@ -237,8 +237,8 @@ def ConstantArrayType : HighLevelType< "ConstantArray",
   }];
 }
 
-def Alias : HighLevelType< "Alias" > {
-  let mnemonic = "alias";
+def NamedType : HighLevelType< "Named" > {
+  let mnemonic = "named_type";
 
   let parameters = (ins
     "mlir::SymbolRefAttr":$name
