@@ -345,7 +345,7 @@ namespace vast::hl
         printer << ">";
     }
 
-    Type AliasType::parse(Context *ctx, DialectParser &parser) {
+    Type NamedType::parse(Context *ctx, DialectParser &parser) {
         if (failed(parser.parseLess())) {
             return Type();
         }
@@ -354,7 +354,7 @@ namespace vast::hl
         // TODO(Heno): use parseSymbolName from MLIR 14
         if (failed(parser.parseAttribute(name))) {
             auto loc = parser.getCurrentLocation();
-            parser.emitError(loc, "expected alias name symbol");
+            parser.emitError(loc, "expected type name symbol");
             return Type();
         }
 
@@ -362,10 +362,10 @@ namespace vast::hl
             return Type();
         }
 
-        return AliasType::get(ctx, name);
+        return NamedType::get(ctx, name);
     }
 
-    void AliasType::print(DialectPrinter &printer) const {
+    void NamedType::print(DialectPrinter &printer) const {
         printer << getMnemonic() << "<" << getName() << ">";
     }
 
