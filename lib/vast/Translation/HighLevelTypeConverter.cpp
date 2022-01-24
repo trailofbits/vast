@@ -156,23 +156,37 @@ namespace vast::hl
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(const clang::PointerType *ty, Quals quals) {
-        auto pointee = convert(ty->getPointeeType());
+        auto pointee = [&] {
+            auto p = ty->getPointeeType();
+            if (auto elab = clang::dyn_cast< clang::ElaboratedType >(p))
+                return elab->getNamedType();
+            return p;
+        }();
+
+        auto converted_pointee = [&]() -> Type {
+            // stop recursive type generation via name alias
+            if (auto tag = clang::dyn_cast< clang::TagType >(pointee)) {
+                auto tag_name = tag->getDecl()->getName();
+                if (ctx.type_decls.count(tag_name)) {
+                    auto mctx = &ctx.getMLIRContext();
+                    return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, tag_name));
+                }
+            }
+            return convert(pointee);
+        }();
+
         return PointerType::get(
-            &ctx.getMLIRContext(), pointee, quals.hasConst(), quals.hasVolatile());
+            &ctx.getMLIRContext(), converted_pointee, quals.hasConst(), quals.hasVolatile());
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(const clang::RecordType *ty, Quals quals) {
         auto decl = ty->getDecl();
         CHECK(decl->getIdentifier(), "anonymous records not supported yet");
         auto name = decl->getName();
-
         auto mctx = &ctx.getMLIRContext();
 
-        if (!ctx.lookup_typedecl(name)) {
-            HighLevelBuilder builder(ctx);
-
-            auto loc = builder.get_location(decl->getSourceRange());
-            builder.declare_type(loc, name);
+        if (!ctx.type_defs.count(name)) {
+            CHECK(ctx.type_decls.count(name), "error: to define type it needs to be declared first");
 
             llvm::SmallVector< FieldInfo > fields;
             for (const auto &field : decl->fields()) {
@@ -181,11 +195,10 @@ namespace vast::hl
                 fields.push_back(FieldInfo{ field_name, field_type });
             }
 
-            auto rec = RecordType::get(mctx, fields);
-            builder.define_type(loc, rec, name);
+            return RecordType::get(mctx, fields);
         }
 
-        return AliasType::get(mctx, mlir::SymbolRefAttr::get(mctx, name));
+        return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, name));
     }
 
     Type HighLevelTypeConverter::do_convert(const clang::ConstantArrayType *ty, Quals quals) {
