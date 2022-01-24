@@ -300,6 +300,11 @@ namespace vast::hl
 
     static ParseResult parse_fields(DialectParser &p, Fields &fields) {
         auto ctx = p.getBuilder().getContext();
+
+        if (mlir::succeeded(p.parseOptionalGreater())) {
+            return mlir::success();
+        }
+
         while (true) {
             llvm::StringRef name;
             Type type;
