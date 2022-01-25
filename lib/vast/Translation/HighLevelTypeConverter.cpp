@@ -105,6 +105,9 @@ namespace vast::hl
         if (ty->isRecordType())
             return do_convert(clang::cast< clang::RecordType >(ty), quals);
 
+        if (ty->isEnumeralType())
+            return do_convert(clang::cast< clang::EnumType >(ty), quals);
+
         if (ty->isConstantArrayType())
             return do_convert(clang::cast< clang::ConstantArrayType >(ty), quals);
 
@@ -199,6 +202,14 @@ namespace vast::hl
         }
 
         return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, name));
+    }
+
+    mlir::Type HighLevelTypeConverter::do_convert(const clang::EnumType *ty, Quals quals) {
+        auto decl = ty->getDecl();
+        CHECK(decl->getIdentifier(), "anonymous enums not supported yet");
+
+        auto mctx = &ctx.getMLIRContext();
+        return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, decl->getName()));
     }
 
     Type HighLevelTypeConverter::do_convert(const clang::ConstantArrayType *ty, Quals quals) {
