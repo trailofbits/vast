@@ -336,12 +336,9 @@ namespace vast::hl
         return RecordType::get(ctx, fields);
     }
 
-    void RecordType::print(DialectPrinter &printer) const
-    {
+    void RecordType::print(DialectPrinter &printer) const {
         printer << getMnemonic() << "<";
-        llvm::interleaveComma(getFields(), printer.getStream(), [&](const FieldInfo &field) {
-            printer << field.name.getValue() << ": " << field.type;
-        });
+        llvm::interleaveComma(getFields(), printer.getStream());
         printer << ">";
     }
 

@@ -81,6 +81,11 @@ namespace vast::hl
             return a.name == b.name && a.type == b.type;
         }
 
+        template< typename stream >
+        friend auto operator<<(stream &out, const FieldInfo &fi) noexcept -> decltype(out << "") {
+            return out << fi.name.getValue() << " : " << fi.type;
+        }
+
         friend llvm::hash_code hash_value(const FieldInfo &fi)
         {
             return llvm::hash_combine(fi.name, fi.type);
