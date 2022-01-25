@@ -1280,18 +1280,34 @@ namespace vast::hl
 
         ValueOrStmt VisitLabelDecl(clang::LabelDecl *decl) { UNREACHABLE("unsupported LabelDecl"); }
 
-        ValueOrStmt VisitEnumDecl(clang::EnumDecl *decl) { UNREACHABLE("unsupported EnumDecl"); }
+        ValueOrStmt VisitEnumDecl(clang::EnumDecl *decl) {
+            auto loc  = builder.get_location(decl->getSourceRange());
+            auto name = decl->getName();
+
+            auto type = types.convert(decl->getIntegerType());
+
+            auto constants = [&](auto &bld, auto loc) {
+                for (auto con : decl->enumerators()) {
+                    Visit(con);
+                }
+            };
+
+            return builder.declare_enum(loc, name, type, constants);
+        }
 
         ValueOrStmt VisitRecordDecl(clang::RecordDecl *decl) {
             auto loc  = builder.get_location(decl->getSourceRange());
             auto name = decl->getName();
             builder.declare_type(loc, name);
             auto record_type = types.convert(decl->getTypeForDecl());
-            return builder.define_type(loc, record_type, decl->getName());
+            return builder.define_type(loc, record_type, name);
         }
 
         ValueOrStmt VisitEnumConstantDecl(clang::EnumConstantDecl *decl) {
-            UNREACHABLE("unsupported EnumConstantDecl");
+            auto loc   = builder.get_location(decl->getSourceRange());
+            auto name  = decl->getName();
+            auto value = decl->getInitVal();
+            return builder.make< EnumConstantOp >(loc, name, value);
         }
 
         ValueOrStmt VisitFunctionDecl(clang::FunctionDecl *decl) {
@@ -1712,6 +1728,7 @@ namespace vast::hl
         // TODO(Heno): verify correct scopes of type names
         llvm::ScopedHashTableScope type_def_scope(tctx.type_defs);
         llvm::ScopedHashTableScope type_dec_scope(tctx.type_decls);
+        llvm::ScopedHashTableScope enum_dec_scope(tctx.enum_decls);
         llvm::ScopedHashTableScope func_scope(tctx.functions);
 
         VastCodeGen codegen(tctx);
