@@ -69,7 +69,7 @@ def HighLevel_VarOp    : HighLevel_VarDecl< "var" > {}
 def HighLevel_GlobalOp : HighLevel_VarDecl< "global", [HasParent<"mlir::ModuleOp">]> {}
 
 def HighLevel_TypeDeclOp
-  : HighLevel_Op< "typedecl", [NoSideEffect, Symbol] >
+  : HighLevel_Op< "type.decl", [NoSideEffect, Symbol] >
 {
   let summary = "VAST type declaration";
   let description = [{ VAST type declaration }];
@@ -90,9 +90,57 @@ def HighLevel_TypeDefOp : HighLevel_Op< "typedef", [] >
     FlatSymbolRefAttr:$sym_name,
     TypeAttr:$type
   );
-  let results = (outs);
 
   let assemblyFormat = [{ $sym_name attr-dict `:` $type }];
+}
+
+def HighLevel_EnumConstantOp
+  : HighLevel_Op< "enum.const", [NoSideEffect, Symbol] >
+{
+  let summary = "VAST enum constant declaration";
+  let description = [{ VAST enum constant declaration }];
+
+  let arguments = (ins
+    SymbolNameAttr:$sym_name,
+    APIntAttr:$value
+  );
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "llvm::StringRef":$name,
+      "llvm::APSInt":$value
+    )>
+  ];
+
+  let assemblyFormat = [{ $sym_name `=` $value attr-dict }];
+}
+
+def HighLevel_EnumDeclOp
+  : HighLevel_Op< "enum.decl", [NoSideEffect, Symbol, NoTerminator] >
+{
+  let summary = "VAST enum declaration";
+  let description = [{ VAST enum declaration }];
+
+  let arguments = (ins
+    SymbolNameAttr:$sym_name,
+    TypeAttr:$type // TODO(Heno): check integer like type attr
+  );
+
+  let regions = (region AnyRegion:$constants);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "llvm::StringRef":$name,
+      "mlir::Type":$type,
+      "BuilderCallback":$constants
+    )>
+  ];
+
+  let results = (outs );
+
+  let assemblyFormat = [{ $sym_name attr-dict `:` $type $constants }];
 }
 
 def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
