@@ -8,8 +8,6 @@ include "mlir/Interfaces/CallInterfaces.td"
 def HighLevel_ScopeOp
   : HighLevel_Op< "scope", [NoTerminator] >
 {
-  let arguments = (ins);
-  let results = (outs);
   let regions = (region AnyRegion:$body);
 
   let assemblyFormat = [{ $body attr-dict }];
@@ -77,8 +75,6 @@ def HighLevel_TypeDeclOp
   let description = [{ VAST type declaration }];
 
   let arguments = (ins SymbolNameAttr:$sym_name);
-
-  let results = (outs);
 
   let skipDefaultBuilders = 1;
   let builders = [
