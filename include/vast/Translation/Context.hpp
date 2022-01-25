@@ -64,6 +64,7 @@ namespace vast::hl
         ScopedSymbolTable< mlir::FuncOp > functions;
         ScopedSymbolTable< TypeDefOp > type_defs;
         ScopedSymbolTable< TypeDeclOp > type_decls;
+        ScopedSymbolTable< EnumDeclOp > enum_decls;
 
         MContext &getMLIRContext() { return mctx; }
         AContext &getASTContext() { return actx; }
@@ -100,6 +101,10 @@ namespace vast::hl
 
         TypeDefOp lookup_typedef(StringRef name) {
             return symbol(type_defs, name, "error: unknown type definition '" + name + "'");
+        }
+
+        EnumDeclOp lookup_enum(StringRef name) {
+            return symbol(enum_decls, name, "error: unknown enum '" + name + "'");
         }
     };
 
