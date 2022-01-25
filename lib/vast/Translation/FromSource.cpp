@@ -518,8 +518,11 @@ namespace vast::hl
         }
 
         ValueOrStmt VisitDeclStmt(clang::DeclStmt *stmt) {
-            assert(stmt->isSingleDecl());
-            return Visit(*(stmt->decls().begin()));
+            ValueOrStmt last;
+            for (auto decl : stmt->decls()) {
+                last = Visit(decl);
+            }
+            return last;
         }
 
         ValueOrStmt VisitDoStmt(clang::DoStmt *stmt) {
