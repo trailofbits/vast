@@ -551,9 +551,7 @@ namespace vast::hl
         }
 
         ValueOrStmt VisitConstantExpr(clang::ConstantExpr *expr) {
-            auto loc  = builder.get_location(expr->getSourceRange());
-            auto type = types.convert(expr->getType());
-            return builder.constant(loc, type, expr->getResultAsAPSInt());
+            return Visit(expr->getSubExpr());
         }
 
         ValueOrStmt VisitArraySubscriptExpr(clang::ArraySubscriptExpr *expr) {
@@ -825,12 +823,10 @@ namespace vast::hl
         }
 
         ValueOrStmt VisitInitListExpr(clang::InitListExpr *expr) {
-            CHECK(expr->getType()->isArrayType(), "non-array initializer list is not supported");
-
             auto loc = builder.get_location(expr->getSourceRange());
             auto ty  = types.convert(expr->getType());
 
-            std::vector< Value > elements;
+            llvm::SmallVector< Value > elements;
             for (auto elem : expr->inits()) {
                 elements.push_back(std::get< Value >(Visit(elem)));
             }
