@@ -1310,6 +1310,12 @@ namespace vast::hl
             auto loc   = builder.get_location(decl->getSourceRange());
             auto name  = decl->getName();
             auto value = decl->getInitVal();
+
+            if (decl->getInitExpr()) {
+                auto init = make_value_builder(decl->getInitExpr());
+                return builder.make< EnumConstantOp >(loc, name, value, init);
+            }
+
             return builder.make< EnumConstantOp >(loc, name, value);
         }
 

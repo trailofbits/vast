@@ -179,9 +179,12 @@ namespace vast::hl
         detail::build_region(bld, st, constants);
     }
 
-    void EnumConstantOp::build(Builder &bld, State &st, llvm::StringRef name, llvm::APSInt value) {
+    void EnumConstantOp::build(Builder &bld, State &st, llvm::StringRef name, llvm::APSInt value, BuilderCallback init) {
         st.addAttribute(mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name));
         st.addAttribute("value", mlir::IntegerAttr::get(bld.getContext(), value));
+
+        Builder::InsertionGuard guard(bld);
+        detail::build_region(bld, st, init);
     }
 
     mlir::CallInterfaceCallable CallOp::getCallableForCallee()

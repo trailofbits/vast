@@ -105,15 +105,18 @@ def HighLevel_EnumConstantOp
     APIntAttr:$value
   );
 
+  let regions = (region AnyRegion:$init);
+
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
       "llvm::StringRef":$name,
-      "llvm::APSInt":$value
+      "llvm::APSInt":$value,
+      CArg< "BuilderCallback", "nullptr">:$init
     )>
   ];
 
-  let assemblyFormat = [{ $sym_name `=` $value attr-dict }];
+  let assemblyFormat = [{ $sym_name `=` $value attr-dict (`init` $init^)? }];
 }
 
 def HighLevel_EnumDeclOp
@@ -137,8 +140,6 @@ def HighLevel_EnumDeclOp
       "BuilderCallback":$constants
     )>
   ];
-
-  let results = (outs );
 
   let assemblyFormat = [{ $sym_name attr-dict `:` $type $constants }];
 }
