@@ -49,7 +49,6 @@ def HighLevel_ValueYieldOp : HighLevel_Op< "value.yield", [
 
   // TODO(Heno): check on type
   let arguments = (ins AnyType:$result);
-  let results = (outs);
 
   let assemblyFormat = [{ attr-dict $result `:` type($result) }];
 }
