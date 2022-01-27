@@ -116,9 +116,6 @@ namespace vast::hl
         }
 
         auto define_type(mlir::Location loc, mlir::Type type, llvm::StringRef name) {
-            // declare the type first to allow recursive type definitions
-            declare_type(loc, name);
-
             if (auto def = ctx.type_defs.lookup(name))
                 return def;
 
