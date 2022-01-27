@@ -1,48 +1,56 @@
 // RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
 // RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK: hl.type.decl @empty
-// CHECK: hl.typedef @empty : !hl.record<>
+// CHECK: hl.type.decl @struct.empty
+// CHECK: hl.record @struct.empty
 struct empty {};
 
-// CHECK: hl.type.decl @pair
-// CHECK: hl.typedef @pair : !hl.record<a : !hl.int, b : !hl.int>
+// CHECK: hl.type.decl @struct.pair
+// CHECK: hl.record @struct.pair : {
+// CHECK:  hl.field @a : !hl.int
+// CHECK:  hl.field @b : !hl.int
+// CHECK: }
 struct pair {
   int a, b;
 };
 
-// CHECK: hl.global @p : !hl.named_type<@pair>
+// CHECK: hl.global @p : !hl.named_type<@struct.pair>
 struct pair p;
 
-// CHECK: hl.type.decl @forward
+// CHECK: hl.type.decl @struct.forward
 struct forward;
 
-// CHECK: hl.typedef @forward : !hl.record<a : !hl.int>
+// CHECK: hl.record @struct.forward : {
+// CHECK:  hl.field @a : !hl.int
+// CHECK: }
 struct forward {
   int a;
 };
 
-// CHECK: hl.type.decl @wrap
-// CHECK: hl.typedef @wrap : !hl.record<v : !hl.int>
+// CHECK: hl.type.decl @struct.wrap
+// CHECK: hl.record @struct.wrap : {
+// CHECK:  hl.field @v : !hl.int
+// CHECK: }
+
+// CHECK: hl.typedef @wrap_t : !hl.named_type<@struct.wrap>
 typedef struct wrap {
   int v;
-} wrap;
+} wrap_t;
 
-// CHECK: hl.global @w : !hl.named_type<@wrap>
-wrap w;
+// CHECK: hl.global @w : !hl.named_type<@wrap_t>
+wrap_t w;
 
-// CHECK: hl.type.decl @nested
-// CHECK: hl.typedef @nested : !hl.record<>
-struct nested {};
-
-// CHECK: hl.type.decl @compound
-// CHECK: hl.typedef @compound : !hl.record<n : !hl.named_type<@nested>, w : !hl.named_type<@wrap>>
+// CHECK: hl.type.decl @struct.compound
+// CHECK: hl.record @struct.compound : {
+// CHECK:  hl.field @e : !hl.named_type<@struct.empty>
+// CHECK:  hl.field @w : !hl.named_type<@wrap_t>
+// CHECK: }
 struct compound {
-  struct nested n;
-  wrap w;
+  struct empty e;
+  wrap_t w;
 };
 
 int main() {
-  // CHECK: hl.var @e : !hl.named_type<@empty>
+  // CHECK: hl.var @e : !hl.named_type<@struct.empty>
   struct empty e;
 }
