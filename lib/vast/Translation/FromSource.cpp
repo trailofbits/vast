@@ -1300,8 +1300,13 @@ namespace vast::hl
         ValueOrStmt VisitRecordDecl(clang::RecordDecl *decl) {
             auto loc  = builder.get_location(decl->getSourceRange());
             auto name = ctx.record_name(decl);
-            builder.declare_type(loc, name);
+            // declare the type first to allow recursive type definitions
+            auto rec_decl = builder.declare_type(loc, name);
+            if (!decl->isCompleteDefinition()) {
+                return rec_decl;
+            }
 
+            // generate record definition
             if (decl->field_empty()) {
                 return builder.make< RecordDeclOp >(loc, name);
             }
