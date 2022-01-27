@@ -180,6 +180,24 @@ def HighLevel_FieldDeclOp : HighLevel_Op< "field", [NoSideEffect, Symbol] >
   let assemblyFormat = [{ $sym_name attr-dict `:`$type }];
 }
 
+def HighLevel_RecordMemberOp : HighLevel_Op< "member" >
+{
+  let summary = "VAST record element access operation";
+  let description = [{ VAST record element access operation }];
+
+  // TODO(Heno): add type constraints
+  let arguments = (ins
+    AnyType:$record,
+    FlatSymbolRefAttr:$name
+  );
+
+  let results = (outs AnyType:$element);
+
+  let assemblyFormat = [{
+    $record `at` $name attr-dict `:` type($record) `->` type($element)
+  }];
+}
+
 def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
 {
   let summary = "VAST call operation";

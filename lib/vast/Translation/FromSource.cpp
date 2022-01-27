@@ -851,7 +851,12 @@ namespace vast::hl
         }
 
         ValueOrStmt VisitMemberExpr(clang::MemberExpr *expr) {
-            UNREACHABLE("unsupported MemberExpr");
+            auto loc   = builder.get_location(expr->getSourceRange());
+            auto field = llvm::dyn_cast< clang::FieldDecl >(expr->getMemberDecl());
+            auto name  = field->getName();
+            auto base  = Visit(expr->getBase());
+            auto type  = types.convert(expr->getType());
+            return builder.make_value< RecordMemberOp >(loc, type, base, name);
         }
 
         ValueOrStmt VisitObjCArrayLiteral(clang::ObjCArrayLiteral *expr) {
