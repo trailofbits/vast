@@ -1284,8 +1284,7 @@ namespace vast::hl
 
         ValueOrStmt VisitEnumDecl(clang::EnumDecl *decl) {
             auto loc  = builder.get_location(decl->getSourceRange());
-            auto name = decl->getName();
-
+            auto name = ctx.elaborated_name(decl);
             auto type = types.convert(decl->getIntegerType());
 
             auto constants = [&](auto &bld, auto loc) {
@@ -1299,7 +1298,7 @@ namespace vast::hl
 
         ValueOrStmt VisitRecordDecl(clang::RecordDecl *decl) {
             auto loc  = builder.get_location(decl->getSourceRange());
-            auto name = ctx.record_name(decl);
+            auto name = ctx.elaborated_name(decl);
             // declare the type first to allow recursive type definitions
             auto rec_decl = builder.declare_type(loc, name);
             if (!decl->isCompleteDefinition()) {

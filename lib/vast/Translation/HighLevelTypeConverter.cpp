@@ -94,6 +94,7 @@ namespace vast::hl
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(const clang::Type *ty, Quals quals) {
+        bool elaborated = llvm::isa< clang::ElaboratedType >(ty);
         ty = ty->getUnqualifiedDesugaredType();
 
         if (ty->isBuiltinType())
@@ -103,10 +104,10 @@ namespace vast::hl
             return do_convert(clang::cast< clang::PointerType >(ty), quals);
 
         if (ty->isRecordType())
-            return do_convert(clang::cast< clang::RecordType >(ty), quals);
+            return do_convert(clang::cast< clang::RecordType >(ty), quals, elaborated);
 
         if (ty->isEnumeralType())
-            return do_convert(clang::cast< clang::EnumType >(ty), quals);
+            return do_convert(clang::cast< clang::EnumType >(ty), quals, elaborated);
 
         if (ty->isConstantArrayType())
             return do_convert(clang::cast< clang::ConstantArrayType >(ty), quals);
@@ -159,42 +160,27 @@ namespace vast::hl
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(const clang::PointerType *ty, Quals quals) {
-        auto pointee = [&] {
-            auto p = ty->getPointeeType();
-            if (auto elab = clang::dyn_cast< clang::ElaboratedType >(p))
-                return elab->getNamedType();
-            return p;
-        }();
-
-        auto converted_pointee = [&]() -> Type {
-            // stop recursive type generation via name alias
-            if (auto tag = clang::dyn_cast< clang::TagType >(pointee)) {
-                auto tag_name = tag->getDecl()->getName();
-                if (ctx.type_decls.count(tag_name)) {
-                    auto mctx = &ctx.getMLIRContext();
-                    return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, tag_name));
-                }
-            }
-            return convert(pointee);
-        }();
-
         return PointerType::get(
-            &ctx.getMLIRContext(), converted_pointee, quals.hasConst(), quals.hasVolatile());
+            &ctx.getMLIRContext(), convert(ty->getPointeeType()), quals.hasConst(),
+            quals.hasVolatile());
     }
 
-    mlir::Type HighLevelTypeConverter::do_convert(const clang::RecordType *ty, Quals quals) {
+    mlir::Type HighLevelTypeConverter::do_convert(
+        const clang::RecordType *ty, Quals quals, bool elaborated) 
+    {
         auto decl = ty->getDecl();
-        auto name = ctx.record_name(decl);
+        auto name = elaborated ? ctx.elaborated_name(decl) : decl->getName();
         auto mctx = &ctx.getMLIRContext();
         return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, name));
     }
 
-    mlir::Type HighLevelTypeConverter::do_convert(const clang::EnumType *ty, Quals quals) {
+    mlir::Type HighLevelTypeConverter::do_convert(
+        const clang::EnumType *ty, Quals quals, bool elaborated) 
+    {
         auto decl = ty->getDecl();
-        CHECK(decl->getIdentifier(), "anonymous enums not supported yet");
-
+        auto name = elaborated ? ctx.elaborated_name(decl) : decl->getName();
         auto mctx = &ctx.getMLIRContext();
-        return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, decl->getName()));
+        return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, name));
     }
 
     Type HighLevelTypeConverter::do_convert(const clang::ConstantArrayType *ty, Quals quals) {
