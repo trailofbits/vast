@@ -194,24 +194,6 @@ def PointerType : HighLevelType< "Pointer",
   let printer = [{ return print_pointer_type(*this, printer); }];
 }
 
-def RecordType : HighLevelType< "Record", [MemRefElementTypeInterface]> {
-  let mnemonic = "record";
-
-  let parameters = (ins
-    ArrayRefParameter<"FieldInfo", "record fields">:$fields
-  );
-
-  let builders = [
-    TypeBuilder<(ins "FieldRange":$fields), [{
-      return $_get($_ctxt, fields);
-    }]>,
-    TypeBuilder<(ins), [{
-      return $_get($_ctxt, FieldRange());
-    }]>
-  ];
-  let skipDefaultBuilders = 1;
-}
-
 def ConstantArrayType : HighLevelType< "ConstantArray",
                         [DeclareTypeInterfaceMethods< SubElementTypeInterface >,
                          MemRefElementTypeInterface]> {

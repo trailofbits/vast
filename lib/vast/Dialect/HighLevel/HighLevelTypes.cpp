@@ -296,52 +296,6 @@ namespace vast::hl
         return { std::move(out), collect(*this, collect) };
     }
 
-    using Fields = llvm::SmallVector< FieldInfo >;
-
-    static ParseResult parse_fields(DialectParser &p, Fields &fields) {
-        auto ctx = p.getBuilder().getContext();
-
-        if (mlir::succeeded(p.parseOptionalGreater())) {
-            return mlir::success();
-        }
-
-        while (true) {
-            llvm::StringRef name;
-            Type type;
-            if (p.parseKeyword(&name) || p.parseColon() || p.parseType(type))
-                return mlir::failure();
-            fields.push_back(FieldInfo{ mlir::StringAttr::get(ctx, name), type });
-
-            if (mlir::succeeded(p.parseOptionalGreater())) {
-                return mlir::success();
-            }
-
-            if (p.parseComma())
-                return mlir::failure();
-        }
-
-        return mlir::success();
-    }
-
-    Type RecordType::parse(Context *ctx, DialectParser &parser) {
-        if (failed(parser.parseLess())) {
-            return Type();
-        }
-
-        Fields fields;
-        if (failed(parse_fields(parser, fields))) {
-            return Type();
-        }
-
-        return RecordType::get(ctx, fields);
-    }
-
-    void RecordType::print(DialectPrinter &printer) const {
-        printer << getMnemonic() << "<";
-        llvm::interleaveComma(getFields(), printer.getStream());
-        printer << ">";
-    }
-
     Type NamedType::parse(Context *ctx, DialectParser &parser) {
         if (failed(parser.parseLess())) {
             return Type();
