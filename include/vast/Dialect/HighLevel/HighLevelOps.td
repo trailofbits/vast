@@ -169,7 +169,7 @@ def HighLevel_RecordDeclOp : HighLevel_Op< "record", [NoSideEffect, NoTerminator
     )>
   ];
 
-  let assemblyFormat = [{ $name attr-dict $fields }];
+  let assemblyFormat = [{ $name attr-dict `:` $fields }];
 }
 
 def HighLevel_FieldDeclOp : HighLevel_Op< "field", [NoSideEffect, Symbol] >
@@ -182,7 +182,7 @@ def HighLevel_FieldDeclOp : HighLevel_Op< "field", [NoSideEffect, Symbol] >
     TypeAttr:$type
   );
 
-  let assemblyFormat = [{ $sym_name attr-dict `:`$type }];
+  let assemblyFormat = [{ $sym_name attr-dict `:` $type }];
 }
 
 def HighLevel_RecordMemberOp : HighLevel_Op< "member" >
