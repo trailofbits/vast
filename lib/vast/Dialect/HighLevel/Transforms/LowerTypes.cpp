@@ -32,12 +32,7 @@ namespace vast::hl
         CHECK(static_cast< bool >(t), "Argument of in `contains_hl_type` is not valid.");
         // We need to manually check `t` itself.
         bool found = isHighLevelType(t);
-        auto is_hl = [&](auto t)
-        {
-            if (t.template isa< hl::RecordType >())
-                return;
-            found |= isHighLevelType(t);
-        };
+        auto is_hl = [&](auto t) { found |= isHighLevelType(t); };
         // If `t` is aggregate, walk over all nested types.
         if (auto is_aggregate = t.dyn_cast< mlir::SubElementTypeInterface >())
             is_aggregate.walkSubTypes(is_hl);
@@ -122,9 +117,6 @@ namespace vast::hl
             {
                     return { mlir::NoneType::get(&mctx) };
             });
-            // TODO(lukas): Support properly.
-            addConversion([&](hl::RecordType t) { return t; });
-
         }
 
         maybe_types_t convert_type(mlir::Type t)
