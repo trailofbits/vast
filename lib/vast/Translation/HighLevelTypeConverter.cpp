@@ -185,23 +185,9 @@ namespace vast::hl
     mlir::Type HighLevelTypeConverter::do_convert(const clang::RecordType *ty, Quals quals) {
         auto decl = ty->getDecl();
         CHECK(decl->getIdentifier(), "anonymous records not supported yet");
-        auto name = decl->getName();
+
         auto mctx = &ctx.getMLIRContext();
-
-        if (!ctx.type_defs.count(name)) {
-            CHECK(ctx.type_decls.count(name), "error: to define type it needs to be declared first");
-
-            llvm::SmallVector< FieldInfo > fields;
-            for (const auto &field : decl->fields()) {
-                auto field_name = mlir::StringAttr::get(mctx, field->getName());
-                auto field_type = convert(field->getType());
-                fields.push_back(FieldInfo{ field_name, field_type });
-            }
-
-            return RecordType::get(mctx, fields);
-        }
-
-        return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, name));
+        return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, decl->getName()));
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(const clang::EnumType *ty, Quals quals) {
