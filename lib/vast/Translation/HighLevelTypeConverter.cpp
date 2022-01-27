@@ -184,10 +184,9 @@ namespace vast::hl
 
     mlir::Type HighLevelTypeConverter::do_convert(const clang::RecordType *ty, Quals quals) {
         auto decl = ty->getDecl();
-        CHECK(decl->getIdentifier(), "anonymous records not supported yet");
-
+        auto name = ctx.record_name(decl);
         auto mctx = &ctx.getMLIRContext();
-        return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, decl->getName()));
+        return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, name));
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(const clang::EnumType *ty, Quals quals) {

@@ -66,6 +66,16 @@ namespace vast::hl
         ScopedSymbolTable< TypeDeclOp > type_decls;
         ScopedSymbolTable< EnumDeclOp > enum_decls;
 
+        llvm::DenseMap< clang::RecordDecl *, std::string > anonymous_records;
+
+        llvm::StringRef record_name(clang::RecordDecl *decl) {
+            if (decl->getIdentifier())
+                return decl->getName();
+            auto name    = "anonymous.record." + std::to_string(anonymous_records.size());
+            auto [it, _] = anonymous_records.try_emplace(decl, name);
+            return it->second;
+        }
+
         MContext &getMLIRContext() { return mctx; }
         AContext &getASTContext() { return actx; }
         ModuleRef &getModule() { return mod; }
