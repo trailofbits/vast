@@ -1251,10 +1251,8 @@ namespace vast::hl
                 // predeclare named underlying types if necessery
                 walk_type(underlying, [&](auto ty) {
                     if (auto tag = clang::dyn_cast< clang::TagType >(ty)) {
-                        auto tag_name = tag->getDecl()->getName();
-                        if (ctx.type_decls.lookup(tag_name))
-                            return true; // stop recursive yield
-                        builder.declare_type(loc, tag_name);
+                        Visit(tag->getDecl());
+                        return true; // stop recursive walk
                     }
 
                     return false;
@@ -1298,8 +1296,16 @@ namespace vast::hl
             auto loc  = builder.get_location(decl->getSourceRange());
             auto name = decl->getName();
             builder.declare_type(loc, name);
-            auto record_type = types.convert(decl->getTypeForDecl());
-            return builder.define_type(loc, record_type, name);
+
+            if (decl->field_empty()) {
+                return builder.make< RecordDeclOp >(loc, name);
+            }
+
+            return builder.make< RecordDeclOp >(loc, name, [&](auto &bld, auto loc) {
+                for (auto field : decl->fields()) {
+                    Visit(field);
+                }
+            });
         }
 
         ValueOrStmt VisitEnumConstantDecl(clang::EnumConstantDecl *decl) {
@@ -1409,7 +1415,12 @@ namespace vast::hl
             UNREACHABLE("unsupported MSGuidDecl");
         }
 
-        ValueOrStmt VisitFieldDecl(clang::FieldDecl *decl) { UNREACHABLE("unsupported FieldDecl"); }
+        ValueOrStmt VisitFieldDecl(clang::FieldDecl *decl) {
+            auto loc  = builder.get_location(decl->getSourceRange());
+            auto name = decl->getName();
+            auto type = types.convert(decl->getType());
+            return builder.make< FieldDeclOp >(loc, name, type);
+        }
 
         ValueOrStmt VisitIndirectFieldDecl(clang::IndirectFieldDecl *decl) {
             UNREACHABLE("unsupported IndirectFieldDecl");
