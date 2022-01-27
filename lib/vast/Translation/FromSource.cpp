@@ -1299,7 +1299,7 @@ namespace vast::hl
 
         ValueOrStmt VisitRecordDecl(clang::RecordDecl *decl) {
             auto loc  = builder.get_location(decl->getSourceRange());
-            auto name = decl->getName();
+            auto name = ctx.record_name(decl);
             builder.declare_type(loc, name);
 
             if (decl->field_empty()) {
