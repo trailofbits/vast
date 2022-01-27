@@ -84,12 +84,17 @@ def HighLevel_TypeDeclOp
   let assemblyFormat = [{ $sym_name attr-dict }];
 }
 
-def HighLevel_TypeDefOp : HighLevel_Op< "typedef", [] >
+def HighLevel_TypeDefOp : HighLevel_Op< "typedef", [Symbol] >
 {
   let arguments = (ins
-    FlatSymbolRefAttr:$sym_name,
+    SymbolNameAttr:$sym_name,
     TypeAttr:$type
   );
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins "llvm::StringRef":$name, "Type":$type)>
+  ];
 
   let assemblyFormat = [{ $sym_name attr-dict `:` $type }];
 }
