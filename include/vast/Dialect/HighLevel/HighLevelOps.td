@@ -144,6 +144,42 @@ def HighLevel_EnumDeclOp
   let assemblyFormat = [{ $sym_name attr-dict `:` $type $constants }];
 }
 
+def HighLevel_RecordDeclOp : HighLevel_Op< "record", [NoSideEffect, NoTerminator] >
+{
+  let summary = "VAST record declaration";
+  let description = [{ VAST record declaration }];
+
+  let arguments = (ins
+    SymbolRefAttr:$name
+  );
+
+  // TODO(Heno): add region constraints
+  let regions = (region AnyRegion:$fields);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "llvm::StringRef":$name,
+       CArg<"BuilderCallback", "nullptr">:$fields
+    )>
+  ];
+
+  let assemblyFormat = [{ $name attr-dict $fields }];
+}
+
+def HighLevel_FieldDeclOp : HighLevel_Op< "field", [NoSideEffect, Symbol] >
+{
+  let summary = "VAST record field declaration";
+  let description = [{ VAST record field declaration }];
+
+  let arguments = (ins
+    SymbolNameAttr:$sym_name,
+    TypeAttr:$type
+  );
+
+  let assemblyFormat = [{ $sym_name attr-dict `:`$type }];
+}
+
 def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
 {
   let summary = "VAST call operation";
