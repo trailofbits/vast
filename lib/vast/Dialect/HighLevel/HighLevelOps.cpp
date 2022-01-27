@@ -187,6 +187,14 @@ namespace vast::hl
         detail::build_region(bld, st, init);
     }
 
+    void RecordDeclOp::build(
+        Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
+        st.addAttribute("name", bld.getSymbolRefAttr(name));
+
+        Builder::InsertionGuard guard(bld);
+        detail::build_region(bld, st, fields);
+    }
+
     mlir::CallInterfaceCallable CallOp::getCallableForCallee()
     {
         return (*this)->getAttrOfType< mlir::SymbolRefAttr >("callee");
