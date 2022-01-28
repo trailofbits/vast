@@ -1,7 +1,7 @@
 // RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
 // RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK: hl.enum.decl @Foo : !hl.int<unsigned>
+// CHECK: hl.enum.decl @enum.Foo : !hl.int<unsigned>
 // CHECK:  hl.enum.const @A = 0 : si32
 // CHECK:  hl.enum.const @B = 1 : si32
 // CHECK:  hl.enum.const @C = 10 : si32 init
