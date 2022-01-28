@@ -94,6 +94,10 @@ namespace vast::hl
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(const clang::Type *ty, Quals quals) {
+        if (auto td = llvm::dyn_cast< clang::TypedefType >(ty)) {
+            return do_convert(td, quals);
+        }
+
         bool elaborated = llvm::isa< clang::ElaboratedType >(ty);
         ty = ty->getUnqualifiedDesugaredType();
 
@@ -166,8 +170,7 @@ namespace vast::hl
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(
-        const clang::RecordType *ty, Quals quals, bool elaborated) 
-    {
+        const clang::RecordType *ty, Quals quals, bool elaborated) {
         auto decl = ty->getDecl();
         auto name = elaborated ? ctx.elaborated_name(decl) : decl->getName();
         auto mctx = &ctx.getMLIRContext();
@@ -175,8 +178,7 @@ namespace vast::hl
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(
-        const clang::EnumType *ty, Quals quals, bool elaborated) 
-    {
+        const clang::EnumType *ty, Quals quals, bool elaborated) {
         auto decl = ty->getDecl();
         auto name = elaborated ? ctx.elaborated_name(decl) : decl->getName();
         auto mctx = &ctx.getMLIRContext();
@@ -201,6 +203,13 @@ namespace vast::hl
 
         auto rty = convert(ty->getReturnType());
         return mlir::FunctionType::get(&ctx.getMLIRContext(), args, rty);
+    }
+
+    mlir::Type HighLevelTypeConverter::do_convert(const clang::TypedefType *ty, Quals quals) {
+        auto decl = ty->getDecl();
+        auto name = decl->getName();
+        auto mctx = &ctx.getMLIRContext();
+        return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, name));
     }
 
 } // namseapce vast::hl

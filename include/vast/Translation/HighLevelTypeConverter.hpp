@@ -47,6 +47,8 @@ namespace vast::hl
         mlir::Type do_convert(const clang::RecordType *ty, Quals quals, bool elaborated);
         mlir::Type do_convert(const clang::EnumType *ty, Quals quals, bool elaborated);
 
+        mlir::Type do_convert(const clang::TypedefType *ty, Quals quals);
+
         TranslationContext &ctx;
     };
 
