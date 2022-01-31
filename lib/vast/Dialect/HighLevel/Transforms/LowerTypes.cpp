@@ -336,7 +336,6 @@ namespace vast::hl
     }
 }
 
-
 std::unique_ptr< mlir::Pass > vast::hl::createLowerHighLevelTypesPass()
 {
   return std::make_unique< LowerHighLevelTypesPass >();

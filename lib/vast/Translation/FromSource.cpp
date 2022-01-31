@@ -210,7 +210,7 @@ namespace vast::hl
             return builder.constant(loc, type, lit->getValue());
         }
 
-        void walk_type(clang::QualType type, invocable< clang::Type * > auto yield) {
+        void walk_type(clang::QualType type, invocable< clang::Type * > auto &&yield) {
             if (yield(type)) {
                 return;
             }
