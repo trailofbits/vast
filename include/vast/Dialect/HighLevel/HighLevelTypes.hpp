@@ -79,13 +79,10 @@ namespace vast::hl
         mlir::StringAttr name;
         mlir::Type type;
 
-        friend bool operator==(const FieldInfo &a, const FieldInfo &b)
-        {
-            return a.name == b.name && a.type == b.type;
-        }
+        friend bool operator==(const FieldInfo &a, const FieldInfo &b) = default;
 
-        template< typename stream >
-        friend auto operator<<(stream &out, const FieldInfo &fi) noexcept -> decltype(out << "") {
+        template< typename Stream >
+        friend auto operator<<(Stream &out, const FieldInfo &fi) noexcept -> decltype(out << "") {
             return out << fi.name.getValue() << " : " << fi.type;
         }
 
