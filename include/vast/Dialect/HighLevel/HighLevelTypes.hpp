@@ -18,8 +18,9 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/Hashing.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Util/TypeList.hpp"
 #include "vast/Util/DataLayout.hpp"
+#include "vast/Util/TypeList.hpp"
+#include "vast/Util/Types.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 
@@ -33,7 +34,9 @@ namespace vast::hl
         static unsigned getTypeSizeInBits(const dl_t &dl, dl_entries_ref entries)
         {
             CHECK(entries.size() != 0,
-                "Query for getTypeSizeInBits failed: Must have at least one entry!");
+                "Query for getTypeSizeInBits for {0} failed: Must have at least one entry!",
+                format_type(ConcreteTy{})
+            );
 
             std::optional<uint32_t> out;
             auto handle_entry = [&](auto &dl_entry) {

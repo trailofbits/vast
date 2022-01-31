@@ -32,4 +32,11 @@ namespace vast
         return llvm::APInt( bits< I >(), uint64_t(value), std::numeric_limits< I >::is_signed );
     }
 
+    static inline std::string format_type(mlir::Type type) {
+        std::string name;
+        llvm::raw_string_ostream os(name);
+        type.print(os);
+        return name;
+    }
+
 } // namespace vast
