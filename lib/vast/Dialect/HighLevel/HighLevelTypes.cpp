@@ -320,4 +320,6 @@ namespace vast::hl
         printer << getMnemonic() << "<" << getName() << ">";
     }
 
+    void NamedType::walkImmediateSubElements(walk_attrs, walk_types tys) const { UNIMPLEMENTED; }
+
 } // namespace vast::hl
