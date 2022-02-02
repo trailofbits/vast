@@ -7,14 +7,29 @@ include "mlir/Pass/PassBase.td"
 
 def LowerHighLevelTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
   let summary = "Lower high-level types to standard types";
-  let description = [{ }];
+  let description = [{
+    Lower high-level types into standard types which is usually required first step
+    by other passes in the pipeline.
+
+    Information about bit sizes of high level types is inferred from the data layout of
+    the module, which is derived from the information provided by clang and emitted
+    automatically by `vast-cc`.
+
+    TODO: Named types are not yet supported.
+  }];
 
   let constructor = "vast::hl::createLowerHighLevelTypesPass()";
 }
 
 def LowerHLToLL : Pass<"vast-hl-lower-to-ll", "mlir::ModuleOp"> {
-  let summary = "HL -> LL transformation. Expects types already lowered to standard.";
-  let description = [{ }];
+  let summary = "HL -> LL conversion";
+  let description = [{
+    Pass lowers high-level operations into low-level (for now, llvm dialect is used) dialects.
+    Operations in other dialects are not touched and kept as they are. Requires types to be
+    in standard dialect (only on relevant instructions).
+
+    This pass is still a work in progress.
+  }];
 
   let constructor = "vast::hl::createLowerHLToLLPass()";
   let dependentDialects = ["mlir::LLVM::LLVMDialect"];
@@ -31,8 +46,14 @@ def StructsToTuples : Pass<"vast-hl-structs-to-tuples", "mlir::ModuleOp"> {
 }
 
 def LowerHighLevelControlFlow : Pass<"vast-hl-lower-cf"> {
-  let summary = "Lower high-level types to standard types";
-  let description = [{ }];
+  let summary = "Lower control flow constructs into SCF.";
+  let description = [{
+    Pass lowers high-level control flow constructs (such as `IfOp` for example) to their
+    equivalents in `SCF` dialect. Requires types on relevant operations to be in standard
+    dialect.
+
+    This pass is still a work in progress.
+  }];
 
   let constructor = "vast::hl::createLowerHighLevelControlFlowPass()";
 }
