@@ -8,6 +8,13 @@ include "mlir/Interfaces/CallInterfaces.td"
 def HighLevel_ScopeOp
   : HighLevel_Op< "scope", [NoTerminator] >
 {
+  let summary = "VAST scope declaration";
+  let description = [{
+    Scope operation servers to represent explicitly high-level code scope.
+    Other control flow operations represent scopes implicitly.  It is a
+    single-region operation.
+  }];
+
   let regions = (region AnyRegion:$body);
 
   let assemblyFormat = [{ $body attr-dict }];
@@ -87,6 +94,13 @@ def HighLevel_TypeDeclOp
 def HighLevel_TypeDefOp
   : HighLevel_Op< "typedef", [NoSideEffect,Symbol] >
 {
+  let summary = "VAST typedef operation";
+  let description = [{
+    Typedef operation servers to declare named types.
+    It creates a new type symbol in the current scope to
+    be referenced as NamedType later.
+  }];
+
   let arguments = (ins
     SymbolNameAttr:$sym_name,
     TypeAttr:$type
@@ -104,7 +118,25 @@ def HighLevel_EnumConstantOp
   : HighLevel_Op< "enum.const", [NoSideEffect, Symbol] >
 {
   let summary = "VAST enum constant declaration";
-  let description = [{ VAST enum constant declaration }];
+  let description = [{
+    Enumeration constant servers to link name to an enum value.
+    It is required to be scoped in Enum operation. For example:
+
+    ```
+    hl.enum.const @F = 2 : si32
+    ```
+
+    A constant can have a constant expression initializer:
+
+    ```
+    hl.enum.const @G = 12 : si32 init  {
+      %0 = hl.declref @F : !hl.int
+      %1 = hl.declref @C : !hl.int
+      %2 = hl.add %0, %1 : !hl.int
+      hl.value.yield %2 : !hl.int
+    }
+    ```
+  }];
 
   let arguments = (ins
     SymbolNameAttr:$sym_name,
@@ -129,7 +161,10 @@ def HighLevel_EnumDeclOp
   : HighLevel_Op< "enum.decl", [NoSideEffect, Symbol, NoTerminator] >
 {
   let summary = "VAST enum declaration";
-  let description = [{ VAST enum declaration }];
+  let description = [{
+    Enum declaration serves to declare region for enum constant declarations.
+    It also defines an underlying type.
+  }];
 
   let arguments = (ins
     SymbolNameAttr:$sym_name,
@@ -645,6 +680,23 @@ def HighLevel_SubscriptOp : HighLevel_Op< "subscript" >
   let assemblyFormat = [{
     $array `at` ` ` `[` $index `:` type($index) `]` attr-dict
       `:` type($array) `->` type($result)
+  }];
+}
+
+def HighLevel_SizeOfOp : HighLevel_Op< "sizeof",
+  [NoSideEffect]
+> {
+  let summary = "VAST sizeof operator";
+  let description = [{ VAST sizeof operator }];
+
+  let arguments = (ins
+    TypeAttr:$type
+  );
+
+  let results = (outs IntegerLikeType:$result);
+
+  let assemblyFormat = [{
+    $type attr-dict `->` type($result)
   }];
 }
 
