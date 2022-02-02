@@ -119,7 +119,7 @@ class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
 
         <assign.op> src to dst : type
 
-        Its represents C compound assignment statement:
+        It represents C compound assignment statement:
 
         dst =<op> src;
     }];
