@@ -696,7 +696,7 @@ def HighLevel_SubscriptOp : HighLevel_Op< "subscript" >
   }];
 }
 
-def HighLevel_SizeOfOp : HighLevel_Op< "sizeof",
+def HighLevel_SizeOfTypeOp : HighLevel_Op< "sizeof.type",
   [NoSideEffect]
 > {
   let summary = "VAST sizeof operator";
@@ -710,6 +710,26 @@ def HighLevel_SizeOfOp : HighLevel_Op< "sizeof",
 
   let assemblyFormat = [{
     $type attr-dict `->` type($result)
+  }];
+}
+
+def HighLevel_SizeOfExprOp : HighLevel_Op< "sizeof.expr",
+  [NoSideEffect]
+> {
+  let summary = "VAST sizeof operator";
+  let description = [{ VAST sizeof operator }];
+
+  let regions = (region SizedRegion<1>:$expr);
+
+  let results = (outs IntegerLikeType:$result);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins "Type":$type, "BuilderCallback":$exprBuilder)>
+  ];
+
+  let assemblyFormat = [{
+     attr-dict `->` type($result) $expr
   }];
 }
 

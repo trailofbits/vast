@@ -961,17 +961,20 @@ namespace vast::hl
         }
 
         ValueOrStmt VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr *expr) {
-            auto loc = builder.get_location(expr->getSourceRange());
-
-            if (expr->getKind() == clang::UETT_SizeOf) {
-                auto arg = types.convert(expr->getArgumentType());
+            auto loc  = builder.get_location(expr->getSourceRange());
+            auto kind = expr->getKind();
+            if (kind == clang::UETT_SizeOf) {
+                // sizeof <type>
+                if (expr->isArgumentType()) {
+                    auto arg = types.convert(expr->getArgumentType());
+                    auto rty = types.convert(expr->getType());
+                    return builder.make_value< SizeOfTypeOp >(loc, rty, arg);
+                }
+                // sizeof <expr>
                 auto rty = types.convert(expr->getType());
-                return builder.make_value< SizeOfOp >(loc, rty, arg);
+                auto arg = make_value_builder(expr->getArgumentExpr());
+                return builder.make_value< SizeOfExprOp >(loc, rty, arg);
             }
-
-            // if (typeTraitExpr->getKind() == UETT_AlignOf) {
-
-            // }
             UNREACHABLE("unsupported UnaryExprOrTypeTraitExpr");
         }
 

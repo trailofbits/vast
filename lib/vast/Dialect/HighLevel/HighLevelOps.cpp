@@ -149,6 +149,14 @@ namespace vast::hl
         return mlir::success();
     }
 
+    void SizeOfExprOp::build(Builder &bld, State &st, Type rty, BuilderCallback expr) {
+        assert(expr && "the builder callback for 'expr' block must be present");
+        Builder::InsertionGuard guard(bld);
+        detail::build_region(bld, st, expr);
+
+        st.addTypes(rty);
+    }
+
     void build_var_decl(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)
     {
         st.addAttribute( mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name) );
