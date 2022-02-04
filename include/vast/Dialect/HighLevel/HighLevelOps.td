@@ -648,11 +648,10 @@ def HighLevel_CmpOp : HighLevel_Op< "cmp", [NoSideEffect, SameTypeOperands, Comm
   let description = [{ VAST comparison operation }];
 
   let arguments = (ins Predicate:$predicate, AnyType:$lhs, AnyType:$rhs);
-  let results = (outs BoolLikeType:$result);
+  let results = (outs IntOrBoolType:$result);
 
   let assemblyFormat = "$predicate type($lhs) $lhs `,` $rhs  attr-dict `->` type($result)";
 }
-
 
 def HighLevel_PostIncOp : HighLevel_UnInplaceOp< "post.inc", [] >;
 def HighLevel_PostDecOp : HighLevel_UnInplaceOp< "post.dec", [] >;
