@@ -116,7 +116,7 @@ namespace vast::hl
             auto lhs = Visit(expr->getLHS());
             auto rhs = Visit(expr->getRHS());
             auto loc = builder.get_end_location(expr->getSourceRange());
-            auto res = builder.bool_type();
+            auto res = types.convert(expr->getType());
             return builder.make_value< CmpOp >(loc, res, pred, lhs, rhs);
         }
 
