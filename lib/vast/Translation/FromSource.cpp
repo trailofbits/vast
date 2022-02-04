@@ -264,9 +264,17 @@ namespace vast::hl
             UNREACHABLE("unsupported BinSub");
         }
 
-        ValueOrStmt VisitBinShl(clang::BinaryOperator *expr) { UNREACHABLE("unsupported BinShl"); }
+        ValueOrStmt VisitBinShl(clang::BinaryOperator *expr) {
+            if (auto val = make_ibin< BinShlOp >(expr); check(val))
+                return val;
+            UNREACHABLE("unsupported BinShl");
+        }
 
-        ValueOrStmt VisitBinShr(clang::BinaryOperator *expr) { UNREACHABLE("unsupported BinShr"); }
+        ValueOrStmt VisitBinShr(clang::BinaryOperator *expr) {
+            if (auto val = make_ibin< BinShrOp >(expr); check(val))
+                return val;
+            UNREACHABLE("unsupported BinShr");
+        }
 
         ValueOrStmt VisitBinLT(clang::BinaryOperator *expr) {
             if (auto val = make_icmp< Predicate::ult, Predicate::slt >(expr))
@@ -304,17 +312,35 @@ namespace vast::hl
             UNREACHABLE("unsupported BinNE");
         }
 
-        ValueOrStmt VisitBinAnd(clang::BinaryOperator *expr) { UNREACHABLE("unsupported BinAnd"); }
+        ValueOrStmt VisitBinAnd(clang::BinaryOperator *expr) {
+            if (auto val = make_ibin< BinAndOp >(expr); check(val))
+                return val;
+            UNREACHABLE("unsupported BinAnd");
+        }
 
-        ValueOrStmt VisitBinXor(clang::BinaryOperator *expr) { UNREACHABLE("unsupported BinXor"); }
+        ValueOrStmt VisitBinXor(clang::BinaryOperator *expr) {
+            if (auto val = make_ibin< BinXorOp >(expr); check(val))
+                return val;
+            UNREACHABLE("unsupported BinXor");
+        }
 
-        ValueOrStmt VisitBinOr(clang::BinaryOperator *expr) { UNREACHABLE("unsupported BinOr"); }
+        ValueOrStmt VisitBinOr(clang::BinaryOperator *expr) {
+            if (auto val = make_ibin< BinOrOp >(expr); check(val))
+                return val;
+            UNREACHABLE("unsupported BinOr");
+        }
 
         ValueOrStmt VisitBinLAnd(clang::BinaryOperator *expr) {
+            if (auto val = make_ibin< BinLAndOp >(expr); check(val))
+                return val;
             UNREACHABLE("unsupported BinLAnd");
         }
 
-        ValueOrStmt VisitBinLOr(clang::BinaryOperator *expr) { UNREACHABLE("unsupported BinLOr"); }
+        ValueOrStmt VisitBinLOr(clang::BinaryOperator *expr) {
+            if (auto val = make_ibin< BinLOrOp >(expr); check(val))
+                return val;
+            UNREACHABLE("unsupported BinLOr");
+        }
 
         ValueOrStmt VisitBinAssign(clang::BinaryOperator *expr) {
             return make_bin< AssignOp >(expr);
@@ -353,22 +379,32 @@ namespace vast::hl
         }
 
         ValueOrStmt VisitBinShlAssign(clang::CompoundAssignOperator *expr) {
+            if (auto val = make_ibin< BinShlAssignOp >(expr); check(val))
+                return val;
             UNREACHABLE("unsupported BinShlAssign");
         }
 
         ValueOrStmt VisitBinShrAssign(clang::CompoundAssignOperator *expr) {
+            if (auto val = make_ibin< BinShrAssignOp >(expr); check(val))
+                return val;
             UNREACHABLE("unsupported BinShrAssign");
         }
 
         ValueOrStmt VisitBinAndAssign(clang::CompoundAssignOperator *expr) {
+            if (auto val = make_ibin< BinAndAssignOp >(expr); check(val))
+                return val;
             UNREACHABLE("unsupported BinAndAssign");
         }
 
         ValueOrStmt VisitBinOrAssign(clang::CompoundAssignOperator *expr) {
+            if (auto val = make_ibin< BinOrAssignOp >(expr); check(val))
+                return val;
             UNREACHABLE("unsupported BinOrAssign");
         }
 
         ValueOrStmt VisitBinXorAssign(clang::CompoundAssignOperator *expr) {
+            if (auto val = make_ibin< BinXorAssignOp >(expr); check(val))
+                return val;
             UNREACHABLE("unsupported BinXorAssign");
         }
 
