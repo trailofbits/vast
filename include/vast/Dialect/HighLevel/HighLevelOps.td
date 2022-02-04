@@ -588,6 +588,15 @@ def HighLevel_RemSOp : HighLevel_BinOp<"srem", []>;
 def HighLevel_RemUOp : HighLevel_BinOp<"urem", []>;
 def HighLevel_RemFOp : HighLevel_BinOp<"frem", []>;
 
+def HighLevel_BinShlOp : HighLevel_BinOp<"bin.shl", []>;
+def HighLevel_BinShrOp : HighLevel_BinOp<"bin.shr", []>;
+
+def HighLevel_BinXorOp : HighLevel_BinOp<"bin.xor", []>;
+def HighLevel_BinOrOp : HighLevel_BinOp<"bin.or", []>;
+def HighLevel_BinAndOp : HighLevel_BinOp<"bin.and", []>;
+def HighLevel_BinLAndOp : HighLevel_BinOp<"bin.land", []>;
+def HighLevel_BinLOrOp : HighLevel_BinOp<"bin.lor", []>;
+
 
 def HighLevel_AssignOp     : HighLevel_CompoundAssignOp< "assign", []>;
 def HighLevel_AddIAssignOp : HighLevel_CompoundAssignOp< "assign.add",  []>;
@@ -603,6 +612,11 @@ def HighLevel_RemSAssignOp : HighLevel_CompoundAssignOp< "assign.srem", []>;
 def HighLevel_RemUAssignOp : HighLevel_CompoundAssignOp< "assign.urem", []>;
 def HighLevel_RemFAssignOp : HighLevel_CompoundAssignOp< "assign.frem", []>;
 
+def HighLevel_BinShlAssignOp : HighLevel_CompoundAssignOp< "assign.bin.shl", []>;
+def HighLevel_BinShrAssignOp : HighLevel_CompoundAssignOp< "assign.bin.shr", []>;
+def HighLevel_BinAndAssignOp : HighLevel_CompoundAssignOp< "assign.bin.and", []>;
+def HighLevel_BinOrAssignOp  : HighLevel_CompoundAssignOp< "assign.bin.or", []>;
+def HighLevel_BinXorAssignOp : HighLevel_CompoundAssignOp< "assign.bin.xor", []>;
 
 class PredicateAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
