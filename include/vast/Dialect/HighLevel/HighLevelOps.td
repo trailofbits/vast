@@ -696,31 +696,29 @@ def HighLevel_SubscriptOp : HighLevel_Op< "subscript" >
   }];
 }
 
-def HighLevel_SizeOfTypeOp : HighLevel_Op< "sizeof.type",
-  [NoSideEffect]
-> {
-  let summary = "VAST sizeof operator";
-  let description = [{ VAST sizeof operator }];
+class HighLevel_TypeTraitOp< string mnemonic, list< OpTrait > traits = [] >
+  : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
+{
+  let arguments = (ins TypeAttr:$type);
+  let results   = (outs IntegerLikeType:$result);
 
-  let arguments = (ins
-    TypeAttr:$type
-  );
-
-  let results = (outs IntegerLikeType:$result);
-
-  let assemblyFormat = [{
-    $type attr-dict `->` type($result)
-  }];
+  let assemblyFormat = [{ $type attr-dict `->` type($result) }];
 }
 
-def HighLevel_SizeOfExprOp : HighLevel_Op< "sizeof.expr",
-  [NoSideEffect]
-> {
-  let summary = "VAST sizeof operator";
-  let description = [{ VAST sizeof operator }];
+def HighLevel_SizeOfTypeOp : HighLevel_TypeTraitOp< "sizeof.type" > {
+  let summary = "VAST type sizeof operator";
+  let description = [{ VAST type sizeof operator }];
+}
 
+def HighLevel_AlignOfTypeOp : HighLevel_TypeTraitOp< "alignof.type" > {
+  let summary = "VAST type alignof operator";
+  let description = [{ VAST type alignof operator }];
+}
+
+class HighLevel_ExprTraitOp< string mnemonic, list< OpTrait > traits = [] >
+  : HighLevel_Op< mnemonic, !listconcat(traits, [RecursiveSideEffects]) >
+{
   let regions = (region SizedRegion<1>:$expr);
-
   let results = (outs IntegerLikeType:$result);
 
   let skipDefaultBuilders = 1;
@@ -728,9 +726,17 @@ def HighLevel_SizeOfExprOp : HighLevel_Op< "sizeof.expr",
     OpBuilder<(ins "Type":$type, "BuilderCallback":$exprBuilder)>
   ];
 
-  let assemblyFormat = [{
-     attr-dict `->` type($result) $expr
-  }];
+  let assemblyFormat = [{ attr-dict `->` type($result) $expr }];
+}
+
+def HighLevel_SizeOfExprOp : HighLevel_ExprTraitOp< "sizeof.expr" > {
+  let summary = "VAST expr sizeof operator";
+  let description = [{ VAST expr sizeof operator }];
+}
+
+def HighLevel_AlignOfExprOp : HighLevel_ExprTraitOp< "alignof.expr" > {
+  let summary = "VAST expr alignof operator";
+  let description = [{ VAST expr alignof operator }];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
