@@ -149,7 +149,7 @@ namespace vast::hl
         ValueOrStmt make_inplace_unary(clang::UnaryOperator *expr) {
             auto loc = builder.get_location(expr->getSourceRange());
             auto arg = Visit(expr->getSubExpr());
-            return builder.make< Op >(loc, arg);
+            return builder.make_value< Op >(loc, arg);
         }
 
         template< typename Op >

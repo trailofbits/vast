@@ -51,7 +51,7 @@ class HighLevel_BinOp< string mnemonic, list< OpTrait > traits = [] >
 
 
 class HighLevel_UnInplaceOp< string mnemonic, list< OpTrait > traits = [] >
-    : HighLevel_Op< mnemonic, !listconcat(traits, []) >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [SameOperandsAndResultType]) >
 {
     let summary = "VAST unary inplace operation";
     let description = [{
@@ -60,12 +60,13 @@ class HighLevel_UnInplaceOp< string mnemonic, list< OpTrait > traits = [] >
 
         The custom assembly form of the operation is as follows:
 
-        <op> %arg : type
+        %result = <op> %arg : type
     }];
 
     let arguments = (ins AnyType:$arg);
+    let results = (outs AnyType:$result);
 
-    let assemblyFormat = [{ $arg attr-dict `:` type($arg) }];
+    let assemblyFormat = [{ $arg attr-dict `:` type($result) }];
 }
 
 class HighLevel_TypePreservingUnOp< string mnemonic, list< OpTrait > traits = [] >
