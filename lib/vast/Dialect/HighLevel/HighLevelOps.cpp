@@ -149,12 +149,19 @@ namespace vast::hl
         return mlir::success();
     }
 
-    void SizeOfExprOp::build(Builder &bld, State &st, Type rty, BuilderCallback expr) {
+    void build_expr_trait(Builder &bld, State &st, Type rty, BuilderCallback expr) {
         assert(expr && "the builder callback for 'expr' block must be present");
         Builder::InsertionGuard guard(bld);
         detail::build_region(bld, st, expr);
-
         st.addTypes(rty);
+    }
+
+    void SizeOfExprOp::build(Builder &bld, State &st, Type rty, BuilderCallback expr) {
+        build_expr_trait(bld, st, rty, expr);
+    }
+
+    void AlignOfExprOp::build(Builder &bld, State &st, Type rty, BuilderCallback expr) {
+        build_expr_trait(bld, st, rty, expr);
     }
 
     void build_var_decl(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)

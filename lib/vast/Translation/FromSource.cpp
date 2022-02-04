@@ -960,21 +960,39 @@ namespace vast::hl
             UNREACHABLE("unsupported TypeTraitExpr");
         }
 
+        template< typename Op >
+        auto make_expr_trait_expr(clang::UnaryExprOrTypeTraitExpr *expr, auto rty, auto loc) {
+            auto arg = make_value_builder(expr->getArgumentExpr());
+            return builder.make_value< Op >(loc, rty, arg);
+        }
+
+        template< typename Op >
+        auto make_type_trait_expr(clang::UnaryExprOrTypeTraitExpr *expr, auto rty, auto loc) {
+            auto arg = types.convert(expr->getArgumentType());
+            return builder.make_value< Op >(loc, rty, arg);
+        }
+
+        template< typename TypeTraitOp, typename ExprTraitOp >
+        auto dispatch_trait_expr(clang::UnaryExprOrTypeTraitExpr *expr) {
+            auto loc = builder.get_location(expr->getSourceRange());
+            auto rty = types.convert(expr->getType());
+
+            return expr->isArgumentType()
+                ? make_type_trait_expr< TypeTraitOp >(expr, rty, loc)
+                : make_expr_trait_expr< ExprTraitOp >(expr, rty, loc);
+        }
+
         ValueOrStmt VisitUnaryExprOrTypeTraitExpr(clang::UnaryExprOrTypeTraitExpr *expr) {
-            auto loc  = builder.get_location(expr->getSourceRange());
             auto kind = expr->getKind();
+
             if (kind == clang::UETT_SizeOf) {
-                // sizeof <type>
-                if (expr->isArgumentType()) {
-                    auto arg = types.convert(expr->getArgumentType());
-                    auto rty = types.convert(expr->getType());
-                    return builder.make_value< SizeOfTypeOp >(loc, rty, arg);
-                }
-                // sizeof <expr>
-                auto rty = types.convert(expr->getType());
-                auto arg = make_value_builder(expr->getArgumentExpr());
-                return builder.make_value< SizeOfExprOp >(loc, rty, arg);
+                return dispatch_trait_expr< SizeOfTypeOp, SizeOfExprOp >(expr);
             }
+
+            if (kind == clang::UETT_AlignOf) {
+                return dispatch_trait_expr< AlignOfTypeOp, AlignOfExprOp >(expr);
+            }
+
             UNREACHABLE("unsupported UnaryExprOrTypeTraitExpr");
         }
 
