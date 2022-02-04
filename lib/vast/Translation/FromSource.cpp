@@ -146,13 +146,6 @@ namespace vast::hl
         }
 
         template< typename Op >
-        ValueOrStmt make_inplace_unary(clang::UnaryOperator *expr) {
-            auto loc = builder.get_location(expr->getSourceRange());
-            auto arg = Visit(expr->getSubExpr());
-            return builder.make_value< Op >(loc, arg);
-        }
-
-        template< typename Op >
         ValueOrStmt make_unary(clang::UnaryOperator *expr) {
             auto loc = builder.get_location(expr->getSourceRange());
             auto rty = types.convert(expr->getType());
@@ -161,10 +154,11 @@ namespace vast::hl
         }
 
         template< typename Cast >
-        ValueOrStmt make_cast(clang::Expr *expr, clang::QualType to, CastKind kind) {
+        ValueOrStmt make_cast(clang::CastExpr *expr) {
             auto loc = builder.get_location(expr->getSourceRange());
-            auto rty = types.convert(to);
-            return builder.make_value< Cast >(loc, rty, Visit(expr), kind);
+            auto rty = types.convert(expr->getType());
+            auto arg = Visit(expr->getSubExpr());
+            return builder.make_value< Cast >(loc, rty, arg, cast_kind(expr));
         }
 
         auto make_region_builder(clang::Stmt *stmt) {
@@ -224,6 +218,11 @@ namespace vast::hl
             }
         }
 
+        inline ValueOrStmt checked(ValueOrStmt &&val) {
+            CHECK(check(val), "unsupported operation type");
+            return val;
+        }
+
         // Binary Operations
 
         ValueOrStmt VisitBinPtrMemD(clang::BinaryOperator *expr) {
@@ -235,111 +234,75 @@ namespace vast::hl
         }
 
         ValueOrStmt VisitBinMul(clang::BinaryOperator *expr) {
-            if (auto val = make_ibin< MulIOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinMul");
+            return checked(make_ibin< MulIOp >(expr));
         }
 
         ValueOrStmt VisitBinDiv(clang::BinaryOperator *expr) {
-            if (auto val = make_ibin< DivUOp, DivSOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinDiv");
+            return checked(make_ibin< DivUOp, DivSOp >(expr));
         }
 
         ValueOrStmt VisitBinRem(clang::BinaryOperator *expr) {
-            if (auto val = make_ibin< RemUOp, RemSOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinRem");
+            return checked(make_ibin< RemUOp, RemSOp >(expr));
         }
 
         ValueOrStmt VisitBinAdd(clang::BinaryOperator *expr) {
-            if (auto val = make_ibin< AddIOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported addition type");
+            return checked(make_ibin< AddIOp >(expr));
         }
 
         ValueOrStmt VisitBinSub(clang::BinaryOperator *expr) {
-            if (auto val = make_ibin< SubIOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinSub");
+            return checked(make_ibin< SubIOp >(expr));
         }
 
         ValueOrStmt VisitBinShl(clang::BinaryOperator *expr) {
-            if (auto val = make_ibin< BinShlOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinShl");
+            return checked(make_ibin< BinShlOp >(expr));
         }
 
         ValueOrStmt VisitBinShr(clang::BinaryOperator *expr) {
-            if (auto val = make_ibin< BinShrOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinShr");
+            return checked(make_ibin< BinShrOp >(expr));
         }
 
         ValueOrStmt VisitBinLT(clang::BinaryOperator *expr) {
-            if (auto val = make_icmp< Predicate::ult, Predicate::slt >(expr))
-                return val;
-            UNREACHABLE("unsupported BinLT");
+            return checked(make_icmp< Predicate::ult, Predicate::slt >(expr));
         }
 
         ValueOrStmt VisitBinGT(clang::BinaryOperator *expr) {
-            if (auto val = make_icmp< Predicate::ugt, Predicate::sgt >(expr))
-                return val;
-            UNREACHABLE("unsupported BinGT");
+            return checked(make_icmp< Predicate::ugt, Predicate::sgt >(expr));
         }
 
         ValueOrStmt VisitBinLE(clang::BinaryOperator *expr) {
-            if (auto val = make_icmp< Predicate::ule, Predicate::sle >(expr))
-                return val;
-            UNREACHABLE("unsupported BinLE");
+            return checked(make_icmp< Predicate::ule, Predicate::sle >(expr));
         }
 
         ValueOrStmt VisitBinGE(clang::BinaryOperator *expr) {
-            if (auto val = make_icmp< Predicate::uge, Predicate::sge >(expr))
-                return val;
-            UNREACHABLE("unsupported BinGE");
+            return checked(make_icmp< Predicate::uge, Predicate::sge >(expr));
         }
 
         ValueOrStmt VisitBinEQ(clang::BinaryOperator *expr) {
-            if (auto val = make_icmp< Predicate::eq >(expr))
-                return val;
-            UNREACHABLE("unsupported BinEQ");
+            return checked(make_icmp< Predicate::eq >(expr));
         }
 
         ValueOrStmt VisitBinNE(clang::BinaryOperator *expr) {
-            if (auto val = make_icmp< Predicate::ne >(expr))
-                return val;
-            UNREACHABLE("unsupported BinNE");
+            return checked(make_icmp< Predicate::ne >(expr));
         }
 
         ValueOrStmt VisitBinAnd(clang::BinaryOperator *expr) {
-            if (auto val = make_ibin< BinAndOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinAnd");
+            return checked(make_ibin< BinAndOp >(expr));
         }
 
         ValueOrStmt VisitBinXor(clang::BinaryOperator *expr) {
-            if (auto val = make_ibin< BinXorOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinXor");
+            return checked(make_ibin< BinXorOp >(expr));
         }
 
         ValueOrStmt VisitBinOr(clang::BinaryOperator *expr) {
-            if (auto val = make_ibin< BinOrOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinOr");
+            return checked(make_ibin< BinOrOp >(expr));
         }
 
         ValueOrStmt VisitBinLAnd(clang::BinaryOperator *expr) {
-            if (auto val = make_ibin< BinLAndOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinLAnd");
+            return checked(make_ibin< BinLAndOp >(expr));
         }
 
         ValueOrStmt VisitBinLOr(clang::BinaryOperator *expr) {
-            if (auto val = make_ibin< BinLOrOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinLOr");
+            return checked(make_ibin< BinLOrOp >(expr));
         }
 
         ValueOrStmt VisitBinAssign(clang::BinaryOperator *expr) {
@@ -349,63 +312,43 @@ namespace vast::hl
         // Compound Assignment Operations
 
         ValueOrStmt VisitBinMulAssign(clang::CompoundAssignOperator *expr) {
-            if (auto val = make_ibin< MulIAssignOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinMulAssign");
+            return checked(make_ibin< MulIAssignOp >(expr));
         }
 
         ValueOrStmt VisitBinDivAssign(clang::CompoundAssignOperator *expr) {
-            if (auto val = make_ibin< DivUAssignOp, DivSAssignOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinDivAssign");
+            return checked(make_ibin< DivUAssignOp, DivSAssignOp >(expr));
         }
 
         ValueOrStmt VisitBinRemAssign(clang::CompoundAssignOperator *expr) {
-            if (auto val = make_ibin< RemUAssignOp, RemSAssignOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinRemAssign");
+            return checked(make_ibin< RemUAssignOp, RemSAssignOp >(expr));
         }
 
         ValueOrStmt VisitBinAddAssign(clang::CompoundAssignOperator *expr) {
-            if (auto val = make_ibin< AddIAssignOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinAddAssign");
+            return checked(make_ibin< AddIAssignOp >(expr));
         }
 
         ValueOrStmt VisitBinSubAssign(clang::CompoundAssignOperator *expr) {
-            if (auto val = make_ibin< SubIAssignOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinSubAssign");
+            return checked(make_ibin< SubIAssignOp >(expr));
         }
 
         ValueOrStmt VisitBinShlAssign(clang::CompoundAssignOperator *expr) {
-            if (auto val = make_ibin< BinShlAssignOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinShlAssign");
+            return checked(make_ibin< BinShlAssignOp >(expr));
         }
 
         ValueOrStmt VisitBinShrAssign(clang::CompoundAssignOperator *expr) {
-            if (auto val = make_ibin< BinShrAssignOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinShrAssign");
+            return checked(make_ibin< BinShrAssignOp >(expr));
         }
 
         ValueOrStmt VisitBinAndAssign(clang::CompoundAssignOperator *expr) {
-            if (auto val = make_ibin< BinAndAssignOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinAndAssign");
+            return checked(make_ibin< BinAndAssignOp >(expr));
         }
 
         ValueOrStmt VisitBinOrAssign(clang::CompoundAssignOperator *expr) {
-            if (auto val = make_ibin< BinOrAssignOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinOrAssign");
+            return checked(make_ibin< BinOrAssignOp >(expr));
         }
 
         ValueOrStmt VisitBinXorAssign(clang::CompoundAssignOperator *expr) {
-            if (auto val = make_ibin< BinXorAssignOp >(expr); check(val))
-                return val;
-            UNREACHABLE("unsupported BinXorAssign");
+            return checked(make_ibin< BinXorAssignOp >(expr));
         }
 
         ValueOrStmt VisitBinComma(clang::BinaryOperator *expr) {
@@ -415,19 +358,19 @@ namespace vast::hl
         // Unary Operations
 
         ValueOrStmt VisitUnaryPostInc(clang::UnaryOperator *expr) {
-            return make_inplace_unary< PostIncOp >(expr);
+            return make_type_preserving_unary< PostIncOp >(expr);
         }
 
         ValueOrStmt VisitUnaryPostDec(clang::UnaryOperator *expr) {
-            return make_inplace_unary< PostDecOp >(expr);
+            return make_type_preserving_unary< PostDecOp >(expr);
         }
 
         ValueOrStmt VisitUnaryPreInc(clang::UnaryOperator *expr) {
-            return make_inplace_unary< PreIncOp >(expr);
+            return make_type_preserving_unary< PreIncOp >(expr);
         }
 
         ValueOrStmt VisitUnaryPreDec(clang::UnaryOperator *expr) {
-            return make_inplace_unary< PreDecOp >(expr);
+            return make_type_preserving_unary< PreDecOp >(expr);
         }
 
         ValueOrStmt VisitUnaryAddrOf(clang::UnaryOperator *expr) {
@@ -750,7 +693,7 @@ namespace vast::hl
         }
 
         ValueOrStmt VisitCStyleCastExpr(clang::CStyleCastExpr *expr) {
-            return make_cast< CStyleCastOp >(expr->getSubExpr(), expr->getType(), cast_kind(expr));
+            return make_cast< CStyleCastOp >(expr);
         }
 
         ValueOrStmt VisitCXXFunctionalCastExpr(clang::CXXFunctionalCastExpr *expr) {
@@ -778,8 +721,7 @@ namespace vast::hl
         }
 
         ValueOrStmt VisitImplicitCastExpr(clang::ImplicitCastExpr *expr) {
-            return make_cast< ImplicitCastOp >(
-                expr->getSubExpr(), expr->getType(), cast_kind(expr));
+            return make_cast< ImplicitCastOp >(expr);
         }
 
         ValueOrStmt VisitCharacterLiteral(clang::CharacterLiteral *lit) {
@@ -1227,8 +1169,7 @@ namespace vast::hl
         }
 
         ValueOrStmt VisitBuiltinBitCastExpr(clang::BuiltinBitCastExpr *expr) {
-            return make_cast< BuiltinBitCastOp >(
-                expr->getSubExpr(), expr->getType(), cast_kind(expr));
+            return make_cast< BuiltinBitCastOp >(expr);
         }
 
         // Declarations
