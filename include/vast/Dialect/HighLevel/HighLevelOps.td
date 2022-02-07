@@ -302,6 +302,25 @@ def HighLevel_IndirectCallOp : HighLevel_Op< "indirect_call", [
   }];
 }
 
+def HighLevel_ExprOp
+  : HighLevel_Op< "expr", [RecursiveSideEffects, SingleBlock] >
+{
+  let summary = "VAST expression";
+  let description = [{ VAST expression }];
+
+  let regions = (region SizedRegion<1>:$subexpr);
+  let results = (outs AnyType:$result);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins "Type":$type, "BuilderCallback":$exprBuilder)>
+  ];
+
+  let assemblyFormat = [{
+     attr-dict `:` type($result) $subexpr
+  }];
+}
+
 def HighLevel_ReturnOp
   : HighLevel_Op< "return", [Terminator, NoSideEffect] >
 {

@@ -318,6 +318,14 @@ namespace vast::hl
 
         UNREACHABLE("unknown constant type");
     }
+
+    void ExprOp::build(Builder &bld, State &st, Type rty, BuilderCallback expr) {
+        assert(expr && "the builder callback for 'expr' block must be present");
+        Builder::InsertionGuard guard(bld);
+        detail::build_region(bld, st, expr);
+
+        st.addTypes(rty);
+    }
 }
 
 //===----------------------------------------------------------------------===//
