@@ -50,6 +50,7 @@ class HighLevel_BinOp< string mnemonic, list< OpTrait > traits = [] >
 }
 
 
+
 class HighLevel_UnInplaceOp< string mnemonic, list< OpTrait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [SameOperandsAndResultType]) >
 {
