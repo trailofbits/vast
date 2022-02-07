@@ -917,7 +917,12 @@ namespace vast::hl
             UNREACHABLE("unsupported PackExpansionExpr");
         }
 
-        ValueOrStmt VisitParenExpr(clang::ParenExpr *expr) { UNREACHABLE("unsupported ParenExpr"); }
+        ValueOrStmt VisitParenExpr(clang::ParenExpr *expr) {
+            auto loc     = builder.get_location(expr->getSourceRange());
+            auto rty     = types.convert(expr->getType());
+            auto subexpr = make_value_builder(expr->getSubExpr());
+            return builder.make_value< ExprOp >(loc, rty, subexpr);
+        }
 
         ValueOrStmt VisitParenListExpr(clang::ParenListExpr *expr) {
             UNREACHABLE("unsupported ParenListExpr");
