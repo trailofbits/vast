@@ -607,15 +607,35 @@ def HighLevel_RemSOp : HighLevel_BinOp<"srem", []>;
 def HighLevel_RemUOp : HighLevel_BinOp<"urem", []>;
 def HighLevel_RemFOp : HighLevel_BinOp<"frem", []>;
 
-def HighLevel_BinShlOp : HighLevel_BinOp<"bin.shl", []>;
-def HighLevel_BinShrOp : HighLevel_BinOp<"bin.shr", []>;
-
 def HighLevel_BinXorOp : HighLevel_BinOp<"bin.xor", []>;
 def HighLevel_BinOrOp : HighLevel_BinOp<"bin.or", []>;
 def HighLevel_BinAndOp : HighLevel_BinOp<"bin.and", []>;
 def HighLevel_BinLAndOp : HighLevel_BinOp<"bin.land", []>;
 def HighLevel_BinLOrOp : HighLevel_BinOp<"bin.lor", []>;
 
+class HighLevel_ShiftOp< string mnemonic, list< OpTrait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [
+        NoSideEffect, AllTypesMatch<["lhs", "result"]>
+    ])>
+{
+    let summary = "VAST binary shift operation";
+    let description = [{
+        High-level binary shift operation. This operation takes two operands
+        and returns one result.
+
+        The custom assembly form of the operation is as follows:
+
+        %result = <op> %lhs, %rhs  : functional-type(operands, results)
+    }];
+
+    let arguments = (ins IntegerLikeType:$lhs, IntegerLikeType:$rhs);
+    let results = (outs IntegerLikeType:$result);
+
+    let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` functional-type(operands, results) }];
+}
+
+def HighLevel_BinShlOp : HighLevel_ShiftOp<"bin.shl", []>;
+def HighLevel_BinShrOp : HighLevel_ShiftOp<"bin.shr", []>;
 
 def HighLevel_AssignOp     : HighLevel_CompoundAssignOp< "assign", []>;
 def HighLevel_AddIAssignOp : HighLevel_CompoundAssignOp< "assign.add",  []>;
@@ -631,11 +651,34 @@ def HighLevel_RemSAssignOp : HighLevel_CompoundAssignOp< "assign.srem", []>;
 def HighLevel_RemUAssignOp : HighLevel_CompoundAssignOp< "assign.urem", []>;
 def HighLevel_RemFAssignOp : HighLevel_CompoundAssignOp< "assign.frem", []>;
 
-def HighLevel_BinShlAssignOp : HighLevel_CompoundAssignOp< "assign.bin.shl", []>;
-def HighLevel_BinShrAssignOp : HighLevel_CompoundAssignOp< "assign.bin.shr", []>;
 def HighLevel_BinAndAssignOp : HighLevel_CompoundAssignOp< "assign.bin.and", []>;
 def HighLevel_BinOrAssignOp  : HighLevel_CompoundAssignOp< "assign.bin.or", []>;
 def HighLevel_BinXorAssignOp : HighLevel_CompoundAssignOp< "assign.bin.xor", []>;
+
+class HighLevel_ShiftAssignOp< string mnemonic, list< OpTrait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [SameTypeOperands]) >
+{
+    let summary = "VAST compound shift assign operation";
+    let description = [{
+        A compound shift assign operation represents an assignment operation joined
+        with a shift operation.
+
+        The custom assembly form of the operation is as follows:
+
+        <assign.op> src to dst : type(src) -> type(dst)
+
+        It represents C compound assignment statement:
+
+        dst =<op> src;
+    }];
+
+    let arguments = (ins IntegerLikeType:$dst, IntegerLikeType:$src);
+
+    let assemblyFormat = [{ $src `to` $dst `:` type($src) `->` type($dst) attr-dict }];
+}
+
+def HighLevel_BinShlAssignOp : HighLevel_ShiftAssignOp< "assign.bin.shl", []>;
+def HighLevel_BinShrAssignOp : HighLevel_ShiftAssignOp< "assign.bin.shr", []>;
 
 class PredicateAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
