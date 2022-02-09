@@ -1481,6 +1481,15 @@ namespace vast::hl
             }
         }
 
+        TSClass get_thread_storage_class(clang::VarDecl *decl) {
+            switch (decl->getTSCSpec()) {
+                case clang::TSCS_unspecified: return TSClass::tsc_none;
+                case clang::TSCS___thread: return TSClass::tsc_gnu_thread;
+                case clang::TSCS_thread_local: return TSClass::tsc_cxx_thread;
+                case clang::TSCS__Thread_local: return TSClass::tsc_c_thread;
+            }
+        }
+
         ValueOrStmt VisitVarDecl(clang::VarDecl *decl) {
             auto ty   = types.convert(decl->getType());
             auto name = decl->getUnderlyingDecl()->getName();
@@ -1490,7 +1499,14 @@ namespace vast::hl
             auto initializer     = (decl->getInit() ? init : nullptr);
 
             auto var = builder.make< VarDecl >(loc, ty, name, initializer);
-            var.setStorageClass(get_storage_class(decl));
+            if (auto sc = get_storage_class(decl); sc != StorageClass::sc_none) {
+                var.setStorageClass(sc);
+            }
+
+            if (auto tsc = get_thread_storage_class(decl); tsc != TSClass::tsc_none) {
+                var.setThreadStorageClass(tsc);
+            }
+
             return var;
         }
 
