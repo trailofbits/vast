@@ -164,23 +164,12 @@ namespace vast::hl
         build_expr_trait(bld, st, rty, expr);
     }
 
-    void build_var_decl(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)
-    {
-        st.addAttribute( mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name) );
-        st.addAttribute( "type", mlir::TypeAttr::get(type) );
+    void VarDecl::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback init) {
+        st.addAttribute(mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name));
+        st.addAttribute("type", mlir::TypeAttr::get(type));
 
         Builder::InsertionGuard guard(bld);
-        detail::build_region(bld, st, initBuilder);
-    }
-
-    void VarOp::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)
-    {
-        build_var_decl(bld, st, type, name, initBuilder);
-    }
-
-    void GlobalOp::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback initBuilder)
-    {
-        build_var_decl(bld, st, type, name, initBuilder);
+        detail::build_region(bld, st, init);
     }
 
     void TypeDeclOp::build(Builder &bld, State &st, llvm::StringRef name) {
