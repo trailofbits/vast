@@ -1499,6 +1499,7 @@ namespace vast::hl
             auto initializer     = (decl->getInit() ? init : nullptr);
 
             auto var = builder.make< VarDecl >(loc, ty, name, initializer);
+
             if (auto sc = get_storage_class(decl); sc != StorageClass::sc_none) {
                 var.setStorageClass(sc);
             }
