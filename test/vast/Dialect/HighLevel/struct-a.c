@@ -14,7 +14,7 @@ struct pair {
   int a, b;
 };
 
-// CHECK: hl.global @p : !hl.named_type<@struct.pair>
+// CHECK: hl.var @p : !hl.named_type<@struct.pair>
 struct pair p;
 
 // CHECK: hl.type.decl @struct.forward
@@ -37,7 +37,7 @@ typedef struct wrap {
   int v;
 } wrap_t;
 
-// CHECK: hl.global @w : !hl.named_type<@wrap_t>
+// CHECK: hl.var @w : !hl.named_type<@wrap_t>
 wrap_t w;
 
 // CHECK: hl.type.decl @struct.compound

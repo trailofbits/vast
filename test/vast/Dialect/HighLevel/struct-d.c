@@ -3,7 +3,7 @@
 
 // tag naming an unknown struct declares it
 // CHECK: hl.type.decl @struct.s
-// CHECK: hl.global @p : !hl.ptr<!hl.named_type<@struct.s>> = {
+// CHECK: hl.var @p : !hl.ptr<!hl.named_type<@struct.s>> = {
 // CHECK:  [[V1:%[0-9]+]] = hl.constant.int 0 : !hl.int
 // CHECK:  [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] NullToPointer : !hl.int -> !hl.ptr<!hl.named_type<@struct.s>>
 // CHECK:  hl.value.yield [[V2]] : !hl.ptr<!hl.named_type<@struct.s>>

@@ -5,7 +5,7 @@
 // CHECK: hl.record @struct.anonymous.0 : {
 // CHECK:  hl.field @data : !hl.int
 // CHECK: }
-// CHECK: hl.global @named : !hl.named_type<@struct.anonymous.0>
+// CHECK: hl.var @named : !hl.named_type<@struct.anonymous.0>
 struct {
   int data;
 } named;

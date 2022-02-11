@@ -10,7 +10,7 @@ struct Element {
     enum State { SOLID, LIQUID, GAS, PLASMA
 } state;
 
-// CHECK: hl.global @oxygen : !hl.named_type<@struct.Element>
+// CHECK: hl.var @oxygen : !hl.named_type<@struct.Element>
 // CHECK:  [[V1:%[0-9]+]] = hl.constant.int 8 : !hl.int
 // CHECK:  [[V2:%[0-9]+]] = hl.declref @GAS : !hl.int
 // CHECK:  [[V3:%[0-9]+]] = hl.implicit_cast [[V2]] IntegralCast : !hl.int -> !hl.named_type<@enum.State>
