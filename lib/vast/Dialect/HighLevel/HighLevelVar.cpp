@@ -6,6 +6,53 @@
 
 namespace vast::hl
 {
+    bool isFileContext(DeclContextKind kind) {
+        return kind == DeclContextKind::dc_translation_unit
+            || kind == DeclContextKind::dc_namespace;
+    }
+
+    bool VarDecl::isInFileContext() { return isFileContext(getDeclContextKind()); }
+
+    bool isFunctionOrMethodContext(DeclContextKind kind) {
+        return kind == DeclContextKind::dc_function 
+            || kind == DeclContextKind::dc_method
+            || kind == DeclContextKind::dc_capture;
+    }
+
+    bool VarDecl::isInFunctionOrMethodContext() {
+        return isFunctionOrMethodContext(getDeclContextKind());
+    }
+
+    bool isRecordContext(DeclContextKind kind) { return kind == DeclContextKind::dc_record; }
+
+    bool VarDecl::isInRecordContext() { return isRecordContext(getDeclContextKind()); }
+
+    DeclContextKind VarDecl::getDeclContextKind() {
+        auto st = mlir::SymbolTable::getNearestSymbolTable(*this);
+        if (mlir::isa< mlir::FuncOp >(st))
+            return DeclContextKind::dc_function;
+        if (mlir::isa< mlir::ModuleOp >(st))
+            return DeclContextKind::dc_translation_unit;
+        if (mlir::isa< RecordDeclOp >(st))
+            return DeclContextKind::dc_record;
+        if (mlir::isa< EnumDeclOp >(st))
+            return DeclContextKind::dc_enum;
+        UNREACHABLE("unknown declaration context");
+    }
+
+    bool VarDecl::isStaticDataMember() {
+        // If it wasn't static, it would be a FieldDecl.
+        return isInRecordContext();
+    }
+
+    bool VarDecl::isFileVarDecl() {
+        if (isInFileContext())
+            return true;
+        if (isStaticDataMember())
+            return true;
+        return false;
+    }
+
     bool VarDecl::isLocalVarDecl() { return isInFunctionOrMethodContext(); }
 
     bool VarDecl::hasLocalStorage() {
