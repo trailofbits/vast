@@ -2,6 +2,7 @@
 
 add_mlir_dialect_library(MLIRHighLevel
     HighLevelDialect.cpp
+    HighLevelVar.cpp
     HighLevelOps.cpp
     HighLevelTypes.cpp
     HighLevelAttributes.cpp

@@ -82,6 +82,22 @@ def StorageDuration : StorageDurationList< "StorageDuration", "storage duration"
   SD_FullExpression, SD_Automatic, SD_Thread, SD_Static, SD_Dynamic
 ] >;
 
+class StorageDurationImpl
+{
+    code storageDurationImpl = [{
+      bool hasLocalStorage();
+
+      bool isLocalVarDecl();
+
+      bool isStaticLocal();
+
+      bool hasExternalStorage();
+
+      bool hasGlobalStorage();
+
+      StorageDuration getStorageDuration();
+    }];
+}
 
 // Variable Operation
 def HighLevel_VarDecl : HighLevel_Op< "var", [Symbol] >
