@@ -20,6 +20,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Dialects.hpp"
 #include "vast/Dialect/HighLevel/Passes.hpp"
+#include "vast/Util/Symbols.hpp"
 
 using context_t      = mlir::MLIRContext;
 using module_t       = mlir::OwningModuleRef;
@@ -32,7 +33,7 @@ namespace vast::cl
 
     // clang-format off
     enum class show_symbol_type {
-        none, function, type, record, all
+        none, function, type, record, var, global, all
     };
 
     cl::OptionCategory generic("Vast Generic Options");
@@ -51,6 +52,8 @@ namespace vast::cl
                 clEnumValN(show_symbol_type::function, "functions", "show function symbols"),
                 clEnumValN(show_symbol_type::type, "types", "show type symbols"),
                 clEnumValN(show_symbol_type::record, "records", "show record symbols"),
+                clEnumValN(show_symbol_type::var, "vars", "show variable symbols"),
+                clEnumValN(show_symbol_type::global, "globs", "show global variable symbols"),
                 clEnumValN(show_symbol_type::all, "all", "show all symbols")
             ),
             cl::init(show_symbol_type::none),
@@ -76,19 +79,43 @@ namespace vast::query
 
     bool show_symbol_users() { return !cl::options->show_symbol_users.empty(); }
 
-    // generator< symbol > symbols(module_t &mod) { ... }
-
-    //
+    template< typename ...Ts >
+    auto is_one_of() {
+        return [] (mlir::Operation *op) {  return (mlir::isa< Ts >(op) || ...); };
+    }
 
     logical_result do_show_symbols(module_t &mod) {
-        // auto show_kind = cl::options->show_symbols;
-        mod->dump();
+        auto &show_kind = cl::options->show_symbols;
+
+        auto show_symbol = [] (const auto &symbol) {
+            llvm::outs() << symbol->getName() << " : " << symbol->getAttr("sym_name") << "\n";
+        };
+
+        auto show_if = [=] (auto symbol, auto pred) {
+            if (pred(symbol))
+                show_symbol(symbol);
+        };
+
+        auto filter_kind = [=] (cl::show_symbol_type kind, auto show) {
+            return [=] (const auto &symbol) {
+                switch (kind) {
+                    case cl::show_symbol_type::none: break;
+                    case cl::show_symbol_type::type: UNIMPLEMENTED; break;
+                    case cl::show_symbol_type::record: UNIMPLEMENTED; break;
+                    case cl::show_symbol_type::var: UNIMPLEMENTED; break;
+                    case cl::show_symbol_type::global: UNIMPLEMENTED; break;
+                    case cl::show_symbol_type::function: show_if(symbol, is_one_of< mlir::FuncOp >()); break;
+                    case cl::show_symbol_type::all: show(symbol); break;
+                }
+            };
+        };
+
+        util::symbols(mod, filter_kind(show_kind, show_symbol));
         return mlir::success();
     }
 
     logical_result do_show_users(module_t &mod) {
-        // auto symbol = cl::options->show_symbols;
-        return mlir::success();
+        UNIMPLEMENTED;
     }
 } // namespace vast::query
 
