@@ -14,7 +14,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    void splice_trailing_scopes(mlir::Region::BlockListType &blocks) {
+    inline void splice_trailing_scopes(mlir::Region::BlockListType &blocks) {
         auto has_trailing_scope = [&] {
             if (blocks.empty())
                 return false;
@@ -46,12 +46,14 @@ namespace vast::hl
         }
     }
 
-    void splice_trailing_scopes(mlir::FuncOp &fn) {
+    inline void splice_trailing_scopes(mlir::FuncOp &fn) {
         if (fn.empty())
             return;
         splice_trailing_scopes(fn.getBlocks());
     }
 
-    void splice_trailing_scopes(mlir::Region &reg) { splice_trailing_scopes(reg.getBlocks()); }
+    inline void splice_trailing_scopes(mlir::Region &reg) {
+        splice_trailing_scopes(reg.getBlocks());
+    }
 
 } // namespace vast::hl
