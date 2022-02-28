@@ -19,6 +19,9 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Dialects.hpp"
+#include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/Passes.hpp"
 #include "vast/Util/Symbols.hpp"
 
@@ -99,18 +102,24 @@ namespace vast::query
         auto filter_kind = [=] (cl::show_symbol_type kind, auto show) {
             return [=] (const auto &symbol) {
                 switch (kind) {
+                    case cl::show_symbol_type::all:
+                        show(symbol); break;
+                    case cl::show_symbol_type::type:
+                        show_if(symbol, is_one_of< hl::TypeDefOp, hl::TypeDeclOp >()); break;
+                    case cl::show_symbol_type::record:
+                        show_if(symbol, is_one_of< hl::RecordDeclOp >()); break;
+                    case cl::show_symbol_type::var:
+                        show_if(symbol, is_one_of< hl::VarOp >()); break;
+                    case cl::show_symbol_type::global:
+                        show_if(symbol, is_one_of< hl::GlobalOp >()); break;
+                    case cl::show_symbol_type::function:
+                        show_if(symbol, is_one_of< mlir::FuncOp >()); break;
                     case cl::show_symbol_type::none: break;
-                    case cl::show_symbol_type::type: UNIMPLEMENTED; break;
-                    case cl::show_symbol_type::record: UNIMPLEMENTED; break;
-                    case cl::show_symbol_type::var: UNIMPLEMENTED; break;
-                    case cl::show_symbol_type::global: UNIMPLEMENTED; break;
-                    case cl::show_symbol_type::function: show_if(symbol, is_one_of< mlir::FuncOp >()); break;
-                    case cl::show_symbol_type::all: show(symbol); break;
                 }
             };
         };
 
-        util::symbols(mod, filter_kind(show_kind, show_symbol));
+        util::symbols(mod.get(), filter_kind(show_kind, show_symbol));
         return mlir::success();
     }
 
