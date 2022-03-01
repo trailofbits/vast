@@ -176,10 +176,6 @@ target_include_directories(vast
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-set_target_properties(vast
-  PROPERTIES PUBLIC_HEADER "${VAST_TRANSLATION_HEADERS}"
-)
-
 # test options
 option(ENABLE_TESTING "Enable Test Builds" ON)
 
@@ -199,9 +195,29 @@ if (VAST_INSTALL)
 
   set(VAST_INSTALL_TARGETS
     vast
-    vast_translation_api
     vast_settings
+    vast_translation_api
     MLIRHighLevel
+  )
+
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/include/vast
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    COMPONENT vast-headers
+    FILES_MATCHING
+    PATTERN "*.h"
+    PATTERN "*.hpp"
+    PATTERN "*.h.inc"
+    PATTERN "*.hpp.inc"
+    PATTERN "CMakeFiles" EXCLUDE
+  )
+
+  install(DIRECTORY include/vast
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    COMPONENT vast-headers
+    FILES_MATCHING
+    PATTERN "*.h"
+    PATTERN "*.hpp"
+    PATTERN "CMakeFiles" EXCLUDE
   )
 
   set(VAST_EXPORT_NAME vastTargets)
@@ -219,14 +235,6 @@ if (VAST_INSTALL)
     FILE ${VAST_EXPORT_NAME}.cmake
     NAMESPACE vast::
     DESTINATION ${VAST_CMAKE_INSTALL_DIR}
-  )
-
-  install(TARGETS ${VAST_INSTALL_TARGETS}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      NAMELINK_ONLY
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   )
 
   #

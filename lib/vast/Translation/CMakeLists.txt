@@ -14,7 +14,6 @@ target_link_libraries( vast_translation_api
         vast_settings
 )
 
-
 add_library( FromSourceParser
   FromSource.cpp
 )
