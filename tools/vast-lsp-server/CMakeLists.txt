@@ -20,6 +20,8 @@ set(VAST_LSP_SERVER_LIBS
   MLIRTransformUtils
   MLIRSupport
   MLIRIR
+
+  vast_settings
 )
 
 add_llvm_tool(vast-lsp-server
@@ -33,7 +35,3 @@ target_link_libraries(vast-lsp-server PRIVATE ${VAST_LSP_SERVER_LIBS})
 llvm_update_compile_flags(vast-lsp-server)
 
 mlir_check_all_link_libraries(vast-lsp-server)
-
-if (NOT LLVM_ENABLE_RTTI)
-  set_target_properties(vast-lsp-server PROPERTIES COMPILE_FLAGS "-fno-rtti")
-endif()

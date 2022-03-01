@@ -57,3 +57,12 @@ function(FindAndSelectClangCompiler)
     endif()
   endif()
 endfunction()
+
+# adds header paths of library to list named var
+function(add_headers var)
+  set(headers ${${var}})
+  foreach (header ${ARGN})
+    set(headers ${headers} ${CMAKE_CURRENT_SOURCE_DIR}/${header})
+  endforeach()
+  set(${var} ${headers} CACHE INTERNAL "")
+endfunction()

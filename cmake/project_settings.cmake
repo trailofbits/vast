@@ -17,15 +17,6 @@ macro(settings_main)
     endif()
   endif()
 
-  # overwrite the default install prefix
-  if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    if(DEFINED WIN32)
-      set(CMAKE_INSTALL_PREFIX "C:/")
-    else()
-      set(CMAKE_INSTALL_PREFIX "/usr/local")
-    endif()
-  endif()
-
   message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
 
   # generate a compile commands JSON file.

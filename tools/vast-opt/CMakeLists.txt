@@ -14,10 +14,8 @@ target_link_libraries(vast-opt
 
         MLIROptLib
         MLIRHighLevel
+
+        vast_settings
 )
 
 mlir_check_all_link_libraries(vast-opt)
-
-if (NOT LLVM_ENABLE_RTTI)
-  set_target_properties(vast-opt PROPERTIES COMPILE_FLAGS "-fno-rtti")
-endif()
