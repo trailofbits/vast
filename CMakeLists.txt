@@ -162,6 +162,23 @@ add_subdirectory(lib)
 #
 add_subdirectory(tools)
 
+add_library(vast INTERFACE)
+
+target_link_libraries(vast
+  INTERFACE
+    vast_translation_api
+    vast_settings
+)
+
+target_include_directories(vast
+  INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
+set_target_properties(vast
+  PROPERTIES PUBLIC_HEADER "${VAST_TRANSLATION_HEADERS}"
+)
 
 # test options
 option(ENABLE_TESTING "Enable Test Builds" ON)
@@ -175,8 +192,40 @@ endif()
 # install settings
 #
 
-if(DEFINED WIN32)
-  set(install_folder "${CMAKE_INSTALL_PREFIX}/vast")
-else()
-  set(install_folder "${CMAKE_INSTALL_PREFIX}")
+option(VAST_INSTALL "Generate the install target." ${VAST_MASTER_PROJECT})
+
+if (VAST_INSTALL)
+  set(VAST_CMAKE_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+
+  set(VAST_INSTALL_TARGETS
+    vast
+    vast_translation_api
+    vast_settings
+    MLIRHighLevel
+  )
+
+  set(VAST_EXPORT_NAME vastTargets)
+
+  install(TARGETS ${VAST_INSTALL_TARGETS}
+    EXPORT ${VAST_EXPORT_NAME}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      NAMELINK_SKIP
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  )
+
+  install(EXPORT ${VAST_EXPORT_NAME}
+    FILE ${VAST_EXPORT_NAME}.cmake
+    NAMESPACE vast::
+    DESTINATION ${VAST_CMAKE_INSTALL_DIR}
+  )
+
+  install(TARGETS ${VAST_INSTALL_TARGETS}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      NAMELINK_ONLY
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  )
 endif()
