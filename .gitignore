@@ -53,5 +53,6 @@ build/*
 CMakeFiles/*
 CMakeCache.txt
 Testing/Temporary/*
+_CPack_Packages/*
 
 install/*
