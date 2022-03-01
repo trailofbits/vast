@@ -20,7 +20,7 @@ endif ()
 
 project(vast
     LANGUAGES C CXX
-    VERSION 0.0.0
+    VERSION 0.1.0
     DESCRIPTION "Verbose intermediate representation for program analysis"
     HOMEPAGE_URL "https://github.com/trailofbits/vast.git"
 )
@@ -31,6 +31,16 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(prevent_in_source_builds)
 
 include(GNUInstallDirs)
+
+# check if vast is being used directly or via add_subdirectory,
+# but allow overriding
+if(NOT DEFINED VAST_MASTER_PROJECT)
+    if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+        set(VAST_MASTER_PROJECT ON)
+    else()
+        set(VAST_MASTER_PROJECT OFF)
+    endif()
+endif()
 
 include(project_settings)
 include(project_utils)
@@ -106,6 +116,10 @@ include(AddLLVM)
 include(AddMLIR)
 include(HandleLLVMOptions)
 
+if (NOT LLVM_ENABLE_RTTI)
+  set_target_properties(vast_settings PROPERTIES COMPILE_FLAGS "-fno-rtti")
+endif()
+
 # TODO(Heno): clean up & modernize
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_INCLUDE_DIRS})
@@ -127,7 +141,7 @@ set_project_warnings(vast_settings)
 
 target_include_directories(vast_settings INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 # sanitizer options if supported by compiler
