@@ -1,6 +1,7 @@
 add_library( vast_translation_api STATIC
   HighLevelTypeConverter.cpp
   HighLevelVisitor.cpp
+  CodeGen.cpp
 )
 
 target_link_libraries( vast_translation_api
