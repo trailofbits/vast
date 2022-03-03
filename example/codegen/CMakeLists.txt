@@ -82,6 +82,19 @@ add_definitions(${LLVM_DEFINITIONS})
 add_definitions(${CLANG_DEFINITIONS})
 
 #
+# VAST
+#
+set(VAST_INSTALL_DIR "" CACHE PATH "LLVM installation directory")
+
+set(VAST_CMAKE_FILE "${VAST_INSTALL_DIR}/lib/cmake/vast/vastConfig.cmake")
+if(NOT EXISTS "${VAST_CMAKE_FILE}")
+  message(FATAL_ERROR " VAST_CMAKE_FILE (${VAST_CMAKE_FILE}) is invalid.")
+endif()
+
+list(APPEND CMAKE_PREFIX_PATH "${VAST_INSTALL_DIR}/lib/cmake/vast/")
+
+
+#
 # Example executable
 #
 add_executable(codegen codegen.cpp)
