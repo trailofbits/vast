@@ -14,6 +14,8 @@ namespace vast::hl
 {
     std::unique_ptr< mlir::Pass > createLowerHighLevelTypesPass();
 
+    std::unique_ptr< mlir::Pass > createStructsToTuplesPass();
+
     std::unique_ptr< mlir::Pass > createLowerHighLevelControlFlowPass();
 
     /// Generate the code for registering passes.
