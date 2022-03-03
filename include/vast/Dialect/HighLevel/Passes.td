@@ -13,6 +13,16 @@ def LowerHighLevelTypes : Pass<"vast-hl-lower-types"> {
 }
 
 
+def StructsToTuples : Pass<"vast-hl-structs-to-tuples", "mlir::ModuleOp"> {
+  let summary = "Transform hl.record into std tuples.";
+  let description = [{
+    This pass is still a work in progress.
+  }];
+
+  let constructor = "vast::hl::createStructsToTuplesPass()";
+  let dependentDialects = ["mlir::LLVM::LLVMDialect"];
+}
+
 def LowerHighLevelControlFlow : Pass<"vast-hl-lower-cf"> {
   let summary = "Lower high-level types to standard types";
   let description = [{ }];
