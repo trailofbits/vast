@@ -364,12 +364,65 @@ namespace vast::hl
                                            patterns.getContext());
 
         if (mlir::failed(mlir::applyPartialConversion(
-                        op, trg, std::move(patterns))))
+                         op, trg, std::move(patterns))))
             return signalPassFailure();
     }
+
+    // TODO(lukas):
+    struct LowerRecordOp : mlir::ConversionPattern
+    {
+
+        AttributeConverter &_attribute_converter;
+
+        LowerHLTypePattern(TypeConverter &tc, AttributeConverter &ac, mlir::MLIRContext *mctx)
+            : mlir::ConversionPattern(tc, mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx),
+              _attribute_converter(ac)
+        {}
+
+
+        mlir::LogicalResult matchAndRewrite(
+                hl::RecordOp *op, mlir::ArrayRef< mlir::Value > ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
+        {
+            return signalPassFailure();
+        }
+    };
+
+    struct StructsToTuplesPass : StructsToTuplesBase< StructsToTuplesPass >
+    {
+        void runOnOperation() override
+        {
+            auto op = this->getOperation();
+            auto &mctx = this->getContext();
+
+            mlir::ConversionTarget trg(mctx);
+            // We want to check *everything* for presence of hl type
+            // that can be lowered.
+            trg.markUnknownOpDynamicallyLegal(should_lower);
+
+            mlir::RewritePatternSet patterns(&mctx);
+            const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
+            TypeConverter type_converter(dl_analysis.getAtOrAbove(op), mctx);
+            AttributeConverter attr_converter{mctx, type_converter};
+
+            patterns.add< LowerRecordOp >(type_converter, attr_converter,
+                                          patterns.getContext());
+
+            if (mlir::failed(mlir::applyPartialConversion(
+                             op, trg, std::move(patterns))))
+            {
+                return signalPassFailure();
+            }
+        }
+    };
 }
 
 std::unique_ptr< mlir::Pass > vast::hl::createLowerHighLevelTypesPass()
 {
   return std::make_unique< LowerHighLevelTypesPass >();
+}
+
+std::unique_ptr< mlir::Pass > vast::hl::createStructsToTuplesPass()
+{
+  return std::make_unique< StructsToTuplesPass >();
 }
