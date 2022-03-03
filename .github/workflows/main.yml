@@ -6,12 +6,13 @@
 # the LICENSE file found in the root directory of this source tree.
 #
 
-name: Build
+name: Build Matrix
 
 on:
   push:
     branches:
       - 'master'
+      - 'visitor-api'
 
     tags:
       - '*'
@@ -21,75 +22,92 @@ on:
       - '*'
 
 jobs:
-  build_linux:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
-        image:
-          - { name: 'ubuntu', tag: '20.04' }
+        config:
+        - {
+          name: 'ubuntu',
+          os: ubuntu-20.04,
+          arch: 'x86_64-linux-gnu-ubuntu-18.04',
+        }
 
-        llvm: [ '13.0.0' ]
+        - {
+          name: 'macos',
+          os: macos-latest,
+          arch: 'x86_64-apple-darwin'
+        }
+        llvm: [ '13.0.1' ]
 
-    runs-on: ubuntu-20.04
-
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Setup the build paths
         shell: bash
         id: build_paths
         run: |
-          rel_build_path="build"
-          rel_source_path="src"
-          rel_install_path="install"
-          rel_downloads_path="downloads"
-          rel_ccache_path="ccache"
+          build_path="build"
+          source_path="src"
+          install_path="install"
+          downloads_path="downloads"
+          ccache_path="ccache"
+          package_path="package"
 
-          mkdir -p ${rel_build_path} \
-                   ${rel_install_path} \
-                   ${rel_downloads_path} \
-                   ${rel_ccache_path}
+          mkdir -p ${source_path} \
+            ${install_path} \
+            ${build_path} \
+            ${downloads_path} \
+            ${ccache_path}
 
-          echo ::set-output name=SOURCE::$(pwd)/${rel_source_path}
-          echo ::set-output name=REL_SOURCE::${rel_source_path}
-          echo ::set-output name=BUILD::$(pwd)/${rel_build_path}
-          echo ::set-output name=REL_BUILD::${rel_build_path}
-          echo ::set-output name=INSTALL::$(pwd)/${rel_install_path}
-          echo ::set-output name=DOWNLOADS::$(pwd)/${rel_downloads_path}
-          echo ::set-output name=CCACHE::$(pwd)/${rel_ccache_path}
+          echo ::set-output name=source::$(pwd)/${source_path}
+          echo ::set-output name=install::$(pwd)/${install_path}
+          echo ::set-output name=build::$(pwd)/${build_path}
+          echo ::set-output name=downloads::$(pwd)/${downloads_path}
+          echo ::set-output name=ccache::$(pwd)/${ccache_path}
+          echo ::set-output name=package::$(pwd)/${package_path}
 
       - name: Update the cache (downloads)
         uses: actions/cache@v2
         with:
-          path: ${{ steps.build_paths.outputs.DOWNLOADS }}
+          path: ${{ steps.build_paths.outputs.downloads }}
 
           key: |
-            gitmodules_${{ matrix.image.name }}_${{ matrix.image.tag }}_${{ matrix.llvm }}_${{ github.sha }}
+            gitmodules_${{ matrix.config.os }}_${{ matrix.llvm }}_${{ github.sha }}
           restore-keys: |
-            gitmodules_${{ matrix.image.name }}_${{ matrix.image.tag }}_${{ matrix.llvm }}
+            gitmodules_${{ matrix.config.os }}_${{ matrix.llvm }}
 
       - name: Update the cache (ccache)
         uses: actions/cache@v2
         with:
-          path: ${{ steps.build_paths.outputs.CCACHE }}
+          path: ${{ steps.build_paths.outputs.ccache }}
 
           key: |
-            gitmodules_${{ matrix.image.name }}_${{ matrix.image.tag }}_${{ matrix.llvm }}_${{ github.sha }}
+            gitmodules_${{ matrix.config.os }}_${{ matrix.llvm }}_${{ github.sha }}
           restore-keys: |
-            gitmodules_${{ matrix.image.name }}_${{ matrix.image.tag }}_${{ matrix.llvm }}
+            gitmodules_${{ matrix.config.os }}_${{ matrix.llvm }}
 
-      - name: Install build requirements
+      - name: Install linux build requirements
+        if: ${{ matrix.config.name == 'ubuntu' }}
         shell: bash
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             software-properties-common tar wget libncurses5 \
-            clang-12 libstdc++-10-dev cmake ninja-build python3-pip
+            clang-12 cmake ninja-build python3-pip
+
+      - name: Install macos build requirements
+        if: ${{ matrix.config.name == 'macos' }}
+        shell: bash
+        run: |
+          brew install ninja cmake python3
 
       - name: Clone the vast repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
-          path: ${{ steps.build_paths.outputs.REL_SOURCE }}/vast
+          path: ${{ steps.build_paths.outputs.source }}/vast
           fetch-depth: 0
 
       - name: Install vast test requirements
@@ -98,11 +116,11 @@ jobs:
           sudo pip install lit
           sudo ln -s /usr/bin/FileCheck-12 /usr/bin/FileCheck
 
-      - name: Download the llvm ${{ matrix.llvm }} package
+      - name: Download llvm ${{ matrix.llvm }} package
         shell: bash
-        working-directory: ${{ steps.build_paths.outputs.DOWNLOADS }}
+        working-directory: ${{ steps.build_paths.outputs.downloads }}
         run: |
-          llvm_archive="clang+llvm-${{ matrix.llvm }}-x86_64-linux-gnu-ubuntu-20.04.tar.xz"
+          llvm_archive="clang+llvm-${{ matrix.llvm }}-${{ matrix.config.arch }}.tar.xz"
           llvm_url_path="https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ matrix.llvm }}/${llvm_archive}"
 
           if [[ ! -f "${llvm_archive}" ]] ; then
@@ -110,52 +128,36 @@ jobs:
             wget "${llvm_url_path}"
           fi
 
-          mkdir "${{ steps.build_paths.outputs.INSTALL }}/llvm"
-          tar -xf "${llvm_archive}" -C "${{ steps.build_paths.outputs.INSTALL }}/llvm" --strip-components=1
+          mkdir "${{ steps.build_paths.outputs.install }}/llvm"
+          tar -xf "${llvm_archive}" -C "${{ steps.build_paths.outputs.install }}/llvm" --strip-components=1
 
       - name: Configure vast
-        working-directory: ${{ steps.build_paths.outputs.BUILD }}
+        working-directory: ${{ steps.build_paths.outputs.build }}
 
         env:
-          CCACHE_DIR: ${{ steps.build_paths.outputs.CCACHE }}
+          CCACHE_DIR: ${{ steps.build_paths.outputs.ccache }}
+          LLVM_INSTALL_DIR: "${{ steps.build_paths.outputs.install }}/llvm"
+          VAST_INSTALL_DIR: "${{ steps.build_paths.outputs.install }}"
 
         run: |
-          llvm_dir="${{ steps.build_paths.outputs.INSTALL }}/llvm"
-
-          cmake -G Ninja -B build \
-            -S ${{ steps.build_paths.outputs.SOURCE }}/vast \
+          cmake -G Ninja -B build --preset ninja-multi-ci \
+            -S ${{ steps.build_paths.outputs.source }}/vast \
             -DCMAKE_C_COMPILER=clang-12 \
             -DCMAKE_CXX_COMPILER=clang++-12 \
-            -DCMAKE_VERBOSE_MAKEFILE=True \
-            -DENABLE_TESTING=ON \
-            -DLLVM_EXTERNAL_LIT=/usr/local/bin/lit \
-            -DLLVM_INSTALL_DIR=${llvm_dir}
+            -DLLVM_EXTERNAL_LIT=/usr/local/bin/lit
 
       - name: Build vast
-        working-directory: ${{ steps.build_paths.outputs.BUILD }}
+        working-directory: ${{ steps.build_paths.outputs.build }}
 
         env:
-          CCACHE_DIR: ${{ steps.build_paths.outputs.CCACHE }}
+          CCACHE_DIR: ${{ steps.build_paths.outputs.ccache}}
 
         run: |
-          cmake --build build -j $(nproc)
-
-      - name: Install vast
-        id: vast_installer
-        working-directory: ${{ steps.build_paths.outputs.BUILD }}
-
-        env:
-          CCACHE_DIR: ${{ steps.build_paths.outputs.CCACHE }}
-
-        run: |
-          export DESTDIR=${{ steps.build_paths.outputs.INSTALL }}/vast
-          cmake --build build \
-                --target install
-          echo ::set-output name=PATH::${DESTDIR}
+          cmake --build --preset ninja-ci-release
 
       - name: Run lit tests
-        working-directory: ${{ steps.build_paths.outputs.BUILD }}
+        working-directory: ${{ steps.build_paths.outputs.build }}
 
         run: |
-          export LLVM_SYMBOLIZER_PATH="${{ steps.build_paths.outputs.INSTALL }}/llvm/bin/llvm-symbolizer"
-          cmake --build build --target check-vast
+          cmake --build --preset ninja-ci-debug --target check-vast
+
