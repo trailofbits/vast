@@ -20,8 +20,10 @@ namespace vast::hl
     using module_t          = mlir::ModuleOp;
     using context_t         = mlir::MLIRContext;
 
-    struct HighLevelEmitter {
-        HighLevelEmitter(context_t *ctx) {
+    struct high_level_codegen {
+        high_level_codegen(context_t *ctx)
+            : ctx(ctx)
+        {
             ctx->loadDialect< HighLevelDialect >();
             ctx->loadDialect< mlir::StandardOpsDialect >();
             ctx->loadDialect< mlir::DLTIDialect >();

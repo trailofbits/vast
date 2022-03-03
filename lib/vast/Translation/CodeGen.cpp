@@ -16,11 +16,18 @@ namespace vast::hl
 {
     using builder_t = mlir::Builder;
 
-    module_owning_ref HighLevelEmitter::emit_module(clang::Decl* decl) {
+    module_owning_ref high_level_codegen::emit_module(clang::Decl* decl) {
+
         builder_t bld(ctx);
-        module_owning_ref mod = module_t::create(bld.getUnknownLoc());
+        auto loc = bld.getUnknownLoc();
+        module_owning_ref mod = module_t::create(loc);
 
         TranslationContext tctx(*ctx, decl->getASTContext(), mod);
+
+        llvm::ScopedHashTableScope type_def_scope(tctx.type_defs);
+        llvm::ScopedHashTableScope type_dec_scope(tctx.type_decls);
+        llvm::ScopedHashTableScope enum_dec_scope(tctx.enum_decls);
+        llvm::ScopedHashTableScope func_scope(tctx.functions);
 
         CodeGenVisitor visitor(tctx);
         visitor.Visit(decl);
