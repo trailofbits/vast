@@ -116,10 +116,6 @@ include(AddLLVM)
 include(AddMLIR)
 include(HandleLLVMOptions)
 
-if (NOT LLVM_ENABLE_RTTI)
-  set_target_properties(vast_settings PROPERTIES COMPILE_FLAGS "-fno-rtti")
-endif()
-
 # TODO(Heno): clean up & modernize
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_INCLUDE_DIRS})
@@ -143,6 +139,10 @@ target_include_directories(vast_settings INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
+
+if (NOT LLVM_ENABLE_RTTI)
+  set_target_properties(vast_settings PROPERTIES COMPILE_FLAGS "-fno-rtti")
+endif()
 
 # sanitizer options if supported by compiler
 include(cmake/sanitizers.cmake)
