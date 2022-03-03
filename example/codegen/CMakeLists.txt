@@ -88,8 +88,24 @@ add_executable(codegen codegen.cpp)
 
 find_package(vast REQUIRED)
 
+get_property(DIALECT_LIBS GLOBAL PROPERTY MLIR_DIALECT_LIBS)
+get_property(CONVERSION_LIBS GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
+
 target_link_libraries(codegen
-    PRIVATE vast::vast
+    PRIVATE
+        vast::vast
+
+        MLIRIR
+
+        ${MLIR_DIALECT_LIBS}
+        ${CONVERSION_LIBS}
+
+        clangAST
+        clangASTMatchers
+        clangBasic
+        clangFrontend
+        clangSerialization
+        clangTooling
 )
 
 if (NOT LLVM_ENABLE_RTTI)
