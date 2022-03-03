@@ -172,7 +172,12 @@ namespace vast::hl
 
         auto make_ptr_type()
         {
-            return [&](auto t) { return mlir::UnrankedMemRefType::get(t, 0); };
+            return [&](auto t) {
+                // NOTE(lukas): `none` cannot be memref element type.
+                if (t.template isa< mlir::NoneType >())
+                    t = mlir::IntegerType::get(&this->mctx, 8);
+                return mlir::UnrankedMemRefType::get(t, 0);
+            };
         }
 
         auto make_lvalue_type()
