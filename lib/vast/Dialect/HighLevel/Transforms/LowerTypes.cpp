@@ -368,23 +368,68 @@ namespace vast::hl
             return signalPassFailure();
     }
 
-    // TODO(lukas):
-    struct LowerRecordOp : mlir::ConversionPattern
+    mlir::Block &solo_block(mlir::Region &region)
     {
+        ASSERT(region.hasOneBlock());
+        return *region.begin();
+    }
 
-        AttributeConverter &_attribute_converter;
+    // TODO(lukas):
+    struct LowerRecordDeclOp : mlir::OpConversionPattern< hl::RecordDeclOp >
+    {
+        using parent_t = mlir::OpConversionPattern< hl::RecordDeclOp >;
 
-        LowerHLTypePattern(TypeConverter &tc, AttributeConverter &ac, mlir::MLIRContext *mctx)
-            : mlir::ConversionPattern(tc, mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx),
-              _attribute_converter(ac)
+        // TODO(lukas): We most likely no longer need type converter here.
+        LowerRecordDeclOp(TypeConverter &tc, mlir::MLIRContext *mctx)
+            : parent_t(tc, mctx)
         {}
 
+        std::vector< mlir::Type > collect_field_tys(hl::RecordDeclOp op) const
+        {
+            std::vector< mlir::Type > out;
+            for (auto &maybe_field : solo_block(op.fields()))
+            {
+                auto field = mlir::dyn_cast< hl::FieldDeclOp >(maybe_field);
+                ASSERT(field);
+                out.push_back(field.type());
+            }
+            return out;
+        }
+
+        // TODO(lukas): This is definitely **not** how it should be done.
+        //              Rework once links via symbols have api.
+        std::vector< hl::TypeDeclOp > fetch_decls(hl::RecordDeclOp op) const
+        {
+            std::vector< hl::TypeDeclOp > out;
+            auto module_op = op->getParentOfType< mlir::ModuleOp >();
+            for (auto &x : solo_block(module_op.body()))
+            {
+                if (auto type_decl = mlir::dyn_cast< hl::TypeDeclOp >(x);
+                    type_decl && type_decl.sym_name() == op.name().getLeafReference())
+                {
+                    out.push_back(type_decl);
+                }
+            }
+            return out;
+        }
 
         mlir::LogicalResult matchAndRewrite(
-                hl::RecordOp *op, mlir::ArrayRef< mlir::Value > ops,
+                hl::RecordDeclOp op, mlir::ArrayRef< mlir::Value > ops,
                 mlir::ConversionPatternRewriter &rewriter) const override
         {
-            return signalPassFailure();
+            auto field_tys = collect_field_tys(op);
+            auto trg_ty = mlir::TupleType::get(this->getContext(), field_tys);
+
+            rewriter.create< hl::TypeDefOp >(
+                    op.getLoc(), op.name().getLeafReference(), trg_ty);
+
+            auto type_decls = fetch_decls(op);
+            ASSERT(type_decls.size() == 1);
+            for (auto x : type_decls)
+                rewriter.eraseOp(x);
+
+            rewriter.eraseOp(op);
+            return mlir::success();
         }
     };
 
@@ -395,18 +440,17 @@ namespace vast::hl
             auto op = this->getOperation();
             auto &mctx = this->getContext();
 
+            // TODO(lukas): Simply inherit and overload to accept everything but that one op.
+            // TODO(lukas): Will probably need to emit extracts as well.
             mlir::ConversionTarget trg(mctx);
-            // We want to check *everything* for presence of hl type
-            // that can be lowered.
-            trg.markUnknownOpDynamicallyLegal(should_lower);
+            trg.addIllegalOp< hl::RecordDeclOp >();
+            trg.addLegalOp< hl::TypeDefOp >();
 
             mlir::RewritePatternSet patterns(&mctx);
             const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
             TypeConverter type_converter(dl_analysis.getAtOrAbove(op), mctx);
-            AttributeConverter attr_converter{mctx, type_converter};
 
-            patterns.add< LowerRecordOp >(type_converter, attr_converter,
-                                          patterns.getContext());
+            patterns.add< LowerRecordDeclOp >(type_converter, patterns.getContext());
 
             if (mlir::failed(mlir::applyPartialConversion(
                              op, trg, std::move(patterns))))
@@ -419,10 +463,10 @@ namespace vast::hl
 
 std::unique_ptr< mlir::Pass > vast::hl::createLowerHighLevelTypesPass()
 {
-  return std::make_unique< LowerHighLevelTypesPass >();
+    return std::make_unique< LowerHighLevelTypesPass >();
 }
 
 std::unique_ptr< mlir::Pass > vast::hl::createStructsToTuplesPass()
 {
-  return std::make_unique< StructsToTuplesPass >();
+    return std::make_unique< StructsToTuplesPass >();
 }
