@@ -102,7 +102,7 @@ jobs:
         if: ${{ matrix.config.name == 'macos' }}
         shell: bash
         run: |
-          brew install ninja cmake python3
+          brew install ninja cmake python3 llvm@12
 
       - name: Clone the vast repository
         uses: actions/checkout@v3
@@ -139,6 +139,7 @@ jobs:
           VAST_INSTALL_DIR: "${{ steps.build_paths.outputs.install }}"
 
         run: |
+          echo $LLVM_INSTALL_DIR
           cmake -G Ninja -B ${{ steps.build_paths.outputs.build }} \
             -S ${{ steps.build_paths.outputs.source }}/vast \
             -DCMAKE_C_COMPILER=clang-12 \
