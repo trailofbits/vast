@@ -135,7 +135,6 @@ jobs:
 
         env:
           CCACHE_DIR: ${{ steps.build_paths.outputs.ccache }}
-          LLVM_INSTALL_DIR: "${{ steps.build_paths.outputs.install }}/llvm"
           VAST_INSTALL_DIR: "${{ steps.build_paths.outputs.install }}"
 
         run: |
@@ -143,7 +142,7 @@ jobs:
           cmake -G Ninja -B ${{ steps.build_paths.outputs.build }} \
             -S ${{ steps.build_paths.outputs.source }}/vast \
             -DLLVM_EXTERNAL_LIT=/usr/local/bin/lit \
-            -DLLVM_INSTALL_DIR="$env{LLVM_INSTALL_DIR}" \
+            -DLLVM_INSTALL_DIR="${{ steps.build_paths.outputs.install }}/llvm" \
             -DENABLE_TESTING=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_VERBOSE_MAKEFILE=True
