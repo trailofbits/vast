@@ -153,8 +153,7 @@ jobs:
           CCACHE_DIR: ${{ steps.build_paths.outputs.ccache}}
 
         run: |
-          cmake --build --preset ninja-ci-release \
-            -S ${{ steps.build_paths.outputs.source }}/vast
+          cmake --build --preset ninja-ci-release
 
       - name: Run lit tests
         working-directory: ${{ steps.build_paths.outputs.build }}
