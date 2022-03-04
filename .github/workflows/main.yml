@@ -139,11 +139,15 @@ jobs:
           VAST_INSTALL_DIR: "${{ steps.build_paths.outputs.install }}"
 
         run: |
-          cmake -G Ninja -B build --preset ninja-multi-ci \
+          cmake -G Ninja -B ${{ steps.build_paths.outputs.build }} \
             -S ${{ steps.build_paths.outputs.source }}/vast \
             -DCMAKE_C_COMPILER=clang-12 \
             -DCMAKE_CXX_COMPILER=clang++-12 \
-            -DLLVM_EXTERNAL_LIT=/usr/local/bin/lit
+            -DLLVM_EXTERNAL_LIT=/usr/local/bin/lit \
+            -DLLVM_INSTALL_DIR="$env{LLVM_INSTALL_DIR}" \
+            -DENABLE_TESTING=ON \
+            -DCMAKE_VERBOSE_MAKEFILE=True
+
 
       - name: Build vast
         working-directory: ${{ steps.build_paths.outputs.build }}
@@ -152,12 +156,11 @@ jobs:
           CCACHE_DIR: ${{ steps.build_paths.outputs.ccache}}
 
         run: |
-          cmake --build --preset ninja-ci-release
+          cmake --build  ${{ steps.build_paths.outputs.build }} --config Release
 
       - name: Run lit tests
         working-directory: ${{ steps.build_paths.outputs.build }}
 
         run: |
-          cmake --build --preset ninja-ci-debug --target check-vast \
-            -S ${{ steps.build_paths.outputs.source }}/vast
+          cmake --build  ${{ steps.build_paths.outputs.build }} --target check-vast
 
