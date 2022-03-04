@@ -145,6 +145,7 @@ jobs:
             -DLLVM_EXTERNAL_LIT=/usr/local/bin/lit \
             -DLLVM_INSTALL_DIR="$env{LLVM_INSTALL_DIR}" \
             -DENABLE_TESTING=ON \
+            -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_VERBOSE_MAKEFILE=True
 
 
