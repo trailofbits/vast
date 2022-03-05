@@ -130,6 +130,19 @@ jobs:
           mkdir "${{ steps.build_paths.outputs.install }}/llvm"
           tar -xf "${llvm_archive}" -C "${{ steps.build_paths.outputs.install }}/llvm" --strip-components=1
 
+      - name: Set compilers
+        id: envvars
+        run: |
+          if [[ "${{matrix.config.name }}" == "macos" ]]; then
+            echo "::set-output name=cc::/usr/local/opt/llvm@12/bin/clang"
+            echo "::set-output name=cxx::/usr/local/opt/llvm@12/bin/clang++"
+          fi
+
+          if [[ "${{matrix.config.name }}" == "ubuntu" ]]; then
+            echo "::set-output name=cc::clang-12"
+            echo "::set-output name=cxx::clang++-12"
+          fi
+
       - name: Configure vast
         working-directory: ${{ steps.build_paths.outputs.build }}
 
@@ -142,12 +155,15 @@ jobs:
 
           cmake -G Ninja -B ${{ steps.build_paths.outputs.build }} \
             -S ${{ steps.build_paths.outputs.source }}/vast \
-            -DLLVM_EXTERNAL_LIT=/usr/local/bin/lit \
-            -DLLVM_INSTALL_DIR=${LLVM_INSTALL_DIR} \
-            -DENABLE_TESTING=ON \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_VERBOSE_MAKEFILE=True
-
+            -D LLVM_EXTERNAL_LIT=/usr/local/bin/lit \
+            -D LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR} \
+            -D ENABLE_TESTING=ON \
+            -D CMAKE_BUILD_TYPE=Release \
+            -D CMAKE_VERBOSE_MAKEFILE=True \
+            -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+            -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -D CMAKE_C_COMPILER=${{ steps.envvars.outputs.cc }} \
+            -D CMAKE_CXX_COMPILER=${{ steps.envvars.outputs.cxx }}
 
       - name: Build vast
         working-directory: ${{ steps.build_paths.outputs.build }}
