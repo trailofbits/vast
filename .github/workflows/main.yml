@@ -96,13 +96,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             software-properties-common tar wget libncurses5 \
-            clang-12 cmake ninja-build python3-pip
+            clang-12 cmake ninja-build python3-pip ccache
 
       - name: Install macos build requirements
         if: ${{ matrix.config.name == 'macos' }}
         shell: bash
         run: |
-          brew install ninja cmake python3 llvm@12
+          brew install ninja cmake python3 llvm@12 ccache
 
       - name: Clone the vast repository
         uses: actions/checkout@v3
