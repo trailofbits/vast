@@ -172,7 +172,7 @@ jobs:
           CCACHE_DIR: ${{ steps.build_paths.outputs.ccache}}
 
         run: |
-          cmake --build --config Release
+          cmake --build ${{ steps.build_paths.outputs.build }}
 
       - name: Run lit tests
         working-directory: ${{ steps.build_paths.outputs.build }}
