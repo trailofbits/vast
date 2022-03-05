@@ -35,11 +35,11 @@ jobs:
           arch: 'x86_64-linux-gnu-ubuntu-18.04',
         }
 
-        - {
-          name: 'macos',
-          os: macos-latest,
-          arch: 'x86_64-apple-darwin'
-        }
+        # - {
+        #   name: 'macos',
+        #   os: macos-latest,
+        #   arch: 'x86_64-apple-darwin'
+        # }
         llvm: [ '13.0.1' ]
 
     timeout-minutes: 20
@@ -160,8 +160,6 @@ jobs:
             -D ENABLE_TESTING=ON \
             -D CMAKE_BUILD_TYPE=Release \
             -D CMAKE_VERBOSE_MAKEFILE=True \
-            -D CMAKE_C_COMPILER_LAUNCHER=ccache \
-            -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -D CMAKE_C_COMPILER=${{ steps.envvars.outputs.cc }} \
             -D CMAKE_CXX_COMPILER=${{ steps.envvars.outputs.cxx }}
 
