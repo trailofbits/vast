@@ -253,10 +253,10 @@ if (VAST_INSTALL)
   set(CPACK_OUTPUT_FILE_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/package")
   set(CPACK_PACKAGE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-  string(TOLOWER ${CMAKE_SYSTEM_NAME} sys)
+  string(TOLOWER ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_VERSION} system)
   string(TOLOWER ${PROJECT_NAME} project_lower)
-  set(CPACK_PACKAGE_FILE_NAME "${project_lower}-${sys}")
-  set(CPACK_SOURCE_PACKAGE_FILE_NAME "${project_lower}-${PROJECT_VERSION}")
+  set(CPACK_PACKAGE_FILE_NAME "${project_lower}-${PROJECT_VERSION}-${system}")
+  set(CPACK_SOURCE_PACKAGE_FILE_NAME "${project_lower}-${PROJECT_VERSION}-src")
 
   include(CPack)
 
