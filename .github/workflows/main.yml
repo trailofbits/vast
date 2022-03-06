@@ -114,6 +114,8 @@ jobs:
         shell: bash
         run: |
           sudo pip3 install lit
+          sudo ln -s /usr/bin/FileCheck-12 ${{ steps.build_paths.outputs.install }}/FileCheck
+
 
       - name: Download llvm ${{ matrix.llvm }} package
         shell: bash
@@ -176,5 +178,7 @@ jobs:
         working-directory: ${{ steps.build_paths.outputs.build }}
 
         run: |
+          export PATH="${{ steps.build_paths.outputs.install }}:$PATH"
+          echo ${PATH}
           cmake --build  ${{ steps.build_paths.outputs.build }} --target check-vast
 
