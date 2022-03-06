@@ -181,13 +181,8 @@ jobs:
           export PATH="${{ steps.build_paths.outputs.install }}:$PATH"
           cmake --build ${{ steps.build_paths.outputs.build }} --target check-vast
 
-      - name: Install vast
-        working-directory: ${{ steps.build_paths.outputs.build }}
-        run: cmake --install ${{ steps.build_paths.outputs.build }} \
-          --prefix ${{ steps.build_paths.outputs.install }}  --strip
-
       - name: Package vast
-        working-directory: ${{ steps.build_paths.outputs.install }}
-        run: cpack -G TXZ --config ${{ steps.build_paths.outputs.build }}/CPackConfig.cmake \
-          -D CPACK_SET_DESTDIR=False \
-          -D CPACK_PACKAGING_INSTALL_PREFIX=${{ steps.build_paths.outputs.package }}
+        working-directory: ${{ steps.build_paths.outputs.build }}
+        run: |
+          cpack -G TXZ --config ${{ steps.build_paths.outputs.build }}/CPackConfig.cmake
+          cpack -G TXZ --config ${{ steps.build_paths.outputs.build }}/CPackSourceConfig.cmake
