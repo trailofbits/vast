@@ -9,29 +9,14 @@ VAST is an experimental frontend for the translation of Clang AST to various MLI
 To configure project run:
 
 ```
-cmake \
-    -S . -B build \
-    -G Ninja \
-    -DCMAKE_INSTALL_PREFIX=<install directory> \
-    -DLLVM_INSTALL_DIR=<llvm instalation path>
-```
-
-If you want to build with tests:
-
-```
-cmake \
-    -S . -B build \
-    -G Ninja \
-    -DCMAKE_INSTALL_PREFIX=<install directory> \
-    -DLLVM_INSTALL_DIR=<llvm instalation path> \
-    -DENABLE_TESTING=ON \
-    -DLLVM_EXTERNAL_LIT=<path to lit>
+cmake --preset ninja-multi-default \
+      -DLLVM_INSTALL_DIR=<llvm instalation path>
 ```
 
 Finally build and install the binaries:
 
 ```
-cmake --build build --target install
+cmake --build --preset ninja-release
 ```
 
 ## Run
