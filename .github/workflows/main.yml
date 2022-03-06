@@ -32,7 +32,8 @@ jobs:
         - {
           name: 'ubuntu',
           os: ubuntu-20.04,
-          arch: 'x86_64-linux-gnu-ubuntu-18.04',
+          arch: 'x86_64',
+          llvm_pkg: 'x86_64-linux-gnu-ubuntu-18.04',
         }
 
         # - {
@@ -121,7 +122,7 @@ jobs:
         shell: bash
         working-directory: ${{ steps.build_paths.outputs.downloads }}
         run: |
-          llvm_archive="clang+llvm-${{ matrix.llvm }}-${{ matrix.config.arch }}.tar.xz"
+          llvm_archive="clang+llvm-${{ matrix.llvm }}-${{ matrix.config.llvm_pkg }}.tar.xz"
           llvm_url_path="https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ matrix.llvm }}/${llvm_archive}"
 
           if [[ ! -f "${llvm_archive}" ]] ; then
@@ -162,6 +163,7 @@ jobs:
             -D ENABLE_TESTING=ON \
             -D CMAKE_BUILD_TYPE=Release \
             -D CMAKE_VERBOSE_MAKEFILE=True \
+            -D SYSTEM_NAME="${{ matrix.config.arch }}-${{ matrix.config.os }}" \
             -D CMAKE_C_COMPILER=${{ steps.envvars.outputs.cc }} \
             -D CMAKE_CXX_COMPILER=${{ steps.envvars.outputs.cxx }}
 
