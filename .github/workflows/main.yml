@@ -188,3 +188,10 @@ jobs:
         run: |
           cpack -G TXZ --config ${{ steps.build_paths.outputs.build }}/CPackConfig.cmake
           cpack -G TXZ --config ${{ steps.build_paths.outputs.build }}/CPackSourceConfig.cmake
+
+      - name: Upload vast package artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: vast-package
+          path: ${{ steps.build_paths.outputs.build }}/package/*
+          retention-days: 14
