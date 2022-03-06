@@ -15,6 +15,7 @@ cmake-build-release
 compile_commands.json
 
 build/*
+builds/*
 example/codegen/build/*
 
 # Compiled Object files
