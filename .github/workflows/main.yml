@@ -117,7 +117,6 @@ jobs:
           sudo pip3 install lit
           sudo ln -s /usr/bin/FileCheck-12 ${{ steps.build_paths.outputs.install }}/FileCheck
 
-
       - name: Download llvm ${{ matrix.llvm }} package
         shell: bash
         working-directory: ${{ steps.build_paths.outputs.downloads }}
@@ -188,9 +187,33 @@ jobs:
         run: |
           cpack -G TXZ --config ${{ steps.build_paths.outputs.build }}/CPackConfig.cmake
 
+      - name: Extract package
+        working-directory: ${{ steps.build_paths.outputs.install }}
+        run: |
+          tar -xf ${{ steps.build_paths.outputs.build }}/package/vast-${{ matrix.config.arch }}-${{ matrix.config.os }}.tar.xz
+
+      - name: Test codegen example
+        working-directory: ${{ steps.build_paths.outputs.source }}/vast/example/codegen
+
+        run: |
+          LLVM_INSTALL_DIR="${{ steps.build_paths.outputs.install }}/llvm"
+
+          cmake -G Ninja -B ${{ steps.build_paths.outputs.build }}/example/codegen \
+            -S ${{ steps.build_paths.outputs.source }}/vast/example/codegen \
+            -D LLVM_EXTERNAL_LIT=/usr/local/bin/lit \
+            -D LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR} \
+            -D VAST_INSTALL_DIR=${{ steps.build_paths.outputs.install }}/vast-${{ matrix.config.arch }}-${{ matrix.config.os }}/ \
+            -D ENABLE_TESTING=ON \
+            -D CMAKE_BUILD_TYPE=Release \
+            -D CMAKE_VERBOSE_MAKEFILE=True \
+            -D CMAKE_C_COMPILER=${{ steps.envvars.outputs.cc }} \
+            -D CMAKE_CXX_COMPILER=${{ steps.envvars.outputs.cxx }}
+
+          cmake --build ${{ steps.build_paths.outputs.build }}/example/codegen
+
       - name: Upload vast package artifact
         uses: actions/upload-artifact@v3
         with:
           name: vast-${{ matrix.config.arch }}-${{ matrix.config.os }}
           path: ${{ steps.build_paths.outputs.build }}/package/
-          retention-days: 14
+          retention-days: 30
