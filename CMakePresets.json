@@ -1,71 +1,37 @@
 {
     "version": 3,
     "cmakeMinimumRequired": {
-      "major": 3,
-      "minor": 21,
-      "patch": 0
+        "major": 3,
+        "minor": 21,
+        "patch": 0
     },
     "configurePresets": [
-      {
-        "name": "ninja-multi-default",
-        "displayName": "Ninja Multi-Config Configure Settings",
-        "binaryDir": "${sourceDir}/builds/${presetName}",
-        "installDir": "$env{VAST_INSTALL_DIR}",
-        "generator": "Ninja Multi-Config",
-        "cacheVariables": {
-            "CMAKE_CONFIGURATION_TYPES": {
-              "type": "STRING",
-              "value": "Release;RelWithDebInfo;Debug"
-            },
-            "LLVM_INSTALL_DIR": {
-                "type": "STRING",
-                "value": "$env{LLVM_INSTALL_DIR}"
+        {
+            "name": "ninja-multi-default",
+            "displayName": "Ninja Multi-Config Configure Settings",
+            "binaryDir": "${sourceDir}/builds/${presetName}",
+            "generator": "Ninja Multi-Config",
+            "cacheVariables": {
+                "CMAKE_CONFIGURATION_TYPES": "Release;RelWithDebInfo;Debug",
+                "ENABLE_TESTING": "ON",
+                "LLVM_INSTALL_DIR": "$env{LLVM_INSTALL_DIR}",
+                "CMAKE_C_COMPILER": "/usr/bin/clang",
+                "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
             }
         }
-      },
-      {
-        "name": "ninja-multi-ci",
-        "displayName": "Ninja Multi-Config Configure Settings for CI",
-        "inherits": "ninja-multi-default",
-        "binaryDir": "$env{VAST_BUILD_DIR}/${presetName}",
-        "cacheVariables": {
-            "ENABLE_TESTING": {
-                "type": "BOOL",
-                "value": "ON"
-            },
-            "CMAKE_VERBOSE_MAKEFILE": {
-                "type": "BOOL",
-                "value": "True"
-            }
-        }
-      }
     ],
-
     "buildPresets": [
-      {
-        "name": "ninja-release",
-        "configurePreset": "ninja-multi-default",
-        "displayName": "Build ninja-multi-release",
-        "configuration": "Release"
-      },
-      {
-        "name": "ninja-debug",
-        "configurePreset": "ninja-multi-default",
-        "displayName": "Build ninja-multi-debug",
-        "configuration": "Debug"
-      },
-      {
-        "name": "ninja-ci-release",
-        "configurePreset": "ninja-multi-ci",
-        "displayName": "Build ninja-ci-release",
-        "configuration": "Release"
-      },
-      {
-        "name": "ninja-ci-debug",
-        "configurePreset": "ninja-multi-ci",
-        "displayName": "Build ninja-ci-debug",
-        "configuration": "Debug"
-      }
+        {
+            "name": "ninja-release",
+            "configurePreset": "ninja-multi-default",
+            "displayName": "Build ninja-multi-release",
+            "configuration": "Release"
+        },
+        {
+            "name": "ninja-debug",
+            "configurePreset": "ninja-multi-default",
+            "displayName": "Build ninja-multi-debug",
+            "configuration": "Debug"
+        }
     ]
-
 }
