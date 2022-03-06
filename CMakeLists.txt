@@ -255,8 +255,8 @@ if (VAST_INSTALL)
 
   string(TOLOWER ${SYSTEM_NAME} system)
   string(TOLOWER ${PROJECT_NAME} project_lower)
-  set(CPACK_PACKAGE_FILE_NAME "${project_lower}-${PROJECT_VERSION}-${system}")
-  set(CPACK_SOURCE_PACKAGE_FILE_NAME "${project_lower}-${PROJECT_VERSION}-src")
+  set(CPACK_PACKAGE_FILE_NAME "${project_lower}-${system}")
+  set(CPACK_SOURCE_PACKAGE_FILE_NAME "${project_lower}-src")
 
   include(CPack)
 
