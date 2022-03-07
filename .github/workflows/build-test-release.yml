@@ -217,16 +217,15 @@ jobs:
           retention-days: 30
 
   pre-release:
-    needs: build
     name: "Pre Release"
     runs-on: "ubuntu-latest"
+    needs: build
 
     steps:
-      - name: Setup pre-release
+      - name: "Setup"
         shell: bash
         run: |
-          echo ::set-output name=source::$(pwd)
-          ls .
+          ls $(pwd)
 
       # - uses: "marvinpinto/action-automatic-releases@latest"
       #   with:
@@ -235,3 +234,5 @@ jobs:
       #     prerelease: true
       #     title: "Development Build"
       #     files: |
+      #       LICENSE.txt
+      #       *.jar
