@@ -6,7 +6,7 @@
 # the LICENSE file found in the root directory of this source tree.
 #
 
-name: Build Matrix
+name: Build-Test-Release
 
 on:
   push:
@@ -190,7 +190,8 @@ jobs:
       - name: Extract package
         working-directory: ${{ steps.build_paths.outputs.install }}
         run: |
-          tar -xf ${{ steps.build_paths.outputs.build }}/package/vast-*.tar.xz -C vast
+          mkdir vast
+          tar -xf ${{ steps.build_paths.outputs.build }}/package/*.tar.xz -C vast --strip-components=1
 
       - name: Test codegen example
         working-directory: ${{ steps.build_paths.outputs.source }}/vast/example/codegen
@@ -214,3 +215,23 @@ jobs:
           name: vast-${{ matrix.config.arch }}-${{ matrix.config.os }}
           path: ${{ steps.build_paths.outputs.build }}/package/
           retention-days: 30
+
+  pre-release:
+    needs: build
+    name: "Pre Release"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: Setup pre-release
+        shell: bash
+        run: |
+          echo ::set-output name=source::$(pwd)
+          ls .
+
+      # - uses: "marvinpinto/action-automatic-releases@latest"
+      #   with:
+      #     repo_token: "${{ secrets.GITHUB_TOKEN }}"
+      #     automatic_release_tag: "latest"
+      #     prerelease: true
+      #     title: "Development Build"
+      #     files: |
