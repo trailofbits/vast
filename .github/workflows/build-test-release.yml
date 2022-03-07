@@ -222,10 +222,8 @@ jobs:
     needs: build
 
     steps:
-      - name: "Setup"
-        shell: bash
-        run: |
-          ls $(pwd)
+      - name: "Download build artifacts"
+        uses: actions/download-artifact@v3
 
       # - uses: "marvinpinto/action-automatic-releases@latest"
       #   with:
