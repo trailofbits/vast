@@ -20,7 +20,7 @@ endif ()
 
 project(vast
     LANGUAGES C CXX
-    VERSION 0.1.0
+    VERSION 0.0.0
     DESCRIPTION "Verbose intermediate representation for program analysis"
     HOMEPAGE_URL "https://github.com/trailofbits/vast.git"
 )
