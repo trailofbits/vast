@@ -12,7 +12,6 @@ on:
   push:
     branches:
       - 'master'
-      - 'visitor-api'
 
     tags:
       - '*'
@@ -219,6 +218,7 @@ jobs:
           retention-days: 30
 
   pre-release:
+    if: github.event_name == 'pull' && github.ref == 'master'
     name: "Pre Release"
     runs-on: "ubuntu-latest"
     needs: build
