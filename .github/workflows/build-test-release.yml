@@ -222,15 +222,27 @@ jobs:
     needs: build
 
     steps:
+      - name: Clone the vast repository
+        uses: actions/checkout@v3
+        with:
+          path: ./vast
+          fetch-depth: 0
+
       - name: "Download build artifacts"
+        id: download
         uses: actions/download-artifact@v3
 
-      # - uses: "marvinpinto/action-automatic-releases@latest"
-      #   with:
-      #     repo_token: "${{ secrets.GITHUB_TOKEN }}"
-      #     automatic_release_tag: "latest"
-      #     prerelease: true
-      #     title: "Development Build"
-      #     files: |
-      #       LICENSE.txt
-      #       *.jar
+      - name: Setup the build paths
+        shell: bash
+        run: ls -R
+
+      - name: "Publish Pre-Release"
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            ./vast/LICENSE
+            ${{steps.download.outputs.download-path}}/vast-*/*.tar.xz
