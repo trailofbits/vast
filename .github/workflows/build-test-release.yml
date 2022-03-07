@@ -177,6 +177,7 @@ jobs:
           cmake --build .
 
       - name: Run lit tests
+        if: ${{ matrix.config.name == 'ubuntu' }}
         working-directory: ${{ steps.build_paths.outputs.build }}
 
         run: |
