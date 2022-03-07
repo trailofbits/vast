@@ -1,0 +1,42 @@
+#
+# Copyright (c) 2022-present, Trail of Bits, Inc.
+# All rights reserved.
+#
+# This source code is licensed in accordance with the terms specified in
+# the LICENSE file found in the root directory of this source tree.
+#
+
+name: Pre-Release
+
+on:
+  workflow_run:
+    workflows:
+      - Build-And-Test
+    branches:
+      - 'master'
+      - 'visitor-api'
+    tags-ignore:
+      - "*"
+    types:
+      - completed
+
+jobs:
+  pre-release:
+    name: "Pre Release"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: "Setup"
+        shell: bash
+        run: |
+          ls $(pwd)
+
+      # - uses: "marvinpinto/action-automatic-releases@latest"
+      #   with:
+      #     repo_token: "${{ secrets.GITHUB_TOKEN }}"
+      #     automatic_release_tag: "latest"
+      #     prerelease: true
+      #     title: "Development Build"
+      #     files: |
+      #       LICENSE.txt
+      #       *.jar
