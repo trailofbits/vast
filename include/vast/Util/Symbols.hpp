@@ -12,16 +12,21 @@ VAST_UNRELAX_WARNINGS
 namespace vast::util
 {
     // TODO(heno): rework to coroutines eventually
-    void symbols(mlir::Operation *mod, auto yield) {
+    void symbols(mlir::Operation *op, auto yield);
 
-        auto walk_symbols = [&](mlir::Operation *table, bool) {
-            for (auto &op : table->getRegion(0).getOps()) {
-                if (auto symbol = mlir::dyn_cast< mlir::SymbolOpInterface >( &op ) )
-                    yield(symbol);
-                op.walk([&] (mlir::Operation *child) { symbols(child, yield); });
+    void symbols(mlir::Region &reg, auto yield) {
+        for (auto &op :reg.getOps()) {
+            if (auto symbol = mlir::dyn_cast< mlir::SymbolOpInterface >( &op ) ) {
+                yield(symbol);
             }
-        };
 
-        mlir::SymbolTable::walkSymbolTables(mod, false, walk_symbols);
+            op.walk([&] (mlir::Operation *child) { symbols(child, yield); });
+        }
+    }
+
+    void symbols(mlir::Operation *op, auto yield) {
+        for (auto &reg : op->getRegions()) {
+            symbols(reg, yield);
+        }
     }
 } // namespace vast::util
