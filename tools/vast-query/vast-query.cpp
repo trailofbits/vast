@@ -130,18 +130,30 @@ namespace vast::query
         };
 
         util::symbols(mod.get(), filter_kind(show_kind));
-
         return mlir::success();
+    }
+
+    void yield_users(auto symbol, auto scope, auto yield) {
+        auto filter_symbols = [&] (auto op) {
+            if (symbol_name(op) == symbol) {
+                if (auto users = op.getSymbolUses(scope)) {
+                    for (auto user : users.getValue()) {
+                        yield(user);
+                    }
+                }
+            }
+        };
+        
+        util::symbols(scope, filter_symbols);
     }
 
     logical_result do_show_users(module_t &mod) {
         auto &name = cl::options->show_symbol_users;
-        util::symbols(mod.get(), [&] (const auto &symbol) {
-            if (symbol_name(symbol) == name.getValue()) {
                 
-               // show_value(symbol);
-            }
+        yield_users(name.getValue(), mod.get(), [] (auto use) {
+            use.getUser()->dump();
         });
+
         return mlir::success();
     }
 } // namespace vast::query
