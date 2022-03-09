@@ -86,24 +86,34 @@ namespace vast::query
     auto is_one_of() {
         return [] (mlir::Operation *op) {  return (mlir::isa< Ts >(op) || ...); };
     }
+    
+    llvm::StringRef symbol_name(const auto &symbol) {
+        auto attr = symbol->template getAttrOfType<mlir::StringAttr>(
+            mlir::SymbolTable::getSymbolAttrName()
+        );
+        return attr.getValue();
+    }
+
+    void show_value(const auto &value) {
+        llvm::outs() << value->getName()
+            << " : " << symbol_name(value)
+            << " : " << value->getLoc() << "\n";
+    }
 
     logical_result do_show_symbols(module_t &mod) {
         auto &show_kind = cl::options->show_symbols;
 
-        auto show_symbol = [] (const auto &symbol) {
-            llvm::outs() << symbol->getName() << " : " << symbol->getAttr("sym_name") << "\n";
-        };
 
         auto show_if = [=] (auto symbol, auto pred) {
             if (pred(symbol))
-                show_symbol(symbol);
+                show_value(symbol);
         };
 
-        auto filter_kind = [=] (cl::show_symbol_type kind, auto show) {
+        auto filter_kind = [=] (cl::show_symbol_type kind) {
             return [=] (const auto &symbol) {
                 switch (kind) {
                     case cl::show_symbol_type::all:
-                        show(symbol); break;
+                        show_value(symbol); break;
                     case cl::show_symbol_type::type:
                         show_if(symbol, is_one_of< hl::TypeDefOp, hl::TypeDeclOp >()); break;
                     case cl::show_symbol_type::record:
@@ -119,12 +129,20 @@ namespace vast::query
             };
         };
 
-        util::symbols(mod.get(), filter_kind(show_kind, show_symbol));
+        util::symbols(mod.get(), filter_kind(show_kind));
+
         return mlir::success();
     }
 
     logical_result do_show_users(module_t &mod) {
-        UNIMPLEMENTED;
+        auto &name = cl::options->show_symbol_users;
+        util::symbols(mod.get(), [&] (const auto &symbol) {
+            if (symbol_name(symbol) == name.getValue()) {
+                
+               // show_value(symbol);
+            }
+        });
+        return mlir::success();
     }
 } // namespace vast::query
 
