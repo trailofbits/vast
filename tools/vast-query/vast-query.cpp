@@ -65,7 +65,7 @@ namespace vast::cl
         cl::opt< std::string > show_symbol_users{ "symbol-users",
             cl::desc("Show users of a given symbol"),
             cl::value_desc("symbol name"),
-            cl::init("-"),
+            cl::init(""),
             cl::cat(queries)
         };
     };
