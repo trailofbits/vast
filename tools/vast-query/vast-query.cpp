@@ -68,6 +68,12 @@ namespace vast::cl
             cl::init(""),
             cl::cat(queries)
         };
+        cl::opt< std::string > scope_name{ "scope",
+            cl::desc("Show values from scope of a given function"),
+            cl::value_desc("function name"),
+            cl::init(""),
+            cl::cat(queries)
+        };
     };
     // clang-format on
 
@@ -81,6 +87,8 @@ namespace vast::query
     bool show_symbols() { return cl::options->show_symbols != cl::show_symbol_type::none; }
 
     bool show_symbol_users() { return !cl::options->show_symbol_users.empty(); }
+
+    bool constrained_scope() { return !cl::options->scope_name.empty(); }
 
     template< typename ...Ts >
     auto is_one_of() {
@@ -100,7 +108,7 @@ namespace vast::query
             << " : " << value->getLoc() << "\n";
     }
 
-    logical_result do_show_symbols(module_t &mod) {
+    logical_result do_show_symbols(auto scope) {
         auto &show_kind = cl::options->show_symbols;
 
 
@@ -129,7 +137,7 @@ namespace vast::query
             };
         };
 
-        util::symbols(mod.get(), filter_kind(show_kind));
+        util::symbols(scope, filter_kind(show_kind));
         return mlir::success();
     }
 
@@ -147,10 +155,9 @@ namespace vast::query
         util::symbols(scope, filter_symbols);
     }
 
-    logical_result do_show_users(module_t &mod) {
+    logical_result do_show_users(auto scope) {
         auto &name = cl::options->show_symbol_users;
-                
-        yield_users(name.getValue(), mod.get(), [] (auto use) {
+        yield_users(name.getValue(), scope, [] (auto use) {
             use.getUser()->dump();
         });
 
@@ -160,6 +167,11 @@ namespace vast::query
 
 namespace vast
 {
+    auto get_scope_operation(auto parent, std::string_view scope_name)
+    {
+        return mlir::SymbolTable::lookupSymbolIn(parent, scope_name);
+    }
+
     logical_result do_query(context_t &ctx, memory_buffer buffer) {
         llvm::SourceMgr source_mgr;
         source_mgr.AddNewSourceBuffer(std::move(buffer), llvm::SMLoc());
@@ -174,15 +186,24 @@ namespace vast
         mlir::OwningModuleRef mod(mlir::parseSourceFile(source_mgr, &ctx));
         ctx.enableMultithreading(wasThreadingEnabled);
 
-        if (!mod)
+        if (!mod) {
             return mlir::failure();
+        }
+        
+        mlir::Operation *scope = mod.get();
+        if (query::constrained_scope()) {
+            scope = get_scope_operation(scope, cl::options->scope_name);
+            if (!scope) {
+                return mlir::failure();
+            }
+        }
 
         if (query::show_symbols()) {
-            return query::do_show_symbols(mod);
+            return query::do_show_symbols(scope);
         }
 
         if (query::show_symbol_users()) {
-            return query::do_show_users(mod);
+            return query::do_show_users(scope);
         }
 
         return mlir::success();
