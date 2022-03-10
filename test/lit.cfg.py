@@ -48,7 +48,7 @@ config.test_exec_root = os.path.join(config.vast_obj_root, 'test')
 config.vast_test_util = os.path.join(config.vast_src_root, 'test/utils')
 config.vast_tools_dir = os.path.join(config.vast_obj_root, 'bin')
 
-tools = [ 'vast-opt', 'vast-cc' ]
+tools = [ 'vast-opt', 'vast-cc', 'vast-query' ]
 utils = [ 'ignore-test' ]
 
 llvm_config.add_tool_substitutions(tools, config.vast_tools_dir)
