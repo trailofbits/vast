@@ -32,5 +32,29 @@
             "displayName": "Build ninja-multi-debug",
             "configuration": "Debug"
         }
+    ],
+    "testPresets": [
+        {
+            "name": "default",
+            "configurePreset": "ninja-multi-default",
+            "output": {
+              "outputOnFailure": true,
+              "verbosity": "default"
+            },
+            "execution": {
+              "noTestsAction": "error",
+              "stopOnFailure": false
+            }
+        },
+        {
+            "name": "ninja-release", "inherits": "default",
+            "displayName": "Test ninja-multi-release",
+            "configuration": "Release"
+        },
+        {
+            "name": "ninja-debug", "inherits": "default",
+            "displayName": "Test ninja-multi-debug",
+            "configuration": "Debug"
+        }
     ]
 }
