@@ -158,7 +158,7 @@ namespace vast::query
     logical_result do_show_users(auto scope) {
         auto &name = cl::options->show_symbol_users;
         yield_users(name.getValue(), scope, [] (auto use) {
-            use.getUser()->dump();
+            use.getUser()->print(llvm::outs());
         });
 
         return mlir::success();
