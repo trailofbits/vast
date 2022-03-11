@@ -17,6 +17,35 @@
                 "CMAKE_C_COMPILER": "/usr/bin/clang",
                 "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
             }
+        },
+        {
+            "name": "cxx-common-rel",
+            "hidden": true,
+            "displayName": "Ninja Configure Settings with cxx-common",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "ENABLE_TESTING": "OFF",
+                "VCPKG_ROOT": "$env{VCPKG_ROOT}"
+            }
+        },
+        {
+            "name": "cxx-common-osx-rel",
+            "inherits": "cxx-common-rel",
+            "displayName": "Ninja Linux Configure Settings with cxx-common",
+            "binaryDir": "${sourceDir}/builds/${presetName}",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-osx-rel"
+            } 
+        },
+        {
+            "name": "cxx-common-linux-rel",
+            "inherits": "cxx-common-rel",
+            "displayName": "Ninja Configure Settings with cxx-common",
+            "binaryDir": "${sourceDir}/builds/${presetName}",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-linux-rel"
+            } 
         }
     ],
     "buildPresets": [
@@ -31,11 +60,22 @@
             "configurePreset": "ninja-multi-default",
             "displayName": "Build ninja-multi-debug",
             "configuration": "Debug"
+        },
+        {
+            "name": "cxx-common-osx-rel",
+            "configurePreset": "cxx-common-osx-rel",
+            "displayName": "Build osx-release with cxx-common"
+        },
+        {
+            "name": "cxx-common-linux-rel",
+            "configurePreset": "cxx-common-linux-rel",
+            "displayName": "Build linux-release with cxx-common"
         }
     ],
     "testPresets": [
         {
             "name": "default",
+            "hidden": true,
             "configurePreset": "ninja-multi-default",
             "output": {
               "outputOnFailure": true,
