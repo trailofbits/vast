@@ -17,6 +17,8 @@ if (POLICY CMP0116)
   cmake_policy(SET CMP0116 NEW)
 endif ()
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(vast_vcpkg_helper)
 
 project(vast
     LANGUAGES C CXX
@@ -25,13 +27,9 @@ project(vast
     HOMEPAGE_URL "https://github.com/trailofbits/vast.git"
 )
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
 #
 # Setup toolchain
 #
-
-include(vast_vcpkg_helper)
 if (USE_SYSTEM_DEPENDENCIES)
   include(vast_system_deps)
 endif()
