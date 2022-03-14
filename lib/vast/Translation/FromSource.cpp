@@ -38,7 +38,7 @@ namespace vast::hl
         VastCodeGen(TranslationContext &ctx)
             : ctx(ctx) {}
 
-        bool HandleTopLevelDecl(clang::DeclGroupRef) override { UNIMPLEMENTED; }
+        bool HandleTopLevelDecl(clang::DeclGroupRef) override { VAST_UNIMPLEMENTED; }
 
         void emit_data_layout(const dl::DataLayoutBlueprint &dl) {
             auto &mctx = ctx.getMLIRContext();

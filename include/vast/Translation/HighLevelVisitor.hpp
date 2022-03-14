@@ -526,7 +526,7 @@ namespace vast::hl
         }
 
         inline ValueOrStmt checked(ValueOrStmt &&val) {
-            CHECK(check(val), "unsupported operation type");
+            VAST_CHECK(check(val), "unsupported operation type");
             return val;
         }
 
@@ -564,7 +564,7 @@ namespace vast::hl
                 case clang::SC_Extern: var.setExternalStorage(); break;
                 case clang::SC_Auto: var.setAutoStorage(); break;
                 case clang::SC_Register: var.setRegisterStorage(); break;
-                default: UNREACHABLE("unsupported storage type");
+                default: VAST_UNREACHABLE("unsupported storage type");
             }
 
             if (decl->getStorageDuration() == clang::SD_Thread) {

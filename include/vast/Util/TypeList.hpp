@@ -155,7 +155,7 @@ namespace vast::util {
         constexpr ret dispatch(mlir_type type, fn &&f)
         {
             if constexpr ( list::empty ) {
-                UNREACHABLE( "missing type to dispatch" );
+                VAST_UNREACHABLE( "missing type to dispatch" );
             } else {
                 using head = typename list::head;
 

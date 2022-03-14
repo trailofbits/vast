@@ -12,11 +12,11 @@ namespace vast::hl
     // Binary Operations
 
     ValueOrStmt CodeGenVisitor::VisitBinPtrMemD(clang::BinaryOperator *expr) {
-        UNREACHABLE("unsupported BinPtrMemD");
+        VAST_UNREACHABLE("unsupported BinPtrMemD");
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinPtrMemI(clang::BinaryOperator *expr) {
-        UNREACHABLE("unsupported BinPtrMemI");
+        VAST_UNREACHABLE("unsupported BinPtrMemI");
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinMul(clang::BinaryOperator *expr) {
@@ -138,7 +138,7 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinComma(clang::BinaryOperator *expr) {
-        UNREACHABLE("unsupported BinComma");
+        VAST_UNREACHABLE("unsupported BinComma");
     }
 
     // Unary Operations
@@ -184,61 +184,61 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryReal(clang::UnaryOperator *expr) {
-        UNREACHABLE("unsupported UnaryReal");
+        VAST_UNREACHABLE("unsupported UnaryReal");
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryImag(clang::UnaryOperator *expr) {
-        UNREACHABLE("unsupported UnaryImag");
+        VAST_UNREACHABLE("unsupported UnaryImag");
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryExtension(clang::UnaryOperator *expr) {
-        UNREACHABLE("unsupported UnaryExtension");
+        VAST_UNREACHABLE("unsupported UnaryExtension");
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryCoawait(clang::UnaryOperator *expr) {
-        UNREACHABLE("unsupported UnaryCoawait");
+        VAST_UNREACHABLE("unsupported UnaryCoawait");
     }
 
     // Assembly Statements
 
     ValueOrStmt CodeGenVisitor::VisitAsmStmt(clang::AsmStmt *stmt) {
-        UNREACHABLE("unsupported AsmStmt");
+        VAST_UNREACHABLE("unsupported AsmStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitGCCAsmStmt(clang::GCCAsmStmt *stmt) {
-        UNREACHABLE("unsupported GCCAsmStmt");
+        VAST_UNREACHABLE("unsupported GCCAsmStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitMSAsmStmt(clang::MSAsmStmt *stmt) {
-        UNREACHABLE("unsupported MSAsmStmt");
+        VAST_UNREACHABLE("unsupported MSAsmStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCoroutineBodyStmt(clang::CoroutineBodyStmt *stmt) {
-        UNREACHABLE("unsupported CoroutineBodyStmt");
+        VAST_UNREACHABLE("unsupported CoroutineBodyStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCoreturnStmt(clang::CoreturnStmt *stmt) {
-        UNREACHABLE("unsupported CoreturnStmt");
+        VAST_UNREACHABLE("unsupported CoreturnStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCoroutineSuspendExpr(clang::CoroutineSuspendExpr *expr) {
-        UNREACHABLE("unsupported CoroutineSuspendExpr");
+        VAST_UNREACHABLE("unsupported CoroutineSuspendExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCoawaitExpr(clang::CoawaitExpr *expr) {
-        UNREACHABLE("unsupported CoawaitExpr");
+        VAST_UNREACHABLE("unsupported CoawaitExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCoyieldExpr(clang::CoyieldExpr *expr) {
-        UNREACHABLE("unsupported CoyieldExpr");
+        VAST_UNREACHABLE("unsupported CoyieldExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitDependentCoawaitExpr(clang::DependentCoawaitExpr *expr) {
-        UNREACHABLE("unsupported DependentCoawaitExpr");
+        VAST_UNREACHABLE("unsupported DependentCoawaitExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitAttributedStmt(clang::AttributedStmt *stmt) {
-        UNREACHABLE("unsupported AttributedStmt");
+        VAST_UNREACHABLE("unsupported AttributedStmt");
     }
 
     // Statements
@@ -249,19 +249,19 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXCatchStmt(clang::CXXCatchStmt *stmt) {
-        UNREACHABLE("unsupported CXXCatchStmt");
+        VAST_UNREACHABLE("unsupported CXXCatchStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXForRangeStmt(clang::CXXForRangeStmt *stmt) {
-        UNREACHABLE("unsupported CXXForRangeStmt");
+        VAST_UNREACHABLE("unsupported CXXForRangeStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXTryStmt(clang::CXXTryStmt *stmt) {
-        UNREACHABLE("unsupported CXXTryStmt");
+        VAST_UNREACHABLE("unsupported CXXTryStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCapturedStmt(clang::CapturedStmt *stmt) {
-        UNREACHABLE("unsupported CapturedStmt");
+        VAST_UNREACHABLE("unsupported CapturedStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCompoundStmt(clang::CompoundStmt *stmt) {
@@ -305,20 +305,20 @@ namespace vast::hl
 
     ValueOrStmt CodeGenVisitor::VisitAbstractConditionalOperator(
         clang::AbstractConditionalOperator *stmt) {
-        UNREACHABLE("unsupported AbstractConditionalOperator");
+        VAST_UNREACHABLE("unsupported AbstractConditionalOperator");
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinaryConditionalOperator(
         clang::BinaryConditionalOperator *stmt) {
-        UNREACHABLE("unsupported BinaryConditionalOperator");
+        VAST_UNREACHABLE("unsupported BinaryConditionalOperator");
     }
 
     ValueOrStmt CodeGenVisitor::VisitConditionalOperator(clang::ConditionalOperator *stmt) {
-        UNREACHABLE("unsupported ConditionalOperator");
+        VAST_UNREACHABLE("unsupported ConditionalOperator");
     }
 
     ValueOrStmt CodeGenVisitor::VisitAddrLabelExpr(clang::AddrLabelExpr *expr) {
-        UNREACHABLE("unsupported AddrLabelExpr");
+        VAST_UNREACHABLE("unsupported AddrLabelExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitConstantExpr(clang::ConstantExpr *expr) {
@@ -334,23 +334,23 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitArrayTypeTraitExpr(clang::ArrayTypeTraitExpr *expr) {
-        UNREACHABLE("unsupported ArrayTypeTraitExpr");
+        VAST_UNREACHABLE("unsupported ArrayTypeTraitExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitAsTypeExpr(clang::AsTypeExpr *expr) {
-        UNREACHABLE("unsupported AsTypeExpr");
+        VAST_UNREACHABLE("unsupported AsTypeExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitAtomicExpr(clang::AtomicExpr *expr) {
-        UNREACHABLE("unsupported AtomicExpr");
+        VAST_UNREACHABLE("unsupported AtomicExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitBlockExpr(clang::BlockExpr *expr) {
-        UNREACHABLE("unsupported BlockExpr");
+        VAST_UNREACHABLE("unsupported BlockExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXBindTemporaryExpr(clang::CXXBindTemporaryExpr *expr) {
-        UNREACHABLE("unsupported CXXBindTemporaryExpr");
+        VAST_UNREACHABLE("unsupported CXXBindTemporaryExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *lit) {
@@ -358,78 +358,78 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXConstructExpr(clang::CXXConstructExpr *expr) {
-        UNREACHABLE("unsupported CXXConstructExpr");
+        VAST_UNREACHABLE("unsupported CXXConstructExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXTemporaryObjectExpr(clang::CXXTemporaryObjectExpr *expr) {
-        UNREACHABLE("unsupported CXXTemporaryObjectExpr");
+        VAST_UNREACHABLE("unsupported CXXTemporaryObjectExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXDefaultArgExpr(clang::CXXDefaultArgExpr *expr) {
-        UNREACHABLE("unsupported CXXDefaultArgExpr");
+        VAST_UNREACHABLE("unsupported CXXDefaultArgExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXDefaultInitExpr(clang::CXXDefaultInitExpr *expr) {
-        UNREACHABLE("unsupported CXXDefaultInitExpr");
+        VAST_UNREACHABLE("unsupported CXXDefaultInitExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXDeleteExpr(clang::CXXDeleteExpr *expr) {
-        UNREACHABLE("unsupported CXXDeleteExpr");
+        VAST_UNREACHABLE("unsupported CXXDeleteExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXDependentScopeMemberExpr(
         clang::CXXDependentScopeMemberExpr *expr) {
-        UNREACHABLE("unsupported CXXDependentScopeMemberExpr");
+        VAST_UNREACHABLE("unsupported CXXDependentScopeMemberExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXNewExpr(clang::CXXNewExpr *expr) {
-        UNREACHABLE("unsupported CXXNewExpr");
+        VAST_UNREACHABLE("unsupported CXXNewExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXNoexceptExpr(clang::CXXNoexceptExpr *expr) {
-        UNREACHABLE("unsupported CXXNoexceptExpr");
+        VAST_UNREACHABLE("unsupported CXXNoexceptExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXNullPtrLiteralExpr(clang::CXXNullPtrLiteralExpr *expr) {
-        UNREACHABLE("unsupported CXXNullPtrLiteralExpr");
+        VAST_UNREACHABLE("unsupported CXXNullPtrLiteralExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXPseudoDestructorExpr(clang::CXXPseudoDestructorExpr *expr) {
-        UNREACHABLE("unsupported CXXPseudoDestructorExpr");
+        VAST_UNREACHABLE("unsupported CXXPseudoDestructorExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXScalarValueInitExpr(clang::CXXScalarValueInitExpr *expr) {
-        UNREACHABLE("unsupported CXXScalarValueInitExpr");
+        VAST_UNREACHABLE("unsupported CXXScalarValueInitExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXStdInitializerListExpr(
         clang::CXXStdInitializerListExpr *expr) {
-        UNREACHABLE("unsupported CXXStdInitializerListExpr");
+        VAST_UNREACHABLE("unsupported CXXStdInitializerListExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXThisExpr(clang::CXXThisExpr *expr) {
-        UNREACHABLE("unsupported CXXThisExpr");
+        VAST_UNREACHABLE("unsupported CXXThisExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXThrowExpr(clang::CXXThrowExpr *expr) {
-        UNREACHABLE("unsupported CXXThrowExpr");
+        VAST_UNREACHABLE("unsupported CXXThrowExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXTypeidExpr(clang::CXXTypeidExpr *expr) {
-        UNREACHABLE("unsupported CXXTypeidExpr");
+        VAST_UNREACHABLE("unsupported CXXTypeidExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXFoldExpr(clang::CXXFoldExpr *expr) {
-        UNREACHABLE("unsupported CXXFoldExpr");
+        VAST_UNREACHABLE("unsupported CXXFoldExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXUnresolvedConstructExpr(
         clang::CXXUnresolvedConstructExpr *expr) {
-        UNREACHABLE("unsupported CXXUnresolvedConstructExpr");
+        VAST_UNREACHABLE("unsupported CXXUnresolvedConstructExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXUuidofExpr(clang::CXXUuidofExpr *expr) {
-        UNREACHABLE("unsupported CXXUuidofExpr");
+        VAST_UNREACHABLE("unsupported CXXUuidofExpr");
     }
 
     mlir::FuncOp CodeGenVisitor::VisitDirectCallee(clang::FunctionDecl *callee) {
@@ -474,19 +474,19 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitCUDAKernelCallExpr(clang::CUDAKernelCallExpr *expr) {
-        UNREACHABLE("unsupported CUDAKernelCallExpr");
+        VAST_UNREACHABLE("unsupported CUDAKernelCallExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXMemberCallExpr(clang::CXXMemberCallExpr *expr) {
-        UNREACHABLE("unsupported CXXMemberCallExpr");
+        VAST_UNREACHABLE("unsupported CXXMemberCallExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXOperatorCallExpr(clang::CXXOperatorCallExpr *expr) {
-        UNREACHABLE("unsupported CXXOperatorCallExpr");
+        VAST_UNREACHABLE("unsupported CXXOperatorCallExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitUserDefinedLiteral(clang::UserDefinedLiteral *lit) {
-        UNREACHABLE("unsupported UserDefinedLiteral");
+        VAST_UNREACHABLE("unsupported UserDefinedLiteral");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCStyleCastExpr(clang::CStyleCastExpr *expr) {
@@ -494,27 +494,27 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXFunctionalCastExpr(clang::CXXFunctionalCastExpr *expr) {
-        UNREACHABLE("unsupported CXXFunctionalCastExpr");
+        VAST_UNREACHABLE("unsupported CXXFunctionalCastExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXConstCastExpr(clang::CXXConstCastExpr *expr) {
-        UNREACHABLE("unsupported CXXConstCastExpr");
+        VAST_UNREACHABLE("unsupported CXXConstCastExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXDynamicCastExpr(clang::CXXDynamicCastExpr *expr) {
-        UNREACHABLE("unsupported CXXDynamicCastExpr");
+        VAST_UNREACHABLE("unsupported CXXDynamicCastExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXReinterpretCastExpr(clang::CXXReinterpretCastExpr *expr) {
-        UNREACHABLE("unsupported CXXReinterpretCastExpr");
+        VAST_UNREACHABLE("unsupported CXXReinterpretCastExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXStaticCastExpr(clang::CXXStaticCastExpr *expr) {
-        UNREACHABLE("unsupported CXXStaticCastExpr");
+        VAST_UNREACHABLE("unsupported CXXStaticCastExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCBridgedCastExpr(clang::ObjCBridgedCastExpr *expr) {
-        UNREACHABLE("unsupported ObjCBridgedCastExpr");
+        VAST_UNREACHABLE("unsupported ObjCBridgedCastExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitImplicitCastExpr(clang::ImplicitCastExpr *expr) {
@@ -526,15 +526,15 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitChooseExpr(clang::ChooseExpr *expr) {
-        UNREACHABLE("unsupported ChooseExpr");
+        VAST_UNREACHABLE("unsupported ChooseExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCompoundLiteralExpr(clang::CompoundLiteralExpr *expr) {
-        UNREACHABLE("unsupported CompoundLiteralExpr");
+        VAST_UNREACHABLE("unsupported CompoundLiteralExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitConvertVectorExpr(clang::ConvertVectorExpr *expr) {
-        UNREACHABLE("unsupported ConvertVectorExpr");
+        VAST_UNREACHABLE("unsupported ConvertVectorExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitDeclRefExpr(clang::DeclRefExpr *expr) {
@@ -551,23 +551,23 @@ namespace vast::hl
 
     ValueOrStmt CodeGenVisitor::VisitDependentScopeDeclRefExpr(
         clang::DependentScopeDeclRefExpr *expr) {
-        UNREACHABLE("unsupported DependentScopeDeclRefExpr");
+        VAST_UNREACHABLE("unsupported DependentScopeDeclRefExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitDesignatedInitExpr(clang::DesignatedInitExpr *expr) {
-        UNREACHABLE("unsupported DesignatedInitExpr");
+        VAST_UNREACHABLE("unsupported DesignatedInitExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitExprWithCleanups(clang::ExprWithCleanups *expr) {
-        UNREACHABLE("unsupported ExprWithCleanups");
+        VAST_UNREACHABLE("unsupported ExprWithCleanups");
     }
 
     ValueOrStmt CodeGenVisitor::VisitExpressionTraitExpr(clang::ExpressionTraitExpr *expr) {
-        UNREACHABLE("unsupported ExpressionTraitExpr");
+        VAST_UNREACHABLE("unsupported ExpressionTraitExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitExtVectorElementExpr(clang::ExtVectorElementExpr *expr) {
-        UNREACHABLE("unsupported ExtVectorElementExpr");
+        VAST_UNREACHABLE("unsupported ExtVectorElementExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitFloatingLiteral(clang::FloatingLiteral *lit) {
@@ -575,27 +575,27 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitFunctionParmPackExpr(clang::FunctionParmPackExpr *expr) {
-        UNREACHABLE("unsupported FunctionParmPackExpr");
+        VAST_UNREACHABLE("unsupported FunctionParmPackExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitGNUNullExpr(clang::GNUNullExpr *expr) {
-        UNREACHABLE("unsupported GNUNullExpr");
+        VAST_UNREACHABLE("unsupported GNUNullExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitGenericSelectionExpr(clang::GenericSelectionExpr *expr) {
-        UNREACHABLE("unsupported GenericSelectionExpr");
+        VAST_UNREACHABLE("unsupported GenericSelectionExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitImaginaryLiteral(clang::ImaginaryLiteral *lit) {
-        UNREACHABLE("unsupported ImaginaryLiteral");
+        VAST_UNREACHABLE("unsupported ImaginaryLiteral");
     }
 
     ValueOrStmt CodeGenVisitor::VisitFixedPointLiteral(clang::FixedPointLiteral *lit) {
-        UNREACHABLE("unsupported FixedPointLiteral");
+        VAST_UNREACHABLE("unsupported FixedPointLiteral");
     }
 
     ValueOrStmt CodeGenVisitor::VisitImplicitValueInitExpr(clang::ImplicitValueInitExpr *expr) {
-        UNREACHABLE("unsupported ImplicitValueInitExpr");
+        VAST_UNREACHABLE("unsupported ImplicitValueInitExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitInitListExpr(clang::InitListExpr *expr) {
@@ -615,16 +615,16 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitLambdaExpr(clang::LambdaExpr *expr) {
-        UNREACHABLE("unsupported LambdaExpr");
+        VAST_UNREACHABLE("unsupported LambdaExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitMSPropertyRefExpr(clang::MSPropertyRefExpr *expr) {
-        UNREACHABLE("unsupported MSPropertyRefExpr");
+        VAST_UNREACHABLE("unsupported MSPropertyRefExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitMaterializeTemporaryExpr(
         clang::MaterializeTemporaryExpr *expr) {
-        UNREACHABLE("unsupported MaterializeTemporaryExpr");
+        VAST_UNREACHABLE("unsupported MaterializeTemporaryExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitMemberExpr(clang::MemberExpr *expr) {
@@ -637,84 +637,84 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCArrayLiteral(clang::ObjCArrayLiteral *expr) {
-        UNREACHABLE("unsupported ObjCArrayLiteral");
+        VAST_UNREACHABLE("unsupported ObjCArrayLiteral");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCBoolLiteralExpr(clang::ObjCBoolLiteralExpr *expr) {
-        UNREACHABLE("unsupported ObjCBoolLiteralExpr");
+        VAST_UNREACHABLE("unsupported ObjCBoolLiteralExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCBoxedExpr(clang::ObjCBoxedExpr *expr) {
-        UNREACHABLE("unsupported ObjCBoxedExpr");
+        VAST_UNREACHABLE("unsupported ObjCBoxedExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCDictionaryLiteral(clang::ObjCDictionaryLiteral *lit) {
-        UNREACHABLE("unsupported ObjCDictionaryLiteral");
+        VAST_UNREACHABLE("unsupported ObjCDictionaryLiteral");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCEncodeExpr(clang::ObjCEncodeExpr *expr) {
-        UNREACHABLE("unsupported ObjCEncodeExpr");
+        VAST_UNREACHABLE("unsupported ObjCEncodeExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCIndirectCopyRestoreExpr(
         clang::ObjCIndirectCopyRestoreExpr *expr) {
-        UNREACHABLE("unsupported ObjCIndirectCopyRestoreExpr");
+        VAST_UNREACHABLE("unsupported ObjCIndirectCopyRestoreExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCIsaExpr(clang::ObjCIsaExpr *expr) {
-        UNREACHABLE("unsupported ObjCIsaExpr");
+        VAST_UNREACHABLE("unsupported ObjCIsaExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCIvarRefExpr(clang::ObjCIvarRefExpr *expr) {
-        UNREACHABLE("unsupported ObjCIvarRefExpr");
+        VAST_UNREACHABLE("unsupported ObjCIvarRefExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCMessageExpr(clang::ObjCMessageExpr *expr) {
-        UNREACHABLE("unsupported ObjCMessageExpr");
+        VAST_UNREACHABLE("unsupported ObjCMessageExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCPropertyRefExpr(clang::ObjCPropertyRefExpr *expr) {
-        UNREACHABLE("unsupported ObjCPropertyRefExpr");
+        VAST_UNREACHABLE("unsupported ObjCPropertyRefExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCProtocolExpr(clang::ObjCProtocolExpr *expr) {
-        UNREACHABLE("unsupported ObjCProtocolExpr");
+        VAST_UNREACHABLE("unsupported ObjCProtocolExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCSelectorExpr(clang::ObjCSelectorExpr *expr) {
-        UNREACHABLE("unsupported ObjCSelectorExpr");
+        VAST_UNREACHABLE("unsupported ObjCSelectorExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCStringLiteral(clang::ObjCStringLiteral *lit) {
-        UNREACHABLE("unsupported ObjCStringLiteral");
+        VAST_UNREACHABLE("unsupported ObjCStringLiteral");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCSubscriptRefExpr(clang::ObjCSubscriptRefExpr *expr) {
-        UNREACHABLE("unsupported ObjCSubscriptRefExpr");
+        VAST_UNREACHABLE("unsupported ObjCSubscriptRefExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOffsetOfExpr(clang::OffsetOfExpr *expr) {
-        UNREACHABLE("unsupported OffsetOfExpr");
+        VAST_UNREACHABLE("unsupported OffsetOfExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOpaqueValueExpr(clang::OpaqueValueExpr *expr) {
-        UNREACHABLE("unsupported OpaqueValueExpr");
+        VAST_UNREACHABLE("unsupported OpaqueValueExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOverloadExpr(clang::OverloadExpr *expr) {
-        UNREACHABLE("unsupported OverloadExpr");
+        VAST_UNREACHABLE("unsupported OverloadExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnresolvedLookupExpr(clang::UnresolvedLookupExpr *expr) {
-        UNREACHABLE("unsupported UnresolvedLookupExpr");
+        VAST_UNREACHABLE("unsupported UnresolvedLookupExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnresolvedMemberExpr(clang::UnresolvedMemberExpr *expr) {
-        UNREACHABLE("unsupported UnresolvedMemberExpr");
+        VAST_UNREACHABLE("unsupported UnresolvedMemberExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitPackExpansionExpr(clang::PackExpansionExpr *expr) {
-        UNREACHABLE("unsupported PackExpansionExpr");
+        VAST_UNREACHABLE("unsupported PackExpansionExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitParenExpr(clang::ParenExpr *expr) {
@@ -725,27 +725,27 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitParenListExpr(clang::ParenListExpr *expr) {
-        UNREACHABLE("unsupported ParenListExpr");
+        VAST_UNREACHABLE("unsupported ParenListExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitPredefinedExpr(clang::PredefinedExpr *expr) {
-        UNREACHABLE("unsupported PredefinedExpr");
+        VAST_UNREACHABLE("unsupported PredefinedExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitPseudoObjectExpr(clang::PseudoObjectExpr *expr) {
-        UNREACHABLE("unsupported PseudoObjectExpr");
+        VAST_UNREACHABLE("unsupported PseudoObjectExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitShuffleVectorExpr(clang::ShuffleVectorExpr *expr) {
-        UNREACHABLE("unsupported ShuffleVectorExpr");
+        VAST_UNREACHABLE("unsupported ShuffleVectorExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitSizeOfPackExpr(clang::SizeOfPackExpr *expr) {
-        UNREACHABLE("unsupported SizeOfPackExpr");
+        VAST_UNREACHABLE("unsupported SizeOfPackExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitStmtExpr(clang::StmtExpr *expr) {
-        UNREACHABLE("unsupported StmtExpr");
+        VAST_UNREACHABLE("unsupported StmtExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitStringLiteral(clang::StringLiteral *lit) {
@@ -756,16 +756,16 @@ namespace vast::hl
 
     ValueOrStmt CodeGenVisitor::VisitSubstNonTypeTemplateParmExpr(
         clang::SubstNonTypeTemplateParmExpr *expr) {
-        UNREACHABLE("unsupported SubstNonTypeTemplateParmExpr");
+        VAST_UNREACHABLE("unsupported SubstNonTypeTemplateParmExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitSubstNonTypeTemplateParmPackExpr(
         clang::SubstNonTypeTemplateParmPackExpr *expr) {
-        UNREACHABLE("unsupported SubstNonTypeTemplateParmPackExpr");
+        VAST_UNREACHABLE("unsupported SubstNonTypeTemplateParmPackExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitTypeTraitExpr(clang::TypeTraitExpr *expr) {
-        UNREACHABLE("unsupported TypeTraitExpr");
+        VAST_UNREACHABLE("unsupported TypeTraitExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryExprOrTypeTraitExpr(
@@ -780,15 +780,15 @@ namespace vast::hl
             return dispatch_trait_expr< AlignOfTypeOp, AlignOfExprOp >(expr);
         }
 
-        UNREACHABLE("unsupported UnaryExprOrTypeTraitExpr");
+        VAST_UNREACHABLE("unsupported UnaryExprOrTypeTraitExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitSourceLocExpr(clang::SourceLocExpr *expr) {
-        UNREACHABLE("unsupported SourceLocExpr");
+        VAST_UNREACHABLE("unsupported SourceLocExpr");
     }
 
     ValueOrStmt CodeGenVisitor::VisitVAArgExpr(clang::VAArgExpr *expr) {
-        UNREACHABLE("unsupported VAArgExpr");
+        VAST_UNREACHABLE("unsupported VAArgExpr");
     }
 
     // Statements
@@ -810,7 +810,7 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitGotoStmt(clang::GotoStmt *stmt) {
-        UNREACHABLE("unsupported GotoStmt");
+        VAST_UNREACHABLE("unsupported GotoStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitIfStmt(clang::IfStmt *stmt) {
@@ -827,108 +827,108 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitIndirectGotoStmt(clang::IndirectGotoStmt *stmt) {
-        UNREACHABLE("unsupported IndirectGotoStmt");
+        VAST_UNREACHABLE("unsupported IndirectGotoStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitLabelStmt(clang::LabelStmt *stmt) {
-        UNREACHABLE("unsupported LabelStmt");
+        VAST_UNREACHABLE("unsupported LabelStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitMSDependentExistsStmt(clang::MSDependentExistsStmt *stmt) {
-        UNREACHABLE("unsupported MSDependentExistsStmt");
+        VAST_UNREACHABLE("unsupported MSDependentExistsStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitNullStmt(clang::NullStmt *stmt) {
-        UNREACHABLE("unsupported NullStmt");
+        VAST_UNREACHABLE("unsupported NullStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPBarrierDirective(clang::OMPBarrierDirective *dir) {
-        UNREACHABLE("unsupported OMPBarrierDirective");
+        VAST_UNREACHABLE("unsupported OMPBarrierDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPCriticalDirective(clang::OMPCriticalDirective *dir) {
-        UNREACHABLE("unsupported OMPCriticalDirective");
+        VAST_UNREACHABLE("unsupported OMPCriticalDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPFlushDirective(clang::OMPFlushDirective *dir) {
-        UNREACHABLE("unsupported OMPFlushDirective");
+        VAST_UNREACHABLE("unsupported OMPFlushDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPForDirective(clang::OMPForDirective *dir) {
-        UNREACHABLE("unsupported OMPForDirective");
+        VAST_UNREACHABLE("unsupported OMPForDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPMasterDirective(clang::OMPMasterDirective *dir) {
-        UNREACHABLE("unsupported OMPMasterDirective");
+        VAST_UNREACHABLE("unsupported OMPMasterDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPParallelDirective(clang::OMPParallelDirective *dir) {
-        UNREACHABLE("unsupported OMPParallelDirective");
+        VAST_UNREACHABLE("unsupported OMPParallelDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPParallelForDirective(clang::OMPParallelForDirective *dir) {
-        UNREACHABLE("unsupported OMPParallelForDirective");
+        VAST_UNREACHABLE("unsupported OMPParallelForDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPParallelSectionsDirective(
         clang::OMPParallelSectionsDirective *dir) {
-        UNREACHABLE("unsupported OMPParallelSectionsDirective");
+        VAST_UNREACHABLE("unsupported OMPParallelSectionsDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPSectionDirective(clang::OMPSectionDirective *dir) {
-        UNREACHABLE("unsupported OMPSectionDirective");
+        VAST_UNREACHABLE("unsupported OMPSectionDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPSectionsDirective(clang::OMPSectionsDirective *dir) {
-        UNREACHABLE("unsupported OMPSectionsDirective");
+        VAST_UNREACHABLE("unsupported OMPSectionsDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPSimdDirective(clang::OMPSimdDirective *dir) {
-        UNREACHABLE("unsupported OMPSimdDirective");
+        VAST_UNREACHABLE("unsupported OMPSimdDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPSingleDirective(clang::OMPSingleDirective *dir) {
-        UNREACHABLE("unsupported OMPSingleDirective");
+        VAST_UNREACHABLE("unsupported OMPSingleDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPTaskDirective(clang::OMPTaskDirective *dir) {
-        UNREACHABLE("unsupported OMPTaskDirective");
+        VAST_UNREACHABLE("unsupported OMPTaskDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPTaskwaitDirective(clang::OMPTaskwaitDirective *dir) {
-        UNREACHABLE("unsupported OMPTaskwaitDirective");
+        VAST_UNREACHABLE("unsupported OMPTaskwaitDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPTaskyieldDirective(clang::OMPTaskyieldDirective *dir) {
-        UNREACHABLE("unsupported OMPTaskyieldDirective");
+        VAST_UNREACHABLE("unsupported OMPTaskyieldDirective");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCAtCatchStmt(clang::ObjCAtCatchStmt *stmt) {
-        UNREACHABLE("unsupported ObjCAtCatchStmt");
+        VAST_UNREACHABLE("unsupported ObjCAtCatchStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCAtFinallyStmt(clang::ObjCAtFinallyStmt *stmt) {
-        UNREACHABLE("unsupported ObjCAtFinallyStmt");
+        VAST_UNREACHABLE("unsupported ObjCAtFinallyStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCAtSynchronizedStmt(clang::ObjCAtSynchronizedStmt *stmt) {
-        UNREACHABLE("unsupported ObjCAtSynchronizedStmt");
+        VAST_UNREACHABLE("unsupported ObjCAtSynchronizedStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCAtThrowStmt(clang::ObjCAtThrowStmt *stmt) {
-        UNREACHABLE("unsupported ObjCAtThrowStmt");
+        VAST_UNREACHABLE("unsupported ObjCAtThrowStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCAtTryStmt(clang::ObjCAtTryStmt *stmt) {
-        UNREACHABLE("unsupported ObjCAtTryStmt");
+        VAST_UNREACHABLE("unsupported ObjCAtTryStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCAutoreleasePoolStmt(clang::ObjCAutoreleasePoolStmt *stmt) {
-        UNREACHABLE("unsupported ObjCAutoreleasePoolStmt");
+        VAST_UNREACHABLE("unsupported ObjCAutoreleasePoolStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCForCollectionStmt(clang::ObjCForCollectionStmt *stmt) {
-        UNREACHABLE("unsupported ObjCForCollectionStmt");
+        VAST_UNREACHABLE("unsupported ObjCForCollectionStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitReturnStmt(clang::ReturnStmt *stmt) {
@@ -939,19 +939,19 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitSEHExceptStmt(clang::SEHExceptStmt *stmt) {
-        UNREACHABLE("unsupported SEHExceptStmt");
+        VAST_UNREACHABLE("unsupported SEHExceptStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitSEHFinallyStmt(clang::SEHFinallyStmt *stmt) {
-        UNREACHABLE("unsupported SEHFinallyStmt");
+        VAST_UNREACHABLE("unsupported SEHFinallyStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitSEHLeaveStmt(clang::SEHLeaveStmt *stmt) {
-        UNREACHABLE("unsupported SEHLeaveStmt");
+        VAST_UNREACHABLE("unsupported SEHLeaveStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitSEHTryStmt(clang::SEHTryStmt *stmt) {
-        UNREACHABLE("unsupported SEHTryStmt");
+        VAST_UNREACHABLE("unsupported SEHTryStmt");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCaseStmt(clang::CaseStmt *stmt) {
@@ -992,62 +992,62 @@ namespace vast::hl
     // Declarations
 
     ValueOrStmt CodeGenVisitor::VisitImportDecl(clang::ImportDecl *decl) {
-        UNREACHABLE("unsupported ImportDecl");
+        VAST_UNREACHABLE("unsupported ImportDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitEmptyDecl(clang::EmptyDecl *decl) {
-        UNREACHABLE("unsupported EmptyDecl");
+        VAST_UNREACHABLE("unsupported EmptyDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitAccessSpecDecl(clang::AccessSpecDecl *decl) {
-        UNREACHABLE("unsupported AccessSpecDecl");
+        VAST_UNREACHABLE("unsupported AccessSpecDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCapturedDecl(clang::CapturedDecl *decl) {
-        UNREACHABLE("unsupported CapturedDecl");
+        VAST_UNREACHABLE("unsupported CapturedDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitClassScopeFunctionSpecializationDecl(
         clang::ClassScopeFunctionSpecializationDecl *decl) {
-        UNREACHABLE("unsupported ClassScopeFunctionSpecializationDecl");
+        VAST_UNREACHABLE("unsupported ClassScopeFunctionSpecializationDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitExportDecl(clang::ExportDecl *decl) {
-        UNREACHABLE("unsupported ExportDecl");
+        VAST_UNREACHABLE("unsupported ExportDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitExternCContextDecl(clang::ExternCContextDecl *decl) {
-        UNREACHABLE("unsupported ExternCContextDecl");
+        VAST_UNREACHABLE("unsupported ExternCContextDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitFileScopeAsmDecl(clang::FileScopeAsmDecl *decl) {
-        UNREACHABLE("unsupported FileScopeAsmDecl");
+        VAST_UNREACHABLE("unsupported FileScopeAsmDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitStaticAssertDecl(clang::StaticAssertDecl *decl) {
-        UNREACHABLE("unsupported StaticAssertDecl");
+        VAST_UNREACHABLE("unsupported StaticAssertDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitTranslationUnitDecl(clang::TranslationUnitDecl *decl) {
-        UNREACHABLE("unsupported TranslationUnitDecl");
+        VAST_UNREACHABLE("unsupported TranslationUnitDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitBindingDecl(clang::BindingDecl *decl) {
-        UNREACHABLE("unsupported BindingDecl");
+        VAST_UNREACHABLE("unsupported BindingDecl");
     }
 
     // ValueOrStmt CodeGenVisitor::VisitNamespaceDecl(clang::NamespaceDecl *decl)
     // {
-    //     UNREACHABLE( "unsupported NamespaceDecl" );
+    //     VAST_UNREACHABLE( "unsupported NamespaceDecl" );
     // }
 
     ValueOrStmt CodeGenVisitor::VisitNamespaceAliasDecl(clang::NamespaceAliasDecl *decl) {
-        UNREACHABLE("unsupported NamespaceAliasDecl");
+        VAST_UNREACHABLE("unsupported NamespaceAliasDecl");
     }
 
     // ValueOrStmt CodeGenVisitor::VisitTypedefNameDecl(clang::TypedefNameDecl *decl)
     // {
-    //     UNREACHABLE( "unsupported TypedefNameDecl" );
+    //     VAST_UNREACHABLE( "unsupported TypedefNameDecl" );
     // }
 
     ValueOrStmt CodeGenVisitor::VisitTypedefDecl(clang::TypedefDecl *decl) {
@@ -1077,18 +1077,18 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitTypeAliasDecl(clang::TypeAliasDecl *decl) {
-        UNREACHABLE("unsupported TypeAliasDecl");
+        VAST_UNREACHABLE("unsupported TypeAliasDecl");
     }
     ValueOrStmt CodeGenVisitor::VisitTemplateDecl(clang::TemplateDecl *decl) {
-        UNREACHABLE("unsupported TemplateDecl");
+        VAST_UNREACHABLE("unsupported TemplateDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitTypeAliasTemplateDecl(clang::TypeAliasTemplateDecl *decl) {
-        UNREACHABLE("unsupported TypeAliasTemplateDecl");
+        VAST_UNREACHABLE("unsupported TypeAliasTemplateDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitLabelDecl(clang::LabelDecl *decl) {
-        UNREACHABLE("unsupported LabelDecl");
+        VAST_UNREACHABLE("unsupported LabelDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitEnumDecl(clang::EnumDecl *decl) {
@@ -1206,31 +1206,31 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXMethodDecl(clang::CXXMethodDecl *decl) {
-        UNREACHABLE("unsupported CXXMethodDecl");
+        VAST_UNREACHABLE("unsupported CXXMethodDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXConstructorDecl(clang::CXXConstructorDecl *decl) {
-        UNREACHABLE("unsupported CXXConstructorDecl");
+        VAST_UNREACHABLE("unsupported CXXConstructorDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXDestructorDecl(clang::CXXDestructorDecl *decl) {
-        UNREACHABLE("unsupported CXXDestructorDecl");
+        VAST_UNREACHABLE("unsupported CXXDestructorDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXConversionDecl(clang::CXXConversionDecl *decl) {
-        UNREACHABLE("unsupported CXXConversionDecl");
+        VAST_UNREACHABLE("unsupported CXXConversionDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitCXXDeductionGuideDecl(clang::CXXDeductionGuideDecl *decl) {
-        UNREACHABLE("unsupported CXXDeductionGuideDecl");
+        VAST_UNREACHABLE("unsupported CXXDeductionGuideDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitMSPropertyDecl(clang::MSPropertyDecl *decl) {
-        UNREACHABLE("unsupported MSPropertyDecl");
+        VAST_UNREACHABLE("unsupported MSPropertyDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitMSGuidDecl(clang::MSGuidDecl *decl) {
-        UNREACHABLE("unsupported MSGuidDecl");
+        VAST_UNREACHABLE("unsupported MSGuidDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitFieldDecl(clang::FieldDecl *decl) {
@@ -1241,23 +1241,23 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitIndirectFieldDecl(clang::IndirectFieldDecl *decl) {
-        UNREACHABLE("unsupported IndirectFieldDecl");
+        VAST_UNREACHABLE("unsupported IndirectFieldDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitFriendDecl(clang::FriendDecl *decl) {
-        UNREACHABLE("unsupported FriendDecl");
+        VAST_UNREACHABLE("unsupported FriendDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitFriendTemplateDecl(clang::FriendTemplateDecl *decl) {
-        UNREACHABLE("unsupported FriendTemplateDecl");
+        VAST_UNREACHABLE("unsupported FriendTemplateDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCAtDefsFieldDecl(clang::ObjCAtDefsFieldDecl *decl) {
-        UNREACHABLE("unsupported ObjCAtDefsFieldDecl");
+        VAST_UNREACHABLE("unsupported ObjCAtDefsFieldDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCIvarDecl(clang::ObjCIvarDecl *decl) {
-        UNREACHABLE("unsupported ObjCIvarDecl");
+        VAST_UNREACHABLE("unsupported ObjCIvarDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitVarDecl(clang::VarDecl *decl) {
@@ -1274,210 +1274,210 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitDecompositionDecl(clang::DecompositionDecl *decl) {
-        UNREACHABLE("unsupported DecompositionDecl");
+        VAST_UNREACHABLE("unsupported DecompositionDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitImplicitParamDecl(clang::ImplicitParamDecl *decl) {
-        UNREACHABLE("unsupported ImplicitParamDecl");
+        VAST_UNREACHABLE("unsupported ImplicitParamDecl");
     }
 
     // ValueOrStmt
     // CodeGenVisitor::VisitUnresolvedUsingIfExistsDecl(clang::UnresolvedUsingIfExistsDecl
     // *decl)
     // {
-    //     UNREACHABLE( "unsupported UnresolvedUsingIfExistsDecl" );
+    //     VAST_UNREACHABLE( "unsupported UnresolvedUsingIfExistsDecl" );
     // }
 
     ValueOrStmt CodeGenVisitor::VisitParmVarDecl(clang::ParmVarDecl *decl) {
-        UNREACHABLE("unsupported ParmVarDecl");
+        VAST_UNREACHABLE("unsupported ParmVarDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCMethodDecl(clang::ObjCMethodDecl *decl) {
-        UNREACHABLE("unsupported ObjCMethodDecl");
+        VAST_UNREACHABLE("unsupported ObjCMethodDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCTypeParamDecl(clang::ObjCTypeParamDecl *decl) {
-        UNREACHABLE("unsupported ObjCTypeParamDecl");
+        VAST_UNREACHABLE("unsupported ObjCTypeParamDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCProtocolDecl(clang::ObjCProtocolDecl *decl) {
-        UNREACHABLE("unsupported ObjCProtocolDecl");
+        VAST_UNREACHABLE("unsupported ObjCProtocolDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitLinkageSpecDecl(clang::LinkageSpecDecl *decl) {
-        UNREACHABLE("unsupported LinkageSpecDecl");
+        VAST_UNREACHABLE("unsupported LinkageSpecDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitUsingDecl(clang::UsingDecl *decl) {
-        UNREACHABLE("unsupported UsingDecl");
+        VAST_UNREACHABLE("unsupported UsingDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitUsingShadowDecl(clang::UsingShadowDecl *decl) {
-        UNREACHABLE("unsupported UsingShadowDecl");
+        VAST_UNREACHABLE("unsupported UsingShadowDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitUsingDirectiveDecl(clang::UsingDirectiveDecl *decl) {
-        UNREACHABLE("unsupported UsingDirectiveDecl");
+        VAST_UNREACHABLE("unsupported UsingDirectiveDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitUsingPackDecl(clang::UsingPackDecl *decl) {
-        UNREACHABLE("unsupported UsingPackDecl");
+        VAST_UNREACHABLE("unsupported UsingPackDecl");
     }
 
     // ValueOrStmt CodeGenVisitor::VisitUsingEnumDecl(clang::UsingEnumDecl *decl)
     // {
-    //     UNREACHABLE( "unsupported UsingEnumDecl" );
+    //     VAST_UNREACHABLE( "unsupported UsingEnumDecl" );
     // }
 
     ValueOrStmt CodeGenVisitor::VisitUnresolvedUsingValueDecl(
         clang::UnresolvedUsingValueDecl *decl) {
-        UNREACHABLE("unsupported UnresolvedUsingValueDecl");
+        VAST_UNREACHABLE("unsupported UnresolvedUsingValueDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnresolvedUsingTypenameDecl(
         clang::UnresolvedUsingTypenameDecl *decl) {
-        UNREACHABLE("unsupported UnresolvedUsingTypenameDecl");
+        VAST_UNREACHABLE("unsupported UnresolvedUsingTypenameDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitBuiltinTemplateDecl(clang::BuiltinTemplateDecl *decl) {
-        UNREACHABLE("unsupported BuiltinTemplateDecl");
+        VAST_UNREACHABLE("unsupported BuiltinTemplateDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitConceptDecl(clang::ConceptDecl *decl) {
-        UNREACHABLE("unsupported ConceptDecl");
+        VAST_UNREACHABLE("unsupported ConceptDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitRedeclarableTemplateDecl(
         clang::RedeclarableTemplateDecl *decl) {
-        UNREACHABLE("unsupported RedeclarableTemplateDecl");
+        VAST_UNREACHABLE("unsupported RedeclarableTemplateDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitLifetimeExtendedTemporaryDecl(
         clang::LifetimeExtendedTemporaryDecl *decl) {
-        UNREACHABLE("unsupported LifetimeExtendedTemporaryDecl");
+        VAST_UNREACHABLE("unsupported LifetimeExtendedTemporaryDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitPragmaCommentDecl(clang::PragmaCommentDecl *decl) {
-        UNREACHABLE("unsupported PragmaCommentDecl");
+        VAST_UNREACHABLE("unsupported PragmaCommentDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitPragmaDetectMismatchDecl(
         clang::PragmaDetectMismatchDecl *decl) {
-        UNREACHABLE("unsupported PragmaDetectMismatchDecl");
+        VAST_UNREACHABLE("unsupported PragmaDetectMismatchDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitRequiresExprBodyDecl(clang::RequiresExprBodyDecl *decl) {
-        UNREACHABLE("unsupported RequiresExprBodyDecl");
+        VAST_UNREACHABLE("unsupported RequiresExprBodyDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCCompatibleAliasDecl(clang::ObjCCompatibleAliasDecl *decl) {
-        UNREACHABLE("unsupported ObjCCompatibleAliasDecl");
+        VAST_UNREACHABLE("unsupported ObjCCompatibleAliasDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCCategoryDecl(clang::ObjCCategoryDecl *decl) {
-        UNREACHABLE("unsupported ObjCCategoryDecl");
+        VAST_UNREACHABLE("unsupported ObjCCategoryDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCImplDecl(clang::ObjCImplDecl *decl) {
-        UNREACHABLE("unsupported ObjCImplDecl");
+        VAST_UNREACHABLE("unsupported ObjCImplDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCInterfaceDecl(clang::ObjCInterfaceDecl *decl) {
-        UNREACHABLE("unsupported ObjCInterfaceDecl");
+        VAST_UNREACHABLE("unsupported ObjCInterfaceDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCCategoryImplDecl(clang::ObjCCategoryImplDecl *decl) {
-        UNREACHABLE("unsupported ObjCCategoryImplDecl");
+        VAST_UNREACHABLE("unsupported ObjCCategoryImplDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCImplementationDecl(clang::ObjCImplementationDecl *decl) {
-        UNREACHABLE("unsupported ObjCImplementationDecl");
+        VAST_UNREACHABLE("unsupported ObjCImplementationDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCPropertyDecl(clang::ObjCPropertyDecl *decl) {
-        UNREACHABLE("unsupported ObjCPropertyDecl");
+        VAST_UNREACHABLE("unsupported ObjCPropertyDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCPropertyImplDecl(clang::ObjCPropertyImplDecl *decl) {
-        UNREACHABLE("unsupported ObjCPropertyImplDecl");
+        VAST_UNREACHABLE("unsupported ObjCPropertyImplDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitTemplateParamObjectDecl(clang::TemplateParamObjectDecl *decl) {
-        UNREACHABLE("unsupported TemplateParamObjectDecl");
+        VAST_UNREACHABLE("unsupported TemplateParamObjectDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitTemplateTypeParmDecl(clang::TemplateTypeParmDecl *decl) {
-        UNREACHABLE("unsupported TemplateTypeParmDecl");
+        VAST_UNREACHABLE("unsupported TemplateTypeParmDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitNonTypeTemplateParmDecl(clang::NonTypeTemplateParmDecl *decl) {
-        UNREACHABLE("unsupported NonTypeTemplateParmDecl");
+        VAST_UNREACHABLE("unsupported NonTypeTemplateParmDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitTemplateTemplateParmDecl(
         clang::TemplateTemplateParmDecl *decl) {
-        UNREACHABLE("unsupported TemplateTemplateParmDecl");
+        VAST_UNREACHABLE("unsupported TemplateTemplateParmDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitClassTemplateDecl(clang::ClassTemplateDecl *decl) {
-        UNREACHABLE("unsupported ClassTemplateDecl");
+        VAST_UNREACHABLE("unsupported ClassTemplateDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitClassTemplatePartialSpecializationDecl(
         clang::ClassTemplatePartialSpecializationDecl *decl) {
-        UNREACHABLE("unsupported ClassTemplatePartialSpecializationDecl");
+        VAST_UNREACHABLE("unsupported ClassTemplatePartialSpecializationDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitClassTemplateSpecializationDecl(
         clang::ClassTemplateSpecializationDecl *decl) {
-        UNREACHABLE("unsupported ClassTemplateSpecializationDecl");
+        VAST_UNREACHABLE("unsupported ClassTemplateSpecializationDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitVarTemplateDecl(clang::VarTemplateDecl *decl) {
-        UNREACHABLE("unsupported VarTemplateDecl");
+        VAST_UNREACHABLE("unsupported VarTemplateDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitVarTemplateSpecializationDecl(
         clang::VarTemplateSpecializationDecl *decl) {
-        UNREACHABLE("unsupported VarTemplateSpecializationDecl");
+        VAST_UNREACHABLE("unsupported VarTemplateSpecializationDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitVarTemplatePartialSpecializationDecl(
         clang::VarTemplatePartialSpecializationDecl *decl) {
-        UNREACHABLE("unsupported VarTemplatePartialSpecializationDecl");
+        VAST_UNREACHABLE("unsupported VarTemplatePartialSpecializationDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitFunctionTemplateDecl(clang::FunctionTemplateDecl *decl) {
-        UNREACHABLE("unsupported FunctionTemplateDecl");
+        VAST_UNREACHABLE("unsupported FunctionTemplateDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitConstructorUsingShadowDecl(
         clang::ConstructorUsingShadowDecl *decl) {
-        UNREACHABLE("unsupported ConstructorUsingShadowDecl");
+        VAST_UNREACHABLE("unsupported ConstructorUsingShadowDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPAllocateDecl(clang::OMPAllocateDecl *decl) {
-        UNREACHABLE("unsupported OMPAllocateDecl");
+        VAST_UNREACHABLE("unsupported OMPAllocateDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPRequiresDecl(clang::OMPRequiresDecl *decl) {
-        UNREACHABLE("unsupported OMPRequiresDecl");
+        VAST_UNREACHABLE("unsupported OMPRequiresDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPThreadPrivateDecl(clang::OMPThreadPrivateDecl *decl) {
-        UNREACHABLE("unsupported OMPThreadPrivateDecl");
+        VAST_UNREACHABLE("unsupported OMPThreadPrivateDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPCapturedExprDecl(clang::OMPCapturedExprDecl *decl) {
-        UNREACHABLE("unsupported OMPCapturedExprDecl");
+        VAST_UNREACHABLE("unsupported OMPCapturedExprDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPDeclareReductionDecl(clang::OMPDeclareReductionDecl *decl) {
-        UNREACHABLE("unsupported OMPDeclareReductionDecl");
+        VAST_UNREACHABLE("unsupported OMPDeclareReductionDecl");
     }
 
     ValueOrStmt CodeGenVisitor::VisitOMPDeclareMapperDecl(clang::OMPDeclareMapperDecl *decl) {
-        UNREACHABLE("unsupported OMPDeclareMapperDecl");
+        VAST_UNREACHABLE("unsupported OMPDeclareMapperDecl");
     }
 
 } // namespace vast::hl

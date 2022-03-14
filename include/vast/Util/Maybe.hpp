@@ -85,7 +85,7 @@ namespace vast
         explicit operator bool() const { return has_value(); }
         bool has_value() const
         {
-            ASSERT(contains_value == static_cast< bool >(self));
+            VAST_ASSERT(contains_value == static_cast< bool >(self));
             return contains_value;
         }
     };

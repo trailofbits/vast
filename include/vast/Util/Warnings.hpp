@@ -26,13 +26,13 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast
 {
-    #define UNREACHABLE(fmt, ...) llvm_unreachable( llvm::formatv(fmt __VA_OPT__(,) __VA_ARGS__).str().c_str() );
+    #define VAST_UNREACHABLE(fmt, ...) llvm_unreachable( llvm::formatv(fmt __VA_OPT__(,) __VA_ARGS__).str().c_str() );
 
-    #define UNIMPLEMENTED UNREACHABLE("not implemented: {}", __PRETTY_FUNCTION__);
+    #define VAST_UNIMPLEMENTED VAST_UNREACHABLE("not implemented: {}", __PRETTY_FUNCTION__);
 
     #define VAST_DEBUG(fmt, ...) LLVM_DEBUG(llvm::dbgs() << llvm::formatv(fmt, __VA_OPT__(,) __VA_ARGS__));
 
-    #define CHECK(cond, fmt, ...) if (!(cond)) { UNREACHABLE(fmt __VA_OPT__(,) __VA_ARGS__); }
+    #define VAST_CHECK(cond, fmt, ...) if (!(cond)) { VAST_UNREACHABLE(fmt __VA_OPT__(,) __VA_ARGS__); }
 
-    #define ASSERT(cond) if (!(cond)) { UNREACHABLE("assertion: " #cond " failed"); }
+    #define VAST_ASSERT(cond) if (!(cond)) { VAST_UNREACHABLE("assertion: " #cond " failed"); }
 }
