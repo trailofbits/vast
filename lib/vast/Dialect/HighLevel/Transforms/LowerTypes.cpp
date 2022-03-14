@@ -29,7 +29,7 @@ namespace vast::hl
 
     bool contains_hl_type(mlir::Type t)
     {
-        CHECK(static_cast< bool >(t), "Argument of in `contains_hl_type` is not valid.");
+        VAST_CHECK(static_cast< bool >(t), "Argument of in `contains_hl_type` is not valid.");
         // We need to manually check `t` itself.
         bool found = isHighLevelType(t);
         auto is_hl = [&](auto t) { found |= isHighLevelType(t); };
@@ -151,7 +151,7 @@ namespace vast::hl
                     case 64: return mlir::FloatType::getF64(&mctx);
                     case 80: return mlir::FloatType::getF80(&mctx);
                     case 128: return mlir::FloatType::getF128(&mctx);
-                    default: UNREACHABLE("Cannot lower float bitsize {0}", target_bw);
+                    default: VAST_UNREACHABLE("Cannot lower float bitsize {0}", target_bw);
                 }
             };
         }
@@ -270,7 +270,7 @@ namespace vast::hl
             mlir::SmallVector< mlir::Type > rty;
             auto status = this->getTypeConverter()->convertTypes(op->getResultTypes(), rty);
             // TODO(lukas): How to use `llvm::formatv` with `mlir::Operation *`?
-            CHECK(mlir::succeeded(status), "Was not able to type convert.");
+            VAST_CHECK(mlir::succeeded(status), "Was not able to type convert.");
 
             // We just change type, no need to copy everything
             auto lower_op = [&]() {
@@ -283,7 +283,7 @@ namespace vast::hl
                 if (auto fn = mlir::dyn_cast_or_null< mlir::FuncOp >(op))
                     if (mlir::failed(rewriter.convertRegionTypes(&fn.getBody(),
                                                                  *getTypeConverter())))
-                        UNREACHABLE("Cannot handle failure to update block types.");
+                        VAST_UNREACHABLE("Cannot handle failure to update block types.");
                 // For example return type of function can be encoded in attributes
                 lower_attrs(op);
             };

@@ -51,7 +51,7 @@ namespace vast::hl
             return false;
         }
 
-        ASSERT(isIntegerType(type));
+        VAST_ASSERT(isIntegerType(type));
         return util::dispatch< integer_types, bool >(type, [] (auto ty) {
             return ty.isSigned();
         });
@@ -263,7 +263,7 @@ namespace vast::hl
     void HighLevelDialect::printType(Type type, DialectPrinter &os) const
     {
         if (failed(generatedTypePrinter(type, os)))
-            UNREACHABLE("unexpected high-level type kind");
+            VAST_UNREACHABLE("unexpected high-level type kind");
     }
 
     template< typename T >

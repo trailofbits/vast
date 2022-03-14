@@ -51,7 +51,7 @@ namespace vast::hl
     // void HighLevelDialect::printAttribute(Attribute attr, DialectPrinter &p) const
     // {
     //     if (failed(generatedAttributePrinter(attr, p)))
-    //         UNREACHABLE("Unexpected attribute");
+    //         VAST_UNREACHABLE("Unexpected attribute");
     // }
 
 } // namespace vast::hl

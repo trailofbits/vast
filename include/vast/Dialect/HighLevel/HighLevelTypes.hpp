@@ -30,7 +30,7 @@ namespace vast::hl
 
         static unsigned getTypeSizeInBits(const dl_t &dl, dl_entries_ref entries)
         {
-            CHECK(entries.size() != 0,
+            VAST_CHECK(entries.size() != 0,
                 "Query for getTypeSizeInBits for {0} failed: Must have at least one entry!",
                 format_type(ConcreteTy{})
             );
@@ -38,21 +38,21 @@ namespace vast::hl
             std::optional<uint32_t> out;
             auto handle_entry = [&](auto &dl_entry) {
                 if (!out) out = dl_entry.bw;
-                CHECK(*out == dl_entry.bw, "Inconsistent entries");
+                VAST_CHECK(*out == dl_entry.bw, "Inconsistent entries");
             };
             apply_on_valid_entries(entries, handle_entry);
-            CHECK(out.has_value(), "getTypeSizeBits entries did not yield result.");
+            VAST_CHECK(out.has_value(), "getTypeSizeBits entries did not yield result.");
             return *out;
         }
 
         static unsigned getABIAlignment(const dl_t &dl, dl_entries_ref entries)
         {
-            UNIMPLEMENTED;
+            VAST_UNIMPLEMENTED;
         }
 
         static unsigned getPreferredAlignment(const dl_t &dl, dl_entries_ref entries)
         {
-            UNIMPLEMENTED;
+            VAST_UNIMPLEMENTED;
         }
 
         static void apply_on_valid_entries(dl_entries_ref entries, auto &f)

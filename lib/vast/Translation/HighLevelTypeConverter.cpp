@@ -45,7 +45,7 @@ namespace vast::hl
             case BuiltinType::UInt128:
                 return IntegerKind::Int128;
             default:
-                UNREACHABLE("unknown integer kind");
+                VAST_UNREACHABLE("unknown integer kind");
         }
     }
 
@@ -66,7 +66,7 @@ namespace vast::hl
             case BuiltinType::Float128:
                 return FloatingKind::Float128;
             default:
-                UNREACHABLE("unknown floating kind");
+                VAST_UNREACHABLE("unknown floating kind");
         }
     }
 
@@ -119,7 +119,7 @@ namespace vast::hl
         if (ty->isFunctionType())
             return convert(clang::cast< clang::FunctionType >(ty));
 
-        UNREACHABLE( "unknown clang type: {0}", format_type(ty) );
+        VAST_UNREACHABLE( "unknown clang type: {0}", format_type(ty) );
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(const BuiltinType *ty, Quals quals) {
@@ -160,7 +160,7 @@ namespace vast::hl
             }
         }
 
-        UNREACHABLE( "unknown builtin type: {0}", format_type(ty) );
+        VAST_UNREACHABLE( "unknown builtin type: {0}", format_type(ty) );
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(const clang::PointerType *ty, Quals quals) {

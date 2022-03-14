@@ -77,7 +77,7 @@ namespace vast::hl
         mlir::Value false_value(mlir::Location loc) { return bool_value(loc, false); }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, bool value) {
-            CHECK(ty.isa< BoolType >(), "mismatched boolean constant type");
+            VAST_CHECK(ty.isa< BoolType >(), "mismatched boolean constant type");
             return bool_value(loc, value);
         }
 
@@ -98,7 +98,7 @@ namespace vast::hl
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::StringRef value) {
-            CHECK(ty.isa< ConstantArrayType >(), "string constant must have array type");
+            VAST_CHECK(ty.isa< ConstantArrayType >(), "string constant must have array type");
             auto attr = mlir::StringAttr::get(value, ty);
             return make< ConstantStringOp >(loc, ty.cast< ConstantArrayType >(), attr);
         }

@@ -44,7 +44,7 @@ namespace vast::hl
     }
 
     FoldResult ConstantIntOp::fold(mlir::ArrayRef<Attribute> operands) {
-        CHECK(operands.empty(), "constant has no operands");
+        VAST_CHECK(operands.empty(), "constant has no operands");
         return getValue();
     }
 
@@ -81,7 +81,7 @@ namespace vast::hl
     }
 
     FoldResult ConstantFloatOp::fold(mlir::ArrayRef<Attribute> operands) {
-        CHECK(operands.empty(), "constant has no operands");
+        VAST_CHECK(operands.empty(), "constant has no operands");
         return getValue();
     }
 
@@ -109,7 +109,7 @@ namespace vast::hl
     }
 
     FoldResult ConstantArrayOp::fold(mlir::ArrayRef<Attribute> operands) {
-        CHECK(operands.empty(), "constant has no operands");
+        VAST_CHECK(operands.empty(), "constant has no operands");
         return getValue();
     }
 
@@ -118,11 +118,11 @@ namespace vast::hl
     }
 
     static ParseResult parseConstantArrayOp(Parser &parser, State &st) {
-        UNIMPLEMENTED;
+        VAST_UNIMPLEMENTED;
     }
 
     FoldResult ConstantStringOp::fold(mlir::ArrayRef<Attribute> operands) {
-        ASSERT(operands.empty() && "constant has no operands");
+        VAST_ASSERT(operands.empty() && "constant has no operands");
         return getValue();
     }
 
@@ -316,7 +316,7 @@ namespace vast::hl
             return builder.create< ConstantArrayOp >(loc, type, value.cast< mlir::ArrayAttr >());
         }
 
-        UNREACHABLE("unknown constant type");
+        VAST_UNREACHABLE("unknown constant type");
     }
 
     void ExprOp::build(Builder &bld, State &st, Type rty, BuilderCallback expr) {
