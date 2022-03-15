@@ -89,6 +89,14 @@ namespace vast::hl
         AContext &getASTContext() { return actx; }
         ModuleRef &getModule() { return mod; }
 
+       void appendFuncOpToModule(mlir::FuncOp &op) {
+         mod.get().push_back(op);
+        }
+
+       void insertFuncOpAtBegin(mlir::FuncOp &op) {
+         mod.get().insert(mod.get().begin(), op);
+       }
+
         const dl::DataLayoutBlueprint &data_layout() const { return dl; }
         dl::DataLayoutBlueprint &data_layout() { return dl; }
 

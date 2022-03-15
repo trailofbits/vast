@@ -155,6 +155,8 @@ namespace vast::hl
         mlir::FuncOp VisitDirectCallee(clang::FunctionDecl *callee);
         mlir::Value VisitIndirectCallee(clang::Expr *callee);
 
+        mlir::FuncOp GetOrCreateFunctionOp(clang::FunctionDecl *decl);
+
         using Arguments = llvm::SmallVector< Value, 2 >;
         Arguments VisitArguments(clang::CallExpr *expr);
         ValueOrStmt VisitDirectCall(clang::CallExpr *expr);
@@ -491,9 +493,16 @@ namespace vast::hl
             return [stmt, this](auto &bld, auto loc) {
                 Visit(stmt);
                 auto &op = bld.getBlock()->back();
-                assert(op.getNumResults() == 1);
-                auto cond = op.getResult(0);
-                bld.template create< ValueYieldOp >(loc, cond);
+
+                // The check here avoid issues if there are operations
+                // not supported and numResults is zero
+                // TODO(akshayk): Revert the changes once all the operations
+                //                are supported to work on stdlib headers.
+                if (auto numResults = op.getNumResults(); numResults) {
+                  assert(numResults == 1);
+                  auto cond = op.getResult(0);
+                  bld.template create< ValueYieldOp >(loc, cond);
+                }
             };
         }
 

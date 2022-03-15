@@ -3,6 +3,8 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
+#include <mlir/Dialect/LLVMIR/LLVMDialect.h>
+#include <clang/Basic/Linkage.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Translation/HighLevelVisitor.hpp"
@@ -433,8 +435,7 @@ namespace vast::hl
     }
 
     mlir::FuncOp CodeGenVisitor::VisitDirectCallee(clang::FunctionDecl *callee) {
-        auto name = callee->getName();
-        return ctx.lookup_function(name);
+      return GetOrCreateFunctionOp(callee);
     }
 
     mlir::Value CodeGenVisitor::VisitIndirectCallee(clang::Expr *callee) {
@@ -1137,6 +1138,56 @@ namespace vast::hl
         }
 
         return builder.make< EnumConstantOp >(loc, name, value);
+    }
+
+    mlir::LLVM::Linkage getFunctionLinkage(clang::FunctionDecl *decl) {
+      auto &ast = decl->getASTContext();
+      auto lv = ast.GetGVALinkageForFunction(decl);
+      switch(lv) {
+        case clang::GVALinkage::GVA_Internal:
+          return mlir::LLVM::Linkage::Internal;
+        case clang::GVALinkage::GVA_AvailableExternally:
+          return mlir::LLVM::Linkage::AvailableExternally;
+        case clang::GVALinkage::GVA_StrongExternal:
+          return mlir::LLVM::Linkage::External;
+        default:
+          return mlir::LLVM::Linkage::Private;
+      }
+    }
+
+    mlir::FuncOp CodeGenVisitor::GetOrCreateFunctionOp(clang::FunctionDecl *decl) {
+      auto name = decl->getName();
+
+      if (auto fn = ctx.functions.lookup(name))
+        return fn;
+
+      auto loc  = builder.get_location(clang::SourceRange());
+      auto type = types.convert(decl->getFunctionType());
+
+      auto fn = mlir::FuncOp::create(loc, name, type);
+      if (failed(ctx.functions.declare(name, fn))) {
+        ctx.error("error: multiple declarations of a same function" + name);
+      }
+
+      // Set visibility to public since it is only lowing the function
+      // declaration;
+      fn.setVisibility(mlir::FuncOp::Visibility::Public);
+
+      // Set Linkage type
+      mlir::NamedAttrList attrs = fn->getAttrDictionary();
+      auto &mctx = ctx.getMLIRContext();
+      attrs.set("llvm.linkage",
+                mlir::LLVM::LinkageAttr::get(&mctx, getFunctionLinkage(decl)));
+      fn->setAttrs(attrs.getDictionary(&mctx));
+
+      // Insert FuncOp to the beginning of the module; All decl operations
+      // will be in the in the beginning
+      ctx.insertFuncOpAtBegin(fn);
+
+      // Check if the function is inserted and Operation parent is module
+      // Assert if failed to insert the module
+      assert(fn->getParentOp() == ctx.getModule().get());
+      return fn; //
     }
 
     ValueOrStmt CodeGenVisitor::VisitFunctionDecl(clang::FunctionDecl *decl) {
