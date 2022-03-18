@@ -162,6 +162,7 @@ jobs:
             -D ENABLE_TESTING=ON \
             -D CMAKE_BUILD_TYPE=Release \
             -D CMAKE_VERBOSE_MAKEFILE=True \
+            -D USE_SYSTEM_DEPENDENCIES=ON \
             -D SYSTEM_NAME="${{ matrix.config.arch }}-${{ matrix.config.os }}" \
             -D CMAKE_C_COMPILER=${{ steps.envvars.outputs.cc }} \
             -D CMAKE_CXX_COMPILER=${{ steps.envvars.outputs.cxx }}
