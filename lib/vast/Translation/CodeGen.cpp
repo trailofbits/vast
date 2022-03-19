@@ -36,4 +36,24 @@ namespace vast::hl
         return mod;
     }
 
+    bool high_level_codegen::emit_module(module_owning_ref &mod, clang::Decl* decl) {
+
+        TranslationContext tctx(*ctx, decl->getASTContext(), mod);
+
+        llvm::ScopedHashTableScope type_def_scope(tctx.type_defs);
+        llvm::ScopedHashTableScope type_dec_scope(tctx.type_decls);
+        llvm::ScopedHashTableScope enum_dec_scope(tctx.enum_decls);
+        llvm::ScopedHashTableScope func_scope(tctx.functions);
+
+        // TODO(akshayk): Need to populate scope variables with the
+        //                 one available in the module
+
+        CodeGenVisitor visitor(tctx);
+        visitor.Visit(decl);
+
+        // TODO: Verify module and return false if it fails
+        return true;
+    }
+
+
 } // namespace vast::hl

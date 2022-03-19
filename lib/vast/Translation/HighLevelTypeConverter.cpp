@@ -44,6 +44,12 @@ namespace vast::hl
             case BuiltinType::Int128:
             case BuiltinType::UInt128:
                 return IntegerKind::Int128;
+
+            // TODO(akshayk): Add support for wchar_t types. At the moment
+            //               just handling it as char type for code-generation
+            case BuiltinType::WChar_S:
+            case BuiltinType::WChar_U:
+                return IntegerKind::Char;
             default:
                 VAST_UNREACHABLE("unknown integer kind");
         }
@@ -107,6 +113,11 @@ namespace vast::hl
         if (ty->isPointerType())
             return do_convert(clang::cast< clang::PointerType >(ty), quals);
 
+        // Handling of BlockPointerType - get the pointee type and generate
+        // a vast PointerType from its with the qualifiers.
+        if (ty->isBlockPointerType())
+          return do_convert(clang::cast< clang::BlockPointerType >(ty), quals);
+
         if (ty->isRecordType())
             return do_convert(clang::cast< clang::RecordType >(ty), quals, elaborated);
 
@@ -164,6 +175,12 @@ namespace vast::hl
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(const clang::PointerType *ty, Quals quals) {
+        return PointerType::get(
+            &ctx.getMLIRContext(), convert(ty->getPointeeType()), quals.hasConst(),
+            quals.hasVolatile());
+    }
+
+    mlir::Type HighLevelTypeConverter::do_convert(const clang::BlockPointerType *ty, Quals quals) {
         return PointerType::get(
             &ctx.getMLIRContext(), convert(ty->getPointeeType()), quals.hasConst(),
             quals.hasVolatile());

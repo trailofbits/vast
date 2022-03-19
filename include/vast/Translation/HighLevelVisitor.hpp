@@ -24,6 +24,12 @@ namespace vast::hl
 {
     struct VastDeclVisitor;
 
+    // TODO(akshayk): The function checks if one of the operand
+    //                of the Expr is of type RecoveryExpr and throws
+    //                the exception. The RecoveryExpr fails to get
+    //                lowerd to mlir::Value causing seg fault.
+    void throwOnRecoveryExpr(clang::Expr *expr);
+
     struct CodeGenVisitor
         : clang::StmtVisitor< CodeGenVisitor, ValueOrStmt >
         , clang::DeclVisitor< CodeGenVisitor, ValueOrStmt >
@@ -390,6 +396,12 @@ namespace vast::hl
       private:
         template< typename Op >
         ValueOrStmt make_bin(clang::BinaryOperator *expr) {
+            VAST_CHECK(
+                expr->getLHS()->getStmtClass() != clang::Stmt::RecoveryExprClass,
+                "unsupported RecoveryExpr");
+            VAST_CHECK(
+                expr->getRHS()->getStmtClass() != clang::Stmt::RecoveryExprClass,
+                "unsupported RecoveryExpr");
             auto lhs = Visit(expr->getLHS());
             auto rhs = Visit(expr->getRHS());
             auto loc = builder.get_end_location(expr->getSourceRange());
@@ -483,9 +495,15 @@ namespace vast::hl
             return [stmt, this](auto &bld, auto loc) {
                 Visit(stmt);
                 auto &op = bld.getBlock()->back();
-                assert(op.getNumResults() == 1);
-                auto cond = op.getResult(0);
-                bld.template create< CondYieldOp >(loc, cond);
+                // The check here avoid issues if there are operations
+                // not supported and numResults is zero
+                // TODO(akshayk): Revert the changes once all the operations
+                //                are supported to work on stdlib headers.
+                if (auto numResults = op.getNumResults(); numResults) {
+                  assert(numResults == 1);
+                  auto cond = op.getResult(0);
+                  bld.template create< CondYieldOp >(loc, cond);
+                }
             };
         }
 

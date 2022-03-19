@@ -22,11 +22,58 @@ VAST_RELAX_WARNINGS
 #include <llvm/Support/Debug.h>
 VAST_UNRELAX_WARNINGS
 
+#include <sstream>
+#include <stdexcept>
+#include <utility>
+
 #define DEBUG_TYPE "vast"
 
-namespace vast
-{
-    #define VAST_UNREACHABLE(fmt, ...) llvm_unreachable( llvm::formatv(fmt __VA_OPT__(,) __VA_ARGS__).str().c_str() );
+namespace vast {
+
+    class Exception : public std::runtime_error {
+       public:
+          Exception(const std::string& what) : std::runtime_error(what) {}
+          Exception(const char* what) : std::runtime_error(what) {}
+    };
+
+    template <typename T = Exception>
+    class ExceptionThrower {
+        std::stringstream stream;
+        bool triggered, moved = false;
+
+       public:
+        ExceptionThrower(bool cond = true, std::stringstream ss = std::stringstream())
+              : stream(std::move(ss)), triggered(cond) {}
+        ~ExceptionThrower() noexcept(false) {
+            if (triggered && !moved) {
+              throw T(stream.str());
+            }
+        }
+
+        template <typename V>
+        ExceptionThrower<T> operator<<(V&& s) {
+            moved = true;
+            stream << std::forward<V>(s);
+            return ExceptionThrower<T>(triggered, std::move(stream));
+        }
+    };
+
+
+    #define VAST_THROW_IF(cond, msg) ExceptionThrower<Exception>((cond)) << msg
+
+    #define VAST_THROW(msg) VAST_THROW_IF(true, msg)
+
+    [[ noreturn ]] static
+    void unreachable_intrinsic(const char *msg,
+                               const char *file = nullptr,
+                               unsigned line = 0) {
+        VAST_THROW(msg);
+        (void)file, (void)line;
+        __builtin_unreachable();
+    }
+
+
+    #define VAST_UNREACHABLE(fmt, ...) unreachable_intrinsic( llvm::formatv(fmt __VA_OPT__(,) __VA_ARGS__).str().c_str() );
 
     #define VAST_UNIMPLEMENTED VAST_UNREACHABLE("not implemented: {}", __PRETTY_FUNCTION__);
 

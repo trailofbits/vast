@@ -31,6 +31,8 @@ namespace vast::hl
 
         module_owning_ref emit_module(clang::Decl *decl);
 
+        bool emit_module(module_owning_ref &mod, clang::Decl *decl);
+
       private:
         context_t *ctx;
     };

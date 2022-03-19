@@ -11,6 +11,26 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
+
+    void throwOnRecoveryExpr(clang::Expr *expr) {
+        VAST_CHECK(expr->getStmtClass() != clang::Stmt::RecoveryExprClass,
+                   "unsupported RecoveryExpr");
+
+        if (clang::isa<clang::UnaryOperator>(expr)) {
+            auto val = clang::dyn_cast<clang::UnaryOperator>(expr);
+            auto sub_expr = val->getSubExpr();
+            VAST_CHECK(sub_expr->getStmtClass() != clang::Stmt::RecoveryExprClass,
+                       "unsupported RecoveryExpr");
+        } else if (clang::isa<clang::BinaryOperator>(expr)) {
+            auto val = clang::dyn_cast<clang::BinaryOperator>(expr);
+            auto lhs = val->getLHS();
+            auto rhs = val->getRHS();
+            VAST_CHECK(lhs->getStmtClass() != clang::Stmt::RecoveryExprClass,
+                       "unsupported RecoveryExpr");
+            VAST_CHECK(rhs->getStmtClass() != clang::Stmt::RecoveryExprClass,
+                       "unsupported RecoveryExpr");
+        }
+    }
     // Binary Operations
 
     ValueOrStmt CodeGenVisitor::VisitBinPtrMemD(clang::BinaryOperator *expr) {
@@ -22,34 +42,42 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinMul(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_ibin< MulIOp >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinDiv(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_ibin< DivUOp, DivSOp >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinRem(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_ibin< RemUOp, RemSOp >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinAdd(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_ibin< AddIOp >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinSub(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_ibin< SubIOp >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinShl(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_ibin< BinShlOp >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinShr(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_ibin< BinShrOp >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinLT(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_icmp< Predicate::ult, Predicate::slt >(expr));
     }
 
@@ -58,42 +86,52 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinLE(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_icmp< Predicate::ule, Predicate::sle >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinGE(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_icmp< Predicate::uge, Predicate::sge >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinEQ(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_icmp< Predicate::eq >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinNE(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_icmp< Predicate::ne >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinAnd(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_ibin< BinAndOp >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinXor(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_ibin< BinXorOp >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinOr(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_ibin< BinOrOp >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinLAnd(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_ibin< BinLAndOp >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinLOr(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return checked(make_ibin< BinLOrOp >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinAssign(clang::BinaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return make_bin< AssignOp >(expr);
     }
 
@@ -146,42 +184,52 @@ namespace vast::hl
     // Unary Operations
 
     ValueOrStmt CodeGenVisitor::VisitUnaryPostInc(clang::UnaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return make_type_preserving_unary< PostIncOp >(expr);
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryPostDec(clang::UnaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return make_type_preserving_unary< PostDecOp >(expr);
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryPreInc(clang::UnaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return make_type_preserving_unary< PreIncOp >(expr);
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryPreDec(clang::UnaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return make_type_preserving_unary< PreDecOp >(expr);
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryAddrOf(clang::UnaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return make_unary< AddressOf >(expr);
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryDeref(clang::UnaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return make_unary< Deref >(expr);
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryPlus(clang::UnaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return make_type_preserving_unary< PlusOp >(expr);
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryMinus(clang::UnaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return make_type_preserving_unary< MinusOp >(expr);
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryNot(clang::UnaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return make_type_preserving_unary< NotOp >(expr);
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryLNot(clang::UnaryOperator *expr) {
+        throwOnRecoveryExpr(expr);
         return make_type_preserving_unary< LNotOp >(expr);
     }
 
@@ -447,6 +495,7 @@ namespace vast::hl
     Arguments CodeGenVisitor::VisitArguments(clang::CallExpr *expr) {
         Arguments args;
         for (const auto &arg : expr->arguments()) {
+            throwOnRecoveryExpr(arg);
             args.push_back(std::get< Value >(CodeGenVisitor::Visit(arg)));
         }
         return args;
@@ -934,8 +983,10 @@ namespace vast::hl
 
     ValueOrStmt CodeGenVisitor::VisitReturnStmt(clang::ReturnStmt *stmt) {
         auto loc = builder.get_location(stmt->getSourceRange());
-        if (auto ret = stmt->getRetValue())
+        if (auto ret = stmt->getRetValue()) {
+            throwOnRecoveryExpr(ret);
             return builder.make< ReturnOp >(loc, CodeGenVisitor::Visit(ret));
+        }
         return builder.make< ReturnOp >(loc);
     }
 

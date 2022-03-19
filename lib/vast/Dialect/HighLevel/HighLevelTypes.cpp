@@ -13,14 +13,27 @@ VAST_RELAX_WARNINGS
 namespace vast::hl
 {
 
-    mlir::FunctionType getFunctionType(PointerType functionPointer)
-    {
-        return functionPointer.getElementType().cast< mlir::FunctionType >();
+  mlir::FunctionType getFunctionType(PointerType functionPointer)
+  {
+    if (functionPointer.isa< mlir::FunctionType > ()) {
+        return functionPointer.cast< mlir::FunctionType >();
+    } else {
+        mlir::TypeRange inputs = {::vast::hl::VoidType::get(functionPointer.getContext())};
+        mlir::TypeRange result = {::vast::hl::VoidType::get(functionPointer.getContext())};
+        return mlir::FunctionType::get(functionPointer.getContext(), inputs, result);
     }
+  }
 
     mlir::FunctionType getFunctionType(mlir::Type functionPointer)
     {
-        return getFunctionType(functionPointer.cast< PointerType >());
+        if (functionPointer.isa< PointerType > ()) {
+            return getFunctionType(functionPointer.cast< PointerType >());
+        } else if (functionPointer.isa< mlir::FunctionType > ()) {
+            return functionPointer.cast< mlir::FunctionType >();
+        }
+        mlir::TypeRange inputs = {::vast::hl::VoidType::get(functionPointer.getContext())};
+        mlir::TypeRange result = {::vast::hl::VoidType::get(functionPointer.getContext())};
+        return mlir::FunctionType::get(functionPointer.getContext(), inputs, result);
     }
 
     void HighLevelDialect::registerTypes() {

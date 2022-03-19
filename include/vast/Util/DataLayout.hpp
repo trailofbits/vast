@@ -75,9 +75,24 @@ namespace vast::dl
                 return std::get< 1 >(entries.try_emplace(mty, dl::DLEntry{ mty, 1 }));
             }
 
-            // For other types this should be good-enough for now
-            auto info = actx.getTypeInfo(aty);
-            auto bw   = static_cast< uint32_t >(info.Width);
+            auto type_width = 1U;
+            if (aty->isRecordType()) {
+              if (aty->getAsRecordDecl()->getDefinition()) {
+                type_width = actx.getTypeSize(aty);
+              } else {
+                // TODO(akshayk): If the record type is forward declaration and does
+                //                not have definition, getting elaborate type & size
+                //                will assert; Use the type size of 1 in such cases
+                //                Need to get the size
+
+              }
+            } else {
+              type_width = actx.getTypeSize(aty);
+            }
+
+            }
+           // auto info = actx.getTypeInfo(aty);
+            auto bw   = static_cast< uint32_t >(type_width);
             return std::get< 1 >(entries.try_emplace(mty, dl::DLEntry{ mty, bw }));
         }
 
