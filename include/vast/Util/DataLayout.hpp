@@ -75,7 +75,7 @@ namespace vast::dl
                 return std::get< 1 >(entries.try_emplace(mty, dl::DLEntry{ mty, 1 }));
             }
 
-            auto type_width = 1U;
+            auto type_width = 1ul;
             if (aty->isRecordType()) {
               if (aty->getAsRecordDecl()->getDefinition()) {
                 type_width = actx.getTypeSize(aty);
@@ -90,7 +90,6 @@ namespace vast::dl
               type_width = actx.getTypeSize(aty);
             }
 
-            }
            // auto info = actx.getTypeInfo(aty);
             auto bw   = static_cast< uint32_t >(type_width);
             return std::get< 1 >(entries.try_emplace(mty, dl::DLEntry{ mty, bw }));
