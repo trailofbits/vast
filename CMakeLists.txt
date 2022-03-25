@@ -74,6 +74,12 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 find_package(MLIR REQUIRED CONFIG)
 message(STATUS "Using MLIRConfig.cmake in: ${MLIR_DIR}")
 
+# MLIR has some absolute oaths in its cxx-common build we need to fix them.
+# Should be fixed with llvm-14.
+if (NOT USE_SYSTEM_DEPENDENCIES)
+    set(MLIR_TABLEGEN_EXE "${MLIR_INSTALL_PREFIX}/tools/llvm/mlir-tblgen")
+endif()
+
 #
 # Clang
 #
