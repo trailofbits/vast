@@ -11,7 +11,7 @@ target_link_libraries( vast_translation_api
         clangBasic
 
         MLIRHighLevel
-
+        MLIRLLVMIR
         vast_settings
 )
 

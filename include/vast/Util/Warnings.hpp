@@ -63,7 +63,7 @@ namespace vast {
 
     #define VAST_THROW(msg) VAST_THROW_IF(true, msg)
 
-    [[ noreturn ]] static
+    [[ noreturn,gnu::unused ]] static
     void unreachable_intrinsic(const char *msg,
                                const char *file = nullptr,
                                unsigned line = 0) {
