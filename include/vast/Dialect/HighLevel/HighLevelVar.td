@@ -99,9 +99,59 @@ class StorageDurationImpl
     }];
 }
 
+// declaration context kinds
+class DeclContextAttr< string name, int val > : I64EnumAttrCase< name, val > {}
+
+class DeclContextList< string name, string summary, list<DeclContextAttr> cases >
+  : I64EnumAttr< name, summary, cases >
+{}
+
+def DC_Function        : DeclContextAttr< "dc_function", 0 >;
+def DC_Method          : DeclContextAttr< "dc_method", 1 >;
+def DC_Block           : DeclContextAttr< "dc_block", 2 >;
+def DC_Capture         : DeclContextAttr< "dc_capture", 3 >;
+def DC_TranslationUnit : DeclContextAttr< "dc_translation_unit", 4 >;
+def DC_Record          : DeclContextAttr< "dc_record", 5 >;
+def DC_Enum            : DeclContextAttr< "dc_enum", 6 >;
+def DC_Namespace       : DeclContextAttr< "dc_namespace", 7 >;
+
+let cppNamespace = "::vast::hl" in
+def DeclContextKind : DeclContextList< "DeclContextKind", "declaration context kind",
+[
+  DC_Function, DC_Method, DC_Block, DC_Capture,
+  DC_TranslationUnit, DC_Record, DC_Enum, DC_Namespace
+] >;
+
+class DeclContextImpl
+{
+  code declContextImpl = [{
+    DeclContextKind getDeclContextKind();
+
+    bool isStaticDataMember();
+
+    bool isInFileContext();
+
+    bool isInFunctionOrMethodContext();
+
+    bool isInRecordContext();
+
+    bool isFileVarDecl();
+  }];
+}
+
+class StorageSpecifiers :
+  StorageClassImpl, ThreadStorageClassImpl, StorageDurationImpl, DeclContextImpl
+{
+  code storageSpecifiersImpl =
+    storageClassImpl #
+    threadStorageClassImpl #
+    storageDurationImpl #
+    declContextImpl;
+}
+
 // Variable Operation
 def HighLevel_VarDecl : HighLevel_Op< "var" >
-  , StorageClassImpl, ThreadStorageClassImpl, StorageDurationImpl
+  , StorageSpecifiers
 {
   let summary = "VAST variable declaration";
   let description = [{ VAST variable declaration }];
@@ -129,11 +179,7 @@ def HighLevel_VarDecl : HighLevel_Op< "var" >
         void setAttr(llvm::StringRef name, Value value) {
             (*this)->setAttr(name, Attr::get(getContext(), value));
         }
-    }] #
-    storageClassImpl #
-    threadStorageClassImpl #
-    storageDurationImpl
-  ;
+    }] # storageSpecifiersImpl;
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
