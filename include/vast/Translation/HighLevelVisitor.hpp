@@ -556,17 +556,6 @@ namespace vast::hl
             return builder.make< Var >(std::forward< Args >(args)...);
         }
 
-        StorageClass get_storage_class(clang::VarDecl *decl) {
-            switch (decl->getStorageClass()) {
-                case clang::SC_None: return StorageClass::sc_none;
-                case clang::SC_Auto: return StorageClass::sc_auto;
-                case clang::SC_Static: return StorageClass::sc_static;
-                case clang::SC_Extern: return StorageClass::sc_extern;
-                case clang::SC_PrivateExtern: return StorageClass::sc_private_extern;
-                case clang::SC_Register: return StorageClass::sc_register;
-            }
-        }
-
         TranslationContext &ctx;
         HighLevelBuilder builder;
         HighLevelTypeConverter types;
