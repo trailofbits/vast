@@ -23,19 +23,13 @@ def StorageClass : StorageClassList< "StorageClass", "storage class", [
   SC_None, SC_Auto, SC_Static, SC_Extern, SC_PrivateExtern, SC_Register
 ] >;
 
-class StorageClasses
+class StorageClassImpl
 {
-    code storageClasses = [{
+    code storageClassImpl = [{
         constexpr static auto storage_class = "storageClass";
 
-        StorageClass getStorageClass() {
-            return storageClassAttr().getValue();
-        }
-
-        void setStorageClass(StorageClass spec) {
-            auto ctx = this->getContext();
-            (*this)->setAttr(storage_class, StorageClassAttr::get(ctx, spec));
-        }
+        StorageClass getStorageClass() { return storageClassAttr().getValue(); }
+        void setStorageClass(StorageClass spec) { setAttr< StorageClassAttr >(storage_class, spec); }
     }];
 }
 
@@ -58,19 +52,13 @@ def ThreadStorage : TSCList< "TSClass", "thread storage class",
   TSC_None, TSC_GNU_Thread, TSC_CXX_Thread, TSC_C_Thread
 ] >;
 
-class ThreadStorageClasses
+class ThreadStorageClassImpl
 {
-    code threadStorageClasses = [{
+    code threadStorageClassImpl = [{
         constexpr static auto thread_storage_class = "threadStorageClass";
 
-        TSClass getThreadStorageClass() {
-            return threadStorageClassAttr().getValue();
-        }
-
-        void setThreadStorageClass(TSClass spec) {
-            auto ctx = this->getContext();
-            (*this)->setAttr(thread_storage_class, TSClassAttr::get(ctx, spec));
-        }
+        TSClass getThreadStorageClass() { return threadStorageClassAttr().getValue(); }
+        void setThreadStorageClass(TSClass spec) { setAttr< TSClassAttr >(thread_storage_class, spec); }
     }];
 }
 
@@ -83,10 +71,10 @@ class StorageDurationList< string name, string summary, list<StorageDurationAttr
 {}
 
 def SD_FullExpression : StorageDurationAttr< "sd_none", 0 >;
-def SD_Automatic      : StorageDurationAttr< "sd_automatic", 0 >;
-def SD_Thread 	      : StorageDurationAttr< "sd_thread", 0 >;
-def SD_Static         : StorageDurationAttr< "sd_static", 0 >;
-def SD_Dynamic        : StorageDurationAttr< "sd_dynamic", 1 >;
+def SD_Automatic      : StorageDurationAttr< "sd_automatic", 1 >;
+def SD_Thread 	      : StorageDurationAttr< "sd_thread", 2 >;
+def SD_Static         : StorageDurationAttr< "sd_static", 3 >;
+def SD_Dynamic        : StorageDurationAttr< "sd_dynamic", 4 >;
 
 let cppNamespace = "::vast::hl" in
 def StorageDuration : StorageDurationList< "StorageDuration", "storage duration",
@@ -94,9 +82,26 @@ def StorageDuration : StorageDurationList< "StorageDuration", "storage duration"
   SD_FullExpression, SD_Automatic, SD_Thread, SD_Static, SD_Dynamic
 ] >;
 
+class StorageDurationImpl
+{
+    code storageDurationImpl = [{
+      bool hasLocalStorage();
+
+      bool isLocalVarDecl();
+
+      bool isStaticLocal();
+
+      bool hasExternalStorage();
+
+      bool hasGlobalStorage();
+
+      StorageDuration getStorageDuration();
+    }];
+}
+
 // Variable Operation
 def HighLevel_VarDecl : HighLevel_Op< "var" >
-  , StorageClasses, ThreadStorageClasses
+  , StorageClassImpl, ThreadStorageClassImpl, StorageDurationImpl
 {
   let summary = "VAST variable declaration";
   let description = [{ VAST variable declaration }];
@@ -119,7 +124,16 @@ def HighLevel_VarDecl : HighLevel_Op< "var" >
     $name attr-dict ($storageClass^)? ($threadStorageClass^)? `:` type($result) (`=` $initializer^)?
   }];
 
-  let extraClassDeclaration = storageClasses # threadStorageClasses;
+  let extraClassDeclaration = [{
+        template< typename Attr, typename Value >
+        void setAttr(llvm::StringRef name, Value value) {
+            (*this)->setAttr(name, Attr::get(getContext(), value));
+        }
+    }] #
+    storageClassImpl #
+    threadStorageClassImpl #
+    storageDurationImpl
+  ;
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
