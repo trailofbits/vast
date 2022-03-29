@@ -127,9 +127,11 @@ namespace vast::query
                     case cl::show_symbol_type::record:
                         show_if(symbol, is_one_of< hl::RecordDeclOp >()); break;
                     case cl::show_symbol_type::var:
-                        show_if(symbol, is_one_of< hl::VarOp >()); break;
+                        show_if(symbol, is_one_of< hl::VarDecl >()); break;
                     case cl::show_symbol_type::global:
-                        show_if(symbol, is_one_of< hl::GlobalOp >()); break;
+                        // TODO(heno): fix global listing
+                        // show_if(symbol, is_one_of< hl::VarDecl >()); break;
+                        return mlir::failure(); // unsupported
                     case cl::show_symbol_type::function:
                         show_if(symbol, is_one_of< mlir::FuncOp >()); break;
                     case cl::show_symbol_type::none: break;
