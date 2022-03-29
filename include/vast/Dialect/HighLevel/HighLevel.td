@@ -135,6 +135,7 @@ def HasOneBlock : CPred<"$_self.hasOneBlock()">;
 
 include "HighLevelAttributes.td"
 include "HighLevelTypes.td"
+include "HighLevelVar.td"
 include "HighLevelOps.td"
 include "HighLevelCF.td"
 

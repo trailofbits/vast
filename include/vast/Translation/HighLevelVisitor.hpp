@@ -556,35 +556,15 @@ namespace vast::hl
             return builder.make< Var >(std::forward< Args >(args)...);
         }
 
-        template< typename Var >
-        Var set_storage_qualifiers(clang::VarDecl *decl, Var var) {
+        StorageClass get_storage_class(clang::VarDecl *decl) {
             switch (decl->getStorageClass()) {
-                case clang::SC_None: break;
-                case clang::SC_Static: var.setStaticStorage(); break;
-                case clang::SC_Extern: var.setExternalStorage(); break;
-                case clang::SC_Auto: var.setAutoStorage(); break;
-                case clang::SC_Register: var.setRegisterStorage(); break;
-                default: VAST_UNREACHABLE("unsupported storage type");
+                case clang::SC_None: return StorageClass::sc_none;
+                case clang::SC_Auto: return StorageClass::sc_auto;
+                case clang::SC_Static: return StorageClass::sc_static;
+                case clang::SC_Extern: return StorageClass::sc_extern;
+                case clang::SC_PrivateExtern: return StorageClass::sc_private_extern;
+                case clang::SC_Register: return StorageClass::sc_register;
             }
-
-            if (decl->getStorageDuration() == clang::SD_Thread) {
-                var.setThreadLocalStorage();
-            }
-
-            return var;
-        }
-
-        template< typename... Args >
-        ValueOrStmt make_vardecl(clang::VarDecl *decl, Args &&...args) {
-            return [&]() -> Stmt {
-                if (decl->isFileVarDecl()) {
-                    auto value = make_var< GlobalOp >(decl, std::forward< Args >(args)...);
-                    return set_storage_qualifiers(decl, value);
-                } else {
-                    auto value = make_var< VarOp >(decl, std::forward< Args >(args)...);
-                    return set_storage_qualifiers(decl, value);
-                }
-            }();
         }
 
         TranslationContext &ctx;
