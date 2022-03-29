@@ -1316,7 +1316,9 @@ namespace vast::hl
     // }
 
     ValueOrStmt CodeGenVisitor::VisitParmVarDecl(clang::ParmVarDecl *decl) {
-        VAST_UNREACHABLE("unsupported ParmVarDecl");
+        if (auto var = ctx.vars.lookup(decl))
+            return var;
+        VAST_UNREACHABLE("Missing parameter declaration {}", decl->getName());
     }
 
     ValueOrStmt CodeGenVisitor::VisitObjCMethodDecl(clang::ObjCMethodDecl *decl) {
