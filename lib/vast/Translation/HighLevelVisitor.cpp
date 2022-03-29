@@ -1265,12 +1265,12 @@ namespace vast::hl
         auto name = decl->getUnderlyingDecl()->getName();
         auto loc  = builder.get_end_location(decl->getSourceRange());
 
-        if (decl->getInit()) {
-            auto init = make_value_builder(decl->getInit());
-            return make_vardecl(decl, loc, ty, name, init);
-        }
+        BuilderCallback init = make_value_builder(decl->getInit());
+        auto initializer     = (decl->getInit() ? init : nullptr);
 
-        return make_vardecl(decl, loc, ty, name);
+        auto var = builder.make< VarDecl >(loc, ty, name, initializer);
+        var.setStorageClass(get_storage_class(decl));
+        return mlir::Value(var);
     }
 
     ValueOrStmt CodeGenVisitor::VisitDecompositionDecl(clang::DecompositionDecl *decl) {
