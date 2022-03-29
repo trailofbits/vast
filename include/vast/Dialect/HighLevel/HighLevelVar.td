@@ -74,9 +74,25 @@ class ThreadStorageClasses
     }];
 }
 
-// Linkage Queries
+// Storage Duration
 
-// Storage Duration Queries
+class StorageDurationAttr< string name, int val > : I64EnumAttrCase< name, val > {}
+
+class StorageDurationList< string name, string summary, list<StorageDurationAttr> cases >
+  : I64EnumAttr< name, summary, cases >
+{}
+
+def SD_FullExpression : StorageDurationAttr< "sd_none", 0 >;
+def SD_Automatic      : StorageDurationAttr< "sd_automatic", 0 >;
+def SD_Thread 	      : StorageDurationAttr< "sd_thread", 0 >;
+def SD_Static         : StorageDurationAttr< "sd_static", 0 >;
+def SD_Dynamic        : StorageDurationAttr< "sd_dynamic", 1 >;
+
+let cppNamespace = "::vast::hl" in
+def StorageDuration : StorageDurationList< "StorageDuration", "storage duration",
+[
+  SD_FullExpression, SD_Automatic, SD_Thread, SD_Static, SD_Dynamic
+] >;
 
 // Variable Operation
 def HighLevel_VarDecl : HighLevel_Op< "var" >
