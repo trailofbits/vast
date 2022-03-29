@@ -9,6 +9,6 @@ int main() {
 
     // CHECK: hl.var @sv : !hl.long<unsigned>
     // CHECK: hl.alignof.expr -> !hl.long<unsigned>
-    // CHECK:  hl.declref @v : !hl.int
+    // CHECK: hl.declref @v : !hl.int
     unsigned long sv = alignof v;
 }
