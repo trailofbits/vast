@@ -16,14 +16,12 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Util/Functions.hpp"
+#include "vast/Util/ScopeTable.hpp"
 
 #include <variant>
 
 namespace vast::hl
 {
-    using StringRef     = llvm::StringRef;
-    using LogicalResult = mlir::LogicalResult;
-
     using Value       = mlir::Value;
     using Stmt        = mlir::Operation *;
     using ValueOrStmt = std::variant< mlir::Value, Stmt >;
@@ -32,21 +30,6 @@ namespace vast::hl
     using MContext = mlir::MLIRContext;
 
     using ModuleRef = mlir::OwningModuleRef;
-
-    template< typename T >
-    struct ScopedSymbolTable : llvm::ScopedHashTable< StringRef, T > {
-        using ValueType = T;
-
-        using Base = llvm::ScopedHashTable< StringRef, T >;
-        using Base::Base;
-
-        LogicalResult declare(StringRef name, T value) {
-            if (this->count(name))
-                return mlir::failure();
-            this->insert(name, value);
-            return mlir::success();
-        }
-    };
 
     struct TranslationContext {
         MContext &mctx;
@@ -60,7 +43,10 @@ namespace vast::hl
             , actx(actx)
             , mod(mod) {}
 
-        ScopedSymbolTable< Value > variables;
+        using VarTable = ScopedValueTable< clang::VarDecl*, Value >;
+
+        VarTable vars;
+
         ScopedSymbolTable< mlir::FuncOp > functions;
         ScopedSymbolTable< TypeDefOp > type_defs;
         ScopedSymbolTable< TypeDeclOp > type_decls;
@@ -108,10 +94,6 @@ namespace vast::hl
 
         mlir::FuncOp lookup_function(StringRef name) {
             return symbol(functions, name, "error: undeclared function '" + name + "'");
-        }
-
-        Value lookup_variable(StringRef name) {
-            return symbol(variables, name, "error: undeclared variable '" + name + "'");
         }
 
         TypeDeclOp lookup_typedecl(StringRef name) {
