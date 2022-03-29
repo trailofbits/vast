@@ -1146,7 +1146,7 @@ namespace vast::hl
             return fn;
 
         ScopedInsertPoint builder_scope(builder);
-        llvm::ScopedHashTableScope scope(ctx.variables);
+        llvm::ScopedHashTableScope scope(ctx.vars);
 
         auto loc  = builder.get_location(decl->getSourceRange());
         auto type = types.convert(decl->getFunctionType());
@@ -1169,7 +1169,7 @@ namespace vast::hl
         // In MLIR the entry block of the function must have the same argument list as the
         // function itself.
         for (const auto &[arg, earg] : llvm::zip(decl->parameters(), entry->getArguments())) {
-            if (failed(ctx.variables.declare(arg->getName(), earg)))
+            if (failed(ctx.vars.declare(arg, earg)))
                 ctx.error("error: multiple declarations of a same symbol" + arg->getName());
         }
 
