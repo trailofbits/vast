@@ -544,9 +544,9 @@ namespace vast::hl
 
         // TODO(Heno): deal with enum constant declaration
 
-        auto named = expr->getDecl()->getUnderlyingDecl();
         auto rty   = types.convert(expr->getType());
-        return builder.make_value< DeclRefOp >(loc, rty, named->getNameAsString());
+        auto val   = Visit(expr->getDecl()->getUnderlyingDecl());
+        return builder.make_value< DeclRefOp >(loc, rty, val);
     }
 
     ValueOrStmt CodeGenVisitor::VisitDependentScopeDeclRefExpr(

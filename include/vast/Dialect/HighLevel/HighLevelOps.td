@@ -280,20 +280,13 @@ def HighLevel_ReturnOp
 }
 
 def HighLevel_DeclRefOp : HighLevel_Op< "declref", [NoSideEffect] > {
-  let summary = "VAST reference declaration";
-  let description = [{ VAST reference declaration }];
+  let summary = "VAST variable reference declaration";
+  let description = [{ VAST variable reference declaration }];
 
-  let arguments = (ins SymbolRefAttr:$decl);
+  let arguments = (ins AnyType:$decl);
   let results = (outs AnyType:$result);
 
-  let builders = [
-    OpBuilder< (ins "mlir::Type":$rty, "llvm::StringRef":$name),
-    [{
-      build($_builder, $_state, rty, $_builder.getSymbolRefAttr(name));
-    }] >
-  ];
-
-  let assemblyFormat = "$decl attr-dict `:` type($result) ";
+  let assemblyFormat = "$decl attr-dict `:` type($decl) `->` type($result)";
 }
 
 class HighLevel_ConstantOp< string mnemonic, list< OpTrait > traits = [] >
