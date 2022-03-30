@@ -544,7 +544,7 @@ namespace vast::hl
 
         // TODO(Heno): deal with enum constant declaration
 
-        auto rty   = types.convert(expr->getType());
+        auto rty   = types.lvalue_convert(expr->getType());
         auto val   = Visit(expr->getDecl()->getUnderlyingDecl());
         return builder.make_value< DeclRefOp >(loc, rty, val);
     }
@@ -1281,7 +1281,7 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitVarDecl(clang::VarDecl *decl) {
-        auto ty   = types.convert(decl->getType());
+        auto ty   = types.lvalue_convert(decl->getType());
         auto name = decl->getUnderlyingDecl()->getName();
         auto loc  = builder.get_end_location(decl->getSourceRange());
 
