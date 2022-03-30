@@ -213,7 +213,7 @@ namespace vast::hl
 
         if (auto prototype = clang::dyn_cast< clang::FunctionProtoType >(ty)) {
             for (auto param : prototype->getParamTypes()) {
-                args.push_back(convert(param));
+                args.push_back(lvalue_convert(param));
             }
         }
 
