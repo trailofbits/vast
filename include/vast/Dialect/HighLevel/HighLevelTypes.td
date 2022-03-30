@@ -47,6 +47,17 @@ def VoidType : HighLevelType< "Void" > {
   let mnemonic = "void";
 }
 
+def LValue : HighLevelType< "LValue" > {
+  let mnemonic = "lvalue";
+
+  let parameters = (ins
+    "Type":$valueType
+  );
+  
+  let parser  = [{ return parse_lvalue_type($_ctxt, parser); }];
+  let printer = [{ return print_lvalue_type(*this, printer); }];
+}
+
 class CVQualified< string name, string mnem, list<Trait> traits = []>
   : HighLevelType< name, traits >
 {

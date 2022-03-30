@@ -12,6 +12,31 @@ VAST_RELAX_WARNINGS
 
 namespace vast::hl
 {
+    Type parse_lvalue_type(Context *ctx, DialectParser &parser) {
+        if (failed(parser.parseLess())) {
+            return Type();
+        }
+
+        Type value;
+        if (failed(parser.parseType(value))) {
+            auto loc = parser.getCurrentLocation();
+            parser.emitError(loc, "expected value type");
+            return Type();
+        }
+
+        if (failed(parser.parseGreater())) {
+            return Type();
+        }
+
+        return LValueType::get(ctx, value);
+    }
+
+    void print_lvalue_type(const LValueType &type, DialectPrinter &printer)
+    {
+        printer << type.getMnemonic() << "<";
+        printer.printType(type.getValueType());
+        printer << ">";
+    }
 
     mlir::FunctionType getFunctionType(PointerType functionPointer)
     {
