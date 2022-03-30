@@ -78,6 +78,22 @@ namespace vast::hl
         return dl_aware_convert(ty, quals);
     }
 
+    mlir::Type HighLevelTypeConverter::lvalue_convert(clang::QualType ty) {
+        return lvalue_convert(ty.getTypePtr(), ty.getQualifiers());
+    }
+
+    mlir::Type HighLevelTypeConverter::lvalue_convert(const clang::Type *ty, Quals quals) {
+        return dl_aware_lvalue_convert(ty, quals);
+    }
+
+    mlir::Type HighLevelTypeConverter::dl_aware_lvalue_convert(const clang::Type *ty, Quals quals) {
+        auto underlying = dl_aware_convert(ty, quals);
+        VAST_ASSERT(!ty->isFunctionType());
+        auto value = LValueType::get(&ctx.getMLIRContext(), underlying);
+        ctx.data_layout().try_emplace(value, ty, ctx.getASTContext());
+        return value;
+    }
+
     mlir::Type HighLevelTypeConverter::dl_aware_convert(const clang::Type *ty, Quals quals) {
         auto out = do_convert(ty, quals);
         if (!ty->isFunctionType()) {
