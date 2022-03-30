@@ -25,12 +25,12 @@ def StorageClass : StorageClassList< "StorageClass", "storage class", [
 
 class StorageClassImpl
 {
-    code storageClassImpl = [{
-        constexpr static auto storage_class = "storageClass";
+  code storageClassImpl = [{
+    constexpr static auto storage_class = "storageClass";
 
-        StorageClass getStorageClass() { return storageClassAttr().getValue(); }
-        void setStorageClass(StorageClass spec) { setAttr< StorageClassAttr >(storage_class, spec); }
-    }];
+    StorageClass getStorageClass() { return storageClassAttr().getValue(); }
+    void setStorageClass(StorageClass spec) { setAttr< StorageClassAttr >(storage_class, spec); }
+  }];
 }
 
 // thread storage class
@@ -54,12 +54,12 @@ def ThreadStorage : TSCList< "TSClass", "thread storage class",
 
 class ThreadStorageClassImpl
 {
-    code threadStorageClassImpl = [{
-        constexpr static auto thread_storage_class = "threadStorageClass";
+  code threadStorageClassImpl = [{
+    constexpr static auto thread_storage_class = "threadStorageClass";
 
-        TSClass getThreadStorageClass() { return threadStorageClassAttr().getValue(); }
-        void setThreadStorageClass(TSClass spec) { setAttr< TSClassAttr >(thread_storage_class, spec); }
-    }];
+    TSClass getThreadStorageClass() { return threadStorageClassAttr().getValue(); }
+    void setThreadStorageClass(TSClass spec) { setAttr< TSClassAttr >(thread_storage_class, spec); }
+  }];
 }
 
 // Storage Duration
@@ -84,19 +84,19 @@ def StorageDuration : StorageDurationList< "StorageDuration", "storage duration"
 
 class StorageDurationImpl
 {
-    code storageDurationImpl = [{
-      bool hasLocalStorage();
+  code storageDurationImpl = [{
+    bool hasLocalStorage();
 
-      bool isLocalVarDecl();
+    bool isLocalVarDecl();
 
-      bool isStaticLocal();
+    bool isStaticLocal();
 
-      bool hasExternalStorage();
+    bool hasExternalStorage();
 
-      bool hasGlobalStorage();
+    bool hasGlobalStorage();
 
-      StorageDuration getStorageDuration();
-    }];
+    StorageDuration getStorageDuration();
+  }];
 }
 
 // declaration context kinds
@@ -175,11 +175,11 @@ def HighLevel_VarDecl : HighLevel_Op< "var" >
   }];
 
   let extraClassDeclaration = [{
-        template< typename Attr, typename Value >
-        void setAttr(llvm::StringRef name, Value value) {
-            (*this)->setAttr(name, Attr::get(getContext(), value));
-        }
-    }] # storageSpecifiersImpl;
+    template< typename Attr, typename Value >
+    void setAttr(llvm::StringRef name, Value value) {
+      (*this)->setAttr(name, Attr::get(getContext(), value));
+    }
+  }] # storageSpecifiersImpl;
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
