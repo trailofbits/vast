@@ -460,11 +460,107 @@ namespace vast::hl
             return builder.make_value< Op >(loc, rty, arg);
         }
 
+        Type cast_return_type(clang::CastExpr *expr, Type from) {
+            auto to_rvalue_cast     = [&] { return types.convert(expr->getType()); };
+            auto lvalue_cast        = [&] { return types.lvalue_convert(expr->getType()); };
+            auto non_lvalue_cast    = [&] { return types.convert(expr->getType()); };
+            auto keep_category_cast = [&] { 
+                if (from.isa< LValueType >())
+                    return lvalue_cast();
+                return non_lvalue_cast();
+            };
+
+            switch (expr->getCastKind()) {
+                // case clang::CastKind::CK_Dependent:
+                case clang::CastKind::CK_BitCast:               return non_lvalue_cast(); 
+                case clang::CastKind::CK_LValueBitCast:         return lvalue_cast();
+                case clang::CastKind::CK_LValueToRValueBitCast: return to_rvalue_cast();
+                case clang::CastKind::CK_LValueToRValue:        return to_rvalue_cast();
+                case clang::CastKind::CK_NoOp:                  return from;
+
+                case clang::CastKind::CK_BaseToDerived:          return lvalue_cast();
+                case clang::CastKind::CK_DerivedToBase:          return lvalue_cast();
+                case clang::CastKind::CK_UncheckedDerivedToBase: return lvalue_cast();
+                case clang::CastKind::CK_Dynamic:                return lvalue_cast();
+                case clang::CastKind::CK_ToUnion:                return lvalue_cast();
+
+                // case clang::CastKind::CK_ArrayToPointerDecay:        return;
+                // case clang::CastKind::CK_FunctionToPointerDecay:     return;
+                // case clang::CastKind::CK_NullToPointer:              return;
+                // case clang::CastKind::CK_NullToMemberPointer:        return;
+                // case clang::CastKind::CK_BaseToDerivedMemberPointer: return;
+                // case clang::CastKind::CK_DerivedToBaseMemberPointer: return;
+                // case clang::CastKind::CK_MemberPointerToBoolean:     return;
+                // case clang::CastKind::CK_ReinterpretMemberPointer:   return;
+                // case clang::CastKind::CK_UserDefinedConversion:      return;
+                // case clang::CastKind::CK_ConstructorConversion:      return;
+
+                case clang::CastKind::CK_IntegralToPointer:
+                case clang::CastKind::CK_PointerToIntegral:
+                case clang::CastKind::CK_PointerToBoolean : 
+                    return keep_category_cast();
+
+                // case clang::CastKind::CK_ToVoid:      return;
+                // case clang::CastKind::CK_VectorSplat: return;
+
+                case clang::CastKind::CK_IntegralCast:         
+                case clang::CastKind::CK_IntegralToBoolean:
+                case clang::CastKind::CK_IntegralToFloating:
+                case clang::CastKind::CK_FloatingToFixedPoint:
+                case clang::CastKind::CK_FixedPointToFloating:
+                case clang::CastKind::CK_FixedPointCast:
+                case clang::CastKind::CK_FixedPointToIntegral:
+                case clang::CastKind::CK_IntegralToFixedPoint:
+                case clang::CastKind::CK_FixedPointToBoolean:
+                case clang::CastKind::CK_FloatingToIntegral:
+                case clang::CastKind::CK_FloatingToBoolean:
+                case clang::CastKind::CK_BooleanToSignedIntegral:
+                case clang::CastKind::CK_FloatingCast:
+                    return keep_category_cast();
+
+                // case clang::CastKind::CK_CPointerToObjCPointerCast:
+                // case clang::CastKind::CK_BlockPointerToObjCPointerCast:
+                // case clang::CastKind::CK_AnyPointerToBlockPointerCast:
+                // case clang::CastKind::CK_ObjCObjectLValueCast:
+
+                case clang::CastKind::CK_FloatingRealToComplex:
+                case clang::CastKind::CK_FloatingComplexToReal:
+                case clang::CastKind::CK_FloatingComplexToBoolean:
+                case clang::CastKind::CK_FloatingComplexCast:
+                case clang::CastKind::CK_FloatingComplexToIntegralComplex:
+                case clang::CastKind::CK_IntegralRealToComplex:
+                case clang::CastKind::CK_IntegralComplexToReal:
+                case clang::CastKind::CK_IntegralComplexToBoolean:
+                case clang::CastKind::CK_IntegralComplexCast:
+                case clang::CastKind::CK_IntegralComplexToFloatingComplex:
+                    return keep_category_cast();
+
+                // case clang::CastKind::CK_ARCProduceObject:
+                // case clang::CastKind::CK_ARCConsumeObject:
+                // case clang::CastKind::CK_ARCReclaimReturnedObject:
+                // case clang::CastKind::CK_ARCExtendBlockObject:
+
+                // case clang::CastKind::CK_AtomicToNonAtomic:
+                // case clang::CastKind::CK_NonAtomicToAtomic:
+
+                // case clang::CastKind::CK_CopyAndAutoreleaseBlockObject:
+                // case clang::CastKind::CK_BuiltinFnToFnPtr:
+
+                // case clang::CastKind::CK_ZeroToOCLOpaqueType:
+                // case clang::CastKind::CK_AddressSpaceConversion:
+                // case clang::CastKind::CK_IntToOCLSampler:
+
+                // case clang::CastKind::CK_MatrixCast:
+                default:
+                    llvm_unreachable( "unsupported cast kind" );
+            }
+        }
+
         template< typename Cast >
         ValueOrStmt make_cast(clang::CastExpr *expr) {
             auto loc = builder.get_location(expr->getSourceRange());
-            auto rty = types.convert(expr->getType());
-            auto arg = Visit(expr->getSubExpr());
+            auto arg = std::get< Value >(Visit(expr->getSubExpr()));
+            auto rty = cast_return_type(expr, arg.getType());
             return builder.make_value< Cast >(loc, rty, arg, cast_kind(expr));
         }
 
