@@ -27,6 +27,9 @@ namespace vast::hl
         mlir::Type convert(clang::QualType ty);
         mlir::Type convert(const clang::Type *ty, Quals quals = {});
 
+        mlir::Type lvalue_convert(clang::QualType ty);
+        mlir::Type lvalue_convert(const clang::Type *ty, Quals quals = {});
+
         mlir::FunctionType convert(const clang::FunctionType *ty);
 
         // We need to emit data layout - that means we need to remember for
@@ -35,6 +38,7 @@ namespace vast::hl
         // Function that do the conversion itself are private as for now there is no
         // use-case that would require them exposed.
         mlir::Type dl_aware_convert(const clang::Type *ty, Quals quals);
+        mlir::Type dl_aware_lvalue_convert(const clang::Type *ty, Quals quals);
 
         std::string format_type(const clang::Type *type) const;
 
