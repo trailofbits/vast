@@ -545,7 +545,10 @@ namespace vast::hl
         // TODO(Heno): deal with enum constant declaration
 
         auto rty   = types.lvalue_convert(expr->getType());
-        auto val   = Visit(expr->getDecl()->getUnderlyingDecl());
+       
+        auto under = expr->getDecl()->getUnderlyingDecl();
+        auto var = clang::dyn_cast< clang::VarDecl >(under);
+        auto val = ctx.vars.lookup(var);
         return builder.make_value< DeclRefOp >(loc, rty, val);
     }
 
@@ -1297,6 +1300,11 @@ namespace vast::hl
         if (auto tsc = get_thread_storage_class(decl); tsc != TSClass::tsc_none) {
             var.setThreadStorageClass(tsc);
         }
+
+        if (failed(ctx.vars.declare(decl, var))) {
+            ctx.error("error: multiple declarations of a same symbol" + decl->getName());
+        }
+
         return mlir::Value(var);
     }
 
