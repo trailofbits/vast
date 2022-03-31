@@ -58,6 +58,13 @@ def LValue : HighLevelType< "LValue" > {
   let printer = [{ return print_lvalue_type(*this, printer); }];
 }
 
+class LValueOf<Type value> : Type< And< [
+    LValue.predicate,
+    SubstLeaves< "$_self", "$_self.cast< LValueType >().getValueType()", value.predicate >
+  ] >,
+    "high-level lvalue to " # value.summary
+>;
+
 class CVQualified< string name, string mnem, list<Trait> traits = []>
   : HighLevelType< name, traits >
 {
