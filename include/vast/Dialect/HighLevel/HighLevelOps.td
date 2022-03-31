@@ -591,7 +591,7 @@ class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
 
         The custom assembly form of the operation is as follows:
 
-        <assign.op> src to dst : type
+        <assign.op> src to dst : type(src)
 
         It represents C compound assignment statement:
 
@@ -625,7 +625,11 @@ def HighLevel_BinOrAssignOp  : HighLevel_CompoundAssignOp< "assign.bin.or", []>;
 def HighLevel_BinXorAssignOp : HighLevel_CompoundAssignOp< "assign.bin.xor", []>;
 
 class HighLevel_ShiftAssignOp< string mnemonic, list< OpTrait > traits = [] >
-    : HighLevel_Op< mnemonic, !listconcat(traits, [SameTypeOperands]) >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [
+      TypesMatchWith<
+        "underlying lvalue type is same as source type",
+        "src", "dst", "LValueType::get( $_ctxt, $_self )" >  
+    ]) >
 {
     let summary = "VAST compound shift assign operation";
     let description = [{
@@ -634,16 +638,18 @@ class HighLevel_ShiftAssignOp< string mnemonic, list< OpTrait > traits = [] >
 
         The custom assembly form of the operation is as follows:
 
-        <assign.op> src to dst : type(src) -> type(dst)
+        <assign.op> src to dst : type(src)
 
         It represents C compound assignment statement:
 
         dst =<op> src;
     }];
 
-    let arguments = (ins IntegerLikeType:$dst, IntegerLikeType:$src);
+    let arguments = (ins 
+        LValueOf<IntegerLikeType>:$dst, IntegerLikeType:$src
+    );
 
-    let assemblyFormat = [{ $src `to` $dst `:` type($src) `->` type($dst) attr-dict }];
+    let assemblyFormat = [{ $src `to` $dst attr-dict `:` type($src) }];
 }
 
 def HighLevel_BinShlAssignOp : HighLevel_ShiftAssignOp< "assign.bin.shl", []>;

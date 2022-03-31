@@ -58,7 +58,7 @@ def LValue : HighLevelType< "LValue" > {
   let printer = [{ return print_lvalue_type(*this, printer); }];
 }
 
-class LValueOf<Type value> : Type< And< [
+class LValueOf<TypeConstraint value> : Type< And< [
     LValue.predicate,
     SubstLeaves< "$_self", "$_self.cast< LValueType >().getValueType()", value.predicate >
   ] >,
