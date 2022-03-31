@@ -1,7 +1,7 @@
 // RUN: vast-cc --from-source %s | FileCheck %s
 // RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: func private @test1() -> !hl.int
+// CHECK-LABEL: func @test1() -> !hl.int
 int test1()
 {
     // CHECK: hl.scope
@@ -14,7 +14,7 @@ int test1()
     return a;
 }
 
-// CHECK-LABEL: func private @test2() -> !hl.void
+// CHECK-LABEL: func @test2() -> !hl.void
 void test2()
 {
     // CHECK: hl.scope
@@ -36,7 +36,7 @@ void test2()
     }
 }
 
-// CHECK-LABEL: func private @test3() -> !hl.int
+// CHECK-LABEL: func @test3() -> !hl.int
 int test3()
 {
     // CHECK: hl.var @b : !hl.int
@@ -54,7 +54,7 @@ int test3()
     return 0;
 }
 
-// CHECK-LABEL: func private @test4() -> !hl.int
+// CHECK-LABEL: func @test4() -> !hl.int
 int test4()
 {
     // CHECK-NOT: hl.scope

@@ -1,7 +1,7 @@
 // RUN: vast-cc --from-source %s | FileCheck %s
 // RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: func private @loop_simple
+// CHECK-LABEL: func @loop_simple
 void loop_simple()
 {
     // CHECK: hl.for {
@@ -15,7 +15,7 @@ void loop_simple()
     for (int i = 0; i < 100; i++) {}
 }
 
-// CHECK-LABEL: func private @loop_noinit
+// CHECK-LABEL: func @loop_noinit
 void loop_noinit()
 {
     int i = 0;
@@ -31,7 +31,7 @@ void loop_noinit()
     for (;i < 100; ++i) {}
 }
 
-// CHECK-LABEL: func private @loop_noincr
+// CHECK-LABEL: func @loop_noincr
 void loop_noincr()
 {
     // CHECK: hl.for {
@@ -46,7 +46,7 @@ void loop_noincr()
     for (int i = 0; i < 100;) { ++i; }
 }
 
-// CHECK-LABEL: func private @loop_infinite
+// CHECK-LABEL: func @loop_infinite
 void loop_infinite()
 {
     // CHECK: hl.for {
@@ -59,7 +59,7 @@ void loop_infinite()
     for (;;) {}
 }
 
-// CHECK-LABEL: func private @loop_nested
+// CHECK-LABEL: func @loop_nested
 void loop_nested()
 {
     // CHECK: hl.for {

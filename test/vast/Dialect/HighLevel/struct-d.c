@@ -16,7 +16,7 @@ struct s* p = 0;
 // CHECK: }
 struct s { int a; };
 
-// CHECK: func private @g() -> !hl.void
+// CHECK: func @g() -> !hl.void
 void g(void)
 {
     // TODO: locally scoped structs

@@ -1,7 +1,7 @@
 // RUN: vast-cc --from-source %s | FileCheck %s
 // RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: func private @basic
+// CHECK-LABEL: func @basic
 void basic() {
     // CHECK: hl.do {
     do {
@@ -12,7 +12,7 @@ void basic() {
     // CHECK: }
 }
 
-// CHECK-LABEL: func private @inner_cond
+// CHECK-LABEL: func @inner_cond
 void inner_cond() {
     int i = 0;
     // CHECK: hl.do {
