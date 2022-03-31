@@ -1,7 +1,7 @@
 // RUN: vast-cc --ccopts -std=c++17 --from-source %s | FileCheck %s
 // RUN: vast-cc --ccopts -std=c++17 --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: func private @switch_simple
+// CHECK-LABEL: func @switch_simple
 int switch_simple(int num)
 {
     // CHECK: hl.switch cond {
@@ -36,7 +36,7 @@ int switch_simple(int num)
     // CHECK: hl.unreachable
 }
 
-// CHECK-LABEL: func private @switch_init
+// CHECK-LABEL: func @switch_init
 int switch_init(int num)
 {
     // CHECK: hl.switch init {
@@ -55,7 +55,7 @@ int switch_init(int num)
     // CHECK: hl.unreachable
 }
 
-// CHECK-LABEL: func private @switch_fallthorugh_1
+// CHECK-LABEL: func @switch_fallthorugh_1
 int switch_fallthorugh_1(int num)
 {
     // CHECK: hl.switch cond {
@@ -78,7 +78,7 @@ int switch_fallthorugh_1(int num)
     // CHECK: hl.unreachable
 }
 
-// CHECK-LABEL: func private @switch_fallthorugh_2
+// CHECK-LABEL: func @switch_fallthorugh_2
 int switch_fallthorugh_2(int num)
 {
     // CHECK: hl.switch cond {
@@ -101,7 +101,7 @@ int switch_fallthorugh_2(int num)
     // CHECK: hl.unreachable
 }
 
-// CHECK-LABEL: func private @switch_nodefault
+// CHECK-LABEL: func @switch_nodefault
 int switch_nodefault(int num)
 {
     // CHECK: hl.switch cond {
@@ -122,7 +122,7 @@ int switch_nodefault(int num)
     return 0;
 }
 
-// CHECK-LABEL: func private @switch_break
+// CHECK-LABEL: func @switch_break
 int switch_break(int num)
 {
     // CHECK: hl.switch cond {
@@ -144,7 +144,7 @@ int switch_break(int num)
     return 0;
 }
 
-// CHECK-LABEL: func private @switch_block
+// CHECK-LABEL: func @switch_block
 int switch_block(int num)
 {
     // CHECK: hl.switch cond {
@@ -169,7 +169,7 @@ int switch_block(int num)
     return 0;
 }
 
-// CHECK-LABEL: func private @switch_single
+// CHECK-LABEL: func @switch_single
 void switch_single(int num)
 {
     int v = 0;
@@ -185,7 +185,7 @@ void switch_single(int num)
         v++;
 }
 
-// CHECK-LABEL: func private @switch_no_compound
+// CHECK-LABEL: func @switch_no_compound
 void switch_no_compound(int num)
 {
     int v = 0;

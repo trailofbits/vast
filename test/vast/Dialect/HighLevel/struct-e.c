@@ -7,7 +7,7 @@
 // CHECK: }
 struct s { int a; };
 
-// CHECK: func private @f() -> !hl.void
+// CHECK: func @f() -> !hl.void
 void f() {
     // CHECK: hl.var @v : !hl.named_type<@struct.s>
     struct s v;

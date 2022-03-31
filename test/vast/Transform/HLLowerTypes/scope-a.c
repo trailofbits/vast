@@ -1,6 +1,6 @@
 // RUN: vast-cc --from-source %s | vast-opt --vast-hl-lower-types | FileCheck %s
 
-// CHECK-LABEL: func private @test1() -> i32
+// CHECK-LABEL: func @test1() -> i32
 int test1()
 {
     // CHECK: hl.scope
@@ -13,7 +13,7 @@ int test1()
     return a;
 }
 
-// CHECK-LABEL: func private @test2() -> none
+// CHECK-LABEL: func @test2() -> none
 void test2()
 {
     // CHECK: hl.scope
@@ -35,7 +35,7 @@ void test2()
     }
 }
 
-// CHECK-LABEL: func private @test3() -> i32
+// CHECK-LABEL: func @test3() -> i32
 int test3()
 {
     // CHECK: hl.var @b : i32
@@ -53,7 +53,7 @@ int test3()
     return 0;
 }
 
-// CHECK-LABEL: func private @test4() -> i32
+// CHECK-LABEL: func @test4() -> i32
 int test4()
 {
     // CHECK-NOT: hl.scope
