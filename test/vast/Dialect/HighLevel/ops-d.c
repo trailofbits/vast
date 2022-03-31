@@ -2,15 +2,15 @@
 // RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
 
 void unary_inplace(int a) {
-    // CHECK: hl.var @pre : !hl.int
-    // CHECK:  [[V1:%[0-9]+]] = hl.declref @a
-    // CHECK:  [[V2:%[0-9]+]] = hl.pre.inc [[V1]] : !hl.int
-    // CHECK:  hl.value.yield [[V2]] : !hl.int
+    // CHECK: hl.var "pre" : !hl.lvalue<!hl.int>
+    // CHECK:  [[V1:%[0-9]+]] = hl.declref %arg0 : !hl.lvalue<!hl.int>
+    // CHECK:  [[V2:%[0-9]+]] = hl.pre.inc [[V1]] : !hl.lvalue<!hl.int>
+    // CHECK:  hl.value.yield [[V2]] : !hl.lvalue<!hl.int>
     int pre = ++a;
 
-    // CHECK: hl.var @post : !hl.int
-    // CHECK:  [[V1:%[0-9]+]] = hl.declref @a
-    // CHECK:  [[V2:%[0-9]+]] = hl.post.inc [[V1]] : !hl.int
-    // CHECK:  hl.value.yield [[V2]] : !hl.int
+    // CHECK: hl.var "post" : !hl.lvalue<!hl.int>
+    // CHECK:  [[V1:%[0-9]+]] = hl.declref %arg0 : !hl.lvalue<!hl.int>
+    // CHECK:  [[V2:%[0-9]+]] = hl.post.inc [[V1]] : !hl.lvalue<!hl.int>
+    // CHECK:  hl.value.yield [[V2]] : !hl.lvalue<!hl.int>
     int post = a++;
 }
