@@ -49,8 +49,6 @@ class HighLevel_BinOp< string mnemonic, list< OpTrait > traits = [] >
     let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` type($result) }];
 }
 
-
-
 class HighLevel_UnInplaceOp< string mnemonic, list< OpTrait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [SameOperandsAndResultType]) >
 {
@@ -107,29 +105,6 @@ class HighLevel_UnOp< string mnemonic, list< OpTrait > traits = [] >
     let assemblyFormat = [{ $arg attr-dict `:` type($arg) `->` type($result) }];
 }
 
-
-class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
-    : HighLevel_Op< mnemonic, !listconcat(traits, [SameTypeOperands]) >
-{
-    let summary = "VAST compound assign operation";
-    let description = [{
-        A compound assign operation represents an assignment operation joined
-        with an arithmetic operation. It requires the same types for both source
-        and destination arguments.
-
-        The custom assembly form of the operation is as follows:
-
-        <assign.op> src to dst : type
-
-        It represents C compound assignment statement:
-
-        dst =<op> src;
-    }];
-
-    let arguments = (ins AnyType:$dst, AnyType:$src);
-
-    let assemblyFormat = [{ $src `to` $dst attr-dict `:` type($src) }];
-}
 
 def HasOneBlock : CPred<"$_self.hasOneBlock()">;
 
