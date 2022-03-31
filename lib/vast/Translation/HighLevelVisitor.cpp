@@ -1160,10 +1160,6 @@ namespace vast::hl
             ctx.error("error: multiple declarations of a same function" + name);
         }
 
-        // TODO(Heno): move to function prototype lifting
-        if (!decl->isMain())
-            fn.setVisibility(mlir::FuncOp::Visibility::Private);
-
         if (!decl->hasBody() || !fn.isExternal())
             return Value(); // dummy value
 
