@@ -279,14 +279,15 @@ def HighLevel_ReturnOp
   ];
 }
 
-def HighLevel_DeclRefOp : HighLevel_Op< "declref", [NoSideEffect] > {
+def HighLevel_DeclRefOp 
+  : HighLevel_Op< "declref", [NoSideEffect, SameOperandsAndResultType] >
+  , Arguments<(ins AnyType:$decl)>
+  , Results<(outs AnyType:$result)> 
+{
   let summary = "VAST variable reference declaration";
   let description = [{ VAST variable reference declaration }];
 
-  let arguments = (ins AnyType:$decl);
-  let results = (outs AnyType:$result);
-
-  let assemblyFormat = "$decl attr-dict `:` type($decl) `->` type($result)";
+  let assemblyFormat = "$decl attr-dict `:` type($decl)";
 }
 
 class HighLevel_ConstantOp< string mnemonic, list< OpTrait > traits = [] >
@@ -574,6 +575,36 @@ class HighLevel_ShiftOp< string mnemonic, list< OpTrait > traits = [] >
 
 def HighLevel_BinShlOp : HighLevel_ShiftOp<"bin.shl", []>;
 def HighLevel_BinShrOp : HighLevel_ShiftOp<"bin.shr", []>;
+
+class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [
+      TypesMatchWith<
+        "underlying lvalue type is same as source type",
+        "src", "dst", "LValueType::get( $_ctxt, $_self )" >  
+    ]) >
+{
+    let summary = "VAST compound assign operation";
+    let description = [{
+        A compound assign operation represents an assignment operation joined
+        with an arithmetic operation. It requires the same types for both source
+        and destination arguments.
+
+        The custom assembly form of the operation is as follows:
+
+        <assign.op> src to dst : type
+
+        It represents C compound assignment statement:
+
+        dst =<op> src;
+    }];
+
+    let arguments = (ins 
+        LValueOf<AnyType>:$dst, AnyType:$src
+    );
+
+    let assemblyFormat = [{ $src `to` $dst attr-dict `:` type($src) }];
+}
+
 
 def HighLevel_AssignOp     : HighLevel_CompoundAssignOp< "assign", []>;
 def HighLevel_AddIAssignOp : HighLevel_CompoundAssignOp< "assign.add",  []>;
