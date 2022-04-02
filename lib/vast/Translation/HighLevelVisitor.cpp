@@ -327,7 +327,7 @@ namespace vast::hl
 
     ValueOrStmt CodeGenVisitor::VisitArraySubscriptExpr(clang::ArraySubscriptExpr *expr) {
         auto loc    = builder.get_location(expr->getSourceRange());
-        auto rty    = types.convert(expr->getType());
+        auto rty    = types.lvalue_convert(expr->getType());
         auto base   = CodeGenVisitor::Visit(expr->getBase());
         auto offset = CodeGenVisitor::Visit(expr->getIdx());
         return builder.make_value< SubscriptOp >(loc, rty, base, offset);
@@ -549,6 +549,7 @@ namespace vast::hl
         auto under = expr->getDecl()->getUnderlyingDecl();
         auto var = clang::dyn_cast< clang::VarDecl >(under);
         auto val = ctx.vars.lookup(var);
+        VAST_ASSERT(val);
         return builder.make_value< DeclRefOp >(loc, rty, val);
     }
 
