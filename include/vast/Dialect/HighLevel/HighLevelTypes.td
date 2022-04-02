@@ -62,7 +62,7 @@ class LValueOf<TypeConstraint value> : Type< And< [
     LValue.predicate,
     SubstLeaves< "$_self", "$_self.cast< LValueType >().getValueType()", value.predicate >
   ] >,
-    "high-level lvalue to " # value.summary
+    "lvalue to " # value.summary
 >;
 
 class CVQualified< string name, string mnem, list<Trait> traits = []>
