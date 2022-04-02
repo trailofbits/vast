@@ -3,10 +3,10 @@
 // CHECK-LABEL: func @main() -> i32
 int main()
 {
-    // CHECK: hl.var @a : i32
+    // CHECK: hl.var "a" : i32
     int a;
 
-    // CHECK: hl.var @b : i32 = {
+    // CHECK: hl.var "b" : i32 = {
     // CHECK:   [[V1:%[0-9]+]] = hl.constant.int 1 : i32
     // CHECK:   hl.value.yield [[V1]] : i32
     // CHECK: }
@@ -14,7 +14,7 @@ int main()
 
     unsigned int ub = 1U;
 
-    // CHECK: hl.var @c : i32 = {
+    // CHECK: hl.var "c" : i32 = {
     // CHECK:   [[V2:%[0-9]+]] = hl.constant.int 1 : i32
     // CHECK:   hl.value.yield [[V2]] : i32
     // CHECK: }

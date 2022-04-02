@@ -9,9 +9,9 @@ struct s { int a; };
 
 // CHECK: func @f() -> !hl.void
 void f() {
-    // CHECK: hl.var @v : !hl.named_type<@struct.s>
+    // CHECK: hl.var "v" : !hl.named_type<@struct.s>
     struct s v;
-    // CHECK: [[V1:%[0-9]+]] = hl.declref @v : !hl.named_type<@struct.s>
+    // CHECK: [[V1:%[0-9]+]] = hl.declref "v" : !hl.named_type<@struct.s>
     // CHECK: [[V2:%[0-9]+]] = hl.member [[V1]] at @a : !hl.named_type<@struct.s> -> !hl.int
     // CHECK: [[V3:%[0-9]+]] = hl.constant.int 1 : !hl.int
     // CHECK: hl.assign [[V3]] to [[V2]] : !hl.int

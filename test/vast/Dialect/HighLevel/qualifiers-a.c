@@ -1,59 +1,59 @@
 // RUN: vast-cc --from-source %s | FileCheck %s
 // RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK: hl.global @i : !hl.int
+// CHECK: hl.var "i" : !hl.lvalue<!hl.int>
 int i;
 
-// CHECK: hl.global @u : !hl.int<unsigned>
+// CHECK: hl.var "u" : !hl.lvalue<!hl.int><unsigned>
 unsigned u;
 
-// CHECK: hl.global @s : !hl.int
+// CHECK: hl.var "s" : !hl.lvalue<!hl.int>
 signed s;
 
-// CHECK: hl.global @ui : !hl.int<unsigned>
+// CHECK: hl.var "ui" : !hl.lvalue<!hl.int><unsigned>
 unsigned int ui;
 
-// CHECK: hl.global @us : !hl.short<unsigned>
+// CHECK: hl.var "us" : !hl.short<unsigned>
 unsigned short us;
 
-// CHECK: hl.global @ci : !hl.int<const> = {
+// CHECK: hl.var "ci" : !hl.lvalue<!hl.int><const> = {
 // CHECK: [[C1:%[0-9]+]] = hl.constant.int 0 : !hl.int
 // CHECK: hl.value.yield [[C1]]
 const int ci = 0;
 
-// CHECK: hl.global @cui : !hl.int<unsigned const> = {
+// CHECK: hl.var "cui" : !hl.lvalue<!hl.int><unsigned const> = {
 // CHECK: [[C2:%[0-9]+]] = hl.constant.int 0 : !hl.int<unsigned>
 // CHECK: hl.value.yield [[C2]]
 const unsigned cui = 0U;
 
-// CHECK: hl.global @vi : !hl.int<volatile>
+// CHECK: hl.var "vi" : !hl.lvalue<!hl.int><volatile>
 volatile int vi;
 
-// CHECK: hl.global @vui : !hl.int<unsigned volatile>
+// CHECK: hl.var "vui" : !hl.lvalue<!hl.int><unsigned volatile>
 volatile unsigned vui;
 
-// CHECK: hl.global @cvi : !hl.int<const volatile> = {
+// CHECK: hl.var "cvi" : !hl.lvalue<!hl.int><const volatile> = {
 // CHECK: [[C3:%[0-9]+]] = hl.constant.int 0 : !hl.int
 // CHECK: hl.value.yield [[C3]]
 const volatile int cvi = 0;
 
-// CHECK: hl.global @cvui : !hl.int<unsigned const volatile> = {
+// CHECK: hl.var "cvui" : !hl.lvalue<!hl.int><unsigned const volatile> = {
 // CHECK: [[C4:%[0-9]+]] = hl.constant.int 0 : !hl.int<unsigned>
 // CHECK: hl.value.yield [[C4]]
 const volatile unsigned int cvui = 0U;
 
-// CHECK: hl.global @b : !hl.bool
+// CHECK: hl.var "b" : !hl.bool
 bool b;
 
-// CHECK: hl.global @vb : !hl.bool<volatile>
+// CHECK: hl.var "vb" : !hl.bool<volatile>
 volatile bool vb;
 
-// CHECK: hl.global @cb : !hl.bool<const> = {
+// CHECK: hl.var "cb" : !hl.bool<const> = {
 // CHECK: [[C5:%[0-9]+]] = hl.constant.int false : !hl.bool
 // CHECK: hl.value.yield [[C5]]
 const bool cb = false;
 
-// CHECK: hl.global @cvb : !hl.bool<const volatile> = {
+// CHECK: hl.var "cvb" : !hl.bool<const volatile> = {
 // CHECK: [[C6:%[0-9]+]] = hl.constant.int true : !hl.bool
 // CHECK: hl.value.yield [[C6]]
 const volatile bool cvb = true;

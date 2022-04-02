@@ -10,15 +10,15 @@ struct Element {
     enum State { SOLID, LIQUID, GAS, PLASMA
 } state;
 
-// CHECK: hl.global @oxygen : !hl.named_type<@struct.Element>
+// CHECK: hl.var "oxygen" : !hl.named_type<@struct.Element>
 // CHECK:  [[V1:%[0-9]+]] = hl.constant.int 8 : !hl.int
-// CHECK:  [[V2:%[0-9]+]] = hl.declref @GAS : !hl.int
+// CHECK:  [[V2:%[0-9]+]] = hl.declref "GAS" : !hl.lvalue<!hl.int>
 // CHECK:  [[V3:%[0-9]+]] = hl.implicit_cast [[V2]] IntegralCast : !hl.int -> !hl.named_type<@enum.State>
 // CHECK:  hl.initlist [[V1]], [[V3]] : (!hl.int, !hl.named_type<@enum.State>) -> !hl.named_type<@struct.Element>
 } oxygen = { 8, GAS };
 
 void foo(void) {
-    // CHECK: hl.var @e : !hl.named_type<@enum.State>
-    // CHECK:  hl.declref @LIQUID : !hl.int
+    // CHECK: hl.var "e" : !hl.named_type<@enum.State>
+    // CHECK:  hl.declref "LIQUID" : !hl.lvalue<!hl.int>
     enum State e = LIQUID;
 }

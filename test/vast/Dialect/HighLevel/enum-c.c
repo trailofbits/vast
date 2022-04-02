@@ -11,7 +11,7 @@
 // CHECK:   hl.constant.int 1 : !hl.int
 // CHECK:  hl.enum.const @F = 2 : si32
 // CHECK:  hl.enum.const @G = 12 : si32 init
-// CHECK:   [[V1:%[0-9]+]] = hl.declref @F : !hl.int
-// CHECK:   [[V2:%[0-9]+]] = hl.declref @C : !hl.int
+// CHECK:   [[V1:%[0-9]+]] = hl.declref "F" : !hl.lvalue<!hl.int>
+// CHECK:   [[V2:%[0-9]+]] = hl.declref "C" : !hl.lvalue<!hl.int>
 // CHECK:   [[V3:%[0-9]+]] = hl.add %0, %1 : !hl.int
 enum Foo { A, B, C=10, D, E=1, F, G=F+C };
