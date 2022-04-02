@@ -75,8 +75,8 @@ def HighLevel_EnumConstantOp
 
     ```
     hl.enum.const @G = 12 : si32 init  {
-      %0 = hl.declref @F : !hl.int
-      %1 = hl.declref @C : !hl.int
+      %0 = hl.declref "F" : !hl.lvalue<!hl.int>
+      %1 = hl.declref "C" : !hl.lvalue<!hl.int>
       %2 = hl.add %0, %1 : !hl.int
       hl.value.yield %2 : !hl.int
     }
