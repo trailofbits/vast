@@ -1145,38 +1145,48 @@ namespace vast::hl
 
     ValueOrStmt CodeGenVisitor::VisitFunctionDecl(clang::FunctionDecl *decl) {
         auto name = decl->getName();
-
-        if (auto fn = ctx.functions.lookup(name))
+        auto is_definition = decl->doesThisDeclarationHaveABody();
+        
+        // emit definition instead of declaration
+        if (!is_definition && decl->getDefinition()) {
+            return Visit(decl->getDefinition());
+        }
+        
+        // return already seen definition
+        if (auto fn = ctx.functions.lookup(name)) {
             return fn;
+        }
 
         ScopedInsertPoint builder_scope(builder);
         llvm::ScopedHashTableScope scope(ctx.vars);
 
         auto loc  = builder.get_location(decl->getSourceRange());
         auto type = types.convert(decl->getFunctionType());
-        assert(type);
+        VAST_ASSERT(type);
 
+        // create function header, that will be later filled with function body
+        // or returned as declaration in the case of external function
         auto fn = builder.make< mlir::FuncOp >(loc, name, type);
         if (failed(ctx.functions.declare(name, fn))) {
             ctx.error("error: multiple declarations of a same function" + name);
         }
 
-        if (!decl->hasBody() || !fn.isExternal())
-            return Value(); // dummy value
-
-        auto entry = fn.addEntryBlock();
-
-        // In MLIR the entry block of the function must have the same argument list as the
-        // function itself.
-        for (const auto &[arg, earg] : llvm::zip(decl->parameters(), entry->getArguments())) {
-            if (failed(ctx.vars.declare(arg, earg)))
-                ctx.error("error: multiple declarations of a same symbol" + arg->getName());
-        }
-
-        builder.set_insertion_point_to_start(entry);
+        if (!is_definition)
+            return fn;
 
         // emit function body
+        auto entry = fn.addEntryBlock();
+        builder.set_insertion_point_to_start(entry);
+        
         if (decl->hasBody()) {
+            // In MLIR the entry block of the function must have the same
+            // argument list as the function itself.
+            auto params = llvm::zip(decl->getDefinition()->parameters(), entry->getArguments());
+            for (const auto &[arg, earg] : params) {
+                if (failed(ctx.vars.declare(arg, earg)))
+                    ctx.error("error: multiple declarations of a same symbol" + arg->getName());
+            }
+
             CodeGenVisitor::Visit(decl->getBody());
         }
 
