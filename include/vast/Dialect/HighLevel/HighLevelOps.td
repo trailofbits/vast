@@ -721,11 +721,11 @@ def HighLevel_SubscriptOp : HighLevel_Op< "subscript" >
   let description = [{ VAST array subscript operator }];
 
   let arguments = (ins
-    SubscriptableType:$array,
+    LValueOf<SubscriptableType>:$array,
     IntegerLikeType:$index
   );
 
-  let results = (outs AnyType:$result);
+  let results = (outs LValueOf<AnyType>:$result);
 
   let assemblyFormat = [{
     $array `at` ` ` `[` $index `:` type($index) `]` attr-dict
