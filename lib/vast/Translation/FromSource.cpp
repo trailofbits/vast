@@ -87,6 +87,7 @@ namespace vast::hl
         llvm::ScopedHashTableScope type_dec_scope(tctx.type_decls);
         llvm::ScopedHashTableScope enum_dec_scope(tctx.enum_decls);
         llvm::ScopedHashTableScope func_scope(tctx.functions);
+        llvm::ScopedHashTableScope glob_scope(tctx.vars);
 
         VastCodeGen codegen(tctx);
         codegen.HandleTranslationUnit(ast->getASTContext());
