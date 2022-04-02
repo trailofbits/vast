@@ -8,8 +8,8 @@
 // CHECK: }
 enum color { RED, GREEN, BLUE };
 
-// CHECK: hl.global @c : !hl.named_type<@enum.color>
-// CHECK: [[V1:%[0-9]+]] = hl.declref @GREEN : !hl.int
+// CHECK: hl.var "c" : !hl.named_type<@enum.color>
+// CHECK: [[V1:%[0-9]+]] = hl.declref "GREEN" : !hl.lvalue<!hl.int>
 // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] IntegralCast : !hl.int -> !hl.named_type<@enum.color>
 // CHECK: hl.value.yield [[V2]] : !hl.named_type<@enum.color>
 enum color c = GREEN;
@@ -17,5 +17,5 @@ enum color c = GREEN;
 // CHECK: hl.typedef @color : !hl.named_type<@enum.color>
 typedef enum color color;
 
-// CHECK: hl.global @tc : !hl.named_type<@color>
+// CHECK: hl.var "tc" : !hl.named_type<@color>
 color tc;

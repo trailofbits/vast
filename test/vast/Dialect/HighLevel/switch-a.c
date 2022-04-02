@@ -40,7 +40,7 @@ int switch_simple(int num)
 int switch_init(int num)
 {
     // CHECK: hl.switch init {
-    // CHECK: hl.var @v : !hl.int
+    // CHECK: hl.var "v" : !hl.lvalue<!hl.int>
     // CHECK: } cond {
     // CHECK: [[V2:%[0-9]+]] = hl.declref @v
     // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast [[V2]]

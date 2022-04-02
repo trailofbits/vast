@@ -7,8 +7,8 @@ int main() {
 
     int v;
 
-    // CHECK: hl.var @sv : !hl.long<unsigned>
+    // CHECK: hl.var "sv" : !hl.long<unsigned>
     // CHECK: hl.sizeof.expr -> !hl.long<unsigned>
-    // CHECK:  hl.declref @v : !hl.int
+    // CHECK:  hl.declref "v" : !hl.lvalue<!hl.int>
     unsigned long sv = sizeof v;
 }

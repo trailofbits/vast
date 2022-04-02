@@ -47,7 +47,7 @@ int branch_then_noreturn(int a, int b)
     // CHECK: hl.cond.yield [[V1]]
     if (a > b) {
         // CHECK: } then {
-        // CHECK: hl.var @c : !hl.int =
+        // CHECK: hl.var "c" : !hl.lvalue<!hl.int> =
         // CHECK: [[V2:%[0-9]+]] = hl.add
         // CHECK: hl.value.yield [[V2]]
         int c = a + b;
@@ -82,7 +82,7 @@ int branch_else_empty(int a, int b)
     // CHECK: hl.cond.yield [[V1]]
     if (a <= b) {
         // CHECK: } then {
-        // CHECK-NEXT: hl.var @c : !hl.int =
+        // CHECK-NEXT: hl.var "c" : !hl.lvalue<!hl.int> =
         // CHECK: [[V2:%[0-9]+]] = hl.constant.int 7 : !hl.int
         // CHECK: hl.value.yield [[V2]]
         int c = 7;

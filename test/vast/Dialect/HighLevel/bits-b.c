@@ -1,11 +1,12 @@
 // RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
 // RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
 
+// CHECK: func @oposite_signs([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.bool {
 _Bool oposite_signs(int x, int y) {
     // CHECK: hl.expr : !hl.int
     // CHECK:  hl.expr : !hl.int
-    // CHECK:   hl.declref @x : !hl.int
-    // CHECK:   hl.declref @y : !hl.int
+    // CHECK:   hl.declref [[A1]] : !hl.lvalue<!hl.int>
+    // CHECK:   hl.declref [[A2]] : !hl.lvalue<!hl.int>
     // CHECK:   hl.bin.xor
     // CHECK:  hl.constant.int 0 : !hl.int
     // CHECK:  hl.cmp slt
