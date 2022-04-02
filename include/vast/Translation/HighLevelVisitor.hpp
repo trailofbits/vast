@@ -484,7 +484,7 @@ namespace vast::hl
                 case clang::CastKind::CK_Dynamic:                return lvalue_cast();
                 case clang::CastKind::CK_ToUnion:                return lvalue_cast();
 
-                // case clang::CastKind::CK_ArrayToPointerDecay:        return;
+                case clang::CastKind::CK_ArrayToPointerDecay:
                 // case clang::CastKind::CK_FunctionToPointerDecay:     return;
                 // case clang::CastKind::CK_NullToPointer:              return;
                 // case clang::CastKind::CK_NullToMemberPointer:        return;
@@ -494,6 +494,7 @@ namespace vast::hl
                 // case clang::CastKind::CK_ReinterpretMemberPointer:   return;
                 // case clang::CastKind::CK_UserDefinedConversion:      return;
                 // case clang::CastKind::CK_ConstructorConversion:      return;
+                    return keep_category_cast();
 
                 case clang::CastKind::CK_IntegralToPointer:
                 case clang::CastKind::CK_PointerToIntegral:
