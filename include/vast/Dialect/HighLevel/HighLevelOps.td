@@ -37,7 +37,8 @@ def HighLevel_TypeDeclOp
 }
 
 def HighLevel_TypeDefOp
-  : HighLevel_Op< "typedef", [NoSideEffect,Symbol] >
+  : HighLevel_Op< "typedef", [NoSideEffect] >
+  , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
 {
   let summary = "VAST typedef operation";
   let description = [{
@@ -46,21 +47,11 @@ def HighLevel_TypeDefOp
     be referenced as NamedType later.
   }];
 
-  let arguments = (ins
-    SymbolNameAttr:$sym_name,
-    TypeAttr:$type
-  );
-
-  let skipDefaultBuilders = 1;
-  let builders = [
-    OpBuilder<(ins "llvm::StringRef":$name, "Type":$type)>
-  ];
-
-  let assemblyFormat = [{ $sym_name attr-dict `:` $type }];
+  let assemblyFormat = [{ $name attr-dict `:` $type }];
 }
 
 def HighLevel_EnumConstantOp
-  : HighLevel_Op< "enum.const", [NoSideEffect, Symbol] >
+  : HighLevel_Op< "enum.const", [NoSideEffect] >
 {
   let summary = "VAST enum constant declaration";
   let description = [{
@@ -68,15 +59,15 @@ def HighLevel_EnumConstantOp
     It is required to be scoped in Enum operation. For example:
 
     ```
-    hl.enum.const @F = 2 : si32
+    hl.enum.const "F" = 2 : si32
     ```
 
     A constant can have a constant expression initializer:
 
     ```
-    hl.enum.const @G = 12 : si32 init  {
-      %0 = hl.declref "F" : !hl.lvalue<!hl.int>
-      %1 = hl.declref "C" : !hl.lvalue<!hl.int>
+    hl.enum.const "G" = 12 : si32 init  {
+      %0 = hl.enumref "F" : !hl.int
+      %1 = hl.enumref "C" : !hl.int
       %2 = hl.add %0, %1 : !hl.int
       hl.value.yield %2 : !hl.int
     }
@@ -84,7 +75,7 @@ def HighLevel_EnumConstantOp
   }];
 
   let arguments = (ins
-    SymbolNameAttr:$sym_name,
+    StrAttr:$name,
     APIntAttr:$value
   );
 
@@ -99,11 +90,13 @@ def HighLevel_EnumConstantOp
     )>
   ];
 
-  let assemblyFormat = [{ $sym_name `=` $value attr-dict (`init` $init^)? }];
+  let assemblyFormat = [{ $name `=` $value attr-dict (`init` $init^)? }];
 }
 
+def EnumRegion : Region< HasOneBlock, "enum constants region" >;
+
 def HighLevel_EnumDeclOp
-  : HighLevel_Op< "enum.decl", [NoSideEffect, Symbol, NoTerminator] >
+  : HighLevel_Op< "enum.decl", [NoSideEffect, NoTerminator] >
 {
   let summary = "VAST enum declaration";
   let description = [{
@@ -112,11 +105,11 @@ def HighLevel_EnumDeclOp
   }];
 
   let arguments = (ins
-    SymbolNameAttr:$sym_name,
+    StrAttr:$name,
     TypeAttr:$type // TODO(Heno): check integer like type attr
   );
 
-  let regions = (region AnyRegion:$constants);
+  let regions = (region EnumRegion:$constants);
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -127,7 +120,7 @@ def HighLevel_EnumDeclOp
     )>
   ];
 
-  let assemblyFormat = [{ $sym_name attr-dict `:` $type $constants }];
+  let assemblyFormat = [{ $name attr-dict `:` $type $constants }];
 }
 
 def HighLevel_RecordDeclOp : HighLevel_Op< "record", [NoSideEffect, NoTerminator] >
@@ -288,6 +281,17 @@ def HighLevel_DeclRefOp
   let description = [{ VAST variable reference declaration }];
 
   let assemblyFormat = "$decl attr-dict `:` type($decl)";
+}
+
+def HighLevel_EnumRefOp 
+  : HighLevel_Op< "enumref", [NoSideEffect] >
+  , Arguments<(ins StrAttr:$value)>
+  , Results<(outs AnyType:$result)> 
+{
+  let summary = "VAST variable reference declaration";
+  let description = [{ VAST variable reference declaration }];
+
+  let assemblyFormat = "$value attr-dict `:` type($result)";
 }
 
 class HighLevel_ConstantOp< string mnemonic, list< OpTrait > traits = [] >

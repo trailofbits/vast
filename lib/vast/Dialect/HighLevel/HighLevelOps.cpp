@@ -177,20 +177,15 @@ namespace vast::hl
         st.addAttribute(mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name));
     }
 
-    void TypeDefOp::build(Builder &bld, State &st, llvm::StringRef name, Type type) {
-        st.addAttribute(mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name));
-        st.addAttribute("type", mlir::TypeAttr::get(type));
-    }
-
     void EnumDeclOp::build(Builder &bld, State &st, llvm::StringRef name, Type type, BuilderCallback constants) {
-        st.addAttribute(mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name));
+        st.addAttribute("name", bld.getStringAttr(name));
         st.addAttribute("type", mlir::TypeAttr::get(type));
         Builder::InsertionGuard guard(bld);
         detail::build_region(bld, st, constants);
     }
 
     void EnumConstantOp::build(Builder &bld, State &st, llvm::StringRef name, llvm::APSInt value, BuilderCallback init) {
-        st.addAttribute(mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name));
+        st.addAttribute("name", bld.getStringAttr(name));
         st.addAttribute("value", mlir::IntegerAttr::get(bld.getContext(), value));
 
         Builder::InsertionGuard guard(bld);
