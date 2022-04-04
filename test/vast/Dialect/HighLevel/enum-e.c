@@ -7,8 +7,7 @@
 // CHECK:  hl.field @state : !hl.named_type<@enum.State>
 struct Element {
     int z;
-    enum State { SOLID, LIQUID, GAS, PLASMA
-} state;
+    enum State { SOLID, LIQUID, GAS, PLASMA } state;
 
 // CHECK: hl.var "oxygen" : !hl.named_type<@struct.Element>
 // CHECK:  [[V1:%[0-9]+]] = hl.constant.int 8 : !hl.int
