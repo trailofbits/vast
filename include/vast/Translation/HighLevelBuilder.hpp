@@ -128,9 +128,6 @@ namespace vast::hl
         }
 
         auto declare_enum(mlir::Location loc, llvm::StringRef name, Type type, BuilderCallback constants) {
-            if (auto decl = ctx.enum_decls.lookup(name))
-                return decl;
-
             auto decl = make< EnumDeclOp >(loc, name, type, constants);
             if (failed(ctx.enum_decls.declare(name, decl))) {
                 ctx.error("error: multiple enum declarations with the same name");
@@ -138,7 +135,19 @@ namespace vast::hl
 
             return decl;
         }
+        
+        auto declare_enum_constant(EnumConstantOp enum_constant) {
+            auto name = enum_constant.name();
+            if (auto decl = ctx.enum_constants.lookup(name))
+                return decl;
 
+            if (failed(ctx.enum_constants.declare(name, enum_constant))) {
+                ctx.error("error: multiple enum constant declarations with the same name");
+            }
+
+            return enum_constant;
+        }
+        
       private:
         mlir::Location get_location_impl(clang::SourceLocation at) {
             auto loc = ctx.getSourceManager().getPresumedLoc(at);

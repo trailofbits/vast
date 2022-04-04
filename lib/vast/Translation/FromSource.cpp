@@ -86,6 +86,7 @@ namespace vast::hl
         llvm::ScopedHashTableScope type_def_scope(tctx.type_defs);
         llvm::ScopedHashTableScope type_dec_scope(tctx.type_decls);
         llvm::ScopedHashTableScope enum_dec_scope(tctx.enum_decls);
+        llvm::ScopedHashTableScope enum_constant_scope(tctx.enum_constants);
         llvm::ScopedHashTableScope func_scope(tctx.functions);
         llvm::ScopedHashTableScope glob_scope(tctx.vars);
 

@@ -539,18 +539,25 @@ namespace vast::hl
 
     ValueOrStmt CodeGenVisitor::VisitDeclRefExpr(clang::DeclRefExpr *expr) {
         auto loc = builder.get_location(expr->getSourceRange());
+        auto underlying = expr->getDecl()->getUnderlyingDecl();
 
         // TODO(Heno): deal with function declaration
+        
+        if (auto enum_decl  = clang::dyn_cast< clang::EnumConstantDecl >(underlying)) {
+            auto val = ctx.enum_constants.lookup(enum_decl->getName());
+            VAST_ASSERT(val);
+            auto rty = types.convert(expr->getType());
+            return builder.make_value< EnumRefOp >(loc, rty, val.name());
+        }
 
-        // TODO(Heno): deal with enum constant declaration
-
-        auto rty   = types.lvalue_convert(expr->getType());
-       
-        auto under = expr->getDecl()->getUnderlyingDecl();
-        auto var = clang::dyn_cast< clang::VarDecl >(under);
-        auto val = ctx.vars.lookup(var);
-        VAST_ASSERT(val);
-        return builder.make_value< DeclRefOp >(loc, rty, val);
+        if (auto var_decl = clang::dyn_cast< clang::VarDecl >(underlying)) {
+            auto val = ctx.vars.lookup(var_decl);
+            VAST_ASSERT(val);
+            auto rty = types.lvalue_convert(expr->getType());
+            return builder.make_value< DeclRefOp >(loc, rty, val);
+        }
+        
+        VAST_UNREACHABLE("unknown underlying declaration to be referenced");
     }
 
     ValueOrStmt CodeGenVisitor::VisitDependentScopeDeclRefExpr(
@@ -1135,12 +1142,15 @@ namespace vast::hl
         auto name  = decl->getName();
         auto value = decl->getInitVal();
 
-        if (decl->getInitExpr()) {
-            auto init = make_value_builder(decl->getInitExpr());
-            return builder.make< EnumConstantOp >(loc, name, value, init);
-        }
+        auto enum_constant = [&] {
+            if (decl->getInitExpr()) {
+                auto init = make_value_builder(decl->getInitExpr());
+                return builder.make< EnumConstantOp >(loc, name, value, init);
+            }
+            return builder.make< EnumConstantOp >(loc, name, value);
+        } ();
 
-        return builder.make< EnumConstantOp >(loc, name, value);
+        return builder.declare_enum_constant(enum_constant);
     }
 
     ValueOrStmt CodeGenVisitor::VisitFunctionDecl(clang::FunctionDecl *decl) {
@@ -1171,8 +1181,10 @@ namespace vast::hl
             ctx.error("error: multiple declarations of a same function" + name);
         }
 
-        if (!is_definition)
+        if (!is_definition) {
+            fn.setVisibility( mlir::FuncOp::Visibility::Private );
             return fn;
+        }
 
         // emit function body
         auto entry = fn.addEntryBlock();
