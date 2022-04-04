@@ -193,7 +193,7 @@ namespace vast::hl
     }
 
     void RecordDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
-        st.addAttribute("name", bld.getSymbolRefAttr(name));
+        st.addAttribute("name", bld.getStringAttr(name));
 
         Builder::InsertionGuard guard(bld);
         detail::build_region(bld, st, fields);
