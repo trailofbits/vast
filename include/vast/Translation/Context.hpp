@@ -60,7 +60,7 @@ namespace vast::hl
                 return tag_names[decl];
             }
 
-            std::string name = decl->getKindName().str() + ".";
+            std::string name = decl->getKindName().str() + " ";
             if (decl->getIdentifier()) {
                 name += decl->getName().str();
             } else {
