@@ -326,7 +326,7 @@ namespace vast::hl
             return Type();
         }
 
-        mlir::SymbolRefAttr name;
+        mlir::StringAttr name;
         // TODO(Heno): use parseSymbolName from MLIR 14
         if (failed(parser.parseAttribute(name))) {
             auto loc = parser.getCurrentLocation();
