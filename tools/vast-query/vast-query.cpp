@@ -131,7 +131,6 @@ namespace vast::query
                     case cl::show_symbol_type::global:
                         // TODO(heno): fix global listing
                         // show_if(symbol, is_one_of< hl::VarDecl >()); break;
-                        return mlir::failure(); // unsupported
                     case cl::show_symbol_type::function:
                         show_if(symbol, is_one_of< mlir::FuncOp >()); break;
                     case cl::show_symbol_type::none: break;
