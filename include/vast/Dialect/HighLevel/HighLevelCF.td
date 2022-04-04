@@ -242,7 +242,7 @@ def HighLevel_SwitchOp : ControlFlowOp< "switch" >
   ];
 
   let assemblyFormat = [{
-    (`init` $initRegion^)? `cond` $condRegion `cases` $cases attr-dict
+    (`init` $initRegion^)? $condRegion `cases` $cases attr-dict
   }];
 }
 
