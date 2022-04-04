@@ -241,7 +241,7 @@ def NamedType : HighLevelType< "Named" > {
   let mnemonic = "named_type";
 
   let parameters = (ins
-    "mlir::SymbolRefAttr":$name
+    "mlir::StringAttr":$name
   );
 }
 

@@ -190,7 +190,7 @@ namespace vast::hl
         auto decl = ty->getDecl();
         auto name = elaborated ? ctx.elaborated_name(decl) : decl->getName();
         auto mctx = &ctx.getMLIRContext();
-        return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, name));
+        return NamedType::get(mctx, mlir::StringAttr::get(mctx, name));
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(
@@ -198,7 +198,7 @@ namespace vast::hl
         auto decl = ty->getDecl();
         auto name = elaborated ? ctx.elaborated_name(decl) : decl->getName();
         auto mctx = &ctx.getMLIRContext();
-        return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, name));
+        return NamedType::get(mctx, mlir::StringAttr::get(mctx, name));
     }
 
     Type HighLevelTypeConverter::do_convert(const clang::ConstantArrayType *ty, Quals quals) {
@@ -225,7 +225,7 @@ namespace vast::hl
         auto decl = ty->getDecl();
         auto name = decl->getName();
         auto mctx = &ctx.getMLIRContext();
-        return NamedType::get(mctx, mlir::SymbolRefAttr::get(mctx, name));
+        return NamedType::get(mctx, mlir::StringAttr::get(mctx, name));
     }
 
 } // namseapce vast::hl

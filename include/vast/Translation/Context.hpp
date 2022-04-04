@@ -50,7 +50,12 @@ namespace vast::hl
         ScopedSymbolTable< mlir::FuncOp > functions;
         ScopedSymbolTable< TypeDefOp > type_defs;
         ScopedSymbolTable< TypeDeclOp > type_decls;
-        ScopedSymbolTable< EnumDeclOp > enum_decls;
+
+        using EnumDecls = ScopedValueTable< StringRef, EnumDeclOp >;
+        EnumDecls enum_decls;
+        
+        using EnumConstants = ScopedValueTable< StringRef, EnumConstantOp >;
+        EnumConstants enum_constants;
 
         size_t anonymous_count = 0;
         llvm::DenseMap< clang::TagDecl *, std::string > tag_names;
