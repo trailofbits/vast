@@ -21,19 +21,13 @@ def HighLevel_ScopeOp
 }
 
 def HighLevel_TypeDeclOp
-  : HighLevel_Op< "type.decl", [NoSideEffect, Symbol] >
+  : HighLevel_Op< "type.decl", [NoSideEffect] >
+  , Arguments<(ins StrAttr:$name)>
 {
   let summary = "VAST type declaration";
   let description = [{ VAST type declaration }];
 
-  let arguments = (ins SymbolNameAttr:$sym_name);
-
-  let skipDefaultBuilders = 1;
-  let builders = [
-    OpBuilder<(ins "llvm::StringRef":$name)>
-  ];
-
-  let assemblyFormat = [{ $sym_name attr-dict }];
+  let assemblyFormat = [{ $name attr-dict }];
 }
 
 def HighLevel_TypeDefOp
