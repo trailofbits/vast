@@ -173,10 +173,6 @@ namespace vast::hl
         st.addTypes(type);
     }
 
-    void TypeDeclOp::build(Builder &bld, State &st, llvm::StringRef name) {
-        st.addAttribute(mlir::SymbolTable::getSymbolAttrName(), bld.getStringAttr(name));
-    }
-
     void EnumDeclOp::build(Builder &bld, State &st, llvm::StringRef name, Type type, BuilderCallback constants) {
         st.addAttribute("name", bld.getStringAttr(name));
         st.addAttribute("type", mlir::TypeAttr::get(type));
