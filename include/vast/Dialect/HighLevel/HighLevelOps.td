@@ -128,9 +128,7 @@ def HighLevel_RecordDeclOp : HighLevel_Op< "record", [NoSideEffect, NoTerminator
   let summary = "VAST record declaration";
   let description = [{ VAST record declaration }];
 
-  let arguments = (ins
-    SymbolRefAttr:$name
-  );
+  let arguments = (ins StrAttr:$name);
 
   // TODO(Heno): add region constraints
   let regions = (region AnyRegion:$fields);
