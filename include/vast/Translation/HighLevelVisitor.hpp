@@ -453,11 +453,22 @@ namespace vast::hl
         }
 
         template< typename Op >
-        ValueOrStmt make_unary(clang::UnaryOperator *expr) {
+        ValueOrStmt make_unary(clang::UnaryOperator *expr, Type rty) {
             auto loc = builder.get_location(expr->getSourceRange());
-            auto rty = types.convert(expr->getType());
             auto arg = Visit(expr->getSubExpr());
             return builder.make_value< Op >(loc, rty, arg);
+        }
+        
+        template< typename Op >
+        ValueOrStmt make_unary_non_lvalue(clang::UnaryOperator *expr) {
+            auto rty = types.convert(expr->getType());
+            return make_unary< Op >(expr, rty);
+        }
+        
+        template< typename Op >
+        ValueOrStmt make_unary_lvalue(clang::UnaryOperator *expr) {
+            auto rty = types.lvalue_convert(expr->getType());
+            return make_unary< Op >(expr, rty);
         }
 
         Type cast_return_type(clang::CastExpr *expr, Type from) {
