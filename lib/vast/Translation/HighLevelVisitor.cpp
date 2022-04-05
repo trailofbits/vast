@@ -643,7 +643,7 @@ namespace vast::hl
         auto field = llvm::dyn_cast< clang::FieldDecl >(expr->getMemberDecl());
         auto name  = field->getName();
         auto base  = CodeGenVisitor::Visit(expr->getBase());
-        auto type  = types.convert(expr->getType());
+        auto type  = types.lvalue_convert(expr->getType());
         return builder.make_value< RecordMemberOp >(loc, type, base, name);
     }
 
@@ -1120,9 +1120,8 @@ namespace vast::hl
         auto loc  = builder.get_location(decl->getSourceRange());
         auto name = ctx.elaborated_name(decl);
         // declare the type first to allow recursive type definitions
-        auto rec_decl = builder.declare_type(loc, name);
         if (!decl->isCompleteDefinition()) {
-            return rec_decl;
+            return builder.declare_type(loc, name);;
         }
 
         // generate record definition

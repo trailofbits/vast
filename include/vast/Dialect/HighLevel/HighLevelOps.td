@@ -150,18 +150,14 @@ def HighLevel_FieldDeclOp
   let assemblyFormat = [{ $name attr-dict `:` $type }];
 }
 
-def HighLevel_RecordMemberOp : HighLevel_Op< "member" >
+def HighLevel_RecordMemberOp 
+  : HighLevel_Op< "member" >
+  // TODO(Heno): add type constraints
+  , Arguments<(ins LValueOf<AnyType>:$record, StrAttr:$name)>
+  , Results<(outs LValueOf<AnyType>:$element)>
 {
   let summary = "VAST record element access operation";
   let description = [{ VAST record element access operation }];
-
-  // TODO(Heno): add type constraints
-  let arguments = (ins
-    AnyType:$record,
-    FlatSymbolRefAttr:$name
-  );
-
-  let results = (outs AnyType:$element);
 
   let assemblyFormat = [{
     $record `at` $name attr-dict `:` type($record) `->` type($element)
