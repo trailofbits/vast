@@ -117,7 +117,9 @@ def HighLevel_EnumDeclOp
   let assemblyFormat = [{ $name attr-dict `:` $type $constants }];
 }
 
-def HighLevel_RecordDeclOp : HighLevel_Op< "record", [NoSideEffect, NoTerminator] >
+def HighLevel_RecordDeclOp 
+  : HighLevel_Op< "record", [NoSideEffect, NoTerminator] >
+  , Arguments<(ins StrAttr:$name)>
 {
   let summary = "VAST record declaration";
   let description = [{ VAST record declaration }];
@@ -138,17 +140,14 @@ def HighLevel_RecordDeclOp : HighLevel_Op< "record", [NoSideEffect, NoTerminator
   let assemblyFormat = [{ $name attr-dict `:` $fields }];
 }
 
-def HighLevel_FieldDeclOp : HighLevel_Op< "field", [NoSideEffect, Symbol] >
+def HighLevel_FieldDeclOp 
+  : HighLevel_Op< "field", [NoSideEffect] >
+  , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
 {
   let summary = "VAST record field declaration";
   let description = [{ VAST record field declaration }];
 
-  let arguments = (ins
-    SymbolNameAttr:$sym_name,
-    TypeAttr:$type
-  );
-
-  let assemblyFormat = [{ $sym_name attr-dict `:` $type }];
+  let assemblyFormat = [{ $name attr-dict `:` $type }];
 }
 
 def HighLevel_RecordMemberOp : HighLevel_Op< "member" >
