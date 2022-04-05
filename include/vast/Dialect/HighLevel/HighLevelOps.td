@@ -691,8 +691,29 @@ def HighLevel_MinusOp : HighLevel_TypePreservingUnOp< "minus", [] >;
 def HighLevel_NotOp   : HighLevel_TypePreservingUnOp< "not", [] >;
 def HighLevel_LNotOp  : HighLevel_TypePreservingUnOp< "lnot", [] >;
 
-def HighLevel_AddressOf  : HighLevel_UnOp< "addressof", [] >;
-def HighLevel_Deref   : HighLevel_UnOp< "deref", [] >;
+def HighLevel_AddressOf  
+  : HighLevel_Op< "addressof", [] >
+  // TODO(Heno): parameter constraints
+  , Arguments<(ins LValueOf<AnyType>:$value)>
+  , Results<(outs AnyType:$result)>
+{
+    let summary = "VAST addressof operation";
+    let description = [{ VAST addressof operation }];
+
+    let assemblyFormat = [{ $value attr-dict `:` type($value) `->` type($result) }];  
+}
+
+def HighLevel_Deref   
+  : HighLevel_Op< "deref", [] >
+  // TODO(Heno): check dereferencable
+  , Arguments<(ins AnyType:$addr)>
+  , Results<(outs LValueOf<AnyType>:$result)>
+{
+    let summary = "VAST deref operation";
+    let description = [{ VAST deref operation }];
+
+    let assemblyFormat = [{ $addr attr-dict `:` type($addr) `->` type($result) }];  
+}
 
 def HighLevel_InitListExpr : HighLevel_Op< "initlist",
   [NoSideEffect]

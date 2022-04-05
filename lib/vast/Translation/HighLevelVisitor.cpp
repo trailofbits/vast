@@ -160,11 +160,11 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryAddrOf(clang::UnaryOperator *expr) {
-        return make_unary< AddressOf >(expr);
+        return make_unary_non_lvalue< AddressOf >(expr);
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryDeref(clang::UnaryOperator *expr) {
-        return make_unary< Deref >(expr);
+        return make_unary_lvalue< Deref >(expr);
     }
 
     ValueOrStmt CodeGenVisitor::VisitUnaryPlus(clang::UnaryOperator *expr) {
@@ -1131,6 +1131,10 @@ namespace vast::hl
 
         return builder.make< RecordDeclOp >(loc, name, [&](auto &bld, auto loc) {
             for (auto field : decl->fields()) {
+                auto field_type = field->getType();
+                if (clang::isa< clang::ElaboratedType >(field_type)) {
+                    CodeGenVisitor::Visit(field_type->getAsTagDecl());
+                }
                 CodeGenVisitor::Visit(field);
             }
         });
