@@ -10,6 +10,8 @@ include "mlir/Interfaces/SideEffectInterfaces.td"
 include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/IR/RegionKindInterface.td"
 
+include "vast/Interfaces/SymbolInterface.td"
+
 def HighLevel_Dialect : Dialect {
     let name = "hl";
     let summary = "A high-level verbose program analysis MLIR dialect.";

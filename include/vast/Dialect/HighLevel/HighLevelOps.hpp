@@ -5,6 +5,7 @@
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Interfaces/SymbolInterface.hpp"
 
 #include <mlir/Interfaces/InferTypeOpInterface.h>
 

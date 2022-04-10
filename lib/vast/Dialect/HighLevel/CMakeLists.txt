@@ -23,6 +23,8 @@ add_mlir_dialect_library(MLIRHighLevel
     MLIRControlFlowInterfaces
     MLIRDataLayoutInterfaces
     MLIRInferTypeOpInterface
+    
+    VASTSymbolInterface
 )
 
 target_link_libraries(MLIRHighLevel PRIVATE vast_settings)
