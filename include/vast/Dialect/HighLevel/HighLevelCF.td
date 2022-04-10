@@ -138,8 +138,6 @@ def HighLevel_ForOp : ControlFlowOp< "for" >
     The generic form of the operation is as follows:
 
     hl.for {
-      ... /* init region */
-    } cond {
       ... /* cond region */
       hl.cond.yield %cond : !hl.bool
     } incr {
@@ -149,13 +147,15 @@ def HighLevel_ForOp : ControlFlowOp< "for" >
     }
   }];
 
-  let regions = (region SizedRegion<1>:$initRegion, CondRegion:$condRegion,
-                        SizedRegion<1>:$incrRegion, SizedRegion<1>:$bodyRegion);
+  let regions = (region 
+    CondRegion:$condRegion,
+    SizedRegion<1>:$incrRegion,
+    SizedRegion<1>:$bodyRegion
+  );
 
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
-      "BuilderCallback":$initBuilder,
       "BuilderCallback":$condBuilder,
       "BuilderCallback":$incrBuilder,
       "BuilderCallback":$bodyBuilder
@@ -163,7 +163,7 @@ def HighLevel_ForOp : ControlFlowOp< "for" >
   ];
 
   let assemblyFormat = [{
-    $initRegion `cond` $condRegion `incr` $incrRegion attr-dict `do` $bodyRegion
+    $condRegion `incr` $incrRegion attr-dict `do` $bodyRegion
   }];
 }
 
@@ -230,19 +230,18 @@ def HighLevel_SwitchOp : ControlFlowOp< "switch" >
     }
   }];
 
-  let regions = (region AnyRegion:$initRegion, ValueRegion:$condRegion, VariadicRegion<AnyRegion>:$cases);
+  let regions = (region ValueRegion:$condRegion, VariadicRegion<AnyRegion>:$cases);
 
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
-      "BuilderCallback":$initBuilder,
       "BuilderCallback":$condBuilder,
       "BuilderCallback":$casesBuilder
     )>
   ];
 
   let assemblyFormat = [{
-    (`init` $initRegion^)? $condRegion `cases` $cases attr-dict
+    $condRegion `cases` $cases attr-dict
   }];
 }
 

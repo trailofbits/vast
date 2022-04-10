@@ -148,6 +148,8 @@ namespace vast::hl
             return enum_constant;
         }
         
+        mlir::OpBuilder& get_op_builder() { return builder; }
+
       private:
         mlir::Location get_location_impl(clang::SourceLocation at) {
             auto loc = ctx.getSourceManager().getPresumedLoc(at);
@@ -175,4 +177,28 @@ namespace vast::hl
         HighLevelBuilder &builder;
         InsertPoint point;
     };
+
+    struct HighLevelScope : ScopedInsertPoint {
+        HighLevelScope(HighLevelBuilder &builder, Location loc) 
+            : ScopedInsertPoint(builder), loc(loc)
+        {
+            scope = builder.make< ScopeOp >(loc);
+            // TODO(Heno): move to scope ctor & use builder
+            auto &body    = scope.body();
+            body.push_back(new mlir::Block());
+            builder.set_insertion_point_to_start(&body.front());
+        }
+
+        ScopeOp get() { return scope; }
+
+        ScopeOp scope;
+        Location loc;
+    };
+
+    auto make_scoped(HighLevelBuilder &builder, Location loc, auto content_builder) {
+        HighLevelScope scope(builder, loc);
+        content_builder();
+        return scope.get();
+    }
+
 } // namespace vast::hl

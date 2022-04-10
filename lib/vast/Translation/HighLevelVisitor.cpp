@@ -807,17 +807,22 @@ namespace vast::hl
     ValueOrStmt CodeGenVisitor::VisitForStmt(clang::ForStmt *stmt) {
         auto loc = builder.get_location(stmt->getSourceRange());
 
-        auto init_builder = make_region_builder(stmt->getInit());
-        auto incr_builder = make_region_builder(stmt->getInc());
-        auto body_builder = make_region_builder(stmt->getBody());
+        auto make_loop_op = [&] {
+            auto incr = make_region_builder(stmt->getInc());
+            auto body = make_region_builder(stmt->getBody());
+            if (auto cond = stmt->getCond())
+                return builder.make< ForOp >(loc, make_cond_builder(cond), incr, body);
+            return builder.make< ForOp >(loc, make_yield_true(), incr, body);
+        };
 
-        if (auto cond = stmt->getCond()) {
-            auto cond_builder = make_cond_builder(cond);
-            return builder.make< ForOp >(
-                loc, init_builder, cond_builder, incr_builder, body_builder);
+        if (stmt->getInit()) {
+            return make_scoped(builder, loc, [&] {
+                Visit(stmt->getInit());
+                make_loop_op();
+            });
         }
-        return builder.make< ForOp >(
-            loc, init_builder, make_yield_true(), incr_builder, body_builder);
+
+        return make_loop_op();
     }
 
     ValueOrStmt CodeGenVisitor::VisitGotoStmt(clang::GotoStmt *stmt) {
@@ -979,14 +984,22 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitSwitchStmt(clang::SwitchStmt *stmt) {
-        auto loc          = builder.get_location(stmt->getSourceRange());
-        auto cond_builder = make_value_builder(stmt->getCond());
-        auto body_builder = make_region_builder(stmt->getBody());
+        auto loc = builder.get_location(stmt->getSourceRange());
+        
+        auto make_switch_op = [&] {
+            auto cond_builder = make_value_builder(stmt->getCond());
+            auto body_builder = make_region_builder(stmt->getBody());
+            return builder.make< SwitchOp >(loc, cond_builder, body_builder);
+        };
+
         if (stmt->getInit()) {
-            return builder.make< SwitchOp >(
-                loc, make_region_builder(stmt->getInit()), cond_builder, body_builder);
+            return make_scoped(builder, loc, [&] {
+                Visit(stmt->getInit());
+                make_switch_op();
+            });
         }
-        return builder.make< SwitchOp >(loc, nullptr, cond_builder, body_builder);
+
+        return make_switch_op();
     }
 
     ValueOrStmt CodeGenVisitor::VisitWhileStmt(clang::WhileStmt *stmt) {

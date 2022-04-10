@@ -232,12 +232,11 @@ namespace vast::hl
         detail::build_region(bld, st, body);
     }
 
-    void ForOp::build(Builder &bld, State &st, BuilderCallback init, BuilderCallback cond, BuilderCallback incr, BuilderCallback body)
+    void ForOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback incr, BuilderCallback body)
     {
         assert(body && "the builder callback for 'body' must be present");
         Builder::InsertionGuard guard(bld);
 
-        detail::build_region(bld, st, init);
         detail::build_region(bld, st, cond);
         detail::build_region(bld, st, incr);
         detail::build_region(bld, st, body);
@@ -252,12 +251,11 @@ namespace vast::hl
         detail::build_region(bld, st, cond);
     }
 
-    void SwitchOp::build(Builder &bld, State &st, BuilderCallback init, BuilderCallback cond, BuilderCallback body)
+    void SwitchOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback body)
     {
         assert(cond && "the builder callback for 'condition' block must be present");
         Builder::InsertionGuard guard(bld);
 
-        detail::build_region(bld, st, init);
         detail::build_region(bld, st, cond);
         detail::build_region(bld, st, body);
     }
