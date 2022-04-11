@@ -14,9 +14,10 @@ void basic() {
 
 // CHECK-LABEL: func @inner_cond
 void inner_cond() {
+    // CHECK: [[I:%[0-9]+]] = hl.var "i" : !hl.lvalue<!hl.int>
     int i = 0;
     // CHECK: hl.do {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref @i
+    // CHECK: [[V1:%[0-9]+]] = hl.declref [[I]]
     // CHECK: hl.post.inc [[V1]]
     do {
         i++;

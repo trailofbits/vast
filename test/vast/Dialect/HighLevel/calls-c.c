@@ -2,7 +2,7 @@
 // vast-cc --from-source %s | FileCheck %s
 // vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK: hl.typedef @operation : !hl.ptr<(!hl.int, !hl.int) -> !hl.int>
+// CHECK: hl.typedef "operation" : !hl.ptr<(!hl.int, !hl.int) -> !hl.int>
 typedef int ( *operation ) ( int, int );
 
 int apply( operation op, int a, int b )

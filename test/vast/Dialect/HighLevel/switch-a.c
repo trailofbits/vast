@@ -1,11 +1,11 @@
-// RUN: vast-cc --ccopts -std=c++17 --from-source %s | FileCheck %s
-// RUN: vast-cc --ccopts -std=c++17 --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: vast-cc --from-source %s | FileCheck %s
+// RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: func @switch_simple
+// CHECK: func @switch_simple([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int switch_simple(int num)
 {
     // CHECK: hl.switch {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
+    // CHECK: [[V1:%[0-9]+]] = hl.declref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
     // CHECK: hl.value.yield [[V2]]
     switch (num) {
@@ -36,30 +36,11 @@ int switch_simple(int num)
     // CHECK: hl.unreachable
 }
 
-// CHECK-LABEL: func @switch_init
-int switch_init(int num)
-{
-    // CHECK: hl.switch init {
-    // CHECK: hl.var "v" : !hl.lvalue<!hl.int>
-    // CHECK: } cond {
-    // CHECK: [[V2:%[0-9]+]] = hl.declref @v
-    // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast [[V2]]
-    // CHECK: hl.value.yield [[V3]]
-    switch (int v = num; v) {
-        // CHECK: } cases {
-        case  1: return 1;
-        case  2: return 2;
-        default: return 0;
-    }
-    // CHECK: }
-    // CHECK: hl.unreachable
-}
-
-// CHECK-LABEL: func @switch_fallthorugh_1
+// CHECK: func @switch_fallthorugh_1([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int switch_fallthorugh_1(int num)
 {
     // CHECK: hl.switch {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
+    // CHECK: [[V1:%[0-9]+]] = hl.declref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
     // CHECK: hl.value.yield [[V2]]
     switch (num) {
@@ -78,11 +59,11 @@ int switch_fallthorugh_1(int num)
     // CHECK: hl.unreachable
 }
 
-// CHECK-LABEL: func @switch_fallthorugh_2
+// CHECK: func @switch_fallthorugh_2([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int switch_fallthorugh_2(int num)
 {
     // CHECK: hl.switch {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
+    // CHECK: [[V1:%[0-9]+]] = hl.declref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
     // CHECK: hl.value.yield [[V2]]
     switch (num) {
@@ -101,11 +82,11 @@ int switch_fallthorugh_2(int num)
     // CHECK: hl.unreachable
 }
 
-// CHECK-LABEL: func @switch_nodefault
+// CHECK: func @switch_nodefault([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int switch_nodefault(int num)
 {
     // CHECK: hl.switch {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
+    // CHECK: [[V1:%[0-9]+]] = hl.declref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
     // CHECK: hl.value.yield [[V2]]
     switch (num) {
@@ -122,11 +103,11 @@ int switch_nodefault(int num)
     return 0;
 }
 
-// CHECK-LABEL: func @switch_break
+// CHECK: func @switch_break([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int switch_break(int num)
 {
     // CHECK: hl.switch {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
+    // CHECK: [[V1:%[0-9]+]] = hl.declref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
     // CHECK: hl.value.yield [[V2]]
     switch (num) {
@@ -144,11 +125,11 @@ int switch_break(int num)
     return 0;
 }
 
-// CHECK-LABEL: func @switch_block
+// CHECK: func @switch_block([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int switch_block(int num)
 {
     // CHECK: hl.switch {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
+    // CHECK: [[V1:%[0-9]+]] = hl.declref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
     // CHECK: hl.value.yield [[V2]]
     switch (num) {
@@ -169,12 +150,12 @@ int switch_block(int num)
     return 0;
 }
 
-// CHECK-LABEL: func @switch_single
+// CHECK: func @switch_single([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.void
 void switch_single(int num)
 {
     int v = 0;
     // CHECK: hl.switch {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
+    // CHECK: [[V1:%[0-9]+]] = hl.declref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
     // CHECK: hl.value.yield [[V2]]
     switch (num)
@@ -185,12 +166,12 @@ void switch_single(int num)
         v++;
 }
 
-// CHECK-LABEL: func @switch_no_compound
+// CHECK: func @switch_no_compound([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.void
 void switch_no_compound(int num)
 {
     int v = 0;
     // CHECK: hl.switch {
-    // CHECK: [[V1:%[0-9]+]] = hl.declref @num
+    // CHECK: [[V1:%[0-9]+]] = hl.declref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
     // CHECK: hl.value.yield [[V2]]
     switch (num)
