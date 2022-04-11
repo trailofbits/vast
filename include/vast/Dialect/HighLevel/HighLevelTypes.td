@@ -47,11 +47,13 @@ def VoidType : HighLevelType< "Void" > {
   let mnemonic = "void";
 }
 
-def LValue : HighLevelType< "LValue" > {
+def LValue : HighLevelType< "LValue", 
+  [DeclareTypeInterfaceMethods< SubElementTypeInterface >] 
+> {
   let mnemonic = "lvalue";
 
   let parameters = (ins
-    "Type":$valueType
+    "Type":$elementType
   );
   
   let parser  = [{ return parse_lvalue_type($_ctxt, parser); }];
@@ -60,7 +62,7 @@ def LValue : HighLevelType< "LValue" > {
 
 class LValueOf<TypeConstraint value> : Type< And< [
     LValue.predicate,
-    SubstLeaves< "$_self", "$_self.cast< LValueType >().getValueType()", value.predicate >
+    SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()", value.predicate >
   ] >,
     "lvalue to " # value.summary
 >;

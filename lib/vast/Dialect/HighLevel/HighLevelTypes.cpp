@@ -34,7 +34,7 @@ namespace vast::hl
     void print_lvalue_type(const LValueType &type, DialectPrinter &printer)
     {
         printer << type.getMnemonic() << "<";
-        printer.printType(type.getValueType());
+        printer.printType(type.getElementType());
         printer << ">";
     }
 
@@ -296,6 +296,10 @@ namespace vast::hl
 
     using walk_types = walk_fn< mlir::Type >;
     using walk_attrs = walk_fn< mlir::Attribute >;
+    
+    void LValueType::walkImmediateSubElements(walk_attrs, walk_types tys) const {
+        tys( this->getElementType() );
+    }
 
     void PointerType::walkImmediateSubElements(walk_attrs, walk_types tys) const {
         tys( this->getElementType() );
