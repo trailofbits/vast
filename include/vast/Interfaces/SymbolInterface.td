@@ -14,20 +14,27 @@ def VastSymbol : OpInterface< "VastSymbolOpInterface" > {
 
     let methods = [
         InterfaceMethod<"Returns the name of this symbol.",
-            "llvm::StringRef", "getName", (ins), [{}], 
+            "llvm::StringRef", "getSymbolName", (ins), [{}], 
             /*defaultImplementation=*/ [{
-                auto name = this->getOperation()->template 
-                    getAttrOfType<mlir::StringAttr>("name");
-                return name.getValue();
+                auto op = this->getOperation();
+                if (op->hasAttr(mlir::SymbolTable::getSymbolAttrName())) {
+                    return op->template getAttrOfType<mlir::StringAttr>(
+                        mlir::SymbolTable::getSymbolAttrName()
+                    ).getValue();
+                }
+                return op->template getAttrOfType<mlir::StringAttr>("name").getValue();
             }]
         >,
         InterfaceMethod<"Sets the name of this symbol.",
-            "void", "setName", (ins "llvm::StringRef":$name), [{}],
+            "void", "setSymbolName", (ins "llvm::StringRef":$name), [{}],
             /*defaultImplementation=*/[{
-                this->getOperation()->setAttr(
-                    "name",
-                    mlir::StringAttr::get(this->getOperation()->getContext(), name)
-                );
+                auto op = this->getOperation();
+                auto attr = mlir::StringAttr::get(op->getContext(), name);
+                if (op->hasAttr(mlir::SymbolTable::getSymbolAttrName())) {
+                    op->setAttr(mlir::SymbolTable::getSymbolAttrName(), attr);
+                } else {
+                    op->setAttr("name", attr);
+                }
             }]
         >
     ];

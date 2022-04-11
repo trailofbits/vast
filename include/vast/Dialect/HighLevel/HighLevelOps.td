@@ -4,6 +4,7 @@
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 
 include "mlir/Interfaces/CallInterfaces.td"
+include "vast/Interfaces/SymbolInterface.td"
 
 def HighLevel_ScopeOp
   : HighLevel_Op< "scope", [NoTerminator] >
@@ -21,7 +22,7 @@ def HighLevel_ScopeOp
 }
 
 def HighLevel_TypeDeclOp
-  : HighLevel_Op< "type.decl", [NoSideEffect] >
+  : HighLevel_Op< "type.decl", [NoSideEffect, VastSymbol] >
   , Arguments<(ins StrAttr:$name)>
 {
   let summary = "VAST type declaration";
@@ -31,7 +32,7 @@ def HighLevel_TypeDeclOp
 }
 
 def HighLevel_TypeDefOp
-  : HighLevel_Op< "typedef", [NoSideEffect] >
+  : HighLevel_Op< "typedef", [NoSideEffect, VastSymbol] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
 {
   let summary = "VAST typedef operation";
@@ -90,7 +91,7 @@ def HighLevel_EnumConstantOp
 def EnumRegion : Region< HasOneBlock, "enum constants region" >;
 
 def HighLevel_EnumDeclOp
-  : HighLevel_Op< "enum.decl", [NoSideEffect, NoTerminator] >
+  : HighLevel_Op< "enum.decl", [NoSideEffect, NoTerminator, VastSymbol] >
 {
   let summary = "VAST enum declaration";
   let description = [{
@@ -118,13 +119,11 @@ def HighLevel_EnumDeclOp
 }
 
 def HighLevel_RecordDeclOp 
-  : HighLevel_Op< "record", [NoSideEffect, NoTerminator] >
+  : HighLevel_Op< "record", [NoSideEffect, NoTerminator, VastSymbol] >
   , Arguments<(ins StrAttr:$name)>
 {
   let summary = "VAST record declaration";
   let description = [{ VAST record declaration }];
-
-  let arguments = (ins StrAttr:$name);
 
   // TODO(Heno): add region constraints
   let regions = (region AnyRegion:$fields);
@@ -141,7 +140,7 @@ def HighLevel_RecordDeclOp
 }
 
 def HighLevel_FieldDeclOp 
-  : HighLevel_Op< "field", [NoSideEffect] >
+  : HighLevel_Op< "field", [NoSideEffect, VastSymbol] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
 {
   let summary = "VAST record field declaration";
