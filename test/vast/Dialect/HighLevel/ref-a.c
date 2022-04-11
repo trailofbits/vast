@@ -3,10 +3,10 @@
 
 int main()
 {
-    // CHECK: hl.var "x" : !hl.lvalue<!hl.int> = {
+    // CHECK: [[X:%[0-9]+]] = hl.var "x" : !hl.lvalue<!hl.int> = {
     // CHECK: [[V1:%[0-9]+]] = hl.constant.int 0 : !hl.int
     int x = 0;
-    // CHECK: hl.var "y" : !hl.lvalue<!hl.int> = {
-    // CHECK: [[V2:%[0-9]+]] = hl.declref "x" : !hl.lvalue<!hl.int>
+    // CHECK: [[Y:%[0-9]+]] = hl.var "y" : !hl.lvalue<!hl.int> = {
+    // CHECK: [[V2:%[0-9]+]] = hl.declref [[X]] : !hl.lvalue<!hl.int>
     int y = x;
 }
