@@ -83,8 +83,8 @@ namespace vast::hl
     bool should_lower(mlir::Operation *op) { return !has_hl_type(op); }
 
     struct TypeConverter : mlir::TypeConverter {
-        using types_t = mlir::SmallVector< mlir::Type >;
-        using maybe_type_t = llvm::Optional< mlir::Type >;
+        using types_t       = mlir::SmallVector< mlir::Type >;
+        using maybe_type_t  = llvm::Optional< mlir::Type >;
         using maybe_types_t = llvm::Optional< types_t >;
 
         const mlir::DataLayout &dl;
@@ -101,6 +101,8 @@ namespace vast::hl
             });
             addConversion([&](mlir::Type t) { return this->try_convert_intlike(t); });
             addConversion([&](mlir::Type t) { return this->try_convert_floatlike(t); });
+            
+            addConversion([&](hl::LValueType t) { return this->convert_lvalue_type(t); });
 
             // Use provided data layout to get the correct type.
             addConversion([&](hl::PointerType t) { return this->convert_ptr_type(t); });
@@ -160,6 +162,11 @@ namespace vast::hl
         {
             return [&](auto t) { return mlir::UnrankedMemRefType::get(t, 0); };
         }
+        
+        auto make_lvalue_type()
+        {
+            return [&](auto t) { return hl::LValueType::get(t.getContext(), t); };
+        }
 
         maybe_types_t convert_type_to_types(mlir::Type t, std::size_t count = 1)
         {
@@ -196,6 +203,14 @@ namespace vast::hl
             return Maybe(t.getElementType()).and_then(convert_type_to_type())
                                             .unwrap()
                                             .and_then(make_ptr_type())
+                                            .take_wrapped< maybe_type_t >();
+        }
+
+        maybe_type_t convert_lvalue_type(hl::LValueType t)
+        {
+            return Maybe(t.getElementType()).and_then(convert_type_to_type())
+                                            .unwrap()
+                                            .and_then(make_lvalue_type())
                                             .take_wrapped< maybe_type_t >();
         }
 
