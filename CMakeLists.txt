@@ -175,7 +175,10 @@ if (VAST_INSTALL)
     vast
     vast_settings
     vast_translation_api
+    
     MLIRHighLevel
+
+    VASTSymbolInterface
   )
 
   install(DIRECTORY ${CMAKE_BINARY_DIR}/include/vast
