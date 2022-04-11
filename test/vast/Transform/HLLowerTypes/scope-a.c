@@ -17,19 +17,19 @@ int test1()
 void test2()
 {
     // CHECK: hl.scope
-    // CHECK: hl.var "a" : i32
+    // CHECK: hl.var "a" : !hl.lvalue<i32>
     {
         int a;
     }
 
     // CHECK: hl.scope
-    // CHECK: hl.var "a" : i32
+    // CHECK: hl.var "a" : !hl.lvalue<i32>
     {
         int a;
     }
 
     // CHECK-NOT: hl.scope
-    // CHECK: hl.var "a" : i32
+    // CHECK: hl.var "a" : !hl.lvalue<i32>
     {
         int a;
     }
@@ -38,12 +38,12 @@ void test2()
 // CHECK-LABEL: func @test3() -> i32
 int test3()
 {
-    // CHECK: hl.var "b" : i32
+    // CHECK: hl.var "b" : !hl.lvalue<i32>
     int b;
 
     // CHECK: hl.scope
     {
-        // CHECK: hl.var "a" : i32
+        // CHECK: hl.var "a" : !hl.lvalue<i32>
         int a;
     }
 
