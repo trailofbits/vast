@@ -48,8 +48,8 @@ namespace vast::hl
         mlir::Type do_convert(const clang::PointerType *ty, Quals quals);
         mlir::Type do_convert(const clang::ConstantArrayType *ty, Quals quals);
 
-        mlir::Type do_convert(const clang::RecordType *ty, Quals quals, bool elaborated);
-        mlir::Type do_convert(const clang::EnumType *ty, Quals quals, bool elaborated);
+        mlir::Type do_convert(const clang::RecordType *ty, Quals quals);
+        mlir::Type do_convert(const clang::EnumType *ty, Quals quals);
 
         mlir::Type do_convert(const clang::TypedefType *ty, Quals quals);
 

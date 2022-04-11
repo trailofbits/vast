@@ -114,7 +114,6 @@ namespace vast::hl
             return do_convert(td, quals);
         }
 
-        bool elaborated = llvm::isa< clang::ElaboratedType >(ty);
         ty = ty->getUnqualifiedDesugaredType();
 
         if (ty->isBuiltinType())
@@ -124,10 +123,10 @@ namespace vast::hl
             return do_convert(clang::cast< clang::PointerType >(ty), quals);
 
         if (ty->isRecordType())
-            return do_convert(clang::cast< clang::RecordType >(ty), quals, elaborated);
+            return do_convert(clang::cast< clang::RecordType >(ty), quals);
 
         if (ty->isEnumeralType())
-            return do_convert(clang::cast< clang::EnumType >(ty), quals, elaborated);
+            return do_convert(clang::cast< clang::EnumType >(ty), quals);
 
         if (ty->isConstantArrayType())
             return do_convert(clang::cast< clang::ConstantArrayType >(ty), quals);
@@ -185,18 +184,16 @@ namespace vast::hl
             quals.hasVolatile());
     }
 
-    mlir::Type HighLevelTypeConverter::do_convert(
-        const clang::RecordType *ty, Quals quals, bool elaborated) {
+    mlir::Type HighLevelTypeConverter::do_convert(const clang::RecordType *ty, Quals quals) {
         auto decl = ty->getDecl();
-        auto name = elaborated ? ctx.elaborated_name(decl) : decl->getName();
+        auto name = ctx.elaborated_name(decl);
         auto mctx = &ctx.getMLIRContext();
         return NamedType::get(mctx, mlir::StringAttr::get(mctx, name));
     }
 
-    mlir::Type HighLevelTypeConverter::do_convert(
-        const clang::EnumType *ty, Quals quals, bool elaborated) {
+    mlir::Type HighLevelTypeConverter::do_convert(const clang::EnumType *ty, Quals quals) {
         auto decl = ty->getDecl();
-        auto name = elaborated ? ctx.elaborated_name(decl) : decl->getName();
+        auto name = ctx.elaborated_name(decl);
         auto mctx = &ctx.getMLIRContext();
         return NamedType::get(mctx, mlir::StringAttr::get(mctx, name));
     }
