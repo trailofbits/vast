@@ -13,8 +13,11 @@ namespace vast::util
 {
     // TODO(heno): rework to coroutines eventually
     void symbols(mlir::Operation *op, auto yield) {
-        op->walk([&] (mlir::Operation *child) { 
-            if (auto symbol = mlir::dyn_cast< mlir::SymbolOpInterface >(child)) {
+        op->walk([&] (mlir::Operation *child) {
+            if (auto symbol = mlir::dyn_cast< vast::VastSymbolOpInterface >(child)) {
+                yield(symbol);
+            }
+            else if (auto symbol = mlir::dyn_cast< mlir::SymbolOpInterface >(child)) {
                 yield(symbol);
             }
         });
