@@ -84,6 +84,9 @@ namespace vast::cl
 
 namespace vast::query
 {
+    using vast_symbol_interface = vast::VastSymbolOpInterface;
+    using mlir_symbol_interface = mlir::SymbolOpInterface;
+
     bool show_symbols() { return cl::options->show_symbols != cl::show_symbol_type::none; }
 
     bool show_symbol_users() { return !cl::options->show_symbol_users.empty(); }
@@ -94,23 +97,30 @@ namespace vast::query
     auto is_one_of() {
         return [] (mlir::Operation *op) {  return (mlir::isa< Ts >(op) || ...); };
     }
+
+    template< typename T >
+    auto is_global() {
+        return [] (mlir::Operation *op) {
+            return mlir::isa< T >(op) && mlir::isa< mlir::ModuleOp >(op->getParentOp());
+        };
+    }
+
+    auto show_name(vast_symbol_interface value) {
+        return value.getSymbolName();
+    }
     
-    llvm::StringRef symbol_name(const auto &symbol) {
-        auto attr = symbol->template getAttrOfType<mlir::StringAttr>(
-            mlir::SymbolTable::getSymbolAttrName()
-        );
-        return attr.getValue();
+    auto show_name(mlir_symbol_interface value) {
+        return value.getName();
     }
-
-    void show_value(const auto &value) {
+    
+    void show_value(auto value) {
         llvm::outs() << value->getName()
-            << " : " << symbol_name(value)
-            << " : " << value->getLoc() << "\n";
+            << " : " << show_name(value)
+            << " : " << value.getLoc() << "\n";
     }
-
+    
     logical_result do_show_symbols(auto scope) {
         auto &show_kind = cl::options->show_symbols;
-
 
         auto show_if = [=] (auto symbol, auto pred) {
             if (pred(symbol))
@@ -118,7 +128,7 @@ namespace vast::query
         };
 
         auto filter_kind = [=] (cl::show_symbol_type kind) {
-            return [=] (const auto &symbol) {
+            return [=] (auto symbol) {
                 switch (kind) {
                     case cl::show_symbol_type::all:
                         show_value(symbol); break;
@@ -129,8 +139,7 @@ namespace vast::query
                     case cl::show_symbol_type::var:
                         show_if(symbol, is_one_of< hl::VarDecl >()); break;
                     case cl::show_symbol_type::global:
-                        // TODO(heno): fix global listing
-                        // show_if(symbol, is_one_of< hl::VarDecl >()); break;
+                        show_if(symbol, is_global< hl::VarDecl >()); break;
                     case cl::show_symbol_type::function:
                         show_if(symbol, is_one_of< mlir::FuncOp >()); break;
                     case cl::show_symbol_type::none: break;
@@ -142,14 +151,26 @@ namespace vast::query
         return mlir::success();
     }
 
-    void yield_users(auto symbol, auto scope, auto yield) {
+    using maybe_range = llvm::Optional< std::vector< mlir::Operation > >;
+
+    void yield_symbol_users(vast_symbol_interface op, auto scope, auto yield) {
+        for (auto user : op->getUsers()) {
+            yield(user);
+        }
+    };
+    
+    void yield_symbol_users(mlir_symbol_interface op, auto scope, auto yield) {
+        if (auto users = op.getSymbolUses(scope)) {
+            for (auto use : users.getValue()) {
+                yield(use.getUser());
+            }
+        }
+    };
+    
+    void yield_users(llvm::StringRef symbol, auto scope, auto yield) {
         auto filter_symbols = [&] (auto op) {
-            if (symbol_name(op) == symbol) {
-                if (auto users = op.getSymbolUses(scope)) {
-                    for (auto user : users.getValue()) {
-                        yield(user);
-                    }
-                }
+            if (show_name(op) == symbol) {
+                yield_symbol_users(op, scope, yield);
             }
         };
         
@@ -158,8 +179,9 @@ namespace vast::query
 
     logical_result do_show_users(auto scope) {
         auto &name = cl::options->show_symbol_users;
-        yield_users(name.getValue(), scope, [] (auto use) {
-            use.getUser()->print(llvm::outs());
+        yield_users(name.getValue(), scope, [] (auto user) {
+            user->print(llvm::outs());
+            llvm::outs() << "\n";
         });
 
         return mlir::success();
