@@ -1154,19 +1154,15 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitEnumConstantDecl(clang::EnumConstantDecl *decl) {
-        auto loc   = builder.get_location(decl->getSourceRange());
-        auto name  = decl->getName();
-        auto value = decl->getInitVal();
+        auto initializer = make_value_builder(decl->getInitExpr());
 
-        auto enum_constant = [&] {
-            if (decl->getInitExpr()) {
-                auto init = make_value_builder(decl->getInitExpr());
-                return builder.make< EnumConstantOp >(loc, name, value, init);
-            }
-            return builder.make< EnumConstantOp >(loc, name, value);
-        } ();
-
-        return builder.declare_enum_constant(enum_constant);
+        return builder.declare_enum_constant(make_operation< EnumConstantOp >(builder)
+            .bind(builder.get_end_location(decl->getSourceRange())) // location
+            .bind(decl->getName())                                  // name
+            .bind(decl->getInitVal())                               // value
+            .bind_if(decl->getInitExpr(), std::move(initializer))   // initializer
+            .freeze()
+        );
     }
 
     ValueOrStmt CodeGenVisitor::VisitFunctionDecl(clang::FunctionDecl *decl) {
