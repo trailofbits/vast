@@ -659,9 +659,44 @@ namespace vast::hl
                                           : make_expr_trait_expr< ExprTraitOp >(expr, rty, loc);
         }
 
-        template< typename Var, typename... Args >
-        Var make_var(clang::VarDecl *decl, Args &&...args) {
-            return builder.make< Var >(std::forward< Args >(args)...);
+        template< typename op_t >
+        struct operation;
+        
+        template< typename op_t >
+        operation(op_t) -> operation< op_t >;
+
+        template< typename op_t >
+        struct operation {
+            operation(op_t &&op) : op(std::move(op)) {}
+
+            template< typename arg_t >
+            constexpr auto bind(arg_t &&arg) && {
+                auto binded = [arg = std::forward< arg_t >(arg), op = std::move(op)] (auto &&...args) {
+                    return op(arg, std::forward< decltype(args) >(args)...);
+                };
+                return operation< decltype(binded) >(std::move(binded));
+            }
+
+            template< typename arg_t >
+            constexpr auto bind_if(bool cond, arg_t &&arg) && {
+                auto binded = [cond, arg = std::forward< arg_t >(arg), op = std::move(op)] (auto &&...args) {
+                    if (cond)
+                        return op(arg, std::forward< decltype(args) >(args)...);
+                    return op(std::forward< decltype(args) >(args)...);
+                };
+                return operation< decltype(binded) >(std::move(binded));
+            }
+            
+            auto freeze() { return op(); }
+            
+            op_t op;
+        };
+
+        template< typename op >
+        auto make_operation(auto &builder) { 
+            return operation([&] (auto&& ...args) {
+                return builder.template make< op >(std::forward< decltype(args) >(args)...);
+            }); 
         }
 
         TranslationContext &ctx;
