@@ -1317,16 +1317,16 @@ namespace vast::hl
             case clang::TSCS__Thread_local: return TSClass::tsc_c_thread;
         }
     }
-
+    
     ValueOrStmt CodeGenVisitor::VisitVarDecl(clang::VarDecl *decl) {
-        auto ty   = types.lvalue_convert(decl->getType());
-        auto name = decl->getUnderlyingDecl()->getName();
-        auto loc  = builder.get_end_location(decl->getSourceRange());
+        auto initializer = make_value_builder(decl->getInit());
 
-        BuilderCallback init = make_value_builder(decl->getInit());
-        auto initializer     = (decl->getInit() ? init : nullptr);
-
-        auto var = builder.make< VarDecl >(loc, ty, name, initializer);
+        auto var = make_operation< VarDecl >(builder)
+            .bind(builder.get_end_location(decl->getSourceRange())) // location
+            .bind(types.lvalue_convert(decl->getType()))            // type
+            .bind(decl->getUnderlyingDecl()->getName())             // name
+            .bind_if(decl->getInit(), std::move(initializer))       // initializer
+            .freeze();
 
         if (auto sc = get_storage_class(decl); sc != StorageClass::sc_none) {
             var.setStorageClass(sc);
