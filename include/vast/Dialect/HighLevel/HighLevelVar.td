@@ -167,6 +167,7 @@ def HighLevel_VarDecl : HighLevel_Op< "var", [VastSymbol] >
 
   let skipDefaultBuilders = 1;
   let builders = [
+    OpBuilder<(ins "Type":$type, "llvm::StringRef":$name)>,
     OpBuilder<(ins "Type":$type, "llvm::StringRef":$name, "BuilderCallback":$initBuilder)>
   ];
 

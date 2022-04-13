@@ -164,9 +164,13 @@ namespace vast::hl
         build_expr_trait(bld, st, rty, expr);
     }
 
+    void VarDecl::build(Builder &bld, State &st, Type type, llvm::StringRef name) {
+        build(bld, st, type, name, nullptr);
+    }
+
     void VarDecl::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback init) {
         st.addAttribute("name", bld.getStringAttr(name));
-
+        
         Builder::InsertionGuard guard(bld);
         detail::build_region(bld, st, init);
 
