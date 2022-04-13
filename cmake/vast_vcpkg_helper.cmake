@@ -2,6 +2,11 @@ set(USE_SYSTEM_DEPENDENCIES OFF CACHE BOOL "Use system dependencies instead of t
 
 if (NOT USE_SYSTEM_DEPENDENCIES)
   set(VCPKG_ROOT "" CACHE FILEPATH "Root directory to use for vcpkg-managed dependencies")
+
+  if (DEFINED ENV{VCPKG_ROOT} AND NOT VCPKG_ROOT)
+    set(VCPKG_ROOT $ENV{VCPKG_ROOT})
+  endif ()
+
   if (VCPKG_ROOT)
     if (NOT EXISTS "${VCPKG_ROOT}")
       message(FATAL_ERROR "VCPKG_ROOT directory does not exist: '${VCPKG_ROOT}'")
