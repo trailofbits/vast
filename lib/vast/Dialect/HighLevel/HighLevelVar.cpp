@@ -46,11 +46,7 @@ namespace vast::hl
     }
 
     bool VarDecl::isFileVarDecl() {
-        if (isInFileContext())
-            return true;
-        if (isStaticDataMember())
-            return true;
-        return false;
+        return isInFileContext() || isStaticDataMember();
     }
 
     bool VarDecl::isLocalVarDecl() { return isInFunctionOrMethodContext(); }
