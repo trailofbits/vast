@@ -9,7 +9,7 @@ to point `cmake` to `vast` and `llvm` installation directory.
 ## Compilation
 
 ```
-cmake -DLLVM_INSTALL_DIR=<path to llvm> -DVAST_INSTALL_DIR=<path to vast> -B build -S .
+cmake -DLLVM_INSTALL_DIR=<path to llvm> -DVAST_CMAKE_DIR=<path to vast config dir> -B build -S .
 
 cmake --build build
 ```
