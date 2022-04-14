@@ -94,7 +94,8 @@ namespace vast::hl
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APFloat value) {
-            return make< ConstantFloatOp >(loc, ty, value);
+            auto attr = builder.getFloatAttr(to_std_float_type(ty), value);
+            return make< ConstantFloatOp >(loc, ty, attr);
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::StringRef value) {
