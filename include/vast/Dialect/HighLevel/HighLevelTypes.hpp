@@ -7,6 +7,7 @@
 VAST_RELAX_WARNINGS
 #include <clang/AST/Type.h>
 #include <llvm/ADT/Hashing.h>
+#include <llvm/ADT/TypeSwitch.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/Dialect.h>
 #include <mlir/IR/MLIRContext.h>
@@ -111,7 +112,7 @@ namespace vast::hl
     >;
 
     using floating_types = util::type_list<
-        FloatType, DoubleType, LongDoubleType
+        HalfType, BFloat16Type, FloatType, DoubleType, LongDoubleType, Float128Type
     >;
 
     using scalar_types = util::concat<
@@ -165,5 +166,21 @@ namespace vast::hl
     bool isUnsigned(mlir::Type type);
 
     bool isHighLevelType(mlir::Type type);
+    
+    static inline mlir::Type to_std_float_type(mlir::Type ty) {
+        using fty = mlir::FloatType;
+        auto ctx = ty.getContext();
+        return llvm::TypeSwitch<mlir::Type, mlir::Type>(ty)
+            .Case< HalfType       >([&] (auto t) { return fty::getF16(ctx);  })
+            .Case< BFloat16Type   >([&] (auto t) { return fty::getBF16(ctx); })
+            .Case< FloatType      >([&] (auto t) { return fty::getF32(ctx);  })
+            .Case< DoubleType     >([&] (auto t) { return fty::getF64(ctx);  })
+            .Case< LongDoubleType >([&] (auto t) { return fty::getF80(ctx);  })
+            .Case< Float128Type   >([&] (auto t) { return fty::getF128(ctx); })
+            .Default([] (auto t) {
+                VAST_UNREACHABLE("unknown float type: {0}", format_type(t));
+                return mlir::Type();
+            });
+    }
 
 } // namespace vast::hl
