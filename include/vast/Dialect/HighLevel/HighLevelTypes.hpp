@@ -73,25 +73,6 @@ namespace vast::hl
         }
     };
 
-    struct FieldInfo {
-        mlir::StringAttr name;
-        mlir::Type type;
-
-        friend bool operator==(const FieldInfo &a, const FieldInfo &b) = default;
-
-        template< typename Stream >
-        friend auto operator<<(Stream &out, const FieldInfo &fi) noexcept -> decltype(out << "") {
-            return out << fi.name.getValue() << " : " << fi.type;
-        }
-
-        friend llvm::hash_code hash_value(const FieldInfo &fi)
-        {
-            return llvm::hash_combine(fi.name, fi.type);
-        }
-    };
-
-    using FieldRange = llvm::ArrayRef<FieldInfo>;
-
 } // namespace vast::hl
 
 #define GET_TYPEDEF_CLASSES
