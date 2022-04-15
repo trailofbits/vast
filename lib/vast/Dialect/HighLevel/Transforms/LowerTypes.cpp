@@ -370,7 +370,7 @@ namespace vast::hl
 
     mlir::Block &solo_block(mlir::Region &region)
     {
-        ASSERT(region.hasOneBlock());
+        VAST_ASSERT(region.hasOneBlock());
         return *region.begin();
     }
 
@@ -390,7 +390,7 @@ namespace vast::hl
             for (auto &maybe_field : solo_block(op.fields()))
             {
                 auto field = mlir::dyn_cast< hl::FieldDeclOp >(maybe_field);
-                ASSERT(field);
+                VAST_ASSERT(field);
                 out.push_back(field.type());
             }
             return out;
@@ -405,7 +405,7 @@ namespace vast::hl
             for (auto &x : solo_block(module_op.body()))
             {
                 if (auto type_decl = mlir::dyn_cast< hl::TypeDeclOp >(x);
-                    type_decl && type_decl.sym_name() == op.name().getLeafReference())
+                    type_decl && type_decl.name() == op.name())
                 {
                     out.push_back(type_decl);
                 }
@@ -421,10 +421,9 @@ namespace vast::hl
             auto trg_ty = mlir::TupleType::get(this->getContext(), field_tys);
 
             rewriter.create< hl::TypeDefOp >(
-                    op.getLoc(), op.name().getLeafReference(), trg_ty);
+                    op.getLoc(), op.name(), trg_ty);
 
             auto type_decls = fetch_decls(op);
-            ASSERT(type_decls.size() == 1);
             for (auto x : type_decls)
                 rewriter.eraseOp(x);
 
