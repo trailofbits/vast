@@ -50,6 +50,9 @@ namespace vast::hl
             return false;
         }
 
+        if (auto builtin_type = type.dyn_cast< mlir::IntegerType >())
+            return builtin_type.isSigned();
+
         VAST_ASSERT(isIntegerType(type));
         return util::dispatch< integer_types, bool >(type, [] (auto ty) {
             return ty.isSigned();
