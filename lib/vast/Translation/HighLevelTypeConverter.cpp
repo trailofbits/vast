@@ -94,9 +94,17 @@ namespace vast::hl
         return value;
     }
 
+    bool is_forward_declared(const clang::Type *ty) {
+        if (auto tag = ty->getAsTagDecl()) {
+            return !tag->getDefinition();
+        }
+        return false;
+    }
+
     mlir::Type HighLevelTypeConverter::dl_aware_convert(const clang::Type *ty, Quals quals) {
         auto out = do_convert(ty, quals);
-        if (!ty->isFunctionType()) {
+
+        if (!ty->isFunctionType() && !is_forward_declared(ty)) {
             ctx.data_layout().try_emplace(out, ty, ctx.getASTContext());
         }
         return out;
