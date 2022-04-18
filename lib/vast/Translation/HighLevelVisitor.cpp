@@ -542,7 +542,7 @@ namespace vast::hl
         auto underlying = expr->getDecl()->getUnderlyingDecl();
 
         // TODO(Heno): deal with function declaration
-        
+
         if (auto enum_decl  = clang::dyn_cast< clang::EnumConstantDecl >(underlying)) {
             auto val = ctx.enum_constants.lookup(enum_decl->getName());
             VAST_ASSERT(val);
@@ -556,7 +556,7 @@ namespace vast::hl
             auto rty = types.lvalue_convert(expr->getType());
             return builder.make_value< DeclRefOp >(loc, rty, val);
         }
-        
+
         VAST_UNREACHABLE("unknown underlying declaration to be referenced");
     }
 
@@ -985,7 +985,7 @@ namespace vast::hl
 
     ValueOrStmt CodeGenVisitor::VisitSwitchStmt(clang::SwitchStmt *stmt) {
         auto loc = builder.get_location(stmt->getSourceRange());
-        
+
         auto make_switch_op = [&] {
             auto cond_builder = make_value_builder(stmt->getCond());
             auto body_builder = make_region_builder(stmt->getBody());
@@ -1168,12 +1168,12 @@ namespace vast::hl
     ValueOrStmt CodeGenVisitor::VisitFunctionDecl(clang::FunctionDecl *decl) {
         auto name = decl->getName();
         auto is_definition = decl->doesThisDeclarationHaveABody();
-        
+
         // emit definition instead of declaration
         if (!is_definition && decl->getDefinition()) {
             return Visit(decl->getDefinition());
         }
-        
+
         // return already seen definition
         if (auto fn = ctx.functions.lookup(name)) {
             return fn;
@@ -1201,7 +1201,7 @@ namespace vast::hl
         // emit function body
         auto entry = fn.addEntryBlock();
         builder.set_insertion_point_to_start(entry);
-        
+
         if (decl->hasBody()) {
             // In MLIR the entry block of the function must have the same
             // argument list as the function itself.
@@ -1235,7 +1235,7 @@ namespace vast::hl
                 }
             }
         }
-
+        fn.dump();
         return fn;
     }
 
@@ -1313,7 +1313,7 @@ namespace vast::hl
             case clang::TSCS__Thread_local: return TSClass::tsc_c_thread;
         }
     }
-    
+
     ValueOrStmt CodeGenVisitor::VisitVarDecl(clang::VarDecl *decl) {
         auto initializer = make_value_builder(decl->getInit());
 

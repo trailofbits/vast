@@ -107,7 +107,6 @@ class HighLevel_UnOp< string mnemonic, list< Trait > traits = [] >
     let assemblyFormat = [{ $arg attr-dict `:` type($arg) `->` type($result) }];
 }
 
-
 def HasOneBlock : CPred<"$_self.hasOneBlock()">;
 
 include "HighLevelAttributes.td"

@@ -566,12 +566,14 @@ class HighLevel_ShiftOp< string mnemonic, list< Trait > traits = [] >
 def HighLevel_BinShlOp : HighLevel_ShiftOp<"bin.shl", []>;
 def HighLevel_BinShrOp : HighLevel_ShiftOp<"bin.shr", []>;
 
-class HighLevel_CompoundAssignOp< string mnemonic, list< Trait > traits = [] >
+class HighLevel_CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< OpTrait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
       TypesMatchWith<
         "underlying lvalue type is same as source type",
-        "src", "dst", "LValueType::get( $_ctxt, $_self )" >
-    ]) >
+        "src", "dst", "LValueType::get( $_ctxt, $_self )"
+      >,
+      AllTypesMatch< ["src", "result"] >
+    ])>
 {
     let summary = "VAST compound assign operation";
     let description = [{
@@ -581,69 +583,53 @@ class HighLevel_CompoundAssignOp< string mnemonic, list< Trait > traits = [] >
 
         The custom assembly form of the operation is as follows:
 
-        <assign.op> src to dst : type(src)
+        %result = <assign.op> src to dst : type(src)
 
         It represents C compound assignment statement:
 
         dst =<op> src;
     }];
 
-    let arguments = (ins
-        LValueOf<AnyType>:$dst, AnyType:$src
-    );
+    let arguments = (ins Type:$src, LValueOf<Type>:$dst);
+    let results = (outs Type:$result);
+
+    let skipDefaultBuilders = 1;
+    let builders = [ OpBuilder<(ins "Value":$dst, "Value":$src), [{
+      $_state.addOperands(src);
+      $_state.addOperands(dst);
+      $_state.addTypes(src.getType());
+    }]>
+  ];
 
     let assemblyFormat = [{ $src `to` $dst attr-dict `:` type($src) }];
 }
 
+class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
+    : HighLevel_CompoundAssignOpTemplate< mnemonic, AnyType, traits > {}
 
-def HighLevel_AssignOp     : HighLevel_CompoundAssignOp< "assign", []>;
-def HighLevel_AddIAssignOp : HighLevel_CompoundAssignOp< "assign.add",  []>;
-def HighLevel_AddFAssignOp : HighLevel_CompoundAssignOp< "assign.fadd", []>;
-def HighLevel_SubIAssignOp : HighLevel_CompoundAssignOp< "assign.sub",  []>;
-def HighLevel_SubFAssignOp : HighLevel_CompoundAssignOp< "assign.fsub", []>;
-def HighLevel_MulIAssignOp : HighLevel_CompoundAssignOp< "assign.mul",  []>;
-def HighLevel_MulFAssignOp : HighLevel_CompoundAssignOp< "assign.fmul", []>;
-def HighLevel_DivSAssignOp : HighLevel_CompoundAssignOp< "assign.sdiv", []>;
-def HighLevel_DivUAssignOp : HighLevel_CompoundAssignOp< "assign.udiv", []>;
-def HighLevel_DivFAssignOp : HighLevel_CompoundAssignOp< "assign.fdiv", []>;
-def HighLevel_RemSAssignOp : HighLevel_CompoundAssignOp< "assign.srem", []>;
-def HighLevel_RemUAssignOp : HighLevel_CompoundAssignOp< "assign.urem", []>;
-def HighLevel_RemFAssignOp : HighLevel_CompoundAssignOp< "assign.frem", []>;
+def HighLevel_AssignOp     : HighLevel_CompoundAssignOp< "assign" >;
+def HighLevel_AddIAssignOp : HighLevel_CompoundAssignOp< "assign.add"  >;
+def HighLevel_AddFAssignOp : HighLevel_CompoundAssignOp< "assign.fadd" >;
+def HighLevel_SubIAssignOp : HighLevel_CompoundAssignOp< "assign.sub"  >;
+def HighLevel_SubFAssignOp : HighLevel_CompoundAssignOp< "assign.fsub" >;
+def HighLevel_MulIAssignOp : HighLevel_CompoundAssignOp< "assign.mul"  >;
+def HighLevel_MulFAssignOp : HighLevel_CompoundAssignOp< "assign.fmul" >;
+def HighLevel_DivSAssignOp : HighLevel_CompoundAssignOp< "assign.sdiv" >;
+def HighLevel_DivUAssignOp : HighLevel_CompoundAssignOp< "assign.udiv" >;
+def HighLevel_DivFAssignOp : HighLevel_CompoundAssignOp< "assign.fdiv" >;
+def HighLevel_RemSAssignOp : HighLevel_CompoundAssignOp< "assign.srem" >;
+def HighLevel_RemUAssignOp : HighLevel_CompoundAssignOp< "assign.urem" >;
+def HighLevel_RemFAssignOp : HighLevel_CompoundAssignOp< "assign.frem" >;
 
-def HighLevel_BinAndAssignOp : HighLevel_CompoundAssignOp< "assign.bin.and", []>;
-def HighLevel_BinOrAssignOp  : HighLevel_CompoundAssignOp< "assign.bin.or", []>;
-def HighLevel_BinXorAssignOp : HighLevel_CompoundAssignOp< "assign.bin.xor", []>;
+def HighLevel_BinAndAssignOp : HighLevel_CompoundAssignOp< "assign.bin.and" >;
+def HighLevel_BinOrAssignOp  : HighLevel_CompoundAssignOp< "assign.bin.or"  >;
+def HighLevel_BinXorAssignOp : HighLevel_CompoundAssignOp< "assign.bin.xor" >;
 
-class HighLevel_ShiftAssignOp< string mnemonic, list< Trait > traits = [] >
-    : HighLevel_Op< mnemonic, !listconcat(traits, [
-      TypesMatchWith<
-        "underlying lvalue type is same as source type",
-        "src", "dst", "LValueType::get( $_ctxt, $_self )" >
-    ]) >
-{
-    let summary = "VAST compound shift assign operation";
-    let description = [{
-        A compound shift assign operation represents an assignment operation joined
-        with a shift operation.
+class HighLevel_ShiftAssignOp< string mnemonic, list< OpTrait > traits = [] >
+    : HighLevel_CompoundAssignOpTemplate< mnemonic, IntegerLikeType, traits > {}
 
-        The custom assembly form of the operation is as follows:
-
-        <assign.op> src to dst : type(src)
-
-        It represents C compound assignment statement:
-
-        dst =<op> src;
-    }];
-
-    let arguments = (ins
-        LValueOf<IntegerLikeType>:$dst, IntegerLikeType:$src
-    );
-
-    let assemblyFormat = [{ $src `to` $dst attr-dict `:` type($src) }];
-}
-
-def HighLevel_BinShlAssignOp : HighLevel_ShiftAssignOp< "assign.bin.shl", []>;
-def HighLevel_BinShrAssignOp : HighLevel_ShiftAssignOp< "assign.bin.shr", []>;
+def HighLevel_BinShlAssignOp : HighLevel_ShiftAssignOp< "assign.bin.shl" >;
+def HighLevel_BinShrAssignOp : HighLevel_ShiftAssignOp< "assign.bin.shr" >;
 
 class PredicateAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 

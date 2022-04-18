@@ -391,13 +391,7 @@ namespace vast::hl
             auto lhs = Visit(expr->getLHS());
             auto rhs = Visit(expr->getRHS());
             auto loc = builder.get_end_location(expr->getSourceRange());
-            auto res = builder.make< Op >(loc, lhs, rhs);
-
-            if constexpr (std::is_convertible_v< decltype(res), Value >) {
-                return Value(res);
-            } else {
-                return res;
-            }
+            return builder.make_value< Op >(loc, lhs, rhs);
         }
 
         template< typename Op >
@@ -458,13 +452,13 @@ namespace vast::hl
             auto arg = Visit(expr->getSubExpr());
             return builder.make_value< Op >(loc, rty, arg);
         }
-        
+
         template< typename Op >
         ValueOrStmt make_unary_non_lvalue(clang::UnaryOperator *expr) {
             auto rty = types.convert(expr->getType());
             return make_unary< Op >(expr, rty);
         }
-        
+
         template< typename Op >
         ValueOrStmt make_unary_lvalue(clang::UnaryOperator *expr) {
             auto rty = types.lvalue_convert(expr->getType());
@@ -475,7 +469,7 @@ namespace vast::hl
             auto to_rvalue_cast     = [&] { return types.convert(expr->getType()); };
             auto lvalue_cast        = [&] { return types.lvalue_convert(expr->getType()); };
             auto non_lvalue_cast    = [&] { return types.convert(expr->getType()); };
-            auto keep_category_cast = [&] { 
+            auto keep_category_cast = [&] {
                 if (from.isa< LValueType >())
                     return lvalue_cast();
                 return non_lvalue_cast();
@@ -483,7 +477,7 @@ namespace vast::hl
 
             switch (expr->getCastKind()) {
                 // case clang::CastKind::CK_Dependent:
-                case clang::CastKind::CK_BitCast:               return non_lvalue_cast(); 
+                case clang::CastKind::CK_BitCast:               return non_lvalue_cast();
                 case clang::CastKind::CK_LValueBitCast:         return lvalue_cast();
                 case clang::CastKind::CK_LValueToRValueBitCast: return to_rvalue_cast();
                 case clang::CastKind::CK_LValueToRValue:        return to_rvalue_cast();
@@ -509,13 +503,13 @@ namespace vast::hl
 
                 case clang::CastKind::CK_IntegralToPointer:
                 case clang::CastKind::CK_PointerToIntegral:
-                case clang::CastKind::CK_PointerToBoolean : 
+                case clang::CastKind::CK_PointerToBoolean :
                     return keep_category_cast();
 
                 // case clang::CastKind::CK_ToVoid:      return;
                 // case clang::CastKind::CK_VectorSplat: return;
 
-                case clang::CastKind::CK_IntegralCast:         
+                case clang::CastKind::CK_IntegralCast:
                 case clang::CastKind::CK_IntegralToBoolean:
                 case clang::CastKind::CK_IntegralToFloating:
                 case clang::CastKind::CK_FloatingToFixedPoint:
@@ -661,7 +655,7 @@ namespace vast::hl
 
         template< typename op_t >
         struct operation;
-        
+
         template< typename op_t >
         operation(op_t) -> operation< op_t >;
 
@@ -686,17 +680,17 @@ namespace vast::hl
                 };
                 return operation< decltype(binded) >(std::move(binded));
             }
-            
+
             auto freeze() { return op(); }
-            
+
             op_t op;
         };
 
         template< typename op >
-        auto make_operation(auto &builder) { 
+        auto make_operation(auto &builder) {
             return operation([&] (auto&& ...args) {
                 return builder.template make< op >(std::forward< decltype(args) >(args)...);
-            }); 
+            });
         }
 
         TranslationContext &ctx;
