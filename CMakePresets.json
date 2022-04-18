@@ -27,7 +27,8 @@
             "cacheVariables": {
                 "CMAKE_CONFIGURATION_TYPES": "Release;RelWithDebInfo;Debug",
                 "VCPKG_TARGET_TRIPLET": "x64-osx",
-                "VCPKG_HOST_TRIPLET": "x64-osx"
+                "VCPKG_HOST_TRIPLET": "x64-osx",
+                "LLVM_EXTERNAL_LIT": "$env{LLVM_EXTERNAL_LIT}"
             }
         }
     ],
