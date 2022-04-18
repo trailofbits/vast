@@ -78,7 +78,7 @@ namespace vast::hl
                     return builtin_int.isSigned();
                 if (isHighLevelType(rty))
                     return isSigned(rty);
-                UNREACHABLE("Cannot decide if {0} is signed or not.", rty);
+                VAST_UNREACHABLE("Cannot decide if {0} is signed or not.", rty);
             }();
 
             attr = mlir::IntegerAttr::get(ctx, llvm::APSInt(value, is_signed));
