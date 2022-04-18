@@ -2,6 +2,10 @@
 
 #include "vast/Dialect/HighLevel/Passes.hpp"
 
+VAST_RELAX_WARNINGS
+#include <mlir/Dialect/LLVMIR/LLVMDialect.h>
+VAST_UNRELAX_WARNINGS
+
 #include "PassesDetails.hpp"
 
 namespace vast::hl
