@@ -391,7 +391,7 @@ namespace vast::hl
             auto lhs = Visit(expr->getLHS());
             auto rhs = Visit(expr->getRHS());
             auto loc = builder.get_end_location(expr->getSourceRange());
-            return builder.make_value< Op >(loc, lhs, rhs);
+            auto res = builder.make< Op >(loc, lhs, rhs);
         }
 
         template< typename Op >
@@ -593,9 +593,10 @@ namespace vast::hl
             return [stmt, this](auto &bld, auto loc) {
                 Visit(stmt);
                 auto &op = bld.getBlock()->back();
+                bld.getBlock()->dump();
                 assert(op.getNumResults() == 1);
-                auto cond = op.getResult(0);
-                bld.template create< ValueYieldOp >(loc, cond);
+                auto val = op.getResult(0);
+                bld.template create< ValueYieldOp >(loc, val);
             };
         }
 
