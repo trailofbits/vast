@@ -368,7 +368,6 @@ namespace vast::hl
             return signalPassFailure();
     }
 
-<<<<<<< HEAD
     mlir::Block &solo_block(mlir::Region &region)
     {
         VAST_ASSERT(region.hasOneBlock());
@@ -433,26 +432,6 @@ namespace vast::hl
         }
     };
 
-    // TODO(lukas):
-    struct LowerRecordOp : mlir::ConversionPattern
-    {
-
-        AttributeConverter &_attribute_converter;
-
-        LowerHLTypePattern(TypeConverter &tc, AttributeConverter &ac, mlir::MLIRContext *mctx)
-            : mlir::ConversionPattern(tc, mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx),
-              _attribute_converter(ac)
-        {}
-
-
-        mlir::LogicalResult matchAndRewrite(
-                hl::RecordOp *op, mlir::ArrayRef< mlir::Value > ops,
-                mlir::ConversionPatternRewriter &rewriter) const override
-        {
-            return signalPassFailure();
-        }
-    };
-
     struct StructsToTuplesPass : StructsToTuplesBase< StructsToTuplesPass >
     {
         void runOnOperation() override
@@ -471,10 +450,6 @@ namespace vast::hl
             TypeConverter type_converter(dl_analysis.getAtOrAbove(op), mctx);
 
             patterns.add< LowerRecordDeclOp >(type_converter, patterns.getContext());
-            AttributeConverter attr_converter{mctx, type_converter};
-
-            patterns.add< LowerRecordOp >(type_converter, attr_converter,
-                                          patterns.getContext());
             if (mlir::failed(mlir::applyPartialConversion(
                              op, trg, std::move(patterns))))
             {
@@ -492,9 +467,4 @@ std::unique_ptr< mlir::Pass > vast::hl::createLowerHighLevelTypesPass()
 std::unique_ptr< mlir::Pass > vast::hl::createStructsToTuplesPass()
 {
     return std::make_unique< StructsToTuplesPass >();
-}
-
-std::unique_ptr< mlir::Pass > vast::hl::createStructsToTuplesPass()
-{
-  return std::make_unique< StructsToTuplesPass >();
 }
