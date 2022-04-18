@@ -391,7 +391,7 @@ namespace vast::hl
             auto lhs = Visit(expr->getLHS());
             auto rhs = Visit(expr->getRHS());
             auto loc = builder.get_end_location(expr->getSourceRange());
-            auto res = builder.make< Op >(loc, lhs, rhs);
+            return builder.make_value< Op >(loc, lhs, rhs);
         }
 
         template< typename Op >
