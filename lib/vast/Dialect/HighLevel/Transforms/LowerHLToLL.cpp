@@ -25,15 +25,24 @@ namespace vast::hl
 {
     using mctx_t = mlir::MLIRContext;
 
-    std::size_t size(mlir::Region &region)
+    namespace
     {
-        return std::distance(region.begin(), region.end());
+        std::size_t size(mlir::Region &region)
+        {
+            return std::distance(region.begin(), region.end());
+        }
+
+        std::size_t size(mlir::Block &block)
+        {
+            return std::distance(block.begin(), block.end());
+        }
+
     }
 
-    std::size_t size(mlir::Block &block)
-    {
-        return std::distance(block.begin(), block.end());
-    }
+    // TODO(lukas): In non-debug mode return `mlir::failure()` and do not log
+    //              anything.
+    #define VAST_PATTERN_CHECK(cond, fmt, ...) \
+        VAST_CHECK(cond, fmt, __VA_ARGS__)
 
     namespace pattern
     {
@@ -68,6 +77,10 @@ namespace vast::hl
             TypeConverter(Args && ... args) : parent_t(std::forward< Args >(args) ... )
             {
                 addConversion([&](hl::LValueType t) { return this->convert_lvalue_type(t); });
+                addConversion([&](mlir::MemRefType t) { return this->convert_memref_type(t); });
+                addConversion([&](mlir::UnrankedMemRefType t) {
+                        return this->convert_memref_type(t);
+                });
             }
 
             maybe_types_t do_conversion(mlir::Type t)
@@ -82,7 +95,6 @@ namespace vast::hl
             {
                 return [&](auto t)
                 {
-                    llvm::errs() << "Making ptr from: " << t << "\n"; llvm::errs().flush();
                     VAST_ASSERT(!t.template isa< mlir::NoneType >());
                     return mlir::LLVM::LLVMPointerType::get(t);
                 };
@@ -96,6 +108,31 @@ namespace vast::hl
                                                 .take_wrapped< maybe_type_t >();
             }
 
+            auto make_array(auto shape_)
+            {
+                return [shape = std::move(shape_)](auto t)
+                {
+                    mlir::Type out = LLVM::LLVMArrayType::get(t, shape.back());
+                    for (int i = shape.size() - 2; i >= 0; --i)
+                    {
+                        out = LLVM::LLVMArrayType::get(out, shape[i]);
+                    }
+                    return out;
+                };
+            }
+
+            maybe_type_t convert_memref_type(mlir::MemRefType t)
+            {
+                return Maybe(t.getElementType()).and_then(helpers_t::convert_type_to_type())
+                                                .unwrap()
+                                                .and_then(make_array(t.getShape()))
+                                                .take_wrapped< maybe_type_t >();
+            }
+
+            maybe_type_t convert_memref_type(mlir::UnrankedMemRefType t)
+            {
+                VAST_UNIMPLEMENTED;
+            }
         };
 
         template< typename O >
@@ -107,23 +144,7 @@ namespace vast::hl
             TypeConverter &tc;
 
             BasePattern(TypeConverter &tc_) : Base(tc_), tc(tc_) {}
-
             TypeConverter &type_converter() const { return tc; }
-
-            LLVM::AllocaOp get_referenced(O source,
-                                          mlir::ConversionPatternRewriter &rewriter) const
-            {
-                auto wrap_type = LLVM::LLVMPointerType::get(source.getType());
-                auto loc = source.getLoc();
-                auto count = rewriter.create< LLVM::ConstantOp >(
-                        loc,
-                        this->getTypeConverter()->convertType(rewriter.getIndexType()),
-                        rewriter.getIntegerAttr(rewriter.getIndexType(), 1));
-                auto alloca = rewriter.create< LLVM::AllocaOp >(
-                        loc, wrap_type, count, 0);
-
-                return alloca;
-            }
         };
 
         struct l_func_op : BasePattern< mlir::FuncOp >
@@ -243,6 +264,44 @@ namespace vast::hl
             using O = hl::VarDecl;
             using Base::Base;
 
+
+            mlir::LogicalResult unfold_init(LLVM::AllocaOp alloca, hl::InitListExpr init,
+                                            auto &rewriter) const
+            {
+                std::size_t i = 0;
+
+                auto p_type = alloca.getType().cast< LLVM::LLVMPointerType >();
+                VAST_PATTERN_CHECK(p_type, "Expected pointer.");
+                auto a_type = p_type.getElementType().dyn_cast< LLVM::LLVMArrayType >();
+                VAST_PATTERN_CHECK(a_type, "Expected array.");
+
+                for (auto op : init.elements())
+                {
+                    auto e_type = LLVM::LLVMPointerType::get(a_type.getElementType());
+
+                    auto index = rewriter.template create< LLVM::ConstantOp >(
+                            op.getLoc(), type_converter().convertType(rewriter.getIndexType()),
+                            rewriter.getIntegerAttr(rewriter.getIndexType(), i));
+                    auto where = rewriter.template create< LLVM::GEPOp >(
+                            alloca.getLoc(), e_type, alloca, index.getResult());
+                    rewriter.template create< LLVM::StoreOp >(alloca.getLoc(), op, where);
+                    ++i;
+                }
+                rewriter.eraseOp(init);
+                return mlir::success();
+            }
+
+            mlir::LogicalResult make_init(LLVM::AllocaOp alloca, hl::ValueYieldOp yield,
+                                          auto &rewriter) const
+            {
+                mlir::Value v = yield.getOperand();
+                if (auto init_list = v.getDefiningOp< hl::InitListExpr >())
+                    return unfold_init(alloca, init_list, rewriter);
+
+                rewriter.template create< LLVM::StoreOp >(alloca.getLoc(), v, alloca);
+                return mlir::success();
+            }
+
             mlir::LogicalResult matchAndRewrite(
                     hl::VarDecl var_op, mlir::ArrayRef< mlir::Value > ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
@@ -260,7 +319,9 @@ namespace vast::hl
 
                 auto yield = inline_init_region< hl::ValueYieldOp >(var_op, rewriter);
                 rewriter.setInsertionPoint(yield);
-                rewriter.create< LLVM::StoreOp >(var_op.getLoc(), yield->getOperand(0), alloca);
+                if (!mlir::succeeded(make_init(alloca, yield, rewriter)))
+                    return mlir::failure();
+
                 rewriter.eraseOp(yield);
                 rewriter.replaceOp(var_op, {alloca});
 
@@ -279,11 +340,13 @@ namespace vast::hl
                         hl::ImplicitCastOp op, mlir::ArrayRef< mlir::Value > ops,
                         mlir::ConversionPatternRewriter &rewriter) const override
             {
-                auto alloca = this->get_referenced(op, rewriter);
-                auto loaded = rewriter.create< LLVM::LoadOp >(op.getLoc(), alloca);
-
-                rewriter.replaceOp(op, {loaded});
-                return mlir::success();
+                if (op.kind() == hl::CastKind::LValueToRValue)
+                {
+                    auto loaded = rewriter.create< LLVM::LoadOp >(op.getLoc(), ops[0]);
+                    rewriter.replaceOp(op, {loaded});
+                    return mlir::success();
+                }
+                return mlir::failure();
             }
 
         };
@@ -374,6 +437,7 @@ namespace vast::hl
         const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
 
         mlir::LowerToLLVMOptions llvm_options{ &mctx };
+        llvm_options.useBarePtrCallConv = true;
         pattern::TypeConverter type_converter(&mctx, llvm_options , &dl_analysis);
 
         mlir::RewritePatternSet patterns(&mctx);
