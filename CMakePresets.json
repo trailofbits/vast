@@ -8,68 +8,53 @@
     "configurePresets": [
         {
             "name": "ninja-multi-default",
-            "displayName": "Ninja Multi-Config Configure Settings",
+            "displayName": "Ninja Multi-Config",
             "binaryDir": "${sourceDir}/builds/${presetName}",
             "generator": "Ninja Multi-Config",
             "cacheVariables": {
                 "CMAKE_CONFIGURATION_TYPES": "Release;RelWithDebInfo;Debug",
-                "ENABLE_TESTING": "ON",
-                "CMAKE_C_COMPILER": "/usr/bin/clang",
-                "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
+                "ENABLE_TESTING": "ON"
             }
         },
         {
-            "name": "cxx-common-rel",
-            "hidden": true,
-            "displayName": "Ninja Configure Settings with cxx-common",
-            "generator": "Ninja",
+            "name": "ninja-multi-osx-cxx-common",
+            "displayName": "Ninja Multi-Config OSX with cxx-common",
+            "description": "Configure with cxx-common toolchain for x64-osx",
+            "binaryDir": "${sourceDir}/builds/${presetName}",
+            "generator": "Ninja Multi-Config",
+            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "installDir": "${sourceDir}/install",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "ENABLE_TESTING": "OFF",
-                "VCPKG_ROOT": "$env{VCPKG_ROOT}"
+                "CMAKE_CONFIGURATION_TYPES": "Release;RelWithDebInfo;Debug",
+                "VCPKG_TARGET_TRIPLET": "x64-osx",
+                "VCPKG_HOST_TRIPLET": "x64-osx"
             }
-        },
-        {
-            "name": "cxx-common-osx-rel",
-            "inherits": "cxx-common-rel",
-            "displayName": "Ninja Linux Configure Settings with cxx-common",
-            "binaryDir": "${sourceDir}/builds/${presetName}",
-            "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-osx-rel"
-            } 
-        },
-        {
-            "name": "cxx-common-linux-rel",
-            "inherits": "cxx-common-rel",
-            "displayName": "Ninja Configure Settings with cxx-common",
-            "binaryDir": "${sourceDir}/builds/${presetName}",
-            "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-linux-rel"
-            } 
         }
     ],
     "buildPresets": [
         {
-            "name": "ninja-release",
+            "name": "ninja-rel",
             "configurePreset": "ninja-multi-default",
             "displayName": "Build ninja-multi-release",
             "configuration": "Release"
         },
         {
-            "name": "ninja-debug",
+            "name": "ninja-deb",
             "configurePreset": "ninja-multi-default",
             "displayName": "Build ninja-multi-debug",
             "configuration": "Debug"
         },
         {
-            "name": "cxx-common-osx-rel",
-            "configurePreset": "cxx-common-osx-rel",
-            "displayName": "Build osx-release with cxx-common"
+            "name": "ninja-osx-cxx-common-rel",
+            "configurePreset": "ninja-multi-osx-cxx-common",
+            "displayName": "Build osx-release with cxx-common",
+            "configuration": "Release"
         },
         {
-            "name": "cxx-common-linux-rel",
-            "configurePreset": "cxx-common-linux-rel",
-            "displayName": "Build linux-release with cxx-common"
+            "name": "ninja-osx-cxx-common-deb",
+            "configurePreset": "ninja-multi-osx-cxx-common",
+            "displayName": "Build osx-debug with cxx-common",
+            "configuration": "Debug"
         }
     ],
     "testPresets": [
@@ -87,12 +72,12 @@
             }
         },
         {
-            "name": "ninja-release", "inherits": "default",
+            "name": "ninja-rel", "inherits": "default",
             "displayName": "Test ninja-multi-release",
             "configuration": "Release"
         },
         {
-            "name": "ninja-debug", "inherits": "default",
+            "name": "ninja-deb", "inherits": "default",
             "displayName": "Test ninja-multi-debug",
             "configuration": "Debug"
         }
