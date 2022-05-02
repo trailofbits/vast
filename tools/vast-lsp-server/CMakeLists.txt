@@ -10,7 +10,6 @@ set(VAST_LSP_SERVER_LIBS
   MLIRHighLevel
   MLIRHighLevelTransforms
 
-  MLIRLoopAnalysis
   MLIRAnalysis
   MLIRDialect
   MLIRLspServerLib
