@@ -17,28 +17,21 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Util/Functions.hpp"
 #include "vast/Util/ScopeTable.hpp"
+#include "vast/Util/Common.hpp"
 
 #include <variant>
 
 namespace vast::hl
 {
-    using Value       = mlir::Value;
-    using Stmt        = mlir::Operation *;
-    using ValueOrStmt = std::variant< mlir::Value, Stmt >;
-
-    using AContext = clang::ASTContext;
-    using MContext = mlir::MLIRContext;
-
-    using ModuleRef = mlir::OwningModuleRef;
 
     struct TranslationContext {
         MContext &mctx;
         AContext &actx;
-        ModuleRef &mod;
+        OwningModuleRef &mod;
 
         dl::DataLayoutBlueprint dl;
 
-        TranslationContext(MContext &mctx, AContext &actx, ModuleRef &mod)
+        TranslationContext(MContext &mctx, AContext &actx, OwningModuleRef &mod)
             : mctx(mctx)
             , actx(actx)
             , mod(mod) {}
@@ -53,7 +46,7 @@ namespace vast::hl
 
         using EnumDecls = ScopedValueTable< StringRef, EnumDeclOp >;
         EnumDecls enum_decls;
-        
+
         using EnumConstants = ScopedValueTable< StringRef, EnumConstantOp >;
         EnumConstants enum_constants;
 
@@ -78,7 +71,7 @@ namespace vast::hl
 
         MContext &getMLIRContext() { return mctx; }
         AContext &getASTContext() { return actx; }
-        ModuleRef &getModule() { return mod; }
+        OwningModuleRef &getModule() { return mod; }
 
         const dl::DataLayoutBlueprint &data_layout() const { return dl; }
         dl::DataLayoutBlueprint &data_layout() { return dl; }

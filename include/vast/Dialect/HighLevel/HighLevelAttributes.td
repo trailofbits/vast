@@ -15,7 +15,7 @@ def APSIntAttr : Attr<CPred<"$_self.isa<::mlir::IntegerAttr>()">,
     ::mlir::IntegerAttr::get($_builder.getContext(), $0)
   }];
   let convertFromStorage = [{
-    llvm::APSInt($_self.getValue(), isSigned(getType()));
+    llvm::APSInt($_self.getValue(), isSigned($_self.getType()));
   }];
 }
 

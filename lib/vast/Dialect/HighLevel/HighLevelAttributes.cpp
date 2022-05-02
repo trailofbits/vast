@@ -19,8 +19,8 @@ namespace vast::hl
 #include "vast/Dialect/HighLevel/HighLevelAttributes.cpp.inc"
 namespace vast::hl
 {
-    using DialectParser = mlir::DialectAsmParser;
-    using DialectPrinter = mlir::DialectAsmPrinter;
+    using DialectParser = mlir::AsmParser;
+    using DialectPrinter = mlir::AsmPrinter;
 
     void HighLevelDialect::registerAttributes()
     {

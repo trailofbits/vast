@@ -179,7 +179,7 @@ def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpIn
   let builders = [
     OpBuilder< (ins "mlir::FuncOp":$callee, CArg<"mlir::ValueRange", "{}">:$operands ), [{
       $_state.addOperands(operands);
-      $_state.addAttribute("callee", $_builder.getSymbolRefAttr(callee));
+      $_state.addAttribute("callee", mlir::SymbolRefAttr::get($_builder.getContext(), callee.getName()));
       $_state.addTypes(callee.getType().getResults());
     }]>
   ];

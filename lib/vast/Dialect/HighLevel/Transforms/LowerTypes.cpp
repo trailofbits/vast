@@ -57,13 +57,13 @@ namespace vast::hl
 
     bool has_hl_typeattr(mlir::Operation *op)
     {
-        for (const auto &[_, attr] : op->getAttrs())
+        for (const auto &attr : op->getAttrs())
         {
             // `getType()` is not reliable in reality since for example for `mlir::TypeAttr`
             // it returns none. Lowering of types in attributes will be always best effort.
-            if (isHighLevelType(attr.getType()))
+            if (isHighLevelType(attr.getValue().getType()))
                 return true;
-            if (auto type_attr = attr.dyn_cast< mlir::TypeAttr >();
+            if (auto type_attr = attr.getValue().dyn_cast< mlir::TypeAttr >();
                 type_attr && contains_hl_type(type_attr.getValue()))
             {
                 return true;
@@ -101,7 +101,7 @@ namespace vast::hl
             });
             addConversion([&](mlir::Type t) { return this->try_convert_intlike(t); });
             addConversion([&](mlir::Type t) { return this->try_convert_floatlike(t); });
-            
+
             addConversion([&](hl::LValueType t) { return this->convert_lvalue_type(t); });
 
             // Use provided data layout to get the correct type.
@@ -162,7 +162,7 @@ namespace vast::hl
         {
             return [&](auto t) { return mlir::UnrankedMemRefType::get(t, 0); };
         }
-        
+
         auto make_lvalue_type()
         {
             return [&](auto t) { return hl::LValueType::get(t.getContext(), t); };
@@ -248,7 +248,7 @@ namespace vast::hl
         // `llvm::` instead of `std::` to be uniform with `TypeConverter`
         using maybe_attr_t = llvm::Optional< mlir::Attribute >;
 
-        maybe_attr_t convertAttr(mlir::Identifier id, mlir::Attribute attr) const
+        maybe_attr_t convertAttr(mlir::Attribute attr) const
         {
             if (auto type_attr = attr.dyn_cast< mlir::TypeAttr >())
             {
@@ -311,12 +311,13 @@ namespace vast::hl
         void lower_attrs(mlir::Operation *op) const
         {
             mlir::SmallVector< mlir::NamedAttribute > new_attrs;
-            for (const auto &[id, attr] : op->getAttrs())
-            {
-                if (auto lowered = this->getAttrConverter().convertAttr(id, attr))
-                    new_attrs.emplace_back(id, *lowered);
+            for (const auto &attr : op->getAttrs()) {
+                auto name = attr.getName();
+                auto value = attr.getValue();
+                if (auto lowered = this->getAttrConverter().convertAttr(value))
+                    new_attrs.emplace_back(name, *lowered);
                 else
-                    new_attrs.emplace_back(id, attr);
+                    new_attrs.emplace_back(name, value);
             }
             op->setAttrs(new_attrs);
         }
