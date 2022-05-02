@@ -28,10 +28,10 @@ def HighLevel_Dialect : Dialect {
     let hasConstantMaterializer = 1;
 }
 
-class HighLevel_Op< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_Op< string mnemonic, list< Trait > traits = [] >
     : Op< HighLevel_Dialect, mnemonic, traits >;
 
-class HighLevel_BinOp< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_BinOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
 {
     let summary = "VAST binary operation";
@@ -51,7 +51,7 @@ class HighLevel_BinOp< string mnemonic, list< OpTrait > traits = [] >
     let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` type($result) }];
 }
 
-class HighLevel_UnInplaceOp< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_UnInplaceOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [SameOperandsAndResultType]) >
 {
     let summary = "VAST unary inplace operation";
@@ -70,7 +70,7 @@ class HighLevel_UnInplaceOp< string mnemonic, list< OpTrait > traits = [] >
     let assemblyFormat = [{ $arg attr-dict `:` type($result) }];
 }
 
-class HighLevel_TypePreservingUnOp< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_TypePreservingUnOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
 {
     let summary = "VAST unary type preserving operation";
@@ -89,7 +89,7 @@ class HighLevel_TypePreservingUnOp< string mnemonic, list< OpTrait > traits = []
     let assemblyFormat = [{ $arg attr-dict `:` type($result) }];
 }
 
-class HighLevel_UnOp< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_UnOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
 {
     let summary = "VAST unary operation";
