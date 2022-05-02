@@ -3,7 +3,7 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
 
-class ControlFlowOp< string mnemonic, list< OpTrait > traits = [] >
+class ControlFlowOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits,
         [SingleBlock, NoTerminator, NoRegionArguments, RecursiveSideEffects]
       ) >
@@ -147,7 +147,7 @@ def HighLevel_ForOp : ControlFlowOp< "for" >
     }
   }];
 
-  let regions = (region 
+  let regions = (region
     CondRegion:$condRegion,
     SizedRegion<1>:$incrRegion,
     SizedRegion<1>:$bodyRegion

@@ -118,7 +118,7 @@ def HighLevel_EnumDeclOp
   let assemblyFormat = [{ $name attr-dict `:` $type $constants }];
 }
 
-def HighLevel_RecordDeclOp 
+def HighLevel_RecordDeclOp
   : HighLevel_Op< "record", [NoSideEffect, NoTerminator, VastSymbol] >
   , Arguments<(ins StrAttr:$name)>
 {
@@ -139,7 +139,7 @@ def HighLevel_RecordDeclOp
   let assemblyFormat = [{ $name attr-dict `:` $fields }];
 }
 
-def HighLevel_FieldDeclOp 
+def HighLevel_FieldDeclOp
   : HighLevel_Op< "field", [NoSideEffect, VastSymbol] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
 {
@@ -149,7 +149,7 @@ def HighLevel_FieldDeclOp
   let assemblyFormat = [{ $name attr-dict `:` $type }];
 }
 
-def HighLevel_RecordMemberOp 
+def HighLevel_RecordMemberOp
   : HighLevel_Op< "member" >
   // TODO(Heno): add type constraints
   , Arguments<(ins LValueOf<AnyType>:$record, StrAttr:$name)>
@@ -258,10 +258,10 @@ def HighLevel_ReturnOp
   ];
 }
 
-def HighLevel_DeclRefOp 
+def HighLevel_DeclRefOp
   : HighLevel_Op< "declref", [NoSideEffect, SameOperandsAndResultType] >
   , Arguments<(ins AnyType:$decl)>
-  , Results<(outs AnyType:$result)> 
+  , Results<(outs AnyType:$result)>
 {
   let summary = "VAST variable reference declaration";
   let description = [{ VAST variable reference declaration }];
@@ -269,10 +269,10 @@ def HighLevel_DeclRefOp
   let assemblyFormat = "$decl attr-dict `:` type($decl)";
 }
 
-def HighLevel_EnumRefOp 
+def HighLevel_EnumRefOp
   : HighLevel_Op< "enumref", [NoSideEffect] >
   , Arguments<(ins StrAttr:$value)>
-  , Results<(outs AnyType:$result)> 
+  , Results<(outs AnyType:$result)>
 {
   let summary = "VAST variable reference declaration";
   let description = [{ VAST variable reference declaration }];
@@ -280,7 +280,7 @@ def HighLevel_EnumRefOp
   let assemblyFormat = "$value attr-dict `:` type($result)";
 }
 
-class HighLevel_ConstantOp< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_ConstantOp< string mnemonic, list< Trait > traits = [] >
   : HighLevel_Op< mnemonic, !listconcat(traits, [ConstantLike, NoSideEffect]) >
 {
   let extraClassDeclaration = [{
@@ -505,7 +505,7 @@ def CastKind : CastKindList< "CastKind", "cast kind", [
   MatrixCast
 ] >;
 
-class HighLevel_CastOp< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_CastOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
 {
     let summary = "VAST cast operation";
@@ -542,7 +542,7 @@ def HighLevel_BinAndOp : HighLevel_BinOp<"bin.and", []>;
 def HighLevel_BinLAndOp : HighLevel_BinOp<"bin.land", []>;
 def HighLevel_BinLOrOp : HighLevel_BinOp<"bin.lor", []>;
 
-class HighLevel_ShiftOp< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_ShiftOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
         NoSideEffect, AllTypesMatch<["lhs", "result"]>
     ])>
@@ -566,11 +566,11 @@ class HighLevel_ShiftOp< string mnemonic, list< OpTrait > traits = [] >
 def HighLevel_BinShlOp : HighLevel_ShiftOp<"bin.shl", []>;
 def HighLevel_BinShrOp : HighLevel_ShiftOp<"bin.shr", []>;
 
-class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_CompoundAssignOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
       TypesMatchWith<
         "underlying lvalue type is same as source type",
-        "src", "dst", "LValueType::get( $_ctxt, $_self )" >  
+        "src", "dst", "LValueType::get( $_ctxt, $_self )" >
     ]) >
 {
     let summary = "VAST compound assign operation";
@@ -588,7 +588,7 @@ class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
         dst =<op> src;
     }];
 
-    let arguments = (ins 
+    let arguments = (ins
         LValueOf<AnyType>:$dst, AnyType:$src
     );
 
@@ -614,11 +614,11 @@ def HighLevel_BinAndAssignOp : HighLevel_CompoundAssignOp< "assign.bin.and", []>
 def HighLevel_BinOrAssignOp  : HighLevel_CompoundAssignOp< "assign.bin.or", []>;
 def HighLevel_BinXorAssignOp : HighLevel_CompoundAssignOp< "assign.bin.xor", []>;
 
-class HighLevel_ShiftAssignOp< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_ShiftAssignOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
       TypesMatchWith<
         "underlying lvalue type is same as source type",
-        "src", "dst", "LValueType::get( $_ctxt, $_self )" >  
+        "src", "dst", "LValueType::get( $_ctxt, $_self )" >
     ]) >
 {
     let summary = "VAST compound shift assign operation";
@@ -635,7 +635,7 @@ class HighLevel_ShiftAssignOp< string mnemonic, list< OpTrait > traits = [] >
         dst =<op> src;
     }];
 
-    let arguments = (ins 
+    let arguments = (ins
         LValueOf<IntegerLikeType>:$dst, IntegerLikeType:$src
     );
 
@@ -690,7 +690,7 @@ def HighLevel_MinusOp : HighLevel_TypePreservingUnOp< "minus", [] >;
 def HighLevel_NotOp   : HighLevel_TypePreservingUnOp< "not", [] >;
 def HighLevel_LNotOp  : HighLevel_TypePreservingUnOp< "lnot", [] >;
 
-def HighLevel_AddressOf  
+def HighLevel_AddressOf
   : HighLevel_Op< "addressof", [] >
   // TODO(Heno): parameter constraints
   , Arguments<(ins LValueOf<AnyType>:$value)>
@@ -699,10 +699,10 @@ def HighLevel_AddressOf
     let summary = "VAST addressof operation";
     let description = [{ VAST addressof operation }];
 
-    let assemblyFormat = [{ $value attr-dict `:` type($value) `->` type($result) }];  
+    let assemblyFormat = [{ $value attr-dict `:` type($value) `->` type($result) }];
 }
 
-def HighLevel_Deref   
+def HighLevel_Deref
   : HighLevel_Op< "deref", [] >
   // TODO(Heno): check dereferencable
   , Arguments<(ins AnyType:$addr)>
@@ -711,7 +711,7 @@ def HighLevel_Deref
     let summary = "VAST deref operation";
     let description = [{ VAST deref operation }];
 
-    let assemblyFormat = [{ $addr attr-dict `:` type($addr) `->` type($result) }];  
+    let assemblyFormat = [{ $addr attr-dict `:` type($addr) `->` type($result) }];
 }
 
 def HighLevel_InitListExpr : HighLevel_Op< "initlist",
@@ -744,7 +744,7 @@ def HighLevel_SubscriptOp : HighLevel_Op< "subscript" >
   }];
 }
 
-class HighLevel_TypeTraitOp< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_TypeTraitOp< string mnemonic, list< Trait > traits = [] >
   : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
 {
   let arguments = (ins TypeAttr:$type);
@@ -763,7 +763,7 @@ def HighLevel_AlignOfTypeOp : HighLevel_TypeTraitOp< "alignof.type" > {
   let description = [{ VAST type alignof operator }];
 }
 
-class HighLevel_ExprTraitOp< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_ExprTraitOp< string mnemonic, list< Trait > traits = [] >
   : HighLevel_Op< mnemonic, !listconcat(traits, [RecursiveSideEffects]) >
 {
   let regions = (region SizedRegion<1>:$expr);
