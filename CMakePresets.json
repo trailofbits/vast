@@ -59,7 +59,7 @@
     ],
     "testPresets": [
         {
-            "name": "default",
+            "name": "test-base",
             "hidden": true,
             "configurePreset": "ninja-multi-default",
             "output": {
@@ -72,13 +72,35 @@
             }
         },
         {
+            "name": "default",
+            "hidden": true,
+            "configurePreset": "ninja-multi-default",
+            "inherits": "test-base"
+        },
+        {
             "name": "ninja-rel", "inherits": "default",
-            "displayName": "Test ninja-multi-release",
+            "displayName": "Test ninja-rel",
             "configuration": "Release"
         },
         {
             "name": "ninja-deb", "inherits": "default",
-            "displayName": "Test ninja-multi-debug",
+            "displayName": "Test ninja-deb",
+            "configuration": "Debug"
+        },
+        {
+            "name": "cxx-common-osx",
+            "hidden": true,
+            "configurePreset": "ninja-multi-osx-cxx-common",
+            "inherits": "test-base"
+        },
+        {
+            "name": "cxx-common-osx-rel", "inherits": "cxx-common-osx",
+            "displayName": "Test cxx-common-osx-rel",
+            "configuration": "Release"
+        },
+        {
+            "name": "cxx-common-osx-deb", "inherits": "cxx-common-osx",
+            "displayName": "Test cxx-common-osx-deb",
             "configuration": "Debug"
         }
     ]
