@@ -64,7 +64,7 @@ FindAndSelectClangCompiler()
 #
 # LLVM & MLIR & Clang
 #
-find_package(LLVM 13 REQUIRED CONFIG)
+find_package(LLVM 14 REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
@@ -175,7 +175,7 @@ if (VAST_INSTALL)
     vast
     vast_settings
     vast_translation_api
-    
+
     MLIRHighLevel
 
     VASTSymbolInterface
