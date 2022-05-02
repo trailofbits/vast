@@ -19,7 +19,6 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/BlockAndValueMapping.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/BuiltinOps.h>
-#include <mlir/IR/Identifier.h>
 #include <mlir/IR/Location.h>
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/Support/LLVM.h>
@@ -30,6 +29,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Translation/HighLevelVisitor.hpp"
+#include "vast/Util/Common.hpp"
 
 namespace vast::hl
 {
@@ -47,7 +47,8 @@ namespace vast::hl
                 entries.push_back(e.wrap(mctx));
             ctx.getModule().get()->setAttr(
                 mlir::DLTIDialect::kDataLayoutAttrName,
-                mlir::DataLayoutSpecAttr::get(&mctx, entries));
+                mlir::DataLayoutSpecAttr::get(&mctx, entries)
+            );
         }
 
         void HandleTranslationUnit(clang::ASTContext &) override {
@@ -68,14 +69,14 @@ namespace vast::hl
     static llvm::cl::list< std::string > compiler_args(
         "ccopts", llvm::cl::ZeroOrMore, llvm::cl::desc("Specify compiler options"));
 
-    static mlir::OwningModuleRef from_source_parser(
+    static OwningModuleRef from_source_parser(
         const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx) {
         ctx->loadDialect< HighLevelDialect >();
         ctx->loadDialect< mlir::StandardOpsDialect >();
         ctx->loadDialect< mlir::DLTIDialect >();
         ctx->loadDialect< mlir::scf::SCFDialect >();
 
-        mlir::OwningModuleRef mod(mlir::ModuleOp::create(mlir::FileLineColLoc::get(
+        OwningModuleRef mod(mlir::ModuleOp::create(mlir::FileLineColLoc::get(
             ctx, input->getBufferIdentifier(), /* line */ 0, /* column */ 0)));
 
         auto ast = clang::tooling::buildASTFromCodeWithArgs(input->getBuffer(), compiler_args);
@@ -100,7 +101,7 @@ namespace vast::hl
     mlir::LogicalResult registerFromSourceParser() {
         mlir::TranslateToMLIRRegistration from_source(
             "from-source",
-            [](llvm::SourceMgr &mgr, mlir::MLIRContext *ctx) -> mlir::OwningModuleRef {
+            [](llvm::SourceMgr &mgr, mlir::MLIRContext *ctx) -> OwningModuleRef {
                 assert(mgr.getNumBuffers() == 1 && "expected single input buffer");
                 auto buffer = mgr.getMemoryBuffer(mgr.getMainFileID());
                 return from_source_parser(buffer, ctx);

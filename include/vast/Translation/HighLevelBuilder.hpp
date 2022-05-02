@@ -136,7 +136,7 @@ namespace vast::hl
 
             return decl;
         }
-        
+
         auto declare_enum_constant(EnumConstantOp enum_constant) {
             auto name = enum_constant.name();
             if (auto decl = ctx.enum_constants.lookup(name))
@@ -148,7 +148,7 @@ namespace vast::hl
 
             return enum_constant;
         }
-        
+
         mlir::OpBuilder& get_op_builder() { return builder; }
 
       private:
@@ -158,8 +158,7 @@ namespace vast::hl
             if (loc.isInvalid())
                 return builder.getUnknownLoc();
 
-            auto file = mlir::Identifier::get(loc.getFilename(), &ctx.getMLIRContext());
-            return mlir::FileLineColLoc::get(file, loc.getLine(), loc.getColumn());
+            return mlir::FileLineColLoc::get(&ctx.getMLIRContext(), loc.getFilename(), loc.getLine(), loc.getColumn());
         }
 
         TranslationContext &ctx;
@@ -180,7 +179,7 @@ namespace vast::hl
     };
 
     struct HighLevelScope : ScopedInsertPoint {
-        HighLevelScope(HighLevelBuilder &builder, Location loc) 
+        HighLevelScope(HighLevelBuilder &builder, Location loc)
             : ScopedInsertPoint(builder), loc(loc)
         {
             scope = builder.make< ScopeOp >(loc);

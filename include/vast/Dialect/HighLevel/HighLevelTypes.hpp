@@ -85,8 +85,8 @@ namespace vast::hl
     using Type = mlir::Type;
     using Context = mlir::MLIRContext;
 
-    using DialectParser = mlir::DialectAsmParser;
-    using DialectPrinter = mlir::DialectAsmPrinter;
+    using DialectParser = mlir::AsmParser;
+    using DialectPrinter = mlir::AsmPrinter;
 
     using integer_types = util::type_list<
         CharType, ShortType, IntType, LongType, LongLongType, Int128Type
@@ -147,7 +147,7 @@ namespace vast::hl
     bool isUnsigned(mlir::Type type);
 
     bool isHighLevelType(mlir::Type type);
-    
+
     static inline mlir::Type to_std_float_type(mlir::Type ty) {
         using fty = mlir::FloatType;
         auto ctx = ty.getContext();

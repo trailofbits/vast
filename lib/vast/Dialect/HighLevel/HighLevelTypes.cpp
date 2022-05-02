@@ -209,7 +209,7 @@ namespace vast::hl
         printer << ">";
     }
 
-    Type ConstantArrayType::parse(Context *ctx, DialectParser &parser) {
+    Type ConstantArrayType::parse(DialectParser &parser) {
         if (failed(parser.parseLess())) {
             return Type();
         }
@@ -244,7 +244,7 @@ namespace vast::hl
             return Type();
         }
 
-        return ConstantArrayType::get(ctx, element, size, constness, volatility);
+        return ConstantArrayType::get(parser.getContext(), element, size, constness, volatility);
     }
 
     void ConstantArrayType::print(DialectPrinter &printer) const
@@ -269,34 +269,34 @@ namespace vast::hl
 
 namespace vast::hl
 {
-    Type HighLevelDialect::parseType(DialectParser &parser) const
-    {
-        auto loc = parser.getCurrentLocation();
-        llvm::StringRef mnemonic;
-        if (parser.parseKeyword(&mnemonic))
-            return Type();
+    // Type HighLevelDialect::parseType(DialectParser &parser) const
+    // {
+    //     auto loc = parser.getCurrentLocation();
+    //     llvm::StringRef mnemonic;
+    //     if (parser.parseKeyword(&mnemonic))
+    //         return Type();
 
-        Type result;
-        if (generatedTypeParser(getContext(), parser, mnemonic, result).hasValue()) {
-            return result;
-        }
+    //     Type result;
+    //     if (generatedTypeParser(getContext(), parser, mnemonic, result).hasValue()) {
+    //         return result;
+    //     }
 
-        parser.emitError(loc, "unknown high-level type");
-        return Type();
-    }
+    //     parser.emitError(loc, "unknown high-level type");
+    //     return Type();
+    // }
 
-    void HighLevelDialect::printType(Type type, DialectPrinter &os) const
-    {
-        if (failed(generatedTypePrinter(type, os)))
-            VAST_UNREACHABLE("unexpected high-level type kind");
-    }
+    // void HighLevelDialect::printType(Type type, DialectPrinter &os) const
+    // {
+    //     if (failed(generatedTypePrinter(type, os)))
+    //         VAST_UNREACHABLE("unexpected high-level type kind");
+    // }
 
     template< typename T >
     using walk_fn = llvm::function_ref< void( T ) >;
 
     using walk_types = walk_fn< mlir::Type >;
     using walk_attrs = walk_fn< mlir::Attribute >;
-    
+
     void LValueType::walkImmediateSubElements(walk_attrs, walk_types tys) const {
         tys( this->getElementType() );
     }
@@ -325,7 +325,7 @@ namespace vast::hl
         return { std::move(out), collect(*this, collect) };
     }
 
-    Type NamedType::parse(Context *ctx, DialectParser &parser) {
+    Type NamedType::parse(DialectParser &parser) {
         if (failed(parser.parseLess())) {
             return Type();
         }
@@ -342,7 +342,7 @@ namespace vast::hl
             return Type();
         }
 
-        return NamedType::get(ctx, name);
+        return NamedType::get(parser.getContext(), name);
     }
 
     void NamedType::print(DialectPrinter &printer) const {

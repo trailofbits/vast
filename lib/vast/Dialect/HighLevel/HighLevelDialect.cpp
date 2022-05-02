@@ -32,8 +32,8 @@ namespace vast::hl
         >();
     }
 
-    using DialectParser = mlir::DialectAsmParser;
-    using DialectPrinter = mlir::DialectAsmPrinter;
+    using DialectParser = mlir::AsmParser;
+    using DialectPrinter = mlir::AsmPrinter;
 
     using OpBuilder = mlir::OpBuilder;
     using Operation = mlir::Operation;

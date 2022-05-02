@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/Builders.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Util/Common.hpp"
 #include "vast/Translation/Context.hpp"
 #include "vast/Translation/HighLevelVisitor.hpp"
 
@@ -16,11 +17,11 @@ namespace vast::hl
 {
     using builder_t = mlir::Builder;
 
-    module_owning_ref high_level_codegen::emit_module(clang::Decl* decl) {
+    OwningModuleRef high_level_codegen::emit_module(clang::Decl* decl) {
 
         builder_t bld(ctx);
         auto loc = bld.getUnknownLoc();
-        module_owning_ref mod = module_t::create(loc);
+        OwningModuleRef mod = {Module::create(loc)};
 
         TranslationContext tctx(*ctx, decl->getASTContext(), mod);
 

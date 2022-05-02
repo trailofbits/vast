@@ -23,10 +23,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/Passes.hpp"
+#include "vast/Util/Common.hpp"
 #include "vast/Util/Symbols.hpp"
 
-using context_t      = mlir::MLIRContext;
-using module_t       = mlir::OwningModuleRef;
 using memory_buffer  = std::unique_ptr< llvm::MemoryBuffer >;
 using logical_result = mlir::LogicalResult;
 
@@ -108,17 +107,17 @@ namespace vast::query
     auto show_name(vast_symbol_interface value) {
         return value.getSymbolName();
     }
-    
+
     auto show_name(mlir_symbol_interface value) {
         return value.getName();
     }
-    
+
     void show_value(auto value) {
         llvm::outs() << value->getName()
             << " : " << show_name(value)
             << " : " << value.getLoc() << "\n";
     }
-    
+
     logical_result do_show_symbols(auto scope) {
         auto &show_kind = cl::options->show_symbols;
 
@@ -158,7 +157,7 @@ namespace vast::query
             yield(user);
         }
     };
-    
+
     void yield_symbol_users(mlir_symbol_interface op, auto scope, auto yield) {
         if (auto users = op.getSymbolUses(scope)) {
             for (auto use : users.getValue()) {
@@ -166,14 +165,14 @@ namespace vast::query
             }
         }
     };
-    
+
     void yield_users(llvm::StringRef symbol, auto scope, auto yield) {
         auto filter_symbols = [&] (auto op) {
             if (show_name(op) == symbol) {
                 yield_symbol_users(op, scope, yield);
             }
         };
-        
+
         util::symbols(scope, filter_symbols);
     }
 
@@ -195,7 +194,7 @@ namespace vast
         return mlir::SymbolTable::lookupSymbolIn(parent, scope_name);
     }
 
-    logical_result do_query(context_t &ctx, memory_buffer buffer) {
+    logical_result do_query(MContext &ctx, memory_buffer buffer) {
         llvm::SourceMgr source_mgr;
         source_mgr.AddNewSourceBuffer(std::move(buffer), llvm::SMLoc());
 
@@ -206,13 +205,13 @@ namespace vast
         bool wasThreadingEnabled = ctx.isMultithreadingEnabled();
         ctx.disableMultithreading();
 
-        mlir::OwningModuleRef mod(mlir::parseSourceFile(source_mgr, &ctx));
+        OwningModuleRef mod(mlir::parseSourceFile(source_mgr, &ctx));
         ctx.enableMultithreading(wasThreadingEnabled);
 
         if (!mod) {
             return mlir::failure();
         }
-        
+
         mlir::Operation *scope = mod.get();
         if (query::constrained_scope()) {
             scope = get_scope_operation(scope, cl::options->scope_name);
@@ -232,7 +231,7 @@ namespace vast
         return mlir::success();
     }
 
-    logical_result run(context_t &ctx) {
+    logical_result run(MContext &ctx) {
         std::string err;
         if (auto input = mlir::openInputFile(cl::options->input_file, &err))
             return do_query(ctx, std::move(input));
@@ -251,7 +250,7 @@ int main(int argc, char **argv) {
     vast::registerAllDialects(registry);
     mlir::registerAllDialects(registry);
 
-    context_t ctx(registry);
+    vast::MContext ctx(registry);
     ctx.loadAllAvailableDialects();
 
     std::exit(failed(vast::run(ctx)));
