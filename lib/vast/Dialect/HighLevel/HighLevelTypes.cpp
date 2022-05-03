@@ -12,32 +12,6 @@ VAST_RELAX_WARNINGS
 
 namespace vast::hl
 {
-    Type parse_lvalue_type(Context *ctx, DialectParser &parser) {
-        if (failed(parser.parseLess())) {
-            return Type();
-        }
-
-        Type value;
-        if (failed(parser.parseType(value))) {
-            auto loc = parser.getCurrentLocation();
-            parser.emitError(loc, "expected value type");
-            return Type();
-        }
-
-        if (failed(parser.parseGreater())) {
-            return Type();
-        }
-
-        return LValueType::get(ctx, value);
-    }
-
-    void print_lvalue_type(const LValueType &type, DialectPrinter &printer)
-    {
-        printer << type.getMnemonic() << "<";
-        printer.printType(type.getElementType());
-        printer << ">";
-    }
-
     mlir::FunctionType getFunctionType(PointerType functionPointer)
     {
         return functionPointer.getElementType().cast< mlir::FunctionType >();
@@ -263,6 +237,7 @@ namespace vast::hl
 
 } // namespace vast::hl
 
+using StringRef = llvm::StringRef; // to fix missing namespace in generated file
 
 #define  GET_TYPEDEF_CLASSES
 #include "vast/Dialect/HighLevel/HighLevelTypes.cpp.inc"

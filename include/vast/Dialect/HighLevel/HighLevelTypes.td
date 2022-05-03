@@ -47,17 +47,16 @@ def VoidType : HighLevelType< "Void" > {
   let mnemonic = "void";
 }
 
-def LValue : HighLevelType< "LValue", 
-  [DeclareTypeInterfaceMethods< SubElementTypeInterface >] 
+def LValue : HighLevelType< "LValue",
+  [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
 > {
   let mnemonic = "lvalue";
 
   let parameters = (ins
     "Type":$elementType
   );
-  
-  let parser  = [{ return parse_lvalue_type($_ctxt, parser); }];
-  let printer = [{ return print_lvalue_type(*this, printer); }];
+
+  let assemblyFormat = "`<` $elementType `>`";
 }
 
 class LValueOf<TypeConstraint value> : Type< And< [
