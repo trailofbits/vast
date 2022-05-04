@@ -244,6 +244,8 @@ def NamedType : HighLevelType< "Named" > {
   let parameters = (ins
     "mlir::StringAttr":$name
   );
+
+  let assemblyFormat = "`<` $name `>`";
 }
 
 def SubscriptableType : TypeConstraint<

@@ -244,28 +244,6 @@ using StringRef = llvm::StringRef; // to fix missing namespace in generated file
 
 namespace vast::hl
 {
-    // Type HighLevelDialect::parseType(DialectParser &parser) const
-    // {
-    //     auto loc = parser.getCurrentLocation();
-    //     llvm::StringRef mnemonic;
-    //     if (parser.parseKeyword(&mnemonic))
-    //         return Type();
-
-    //     Type result;
-    //     if (generatedTypeParser(getContext(), parser, mnemonic, result).hasValue()) {
-    //         return result;
-    //     }
-
-    //     parser.emitError(loc, "unknown high-level type");
-    //     return Type();
-    // }
-
-    // void HighLevelDialect::printType(Type type, DialectPrinter &os) const
-    // {
-    //     if (failed(generatedTypePrinter(type, os)))
-    //         VAST_UNREACHABLE("unexpected high-level type kind");
-    // }
-
     template< typename T >
     using walk_fn = llvm::function_ref< void( T ) >;
 
@@ -298,30 +276,6 @@ namespace vast::hl
             return t.getElementType();
         };
         return { std::move(out), collect(*this, collect) };
-    }
-
-    Type NamedType::parse(DialectParser &parser) {
-        if (failed(parser.parseLess())) {
-            return Type();
-        }
-
-        mlir::StringAttr name;
-        // TODO(Heno): use parseSymbolName from MLIR 14
-        if (failed(parser.parseAttribute(name))) {
-            auto loc = parser.getCurrentLocation();
-            parser.emitError(loc, "expected type name symbol");
-            return Type();
-        }
-
-        if (failed(parser.parseGreater())) {
-            return Type();
-        }
-
-        return NamedType::get(parser.getContext(), name);
-    }
-
-    void NamedType::print(DialectPrinter &printer) const {
-        printer << getMnemonic() << "<" << getName() << ">";
     }
 
 } // namespace vast::hl
