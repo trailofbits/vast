@@ -86,8 +86,6 @@ namespace vast::hl
     template< typename CVType >
     void print_cv_type(const CVType &type, DialectPrinter &printer)
     {
-        printer << type.getMnemonic();
-
         if ( !(type.getIsVolatile() || type.getIsConst()) ) {
             return;
         }
@@ -125,8 +123,6 @@ namespace vast::hl
     template< typename IntegerType >
     void print_integer_type(const IntegerType &type, DialectPrinter &printer)
     {
-        printer << type.getMnemonic();
-
         if ( !(type.getIsVolatile() || type.getIsConst() || type.getIsUnsigned()) ) {
             return;
         }
@@ -171,7 +167,7 @@ namespace vast::hl
 
     void print_pointer_type(const PointerType &type, DialectPrinter &printer)
     {
-        printer << type.getMnemonic() << "<";
+        printer << "<";
         printer.printType(type.getElementType());
 
         if ( type.getIsVolatile() || type.getIsConst() ) {
@@ -223,7 +219,7 @@ namespace vast::hl
 
     void ConstantArrayType::print(DialectPrinter &printer) const
     {
-        printer << getMnemonic() << "<" << getSize() << ", ";
+        printer << "<" << getSize() << ", ";
         printer.printType(getElementType());
 
         if ( getIsVolatile() || getIsConst() ) {
