@@ -36,7 +36,7 @@ namespace vast::hl
     using FoldResult = mlir::OpFoldResult;
 
     static void printConstantOp(Printer &printer, auto &op) {
-        printer << op.getOperationName() << " ";
+        printer << " ";
         printer.printAttributeWithoutType(op.getValue());
         printer << " : ";
         printer.printType(op.getType());
@@ -170,7 +170,7 @@ namespace vast::hl
 
     void VarDecl::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback init) {
         st.addAttribute("name", bld.getStringAttr(name));
-        
+
         Builder::InsertionGuard guard(bld);
         detail::build_region(bld, st, init);
 
