@@ -35,13 +35,7 @@ jobs:
           llvm_pkg: 'x86_64-linux-gnu-ubuntu-18.04',
         }
 
-        - {
-          name: 'macos',
-          os: macos-11,
-          arch: 'x86_64',
-          llvm_pkg: 'x86_64-apple-darwin'
-        }
-        llvm: [ '13.0.1' ]
+        llvm: [ '14.0.0' ]
 
     timeout-minutes: 20
 
