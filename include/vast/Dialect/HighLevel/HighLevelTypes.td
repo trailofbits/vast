@@ -238,7 +238,7 @@ def ConstantArrayType : HighLevelType< "ConstantArray",
   }];
 }
 
-def NamedType : HighLevelType< "Named" > {
+def NamedType : HighLevelType< "Named", [MemRefElementTypeInterface] > {
   let mnemonic = "named_type";
 
   let parameters = (ins
