@@ -129,17 +129,29 @@ namespace vast::hl
             return {};
         }
 
+        auto int_type(unsigned bitwidth)
+        {
+            return mlir::IntegerType::get(&this->mctx, bitwidth);
+        }
+
         auto convert_type() { return [&](auto t) { return this->convert_type(t); }; }
         auto convert_type_to_type()
         {
             return [&](auto t) { return this->convert_type_to_type(t); };
         }
+        auto convert_pointer_element_typee()
+        {
+            return [&](auto t) -> maybe_type_t {
+                if (t.template isa< hl::VoidType >()) {
+                    return int_type(8u);
+                }
+                return this->convert_type_to_type(t);
+            };
+        }
 
         auto make_int_type()
         {
-            return [&](auto t) {
-                return mlir::IntegerType::get(&this->mctx, dl.getTypeSizeInBits(t));
-            };
+            return [&](auto t) { return int_type(dl.getTypeSizeInBits(t)); };
         }
 
         auto make_float_type()
@@ -200,7 +212,7 @@ namespace vast::hl
 
         maybe_type_t convert_ptr_type(hl::PointerType t)
         {
-            return Maybe(t.getElementType()).and_then(convert_type_to_type())
+            return Maybe(t.getElementType()).and_then(convert_pointer_element_typee())
                                             .unwrap()
                                             .and_then(make_ptr_type())
                                             .take_wrapped< maybe_type_t >();
