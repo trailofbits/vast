@@ -5,6 +5,16 @@
 
 include "mlir/Pass/PassBase.td"
 
+def LLVMDump : Pass<"vast-llvm-dump", "mlir::ModuleOp"> {
+  let summary = "Pass for developers to quickly dump module as llvm ir.";
+  let description = [{
+    Lowers module into llvm IR and dumps it on stderr.
+  }];
+
+  let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::hl::HighLevelDialect"];
+  let constructor = "vast::hl::createLLVMDumpPass()";
+}
+
 def LowerHighLevelTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
   let summary = "Lower high-level types to standard types";
   let description = [{
@@ -45,7 +55,7 @@ def StructsToTuples : Pass<"vast-hl-structs-to-tuples", "mlir::ModuleOp"> {
   let dependentDialects = ["mlir::LLVM::LLVMDialect"];
 }
 
-def LowerHighLevelControlFlow : Pass<"vast-hl-lower-cf"> {
+def LowerHighLevelControlFlow : Pass<"vast-hl-lower-cf", "mlir::ModuleOp"> {
   let summary = "Lower control flow constructs into SCF.";
   let description = [{
     Pass lowers high-level control flow constructs (such as `IfOp` for example) to their
@@ -55,6 +65,7 @@ def LowerHighLevelControlFlow : Pass<"vast-hl-lower-cf"> {
     This pass is still a work in progress.
   }];
 
+  let dependentDialects = ["mlir::scf::SCFDialect", "mlir::LLVM::LLVMDialect"];
   let constructor = "vast::hl::createLowerHighLevelControlFlowPass()";
 }
 
