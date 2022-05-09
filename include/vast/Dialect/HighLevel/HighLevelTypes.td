@@ -34,13 +34,13 @@ class DefaultDLTypeInterface {
   }];
 }
 
-def WithDL : DefaultDLTypeInterface;
-
 class HighLevelType< string name, list<Trait> traits = []>
-  : TypeDef< HighLevel_Dialect, name ,
-             !listconcat(traits, [DataLayoutTypeInterface]) >
+  : TypeDef< HighLevel_Dialect, name,
+    !listconcat(traits, [DataLayoutTypeInterface])
+  >
+  , DefaultDLTypeInterface
 {
-    let extraClassDeclaration = WithDL.default_dl_interface_impl;
+  let extraClassDeclaration = default_dl_interface_impl;
 }
 
 def VoidType : HighLevelType< "Void" > {
@@ -63,7 +63,7 @@ class LValueOf<TypeConstraint value> : Type< And< [
     LValue.predicate,
     SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()", value.predicate >
   ] >,
-    "lvalue to " # value.summary
+  "lvalue to " # value.summary
 >;
 
 class CVQualified< string name, string mnem, list<Trait> traits = []>
@@ -76,7 +76,7 @@ class CVQualified< string name, string mnem, list<Trait> traits = []>
     "bool":$isVolatile
   );
 
-  let extraClassDeclaration = WithDL.default_dl_interface_impl #
+  let extraClassDeclaration = default_dl_interface_impl #
   [{
     bool isConst() const { return this->getIsConst(); }
     bool isVolatile() const { return this->getIsVolatile(); }
@@ -116,7 +116,7 @@ class IntegerType< string name, string mnem, list<Trait> traits = []>
     "bool":$isVolatile
   );
 
-  let extraClassDeclaration = WithDL.default_dl_interface_impl #
+  let extraClassDeclaration = default_dl_interface_impl #
   [{
     bool isUnsigned() const { return this->getIsUnsigned(); }
     bool isSigned() const { return !this->isUnsigned(); }
@@ -182,9 +182,9 @@ def FloatLikeType : TypeConstraint<
 >;
 
 def PointerType : HighLevelType< "Pointer",
-                                 [DeclareTypeInterfaceMethods< SubElementTypeInterface >,
-                                  MemRefElementTypeInterface]>
-{
+  [ DeclareTypeInterfaceMethods< SubElementTypeInterface >
+  , MemRefElementTypeInterface ]
+> {
   let mnemonic = "ptr";
 
   let parameters = (ins
@@ -193,7 +193,7 @@ def PointerType : HighLevelType< "Pointer",
     "bool":$isVolatile
   );
 
-  let extraClassDeclaration = WithDL.default_dl_interface_impl #
+  let extraClassDeclaration = default_dl_interface_impl #
   [{
     bool isConst() const { return this->getIsConst(); }
     bool isVolatile() const { return this->getIsVolatile(); }
@@ -213,9 +213,23 @@ def PointerType : HighLevelType< "Pointer",
   let printer = [{ return print_pointer_type(*this, printer); }];
 }
 
+class WithDimensionsClass
+{
+  code default_dimensions_impl = [{
+    using dimensions_t = std::vector< uint32_t >;
+
+    std::tuple< dimensions_t, mlir::Type > dim_and_type();
+
+    dimensions_t dimensions() { return std::get< 0 >(dim_and_type()); }
+  }];
+}
+
 def ConstantArrayType : HighLevelType< "ConstantArray",
-                        [DeclareTypeInterfaceMethods< SubElementTypeInterface >,
-                         MemRefElementTypeInterface]> {
+    [ DeclareTypeInterfaceMethods< SubElementTypeInterface >
+    , MemRefElementTypeInterface ]
+  >
+  , WithDimensionsClass
+{
   let mnemonic = "const.array";
 
   let parameters = (ins
@@ -225,13 +239,10 @@ def ConstantArrayType : HighLevelType< "ConstantArray",
     "bool":$isVolatile
   );
 
-  let extraClassDeclaration = WithDL.default_dl_interface_impl #
+  let extraClassDeclaration =
+    default_dl_interface_impl #
+    default_dimensions_impl #
   [{
-    using dimensions_t = std::vector< uint32_t >;
-    std::tuple< dimensions_t, mlir::Type > dim_and_type();
-
-    dimensions_t dimensions() { return std::get< 0 >(dim_and_type()); }
-
     bool isConst() const { return this->getIsConst(); }
     bool isVolatile() const { return this->getIsVolatile(); }
     uint32_t getNumElems() const { return this->getSize().getLimitedValue(); }
