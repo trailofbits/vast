@@ -108,7 +108,7 @@ namespace vast::hl
             // Use provided data layout to get the correct type.
             addConversion([&](hl::PointerType t) { return this->convert_ptr_type(t); });
             addConversion([&](mlir::FunctionType t) { return this->convert_fn_type(t); });
-            addConversion([&](hl::ConstantArrayType t) {
+            addConversion([&](hl::ArrayType t) {
                     return this->convert_const_arr_type(t);
             });
             // TODO(lukas): This one is tricky, because ideally `hl.void` is "no value".
@@ -232,16 +232,17 @@ namespace vast::hl
                                             .take_wrapped< maybe_type_t >();
         }
 
-        maybe_type_t convert_const_arr_type(hl::ConstantArrayType t)
+        maybe_type_t convert_const_arr_type(hl::ArrayType t)
         {
-            auto [dim, nested_ty] = t.dim_and_type();
-            std::vector< int64_t > coerced_dim;
-            for (auto x : dim)
-                coerced_dim.push_back(static_cast< int64_t >(x));
+            return {};
+            // auto [dim, nested_ty] = t.dim_and_type();
+            // std::vector< int64_t > coerced_dim;
+            // for (auto x : dim)
+            //     coerced_dim.push_back(static_cast< int64_t >(x));
 
-            return Maybe(convert_type_to_type(nested_ty))
-                    .and_then([&](auto t) { return mlir::MemRefType::get({coerced_dim}, *t); })
-                    .take_wrapped< maybe_type_t >();
+            // return Maybe(convert_type_to_type(nested_ty))
+            //         .and_then([&](auto t) { return mlir::MemRefType::get({coerced_dim}, *t); })
+            //         .take_wrapped< maybe_type_t >();
         }
 
         maybe_type_t convert_fn_type(mlir::FunctionType t)

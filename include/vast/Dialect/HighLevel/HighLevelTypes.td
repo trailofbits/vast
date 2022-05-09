@@ -8,7 +8,7 @@ include "mlir/IR/SubElementInterfaces.td"
 include "mlir/IR/BuiltinTypeInterfaces.td"
 
 // NOTE(lukas): I have no idea how to do this both in a sane way and in tablegen
-class DefaultDLTypeInterface {
+class WithDefaultDLTypeInterface {
   code default_dl_interface_impl = [{
     using dl_t = mlir::DataLayout;
     using dl_entries_ref = mlir::DataLayoutEntryListRef;
@@ -38,7 +38,7 @@ class HighLevelType< string name, list<Trait> traits = []>
   : TypeDef< HighLevel_Dialect, name,
     !listconcat(traits, [DataLayoutTypeInterface])
   >
-  , DefaultDLTypeInterface
+  , WithDefaultDLTypeInterface
 {
   let extraClassDeclaration = default_dl_interface_impl;
 }
@@ -224,29 +224,24 @@ class WithDimensionsClass
   }];
 }
 
-def ConstantArrayType : HighLevelType< "ConstantArray",
+def ArrayType :
+  HighLevelType< "Array",
     [ DeclareTypeInterfaceMethods< SubElementTypeInterface >
     , MemRefElementTypeInterface ]
   >
   , WithDimensionsClass
 {
-  let mnemonic = "const.array";
+  let mnemonic = "array";
 
   let parameters = (ins
-    "Type":$elementType,
-    "llvm::APInt":$size,
-    "bool":$isConst,
-    "bool":$isVolatile
+    "Type":$elementType
   );
 
   let extraClassDeclaration =
     default_dl_interface_impl #
-    default_dimensions_impl #
-  [{
-    bool isConst() const { return this->getIsConst(); }
-    bool isVolatile() const { return this->getIsVolatile(); }
-    uint32_t getNumElems() const { return this->getSize().getLimitedValue(); }
-  }];
+    default_dimensions_impl;
+
+  let assemblyFormat = "`<` $elementType `>`";
 }
 
 def NamedType : HighLevelType< "Named", [MemRefElementTypeInterface] > {
@@ -260,7 +255,7 @@ def NamedType : HighLevelType< "Named", [MemRefElementTypeInterface] > {
 }
 
 def SubscriptableType : TypeConstraint<
-  Or< [ConstantArrayType.predicate, PointerType.predicate] >,
+  Or< [ArrayType.predicate, PointerType.predicate] >,
   "array like type"
 >;
 

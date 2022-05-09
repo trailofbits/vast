@@ -182,57 +182,6 @@ namespace vast::hl
         printer << ">";
     }
 
-    Type ConstantArrayType::parse(DialectParser &parser) {
-        if (failed(parser.parseLess())) {
-            return Type();
-        }
-
-        llvm::APInt size;
-        if (failed(parser.parseInteger(size))) {
-            auto loc = parser.getCurrentLocation();
-            parser.emitError(loc, "expected array size");
-            return Type();
-        }
-
-        if (parser.parseComma()) {
-            auto loc = parser.getCurrentLocation();
-            parser.emitError(loc, "expected comma after size");
-            return Type();
-        }
-
-        Type element;
-        if (failed(parser.parseType(element))) {
-            auto loc = parser.getCurrentLocation();
-            parser.emitError(loc, "expected array element type");
-            return Type();
-        }
-
-        bool constness = false, volatility = false;
-        if (succeeded(parser.parseOptionalComma())) {
-            constness = succeeded(parser.parseOptionalKeyword("const"));
-            volatility = succeeded(parser.parseOptionalKeyword("volatile"));
-        }
-
-        if (failed(parser.parseGreater())) {
-            return Type();
-        }
-
-        return ConstantArrayType::get(parser.getContext(), element, size, constness, volatility);
-    }
-
-    void ConstantArrayType::print(DialectPrinter &printer) const
-    {
-        printer << "<" << getSize() << ", ";
-        printer.printType(getElementType());
-
-        if ( getIsVolatile() || getIsConst() ) {
-            printer << ",";
-            if (isConst())    { printer << " const"; }
-            if (isVolatile()) { printer << " volatile"; }
-        }
-
-        printer << ">";
-    }
 
 } // namespace vast::hl
 
@@ -257,24 +206,9 @@ namespace vast::hl
         tys( this->getElementType() );
     }
 
-    void ConstantArrayType::walkImmediateSubElements(walk_attrs, walk_types tys) const {
+    void ArrayType::walkImmediateSubElements(walk_attrs, walk_types tys) const {
         tys( this->getElementType() );
     }
 
-    // TODO(lukas): Generalize and pull into header as it will probably be needed
-    //              for all other array types as well.
-    auto ConstantArrayType::dim_and_type() -> std::tuple< dimensions_t, mlir::Type >
-    {
-        dimensions_t out;
-        // If this ever is generalised investigate if `SubElementTypeInterface` can be used
-        // do this recursion?
-        auto collect = [&](ConstantArrayType t, auto &fwd) -> mlir::Type {
-            out.push_back(t.getNumElems());
-            if (auto c_array = t.getElementType().dyn_cast< ConstantArrayType >())
-                return fwd(c_array, fwd);
-            return t.getElementType();
-        };
-        return { std::move(out), collect(*this, collect) };
-    }
 
 } // namespace vast::hl

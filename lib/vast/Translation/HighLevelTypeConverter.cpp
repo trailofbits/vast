@@ -136,8 +136,8 @@ namespace vast::hl
         if (ty->isEnumeralType())
             return do_convert(clang::cast< clang::EnumType >(ty), quals);
 
-        if (ty->isConstantArrayType())
-            return do_convert(clang::cast< clang::ConstantArrayType >(ty), quals);
+        if (ty->isArrayType())
+            return do_convert(clang::cast< clang::ArrayType >(ty), quals);
 
         if (ty->isFunctionType())
             return convert(clang::cast< clang::FunctionType >(ty));
@@ -206,11 +206,9 @@ namespace vast::hl
         return NamedType::get(mctx, mlir::StringAttr::get(mctx, name));
     }
 
-    Type HighLevelTypeConverter::do_convert(const clang::ConstantArrayType *ty, Quals quals) {
+    Type HighLevelTypeConverter::do_convert(const clang::ArrayType *ty, Quals quals) {
         auto element_type = convert(ty->getElementType());
-        auto size = ty->getSize();
-        return ConstantArrayType::get(
-            &ctx.getMLIRContext(), element_type, size, quals.hasConst(), quals.hasVolatile());
+        return ArrayType::get(&ctx.getMLIRContext(), element_type);
     }
 
     mlir::FunctionType HighLevelTypeConverter::convert(const clang::FunctionType *ty) {

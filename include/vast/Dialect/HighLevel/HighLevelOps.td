@@ -328,7 +328,7 @@ def HighLevel_ConstantFloatOp : HighLevel_ConstantOp< "constant.float" >
 
 def HighLevel_ConstantArrayOp : HighLevel_ConstantOp< "constant.array" >
   , Arguments<(ins ArrayAttr:$value)>
-  , Results<(outs ConstantArrayType:$result)>
+  , Results<(outs ArrayType:$result)>
 {
   let summary = "VAST constant array";
   let description = [{ VAST constant array }];
@@ -336,7 +336,7 @@ def HighLevel_ConstantArrayOp : HighLevel_ConstantOp< "constant.array" >
 
 def HighLevel_ConstantStringOp : HighLevel_ConstantOp< "constant.string" >
   , Arguments<(ins StrAttr:$value)>
-  , Results<(outs ConstantArrayType:$result)>
+  , Results<(outs ArrayType:$result)>
 {
   let summary = "VAST constant string";
   let description = [{ VAST constant string }];
