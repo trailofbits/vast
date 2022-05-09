@@ -101,7 +101,7 @@ namespace vast::hl
         util::type_list< BoolType >, integer_types, floating_types
     >;
 
-    using composite_types = util::type_list< ConstantArrayType, PointerType >;
+    using composite_types = util::type_list< ArrayType, PointerType >;
 
     using high_level_types = util::concat<
         scalar_types, composite_types, util::type_list< VoidType >

@@ -303,7 +303,7 @@ namespace vast::hl
             return builder.create< ConstantFloatOp >(loc, type, value.cast< mlir::FloatAttr >());
         }
 
-        if (type.isa< ConstantArrayType >()) {
+        if (type.isa< ArrayType >()) {
             return builder.create< ConstantArrayOp >(loc, type, value.cast< mlir::ArrayAttr >());
         }
 

@@ -107,9 +107,9 @@ namespace vast::hl
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::StringRef value) {
-            VAST_CHECK(ty.isa< ConstantArrayType >(), "string constant must have array type");
+            VAST_CHECK(ty.isa< ArrayType >(), "string constant must have array type");
             auto attr = mlir::StringAttr::get(value, ty);
-            return make< ConstantStringOp >(loc, ty.cast< ConstantArrayType >(), attr);
+            return make< ConstantStringOp >(loc, ty.cast< ArrayType >(), attr);
         }
 
         auto declare_type(mlir::Location loc, llvm::StringRef name) {
