@@ -153,7 +153,7 @@ namespace vast::hl
             using Base::Base;
 
             mlir::LogicalResult matchAndRewrite(
-                    mlir::FuncOp func_op, mlir::ArrayRef< mlir::Value > ops,
+                    mlir::FuncOp func_op, mlir::FuncOp::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
                 auto tc = this->getTypeConverter();
@@ -176,7 +176,7 @@ namespace vast::hl
                             new_arg_attrs[mapping->inputNo + j] = original_arg_attr[i];
                     }
                     new_attrs.push_back(rewriter.getNamedAttr(
-                                mlir::function_like_impl::getArgDictAttrName(),
+                                mlir::FunctionOpInterface::getArgDictAttrName(),
                                 rewriter.getArrayAttr(new_arg_attrs)));
                 }
                 // TODO(lukas): Linkage?
@@ -201,16 +201,15 @@ namespace vast::hl
             using Base::Base;
 
             mlir::LogicalResult matchAndRewrite(
-                    hl::ConstantIntOp op, mlir::ArrayRef< mlir::Value > ops,
+                    hl::ConstantIntOp op, hl::ConstantIntOp::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
-                rewriter.replaceOp(op, {make_from(op, ops, rewriter, this->type_converter())});
+                rewriter.replaceOp(op, {make_from(op, rewriter, this->type_converter())});
                 return mlir::success();
             }
 
             static LLVM::ConstantOp make_from(
                     hl::ConstantIntOp op,
-                    mlir::ArrayRef< mlir::Value > ops,
                     mlir::ConversionPatternRewriter &rewriter,
                     auto &&tc)
             {
@@ -228,10 +227,10 @@ namespace vast::hl
             using Base::Base;
 
             mlir::LogicalResult matchAndRewrite(
-                    hl::ReturnOp ret_op, mlir::ArrayRef< mlir::Value > ops,
+                    hl::ReturnOp ret_op, hl::ReturnOp::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
-                rewriter.create< LLVM::ReturnOp >(ret_op.getLoc(), ops[0]);
+                rewriter.create< LLVM::ReturnOp >(ret_op.getLoc(), ops.getOperands()[0]);
                 rewriter.eraseOp(ret_op);
                 return mlir::success();
             }
@@ -303,7 +302,7 @@ namespace vast::hl
             }
 
             mlir::LogicalResult matchAndRewrite(
-                    hl::VarDecl var_op, mlir::ArrayRef< mlir::Value > ops,
+                    hl::VarDecl var_op, hl::VarDecl::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
                 auto ptr_type = type_converter().convertType(var_op.getType());
@@ -337,12 +336,12 @@ namespace vast::hl
             using Base::Base;
 
             mlir::LogicalResult matchAndRewrite(
-                        hl::ImplicitCastOp op, mlir::ArrayRef< mlir::Value > ops,
+                        hl::ImplicitCastOp op, hl::ImplicitCastOp::Adaptor ops,
                         mlir::ConversionPatternRewriter &rewriter) const override
             {
                 if (op.kind() == hl::CastKind::LValueToRValue)
                 {
-                    auto loaded = rewriter.create< LLVM::LoadOp >(op.getLoc(), ops[0]);
+                    auto loaded = rewriter.create< LLVM::LoadOp >(op.getLoc(), ops.getOperands()[0]);
                     rewriter.replaceOp(op, {loaded});
                     return mlir::success();
                 }
@@ -358,11 +357,11 @@ namespace vast::hl
             using Base::Base;
 
             mlir::LogicalResult matchAndRewrite(
-                        Src op, mlir::ArrayRef< mlir::Value > ops,
+                        Src op, typename Src::Adaptor ops,
                         mlir::ConversionPatternRewriter &rewriter) const override
             {
                 auto trg_ty = this->type_converter().convert_type_to_type(op.getType());
-                auto new_op = rewriter.create< Trg >(op.getLoc(), *trg_ty, ops);
+                auto new_op = rewriter.create< Trg >(op.getLoc(), *trg_ty, ops.getOperands());
                 rewriter.replaceOp(op, {new_op});
                 return mlir::success();
             }
@@ -378,9 +377,10 @@ namespace vast::hl
             using Base::Base;
 
             mlir::LogicalResult matchAndRewrite(
-                        Src op, mlir::ArrayRef< mlir::Value > ops,
+                        Src op, typename Src::Adaptor ops_,
                         mlir::ConversionPatternRewriter &rewriter) const override
             {
+                auto ops = ops_.getOperands();
                 auto alloca = ops[0];
 
                 std::vector< mlir::Value > m_ops{ ops.begin(), ops.end() };
@@ -406,10 +406,10 @@ namespace vast::hl
             using Base::Base;
 
             mlir::LogicalResult matchAndRewrite(
-                        Src op, mlir::ArrayRef< mlir::Value > ops,
+                        Src op, typename Src::Adaptor ops,
                         mlir::ConversionPatternRewriter &rewriter) const override
             {
-                rewriter.replaceOp(op, ops);
+                rewriter.replaceOp(op, ops.getOperands());
                 return mlir::success();
             }
         };
