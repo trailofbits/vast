@@ -347,27 +347,11 @@ namespace vast::hl
             VAST_CHECK(mlir::succeeded(status), "Was not able to type convert.");
 
             // We just change type, no need to copy everything
-            auto lower_op = [&]() {
-                if (!mlir::isa< mlir::FuncOp >(op))
-                    for (std::size_t i = 0; i < rty.size(); ++i)
-                        op->getResult(i).setType(rty[i]);
-
-                // TODO(lukas): Investigate if moving to separate pattern is better
-                //              way to do this.
-                // TODO(lukas): Other operations that can have block arguments.
-                if (auto fn = mlir::dyn_cast_or_null< mlir::FuncOp >(op))
-                {
-                    mlir::TypeConverter::SignatureConversion sigconvert(fn.getNumArguments());
-                    convertFunctionSignature(getAttrConverter().tc,
-                                             fn.getType(), false, sigconvert);
-                    if (mlir::failed(rewriter.convertRegionTypes(&fn.getBody(),
-                                                                 *getTypeConverter(),
-                                                                 &sigconvert)))
-                    {
-                        VAST_UNREACHABLE("Cannot handle failure to update block types.");
-                    }
-                }
-                // For example return type of function can be encoded in attributes
+            auto lower_op = [&]()
+            {
+                for (std::size_t i = 0; i < rty.size(); ++i)
+                    op->getResult(i).setType(rty[i]);
+                // Return types can be encoded as attrs.
                 lower_attrs(op);
             };
             // It has to be done in one "transaction".
@@ -386,8 +370,21 @@ namespace vast::hl
                 mlir::Operation *op, mlir::ArrayRef< mlir::Value > ops,
                 mlir::ConversionPatternRewriter &rewriter) const override
         {
-            if (!mlir::isa< mlir::FuncOp >(op))
+            auto fn = mlir::dyn_cast< mlir::FuncOp >(op);
+            if (!fn)
                 return mlir::failure();
+
+            auto sigconvert = get_fn_signature(*getTypeConverter(), fn, false);
+            if (!sigconvert)
+                return mlir::failure();
+
+            if (mlir::failed(rewriter.convertRegionTypes(&fn.getBody(),
+                                                         *getTypeConverter(),
+                                                         &*sigconvert)))
+            {
+                VAST_UNREACHABLE("Cannot handle failure to update block types.");
+            }
+
             return mlir::failure();
         }
     };
