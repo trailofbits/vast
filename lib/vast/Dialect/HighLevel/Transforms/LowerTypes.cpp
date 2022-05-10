@@ -279,51 +279,18 @@ namespace vast::hl
         }
     };
 
-    // `ConversionPattern` provides methods that can use `TypeConverter`, which
-    // other patterns do not.
-    struct LowerHLTypePattern : mlir::ConversionPattern
+    struct LowerHLTypePatternBase : mlir::ConversionPattern
     {
         AttributeConverter &_attribute_converter;
 
-        LowerHLTypePattern(TypeConverter &tc, AttributeConverter &ac, mlir::MLIRContext *mctx)
+        LowerHLTypePatternBase(TypeConverter &tc,
+                               AttributeConverter &ac,
+                               mlir::MLIRContext *mctx)
             : mlir::ConversionPattern(tc, mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx),
               _attribute_converter(ac)
         {}
 
         const auto &getAttrConverter() const { return _attribute_converter; }
-
-        // `ops` are remapped operands.
-        // `op` is current operation (with old operands).
-        // `rewriter` is created by mlir when we start conversion.
-        mlir::LogicalResult matchAndRewrite(
-                mlir::Operation *op, mlir::ArrayRef< mlir::Value > ops,
-                mlir::ConversionPatternRewriter &rewriter) const override
-        {
-            mlir::SmallVector< mlir::Type > rty;
-            auto status = this->getTypeConverter()->convertTypes(op->getResultTypes(), rty);
-            // TODO(lukas): How to use `llvm::formatv` with `mlir::Operation *`?
-            VAST_CHECK(mlir::succeeded(status), "Was not able to type convert.");
-
-            // We just change type, no need to copy everything
-            auto lower_op = [&]() {
-                for (std::size_t i = 0; i < rty.size(); ++i)
-                    op->getResult(i).setType(rty[i]);
-
-                // TODO(lukas): Investigate if moving to separate pattern is better
-                //              way to do this.
-                // TODO(lukas): Other operations that can have block arguments.
-                if (auto fn = mlir::dyn_cast_or_null< mlir::FuncOp >(op))
-                    if (mlir::failed(rewriter.convertRegionTypes(&fn.getBody(),
-                                                                 *getTypeConverter())))
-                        VAST_UNREACHABLE("Cannot handle failure to update block types.");
-                // For example return type of function can be encoded in attributes
-                lower_attrs(op);
-            };
-            // It has to be done in one "transaction".
-            rewriter.updateRootInPlace(op, lower_op);
-
-            return mlir::success();
-        }
 
         void lower_attrs(mlir::Operation *op) const
         {
@@ -337,6 +304,71 @@ namespace vast::hl
                     new_attrs.emplace_back(name, value);
             }
             op->setAttrs(new_attrs);
+        }
+    };
+
+    // `ConversionPattern` provides methods that can use `TypeConverter`, which
+    // other patterns do not.
+    struct LowerGenericOpType : LowerHLTypePatternBase
+    {
+        using Base = LowerHLTypePatternBase;
+        using Base::Base;
+
+        mlir::LogicalResult matchAndRewrite(
+                mlir::Operation *op, mlir::ArrayRef< mlir::Value > ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
+        {
+            if (mlir::isa< mlir::FuncOp >(op))
+                return mlir::failure();
+
+            mlir::SmallVector< mlir::Type > rty;
+            auto status = this->getTypeConverter()->convertTypes(op->getResultTypes(), rty);
+            // TODO(lukas): How to use `llvm::formatv` with `mlir::Operation *`?
+            VAST_CHECK(mlir::succeeded(status), "Was not able to type convert.");
+
+            // We just change type, no need to copy everything
+            auto lower_op = [&]() {
+                if (!mlir::isa< mlir::FuncOp >(op))
+                    for (std::size_t i = 0; i < rty.size(); ++i)
+                        op->getResult(i).setType(rty[i]);
+
+                // TODO(lukas): Investigate if moving to separate pattern is better
+                //              way to do this.
+                // TODO(lukas): Other operations that can have block arguments.
+                if (auto fn = mlir::dyn_cast_or_null< mlir::FuncOp >(op))
+                {
+                    mlir::TypeConverter::SignatureConversion sigconvert(fn.getNumArguments());
+                    convertFunctionSignature(getAttrConverter().tc,
+                                             fn.getType(), false, sigconvert);
+                    if (mlir::failed(rewriter.convertRegionTypes(&fn.getBody(),
+                                                                 *getTypeConverter(),
+                                                                 &sigconvert)))
+                    {
+                        VAST_UNREACHABLE("Cannot handle failure to update block types.");
+                    }
+                }
+                // For example return type of function can be encoded in attributes
+                lower_attrs(op);
+            };
+            // It has to be done in one "transaction".
+            rewriter.updateRootInPlace(op, lower_op);
+
+            return mlir::success();
+        }
+    };
+
+    struct LowerFuncOpType : LowerHLTypePatternBase
+    {
+        using Base = LowerHLTypePatternBase;
+        using Base::Base;
+
+        mlir::LogicalResult matchAndRewrite(
+                mlir::Operation *op, mlir::ArrayRef< mlir::Value > ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
+        {
+            if (!mlir::isa< mlir::FuncOp >(op))
+                return mlir::failure();
+            return mlir::failure();
         }
     };
 
@@ -360,8 +392,9 @@ namespace vast::hl
         TypeConverter type_converter(dl_analysis.getAtOrAbove(op), mctx);
         AttributeConverter attr_converter{mctx, type_converter};
 
-        patterns.add< LowerHLTypePattern >(type_converter, attr_converter,
-                                           patterns.getContext());
+        patterns.add< LowerGenericOpType,
+                      LowerFuncOpType     >(type_converter, attr_converter,
+                                            patterns.getContext());
 
         if (mlir::failed(mlir::applyPartialConversion(
                          op, trg, std::move(patterns))))
