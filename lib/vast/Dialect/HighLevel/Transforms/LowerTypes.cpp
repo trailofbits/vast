@@ -257,6 +257,20 @@ namespace vast::hl
         }
     };
 
+    void convertFunctionSignature(auto &tc,
+                                  mlir::FunctionType fty, bool variadic,
+                                  mlir::TypeConverter::SignatureConversion &sigconvert)
+    {
+        for (auto &arg : llvm::enumerate(fty.getInputs()))
+        {
+            auto cty = tc.convert_type_to_type(arg.value());
+            if (!cty)
+                return;
+            sigconvert.addInputs(arg.index(), { *cty });
+        }
+    }
+
+
     struct AttributeConverter
     {
         mlir::MLIRContext &mctx;
