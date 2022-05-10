@@ -461,7 +461,7 @@ namespace vast::hl
         }
 
         mlir::LogicalResult matchAndRewrite(
-                hl::RecordDeclOp op, mlir::ArrayRef< mlir::Value > ops,
+                hl::RecordDeclOp op, hl::RecordDeclOp::Adaptor ops,
                 mlir::ConversionPatternRewriter &rewriter) const override
         {
             auto field_tys = collect_field_tys(op);
