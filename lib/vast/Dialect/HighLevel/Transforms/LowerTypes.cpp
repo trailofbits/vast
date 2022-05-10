@@ -257,17 +257,18 @@ namespace vast::hl
         }
     };
 
-    void convertFunctionSignature(auto &tc,
-                                  mlir::FunctionType fty, bool variadic,
-                                  mlir::TypeConverter::SignatureConversion &sigconvert)
+    auto get_fn_signature(auto &&tc, mlir::FuncOp fn, bool variadic)
+    -> std::optional< mlir::TypeConverter::SignatureConversion >
     {
-        for (auto &arg : llvm::enumerate(fty.getInputs()))
+        mlir::TypeConverter::SignatureConversion sigconvert(fn.getNumArguments());
+        for (auto &arg : llvm::enumerate(fn.getType().getInputs()))
         {
             auto cty = tc.convert_type_to_type(arg.value());
             if (!cty)
-                return;
+                return {};
             sigconvert.addInputs(arg.index(), { *cty });
         }
+        return { std::move(sigconvert) };
     }
 
 
