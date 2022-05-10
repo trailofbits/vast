@@ -295,15 +295,20 @@ namespace vast::hl
 
     struct LowerHLTypePatternBase : mlir::ConversionPattern
     {
+        TypeConverter &tc;
         AttributeConverter &_attribute_converter;
 
-        LowerHLTypePatternBase(TypeConverter &tc,
+        LowerHLTypePatternBase(TypeConverter &tc_,
                                AttributeConverter &ac,
                                mlir::MLIRContext *mctx)
-            : mlir::ConversionPattern(tc, mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx),
+            : mlir::ConversionPattern(tc_, mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx),
+              tc(tc_),
               _attribute_converter(ac)
+
         {}
 
+        // NOTE(lukas): Is not a virtual function.
+        TypeConverter *getTypeConverter() const { return &tc; }
         const auto &getAttrConverter() const { return _attribute_converter; }
 
         void lower_attrs(mlir::Operation *op) const
