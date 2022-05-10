@@ -325,6 +325,26 @@ namespace vast::hl
             }
             op->setAttrs(new_attrs);
         }
+
+        template< typename Filter >
+        auto lower_attrs(mlir::ArrayRef< mlir::NamedAttribute > attrs, Filter &&filter)
+        -> mlir::SmallVector< mlir::NamedAttribute, 4 >
+        {
+            mlir::SmallVector< mlir::NamedAttribute, 4 > out;
+            for (const auto &attr : attrs)
+            {
+                if (filter(attr))
+                    // TODO(lukas): Converter should accept & reconstruct NamedAttributes.
+                    //if (auto x = getAttrConverter().convertAttr(attr.getValue()))
+                    out.push_back(attr);
+            }
+            return out;
+        }
+
+        auto lower_attrs(mlir::ArrayRef< mlir::NamedAttribute > attrs)
+        {
+            return lower_attrs(attrs, [](const auto &) { return true; });
+        }
     };
 
     // `ConversionPattern` provides methods that can use `TypeConverter`, which
@@ -365,6 +385,28 @@ namespace vast::hl
     {
         using Base = LowerHLTypePatternBase;
         using Base::Base;
+
+
+        // This is a very random list that is pulled from sources of mlir of version
+        // llvm-14.
+        static bool is_fn_attr(mlir::NamedAttribute attr)
+        {
+            auto name = attr.getName();
+            if (name == mlir::SymbolTable::getSymbolAttrName() ||
+                name == mlir::FunctionOpInterface::getTypeAttrName() ||
+                name == "std.varargs")
+            {
+                return false;
+            }
+
+            // Expected the checks will expand.
+            return true;
+        }
+
+        auto lower_fn_attrs(mlir::FuncOp fn)
+        {
+            return this->lower_attrs(fn->getAttrs(), is_fn_attr);
+        }
 
         mlir::LogicalResult matchAndRewrite(
                 mlir::Operation *op, mlir::ArrayRef< mlir::Value > ops,
