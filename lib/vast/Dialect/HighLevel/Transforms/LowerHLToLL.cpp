@@ -14,6 +14,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "PassesDetails.hpp"
 
+#include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Util/TypeConverter.hpp"

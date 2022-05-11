@@ -10,6 +10,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Conversion/LLVMCommon/TypeConverter.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
