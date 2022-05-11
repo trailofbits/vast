@@ -553,7 +553,15 @@ namespace vast::hl
         if (auto var_decl = clang::dyn_cast< clang::VarDecl >(underlying)) {
             auto val = ctx.vars.lookup(var_decl);
             VAST_ASSERT(val);
+
             auto rty = types.lvalue_convert(expr->getType());
+
+            if (var_decl->isFileVarDecl()) {
+                auto var = val.getDefiningOp< VarDecl >();
+                auto name = mlir::StringAttr::get(&ctx.getMLIRContext(), var.name());
+                val = builder.make_value< GlobalRefOp >(loc, rty, name);
+            }
+
             return builder.make_value< DeclRefOp >(loc, rty, val);
         }
 
