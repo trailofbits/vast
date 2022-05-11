@@ -257,16 +257,18 @@ namespace vast::hl
         }
     };
 
+    // Get SignatureConversion if all the sub-conversion are successful, no value otherwise.
     auto get_fn_signature(auto &&tc, mlir::FuncOp fn, bool variadic)
     -> std::optional< mlir::TypeConverter::SignatureConversion >
     {
         mlir::TypeConverter::SignatureConversion sigconvert(fn.getNumArguments());
-        for (auto &arg : llvm::enumerate(fn.getType().getInputs()))
+        for (auto arg : llvm::enumerate(fn.getType().getInputs()))
         {
-            auto cty = tc.convert_type_to_type(arg.value());
-            if (!cty)
+            mlir::SmallVector< mlir::Type, 2 > converted;
+            auto cty = tc.convertType(arg.value(), converted);
+            if (mlir::failed(cty))
                 return {};
-            sigconvert.addInputs(arg.index(), { *cty });
+            sigconvert.addInputs(arg.index(), converted);
         }
         return { std::move(sigconvert) };
     }
@@ -327,7 +329,7 @@ namespace vast::hl
         }
 
         template< typename Filter >
-        auto lower_attrs(mlir::ArrayRef< mlir::NamedAttribute > attrs, Filter &&filter)
+        auto lower_attrs(mlir::ArrayRef< mlir::NamedAttribute > attrs, Filter &&filter) const
         -> mlir::SmallVector< mlir::NamedAttribute, 4 >
         {
             mlir::SmallVector< mlir::NamedAttribute, 4 > out;
@@ -335,13 +337,13 @@ namespace vast::hl
             {
                 if (filter(attr))
                     // TODO(lukas): Converter should accept & reconstruct NamedAttributes.
-                    //if (auto x = getAttrConverter().convertAttr(attr.getValue()))
-                    out.push_back(attr);
+                    if (auto x = getAttrConverter().convertAttr(attr.getValue()))
+                        out.emplace_back(attr.getName(), *x);
             }
             return out;
         }
 
-        auto lower_attrs(mlir::ArrayRef< mlir::NamedAttribute > attrs)
+        auto lower_attrs(mlir::ArrayRef< mlir::NamedAttribute > attrs) const
         {
             return lower_attrs(attrs, [](const auto &) { return true; });
         }
@@ -403,11 +405,40 @@ namespace vast::hl
             return true;
         }
 
-        auto lower_fn_attrs(mlir::FuncOp fn)
+        auto lower_fn_attrs(mlir::FuncOp fn) const
         {
-            return this->lower_attrs(fn->getAttrs(), is_fn_attr);
+            return this->Base::lower_attrs(fn->getAttrs(), is_fn_attr);
         }
 
+        using attrs_t = mlir::SmallVector< mlir::Attribute, 4 >;
+        using maybe_attrs_t = std::optional< attrs_t >;
+        using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
+
+        attrs_t lower_args_attrs(mlir::FuncOp fn, mlir::ArrayAttr arg_dict,
+                                 const signature_conversion_t &signature) const
+        {
+            attrs_t new_attrs;
+            for (std::size_t i = 0; i < fn.getNumArguments(); ++i)
+            {
+                auto mapping = signature.getInputMapping(i);
+                for (std::size_t j = 0; j < mapping->size; ++j)
+                    new_attrs.push_back(arg_dict[i]);
+            }
+            return new_attrs;
+        }
+
+        maybe_attrs_t lower_args_attrs(mlir::FuncOp fn,
+                                       const signature_conversion_t &signature) const
+        {
+            if (auto arg_dict = fn.getAllArgAttrs())
+                return { lower_args_attrs(fn, arg_dict, signature) };
+            return {};
+        }
+
+        // As the reference how to lower functions, the `StandardToLLVM` conversion
+        // is used.
+        // But basically we need to copy the function (maybe just change in-place is possible?)
+        // with the converted function type -> copy body -> fix arguments of the entry region.
         mlir::LogicalResult matchAndRewrite(
                 mlir::Operation *op, mlir::ArrayRef< mlir::Value > ops,
                 mlir::ConversionPatternRewriter &rewriter) const override
@@ -418,16 +449,48 @@ namespace vast::hl
 
             auto sigconvert = get_fn_signature(*getTypeConverter(), fn, false);
             if (!sigconvert)
+            {
+                return mlir::failure();
+            }
+
+            auto attributes = lower_fn_attrs(fn);
+            if (auto arg_attrs = lower_args_attrs(fn, *sigconvert))
+            {
+                auto as_attr = rewriter.getNamedAttr(
+                        mlir::FunctionOpInterface::getArgDictAttrName(),
+                        rewriter.getArrayAttr(*arg_attrs));
+                attributes.push_back(as_attr);
+            }
+
+            auto maybe_fn_type = getTypeConverter()->convert_type_to_type(fn.getType());
+            if (!maybe_fn_type)
+                return mlir::failure();
+            auto fn_type = maybe_fn_type->dyn_cast< mlir::FunctionType >();
+            if (!fn_type)
                 return mlir::failure();
 
-            if (mlir::failed(rewriter.convertRegionTypes(&fn.getBody(),
+            // Create new function with converted type
+            mlir::FuncOp new_fn = rewriter.create< mlir::FuncOp >(
+                    fn.getLoc(), fn.getName(), fn_type, attributes);
+
+            // Copy the old region - it will have incorrect arguments (`BlockArgument` on
+            // entry `Block`.
+            rewriter.inlineRegionBefore(fn.getBody(), new_fn.getBody(), new_fn.end());
+
+            // Attempt to fix the function type and block arguments type mismatch.
+            // FIXME(lukas): Does not work.
+            if (mlir::failed(rewriter.convertRegionTypes(&new_fn.getBody(),
                                                          *getTypeConverter(),
                                                          &*sigconvert)))
             {
+                // TODO(lukas): This should never happen, so for now we fire an assert,
+                //              in the future return failure.
                 VAST_UNREACHABLE("Cannot handle failure to update block types.");
             }
 
-            return mlir::failure();
+            // TODO(lukas): We should replace instead but I have no idea what to invoke.
+            rewriter.eraseOp(fn);
+            return mlir::success();
         }
     };
 
