@@ -269,6 +269,17 @@ def HighLevel_DeclRefOp
   let assemblyFormat = "$decl attr-dict `:` type($decl)";
 }
 
+def HighLevel_GlobalRefOp
+  : HighLevel_Op< "global.ref", [NoSideEffect] >
+  , Arguments<(ins StrAttr:$global)>
+  , Results<(outs AnyType:$result)>
+{
+  let summary = "VAST global variable reference declaration";
+  let description = [{ VAST global variable reference declaration }];
+
+  let assemblyFormat = "$global attr-dict `:` type($result)";
+}
+
 def HighLevel_EnumRefOp
   : HighLevel_Op< "enumref", [NoSideEffect] >
   , Arguments<(ins StrAttr:$value)>
