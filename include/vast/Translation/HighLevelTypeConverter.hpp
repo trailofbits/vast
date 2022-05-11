@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/BuiltinTypes.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Translation/Context.hpp"
 #include "vast/Util/DataLayout.hpp"
@@ -52,6 +53,8 @@ namespace vast::hl
         mlir::Type do_convert(const clang::EnumType *ty, Quals quals);
 
         mlir::Type do_convert(const clang::TypedefType *ty, Quals quals);
+
+        SizeAttr get_size_attr(const clang::ArrayType *ty);
 
         TranslationContext &ctx;
     };

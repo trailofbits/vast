@@ -1,5 +1,6 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
+#include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
@@ -14,7 +15,7 @@ namespace vast::hl
     bool VarDecl::isInFileContext() { return isFileContext(getDeclContextKind()); }
 
     bool isFunctionOrMethodContext(DeclContextKind kind) {
-        return kind == DeclContextKind::dc_function 
+        return kind == DeclContextKind::dc_function
             || kind == DeclContextKind::dc_method
             || kind == DeclContextKind::dc_capture;
     }

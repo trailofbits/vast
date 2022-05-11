@@ -2,7 +2,7 @@
 
 #pragma once
 
-
+#include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Interfaces/SymbolInterface.hpp"
