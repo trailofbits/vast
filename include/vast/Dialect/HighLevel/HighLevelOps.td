@@ -566,7 +566,7 @@ class HighLevel_ShiftOp< string mnemonic, list< Trait > traits = [] >
 def HighLevel_BinShlOp : HighLevel_ShiftOp<"bin.shl", []>;
 def HighLevel_BinShrOp : HighLevel_ShiftOp<"bin.shr", []>;
 
-class HighLevel_CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< OpTrait > traits = [] >
+class HighLevel_CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
       TypesMatchWith<
         "underlying lvalue type is same as source type",
@@ -604,7 +604,7 @@ class HighLevel_CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, 
     let assemblyFormat = [{ $src `to` $dst attr-dict `:` type($src) }];
 }
 
-class HighLevel_CompoundAssignOp< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_CompoundAssignOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_CompoundAssignOpTemplate< mnemonic, AnyType, traits > {}
 
 def HighLevel_AssignOp     : HighLevel_CompoundAssignOp< "assign" >;
@@ -625,7 +625,7 @@ def HighLevel_BinAndAssignOp : HighLevel_CompoundAssignOp< "assign.bin.and" >;
 def HighLevel_BinOrAssignOp  : HighLevel_CompoundAssignOp< "assign.bin.or"  >;
 def HighLevel_BinXorAssignOp : HighLevel_CompoundAssignOp< "assign.bin.xor" >;
 
-class HighLevel_ShiftAssignOp< string mnemonic, list< OpTrait > traits = [] >
+class HighLevel_ShiftAssignOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_CompoundAssignOpTemplate< mnemonic, IntegerLikeType, traits > {}
 
 def HighLevel_BinShlAssignOp : HighLevel_ShiftAssignOp< "assign.bin.shl" >;
