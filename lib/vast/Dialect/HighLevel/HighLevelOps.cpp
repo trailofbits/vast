@@ -1,9 +1,9 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
-#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>

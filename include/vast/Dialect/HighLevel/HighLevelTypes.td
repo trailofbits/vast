@@ -234,14 +234,15 @@ def ArrayType :
   let mnemonic = "array";
 
   let parameters = (ins
-    "Type":$elementType
+    "Type":$elementType,
+    "SizeAttr":$size
   );
 
   let extraClassDeclaration =
     default_dl_interface_impl #
     default_dimensions_impl;
 
-  let assemblyFormat = "`<` $elementType `>`";
+  let assemblyFormat = "`<` $size `,` $elementType `>`";
 }
 
 def NamedType : HighLevelType< "Named", [MemRefElementTypeInterface] > {
@@ -258,7 +259,6 @@ def SubscriptableType : TypeConstraint<
   Or< [ArrayType.predicate, PointerType.predicate] >,
   "array like type"
 >;
-
 
 def PointerLikeType : TypeConstraint<
   PointerType.predicate,

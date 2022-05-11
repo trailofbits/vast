@@ -8,8 +8,10 @@ VAST_RELAX_WARNINGS
 #include "clang/AST/Type.h"
 #include "clang/AST/TypeLoc.h"
 #include "clang/Basic/LLVM.h"
+#include "mlir/IR/AffineMap.h"
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Translation/HighLevelBuilder.hpp"
@@ -206,9 +208,36 @@ namespace vast::hl
         return NamedType::get(mctx, mlir::StringAttr::get(mctx, name));
     }
 
+    namespace detail {
+        SizeAttr get_size_attr(const clang::ConstantArrayType *arr, MContext &ctx) {
+            return SizeAttr::get(&ctx);
+        }
+
+        SizeAttr get_size_attr(const clang::DependentSizedArrayType *arr, MContext &ctx) {
+            return {};
+        }
+
+        SizeAttr get_size_attr(const clang::IncompleteArrayType *arr, MContext &ctx) {
+            return {};
+        }
+
+        SizeAttr get_size_attr(const clang::VariableArrayType *arr, MContext &ctx) {
+            return {};
+        }
+    } // namespace detail
+
+    SizeAttr HighLevelTypeConverter::get_size_attr(const clang::ArrayType *ty) {
+        return llvm::TypeSwitch< const clang::ArrayType *, SizeAttr >(ty)
+            .Case< clang::ConstantArrayType, clang::DependentSizedArrayType
+                 , clang::IncompleteArrayType, clang::VariableArrayType >
+            ([&] (const auto *array_type) {
+                return detail::get_size_attr(array_type, ctx.getMLIRContext());
+            });
+    }
+
     Type HighLevelTypeConverter::do_convert(const clang::ArrayType *ty, Quals quals) {
         auto element_type = convert(ty->getElementType());
-        return ArrayType::get(&ctx.getMLIRContext(), element_type);
+        return ArrayType::get(&ctx.getMLIRContext(), element_type, get_size_attr(ty));
     }
 
     mlir::FunctionType HighLevelTypeConverter::convert(const clang::FunctionType *ty) {
