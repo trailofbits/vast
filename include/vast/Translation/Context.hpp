@@ -83,27 +83,28 @@ namespace vast::hl
         auto error(llvm::Twine msg) { return mod->emitError(msg); }
 
         template< typename Table, typename ValueType = typename Table::ValueType >
-        ValueType symbol(Table &table, StringRef name, llvm::Twine msg) {
+        ValueType symbol(Table &table, StringRef name, llvm::Twine msg, bool with_error = true) {
             if (auto val = table.lookup(name))
                 return val;
-            error(msg);
+            if (with_error)
+                error(msg);
             return nullptr;
         }
 
-        mlir::FuncOp lookup_function(StringRef name) {
-            return symbol(functions, name, "error: undeclared function '" + name + "'");
+        mlir::FuncOp lookup_function(StringRef name, bool with_error = true) {
+            return symbol(functions, name, "error: undeclared function '" + name + "'", with_error);
         }
 
-        TypeDeclOp lookup_typedecl(StringRef name) {
-            return symbol(type_decls, name, "error: unknown type declaration '" + name + "'");
+        TypeDeclOp lookup_typedecl(StringRef name, bool with_error = true) {
+            return symbol(type_decls, name, "error: unknown type declaration '" + name + "'", with_error);
         }
 
-        TypeDefOp lookup_typedef(StringRef name) {
-            return symbol(type_defs, name, "error: unknown type definition '" + name + "'");
+        TypeDefOp lookup_typedef(StringRef name, bool with_error = true) {
+            return symbol(type_defs, name, "error: unknown type definition '" + name + "'", with_error);
         }
 
-        EnumDeclOp lookup_enum(StringRef name) {
-            return symbol(enum_decls, name, "error: unknown enum '" + name + "'");
+        EnumDeclOp lookup_enum(StringRef name, bool with_error = true) {
+            return symbol(enum_decls, name, "error: unknown enum '" + name + "'", with_error);
         }
     };
 

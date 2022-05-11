@@ -434,7 +434,14 @@ namespace vast::hl
 
     mlir::FuncOp CodeGenVisitor::VisitDirectCallee(clang::FunctionDecl *callee) {
         auto name = callee->getName();
-        return ctx.lookup_function(name);
+        if (auto fn = ctx.lookup_function(name, false /* with error */)) {
+            return fn;
+        }
+
+        ScopedInsertPoint builder_scope(builder);
+        builder.set_insertion_point_to_start(ctx.getModule()->getBody());
+        auto stmt = std::get< Stmt >(VisitFunctionDecl(callee));
+        return mlir::cast< mlir::FuncOp >(stmt);
     }
 
     mlir::Value CodeGenVisitor::VisitIndirectCallee(clang::Expr *callee) {
