@@ -3,8 +3,15 @@
 #include "vast/Dialect/HighLevel/Passes.hpp"
 
 VAST_RELAX_WARNINGS
+#include <mlir/Analysis/DataLayoutAnalysis.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
+#include <mlir/Dialect/SCF/SCF.h>
+#include <mlir/Conversion/LLVMCommon/Pattern.h>
+#include <mlir/Conversion/LLVMCommon/TypeConverter.h>
 VAST_UNRELAX_WARNINGS
+
+#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 #include "PassesDetails.hpp"
 
@@ -99,7 +106,26 @@ namespace vast::hl
         void runOnOperation() override;
     };
 
-    void LowerHighLevelControlFlowPass::runOnOperation() {}
+    void LowerHighLevelControlFlowPass::runOnOperation()
+    {
+        auto op = this->getOperation();
+        auto &mctx = this->getContext();
+
+        mlir::ConversionTarget trg(mctx);
+        trg.addIllegalOp< hl::IfOp >();
+        trg.addLegalOp< mlir::scf::IfOp >();
+        trg.addLegalOp< mlir::scf::YieldOp >();
+
+        mlir::RewritePatternSet patterns(&mctx);
+
+        mlir::LowerToLLVMOptions llvm_opts{ &mctx };
+        const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
+
+        auto tc = mlir::LLVMTypeConverter(&mctx, llvm_opts, &dl_analysis);
+        patterns.add< LowerIfOp >(tc);
+        if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
+            return signalPassFailure();
+    }
 }
 
 
