@@ -48,6 +48,14 @@ namespace vast::hl
         InsertPoint save_insertion_point() { return builder.saveInsertionPoint(); }
         void restore_insertion_point(InsertPoint ip) { builder.restoreInsertionPoint(ip); }
 
+        void set_insertion_point_to_start(mlir::Region *region) {
+            builder.setInsertionPointToStart(&region->front());
+        }
+
+        void set_insertion_point_to_end(mlir::Region *region) {
+            builder.setInsertionPointToEnd(&region->back());
+        }
+
         void set_insertion_point_to_start(mlir::Block *block) {
             builder.setInsertionPointToStart(block);
         }
