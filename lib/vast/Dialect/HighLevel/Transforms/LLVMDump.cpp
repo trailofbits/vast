@@ -64,11 +64,9 @@ namespace vast::hl
         if (!lmodule)
             return signalPassFailure();
 
-        std::error_code err;
-        llvm::raw_fd_stream out("Test.ll", err);
-        VAST_CHECK(err, err.message().c_str());
-        out << *lmodule;
-        out.flush();
+        // TODO(lukas): Make configurable.
+        llvm::errs() << *lmodule;
+        llvm::errs().flush();
     }
 } // namespace vast::hl
 
