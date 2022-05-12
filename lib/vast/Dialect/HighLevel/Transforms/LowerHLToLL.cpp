@@ -81,6 +81,10 @@ namespace vast::hl
                 addConversion([&](mlir::UnrankedMemRefType t) {
                         return this->convert_memref_type(t);
                 });
+                // Overriding the inherited one to provide way to handle `hl.lvalue` in args.
+                addConversion([&](mlir::FunctionType t) {
+                        return this->convert_fn_t(t);
+                });
             }
 
             maybe_types_t do_conversion(mlir::Type t)
@@ -132,6 +136,65 @@ namespace vast::hl
             maybe_type_t convert_memref_type(mlir::UnrankedMemRefType t)
             {
                 VAST_UNIMPLEMENTED;
+            }
+
+            using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
+            using maybe_signature_conversion_t = std::optional< signature_conversion_t >;
+
+            maybe_signature_conversion_t get_conversion_signature(mlir::FuncOp fn,
+                                                                  bool variadic)
+            {
+                signature_conversion_t conversion(fn.getNumArguments());
+                for (auto arg : llvm::enumerate(fn.getType().getInputs()))
+                {
+                    auto cty = convert_arg_t(arg.value());
+                    if (!cty)
+                        return {};
+                    conversion.addInputs(arg.index(), *cty);
+                }
+                return { std::move(conversion) };
+            }
+
+            maybe_type_t convert_fn_t(mlir::FunctionType t)
+            {
+                auto a_res = this->on_types(t.getInputs(), &TypeConverter::convert_arg_t);
+                auto r_res = this->on_types(t.getResults(), &TypeConverter::convert_ret_t);
+
+                if (!a_res || !r_res)
+                    return {};
+
+                // LLVM function can have only one return value;
+                if (r_res->size() != 1)
+                    return {};
+                // TODO(lukas): Not sure how to get info if the type is variadic or not here.
+                return mlir::LLVM::LLVMFunctionType::get(r_res->front(), *a_res, false);
+            }
+
+            maybe_types_t on_types(auto range, auto fn)
+            {
+                types_t out;
+                auto append = appender(out);
+
+                for (auto t : range)
+                    if (auto cty = (this->*fn)(t))
+                        append(std::move(*cty));
+                    else
+                        return {};
+                return { std::move(out) };
+            }
+
+            maybe_types_t convert_arg_t(mlir::Type t)
+            {
+                if (auto lvalue = t.dyn_cast< hl::LValueType >())
+                    return this->convert_type_to_types(lvalue.getElementType());
+                return this->convert_type_to_types(t);
+            }
+
+            maybe_types_t convert_ret_t(mlir::Type t)
+            {
+                if (auto lvalue = t.dyn_cast< hl::LValueType >())
+                    return this->convert_type_to_types(lvalue.getElementType());
+                return this->convert_type_to_types(t);
             }
         };
 
