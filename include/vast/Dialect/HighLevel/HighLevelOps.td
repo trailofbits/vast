@@ -152,7 +152,7 @@ def HighLevel_FieldDeclOp
 def HighLevel_RecordMemberOp
   : HighLevel_Op< "member" >
   // TODO(Heno): add type constraints
-  , Arguments<(ins LValueOf<AnyType>:$record, StrAttr:$name)>
+  , Arguments<(ins AnyType:$record, StrAttr:$name)>
   , Results<(outs LValueOf<AnyType>:$element)>
 {
   let summary = "VAST record element access operation";
