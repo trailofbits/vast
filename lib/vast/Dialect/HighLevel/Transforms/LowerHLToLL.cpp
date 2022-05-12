@@ -219,11 +219,16 @@ namespace vast::hl
                     mlir::FuncOp func_op, mlir::FuncOp::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
-                auto tc = this->getTypeConverter();
-                auto [conversion, target_type] = convert_fn_t(*tc, func_op);
+                auto &tc = this->type_converter();
+                auto maybe_target_type = tc.convert_fn_t(func_op.getType());
+                auto maybe_signature = tc.get_conversion_signature(func_op,
+                                                                   is_variadic(func_op));
                 // Type converter failed.
-                if (!target_type)
+                if (!maybe_target_type || !*maybe_target_type || !maybe_signature)
                     return mlir::failure();
+
+                auto target_type = *maybe_target_type;
+                auto signature = *maybe_signature;
 
                 // TODO(lukas): We will want to lower a lot of stuff most likely.
                 //              Copy those we want to preserve.
@@ -234,7 +239,7 @@ namespace vast::hl
                     mlir::SmallVector< mlir::Attribute, 8 > new_arg_attrs;
                     for (std::size_t i = 0; i < func_op.getNumArguments(); ++i)
                     {
-                        const auto &mapping = conversion.getInputMapping(i);
+                        const auto &mapping = signature.getInputMapping(i);
                         for (std::size_t j = 0; j < mapping->size; ++j)
                             new_arg_attrs[mapping->inputNo + j] = original_arg_attr[i];
                     }
@@ -249,10 +254,60 @@ namespace vast::hl
                         linkage, false, new_attrs);
                 rewriter.inlineRegionBefore(func_op.getBody(),
                                             new_func.getBody(), new_func.end());
-                util::convert_region_types(func_op, new_func, conversion);
+                util::convert_region_types(func_op, new_func, signature);
+
+                if (mlir::failed(args_to_allocas(new_func, rewriter)))
+                    return mlir::failure();
                 rewriter.eraseOp(func_op);
                 return mlir::success();
+            }
 
+            mlir::LogicalResult args_to_allocas(
+                    mlir::LLVM::LLVMFuncOp fn,
+                    mlir::ConversionPatternRewriter &rewriter) const
+            {
+                // TODO(lukas): Missing support in hl.
+                if (fn.isVarArg())
+                    return mlir::failure();
+
+                if (fn.empty())
+                    return mlir::failure();
+
+                auto &block = fn.front();
+                if (!block.isEntryBlock())
+                    return mlir::failure();
+
+                mlir::OpBuilder::InsertionGuard guard(rewriter);
+                rewriter.setInsertionPointToStart(&block);
+
+                for (auto arg : block.getArguments())
+                    if (mlir::failed(arg_to_alloca(arg, block, rewriter)))
+                        return mlir::failure();
+
+                return mlir::success();
+            }
+
+            // TODO(lukas): Extract common codebase (there will be other places
+            //              that need to create allocas).
+            mlir::LogicalResult arg_to_alloca(mlir::BlockArgument arg, mlir::Block &block,
+                                              mlir::ConversionPatternRewriter &rewriter) const
+            {
+                auto ptr_type = mlir::LLVM::LLVMPointerType::get(arg.getType());
+                if (!ptr_type)
+                    return mlir::failure();
+
+                auto count = rewriter.create< LLVM::ConstantOp >(
+                        arg.getLoc(),
+                        type_converter().convertType(rewriter.getIndexType()),
+                        rewriter.getIntegerAttr(rewriter.getIndexType(), 1));
+
+                auto alloca = rewriter.create< LLVM::AllocaOp >(
+                        arg.getLoc(), ptr_type, count, 0);
+
+                arg.replaceAllUsesWith(alloca);
+                rewriter.create< mlir::LLVM::StoreOp >(arg.getLoc(), arg, alloca);
+
+                return mlir::success();
             }
         };
 
