@@ -37,6 +37,25 @@ namespace vast::util
                            .and_then([&](auto ts){ return *ts->begin(); })
                            .template take_wrapped< maybe_type_t >();
         }
+
+        maybe_types_t convert_types_to_types(auto types)
+        {
+            types_t out;
+
+            auto append = [&](auto collection)
+            {
+                out.insert(out.end(), std::move_iterator(collection.begin()),
+                                      std::move_iterator(collection.end()));
+            };
+
+            for (auto t : types)
+                if (auto c = convert_type_to_types(t))
+                    append(std::move(*c));
+                else
+                    return {};
+
+            return { out };
+        }
     };
 
     // Comment out
