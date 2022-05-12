@@ -54,16 +54,11 @@ namespace vast::hl
         auto dst_region = ip->getParent();
 
         rewriter.inlineRegionBefore(region, *dst_region, dst_region->begin());
-        llvm::errs() << size(*dst_region) << " AAA\n"; llvm::errs().flush();
         VAST_ASSERT(size(*dst_region) <= 2);
         if (size(*dst_region) == 2)
             rewriter.mergeBlocks(&*dst_region->begin(), &*std::next(dst_region->begin()),
                                  llvm::None);
 
-        //auto terminator = dst_region->begin()->getTerminator();
-        //rewriter.setInsertionPoint(terminator);
-        //if (auto yield = terminator.dyn_cast< hl::ValueYieldOp >/
-        //rewriter.mergeBlockBefore(&init_block, std::next(mlir::Block::iterator(region)));
         if (size(*dst_region->begin()) == 0)
         {
             rewriter.setInsertionPointToStart(&*dst_region->begin());
