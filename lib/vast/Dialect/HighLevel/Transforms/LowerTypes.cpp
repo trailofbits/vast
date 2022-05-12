@@ -17,6 +17,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 
 #include "vast/Util/Maybe.hpp"
+#include "vast/Util/TypeConverter.hpp"
 
 #include <iostream>
 
@@ -477,18 +478,10 @@ namespace vast::hl
             // entry `Block`.
             rewriter.inlineRegionBefore(fn.getBody(), new_fn.getBody(), new_fn.end());
 
-            // Attempt to fix the function type and block arguments type mismatch.
-            // FIXME(lukas): Does not work.
-            if (mlir::failed(rewriter.convertRegionTypes(&new_fn.getBody(),
-                                                         *getTypeConverter(),
-                                                         &*sigconvert)))
-            {
-                // TODO(lukas): This should never happen, so for now we fire an assert,
-                //              in the future return failure.
-                VAST_UNREACHABLE("Cannot handle failure to update block types.");
-            }
+            // NOTE(lukas): This may break the contract that all modifications happen
+            //              via rewriter.
+            util::convert_region_types(fn, new_fn, *sigconvert);
 
-            // TODO(lukas): We should replace instead but I have no idea what to invoke.
             rewriter.eraseOp(fn);
             return mlir::success();
         }
