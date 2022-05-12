@@ -11,6 +11,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Conversion/LLVMCommon/Pattern.h>
 
 #include <mlir/Target/LLVMIR/Export.h>
+#include <mlir/Target/LLVMIR/Dialect/All.h>
 #include <mlir/Target/LLVMIR/LLVMTranslationInterface.h>
 #include <mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h>
 
@@ -54,7 +55,9 @@ namespace vast::hl
         mlir::ModuleOp op = this->getOperation();
 
         registerHLToLLVMIR(mctx);
-        mlir::LLVMTranslationInterface iface(&mctx);
+        mlir::DialectRegistry registry;
+        mlir::registerAllToLLVMIRTranslations(registry);
+        mctx.appendDialectRegistry(registry);
 
         llvm::LLVMContext lctx;
         auto lmodule = mlir::translateModuleToLLVMIR(op, lctx);
