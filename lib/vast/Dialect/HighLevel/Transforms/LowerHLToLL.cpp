@@ -532,6 +532,38 @@ namespace vast::hl
 
         using l_declref = ignore_pattern< hl::DeclRefOp >;
 
+        struct l_call : BasePattern< hl::CallOp >
+        {
+            using Base = BasePattern< CallOp >;
+            using Base::Base;
+
+            mlir::LogicalResult matchAndRewrite(
+                        hl::CallOp op, typename CallOp::Adaptor ops,
+                        mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                auto module = op->getParentOfType< mlir::ModuleOp >();
+                if (!module)
+                    return mlir::failure();
+
+                auto callee = module.lookupSymbol< mlir::LLVM::LLVMFuncOp >(op.callee());
+                if (!callee)
+                    return mlir::failure();
+
+                auto rtys = this->type_converter().convert_types_to_types(
+                        callee.getResultTypes());
+                if (!rtys)
+                    return mlir::failure();
+
+                auto new_call = rewriter.create< mlir::LLVM::CallOp >(
+                    op.getLoc(),
+                    *rtys,
+                    op.callee(),
+                    ops.getOperands());
+                rewriter.replaceOp(op, new_call.getResults());
+                return mlir::success();
+            }
+        };
+
     } // namespace pattern
 
 
@@ -567,6 +599,7 @@ namespace vast::hl
         patterns.add< pattern::l_assign_add >(type_converter);
         patterns.add< pattern::l_assign_sub >(type_converter);
         patterns.add< pattern::l_implicit_cast >(type_converter);
+        patterns.add< pattern::l_call >(type_converter);
         if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
             return signalPassFailure();
     }
