@@ -27,7 +27,7 @@ def HighLevel_CondYieldOp : HighLevel_Op< "cond.yield", [
       hl.cond.yield result : BoolType
   }];
 
-  let arguments = (ins IntOrBoolType:$result);
+  let arguments = (ins AnyType:$result);
   let results = (outs);
 
   let assemblyFormat = [{ attr-dict $result `:` type($result) }];
