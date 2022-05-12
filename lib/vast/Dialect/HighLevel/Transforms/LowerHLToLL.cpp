@@ -186,9 +186,7 @@ namespace vast::hl
                         linkage, false, new_attrs);
                 rewriter.inlineRegionBefore(func_op.getBody(),
                                             new_func.getBody(), new_func.end());
-                if (mlir::failed(rewriter.convertRegionTypes(&new_func.getBody(),
-                                                             *tc, &conversion)))
-                    return mlir::failure();
+                util::convert_region_types(func_op, new_func, conversion);
                 rewriter.eraseOp(func_op);
                 return mlir::success();
 
