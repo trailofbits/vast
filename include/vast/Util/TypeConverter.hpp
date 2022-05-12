@@ -38,15 +38,19 @@ namespace vast::util
                            .template take_wrapped< maybe_type_t >();
         }
 
-        maybe_types_t convert_types_to_types(auto types)
+        auto appender(types_t &out)
         {
-            types_t out;
-
-            auto append = [&](auto collection)
+            return [&](auto collection)
             {
                 out.insert(out.end(), std::move_iterator(collection.begin()),
                                       std::move_iterator(collection.end()));
             };
+        }
+
+        maybe_types_t convert_types_to_types(auto types)
+        {
+            types_t out;
+            auto append = appender(out);
 
             for (auto t : types)
                 if (auto c = convert_type_to_types(t))
