@@ -113,9 +113,17 @@ namespace vast::query
     }
 
     void show_value(auto value) {
-        llvm::outs() << value->getName()
-            << " : " << show_name(value)
-            << " : " << value.getLoc() << "\n";
+        llvm::outs() << value->getName() << " : " << show_name(value);
+
+        auto loc = value.getLoc();
+        if (auto file_loc = loc.template dyn_cast<mlir::FileLineColLoc>()) {
+            llvm::outs() << " : " << file_loc.getFilename().getValue()
+                         << ":" << file_loc.getLine()
+                         << ":" << file_loc.getColumn()
+                         << "\n";
+        } else {
+            llvm::outs() << " : " << loc << "\n";
+        }
     }
 
     logical_result do_show_symbols(auto scope) {
