@@ -534,7 +534,7 @@ namespace vast::hl
 
         struct l_call : BasePattern< hl::CallOp >
         {
-            using Base = BasePattern< CallOp >;
+            using Base = BasePattern< hl::CallOp >;
             using Base::Base;
 
             mlir::LogicalResult matchAndRewrite(
