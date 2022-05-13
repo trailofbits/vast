@@ -502,7 +502,15 @@ namespace vast::hl
                 std::vector< mlir::Value > m_ops{ ops.begin(), ops.end() };
                 m_ops[0] = rewriter.create< LLVM::LoadOp >(op.getLoc(), ops[0]);
                 auto trg_ty = this->type_converter().convert_type_to_type(op.src().getType());
-                auto new_op = rewriter.create< Trg >(op.getLoc(), *trg_ty, m_ops);
+                // Probably the easiest way to compose this (some template specialization would
+                // require a lot of boilerplate).
+                auto new_op = [&]()
+                {
+                    if constexpr (!std::is_same_v< Trg, void >)
+                        return rewriter.create< Trg >(op.getLoc(), *trg_ty, m_ops);
+                    else
+                        return alloca;
+                }();
 
                 rewriter.create< LLVM::StoreOp >(op.getLoc(), new_op, alloca);
 
@@ -514,6 +522,7 @@ namespace vast::hl
 
         using l_assign_add = assign_pattern< hl::AddIAssignOp, LLVM::AddOp >;
         using l_assign_sub = assign_pattern< hl::SubIAssignOp, LLVM::SubOp >;
+        using l_assign = assign_pattern< hl::AssignOp, void >;
 
         template< typename Src >
         struct ignore_pattern : BasePattern< Src >
@@ -630,6 +639,7 @@ namespace vast::hl
         patterns.add< pattern::l_declref >(type_converter);
         patterns.add< pattern::l_assign_add >(type_converter);
         patterns.add< pattern::l_assign_sub >(type_converter);
+        patterns.add< pattern::l_assign >(type_converter);
         patterns.add< pattern::l_implicit_cast >(type_converter);
         patterns.add< pattern::l_call >(type_converter);
         patterns.add< pattern::l_cmp >(type_converter);
