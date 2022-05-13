@@ -206,8 +206,12 @@ namespace vast::hl
 
         mlir::ConversionTarget trg(mctx);
         trg.addIllegalOp< hl::IfOp >();
+        trg.addIllegalOp< hl::WhileOp >();
+        trg.addIllegalOp< hl::CondYieldOp >();
         trg.addLegalOp< mlir::scf::IfOp >();
         trg.addLegalOp< mlir::scf::YieldOp >();
+        trg.addLegalOp< mlir::scf::ConditionOp >();
+        trg.markUnknownOpDynamicallyLegal([](auto) { return true; });
 
         mlir::RewritePatternSet patterns(&mctx);
 
