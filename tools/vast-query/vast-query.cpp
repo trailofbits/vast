@@ -112,18 +112,21 @@ namespace vast::query
         return value.getName();
     }
 
-    void show_value(auto value) {
-        llvm::outs() << value->getName() << " : " << show_name(value);
-
+    void show_location(auto &value) {
         auto loc = value.getLoc();
         if (auto file_loc = loc.template dyn_cast<mlir::FileLineColLoc>()) {
             llvm::outs() << " : " << file_loc.getFilename().getValue()
                          << ":" << file_loc.getLine()
-                         << ":" << file_loc.getColumn()
-                         << "\n";
+                         << ":" << file_loc.getColumn();
         } else {
-            llvm::outs() << " : " << loc << "\n";
+            llvm::outs() << " : " << loc;
         }
+    }
+
+    void show_value(auto value) {
+        llvm::outs() << value->getName() << " : " << show_name(value);
+        show_location(value);
+        llvm::outs() << "\n";
     }
 
     logical_result do_show_symbols(auto scope) {
@@ -188,6 +191,7 @@ namespace vast::query
         auto &name = cl::options->show_symbol_users;
         yield_users(name.getValue(), scope, [] (auto user) {
             user->print(llvm::outs());
+            show_location(*user);
             llvm::outs() << "\n";
         });
 
