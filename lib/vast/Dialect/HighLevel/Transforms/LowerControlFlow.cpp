@@ -112,6 +112,87 @@ namespace vast::hl
         }
     };
 
+    namespace pattern
+    {
+
+        struct l_while : mlir::ConvertOpToLLVMPattern< hl::WhileOp >
+        {
+            using Base = mlir::ConvertOpToLLVMPattern< hl::WhileOp >;
+            using Base::Base;
+
+
+            mlir::Block &do_inline(mlir::Region &src, mlir::Region &dst,
+                                   mlir::ConversionPatternRewriter &rewriter) const
+            {
+                rewriter.createBlock(&dst);
+                rewriter.cloneRegionBefore(src, &dst.back());
+                rewriter.eraseBlock(&dst.back());
+
+                return dst.back();
+            }
+
+            template< typename T >
+            std::optional< T > fetch_terminator(mlir::Block &block) const
+            {
+                auto out = mlir::dyn_cast< T >(block.getTerminator());
+                if (!out)
+                    return {};
+                return out;
+            }
+
+            mlir::LogicalResult before_region(mlir::Block &dst,
+                                              mlir::ConversionPatternRewriter &rewriter) const
+            {
+                auto cond_yield = fetch_terminator< hl::CondYieldOp >(dst);
+                if (!cond_yield)
+                    return mlir::failure();
+
+                mlir::OpBuilder::InsertionGuard guard(rewriter);
+                rewriter.setInsertionPointAfter(*cond_yield);
+                rewriter.create< mlir::scf::ConditionOp >(
+                        cond_yield->getLoc(),
+                        cond_yield->result(),
+                        dst.getParent()->front().getArguments());
+
+                rewriter.eraseOp(*cond_yield);
+                return mlir::success();
+            }
+
+            mlir::LogicalResult after_region(mlir::Block &block, mlir::Block &before,
+                                             mlir::Location loc,
+                                             mlir::ConversionPatternRewriter &rewriter) const
+            {
+                mlir::OpBuilder::InsertionGuard guard(rewriter);
+                rewriter.setInsertionPointToEnd(&block);
+                rewriter.create< mlir::scf::YieldOp >(loc, before.getArguments());
+
+                return mlir::success();
+            }
+
+            mlir::LogicalResult matchAndRewrite(
+                    hl::WhileOp op, hl::WhileOp::Adaptor ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                auto scf_while_op = rewriter.create< mlir::scf::WhileOp >(
+                        op.getLoc(),
+                        std::vector< mlir::Type >{},
+                        std::vector< mlir::Value >{});
+                auto &before = do_inline(op.condRegion(), scf_while_op.getBefore(), rewriter);
+                auto &after = do_inline(op.bodyRegion(), scf_while_op.getAfter(), rewriter);
+
+                if (mlir::failed(before_region(before, rewriter)) ||
+                    mlir::failed(after_region(after, before, op.getLoc(), rewriter)))
+                {
+                    return mlir::failure();
+                }
+
+                rewriter.eraseOp(op);
+                return mlir::success();
+            }
+        };
+
+    } // namespace pattern
+
 
     struct LowerHighLevelControlFlowPass : LowerHighLevelControlFlowBase< LowerHighLevelControlFlowPass >
     {
@@ -135,6 +216,7 @@ namespace vast::hl
 
         auto tc = mlir::LLVMTypeConverter(&mctx, llvm_opts, &dl_analysis);
         patterns.add< LowerIfOp >(tc);
+        patterns.add< pattern::l_while >(tc);
         if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
             return signalPassFailure();
     }
