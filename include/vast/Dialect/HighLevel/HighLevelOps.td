@@ -553,7 +553,16 @@ def HighLevel_BinAndOp : HighLevel_BinOp<"bin.and", []>;
 def HighLevel_BinLAndOp : HighLevel_BinOp<"bin.land", []>;
 def HighLevel_BinLOrOp : HighLevel_BinOp<"bin.lor", []>;
 
-def HighLevel_BinComma : HighLevel_BinOp<"bin.comma", []>;
+def HighLevel_BinComma
+    : HighLevel_Op< "bin.comma", [NoSideEffect] >
+{
+    let summary = "VAST binary operation";
+
+    let arguments = (ins AnyType:$lhs, AnyType:$rhs);
+    let results = (outs AnyType:$result);
+
+    let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` functional-type(operands, results) }];
+}
 
 class HighLevel_ShiftOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [

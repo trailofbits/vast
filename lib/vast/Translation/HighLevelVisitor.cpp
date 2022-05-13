@@ -138,7 +138,11 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinComma(clang::BinaryOperator *expr) {
-        return checked(make_ibin< BinComma >(expr));
+        auto lhs = Visit(expr->getLHS());
+        auto rhs = Visit(expr->getRHS());
+        auto ty = types.convert(expr->getType());
+        auto loc = builder.get_end_location(expr->getSourceRange());
+        return builder.make_value< BinComma >(loc, ty, lhs, rhs);
     }
 
     // Unary Operations
