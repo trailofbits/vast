@@ -17,22 +17,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    template< typename T >
-    T inline_cond_region(auto src, auto &rewriter)
-    {
-        auto &cond_region = src.condRegion();
-        auto &init_block = cond_region.back();
 
-        auto terminator = mlir::dyn_cast< T >(init_block.getTerminator());
-        VAST_ASSERT(terminator);
-
-        rewriter.inlineRegionBefore(cond_region, src->getBlock());
-        auto ip = std::next(mlir::Block::iterator(src));
-        VAST_ASSERT(ip != src->getBlock()->end());
-
-        rewriter.mergeBlockBefore(&init_block, &*ip);
-        return terminator;
-    }
 
     namespace
     {
@@ -69,25 +54,57 @@ namespace vast::hl
         }
 
     }
+    template< typename T >
+    auto inline_cond_region(auto src, auto &rewriter)
+    {
+        auto up = src->getParentRegion();
+        VAST_ASSERT(up != nullptr);
+
+        auto &copy = src.condRegion();
+        VAST_ASSERT(size(copy) == 1);
+
+        rewriter.cloneRegionBefore(copy, *up, up->end());
+        rewriter.mergeBlockBefore(&up->back(), src);
+
+        return mlir::dyn_cast< T >(*std::prev(mlir::Block::iterator(src)));
+    }
 
     struct LowerIfOp : mlir::ConvertOpToLLVMPattern< hl::IfOp >
     {
         using Base = mlir::ConvertOpToLLVMPattern< hl::IfOp >;
         using Base::Base;
 
+        void make_if_block(mlir::Region &old_region, mlir::Region &new_region,
+                           mlir::Location loc, auto &rewriter) const
+        {
+            rewriter.inlineRegionBefore(old_region, new_region, new_region.begin());
+
+            rewriter.eraseBlock(&new_region.back());
+
+            VAST_ASSERT(size(new_region) == 1);
+            auto &block = new_region.front();
+            VAST_ASSERT(block.getNumArguments() == 0);
+
+
+            mlir::OpBuilder::InsertionGuard guard(rewriter);
+            rewriter.setInsertionPointToEnd(&block);
+            std::vector< mlir::Value > vals;
+            rewriter.template create< mlir::scf::YieldOp >(loc, vals);
+        }
+
         mlir::LogicalResult matchAndRewrite(
                 hl::IfOp op, hl::IfOp::Adaptor ops,
                 mlir::ConversionPatternRewriter &rewriter) const override
         {
             auto yield = inline_cond_region< hl::CondYieldOp >(op, rewriter);
-            rewriter.setInsertionPoint(yield);
+            rewriter.setInsertionPointAfter(yield);
             auto c = yield.getOperand();
 
-            mlir::scf::IfOp if_op = rewriter.create< mlir::scf::IfOp >(
-                    op.getLoc(), yield.getOperand(),
-                    [&](auto &b, auto) { copy_block(b, rewriter, op.thenRegion(), op.getLoc()); },
-                    [&](auto &b, auto) { copy_block(b, rewriter, op.elseRegion(), op.getLoc()); }
-                    );
+            mlir::scf::IfOp scf_if_op = rewriter.create< mlir::scf::IfOp >(
+                    op.getLoc(), std::vector< mlir::Type >{}, yield.getOperand(), true);
+            make_if_block(op.thenRegion(), scf_if_op.getThenRegion(), op.getLoc(), rewriter);
+            make_if_block(op.elseRegion(), scf_if_op.getElseRegion(), op.getLoc(), rewriter);
+
             rewriter.eraseOp(yield);
             rewriter.eraseOp(op);
 
