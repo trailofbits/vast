@@ -553,6 +553,8 @@ def HighLevel_BinAndOp : HighLevel_BinOp<"bin.and", []>;
 def HighLevel_BinLAndOp : HighLevel_BinOp<"bin.land", []>;
 def HighLevel_BinLOrOp : HighLevel_BinOp<"bin.lor", []>;
 
+def HighLevel_BinComma : HighLevel_BinOp<"bin.comma", []>;
+
 class HighLevel_ShiftOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
         NoSideEffect, AllTypesMatch<["lhs", "result"]>

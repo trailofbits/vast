@@ -138,7 +138,7 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinComma(clang::BinaryOperator *expr) {
-        VAST_UNREACHABLE("unsupported BinComma");
+        return checked(make_ibin< BinComma >(expr));
     }
 
     // Unary Operations
