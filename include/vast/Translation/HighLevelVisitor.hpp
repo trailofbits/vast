@@ -506,7 +506,9 @@ namespace vast::hl
                 case clang::CastKind::CK_PointerToBoolean :
                     return keep_category_cast();
 
-                // case clang::CastKind::CK_ToVoid:      return;
+                case clang::CastKind::CK_ToVoid:
+                    return keep_category_cast();
+
                 // case clang::CastKind::CK_VectorSplat: return;
 
                 case clang::CastKind::CK_IntegralCast:
