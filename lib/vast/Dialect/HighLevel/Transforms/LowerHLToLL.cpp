@@ -509,7 +509,7 @@ namespace vast::hl
                     if constexpr (!std::is_same_v< Trg, void >)
                         return rewriter.create< Trg >(op.getLoc(), *trg_ty, m_ops);
                     else
-                        return alloca;
+                        return ops[1];
                 }();
 
                 rewriter.create< LLVM::StoreOp >(op.getLoc(), new_op, alloca);
