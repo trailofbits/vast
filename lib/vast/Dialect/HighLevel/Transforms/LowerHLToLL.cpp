@@ -600,6 +600,7 @@ namespace vast::hl
                 switch (hl_predicate)
                 {
                     case hl::Predicate::eq : return { mlir::LLVM::ICmpPredicate::eq };
+                    case hl::Predicate::sgt : return { mlir::LLVM::ICmpPredicate::sgt };
                     default : return {};
                 }
             }
