@@ -564,6 +564,38 @@ namespace vast::hl
             }
         };
 
+        struct l_cmp : BasePattern< hl::CmpOp >
+        {
+
+            using Base = BasePattern< hl::CmpOp >;
+            using Base::Base;
+
+            mlir::LogicalResult matchAndRewrite(
+                        hl::CmpOp op, typename CmpOp::Adaptor ops,
+                        mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                auto predicate = convert_predicate(op.predicate());
+                if (!predicate)
+                    return mlir::failure();
+
+                auto new_cmp = rewriter.create< mlir::LLVM::ICmpOp >(
+                    op.getLoc(), *predicate, ops.lhs(), ops.rhs());
+                rewriter.replaceOp(op, { new_cmp });
+                return mlir::success();
+            }
+
+            auto convert_predicate(auto hl_predicate) const
+            -> std::optional< mlir::LLVM::ICmpPredicate >
+            {
+                // TODO(lukas): Use map later, this is just a proof of concept.
+                switch (hl_predicate)
+                {
+                    case hl::Predicate::eq : return { mlir::LLVM::ICmpPredicate::eq };
+                    default : return {};
+                }
+            }
+        };
+
     } // namespace pattern
 
 
@@ -600,6 +632,7 @@ namespace vast::hl
         patterns.add< pattern::l_assign_sub >(type_converter);
         patterns.add< pattern::l_implicit_cast >(type_converter);
         patterns.add< pattern::l_call >(type_converter);
+        patterns.add< pattern::l_cmp >(type_converter);
         if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
             return signalPassFailure();
     }
