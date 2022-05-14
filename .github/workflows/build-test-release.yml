@@ -153,6 +153,8 @@ jobs:
             -S ${{ steps.build_paths.outputs.source }}/vast \
             -D LLVM_EXTERNAL_LIT=/usr/local/bin/lit \
             -D LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR} \
+            -D INSTALL_DIR=${VAST_INSTALL_DIR} \
+            -D VAST_INSTALL=ON \
             -D ENABLE_TESTING=ON \
             -D CMAKE_BUILD_TYPE=Release \
             -D CMAKE_VERBOSE_MAKEFILE=True \
@@ -194,13 +196,7 @@ jobs:
 
         run: |
           LLVM_INSTALL_DIR="${{ steps.build_paths.outputs.install }}/llvm"
-          if [[ "${{matrix.config.name }}" == "macos" ]]; then
-            VAST_CMAKE_DIR="${{ steps.build_paths.outputs.install }}/vast/lib/cmake/vast/"
-          fi
-
-          if [[ "${{matrix.config.name }}" == "ubuntu" ]]; then
-            VAST_CMAKE_DIR="${{ steps.build_paths.outputs.install }}/vast/lib/x86_64-linux-gnu/cmake/vast/"
-          fi
+          VAST_CMAKE_DIR="${{ steps.build_paths.outputs.install }}/vast/lib/cmake/vast/"
 
           cmake -G Ninja -B build -S . \
             -D LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR} \
