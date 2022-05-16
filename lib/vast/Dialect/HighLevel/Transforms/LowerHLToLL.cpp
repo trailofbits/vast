@@ -458,8 +458,14 @@ namespace vast::hl
             {
                 if (op.kind() == hl::CastKind::LValueToRValue)
                 {
-                    auto loaded = rewriter.create< LLVM::LoadOp >(op.getLoc(), ops.getOperands()[0]);
+                    auto loaded = rewriter.create< LLVM::LoadOp >(op.getLoc(),
+                                                                  ops.getOperands()[0]);
                     rewriter.replaceOp(op, {loaded});
+                    return mlir::success();
+                }
+                if (op.kind() == hl::CastKind::IntegralCast)
+                {
+                    rewriter.replaceOp(op, {ops.getOperands()[0]});
                     return mlir::success();
                 }
                 return mlir::failure();
