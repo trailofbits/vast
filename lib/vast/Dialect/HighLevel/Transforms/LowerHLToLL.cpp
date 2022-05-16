@@ -512,7 +512,7 @@ namespace vast::hl
                 if (ops[0].getType().template isa< hl::LValueType >())
                     return mlir::failure();
 
-                m_ops[0] = rewriter.create< LLVM::LoadOp >(op.getLoc(), ops[0]);
+                m_ops[0] = rewriter.create< LLVM::LoadOp >(op.getLoc(), alloca);
                 auto trg_ty = this->type_converter().convert_type_to_type(op.src().getType());
                 // Probably the easiest way to compose this (some template specialization would
                 // require a lot of boilerplate).
