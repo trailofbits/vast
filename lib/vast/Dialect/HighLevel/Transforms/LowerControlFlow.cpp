@@ -162,12 +162,17 @@ namespace vast::hl
                 rewriter.setInsertionPointAfter(yield);
 
                 mlir::scf::IfOp scf_if_op = rewriter.create< mlir::scf::IfOp >(
-                        op.getLoc(), std::vector< mlir::Type >{}, yield.getOperand(), true);
-                if (failed(make_if_block(op.thenRegion(), scf_if_op.getThenRegion()),
-                           make_if_block(op.elseRegion(), scf_if_op.getElseRegion())))
+                        op.getLoc(), std::vector< mlir::Type >{}, yield.getOperand(),
+                        op.hasElse());
+                auto then_result = make_if_block(op.thenRegion(), scf_if_op.getThenRegion());
+                auto else_result = [&]()
                 {
+                    if (op.hasElse())
+                        return make_if_block(op.elseRegion(), scf_if_op.getElseRegion());
+                    return mlir::success();
+                }();
+                if (failed(then_result, else_result))
                     return mlir::failure();
-                }
 
                 rewriter.eraseOp(yield);
                 rewriter.eraseOp(op);
