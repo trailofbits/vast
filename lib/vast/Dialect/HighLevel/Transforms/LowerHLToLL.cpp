@@ -504,7 +504,7 @@ namespace vast::hl
                         mlir::ConversionPatternRewriter &rewriter) const override
             {
                 auto ops = ops_.getOperands();
-                auto alloca = ops[0];
+                auto alloca = ops[1];
 
                 std::vector< mlir::Value > m_ops{ ops.begin(), ops.end() };
                 m_ops[0] = rewriter.create< LLVM::LoadOp >(op.getLoc(), ops[0]);
@@ -516,7 +516,7 @@ namespace vast::hl
                     if constexpr (!std::is_same_v< Trg, void >)
                         return rewriter.create< Trg >(op.getLoc(), *trg_ty, m_ops);
                     else
-                        return ops[1];
+                        return ops[0];
                 }();
 
                 rewriter.create< LLVM::StoreOp >(op.getLoc(), new_op, alloca);
