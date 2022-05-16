@@ -18,15 +18,13 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-
-
     namespace
     {
-        std::size_t size(mlir::Region &region)
+        [[maybe_unused]] std::size_t size(mlir::Region &region)
         {
             return std::distance(region.begin(), region.end());
         }
-        std::size_t size(mlir::Block &block)
+        [[maybe_unused]] std::size_t size(mlir::Block &block)
         {
             return std::distance(block.begin(), block.end());
         }
@@ -99,7 +97,6 @@ namespace vast::hl
         {
             auto yield = inline_cond_region< hl::CondYieldOp >(op, rewriter);
             rewriter.setInsertionPointAfter(yield);
-            auto c = yield.getOperand();
 
             mlir::scf::IfOp scf_if_op = rewriter.create< mlir::scf::IfOp >(
                     op.getLoc(), std::vector< mlir::Type >{}, yield.getOperand(), true);
