@@ -30,29 +30,6 @@ namespace vast::hl
         }
     }
 
-
-
-    void copy_block(auto &b, auto &rewriter, auto &region, auto loc)
-    {
-        auto ip = rewriter.getInsertionBlock();
-        auto dst_region = ip->getParent();
-
-        rewriter.inlineRegionBefore(region, *dst_region, dst_region->begin());
-        VAST_ASSERT(size(*dst_region) <= 2);
-        if (size(*dst_region) == 2)
-            rewriter.mergeBlocks(&*dst_region->begin(), &*std::next(dst_region->begin()),
-                                 llvm::None);
-
-        if (size(*dst_region->begin()) == 0)
-        {
-            rewriter.setInsertionPointToStart(&*dst_region->begin());
-            rewriter.template create< mlir::scf::YieldOp >(loc);
-        } else {
-            rewriter.setInsertionPointToEnd(&*dst_region->begin());
-            rewriter.template create< mlir::scf::YieldOp >(loc);
-        }
-
-    }
     template< typename T >
     auto inline_cond_region(auto src, auto &rewriter)
     {
@@ -68,46 +45,129 @@ namespace vast::hl
         return mlir::dyn_cast< T >(*std::prev(mlir::Block::iterator(src)));
     }
 
-
-
     namespace pattern
     {
-        struct l_ifop : mlir::ConvertOpToLLVMPattern< hl::IfOp >
+        template< typename T >
+        struct DoConversion {};
+
+        template< typename O >
+        struct State
         {
-            using Base = mlir::ConvertOpToLLVMPattern< hl::IfOp >;
-            using Base::Base;
+            O op;
+            typename O::Adaptor operands;
+            mlir::ConversionPatternRewriter &rewriter;
 
-            void make_if_block(mlir::Region &old_region, mlir::Region &new_region,
-                               mlir::Location loc, auto &rewriter) const
+            State(O op_, typename O::Adaptor operands_,
+                  mlir::ConversionPatternRewriter &rewriter_)
+                : op(op_), operands(operands_), rewriter(rewriter_)
+            {}
+        };
+
+        template<>
+        struct DoConversion< hl::IfOp > : State < hl::IfOp >
+        {
+            using State< hl::IfOp >::State;
+
+            mlir::Region &steal_region(mlir::Region &from, mlir::Region &into)
             {
-                rewriter.inlineRegionBefore(old_region, new_region, new_region.begin());
-
-                rewriter.eraseBlock(&new_region.back());
-
-                VAST_ASSERT(size(new_region) == 1);
-                auto &block = new_region.front();
-                VAST_ASSERT(block.getNumArguments() == 0);
-
-
-                mlir::OpBuilder::InsertionGuard guard(rewriter);
-                rewriter.setInsertionPointToEnd(&block);
-                std::vector< mlir::Value > vals;
-                rewriter.template create< mlir::scf::YieldOp >(loc, vals);
+                rewriter.inlineRegionBefore(from, into, into.begin());
+                return into;
             }
 
-            mlir::LogicalResult matchAndRewrite(
-                    hl::IfOp op, hl::IfOp::Adaptor ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+            mlir::Region &remove_back(mlir::Region &region)
+            {
+                VAST_ASSERT(size(region) >= 1);
+                rewriter.eraseBlock(&region.back());
+                return region;
+            }
+
+            std::optional< mlir::Block * > get_singleton_block(mlir::Region &region)
+            {
+                if (size(region) != 1)
+                    return {};
+                return { &region.front() };
+
+            }
+
+            bool has_terminator(mlir::Block &block)
+            {
+                if (size(block) == 0)
+                    return false;
+
+                auto &last = block.back();
+                return last.hasTrait< mlir::OpTrait::IsTerminator >();
+            }
+
+            std::optional< mlir::Operation * > get_terminator(mlir::Block &block)
+            {
+                if (has_terminator(block))
+                    return { block.getTerminator() };
+                return {};
+            }
+
+            template< typename O, typename GetVals >
+            auto new_terminator(mlir::Block &block, GetVals &&get_vals)
+            -> std::optional< mlir::Operation * >
+            {
+                mlir::OpBuilder::InsertionGuard guard(rewriter);
+                rewriter.setInsertionPointToEnd(&block);
+
+                auto maybe_terminator = get_terminator(block);
+                rewriter.template create< O >(op.getLoc(), get_vals(maybe_terminator));
+                return maybe_terminator;
+            }
+
+            template< typename O, typename GetVals >
+            void replace_terminator(mlir::Block &block, GetVals &&get_vals)
+            {
+                auto old = new_terminator< O >(block, std::forward< GetVals >(get_vals));
+                if (old)
+                    rewriter.eraseOp(*old);
+            }
+
+            auto no_vals()
+            {
+                // `std::optional< mlir::Operation * > -> std::vector< mlir::Value * >
+                return [](auto) { return std::vector< mlir::Value >{}; };
+            }
+
+            auto erase_op()
+            {
+                return [&](auto op) { return rewriter.eraseOp(op); };
+            }
+
+            mlir::LogicalResult make_if_block(mlir::Region &from, mlir::Region &to)
+            {
+                auto block = get_singleton_block(remove_back(steal_region(from, to)));
+                if (!block)
+                    return mlir::failure();
+                replace_terminator< mlir::scf::YieldOp >(**block, no_vals());
+                return mlir::success();
+            }
+
+            template< typename H, typename ... Args >
+            bool failed(H &&h, Args && ... args)
+            {
+                if (mlir::failed(std::forward< H >(h)))
+                    return true;
+
+                if constexpr (sizeof ... (Args) != 0)
+                    return failed< Args ... >(std::forward< Args >(args) ...);
+                return false;
+            }
+
+            mlir::LogicalResult convert()
             {
                 auto yield = inline_cond_region< hl::CondYieldOp >(op, rewriter);
                 rewriter.setInsertionPointAfter(yield);
 
                 mlir::scf::IfOp scf_if_op = rewriter.create< mlir::scf::IfOp >(
                         op.getLoc(), std::vector< mlir::Type >{}, yield.getOperand(), true);
-                make_if_block(op.thenRegion(), scf_if_op.getThenRegion(),
-                              op.getLoc(), rewriter);
-                make_if_block(op.elseRegion(), scf_if_op.getElseRegion(),
-                              op.getLoc(), rewriter);
+                if (failed(make_if_block(op.thenRegion(), scf_if_op.getThenRegion()),
+                           make_if_block(op.elseRegion(), scf_if_op.getElseRegion())))
+                {
+                    return mlir::failure();
+                }
 
                 rewriter.eraseOp(yield);
                 rewriter.eraseOp(op);
@@ -115,6 +175,23 @@ namespace vast::hl
                 return mlir::success();
             }
         };
+
+        template< typename T >
+        struct BasePattern : mlir::ConvertOpToLLVMPattern< T >
+        {
+            using Base = mlir::ConvertOpToLLVMPattern< hl::IfOp >;
+            using Base::Base;
+            using operation_t = T;
+
+            mlir::LogicalResult matchAndRewrite(
+                    T op, typename T::Adaptor ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                return DoConversion< T >(op, ops, rewriter).convert();
+            }
+        };
+
+        using l_ifop = BasePattern< hl::IfOp >;
 
         struct l_while : mlir::ConvertOpToLLVMPattern< hl::WhileOp >
         {
