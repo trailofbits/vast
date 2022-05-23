@@ -12,5 +12,9 @@ add_mlir_dialect_library(MLIRHighLevelTransforms
   MLIRIR
   MLIRPass
   MLIRTransformUtils
+  MLIRExecutionEngine
+  MLIRLLVMCommonConversion
+  MLIRTargetLLVMIRExport
+  MLIRLLVMToLLVMIRTranslation
   MLIRToLLVMIRTranslationRegistration
 )
