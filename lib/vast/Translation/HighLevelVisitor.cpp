@@ -1105,7 +1105,9 @@ namespace vast::hl
             return types.convert(underlying);
         }();
 
-        return builder.define_type(loc, type, name);
+        auto def = builder.define_type(loc, type, name);
+        attach_attributes(decl /* from */, def /* to */);
+        return def;
     }
 
     ValueOrStmt CodeGenVisitor::VisitTypeAliasDecl(clang::TypeAliasDecl *decl) {
