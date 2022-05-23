@@ -10,6 +10,6 @@ int main() {
 
     // CHECK: hl.var "sv" : !hl.lvalue<!hl.long<unsigned>>
     // CHECK: hl.alignof.expr -> !hl.long<unsigned>
-    // CHECK: hl.declref [[V1]] : !hl.lvalue<!hl.int>
+    // CHECK: hl.decl.ref [[V1]] : !hl.lvalue<!hl.int>
     unsigned long sv = alignof v;
 }

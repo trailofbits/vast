@@ -18,7 +18,7 @@ int main() {
     enum color { RED, GREEN, BLUE } r = RED;
 
     // CHECK: hl.switch
-    // CHECK:  hl.declref %0 : !hl.lvalue<!hl.named_type<"enum color">>
+    // CHECK:  hl.decl.ref %0 : !hl.lvalue<!hl.named_type<"enum color">>
     switch(r) {
     // CHECK: hl.case
     // CHECK:  hl.enumref "RED" : !hl.int

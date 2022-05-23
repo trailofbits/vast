@@ -259,7 +259,7 @@ def HighLevel_ReturnOp
 }
 
 def HighLevel_DeclRefOp
-  : HighLevel_Op< "declref", [NoSideEffect, SameOperandsAndResultType] >
+  : HighLevel_Op< "decl.ref", [NoSideEffect, SameOperandsAndResultType] >
   , Arguments<(ins AnyType:$decl)>
   , Results<(outs AnyType:$result)>
 {

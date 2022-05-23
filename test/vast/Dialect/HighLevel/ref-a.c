@@ -7,6 +7,6 @@ int main()
     // CHECK: [[V1:%[0-9]+]] = hl.constant.int 0 : !hl.int
     int x = 0;
     // CHECK: [[Y:%[0-9]+]] = hl.var "y" : !hl.lvalue<!hl.int> = {
-    // CHECK: [[V2:%[0-9]+]] = hl.declref [[X]] : !hl.lvalue<!hl.int>
+    // CHECK: [[V2:%[0-9]+]] = hl.decl.ref [[X]] : !hl.lvalue<!hl.int>
     int y = x;
 }
