@@ -48,27 +48,27 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinLT(clang::BinaryOperator *expr) {
-        return checked(make_icmp< Predicate::ult, Predicate::slt >(expr));
+        return checked(make_cmp< Predicate::ult, Predicate::slt >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinGT(clang::BinaryOperator *expr) {
-        return checked(make_icmp< Predicate::ugt, Predicate::sgt >(expr));
+        return checked(make_cmp< Predicate::ugt, Predicate::sgt >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinLE(clang::BinaryOperator *expr) {
-        return checked(make_icmp< Predicate::ule, Predicate::sle >(expr));
+        return checked(make_cmp< Predicate::ule, Predicate::sle >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinGE(clang::BinaryOperator *expr) {
-        return checked(make_icmp< Predicate::uge, Predicate::sge >(expr));
+        return checked(make_cmp< Predicate::uge, Predicate::sge >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinEQ(clang::BinaryOperator *expr) {
-        return checked(make_icmp< Predicate::eq >(expr));
+        return checked(make_cmp< Predicate::eq >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinNE(clang::BinaryOperator *expr) {
-        return checked(make_icmp< Predicate::ne >(expr));
+        return checked(make_cmp< Predicate::ne >(expr));
     }
 
     ValueOrStmt CodeGenVisitor::VisitBinAnd(clang::BinaryOperator *expr) {
