@@ -36,4 +36,6 @@ class HighLevel_Attr<string name, string attr_mnemonic>
   let mnemonic = attr_mnemonic;
 }
 
+def SizeAttr : HighLevel_Attr< "Size", "size" > {}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
