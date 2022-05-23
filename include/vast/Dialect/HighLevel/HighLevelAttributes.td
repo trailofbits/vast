@@ -38,4 +38,15 @@ class HighLevel_Attr<string name, string attr_mnemonic>
 
 def SizeAttr : HighLevel_Attr< "Size", "size" > {}
 
+def AnnotationAttr : HighLevel_Attr< "Annotation", "annotation" > {
+  let parameters = (ins "::mlir::StringAttr":$name);
+  let builders = [
+    AttrBuilderWithInferredContext<(ins "::mlir::StringAttr":$name), [{
+      return get(name.getContext(), name);
+    }]>,
+  ];
+
+  let assemblyFormat = "`<` $name `>`";
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
