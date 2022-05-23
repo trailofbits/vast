@@ -5,8 +5,8 @@
 _Bool oposite_signs(int x, int y) {
     // CHECK: hl.expr : !hl.int
     // CHECK:  hl.expr : !hl.int
-    // CHECK:   hl.declref [[A1]] : !hl.lvalue<!hl.int>
-    // CHECK:   hl.declref [[A2]] : !hl.lvalue<!hl.int>
+    // CHECK:   hl.decl.ref [[A1]] : !hl.lvalue<!hl.int>
+    // CHECK:   hl.decl.ref [[A2]] : !hl.lvalue<!hl.int>
     // CHECK:   hl.bin.xor
     // CHECK:  hl.constant.int 0 : !hl.int
     // CHECK:  hl.cmp slt
