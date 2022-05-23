@@ -693,6 +693,28 @@ namespace vast::hl
             });
         }
 
+        static inline std::string parse_annotation(AContext &ctx, clang::Attr *attr) {
+            // Clang does not provide a nicer interface :(
+            std::string buff; llvm::raw_string_ostream stream(buff);
+            auto policy = ctx.getPrintingPolicy();
+            attr->printPretty(stream, policy);
+            llvm::StringRef ref(buff);
+            ref.consume_front(" __attribute__((annotate(\"");
+            ref.consume_back("\")))");
+            return ref.str();
+        }
+
+        void attach_attributes(clang::Decl *from, auto &to) {
+            if (from->hasAttrs()) {
+                auto &actx = ctx.getASTContext();
+                for (auto attr: from->getAttrs()) {
+                    auto annot = mlir::StringAttr::get(to->getContext(), parse_annotation(actx, attr));
+                    to->setAttr("annotation", AnnotationAttr::get(annot));
+                }
+            }
+        }
+
+
         TranslationContext &ctx;
         HighLevelBuilder builder;
         HighLevelTypeConverter types;
