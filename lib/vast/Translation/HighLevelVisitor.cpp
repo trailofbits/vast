@@ -1243,7 +1243,6 @@ namespace vast::hl
                 }
             }
         }
-        fn.dump();
         return fn;
     }
 

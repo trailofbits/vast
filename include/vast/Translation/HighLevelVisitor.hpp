@@ -593,7 +593,6 @@ namespace vast::hl
             return [stmt, this](auto &bld, auto loc) {
                 Visit(stmt);
                 auto &op = bld.getBlock()->back();
-                bld.getBlock()->dump();
                 assert(op.getNumResults() == 1);
                 auto val = op.getResult(0);
                 bld.template create< ValueYieldOp >(loc, val);
