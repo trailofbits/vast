@@ -413,7 +413,7 @@ namespace vast::hl
         }
 
         template< Predicate pred >
-        Value make_cmp(clang::BinaryOperator *expr) {
+        Value make_cmp_impl(clang::BinaryOperator *expr) {
             auto lhs = Visit(expr->getLHS());
             auto rhs = Visit(expr->getRHS());
             auto loc = builder.get_end_location(expr->getSourceRange());
@@ -422,20 +422,20 @@ namespace vast::hl
         }
 
         template< Predicate pred >
-        Value make_icmp(clang::BinaryOperator *expr) {
+        Value make_cmp(clang::BinaryOperator *expr) {
             auto ty = expr->getLHS()->getType();
-            if (ty->isIntegerType())
-                return make_cmp< pred >(expr);
+            if (ty->isIntegerType() || ty->isPointerType())
+                return make_cmp_impl< pred >(expr);
             return Value();
         }
 
         template< Predicate upred, Predicate spred >
-        Value make_icmp(clang::BinaryOperator *expr) {
+        Value make_cmp(clang::BinaryOperator *expr) {
             auto ty = expr->getLHS()->getType();
             if (ty->isUnsignedIntegerType())
-                return make_cmp< upred >(expr);
+                return make_cmp_impl< upred >(expr);
             if (ty->isIntegerType())
-                return make_cmp< spred >(expr);
+                return make_cmp_impl< spred >(expr);
             return Value();
         }
 
