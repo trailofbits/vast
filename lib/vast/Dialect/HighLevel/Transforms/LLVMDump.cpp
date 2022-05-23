@@ -9,14 +9,19 @@ VAST_RELAX_WARNINGS
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/Conversion/LLVMCommon/TypeConverter.h>
 #include <mlir/Conversion/LLVMCommon/Pattern.h>
+#include <mlir/ExecutionEngine/ExecutionEngine.h>
 
 #include <mlir/Target/LLVMIR/Export.h>
 #include <mlir/Target/LLVMIR/Dialect/All.h>
 #include <mlir/Target/LLVMIR/LLVMTranslationInterface.h>
 #include <mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h>
 
+#include <llvm/MC/TargetRegistry.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Target/TargetMachine.h>
 #include <llvm/Support/raw_ostream.h>
 VAST_UNRELAX_WARNINGS
+
 
 #include <vast/Dialect/HighLevel/HighLevelDialect.hpp>
 #include <vast/Dialect/HighLevel/HighLevelOps.hpp>
@@ -63,6 +68,11 @@ namespace vast::hl
         auto lmodule = mlir::translateModuleToLLVMIR(op, lctx);
         if (!lmodule)
             return signalPassFailure();
+
+
+        llvm::InitializeNativeTarget();
+        llvm::InitializeNativeTargetAsmPrinter();
+        mlir::ExecutionEngine::setupTargetTriple(lmodule.get());
 
         // TODO(lukas): Make configurable.
         llvm::errs() << *lmodule;
