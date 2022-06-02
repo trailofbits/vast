@@ -36,8 +36,6 @@ class HighLevel_Attr<string name, string attr_mnemonic>
   let mnemonic = attr_mnemonic;
 }
 
-def SizeAttr : HighLevel_Attr< "Size", "size" > {}
-
 def AnnotationAttr : HighLevel_Attr< "Annotation", "annotation" > {
   let parameters = (ins "::mlir::StringAttr":$name);
   let builders = [

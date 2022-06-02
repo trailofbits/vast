@@ -209,25 +209,25 @@ namespace vast::hl
     }
 
     namespace detail {
-        SizeAttr get_size_attr(const clang::ConstantArrayType *arr, MContext &ctx) {
-            return SizeAttr::get(&ctx);
+        SizeParam get_size_attr(const clang::ConstantArrayType *arr, MContext &ctx) {
+            return SizeParam(arr->getSize());
         }
 
-        SizeAttr get_size_attr(const clang::DependentSizedArrayType *arr, MContext &ctx) {
+        SizeParam get_size_attr(const clang::DependentSizedArrayType *arr, MContext &ctx) {
             return {};
         }
 
-        SizeAttr get_size_attr(const clang::IncompleteArrayType *arr, MContext &ctx) {
+        SizeParam get_size_attr(const clang::IncompleteArrayType *arr, MContext &ctx) {
             return {};
         }
 
-        SizeAttr get_size_attr(const clang::VariableArrayType *arr, MContext &ctx) {
+        SizeParam get_size_attr(const clang::VariableArrayType *arr, MContext &ctx) {
             return {};
         }
     } // namespace detail
 
-    SizeAttr HighLevelTypeConverter::get_size_attr(const clang::ArrayType *ty) {
-        return llvm::TypeSwitch< const clang::ArrayType *, SizeAttr >(ty)
+    SizeParam HighLevelTypeConverter::get_size_attr(const clang::ArrayType *ty) {
+        return llvm::TypeSwitch< const clang::ArrayType *, SizeParam >(ty)
             .Case< clang::ConstantArrayType, clang::DependentSizedArrayType
                  , clang::IncompleteArrayType, clang::VariableArrayType >
             ([&] (const auto *array_type) {

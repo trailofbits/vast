@@ -224,6 +224,24 @@ class WithDimensionsClass
   }];
 }
 
+def SizeParam : TypeParameter<"SizeParam", "size parameter for arrays"> {
+  let printer = [{
+    if ($_self.hasValue())
+      $_printer << $_self.getValue();
+    else
+      $_printer << "?";
+  }];
+  let parser = [{ [&] () -> mlir::FailureOr<llvm::Optional< llvm::APInt >> {
+    if (!parser.parseKeyword("?"))
+      return SizeParam{};
+
+    mlir::APInt value;
+    if (parser.parseInteger(value))
+      return mlir::failure();
+    return SizeParam{value};
+  }() }];
+}
+
 def ArrayType :
   HighLevelType< "Array",
     [ DeclareTypeInterfaceMethods< SubElementTypeInterface >
@@ -235,7 +253,7 @@ def ArrayType :
 
   let parameters = (ins
     "Type":$elementType,
-    "SizeAttr":$size
+    SizeParam:$size
   );
 
   let extraClassDeclaration =

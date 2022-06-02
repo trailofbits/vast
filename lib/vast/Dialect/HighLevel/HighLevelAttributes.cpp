@@ -17,6 +17,7 @@ namespace vast::hl
 
 #define GET_ATTRDEF_CLASSES
 #include "vast/Dialect/HighLevel/HighLevelAttributes.cpp.inc"
+
 namespace vast::hl
 {
     using DialectParser = mlir::AsmParser;
@@ -29,29 +30,5 @@ namespace vast::hl
             #include "vast/Dialect/HighLevel/HighLevelAttributes.cpp.inc"
         >();
     }
-
-    // FIXME: commented out, because high-level dialect does not have any attributes yet
-    // Attribute HighLevelDialect::parseAttribute(DialectParser &parser, Type type) const
-    // {
-    //     auto loc = parser.getCurrentLocation();
-
-    //     llvm::StringRef mnemonic;
-    //     if (parser.parseKeyword(&mnemonic))
-    //         return Attribute();
-
-    //     Attribute result;
-    //     if (generatedAttributeParser(getContext(), parser, mnemonic, type, result).hasValue()) {
-    //         return result;
-    //     }
-
-    //     parser.emitError(loc, "unexpected high-level attribute '" + mnemonic + "'");
-    //     return Attribute();
-    // }
-
-    // void HighLevelDialect::printAttribute(Attribute attr, DialectPrinter &p) const
-    // {
-    //     if (failed(generatedAttributePrinter(attr, p)))
-    //         VAST_UNREACHABLE("Unexpected attribute");
-    // }
 
 } // namespace vast::hl

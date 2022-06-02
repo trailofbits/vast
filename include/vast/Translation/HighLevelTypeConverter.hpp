@@ -54,7 +54,7 @@ namespace vast::hl
 
         mlir::Type do_convert(const clang::TypedefType *ty, Quals quals);
 
-        SizeAttr get_size_attr(const clang::ArrayType *ty);
+        SizeParam get_size_attr(const clang::ArrayType *ty);
 
         TranslationContext &ctx;
     };
