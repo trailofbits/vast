@@ -74,6 +74,8 @@ namespace vast::hl
         }
     };
 
+    using SizeParam = llvm::Optional< llvm::APInt >;
+
 } // namespace vast::hl
 
 #define GET_TYPEDEF_CLASSES

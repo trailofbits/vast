@@ -4,8 +4,8 @@ add_mlir_dialect_library(MLIRHighLevel
     HighLevelDialect.cpp
     HighLevelVar.cpp
     HighLevelOps.cpp
+HighLevelAttributes.cpp
     HighLevelTypes.cpp
-    HighLevelAttributes.cpp
 
     ADDITIONAL_HEADER_DIRS
     ${PROJECT_SOURCE_DIR}/include/vast
@@ -23,7 +23,7 @@ add_mlir_dialect_library(MLIRHighLevel
     MLIRControlFlowInterfaces
     MLIRDataLayoutInterfaces
     MLIRInferTypeOpInterface
-    
+
     VASTSymbolInterface
 )
 
