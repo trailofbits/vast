@@ -1337,11 +1337,22 @@ namespace vast::hl
     ValueOrStmt CodeGenVisitor::VisitVarDecl(clang::VarDecl *decl) {
         auto initializer = make_value_builder(decl->getInit());
 
+        auto array_allocator = [decl, this](auto &bld, auto loc) {
+            if (auto type = clang::dyn_cast< clang::VariableArrayType >(decl->getType())) {
+                make_value_builder(type->getSizeExpr())(bld, loc);
+            }
+        };
+
+        auto type = decl->getType();
+        bool has_allocator = type->isVariableArrayType();
+        bool has_init =  decl->getInit();
+
         auto var = make_operation< VarDecl >(builder)
             .bind(builder.get_end_location(decl->getSourceRange())) // location
             .bind(types.lvalue_convert(decl->getType()))            // type
             .bind(decl->getUnderlyingDecl()->getName())             // name
-            .bind_if(decl->getInit(), std::move(initializer))       // initializer
+            .bind_region_if(has_init, std::move(initializer))           // initializer
+            .bind_region_if(has_allocator, std::move(array_allocator))  // array allocator
             .freeze();
 
         if (auto sc = get_storage_class(decl); sc != StorageClass::sc_none) {
