@@ -174,12 +174,6 @@ namespace vast::hl
 
     void VarDecl::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback init, BuilderCallback alloc) {
         st.addAttribute("name", bld.getStringAttr(name));
-
-        llvm::errs() << "VarDecl: "
-            << (init ? "has init " : "")
-            << (alloc ? "has alloc " : "")
-            << "\n";
-
         Builder::InsertionGuard guard(bld);
 
         detail::build_region(bld, st, init);
