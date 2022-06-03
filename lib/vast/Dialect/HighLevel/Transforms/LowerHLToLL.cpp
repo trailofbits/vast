@@ -656,8 +656,9 @@ namespace vast::hl
 
 
         mlir::ConversionTarget trg(mctx);
-        trg.addLegalDialect< mlir::LLVM::LLVMDialect >();
-        trg.addLegalOp< mlir::ModuleOp >();
+        trg.addIllegalDialect< hl::HighLevelDialect >();
+        trg.addLegalOp< hl::TypeDefOp >();
+        trg.markUnknownOpDynamicallyLegal([](auto) { return true; });
 
         const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
 
