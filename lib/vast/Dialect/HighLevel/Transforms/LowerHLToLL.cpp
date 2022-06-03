@@ -347,7 +347,7 @@ namespace vast::hl
                     hl::ReturnOp ret_op, hl::ReturnOp::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
-                rewriter.create< LLVM::ReturnOp >(ret_op.getLoc(), ops.getOperands()[0]);
+                rewriter.create< LLVM::ReturnOp >(ret_op.getLoc(), ops.getOperands());
                 rewriter.eraseOp(ret_op);
                 return mlir::success();
             }
