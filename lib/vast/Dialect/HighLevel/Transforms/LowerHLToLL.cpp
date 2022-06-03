@@ -447,6 +447,24 @@ namespace vast::hl
 
         };
 
+        // TODO(lukas): Move to some utils.
+        auto create_trunc_or_sext(auto op, mlir::Type trg, auto &rewriter,
+                                  mlir::Location loc, const auto &dl)
+        -> mlir::Value
+        {
+            VAST_ASSERT(op.getType().template isa< mlir::IntegerType >() &&
+                        trg.isa< mlir::IntegerType >());
+            auto new_bw = dl.getTypeSizeInBits(trg);
+            auto original_bw = dl.getTypeSizeInBits(op.getType());
+
+            if (new_bw == original_bw)
+                return op;
+            else if (new_bw > original_bw)
+                return rewriter.template create< mlir::LLVM::SExtOp >(loc, trg, op);
+            else
+                return rewriter.template create< mlir::LLVM::TruncOp >(loc, trg, op);
+        }
+
         struct l_implicit_cast : BasePattern< hl::ImplicitCastOp >
         {
             using Base = BasePattern< hl::ImplicitCastOp >;
@@ -465,7 +483,12 @@ namespace vast::hl
                 }
                 if (op.kind() == hl::CastKind::IntegralCast)
                 {
-                    rewriter.replaceOp(op, {ops.getOperands()[0]});
+                    const auto &dl = this->type_converter().getDataLayoutAnalysis()
+                                                           ->getAtOrAbove(op);
+                    auto coerced = create_trunc_or_sext(
+                            ops.getOperands()[0], op.getType(),
+                            rewriter, op.getLoc(), dl);
+                    rewriter.replaceOp(op, {coerced});
                     return mlir::success();
                 }
                 return mlir::failure();
