@@ -252,9 +252,13 @@ namespace vast::hl
 
                 mlir::OpBuilder::InsertionGuard guard(rewriter);
                 rewriter.setInsertionPointAfter(*cond_yield);
+                auto coerced_condition = coerce_condition(cond_yield->result(), rewriter);
+                if (!coerced_condition)
+                    return mlir::failure();
+
                 rewriter.create< mlir::scf::ConditionOp >(
                         cond_yield->getLoc(),
-                        cond_yield->result(),
+                        *coerced_condition,
                         dst.getParent()->front().getArguments());
 
                 rewriter.eraseOp(*cond_yield);
