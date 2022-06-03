@@ -526,8 +526,8 @@ namespace vast::hl
 
                 rewriter.create< LLVM::StoreOp >(op.getLoc(), new_op, alloca);
 
-                // Assigns do not return a value.
-                rewriter.eraseOp(op);
+                // `hl.assign` returns value for cases like `int x = y = 5;`
+                rewriter.replaceOp(op, {new_op});
                 return mlir::success();
             }
         };
