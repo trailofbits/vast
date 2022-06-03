@@ -269,7 +269,10 @@ namespace vast::hl
 
     Type HighLevelTypeConverter::do_convert(const clang::ArrayType *ty, Quals quals) {
         auto element_type = convert(ty->getElementType());
-        return ArrayType::get(&ctx.getMLIRContext(), element_type, get_size_attr(ty));
+        return ArrayType::get(&ctx.getMLIRContext(), get_size_attr(ty), element_type,
+            quals.hasConst(),
+            quals.hasVolatile()
+        );
     }
 
     mlir::FunctionType HighLevelTypeConverter::convert(const clang::FunctionType *ty) {

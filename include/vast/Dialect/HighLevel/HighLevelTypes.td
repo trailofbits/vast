@@ -66,6 +66,14 @@ class LValueOf<TypeConstraint value> : Type< And< [
   "lvalue to " # value.summary
 >;
 
+class QualifierParam< string name, string desc > : TypeParameter<"bool", desc> {
+  let printer = [{ $_printer << ($_self ? "}] # name # [{" : ""); }];
+  let parser = [{ [&] () -> mlir::FailureOr<bool> { return !parser.parseKeyword( "}] # name # [{" ); } () }];
+}
+
+def ConstParam : QualifierParam<"const", "const qualifier" >;
+def VolatileParam : QualifierParam< "volatile", "volatile qualifier" >;
+
 class CVQualified< string name, string mnem, list<Trait> traits = []>
   : HighLevelType< name, traits >
 {
@@ -231,7 +239,7 @@ def SizeParam : TypeParameter<"SizeParam", "size parameter for arrays"> {
     else
       $_printer << "?";
   }];
-  let parser = [{ [&] () -> mlir::FailureOr<llvm::Optional< llvm::APInt >> {
+  let parser = [{ [&] () -> mlir::FailureOr<SizeParam> {
     if (!parser.parseKeyword("?"))
       return SizeParam{};
 
@@ -252,15 +260,17 @@ def ArrayType :
   let mnemonic = "array";
 
   let parameters = (ins
+    SizeParam:$size,
     "Type":$elementType,
-    SizeParam:$size
+    ConstParam:$isConst, /* TODO(Heno) use OptionalParameter */
+    VolatileParam:$isVolatile /* TODO(Heno) use OptionalParameter */
   );
 
   let extraClassDeclaration =
     default_dl_interface_impl #
     default_dimensions_impl;
 
-  let assemblyFormat = "`<` $size `,` $elementType `>`";
+  let assemblyFormat = "`<` params `>`";
 }
 
 def NamedType : HighLevelType< "Named", [MemRefElementTypeInterface] > {
@@ -274,13 +284,9 @@ def NamedType : HighLevelType< "Named", [MemRefElementTypeInterface] > {
 }
 
 def SubscriptableType : TypeConstraint<
-  Or< [ArrayType.predicate, PointerType.predicate] >,
-  "array like type"
+  Or< [ArrayType.predicate, PointerType.predicate] >, "array like type"
 >;
 
-def PointerLikeType : TypeConstraint<
-  PointerType.predicate,
-  "pointer like type"
->;
+def PointerLikeType : TypeConstraint< PointerType.predicate, "pointer like type" >;
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
