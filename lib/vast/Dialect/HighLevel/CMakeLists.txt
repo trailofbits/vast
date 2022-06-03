@@ -4,7 +4,7 @@ add_mlir_dialect_library(MLIRHighLevel
     HighLevelDialect.cpp
     HighLevelVar.cpp
     HighLevelOps.cpp
-HighLevelAttributes.cpp
+    HighLevelAttributes.cpp
     HighLevelTypes.cpp
 
     ADDITIONAL_HEADER_DIRS

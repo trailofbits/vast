@@ -24,9 +24,9 @@ namespace vast::hl
         void build_region(Builder &bld, State &st, BuilderCallback callback)
         {
             auto reg = st.addRegion();
-            if (callback) {
+            if (callback.has_value()) {
                 bld.createBlock(reg);
-                callback(bld, st.location);
+                callback.value()(bld, st.location);
             }
         }
     } // namespace detail
@@ -172,15 +172,18 @@ namespace vast::hl
         build_expr_trait(bld, st, rty, expr);
     }
 
-    void VarDecl::build(Builder &bld, State &st, Type type, llvm::StringRef name) {
-        build(bld, st, type, name, nullptr);
-    }
-
-    void VarDecl::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback init) {
+    void VarDecl::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback init, BuilderCallback alloc) {
         st.addAttribute("name", bld.getStringAttr(name));
 
+        llvm::errs() << "VarDecl: "
+            << (init ? "has init " : "")
+            << (alloc ? "has alloc " : "")
+            << "\n";
+
         Builder::InsertionGuard guard(bld);
+
         detail::build_region(bld, st, init);
+        detail::build_region(bld, st, alloc);
 
         st.addTypes(type);
     }

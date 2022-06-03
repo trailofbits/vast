@@ -81,7 +81,7 @@ def HighLevel_EnumConstantOp
     OpBuilder<(ins
       "llvm::StringRef":$name,
       "llvm::APSInt":$value,
-      CArg< "BuilderCallback", "nullptr">:$init
+      CArg< "BuilderCallback", "std::nullopt">:$init
     )>
   ];
 
@@ -132,7 +132,7 @@ def HighLevel_RecordDeclOp
   let builders = [
     OpBuilder<(ins
       "llvm::StringRef":$name,
-       CArg<"BuilderCallback", "nullptr">:$fields
+       CArg<"BuilderCallback", "std::nullopt">:$fields
     )>
   ];
 

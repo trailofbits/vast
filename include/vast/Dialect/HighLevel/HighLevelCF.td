@@ -85,7 +85,7 @@ def HighLevel_IfOp : ControlFlowOp< "if" >
     OpBuilder<(ins
       "BuilderCallback":$condBuilder,
       "BuilderCallback":$thenBuilder,
-      CArg< "BuilderCallback", "nullptr">:$elseBuilder
+      CArg< "BuilderCallback", "std::nullopt">:$elseBuilder
     )>
   ];
 

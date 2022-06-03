@@ -34,7 +34,9 @@ namespace vast::hl
 
     using FoldResult = mlir::OpFoldResult;
 
-    using BuilderCallback = llvm::function_ref< void(Builder &, Location) >;
+    using BuilderCallback = std::optional<
+        llvm::function_ref< void(Builder &, Location) >
+    >;
 
 } // namespace vast::hl
 
