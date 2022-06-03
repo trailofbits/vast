@@ -683,6 +683,16 @@ namespace vast::hl
                 return operation< decltype(binded) >(std::move(binded));
             }
 
+            template< typename arg_t >
+            constexpr auto bind_region_if(bool cond, arg_t &&arg) && {
+                auto binded = [cond, arg = std::forward< arg_t >(arg), op = std::move(op)] (auto &&...args) {
+                    if (cond)
+                        return op(arg, std::forward< decltype(args) >(args)...);
+                    return op(std::nullopt, std::forward< decltype(args) >(args)...);
+                };
+                return operation< decltype(binded) >(std::move(binded));
+            }
+
             auto freeze() { return op(); }
 
             op_t op;

@@ -163,16 +163,25 @@ def HighLevel_VarDecl : HighLevel_Op< "var", [VastSymbol] >
   );
 
   let results = (outs AnyType:$result);
-  let regions = (region AnyRegion:$initializer);
+  let regions = (region
+    AnyRegion:$initializer,
+    AnyRegion:$allocation_size
+  );
 
   let skipDefaultBuilders = 1;
   let builders = [
-    OpBuilder<(ins "Type":$type, "llvm::StringRef":$name)>,
-    OpBuilder<(ins "Type":$type, "llvm::StringRef":$name, "BuilderCallback":$initBuilder)>
+    OpBuilder<(ins
+      "Type":$type,
+      "llvm::StringRef":$name,
+      CArg< "BuilderCallback", "std::nullopt" >:$initBuilder,
+      CArg< "BuilderCallback", "std::nullopt" >:$allocaBuilder
+    )>
   ];
 
   let assemblyFormat = [{
-    $name attr-dict ($storageClass^)? ($threadStorageClass^)? `:` type($result) (`=` $initializer^)?
+    $name attr-dict ($storageClass^)? ($threadStorageClass^)? `:` type($result)
+      (`=` $initializer^)?
+      (`allocation_size` $allocation_size^)?
   }];
 
   let extraClassDeclaration = [{
