@@ -47,6 +47,22 @@ namespace vast::hl
 
     namespace pattern
     {
+        auto coerce_condition(auto op, mlir::ConversionPatternRewriter &rewriter)
+        -> std::optional< mlir::Value >
+        {
+            auto int_type = op.getType().template dyn_cast< mlir::IntegerType >();
+            if (!int_type)
+                return {};
+
+            auto i1 =  mlir::IntegerType::get(op.getContext(), 1u);
+            if (int_type == i1)
+                return { op };
+
+            auto coerced = rewriter.create< hl::ImplicitCastOp >(
+                op.getLoc(), i1, op, hl::CastKind::IntegralCast);
+            return { coerced };
+        }
+
         template< typename T >
         struct DoConversion {};
 
@@ -161,8 +177,12 @@ namespace vast::hl
                 auto yield = inline_cond_region< hl::CondYieldOp >(op, rewriter);
                 rewriter.setInsertionPointAfter(yield);
 
+                auto coerced = coerce_condition(yield.getOperand(), rewriter);
+                if (!coerced)
+                    return mlir::failure();
+
                 mlir::scf::IfOp scf_if_op = rewriter.create< mlir::scf::IfOp >(
-                        op.getLoc(), std::vector< mlir::Type >{}, yield.getOperand(),
+                        op.getLoc(), std::vector< mlir::Type >{}, *coerced,
                         op.hasElse());
                 auto then_result = make_if_block(op.thenRegion(), scf_if_op.getThenRegion());
                 auto else_result = [&]()
