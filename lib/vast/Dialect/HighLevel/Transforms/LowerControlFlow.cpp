@@ -66,6 +66,17 @@ namespace vast::hl
         template< typename T >
         struct DoConversion {};
 
+        struct optional_terminator_t : std::optional< mlir::Operation * >
+        {
+            template< typename T >
+            T cast() const
+            {
+                if (!has_value())
+                    return {};
+                return mlir::dyn_cast< T >(**this);
+            }
+        };
+
         template< typename O >
         struct State
         {
@@ -77,6 +88,30 @@ namespace vast::hl
                   mlir::ConversionPatternRewriter &rewriter_)
                 : op(op_), operands(operands_), rewriter(rewriter_)
             {}
+
+            bool has_terminator(mlir::Block &block) const
+            {
+                if (size(block) == 0)
+                    return false;
+
+                auto &last = block.back();
+                return last.hasTrait< mlir::OpTrait::IsTerminator >();
+            }
+
+            optional_terminator_t get_terminator(mlir::Block &block) const
+            {
+                if (has_terminator(block))
+                    return { block.getTerminator() };
+                return {};
+            }
+
+            std::optional< mlir::Block * > get_singleton_block(mlir::Region &region)
+            {
+                if (size(region) != 1)
+                    return {};
+                return { &region.front() };
+
+            }
         };
 
         template<>
@@ -97,29 +132,6 @@ namespace vast::hl
                 return region;
             }
 
-            std::optional< mlir::Block * > get_singleton_block(mlir::Region &region)
-            {
-                if (size(region) != 1)
-                    return {};
-                return { &region.front() };
-
-            }
-
-            bool has_terminator(mlir::Block &block)
-            {
-                if (size(block) == 0)
-                    return false;
-
-                auto &last = block.back();
-                return last.hasTrait< mlir::OpTrait::IsTerminator >();
-            }
-
-            std::optional< mlir::Operation * > get_terminator(mlir::Block &block)
-            {
-                if (has_terminator(block))
-                    return { block.getTerminator() };
-                return {};
-            }
 
             template< typename O, typename GetVals >
             auto new_terminator(mlir::Block &block, GetVals &&get_vals)
@@ -215,33 +227,24 @@ namespace vast::hl
                 return dst.back();
             }
 
-            template< typename T >
-            std::optional< T > fetch_terminator(mlir::Block &block) const
-            {
-                auto out = mlir::dyn_cast< T >(block.getTerminator());
-                if (!out)
-                    return {};
-                return out;
-            }
-
             mlir::LogicalResult before_region(mlir::Block &dst) const
             {
-                auto cond_yield = fetch_terminator< hl::CondYieldOp >(dst);
+                auto cond_yield = get_terminator(dst).cast< hl::CondYieldOp >();
                 if (!cond_yield)
                     return mlir::failure();
 
                 mlir::OpBuilder::InsertionGuard guard(rewriter);
-                rewriter.setInsertionPointAfter(*cond_yield);
-                auto coerced_condition = coerce_condition(cond_yield->result(), rewriter);
+                rewriter.setInsertionPointAfter(cond_yield);
+                auto coerced_condition = coerce_condition(cond_yield.result(), rewriter);
                 if (!coerced_condition)
                     return mlir::failure();
 
                 rewriter.create< mlir::scf::ConditionOp >(
-                        cond_yield->getLoc(),
+                        cond_yield.getLoc(),
                         *coerced_condition,
                         dst.getParent()->front().getArguments());
 
-                rewriter.eraseOp(*cond_yield);
+                rewriter.eraseOp(cond_yield);
                 return mlir::success();
             }
 
