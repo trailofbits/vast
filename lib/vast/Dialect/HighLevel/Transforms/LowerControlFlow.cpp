@@ -201,31 +201,12 @@ namespace vast::hl
             }
         };
 
-        template< typename T >
-        struct BasePattern : mlir::ConvertOpToLLVMPattern< T >
+        template<>
+        struct DoConversion< hl::WhileOp > : State< hl::WhileOp >
         {
-            using Base = mlir::ConvertOpToLLVMPattern< hl::IfOp >;
-            using Base::Base;
-            using operation_t = T;
+            using State< hl::WhileOp >::State;
 
-            mlir::LogicalResult matchAndRewrite(
-                    T op, typename T::Adaptor ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
-            {
-                return DoConversion< T >(op, ops, rewriter).convert();
-            }
-        };
-
-        using l_ifop = BasePattern< hl::IfOp >;
-
-        struct l_while : mlir::ConvertOpToLLVMPattern< hl::WhileOp >
-        {
-            using Base = mlir::ConvertOpToLLVMPattern< hl::WhileOp >;
-            using Base::Base;
-
-
-            mlir::Block &do_inline(mlir::Region &src, mlir::Region &dst,
-                                   mlir::ConversionPatternRewriter &rewriter) const
+            mlir::Block &do_inline(mlir::Region &src, mlir::Region &dst) const
             {
                 rewriter.createBlock(&dst);
                 rewriter.cloneRegionBefore(src, &dst.back());
@@ -243,8 +224,7 @@ namespace vast::hl
                 return out;
             }
 
-            mlir::LogicalResult before_region(mlir::Block &dst,
-                                              mlir::ConversionPatternRewriter &rewriter) const
+            mlir::LogicalResult before_region(mlir::Block &dst) const
             {
                 auto cond_yield = fetch_terminator< hl::CondYieldOp >(dst);
                 if (!cond_yield)
@@ -266,8 +246,7 @@ namespace vast::hl
             }
 
             mlir::LogicalResult after_region(mlir::Block &block, mlir::Block &before,
-                                             mlir::Location loc,
-                                             mlir::ConversionPatternRewriter &rewriter) const
+                                             mlir::Location loc) const
             {
                 mlir::OpBuilder::InsertionGuard guard(rewriter);
                 rewriter.setInsertionPointToEnd(&block);
@@ -276,19 +255,18 @@ namespace vast::hl
                 return mlir::success();
             }
 
-            mlir::LogicalResult matchAndRewrite(
-                    hl::WhileOp op, hl::WhileOp::Adaptor ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+            // NOTE(lukas): Could be `const` but since `op.getLoc()` is not it does not compile.
+            mlir::LogicalResult convert()
             {
                 auto scf_while_op = rewriter.create< mlir::scf::WhileOp >(
                         op.getLoc(),
                         std::vector< mlir::Type >{},
                         std::vector< mlir::Value >{});
-                auto &before = do_inline(op.condRegion(), scf_while_op.getBefore(), rewriter);
-                auto &after = do_inline(op.bodyRegion(), scf_while_op.getAfter(), rewriter);
+                auto &before = do_inline(op.condRegion(), scf_while_op.getBefore());
+                auto &after = do_inline(op.bodyRegion(), scf_while_op.getAfter());
 
-                if (mlir::failed(before_region(before, rewriter)) ||
-                    mlir::failed(after_region(after, before, op.getLoc(), rewriter)))
+                if (mlir::failed(before_region(before)) ||
+                    mlir::failed(after_region(after, before, op.getLoc())))
                 {
                     return mlir::failure();
                 }
@@ -297,6 +275,24 @@ namespace vast::hl
                 return mlir::success();
             }
         };
+
+        template< typename T >
+        struct BasePattern : mlir::ConvertOpToLLVMPattern< T >
+        {
+            using Base = mlir::ConvertOpToLLVMPattern< T >;
+            using Base::Base;
+            using operation_t = T;
+
+            mlir::LogicalResult matchAndRewrite(
+                    T op, typename T::Adaptor ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                return DoConversion< T >(op, ops, rewriter).convert();
+            }
+        };
+
+        using l_ifop = BasePattern< hl::IfOp >;
+        using l_while = BasePattern< hl::WhileOp >;
 
     } // namespace pattern
 
