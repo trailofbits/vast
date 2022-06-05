@@ -312,12 +312,12 @@ namespace vast::hl
         auto &mctx = this->getContext();
 
         mlir::ConversionTarget trg(mctx);
+        trg.addLegalDialect< mlir::scf::SCFDialect >();
+
         trg.addIllegalOp< hl::IfOp >();
         trg.addIllegalOp< hl::WhileOp >();
         trg.addIllegalOp< hl::CondYieldOp >();
-        trg.addLegalOp< mlir::scf::IfOp >();
-        trg.addLegalOp< mlir::scf::YieldOp >();
-        trg.addLegalOp< mlir::scf::ConditionOp >();
+
         trg.markUnknownOpDynamicallyLegal([](auto) { return true; });
 
         mlir::RewritePatternSet patterns(&mctx);
