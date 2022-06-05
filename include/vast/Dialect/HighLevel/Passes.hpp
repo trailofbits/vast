@@ -15,13 +15,13 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    std::unique_ptr< mlir::Pass > createLowerHLToLLPass();
+    std::unique_ptr< mlir::Pass > createHLToLLPass();
 
-    std::unique_ptr< mlir::Pass > createLowerHighLevelTypesPass();
+    std::unique_ptr< mlir::Pass > createHLLowerTypesPass();
 
-    std::unique_ptr< mlir::Pass > createStructsToTuplesPass();
+    std::unique_ptr< mlir::Pass > createHLStructsToTuplesPass();
 
-    std::unique_ptr< mlir::Pass > createLowerHighLevelControlFlowPass();
+    std::unique_ptr< mlir::Pass > createHLToSCFPass();
 
     std::unique_ptr< mlir::Pass > createLLVMDumpPass();
 

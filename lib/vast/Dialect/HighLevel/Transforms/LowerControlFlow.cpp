@@ -318,12 +318,12 @@ namespace vast::hl
     } // namespace pattern
 
 
-    struct LowerHighLevelControlFlowPass : LowerHighLevelControlFlowBase< LowerHighLevelControlFlowPass >
+    struct HLToSCFPass : HLToSCFBase< HLToSCFPass >
     {
         void runOnOperation() override;
     };
 
-    void LowerHighLevelControlFlowPass::runOnOperation()
+    void HLToSCFPass::runOnOperation()
     {
         auto op = this->getOperation();
         auto &mctx = this->getContext();
@@ -351,7 +351,7 @@ namespace vast::hl
 }
 
 
-std::unique_ptr< mlir::Pass > vast::hl::createLowerHighLevelControlFlowPass()
+std::unique_ptr< mlir::Pass > vast::hl::createHLToSCFPass()
 {
-  return std::make_unique< LowerHighLevelControlFlowPass >();
+  return std::make_unique< HLToSCFPass >();
 }
