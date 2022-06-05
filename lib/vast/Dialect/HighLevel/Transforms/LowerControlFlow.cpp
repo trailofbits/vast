@@ -279,6 +279,23 @@ namespace vast::hl
             }
         };
 
+        // TODO(lukas): Unfortunately `scf.for` may be too narrow to be always be used
+        //              as valid target for `hl.for` lowering - for example `step` is always
+        //              required, whereas `hl.for` support arbitrary computation in its `incr`
+        //              block.
+        //              We may be able to lower some `hl.for` into `scf.for` but I think
+        //              we will need to provide a generic pattern into `std` for the rest.
+        template<>
+        struct DoConversion< hl::ForOp > : State< hl::ForOp >
+        {
+            using State< hl::ForOp >::State;
+
+            mlir::LogicalResult convert()
+            {
+                return mlir::failure();
+            }
+        };
+
         template< typename T >
         struct BasePattern : mlir::ConvertOpToLLVMPattern< T >
         {
@@ -296,6 +313,7 @@ namespace vast::hl
 
         using l_ifop = BasePattern< hl::IfOp >;
         using l_while = BasePattern< hl::WhileOp >;
+        using l_for = BasePattern< hl::ForOp >;
 
     } // namespace pattern
 
