@@ -492,12 +492,12 @@ namespace vast::hl
         }
     };
 
-    struct LowerHighLevelTypesPass : LowerHighLevelTypesBase< LowerHighLevelTypesPass >
+    struct HLLowerTypesPass : HLLowerTypesBase< HLLowerTypesPass >
     {
         void runOnOperation() override;
     };
 
-    void LowerHighLevelTypesPass::runOnOperation()
+    void HLLowerTypesPass::runOnOperation()
     {
         auto op = this->getOperation();
         auto &mctx = this->getContext();
@@ -585,7 +585,7 @@ namespace vast::hl
         }
     };
 
-    struct StructsToTuplesPass : StructsToTuplesBase< StructsToTuplesPass >
+    struct HLStructsToTuplesPass : HLStructsToTuplesBase< HLStructsToTuplesPass >
     {
         void runOnOperation() override
         {
@@ -612,12 +612,12 @@ namespace vast::hl
     };
 }
 
-std::unique_ptr< mlir::Pass > vast::hl::createLowerHighLevelTypesPass()
+std::unique_ptr< mlir::Pass > vast::hl::createHLLowerTypesPass()
 {
-    return std::make_unique< LowerHighLevelTypesPass >();
+    return std::make_unique< HLLowerTypesPass >();
 }
 
-std::unique_ptr< mlir::Pass > vast::hl::createStructsToTuplesPass()
+std::unique_ptr< mlir::Pass > vast::hl::createHLStructsToTuplesPass()
 {
-    return std::make_unique< StructsToTuplesPass >();
+    return std::make_unique< HLStructsToTuplesPass >();
 }

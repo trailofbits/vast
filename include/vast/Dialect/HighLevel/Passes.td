@@ -15,7 +15,7 @@ def LLVMDump : Pass<"vast-llvm-dump", "mlir::ModuleOp"> {
   let constructor = "vast::hl::createLLVMDumpPass()";
 }
 
-def LowerHighLevelTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
+def HLLowerTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
   let summary = "Lower high-level types to standard types";
   let description = [{
     Lower high-level types into standard types which is usually required first step
@@ -28,10 +28,10 @@ def LowerHighLevelTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
     TODO: Named types are not yet supported.
   }];
 
-  let constructor = "vast::hl::createLowerHighLevelTypesPass()";
+  let constructor = "vast::hl::createHLLowerTypesPass()";
 }
 
-def LowerHLToLL : Pass<"vast-hl-lower-to-ll", "mlir::ModuleOp"> {
+def HLToLL : Pass<"vast-hl-to-ll", "mlir::ModuleOp"> {
   let summary = "HL -> LL conversion";
   let description = [{
     Pass lowers high-level operations into low-level (for now, llvm dialect is used) dialects.
@@ -41,21 +41,21 @@ def LowerHLToLL : Pass<"vast-hl-lower-to-ll", "mlir::ModuleOp"> {
     This pass is still a work in progress.
   }];
 
-  let constructor = "vast::hl::createLowerHLToLLPass()";
+  let constructor = "vast::hl::createHLToLLPass()";
   let dependentDialects = ["mlir::LLVM::LLVMDialect"];
 }
 
-def StructsToTuples : Pass<"vast-hl-structs-to-tuples", "mlir::ModuleOp"> {
+def HLStructsToTuples : Pass<"vast-hl-structs-to-tuples", "mlir::ModuleOp"> {
   let summary = "Transform hl.record into std tuples.";
   let description = [{
     This pass is still a work in progress.
   }];
 
-  let constructor = "vast::hl::createStructsToTuplesPass()";
+  let constructor = "vast::hl::createHLStructsToTuplesPass()";
   let dependentDialects = ["mlir::LLVM::LLVMDialect"];
 }
 
-def LowerHighLevelControlFlow : Pass<"vast-hl-lower-cf", "mlir::ModuleOp"> {
+def HLToSCF : Pass<"vast-hl-to-scf", "mlir::ModuleOp"> {
   let summary = "Lower control flow constructs into SCF.";
   let description = [{
     Pass lowers high-level control flow constructs (such as `IfOp` for example) to their
@@ -66,7 +66,7 @@ def LowerHighLevelControlFlow : Pass<"vast-hl-lower-cf", "mlir::ModuleOp"> {
   }];
 
   let dependentDialects = ["mlir::scf::SCFDialect", "mlir::LLVM::LLVMDialect"];
-  let constructor = "vast::hl::createLowerHighLevelControlFlowPass()";
+  let constructor = "vast::hl::createHLToSCFPass()";
 }
 
 
