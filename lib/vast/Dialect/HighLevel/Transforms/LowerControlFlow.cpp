@@ -331,9 +331,9 @@ namespace vast::hl
         mlir::ConversionTarget trg(mctx);
         trg.addLegalDialect< mlir::scf::SCFDialect >();
 
-        trg.addIllegalOp< hl::IfOp >();
-        trg.addIllegalOp< hl::WhileOp >();
-        trg.addIllegalOp< hl::CondYieldOp >();
+        trg.addIllegalOp< hl::IfOp,
+                          hl::WhileOp,
+                          hl::CondYieldOp >();
 
         trg.markUnknownOpDynamicallyLegal([](auto) { return true; });
 
@@ -343,8 +343,8 @@ namespace vast::hl
         const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
 
         auto tc = mlir::LLVMTypeConverter(&mctx, llvm_opts, &dl_analysis);
-        patterns.add< pattern::l_ifop >(tc);
-        patterns.add< pattern::l_while >(tc);
+        patterns.add< pattern::l_ifop,
+                      pattern::l_while >(tc);
         if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
             return signalPassFailure();
     }
