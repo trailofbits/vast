@@ -1,7 +1,7 @@
 add_mlir_dialect_library(MLIRHighLevelTransforms
-  LowerTypes.cpp
-  LowerHLToLL.cpp
-  LowerControlFlow.cpp
+  HLLowerTypes.cpp
+  HLToLL.cpp
+  HLToSCF.cpp
   LLVMDump.cpp
 
   DEPENDS
