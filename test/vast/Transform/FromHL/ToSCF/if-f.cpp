@@ -4,7 +4,7 @@ void fn()
 {
     int x = 12;
 
-    // CHECK: [[V1:%[0-9]+]] = hl.decl.ref [[V0]] : !hl.lvalue<i32>
+    // CHECK: [[V1:%[0-9]+]] = hl.decl.ref [[V0:%[0-9]+]] : !hl.lvalue<i32>
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<i32> -> i32
     // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast [[V2]] IntegralToBoolean : i32 -> i1
     // CHECK: scf.if [[V3]] {
