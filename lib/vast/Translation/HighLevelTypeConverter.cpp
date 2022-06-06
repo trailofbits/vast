@@ -216,7 +216,7 @@ namespace vast::hl
             // For example, the canonical type for 'int A[4 + 4*100]' is a
             // ConstantArrayType where the element type is 'int' and the size is
             // 404.
-            return SizeParam(arr->getSize());
+            return SizeParam(arr->getSize().getLimitedValue());
         }
 
         SizeParam get_size_attr(const clang::DependentSizedArrayType *arr, MContext &ctx) {
