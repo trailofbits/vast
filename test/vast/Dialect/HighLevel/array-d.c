@@ -4,11 +4,11 @@
 // TODO decl.ref registers
 
 int main() {
-    // CHECK: [[ARR:%[0-9]+]] = hl.var "arr" : !hl.lvalue<!hl.const.array<3, !hl.int>>
+    // CHECK: [[ARR:%[0-9]+]] = hl.var "arr" : !hl.lvalue<!hl.array<3, !hl.int>>
     int arr[3];
     // CHECK: hl.var "v0" : !hl.lvalue<!hl.int> = {
-    // CHECK:   [[V1:%[0-9]+]] = hl.decl.ref [[ARR]] : !hl.lvalue<!hl.const.array<3, !hl.int>>
-    // CHECK:   [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] ArrayToPointerDecay : !hl.lvalue<!hl.const.array<3, !hl.int>> -> !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK:   [[V1:%[0-9]+]] = hl.decl.ref [[ARR]] : !hl.lvalue<!hl.array<3, !hl.int>>
+    // CHECK:   [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] ArrayToPointerDecay : !hl.lvalue<!hl.array<3, !hl.int>> -> !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK:   [[V3:%[0-9]+]] = hl.constant.int 0 : !hl.int
     // CHECK:   hl.subscript [[V2]] at {{.*}}[[V3]] : !hl.int] : !hl.lvalue<!hl.ptr<!hl.int>> -> !hl.lvalue<!hl.int>
     // CHECK: }
@@ -17,8 +17,8 @@ int main() {
     // CHECK: [[IDX:%[0-9]+]] = hl.var "idx" : !hl.lvalue<!hl.int>
     int idx = 2;
     // CHECK: hl.var "v2" : !hl.lvalue<!hl.int> = {
-    // CHECK:   [[V1:%[0-9]+]] = hl.decl.ref [[ARR]] : !hl.lvalue<!hl.const.array<3, !hl.int>>
-    // CHECK:   [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] ArrayToPointerDecay : !hl.lvalue<!hl.const.array<3, !hl.int>> -> !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK:   [[V1:%[0-9]+]] = hl.decl.ref [[ARR]] : !hl.lvalue<!hl.array<3, !hl.int>>
+    // CHECK:   [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] ArrayToPointerDecay : !hl.lvalue<!hl.array<3, !hl.int>> -> !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK:   [[V3:%[0-9]+]] = hl.decl.ref [[IDX]] : !hl.lvalue<!hl.int>
     // CHECK:   [[V4:%[0-9]+]] = hl.implicit_cast [[V3]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int
     // CHECK:   hl.subscript [[V2]] at {{.*}}[[V4]] : !hl.int] : !hl.lvalue<!hl.ptr<!hl.int>> -> !hl.lvalue<!hl.int>

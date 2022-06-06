@@ -19,7 +19,7 @@
 // CHECK:    hl.field "overflow_arg_area" : !hl.ptr<!hl.void>
 // CHECK:    hl.field "reg_save_area" : !hl.ptr<!hl.void>
 
-// CHECK: hl.typedef "__builtin_va_list" : !hl.const.array<1, !hl.named_type<"struct __va_list_tag">>
+// CHECK: hl.typedef "__builtin_va_list" : !hl.array<1, !hl.named_type<"struct __va_list_tag">>
 
 // CHECK-LABEL: func @main() -> !hl.int
 int main() {}
