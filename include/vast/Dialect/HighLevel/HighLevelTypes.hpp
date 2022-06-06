@@ -74,7 +74,7 @@ namespace vast::hl
         }
     };
 
-    using SizeParam = llvm::Optional< llvm::APInt >;
+    using SizeParam = llvm::Optional< std::uint64_t >;
 
     static auto unknown_size = SizeParam{ llvm::NoneType() };
 

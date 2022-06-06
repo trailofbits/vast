@@ -250,7 +250,7 @@ def SizeParam : TypeParameter<"SizeParam", "size parameter for arrays"> {
 
     mlir::APInt value;
     if (succeeded(parser.parseInteger(value))) {
-      return SizeParam(value);
+      return SizeParam(value.getLimitedValue());
     }
 
     return mlir::failure();

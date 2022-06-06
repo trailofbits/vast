@@ -238,7 +238,7 @@ namespace vast::hl
             std::vector< int64_t > coerced_dim;
             for (auto dim : dims) {
                 if (dim.hasValue()) {
-                    coerced_dim.push_back(dim->getLimitedValue());
+                    coerced_dim.push_back(dim.getValue());
                 } else {
                     coerced_dim.push_back(-1 /* unknown dim */ );
                 }
