@@ -93,7 +93,8 @@ namespace vast::hl
                 return (c) ? mlir::success() : mlir::failure();
             }
 
-            mlir::LogicalResult emit_scf_yield(mlir::Block &block)
+            mlir::LogicalResult emit_scf_yield(mlir::Block &block,
+                                               const std::vector< mlir::Value > &args)
             {
                 if (auto terminator = get_terminator(block))
                 {
@@ -104,15 +105,16 @@ namespace vast::hl
                 rewriter.setInsertionPointToEnd(&block);
 
                 rewriter.create< mlir::scf::YieldOp >(op.getLoc(),
-                                                      std::vector< mlir::Value >{});
+                                                      args);
                 return mlir::success();
             }
 
-            mlir::LogicalResult wrap_hl_return(mlir::Block &block)
+            mlir::LogicalResult wrap_hl_return(mlir::Block &block,
+                                               const std::vector< mlir::Value > &args = {})
             {
                 auto hl_ret = get_terminator(block).cast< hl::ReturnOp >();
                 if (!hl_ret)
-                    return emit_scf_yield(block);
+                    return emit_scf_yield(block, args);
 
                 auto scope = [&]()
                 {
@@ -136,7 +138,7 @@ namespace vast::hl
                     rewriter.eraseOp(hl_ret);
                 }
 
-                return emit_scf_yield(block);
+                return emit_scf_yield(block, args);
             }
         };
 
