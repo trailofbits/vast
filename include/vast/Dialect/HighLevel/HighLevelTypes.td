@@ -66,6 +66,8 @@ class LValueOf<TypeConstraint value> : Type< And< [
   "lvalue to " # value.summary
 >;
 
+// TODO(Heno): replace CVQualified class with QualifierParam when optional
+// parameters are available in MLIR
 class QualifierParam< string name, string desc > : TypeParameter<"bool", desc> {
   let printer = [{ $_printer << ($_self ? "}] # name # [{" : ""); }];
   let parser = [{ [&] () -> mlir::FailureOr<bool> { return !parser.parseKeyword( "}] # name # [{" ); } () }];
@@ -73,6 +75,7 @@ class QualifierParam< string name, string desc > : TypeParameter<"bool", desc> {
 
 def ConstParam : QualifierParam<"const", "const qualifier" >;
 def VolatileParam : QualifierParam< "volatile", "volatile qualifier" >;
+def RestrictParam : QualifierParam< "restrict", "restrict qualifier" >;
 
 class CVQualified< string name, string mnem, list<Trait> traits = []>
   : HighLevelType< name, traits >
@@ -239,14 +242,18 @@ def SizeParam : TypeParameter<"SizeParam", "size parameter for arrays"> {
     else
       $_printer << "?";
   }];
+
   let parser = [{ [&] () -> mlir::FailureOr<SizeParam> {
-    if (!parser.parseKeyword("?"))
-      return SizeParam{};
+    if (succeeded(parser.parseOptionalQuestion())) {
+      return unknown_size;
+    }
 
     mlir::APInt value;
-    if (parser.parseInteger(value))
-      return mlir::failure();
-    return SizeParam{value};
+    if (succeeded(parser.parseInteger(value))) {
+      return SizeParam(value);
+    }
+
+    return mlir::failure();
   }() }];
 }
 
@@ -261,9 +268,10 @@ def ArrayType :
 
   let parameters = (ins
     SizeParam:$size,
-    "Type":$elementType,
-    ConstParam:$isConst, /* TODO(Heno) use OptionalParameter */
-    VolatileParam:$isVolatile /* TODO(Heno) use OptionalParameter */
+    "Type":$elementType
+    /* TODO(Heno) use OptionalParameter< ConstParam > */
+    /* TODO(Heno) use OptionalParameter< VolatileParam > */
+    /* TODO(Heno) use OptionalParameter< RestrictParam > */
   );
 
   let extraClassDeclaration =

@@ -76,6 +76,8 @@ namespace vast::hl
 
     using SizeParam = llvm::Optional< llvm::APInt >;
 
+    static auto unknown_size = SizeParam{ llvm::NoneType() };
+
 } // namespace vast::hl
 
 #define GET_TYPEDEF_CLASSES
