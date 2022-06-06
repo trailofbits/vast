@@ -254,14 +254,12 @@ namespace vast::hl
                 return mlir::success();
             }
 
-            mlir::LogicalResult after_region(mlir::Block &block, mlir::Block &before,
-                                             mlir::Location loc) const
+            mlir::LogicalResult after_region(mlir::Block &block, mlir::Block &before)
             {
-                mlir::OpBuilder::InsertionGuard guard(rewriter);
-                rewriter.setInsertionPointToEnd(&block);
-                rewriter.create< mlir::scf::YieldOp >(loc, before.getArguments());
-
-                return mlir::success();
+                std::vector< mlir::Value > vals;
+                for (auto x : before.getArguments())
+                    vals.push_back(x);
+                return wrap_hl_return(block, vals);
             }
 
             // NOTE(lukas): Could be `const` but since `op.getLoc()` is not it does not compile.
@@ -275,7 +273,7 @@ namespace vast::hl
                 auto &after = do_inline(op.bodyRegion(), scf_while_op.getAfter());
 
                 if (mlir::failed(before_region(before)) ||
-                    mlir::failed(after_region(after, before, op.getLoc())))
+                    mlir::failed(after_region(after, before)))
                 {
                     return mlir::failure();
                 }
