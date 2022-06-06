@@ -87,6 +87,57 @@ namespace vast::hl
                 return { &region.front() };
 
             }
+
+            mlir::LogicalResult wrap_result(bool c)
+            {
+                return (c) ? mlir::success() : mlir::failure();
+            }
+
+            mlir::LogicalResult emit_scf_yield(mlir::Block &block)
+            {
+                if (auto terminator = get_terminator(block))
+                {
+                    return wrap_result(terminator.cast< mlir::scf::YieldOp >());
+                }
+
+                mlir::ConversionPatternRewriter::InsertionGuard guard{ rewriter };
+                rewriter.setInsertionPointToEnd(&block);
+
+                rewriter.create< mlir::scf::YieldOp >(op.getLoc(),
+                                                      std::vector< mlir::Value >{});
+                return mlir::success();
+            }
+
+            mlir::LogicalResult wrap_hl_return(mlir::Block &block)
+            {
+                auto hl_ret = get_terminator(block).cast< hl::ReturnOp >();
+                if (!hl_ret)
+                    return emit_scf_yield(block);
+
+                auto scope = [&]()
+                {
+                    mlir::ConversionPatternRewriter::InsertionGuard guard{ rewriter };
+                    rewriter.setInsertionPointToEnd(&block);
+                    return rewriter.create< hl::ScopeOp >(op.getLoc());
+                }();
+                auto wrap_block = [&]() -> mlir::Block *
+                {
+                    VAST_ASSERT(size(scope.body()) <= 1);
+                    if (size(scope.body()) == 0)
+                        rewriter.createBlock(&scope.body());
+                    return &scope.body().front();
+                }();
+
+                // NOTE(lukas): Did not find api to move operations around.
+                {
+                    mlir::ConversionPatternRewriter::InsertionGuard guard{ rewriter };
+                    rewriter.setInsertionPointToEnd(wrap_block);
+                    rewriter.clone(*hl_ret.getOperation());
+                    rewriter.eraseOp(hl_ret);
+                }
+
+                return emit_scf_yield(block);
+            }
         };
 
         template<>
@@ -107,27 +158,6 @@ namespace vast::hl
                 return region;
             }
 
-
-            template< typename O, typename GetVals >
-            auto new_terminator(mlir::Block &block, GetVals &&get_vals)
-            -> std::optional< mlir::Operation * >
-            {
-                mlir::OpBuilder::InsertionGuard guard(rewriter);
-                rewriter.setInsertionPointToEnd(&block);
-
-                auto maybe_terminator = get_terminator(block);
-                rewriter.template create< O >(op.getLoc(), get_vals(maybe_terminator));
-                return maybe_terminator;
-            }
-
-            template< typename O, typename GetVals >
-            void replace_terminator(mlir::Block &block, GetVals &&get_vals)
-            {
-                auto old = new_terminator< O >(block, std::forward< GetVals >(get_vals));
-                if (old)
-                    rewriter.eraseOp(*old);
-            }
-
             auto no_vals()
             {
                 // `std::optional< mlir::Operation * > -> std::vector< mlir::Value * >
@@ -144,8 +174,7 @@ namespace vast::hl
                 auto block = get_singleton_block(remove_back(steal_region(from, to)));
                 if (!block)
                     return mlir::failure();
-                replace_terminator< mlir::scf::YieldOp >(**block, no_vals());
-                return mlir::success();
+                return wrap_hl_return(**block);
             }
 
             template< typename H, typename ... Args >
