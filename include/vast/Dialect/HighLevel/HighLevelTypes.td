@@ -227,7 +227,7 @@ def PointerType : HighLevelType< "Pointer",
 class WithDimensionsClass
 {
   code default_dimensions_impl = [{
-    using dimensions_t = std::vector< uint32_t >;
+    using dimensions_t = std::vector< SizeParam >;
 
     std::tuple< dimensions_t, mlir::Type > dim_and_type();
 

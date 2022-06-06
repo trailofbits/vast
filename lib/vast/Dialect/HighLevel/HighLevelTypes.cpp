@@ -211,5 +211,18 @@ namespace vast::hl
         tys( this->getElementType() );
     }
 
+    auto ArrayType::dim_and_type() -> std::tuple< dimensions_t, mlir::Type >
+    {
+        dimensions_t dims;
+        // If this ever is generalised investigate if `SubElementTypeInterface` can be used
+        // do this recursion?
+        auto collect = [&](ArrayType arr, auto &self) -> mlir::Type {
+            dims.push_back(arr.getSize());
+            if (auto nested = arr.getElementType().dyn_cast< ArrayType >())
+                return self(nested, self);
+            return arr.getElementType();
+        };
+        return { std::move(dims), collect(*this, collect) };
+    }
 
 } // namespace vast::hl
