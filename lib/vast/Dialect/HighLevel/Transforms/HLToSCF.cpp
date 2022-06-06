@@ -14,6 +14,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
+#include "vast/Util/Terminator.hpp"
+
 #include "PassesDetails.hpp"
 
 namespace vast::hl
@@ -66,17 +68,6 @@ namespace vast::hl
         template< typename T >
         struct DoConversion {};
 
-        struct optional_terminator_t : std::optional< mlir::Operation * >
-        {
-            template< typename T >
-            T cast() const
-            {
-                if (!has_value())
-                    return {};
-                return mlir::dyn_cast< T >(**this);
-            }
-        };
-
         template< typename O >
         struct State
         {
@@ -88,22 +79,6 @@ namespace vast::hl
                   mlir::ConversionPatternRewriter &rewriter_)
                 : op(op_), operands(operands_), rewriter(rewriter_)
             {}
-
-            bool has_terminator(mlir::Block &block) const
-            {
-                if (size(block) == 0)
-                    return false;
-
-                auto &last = block.back();
-                return last.hasTrait< mlir::OpTrait::IsTerminator >();
-            }
-
-            optional_terminator_t get_terminator(mlir::Block &block) const
-            {
-                if (has_terminator(block))
-                    return { block.getTerminator() };
-                return {};
-            }
 
             std::optional< mlir::Block * > get_singleton_block(mlir::Region &region)
             {
