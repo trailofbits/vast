@@ -6,29 +6,34 @@ VAST is an experimental frontend for the translation of Clang AST to various MLI
 
 ## Build
 
-To configure project run:
+To configure project run `cmake` with following default optaions.
+If you want to use system installed `llvm` use:
 
 ```
-cmake --preset ninja-multi-default \
-      -DLLVM_INSTALL_DIR=<llvm instalation path>
+cmake --preset ninja-multi-default -DLLVM_EXTERNAL_LIT=<path lit binary>
 ```
 
-Finally build and install the binaries:
+To use a specific `llvm` provide `-DLLVM_INSTALL_DIR=<llvm instalation path>` option, where `LLVM_INSTALL_DIR` points to directory containing `LLVMConfig.cmake`.
+
+
+Finally build the project:
 
 ```
-cmake --build --preset ninja-release
+cmake --build --preset ninja-rel
 ```
+
+Use `ninja-deb` preset for debug build.
 
 ## Run
 
 To run mlir codegen of highlevel dialect use:
 
 ```
-./build/bin/vast-cc --from-source <input.c>
+./builds/ninja-multi-default/bin/vast-cc --from-source <input.c>
 ```
 
 ## Test
 
 ```
-cmake --build <build-dir> --target check-vast
+ctest --preset ninja-deb
 ```
