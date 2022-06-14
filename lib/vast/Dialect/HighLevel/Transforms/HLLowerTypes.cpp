@@ -585,6 +585,55 @@ namespace vast::hl
         }
     };
 
+    struct ConversionTargetBuilder
+    {
+        using self_t = ConversionTargetBuilder;
+        mlir::ConversionTarget trg;
+
+        ConversionTargetBuilder(mlir::MLIRContext &mctx) : trg(mctx) {}
+
+        auto take() { return std::move(trg); }
+
+        auto _illegal()
+        {
+            return [&]< typename O >() { trg.addIllegalOp< O >(); };
+        }
+
+        template< typename O, typename ... Os, typename Fn >
+        self_t &_rec(Fn &&fn)
+        {
+            fn.template operator()< O >();
+            if constexpr (sizeof ... (Os) == 0)
+                return *this;
+            else
+                return _rec< Os ... >(std::forward< Fn >(fn));
+        }
+
+        template< typename O, typename ... Os >
+        self_t &illegal() { return _rec< O, Os ...>(_illegal()); }
+
+        self_t&unkown_as_legal()
+        {
+            trg.markUnknownOpDynamicallyLegal([](auto){ return true; });
+            return *this;
+        }
+    };
+
+    template< typename Pass >
+    struct PassUtils : Pass
+    {
+        const mlir::DataLayout &get_data_layout()
+        {
+            const auto &dl_analysis = this->template getAnalysis< mlir::DataLayoutAnalysis >();
+            return dl_analysis.getAtOrAbove(this->getOperation());
+        }
+
+        TypeConverter make_type_converter()
+        {
+            return TypeConverter(get_data_layout(), this->getContext());
+        }
+    };
+
     struct HLStructsToTuplesPass : HLStructsToTuplesBase< HLStructsToTuplesPass >
     {
         void runOnOperation() override
