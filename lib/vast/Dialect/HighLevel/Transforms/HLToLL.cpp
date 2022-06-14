@@ -86,6 +86,10 @@ namespace vast::hl
                 addConversion([&](mlir::FunctionType t) {
                         return this->convert_fn_t(t);
                 });
+                addConversion([&](mlir::NoneType t) {
+                        return LLVM::LLVMVoidType::get(t.getContext());
+                });
+
             }
 
             maybe_types_t do_conversion(mlir::Type t)
