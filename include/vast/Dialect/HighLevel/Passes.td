@@ -13,6 +13,11 @@ def LLVMDump : Pass<"vast-llvm-dump", "mlir::ModuleOp"> {
 
   let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::hl::HighLevelDialect"];
   let constructor = "vast::hl::createLLVMDumpPass()";
+
+  let options = [
+    Option< "bitcode_file", "bc-file", "std::string", "",
+            "Specify file where to dump the bitcode" >
+  ];
 }
 
 def HLLowerTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
