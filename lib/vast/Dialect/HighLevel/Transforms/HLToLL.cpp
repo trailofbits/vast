@@ -512,6 +512,13 @@ namespace vast::hl
             {
                 if (op.kind() == hl::CastKind::LValueToRValue)
                 {
+                    // TODO(lukas): Without `--ccopts -xc` in case of `c = (x = 5)`
+                    //              there will be a LValueToRValue cast on rvalue from
+                    //              `(x = 5)` - not sure why that is so, so just fail
+                    //              gracefully for now.
+                    if (!op.getOperand().getType().isa< hl::LValueType >())
+                        return mlir::failure();
+
                     auto loaded = rewriter.create< LLVM::LoadOp >(op.getLoc(),
                                                                   ops.getOperands()[0]);
                     rewriter.replaceOp(op, {loaded});
