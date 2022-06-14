@@ -31,6 +31,16 @@ def HLLowerTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
   let constructor = "vast::hl::createHLLowerTypesPass()";
 }
 
+def HLLowerEnums : Pass<"vast-hl-lower-enums", "mlir::ModuleOp"> {
+  let summary = "Lower high-level enums and their usages to their underlying types.";
+  let description = [{
+    Lower enum usages to their underlying types - this will effectively remove the enum itself.
+  }];
+
+  let constructor = "vast::hl::createHLLowerEnumsPass()";
+}
+
+
 def HLToLL : Pass<"vast-hl-to-ll", "mlir::ModuleOp"> {
   let summary = "HL -> LL conversion";
   let description = [{
