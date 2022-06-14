@@ -21,6 +21,8 @@ namespace vast::hl
 
     std::unique_ptr< mlir::Pass > createHLStructsToTuplesPass();
 
+    std::unique_ptr< mlir::Pass > createHLLowerEnumsPass();
+
     std::unique_ptr< mlir::Pass > createHLToSCFPass();
 
     std::unique_ptr< mlir::Pass > createLLVMDumpPass();

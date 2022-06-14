@@ -610,6 +610,32 @@ namespace vast::hl
             }
         }
     };
+
+    struct HLLowerEnumsPass : PassUtils< HLLowerEnumsBase< HLLowerEnumsPass > >
+    {
+        void runOnOperation() override
+        {
+            auto op = this->getOperation();
+            auto &mctx = this->getContext();
+
+            mlir::RewritePatternSet patterns(&mctx);
+
+            auto trg = ConversionTargetBuilder(mctx)
+                .unkown_as_legal()
+                .illegal< hl::EnumDeclOp >()
+                .take();
+
+            auto tc = this->make_type_converter();
+
+            if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
+                return signalPassFailure();
+        }
+    };
+}
+
+std::unique_ptr< mlir::Pass > vast::hl::createHLLowerEnumsPass()
+{
+    return std::make_unique< HLLowerEnumsPass >();
 }
 
 std::unique_ptr< mlir::Pass > vast::hl::createHLLowerTypesPass()
