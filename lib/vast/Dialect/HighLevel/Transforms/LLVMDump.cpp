@@ -74,9 +74,19 @@ namespace vast::hl
         llvm::InitializeNativeTargetAsmPrinter();
         mlir::ExecutionEngine::setupTargetTriple(lmodule.get());
 
-        // TODO(lukas): Make configurable.
-        llvm::errs() << *lmodule;
-        llvm::errs().flush();
+        auto dump = [&](auto &stream)
+        {
+            stream << *lmodule;
+            stream.flush();
+        };
+
+        auto outname = this->bitcode_file.getValue();
+        if (outname.empty())
+            return dump(llvm::outs());
+
+        std::error_code ec;
+        llvm::raw_fd_stream out(outname, ec);
+        dump(out);
     }
 } // namespace vast::hl
 
