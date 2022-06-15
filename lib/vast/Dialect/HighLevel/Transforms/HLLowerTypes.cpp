@@ -171,13 +171,11 @@ namespace vast::hl
             };
         }
 
-        auto make_ptr_type()
+        auto make_ptr_type(bool is_const, bool is_volatile)
         {
-            return [&](auto t) {
-                // NOTE(lukas): `none` cannot be memref element type.
-                if (t.template isa< mlir::NoneType >())
-                    t = mlir::IntegerType::get(&this->mctx, 8);
-                return mlir::UnrankedMemRefType::get(t, 0);
+            return [=](auto t)
+            {
+                return PointerType::get(t.getContext(), t, is_const, is_volatile);
             };
         }
 
@@ -218,10 +216,11 @@ namespace vast::hl
 
         maybe_type_t convert_ptr_type(hl::PointerType t)
         {
-            return Maybe(t.getElementType()).and_then(convert_pointer_element_typee())
-                                            .unwrap()
-                                            .and_then(make_ptr_type())
-                                            .take_wrapped< maybe_type_t >();
+            return Maybe(t.getElementType())
+                .and_then(convert_pointer_element_typee())
+                .unwrap()
+                .and_then(make_ptr_type(t.isConst(), t.isVolatile()))
+                .take_wrapped< maybe_type_t >();
         }
 
         maybe_type_t convert_lvalue_type(hl::LValueType t)
