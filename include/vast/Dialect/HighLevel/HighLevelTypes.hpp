@@ -105,11 +105,13 @@ namespace vast::hl
         util::type_list< BoolType >, integer_types, floating_types
     >;
 
-    using composite_types = util::type_list< ArrayType, PointerType >;
+    using composite_types = util::type_list< ArrayType >;
 
     using high_level_types = util::concat<
         scalar_types, composite_types, util::type_list< VoidType >
     >;
+
+    using generic_types = util::type_list< LValueType, PointerType >;
 
     /* integer types */
     enum class IntegerKind { Char, Short, Int, Long, LongLong, Int128 };
