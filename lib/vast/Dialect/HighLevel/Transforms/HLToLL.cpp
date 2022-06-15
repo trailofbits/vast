@@ -78,6 +78,7 @@ namespace vast::hl
             TypeConverter(Args && ... args) : parent_t(std::forward< Args >(args) ... )
             {
                 addConversion([&](hl::LValueType t) { return this->convert_lvalue_type(t); });
+                addConversion([&](hl::PointerType t) { return this->convert_pointer_type(t); });
                 addConversion([&](mlir::MemRefType t) { return this->convert_memref_type(t); });
                 addConversion([&](mlir::UnrankedMemRefType t) {
                         return this->convert_memref_type(t);
@@ -112,6 +113,14 @@ namespace vast::hl
             maybe_type_t convert_lvalue_type(hl::LValueType t)
             {
                 return Maybe(t.getElementType()).and_then(helpers_t::convert_type_to_type())
+                                                .unwrap()
+                                                .and_then(self_t::make_ptr_type())
+                                                .take_wrapped< maybe_type_t >();
+            }
+
+            maybe_type_t convert_pointer_type(hl::PointerType t)
+            {
+                return Maybe(t.getElementType()).and_then(convert_type_to_type())
                                                 .unwrap()
                                                 .and_then(self_t::make_ptr_type())
                                                 .take_wrapped< maybe_type_t >();
