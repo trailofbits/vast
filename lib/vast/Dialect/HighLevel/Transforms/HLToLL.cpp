@@ -140,7 +140,7 @@ namespace vast::hl
 
             maybe_type_t convert_memref_type(mlir::UnrankedMemRefType t)
             {
-                VAST_UNIMPLEMENTED;
+                return {};
             }
 
             using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
