@@ -379,10 +379,10 @@ namespace vast::hl
                     mlir::ConversionPatternRewriter &rewriter,
                     auto &&tc)
             {
-                auto src_t = op.getType();
-                auto trg_t = tc.convert_type_to_type(src_t);
+                auto src_ty = op.getType();
+                auto target_ty = tc.convert_type_to_type(src_ty);
 
-                return rewriter.create< LLVM::ConstantOp >(op.getLoc(), *trg_t,
+                return rewriter.create< LLVM::ConstantOp >(op.getLoc(), *target_ty,
                                                            op.getValue());
             }
         };
@@ -497,21 +497,21 @@ namespace vast::hl
         };
 
         // TODO(lukas): Move to some utils.
-        auto create_trunc_or_sext(auto op, mlir::Type trg, auto &rewriter,
+        auto create_trunc_or_sext(auto op, mlir::Type target, auto &rewriter,
                                   mlir::Location loc, const auto &dl)
-        -> mlir::Value
+            -> mlir::Value
         {
             VAST_ASSERT(op.getType().template isa< mlir::IntegerType >() &&
-                        trg.isa< mlir::IntegerType >());
-            auto new_bw = dl.getTypeSizeInBits(trg);
+                        target.isa< mlir::IntegerType >());
+            auto new_bw = dl.getTypeSizeInBits(target);
             auto original_bw = dl.getTypeSizeInBits(op.getType());
 
             if (new_bw == original_bw)
                 return op;
             else if (new_bw > original_bw)
-                return rewriter.template create< mlir::LLVM::SExtOp >(loc, trg, op);
+                return rewriter.template create< mlir::LLVM::SExtOp >(loc, target, op);
             else
-                return rewriter.template create< mlir::LLVM::TruncOp >(loc, trg, op);
+                return rewriter.template create< mlir::LLVM::TruncOp >(loc, target, op);
         }
 
         struct l_implicit_cast : BasePattern< hl::ImplicitCastOp >
@@ -562,8 +562,8 @@ namespace vast::hl
                         Src op, typename Src::Adaptor ops,
                         mlir::ConversionPatternRewriter &rewriter) const override
             {
-                auto trg_ty = this->type_converter().convert_type_to_type(op.getType());
-                auto new_op = rewriter.create< Trg >(op.getLoc(), *trg_ty, ops.getOperands());
+                auto target_ty = this->type_converter().convert_type_to_type(op.getType());
+                auto new_op = rewriter.create< Trg >(op.getLoc(), *target_ty, ops.getOperands());
                 rewriter.replaceOp(op, {new_op});
                 return mlir::success();
             }
@@ -592,13 +592,13 @@ namespace vast::hl
                     return mlir::failure();
 
                 m_ops[0] = rewriter.create< LLVM::LoadOp >(op.getLoc(), alloca);
-                auto trg_ty = this->type_converter().convert_type_to_type(op.src().getType());
+                auto target_ty = this->type_converter().convert_type_to_type(op.src().getType());
                 // Probably the easiest way to compose this (some template specialization would
                 // require a lot of boilerplate).
                 auto new_op = [&]()
                 {
                     if constexpr (!std::is_same_v< Trg, void >)
-                        return rewriter.create< Trg >(op.getLoc(), *trg_ty, m_ops);
+                        return rewriter.create< Trg >(op.getLoc(), *target_ty, m_ops);
                     else
                         return ops[0];
                 }();
@@ -696,11 +696,11 @@ namespace vast::hl
         mlir::ModuleOp op = this->getOperation();
 
 
-        mlir::ConversionTarget trg(mctx);
-        trg.addIllegalDialect< hl::HighLevelDialect >();
-        trg.addLegalOp< hl::TypeDefOp >();
-        trg.addIllegalOp< mlir::FuncOp >();
-        trg.markUnknownOpDynamicallyLegal([](auto) { return true; });
+        mlir::ConversionTarget target(mctx);
+        target.addIllegalDialect< hl::HighLevelDialect >();
+        target.addLegalOp< hl::TypeDefOp >();
+        target.addIllegalOp< mlir::FuncOp >();
+        target.markUnknownOpDynamicallyLegal([](auto) { return true; });
 
         const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
 
@@ -723,7 +723,7 @@ namespace vast::hl
         patterns.add< pattern::l_implicit_cast >(type_converter);
         patterns.add< pattern::l_call >(type_converter);
         patterns.add< pattern::l_cmp >(type_converter);
-        if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
+        if (mlir::failed(mlir::applyPartialConversion(op, target, std::move(patterns))))
             return signalPassFailure();
     }
 }
