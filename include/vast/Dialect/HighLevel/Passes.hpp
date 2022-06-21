@@ -27,6 +27,8 @@ namespace vast::hl
 
     std::unique_ptr< mlir::Pass > createLLVMDumpPass();
 
+    std::unique_ptr< mlir::Pass > createExportFnInfoPass();
+
     void registerHLToLLVMIR(mlir::DialectRegistry &);
     void registerHLToLLVMIR(mlir::MLIRContext &);
 
