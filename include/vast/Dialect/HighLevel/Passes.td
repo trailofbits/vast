@@ -20,6 +20,21 @@ def LLVMDump : Pass<"vast-llvm-dump", "mlir::ModuleOp"> {
   ];
 }
 
+def ExportFnInfo : Pass<"vast-export-fn-info", "mlir::ModuleOp"> {
+  let summary = "Create JSON that exports information about function arguments.";
+  let description = [{
+    Lowers module into llvm IR and dumps it on stderr.
+  }];
+
+  let dependentDialects = ["vast::hl::HighLevelDialect"];
+  let constructor = "vast::hl::createExportFnInfoPass()";
+
+  let options = [
+    Option< "o", "o", "std::string", "",
+            "Output JSON file to be created." >
+  ];
+}
+
 def HLLowerTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
   let summary = "Lower high-level types to standard types";
   let description = [{
