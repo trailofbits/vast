@@ -28,9 +28,6 @@ namespace vast::hl
             auto &mctx = this->getContext();
             mlir::ModuleOp mod = this->getOperation();
 
-            std::error_code ec;
-            llvm::raw_fd_ostream out("exported_fn_info.json", ec, llvm::sys::fs::OF_Text);
-            VAST_ASSERT(!ec);
 
             llvm::json::Object top;
             for (auto &op : *mod.getBody())
@@ -55,7 +52,19 @@ namespace vast::hl
 
                 top[fn.getName().str()] = std::move(current);
             }
-            out << llvm::formatv("{0:2}",llvm::json::Value(std::move(top)));
+
+            auto value = llvm::formatv("{0:2}",llvm::json::Value(std::move(top)));
+            // If destination filename was supplied by the user.
+            if (!this->o.empty())
+            {
+                std::error_code ec;
+
+                llvm::raw_fd_ostream out(this->o, ec, llvm::sys::fs::OF_Text);
+                VAST_ASSERT(!ec);
+                out << std::move(value);
+            } else {
+                llvm::outs() << std::move(value);
+            }
         }
 
         template< typename T >
