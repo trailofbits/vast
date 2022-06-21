@@ -68,16 +68,16 @@ namespace vast::hl
         template< typename T >
         struct DoConversion {};
 
-        template< typename O >
+        template< typename Op >
         struct State
         {
-            O op;
-            typename O::Adaptor operands;
+            Op op;
+            typename Op::Adaptor operands;
             mlir::ConversionPatternRewriter &rewriter;
 
-            State(O op_, typename O::Adaptor operands_,
-                  mlir::ConversionPatternRewriter &rewriter_)
-                : op(op_), operands(operands_), rewriter(rewriter_)
+            State(Op op, typename Op::Adaptor operands,
+                  mlir::ConversionPatternRewriter &rewriter)
+                : op(op), operands(operands), rewriter(rewriter)
             {}
 
             std::optional< mlir::Block * > get_singleton_block(mlir::Region &region)
@@ -158,17 +158,6 @@ namespace vast::hl
                 VAST_ASSERT(size(region) >= 1);
                 rewriter.eraseBlock(&region.back());
                 return region;
-            }
-
-            auto no_vals()
-            {
-                // `std::optional< mlir::Operation * > -> std::vector< mlir::Value * >
-                return [](auto) { return std::vector< mlir::Value >{}; };
-            }
-
-            auto erase_op()
-            {
-                return [&](auto op) { return rewriter.eraseOp(op); };
             }
 
             mlir::LogicalResult make_if_block(mlir::Region &from, mlir::Region &to)
