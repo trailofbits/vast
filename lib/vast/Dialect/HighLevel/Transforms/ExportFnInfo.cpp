@@ -58,17 +58,53 @@ namespace vast::hl
             out << llvm::formatv("{0:2}",llvm::json::Value(std::move(top)));
         }
 
+        template< typename T >
+        struct Entry
+        {
+            using self_t = Entry;
+            llvm::json::Object raw;
+            T t;
+
+            Entry(T t) : t(t) {}
+
+            llvm::json::Object take() { return std::move(raw); }
+
+            self_t &type(const std::string &name) { raw["type"] = name; return *this; }
+            self_t &type() { raw["type"] = t.getMnemonic(); return *this; }
+
+            self_t &size(const mlir::DataLayout &dl)
+            {
+                raw["size"] = dl.getTypeSizeInBits(t);
+                return *this;
+            }
+
+            self_t &size(uint64_t s) { raw["size"] = s; return *this; }
+
+            self_t &modifs()
+            {
+                raw["const"] = t.isConst();
+                raw["volatile"] = t.isVolatile();
+                return *this;
+            }
+
+            template< typename E >
+            self_t &sub_type(E &&e)
+            {
+                raw["element_type"] = std::forward< E >(e);
+                return *this;
+            }
+        };
+
+        template< typename T > Entry(T) -> Entry< T >;
+
         llvm::json::Object parse_typeinfo(
                 const mlir::DataLayout &dl,
                 mlir::Type hl_type)
         {
             auto ptr_type = [&](auto ptr_type)
             {
-                llvm::json::Object out;
-                out["type"] = "ptr";
-                out["size"] = dl.getTypeSizeInBits(ptr_type);
-                out["element_type"] = parse_typeinfo(dl, ptr_type.getElementType());
-                return out;
+                auto nested = parse_typeinfo(dl, ptr_type.getElementType());
+                return Entry(ptr_type).type().size(dl).sub_type(std::move(nested)).take();
             };
 
             auto lvalue_type = [&](auto lvalue_ty)
@@ -78,21 +114,14 @@ namespace vast::hl
 
             auto void_type = [&](auto void_ty)
             {
-                llvm::json::Object out;
-                out["size"] = 0;
-                out["type"] = void_ty.getMnemonic();
-                return out;
+                return Entry(void_ty).type().size(0u).take();
             };
 
             auto scalars = [&](auto scalar)
             {
-                llvm::json::Object out;
-                out["size"] = dl.getTypeSizeInBits(scalar);
-                out["type"] = scalar.getMnemonic();
-                out["const"] = scalar.isConst();
-                out["volatile"] = scalar.isVolatile();
-                return out;
+                return Entry(scalar).size(dl).type().modifs().take();
             };
+
             return TypeSwitch< mlir::Type, llvm::json::Object >(hl_type)
                 .Case< hl::LValueType >(lvalue_type)
                 .Case< hl::PointerType >(ptr_type)
