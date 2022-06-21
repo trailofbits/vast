@@ -351,11 +351,11 @@ namespace vast::hl
                         type_converter().convertType(rewriter.getIndexType()),
                         rewriter.getIntegerAttr(rewriter.getIndexType(), 1));
 
-                auto alloca = rewriter.create< LLVM::AllocaOp >(
+                auto alloca_op = rewriter.create< LLVM::AllocaOp >(
                         arg.getLoc(), ptr_type, count, 0);
 
-                arg.replaceAllUsesWith(alloca);
-                rewriter.create< mlir::LLVM::StoreOp >(arg.getLoc(), arg, alloca);
+                arg.replaceAllUsesWith(alloca_op);
+                rewriter.create< mlir::LLVM::StoreOp >(arg.getLoc(), arg, alloca_op);
 
                 return mlir::success();
             }
