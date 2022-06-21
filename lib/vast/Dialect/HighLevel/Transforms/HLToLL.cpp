@@ -239,7 +239,7 @@ namespace vast::hl
             }
         };
 
-        struct l_translation_unit : BasePattern< hl::TranslationUnitOp >
+        struct translation_unit : BasePattern< hl::TranslationUnitOp >
         {
             using Base = BasePattern< hl::TranslationUnitOp >;
             using Base::Base;
@@ -260,7 +260,7 @@ namespace vast::hl
             }
         };
 
-        struct l_func_op : BasePattern< mlir::FuncOp >
+        struct func_op : BasePattern< mlir::FuncOp >
         {
             using Base = BasePattern< mlir::FuncOp >;
             using Base::Base;
@@ -361,7 +361,7 @@ namespace vast::hl
             }
         };
 
-        struct l_constant_int : BasePattern< hl::ConstantIntOp >
+        struct constant_int : BasePattern< hl::ConstantIntOp >
         {
             using Base = BasePattern< hl::ConstantIntOp >;
             using Base::Base;
@@ -387,7 +387,7 @@ namespace vast::hl
             }
         };
 
-        struct l_return : BasePattern< hl::ReturnOp >
+        struct ret : BasePattern< hl::ReturnOp >
         {
             using Base = BasePattern< hl::ReturnOp >;
             using Base::Base;
@@ -423,7 +423,7 @@ namespace vast::hl
             return terminator;
         }
 
-        struct l_var : BasePattern< hl::VarDecl >
+        struct var : BasePattern< hl::VarDecl >
         {
             using Base = BasePattern< hl::VarDecl >;
             using O = hl::VarDecl;
@@ -514,7 +514,7 @@ namespace vast::hl
                 return rewriter.template create< mlir::LLVM::TruncOp >(loc, target, op);
         }
 
-        struct l_implicit_cast : BasePattern< hl::ImplicitCastOp >
+        struct implicit_cast : BasePattern< hl::ImplicitCastOp >
         {
             using Base = BasePattern< hl::ImplicitCastOp >;
             using Base::Base;
@@ -569,8 +569,8 @@ namespace vast::hl
             }
         };
 
-        using l_add = one_to_one< hl::AddIOp, LLVM::AddOp >;
-        using l_sub = one_to_one< hl::SubIOp, LLVM::SubOp >;
+        using add = one_to_one< hl::AddIOp, LLVM::AddOp >;
+        using sub = one_to_one< hl::SubIOp, LLVM::SubOp >;
 
         template< typename Src, typename Trg >
         struct assign_pattern : BasePattern< Src >
@@ -611,13 +611,13 @@ namespace vast::hl
             }
         };
 
-        using l_assign_add = assign_pattern< hl::AddIAssignOp, LLVM::AddOp >;
-        using l_assign_sub = assign_pattern< hl::SubIAssignOp, LLVM::SubOp >;
-        using l_assign = assign_pattern< hl::AssignOp, void >;
+        using assign_add = assign_pattern< hl::AddIAssignOp, LLVM::AddOp >;
+        using assign_sub = assign_pattern< hl::SubIAssignOp, LLVM::SubOp >;
+        using assign = assign_pattern< hl::AssignOp, void >;
 
-        using l_declref = ignore_pattern< hl::DeclRefOp >;
+        using declref = ignore_pattern< hl::DeclRefOp >;
 
-        struct l_call : BasePattern< hl::CallOp >
+        struct call : BasePattern< hl::CallOp >
         {
             using Base = BasePattern< hl::CallOp >;
             using Base::Base;
@@ -649,7 +649,7 @@ namespace vast::hl
             }
         };
 
-        struct l_cmp : BasePattern< hl::CmpOp >
+        struct cmp : BasePattern< hl::CmpOp >
         {
 
             using Base = BasePattern< hl::CmpOp >;
@@ -709,20 +709,20 @@ namespace vast::hl
         pattern::TypeConverter type_converter(&mctx, llvm_options , &dl_analysis);
 
         mlir::RewritePatternSet patterns(&mctx);
-        patterns.add< pattern::l_translation_unit >(type_converter);
-        patterns.add< pattern::l_func_op >(type_converter);
-        patterns.add< pattern::l_var >(type_converter);
-        patterns.add< pattern::l_constant_int >(type_converter);
-        patterns.add< pattern::l_return >(type_converter);
-        patterns.add< pattern::l_add >(type_converter);
-        patterns.add< pattern::l_sub >(type_converter);
-        patterns.add< pattern::l_declref >(type_converter);
-        patterns.add< pattern::l_assign_add >(type_converter);
-        patterns.add< pattern::l_assign_sub >(type_converter);
-        patterns.add< pattern::l_assign >(type_converter);
-        patterns.add< pattern::l_implicit_cast >(type_converter);
-        patterns.add< pattern::l_call >(type_converter);
-        patterns.add< pattern::l_cmp >(type_converter);
+        patterns.add< pattern::translation_unit >(type_converter);
+        patterns.add< pattern::func_op >(type_converter);
+        patterns.add< pattern::var >(type_converter);
+        patterns.add< pattern::constant_int >(type_converter);
+        patterns.add< pattern::ret >(type_converter);
+        patterns.add< pattern::add >(type_converter);
+        patterns.add< pattern::sub >(type_converter);
+        patterns.add< pattern::declref >(type_converter);
+        patterns.add< pattern::assign_add >(type_converter);
+        patterns.add< pattern::assign_sub >(type_converter);
+        patterns.add< pattern::assign >(type_converter);
+        patterns.add< pattern::implicit_cast >(type_converter);
+        patterns.add< pattern::call >(type_converter);
+        patterns.add< pattern::cmp >(type_converter);
         if (mlir::failed(mlir::applyPartialConversion(op, target, std::move(patterns))))
             return signalPassFailure();
     }
