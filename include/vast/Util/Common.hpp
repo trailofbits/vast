@@ -8,6 +8,8 @@ VAST_RELAX_WARNINGS
 #include <clang/AST/Expr.h>
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/IR/Value.h>
+#include <mlir/IR/BuiltinOps.h>
+#include <mlir/IR/OwningOpRef.h>
 VAST_UNRELAX_WARNINGS
 
 #include <variant>

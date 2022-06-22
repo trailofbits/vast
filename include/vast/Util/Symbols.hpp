@@ -8,6 +8,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/SymbolTable.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Interfaces/SymbolInterface.hpp"
 
 namespace vast::util
 {
