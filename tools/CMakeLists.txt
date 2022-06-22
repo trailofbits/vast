@@ -1,4 +1,5 @@
 add_subdirectory(vast-cc)
 add_subdirectory(vast-opt)
 add_subdirectory(vast-query)
+add_subdirectory(vast-repl)
 add_subdirectory(vast-lsp-server)
