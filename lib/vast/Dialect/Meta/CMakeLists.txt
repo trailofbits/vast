@@ -2,6 +2,7 @@
 
 add_mlir_dialect_library(MLIRMeta
     MetaDialect.cpp
+    MetaTypes.cpp
 
     ADDITIONAL_HEADER_DIRS
     ${PROJECT_SOURCE_DIR}/include/vast

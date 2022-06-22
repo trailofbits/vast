@@ -9,11 +9,15 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/Meta/MetaDialect.hpp"
 
 namespace vast {
 
     inline void registerAllDialects(mlir::DialectRegistry &registry) {
-        registry.insert<vast::hl::HighLevelDialect>();
+        registry.insert<
+            vast::hl::HighLevelDialect,
+            vast::meta::MetaDialect
+        >();
     }
 
 } // namespace vast
