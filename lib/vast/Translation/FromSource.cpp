@@ -41,26 +41,12 @@ namespace vast::hl
 
         bool HandleTopLevelDecl(clang::DeclGroupRef) override { VAST_UNIMPLEMENTED; }
 
-        void emit_data_layout(const dl::DataLayoutBlueprint &dl) {
-            auto &mctx = ctx.getMLIRContext();
-            std::vector< mlir::DataLayoutEntryInterface > entries;
-            for (const auto &[_, e] : dl.entries)
-                entries.push_back(e.wrap(mctx));
-            ctx.getModule().get()->setAttr(
-                mlir::DLTIDialect::kDataLayoutAttrName,
-                mlir::DataLayoutSpecAttr::get(&mctx, entries)
-            );
-        }
+
 
         void HandleTranslationUnit(clang::ASTContext &) override {
             auto tu = ctx.getASTContext().getTranslationUnitDecl();
             CodeGenVisitor visitor(ctx);
-
-            for (const auto &decl : tu->decls())
-                visitor.Visit(decl);
-
-            // parform after we gather all types from the translation unit
-            emit_data_layout(ctx.data_layout());
+            visitor.Visit(tu);
         }
 
       private:

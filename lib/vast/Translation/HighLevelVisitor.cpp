@@ -1,11 +1,7 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
-#include "vast/Util/Warnings.hpp"
-
-VAST_RELAX_WARNINGS
-VAST_UNRELAX_WARNINGS
-
 #include "vast/Translation/HighLevelVisitor.hpp"
+#include "vast/Translation/DataLayout.hpp"
 
 namespace vast::hl
 {
@@ -1071,8 +1067,23 @@ namespace vast::hl
         VAST_UNREACHABLE("unsupported StaticAssertDecl");
     }
 
-    ValueOrStmt CodeGenVisitor::VisitTranslationUnitDecl(clang::TranslationUnitDecl *decl) {
-        VAST_UNREACHABLE("unsupported TranslationUnitDecl");
+    ValueOrStmt CodeGenVisitor::VisitTranslationUnitDecl(clang::TranslationUnitDecl *tu) {
+        ScopedInsertPoint builder_scope(builder);
+
+        auto loc = builder.get_location(tu->getSourceRange());
+
+        auto unit  = builder.make< TranslationUnitOp >(loc);
+        // TODO(Heno): refactor out together with from source codegen
+        unit.body().push_back(new mlir::Block());
+        builder.set_insertion_point_to_start(&unit.body().front());
+
+        for (const auto &decl : tu->decls()) {
+            CodeGenVisitor::Visit(decl);
+        }
+
+        // parform after we gather all types from the translation unit
+        emit_data_layout(ctx.getMLIRContext(), ctx.getModule(), ctx.data_layout());
+        return unit;
     }
 
     ValueOrStmt CodeGenVisitor::VisitBindingDecl(clang::BindingDecl *decl) {
