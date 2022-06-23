@@ -38,8 +38,7 @@ args_t load_args(int argc, char **argv) {
 namespace vast::repl
 {
     struct prompt {
-        explicit prompt(MContext &ctx)
-            : ctx(ctx) {}
+        explicit prompt(MContext &ctx) : cli(ctx) {}
 
         logical_result init(std::span< string_ref > args) {
             if (args.size() == 1) {
@@ -76,9 +75,7 @@ namespace vast::repl
             return mlir::success();
         }
 
-
         cli_t cli;
-        MContext &ctx;
     };
 
 } // namespace vast::repl

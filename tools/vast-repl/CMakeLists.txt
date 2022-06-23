@@ -11,6 +11,8 @@ llvm_update_compile_flags(vast-repl)
 
 target_link_libraries(vast-repl
     PRIVATE
+      vast_translation_api
+
       ${DIALECT_LIBS}
       MLIRHighLevel
 
