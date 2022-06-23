@@ -183,7 +183,7 @@ namespace vast::repl
 
             void show_ast(const state_t &state) const {
                 auto unit = codegen::ast_from_source(get_source(state));
-                unit->getASTContext().getTranslationUnitDecl()->print(llvm::outs());
+                unit->getASTContext().getTranslationUnitDecl()->dump(llvm::outs());
             }
 
             void show_module(state_t &state) const {
@@ -231,7 +231,8 @@ namespace vast::repl
 
     template< typename command, typename params_storage >
     command_ptr make_command(params_storage &&params) {
-        if constexpr (std::tuple_size_v< params_storage > != 0) {
+        constexpr auto params_size = std::tuple_size_v< std::remove_reference_t< params_storage > >;
+        if constexpr (params_size != 0) {
             return std::make_unique< command >(std::forward< params_storage >(params));
         } else {
             return std::make_unique< command >();
