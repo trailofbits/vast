@@ -6,6 +6,17 @@
 include "mlir/Interfaces/CallInterfaces.td"
 include "vast/Interfaces/SymbolInterface.td"
 
+def HighLevel_TranslationUnitOp
+  : HighLevel_Op< "translation.unit", [NoTerminator] >
+{
+  let summary = "VAST translation unit";
+  let description = [{ VAST tranaslation unit }];
+
+  let regions = (region AnyRegion:$body);
+
+  let assemblyFormat = [{ $body attr-dict }];
+}
+
 def HighLevel_ScopeOp
   : HighLevel_Op< "scope", [NoTerminator] >
 {
