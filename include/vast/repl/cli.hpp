@@ -3,6 +3,7 @@
 #pragma once
 
 #include "vast/repl/command.hpp"
+#include "vast/repl/common.hpp"
 #include "vast/repl/state.hpp"
 
 #include <exception>
@@ -11,6 +12,8 @@
 namespace vast::repl
 {
     struct cli_t {
+        explicit cli_t(MContext &ctx) : state(ctx) {}
+
         std::string_view help() { return "cli help"; }
 
         bool exit() const { return state.exit; }

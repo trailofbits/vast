@@ -11,7 +11,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/Builders.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Util/Common.hpp"
+#include "vast/repl/common.hpp"
 #include "vast/Translation/CodeGen.hpp"
 
 #include <filesystem>
@@ -21,5 +21,7 @@ namespace vast::repl::codegen {
     std::unique_ptr< clang::ASTUnit > ast_from_source(const std::string &source);
 
     std::string get_source(std::filesystem::path source);
+
+    owning_module_ref emit_module(const std::string &source, MContext *ctx);
 
 } // namespace vast::repl::codegen

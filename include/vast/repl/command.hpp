@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/repl/state.hpp"
+#include "vast/repl/common.hpp"
 
 #include "vast/Util/Tuple.hpp"
 #include "vast/Util/TypeList.hpp"
@@ -187,6 +188,11 @@ namespace vast::repl
             }
 
             void show_module(state_t &state) const {
+                if (!state.mod) {
+                    state.mod = codegen::emit_module(get_source(state), &state.ctx);
+                }
+
+                llvm::outs() << state.mod.get();
             }
 
             params_storage params;
