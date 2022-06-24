@@ -211,6 +211,23 @@ namespace vast::hl
             TypeConverter &type_converter() const { return tc; }
         };
 
+        template< typename Src >
+        struct ignore_pattern : BasePattern< Src >
+        {
+            using Base = BasePattern< Src >;
+            using Base::Base;
+
+            mlir::LogicalResult matchAndRewrite(
+                        Src op, typename Src::Adaptor ops,
+                        mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                rewriter.replaceOp(op, ops.getOperands());
+                return mlir::success();
+            }
+        };
+
+        using l_translation_unit = ignore_pattern< hl::TranslationUnitOp >;
+
         struct l_func_op : BasePattern< mlir::FuncOp >
         {
             using Base = BasePattern< mlir::FuncOp >;
@@ -559,21 +576,6 @@ namespace vast::hl
         using l_assign_sub = assign_pattern< hl::SubIAssignOp, LLVM::SubOp >;
         using l_assign = assign_pattern< hl::AssignOp, void >;
 
-        template< typename Src >
-        struct ignore_pattern : BasePattern< Src >
-        {
-            using Base = BasePattern< Src >;
-            using Base::Base;
-
-            mlir::LogicalResult matchAndRewrite(
-                        Src op, typename Src::Adaptor ops,
-                        mlir::ConversionPatternRewriter &rewriter) const override
-            {
-                rewriter.replaceOp(op, ops.getOperands());
-                return mlir::success();
-            }
-        };
-
         using l_declref = ignore_pattern< hl::DeclRefOp >;
 
         struct l_call : BasePattern< hl::CallOp >
@@ -667,6 +669,7 @@ namespace vast::hl
         pattern::TypeConverter type_converter(&mctx, llvm_options , &dl_analysis);
 
         mlir::RewritePatternSet patterns(&mctx);
+        patterns.add< pattern::l_translation_unit >(type_converter);
         patterns.add< pattern::l_func_op >(type_converter);
         patterns.add< pattern::l_var >(type_converter);
         patterns.add< pattern::l_constant_int >(type_converter);
