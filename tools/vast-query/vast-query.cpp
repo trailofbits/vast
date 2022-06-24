@@ -93,31 +93,26 @@ namespace vast::query
 
     bool constrained_scope() { return !cl::options->scope_name.empty(); }
 
-    template< typename ...Ts >
+    template< typename... Ts >
     auto is_one_of() {
-        return [] (mlir::Operation *op) {  return (mlir::isa< Ts >(op) || ...); };
+        return [](mlir::Operation *op) { return (mlir::isa< Ts >(op) || ...); };
     }
 
     template< typename T >
     auto is_global() {
-        return [] (mlir::Operation *op) {
+        return [](mlir::Operation *op) {
             return mlir::isa< T >(op) && mlir::isa< mlir::ModuleOp >(op->getParentOp());
         };
     }
 
-    auto show_name(vast_symbol_interface value) {
-        return value.getSymbolName();
-    }
+    auto show_name(vast_symbol_interface value) { return value.getSymbolName(); }
 
-    auto show_name(mlir_symbol_interface value) {
-        return value.getName();
-    }
+    auto show_name(mlir_symbol_interface value) { return value.getName(); }
 
     void show_location(auto &value) {
         auto loc = value.getLoc();
-        if (auto file_loc = loc.template dyn_cast<mlir::FileLineColLoc>()) {
-            llvm::outs() << " : " << file_loc.getFilename().getValue()
-                         << ":" << file_loc.getLine()
+        if (auto file_loc = loc.template dyn_cast< mlir::FileLineColLoc >()) {
+            llvm::outs() << " : " << file_loc.getFilename().getValue() << ":" << file_loc.getLine()
                          << ":" << file_loc.getColumn();
         } else {
             llvm::outs() << " : " << loc;
@@ -133,26 +128,30 @@ namespace vast::query
     logical_result do_show_symbols(auto scope) {
         auto &show_kind = cl::options->show_symbols;
 
-        auto show_if = [=] (auto symbol, auto pred) {
+        auto show_if = [=](auto symbol, auto pred) {
             if (pred(symbol))
                 show_value(symbol);
         };
 
-        auto filter_kind = [=] (cl::show_symbol_type kind) {
-            return [=] (auto symbol) {
+        auto filter_kind = [=](cl::show_symbol_type kind) {
+            return [=](auto symbol) {
                 switch (kind) {
-                    case cl::show_symbol_type::all:
-                        show_value(symbol); break;
+                    case cl::show_symbol_type::all: show_value(symbol); break;
                     case cl::show_symbol_type::type:
-                        show_if(symbol, is_one_of< hl::TypeDefOp, hl::TypeDeclOp >()); break;
+                        show_if(symbol, is_one_of< hl::TypeDefOp, hl::TypeDeclOp >());
+                        break;
                     case cl::show_symbol_type::record:
-                        show_if(symbol, is_one_of< hl::RecordDeclOp >()); break;
+                        show_if(symbol, is_one_of< hl::RecordDeclOp >());
+                        break;
                     case cl::show_symbol_type::var:
-                        show_if(symbol, is_one_of< hl::VarDecl >()); break;
+                        show_if(symbol, is_one_of< hl::VarDecl >());
+                        break;
                     case cl::show_symbol_type::global:
-                        show_if(symbol, is_global< hl::VarDecl >()); break;
+                        show_if(symbol, is_global< hl::VarDecl >());
+                        break;
                     case cl::show_symbol_type::function:
-                        show_if(symbol, is_one_of< mlir::FuncOp >()); break;
+                        show_if(symbol, is_one_of< mlir::FuncOp >());
+                        break;
                     case cl::show_symbol_type::none: break;
                 }
             };
@@ -179,7 +178,7 @@ namespace vast::query
     };
 
     void yield_users(llvm::StringRef symbol, auto scope, auto yield) {
-        auto filter_symbols = [&] (auto op) {
+        auto filter_symbols = [&](auto op) {
             if (show_name(op) == symbol) {
                 yield_symbol_users(op, scope, yield);
             }
@@ -190,7 +189,7 @@ namespace vast::query
 
     logical_result do_show_users(auto scope) {
         auto &name = cl::options->show_symbol_users;
-        yield_users(name.getValue(), scope, [] (auto user) {
+        yield_users(name.getValue(), scope, [](auto user) {
             user->print(llvm::outs());
             show_location(*user);
             llvm::outs() << "\n";
@@ -202,9 +201,17 @@ namespace vast::query
 
 namespace vast
 {
-    auto get_scope_operation(auto parent, std::string_view scope_name)
-    {
-        return mlir::SymbolTable::lookupSymbolIn(parent, scope_name);
+    logical_result get_scope_operation(auto parent, std::string_view scope_name, auto yield) {
+        auto result = parent->walk([&](mlir::Operation *op) {
+            if (mlir::isa< hl::TranslationUnitOp >(op)) {
+                if (!failed(yield(mlir::SymbolTable::lookupSymbolIn(op, scope_name)))) {
+                    return mlir::WalkResult::interrupt();
+                }
+            }
+            return mlir::WalkResult::advance();
+        });
+
+        return result.wasInterrupted() ? mlir::failure() :mlir::success();
     }
 
     logical_result do_query(MContext &ctx, memory_buffer buffer) {
@@ -225,23 +232,24 @@ namespace vast
             return mlir::failure();
         }
 
+        auto process_scope = [&] (auto scope) {
+            if (query::show_symbols()) {
+                return query::do_show_symbols(scope);
+            }
+
+            if (query::show_symbol_users()) {
+                return query::do_show_users(scope);
+            }
+
+            return mlir::success();
+        };
+
         mlir::Operation *scope = mod.get();
         if (query::constrained_scope()) {
-            scope = get_scope_operation(scope, cl::options->scope_name);
-            if (!scope) {
-                return mlir::failure();
-            }
+            return get_scope_operation(scope, cl::options->scope_name, process_scope);
+        } else {
+            return process_scope(scope);
         }
-
-        if (query::show_symbols()) {
-            return query::do_show_symbols(scope);
-        }
-
-        if (query::show_symbol_users()) {
-            return query::do_show_users(scope);
-        }
-
-        return mlir::success();
     }
 
     logical_result run(MContext &ctx) {
