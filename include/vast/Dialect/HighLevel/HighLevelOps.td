@@ -7,7 +7,7 @@ include "mlir/Interfaces/CallInterfaces.td"
 include "vast/Interfaces/SymbolInterface.td"
 
 def HighLevel_TranslationUnitOp
-  : HighLevel_Op< "translation.unit", [NoTerminator] >
+  : HighLevel_Op< "translation.unit", [NoTerminator, SymbolTable, IsolatedFromAbove] >
 {
   let summary = "VAST translation unit";
   let description = [{ VAST tranaslation unit }];
