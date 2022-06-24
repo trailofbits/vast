@@ -189,7 +189,8 @@ namespace vast::repl
 
             void show_module(state_t &state) const {
                 if (!state.mod) {
-                    state.mod = codegen::emit_module(get_source(state), &state.ctx);
+                    const auto &source = get_source(state);
+                    state.mod = codegen::emit_module(source, &state.ctx);
                 }
 
                 llvm::outs() << state.mod.get();
