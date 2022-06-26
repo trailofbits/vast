@@ -84,9 +84,6 @@ namespace vast::cl
 
 namespace vast::query
 {
-    using vast_symbol_interface = vast::VastSymbolOpInterface;
-    using mlir_symbol_interface = mlir::SymbolOpInterface;
-
     bool show_symbols() { return cl::options->show_symbols != cl::show_symbol_type::none; }
 
     bool show_symbol_users() { return !cl::options->show_symbol_users.empty(); }
@@ -101,28 +98,13 @@ namespace vast::query
     template< typename T >
     auto is_global() {
         return [](mlir::Operation *op) {
-            return mlir::isa< T >(op) && mlir::isa< mlir::ModuleOp >(op->getParentOp());
+            auto parent = op->getParentOp();
+            return mlir::isa< T >(op) && is_one_of< mlir::ModuleOp, hl::TranslationUnitOp >()(parent);
         };
     }
 
-    auto show_name(vast_symbol_interface value) { return value.getSymbolName(); }
-
-    auto show_name(mlir_symbol_interface value) { return value.getName(); }
-
-    void show_location(auto &value) {
-        auto loc = value.getLoc();
-        if (auto file_loc = loc.template dyn_cast< mlir::FileLineColLoc >()) {
-            llvm::outs() << " : " << file_loc.getFilename().getValue() << ":" << file_loc.getLine()
-                         << ":" << file_loc.getColumn();
-        } else {
-            llvm::outs() << " : " << loc;
-        }
-    }
-
     void show_value(auto value) {
-        llvm::outs() << value->getName() << " : " << show_name(value);
-        show_location(value);
-        llvm::outs() << "\n";
+        llvm::outs() << util::show_symbol_value(value) << "\n";
     }
 
     logical_result do_show_symbols(auto scope) {
@@ -161,38 +143,11 @@ namespace vast::query
         return mlir::success();
     }
 
-    using maybe_range = llvm::Optional< std::vector< mlir::Operation > >;
-
-    void yield_symbol_users(vast_symbol_interface op, auto scope, auto yield) {
-        for (auto user : op->getUsers()) {
-            yield(user);
-        }
-    };
-
-    void yield_symbol_users(mlir_symbol_interface op, auto scope, auto yield) {
-        if (auto users = op.getSymbolUses(scope)) {
-            for (auto use : users.getValue()) {
-                yield(use.getUser());
-            }
-        }
-    };
-
-    void yield_users(llvm::StringRef symbol, auto scope, auto yield) {
-        auto filter_symbols = [&](auto op) {
-            if (show_name(op) == symbol) {
-                yield_symbol_users(op, scope, yield);
-            }
-        };
-
-        util::symbols(scope, filter_symbols);
-    }
-
     logical_result do_show_users(auto scope) {
         auto &name = cl::options->show_symbol_users;
-        yield_users(name.getValue(), scope, [](auto user) {
+        util::yield_users(name.getValue(), scope, [](auto user) {
             user->print(llvm::outs());
-            show_location(*user);
-            llvm::outs() << "\n";
+            llvm::outs() << util::show_location(*user) << "\n";
         });
 
         return mlir::success();
