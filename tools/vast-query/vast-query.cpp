@@ -204,14 +204,14 @@ namespace vast
     logical_result get_scope_operation(auto parent, std::string_view scope_name, auto yield) {
         auto result = parent->walk([&](mlir::Operation *op) {
             if (mlir::isa< hl::TranslationUnitOp >(op)) {
-                if (!failed(yield(mlir::SymbolTable::lookupSymbolIn(op, scope_name)))) {
+                if (failed(yield(mlir::SymbolTable::lookupSymbolIn(op, scope_name)))) {
                     return mlir::WalkResult::interrupt();
                 }
             }
             return mlir::WalkResult::advance();
         });
 
-        return result.wasInterrupted() ? mlir::failure() :mlir::success();
+        return result.wasInterrupted() ? mlir::failure() : mlir::success();
     }
 
     logical_result do_query(MContext &ctx, memory_buffer buffer) {
@@ -229,6 +229,7 @@ namespace vast
         ctx.enableMultithreading(wasThreadingEnabled);
 
         if (!mod) {
+            llvm::errs() << "error: cannot parse module\n";
             return mlir::failure();
         }
 
@@ -256,7 +257,7 @@ namespace vast
         std::string err;
         if (auto input = mlir::openInputFile(cl::options->input_file, &err))
             return do_query(ctx, std::move(input));
-        llvm::errs() << err << "\n";
+        llvm::errs() << "error: " << err << "\n";
         return mlir::failure();
     }
 
