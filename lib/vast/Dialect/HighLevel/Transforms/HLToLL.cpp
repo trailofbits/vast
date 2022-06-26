@@ -266,7 +266,7 @@ namespace vast::hl
                                 rewriter.getArrayAttr(new_arg_attrs)));
                 }
                 // TODO(lukas): Linkage?
-                auto linkage = LLVM::Linkage::Internal;
+                auto linkage = LLVM::Linkage::External;
                 auto new_func = rewriter.create< LLVM::LLVMFuncOp >(
                         func_op.getLoc(), func_op.getName(), target_type,
                         linkage, false, new_attrs);
