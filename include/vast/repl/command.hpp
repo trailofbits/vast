@@ -229,7 +229,48 @@ namespace vast::repl
             params_storage params;
         };
 
-        using command_list = util::type_list< exit, help, load, show >;
+        //
+        // meta command
+        //
+        struct meta : base {
+            static constexpr string_ref name() { return "meta"; }
+
+            static constexpr inline char meta_action_name[] = "meta_action";
+            static constexpr inline char symbol_name[] = "symbol";
+
+            using command_params = util::type_list<
+                named_param< meta_action_name, meta_action >,
+                named_param< symbol_name, string_param >
+            >;
+
+            using params_storage = command_params::as_tuple;
+
+            meta(const params_storage &params) : params(params) {}
+            meta(params_storage &&params) : params(std::move(params)) {}
+
+            void run(state_t &state) const override {
+                auto action  = get_param< meta_action_name >(params);
+                switch (action) {
+                    case meta_action::add: add(state); break;
+                    case meta_action::get: get(state); break;
+                }
+            };
+
+            void add(state_t &state) const {
+                auto name_param = get_param< symbol_name >(params);
+                util::symbols(state.mod.get(), [&] (auto symbol) {
+                    if (util::symbol_name(symbol) == name_param.value) {
+                        // TODO add attribute here
+                    }
+                });
+            }
+
+            void get(state_t &state) const {}
+
+            params_storage params;
+        };
+
+        using command_list = util::type_list< exit, help, load, show, meta >;
 
     } // namespace command
 
