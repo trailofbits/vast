@@ -4,7 +4,15 @@
 
 namespace vast::meta
 {
-    void MetaDialect::initialize() {}
+    void MetaDialect::initialize() {
+        registerTypes();
+        registerAttributes();
+
+        addOperations<
+            #define GET_OP_LIST
+            #include "vast/Dialect/Meta/Meta.cpp.inc"
+        >();
+    }
 
 } // namespace vast::meta
 
