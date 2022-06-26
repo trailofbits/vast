@@ -20,7 +20,13 @@ def Meta_Dialect : Dialect {
         that are kept accross transformations.
     }];
     let cppNamespace = "::vast::meta";
+    let extraClassDeclaration = [{
+        void registerTypes();
+        void registerAttributes();
+    }];
 }
+
+include "MetaAttributes.td"
 
 #endif // VAST_DIALECT_META
 
