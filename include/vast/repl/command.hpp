@@ -8,11 +8,12 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/StringExtras.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/repl/state.hpp"
-#include "vast/repl/common.hpp"
-
+#include "vast/Util/Symbols.hpp"
 #include "vast/Util/Tuple.hpp"
 #include "vast/Util/TypeList.hpp"
+
+#include "vast/repl/state.hpp"
+#include "vast/repl/common.hpp"
 #include "vast/repl/codegen.hpp"
 
 #include <filesystem>
@@ -36,17 +37,28 @@ namespace vast::repl
             virtual ~base(){};
         };
 
-        struct file_param { std::filesystem::path path; };
-        struct flag_param { bool set; };
+        struct file_param   { std::filesystem::path path; };
+        struct flag_param   { bool set; };
+        struct string_param { std::string value; };
 
-        enum class show_kind { source, ast, module };
+        enum class show_kind { source, ast, module, symbols };
 
         template< typename enum_type >
         enum_type from_string(string_ref token) requires(std::is_same_v< enum_type, show_kind >) {
             if (token == "source")  return enum_type::source;
             if (token == "ast")     return enum_type::ast;
             if (token == "module")  return enum_type::module;
+            if (token == "symbols") return enum_type::symbols;
             VAST_UNREACHABLE("uknnown show kind: {}", token.str());
+        }
+
+        enum class meta_action { add, get };
+
+        template< typename enum_type >
+        enum_type from_string(string_ref token) requires(std::is_same_v< enum_type, meta_action >) {
+            if (token == "add") return enum_type::add;
+            if (token == "get") return enum_type::get;
+            VAST_UNREACHABLE("uknnown action kind: {}", token.str());
         }
 
         //
@@ -59,6 +71,11 @@ namespace vast::repl
             static constexpr bool is_file_param = std::is_same_v< base, file_param >;
             static named_param parse(string_ref token) requires(is_file_param) {
                 return { .value = file_param{ token.str() } };
+            }
+
+            static constexpr bool is_string_param = std::is_same_v< base, string_param >;
+            static named_param parse(string_ref token) requires(is_string_param) {
+                return { .value = token.str() };
             }
 
             static constexpr bool is_flag_param = std::is_same_v< base, flag_param >;
@@ -75,7 +92,7 @@ namespace vast::repl
         };
 
         template< const char *name, typename params_storage >
-        const auto &get_param(const params_storage &params) {
+        auto get_param(const params_storage &params) {
             if constexpr (std::tuple_size_v< params_storage > == 0) {
                 throw std::runtime_error(("unknown param name " + std::string(name)));
             } else {
@@ -161,9 +178,10 @@ namespace vast::repl
             void run(state_t &state) const override {
                 auto what = get_param< kind_param_name >(params);
                 switch (what) {
-                    case show_kind::source: return show_source(state);
-                    case show_kind::ast:    return show_ast(state);
-                    case show_kind::module: return show_module(state);
+                    case show_kind::source:  return show_source(state);
+                    case show_kind::ast:     return show_ast(state);
+                    case show_kind::module:  return show_module(state);
+                    case show_kind::symbols: return show_symbols(state);
                 }
             };
 
@@ -178,22 +196,34 @@ namespace vast::repl
                 return state.source.value();
             }
 
+            void check_and_emit_module(state_t &state) const {
+                if (!state.mod) {
+                    const auto &source = get_source(state);
+                    state.mod = codegen::emit_module(source, &state.ctx);
+                }
+            }
+
             void show_source(const state_t &state) const {
-                llvm::outs() << get_source(state);
+                llvm::outs() << get_source(state) << "\n";
             }
 
             void show_ast(const state_t &state) const {
                 auto unit = codegen::ast_from_source(get_source(state));
                 unit->getASTContext().getTranslationUnitDecl()->dump(llvm::outs());
+                llvm::outs() << "\n";
             }
 
             void show_module(state_t &state) const {
-                if (!state.mod) {
-                    const auto &source = get_source(state);
-                    state.mod = codegen::emit_module(source, &state.ctx);
-                }
+                check_and_emit_module(state);
+                llvm::outs() << state.mod.get() << "\n";
+            }
 
-                llvm::outs() << state.mod.get();
+            void show_symbols(state_t &state) const {
+                check_and_emit_module(state);
+
+                util::symbols(state.mod.get(), [&] (auto symbol) {
+                    llvm::outs() << util::show_symbol_value(symbol) << "\n";
+                });
             }
 
             params_storage params;
