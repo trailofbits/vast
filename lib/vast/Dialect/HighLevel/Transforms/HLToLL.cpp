@@ -226,7 +226,26 @@ namespace vast::hl
             }
         };
 
-        using l_translation_unit = ignore_pattern< hl::TranslationUnitOp >;
+        struct l_translation_unit : BasePattern< hl::TranslationUnitOp >
+        {
+            using Base = BasePattern< hl::TranslationUnitOp >;
+            using Base::Base;
+
+            mlir::LogicalResult matchAndRewrite(
+                    hl::TranslationUnitOp unit_op, hl::TranslationUnitOp::Adaptor ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                auto parent = unit_op.body().getParentRegion();
+                rewriter.inlineRegionBefore(unit_op.body(), *parent, parent->end());
+
+                // splice newly created translation unit block in the module
+                auto &unit_block = parent->back();
+                rewriter.mergeBlocks(&parent->front(), &unit_block, unit_block.getArguments());
+
+                rewriter.eraseOp(unit_op);
+                return mlir::success();
+            }
+        };
 
         struct l_func_op : BasePattern< mlir::FuncOp >
         {
