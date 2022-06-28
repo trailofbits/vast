@@ -12,6 +12,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Tuple.hpp"
 #include "vast/Util/TypeList.hpp"
 
+#include "vast/Dialect/Meta/MetaDialect.hpp"
+
 #include "vast/repl/state.hpp"
 #include "vast/repl/common.hpp"
 #include "vast/repl/codegen.hpp"
@@ -28,7 +30,7 @@ namespace vast::repl
     using command_token  = string_ref;
     using command_tokens = llvm::SmallVector< command_token >;
 
-    namespace command
+    namespace cmd
     {
         struct base {
             using command_params = util::type_list<>;
@@ -37,24 +39,15 @@ namespace vast::repl
             virtual ~base(){};
         };
 
-        static inline void check_source(const state_t &state) {
-            if (!state.source.has_value()) {
-                throw std::runtime_error("error: missing source");
-            }
-        }
+        void check_source(const state_t &state);
 
-        static inline const std::string &get_source(const state_t &state) {
-            check_source(state);
-            return state.source.value();
-        }
+        const std::string &get_source(const state_t &state);
 
-        static inline void check_and_emit_module(state_t &state) {
-            if (!state.mod) {
-                const auto &source = get_source(state);
-                state.mod = codegen::emit_module(source, &state.ctx);
-            }
-        }
+        void check_and_emit_module(state_t &state);
 
+        //
+        // params
+        //
         struct file_param    { std::filesystem::path path; };
         struct flag_param    { bool set; };
         struct string_param  { std::string value; };
@@ -140,11 +133,8 @@ namespace vast::repl
 
             using base::command_params;
 
-            void run(state_t &state) const override {
-                state.exit = true;
-            };
+            void run(state_t &state) const override;
         };
-
 
         //
         // help command
@@ -154,9 +144,7 @@ namespace vast::repl
 
             using base::command_params;
 
-            void run(state_t&) const override {
-                throw std::runtime_error("help not implemented");
-            };
+            void run(state_t&) const override;
         };
 
         //
@@ -165,10 +153,10 @@ namespace vast::repl
         struct load : base {
             static constexpr string_ref name() { return "load"; }
 
-            static constexpr inline char source_param_name[] = "source";
+            static constexpr inline char source_param[] = "source";
 
             using command_params = util::type_list<
-                named_param< source_param_name, file_param >
+                named_param< source_param, file_param >
             >;
 
             using params_storage = command_params::as_tuple;
@@ -176,10 +164,7 @@ namespace vast::repl
             load(const params_storage &params) : params(params) {}
             load(params_storage &&params) : params(std::move(params)) {}
 
-            void run(state_t &state) const override {
-                auto source  = get_param< source_param_name >(params);
-                state.source = codegen::get_source(source.path);
-            };
+            void run(state_t &state) const override;
 
             params_storage params;
         };
@@ -190,10 +175,10 @@ namespace vast::repl
         struct show : base {
             static constexpr string_ref name() { return "show"; }
 
-            static constexpr inline char kind_param_name[] = "kind_param_name";
+            static constexpr inline char kind_param[] = "kind_param_name";
 
             using command_params = util::type_list<
-                named_param< kind_param_name, show_kind >
+                named_param< kind_param, show_kind >
             >;
 
             using params_storage = command_params::as_tuple;
@@ -201,38 +186,7 @@ namespace vast::repl
             show(const params_storage &params) : params(params) {}
             show(params_storage &&params) : params(std::move(params)) {}
 
-            void run(state_t &state) const override {
-                auto what = get_param< kind_param_name >(params);
-                switch (what) {
-                    case show_kind::source:  return show_source(state);
-                    case show_kind::ast:     return show_ast(state);
-                    case show_kind::module:  return show_module(state);
-                    case show_kind::symbols: return show_symbols(state);
-                }
-            };
-
-            void show_source(const state_t &state) const {
-                llvm::outs() << get_source(state) << "\n";
-            }
-
-            void show_ast(const state_t &state) const {
-                auto unit = codegen::ast_from_source(get_source(state));
-                unit->getASTContext().getTranslationUnitDecl()->dump(llvm::outs());
-                llvm::outs() << "\n";
-            }
-
-            void show_module(state_t &state) const {
-                check_and_emit_module(state);
-                llvm::outs() << state.mod.get() << "\n";
-            }
-
-            void show_symbols(state_t &state) const {
-                check_and_emit_module(state);
-
-                util::symbols(state.mod.get(), [&] (auto symbol) {
-                    llvm::outs() << util::show_symbol_value(symbol) << "\n";
-                });
-            }
+            void run(state_t &state) const override;
 
             params_storage params;
         };
@@ -243,12 +197,12 @@ namespace vast::repl
         struct meta : base {
             static constexpr string_ref name() { return "meta"; }
 
-            static constexpr inline char meta_action_name[] = "meta_action";
+            static constexpr inline char action_param[] = "meta_action";
             static constexpr inline char symbol_param[]     = "symbol";
             static constexpr inline char identifier_param[] = "identifier";
 
             using command_params = util::type_list<
-                named_param< meta_action_name, meta_action >,
+                named_param< action_param, meta_action >,
                 named_param< identifier_param, integer_param >,
                 named_param< symbol_param, string_param >
             >;
@@ -258,36 +212,10 @@ namespace vast::repl
             meta(const params_storage &params) : params(params) {}
             meta(params_storage &&params) : params(std::move(params)) {}
 
-            void run(state_t &state) const override {
-                check_and_emit_module(state);
+            void run(state_t &state) const override;
 
-                auto action  = get_param< meta_action_name >(params);
-                switch (action) {
-                    case meta_action::add: add(state); break;
-                    case meta_action::get: get(state); break;
-                }
-            };
-
-            void add(state_t &state) const {
-                using ::vast::meta::add_identifier;
-
-                auto name_param = get_param< symbol_param >(params);
-                util::symbols(state.mod.get(), [&] (auto symbol) {
-                    if (util::symbol_name(symbol) == name_param.value) {
-                        auto id = get_param< identifier_param >(params);
-                        add_identifier(symbol, id.value);
-                        llvm::outs() << symbol << "\n";
-                    }
-                });
-            }
-
-            void get(state_t &state) const {
-                using ::vast::meta::get_with_identifier;
-                auto id = get_param< identifier_param >(params);
-                for (auto op : get_with_identifier(state.mod.get(), id.value)) {
-                    llvm::outs() << *op << "\n";
-                }
-            }
+            void add(state_t &state) const;
+            void get(state_t &state) const;
 
             params_storage params;
         };
@@ -296,7 +224,7 @@ namespace vast::repl
 
     } // namespace command
 
-    using command_ptr = std::unique_ptr< command::base >;
+    using command_ptr = std::unique_ptr< cmd::base >;
 
     static inline std::span< string_ref > tail(std::span<string_ref > tokens) {
         if (tokens.size() == 1)
@@ -343,7 +271,7 @@ namespace vast::repl
     command_ptr match(std::span< string_ref > tokens) {
         if (tokens.empty()) {
             // print help, if no command was provided
-            return std::make_unique< command::help >();
+            return std::make_unique< cmd::help >();
         }
 
         if constexpr (commands::empty) {
@@ -366,7 +294,7 @@ namespace vast::repl
     }
 
     static inline command_ptr parse_command(std::span< command_token > tokens) {
-        return match< command::command_list >(tokens);
+        return match< cmd::command_list >(tokens);
     }
 
 } // namespace vast::repl

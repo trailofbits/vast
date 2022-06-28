@@ -42,8 +42,8 @@ namespace vast::repl
 
         void init(std::span< string_ref > args) {
             if (args.size() == 1) {
-                auto params = parse_params< command::load::command_params >(args);
-                cli.exec(make_command< command::load >(params));
+                auto params = parse_params< cmd::load::command_params >(args);
+                cli.exec(make_command< cmd::load >(params));
             } else {
                 throw std::runtime_error("unsupported arguments");
             }
