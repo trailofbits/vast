@@ -11,7 +11,7 @@ class Meta_Attr<string name, string attr_mnemonic>
   let mnemonic = attr_mnemonic;
 }
 
-def Meta_IdentifierAttr : Meta_Attr< "Id", "id" > {
+def Meta_IdentifierAttr : Meta_Attr< "Identifier", "id" > {
     let summary = "A metadata identifier.";
 
     let description = [{
@@ -23,7 +23,7 @@ def Meta_IdentifierAttr : Meta_Attr< "Id", "id" > {
         ```
     }];
 
-    let parameters = (ins "std::uint64_t":$value);
+    let parameters = (ins "identifier_t":$value);
 
     let assemblyFormat = "`<` params `>`";
 }
