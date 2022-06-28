@@ -19,7 +19,7 @@ namespace vast::util
     using string_ref     = llvm::StringRef;
 
     // TODO(heno): rework to coroutines eventually
-    void symbols(mlir::Operation *op, auto yield) {
+    void symbols(mlir::Operation *op, auto &&yield) {
         op->walk([&] (mlir::Operation *child) {
             if (auto symbol = mlir::dyn_cast< vast_symbol_interface >(child)) {
                 yield(symbol);
@@ -34,13 +34,13 @@ namespace vast::util
 
     static inline auto symbol_name(mlir_symbol_interface value) { return value.getName(); }
 
-    void yield_symbol_users(vast_symbol_interface op, auto scope, auto yield) {
+    void yield_symbol_users(vast_symbol_interface op, auto scope, auto &&yield) {
         for (auto user : op->getUsers()) {
             yield(user);
         }
     };
 
-    void yield_symbol_users(mlir_symbol_interface op, auto scope, auto yield) {
+    void yield_symbol_users(mlir_symbol_interface op, auto scope, auto &&yield) {
         if (auto users = op.getSymbolUses(scope)) {
             for (auto use : users.getValue()) {
                 yield(use.getUser());
@@ -48,10 +48,10 @@ namespace vast::util
         }
     };
 
-    void yield_users(string_ref symbol, auto scope, auto yield) {
+    void yield_users(string_ref symbol, auto scope, auto &&yield) {
         auto filter_symbols = [&](auto op) {
             if (util::symbol_name(op) == symbol) {
-                yield_symbol_users(op, scope, yield);
+                yield_symbol_users(op, scope, std::forward< decltype(yield) >(yield));
             }
         };
 
