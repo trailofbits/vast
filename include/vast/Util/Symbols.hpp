@@ -30,9 +30,9 @@ namespace vast::util
         });
     }
 
-    auto symbol_name(vast_symbol_interface value) { return value.getSymbolName(); }
+    static inline auto symbol_name(vast_symbol_interface value) { return value.getSymbolName(); }
 
-    auto symbol_name(mlir_symbol_interface value) { return value.getName(); }
+    static inline auto symbol_name(mlir_symbol_interface value) { return value.getName(); }
 
     void yield_symbol_users(vast_symbol_interface op, auto scope, auto yield) {
         for (auto user : op->getUsers()) {
