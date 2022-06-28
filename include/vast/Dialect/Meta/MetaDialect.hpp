@@ -13,9 +13,18 @@ VAST_RELAX_WARNINGS
 VAST_RELAX_WARNINGS
 
 
-namespace vast::meta
-{
-} // namespace vast::meta
-
 // Pull in the dialect definition.
 #include "vast/Dialect/Meta/MetaDialect.h.inc"
+
+namespace vast::meta
+{
+    using identifier_t = std::uint64_t;
+
+    void add_identifier(mlir::Operation *op, identifier_t id);
+
+    void remove_identifier(mlir::Operation *op);
+
+    std::vector< mlir::Operation * > get_with_identifier(mlir::Operation *scope, identifier_t id);
+
+} // namespace vast::meta
+
