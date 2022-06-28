@@ -40,16 +40,16 @@ namespace vast::repl
     struct prompt {
         explicit prompt(MContext &ctx) : cli(ctx) {}
 
-        logical_result init(std::span< string_ref > args) {
+        void init(std::span< string_ref > args) {
             if (args.size() == 1) {
                 auto params = parse_params< command::load::command_params >(args);
-                return cli.exec(make_command< command::load >(params));
+                cli.exec(make_command< command::load >(params));
             } else {
                 throw std::runtime_error("unsupported arguments");
             }
         }
 
-        logical_result run() {
+        logical_result run() try {
             const auto path = ".vast-repl.history";
 
             linenoise::SetHistoryMaxLen(1000);
@@ -64,15 +64,16 @@ namespace vast::repl
                     break;
                 }
 
-                if (failed(cli.exec(cmd))) {
-                    return mlir::failure();
-                }
+                cli.exec(cmd);
 
                 linenoise::AddHistory(cmd.c_str());
                 linenoise::SaveHistory(path);
             }
 
             return mlir::success();
+        } catch (std::exception &e) {
+            llvm::errs() << "error: " << e.what() << '\n';
+            return mlir::failure();
         }
 
         cli_t cli;
@@ -80,7 +81,7 @@ namespace vast::repl
 
 } // namespace vast::repl
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv) try {
     mlir::DialectRegistry registry;
     vast::registerAllDialects(registry);
     mlir::registerAllDialects(registry);
@@ -93,10 +94,12 @@ int main(int argc, char **argv) {
     auto prompt = vast::repl::prompt(ctx);
 
     if (!args.empty()) {
-        if (auto res = failed(prompt.init(args))) {
-            std::exit(res);
-        }
+        prompt.init(args);
     }
 
     std::exit(failed(prompt.run()));
+
+} catch (std::exception &e) {
+    llvm::errs() << "error: " << e.what() << '\n';
+    std::exit(1);
 }
