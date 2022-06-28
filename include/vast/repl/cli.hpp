@@ -18,22 +18,18 @@ namespace vast::repl
 
         bool exit() const { return state.exit; }
 
-        logical_result exec(std::string_view line) try {
+        void exec(std::string_view line) try {
             auto tokens = parse_tokens(line);
-            return exec(parse_command(tokens));
+            exec(parse_command(tokens));
         } catch (std::exception &e) {
             llvm::errs() << "error: " << e.what() << '\n';
-            return mlir::failure();
         }
 
-        logical_result exec(command_ptr cmd) try {
+        void exec(command_ptr cmd) try {
             cmd->run(state);
-            return mlir::success();
         } catch (std::exception &e) {
             llvm::errs() << "error: " << e.what() << '\n';
-            return mlir::failure();
         }
-
 
       private:
         state_t state;
