@@ -37,9 +37,28 @@ namespace vast::repl
             virtual ~base(){};
         };
 
-        struct file_param   { std::filesystem::path path; };
-        struct flag_param   { bool set; };
-        struct string_param { std::string value; };
+        static inline void check_source(const state_t &state) {
+            if (!state.source.has_value()) {
+                throw std::runtime_error("error: missing source");
+            }
+        }
+
+        static inline const std::string &get_source(const state_t &state) {
+            check_source(state);
+            return state.source.value();
+        }
+
+        static inline void check_and_emit_module(state_t &state) {
+            if (!state.mod) {
+                const auto &source = get_source(state);
+                state.mod = codegen::emit_module(source, &state.ctx);
+            }
+        }
+
+        struct file_param    { std::filesystem::path path; };
+        struct flag_param    { bool set; };
+        struct string_param  { std::string value; };
+        struct integer_param { std::uint64_t value; };
 
         enum class show_kind { source, ast, module, symbols };
 
@@ -76,6 +95,13 @@ namespace vast::repl
             static constexpr bool is_string_param = std::is_same_v< base, string_param >;
             static named_param parse(string_ref token) requires(is_string_param) {
                 return { .value = token.str() };
+            }
+
+            static constexpr bool is_integer_param = std::is_same_v< base, integer_param >;
+            static named_param parse(string_ref token) requires(is_integer_param) {
+                integer_param param;
+                token.getAsInteger(0, param.value);
+                return { param };
             }
 
             static constexpr bool is_flag_param = std::is_same_v< base, flag_param >;
@@ -185,24 +211,6 @@ namespace vast::repl
                 }
             };
 
-            void check_source(const state_t &state) const {
-                if (!state.source.has_value()) {
-                    throw std::runtime_error("error: missing source");
-                }
-            }
-
-            const std::string &get_source(const state_t &state) const {
-                check_source(state);
-                return state.source.value();
-            }
-
-            void check_and_emit_module(state_t &state) const {
-                if (!state.mod) {
-                    const auto &source = get_source(state);
-                    state.mod = codegen::emit_module(source, &state.ctx);
-                }
-            }
-
             void show_source(const state_t &state) const {
                 llvm::outs() << get_source(state) << "\n";
             }
@@ -236,11 +244,13 @@ namespace vast::repl
             static constexpr string_ref name() { return "meta"; }
 
             static constexpr inline char meta_action_name[] = "meta_action";
-            static constexpr inline char symbol_name[] = "symbol";
+            static constexpr inline char symbol_param[]     = "symbol";
+            static constexpr inline char identifier_param[] = "identifier";
 
             using command_params = util::type_list<
                 named_param< meta_action_name, meta_action >,
-                named_param< symbol_name, string_param >
+                named_param< identifier_param, integer_param >,
+                named_param< symbol_param, string_param >
             >;
 
             using params_storage = command_params::as_tuple;
@@ -249,6 +259,8 @@ namespace vast::repl
             meta(params_storage &&params) : params(std::move(params)) {}
 
             void run(state_t &state) const override {
+                check_and_emit_module(state);
+
                 auto action  = get_param< meta_action_name >(params);
                 switch (action) {
                     case meta_action::add: add(state); break;
@@ -257,15 +269,25 @@ namespace vast::repl
             };
 
             void add(state_t &state) const {
-                auto name_param = get_param< symbol_name >(params);
+                using ::vast::meta::add_identifier;
+
+                auto name_param = get_param< symbol_param >(params);
                 util::symbols(state.mod.get(), [&] (auto symbol) {
                     if (util::symbol_name(symbol) == name_param.value) {
-                        // TODO add attribute here
+                        auto id = get_param< identifier_param >(params);
+                        add_identifier(symbol, id.value);
+                        llvm::outs() << symbol << "\n";
                     }
                 });
             }
 
-            void get(state_t &state) const {}
+            void get(state_t &state) const {
+                using ::vast::meta::get_with_identifier;
+                auto id = get_param< identifier_param >(params);
+                for (auto op : get_with_identifier(state.mod.get(), id.value)) {
+                    llvm::outs() << *op << "\n";
+                }
+            }
 
             params_storage params;
         };
