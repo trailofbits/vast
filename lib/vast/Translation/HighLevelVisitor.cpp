@@ -5,6 +5,12 @@
 
 namespace vast::hl
 {
+    std::string get_field_name(clang::FieldDecl *decl) {
+        if (decl->isAnonymousStructOrUnion())
+            return "anaonymous." + std::to_string(decl->getFieldIndex());
+        return decl->getName().str();
+    }
+
     // Binary Operations
 
     ValueOrStmt CodeGenVisitor::VisitBinPtrMemD(clang::BinaryOperator *expr) {
@@ -656,7 +662,7 @@ namespace vast::hl
     ValueOrStmt CodeGenVisitor::VisitMemberExpr(clang::MemberExpr *expr) {
         auto loc   = builder.get_location(expr->getSourceRange());
         auto field = llvm::dyn_cast< clang::FieldDecl >(expr->getMemberDecl());
-        auto name  = field->getName();
+        auto name  = get_field_name(field);
         auto base  = CodeGenVisitor::Visit(expr->getBase());
         auto type  = types.lvalue_convert(expr->getType());
         return builder.make_value< RecordMemberOp >(loc, type, base, name);
@@ -1284,7 +1290,7 @@ namespace vast::hl
 
     ValueOrStmt CodeGenVisitor::VisitFieldDecl(clang::FieldDecl *decl) {
         auto loc  = builder.get_location(decl->getSourceRange());
-        auto name = decl->getName();
+        auto name = get_field_name(decl);
         auto type = types.convert(decl->getType());
         return builder.make< FieldDeclOp >(loc, name, type);
     }
