@@ -192,4 +192,4 @@ def HighLevel_VarDecl : HighLevel_Op< "var", [VastSymbol] >
   }] # storageSpecifiersImpl;
 }
 
-#endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
+#endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELVAR

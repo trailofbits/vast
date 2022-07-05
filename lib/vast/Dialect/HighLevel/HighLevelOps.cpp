@@ -197,11 +197,21 @@ namespace vast::hl
         detail::build_region(bld, st, init);
     }
 
-    void RecordDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
-        st.addAttribute("name", bld.getStringAttr(name));
+    namespace detail {
+        void build_record_like_decl(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
+            st.addAttribute("name", bld.getStringAttr(name));
 
-        Builder::InsertionGuard guard(bld);
-        detail::build_region(bld, st, fields);
+            Builder::InsertionGuard guard(bld);
+            detail::build_region(bld, st, fields);
+        }
+    } // anamespace detail
+
+    void RecordDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
+        detail::build_record_like_decl(bld, st, name, fields);
+    }
+
+    void UnionDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
+        detail::build_record_like_decl(bld, st, name, fields);
     }
 
     mlir::CallInterfaceCallable CallOp::getCallableForCallee()

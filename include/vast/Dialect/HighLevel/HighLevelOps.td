@@ -129,13 +129,10 @@ def HighLevel_EnumDeclOp
   let assemblyFormat = [{ $name attr-dict `:` $type $constants }];
 }
 
-def HighLevel_RecordDeclOp
-  : HighLevel_Op< "record", [NoSideEffect, NoTerminator, VastSymbol] >
-  , Arguments<(ins StrAttr:$name)>
+class HighLevel_RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, NoTerminator, VastSymbol]) >
+    , Arguments<(ins StrAttr:$name)>
 {
-  let summary = "VAST record declaration";
-  let description = [{ VAST record declaration }];
-
   // TODO(Heno): add region constraints
   let regions = (region AnyRegion:$fields);
 
@@ -148,6 +145,16 @@ def HighLevel_RecordDeclOp
   ];
 
   let assemblyFormat = [{ $name attr-dict `:` $fields }];
+}
+
+def HighLevel_RecordDeclOp : HighLevel_RecordLikeDeclOp<"record"> {
+  let summary = "VAST record declaration";
+  let description = [{ VAST record declaration }];
+}
+
+def HighLevel_UnionDeclOp : HighLevel_RecordLikeDeclOp<"union"> {
+  let summary = "VAST record declaration";
+  let description = [{ VAST record declaration }];
 }
 
 def HighLevel_FieldDeclOp
@@ -538,7 +545,6 @@ class HighLevel_CastOp< string mnemonic, list< Trait > traits = [] >
 
     let assemblyFormat = "$value $kind attr-dict `:` type($value) `->` type($result)";
 }
-
 
 def HighLevel_ImplicitCastOp   : HighLevel_CastOp< "implicit_cast", [] >;
 def HighLevel_CStyleCastOp     : HighLevel_CastOp< "cstyle_cast", [] >;
