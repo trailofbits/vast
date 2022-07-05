@@ -615,7 +615,6 @@ namespace vast::hl
             return builder.constant(loc, type, lit->getValue());
         }
 
-
         template< typename Decl >
         ValueOrStmt make_record_decl(clang::RecordDecl *decl) {
             auto loc  = builder.get_location(decl->getSourceRange());

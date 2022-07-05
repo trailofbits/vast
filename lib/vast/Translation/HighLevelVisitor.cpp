@@ -7,7 +7,7 @@ namespace vast::hl
 {
     std::string get_field_name(clang::FieldDecl *decl) {
         if (decl->isAnonymousStructOrUnion())
-            return "anaonymous." + std::to_string(decl->getFieldIndex());
+            return "anonymous." + std::to_string(decl->getFieldIndex());
         return decl->getName().str();
     }
 
@@ -1291,6 +1291,15 @@ namespace vast::hl
     ValueOrStmt CodeGenVisitor::VisitFieldDecl(clang::FieldDecl *decl) {
         auto loc  = builder.get_location(decl->getSourceRange());
         auto name = get_field_name(decl);
+
+        // define field type if the field defines a new nested type
+        if (auto tag = decl->getType()->getAsTagDecl()) {
+            if (tag->isThisDeclarationADefinition()) {
+                if (!ctx.tag_names.count(tag)) {
+                    Visit(tag);
+                }
+            }
+        }
         auto type = types.convert(decl->getType());
         return builder.make< FieldDeclOp >(loc, name, type);
     }

@@ -27,4 +27,3 @@ namespace vast::meta
     std::vector< mlir::Operation * > get_with_identifier(mlir::Operation *scope, identifier_t id);
 
 } // namespace vast::meta
-
