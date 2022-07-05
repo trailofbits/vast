@@ -106,7 +106,7 @@ get_property(CONVERSION_LIBS GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
 
 target_link_libraries(codegen
     PRIVATE
-        vast::vast
+        vast::vast_translation_api
 
         MLIRIR
 
