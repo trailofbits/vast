@@ -615,6 +615,32 @@ namespace vast::hl
             return builder.constant(loc, type, lit->getValue());
         }
 
+
+        template< typename Decl >
+        ValueOrStmt make_record_decl(clang::RecordDecl *decl) {
+            auto loc  = builder.get_location(decl->getSourceRange());
+            auto name = ctx.elaborated_name(decl);
+            // declare the type first to allow recursive type definitions
+            if (!decl->isCompleteDefinition()) {
+                return builder.declare_type(loc, name);;
+            }
+
+            // generate record definition
+            if (decl->field_empty()) {
+                return builder.make< Decl >(loc, name);
+            }
+
+            return builder.make< Decl >(loc, name, [&](auto &bld, auto loc) {
+                for (auto field : decl->fields()) {
+                    auto field_type = field->getType();
+                    if (clang::isa< clang::ElaboratedType >(field_type)) {
+                        CodeGenVisitor::Visit(field_type->getAsTagDecl());
+                    }
+                    CodeGenVisitor::Visit(field);
+                }
+            });
+        }
+
         inline void walk_type(clang::QualType type, invocable< clang::Type * > auto &&yield) {
             if (yield(type)) {
                 return;
