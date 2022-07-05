@@ -1,5 +1,5 @@
 function(set_project_warnings project_name)
-  option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" TRUE)
+  option(VAST_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" TRUE)
 
   set(CLANG_WARNINGS
       -Wall
@@ -25,7 +25,7 @@ function(set_project_warnings project_name)
       -Wno-gnu-zero-variadic-macro-arguments
   )
 
-  if (WARNINGS_AS_ERRORS)
+  if (VAST_WARNINGS_AS_ERRORS)
     set(CLANG_WARNINGS ${CLANG_WARNINGS} -Werror)
   endif()
 
