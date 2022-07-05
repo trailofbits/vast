@@ -1162,27 +1162,11 @@ namespace vast::hl
     }
 
     ValueOrStmt CodeGenVisitor::VisitRecordDecl(clang::RecordDecl *decl) {
-        auto loc  = builder.get_location(decl->getSourceRange());
-        auto name = ctx.elaborated_name(decl);
-        // declare the type first to allow recursive type definitions
-        if (!decl->isCompleteDefinition()) {
-            return builder.declare_type(loc, name);;
+        if (decl->isUnion()) {
+            return make_record_decl< UnionDeclOp >(decl);
+        } else {
+            return make_record_decl< RecordDeclOp >(decl);
         }
-
-        // generate record definition
-        if (decl->field_empty()) {
-            return builder.make< RecordDeclOp >(loc, name);
-        }
-
-        return builder.make< RecordDeclOp >(loc, name, [&](auto &bld, auto loc) {
-            for (auto field : decl->fields()) {
-                auto field_type = field->getType();
-                if (clang::isa< clang::ElaboratedType >(field_type)) {
-                    CodeGenVisitor::Visit(field_type->getAsTagDecl());
-                }
-                CodeGenVisitor::Visit(field);
-            }
-        });
     }
 
     ValueOrStmt CodeGenVisitor::VisitEnumConstantDecl(clang::EnumConstantDecl *decl) {
