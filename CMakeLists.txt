@@ -140,6 +140,20 @@ add_subdirectory(lib)
 #
 add_subdirectory(tools)
 
+add_library(vast INTERFACE)
+
+target_link_libraries(vast
+  INTERFACE
+    vast_translation_api
+    vast_settings
+)
+
+target_include_directories(vast
+  INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
 # test options
 option(ENABLE_TESTING "Enable Test Builds" ON)
 
@@ -158,6 +172,7 @@ if (VAST_INSTALL)
   set(VAST_CMAKE_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
   set(VAST_INSTALL_TARGETS
+    vast
     vast_settings
     vast_translation_api
 
