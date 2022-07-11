@@ -34,7 +34,7 @@ namespace vast::hl
             return DeclContextKind::dc_function;
         if (mlir::isa< mlir::ModuleOp >(st))
             return DeclContextKind::dc_translation_unit;
-        if (mlir::isa< RecordDeclOp >(st))
+        if (mlir::isa< StructDeclOp >(st))
             return DeclContextKind::dc_record;
         if (mlir::isa< EnumDeclOp >(st))
             return DeclContextKind::dc_enum;

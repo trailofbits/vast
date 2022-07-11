@@ -1171,7 +1171,7 @@ namespace vast::hl
         if (decl->isUnion()) {
             return make_record_decl< UnionDeclOp >(decl);
         } else {
-            return make_record_decl< RecordDeclOp >(decl);
+            return make_record_decl< StructDeclOp >(decl);
         }
     }
 

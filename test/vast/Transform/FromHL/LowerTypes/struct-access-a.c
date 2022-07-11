@@ -1,6 +1,6 @@
 // RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-lower-types | FileCheck %s
 
-// CHECK:  hl.record "struct X" : {
+// CHECK:  hl.struct "struct X" : {
 // CHECK:    hl.field "member_x" : i32
 // CHECK:    hl.field "member_y" : i32
 // CHECK:  }

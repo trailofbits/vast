@@ -206,7 +206,7 @@ namespace vast::hl
         }
     } // anamespace detail
 
-    void RecordDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
+    void StructDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
         detail::build_record_like_decl(bld, st, name, fields);
     }
 

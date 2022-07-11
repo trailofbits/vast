@@ -147,9 +147,9 @@ class HighLevel_RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
   let assemblyFormat = [{ $name attr-dict `:` $fields }];
 }
 
-def HighLevel_RecordDeclOp : HighLevel_RecordLikeDeclOp<"record"> {
-  let summary = "VAST record declaration";
-  let description = [{ VAST record declaration }];
+def HighLevel_StructDeclOp : HighLevel_RecordLikeDeclOp<"struct"> {
+  let summary = "VAST struct declaration";
+  let description = [{ VAST struct declaration }];
 }
 
 def HighLevel_UnionDeclOp : HighLevel_RecordLikeDeclOp<"union"> {

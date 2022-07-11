@@ -11,7 +11,7 @@
 struct s* p = 0;
 
 // definition for the struct pointed to by p
-// CHECK: hl.record "struct s" : {
+// CHECK: hl.struct "struct s" : {
 // CHECK:  hl.field "a" : !hl.int
 // CHECK: }
 struct s { int a; };
