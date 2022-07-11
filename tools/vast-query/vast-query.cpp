@@ -123,7 +123,7 @@ namespace vast::query
                         show_if(symbol, is_one_of< hl::TypeDefOp, hl::TypeDeclOp >());
                         break;
                     case cl::show_symbol_type::record:
-                        show_if(symbol, is_one_of< hl::RecordDeclOp >());
+                        show_if(symbol, is_one_of< hl::StructDeclOp >());
                         break;
                     case cl::show_symbol_type::var:
                         show_if(symbol, is_one_of< hl::VarDecl >());

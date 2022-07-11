@@ -46,7 +46,7 @@ def HLToLL : Pass<"vast-hl-to-ll", "mlir::ModuleOp"> {
 }
 
 def HLStructsToTuples : Pass<"vast-hl-structs-to-tuples", "mlir::ModuleOp"> {
-  let summary = "Transform hl.record into std tuples.";
+  let summary = "Transform hl.struct into std tuples.";
   let description = [{
     This pass is still a work in progress.
   }];

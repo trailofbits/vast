@@ -1,7 +1,7 @@
 // RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
 // RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK: hl.record "struct Element"
+// CHECK: hl.struct "struct Element"
 // CHECK:  hl.field "z" : !hl.int
 // CHECK:  hl.enum.decl "enum State" : !hl.int<unsigned>
 // CHECK:   hl.enum.const "SOLID"

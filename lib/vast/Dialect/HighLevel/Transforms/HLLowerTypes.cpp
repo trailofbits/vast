@@ -528,16 +528,16 @@ namespace vast::hl
     }
 
     // TODO(lukas):
-    struct LowerRecordDeclOp : mlir::OpConversionPattern< hl::RecordDeclOp >
+    struct LowerStructDeclOp : mlir::OpConversionPattern< hl::StructDeclOp >
     {
-        using parent_t = mlir::OpConversionPattern< hl::RecordDeclOp >;
+        using parent_t = mlir::OpConversionPattern< hl::StructDeclOp >;
 
         // TODO(lukas): We most likely no longer need type converter here.
-        LowerRecordDeclOp(TypeConverter &tc, mlir::MLIRContext *mctx)
+        LowerStructDeclOp(TypeConverter &tc, mlir::MLIRContext *mctx)
             : parent_t(tc, mctx)
         {}
 
-        std::vector< mlir::Type > collect_field_tys(hl::RecordDeclOp op) const
+        std::vector< mlir::Type > collect_field_tys(hl::StructDeclOp op) const
         {
             std::vector< mlir::Type > out;
             for (auto &maybe_field : solo_block(op.fields()))
@@ -551,7 +551,7 @@ namespace vast::hl
 
         // TODO(lukas): This is definitely **not** how it should be done.
         //              Rework once links via symbols have api.
-        std::vector< hl::TypeDeclOp > fetch_decls(hl::RecordDeclOp op) const
+        std::vector< hl::TypeDeclOp > fetch_decls(hl::StructDeclOp op) const
         {
             std::vector< hl::TypeDeclOp > out;
             auto module_op = op->getParentOfType< mlir::ModuleOp >();
@@ -567,7 +567,7 @@ namespace vast::hl
         }
 
         mlir::LogicalResult matchAndRewrite(
-                hl::RecordDeclOp op, hl::RecordDeclOp::Adaptor ops,
+                hl::StructDeclOp op, hl::StructDeclOp::Adaptor ops,
                 mlir::ConversionPatternRewriter &rewriter) const override
         {
             auto field_tys = collect_field_tys(op);
@@ -595,14 +595,14 @@ namespace vast::hl
             // TODO(lukas): Simply inherit and overload to accept everything but that one op.
             // TODO(lukas): Will probably need to emit extracts as well.
             mlir::ConversionTarget trg(mctx);
-            trg.addIllegalOp< hl::RecordDeclOp >();
+            trg.addIllegalOp< hl::StructDeclOp >();
             trg.addLegalOp< hl::TypeDefOp >();
 
             mlir::RewritePatternSet patterns(&mctx);
             const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
             TypeConverter type_converter(dl_analysis.getAtOrAbove(op), mctx);
 
-            patterns.add< LowerRecordDeclOp >(type_converter, patterns.getContext());
+            patterns.add< LowerStructDeclOp >(type_converter, patterns.getContext());
             if (mlir::failed(mlir::applyPartialConversion(
                              op, trg, std::move(patterns))))
             {
