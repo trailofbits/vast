@@ -1155,7 +1155,7 @@ namespace vast::hl
 
     ValueOrStmt CodeGenVisitor::VisitEnumDecl(clang::EnumDecl *decl) {
         auto loc  = builder.get_location(decl->getSourceRange());
-        auto name = ctx.elaborated_name(decl);
+        auto name = ctx.decl_name(decl);
         auto type = types.convert(decl->getIntegerType());
 
         auto constants = [&](auto &bld, auto loc) {

@@ -54,17 +54,16 @@ namespace vast::hl
         size_t anonymous_count = 0;
         llvm::DenseMap< clang::TagDecl *, std::string > tag_names;
 
-        llvm::StringRef elaborated_name(clang::TagDecl *decl) {
+        llvm::StringRef decl_name(clang::TagDecl *decl) {
             if (tag_names.count(decl)) {
                 return tag_names[decl];
             }
 
-            std::string name = decl->getKindName().str() + " ";
-            if (decl->getIdentifier()) {
-                name += decl->getName().str();
-            } else {
-                name += "anonymous." + std::to_string(anonymous_count++);
-            }
+            std::string name = [&] {
+                if (decl->getIdentifier())
+                    return decl->getName().str();
+                return "anonymous." + std::to_string(anonymous_count++);
+            } ();
 
             auto [it, _] = tag_names.try_emplace(decl, name);
             return it->second;

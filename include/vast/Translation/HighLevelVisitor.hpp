@@ -618,7 +618,7 @@ namespace vast::hl
         template< typename Decl >
         ValueOrStmt make_record_decl(clang::RecordDecl *decl) {
             auto loc  = builder.get_location(decl->getSourceRange());
-            auto name = ctx.elaborated_name(decl);
+            auto name = ctx.decl_name(decl);
             // declare the type first to allow recursive type definitions
             if (!decl->isCompleteDefinition()) {
                 return builder.declare_type(loc, name);;
@@ -750,7 +750,6 @@ namespace vast::hl
                 }
             }
         }
-
 
         TranslationContext &ctx;
         HighLevelBuilder builder;
