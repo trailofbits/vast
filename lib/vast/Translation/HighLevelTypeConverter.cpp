@@ -195,17 +195,17 @@ namespace vast::hl
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(const clang::RecordType *ty, Quals quals) {
-        auto decl = ty->getDecl();
-        auto name = ctx.elaborated_name(decl);
-        auto mctx = &ctx.getMLIRContext();
-        return NamedType::get(mctx, mlir::StringAttr::get(mctx, name));
+        return do_convert_name_decl(ty->getDecl(), quals);
     }
 
     mlir::Type HighLevelTypeConverter::do_convert(const clang::EnumType *ty, Quals quals) {
-        auto decl = ty->getDecl();
-        auto name = ctx.elaborated_name(decl);
+        return do_convert_name_decl(ty->getDecl(), quals);
+    }
+
+    mlir::Type HighLevelTypeConverter::do_convert_name_decl(clang::TagDecl *decl, Quals quals) {
+        auto name = ctx.decl_name(decl);
         auto mctx = &ctx.getMLIRContext();
-        return NamedType::get(mctx, mlir::StringAttr::get(mctx, name));
+        return NamedType::get(mctx, name);
     }
 
     namespace detail {

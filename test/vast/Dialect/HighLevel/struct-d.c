@@ -2,16 +2,16 @@
 // RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
 
 // tag naming an unknown struct declares it
-// CHECK: hl.var "p" : !hl.lvalue<!hl.ptr<!hl.named_type<"struct s">>> = {
+// CHECK: hl.var "p" : !hl.lvalue<!hl.ptr<!hl.named_type<<"s">>>> = {
 // CHECK:  [[V1:%[0-9]+]] = hl.constant.int 0 : !hl.int
-// CHECK:  [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] NullToPointer : !hl.int -> !hl.ptr<!hl.named_type<"struct s">>
+// CHECK:  [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] NullToPointer : !hl.int -> !hl.ptr<!hl.named_type<<"s">>>
 
-// CHECK:  hl.value.yield [[V2]] : !hl.ptr<!hl.named_type<"struct s">>
+// CHECK:  hl.value.yield [[V2]] : !hl.ptr<!hl.named_type<<"s">>>
 // CHECK: }
 struct s* p = 0;
 
 // definition for the struct pointed to by p
-// CHECK: hl.struct "struct s" : {
+// CHECK: hl.struct "s" : {
 // CHECK:  hl.field "a" : !hl.int
 // CHECK: }
 struct s { int a; };

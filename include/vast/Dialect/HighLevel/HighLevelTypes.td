@@ -7,6 +7,8 @@ include "mlir/Interfaces/DataLayoutInterfaces.td"
 include "mlir/IR/SubElementInterfaces.td"
 include "mlir/IR/BuiltinTypeInterfaces.td"
 
+include "vast/Dialect/HighLevel/HighLevelAttributes.td"
+
 // NOTE(lukas): I have no idea how to do this both in a sane way and in tablegen
 class WithDefaultDLTypeInterface {
   code default_dl_interface_impl = [{
@@ -284,9 +286,17 @@ def ArrayType :
 def NamedType : HighLevelType< "Named", [MemRefElementTypeInterface] > {
   let mnemonic = "named_type";
 
-  let parameters = (ins
-    "mlir::StringAttr":$name
-  );
+  let parameters = (ins TypeNameAttr:$name);
+
+  let builders = [
+    TypeBuilder<(ins "llvm::StringRef":$name), [{
+      return get(mlir::StringAttr::get($_ctxt, name));
+    }]>,
+    TypeBuilderWithInferredContext<(ins "mlir::StringAttr":$name), [{
+      auto ctx = name.getContext();
+      return $_get(ctx, TypeNameAttr::get(ctx, name));
+    }]>
+  ];
 
   let assemblyFormat = "`<` $name `>`";
 }
