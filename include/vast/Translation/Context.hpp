@@ -54,17 +54,49 @@ namespace vast::hl
         size_t anonymous_count = 0;
         llvm::DenseMap< clang::TagDecl *, std::string > tag_names;
 
+        std::string get_decl_name(const clang::NamedDecl *decl) {
+            if (decl->getIdentifier())
+                return decl->getName().str();
+            return "anonymous[" + std::to_string(decl->getID()) + "]";
+        }
+
+        std::string get_namespaced_for_decl_name(clang::TagDecl *decl) {
+            // gather contexts
+            std::vector< const clang::DeclContext * > dctxs;
+            for (const auto *dctx = decl->getDeclContext(); dctx; dctx = dctx->getParent()) {
+                dctxs.push_back(dctx);
+            }
+
+            std::string name;
+            for (const auto *dctx : llvm::reverse(dctxs)) {
+                if (llvm::isa< clang::TranslationUnitDecl >(dctx))
+                    continue;
+
+                if (llvm::isa< clang::FunctionDecl >(dctx))
+                    continue;
+
+                if (const auto *d = llvm::dyn_cast< clang::TagDecl >(dctx)) {
+                    name += get_decl_name(d);
+                } else {
+                    throw std::runtime_error("unknown decl context: " + std::string(dctx->getDeclKindName()));
+                }
+
+                name += "::";
+            }
+
+            return name;
+        }
+
+        std::string get_namespaced_decl_name(clang::TagDecl *decl) {
+            return get_namespaced_for_decl_name(decl) + get_decl_name(decl);
+        }
+
         llvm::StringRef decl_name(clang::TagDecl *decl) {
             if (tag_names.count(decl)) {
                 return tag_names[decl];
             }
 
-            std::string name = [&] {
-                if (decl->getIdentifier())
-                    return decl->getName().str();
-                return "anonymous." + std::to_string(anonymous_count++);
-            } ();
-
+            auto name = get_namespaced_decl_name(decl);
             auto [it, _] = tag_names.try_emplace(decl, name);
             return it->second;
         }

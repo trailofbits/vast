@@ -289,7 +289,7 @@ namespace vast::hl
         auto decl = ty->getDecl();
         auto name = decl->getName();
         auto mctx = &ctx.getMLIRContext();
-        return NamedType::get(mctx, mlir::StringAttr::get(mctx, name));
+        return NamedType::get(mctx, name);
     }
 
 } // namseapce vast::hl
