@@ -19,6 +19,7 @@ target_link_libraries(vast-repl
 
       clangAST
       clangFrontend
+      clangSerialization
       clangTooling
 )
 
