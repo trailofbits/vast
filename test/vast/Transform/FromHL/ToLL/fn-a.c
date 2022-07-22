@@ -1,6 +1,6 @@
 // RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-lower-types --vast-hl-structs-to-tuples --vast-hl-to-ll | FileCheck %s
 
-// CHECK: llvm.func internal @fn() {
+// CHECK: llvm.func @fn() {
 void fn()
 {
     // CHECK: llvm.return
