@@ -30,7 +30,12 @@ namespace vast::repl::codegen {
         auto unit = codegen::ast_from_source(source);
         auto &ast = unit->getASTContext();
         vast::hl::high_level_codegen codegen(ctx);
-        return codegen.emit_module(ast.getTranslationUnitDecl());
+
+        hl::CodeGenVisitorConfig config = {
+            .attach_ast_meta = false
+        };
+
+        return codegen.emit_module(ast.getTranslationUnitDecl(), config);
     }
 
 } // namespace vast::repl::codegen
