@@ -157,16 +157,14 @@ namespace vast::query
 namespace vast
 {
     logical_result get_scope_operation(auto parent, std::string_view scope_name, auto yield) {
-        auto result = parent->walk([&](mlir::Operation *op) {
-            if (mlir::isa< hl::TranslationUnitOp >(op)) {
-                if (failed(yield(mlir::SymbolTable::lookupSymbolIn(op, scope_name)))) {
-                    return mlir::WalkResult::interrupt();
-                }
+        auto result =mlir::success();
+        util::symbol_tables(parent, [&](mlir::Operation *op) {
+            if (failed(yield(mlir::SymbolTable::lookupSymbolIn(op, scope_name)))) {
+                result = mlir::failure();
             }
-            return mlir::WalkResult::advance();
         });
 
-        return result.wasInterrupted() ? mlir::failure() : mlir::success();
+        return result;
     }
 
     logical_result do_query(MContext &ctx, memory_buffer buffer) {
@@ -182,7 +180,6 @@ namespace vast
 
         OwningModuleRef mod(mlir::parseSourceFile(source_mgr, &ctx));
         ctx.enableMultithreading(wasThreadingEnabled);
-
         if (!mod) {
             llvm::errs() << "error: cannot parse module\n";
             return mlir::failure();
