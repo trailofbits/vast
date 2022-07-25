@@ -2,41 +2,32 @@
 
 #include "vast/Translation/CodeGen.hpp"
 
-#include "vast/Util/Warnings.hpp"
-
-VAST_RELAX_WARNINGS
-#include <clang/AST/ASTContext.h>
-#include <mlir/IR/Builders.h>
-VAST_UNRELAX_WARNINGS
-
-#include "vast/Util/Common.hpp"
-#include "vast/Translation/Context.hpp"
-#include "vast/Translation/HighLevelVisitor.hpp"
-
 namespace vast::hl
 {
-    using builder_t = mlir::Builder;
-
-    OwningModuleRef high_level_codegen::emit_module(clang::Decl* decl) {
-
-        builder_t bld(ctx);
-        auto loc = bld.getUnknownLoc();
-        OwningModuleRef mod = {Module::create(loc)};
-
-        TranslationContext tctx(*ctx, decl->getASTContext(), mod);
-
-        llvm::ScopedHashTableScope type_def_scope(tctx.type_defs);
-        llvm::ScopedHashTableScope type_dec_scope(tctx.type_decls);
-        llvm::ScopedHashTableScope enum_dec_scope(tctx.enum_decls);
-        llvm::ScopedHashTableScope enum_constant_scope(tctx.enum_constants);
-        llvm::ScopedHashTableScope func_scope(tctx.functions);
-        llvm::ScopedHashTableScope glob_scope(tctx.vars);
-
-        CodeGenVisitor visitor(tctx);
-        visitor.Visit(decl);
-
-        // TODO(Heno): verify module
-        return mod;
+    OwningModuleRef high_level_codegen::emit_module(
+        clang::ASTUnit *unit, const CodeGenVisitorConfig &cfg
+    ) {
+        return process_ast(unit, cfg);
     }
+
+    static bool top_level_decl_process(void * context, const clang::Decl *decl) {
+        CodeGenVisitor &visitor = *static_cast<CodeGenVisitor*>(context);
+        return visitor.Visit(const_cast< clang::Decl * >(decl)), true;
+    }
+
+    void high_level_codegen::process(clang::ASTUnit *unit, CodeGenVisitor &visitor) {
+        unit->visitLocalTopLevelDecls(&visitor, top_level_decl_process);
+    }
+
+    OwningModuleRef high_level_codegen::emit_module(
+        clang::Decl* decl, const CodeGenVisitorConfig &cfg
+    ) {
+        return process_ast(decl, cfg);
+    }
+
+    void high_level_codegen::process(clang::Decl *decl, CodeGenVisitor &visitor) {
+        visitor.Visit(decl);
+    }
+
 
 } // namespace vast::hl

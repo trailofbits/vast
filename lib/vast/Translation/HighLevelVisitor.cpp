@@ -1072,7 +1072,7 @@ namespace vast::hl
         auto loc = builder.get_location(tu->getSourceRange());
 
         auto unit  = builder.make< TranslationUnitOp >(loc);
-        // TODO(Heno): refactor out together with from source codegen
+
         unit.body().push_back(new mlir::Block());
         builder.set_insertion_point_to_start(&unit.body().front());
 
@@ -1080,8 +1080,6 @@ namespace vast::hl
             CodeGenVisitor::Visit(decl);
         }
 
-        // parform after we gather all types from the translation unit
-        emit_data_layout(ctx.getMLIRContext(), ctx.getModule(), ctx.data_layout());
         return unit;
     }
 

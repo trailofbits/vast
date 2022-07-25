@@ -20,6 +20,7 @@ namespace vast::repl::codegen {
 
     std::unique_ptr< clang::ASTUnit > ast_from_source(const std::string &source);
 
+    // TODO(Heno): return buffer
     std::string get_source(std::filesystem::path source);
 
     owning_module_ref emit_module(const std::string &source, MContext *ctx);
