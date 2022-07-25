@@ -23,23 +23,23 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    struct high_level_codegen {
-        high_level_codegen(MContext *ctx)
+    struct CodeGen {
+        CodeGen(MContext *ctx)
             : ctx(ctx)
         {
-            ctx->loadDialect< HighLevelDialect >();
+            ctx->loadDialect< hl::HighLevelDialect >();
             ctx->loadDialect< mlir::StandardOpsDialect >();
             ctx->loadDialect< mlir::DLTIDialect >();
             ctx->loadDialect< mlir::scf::SCFDialect >();
         }
 
-        OwningModuleRef emit_module(clang::ASTUnit *unit, const CodeGenVisitorConfig &config);
-        OwningModuleRef emit_module(clang::Decl *decl, const CodeGenVisitorConfig &config);
+        OwningModuleRef emit_module(clang::ASTUnit *unit, const TranslationConfig &config);
+        OwningModuleRef emit_module(clang::Decl *decl, const TranslationConfig &config);
 
       private:
 
         template< typename AST >
-        OwningModuleRef process_ast(AST *ast, const CodeGenVisitorConfig &config) {
+        OwningModuleRef process_ast(AST *ast, const TranslationConfig &config) {
             mlir::Builder bld(ctx);
             OwningModuleRef mod = {Module::create(bld.getUnknownLoc())};
             TranslationContext tctx(*ctx, ast->getASTContext(), mod);

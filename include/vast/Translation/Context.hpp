@@ -24,6 +24,9 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
+    struct TranslationConfig {
+        bool attach_ast_meta;
+    };
 
     struct TranslationContext {
         MContext &mctx;
