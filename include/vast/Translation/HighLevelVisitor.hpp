@@ -24,15 +24,11 @@ namespace vast::hl
 {
     struct VastDeclVisitor;
 
-    struct CodeGenVisitorConfig {
-        bool attach_ast_meta;
-    };
-
     struct CodeGenVisitor
         : clang::StmtVisitor< CodeGenVisitor, ValueOrStmt >
         , clang::DeclVisitor< CodeGenVisitor, ValueOrStmt >
     {
-        CodeGenVisitor(TranslationContext &ctx, CodeGenVisitorConfig config)
+        CodeGenVisitor(TranslationContext &ctx, const TranslationConfig &config)
             : ctx(ctx), builder(ctx), types(ctx), config(config)
         {}
 
@@ -759,6 +755,6 @@ namespace vast::hl
         HighLevelBuilder builder;
         HighLevelTypeConverter types;
 
-        CodeGenVisitorConfig config;
+        const TranslationConfig &config;
     };
 } // namespace vast::hl

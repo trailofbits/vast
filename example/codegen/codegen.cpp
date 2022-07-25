@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     mlir::MLIRContext ctx(registry);
 
     // generate ir for ast declaration
-    vast::hl::high_level_codegen codegen(&ctx);
+    vast::hl::CodeGen codegen(&ctx);
 
     auto &actx = ast->getASTContext();
     auto tu = actx.getTranslationUnitDecl();

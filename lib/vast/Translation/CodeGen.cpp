@@ -4,8 +4,8 @@
 
 namespace vast::hl
 {
-    OwningModuleRef high_level_codegen::emit_module(
-        clang::ASTUnit *unit, const CodeGenVisitorConfig &cfg
+    OwningModuleRef CodeGen::emit_module(
+        clang::ASTUnit *unit, const TranslationConfig &cfg
     ) {
         return process_ast(unit, cfg);
     }
@@ -15,17 +15,17 @@ namespace vast::hl
         return visitor.Visit(const_cast< clang::Decl * >(decl)), true;
     }
 
-    void high_level_codegen::process(clang::ASTUnit *unit, CodeGenVisitor &visitor) {
+    void CodeGen::process(clang::ASTUnit *unit, CodeGenVisitor &visitor) {
         unit->visitLocalTopLevelDecls(&visitor, top_level_decl_process);
     }
 
-    OwningModuleRef high_level_codegen::emit_module(
-        clang::Decl* decl, const CodeGenVisitorConfig &cfg
+    OwningModuleRef CodeGen::emit_module(
+        clang::Decl* decl, const TranslationConfig &cfg
     ) {
         return process_ast(decl, cfg);
     }
 
-    void high_level_codegen::process(clang::Decl *decl, CodeGenVisitor &visitor) {
+    void CodeGen::process(clang::Decl *decl, CodeGenVisitor &visitor) {
         visitor.Visit(decl);
     }
 

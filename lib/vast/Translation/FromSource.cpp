@@ -50,9 +50,9 @@ namespace vast::hl
             input->getBuffer(), compiler_args
         );
 
-        high_level_codegen codegen(ctx);
+        CodeGen codegen(ctx);
 
-        CodeGenVisitorConfig config = {
+        TranslationConfig config = {
             .attach_ast_meta = ast_meta_flag
         };
 
