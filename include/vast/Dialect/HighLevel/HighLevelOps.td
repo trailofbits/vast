@@ -29,6 +29,12 @@ def HighLevel_ScopeOp
 
   let regions = (region AnyRegion:$body);
 
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins), [{ }]>,
+    OpBuilder<(ins "BuilderCallback":$scopeBuilder)>,
+  ];
+
   let assemblyFormat = [{ $body attr-dict }];
 }
 
@@ -90,6 +96,7 @@ def HighLevel_EnumConstantOp
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
+      // TODO use identifier
       "llvm::StringRef":$name,
       "llvm::APSInt":$value,
       CArg< "BuilderCallback", "std::nullopt">:$init
