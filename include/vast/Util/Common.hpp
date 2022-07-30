@@ -17,12 +17,11 @@ VAST_UNRELAX_WARNINGS
 namespace vast
 {
     using Value       = mlir::Value;
-    using Stmt        = mlir::Operation *;
-    using ValueOrStmt = std::variant< mlir::Value, Stmt >;
+    using Operation   = mlir::Operation;
 
     using AContext = clang::ASTContext;
     using MContext = mlir::MLIRContext;
 
-    using Module    = mlir::ModuleOp;
+    using Module          = mlir::ModuleOp;
     using OwningModuleRef = mlir::OwningOpRef< Module >;
 } // namespace vast

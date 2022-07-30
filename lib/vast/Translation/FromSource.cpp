@@ -29,7 +29,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
-#include "vast/Translation/HighLevelVisitor.hpp"
 #include "vast/Translation/CodeGen.hpp"
 #include "vast/Util/Common.hpp"
 
@@ -50,20 +49,14 @@ namespace vast::hl
             input->getBuffer(), compiler_args
         );
 
-        CodeGen codegen(ctx);
-
-        TranslationConfig config = {
-            .attach_ast_meta = ast_meta_flag
-        };
-
-        return codegen.emit_module(ast.get(), config);
+        return DefaultCodeGen(ctx).emit_module(ast.get());
     }
 
     mlir::LogicalResult registerFromSourceParser() {
         mlir::TranslateToMLIRRegistration from_source(
             "from-source",
             [](llvm::SourceMgr &mgr, mlir::MLIRContext *ctx) -> OwningModuleRef {
-                assert(mgr.getNumBuffers() == 1 && "expected single input buffer");
+                VAST_CHECK(mgr.getNumBuffers() == 1,    "expected single input buffer");
                 auto buffer = mgr.getMemoryBuffer(mgr.getMainFileID());
                 return from_source_parser(buffer, ctx);
             });

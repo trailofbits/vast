@@ -11,7 +11,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
-#include "vast/Translation/Context.hpp"
+#include "vast/Translation/CodeGenContext.hpp"
 #include "vast/Util/DataLayout.hpp"
 
 #include <tuple>
@@ -22,7 +22,7 @@ namespace vast::hl
     using Quals = clang::Qualifiers;
 
     struct HighLevelTypeConverter {
-        HighLevelTypeConverter(TranslationContext &ctx)
+        HighLevelTypeConverter(CodeGenContext &ctx)
             : ctx(ctx) {}
 
         mlir::Type convert(clang::QualType ty);
@@ -58,7 +58,7 @@ namespace vast::hl
 
         SizeParam get_size_attr(const clang::ArrayType *ty);
 
-        TranslationContext &ctx;
+        CodeGenContext &ctx;
     };
 
 } // namespace vast::hl

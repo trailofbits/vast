@@ -24,23 +24,20 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    struct TranslationConfig {
-        bool attach_ast_meta;
-    };
-
-    struct TranslationContext {
+    struct CodeGenContext {
         MContext &mctx;
         AContext &actx;
         OwningModuleRef &mod;
 
         dl::DataLayoutBlueprint dl;
 
-        TranslationContext(MContext &mctx, AContext &actx, OwningModuleRef &mod)
+        CodeGenContext(MContext &mctx, AContext &actx, OwningModuleRef &mod)
             : mctx(mctx)
             , actx(actx)
-            , mod(mod) {}
+            , mod(mod)
+        {}
 
-        using VarTable = ScopedValueTable< clang::VarDecl*, Value >;
+        using VarTable = ScopedValueTable< const clang::VarDecl*, Value >;
 
         VarTable vars;
 
@@ -55,7 +52,7 @@ namespace vast::hl
         EnumConstants enum_constants;
 
         size_t anonymous_count = 0;
-        llvm::DenseMap< clang::TagDecl *, std::string > tag_names;
+        llvm::DenseMap< const clang::TagDecl *, std::string > tag_names;
 
         std::string get_decl_name(const clang::NamedDecl *decl) {
             if (decl->getIdentifier())
@@ -63,7 +60,7 @@ namespace vast::hl
             return "anonymous[" + std::to_string(decl->getID()) + "]";
         }
 
-        std::string get_namespaced_for_decl_name(clang::TagDecl *decl) {
+        std::string get_namespaced_for_decl_name(const clang::TagDecl *decl) {
             // gather contexts
             std::vector< const clang::DeclContext * > dctxs;
             for (const auto *dctx = decl->getDeclContext(); dctx; dctx = dctx->getParent()) {
@@ -90,11 +87,11 @@ namespace vast::hl
             return name;
         }
 
-        std::string get_namespaced_decl_name(clang::TagDecl *decl) {
+        std::string get_namespaced_decl_name(const clang::TagDecl *decl) {
             return get_namespaced_for_decl_name(decl) + get_decl_name(decl);
         }
 
-        llvm::StringRef decl_name(clang::TagDecl *decl) {
+        llvm::StringRef decl_name(const clang::TagDecl *decl) {
             if (tag_names.count(decl)) {
                 return tag_names[decl];
             }
@@ -104,6 +101,7 @@ namespace vast::hl
             return it->second;
         }
 
+        // TODO clean up to Lens
         MContext &getMLIRContext() { return mctx; }
         AContext &getASTContext() { return actx; }
         OwningModuleRef &getModule() { return mod; }
@@ -142,11 +140,4 @@ namespace vast::hl
             return symbol(enum_decls, name, "error: unknown enum '" + name + "'", with_error);
         }
     };
-
-    inline bool check(const ValueOrStmt &val) {
-        return std::visit([](const auto &v) { return bool(v); }, val);
-    }
-
-    inline auto to_value = [](ValueOrStmt v) -> Value { return std::get< Value >(v); };
-
 } // namespace vast::hl

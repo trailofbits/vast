@@ -28,7 +28,7 @@ namespace vast
 {
     #define VAST_UNREACHABLE(fmt, ...) llvm_unreachable( llvm::formatv(fmt __VA_OPT__(,) __VA_ARGS__).str().c_str() );
 
-    #define VAST_UNIMPLEMENTED VAST_UNREACHABLE("not implemented: {}", __PRETTY_FUNCTION__);
+    #define VAST_UNIMPLEMENTED VAST_UNREACHABLE("not implemented: {0}", __PRETTY_FUNCTION__);
 
     #define VAST_DEBUG(fmt, ...) LLVM_DEBUG(llvm::dbgs() << llvm::formatv(fmt, __VA_OPT__(,) __VA_ARGS__));
 
