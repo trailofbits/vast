@@ -14,7 +14,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
-#include "vast/Translation/HighLevelBuilder.hpp"
 
 #include <cassert>
 #include <iostream>
@@ -23,7 +22,7 @@ namespace vast::hl
 {
     using BuiltinType = clang::BuiltinType;
 
-    constexpr IntegerKind get_integer_kind(const BuiltinType *ty)
+    IntegerKind get_integer_kind(const BuiltinType *ty)
     {
         switch (ty->getKind()) {
             case BuiltinType::Char_U:
@@ -51,7 +50,7 @@ namespace vast::hl
         }
     }
 
-    constexpr FloatingKind get_floating_kind(const BuiltinType *ty)
+    FloatingKind get_floating_kind(const BuiltinType *ty)
     {
         switch (ty->getKind()) {
             case BuiltinType::Half:

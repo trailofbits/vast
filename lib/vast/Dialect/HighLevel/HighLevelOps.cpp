@@ -35,6 +35,14 @@ namespace vast::hl
 
     using FoldResult = mlir::OpFoldResult;
 
+    void ScopeOp::build(Builder &bld, State &st, BuilderCallback scopeBuilder)
+    {
+        assert(scopeBuilder && "the builder callback for 'scope' block must be present");
+
+        Builder::InsertionGuard guard(bld);
+        detail::build_region(bld, st, scopeBuilder);
+    }
+
     static void printConstantOp(Printer &printer, auto &op) {
         printer << " ";
         printer.printAttributeWithoutType(op.getValue());
