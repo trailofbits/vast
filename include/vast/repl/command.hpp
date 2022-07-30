@@ -61,7 +61,7 @@ namespace vast::repl
             if (token == "ast")     return enum_type::ast;
             if (token == "module")  return enum_type::module;
             if (token == "symbols") return enum_type::symbols;
-            VAST_UNREACHABLE("uknnown show kind: {}", token.str());
+            VAST_UNREACHABLE("uknnown show kind: {0}", token.str());
         }
 
         enum class meta_action { add, get };
@@ -70,7 +70,7 @@ namespace vast::repl
         enum_type from_string(string_ref token) requires(std::is_same_v< enum_type, meta_action >) {
             if (token == "add") return enum_type::add;
             if (token == "get") return enum_type::get;
-            VAST_UNREACHABLE("uknnown action kind: {}", token.str());
+            VAST_UNREACHABLE("uknnown action kind: {0}", token.str());
         }
 
         //
