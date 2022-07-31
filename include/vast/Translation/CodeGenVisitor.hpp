@@ -21,11 +21,11 @@ namespace vast::hl
     struct DefaultCodeGenVisitorMixin
         : CodeGenDeclVisitorMixin< Derived >
         , CodeGenStmtVisitorMixin< Derived >
-        , CodeGenTypeVisitorMixin< Derived >
+        , CodeGenTypeVisitorWithDataLayoutMixin< Derived >
     {
         using DeclVisitor = CodeGenDeclVisitorMixin< Derived >;
         using StmtVisitor = CodeGenStmtVisitorMixin< Derived >;
-        using TypeVisitor = CodeGenTypeVisitorMixin< Derived >;
+        using TypeVisitor = CodeGenTypeVisitorWithDataLayoutMixin< Derived >;
 
         using DeclVisitor::Visit;
         using StmtVisitor::Visit;

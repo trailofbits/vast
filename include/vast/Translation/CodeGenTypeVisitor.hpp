@@ -56,7 +56,7 @@ namespace vast::hl {
         }
 
         Type VisitElaboratedType(const clang::ElaboratedType *ty) {
-            return Visit(ty->getNamedType());
+            return visit(ty->getNamedType());
         }
 
         Type VisitLValueType(clang::QualType ty) {
@@ -155,10 +155,38 @@ namespace vast::hl {
     template< typename Derived >
     struct CodeGenTypeVisitorWithDataLayoutMixin
         : CodeGenTypeVisitorMixin< Derived >
+        , CodeGenVisitorLens< CodeGenTypeVisitorWithDataLayoutMixin< Derived >, Derived >
     {
-        // Visit that stores datalayout properties
+        using Base = CodeGenTypeVisitorMixin< Derived >;
 
-        // Lens to data layout
+        using LensType = CodeGenVisitorLens< CodeGenTypeVisitorWithDataLayoutMixin< Derived >, Derived >;
+
+        using LensType::context;
+        using LensType::acontext;
+
+        bool is_forward_declared(const clang::Type *ty) const {
+            if (auto tag = ty->getAsTagDecl()) {
+                return !tag->getDefinition();
+            }
+            return false;
+        }
+
+        Type StoreDataLayout(const clang::Type *orig, Type out) {
+            if (!orig->isFunctionType() && !is_forward_declared(orig)) {
+                context().data_layout().try_emplace(out, orig, acontext());
+            }
+
+            return out;
+        }
+
+        Type Visit(const clang::Type *ty) {
+            return StoreDataLayout(ty, Base::Visit(ty));
+        }
+
+        Type Visit(clang::QualType ty) {
+            auto [underlying, quals] = ty.split();
+            return StoreDataLayout(underlying, Base::Visit(ty));
+        }
     };
 
 } // namespace vast::hl
