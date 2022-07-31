@@ -446,11 +446,11 @@ namespace vast::hl {
         }
 
         Operation* VisitCStyleCastExpr(const clang::CStyleCastExpr *expr) {
-            return VisitCast< BuiltinBitCastOp >(expr);
+            return VisitCast< CStyleCastOp >(expr);
         }
 
         Operation* VisitBuiltinBitCastExpr(const clang::BuiltinBitCastExpr *expr) {
-            return VisitCast< CStyleCastOp >(expr);
+            return VisitCast< BuiltinBitCastOp >(expr);
         }
 
         // Operation* VisitCXXFunctionalCastExpr(const clang::CXXFunctionalCastExpr *expr)
@@ -647,10 +647,13 @@ namespace vast::hl {
         // Operation* VisitAbstractConditionalOperator(const clang::BinaryConditionalOperator *op)
         // Operation* VisitConditionalOperator(const clang::ConditionalOperator *op)
         // Operation* VisitAddrLabelExpr(const clang::AddrLabelExpr *expr)
-        // Operation* VisitConstantExpr(const clang::ConstantExpr *expr)
+        Operation* VisitConstantExpr(const clang::ConstantExpr *expr) {
+            // TODO(Heno): crete hl.constantexpr
+            return visit(expr->getSubExpr());
+        }
 
         Operation* VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *expr) {
-            auto rty    = visit(expr->getType());
+            auto rty    = visit_as_lvalue_type(expr->getType());
             auto base   = visit(expr->getBase())->getResult(0);
             auto offset = visit(expr->getIdx())->getResult(0);
             return create< SubscriptOp >(meta_location(expr), rty, base, offset);
