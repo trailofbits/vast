@@ -1,5 +1,4 @@
 add_library( vast_translation_api STATIC
-  HighLevelTypeConverter.cpp
   CodeGenStmtVisitor.cpp
   CodeGenTypeVisitor.cpp
   DataLayout.cpp
