@@ -78,7 +78,7 @@ namespace vast::hl
                 if (const auto *d = llvm::dyn_cast< clang::TagDecl >(dctx)) {
                     name += get_decl_name(d);
                 } else {
-                    throw std::runtime_error("unknown decl context: " + std::string(dctx->getDeclKindName()));
+                    VAST_UNREACHABLE("unknown decl context: {0}", dctx->getDeclKindName());
                 }
 
                 name += "::";
@@ -101,17 +101,10 @@ namespace vast::hl
             return it->second;
         }
 
-        // TODO clean up to Lens
-        MContext &getMLIRContext() { return mctx; }
-        AContext &getASTContext() { return actx; }
-        OwningModuleRef &getModule() { return mod; }
-
         const dl::DataLayoutBlueprint &data_layout() const { return dl; }
         dl::DataLayoutBlueprint &data_layout() { return dl; }
 
         mlir::Region &getBodyRegion() { return mod->getBodyRegion(); }
-
-        clang::SourceManager &getSourceManager() { return actx.getSourceManager(); }
 
         auto error(llvm::Twine msg) { return mod->emitError(msg); }
 
