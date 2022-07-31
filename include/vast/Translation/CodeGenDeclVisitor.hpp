@@ -28,6 +28,7 @@ namespace vast::hl {
         using LensType::derived;
         using LensType::context;
         using LensType::mcontext;
+        using LensType::acontext;
 
         using LensType::meta_location;
 
@@ -35,8 +36,6 @@ namespace vast::hl {
         using LensType::visit_as_lvalue_type;
 
         using Builder = CodeGenBuilderMixin< CodeGenDeclVisitorMixin< Derived >, Derived >;
-
-        using Builder::op_builder;
 
         using Builder::make_value_builder;
         using Builder::start_scoped_builder;
@@ -52,8 +51,8 @@ namespace vast::hl {
         using Builder::declare_enum_constant;
 
         template< typename Op, typename... Args >
-        auto create(Args &&...args) {
-            return op_builder().template create< Op >(std::forward< Args >(args)...);
+        auto make(Args &&...args) {
+            return this->template create< Op >(std::forward< Args >(args)...);
         }
 
         Operation* VisitFunctionDecl(const clang::FunctionDecl *decl) {
@@ -75,9 +74,9 @@ namespace vast::hl {
 
             auto loc  = meta_location(decl);
             auto type = visit(decl->getFunctionType()).template cast< mlir::FunctionType >();
-            // create function header, that will be later filled with function body
+            // make function header, that will be later filled with function body
             // or returned as declaration in the case of external function
-            auto fn = create< mlir::FuncOp >(loc, name, type);
+            auto fn = make< mlir::FuncOp >(loc, name, type);
             if (failed(context().functions.declare(name, fn))) {
                 context().error("error: multiple declarations of a same function" + name);
             }
@@ -112,14 +111,14 @@ namespace vast::hl {
 
             if (ops.empty() || !ops.back().template hasTrait< mlir::OpTrait::IsTerminator >()) {
                 if (decl->getReturnType()->isVoidType()) {
-                    create< ReturnOp >(loc);
+                    make< ReturnOp >(loc);
                 } else {
                     if (decl->isMain()) {
                         // return zero if no return is present in main
                         auto zero = constant(loc, type.getResult(0), apint(0));
-                        create< ReturnOp >(loc, zero);
+                        make< ReturnOp >(loc, zero);
                     } else {
-                        create< UnreachableOp >(loc);
+                        make< UnreachableOp >(loc);
                     }
                 }
             }
@@ -236,7 +235,7 @@ namespace vast::hl {
 
         void attach_attributes(const clang::Decl *from, auto &to) {
             if (from->hasAttrs()) {
-                auto &actx = context().getASTContext();
+                auto &actx = acontext();
                 for (auto attr: from->getAttrs()) {
                     auto annot = mlir::StringAttr::get(to->getContext(), parse_annotation(actx, attr));
                     to->setAttr("annotation", AnnotationAttr::get(annot));
@@ -318,7 +317,7 @@ namespace vast::hl {
 
             // generate record definition
             if (decl->field_empty()) {
-                return create< Decl >(loc, name);
+                return make< Decl >(loc, name);
             }
 
             auto fields = [&](auto &bld, auto loc) {
@@ -331,7 +330,7 @@ namespace vast::hl {
                 }
             };
 
-            return create< Decl >(loc, name, fields);
+            return make< Decl >(loc, name, fields);
         }
 
         Operation* VisitRecordDecl(const clang::RecordDecl *decl) {
@@ -355,7 +354,7 @@ namespace vast::hl {
                 }
             }
             auto type = visit(decl->getType());
-            return create< FieldDeclOp >(loc, name, type);
+            return make< FieldDeclOp >(loc, name, type);
         }
     };
 
