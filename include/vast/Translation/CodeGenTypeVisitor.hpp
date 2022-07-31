@@ -84,6 +84,17 @@ namespace vast::hl {
                 }
             }
 
+            if (ty->isFloatingType()) {
+                switch (get_floating_kind(ty)) {
+                    case FloatingKind::Half:       return HalfType::get(mctx);
+                    case FloatingKind::BFloat16:   return BFloat16Type::get(mctx);
+                    case FloatingKind::Float:      return FloatType::get(mctx);
+                    case FloatingKind::Double:     return DoubleType::get(mctx);
+                    case FloatingKind::LongDouble: return LongDoubleType::get(mctx);
+                    case FloatingKind::Float128:   return Float128Type::get(mctx);
+                }
+            }
+
             return Type{};
         }
 
