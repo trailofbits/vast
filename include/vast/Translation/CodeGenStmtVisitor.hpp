@@ -658,7 +658,11 @@ namespace vast::hl {
         // Operation* VisitBlockExpr(const clang::BlockExpr *expr)
 
         // Operation* VisitCXXBindTemporaryExpr(const clang::CXXBindTemporaryExpr *expr)
-        // Operation* VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *expr)
+
+        Operation* VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *lit) {
+            return VisitScalarLiteral(lit, lit->getValue());
+        }
+
         // Operation* VisitCXXConstructExpr(const clang::CXXConstructExpr *expr)
         // Operation* VisitCXXTemporaryObjectExpr(const clang::CXXTemporaryObjectExpr *expr)
         // Operation* VisitCXXDefaultArgExpr(const clang::CXXDefaultArgExpr *expr)
