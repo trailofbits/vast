@@ -56,13 +56,6 @@ namespace vast::hl {
             return op_builder().template create< Op >(std::forward< Args >(args)...);
         }
 
-        template< typename op >
-        auto make_operation() {
-            return OperationState([&] (auto&& ...args) {
-                return create< op >(std::forward< decltype(args) >(args)...);
-            });
-        }
-
         Operation* VisitFunctionDecl(const clang::FunctionDecl *decl) {
             auto name = decl->getName();
             auto is_definition = decl->doesThisDeclarationHaveABody();
@@ -171,7 +164,7 @@ namespace vast::hl {
                 }
             };
 
-            auto var = make_operation< VarDecl >()
+            auto var = this->template make_operation< VarDecl >()
                 .bind(meta_location(decl))                                  // location
                 .bind(visit_as_lvalue_type(type))                           // type
                 .bind(decl->getUnderlyingDecl()->getName())                 // name
@@ -301,12 +294,12 @@ namespace vast::hl {
         Operation* VisitEnumConstantDecl(const clang::EnumConstantDecl *decl) {
             auto initializer = make_value_builder(decl->getInitExpr());
 
-            auto enum_constant = make_operation< EnumConstantOp >()
-                    .bind(meta_location(decl))                              // location
-                    .bind(decl->getName())                                  // name
-                    .bind(decl->getInitVal())                               // value
-                    .bind_if(decl->getInitExpr(), std::move(initializer))   // initializer
-                    .freeze();
+            auto enum_constant = this->template make_operation< EnumConstantOp >()
+                .bind(meta_location(decl))                              // location
+                .bind(decl->getName())                                  // name
+                .bind(decl->getInitVal())                               // value
+                .bind_if(decl->getInitExpr(), std::move(initializer))   // initializer
+                .freeze();
 
             return declare_enum_constant(enum_constant);
         }

@@ -18,13 +18,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl {
 
-    template< typename RegionGenerator >
-    inline auto generate_region(RegionGenerator &&generate) {
-        return [generate = std::forward< RegionGenerator >(generate)](auto &bld, auto) {
-            generate();
-        };
-    }
-
     CastKind cast_kind(const clang::CastExpr *expr);
 
     template< typename Derived >
@@ -63,20 +56,12 @@ namespace vast::hl {
             return op_builder().template create< Op >(std::forward< Args >(args)...);
         }
 
-        template< typename op >
-        auto make_operation() {
-            return OperationState([&] (auto&& ...args) {
-                return create< op >(std::forward< decltype(args) >(args)...);
-            });
-        }
-
         Operation* VisitCompoundStmt(const clang::CompoundStmt *stmt) {
-            auto scope = generate_region([&] {
+            return this->template make_scoped< HighLevelScope >(meta_location(stmt), [&] {
                 for (auto s : stmt->body()) {
                     visit(s);
                 }
             });
-            return create< ScopeOp >(meta_location(stmt), scope);
         }
 
         //
@@ -624,7 +609,7 @@ namespace vast::hl {
         // Operation* VisitLabelStmt(const clang::LabelStmt *stmt)
 
         Operation* VisitIfStmt(const clang::IfStmt *stmt) {
-            return make_operation< IfOp >()
+            return this->template make_operation< IfOp >()
                 .bind(meta_location(stmt))
                 .bind(make_cond_builder(stmt->getCond()))
                 .bind(make_region_builder(stmt->getThen()))

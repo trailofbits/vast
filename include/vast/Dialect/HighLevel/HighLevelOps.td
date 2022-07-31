@@ -29,12 +29,6 @@ def HighLevel_ScopeOp
 
   let regions = (region AnyRegion:$body);
 
-  let skipDefaultBuilders = 1;
-  let builders = [
-    OpBuilder<(ins), [{ }]>,
-    OpBuilder<(ins "BuilderCallback":$scopeBuilder)>,
-  ];
-
   let assemblyFormat = [{ $body attr-dict }];
 }
 
