@@ -233,6 +233,10 @@ namespace vast::hl {
             return VisitBinOp< BinAndAssignOp >(op);
         }
 
+        Operation* VisitBinOrAssign(const clang::CompoundAssignOperator *op) {
+            return VisitBinOp< BinOrAssignOp >(op);
+        }
+
         Operation* VisitBinXorAssign(const clang::CompoundAssignOperator *op) {
             return VisitBinOp< BinXorAssignOp >(op);
         }
