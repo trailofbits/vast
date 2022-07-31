@@ -38,7 +38,20 @@ namespace vast::hl {
         Type Visit(clang::QualType ty) {
             auto [underlying, quals] = ty.split();
             auto res = visit(underlying);
-            // TODO(process quals)
+
+            // TODO(Heno): add qualifiers
+            // if (ty.isConstQualified()) {
+
+            // }
+
+            // if (ty.isRestrictQualified()) {
+
+            // }
+
+            // if (ty.isVolatileQualified()) {
+
+            // }
+
             return res;
         }
 
@@ -108,16 +121,22 @@ namespace vast::hl {
             return ArrayType::get(&ctx, get_size_attr(ty, ctx), element_type);
         }
 
+        Type VisitTagType(const clang::TagDecl *decl) {
+            auto name = context().decl_name(decl);
+            return NamedType::get(&mcontext(), name);
+        }
+
         Type VisitRecordType(const clang::RecordType *ty) {
-            return Type{};
+            return VisitTagType(ty->getDecl());
         }
 
         Type VisitEnumType(const clang::EnumType *ty) {
-            return Type{};
+            return VisitTagType(ty->getDecl());
         }
 
         Type VisitTypedefType(const clang::TypedefType *ty) {
-            return Type{};
+            auto name = ty->getDecl()->getName();
+            return NamedType::get(&mcontext(), name);
         }
 
         Type VisitFunctionNoProtoType(const clang::FunctionNoProtoType *type) {
