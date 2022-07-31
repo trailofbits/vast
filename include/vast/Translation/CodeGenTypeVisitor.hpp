@@ -55,6 +55,10 @@ namespace vast::hl {
             return res;
         }
 
+        Type VisitElaboratedType(const clang::ElaboratedType *ty) {
+            return Visit(ty->getNamedType());
+        }
+
         Type VisitLValueType(clang::QualType ty) {
             return LValueType::get(&mcontext(), visit(ty));
         }
