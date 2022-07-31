@@ -1,5 +1,6 @@
 // RUN: vast-cc --from-source %s | FileCheck %s
 // RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
+// REQUIRES: qualifiers
 
 // CHECK: hl.var "i" : !hl.lvalue<!hl.int>
 int i;
