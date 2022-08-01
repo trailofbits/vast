@@ -95,6 +95,8 @@ namespace vast::hl {
         using LensType::mcontext;
         using LensType::acontext;
 
+        using LensType::meta_location;
+
         using LensType::visit;
 
         auto op_builder() -> mlir::OpBuilder & { return derived()._builder; }
@@ -134,6 +136,31 @@ namespace vast::hl {
             Scope scope(builder(), loc);
             content_builder();
             return scope.get();
+        }
+
+        InsertionGuard insertion_guard() { return InsertionGuard(op_builder()); }
+
+        std::unique_ptr< Region > make_stmt_region(const clang::Stmt *stmt) {
+            auto guard = insertion_guard();
+
+            auto reg = std::make_unique< Region >();
+            set_insertion_point_to_start( &reg->emplaceBlock() );
+            visit(stmt);
+
+            return reg;
+        }
+
+        using RegionAndType = std::pair< std::unique_ptr< Region >, Type >;
+        RegionAndType make_value_yield_region(const clang::Stmt *stmt) {
+            auto guard  = insertion_guard();
+            auto reg    = make_stmt_region(stmt);
+
+            auto &block = reg->back();
+            set_insertion_point_to_end( &block );
+            auto type = block.back().getResult(0).getType();
+            create< ValueYieldOp >(meta_location(stmt), block.back().getResult(0));
+
+            return { std::move(reg), type };
         }
 
         inline auto make_value_builder(const clang::Stmt *stmt) {

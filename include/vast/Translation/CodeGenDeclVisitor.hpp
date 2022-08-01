@@ -37,8 +37,8 @@ namespace vast::hl {
 
         using Builder = CodeGenBuilderMixin< CodeGenDeclVisitorMixin< Derived >, Derived >;
 
+        using Builder::op_builder;
         using Builder::make_value_builder;
-        using Builder::start_scoped_builder;
 
         using Builder::set_insertion_point_to_start;
         using Builder::set_insertion_point_to_end;
@@ -56,6 +56,8 @@ namespace vast::hl {
         }
 
         Operation* VisitFunctionDecl(const clang::FunctionDecl *decl) {
+            InsertionGuard guard(op_builder());
+
             auto name = decl->getName();
             auto is_definition = decl->doesThisDeclarationHaveABody();
 
@@ -69,7 +71,6 @@ namespace vast::hl {
                 return fn;
             }
 
-            auto builder_scope = start_scoped_builder();
             llvm::ScopedHashTableScope scope(context().vars);
 
             auto loc  = meta_location(decl);

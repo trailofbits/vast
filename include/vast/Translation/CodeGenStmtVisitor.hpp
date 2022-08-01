@@ -50,6 +50,8 @@ namespace vast::hl {
         using Builder::make_value_builder;
         using Builder::make_region_builder;
 
+        using Builder::make_value_yield_region;
+
         template< typename Op, typename... Args >
         auto make(Args &&...args) {
             return this->template create< Op >(std::forward< Args >(args)...);
@@ -228,7 +230,7 @@ namespace vast::hl {
         Operation* VisitBinComma(const clang::BinaryOperator *op) {
             auto lhs = visit(op->getLHS())->getResult(0);
             auto rhs = visit(op->getRHS())->getResult(0);
-            auto ty = visit(op->getType());
+            auto ty  = visit(op->getType());
             return make< BinComma >(meta_location(op), ty, lhs, rhs);
         }
 
@@ -727,9 +729,8 @@ namespace vast::hl {
         // Operation* VisitOverloadExpr(const clang::OverloadExpr *expr)
 
         Operation* VisitParenExpr(const clang::ParenExpr *expr) {
-            auto rty     = visit(expr->getType());
-            auto subexpr = make_value_builder(expr->getSubExpr());
-            return make< ExprOp >(meta_location(expr), rty, subexpr);
+            auto [region, type] = make_value_yield_region(expr->getSubExpr());
+            return make< ExprOp >(meta_location(expr), type, std::move(region));
         }
 
         // Operation* VisitParenListExpr(const clang::ParenListExpr *expr)
