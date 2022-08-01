@@ -8,33 +8,18 @@
 
 namespace vast::hl {
 
+    using InsertionGuard = mlir::OpBuilder::InsertionGuard;
+
     struct CodeGenBuilderHandle {
         mlir::OpBuilder &builder;
     };
 
-    // TODO replace by insertion guard
-    struct ScopedInsertPoint {
-        using InsertPoint = mlir::OpBuilder::InsertPoint;
-
-        ScopedInsertPoint(CodeGenBuilderHandle handle)
-            : handle(handle)
-            , point(handle.builder.saveInsertionPoint())
-        {}
-
-        ~ScopedInsertPoint() { handle.builder.restoreInsertionPoint(point); }
-
-        CodeGenBuilderHandle handle;
-        InsertPoint point;
-    };
-
-
     template< typename Scope >
-    struct ScopeGenerator : ScopedInsertPoint {
+    struct ScopeGenerator : InsertionGuard {
         ScopeGenerator(CodeGenBuilderHandle handle, Location loc)
-            : ScopedInsertPoint(handle), loc(loc)
+            : InsertionGuard(handle.builder), loc(loc)
             , scope(handle.builder.create< Scope >(loc))
         {
-            // TODO(Heno): move to scope ctor & use builder
             auto &block = scope.body().emplaceBlock();
             handle.builder.setInsertionPointToStart(&block);
         }
@@ -115,8 +100,6 @@ namespace vast::hl {
         auto op_builder() -> mlir::OpBuilder & { return derived()._builder; }
 
         auto builder() -> CodeGenBuilderHandle { return { op_builder() }; }
-
-        ScopedInsertPoint start_scoped_builder() {return { builder() }; }
 
         void set_insertion_point_to_start(mlir::Region *region) {
             op_builder().setInsertionPointToStart(&region->front());
