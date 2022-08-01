@@ -109,7 +109,11 @@ namespace vast::hl {
             auto &ops        = last_block.getOperations();
             set_insertion_point_to_end(&last_block);
 
-            if (ops.empty() || !ops.back().template hasTrait< mlir::OpTrait::IsTerminator >()) {
+            auto is_terminator = [] (auto &op) {
+                return op.template hasTrait< mlir::OpTrait::IsTerminator >();
+            };
+
+            if (ops.empty() || !is_terminator(ops.back())) {
                 if (decl->getReturnType()->isVoidType()) {
                     make< ReturnOp >(loc);
                 } else {

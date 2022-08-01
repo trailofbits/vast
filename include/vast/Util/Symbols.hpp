@@ -29,6 +29,14 @@ namespace vast::util
         });
     }
 
+    void symbol_tables(mlir::Operation *op, auto &&yield) {
+        op->walk([&] (mlir::Operation *child) {
+            if (child->hasTrait< mlir::OpTrait::SymbolTable >()) {
+                yield(child);
+            }
+        });
+    }
+
     template< typename Yield >
     void functions(mlir::Operation *op, Yield &&yield) {
         op->walk([yield = std::forward< Yield >(yield)](mlir::FuncOp fn, const mlir::WalkStage &stage) {
