@@ -12,6 +12,7 @@ namespace vast::hl {
         mlir::OpBuilder &builder;
     };
 
+    // TODO replace by insertion guard
     struct ScopedInsertPoint {
         using InsertPoint = mlir::OpBuilder::InsertPoint;
 
@@ -31,18 +32,17 @@ namespace vast::hl {
     struct ScopeGenerator : ScopedInsertPoint {
         ScopeGenerator(CodeGenBuilderHandle handle, Location loc)
             : ScopedInsertPoint(handle), loc(loc)
+            , scope(handle.builder.create< Scope >(loc))
         {
-            scope = handle.builder.create< Scope >(loc);
             // TODO(Heno): move to scope ctor & use builder
-            auto &body    = scope.body();
-            body.push_back(new mlir::Block());
-            handle.builder.setInsertionPointToStart(&body.front());
+            auto &block = scope.body().emplaceBlock();
+            handle.builder.setInsertionPointToStart(&block);
         }
 
         Scope get() { return scope; }
 
-        Scope scope;
         Location loc;
+        Scope scope;
     };
 
     using HighLevelScope = ScopeGenerator< ScopeOp >;
@@ -276,8 +276,6 @@ namespace vast::hl {
 
             return enum_constant;
         }
-
-
     };
 
 } // namespace vast::hl
