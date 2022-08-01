@@ -39,9 +39,10 @@ namespace vast::hl {
 
         using Builder = CodeGenBuilderMixin< CodeGenStmtVisitorMixin< Derived >, Derived >;
 
+        using Builder::op_builder;
+
         using Builder::constant;
 
-        using Builder::start_scoped_builder;
         using Builder::set_insertion_point_to_start;
 
         using Builder::make_yield_true;
@@ -673,12 +674,13 @@ namespace vast::hl {
         // Operation* VisitCXXUuidofExpr(const clang::CXXUuidofExpr *expr)
 
         mlir::FuncOp VisitDirectCallee(const clang::FunctionDecl *callee) {
+            InsertionGuard guard(op_builder());
+
             auto name = callee->getName();
             if (auto fn = context().lookup_function(name, false /* with error */)) {
                 return fn;
             }
 
-            auto builder_scope = start_scoped_builder();
             set_insertion_point_to_start(&context().getBodyRegion());
             return mlir::cast< mlir::FuncOp >(visit(callee));
         }
