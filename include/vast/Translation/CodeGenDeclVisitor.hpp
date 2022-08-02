@@ -135,7 +135,7 @@ namespace vast::hl {
         // Variable Declration
         //
 
-        StorageClass VisitStorageClass(const clang::VarDecl *decl) {
+        StorageClass VisitStorageClass(const clang::VarDecl *decl) const {
             switch (decl->getStorageClass()) {
                 case clang::SC_None: return StorageClass::sc_none;
                 case clang::SC_Auto: return StorageClass::sc_auto;
@@ -146,7 +146,7 @@ namespace vast::hl {
             }
         }
 
-        TSClass VisitThreadStorageClass(const clang::VarDecl *decl) {
+        TSClass VisitThreadStorageClass(const clang::VarDecl *decl) const {
             switch (decl->getTSCSpec()) {
                 case clang::TSCS_unspecified: return TSClass::tsc_none;
                 case clang::TSCS___thread: return TSClass::tsc_gnu_thread;
