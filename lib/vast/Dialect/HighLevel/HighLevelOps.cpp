@@ -25,7 +25,7 @@ namespace vast::hl
         {
             auto reg = st.addRegion();
             if (callback.has_value()) {
-                auto block = bld.createBlock(reg);
+                bld.createBlock(reg);
                 callback.value()(bld, st.location);
             }
             return reg;
