@@ -242,7 +242,7 @@ namespace vast::hl {
         }
 
         TypeDeclOp declare_type(mlir::Location loc, llvm::StringRef name) {
-            if (auto decl = context().type_decls.lookup(name)) {
+            if (auto decl = context().lookup_typedecl(name, false /* no error */)) {
                 return decl;
             }
 
@@ -254,7 +254,7 @@ namespace vast::hl {
         }
 
         TypeDefOp define_type(mlir::Location loc, mlir::Type type, llvm::StringRef name) {
-            if (auto def = context().type_defs.lookup(name)) {
+            if (auto def = context().lookup_typedef(name, false /* no error */)) {
                 return def;
             }
 
