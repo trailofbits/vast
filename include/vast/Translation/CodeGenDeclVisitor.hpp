@@ -67,7 +67,7 @@ namespace vast::hl {
             }
 
             // return already seen definition
-            if (auto fn = context().functions.lookup(name)) {
+            if (auto fn = context().lookup_function(name, false /* no error */ )) {
                 return fn;
             }
 
@@ -239,12 +239,13 @@ namespace vast::hl {
         }
 
         void attach_attributes(const clang::Decl *from, auto &to) {
-            if (from->hasAttrs()) {
-                auto &actx = acontext();
-                for (auto attr: from->getAttrs()) {
-                    auto annot = mlir::StringAttr::get(to->getContext(), parse_annotation(actx, attr));
-                    to->setAttr("annotation", AnnotationAttr::get(annot));
-                }
+            if (!from->hasAttrs())
+                return;
+
+            auto &actx = acontext();
+            for (auto attr: from->getAttrs()) {
+                auto annot = mlir::StringAttr::get(to->getContext(), parse_annotation(actx, attr));
+                to->setAttr("annotation", AnnotationAttr::get(annot));
             }
         }
 
