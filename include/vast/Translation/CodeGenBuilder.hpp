@@ -140,6 +140,12 @@ namespace vast::hl {
 
         InsertionGuard insertion_guard() { return InsertionGuard(op_builder()); }
 
+        // TODO: unify region and stmt builders, they are the same thing but
+        // different region builders directly emit new region, while stmt
+        // builders return callback to emit region later.
+        //
+        // We want to use just region builders in the future.
+
         std::unique_ptr< Region > make_stmt_region(const clang::Stmt *stmt) {
             auto guard = insertion_guard();
 
@@ -163,40 +169,35 @@ namespace vast::hl {
             return { std::move(reg), type };
         }
 
-        inline auto make_value_builder(const clang::Stmt *stmt) {
+        template< typename YieldType >
+        auto make_stmt_builder(const clang::Stmt *stmt) {
             return [stmt, this](auto &bld, auto loc) {
                 visit(stmt);
                 auto &op = bld.getBlock()->back();
                 VAST_ASSERT(op.getNumResults() == 1);
-                auto val = op.getResult(0);
-                create< ValueYieldOp >(loc, val);
+                create< YieldType >(loc, op.getResult(0));
             };
         }
 
-        inline auto make_region_builder(const clang::Stmt *stmt) {
+        auto make_value_builder(const clang::Stmt *stmt) {
+            return make_stmt_builder< ValueYieldOp >(stmt);
+        }
+
+        auto make_cond_builder(const clang::Stmt *stmt) {
+            return make_stmt_builder< CondYieldOp >(stmt);
+        }
+
+        auto make_region_builder(const clang::Stmt *stmt) {
             return [stmt, this](auto &bld, auto) {
-                if (stmt) {
-                    visit(stmt);
-                }
+                if (stmt) visit(stmt);
                 // TODO let other pass remove trailing scopes?
                 splice_trailing_scopes(*bld.getBlock()->getParent());
             };
         }
 
-        inline auto make_cond_builder(const clang::Stmt *stmt) {
-            return [stmt, this](auto &bld, auto loc) {
-                visit(stmt);
-                auto &op = bld.getBlock()->back();
-                VAST_ASSERT(op.getNumResults() == 1);
-                auto cond = op.getResult(0);
-                create< CondYieldOp >(loc, cond);
-            };
-        }
-
-        inline auto make_yield_true() {
+        auto make_yield_true() {
             return [this](auto &bld, auto loc) {
-                auto t = true_value(loc);
-                create< CondYieldOp >(loc, t);
+                create< CondYieldOp >(loc, true_value(loc));
             };
         }
 
