@@ -112,12 +112,12 @@ namespace vast::hl
     struct DefaultCodeGen
     {
         template< typename Derived >
-        using VisitorMixin = CodeGenFallBackVisitorMixin< Derived,
+        using VisitorConfig = CodeGenFallBackVisitorMixin< Derived,
             DefaultCodeGenVisitorMixin,
             DefaultFallBackVisitorMixin
         >;
 
-        using Visitor = CodeGenVisitor< VisitorMixin >;
+        using Visitor = CodeGenVisitor< VisitorConfig >;
 
         using Base = CodeGenBase< Visitor >;
         using MetaGenerator = Visitor::MetaGeneratorType;
