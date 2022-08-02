@@ -216,7 +216,7 @@ jobs:
           retention-days: 30
 
   pre-release:
-    if: success() && github.ref == 'refs/heads/master'
+    # if: success() && github.ref == 'refs/heads/master'
     name: "Pre Release"
     runs-on: "ubuntu-latest"
     needs: build
@@ -231,6 +231,11 @@ jobs:
       - name: "Download build artifacts"
         id: download
         uses: actions/download-artifact@v3
+
+      - name: "Test"
+        run: |
+          ls ./vast
+          ls ${{steps.download.outputs.download-path}}
 
       - name: "Publish Pre-Release"
         uses: "marvinpinto/action-automatic-releases@latest"
