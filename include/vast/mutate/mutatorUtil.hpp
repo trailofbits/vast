@@ -1,9 +1,4 @@
 #pragma once
-#include "mlir/IR/Dialect.h"
-#include "mlir/IR/Types.h"
-#include "llvm/ADT/ArrayRef.h"
-#include "mlir/IR/BuiltinDialect.h"
-#include "mlir/IR/Dialect.h"
 #include "mlir/Dialect/Affine/IR/AffineOps.h"
 #include "mlir/Dialect/Bufferization/IR/Bufferization.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
@@ -12,6 +7,10 @@
 #include "mlir/Dialect/Shape/IR/Shape.h"
 #include "mlir/Dialect/SparseTensor/IR/SparseTensor.h"
 #include "mlir/Dialect/Tosa/IR/TosaOps.h"
+#include "mlir/IR/BuiltinDialect.h"
+#include "mlir/IR/Dialect.h"
+#include "mlir/IR/Types.h"
+#include "llvm/ADT/ArrayRef.h"
 #include <functional>
 #include <numeric>
 #include <random>
@@ -29,13 +28,15 @@ public:
   static int getRandomInt() { return intDist(mt); }
   static bool getRandomBool() { return intDist(mt) & 1; }
   static unsigned getSeed() { return seed; }
-  static void setSeed(unsigned seed_) { seed = seed_;  mt = std::mt19937(seed); }
+  static void setSeed(unsigned seed_) {
+    seed = seed_;
+    mt = std::mt19937(seed);
+  }
   static double getRandomDouble() { return dblDist(mt); }
   static float getRandomFloat() { return (float)dblDist(mt); }
 };
 
-mlir::BlockArgument addFunctionParameter(mlir::FuncOp func,
-                                         mlir::Type ty);
+mlir::BlockArgument addFunctionParameter(mlir::FuncOp func, mlir::Type ty);
 
 template <typename T>
 std::vector<mlir::Attribute>

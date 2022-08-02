@@ -11,13 +11,13 @@
 #include "mlir/IR/Dialect.h"
 #include "mlir/IR/Verifier.h"
 #include "mlir/Support/FileUtilities.h"
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+#include "vast/mutate/mutatorUtil.hpp"
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/PrettyStackTrace.h"
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/SourceMgr.h"
-
-#include "vast/mutate/mutatorUtil.hpp"
-#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 /*
 Mutations without any knowledge about the dialect:
 1. switch the order of arguments
@@ -93,6 +93,81 @@ public:
   void reset() override;
 };
 
+class FunctionMutator;
+
+
+/*
+This mutator needs to update dominance info so it needs a FunctionMutator
+*/
+class FunctionMutatorIterator {
+  std::shared_ptr<FunctionMutator> func;
+  using RegionIterator = llvm::MutableArrayRef<mlir::Region>::iterator;
+  RegionIterator region_it;
+  using BlockIterator = llvm::simple_ilist<mlir::Block>::iterator;
+  BlockIterator block_it;
+  using OperationIterator = llvm::simple_ilist<mlir::Operation>::iterator;
+  OperationIterator op_it;
+
+  bool isOpEnd() { return op_it == block_it->getOperations().end(); }
+  bool isBlockEnd() { return block_it == region_it->getBlocks().end(); }
+  bool isRegionEnd() {
+    return region_it == region_it->getParentOp()->getRegions().end();
+  }
+
+  void nextRegion() {
+    assert(!isRegionEnd());
+    ++region_it;
+    while (!isRegionEnd()) {
+      if (!region_it->empty()) {
+        block_it = region_it->getBlocks().begin();
+        while (!isBlockEnd() && block_it->empty()) {
+          ++block_it;
+        }
+        if (!isBlockEnd()) {
+          op_it = block_it->getOperations().begin();
+          return;
+        }
+      }
+      ++region_it;
+    }
+  }
+
+  void nextBlock() {
+    ++block_it;
+    while (!isBlockEnd()) {
+      if (!block_it->empty()) {
+        op_it = block_it->getOperations().begin();
+        return;
+      }
+      ++block_it;
+    }
+    if (isBlockEnd()) {
+      nextRegion();
+    }
+  }
+
+  void nextOperation() {
+    ++op_it;
+    if (isOpEnd()) {
+      nextBlock();
+    }
+  }
+public:
+  FunctionMutatorIterator(std::shared_ptr<FunctionMutator> func, RegionIterator region_it, BlockIterator block_it,
+                          OperationIterator op_it)
+      : func(func),region_it(region_it), block_it(block_it), op_it(op_it){};
+  FunctionMutatorIterator(std::shared_ptr<FunctionMutator> func):func(func){};
+  FunctionMutatorIterator():func(nullptr){};
+  mlir::Operation &getOperation() { return *op_it; }
+  mlir::Block &getBlock() { return *block_it; }
+  mlir::Region &getRegion() { return *region_it; }
+  bool isEnd() { return isRegionEnd(); }
+  void next() {
+    assert(!isEnd() && "cannot next because current iterator meets end");
+    nextOperation();
+  }
+};
+
 class FunctionMutator {
   friend ReorderArgumentMutation;
   friend ReplaceValueMutation;
@@ -103,10 +178,12 @@ class FunctionMutator {
   mlir::Value getRandomExtraValue(mlir::Type ty);
   mlir::Value addFunctionArgument(mlir::Type ty);
   mlir::Value getOrInsertRandomValue(mlir::Type ty, bool forceAdd = false);
-  void moveToNextInstruction();
-  void moveToNextValidInstruction();
+  void moveToNextOperaion();
+  void moveToNextMutant();
 
   mlir::Block::iterator opit, opitInTmp;
+  FunctionMutatorIterator funcIt, funcItInTmp;
+  std::vector<FunctionMutatorIterator> funcItStack;
   mlir::FuncOp curFunc;
   std::shared_ptr<mlir::ModuleOp> tmpCopy;
   mlir::BlockAndValueMapping &bavMap;
@@ -116,14 +193,36 @@ class FunctionMutator {
   llvm::SmallVector<mlir::Value (FunctionMutator::*)(mlir::Type)> valueFuncs;
   llvm::SmallVector<mlir::Value> extraValues;
 
+  static bool canMutate(mlir::Operation &op) {
+    llvm::errs() << "AAAAAAAA" << op.getNumOperands() << " "
+                 << op.getNumResults() << "\n";
+    op.print(llvm::errs());
+    llvm::errs() << "\nAAAAAAAA\n";
+    if (op.getNumOperands() != 0 && op.getNumResults() != 0) {
+      return true;
+    }
+    for (auto rit = op.getRegions().begin(); rit != op.getRegions().end();
+         ++rit) {
+      for (auto bit = rit->getBlocks().begin(); bit != rit->getBlocks().end();
+           ++bit) {
+        for (auto op_it = bit->getOperations().begin();
+             op_it != bit->getOperations().end(); ++op_it) {
+          if (canMutate(*op_it)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
 public:
-  FunctionMutator(mlir::FuncOp curFunc,
-                  mlir::BlockAndValueMapping &bavMap);
+  FunctionMutator(mlir::FuncOp curFunc, mlir::BlockAndValueMapping &bavMap);
   void mutate();
   void resetCopy(std::shared_ptr<mlir::ModuleOp> tmpCopy);
   static bool canMutate(mlir::FuncOp &func);
   void init(std::shared_ptr<FunctionMutator> mutator);
-  llvm::StringRef getFunctionName(){return curFunc.getName();}
+  llvm::StringRef getFunctionName() { return curFunc.getName(); }
 };
 
 class Mutator {
@@ -133,21 +232,26 @@ class Mutator {
 
   mlir::OpBuilder opBuilder;
   llvm::SmallVector<std::shared_ptr<FunctionMutator>> functionMutators;
+  llvm::DenseMap<mlir::Operation *, mlir::Operation *> opMap;
 
   void recopy();
+  void setOpMap();
   size_t curPos;
   llvm::StringRef curFunction;
 
 public:
   Mutator(mlir::ModuleOp &module)
-      : module(module), tmpCopy(nullptr), opBuilder(module.getContext()),curPos(0) {};
+      : module(module), tmpCopy(nullptr), opBuilder(module.getContext()),
+        curPos(0){};
   Mutator(mlir::ModuleOp &&module)
-      : module(module), tmpCopy(nullptr), opBuilder(module.getContext()),curPos(0)  {};
-  bool init(){
-    for (auto module_it = module.begin(); module_it != module.end(); ++module_it) {
-      if(mlir::isa<vast::hl::TranslationUnitOp>(module_it)){
-        mlir::Block& block=module_it->getRegion(0).getBlocks().front();
-        for(auto fit=block.begin();fit!=block.end();++fit){
+      : module(module), tmpCopy(nullptr), opBuilder(module.getContext()),
+        curPos(0){};
+  bool init() {
+    for (auto module_it = module.begin(); module_it != module.end();
+         ++module_it) {
+      if (mlir::isa<vast::hl::TranslationUnitOp>(module_it)) {
+        mlir::Block &block = module_it->getRegion(0).getBlocks().front();
+        for (auto fit = block.begin(); fit != block.end(); ++fit) {
           if (mlir::isa<mlir::FuncOp>(fit)) {
             mlir::FuncOp func = mlir::dyn_cast<mlir::FuncOp>(*fit);
             if (llvm::hasSingleElement(func.getRegion()) &&
@@ -170,8 +274,8 @@ public:
       mutators->resetCopy(tmpCopy);
     }
   }
-  llvm::StringRef getCurrentFunction(){return curFunction;};
+  llvm::StringRef getCurrentFunction() { return curFunction; };
   void mutateOnce();
   void test();
-  void saveModule(const std::string& outputFileName);
+  void saveModule(const std::string &outputFileName);
 };
