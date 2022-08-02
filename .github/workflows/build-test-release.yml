@@ -149,7 +149,7 @@ jobs:
         run: |
           LLVM_INSTALL_DIR="${{ steps.build_paths.outputs.install }}/llvm"
 
-          cmake -G Ninja -B ${{ steps.build_paths.outputs.build }} \
+          cmake -G Ninja -B -v ${{ steps.build_paths.outputs.build }} \
             -S ${{ steps.build_paths.outputs.source }}/vast \
             -D LLVM_EXTERNAL_LIT=/usr/local/bin/lit \
             -D LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR} \
@@ -161,7 +161,8 @@ jobs:
             -D USE_SYSTEM_DEPENDENCIES=ON \
             -D SYSTEM_NAME="${{ matrix.config.arch }}-${{ matrix.config.os }}" \
             -D CMAKE_C_COMPILER=${{ steps.envvars.outputs.cc }} \
-            -D CMAKE_CXX_COMPILER=${{ steps.envvars.outputs.cxx }}
+            -D CMAKE_CXX_COMPILER=${{ steps.envvars.outputs.cxx }} || \
+          cat  /__w/circuitous/circuitous/src/cxx-common-ports/vcpkg/buildtrees/gap/config-x64-linux-rel-out.log
 
       - name: Build vast
         working-directory: ${{ steps.build_paths.outputs.build }}
