@@ -108,8 +108,9 @@ void RandomMoveMutation::moveForward(mlir::Operation &op,
   llvm::SmallVector<size_t> fixPos;
   std::vector<llvm::SmallVector<mlir::Value>> valBackup;
   for (size_t i = 0; i < op.getOperands().size(); ++i) {
-    if(valSet.find(op.getOperand(i))==valSet.end()){
-      valSet.insert(std::make_pair(op.getOperand(i),llvm::SmallVector<size_t>()));      
+    if (valSet.find(op.getOperand(i)) == valSet.end()) {
+      valSet.insert(
+          std::make_pair(op.getOperand(i), llvm::SmallVector<size_t>()));
     }
     valSet.find(op.getOperand(i))->second.push_back(i);
   }
@@ -117,7 +118,7 @@ void RandomMoveMutation::moveForward(mlir::Operation &op,
     for (auto resIt = it->getResults().begin(); resIt != it->getResults().end();
          ++resIt) {
       if (auto valIt = valSet.find(*resIt); valIt != valSet.end()) {
-        for(size_t i:valIt->second){
+        for (size_t i : valIt->second) {
           fixPos.push_back(i);
         }
       }
@@ -129,7 +130,7 @@ void RandomMoveMutation::moveForward(mlir::Operation &op,
   for (auto resIt = target.getResults().begin();
        resIt != target.getResults().end(); ++resIt) {
     if (auto valIt = valSet.find(*resIt); valIt != valSet.end()) {
-      for(size_t i:valIt->second){
+      for (size_t i : valIt->second) {
         fixPos.push_back(i);
       }
     }
@@ -138,12 +139,12 @@ void RandomMoveMutation::moveForward(mlir::Operation &op,
   mutator->values.pop_back();
 
   for (size_t i : fixPos) {
-    mlir::Value val=mutator->getOrInsertRandomValue(op.getOperand(i).getType());
-    op.setOperand(i,
-                  val);
+    mlir::Value val =
+        mutator->getOrInsertRandomValue(op.getOperand(i).getType());
+    op.setOperand(i, val);
   }
   op.moveBefore(&target);
-  mutator->opitInTmp=op.getIterator();
+  mutator->opitInTmp = op.getIterator();
 
   while (!valBackup.empty()) {
     mutator->values.push_back(valBackup.back());
@@ -159,7 +160,9 @@ void RandomMoveMutation::moveBackward(mlir::Operation &op,
        ++resIt) {
     valSet.insert(std::make_pair(*resIt, true));
   }
-  for (auto it = ++op.getIterator(); it!=op.getBlock()->getOperations().end()&&it!= target.getIterator(); ++it) {
+  for (auto it = ++op.getIterator();
+       it != op.getBlock()->getOperations().end() && it != target.getIterator();
+       ++it) {
     for (size_t i = 0; i < it->getNumOperands(); ++i) {
       if (valSet.find(it->getOperand(i)) != valSet.end()) {
         it->setOperand(
@@ -168,13 +171,14 @@ void RandomMoveMutation::moveBackward(mlir::Operation &op,
     }
   }
   op.moveBefore(&target);
-  mutator->opitInTmp=op.getIterator();
+  mutator->opitInTmp = op.getIterator();
 }
 
 bool RandomMoveMutation::shouldMutate() {
   mlir::Operation &op = *mutator->opitInTmp;
   mlir::Block *b = op.getBlock();
-  return b->getOperations().size() > 2 && b->getOperations().size()-1!= mutator-> curPos;
+  return b->getOperations().size() > 2 &&
+         b->getOperations().size() - 1 != mutator->curPos;
 }
 
 void RandomMoveMutation::mutate() {
@@ -195,7 +199,7 @@ void RandomMoveMutation::mutate() {
     if (!canMoveForward || !randomChoice) {
       targetPos = mutator->curPos + 1 +
                   Random::getRandomInt() %
-                      (b->getOperations().size() -1 - mutator->curPos);
+                      (b->getOperations().size() - 1 - mutator->curPos);
     }
   }
   mlir::Block::iterator targetIt = b->begin();
@@ -206,7 +210,7 @@ void RandomMoveMutation::mutate() {
   } else {
     moveBackward(op, *targetIt);
   }
-  moved=true;
+  moved = true;
 }
 
 void RandomMoveMutation::debug() {
@@ -216,21 +220,30 @@ void RandomMoveMutation::debug() {
 
 void RandomMoveMutation::reset() { moved = false; }
 
+static void visitInst(mlir::Operation *inst) {
+  llvm::errs() << "visitInst\n";
+  inst->print(llvm::errs());
+  llvm::errs() << "\nvisitInst\n";
+  for (auto rit = inst->getRegions().begin(); rit != inst->getRegions().end();
+       ++rit) {
+    for (auto bit = rit->getBlocks().begin(); bit != rit->getBlocks().end();
+         ++bit) {
+      for (auto op_it = bit->getOperations().begin();
+           op_it != bit->getOperations().end(); ++op_it) {
+        visitInst(&*op_it);
+      }
+    }
+  }
+}
+
 bool FunctionMutator::canMutate(mlir::FuncOp &func) {
-  for(auto op_it=func.getBody().getBlocks().front().begin();op_it!=func.getBody().getBlocks().front().end();++op_it){
-    llvm::errs()<<"\n"<<mlir::isa<vast::hl::WhileOp>(*op_it)<<"==============\n";
-    op_it->print(llvm::errs());
-    llvm::errs()<<"============\n";
-    if(op_it->getNumOperands()!=0&&op_it->getNumResults()!=0){
+  for (auto op_it = func.getBody().getBlocks().front().begin();
+       op_it != func.getBody().getBlocks().front().end(); ++op_it) {
+    if (canMutate(*op_it)) {
       return true;
     }
   }
   return false;
-  /*return std::any_of(
-      func.getBody().getBlocks().front().begin(),
-      func.getBody().getBlocks().front().end(), [](mlir::Operation &op) {
-        return op.getNumOperands() != 0 && op.getNumResults() != 0;
-      });*/
 }
 
 void FunctionMutator::init(std::shared_ptr<FunctionMutator> mutator) {
@@ -251,7 +264,10 @@ FunctionMutator::FunctionMutator(mlir::FuncOp curFunc,
   }
 
   opit = curFunc.getBody().getBlocks().front().begin();
-  moveToNextValidInstruction();
+  funcIt = FunctionMutatorIterator(curFunc.getOperation()->getRegions().begin(),
+                                   curFunc.getBlocks().begin(),
+                                   curFunc.getBlocks().begin()->begin());
+  moveToNextMutant();
 }
 
 mlir::Value FunctionMutator::getRandomDominatedValue(mlir::Type ty) {
@@ -281,7 +297,7 @@ void FunctionMutator::mutate() {
       mutations[i]->mutate();
     }
   }
-  moveToNextValidInstruction();
+  moveToNextMutant();
 }
 
 void FunctionMutator::resetCopy(std::shared_ptr<mlir::ModuleOp> tmpCopy) {
@@ -329,7 +345,7 @@ mlir::Value FunctionMutator::getOrInsertRandomValue(mlir::Type ty,
   return addFunctionArgument(ty);
 }
 
-void FunctionMutator::moveToNextInstruction() {
+void FunctionMutator::moveToNextOperaion() {
   values.push_back(llvm::SmallVector<mlir::Value>());
   for (auto val : opit->getResults()) {
     values.back().push_back(val);
@@ -344,47 +360,79 @@ void FunctionMutator::moveToNextInstruction() {
   }
 }
 
-void FunctionMutator::moveToNextValidInstruction() {
-  moveToNextInstruction();
+void FunctionMutator::moveToNextMutant() {
+  moveToNextOperaion();
   while (opit->getNumOperands() == 0 || opit->getNumResults() == 0) {
-    moveToNextInstruction();
+    moveToNextOperaion();
   }
 }
 
-void Mutator::test() {
+void Mutator::test() {}
+
+static void addOneMappingRecord(
+    mlir::Operation *from, mlir::Operation *to,
+    llvm::DenseMap<mlir::Operation *, mlir::Operation *> &opMap) {
+  opMap[from] = to;
+  assert(from->getNumRegions() == to->getNumRegions() &&
+         "both inst should have same number of regions");
+  for (auto from_rit = from->getRegions().begin(),
+            to_rit = to->getRegions().begin();
+       from_rit != from->getRegions().end(); ++from_rit, ++to_rit) {
+    assert(from_rit->getBlocks().size() == to_rit->getBlocks().size() &&
+           "both region should have same number of blocks");
+    for (auto from_bit = from_rit->getBlocks().begin(),
+              to_bit = to_rit->getBlocks().begin();
+         from_bit != from_rit->getBlocks().end(); ++from_bit, ++to_bit) {
+      assert(from_bit->getOperations().size() ==
+                 to_bit->getOperations().size() &&
+             "both block should have same number of operations");
+      for (auto from_op_it = from_bit->getOperations().begin(),
+                to_op_it = to_bit->getOperations().begin();
+           from_op_it != from_bit->getOperations().end();
+           ++from_op_it, ++to_op_it) {
+        addOneMappingRecord(&*from_op_it, &*to_op_it, opMap);
+      }
+    }
+  }
 }
 
 void Mutator::recopy() {
   bavMap.clear();
+  opMap.clear();
   mlir::Operation *copy = module.getOperation()->clone(bavMap);
   assert(mlir::isa<mlir::ModuleOp>(*copy) && "should be a moudle");
   // tmpCopy = mlir::dyn_cast<mlir::ModuleOp>(*copy);
   tmpCopy =
       std::make_shared<mlir::ModuleOp>(mlir::dyn_cast<mlir::ModuleOp>(*copy));
   assert(tmpCopy != nullptr && "copy should not be null");
+  setOpMap();
   for (auto &mutators : functionMutators) {
     mutators->resetCopy(tmpCopy);
   }
 }
 
+void Mutator::setOpMap() {
+  addOneMappingRecord(module.getOperation(), tmpCopy->getOperation(), opMap);
+}
+
 void Mutator::mutateOnce() {
   recopy();
   functionMutators[curPos]->mutate();
-  curFunction=functionMutators[curPos]->getFunctionName();
+  curFunction = functionMutators[curPos]->getFunctionName();
   ++curPos;
-  if(curPos==functionMutators.size()){
-    curPos=0;
+  if (curPos == functionMutators.size()) {
+    curPos = 0;
   }
 }
 
-void Mutator::saveModule(const std::string& outputFileName){
+void Mutator::saveModule(const std::string &outputFileName) {
   std::error_code ec;
   llvm::raw_fd_ostream fout(outputFileName, ec);
-  fout << "//Current seed: "<<util::Random::getSeed()<<"\n";
+  fout << "//Current seed: " << util::Random::getSeed() << "\n";
   fout << "//============tmp copy============\n";
   tmpCopy->print(fout);
   fout.close();
-  llvm::errs()<<"file wrote to "<<outputFileName<<"\n";
+  llvm::errs() << "file wrote to " << outputFileName << "\n";
 }
 
 #undef endl

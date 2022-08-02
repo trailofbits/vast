@@ -11,8 +11,7 @@ std::mt19937 Random::mt(Random::seed);
 const std::string OperationStateGenerator::varName = "MLIR-MUTATE-GEN-VAR";
 int OperationStateGenerator::cnt = 0;
 
-mlir::BlockArgument util::addFunctionParameter(mlir::FuncOp op,
-                                               mlir::Type ty) {
+mlir::BlockArgument util::addFunctionParameter(mlir::FuncOp op, mlir::Type ty) {
   llvm::SmallVector<mlir::Type> inputs, outputs;
   mlir::Region &region = op.getBody();
   std::for_each(op.args_begin(), op.args_end(),
@@ -20,7 +19,7 @@ mlir::BlockArgument util::addFunctionParameter(mlir::FuncOp op,
   inputs.push_back(ty);
   mlir::FunctionType newFnTy =
       mlir::FunctionType::get(op.getContext(), inputs, op.getResultTypes());
-  //op.setFunctionTypeAttr(tyAttr);
+  // op.setFunctionTypeAttr(tyAttr);
   op.setType(newFnTy);
   region.addArgument(ty,
                      OperationStateGenerator::getNewLocation(op.getContext()));
