@@ -18,6 +18,7 @@ namespace vast::hl
     using Type = mlir::Type;
     using Value = mlir::Value;
     using Attribute = mlir::Attribute;
+    using Operation = mlir::Operation;
 
     using Region    = mlir::Region;
     using Builder   = mlir::OpBuilder;

@@ -29,67 +29,34 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
-#include "vast/Translation/HighLevelVisitor.hpp"
+#include "vast/Translation/CodeGen.hpp"
 #include "vast/Util/Common.hpp"
 
 namespace vast::hl
 {
-
-    struct VastCodeGen : clang::ASTConsumer {
-        VastCodeGen(TranslationContext &ctx)
-            : ctx(ctx) {}
-
-        bool HandleTopLevelDecl(clang::DeclGroupRef) override { VAST_UNIMPLEMENTED; }
-
-
-
-        void HandleTranslationUnit(clang::ASTContext &) override {
-            auto tu = ctx.getASTContext().getTranslationUnitDecl();
-            CodeGenVisitor visitor(ctx);
-            visitor.Visit(tu);
-        }
-
-      private:
-        TranslationContext &ctx;
-    };
-
     static llvm::cl::list< std::string > compiler_args(
-        "ccopts", llvm::cl::ZeroOrMore, llvm::cl::desc("Specify compiler options"));
+        "ccopts", llvm::cl::ZeroOrMore, llvm::cl::desc("Specify compiler options")
+    );
+
+    static llvm::cl::opt< bool > ast_meta_flag(
+        "ast-meta", llvm::cl::desc("Attach clang AST nodes as metadata")
+    );
 
     static OwningModuleRef from_source_parser(
-        const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx) {
-        ctx->loadDialect< HighLevelDialect >();
-        ctx->loadDialect< mlir::StandardOpsDialect >();
-        ctx->loadDialect< mlir::DLTIDialect >();
-        ctx->loadDialect< mlir::scf::SCFDialect >();
+        const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx
+    ) {
+        auto ast = clang::tooling::buildASTFromCodeWithArgs(
+            input->getBuffer(), compiler_args
+        );
 
-        OwningModuleRef mod(mlir::ModuleOp::create(mlir::FileLineColLoc::get(
-            ctx, input->getBufferIdentifier(), /* line */ 0, /* column */ 0)));
-
-        auto ast = clang::tooling::buildASTFromCodeWithArgs(input->getBuffer(), compiler_args);
-
-        TranslationContext tctx(*ctx, ast->getASTContext(), mod);
-
-        // TODO(Heno): verify correct scopes of type names
-        llvm::ScopedHashTableScope type_def_scope(tctx.type_defs);
-        llvm::ScopedHashTableScope type_dec_scope(tctx.type_decls);
-        llvm::ScopedHashTableScope enum_dec_scope(tctx.enum_decls);
-        llvm::ScopedHashTableScope enum_constant_scope(tctx.enum_constants);
-        llvm::ScopedHashTableScope func_scope(tctx.functions);
-        llvm::ScopedHashTableScope glob_scope(tctx.vars);
-
-        VastCodeGen codegen(tctx);
-        codegen.HandleTranslationUnit(ast->getASTContext());
-
-        // TODO(Heno): verify module
-        return mod;
+        return DefaultCodeGen(ctx).emit_module(ast.get());
     }
 
     mlir::LogicalResult registerFromSourceParser() {
         mlir::TranslateToMLIRRegistration from_source(
             "from-source",
             [](llvm::SourceMgr &mgr, mlir::MLIRContext *ctx) -> OwningModuleRef {
-                assert(mgr.getNumBuffers() == 1 && "expected single input buffer");
+                VAST_CHECK(mgr.getNumBuffers() == 1,    "expected single input buffer");
                 auto buffer = mgr.getMemoryBuffer(mgr.getMainFileID());
                 return from_source_parser(buffer, ctx);
             });

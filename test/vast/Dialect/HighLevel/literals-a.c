@@ -1,5 +1,6 @@
 // RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
 // RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
+// REQUIRES: qualifiers
 
 // CHECK: hl.var "li" : !hl.lvalue<!hl.int<const>>
 // CHECK: hl.constant.int 10 : !hl.int

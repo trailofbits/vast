@@ -21,17 +21,16 @@ namespace vast::hl
 {
     namespace detail
     {
-        void build_region(Builder &bld, State &st, BuilderCallback callback)
+        Region* build_region(Builder &bld, State &st, BuilderCallback callback)
         {
             auto reg = st.addRegion();
             if (callback.has_value()) {
                 bld.createBlock(reg);
                 callback.value()(bld, st.location);
             }
+            return reg;
         }
     } // namespace detail
-
-    using NameBuilder = llvm::function_ref<void(Value, llvm::StringRef)>;
 
     using FoldResult = mlir::OpFoldResult;
 
@@ -317,11 +316,9 @@ namespace vast::hl
         VAST_UNREACHABLE("unknown constant type");
     }
 
-    void ExprOp::build(Builder &bld, State &st, Type rty, BuilderCallback expr) {
-        assert(expr && "the builder callback for 'expr' block must be present");
+    void ExprOp::build(Builder &bld, State &st, Type rty, std::unique_ptr< Region > &&region) {
         Builder::InsertionGuard guard(bld);
-        detail::build_region(bld, st, expr);
-
+        st.addRegion(std::move(region));
         st.addTypes(rty);
     }
 }

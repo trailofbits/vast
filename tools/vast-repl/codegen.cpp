@@ -29,7 +29,7 @@ namespace vast::repl::codegen {
     owning_module_ref emit_module(const std::string &source, MContext *ctx) {
         auto unit = codegen::ast_from_source(source);
         auto &ast = unit->getASTContext();
-        vast::hl::high_level_codegen codegen(ctx);
+        vast::hl::DefaultCodeGen codegen(ctx);
         return codegen.emit_module(ast.getTranslationUnitDecl());
     }
 

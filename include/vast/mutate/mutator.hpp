@@ -152,7 +152,6 @@ class FunctionMutator {
   void moveToNextOperaion();
   void moveToNextMutant();
 
-  mlir::Block::iterator opit, opitInTmp;
   FunctionMutatorIterator funcIt, funcItInTmp;
   std::vector<FunctionMutatorIterator> funcItStack;
   mlir::FuncOp curFunc;

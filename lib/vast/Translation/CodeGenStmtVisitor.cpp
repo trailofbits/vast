@@ -1,16 +1,10 @@
-// Copyright (c) 2021-present, Trail of Bits, Inc.
+// Copyright (c) 2022-present, Trail of Bits, Inc.
 
-#include "vast/Util/Warnings.hpp"
-
-VAST_RELAX_WARNINGS
-#include <clang/AST/Expr.h>
-VAST_UNRELAX_WARNINGS
-
-#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+#include "vast/Translation/CodeGenStmtVisitor.hpp"
 
 namespace vast::hl
 {
-    inline CastKind cast_kind(clang::CastExpr *expr)
+    CastKind cast_kind(const clang::CastExpr *expr)
     {
         switch (expr->getCastKind()) {
             case clang::CastKind::CK_Dependent: return CastKind::Dependent;
@@ -92,7 +86,7 @@ namespace vast::hl
             case clang::CastKind::CK_MatrixCast: return CastKind::MatrixCast;
         }
 
-        llvm_unreachable( "unsupported cast kind" );
+        VAST_UNREACHABLE( "unsupported cast kind" );
     }
 
 } // namespace vast::hl

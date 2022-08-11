@@ -18,7 +18,6 @@ namespace vast::util
 
     using string_ref     = llvm::StringRef;
 
-    // TODO(heno): rework to coroutines eventually
     void symbols(mlir::Operation *op, auto &&yield) {
         op->walk([&] (mlir::Operation *child) {
             if (auto symbol = mlir::dyn_cast< vast_symbol_interface >(child)) {
@@ -26,6 +25,14 @@ namespace vast::util
             }
             else if (auto symbol = mlir::dyn_cast< mlir_symbol_interface >(child)) {
                 yield(symbol);
+            }
+        });
+    }
+
+    void symbol_tables(mlir::Operation *op, auto &&yield) {
+        op->walk([&] (mlir::Operation *child) {
+            if (child->hasTrait< mlir::OpTrait::SymbolTable >()) {
+                yield(child);
             }
         });
     }

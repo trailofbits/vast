@@ -90,9 +90,10 @@ def HighLevel_EnumConstantOp
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
+      // TODO use identifier
       "llvm::StringRef":$name,
       "llvm::APSInt":$value,
-      CArg< "BuilderCallback", "std::nullopt">:$init
+      CArg<"BuilderCallback", "std::nullopt">:$init
     )>
   ];
 
@@ -254,9 +255,7 @@ def HighLevel_ExprOp
   let results = (outs AnyType:$result);
 
   let skipDefaultBuilders = 1;
-  let builders = [
-    OpBuilder<(ins "Type":$type, "BuilderCallback":$exprBuilder)>
-  ];
+  let builders = [ OpBuilder<(ins "Type":$rty, "std::unique_ptr< Region > &&":$region)> ];
 
   let assemblyFormat = [{
      attr-dict `:` type($result) $subexpr
