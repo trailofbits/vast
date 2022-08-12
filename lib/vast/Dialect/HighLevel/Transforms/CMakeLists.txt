@@ -1,6 +1,7 @@
 add_mlir_dialect_library(MLIRHighLevelTransforms
   ExportFnInfo.cpp
   HLLowerTypes.cpp
+  HLStructsToLLVM.cpp
   HLToLL.cpp
   HLToSCF.cpp
   LLVMDump.cpp

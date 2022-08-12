@@ -85,6 +85,17 @@ def HLStructsToTuples : Pass<"vast-hl-structs-to-tuples", "mlir::ModuleOp"> {
   let dependentDialects = ["mlir::LLVM::LLVMDialect"];
 }
 
+
+def HLStructsToLLVM : Pass<"vast-hl-structs-to-llvms", "mlir::ModuleOp"> {
+  let summary = "Transform hl.struct into llvm types without applying ABI conversions.";
+  let description = [{
+    This pass is still a work in progress.
+  }];
+
+  let constructor = "vast::hl::createHLStructsToLLVMPass()";
+  let dependentDialects = ["mlir::LLVM::LLVMDialect"];
+}
+
 def HLToSCF : Pass<"vast-hl-to-scf", "mlir::ModuleOp"> {
   let summary = "Lower control flow constructs into SCF.";
   let description = [{
