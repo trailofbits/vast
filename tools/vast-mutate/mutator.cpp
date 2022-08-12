@@ -125,12 +125,54 @@ void ReplaceValueMutation::debug()
 
 void ReplaceValueMutation::reset() { replaced = false; }
 
+void RandomMoveMutation::fixValuesInOperand(mlir::Operation& op,llvm::DenseMap<mlir::Value, bool>& valSet){
+  for(size_t i=0;i<op.getNumOperands();++i){
+    if(valSet.find(op.getOperand(i))!=valSet.end()){
+      op.setOperand(
+            i, mutator->getOrInsertRandomValue(op.getOperand(i).getType()));
+    }
+  }
+  if(util::canVisitInside(op)){
+    for(auto rit=op.getRegions().begin();rit!=op.getRegions().end();++rit)
+    for(auto bit=rit->getBlocks().begin();bit!=rit->getBlocks().end();++bit){
+      for(auto iit=bit->getOperations().begin();iit!=bit->getOperations().end();++iit){
+        fixValuesInOperand(*iit,valSet);
+      }
+    }
+  }  
+}
+
 void RandomMoveMutation::moveForward(mlir::Operation &op,
                                      mlir::Operation &target)
 {
   assert(target.isBeforeInBlock(&op) &&
          "tartet should be before than moved op");
-  llvm::DenseMap<mlir::Value, llvm::SmallVector<size_t>> valSet;
+  llvm::DenseMap<mlir::Value,bool> valSet;
+  std::vector<llvm::SmallVector<mlir::Value>> valBackup;
+  for(auto it=--op.getIterator();it!=target.getIterator();--it){
+    for(auto res_it=it->getResults().begin();res_it!=it->getResults().end();++res_it){
+      valSet.insert(std::make_pair(*res_it,true));
+    }
+    valBackup.push_back(mutator->values.back());
+    mutator->values.pop_back();
+  }
+  for(auto res_it=target.getResults().begin();res_it!=target.getResults().end();++res_it){
+    valSet.insert(std::make_pair(*res_it,true));
+  }
+  valBackup.push_back(mutator->values.back());
+  mutator->values.pop_back();
+  fixValuesInOperand(op,valSet);
+
+  op.moveBefore(&target);
+  mutator->funcItInTmp=FunctionMutatorIterator(mutator->funcItInTmp.getFunctionMutator(),mutator->funcItInTmp.getRegionIterator(),
+    mutator->funcItInTmp.getBlockIterator(),op.getIterator());
+
+  while (!valBackup.empty())
+  {
+    mutator->values.push_back(valBackup.back());
+    valBackup.pop_back();
+  }
+  /*llvm::DenseMap<mlir::Value, llvm::SmallVector<size_t>> valSet;
   llvm::SmallVector<size_t> fixPos;
   std::vector<llvm::SmallVector<mlir::Value>> valBackup;
   for (size_t i = 0; i < op.getOperands().size(); ++i)
@@ -180,13 +222,14 @@ void RandomMoveMutation::moveForward(mlir::Operation &op,
     op.setOperand(i, val);
   }
   op.moveBefore(&target);
-  mutator->funcItInTmp=FunctionMutatorIterator(mutator->funcItInTmp.getFunctionMutator(),op);
+  mutator->funcItInTmp=FunctionMutatorIterator(mutator->funcItInTmp.getFunctionMutator(),mutator->funcItInTmp.getRegionIterator(),
+    mutator->funcItInTmp.getBlockIterator(),op.getIterator());
 
   while (!valBackup.empty())
   {
     mutator->values.push_back(valBackup.back());
     valBackup.pop_back();
-  }
+  }*/
 }
 
 void RandomMoveMutation::moveBackward(mlir::Operation &op,
@@ -203,17 +246,11 @@ void RandomMoveMutation::moveBackward(mlir::Operation &op,
        it != op.getBlock()->getOperations().end() && it != target.getIterator();
        ++it)
   {
-    for (size_t i = 0; i < it->getNumOperands(); ++i)
-    {
-      if (valSet.find(it->getOperand(i)) != valSet.end())
-      {
-        it->setOperand(
-            i, mutator->getOrInsertRandomValue(it->getOperand(i).getType()));
-      }
-    }
+    fixValuesInOperand(*it,valSet);
   }
   op.moveBefore(&target);
-  mutator->funcItInTmp=FunctionMutatorIterator(mutator->funcItInTmp.getFunctionMutator(),op);
+  mutator->funcItInTmp=FunctionMutatorIterator(mutator->funcItInTmp.getFunctionMutator(),mutator->funcItInTmp.getRegionIterator(),
+    mutator->funcItInTmp.getBlockIterator(),op.getIterator());
 }
 
 bool RandomMoveMutation::shouldMutate()
@@ -387,7 +424,7 @@ void FunctionMutator::init(std::shared_ptr<FunctionMutator> mutator)
 {
   mutations.push_back(std::make_unique<ReorderArgumentMutation>(mutator));
   mutations.push_back(std::make_unique<ReplaceValueMutation>(mutator));
-  //mutations.push_back(std::make_unique<RandomMoveMutation>(mutator));
+  mutations.push_back(std::make_unique<RandomMoveMutation>(mutator));
   funcIt = FunctionMutatorIterator(mutator, *curFunc.getOperation());
   moveToNextMutant();
 }
@@ -513,7 +550,7 @@ mlir::Value FunctionMutator::getOrInsertRandomValue(mlir::Type ty,
 
 void FunctionMutator::moveToNextOperaion()
 {
-  if (canVisitInside(funcIt.getOperation()))
+  if (util::canVisitInside(funcIt.getOperation()))
   {
     funcItStack.push_back(funcIt);
     funcIt = FunctionMutatorIterator(funcIt.getFunctionMutator(), funcIt.getOperation());
@@ -522,17 +559,16 @@ void FunctionMutator::moveToNextOperaion()
   {
     funcIt.next();
   }
-  if (funcIt.isEnd())
-  {
+  while(funcIt.isEnd()){
     // need to check dominfo in funcIt;
     if (funcItStack.empty())
     {
       funcIt = FunctionMutatorIterator(funcIt.getFunctionMutator(), *curFunc.getOperation());
+      break;
     }
-    else
-    {
-      funcIt = funcItStack.back();
-      funcItStack.pop_back();
+    funcIt = funcItStack.back();
+    funcItStack.pop_back();
+    if(!funcIt.isEnd()){
       funcIt.next();
     }
   }

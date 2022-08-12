@@ -27,6 +27,16 @@ mlir::BlockArgument util::addFunctionParameter(mlir::FuncOp op, mlir::Type ty) {
   return region.getArguments().back();
 }
 
+bool util::canVisitInside(mlir::Operation& oper){
+  for(auto rit=oper.getRegions().begin();rit!=oper.getRegions().end();++rit)
+  for(auto bit=rit->getBlocks().begin();bit!=rit->getBlocks().end();++bit){
+    if(!bit->empty()){
+      return true;
+    }
+  }
+  return false;
+}
+
 mlir::OperationState
 OperationStateGenerator::getNewOperationState(mlir::MLIRContext *context,
                                               std::string name) {

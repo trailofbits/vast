@@ -84,6 +84,7 @@ class RandomMoveMutation : public Mutation {
   bool moved;
   void moveForward(mlir::Operation &op, mlir::Operation &target);
   void moveBackward(mlir::Operation &op, mlir::Operation &target);
+  void fixValuesInOperand(mlir::Operation& op,llvm::DenseMap<mlir::Value, bool>& valSet);
 
 public:
   RandomMoveMutation(std::shared_ptr<FunctionMutator> mutator)
@@ -125,9 +126,12 @@ public:
                           OperationIterator op_it);
   FunctionMutatorIterator(std::shared_ptr<FunctionMutator> func, mlir::Operation& operation);
   FunctionMutatorIterator():func(nullptr){};
-  mlir::Operation &getOperation() { return *op_it; }
-  mlir::Block &getBlock() { return *block_it; }
-  mlir::Region &getRegion() { return *region_it; }
+  OperationIterator getOperationIterator() { return op_it; }
+  mlir::Operation& getOperation(){return *op_it;}
+  BlockIterator getBlockIterator() { return block_it; }
+  mlir::Block& getBlock(){return *block_it;}
+  RegionIterator getRegionIterator() { return region_it; }
+  mlir::Region& getRegion(){return *region_it;}
   bool isEnd() { return isRegionEnd(); }
   size_t getCurrentPos()const{return curPos;}
   std::shared_ptr<FunctionMutator> getFunctionMutator(){return func;}
@@ -177,16 +181,6 @@ class FunctionMutator {
             return true;
           }
         }
-      }
-    }
-    return false;
-  }
-
-  static bool canVisitInside(mlir::Operation& oper){
-    for(auto rit=oper.getRegions().begin();rit!=oper.getRegions().end();++rit)
-    for(auto bit=rit->getBlocks().begin();bit!=rit->getBlocks().end();++bit){
-      if(!bit->empty()){
-        return true;
       }
     }
     return false;
