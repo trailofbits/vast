@@ -75,6 +75,8 @@ template <typename ArrTy> bool isIdenticalArray(llvm::ArrayRef<ArrTy> arr) {
   return true;
 }
 
+bool canVisitInside(mlir::Operation& oper);
+
 template <typename ArrTy>
 llvm::SmallVector<ArrTy> getShuffledArray(llvm::ArrayRef<ArrTy> arr) {
   assert(arr.size() > 1 && "cannot shuffle array with size less than 1");
