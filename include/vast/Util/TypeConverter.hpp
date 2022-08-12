@@ -1,5 +1,6 @@
 // Copyright (c) 2022, Trail of Bits, Inc.
 
+#pragma once
 
 VAST_RELAX_WARNINGS
 #include <mlir/IR/Types.h>
