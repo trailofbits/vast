@@ -61,7 +61,7 @@ def HLLowerEnums : Pass<"vast-hl-lower-enums", "mlir::ModuleOp"> {
 }
 
 
-def HLToLL : Pass<"vast-hl-to-ll", "mlir::ModuleOp"> {
+def HLToLLVM : Pass<"vast-hl-to-llvm", "mlir::ModuleOp"> {
   let summary = "HL -> LL conversion";
   let description = [{
     Pass lowers high-level operations into low-level (for now, llvm dialect is used) dialects.
@@ -71,7 +71,7 @@ def HLToLL : Pass<"vast-hl-to-ll", "mlir::ModuleOp"> {
     This pass is still a work in progress.
   }];
 
-  let constructor = "vast::hl::createHLToLLPass()";
+  let constructor = "vast::hl::createHLToLLVMPass()";
   let dependentDialects = ["mlir::LLVM::LLVMDialect"];
 }
 
