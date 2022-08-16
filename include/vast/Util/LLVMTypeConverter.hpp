@@ -13,13 +13,13 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::util::tc
 {
-    // TODO(lukas): implement
-    bool is_variadic(mlir::FuncOp op)
+    // TODO(lukas): Implement.
+    static inline bool is_variadic(mlir::FuncOp op)
     {
         return true;
     }
 
-    auto convert_fn_t(auto &tc, mlir::FuncOp op)
+    static inline auto convert_fn_t(auto &tc, mlir::FuncOp op)
     -> std::tuple< mlir::TypeConverter::SignatureConversion, mlir::Type >
     {
         mlir::TypeConverter::SignatureConversion conversion(op.getNumArguments());
