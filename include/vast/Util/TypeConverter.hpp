@@ -109,5 +109,14 @@ namespace vast::util
             block.eraseArgument(0);
     }
 
+    struct IdentityTC : mlir::TypeConverter
+    {
+        template< typename ... Args >
+        IdentityTC(Args && ... args) : mlir::TypeConverter(std::forward< Args >(args) ...)
+        {
+            addConversion([&](mlir::Type t) { return t; });
+        }
+    };
+
 
 } // namespace vast::util
