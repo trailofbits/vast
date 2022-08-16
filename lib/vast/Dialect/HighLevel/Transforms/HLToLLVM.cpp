@@ -532,12 +532,12 @@ namespace vast::hl
     } // namespace pattern
 
 
-    struct HLToLLPass : HLToLLBase< HLToLLPass >
+    struct HLToLLVMPass : HLToLLVMBase< HLToLLVMPass >
     {
         void runOnOperation() override;
     };
 
-    void HLToLLPass::runOnOperation()
+    void HLToLLVMPass::runOnOperation()
     {
         auto &mctx = this->getContext();
         mlir::ModuleOp op = this->getOperation();
@@ -576,7 +576,7 @@ namespace vast::hl
 }
 
 
-std::unique_ptr< mlir::Pass > vast::hl::createHLToLLPass()
+std::unique_ptr< mlir::Pass > vast::hl::createHLToLLVMPass()
 {
-    return std::make_unique< HLToLLPass >();
+    return std::make_unique< HLToLLVMPass >();
 }
