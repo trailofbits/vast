@@ -4,6 +4,7 @@
 
 VAST_RELAX_WARNINGS
 #include <mlir/IR/Types.h>
+#include <mlir/Conversion/LLVMCommon/TypeConverter.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Maybe.hpp"
