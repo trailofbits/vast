@@ -1,0 +1,40 @@
+---
+name: "pre-release"
+
+on:
+  push:
+    branches:
+      - "github-actions-fix"
+    tags-ignore:
+      - "*"
+
+jobs:
+  gh_pre_release:
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: Clone the vast repository
+        uses: actions/checkout@v3
+        with:
+          path: ./vast
+          fetch-depth: 0
+
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        workflow: build.yml
+
+      - name: Test
+        run: |
+          ls .
+
+      - name: "Publish Pre-Release"
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            ./vast/LICENSE
+            ./vast-*/*.tar.xz
