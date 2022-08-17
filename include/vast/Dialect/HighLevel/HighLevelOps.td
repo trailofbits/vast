@@ -550,24 +550,66 @@ def HighLevel_CStyleCastOp     : HighLevel_CastOp< "cstyle_cast", [] >;
 def HighLevel_BuiltinBitCastOp : HighLevel_CastOp< "builtin_bitcast", [] >;
 
 
-def HighLevel_AddIOp : HighLevel_BinOp< "add", [Commutative]>;
-def HighLevel_AddFOp : HighLevel_BinOp<"fadd", []>;
-def HighLevel_SubIOp : HighLevel_BinOp< "sub", []>;
-def HighLevel_SubFOp : HighLevel_BinOp<"fsub", []>;
-def HighLevel_MulIOp : HighLevel_BinOp< "mul", [Commutative]>;
-def HighLevel_MulFOp : HighLevel_BinOp<"fmul", []>;
-def HighLevel_DivSOp : HighLevel_BinOp<"sdiv", []>;
-def HighLevel_DivUOp : HighLevel_BinOp<"udiv", []>;
-def HighLevel_DivFOp : HighLevel_BinOp<"fdiv", []>;
-def HighLevel_RemSOp : HighLevel_BinOp<"srem", []>;
-def HighLevel_RemUOp : HighLevel_BinOp<"urem", []>;
-def HighLevel_RemFOp : HighLevel_BinOp<"frem", []>;
+class HighLevel_ArithBinOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
+{
+    let summary = "VAST arithmetic binary operation";
+    let description = [{
+        High-level arithmetic binary operation. This operation takes two operands
+        and returns one result, each of these is required to be of the same
+        type.
 
-def HighLevel_BinXorOp : HighLevel_BinOp<"bin.xor", []>;
-def HighLevel_BinOrOp : HighLevel_BinOp<"bin.or", []>;
-def HighLevel_BinAndOp : HighLevel_BinOp<"bin.and", []>;
-def HighLevel_BinLAndOp : HighLevel_BinOp<"bin.land", []>;
-def HighLevel_BinLOrOp : HighLevel_BinOp<"bin.lor", []>;
+        The custom assembly form of the operation is as follows:
+
+        %result = <op> %lhs, %rhs  : type
+    }];
+
+    let arguments = (ins AnyType:$lhs, AnyType:$rhs);
+    let results = (outs AnyType:$result);
+
+    let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` type($result) }];
+}
+
+def HighLevel_AddIOp : HighLevel_ArithBinOp< "add", [Commutative]>;
+def HighLevel_AddFOp : HighLevel_ArithBinOp<"fadd", []>;
+def HighLevel_SubIOp : HighLevel_ArithBinOp< "sub", []>;
+def HighLevel_SubFOp : HighLevel_ArithBinOp<"fsub", []>;
+def HighLevel_MulIOp : HighLevel_ArithBinOp< "mul", [Commutative]>;
+def HighLevel_MulFOp : HighLevel_ArithBinOp<"fmul", []>;
+def HighLevel_DivSOp : HighLevel_ArithBinOp<"sdiv", []>;
+def HighLevel_DivUOp : HighLevel_ArithBinOp<"udiv", []>;
+def HighLevel_DivFOp : HighLevel_ArithBinOp<"fdiv", []>;
+def HighLevel_RemSOp : HighLevel_ArithBinOp<"srem", []>;
+def HighLevel_RemUOp : HighLevel_ArithBinOp<"urem", []>;
+def HighLevel_RemFOp : HighLevel_ArithBinOp<"frem", []>;
+
+def HighLevel_BinXorOp : HighLevel_ArithBinOp<"bin.xor", []>;
+def HighLevel_BinOrOp  : HighLevel_ArithBinOp< "bin.or", []>;
+def HighLevel_BinAndOp : HighLevel_ArithBinOp<"bin.and", []>;
+
+
+class HighLevel_LogicBinOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
+{
+    let summary = "VAST logical binary operation";
+    let description = [{
+        High-level logical binary operation. This operation takes two operands
+        and returns one result, each of these is required to be of the same
+        type.
+
+        The custom assembly form of the operation is as follows:
+
+        %result = <op> %lhs, %rhs  : type
+    }];
+
+    let arguments = (ins AnyType:$lhs, AnyType:$rhs);
+    let results = (outs AnyType:$result);
+
+    let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` type($result) }];
+}
+
+def HighLevel_BinLAndOp : HighLevel_LogicBinOp<"bin.land", []>;
+def HighLevel_BinLOrOp  : HighLevel_LogicBinOp< "bin.lor", []>;
 
 def HighLevel_BinComma
     : HighLevel_Op< "bin.comma", [NoSideEffect] >
@@ -704,10 +746,50 @@ def HighLevel_CmpOp : HighLevel_Op< "cmp", [NoSideEffect, SameTypeOperands, Comm
   let assemblyFormat = "$predicate type($lhs) $lhs `,` $rhs  attr-dict `->` type($result)";
 }
 
+
+class HighLevel_UnInplaceOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [SameOperandsAndResultType]) >
+{
+    let summary = "VAST unary inplace operation";
+    let description = [{
+        Inplace high-level unary operation changes its single argument in place.
+        It does not produce a new value.
+
+        The custom assembly form of the operation is as follows:
+
+        %result = <op> %arg : type
+    }];
+
+    let arguments = (ins AnyType:$arg);
+    let results = (outs AnyType:$result);
+
+    let assemblyFormat = [{ $arg attr-dict `:` type($result) }];
+}
+
 def HighLevel_PostIncOp : HighLevel_UnInplaceOp< "post.inc", [] >;
 def HighLevel_PostDecOp : HighLevel_UnInplaceOp< "post.dec", [] >;
 def HighLevel_PreIncOp  : HighLevel_UnInplaceOp<  "pre.inc", [] >;
 def HighLevel_PreDecOp  : HighLevel_UnInplaceOp<  "pre.dec", [] >;
+
+
+class HighLevel_TypePreservingUnOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
+{
+    let summary = "VAST unary type preserving operation";
+    let description = [{
+        Type preserving high-level unary operation assures that argument and
+        result has the same type.
+
+        The custom assembly form of the operation is as follows:
+
+        %result = <op> %arg : type
+    }];
+
+    let arguments = (ins AnyType:$arg);
+    let results = (outs AnyType:$result);
+
+    let assemblyFormat = [{ $arg attr-dict `:` type($result) }];
+}
 
 def HighLevel_PlusOp  : HighLevel_TypePreservingUnOp< "plus", [] >;
 def HighLevel_MinusOp : HighLevel_TypePreservingUnOp< "minus", [] >;
