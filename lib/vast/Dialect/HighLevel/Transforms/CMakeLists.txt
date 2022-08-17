@@ -5,11 +5,13 @@ add_mlir_dialect_library(MLIRHighLevelTransforms
   HLToLLVM.cpp
   HLToSCF.cpp
   LLVMDump.cpp
+  HLToLLGEPs.cpp
 
   DEPENDS
   HighLevelTransformsIncGen
 
   LINK_LIBS PUBLIC
+  MLIRLowLevel
   MLIRHighLevel
   MLIRIR
   MLIRPass
