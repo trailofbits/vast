@@ -576,7 +576,7 @@ def HighLevel_BinAndOp : HighLevel_ArithBinOp<"bin.and", []>;
 
 
 class HighLevel_LogicBinOp< string mnemonic, list< Trait > traits = [] >
-    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
     , Arguments<(ins AnyType:$lhs, AnyType:$rhs)>
     , Results<(outs AnyType:$result)>
 {
