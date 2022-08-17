@@ -43,13 +43,15 @@ namespace vast::hl
     );
 
     static OwningModuleRef from_source_parser(
-        const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx
+        const llvm::MemoryBuffer *input, mlir::MLIRContext *mctx
     ) {
         auto ast = clang::tooling::buildASTFromCodeWithArgs(
             input->getBuffer(), compiler_args
         );
 
-        return DefaultCodeGen(ctx).emit_module(ast.get());
+        auto &actx = ast->getASTContext();
+        vast::hl::DefaultCodeGen codegen(&actx, mctx);
+        return codegen.emit_module(ast.get());
     }
 
     mlir::LogicalResult registerFromSourceParser() {
