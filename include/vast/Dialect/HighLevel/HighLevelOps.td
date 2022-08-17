@@ -153,12 +153,12 @@ def HighLevel_UnionDeclOp : HighLevel_RecordLikeDeclOp<"union"> {
 
 def HighLevel_FieldDeclOp
   : HighLevel_Op< "field", [NoSideEffect, VastSymbol] >
-  , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
+  , Arguments<(ins StrAttr:$name, TypeAttr:$type, OptionalAttr<I32Attr>:$bits)>
 {
   let summary = "VAST record field declaration";
   let description = [{ VAST record field declaration }];
 
-  let assemblyFormat = [{ $name attr-dict `:` $type }];
+  let assemblyFormat = [{ $name attr-dict (`:` $bits^)? `:` $type }];
 }
 
 def HighLevel_RecordMemberOp
