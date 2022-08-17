@@ -348,9 +348,6 @@ namespace vast::hl {
         }
 
         Operation* VisitFieldDecl(const clang::FieldDecl *decl) {
-            auto loc  = meta_location(decl);
-            auto name = context().get_decl_name(decl);
-
             // define field type if the field defines a new nested type
             if (auto tag = decl->getType()->getAsTagDecl()) {
                 if (tag->isThisDeclarationADefinition()) {
@@ -359,8 +356,14 @@ namespace vast::hl {
                     }
                 }
             }
-            auto type = visit(decl->getType());
-            return make< FieldDeclOp >(loc, name, type);
+
+            return this->template make_operation< FieldDeclOp >()
+                .bind(meta_location(decl))              // location
+                .bind(context().get_decl_name(decl))    // name
+                .bind(visit(decl->getType()))           // type
+                .bind(decl->getBitWidth() ? context().u32(decl->getBitWidthValue(acontext())) : nullptr) // bitfield
+                .freeze();
+
         }
     };
 

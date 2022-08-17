@@ -132,5 +132,24 @@ namespace vast::hl
         EnumDeclOp lookup_enum(StringRef name, bool with_error = true) {
             return symbol(enum_decls, name, "error: unknown enum '" + name + "'", with_error);
         }
+
+        //
+        // Integer Attribute Constants
+        //
+        template< typename T >
+        Type bitwidth_type() { return mlir::IntegerType::get(&mctx, bits< T >()); }
+
+        template< typename T >
+        mlir::IntegerAttr interger_attr(T v) { return mlir::IntegerAttr::get(bitwidth_type< T >(), v); }
+
+        mlir::IntegerAttr  u8(uint8_t  v) { return interger_attr(v); }
+        mlir::IntegerAttr u16(uint16_t v) { return interger_attr(v); }
+        mlir::IntegerAttr u32(uint32_t v) { return interger_attr(v); }
+        mlir::IntegerAttr u64(uint64_t v) { return interger_attr(v); }
+
+        mlir::IntegerAttr  i8(int8_t  v) { return interger_attr(v); }
+        mlir::IntegerAttr i16(int16_t v) { return interger_attr(v); }
+        mlir::IntegerAttr i32(int32_t v) { return interger_attr(v); }
+        mlir::IntegerAttr i64(int64_t v) { return interger_attr(v); }
     };
 } // namespace vast::hl
