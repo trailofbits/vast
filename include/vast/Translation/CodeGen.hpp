@@ -13,13 +13,18 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/MLIRContext.h>
+#include <mlir/InitAllDialects.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 
 #include "vast/Translation/CodeGenVisitor.hpp"
 #include "vast/Translation/CodeGenFallBackVisitor.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/Meta/MetaDialect.hpp"
+#include "vast/Dialect/Dialects.hpp"
+
 #include "vast/Translation/DataLayout.hpp"
 #include "vast/Translation/CodeGenMeta.hpp"
 
@@ -28,6 +33,7 @@ namespace vast::hl
     namespace detail {
         static inline MContext* codegen_context_setup(MContext *ctx) {
             ctx->loadDialect< hl::HighLevelDialect >();
+            ctx->loadDialect< meta::MetaDialect >();
             ctx->loadDialect< mlir::StandardOpsDialect >();
             ctx->loadDialect< mlir::DLTIDialect >();
             ctx->loadDialect< mlir::scf::SCFDialect >();
@@ -122,8 +128,8 @@ namespace vast::hl
         using Base = CodeGenBase< Visitor >;
         using MetaGenerator = Visitor::MetaGeneratorType;
 
-        DefaultCodeGen(MContext *ctx)
-            : meta(ctx), codegen(ctx, meta)
+        DefaultCodeGen(AContext *actx, MContext *mctx)
+            : meta(actx, mctx), codegen(mctx, meta)
         {}
 
         OwningModuleRef emit_module(clang::ASTUnit *unit) {

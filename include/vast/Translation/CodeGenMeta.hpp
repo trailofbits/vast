@@ -4,6 +4,14 @@
 
 #include "vast/Util/Common.hpp"
 
+VAST_RELAX_WARNINGS
+#include <clang/AST/ASTContext.h>
+#include <clang/AST/TypeLoc.h>
+#include <clang/Basic/FileEntry.h>
+VAST_UNRELAX_WARNINGS
+
+#include "vast/Dialect/Meta/MetaAttributes.hpp"
+
 #include <concepts>
 
 namespace vast::hl
@@ -28,29 +36,50 @@ namespace vast::hl
     };
 
     struct DefaultMetaGenerator {
-        explicit DefaultMetaGenerator(MContext *ctx) : ctx(ctx) {}
+        DefaultMetaGenerator(AContext *actx, MContext *mctx)
+            : actx(actx), mctx(mctx)
+        {}
 
-        DefaultMeta get(const clang::Decl * /* decl */) const {
-            return { mlir::UnknownLoc::get(ctx) };
+        DefaultMeta get(const clang::FullSourceLoc &loc) const {
+            auto file = loc.getFileEntry()->getName();
+            auto line = loc.getLineNumber();
+            auto col  = loc.getColumnNumber();
+            return { mlir::FileLineColLoc::get(mctx, file, line, col) };
         }
 
-        DefaultMeta get(const clang::Stmt * /* stmt */) const {
-            return { mlir::UnknownLoc::get(ctx) };
+        DefaultMeta get(const clang::SourceLocation &loc) const {
+            return get(clang::FullSourceLoc(loc, actx->getSourceManager()));
         }
 
-        DefaultMeta get(const clang::Expr * /* expr */) const {
-            return { mlir::UnknownLoc::get(ctx) };
+        DefaultMeta get(const clang::Decl *decl) const {
+            return get(decl->getLocation());
         }
 
-        DefaultMeta get(const clang::Type * /* type */) const {
-            return { mlir::UnknownLoc::get(ctx) };
+        DefaultMeta get(const clang::Stmt *stmt) const {
+            // TODO: use SoureceRange
+            return get(stmt->getBeginLoc());
         }
 
-        DefaultMeta get(clang::QualType /* type */) const {
-            return { mlir::UnknownLoc::get(ctx) };
+        DefaultMeta get(const clang::Expr *expr) const {
+            // TODO: use SoureceRange
+            return get(expr->getExprLoc());
         }
 
-        MContext *ctx;
+        DefaultMeta get(const clang::TypeLoc &loc) const {
+            // TODO: use SoureceRange
+            return get(loc.getBeginLoc());
+        }
+
+        DefaultMeta get(const clang::Type *type) const {
+            return get(clang::TypeLoc(type, nullptr));
+        }
+
+        DefaultMeta get(clang::QualType type) const {
+            return get(clang::TypeLoc(type, nullptr));
+        }
+
+        AContext *actx;
+        MContext *mctx;
     };
 
 } // namespace vast::hl
