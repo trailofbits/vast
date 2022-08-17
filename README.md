@@ -1,5 +1,4 @@
-[![Build](https://github.com/trailofbits/vast/actions/workflows/build-test-release.yml/badge.svg)](https://github.com/trailofbits/vast/actions/workflows/build-test-release.yml)
-
+[![Build & Test](https://github.com/trailofbits/vast/actions/workflows/build.yml/badge.svg)](https://github.com/trailofbits/vast/actions/workflows/build.yml)
 # VAST — Verbose AST
 
 VAST is an experimental frontend for the translation of Clang AST to various MLIR dialects. These dialects allow exploring the codebase at a specific level of abstraction before reaching the low-level LLVM dialect.

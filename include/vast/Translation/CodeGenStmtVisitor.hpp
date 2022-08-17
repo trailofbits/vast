@@ -172,11 +172,17 @@ namespace vast::hl {
         }
 
         Operation* VisitBinLAnd(const clang::BinaryOperator *op) {
-            return VisitBinOp< BinLAndOp >(op);
+            auto lhs = visit(op->getLHS())->getResult(0);
+            auto rhs = visit(op->getRHS())->getResult(0);
+            auto ty  = visit(op->getType());
+            return make< BinLAndOp >(meta_location(op), ty, lhs, rhs);
         }
 
         Operation* VisitBinLOr(const clang::BinaryOperator *op) {
-            return VisitBinOp< BinLOrOp >(op);
+            auto lhs = visit(op->getLHS())->getResult(0);
+            auto rhs = visit(op->getRHS())->getResult(0);
+            auto ty  = visit(op->getType());
+            return make< BinLOrOp >(meta_location(op), ty, lhs, rhs);
         }
 
         Operation* VisitBinAssign(const clang::BinaryOperator *op) {

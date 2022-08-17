@@ -6,7 +6,7 @@
 # the LICENSE file found in the root directory of this source tree.
 #
 
-name: Build-Test-Release
+name: Build & Test
 
 on:
   push:
@@ -214,31 +214,3 @@ jobs:
           name: vast-${{ matrix.config.arch }}-${{ matrix.config.os }}
           path: ${{ steps.build_paths.outputs.build }}/package/
           retention-days: 30
-
-  pre-release:
-    if: success() && github.ref == 'refs/heads/master'
-    name: "Pre Release"
-    runs-on: "ubuntu-latest"
-    needs: build
-
-    steps:
-      - name: Clone the vast repository
-        uses: actions/checkout@v3
-        with:
-          path: ./vast
-          fetch-depth: 0
-
-      - name: "Download build artifacts"
-        id: download
-        uses: actions/download-artifact@v3
-
-      - name: "Publish Pre-Release"
-        uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          prerelease: true
-          title: "Development Build"
-          files: |
-            ./vast/LICENSE
-            ${{steps.download.outputs.download-path}}/vast-*/*.tar.xz

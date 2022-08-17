@@ -58,6 +58,7 @@ def HighLevel_TypeDefOp
 
 def HighLevel_EnumConstantOp
   : HighLevel_Op< "enum.const", [NoSideEffect] >
+  , Arguments<(ins StrAttr:$name, APIntAttr:$value)>
 {
   let summary = "VAST enum constant declaration";
   let description = [{
@@ -80,11 +81,6 @@ def HighLevel_EnumConstantOp
     ```
   }];
 
-  let arguments = (ins
-    StrAttr:$name,
-    APIntAttr:$value
-  );
-
   let regions = (region AnyRegion:$init);
 
   let skipDefaultBuilders = 1;
@@ -104,17 +100,14 @@ def EnumRegion : Region< HasOneBlock, "enum constants region" >;
 
 def HighLevel_EnumDeclOp
   : HighLevel_Op< "enum.decl", [NoSideEffect, NoTerminator, VastSymbol] >
+  // TODO(Heno): check integer like type attr
+  , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
 {
   let summary = "VAST enum declaration";
   let description = [{
     Enum declaration serves to declare region for enum constant declarations.
     It also defines an underlying type.
   }];
-
-  let arguments = (ins
-    StrAttr:$name,
-    TypeAttr:$type // TODO(Heno): check integer like type attr
-  );
 
   let regions = (region EnumRegion:$constants);
 
@@ -160,12 +153,12 @@ def HighLevel_UnionDeclOp : HighLevel_RecordLikeDeclOp<"union"> {
 
 def HighLevel_FieldDeclOp
   : HighLevel_Op< "field", [NoSideEffect, VastSymbol] >
-  , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
+  , Arguments<(ins StrAttr:$name, TypeAttr:$type, OptionalAttr<I32Attr>:$bits)>
 {
   let summary = "VAST record field declaration";
   let description = [{ VAST record field declaration }];
 
-  let assemblyFormat = [{ $name attr-dict `:` $type }];
+  let assemblyFormat = [{ $name attr-dict (`bw` $bits^)? `:` $type }];
 }
 
 def HighLevel_RecordMemberOp
@@ -182,17 +175,15 @@ def HighLevel_RecordMemberOp
   }];
 }
 
-def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
+def HighLevel_CallOp
+  : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
+  , Arguments<(ins
+      FlatSymbolRefAttr:$callee,
+      Variadic<AnyType>:$operands)>
+  , Results<(outs AnyType:$result)>
 {
   let summary = "VAST call operation";
   let description = [{ VAST call operation }];
-
-  let arguments = (ins
-    FlatSymbolRefAttr:$callee,
-    Variadic<AnyType>:$operands
-  );
-
-  let results = (outs AnyType:$result);
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -208,28 +199,27 @@ def HighLevel_CallOp : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpIn
   }];
 }
 
-def HighLevel_IndirectCallOp : HighLevel_Op< "indirect_call", [
-  DeclareOpInterfaceMethods<CallOpInterface>,
-  TypesMatchWith<
-    "callee input types match argument types",
-    "callee", "operands",
-    "getFunctionType($_self).getInputs()"
-  >,
-  TypesMatchWith<
-    "callee result type match result type",
-    "callee", "result",
-    "getFunctionType($_self).getResult(0)"
-  >
-] > {
+def HighLevel_IndirectCallOp
+  : HighLevel_Op< "indirect_call", [
+    DeclareOpInterfaceMethods<CallOpInterface>,
+    TypesMatchWith<
+      "callee input types match argument types",
+      "callee", "operands",
+      "getFunctionType($_self).getInputs()"
+    >,
+    TypesMatchWith<
+      "callee result type match result type",
+      "callee", "result",
+      "getFunctionType($_self).getResult(0)"
+    >
+  ]>
+  , Arguments<(ins
+      PointerLikeType:$callee,
+      Variadic<AnyType>:$operands)>
+  , Results<(outs AnyType:$result)>
+{
   let summary = "VAST call operation";
   let description = [{ VAST call operation }];
-
-  let arguments = (ins
-    PointerLikeType:$callee,
-    Variadic<AnyType>:$operands
-  );
-
-  let results = (outs AnyType:$result);
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -247,12 +237,12 @@ def HighLevel_IndirectCallOp : HighLevel_Op< "indirect_call", [
 
 def HighLevel_ExprOp
   : HighLevel_Op< "expr", [RecursiveSideEffects, SingleBlock] >
+  , Results<(outs AnyType:$result)>
 {
   let summary = "VAST expression";
   let description = [{ VAST expression }];
 
   let regions = (region SizedRegion<1>:$subexpr);
-  let results = (outs AnyType:$result);
 
   let skipDefaultBuilders = 1;
   let builders = [ OpBuilder<(ins "Type":$rty, "std::unique_ptr< Region > &&":$region)> ];
@@ -264,9 +254,8 @@ def HighLevel_ExprOp
 
 def HighLevel_ReturnOp
   : HighLevel_Op< "return", [Terminator, NoSideEffect] >
+  , Arguments<(ins Variadic<AnyType>:$result)>
 {
-  let arguments = (ins Variadic<AnyType>:$result);
-
   let assemblyFormat = "($result^ `:` type($result))? attr-dict";
 
   // Allow building a ReturnOp with no return operand.
@@ -535,12 +524,11 @@ def CastKind : CastKindList< "CastKind", "cast kind", [
 
 class HighLevel_CastOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
+    , Arguments<(ins AnyType:$value, CastKind:$kind)>
+    , Results<(outs AnyType:$result)>
 {
     let summary = "VAST cast operation";
     let description = [{ VAST cast operation }];
-
-    let arguments = (ins AnyType:$value, CastKind:$kind);
-    let results = (outs AnyType:$result);
 
     let assemblyFormat = "$value $kind attr-dict `:` type($value) `->` type($result)";
 }
@@ -550,32 +538,71 @@ def HighLevel_CStyleCastOp     : HighLevel_CastOp< "cstyle_cast", [] >;
 def HighLevel_BuiltinBitCastOp : HighLevel_CastOp< "builtin_bitcast", [] >;
 
 
-def HighLevel_AddIOp : HighLevel_BinOp< "add", [Commutative]>;
-def HighLevel_AddFOp : HighLevel_BinOp<"fadd", []>;
-def HighLevel_SubIOp : HighLevel_BinOp< "sub", []>;
-def HighLevel_SubFOp : HighLevel_BinOp<"fsub", []>;
-def HighLevel_MulIOp : HighLevel_BinOp< "mul", [Commutative]>;
-def HighLevel_MulFOp : HighLevel_BinOp<"fmul", []>;
-def HighLevel_DivSOp : HighLevel_BinOp<"sdiv", []>;
-def HighLevel_DivUOp : HighLevel_BinOp<"udiv", []>;
-def HighLevel_DivFOp : HighLevel_BinOp<"fdiv", []>;
-def HighLevel_RemSOp : HighLevel_BinOp<"srem", []>;
-def HighLevel_RemUOp : HighLevel_BinOp<"urem", []>;
-def HighLevel_RemFOp : HighLevel_BinOp<"frem", []>;
+class HighLevel_ArithBinOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
+    , Arguments<(ins AnyType:$lhs, AnyType:$rhs)>
+    , Results<(outs AnyType:$result)>
+{
+    let summary = "VAST arithmetic binary operation";
+    let description = [{
+        High-level arithmetic binary operation. This operation takes two operands
+        and returns one result, each of these is required to be of the same
+        type.
 
-def HighLevel_BinXorOp : HighLevel_BinOp<"bin.xor", []>;
-def HighLevel_BinOrOp : HighLevel_BinOp<"bin.or", []>;
-def HighLevel_BinAndOp : HighLevel_BinOp<"bin.and", []>;
-def HighLevel_BinLAndOp : HighLevel_BinOp<"bin.land", []>;
-def HighLevel_BinLOrOp : HighLevel_BinOp<"bin.lor", []>;
+        The custom assembly form of the operation is as follows:
+
+        %result = <op> %lhs, %rhs  : type
+    }];
+
+    let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` type($result) }];
+}
+
+def HighLevel_AddIOp : HighLevel_ArithBinOp< "add", [Commutative]>;
+def HighLevel_AddFOp : HighLevel_ArithBinOp<"fadd", []>;
+def HighLevel_SubIOp : HighLevel_ArithBinOp< "sub", []>;
+def HighLevel_SubFOp : HighLevel_ArithBinOp<"fsub", []>;
+def HighLevel_MulIOp : HighLevel_ArithBinOp< "mul", [Commutative]>;
+def HighLevel_MulFOp : HighLevel_ArithBinOp<"fmul", []>;
+def HighLevel_DivSOp : HighLevel_ArithBinOp<"sdiv", []>;
+def HighLevel_DivUOp : HighLevel_ArithBinOp<"udiv", []>;
+def HighLevel_DivFOp : HighLevel_ArithBinOp<"fdiv", []>;
+def HighLevel_RemSOp : HighLevel_ArithBinOp<"srem", []>;
+def HighLevel_RemUOp : HighLevel_ArithBinOp<"urem", []>;
+def HighLevel_RemFOp : HighLevel_ArithBinOp<"frem", []>;
+
+def HighLevel_BinXorOp : HighLevel_ArithBinOp<"bin.xor", []>;
+def HighLevel_BinOrOp  : HighLevel_ArithBinOp< "bin.or", []>;
+def HighLevel_BinAndOp : HighLevel_ArithBinOp<"bin.and", []>;
+
+
+class HighLevel_LogicBinOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
+    , Arguments<(ins AnyType:$lhs, AnyType:$rhs)>
+    , Results<(outs AnyType:$result)>
+{
+    let summary = "VAST logical binary operation";
+    let description = [{
+        High-level logical binary operation. This operation takes two operands
+        and returns one result, each of these is required to be of the same
+        type.
+
+        The custom assembly form of the operation is as follows:
+
+        %result = <op> %lhs, %rhs  : type
+    }];
+
+    let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` functional-type(operands, results) }];
+}
+
+def HighLevel_BinLAndOp : HighLevel_LogicBinOp<"bin.land", []>;
+def HighLevel_BinLOrOp  : HighLevel_LogicBinOp< "bin.lor", []>;
 
 def HighLevel_BinComma
-    : HighLevel_Op< "bin.comma", [NoSideEffect] >
+  : HighLevel_Op< "bin.comma", [NoSideEffect] >
+  , Arguments<(ins AnyType:$lhs, AnyType:$rhs)>
+  , Results<(outs AnyType:$result)>
 {
     let summary = "VAST binary operation";
-
-    let arguments = (ins AnyType:$lhs, AnyType:$rhs);
-    let results = (outs AnyType:$result);
 
     let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` functional-type(operands, results) }];
 }
@@ -584,6 +611,8 @@ class HighLevel_ShiftOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
         NoSideEffect, AllTypesMatch<["lhs", "result"]>
     ])>
+    , Arguments<(ins IntegerLikeType:$lhs, IntegerLikeType:$rhs)>
+    , Results<(outs IntegerLikeType:$result)>
 {
     let summary = "VAST binary shift operation";
     let description = [{
@@ -594,9 +623,6 @@ class HighLevel_ShiftOp< string mnemonic, list< Trait > traits = [] >
 
         %result = <op> %lhs, %rhs  : functional-type(operands, results)
     }];
-
-    let arguments = (ins IntegerLikeType:$lhs, IntegerLikeType:$rhs);
-    let results = (outs IntegerLikeType:$result);
 
     let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` functional-type(operands, results) }];
 }
@@ -612,6 +638,8 @@ class HighLevel_CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, 
       >,
       AllTypesMatch< ["src", "result"] >
     ])>
+    , Arguments<(ins Type:$src, LValueOf<Type>:$dst)>
+    , Results<(outs Type:$result)>
 {
     let summary = "VAST compound assign operation";
     let description = [{
@@ -627,9 +655,6 @@ class HighLevel_CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, 
 
         dst =<op> src;
     }];
-
-    let arguments = (ins Type:$src, LValueOf<Type>:$dst);
-    let results = (outs Type:$result);
 
     let skipDefaultBuilders = 1;
     let builders = [ OpBuilder<(ins "Value":$dst, "Value":$src), [{
@@ -693,21 +718,58 @@ def Predicate : PredicateList< "Predicate", "comparison predicate", [
 ] >;
 
 
-def HighLevel_CmpOp : HighLevel_Op< "cmp", [NoSideEffect, SameTypeOperands, Commutative] >
+def HighLevel_CmpOp
+  : HighLevel_Op< "cmp", [NoSideEffect, SameTypeOperands, Commutative] >
+  , Arguments<(ins Predicate:$predicate, AnyType:$lhs, AnyType:$rhs)>
+  , Results<(outs IntOrBoolType:$result)>
 {
   let summary = "VAST comparison operation";
   let description = [{ VAST comparison operation }];
 
-  let arguments = (ins Predicate:$predicate, AnyType:$lhs, AnyType:$rhs);
-  let results = (outs IntOrBoolType:$result);
-
   let assemblyFormat = "$predicate type($lhs) $lhs `,` $rhs  attr-dict `->` type($result)";
+}
+
+
+class HighLevel_UnInplaceOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [SameOperandsAndResultType]) >
+    , Arguments<(ins AnyType:$arg)>
+    , Results<(outs AnyType:$result)>
+{
+    let summary = "VAST unary inplace operation";
+    let description = [{
+        Inplace high-level unary operation changes its single argument in place.
+        It does not produce a new value.
+
+        The custom assembly form of the operation is as follows:
+
+        %result = <op> %arg : type
+    }];
+
+    let assemblyFormat = [{ $arg attr-dict `:` type($result) }];
 }
 
 def HighLevel_PostIncOp : HighLevel_UnInplaceOp< "post.inc", [] >;
 def HighLevel_PostDecOp : HighLevel_UnInplaceOp< "post.dec", [] >;
 def HighLevel_PreIncOp  : HighLevel_UnInplaceOp<  "pre.inc", [] >;
 def HighLevel_PreDecOp  : HighLevel_UnInplaceOp<  "pre.dec", [] >;
+
+class HighLevel_TypePreservingUnOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
+    , Arguments<(ins AnyType:$arg)>
+    , Results<(outs AnyType:$result)>
+{
+    let summary = "VAST unary type preserving operation";
+    let description = [{
+        Type preserving high-level unary operation assures that argument and
+        result has the same type.
+
+        The custom assembly form of the operation is as follows:
+
+        %result = <op> %arg : type
+    }];
+
+    let assemblyFormat = [{ $arg attr-dict `:` type($result) }];
+}
 
 def HighLevel_PlusOp  : HighLevel_TypePreservingUnOp< "plus", [] >;
 def HighLevel_MinusOp : HighLevel_TypePreservingUnOp< "minus", [] >;
@@ -738,29 +800,26 @@ def HighLevel_Deref
     let assemblyFormat = [{ $addr attr-dict `:` type($addr) `->` type($result) }];
 }
 
-def HighLevel_InitListExpr : HighLevel_Op< "initlist",
-  [NoSideEffect]
-> {
+def HighLevel_InitListExpr
+  : HighLevel_Op< "initlist", [NoSideEffect] >
+  , Arguments<(ins Variadic<AnyType>:$elements)>
+  , Results<(outs Variadic<AnyType>)>
+{
   let summary = "VAST initializer list expression";
   let description = [{ VAST initializer list expression }];
-
-  let arguments = (ins Variadic<AnyType>:$elements);
-  let results = (outs Variadic<AnyType>);
 
   let assemblyFormat = "$elements attr-dict `:` functional-type($elements, results)";
 }
 
-def HighLevel_SubscriptOp : HighLevel_Op< "subscript" >
+def HighLevel_SubscriptOp
+  : HighLevel_Op< "subscript" >
+  , Arguments<(ins
+      LValueOf<SubscriptableType>:$array,
+      IntegerLikeType:$index)>
+  , Results<(outs LValueOf<AnyType>:$result)>
 {
   let summary = "VAST array subscript operator";
   let description = [{ VAST array subscript operator }];
-
-  let arguments = (ins
-    LValueOf<SubscriptableType>:$array,
-    IntegerLikeType:$index
-  );
-
-  let results = (outs LValueOf<AnyType>:$result);
 
   let assemblyFormat = [{
     $array `at` ` ` `[` $index `:` type($index) `]` attr-dict
@@ -770,10 +829,9 @@ def HighLevel_SubscriptOp : HighLevel_Op< "subscript" >
 
 class HighLevel_TypeTraitOp< string mnemonic, list< Trait > traits = [] >
   : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
+  , Arguments<(ins TypeAttr:$type)>
+  , Results<(outs IntegerLikeType:$result)>
 {
-  let arguments = (ins TypeAttr:$type);
-  let results   = (outs IntegerLikeType:$result);
-
   let assemblyFormat = [{ $type attr-dict `->` type($result) }];
 }
 
@@ -789,9 +847,9 @@ def HighLevel_AlignOfTypeOp : HighLevel_TypeTraitOp< "alignof.type" > {
 
 class HighLevel_ExprTraitOp< string mnemonic, list< Trait > traits = [] >
   : HighLevel_Op< mnemonic, !listconcat(traits, [RecursiveSideEffects]) >
+  , Results<(outs IntegerLikeType:$result)>
 {
   let regions = (region SizedRegion<1>:$expr);
-  let results = (outs IntegerLikeType:$result);
 
   let skipDefaultBuilders = 1;
   let builders = [
