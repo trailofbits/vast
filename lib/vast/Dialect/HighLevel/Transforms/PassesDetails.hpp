@@ -10,6 +10,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/Pass/Pass.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Dialect/LowLevel/LowLevelDialect.hpp"
+
 #include <memory>
 
 namespace vast::hl
