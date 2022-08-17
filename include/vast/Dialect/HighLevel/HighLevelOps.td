@@ -158,7 +158,7 @@ def HighLevel_FieldDeclOp
   let summary = "VAST record field declaration";
   let description = [{ VAST record field declaration }];
 
-  let assemblyFormat = [{ $name attr-dict (`:` $bits^)? `:` $type }];
+  let assemblyFormat = [{ $name attr-dict (`bw` $bits^)? `:` $type }];
 }
 
 def HighLevel_RecordMemberOp
