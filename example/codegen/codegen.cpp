@@ -32,10 +32,11 @@ int main(int argc, char **argv) {
     mlir::registerAllDialects(registry);
     mlir::MLIRContext ctx(registry);
 
-    // generate ir for ast declaration
-    vast::hl::DefaultCodeGen codegen(&ctx);
-
     auto &actx = ast->getASTContext();
+
+    // generate ir for ast declaration
+    vast::hl::DefaultCodeGen codegen(&actx, &ctx);
+
     auto tu = actx.getTranslationUnitDecl();
 
     for (const auto &decl : tu->decls()) {
