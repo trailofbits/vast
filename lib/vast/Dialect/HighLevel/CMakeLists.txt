@@ -16,7 +16,9 @@ add_mlir_dialect_library(MLIRHighLevel
     MLIRHighLevelEnumsIncGen
 
     LINK_LIBS PUBLIC
+
     MLIRIR
+    MLIRSupport
     MLIRSideEffectInterfaces
 
     MLIRCallInterfaces
