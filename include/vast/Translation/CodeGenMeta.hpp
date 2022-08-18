@@ -41,7 +41,7 @@ namespace vast::hl
         {}
 
         DefaultMeta get(const clang::FullSourceLoc &loc) const {
-            auto file = loc.getFileEntry()->getName();
+            auto file = loc.getFileEntry() ? loc.getFileEntry()->getName() : "unknown";
             auto line = loc.getLineNumber();
             auto col  = loc.getColumnNumber();
             return { mlir::FileLineColLoc::get(mctx, file, line, col) };
