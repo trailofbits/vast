@@ -7,7 +7,7 @@
 
 namespace vast::hl {
 
-    template< MetaGeneratorLike MetaGenerator = DefaultMetaGenerator >
+    template< MetaGeneratorLike MetaGenerator >
     struct CodeGenVisitorBase
     {
         CodeGenVisitorBase(CodeGenContext &ctx, MetaGenerator &meta)
@@ -18,7 +18,7 @@ namespace vast::hl {
         MetaGenerator &meta;
     };
 
-    template< MetaGeneratorLike MetaGenerator = DefaultMetaGenerator >
+    template< MetaGeneratorLike MetaGenerator >
     struct CodeGenVisitorBaseWithBuilder : CodeGenVisitorBase< MetaGenerator >
     {
         using Base = CodeGenVisitorBase< MetaGenerator >;

@@ -109,24 +109,29 @@ namespace vast::hl
         MetaGenerator &meta;
     };
 
+    template< typename Derived >
+    using DefaultCodeGenVisitorConfig = CodeGenFallBackVisitorMixin< Derived,
+        DefaultCodeGenVisitorMixin,
+        DefaultFallBackVisitorMixin
+    >;
+
+
     //
     // DefaultCodeGen
     //
     // Uses `DefaultMetaGenerator` and `DefaultCodeGenVisitorMixin`
     // with `DefaultFallBack` for the generation.
     //
+    template<
+        template< typename >
+        typename VisitorConfig = DefaultCodeGenVisitorConfig,
+        typename MetaGenerator = DefaultMetaGenerator
+    >
     struct DefaultCodeGen
     {
-        template< typename Derived >
-        using VisitorConfig = CodeGenFallBackVisitorMixin< Derived,
-            DefaultCodeGenVisitorMixin,
-            DefaultFallBackVisitorMixin
-        >;
-
-        using Visitor = CodeGenVisitor< VisitorConfig >;
+        using Visitor = CodeGenVisitor< VisitorConfig, MetaGenerator >;
 
         using Base = CodeGenBase< Visitor >;
-        using MetaGenerator = Visitor::MetaGeneratorType;
 
         DefaultCodeGen(AContext *actx, MContext *mctx)
             : meta(actx, mctx), codegen(mctx, meta)
@@ -143,5 +148,7 @@ namespace vast::hl
         MetaGenerator meta;
         CodeGenBase< Visitor > codegen;
     };
+
+    using CodeGenWithMetaIDs = DefaultCodeGen< DefaultCodeGenVisitorConfig, IDMetaGenerator >;
 
 } // namespace vast::hl
