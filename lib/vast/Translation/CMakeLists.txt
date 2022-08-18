@@ -11,6 +11,7 @@ target_link_libraries( vast_translation_api
         clangASTMatchers
         clangBasic
 
+        MLIRMeta
         MLIRHighLevel
         MLIRSupport
 
