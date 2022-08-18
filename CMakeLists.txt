@@ -176,6 +176,7 @@ if (VAST_INSTALL)
     vast_settings
     vast_translation_api
 
+    MLIRMeta
     MLIRHighLevel
 
     VASTSymbolInterface
