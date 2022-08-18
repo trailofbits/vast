@@ -82,4 +82,32 @@ namespace vast::hl
         MContext *mctx;
     };
 
+    struct IDMetaGenerator {
+        IDMetaGenerator(AContext *actx, MContext *mctx)
+            : actx(actx), mctx(mctx)
+        {}
+
+        mlir::Location make_location(meta::IdentifierAttr id) const {
+            auto dummy = mlir::UnknownLoc::get(mctx);
+            return mlir::FusedLoc::get( { dummy }, id, mctx );
+        }
+
+        mlir::Location make_location(meta::identifier_t id) const {
+            return make_location(meta::IdentifierAttr::get(mctx, id));
+        }
+
+        DefaultMeta get_impl(auto token) const { return { make_location(counter++) }; }
+
+        DefaultMeta get(const clang::Decl *decl) const { return get_impl(decl); }
+        DefaultMeta get(const clang::Stmt *stmt) const { return get_impl(stmt); }
+        DefaultMeta get(const clang::Expr *expr) const { return get_impl(expr); }
+        DefaultMeta get(const clang::Type *type) const { return get_impl(type); }
+        DefaultMeta get(clang::QualType type) const { return get_impl(type); }
+
+        mutable meta::identifier_t counter = 0;
+
+        AContext *actx;
+        MContext *mctx;
+    };
+
 } // namespace vast::hl
