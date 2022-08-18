@@ -40,11 +40,7 @@ namespace vast::hl
     //
     // `MetaGenerator` takes care of attaching location metadata to generated mlir primitives.
     //
-    template<
-        template< typename >
-        class CodeGenVisitorMixin       = DefaultCodeGenVisitorMixin,
-        MetaGeneratorLike MetaGenerator = DefaultMetaGenerator
-    >
+    template< template< typename > class CodeGenVisitorMixin, MetaGeneratorLike MetaGenerator >
     struct CodeGenVisitor
         : CodeGenVisitorMixin< CodeGenVisitor< CodeGenVisitorMixin, MetaGenerator > >
         , CodeGenVisitorBaseWithBuilder< MetaGenerator >
@@ -59,9 +55,5 @@ namespace vast::hl
 
         using MixinType::Visit;
     };
-
-    using DefaultCodeGenVisitor = CodeGenVisitor<
-        DefaultCodeGenVisitorMixin, DefaultMetaGenerator
-    >;
 
 } // namespace vast::hl
