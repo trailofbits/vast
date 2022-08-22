@@ -779,7 +779,9 @@ namespace vast::hl {
 
         // Operation* VisitVAArgExpr(const clang::VAArgExpr *expr)
 
-        // Operation* VisitNullStmt(const clang::NullStmt *expr)
+        Operation* VisitNullStmt(const clang::NullStmt *stmt) {
+            return make< NullStmt >(meta_location(stmt));
+        }
 
         //
         // Literals
