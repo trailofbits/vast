@@ -310,10 +310,12 @@ def HighLevel_LabelStmt
   let assemblyFormat = [{ $name attr-dict $substmt }];
 }
 
-def HighLevel_NullStmt : ControlFlowOp< "NullStmt" >
+def HighLevel_SkipStmt : ControlFlowOp< "skip" >
 {
-  let summary = "VAST null statement";
-  let description = [{ VAST null statement }];
+  let summary = "VAST skip statement";
+  let description = [{ VAST skip statement }];
+
+  let assemblyFormat = [{ attr-dict }];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
