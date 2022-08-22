@@ -293,4 +293,10 @@ def HighLevel_DefaultOp : ControlFlowOp< "default" >
   let assemblyFormat = [{ $body attr-dict }];
 }
 
+def HighLevel_NullStmt : ControlFlowOp< "NullStmt" >
+{
+  let summary = "VAST null statement";
+  let description = [{ VAST null statement }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
