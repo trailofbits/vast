@@ -613,7 +613,11 @@ namespace vast::hl {
 
         // Operation* VisitGotoStmt(const clang::GotoStmt *stmt)
         // Operation* VisitIndirectGotoStmt(const clang::IndirectGotoStmt *stmt)
-        // Operation* VisitLabelStmt(const clang::LabelStmt *stmt)
+
+        Operation* VisitLabelStmt(const clang::LabelStmt *stmt) {
+            auto sub_builder = make_region_builder(stmt->getSubStmt());
+            return make< LabelStmt >(meta_location(stmt), stmt->getName(), sub_builder);
+        }
 
         Operation* VisitIfStmt(const clang::IfStmt *stmt) {
             return this->template make_operation< IfOp >()

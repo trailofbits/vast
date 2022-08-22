@@ -295,6 +295,16 @@ namespace vast::hl
         detail::build_region(bld, st, body);
     }
 
+    void LabelStmt::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback substmt)
+    {
+        st.addAttribute("name", bld.getStringAttr(name));
+
+        assert(substmt && "the builder callback for 'substmt' block must be present");
+        Builder::InsertionGuard guard(bld);
+
+        detail::build_region(bld, st, substmt);
+    }
+
     mlir::Operation* build_constant(Builder &builder, Attribute value, Type type, Location loc)
     {
         if (type.isa< BoolType >()) {

@@ -293,6 +293,23 @@ def HighLevel_DefaultOp : ControlFlowOp< "default" >
   let assemblyFormat = [{ $body attr-dict }];
 }
 
+def HighLevel_LabelStmt
+  : ControlFlowOp< "label" >
+  , Arguments<(ins StrAttr:$name)>
+{
+  let regions = (region SizedRegion<1>:$substmt);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "llvm::StringRef":$name,
+      "BuilderCallback":$substmtBuilder
+    )>
+  ];
+
+  let assemblyFormat = [{ $name attr-dict $substmt }];
+}
+
 def HighLevel_NullStmt : ControlFlowOp< "NullStmt" >
 {
   let summary = "VAST null statement";
