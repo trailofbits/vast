@@ -7,23 +7,14 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/PatternMatch.h>
 #include <mlir/Transforms/GreedyPatternRewriteDriver.h>
 #include <mlir/Transforms/DialectConversion.h>
-#include <mlir/Dialect/LLVMIR/LLVMDialect.h>
-#include <mlir/Conversion/LLVMCommon/TypeConverter.h>
-#include <mlir/Conversion/LLVMCommon/Pattern.h>
 VAST_UNRELAX_WARNINGS
 
 #include "PassesDetails.hpp"
 
-#include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
-#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
-#include "vast/Util/TypeConverter.hpp"
-#include "vast/Util/LLVMTypeConverter.hpp"
 #include "vast/Util/Symbols.hpp"
-
-#include <iostream>
 
 namespace vast::hl
 {
