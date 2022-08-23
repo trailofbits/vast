@@ -20,6 +20,12 @@ namespace vast::util
         State(Op op, typename Op::Adaptor operands, rewriter_t &rewriter)
             : op(op), operands(operands), rewriter(rewriter)
         {}
+
+        static mlir::Block &solo_block(mlir::Region &region)
+        {
+            VAST_ASSERT(region.hasOneBlock());
+            return *region.begin();
+        }
     };
 
     template< typename Op, template< typename > class Impl >
