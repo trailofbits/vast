@@ -295,9 +295,9 @@ namespace vast::hl
         detail::build_region(bld, st, body);
     }
 
-    void LabelStmt::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback substmt)
+    void LabelStmt::build(Builder &bld, State &st, Value label, BuilderCallback substmt)
     {
-        st.addAttribute("name", bld.getStringAttr(name));
+        st.addOperands(label);
 
         assert(substmt && "the builder callback for 'substmt' block must be present");
         Builder::InsertionGuard guard(bld);
