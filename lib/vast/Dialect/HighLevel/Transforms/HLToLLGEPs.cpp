@@ -15,6 +15,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
 #include "vast/Util/Symbols.hpp"
+#include "vast/Util/DialectConversion.hpp"
 
 namespace vast::hl
 {
@@ -32,40 +33,8 @@ namespace vast::hl
         template< typename T >
         struct DoConversion {};
 
-        template< typename Op >
-        struct State
-        {
-            using rewriter_t = mlir::ConversionPatternRewriter;
-
-            Op op;
-            typename Op::Adaptor operands;
-            rewriter_t &rewriter;
-
-            State(Op op, typename Op::Adaptor operands, rewriter_t &rewriter)
-                : op(op), operands(operands), rewriter(rewriter)
-            {}
-        };
-
-
-        template< typename Op >
-        struct BasePattern : mlir::OpConversionPattern< Op >
-        {
-            using parent_t = mlir::OpConversionPattern< Op >;
-            using operation_t = Op;
-            using parent_t::parent_t;
-
-            mlir::LogicalResult matchAndRewrite(
-                    operation_t op,
-                    typename operation_t::Adaptor ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
-            {
-                return DoConversion< operation_t >(op, ops, rewriter).convert();
-            }
-        };
-
-
         template<>
-        struct DoConversion< hl::RecordMemberOp > : State< hl::RecordMemberOp >
+        struct DoConversion< hl::RecordMemberOp > : util::State< hl::RecordMemberOp >
         {
             using State< hl::RecordMemberOp >::State;
 
@@ -153,7 +122,7 @@ namespace vast::hl
 
         };
 
-        using record_member_op = BasePattern< hl::RecordMemberOp >;
+        using record_member_op = util::BasePattern< hl::RecordMemberOp, DoConversion >;
 
     } // namespace pattern
 
