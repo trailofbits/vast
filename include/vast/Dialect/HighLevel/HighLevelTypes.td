@@ -301,6 +301,10 @@ def NamedType : HighLevelType< "Named", [MemRefElementTypeInterface] > {
   let assemblyFormat = "`<` $name `>`";
 }
 
+def LabelType : HighLevelType< "Label" > {
+  let mnemonic = "label";
+}
+
 def SubscriptableType : TypeConstraint<
   Or< [ArrayType.predicate, PointerType.predicate] >, "array like type"
 >;
