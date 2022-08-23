@@ -19,15 +19,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    namespace
-    {
-        mlir::Block &solo_block(mlir::Region &region)
-        {
-            VAST_ASSERT(region.hasOneBlock());
-            return *region.begin();
-        }
-    }
-
     namespace pattern
     {
         template< typename T >
@@ -36,7 +27,7 @@ namespace vast::hl
         template<>
         struct DoConversion< hl::RecordMemberOp > : util::State< hl::RecordMemberOp >
         {
-            using State< hl::RecordMemberOp >::State;
+            using util::State< hl::RecordMemberOp >::State;
 
             std::optional< StructDeclOp > get_def(auto op, hl::NamedType named_type) const
             {
@@ -94,7 +85,7 @@ namespace vast::hl
 
             mlir::LogicalResult convert()
             {
-                auto parent_type = this->operands.record().getType();
+                auto parent_type = operands.record().getType();
 
                 auto as_named_type = fetch_record_type(parent_type);
                 if (!as_named_type)
@@ -108,13 +99,12 @@ namespace vast::hl
                 if (!raw_idx)
                     return mlir::failure();
 
-                auto loc = this->op.getLoc();
                 auto gep = rewriter.create< ll::StructGEPOp >(
-                        loc,
-                        this->op.getType(),
-                        this->operands.record(),
+                        op.getLoc(),
+                        op.getType(),
+                        operands.record(),
                         rewriter.getI32IntegerAttr(*raw_idx),
-                        this->op.nameAttr());
+                        op.nameAttr());
                 rewriter.replaceOp( op, { gep } );
 
                 return mlir::success();
