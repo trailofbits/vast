@@ -25,6 +25,9 @@ namespace vast::hl {
         auto derived()       -> Derived      & { return static_cast<Derived&>(*this); }
         auto derived() const -> Derived const& { return static_cast<Derived const&>(*this); }
 
+        //
+        // Contexts
+        //
         auto context()       -> CodeGenContext      & { return derived().ctx; }
         auto context() const -> CodeGenContext const& { return derived().ctx; }
 
@@ -34,6 +37,18 @@ namespace vast::hl {
         auto acontext()       -> AContext      & { return context().actx; }
         auto acontext() const -> AContext const& { return context().actx; }
 
+        //
+        // symbol tables
+        //
+        auto vars()       -> VarTable      & { return context().vars; }
+        auto vars() const -> VarTable const& { return context().vars; }
+
+        auto labels()       -> LabelTable      & { return context().labels; }
+        auto labels() const -> LabelTable const& { return context().labels; }
+
+        //
+        // meta
+        //
         auto &      meta_gen()       { return derived().meta; }
         const auto &meta_gen() const { return derived().meta; }
 

@@ -24,6 +24,9 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
+    using VarTable   = ScopedValueTable< const clang::VarDecl*, Value >;
+    using LabelTable = ScopedValueTable< const clang::LabelDecl*, LabelDeclOp>;
+
     struct CodeGenContext {
         MContext &mctx;
         AContext &actx;
@@ -37,9 +40,8 @@ namespace vast::hl
             , mod(mod)
         {}
 
-        using VarTable = ScopedValueTable< const clang::VarDecl*, Value >;
-
-        VarTable vars;
+        VarTable   vars;
+        LabelTable labels;
 
         ScopedSymbolTable< mlir::FuncOp > functions;
         ScopedSymbolTable< TypeDefOp > type_defs;
@@ -108,9 +110,9 @@ namespace vast::hl
 
         auto error(llvm::Twine msg) { return mod->emitError(msg); }
 
-        template< typename Table, typename ValueType = typename Table::ValueType >
-        ValueType symbol(Table &table, StringRef name, llvm::Twine msg, bool with_error = true) {
-            if (auto val = table.lookup(name))
+        template< typename Table, typename Sym = StringRef, typename ValueType = typename Table::ValueType >
+        ValueType symbol(Table &table, Sym sym, llvm::Twine msg, bool with_error = true) {
+            if (auto val = table.lookup(sym))
                 return val;
             if (with_error)
                 error(msg);
@@ -119,6 +121,10 @@ namespace vast::hl
 
         mlir::FuncOp lookup_function(StringRef name, bool with_error = true) {
             return symbol(functions, name, "error: undeclared function '" + name + "'", with_error);
+        }
+
+        LabelDeclOp lookup_label(const clang::LabelDecl *decl, bool with_error = true) {
+            return symbol(labels, decl, "error: unknown label declaration '" + decl->getName() + "'", with_error);
         }
 
         TypeDeclOp lookup_typedecl(StringRef name, bool with_error = true) {
