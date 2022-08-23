@@ -30,6 +30,9 @@ namespace vast::hl {
         using LensType::mcontext;
         using LensType::acontext;
 
+        using LensType::vars;
+        using LensType::labels;
+
         using LensType::meta_location;
 
         using LensType::visit;
@@ -43,10 +46,15 @@ namespace vast::hl {
         using Builder::set_insertion_point_to_start;
         using Builder::set_insertion_point_to_end;
 
+        using Builder::get_current_function;
+
         using Builder::constant;
 
         using Builder::define_type;
         using Builder::declare_type;
+
+        using Builder::declare_label;
+
         using Builder::declare_enum;
         using Builder::declare_enum_constant;
 
@@ -71,7 +79,8 @@ namespace vast::hl {
                 return fn;
             }
 
-            llvm::ScopedHashTableScope scope(context().vars);
+            llvm::ScopedHashTableScope variables_scope(vars());
+            llvm::ScopedHashTableScope labels_scope(labels());
 
             auto loc  = meta_location(decl);
             auto type = visit(decl->getFunctionType()).template cast< mlir::FunctionType >();
@@ -96,7 +105,7 @@ namespace vast::hl {
                 // argument list as the function itself.
                 auto params = llvm::zip(decl->getDefinition()->parameters(), entry->getArguments());
                 for (const auto &[arg, earg] : params) {
-                    if (failed(context().vars.declare(arg, earg)))
+                    if (failed(vars().declare(arg, earg)))
                         context().error("error: multiple declarations of a same symbol" + arg->getName());
                 }
 
@@ -184,7 +193,7 @@ namespace vast::hl {
                 var.setThreadStorageClass(tsc);
             }
 
-            if (failed(context().vars.declare(decl, var))) {
+            if (failed(vars().declare(decl, var))) {
                 context().error("error: multiple declarations of a same symbol " + decl->getName());
             }
 
@@ -192,7 +201,7 @@ namespace vast::hl {
         }
 
         Operation* VisitParmVarDecl(const clang::ParmVarDecl *decl) {
-            if (auto var = context().vars.lookup(decl))
+            if (auto var = vars().lookup(decl))
                 return var.getDefiningOp();
             context().error("error: missing parameter declaration " + decl->getName());
             return nullptr;
@@ -278,7 +287,12 @@ namespace vast::hl {
 
         // Operation* VisitTypeAliasDecl(const clang::TypeAliasDecl *decl)
 
-        // Operation* VisitLabelDecl(const clang::LabelDecl *decl)
+        Operation* VisitLabelDecl(const clang::LabelDecl *decl) {
+            InsertionGuard guard(op_builder());
+            auto fn = get_current_function();
+            set_insertion_point_to_start(&fn.getRegion());
+            return declare_label(meta_location(decl), decl);
+        }
 
         //
         // Enum Declarations

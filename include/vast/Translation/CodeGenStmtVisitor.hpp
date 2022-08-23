@@ -32,6 +32,9 @@ namespace vast::hl {
         using LensType::context;
         using LensType::mcontext;
 
+        using LensType::vars;
+        using LensType::labels;
+
         using LensType::meta_location;
 
         using LensType::visit;
@@ -473,7 +476,7 @@ namespace vast::hl {
         }
 
         VarDecl getDefiningOpOfGlobalVar(const clang::VarDecl *decl) {
-            return context().vars.lookup(decl).template getDefiningOp< VarDecl >();
+            return vars().lookup(decl).template getDefiningOp< VarDecl >();
         }
 
         Operation* VisitEnumDeclRefExpr(const clang::DeclRefExpr *expr) {
@@ -490,7 +493,7 @@ namespace vast::hl {
 
         Operation* VisitVarDeclRefExpr(const clang::DeclRefExpr *expr) {
             auto decl = getDeclForVarRef(expr);
-            return VisitVarDeclRefExprImpl(expr, context().vars.lookup(decl));
+            return VisitVarDeclRefExprImpl(expr, vars().lookup(decl));
         }
 
         Operation* VisitFileVarDeclRefExpr(const clang::DeclRefExpr *expr) {
@@ -611,12 +614,16 @@ namespace vast::hl {
             return make_loop_op();
         }
 
-        // Operation* VisitGotoStmt(const clang::GotoStmt *stmt)
+        Operation* VisitGotoStmt(const clang::GotoStmt *stmt) {
+            auto lab = visit(stmt->getLabel())->getResult(0);
+            return make< GotoStmt >(meta_location(stmt), lab);
+        }
         // Operation* VisitIndirectGotoStmt(const clang::IndirectGotoStmt *stmt)
 
         Operation* VisitLabelStmt(const clang::LabelStmt *stmt) {
+            auto lab = visit(stmt->getDecl())->getResult(0);
             auto sub_builder = make_region_builder(stmt->getSubStmt());
-            return make< LabelStmt >(meta_location(stmt), stmt->getName(), sub_builder);
+            return make< LabelStmt >(meta_location(stmt), lab, sub_builder);
         }
 
         Operation* VisitIfStmt(const clang::IfStmt *stmt) {

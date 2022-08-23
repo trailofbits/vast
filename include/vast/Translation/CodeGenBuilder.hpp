@@ -99,9 +99,16 @@ namespace vast::hl {
 
         using LensType::visit;
 
+        using LensType::labels;
+
         auto op_builder() -> mlir::OpBuilder & { return derived()._builder; }
 
         auto builder() -> CodeGenBuilderHandle { return { op_builder() }; }
+
+        mlir::FuncOp get_current_function() {
+            auto reg = op_builder().getBlock()->getParent();
+            return reg->template getParentOfType< mlir::FuncOp >();
+        }
 
         void set_insertion_point_to_start(mlir::Region *region) {
             op_builder().setInsertionPointToStart(&region->front());
@@ -239,6 +246,18 @@ namespace vast::hl {
             VAST_CHECK(ty.isa< ArrayType >(), "string constant must have array type");
             auto attr = mlir::StringAttr::get(value, ty);
             return create< ConstantStringOp >(loc, ty.cast< ArrayType >(), attr);
+        }
+
+        LabelDeclOp declare_label(mlir::Location loc, const clang::LabelDecl *label) {
+            if (auto decl = context().lookup_label(label, false /* no error */)) {
+                return decl;
+            }
+
+            auto decl = create< LabelDeclOp >(loc, label->getName());
+            if (failed(labels().declare(label, decl))) {
+                context().error("error: multiple label declarations with the same origin");
+            }
+            return decl;
         }
 
         TypeDeclOp declare_type(mlir::Location loc, llvm::StringRef name) {
