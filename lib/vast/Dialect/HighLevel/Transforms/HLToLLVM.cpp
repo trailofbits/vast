@@ -81,13 +81,14 @@ namespace vast::hl
             }
         };
 
-        struct translation_unit : BasePattern< hl::TranslationUnitOp >
+        template< typename Op >
+        struct inline_region_from_op : BasePattern< Op >
         {
-            using Base = BasePattern< hl::TranslationUnitOp >;
+            using Base = BasePattern< Op >;
             using Base::Base;
 
             mlir::LogicalResult matchAndRewrite(
-                    hl::TranslationUnitOp unit_op, hl::TranslationUnitOp::Adaptor ops,
+                    Op unit_op, typename Op::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
                 auto parent = unit_op.getBody().getParentRegion();
@@ -101,6 +102,9 @@ namespace vast::hl
                 return mlir::success();
             }
         };
+
+        using translation_unit = inline_region_from_op< hl::TranslationUnitOp >;
+        using scope = inline_region_from_op< hl::ScopeOp >;
 
         struct func_op : BasePattern< FuncOp >
         {
@@ -557,6 +561,7 @@ namespace vast::hl
 
         mlir::RewritePatternSet patterns(&mctx);
         patterns.add< pattern::translation_unit >(type_converter);
+        patterns.add< pattern::scope >(type_converter);
         patterns.add< pattern::func_op >(type_converter);
         patterns.add< pattern::var >(type_converter);
         patterns.add< pattern::constant_int >(type_converter);
