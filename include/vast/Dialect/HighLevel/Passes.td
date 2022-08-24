@@ -96,7 +96,7 @@ def HLStructsToTuples : Pass<"vast-hl-structs-to-tuples", "mlir::ModuleOp"> {
 }
 
 
-def HLStructsToLLVM : Pass<"vast-hl-structs-to-llvms", "mlir::ModuleOp"> {
+def HLStructsToLLVM : Pass<"vast-hl-structs-to-llvm", "mlir::ModuleOp"> {
   let summary = "Transform hl.struct into llvm types without applying ABI conversions.";
   let description = [{
     This pass is still a work in progress.
