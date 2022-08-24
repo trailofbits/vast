@@ -63,6 +63,15 @@ namespace vast::hl {
             return this->template create< Op >(std::forward< Args >(args)...);
         }
 
+        template< typename T >
+        void filter(const auto &decls, auto &&yield) {
+            for ( auto decl : decls) {
+                if (auto s = clang::dyn_cast< T >(decl)) {
+                    yield(s);
+                }
+            }
+        }
+
         Operation* VisitFunctionDecl(const clang::FunctionDecl *decl) {
             InsertionGuard guard(op_builder());
 
@@ -80,7 +89,6 @@ namespace vast::hl {
             }
 
             llvm::ScopedHashTableScope variables_scope(vars());
-            llvm::ScopedHashTableScope labels_scope(labels());
 
             auto loc  = meta_location(decl);
             auto type = visit(decl->getFunctionType()).template cast< mlir::FunctionType >();
@@ -108,6 +116,12 @@ namespace vast::hl {
                     if (failed(vars().declare(arg, earg)))
                         context().error("error: multiple declarations of a same symbol" + arg->getName());
                 }
+
+                // emit label declarations
+                llvm::ScopedHashTableScope labels_scope(labels());
+                filter< clang::LabelDecl >(decl->decls(), [&] (auto lab) {
+                    visit(lab);
+                });
 
                 visit(decl->getBody());
             }
@@ -288,9 +302,6 @@ namespace vast::hl {
         // Operation* VisitTypeAliasDecl(const clang::TypeAliasDecl *decl)
 
         Operation* VisitLabelDecl(const clang::LabelDecl *decl) {
-            InsertionGuard guard(op_builder());
-            auto fn = get_current_function();
-            set_insertion_point_to_start(&fn.getRegion());
             return declare_label(meta_location(decl), decl);
         }
 
