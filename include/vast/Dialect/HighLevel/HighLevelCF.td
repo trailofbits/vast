@@ -315,7 +315,7 @@ def HighLevel_LabelStmt
     )>
   ];
 
-  let assemblyFormat = [{ $label attr-dict $substmt }];
+  let assemblyFormat = [{ $label $substmt attr-dict }];
 }
 
 def HighLevel_GotoStmt
@@ -325,7 +325,7 @@ def HighLevel_GotoStmt
   let assemblyFormat = [{ $label attr-dict }];
 }
 
-def HighLevel_SkipStmt : ControlFlowOp< "skip" >
+def HighLevel_SkipStmt : HighLevel_Op< "skip", [NoSideEffect] >
 {
   let summary = "VAST skip statement";
   let description = [{ VAST skip statement }];
