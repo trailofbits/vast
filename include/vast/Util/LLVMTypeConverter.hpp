@@ -174,4 +174,30 @@ namespace vast::util::tc
         }
     };
 
+    // Requires that the named types *always* map to llvm struct types.
+    // TODO(lukas): What about type aliases.
+    struct FullLLVMTypeConverter : LLVMTypeConverter
+    {
+        using parent_t      = LLVMTypeConverter;
+        using maybe_type_t  = typename parent_t::maybe_type_t;
+        using maybe_types_t = typename parent_t::maybe_types_t;
+
+        template< typename ... Args >
+        FullLLVMTypeConverter(Args && ... args) : parent_t(std::forward< Args >(args) ... )
+        {
+            addConversion([&](hl::NamedType t) { return convert_named_t(t); });
+        }
+
+        maybe_type_t convert_named_t(hl::NamedType t)
+        {
+            auto &mctx = this->getContext();
+            auto name = t.getName().getName();
+            auto raw = mlir::LLVM::LLVMStructType::getIdentified(&mctx, name);
+            if (!raw || raw.getName() != name)
+                return {};
+            return { raw };
+        }
+
+    };
+
 } // namespace vast::util
