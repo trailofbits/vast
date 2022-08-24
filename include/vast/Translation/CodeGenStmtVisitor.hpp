@@ -649,7 +649,12 @@ namespace vast::hl {
         // Operation* VisitAbstractConditionalOperator(const clang::AbstractConditionalOperator *op)
         // Operation* VisitAbstractConditionalOperator(const clang::BinaryConditionalOperator *op)
         // Operation* VisitConditionalOperator(const clang::ConditionalOperator *op)
-        // Operation* VisitAddrLabelExpr(const clang::AddrLabelExpr *expr)
+        Operation* VisitAddrLabelExpr(const clang::AddrLabelExpr *expr) {
+            auto lab = visit(expr->getLabel())->getResult(0);
+            auto rty = visit_as_lvalue_type(expr->getType());
+            return make< AddrLabelExpr >(meta_location(expr), rty, lab);
+        }
+
         Operation* VisitConstantExpr(const clang::ConstantExpr *expr) {
             // TODO(Heno): crete hl.constantexpr
             return visit(expr->getSubExpr());
