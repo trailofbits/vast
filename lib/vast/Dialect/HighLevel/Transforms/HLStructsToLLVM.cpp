@@ -55,6 +55,9 @@ namespace vast::hl
             types_t collect_field_tys(hl::StructDeclOp op) const
             {
                 std::vector< mlir::Type > out;
+                if (op.fields().empty())
+                    return out;
+
                 for (auto &maybe_field : solo_block(op.fields()))
                 {
                     auto field = mlir::dyn_cast< hl::FieldDeclOp >(maybe_field);
