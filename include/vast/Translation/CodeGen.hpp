@@ -52,44 +52,76 @@ namespace vast::hl
     {
         using MetaGenerator = typename CodeGenVisitor::MetaGeneratorType;
 
-        CodeGenBase(MContext *ctx, MetaGenerator &meta)
-            : ctx(ctx), meta(meta)
+        CodeGenBase(MContext *mctx, MetaGenerator &meta)
+            : _mctx(mctx), _meta(meta), _cgctx(nullptr), _module(nullptr)
         {
-            detail::codegen_context_setup(ctx);
+            detail::codegen_context_setup(_mctx);
         }
 
         OwningModuleRef emit_module(clang::ASTUnit *unit) {
-            return emit_module_impl(unit);
+            append_to_module(unit);
+            return freeze();
         }
 
         OwningModuleRef emit_module(clang::Decl *decl) {
-            return emit_module_impl(decl);
+            append_to_module(decl);
+            return freeze();
         }
 
+        void append_to_module(clang::ASTUnit *unit) { append_impl(unit); }
+
+        void append_to_module(clang::Decl *decl) { append_impl(decl); }
+
+        void append_to_module(clang::Stmt *stmt) { append_impl(stmt); }
+
+        void append_to_module(clang::Expr *expr) { append_impl(expr); }
+
+        void append_to_module(clang::Type *type) { append_impl(type); }
+
+        OwningModuleRef freeze() {
+            emit_data_layout(*_mctx, _module, _cgctx->data_layout());
+            return std::move(_module);
+        }
+
+        template< typename From, typename Symbol >
+        using ScopedSymbolTable = llvm::ScopedHashTableScope< From, Symbol >;
+
+        struct CodegenScope {
+            ScopedSymbolTable< StringRef, TypeDefOp >      typedefs;
+            ScopedSymbolTable< StringRef, TypeDeclOp >     typedecls;
+            ScopedSymbolTable< StringRef, EnumDeclOp >     enumdecls;
+            ScopedSymbolTable< StringRef, EnumConstantOp > enumconsts;
+            ScopedSymbolTable< StringRef, mlir::FuncOp >   funcs;
+            ScopedSymbolTable< const clang::VarDecl *, Value > globs;
+        };
+
     private:
-        template< typename AST >
-        OwningModuleRef emit_module_impl(AST *ast) {
+
+        void setup_codegen(AContext &actx) {
+            if (_cgctx)
+                return;
+
             // TODO(Heno): fix module location
-            OwningModuleRef mod = { Module::create(
-                mlir::UnknownLoc::get(ctx)
-            ) };
+            _module = { Module::create(mlir::UnknownLoc::get(_mctx)) };
 
-            CodeGenContext cgctx(*ctx, ast->getASTContext(), mod);
+            _cgctx = std::make_unique< CodeGenContext >(*_mctx, actx, _module);
 
-            llvm::ScopedHashTableScope type_def_scope(cgctx.type_defs);
-            llvm::ScopedHashTableScope type_dec_scope(cgctx.type_decls);
-            llvm::ScopedHashTableScope enum_dec_scope(cgctx.enum_decls);
-            llvm::ScopedHashTableScope enum_constant_scope(cgctx.enum_constants);
-            llvm::ScopedHashTableScope func_scope(cgctx.functions);
-            llvm::ScopedHashTableScope glob_scope(cgctx.vars);
+            _scope = std::unique_ptr< CodegenScope >( new CodegenScope{
+                _cgctx->type_defs,
+                _cgctx->type_decls,
+                _cgctx->enum_decls,
+                _cgctx->enum_constants,
+                _cgctx->functions,
+                _cgctx->vars
+            });
 
-            CodeGenVisitor visitor(cgctx, meta);
+            _visitor = std::make_unique< CodeGenVisitor >(*_cgctx, _meta);
+        }
 
-            process(ast, visitor);
-
-            emit_data_layout(*ctx, mod, cgctx.data_layout());
-            // TODO(Heno): verify module
-            return mod;
+        template< typename AST >
+        void append_impl(AST ast) {
+            setup_codegen(ast->getASTContext());
+            process(ast, *_visitor);
         }
 
         static bool process_root_decl(void * context, const clang::Decl *decl) {
@@ -105,8 +137,14 @@ namespace vast::hl
             visitor.Visit(decl);
         }
 
-        MContext *ctx;
-        MetaGenerator &meta;
+        MContext *_mctx;
+        MetaGenerator &_meta;
+
+        std::unique_ptr< CodeGenContext > _cgctx;
+        std::unique_ptr< CodegenScope >   _scope;
+        std::unique_ptr< CodeGenVisitor > _visitor;
+
+        OwningModuleRef _module;
     };
 
     template< typename Derived >
@@ -114,7 +152,6 @@ namespace vast::hl
         DefaultCodeGenVisitorMixin,
         DefaultFallBackVisitorMixin
     >;
-
 
     //
     // DefaultCodeGen
