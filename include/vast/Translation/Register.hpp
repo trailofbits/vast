@@ -1,5 +1,7 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
+#pragma once
+
 #include <mlir/Support/LogicalResult.h>
 #include <llvm/Support/raw_ostream.h>
 

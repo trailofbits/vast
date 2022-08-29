@@ -1,5 +1,7 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
+#pragma once
+
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DataLayout.hpp"
