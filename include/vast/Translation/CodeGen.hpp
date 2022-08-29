@@ -86,13 +86,20 @@ namespace vast::hl
         template< typename From, typename Symbol >
         using ScopedSymbolTable = llvm::ScopedHashTableScope< From, Symbol >;
 
+        using TypeDefsScope      = ScopedSymbolTable< const clang::TypedefDecl*, TypeDefOp >;
+        using TypeDeclsScope     = ScopedSymbolTable< StringRef, TypeDeclOp >;
+        using EnumDeclsScope     = ScopedSymbolTable< StringRef, EnumDeclOp >;
+        using EnumConstantsScope = ScopedSymbolTable< StringRef, EnumConstantOp >;
+        using FunctionsScope     = ScopedSymbolTable< StringRef, mlir::FuncOp >;
+        using VariablesScope     = ScopedSymbolTable< const clang::VarDecl*, Value >;
+
         struct CodegenScope {
-            ScopedSymbolTable< StringRef, TypeDefOp >      typedefs;
-            ScopedSymbolTable< StringRef, TypeDeclOp >     typedecls;
-            ScopedSymbolTable< StringRef, EnumDeclOp >     enumdecls;
-            ScopedSymbolTable< StringRef, EnumConstantOp > enumconsts;
-            ScopedSymbolTable< StringRef, mlir::FuncOp >   funcs;
-            ScopedSymbolTable< const clang::VarDecl *, Value > globs;
+            TypeDefsScope      typedefs;
+            TypeDeclsScope     typedecls;
+            EnumDeclsScope     enumdecls;
+            EnumConstantsScope enumconsts;
+            FunctionsScope     funcs;
+            VariablesScope     globs;
         };
 
     private:
@@ -107,7 +114,7 @@ namespace vast::hl
             _cgctx = std::make_unique< CodeGenContext >(*_mctx, actx, _module);
 
             _scope = std::unique_ptr< CodegenScope >( new CodegenScope{
-                _cgctx->type_defs,
+                _cgctx->typedefs,
                 _cgctx->type_decls,
                 _cgctx->enum_decls,
                 _cgctx->enum_constants,

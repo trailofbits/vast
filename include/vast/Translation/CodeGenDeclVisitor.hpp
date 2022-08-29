@@ -273,8 +273,6 @@ namespace vast::hl {
         }
 
         Operation* VisitTypedefDecl(const clang::TypedefDecl *decl) {
-            auto name = decl->getName();
-
             auto type = [&]() -> mlir::Type {
                 auto underlying = decl->getUnderlyingType();
                 if (auto fty = clang::dyn_cast< clang::FunctionType >(underlying)) {
@@ -294,7 +292,7 @@ namespace vast::hl {
                 return visit(underlying);
             }();
 
-            auto def = define_type(meta_location(decl), type, name);
+            auto def = define_type(meta_location(decl), type, decl);
             attach_attributes(decl /* from */, def /* to */);
             return def;
         }

@@ -40,11 +40,13 @@ namespace vast::hl
             , mod(mod)
         {}
 
-        VarTable   vars;
-        LabelTable labels;
+        using VarTable = ScopedValueTable< const clang::VarDecl*, Value >;
+        VarTable vars;
+
+        using TypeDefTable = ScopedValueTable< const clang::TypedefDecl*, TypeDefOp >;
+        TypeDefTable typedefs;
 
         ScopedSymbolTable< mlir::FuncOp > functions;
-        ScopedSymbolTable< TypeDefOp > type_defs;
         ScopedSymbolTable< TypeDeclOp > type_decls;
 
         using EnumDecls = ScopedValueTable< StringRef, EnumDeclOp >;
@@ -110,9 +112,9 @@ namespace vast::hl
 
         auto error(llvm::Twine msg) { return mod->emitError(msg); }
 
-        template< typename Table, typename Sym = StringRef, typename ValueType = typename Table::ValueType >
-        ValueType symbol(Table &table, Sym sym, llvm::Twine msg, bool with_error = true) {
-            if (auto val = table.lookup(sym))
+        template< typename Table, typename Token, typename ValueType = typename Table::ValueType >
+        ValueType symbol(Table &table, Token token, llvm::Twine msg, bool with_error = true) {
+            if (auto val = table.lookup(token))
                 return val;
             if (with_error)
                 error(msg);
@@ -131,8 +133,8 @@ namespace vast::hl
             return symbol(type_decls, name, "error: unknown type declaration '" + name + "'", with_error);
         }
 
-        TypeDefOp lookup_typedef(StringRef name, bool with_error = true) {
-            return symbol(type_defs, name, "error: unknown type definition '" + name + "'", with_error);
+        TypeDefOp lookup_typedef(const clang::TypedefDecl *decl, bool with_error = true) {
+            return symbol(typedefs, decl, "error: unknown type definition '" + decl->getName() + "'", with_error);
         }
 
         EnumDeclOp lookup_enum(StringRef name, bool with_error = true) {

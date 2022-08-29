@@ -272,13 +272,13 @@ namespace vast::hl {
             return decl;
         }
 
-        TypeDefOp define_type(mlir::Location loc, mlir::Type type, llvm::StringRef name) {
-            if (auto def = context().lookup_typedef(name, false /* no error */)) {
+        TypeDefOp define_type(mlir::Location loc, mlir::Type type, const clang::TypedefDecl *decl) {
+            if (auto def = context().lookup_typedef(decl, false /* no error */)) {
                 return def;
             }
 
-            auto def = create< TypeDefOp >(loc, name, type);
-            if (failed(context().type_defs.declare(name, def))) {
+            auto def = create< TypeDefOp >(loc, decl->getName(), type);
+            if (failed(context().typedefs.declare(decl, def))) {
                 context().error("error: multiple type definitions with the same name");
             }
 
