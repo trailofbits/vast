@@ -12,7 +12,7 @@ namespace vast::hl
             || kind == DeclContextKind::dc_namespace;
     }
 
-    bool VarDecl::isInFileContext() { return isFileContext(getDeclContextKind()); }
+    bool VarDeclOp::isInFileContext() { return isFileContext(getDeclContextKind()); }
 
     bool isFunctionOrMethodContext(DeclContextKind kind) {
         return kind == DeclContextKind::dc_function
@@ -20,15 +20,15 @@ namespace vast::hl
             || kind == DeclContextKind::dc_capture;
     }
 
-    bool VarDecl::isInFunctionOrMethodContext() {
+    bool VarDeclOp::isInFunctionOrMethodContext() {
         return isFunctionOrMethodContext(getDeclContextKind());
     }
 
     bool isRecordContext(DeclContextKind kind) { return kind == DeclContextKind::dc_record; }
 
-    bool VarDecl::isInRecordContext() { return isRecordContext(getDeclContextKind()); }
+    bool VarDeclOp::isInRecordContext() { return isRecordContext(getDeclContextKind()); }
 
-    DeclContextKind VarDecl::getDeclContextKind() {
+    DeclContextKind VarDeclOp::getDeclContextKind() {
         auto st = mlir::SymbolTable::getNearestSymbolTable(*this);
         if (mlir::isa< mlir::FuncOp >(st))
             return DeclContextKind::dc_function;
@@ -41,18 +41,18 @@ namespace vast::hl
         VAST_UNREACHABLE("unknown declaration context");
     }
 
-    bool VarDecl::isStaticDataMember() {
+    bool VarDeclOp::isStaticDataMember() {
         // If it wasn't static, it would be a FieldDecl.
         return isInRecordContext();
     }
 
-    bool VarDecl::isFileVarDecl() {
+    bool VarDeclOp::isFileVarDecl() {
         return isInFileContext() || isStaticDataMember();
     }
 
-    bool VarDecl::isLocalVarDecl() { return isInFunctionOrMethodContext(); }
+    bool VarDeclOp::isLocalVarDecl() { return isInFunctionOrMethodContext(); }
 
-    bool VarDecl::hasLocalStorage() {
+    bool VarDeclOp::hasLocalStorage() {
         switch (getStorageClass()) {
             case StorageClass::sc_none:
                 return !isFileVarDecl() && getThreadStorageClass() == TSClass::tsc_none;
@@ -64,7 +64,7 @@ namespace vast::hl
         }
     }
 
-    bool VarDecl::isStaticLocal() {
+    bool VarDeclOp::isStaticLocal() {
         if (isFileVarDecl())
             return false;
         auto sc = getStorageClass();
@@ -74,14 +74,14 @@ namespace vast::hl
         return sc == StorageClass::sc_none && tsc == TSClass::tsc_cxx_thread;
     }
 
-    bool VarDecl::hasExternalStorage() {
+    bool VarDeclOp::hasExternalStorage() {
         auto sc = getStorageClass();
         return sc == StorageClass::sc_extern || sc == StorageClass::sc_private_extern;
     }
 
-    bool VarDecl::hasGlobalStorage() { return !hasLocalStorage(); }
+    bool VarDeclOp::hasGlobalStorage() { return !hasLocalStorage(); }
 
-    StorageDuration VarDecl::getStorageDuration() {
+    StorageDuration VarDeclOp::getStorageDuration() {
         if (hasLocalStorage())
             return StorageDuration::sd_automatic;
         if (getThreadStorageClass() != TSClass::tsc_none)

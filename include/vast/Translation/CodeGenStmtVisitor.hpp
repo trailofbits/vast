@@ -475,8 +475,8 @@ namespace vast::hl {
             return clang::cast< clang::VarDecl >(expr->getDecl()->getUnderlyingDecl());
         }
 
-        VarDecl getDefiningOpOfGlobalVar(const clang::VarDecl *decl) {
-            return vars().lookup(decl).template getDefiningOp< VarDecl >();
+        VarDeclOp getDefiningOpOfGlobalVar(const clang::VarDecl *decl) {
+            return context().vars.lookup(decl).template getDefiningOp< VarDeclOp >();
         }
 
         Operation* VisitEnumDeclRefExpr(const clang::DeclRefExpr *expr) {
