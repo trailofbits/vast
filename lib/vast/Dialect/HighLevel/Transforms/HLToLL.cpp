@@ -423,10 +423,10 @@ namespace vast::hl
             return terminator;
         }
 
-        struct var : BasePattern< hl::VarDecl >
+        struct var : BasePattern< hl::VarDeclOp >
         {
-            using Base = BasePattern< hl::VarDecl >;
-            using O = hl::VarDecl;
+            using Base = BasePattern< hl::VarDeclOp >;
+            using O = hl::VarDeclOp;
             using Base::Base;
 
 
@@ -468,7 +468,7 @@ namespace vast::hl
             }
 
             mlir::LogicalResult matchAndRewrite(
-                    hl::VarDecl var_op, hl::VarDecl::Adaptor ops,
+                    hl::VarDeclOp var_op, hl::VarDeclOp::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
                 auto ptr_type = type_converter().convertType(var_op.getType());
