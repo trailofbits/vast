@@ -86,19 +86,19 @@ namespace vast::hl
         template< typename From, typename Symbol >
         using ScopedSymbolTable = llvm::ScopedHashTableScope< From, Symbol >;
 
-        using TypeDefsScope      = ScopedSymbolTable< const clang::TypedefDecl*, TypeDefOp >;
-        using TypeDeclsScope     = ScopedSymbolTable< StringRef, TypeDeclOp >;
-        using EnumDeclsScope     = ScopedSymbolTable< StringRef, EnumDeclOp >;
-        using EnumConstantsScope = ScopedSymbolTable< StringRef, EnumConstantOp >;
-        using FunctionsScope     = ScopedSymbolTable< StringRef, mlir::FuncOp >;
-        using VariablesScope     = ScopedSymbolTable< const clang::VarDecl*, Value >;
+        using TypeDefsScope      = ScopedSymbolTable< const clang::TypedefDecl *, TypeDefOp >;
+        using TypeDeclsScope     = ScopedSymbolTable< const clang::TypeDecl *, TypeDeclOp >;
+        using EnumDeclsScope     = ScopedSymbolTable< const clang::EnumDecl *, EnumDeclOp >;
+        using EnumConstantsScope = ScopedSymbolTable< const clang::EnumConstantDecl *, EnumConstantOp >;
+        using FunctionsScope     = ScopedSymbolTable< const clang::FunctionDecl *, mlir::FuncOp >;
+        using VariablesScope     = ScopedSymbolTable< const clang::VarDecl *, Value >;
 
         struct CodegenScope {
             TypeDefsScope      typedefs;
             TypeDeclsScope     typedecls;
             EnumDeclsScope     enumdecls;
             EnumConstantsScope enumconsts;
-            FunctionsScope     funcs;
+            FunctionsScope     funcdecls;
             VariablesScope     globs;
         };
 
@@ -114,12 +114,12 @@ namespace vast::hl
             _cgctx = std::make_unique< CodeGenContext >(*_mctx, actx, _module);
 
             _scope = std::unique_ptr< CodegenScope >( new CodegenScope{
-                _cgctx->typedefs,
-                _cgctx->type_decls,
-                _cgctx->enum_decls,
-                _cgctx->enum_constants,
-                _cgctx->functions,
-                _cgctx->vars
+                .typedefs   = _cgctx->typedefs,
+                .typedecls  = _cgctx->typedecls,
+                .enumdecls  = _cgctx->enumdecls,
+                .enumconsts = _cgctx->enumconsts,
+                .funcdecls  = _cgctx->funcdecls,
+                .globs      = _cgctx->vars
             });
 
             _visitor = std::make_unique< CodeGenVisitor >(*_cgctx, _meta);

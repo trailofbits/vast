@@ -34,20 +34,20 @@ namespace vast::hl
 
         dl::DataLayoutBlueprint dl;
 
-        CodeGenContext(MContext &mctx, AContext &actx, OwningModuleRef &mod)
+    CodeGenContext(MContext &mctx, AContext &actx, OwningModuleRef &mod)
             : mctx(mctx)
             , actx(actx)
             , mod(mod)
         {}
 
-        using VarTable = ScopedValueTable< const clang::VarDecl*, Value >;
+        using VarTable = ScopedValueTable< const clang::VarDecl *, Value >;
         VarTable vars;
 
-        using TypeDefTable = ScopedValueTable< const clang::TypedefDecl*, TypeDefOp >;
+        using TypeDefTable = ScopedValueTable< const clang::TypedefDecl *, TypeDefOp >;
         TypeDefTable typedefs;
 
-        ScopedSymbolTable< mlir::FuncOp > functions;
-        ScopedSymbolTable< TypeDeclOp > type_decls;
+        using TypeDeclTable = ScopedValueTable< const clang::TypeDecl *, TypeDeclOp >;
+        TypeDeclTable typedecls;
 
         using EnumDecls = ScopedValueTable< StringRef, EnumDeclOp >;
         EnumDecls enum_decls;

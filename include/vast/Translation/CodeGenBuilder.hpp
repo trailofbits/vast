@@ -248,63 +248,46 @@ namespace vast::hl {
             return create< ConstantStringOp >(loc, ty.cast< ArrayType >(), attr);
         }
 
-        LabelDeclOp declare_label(mlir::Location loc, const clang::LabelDecl *label) {
-            if (auto decl = context().lookup_label(label, false /* no error */)) {
-                return decl;
-            }
-
-            auto decl = create< LabelDeclOp >(loc, label->getName());
-            if (failed(labels().declare(label, decl))) {
-                context().error("error: multiple label declarations with the same origin");
-            }
-            return decl;
+        mlir::FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
+            return declare< mlir::FuncOp >(context().funcdecls, decl, vast_decl_builder);
         }
 
-        TypeDeclOp declare_type(mlir::Location loc, llvm::StringRef name) {
-            if (auto decl = context().lookup_typedecl(name, false /* no error */)) {
-                return decl;
-            }
-
-            auto decl = create< TypeDeclOp >(loc, name);
-            if (failed(context().type_decls.declare(name, decl))) {
-                context().error("error: multiple type declarations with the same name");
-            }
-            return decl;
+        Value declare(const clang::ParmVarDecl *decl, auto vast_value) {
+            return declare< Value >(context().vars, decl, [vast_value] { return vast_value; });
         }
 
-        TypeDefOp define_type(mlir::Location loc, mlir::Type type, const clang::TypedefDecl *decl) {
-            if (auto def = context().lookup_typedef(decl, false /* no error */)) {
-                return def;
-            }
-
-            auto def = create< TypeDefOp >(loc, decl->getName(), type);
-            if (failed(context().typedefs.declare(decl, def))) {
-                context().error("error: multiple type definitions with the same name");
-            }
-
-            return def;
+        Value declare(const clang::VarDecl *decl, auto vast_decl_builder) {
+            return declare< Value >(context().vars, decl, vast_decl_builder);
         }
 
-        EnumDeclOp declare_enum(mlir::Location loc, llvm::StringRef name, Type type, BuilderCallback constants) {
-            auto decl = create< EnumDeclOp >(loc, name, type, constants);
-            if (failed(context().enum_decls.declare(name, decl))) {
-                context().error("error: multiple enum declarations with the same name");
-            }
-
-            return decl;
+        TypeDefOp declare(const clang::TypedefDecl *decl, auto vast_decl_builder) {
+            return declare< TypeDefOp >(context().typedefs, decl, vast_decl_builder);
         }
 
-        EnumConstantOp declare_enum_constant(EnumConstantOp enum_constant) {
-            auto name = enum_constant.name();
-            if (auto decl = context().enum_constants.lookup(name)) {
-                return decl;
+        TypeDeclOp declare(const clang::TypeDecl *decl, auto vast_decl_builder) {
+            return declare< TypeDeclOp >(context().typedecls, decl, vast_decl_builder);
+        }
+
+        EnumDeclOp declare(const clang::EnumDecl *decl, auto vast_decl_builder) {
+            return declare< EnumDeclOp >(context().enumdecls, decl, vast_decl_builder);
+        }
+
+        EnumConstantOp declare(const clang::EnumConstantDecl *decl, auto vast_decl_builder) {
+            return declare< EnumConstantOp >(context().enumconsts, decl, vast_decl_builder);
+        }
+
+        template< typename SymbolValue >
+        SymbolValue declare(auto &table, const auto *decl, auto vast_decl_builder) {
+            if (auto con = table.lookup(decl)) {
+                return con;
             }
 
-            if (failed(context().enum_constants.declare(name, enum_constant))) {
-                context().error("error: multiple enum constant declarations with the same name");
+            auto value = vast_decl_builder();
+            if (failed(table.declare(decl, value))) {
+                context().error("error: multiple declarations with the same name: " + decl->getName());
             }
 
-            return enum_constant;
+            return value;
         }
     };
 

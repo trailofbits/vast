@@ -481,7 +481,7 @@ namespace vast::hl {
 
         Operation* VisitEnumDeclRefExpr(const clang::DeclRefExpr *expr) {
             auto decl = clang::cast< clang::EnumConstantDecl >(expr->getDecl()->getUnderlyingDecl());
-            auto val = context().enum_constants.lookup(decl->getName());
+            auto val = context().enumconsts.lookup(decl);
             auto rty = visit(expr->getType());
             return make< EnumRefOp >(meta_location(expr), rty, val.name());
         }
@@ -700,8 +700,7 @@ namespace vast::hl {
         mlir::FuncOp VisitDirectCallee(const clang::FunctionDecl *callee) {
             InsertionGuard guard(op_builder());
 
-            auto name = callee->getName();
-            if (auto fn = context().lookup_function(name, false /* with error */)) {
+            if (auto fn = context().lookup_function(callee, false /* with error */)) {
                 return fn;
             }
 
