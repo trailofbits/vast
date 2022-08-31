@@ -38,15 +38,6 @@ namespace vast::hl {
         auto acontext() const -> AContext const& { return context().actx; }
 
         //
-        // symbol tables
-        //
-        auto vars()       -> VarTable      & { return context().vars; }
-        auto vars() const -> VarTable const& { return context().vars; }
-
-        auto labels()       -> LabelTable      & { return context().labels; }
-        auto labels() const -> LabelTable const& { return context().labels; }
-
-        //
         // meta
         //
         auto &      meta_gen()       { return derived().meta; }

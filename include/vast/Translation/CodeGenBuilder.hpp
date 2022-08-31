@@ -99,8 +99,6 @@ namespace vast::hl {
 
         using LensType::visit;
 
-        using LensType::labels;
-
         auto op_builder() -> mlir::OpBuilder & { return derived()._builder; }
 
         auto builder() -> CodeGenBuilderHandle { return { op_builder() }; }
@@ -258,6 +256,10 @@ namespace vast::hl {
 
         Value declare(const clang::VarDecl *decl, auto vast_decl_builder) {
             return declare< Value >(context().vars, decl, vast_decl_builder);
+        }
+
+        LabelDeclOp declare(const clang::LabelDecl *decl, auto vast_decl_builder) {
+            return declare< LabelDeclOp >(context().labels, decl, vast_decl_builder);
         }
 
         TypeDefOp declare(const clang::TypedefDecl *decl, auto vast_decl_builder) {

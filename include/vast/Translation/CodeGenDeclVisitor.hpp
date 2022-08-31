@@ -30,9 +30,6 @@ namespace vast::hl {
         using LensType::mcontext;
         using LensType::acontext;
 
-        using LensType::vars;
-        using LensType::labels;
-
         using LensType::meta_location;
 
         using LensType::visit;
@@ -49,11 +46,7 @@ namespace vast::hl {
         using Builder::get_current_function;
 
         using Builder::constant;
-
-        using Builder::define_type;
-        using Builder::declare_type;
-        using Builder::declare_enum;
-        using Builder::declare_enum_constant;
+        using Builder::declare;
 
         template< typename Op, typename... Args >
         auto make(Args &&...args) {
@@ -113,6 +106,13 @@ namespace vast::hl {
 
                 if (decl->hasBody()) {
                     declare_function_params(entry);
+
+                    // emit label declarations
+                    llvm::ScopedHashTableScope labels_scope(context().labels);
+                    filter< clang::LabelDecl >(decl->decls(), [&] (auto lab) {
+                        visit(lab);
+                    });
+
                     visit(decl->getBody());
                 }
 
@@ -208,7 +208,7 @@ namespace vast::hl {
         }
 
         Operation* VisitParmVarDecl(const clang::ParmVarDecl *decl) {
-            if (auto var = vars().lookup(decl))
+            if (auto var = context().vars.lookup(decl))
                 return var.getDefiningOp();
             context().error("error: missing parameter declaration " + decl->getName());
             return nullptr;
@@ -301,7 +301,12 @@ namespace vast::hl {
         // Operation* VisitTypeAliasDecl(const clang::TypeAliasDecl *decl)
 
         Operation* VisitLabelDecl(const clang::LabelDecl *decl) {
-            return declare_label(meta_location(decl), decl);
+            return declare(decl, [&] {
+                return this->template make_operation< LabelDeclOp >()
+                    .bind(meta_location(decl))  // location
+                    .bind(decl->getName())      // name
+                    .freeze();
+            });
         }
 
         //

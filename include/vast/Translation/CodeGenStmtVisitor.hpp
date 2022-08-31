@@ -32,9 +32,6 @@ namespace vast::hl {
         using LensType::context;
         using LensType::mcontext;
 
-        using LensType::vars;
-        using LensType::labels;
-
         using LensType::meta_location;
 
         using LensType::visit;
@@ -493,7 +490,7 @@ namespace vast::hl {
 
         Operation* VisitVarDeclRefExpr(const clang::DeclRefExpr *expr) {
             auto decl = getDeclForVarRef(expr);
-            return VisitVarDeclRefExprImpl(expr, vars().lookup(decl));
+            return VisitVarDeclRefExprImpl(expr, context().vars.lookup(decl));
         }
 
         Operation* VisitFileVarDeclRefExpr(const clang::DeclRefExpr *expr) {
