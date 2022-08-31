@@ -24,9 +24,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    using VarTable   = ScopedValueTable< const clang::VarDecl*, Value >;
-    using LabelTable = ScopedValueTable< const clang::LabelDecl*, LabelDeclOp>;
-
     struct CodeGenContext {
         MContext &mctx;
         AContext &actx;
@@ -34,7 +31,7 @@ namespace vast::hl
 
         dl::DataLayoutBlueprint dl;
 
-    CodeGenContext(MContext &mctx, AContext &actx, OwningModuleRef &mod)
+        CodeGenContext(MContext &mctx, AContext &actx, OwningModuleRef &mod)
             : mctx(mctx)
             , actx(actx)
             , mod(mod)
@@ -49,11 +46,17 @@ namespace vast::hl
         using TypeDeclTable = ScopedValueTable< const clang::TypeDecl *, TypeDeclOp >;
         TypeDeclTable typedecls;
 
-        using EnumDecls = ScopedValueTable< StringRef, EnumDeclOp >;
-        EnumDecls enum_decls;
+        using FuncDeclTable = ScopedValueTable< const clang::FunctionDecl *, mlir::FuncOp >;
+        FuncDeclTable funcdecls;
 
-        using EnumConstants = ScopedValueTable< StringRef, EnumConstantOp >;
-        EnumConstants enum_constants;
+        using EnumDecls = ScopedValueTable< const clang::EnumDecl *, EnumDeclOp >;
+        EnumDecls enumdecls;
+
+        using EnumConstants = ScopedValueTable< const clang::EnumConstantDecl *, EnumConstantOp >;
+        EnumConstants enumconsts;
+
+        using LabelTable = ScopedValueTable< const clang::LabelDecl*, LabelDeclOp >;
+        LabelTable labels;
 
         size_t anonymous_count = 0;
         llvm::DenseMap< const clang::TagDecl *, std::string > tag_names;
@@ -121,24 +124,8 @@ namespace vast::hl
             return nullptr;
         }
 
-        mlir::FuncOp lookup_function(StringRef name, bool with_error = true) {
-            return symbol(functions, name, "error: undeclared function '" + name + "'", with_error);
-        }
-
-        LabelDeclOp lookup_label(const clang::LabelDecl *decl, bool with_error = true) {
-            return symbol(labels, decl, "error: unknown label declaration '" + decl->getName() + "'", with_error);
-        }
-
-        TypeDeclOp lookup_typedecl(StringRef name, bool with_error = true) {
-            return symbol(type_decls, name, "error: unknown type declaration '" + name + "'", with_error);
-        }
-
-        TypeDefOp lookup_typedef(const clang::TypedefDecl *decl, bool with_error = true) {
-            return symbol(typedefs, decl, "error: unknown type definition '" + decl->getName() + "'", with_error);
-        }
-
-        EnumDeclOp lookup_enum(StringRef name, bool with_error = true) {
-            return symbol(enum_decls, name, "error: unknown enum '" + name + "'", with_error);
+        mlir::FuncOp lookup_function(const clang::FunctionDecl *decl, bool with_error = true) {
+            return symbol(funcdecls, decl, "error: undeclared function '" + decl->getName() + "'", with_error);
         }
 
         //
