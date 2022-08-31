@@ -11,7 +11,9 @@ target_link_libraries( vast_translation_api
         clangASTMatchers
         clangBasic
 
+        MLIRMeta
         MLIRHighLevel
+        MLIRSupport
 
         vast_settings
 )
@@ -32,6 +34,8 @@ target_link_libraries( FromSourceParser
         clangFrontend
         clangSerialization
         clangTooling
+
+        MLIRSupport
 
         vast_settings
         vast_translation_api

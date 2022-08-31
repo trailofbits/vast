@@ -26,11 +26,11 @@ namespace vast::repl::codegen {
         return slurp(in);
     }
 
-    owning_module_ref emit_module(const std::string &source, MContext *ctx) {
+    owning_module_ref emit_module(const std::string &source, MContext *mctx) {
         auto unit = codegen::ast_from_source(source);
-        auto &ast = unit->getASTContext();
-        vast::hl::DefaultCodeGen codegen(ctx);
-        return codegen.emit_module(ast.getTranslationUnitDecl());
+        auto &actx = unit->getASTContext();
+        vast::hl::DefaultCodeGen codegen(&actx, mctx);
+        return codegen.emit_module(actx.getTranslationUnitDecl());
     }
 
 } // namespace vast::repl::codegen

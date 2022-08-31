@@ -171,7 +171,7 @@ namespace vast::hl
         build_expr_trait(bld, st, rty, expr);
     }
 
-    void VarDecl::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback init, BuilderCallback alloc) {
+    void VarDeclOp::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback init, BuilderCallback alloc) {
         st.addAttribute("name", bld.getStringAttr(name));
         Builder::InsertionGuard guard(bld);
 
@@ -293,6 +293,16 @@ namespace vast::hl
         Builder::InsertionGuard guard(bld);
 
         detail::build_region(bld, st, body);
+    }
+
+    void LabelStmt::build(Builder &bld, State &st, Value label, BuilderCallback substmt)
+    {
+        st.addOperands(label);
+
+        assert(substmt && "the builder callback for 'substmt' block must be present");
+        Builder::InsertionGuard guard(bld);
+
+        detail::build_region(bld, st, substmt);
     }
 
     mlir::Operation* build_constant(Builder &builder, Attribute value, Type type, Location loc)

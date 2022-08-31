@@ -3,9 +3,11 @@
 VAST_RELAX_WARNINGS
 #include <clang/AST/ASTContext.h>
 #include <clang/Tooling/Tooling.h>
+#include "mlir/InitAllDialects.h"
 #include <mlir/IR/Builders.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Dialect/Dialects.hpp"
 #include "vast/Translation/CodeGen.hpp"
 
 #include <fstream>
@@ -26,13 +28,19 @@ int main(int argc, char **argv) {
 
     // setup mlir environment
     mlir::DialectRegistry registry;
-    registry.insert< vast::hl::HighLevelDialect, mlir::StandardOpsDialect, mlir::DLTIDialect >();
+    registry.insert<
+        vast::hl::HighLevelDialect,
+        vast::meta::MetaDialect,
+        mlir::StandardOpsDialect,
+        mlir::DLTIDialect
+    >();
     mlir::MLIRContext ctx(registry);
 
-    // generate ir for ast declaration
-    vast::hl::DefaultCodeGen codegen(&ctx);
-
     auto &actx = ast->getASTContext();
+
+    // generate ir for ast declaration
+    vast::hl::DefaultCodeGen codegen(&actx, &ctx);
+
     auto tu = actx.getTranslationUnitDecl();
 
     for (const auto &decl : tu->decls()) {

@@ -12,7 +12,9 @@ add_mlir_dialect_library(MLIRMeta
     MLIRMetaAttributesIncGen
 
     LINK_LIBS PUBLIC
-        MLIRIR
+
+    MLIRIR
+    MLIRSupport
 )
 
 target_link_libraries(MLIRMeta PRIVATE vast_settings)

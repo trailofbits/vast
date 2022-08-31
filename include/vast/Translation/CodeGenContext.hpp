@@ -37,19 +37,26 @@ namespace vast::hl
             , mod(mod)
         {}
 
-        using VarTable = ScopedValueTable< const clang::VarDecl*, Value >;
-
+        using VarTable = ScopedValueTable< const clang::VarDecl *, Value >;
         VarTable vars;
 
-        ScopedSymbolTable< mlir::FuncOp > functions;
-        ScopedSymbolTable< TypeDefOp > type_defs;
-        ScopedSymbolTable< TypeDeclOp > type_decls;
+        using TypeDefTable = ScopedValueTable< const clang::TypedefDecl *, TypeDefOp >;
+        TypeDefTable typedefs;
 
-        using EnumDecls = ScopedValueTable< StringRef, EnumDeclOp >;
-        EnumDecls enum_decls;
+        using TypeDeclTable = ScopedValueTable< const clang::TypeDecl *, TypeDeclOp >;
+        TypeDeclTable typedecls;
 
-        using EnumConstants = ScopedValueTable< StringRef, EnumConstantOp >;
-        EnumConstants enum_constants;
+        using FuncDeclTable = ScopedValueTable< const clang::FunctionDecl *, mlir::FuncOp >;
+        FuncDeclTable funcdecls;
+
+        using EnumDecls = ScopedValueTable< const clang::EnumDecl *, EnumDeclOp >;
+        EnumDecls enumdecls;
+
+        using EnumConstants = ScopedValueTable< const clang::EnumConstantDecl *, EnumConstantOp >;
+        EnumConstants enumconsts;
+
+        using LabelTable = ScopedValueTable< const clang::LabelDecl*, LabelDeclOp >;
+        LabelTable labels;
 
         size_t anonymous_count = 0;
         llvm::DenseMap< const clang::TagDecl *, std::string > tag_names;
@@ -108,29 +115,17 @@ namespace vast::hl
 
         auto error(llvm::Twine msg) { return mod->emitError(msg); }
 
-        template< typename Table, typename ValueType = typename Table::ValueType >
-        ValueType symbol(Table &table, StringRef name, llvm::Twine msg, bool with_error = true) {
-            if (auto val = table.lookup(name))
+        template< typename Table, typename Token, typename ValueType = typename Table::ValueType >
+        ValueType symbol(Table &table, Token token, llvm::Twine msg, bool with_error = true) {
+            if (auto val = table.lookup(token))
                 return val;
             if (with_error)
                 error(msg);
             return nullptr;
         }
 
-        mlir::FuncOp lookup_function(StringRef name, bool with_error = true) {
-            return symbol(functions, name, "error: undeclared function '" + name + "'", with_error);
-        }
-
-        TypeDeclOp lookup_typedecl(StringRef name, bool with_error = true) {
-            return symbol(type_decls, name, "error: unknown type declaration '" + name + "'", with_error);
-        }
-
-        TypeDefOp lookup_typedef(StringRef name, bool with_error = true) {
-            return symbol(type_defs, name, "error: unknown type definition '" + name + "'", with_error);
-        }
-
-        EnumDeclOp lookup_enum(StringRef name, bool with_error = true) {
-            return symbol(enum_decls, name, "error: unknown enum '" + name + "'", with_error);
+        mlir::FuncOp lookup_function(const clang::FunctionDecl *decl, bool with_error = true) {
+            return symbol(funcdecls, decl, "error: undeclared function '" + decl->getName() + "'", with_error);
         }
 
         //

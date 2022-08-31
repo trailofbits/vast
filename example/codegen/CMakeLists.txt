@@ -109,6 +109,7 @@ target_link_libraries(codegen
         vast::vast
 
         MLIRIR
+        MLIRSupport
 
         ${MLIR_DIALECT_LIBS}
         ${CONVERSION_LIBS}

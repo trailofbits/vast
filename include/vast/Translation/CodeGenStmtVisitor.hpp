@@ -472,13 +472,13 @@ namespace vast::hl {
             return clang::cast< clang::VarDecl >(expr->getDecl()->getUnderlyingDecl());
         }
 
-        VarDecl getDefiningOpOfGlobalVar(const clang::VarDecl *decl) {
-            return context().vars.lookup(decl).template getDefiningOp< VarDecl >();
+        VarDeclOp getDefiningOpOfGlobalVar(const clang::VarDecl *decl) {
+            return context().vars.lookup(decl).template getDefiningOp< VarDeclOp >();
         }
 
         Operation* VisitEnumDeclRefExpr(const clang::DeclRefExpr *expr) {
             auto decl = clang::cast< clang::EnumConstantDecl >(expr->getDecl()->getUnderlyingDecl());
-            auto val = context().enum_constants.lookup(decl->getName());
+            auto val = context().enumconsts.lookup(decl);
             auto rty = visit(expr->getType());
             return make< EnumRefOp >(meta_location(expr), rty, val.name());
         }
@@ -611,9 +611,17 @@ namespace vast::hl {
             return make_loop_op();
         }
 
-        // Operation* VisitGotoStmt(const clang::GotoStmt *stmt)
+        Operation* VisitGotoStmt(const clang::GotoStmt *stmt) {
+            auto lab = visit(stmt->getLabel())->getResult(0);
+            return make< GotoStmt >(meta_location(stmt), lab);
+        }
         // Operation* VisitIndirectGotoStmt(const clang::IndirectGotoStmt *stmt)
-        // Operation* VisitLabelStmt(const clang::LabelStmt *stmt)
+
+        Operation* VisitLabelStmt(const clang::LabelStmt *stmt) {
+            auto lab = visit(stmt->getDecl())->getResult(0);
+            auto sub_builder = make_region_builder(stmt->getSubStmt());
+            return make< LabelStmt >(meta_location(stmt), lab, sub_builder);
+        }
 
         Operation* VisitIfStmt(const clang::IfStmt *stmt) {
             return this->template make_operation< IfOp >()
@@ -638,7 +646,12 @@ namespace vast::hl {
         // Operation* VisitAbstractConditionalOperator(const clang::AbstractConditionalOperator *op)
         // Operation* VisitAbstractConditionalOperator(const clang::BinaryConditionalOperator *op)
         // Operation* VisitConditionalOperator(const clang::ConditionalOperator *op)
-        // Operation* VisitAddrLabelExpr(const clang::AddrLabelExpr *expr)
+        Operation* VisitAddrLabelExpr(const clang::AddrLabelExpr *expr) {
+            auto lab = visit(expr->getLabel())->getResult(0);
+            auto rty = visit_as_lvalue_type(expr->getType());
+            return make< AddrLabelExpr >(meta_location(expr), rty, lab);
+        }
+
         Operation* VisitConstantExpr(const clang::ConstantExpr *expr) {
             // TODO(Heno): crete hl.constantexpr
             return visit(expr->getSubExpr());
@@ -684,8 +697,7 @@ namespace vast::hl {
         mlir::FuncOp VisitDirectCallee(const clang::FunctionDecl *callee) {
             InsertionGuard guard(op_builder());
 
-            auto name = callee->getName();
-            if (auto fn = context().lookup_function(name, false /* with error */)) {
+            if (auto fn = context().lookup_function(callee, false /* with error */)) {
                 return fn;
             }
 
@@ -779,7 +791,9 @@ namespace vast::hl {
 
         // Operation* VisitVAArgExpr(const clang::VAArgExpr *expr)
 
-        // Operation* VisitNullStmt(const clang::NullStmt *expr)
+        Operation* VisitNullStmt(const clang::NullStmt *stmt) {
+            return make< SkipStmt >(meta_location(stmt));
+        }
 
         //
         // Literals

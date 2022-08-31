@@ -4,6 +4,14 @@
 
 #include "vast/Util/Common.hpp"
 
+VAST_RELAX_WARNINGS
+#include <clang/AST/ASTContext.h>
+#include <clang/AST/TypeLoc.h>
+#include <clang/Basic/FileEntry.h>
+VAST_UNRELAX_WARNINGS
+
+#include "vast/Dialect/Meta/MetaAttributes.hpp"
+
 #include <concepts>
 
 namespace vast::hl
@@ -28,29 +36,78 @@ namespace vast::hl
     };
 
     struct DefaultMetaGenerator {
-        explicit DefaultMetaGenerator(MContext *ctx) : ctx(ctx) {}
+        DefaultMetaGenerator(AContext *actx, MContext *mctx)
+            : actx(actx), mctx(mctx)
+        {}
 
-        DefaultMeta get(const clang::Decl * /* decl */) const {
-            return { mlir::UnknownLoc::get(ctx) };
+        DefaultMeta get(const clang::FullSourceLoc &loc) const {
+            auto file = loc.getFileEntry() ? loc.getFileEntry()->getName() : "unknown";
+            auto line = loc.getLineNumber();
+            auto col  = loc.getColumnNumber();
+            return { mlir::FileLineColLoc::get(mctx, file, line, col) };
         }
 
-        DefaultMeta get(const clang::Stmt * /* stmt */) const {
-            return { mlir::UnknownLoc::get(ctx) };
+        DefaultMeta get(const clang::SourceLocation &loc) const {
+            return get(clang::FullSourceLoc(loc, actx->getSourceManager()));
         }
 
-        DefaultMeta get(const clang::Expr * /* expr */) const {
-            return { mlir::UnknownLoc::get(ctx) };
+        DefaultMeta get(const clang::Decl *decl) const {
+            return get(decl->getLocation());
         }
 
-        DefaultMeta get(const clang::Type * /* type */) const {
-            return { mlir::UnknownLoc::get(ctx) };
+        DefaultMeta get(const clang::Stmt *stmt) const {
+            // TODO: use SoureceRange
+            return get(stmt->getBeginLoc());
         }
 
-        DefaultMeta get(clang::QualType /* type */) const {
-            return { mlir::UnknownLoc::get(ctx) };
+        DefaultMeta get(const clang::Expr *expr) const {
+            // TODO: use SoureceRange
+            return get(expr->getExprLoc());
         }
 
-        MContext *ctx;
+        DefaultMeta get(const clang::TypeLoc &loc) const {
+            // TODO: use SoureceRange
+            return get(loc.getBeginLoc());
+        }
+
+        DefaultMeta get(const clang::Type *type) const {
+            return get(clang::TypeLoc(type, nullptr));
+        }
+
+        DefaultMeta get(clang::QualType type) const {
+            return get(clang::TypeLoc(type, nullptr));
+        }
+
+        AContext *actx;
+        MContext *mctx;
+    };
+
+    struct IDMetaGenerator {
+        IDMetaGenerator(AContext *actx, MContext *mctx)
+            : actx(actx), mctx(mctx)
+        {}
+
+        mlir::Location make_location(meta::IdentifierAttr id) const {
+            auto dummy = mlir::UnknownLoc::get(mctx);
+            return mlir::FusedLoc::get( { dummy }, id, mctx );
+        }
+
+        mlir::Location make_location(meta::identifier_t id) const {
+            return make_location(meta::IdentifierAttr::get(mctx, id));
+        }
+
+        DefaultMeta get_impl(auto token) const { return { make_location(counter++) }; }
+
+        DefaultMeta get(const clang::Decl *decl) const { return get_impl(decl); }
+        DefaultMeta get(const clang::Stmt *stmt) const { return get_impl(stmt); }
+        DefaultMeta get(const clang::Expr *expr) const { return get_impl(expr); }
+        DefaultMeta get(const clang::Type *type) const { return get_impl(type); }
+        DefaultMeta get(clang::QualType type) const { return get_impl(type); }
+
+        mutable meta::identifier_t counter = 0;
+
+        AContext *actx;
+        MContext *mctx;
     };
 
 } // namespace vast::hl

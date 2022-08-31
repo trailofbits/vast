@@ -43,22 +43,27 @@ namespace vast::hl {
         using Builder::set_insertion_point_to_start;
         using Builder::set_insertion_point_to_end;
 
-        using Builder::constant;
+        using Builder::get_current_function;
 
-        using Builder::define_type;
-        using Builder::declare_type;
-        using Builder::declare_enum;
-        using Builder::declare_enum_constant;
+        using Builder::constant;
+        using Builder::declare;
 
         template< typename Op, typename... Args >
         auto make(Args &&...args) {
             return this->template create< Op >(std::forward< Args >(args)...);
         }
 
+        template< typename T >
+        void filter(const auto &decls, auto &&yield) {
+            for ( auto decl : decls) {
+                if (auto s = clang::dyn_cast< T >(decl)) {
+                    yield(s);
+                }
+            }
+        }
+
         Operation* VisitFunctionDecl(const clang::FunctionDecl *decl) {
             InsertionGuard guard(op_builder());
-
-            auto name = decl->getName();
             auto is_definition = decl->doesThisDeclarationHaveABody();
 
             // emit definition instead of declaration
@@ -66,66 +71,79 @@ namespace vast::hl {
                 return visit(decl->getDefinition());
             }
 
-            // return already seen definition
-            if (auto fn = context().lookup_function(name, false /* no error */ )) {
-                return fn;
-            }
-
-            llvm::ScopedHashTableScope scope(context().vars);
-
-            auto loc  = meta_location(decl);
-            auto type = visit(decl->getFunctionType()).template cast< mlir::FunctionType >();
-            // make function header, that will be later filled with function body
-            // or returned as declaration in the case of external function
-            auto fn = make< mlir::FuncOp >(loc, name, type);
-            if (failed(context().functions.declare(name, fn))) {
-                context().error("error: multiple declarations of a same function" + name);
-            }
-
-            if (!is_definition) {
-                fn.setVisibility( mlir::FuncOp::Visibility::Private );
-                return fn;
-            }
-
-            // emit function body
-            auto entry = fn.addEntryBlock();
-            set_insertion_point_to_start(entry);
-
-            if (decl->hasBody()) {
-                // In MLIR the entry block of the function must have the same
-                // argument list as the function itself.
-                auto params = llvm::zip(decl->getDefinition()->parameters(), entry->getArguments());
-                for (const auto &[arg, earg] : params) {
-                    if (failed(context().vars.declare(arg, earg)))
-                        context().error("error: multiple declarations of a same symbol" + arg->getName());
-                }
-
-                visit(decl->getBody());
-            }
-
-            // TODO make as pass
-            splice_trailing_scopes(fn);
-
-            auto &last_block = fn.getBlocks().back();
-            auto &ops        = last_block.getOperations();
-            set_insertion_point_to_end(&last_block);
-
             auto is_terminator = [] (auto &op) {
                 return op.template hasTrait< mlir::OpTrait::IsTerminator >();
             };
 
-            if (ops.empty() || !is_terminator(ops.back())) {
+            auto declare_function_params = [&] (auto entry) {
+                // In MLIR the entry block of the function must have the same
+                // argument list as the function itself.
+                auto params = llvm::zip(decl->getDefinition()->parameters(), entry->getArguments());
+                for (const auto &[arg, earg] : params) {
+                    declare(arg, earg);
+                }
+            };
+
+            auto emit_function_terminator = [&] (auto fn) {
+                auto loc = fn.getLoc();
                 if (decl->getReturnType()->isVoidType()) {
                     make< ReturnOp >(loc);
                 } else {
                     if (decl->isMain()) {
                         // return zero if no return is present in main
+                        auto type = fn.getType();
                         auto zero = constant(loc, type.getResult(0), apint(0));
                         make< ReturnOp >(loc, zero);
                     } else {
                         make< UnreachableOp >(loc);
                     }
                 }
+            };
+
+            auto emit_function_body = [&] (auto fn) {
+                auto entry = fn.addEntryBlock();
+                set_insertion_point_to_start(entry);
+
+                if (decl->hasBody()) {
+                    declare_function_params(entry);
+
+                    // emit label declarations
+                    llvm::ScopedHashTableScope labels_scope(context().labels);
+                    filter< clang::LabelDecl >(decl->decls(), [&] (auto lab) {
+                        visit(lab);
+                    });
+
+                    visit(decl->getBody());
+                }
+
+                // TODO make as pass
+                splice_trailing_scopes(fn);
+
+                auto &last_block = fn.getBlocks().back();
+                auto &ops        = last_block.getOperations();
+                set_insertion_point_to_end(&last_block);
+
+                if (ops.empty() || !is_terminator(ops.back())) {
+                    emit_function_terminator(fn);
+                }
+            };
+
+            llvm::ScopedHashTableScope scope(context().vars);
+            auto fn = declare(decl, [&] () {
+                auto loc  = meta_location(decl);
+                auto type = visit(decl->getFunctionType()).template cast< mlir::FunctionType >();
+                // make function header, that will be later filled with function body
+                // or returned as declaration in the case of external function
+                return make< mlir::FuncOp >(loc, decl->getName(), type);
+            });
+
+            if (!is_definition) {
+                fn.setVisibility( mlir::FuncOp::Visibility::Private );
+                return fn;
+            }
+
+            if (fn.empty()) {
+                emit_function_body(fn);
             }
 
             return fn;
@@ -156,39 +174,37 @@ namespace vast::hl {
         }
 
         Operation* VisitVarDecl(const clang::VarDecl *decl) {
-            auto type = decl->getType();
-            bool has_allocator = type->isVariableArrayType();
-            bool has_init =  decl->getInit();
+            return declare(decl, [&] {
+                auto type = decl->getType();
+                bool has_allocator = type->isVariableArrayType();
+                bool has_init = decl->getInit();
 
-            auto initializer = make_value_builder(decl->getInit());
+                auto initializer = make_value_builder(decl->getInit());
 
-            auto array_allocator = [decl, this](auto &bld, auto loc) {
-                if (auto type = clang::dyn_cast< clang::VariableArrayType >(decl->getType())) {
-                    make_value_builder(type->getSizeExpr())(bld, loc);
+                auto array_allocator = [decl, this](auto &bld, auto loc) {
+                    if (auto type = clang::dyn_cast< clang::VariableArrayType >(decl->getType())) {
+                        make_value_builder(type->getSizeExpr())(bld, loc);
+                    }
+                };
+
+                auto var = this->template make_operation< VarDeclOp >()
+                    .bind(meta_location(decl))                                  // location
+                    .bind(visit_as_lvalue_type(type))                           // type
+                    .bind(decl->getUnderlyingDecl()->getName())                 // name
+                    .bind_region_if(has_init, std::move(initializer))           // initializer
+                    .bind_region_if(has_allocator, std::move(array_allocator))  // array allocator
+                    .freeze();
+
+                if (auto sc = VisitStorageClass(decl); sc != StorageClass::sc_none) {
+                    var.setStorageClass(sc);
                 }
-            };
 
-            auto var = this->template make_operation< VarDecl >()
-                .bind(meta_location(decl))                                  // location
-                .bind(visit_as_lvalue_type(type))                           // type
-                .bind(decl->getUnderlyingDecl()->getName())                 // name
-                .bind_region_if(has_init, std::move(initializer))           // initializer
-                .bind_region_if(has_allocator, std::move(array_allocator))  // array allocator
-                .freeze();
+                if (auto tsc = VisitThreadStorageClass(decl); tsc != TSClass::tsc_none) {
+                    var.setThreadStorageClass(tsc);
+                }
 
-            if (auto sc = VisitStorageClass(decl); sc != StorageClass::sc_none) {
-                var.setStorageClass(sc);
-            }
-
-            if (auto tsc = VisitThreadStorageClass(decl); tsc != TSClass::tsc_none) {
-                var.setThreadStorageClass(tsc);
-            }
-
-            if (failed(context().vars.declare(decl, var))) {
-                context().error("error: multiple declarations of a same symbol " + decl->getName());
-            }
-
-            return var;
+                return var;
+            }).getDefiningOp();
         }
 
         Operation* VisitParmVarDecl(const clang::ParmVarDecl *decl) {
@@ -250,63 +266,80 @@ namespace vast::hl {
         }
 
         Operation* VisitTypedefDecl(const clang::TypedefDecl *decl) {
-            auto name = decl->getName();
-
-            auto type = [&]() -> mlir::Type {
-                auto underlying = decl->getUnderlyingType();
-                if (auto fty = clang::dyn_cast< clang::FunctionType >(underlying)) {
-                    return visit(fty);
-                }
-
-                // predeclare named underlying types if necessery
-                walk_type(underlying, [&](auto ty) {
-                    if (auto tag = clang::dyn_cast< clang::TagType >(ty)) {
-                        visit(tag->getDecl());
-                        return true; // stop recursive walk
+            return declare(decl, [&] {
+                auto type = [&]() -> mlir::Type {
+                    auto underlying = decl->getUnderlyingType();
+                    if (auto fty = clang::dyn_cast< clang::FunctionType >(underlying)) {
+                        return visit(fty);
                     }
 
-                    return false;
-                });
+                    // predeclare named underlying types if necessery
+                    walk_type(underlying, [&](auto ty) {
+                        if (auto tag = clang::dyn_cast< clang::TagType >(ty)) {
+                            visit(tag->getDecl());
+                            return true; // stop recursive walk
+                        }
 
-                return visit(underlying);
-            }();
+                        return false;
+                    });
 
-            auto def = define_type(meta_location(decl), type, name);
-            attach_attributes(decl /* from */, def /* to */);
-            return def;
+                    return visit(underlying);
+                };
+
+                // create typedef operation
+                auto def = this->template make_operation< TypeDefOp >()
+                    .bind(meta_location(decl)) // location
+                    .bind(decl->getName())     // name
+                    .bind(type())              // type
+                    .freeze();
+
+                attach_attributes(decl /* from */, def /* to */);
+                return def;
+            });
         }
 
         // Operation* VisitTypeAliasDecl(const clang::TypeAliasDecl *decl)
 
-        // Operation* VisitLabelDecl(const clang::LabelDecl *decl)
+        Operation* VisitLabelDecl(const clang::LabelDecl *decl) {
+            return declare(decl, [&] {
+                return this->template make_operation< LabelDeclOp >()
+                    .bind(meta_location(decl))  // location
+                    .bind(decl->getName())      // name
+                    .freeze();
+            });
+        }
 
         //
         // Enum Declarations
         //
         Operation* VisitEnumDecl(const clang::EnumDecl *decl) {
-            auto name = context().decl_name(decl);
-            auto type = visit(decl->getIntegerType());
+            return declare(decl, [&] {
+                auto constants = [&] (auto &bld, auto loc) {
+                    for (auto con : decl->enumerators()) {
+                        visit(con);
+                    }
+                };
 
-            auto constants = [&] (auto &bld, auto loc) {
-                for (auto con : decl->enumerators()) {
-                    visit(con);
-                }
-            };
-
-            return declare_enum(meta_location(decl), name, type, constants);
+                return this->template make_operation< EnumDeclOp >()
+                    .bind(meta_location(decl))                              // location
+                    .bind(decl->getName())                                  // name
+                    .bind(visit(decl->getIntegerType()))                    // type
+                    .bind(constants)                                        // constants
+                    .freeze();
+            });
         }
 
         Operation* VisitEnumConstantDecl(const clang::EnumConstantDecl *decl) {
-            auto initializer = make_value_builder(decl->getInitExpr());
+            return declare(decl, [&] {
+                auto initializer = make_value_builder(decl->getInitExpr());
 
-            auto enum_constant = this->template make_operation< EnumConstantOp >()
-                .bind(meta_location(decl))                              // location
-                .bind(decl->getName())                                  // name
-                .bind(decl->getInitVal())                               // value
-                .bind_if(decl->getInitExpr(), std::move(initializer))   // initializer
-                .freeze();
-
-            return declare_enum_constant(enum_constant);
+                return this->template make_operation< EnumConstantOp >()
+                    .bind(meta_location(decl))                              // location
+                    .bind(decl->getName())                                  // name
+                    .bind(decl->getInitVal())                               // value
+                    .bind_if(decl->getInitExpr(), std::move(initializer))   // initializer
+                    .freeze();
+            });
         }
 
         //
@@ -316,9 +349,15 @@ namespace vast::hl {
         Operation* make_record_decl(const clang::RecordDecl *decl) {
             auto loc  = meta_location(decl);
             auto name = context().decl_name(decl);
+
             // declare the type first to allow recursive type definitions
             if (!decl->isCompleteDefinition()) {
-                return declare_type(loc, name);;
+                return declare(decl, [&] {
+                    return this->template make_operation< TypeDeclOp >()
+                        .bind(meta_location(decl)) // location
+                        .bind(decl->getName())     // name
+                        .freeze();
+                });
             }
 
             // generate record definition

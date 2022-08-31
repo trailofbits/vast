@@ -13,13 +13,18 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/MLIRContext.h>
+#include <mlir/InitAllDialects.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 
 #include "vast/Translation/CodeGenVisitor.hpp"
 #include "vast/Translation/CodeGenFallBackVisitor.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/Meta/MetaDialect.hpp"
+#include "vast/Dialect/Dialects.hpp"
+
 #include "vast/Translation/DataLayout.hpp"
 #include "vast/Translation/CodeGenMeta.hpp"
 
@@ -28,6 +33,7 @@ namespace vast::hl
     namespace detail {
         static inline MContext* codegen_context_setup(MContext *ctx) {
             ctx->loadDialect< hl::HighLevelDialect >();
+            ctx->loadDialect< meta::MetaDialect >();
             ctx->loadDialect< mlir::StandardOpsDialect >();
             ctx->loadDialect< mlir::DLTIDialect >();
             ctx->loadDialect< mlir::scf::SCFDialect >();
@@ -46,44 +52,83 @@ namespace vast::hl
     {
         using MetaGenerator = typename CodeGenVisitor::MetaGeneratorType;
 
-        CodeGenBase(MContext *ctx, MetaGenerator &meta)
-            : ctx(ctx), meta(meta)
+        CodeGenBase(MContext *mctx, MetaGenerator &meta)
+            : _mctx(mctx), _meta(meta), _cgctx(nullptr), _module(nullptr)
         {
-            detail::codegen_context_setup(ctx);
+            detail::codegen_context_setup(_mctx);
         }
 
         OwningModuleRef emit_module(clang::ASTUnit *unit) {
-            return emit_module_impl(unit);
+            append_to_module(unit);
+            return freeze();
         }
 
         OwningModuleRef emit_module(clang::Decl *decl) {
-            return emit_module_impl(decl);
+            append_to_module(decl);
+            return freeze();
         }
 
+        void append_to_module(clang::ASTUnit *unit) { append_impl(unit); }
+
+        void append_to_module(clang::Decl *decl) { append_impl(decl); }
+
+        void append_to_module(clang::Stmt *stmt) { append_impl(stmt); }
+
+        void append_to_module(clang::Expr *expr) { append_impl(expr); }
+
+        void append_to_module(clang::Type *type) { append_impl(type); }
+
+        OwningModuleRef freeze() {
+            emit_data_layout(*_mctx, _module, _cgctx->data_layout());
+            return std::move(_module);
+        }
+
+        template< typename From, typename Symbol >
+        using ScopedSymbolTable = llvm::ScopedHashTableScope< From, Symbol >;
+
+        using TypeDefsScope      = ScopedSymbolTable< const clang::TypedefDecl *, TypeDefOp >;
+        using TypeDeclsScope     = ScopedSymbolTable< const clang::TypeDecl *, TypeDeclOp >;
+        using EnumDeclsScope     = ScopedSymbolTable< const clang::EnumDecl *, EnumDeclOp >;
+        using EnumConstantsScope = ScopedSymbolTable< const clang::EnumConstantDecl *, EnumConstantOp >;
+        using FunctionsScope     = ScopedSymbolTable< const clang::FunctionDecl *, mlir::FuncOp >;
+        using VariablesScope     = ScopedSymbolTable< const clang::VarDecl *, Value >;
+
+        struct CodegenScope {
+            TypeDefsScope      typedefs;
+            TypeDeclsScope     typedecls;
+            EnumDeclsScope     enumdecls;
+            EnumConstantsScope enumconsts;
+            FunctionsScope     funcdecls;
+            VariablesScope     globs;
+        };
+
     private:
-        template< typename AST >
-        OwningModuleRef emit_module_impl(AST *ast) {
+
+        void setup_codegen(AContext &actx) {
+            if (_cgctx)
+                return;
+
             // TODO(Heno): fix module location
-            OwningModuleRef mod = { Module::create(
-                mlir::UnknownLoc::get(ctx)
-            ) };
+            _module = { Module::create(mlir::UnknownLoc::get(_mctx)) };
 
-            CodeGenContext cgctx(*ctx, ast->getASTContext(), mod);
+            _cgctx = std::make_unique< CodeGenContext >(*_mctx, actx, _module);
 
-            llvm::ScopedHashTableScope type_def_scope(cgctx.type_defs);
-            llvm::ScopedHashTableScope type_dec_scope(cgctx.type_decls);
-            llvm::ScopedHashTableScope enum_dec_scope(cgctx.enum_decls);
-            llvm::ScopedHashTableScope enum_constant_scope(cgctx.enum_constants);
-            llvm::ScopedHashTableScope func_scope(cgctx.functions);
-            llvm::ScopedHashTableScope glob_scope(cgctx.vars);
+            _scope = std::unique_ptr< CodegenScope >( new CodegenScope{
+                .typedefs   = _cgctx->typedefs,
+                .typedecls  = _cgctx->typedecls,
+                .enumdecls  = _cgctx->enumdecls,
+                .enumconsts = _cgctx->enumconsts,
+                .funcdecls  = _cgctx->funcdecls,
+                .globs      = _cgctx->vars
+            });
 
-            CodeGenVisitor visitor(cgctx, meta);
+            _visitor = std::make_unique< CodeGenVisitor >(*_cgctx, _meta);
+        }
 
-            process(ast, visitor);
-
-            emit_data_layout(*ctx, mod, cgctx.data_layout());
-            // TODO(Heno): verify module
-            return mod;
+        template< typename AST >
+        void append_impl(AST ast) {
+            setup_codegen(ast->getASTContext());
+            process(ast, *_visitor);
         }
 
         static bool process_root_decl(void * context, const clang::Decl *decl) {
@@ -99,9 +144,21 @@ namespace vast::hl
             visitor.Visit(decl);
         }
 
-        MContext *ctx;
-        MetaGenerator &meta;
+        MContext *_mctx;
+        MetaGenerator &_meta;
+
+        std::unique_ptr< CodeGenContext > _cgctx;
+        std::unique_ptr< CodegenScope >   _scope;
+        std::unique_ptr< CodeGenVisitor > _visitor;
+
+        OwningModuleRef _module;
     };
+
+    template< typename Derived >
+    using DefaultCodeGenVisitorConfig = CodeGenFallBackVisitorMixin< Derived,
+        DefaultCodeGenVisitorMixin,
+        DefaultFallBackVisitorMixin
+    >;
 
     //
     // DefaultCodeGen
@@ -109,21 +166,19 @@ namespace vast::hl
     // Uses `DefaultMetaGenerator` and `DefaultCodeGenVisitorMixin`
     // with `DefaultFallBack` for the generation.
     //
+    template<
+        template< typename >
+        typename VisitorConfig = DefaultCodeGenVisitorConfig,
+        typename MetaGenerator = DefaultMetaGenerator
+    >
     struct DefaultCodeGen
     {
-        template< typename Derived >
-        using VisitorConfig = CodeGenFallBackVisitorMixin< Derived,
-            DefaultCodeGenVisitorMixin,
-            DefaultFallBackVisitorMixin
-        >;
-
-        using Visitor = CodeGenVisitor< VisitorConfig >;
+        using Visitor = CodeGenVisitor< VisitorConfig, MetaGenerator >;
 
         using Base = CodeGenBase< Visitor >;
-        using MetaGenerator = Visitor::MetaGeneratorType;
 
-        DefaultCodeGen(MContext *ctx)
-            : meta(ctx), codegen(ctx, meta)
+        DefaultCodeGen(AContext *actx, MContext *mctx)
+            : meta(actx, mctx), codegen(mctx, meta)
         {}
 
         OwningModuleRef emit_module(clang::ASTUnit *unit) {
@@ -137,5 +192,7 @@ namespace vast::hl
         MetaGenerator meta;
         CodeGenBase< Visitor > codegen;
     };
+
+    using CodeGenWithMetaIDs = DefaultCodeGen< DefaultCodeGenVisitorConfig, IDMetaGenerator >;
 
 } // namespace vast::hl

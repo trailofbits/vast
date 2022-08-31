@@ -38,18 +38,24 @@ namespace vast::hl
         "ccopts", llvm::cl::ZeroOrMore, llvm::cl::desc("Specify compiler options")
     );
 
-    static llvm::cl::opt< bool > ast_meta_flag(
-        "ast-meta", llvm::cl::desc("Attach clang AST nodes as metadata")
+    static llvm::cl::opt< bool > id_meta_flag(
+        "id-meta", llvm::cl::desc("Attach ids to nodes as metadata")
     );
 
     static OwningModuleRef from_source_parser(
-        const llvm::MemoryBuffer *input, mlir::MLIRContext *ctx
+        const llvm::MemoryBuffer *input, mlir::MLIRContext *mctx
     ) {
         auto ast = clang::tooling::buildASTFromCodeWithArgs(
             input->getBuffer(), compiler_args
         );
 
-        return DefaultCodeGen(ctx).emit_module(ast.get());
+        auto actx = &ast->getASTContext();
+
+        if (id_meta_flag) {
+            return CodeGenWithMetaIDs(actx, mctx).emit_module(ast.get());
+        } else {
+            return DefaultCodeGen(actx, mctx).emit_module(ast.get());
+        }
     }
 
     mlir::LogicalResult registerFromSourceParser() {

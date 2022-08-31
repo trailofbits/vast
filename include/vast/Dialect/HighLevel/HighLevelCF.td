@@ -293,4 +293,44 @@ def HighLevel_DefaultOp : ControlFlowOp< "default" >
   let assemblyFormat = [{ $body attr-dict }];
 }
 
+def HighLevel_LabelDeclOp
+  : HighLevel_Op< "label.decl", [NoSideEffect] >
+  , Arguments<(ins StrAttr:$name)>
+  , Results<(outs LabelType:$result)>
+{
+  let assemblyFormat = [{ $name attr-dict `:` type($result) }];
+}
+
+def HighLevel_LabelStmt
+  : ControlFlowOp< "label" >
+  , Arguments<(ins LabelType:$label)>
+{
+  let regions = (region SizedRegion<1>:$substmt);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "mlir::Value":$label,
+      "BuilderCallback":$substmtBuilder
+    )>
+  ];
+
+  let assemblyFormat = [{ $label $substmt attr-dict }];
+}
+
+def HighLevel_GotoStmt
+  : HighLevel_Op< "goto", [] >
+  , Arguments<(ins LabelType:$label)>
+{
+  let assemblyFormat = [{ $label attr-dict }];
+}
+
+def HighLevel_SkipStmt : HighLevel_Op< "skip", [NoSideEffect] >
+{
+  let summary = "VAST skip statement";
+  let description = [{ VAST skip statement }];
+
+  let assemblyFormat = [{ attr-dict }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF

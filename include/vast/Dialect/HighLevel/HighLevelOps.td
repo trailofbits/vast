@@ -800,6 +800,17 @@ def HighLevel_Deref
     let assemblyFormat = [{ $addr attr-dict `:` type($addr) `->` type($result) }];
 }
 
+def HighLevel_AddrLabelExpr
+  : HighLevel_Op< "labeladdr", [] >
+  , Arguments<(ins LabelType:$label)>
+  , Results<(outs LValueOf<PointerType>:$result)>
+{
+    let summary = "VAST address of label extension";
+    let description = [{ VAST address of label extension }];
+
+    let assemblyFormat = [{ $label attr-dict `:` type($result) }];
+}
+
 def HighLevel_InitListExpr
   : HighLevel_Op< "initlist", [NoSideEffect] >
   , Arguments<(ins Variadic<AnyType>:$elements)>
