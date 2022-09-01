@@ -49,6 +49,23 @@ namespace vast::meta
         return result;
     }
 
+    std::vector< mlir::Operation * > get_with_meta_location(mlir::Operation *scope, IdentifierAttr id) {
+        std::vector< mlir::Operation * > result;
+        scope->walk([&](mlir::Operation *op) {
+            if (auto loc = op->getLoc().dyn_cast< mlir::FusedLoc >()) {
+                if (id == loc.getMetadata()) {
+                    result.push_back(op);
+                }
+            }
+        });
+        return result;
+    }
+
+    std::vector< mlir::Operation * > get_with_meta_location(mlir::Operation *scope, identifier_t id) {
+        auto ctx = scope->getContext();
+        return get_with_meta_location(scope, IdentifierAttr::get(ctx, id));
+    }
+
 } // namespace vast::meta
 
 #include "vast/Dialect/Meta/MetaDialect.cpp.inc"
