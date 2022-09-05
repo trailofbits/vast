@@ -7,7 +7,7 @@ bool ReorderArgumentMutation::shouldMutate()
 {
   if (!reordered)
   {
-    mlir::Operation &op = *mutator->opitInTmp;
+    mlir::Operation &op = mutator->funcItInTmp.getOperation();
     if (op.getNumOperands() > 1)
     {
       for (size_t i = 0; i < op.getNumOperands(); ++i)
@@ -27,7 +27,7 @@ bool ReorderArgumentMutation::shouldMutate()
 
 void ReorderArgumentMutation::mutate()
 {
-  mlir::Operation &op = *mutator->opitInTmp;
+  mlir::Operation &op = mutator->funcItInTmp.getOperation();
   for (size_t i = 0; i < op.getNumOperands(); ++i)
   {
     mlir::Type ty = op.getOperand(i).getType();
@@ -64,7 +64,7 @@ void ReorderArgumentMutation::debug()
   llvm::errs() << "==========\n";
   llvm::errs() << mutator->mutations.size();
   llvm::errs() << "==========\n";
-  mutator->opit->print(llvm::errs());
+  mutator->funcIt.getOperation().print(llvm::errs());
   endl;
 }
 
@@ -100,12 +100,12 @@ void ReplaceValueMutation::replaceOperand(mlir::Operation &op, size_t pos)
 
 bool ReplaceValueMutation::shouldMutate()
 {
-  return !replaced && mutator->opitInTmp->getNumOperands() > 0;
+  return !replaced && mutator->funcItInTmp.getOperation().getNumOperands() > 0;
 }
 
 void ReplaceValueMutation::mutate()
 {
-  mlir::Operation &op = *mutator->opitInTmp;
+  mlir::Operation &op = mutator->funcItInTmp.getOperation();
   // try to mutate every argument in the operation.
   for (size_t i = 0; i < op.getNumOperands(); ++i)
   {
@@ -222,12 +222,8 @@ void RandomMoveMutation::moveForward(mlir::Operation &op,
     op.setOperand(i, val);
   }
   op.moveBefore(&target);
-<<<<<<< HEAD
-  mutator->opitInTmp = op.getIterator();
-=======
   mutator->funcItInTmp=FunctionMutatorIterator(mutator->funcItInTmp.getFunctionMutator(),mutator->funcItInTmp.getRegionIterator(),
     mutator->funcItInTmp.getBlockIterator(),op.getIterator());
->>>>>>> added fixed dom bugs in random move
 
   while (!valBackup.empty())
   {
@@ -253,17 +249,14 @@ void RandomMoveMutation::moveBackward(mlir::Operation &op,
     fixValuesInOperand(*it,valSet);
   }
   op.moveBefore(&target);
-<<<<<<< HEAD
-  mutator->opitInTmp = op.getIterator();
-=======
+
   mutator->funcItInTmp=FunctionMutatorIterator(mutator->funcItInTmp.getFunctionMutator(),mutator->funcItInTmp.getRegionIterator(),
     mutator->funcItInTmp.getBlockIterator(),op.getIterator());
->>>>>>> added fixed dom bugs in random move
 }
 
 bool RandomMoveMutation::shouldMutate()
 {
-  mlir::Operation &op = *mutator->opitInTmp;
+  mlir::Operation &op = mutator->funcItInTmp.getOperation();
   mlir::Block *b = op.getBlock();
   return b->getOperations().size() > 2 &&
          b->getOperations().size() - 1 != mutator->funcIt.getCurrentPos();
@@ -271,7 +264,7 @@ bool RandomMoveMutation::shouldMutate()
 
 void RandomMoveMutation::mutate()
 {
-  mlir::Operation &op = *mutator->opitInTmp;
+  mlir::Operation &op = mutator->funcItInTmp.getOperation();
   mlir::Block *b = op.getBlock();
   bool canMoveForward = (op.getIterator() != b->begin()),
        canMoveBackward = (op.getIterator() != --(b->end()));
@@ -449,9 +442,6 @@ FunctionMutator::FunctionMutator(mlir::FuncOp curFunc,
   {
     values.back().push_back(*argit);
   }
-
-  //opit = curFunc.getBody().getBlocks().front().begin();
-  //moveToNextMutant();
 }
 
 mlir::Value FunctionMutator::getRandomDominatedValue(mlir::Type ty)
@@ -482,17 +472,14 @@ mlir::Value FunctionMutator::getRandomExtraValue(mlir::Type ty)
 
 void FunctionMutator::mutate()
 {
-  /*for (size_t i = 0; i < mutations.size(); ++i)
+  for (size_t i = 0; i < mutations.size(); ++i)
   {
     if (mutations[i]->shouldMutate())
     {
-      mutations[i]->reset();
       mutations[i]->mutate();
+      mutations[i]->reset();
     }
-  }*/
-  llvm::errs()<<"===========\n";
-  funcIt.getOperation().print(llvm::errs());
-  llvm::errs()<<"\n===========\n";
+  }
   moveToNextMutant();
 }
 
@@ -500,10 +487,7 @@ void FunctionMutator::resetCopy(std::shared_ptr<mlir::ModuleOp> tmpCopy)
 {
   assert(!funcIt.isEnd() && "func it shouldn't at end");
   this->tmpCopy = tmpCopy;
-  //mlir::Value res = opit->getResult(0);
-  //assert(bavMap.contains(res) && "copy should be same!\n");
-  //mlir::Value tmpres = bavMap.lookup(res);
-  //opitInTmp = tmpres.getDefiningOp()->getIterator();
+
   mlir::Operation& oper=*funcIt.getRegion().getParentOp();
   assert(opMap.find(&oper)!=opMap.end() && "copy should be the same");
   mlir::Operation& operInTmp=*opMap.find(&oper)->second;
@@ -522,7 +506,8 @@ void FunctionMutator::resetCopy(std::shared_ptr<mlir::ModuleOp> tmpCopy)
 
 mlir::Value FunctionMutator::addFunctionArgument(mlir::Type ty)
 {
-  mlir::Operation *op = opitInTmp->getParentOp();
+  assert(opMap.find(curFunc.getOperation())!=opMap.end() &&"should get func in tmp");
+  mlir::Operation *op = opMap.find(curFunc.getOperation())->second;
   assert(mlir::isa<mlir::FuncOp>(*op) && "operation should be a FuncOp");
   mlir::FuncOp funcInTmp = mlir::dyn_cast<mlir::FuncOp>(*op);
   mlir::Value val = util::addFunctionParameter(funcInTmp, ty);
