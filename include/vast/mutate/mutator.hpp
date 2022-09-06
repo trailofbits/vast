@@ -219,21 +219,16 @@ public:
   bool init() {
     for (auto module_it = module.begin(); module_it != module.end();
          ++module_it) {
-      if (mlir::isa<vast::hl::TranslationUnitOp>(module_it)) {
-        mlir::Block &block = module_it->getRegion(0).getBlocks().front();
-        for (auto fit = block.begin(); fit != block.end(); ++fit) {
-          if (mlir::isa<mlir::FuncOp>(fit)) {
-            mlir::FuncOp func = mlir::dyn_cast<mlir::FuncOp>(*fit);
-            if (llvm::hasSingleElement(func.getRegion()) &&
-                FunctionMutator::canMutate(func)) {
-              functionMutators.push_back(
-                  std::make_shared<FunctionMutator>(func, bavMap, opMap));
-              functionMutators.back()->init(functionMutators.back());
-            }
+        if (mlir::isa<mlir::FuncOp>(module_it)) {
+          mlir::FuncOp func = mlir::dyn_cast<mlir::FuncOp>(*module_it);
+          if (llvm::hasSingleElement(func.getRegion()) &&
+              FunctionMutator::canMutate(func)) {
+            functionMutators.push_back(
+                std::make_shared<FunctionMutator>(func, bavMap, opMap));
+            functionMutators.back()->init(functionMutators.back());
           }
         }
       }
-    }
     return !functionMutators.empty();
   }
   mlir::ModuleOp &getOrigin() const { return module; }
