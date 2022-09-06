@@ -79,16 +79,14 @@ class LValueOrType<TypeConstraint value> : Type<
   "lvalue to " # value.summary
 >;
 
-
-class TypesOrLValueTypesMatch<string summary, string lhs, string rhs>
-  : PredOpTrait< summary, Or<[
-      TypesMatchWith< "underlying lvalue type does not match",
-        lhs, rhs, "LValueType::get( $_ctxt, $_self )"
-      >.predicate,
-      AllTypesMatch< ["src", "dst"] >.predicate
-    ]>
-  >;
-
+class TypesOrLValueTypesMatch<string summary, string lhs, string rhs> : PredOpTrait< summary,
+  Or<[
+    TypesMatchWith< "underlying lvalue type does not match",
+      lhs, rhs, "LValueType::get( $_ctxt, $_self )"
+    >.predicate,
+    AllTypesMatch< ["src", "dst"] >.predicate
+  ]>
+>;
 
 // TODO(Heno): replace CVQualified class with QualifierParam when optional
 // parameters are available in MLIR

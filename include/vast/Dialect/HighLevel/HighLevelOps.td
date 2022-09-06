@@ -630,15 +630,16 @@ class HighLevel_ShiftOp< string mnemonic, list< Trait > traits = [] >
 def HighLevel_BinShlOp : HighLevel_ShiftOp<"bin.shl", []>;
 def HighLevel_BinShrOp : HighLevel_ShiftOp<"bin.shr", []>;
 
+
 class HighLevel_CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
-      TypesMatchWith<
-        "underlying lvalue type is same as source type",
-        "src", "dst", "LValueType::get( $_ctxt, $_self )"
-      >,
-      AllTypesMatch< ["src", "result"] >
+        TypesOrLValueTypesMatch<
+            "source and destination have the same underlying types",
+            "src", "dst"
+        >,
+        AllTypesMatch< ["src", "result"] >
     ])>
-    , Arguments<(ins Type:$src, LValueOf<Type>:$dst)>
+    , Arguments<(ins LValueOrType<Type>:$src, LValueOf<Type>:$dst)>
     , Results<(outs Type:$result)>
 {
     let summary = "VAST compound assign operation";
@@ -658,13 +659,15 @@ class HighLevel_CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, 
 
     let skipDefaultBuilders = 1;
     let builders = [ OpBuilder<(ins "Value":$dst, "Value":$src), [{
-      $_state.addOperands(src);
-      $_state.addOperands(dst);
-      $_state.addTypes(src.getType());
-    }]>
-  ];
+        $_state.addOperands(src);
+        $_state.addOperands(dst);
+        $_state.addTypes(src.getType());
+      }]>
+    ];
 
-    let assemblyFormat = [{ $src `to` $dst attr-dict `:` type($src) }];
+    let assemblyFormat = [{
+      $src `to` $dst attr-dict `:` type(operands) `->` type(results)
+    }];
 }
 
 class HighLevel_CompoundAssignOp< string mnemonic, list< Trait > traits = [] >
