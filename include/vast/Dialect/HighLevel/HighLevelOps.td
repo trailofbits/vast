@@ -734,8 +734,14 @@ def HighLevel_CmpOp
 
 
 class HighLevel_UnInplaceOp< string mnemonic, list< Trait > traits = [] >
-    : HighLevel_Op< mnemonic, !listconcat(traits, [SameOperandsAndResultType]) >
-    , Arguments<(ins AnyType:$arg)>
+    : HighLevel_Op< mnemonic, !listconcat(traits, [
+        TypesMatchWith<
+          "underlying argument type match result type",
+          "arg", "result",
+          "$_self.cast< LValueType >().getElementType()"
+        >
+      ]) >
+    , Arguments<(ins LValueOf<AnyType>:$arg)>
     , Results<(outs AnyType:$result)>
 {
     let summary = "VAST unary inplace operation";
@@ -748,7 +754,7 @@ class HighLevel_UnInplaceOp< string mnemonic, list< Trait > traits = [] >
         %result = <op> %arg : type
     }];
 
-    let assemblyFormat = [{ $arg attr-dict `:` type($result) }];
+    let assemblyFormat = [{ $arg attr-dict `:` type($arg) `->` type($result) }];
 }
 
 def HighLevel_PostIncOp : HighLevel_UnInplaceOp< "post.inc", [] >;
