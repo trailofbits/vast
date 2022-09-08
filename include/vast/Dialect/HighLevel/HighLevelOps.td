@@ -633,11 +633,11 @@ def HighLevel_BinShrOp : HighLevel_ShiftOp<"bin.shr", []>;
 
 class HighLevel_CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
-        TypesOrLValueTypesMatch<
-            "source and destination have the same underlying types",
-            "src", "dst"
-        >,
-        AllTypesMatch< ["src", "result"] >
+        TypesMatchWith<
+          "underlying destination type match result type",
+          "dst", "result",
+          "$_self.cast< LValueType >().getElementType()"
+        >
     ])>
     , Arguments<(ins LValueOrType<Type>:$src, LValueOf<Type>:$dst)>
     , Results<(outs Type:$result)>
@@ -661,7 +661,8 @@ class HighLevel_CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, 
     let builders = [ OpBuilder<(ins "Value":$dst, "Value":$src), [{
         $_state.addOperands(src);
         $_state.addOperands(dst);
-        $_state.addTypes(src.getType());
+        auto type = dst.getType().cast< LValueType >();
+        $_state.addTypes(type.getElementType());
       }]>
     ];
 
