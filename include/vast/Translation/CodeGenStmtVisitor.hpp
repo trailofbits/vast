@@ -251,25 +251,29 @@ namespace vast::hl {
         }
 
         template< typename Op >
-        Operation* VisitTypePreservingUnary(const clang::UnaryOperator *op) {
+        Operation* VisitUnderlyingTypePreservingUnary(const clang::UnaryOperator *op) {
             auto arg = visit(op->getSubExpr())->getResult(0);
-            return make< Op >(meta_location(op), arg);
+            auto type = arg.getType();
+            if (auto ltype = type.template dyn_cast< LValueType >()) {
+                type = ltype.getElementType();
+            }
+            return make< Op >(meta_location(op), type, arg);
         }
 
         Operation* VisitUnaryPostInc(const clang::UnaryOperator *op) {
-            return VisitTypePreservingUnary< PostIncOp >(op);
+            return VisitUnderlyingTypePreservingUnary< PostIncOp >(op);
         }
 
         Operation* VisitUnaryPostDec(const clang::UnaryOperator *op) {
-            return VisitTypePreservingUnary< PostDecOp >(op);
+            return VisitUnderlyingTypePreservingUnary< PostDecOp >(op);
         }
 
         Operation* VisitUnaryPreInc(const clang::UnaryOperator *op) {
-            return VisitTypePreservingUnary< PreIncOp >(op);
+            return VisitUnderlyingTypePreservingUnary< PreIncOp >(op);
         }
 
         Operation* VisitUnaryPreDec(const clang::UnaryOperator *op) {
-            return VisitTypePreservingUnary< PreDecOp >(op);
+            return VisitUnderlyingTypePreservingUnary< PreDecOp >(op);
         }
 
         Operation* VisitUnaryAddrOf(const clang::UnaryOperator *op) {
@@ -281,19 +285,19 @@ namespace vast::hl {
         }
 
         Operation* VisitUnaryPlus(const clang::UnaryOperator *op) {
-            return VisitTypePreservingUnary< PlusOp >(op);
+            return VisitUnderlyingTypePreservingUnary< PlusOp >(op);
         }
 
         Operation* VisitUnaryMinus(const clang::UnaryOperator *op) {
-            return VisitTypePreservingUnary< MinusOp >(op);
+            return VisitUnderlyingTypePreservingUnary< MinusOp >(op);
         }
 
         Operation* VisitUnaryNot(const clang::UnaryOperator *op) {
-            return VisitTypePreservingUnary< NotOp >(op);
+            return VisitUnderlyingTypePreservingUnary< NotOp >(op);
         }
 
         Operation* VisitUnaryLNot(const clang::UnaryOperator *op) {
-            return VisitTypePreservingUnary< LNotOp >(op);
+            return VisitUnderlyingTypePreservingUnary< LNotOp >(op);
         }
 
         // Operation* VisitUnaryReal(const clang::UnaryOperator *op)
