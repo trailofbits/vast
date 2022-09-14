@@ -7,7 +7,7 @@ void fn(int x)
     // CHECK:   [[V0:%[0-9]+]] = hl.decl.ref %arg0 : !hl.lvalue<i32>
     // CHECK:   [[V1:%[0-9]+]] = hl.implicit_cast [[V0]] LValueToRValue : !hl.lvalue<i32> -> i32
     // CHECK:   [[V2:%[0-9]+]] = hl.constant.int 0 : i32
-    // CHECK:   [[V3:%[0-9]+]] = hl.cmp ne i32 [[V1]], [[V2]] -> i32
+    // CHECK:   [[V3:%[0-9]+]] = hl.cmp ne [[V1]], [[V2]] : i32, i32 -> i32
     // CHECK:   [[V4:%[0-9]+]] = hl.implicit_cast [[V3]] IntegralCast : i32 -> i1
     // CHECK:   scf.condition([[V4]])
     // CHECK: } do {
