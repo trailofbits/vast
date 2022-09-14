@@ -1,0 +1,46 @@
+#
+# Copyright (c) 2022-present, Trail of Bits, Inc.
+# All rights reserved.
+#
+# This source code is licensed in accordance with the terms specified in
+# the LICENSE file found in the root directory of this source tree.
+#
+
+name: "Pre Release"
+
+on:
+  workflow_run:
+    workflows: ["Build & Test"]
+    types:
+      - completed
+    branches:
+      - "master"
+
+jobs:
+  pre-release:
+    name: "Pre Release"
+    needs: build
+    runs-on: "ubuntu-latest"
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Clone the vast repository
+        uses: actions/checkout@v3
+        with:
+          path: ./vast
+          fetch-depth: 0
+
+      - name: "Download build artifacts"
+        id: download
+        uses: actions/download-artifact@v3
+
+      - name: "Publish Pre-Release"
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            ./vast/LICENSE
+            ${{steps.download.outputs.download-path}}/vast-*/*.tar.xz
