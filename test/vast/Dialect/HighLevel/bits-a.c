@@ -9,7 +9,7 @@ int sign1(int v) {
     // CHECK:   [[V1:%[0-9]+]] = hl.decl.ref [[A1]] : !hl.lvalue<!hl.int>
     // CHECK:   [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int
     // CHECK:   [[V3:%[0-9]+]] = hl.constant.int 0 : !hl.int
-    // CHECK:   [[V4:%[0-9]+]] = hl.cmp slt !hl.int [[V2]], [[V3]] -> !hl.int
+    // CHECK:   [[V4:%[0-9]+]] = hl.cmp slt [[V2]], [[V3]] : !hl.int, !hl.int -> !hl.int
     // CHECK: hl.minus [[V0]] : !hl.int
     return -(v < 0);
 }
