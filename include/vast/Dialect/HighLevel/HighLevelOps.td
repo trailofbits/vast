@@ -723,14 +723,14 @@ def Predicate : PredicateList< "Predicate", "comparison predicate", [
 
 
 def HighLevel_CmpOp
-  : HighLevel_Op< "cmp", [NoSideEffect, SameTypeOperands, Commutative] >
+  : HighLevel_Op< "cmp", [NoSideEffect] >
   , Arguments<(ins Predicate:$predicate, AnyType:$lhs, AnyType:$rhs)>
   , Results<(outs IntOrBoolType:$result)>
 {
   let summary = "VAST comparison operation";
   let description = [{ VAST comparison operation }];
 
-  let assemblyFormat = "$predicate type($lhs) $lhs `,` $rhs  attr-dict `->` type($result)";
+  let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type(operands) `->` type($result)";
 }
 
 
