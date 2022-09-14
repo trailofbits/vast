@@ -19,7 +19,6 @@ on:
 jobs:
   pre-release:
     name: "Pre Release"
-    needs: build
     runs-on: "ubuntu-latest"
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
