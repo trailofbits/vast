@@ -22,6 +22,7 @@ add_mlir_dialect_library(MLIRHighLevel
     MLIRSideEffectInterfaces
 
     MLIRCallInterfaces
+    MLIRCastInterfaces
     MLIRControlFlowInterfaces
     MLIRDataLayoutInterfaces
     MLIRInferTypeOpInterface
