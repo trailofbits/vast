@@ -18,7 +18,12 @@ if (POLICY CMP0116)
 endif ()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-include(vast_vcpkg_helper)
+
+option(ENABLE_VCPKG_CONFIG "Enable vcpkg" OFF)
+
+if (ENABLE_VCPKG_CONFIG)
+  include(vast_vcpkg_helper)
+endif()
 
 project(vast
     LANGUAGES C CXX
@@ -64,7 +69,7 @@ FindAndSelectClangCompiler()
 #
 # LLVM & MLIR & Clang
 #
-find_package(LLVM 14 REQUIRED CONFIG)
+find_package(LLVM 15 REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
