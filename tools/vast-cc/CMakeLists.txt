@@ -21,8 +21,6 @@ target_link_libraries(vast-cc
         MLIRIR
         MLIRParser
         MLIRPass
-        MLIRSPIRV
-        MLIRTranslation
         MLIRSupport
 
         FromSourceParser
