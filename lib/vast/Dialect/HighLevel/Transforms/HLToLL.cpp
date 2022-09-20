@@ -52,18 +52,18 @@ namespace vast::hl
         namespace LLVM = mlir::LLVM;
 
         // Since information is hidden in attribute, entire op must be an argument.
-        bool is_variadic(mlir::FuncOp op)
+        bool is_variadic(mlir::func::FuncOp op)
         {
             // TODO(lukas): Implement once hl supports it.
             return false;
         }
 
-        auto convert_fn_t(auto &tc, mlir::FuncOp op)
+        auto convert_fn_t(auto &tc, mlir::func::FuncOp op)
         -> std::tuple< mlir::TypeConverter::SignatureConversion, mlir::Type >
         {
             mlir::TypeConverter::SignatureConversion conversion(op.getNumArguments());
             auto target_type = tc.convertFunctionSignature(
-                    op.getType(), is_variadic(op), conversion);
+                    op.getFunctionType(), is_variadic(op), conversion);
             return { std::move(conversion), target_type };
         }
 
@@ -155,11 +155,11 @@ namespace vast::hl
             using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
             using maybe_signature_conversion_t = std::optional< signature_conversion_t >;
 
-            maybe_signature_conversion_t get_conversion_signature(mlir::FuncOp fn,
+            maybe_signature_conversion_t get_conversion_signature(mlir::func::FuncOp fn,
                                                                   bool variadic)
             {
                 signature_conversion_t conversion(fn.getNumArguments());
-                for (auto arg : llvm::enumerate(fn.getType().getInputs()))
+                for (auto arg : llvm::enumerate(fn.getFunctionType().getInputs()))
                 {
                     auto cty = convert_arg_t(arg.value());
                     if (!cty)
@@ -260,17 +260,17 @@ namespace vast::hl
             }
         };
 
-        struct func_op : BasePattern< mlir::FuncOp >
+        struct func_op : BasePattern< mlir::func::FuncOp >
         {
-            using Base = BasePattern< mlir::FuncOp >;
+            using Base = BasePattern< mlir::func::FuncOp >;
             using Base::Base;
 
             mlir::LogicalResult matchAndRewrite(
-                    mlir::FuncOp func_op, mlir::FuncOp::Adaptor ops,
+                    mlir::func::FuncOp func_op, mlir::func::FuncOp::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
                 auto &tc = this->type_converter();
-                auto maybe_target_type = tc.convert_fn_t(func_op.getType());
+                auto maybe_target_type = tc.convert_fn_t(func_op.getFunctionType());
                 auto maybe_signature = tc.get_conversion_signature(func_op,
                                                                    is_variadic(func_op));
                 // Type converter failed.
@@ -699,7 +699,7 @@ namespace vast::hl
         mlir::ConversionTarget target(mctx);
         target.addIllegalDialect< hl::HighLevelDialect >();
         target.addLegalOp< hl::TypeDefOp >();
-        target.addIllegalOp< mlir::FuncOp >();
+        target.addIllegalOp< mlir::func::FuncOp >();
         target.markUnknownOpDynamicallyLegal([](auto) { return true; });
 
         const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();

@@ -132,7 +132,7 @@ namespace vast::query
                         show_if(symbol, is_global< hl::VarDeclOp >());
                         break;
                     case cl::show_symbol_type::function:
-                        show_if(symbol, is_one_of< mlir::FuncOp >());
+                        show_if(symbol, is_one_of< mlir::func::FuncOp >());
                         break;
                     case cl::show_symbol_type::none: break;
                 }
@@ -178,7 +178,7 @@ namespace vast
         bool wasThreadingEnabled = ctx.isMultithreadingEnabled();
         ctx.disableMultithreading();
 
-        OwningModuleRef mod(mlir::parseSourceFile(source_mgr, &ctx));
+        OwningModuleRef mod(mlir::parseSourceFile< mlir::ModuleOp >(source_mgr, &ctx));
         ctx.enableMultithreading(wasThreadingEnabled);
         if (!mod) {
             llvm::errs() << "error: cannot parse module\n";

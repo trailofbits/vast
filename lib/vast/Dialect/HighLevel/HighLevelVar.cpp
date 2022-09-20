@@ -30,7 +30,7 @@ namespace vast::hl
 
     DeclContextKind VarDeclOp::getDeclContextKind() {
         auto st = mlir::SymbolTable::getNearestSymbolTable(*this);
-        if (mlir::isa< mlir::FuncOp >(st))
+        if (mlir::isa< mlir::func::FuncOp >(st))
             return DeclContextKind::dc_function;
         if (mlir::isa< mlir::ModuleOp >(st))
             return DeclContextKind::dc_translation_unit;

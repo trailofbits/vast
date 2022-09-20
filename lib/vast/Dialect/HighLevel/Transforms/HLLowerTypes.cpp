@@ -263,11 +263,11 @@ namespace vast::hl
     };
 
     // Get SignatureConversion if all the sub-conversion are successful, no value otherwise.
-    auto get_fn_signature(auto &&tc, mlir::FuncOp fn, bool variadic)
+    auto get_fn_signature(auto &&tc, mlir::func::FuncOp fn, bool variadic)
     -> std::optional< mlir::TypeConverter::SignatureConversion >
     {
         mlir::TypeConverter::SignatureConversion sigconvert(fn.getNumArguments());
-        for (auto arg : llvm::enumerate(fn.getType().getInputs()))
+        for (auto arg : llvm::enumerate(fn.getFunctionType().getInputs()))
         {
             mlir::SmallVector< mlir::Type, 2 > converted;
             auto cty = tc.convertType(arg.value(), converted);
@@ -365,7 +365,7 @@ namespace vast::hl
                 mlir::Operation *op, mlir::ArrayRef< mlir::Value > ops,
                 mlir::ConversionPatternRewriter &rewriter) const override
         {
-            if (mlir::isa< mlir::FuncOp >(op))
+            if (mlir::isa< mlir::func::FuncOp >(op))
                 return mlir::failure();
 
             mlir::SmallVector< mlir::Type > rty;
@@ -410,7 +410,7 @@ namespace vast::hl
             return true;
         }
 
-        auto lower_fn_attrs(mlir::FuncOp fn) const
+        auto lower_fn_attrs(mlir::func::FuncOp fn) const
         {
             return this->Base::lower_attrs(fn->getAttrs(), is_fn_attr);
         }
@@ -419,7 +419,7 @@ namespace vast::hl
         using maybe_attrs_t = std::optional< attrs_t >;
         using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
 
-        attrs_t lower_args_attrs(mlir::FuncOp fn, mlir::ArrayAttr arg_dict,
+        attrs_t lower_args_attrs(mlir::func::FuncOp fn, mlir::ArrayAttr arg_dict,
                                  const signature_conversion_t &signature) const
         {
             attrs_t new_attrs;
@@ -432,7 +432,7 @@ namespace vast::hl
             return new_attrs;
         }
 
-        maybe_attrs_t lower_args_attrs(mlir::FuncOp fn,
+        maybe_attrs_t lower_args_attrs(mlir::func::FuncOp fn,
                                        const signature_conversion_t &signature) const
         {
             if (auto arg_dict = fn.getAllArgAttrs())
@@ -448,7 +448,7 @@ namespace vast::hl
                 mlir::Operation *op, mlir::ArrayRef< mlir::Value > ops,
                 mlir::ConversionPatternRewriter &rewriter) const override
         {
-            auto fn = mlir::dyn_cast< mlir::FuncOp >(op);
+            auto fn = mlir::dyn_cast< mlir::func::FuncOp >(op);
             if (!fn)
                 return mlir::failure();
 
@@ -467,7 +467,7 @@ namespace vast::hl
                 attributes.push_back(as_attr);
             }
 
-            auto maybe_fn_type = getTypeConverter()->convert_type_to_type(fn.getType());
+            auto maybe_fn_type = getTypeConverter()->convert_type_to_type(fn.getFunctionType());
             if (!maybe_fn_type)
                 return mlir::failure();
             auto fn_type = maybe_fn_type->dyn_cast< mlir::FunctionType >();
@@ -475,7 +475,7 @@ namespace vast::hl
                 return mlir::failure();
 
             // Create new function with converted type
-            mlir::FuncOp new_fn = rewriter.create< mlir::FuncOp >(
+            mlir::func::FuncOp new_fn = rewriter.create< mlir::func::FuncOp >(
                     fn.getLoc(), fn.getName(), fn_type, attributes);
 
             // Copy the old region - it will have incorrect arguments (`BlockArgument` on
@@ -554,7 +554,7 @@ namespace vast::hl
         {
             std::vector< hl::TypeDeclOp > out;
             auto module_op = op->getParentOfType< mlir::ModuleOp >();
-            for (auto &x : solo_block(module_op.body()))
+            for (auto &x : solo_block(module_op.getBodyRegion()))
             {
                 if (auto type_decl = mlir::dyn_cast< hl::TypeDeclOp >(x);
                     type_decl && type_decl.name() == op.name())
