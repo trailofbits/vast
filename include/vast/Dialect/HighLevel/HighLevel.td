@@ -14,16 +14,22 @@ include "vast/Interfaces/SymbolInterface.td"
 
 def HighLevel_Dialect : Dialect {
     let name = "hl";
+    let cppNamespace = "::vast::hl";
+
     let summary = "A high-level verbose program analysis MLIR dialect.";
+
     let description = [{
         This dialect intends capture highevel constructs of C/C++
         for further program analysis.
     }];
-    let cppNamespace = "::vast::hl";
+
     let extraClassDeclaration = [{
         void registerTypes();
         void registerAttributes();
     }];
+
+    let useDefaultTypePrinterParser = 1;
+    let useDefaultAttributePrinterParser = 1;
 
     let hasConstantMaterializer = 1;
 }
