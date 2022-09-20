@@ -11,6 +11,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/Meta/MetaDialect.hpp"
 
+#include "vast/Util/Common.hpp"
+
 namespace vast {
 
     inline void registerAllDialects(mlir::DialectRegistry &registry) {
@@ -18,6 +20,12 @@ namespace vast {
             vast::hl::HighLevelDialect,
             vast::meta::MetaDialect
         >();
+    }
+
+    inline void registerAllDialects(MContext &mctx) {
+        mlir::DialectRegistry registry;
+        vast::registerAllDialects(registry);
+        mctx.appendDialectRegistry(registry);
     }
 
 } // namespace vast
