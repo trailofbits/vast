@@ -4,6 +4,7 @@
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 
 include "mlir/Interfaces/CallInterfaces.td"
+include "mlir/Interfaces/CastInterfaces.td"
 include "vast/Interfaces/SymbolInterface.td"
 
 def HighLevel_TranslationUnitOp

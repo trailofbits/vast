@@ -6,6 +6,7 @@
 
 VAST_RELAX_WARNINGS
 #include <mlir/IR/SymbolTable.h>
+#include <mlir/Dialect/Func/IR/FuncOps.h>
 #include <llvm/Support/raw_ostream.h>
 VAST_UNRELAX_WARNINGS
 

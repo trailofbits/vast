@@ -7,6 +7,7 @@
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Interfaces/SymbolInterface.hpp"
 
+#include <mlir/Dialect/Func/IR/FuncOps.h>
 #include <mlir/Interfaces/InferTypeOpInterface.h>
 
 namespace vast::hl

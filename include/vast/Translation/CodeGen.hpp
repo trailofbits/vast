@@ -8,8 +8,7 @@ VAST_RELAX_WARNINGS
 #include <clang/AST/Expr.h>
 #include <clang/Frontend/ASTUnit.h>
 #include <mlir/Dialect/DLTI/DLTI.h>
-#include <mlir/Dialect/StandardOps/IR/Ops.h>
-#include <mlir/Dialect/SCF/SCF.h>
+#include <mlir/Dialect/SCF/IR/SCF.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/MLIRContext.h>
