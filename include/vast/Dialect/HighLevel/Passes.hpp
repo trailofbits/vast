@@ -7,7 +7,7 @@
 VAST_RELAX_WARNINGS
 #include <mlir/IR/Operation.h>
 #include <mlir/Pass/Pass.h>
-#include <mlir/Dialect/SCF/SCF.h>
+#include <mlir/Dialect/SCF/IR/SCF.h>
 VAST_UNRELAX_WARNINGS
 
 #include <vast/Dialect/HighLevel/HighLevelDialect.hpp>

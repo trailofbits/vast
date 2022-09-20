@@ -12,8 +12,7 @@ VAST_RELAX_WARNINGS
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/SourceMgr.h>
 #include <mlir/Dialect/DLTI/DLTI.h>
-#include <mlir/Dialect/SCF/SCF.h>
-#include <mlir/Dialect/StandardOps/IR/Ops.h>
+#include <mlir/Dialect/SCF/IR/SCF.h>
 #include <mlir/IR/Attributes.h>
 #include <mlir/IR/Block.h>
 #include <mlir/IR/BlockAndValueMapping.h>
@@ -23,7 +22,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
-#include <mlir/Translation.h>
+#include <mlir/Tools/mlir-translate/Translation.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"

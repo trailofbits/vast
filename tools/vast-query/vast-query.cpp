@@ -7,11 +7,11 @@ VAST_RELAX_WARNINGS
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/InitAllDialects.h"
 #include "mlir/InitAllPasses.h"
-#include "mlir/Parser.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/Pass/PassManager.h"
 #include "mlir/Support/FileUtilities.h"
-#include "mlir/Support/MlirOptMain.h"
+#include "mlir/Tools/mlir-opt/MlirOptMain.h"
+#include "mlir/Parser/Parser.h"
 
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/SourceMgr.h"

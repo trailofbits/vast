@@ -4,6 +4,7 @@
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
 
 include "mlir/IR/OpBase.td"
+include "mlir/IR/EnumAttr.td"
 
 def APSIntAttr : Attr<CPred<"$_self.isa<::mlir::IntegerAttr>()">,
   "arbitrary integer attribute with sign">

@@ -5,7 +5,7 @@
 VAST_RELAX_WARNINGS
 #include <mlir/Analysis/DataLayoutAnalysis.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
-#include <mlir/Dialect/SCF/SCF.h>
+#include <mlir/Dialect/SCF/IR/SCF.h>
 #include <mlir/Conversion/LLVMCommon/Pattern.h>
 #include <mlir/Conversion/LLVMCommon/TypeConverter.h>
 VAST_UNRELAX_WARNINGS
