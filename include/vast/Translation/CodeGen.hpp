@@ -88,7 +88,7 @@ namespace vast::hl
         using TypeDeclsScope     = ScopedSymbolTable< const clang::TypeDecl *, TypeDeclOp >;
         using EnumDeclsScope     = ScopedSymbolTable< const clang::EnumDecl *, EnumDeclOp >;
         using EnumConstantsScope = ScopedSymbolTable< const clang::EnumConstantDecl *, EnumConstantOp >;
-        using FunctionsScope     = ScopedSymbolTable< const clang::FunctionDecl *, mlir::FuncOp >;
+        using FunctionsScope     = ScopedSymbolTable< const clang::FunctionDecl *, mlir::func::FuncOp >;
         using VariablesScope     = ScopedSymbolTable< const clang::VarDecl *, Value >;
 
         struct CodegenScope {

@@ -188,10 +188,10 @@ def HighLevel_CallOp
 
   let skipDefaultBuilders = 1;
   let builders = [
-    OpBuilder< (ins "mlir::FuncOp":$callee, CArg<"mlir::ValueRange", "{}">:$operands ), [{
+    OpBuilder< (ins "mlir::func::FuncOp":$callee, CArg<"mlir::ValueRange", "{}">:$operands ), [{
       $_state.addOperands(operands);
       $_state.addAttribute("callee", mlir::SymbolRefAttr::get($_builder.getContext(), callee.getName()));
-      $_state.addTypes(callee.getType().getResults());
+      $_state.addTypes(callee.getFunctionType().getResults());
     }]>
   ];
 

@@ -40,7 +40,7 @@ namespace vast::util
 
     template< typename Yield >
     void functions(mlir::Operation *op, Yield &&yield) {
-        op->walk([yield = std::forward< Yield >(yield)](mlir::FuncOp fn, const mlir::WalkStage &stage) {
+        op->walk([yield = std::forward< Yield >(yield)](mlir::func::FuncOp fn, const mlir::WalkStage &stage) {
             yield(fn);
         });
     }

@@ -698,7 +698,7 @@ namespace vast::hl {
         // Operation* VisitCXXUnresolvedConstructExpr(const clang::CXXThrowExpr *expr)
         // Operation* VisitCXXUuidofExpr(const clang::CXXUuidofExpr *expr)
 
-        mlir::FuncOp VisitDirectCallee(const clang::FunctionDecl *callee) {
+        mlir::func::FuncOp VisitDirectCallee(const clang::FunctionDecl *callee) {
             InsertionGuard guard(op_builder());
 
             if (auto fn = context().lookup_function(callee, false /* with error */)) {
@@ -706,7 +706,7 @@ namespace vast::hl {
             }
 
             set_insertion_point_to_start(&context().getBodyRegion());
-            return mlir::cast< mlir::FuncOp >(visit(callee));
+            return mlir::cast< mlir::func::FuncOp >(visit(callee));
         }
 
         Operation* VisitIndirectCallee(const clang::Expr *callee) {

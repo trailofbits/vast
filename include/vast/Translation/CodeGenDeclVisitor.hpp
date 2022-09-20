@@ -91,7 +91,7 @@ namespace vast::hl {
                 } else {
                     if (decl->isMain()) {
                         // return zero if no return is present in main
-                        auto type = fn.getType();
+                        auto type = fn.getFunctionType();
                         auto zero = constant(loc, type.getResult(0), apint(0));
                         make< ReturnOp >(loc, zero);
                     } else {
@@ -134,11 +134,11 @@ namespace vast::hl {
                 auto type = visit(decl->getFunctionType()).template cast< mlir::FunctionType >();
                 // make function header, that will be later filled with function body
                 // or returned as declaration in the case of external function
-                return make< mlir::FuncOp >(loc, decl->getName(), type);
+                return make< mlir::func::FuncOp >(loc, decl->getName(), type);
             });
 
             if (!is_definition) {
-                fn.setVisibility( mlir::FuncOp::Visibility::Private );
+                fn.setVisibility( mlir::func::FuncOp::Visibility::Private );
                 return fn;
             }
 
