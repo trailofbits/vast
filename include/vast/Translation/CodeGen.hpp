@@ -31,12 +31,11 @@ VAST_UNRELAX_WARNINGS
 namespace vast::hl
 {
     namespace detail {
-        static inline MContext* codegen_context_setup(MContext *ctx) {
-            ctx->loadDialect< hl::HighLevelDialect >();
-            ctx->loadDialect< meta::MetaDialect >();
-            ctx->loadDialect< mlir::StandardOpsDialect >();
-            ctx->loadDialect< mlir::DLTIDialect >();
-            ctx->loadDialect< mlir::scf::SCFDialect >();
+        static inline MContext& codegen_context_setup(MContext &ctx) {
+            mlir::registerAllDialects(ctx);
+            vast::registerAllDialects(ctx);
+
+            ctx.loadAllAvailableDialects();
             return ctx;
         };
 
@@ -55,7 +54,7 @@ namespace vast::hl
         CodeGenBase(MContext *mctx, MetaGenerator &meta)
             : _mctx(mctx), _meta(meta), _cgctx(nullptr), _module(nullptr)
         {
-            detail::codegen_context_setup(_mctx);
+            detail::codegen_context_setup(*_mctx);
         }
 
         OwningModuleRef emit_module(clang::ASTUnit *unit) {

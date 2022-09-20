@@ -28,12 +28,8 @@ int main(int argc, char **argv) {
 
     // setup mlir environment
     mlir::DialectRegistry registry;
-    registry.insert<
-        vast::hl::HighLevelDialect,
-        vast::meta::MetaDialect,
-        mlir::StandardOpsDialect,
-        mlir::DLTIDialect
-    >();
+    mlir::registerAllDialects(registry);
+    vast::registerAllDialects(registry);
     mlir::MLIRContext ctx(registry);
 
     auto &actx = ast->getASTContext();
@@ -50,5 +46,4 @@ int main(int argc, char **argv) {
             ir->dump();
         }
     }
-
 }
