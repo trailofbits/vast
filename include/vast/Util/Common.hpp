@@ -24,4 +24,9 @@ namespace vast
 
     using Module          = mlir::ModuleOp;
     using OwningModuleRef = mlir::OwningOpRef< Module >;
+
+    using mlir_type  = mlir::Type;
+    using clang_type = clang::Type;
+
+    using string_ref = llvm::StringRef;
 } // namespace vast

@@ -18,9 +18,9 @@ namespace vast
     {
         static std::once_flag once;
         std::call_once(once, [] {
-             if (vast::hl::registerFromSourceParser().failed()) {
+            if (vast::hl::registerFromSourceParser().failed()) {
                 llvm::errs() << "Registracion of FromSource pass failed.\n";
-             }
+            }
         });
     }
 
