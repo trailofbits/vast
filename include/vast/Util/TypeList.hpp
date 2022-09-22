@@ -9,6 +9,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/TypeSupport.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Util/Common.hpp"
+
 #include <type_traits>
 #include <tuple>
 #include <optional>
@@ -114,6 +116,9 @@ namespace vast::util {
 
         template< template< typename > typename pred >
         static constexpr bool none_of = !any_of<pred>;
+
+        template< typename T >
+        static constexpr bool contains = (std::is_same_v< types, T > || ...);
     };
 
     template< typename ...lists >
@@ -124,8 +129,6 @@ namespace vast::util {
 
     template< typename ...types >
     using make_list = type_list< types... >;
-
-    using mlir_type = mlir::Type;
 
     namespace detail
     {
@@ -227,6 +230,9 @@ namespace vast::util {
 
         static_assert( type_list<>::none_of< is_int > );
         static_assert( type_list< int, void, float >::none_of< std::is_compound > );
+
+        static_assert( type_list< int, double >::contains< int > );
+        static_assert( !type_list< char, double >::contains< int > );
     } // namespace test
 
 } // namespace vast::util
