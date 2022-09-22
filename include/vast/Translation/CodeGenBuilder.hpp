@@ -34,49 +34,49 @@ namespace vast::hl {
     using TranslationUnitScope = ScopeGenerator< TranslationUnitOp >;
 
     //
-    // Operation composable builder
+    // composable builder state
     //
-    template< typename Op >
-    struct OperationState;
+    template< typename T >
+    struct ComposeState;
 
-    template< typename Op >
-    OperationState(Op) -> OperationState< Op >;
+    template< typename T >
+    ComposeState(T) -> ComposeState< T >;
 
-    template< typename Op >
-    struct OperationState {
-        OperationState(Op &&op) : op(std::move(op)) {}
+    template< typename T >
+    struct ComposeState {
+        ComposeState(T &&value) : value(std::forward< T >(value)) {}
 
-        template< typename arg_t >
-        constexpr auto bind(arg_t &&arg) && {
-            auto binded = [arg = std::forward< arg_t >(arg), op = std::move(op)] (auto &&...args) {
-                return op(arg, std::forward< decltype(args) >(args)...);
+        template< typename ...args_t >
+        constexpr inline auto bind(args_t &&...args) && {
+            auto binded = [... args = std::forward< args_t >(args), value = std::move(value)] (auto &&...rest) {
+                return value(args..., std::forward< decltype(rest) >(rest)...);
             };
-            return OperationState< decltype(binded) >(std::move(binded));
+            return ComposeState< decltype(binded) >(std::move(binded));
         }
 
         template< typename arg_t >
-        constexpr auto bind_if(bool cond, arg_t &&arg) && {
-            auto binded = [cond, arg = std::forward< arg_t >(arg), op = std::move(op)] (auto &&...args) {
+        constexpr inline auto bind_if(bool cond, arg_t &&arg) && {
+            auto binded = [cond, arg = std::forward< arg_t >(arg), value = std::move(value)] (auto &&...args) {
                 if (cond)
-                    return op(arg, std::forward< decltype(args) >(args)...);
-                return op(std::forward< decltype(args) >(args)...);
+                    return value(arg, std::forward< decltype(args) >(args)...);
+                return value(std::forward< decltype(args) >(args)...);
             };
-            return OperationState< decltype(binded) >(std::move(binded));
+            return ComposeState< decltype(binded) >(std::move(binded));
         }
 
         template< typename arg_t >
-        constexpr auto bind_region_if(bool cond, arg_t &&arg) && {
-            auto binded = [cond, arg = std::forward< arg_t >(arg), op = std::move(op)] (auto &&...args) {
+        constexpr inline auto bind_region_if(bool cond, arg_t &&arg) && {
+            auto binded = [cond, arg = std::forward< arg_t >(arg), value = std::move(value)] (auto &&...args) {
                 if (cond)
-                    return op(arg, std::forward< decltype(args) >(args)...);
-                return op(std::nullopt, std::forward< decltype(args) >(args)...);
+                    return value(arg, std::forward< decltype(args) >(args)...);
+                return value(std::nullopt, std::forward< decltype(args) >(args)...);
             };
-            return OperationState< decltype(binded) >(std::move(binded));
+            return ComposeState< decltype(binded) >(std::move(binded));
         }
 
-        auto freeze() { return op(); }
+        auto freeze() { return value(); }
 
-        Op op;
+        T value;
     };
 
     //
@@ -131,8 +131,15 @@ namespace vast::hl {
 
         template< typename op >
         auto make_operation() {
-            return OperationState([&] (auto&& ...args) {
+            return ComposeState([&] (auto&& ...args) {
                 return create< op >(std::forward< decltype(args) >(args)...);
+            });
+        }
+
+        template< typename type >
+        auto make_type() {
+            return ComposeState([&] (auto&& ...args) {
+                return type::get(std::forward< decltype(args) >(args)...);
             });
         }
 
