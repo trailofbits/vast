@@ -8,6 +8,7 @@ include "mlir/IR/SubElementInterfaces.td"
 include "mlir/IR/BuiltinTypeInterfaces.td"
 
 include "vast/Dialect/HighLevel/HighLevelAttributes.td"
+include "vast/Interfaces/TypeQualifiersInterfaces.td"
 
 // NOTE(lukas): I have no idea how to do this both in a sane way and in tablegen
 class WithDefaultDLTypeInterface {
@@ -36,6 +37,9 @@ class WithDefaultDLTypeInterface {
   }];
 }
 
+//
+// Generic high-level type
+//
 class HighLevelType< string name, list<Trait> traits = []>
   : TypeDef< HighLevel_Dialect, name,
     !listconcat(traits, [DataLayoutTypeInterface])
@@ -45,10 +49,9 @@ class HighLevelType< string name, list<Trait> traits = []>
   let extraClassDeclaration = default_dl_interface_impl;
 }
 
-def VoidType : HighLevelType< "Void" > {
-  let mnemonic = "void";
-}
-
+//
+// LValue high-level type and its utilities
+//
 def LValue : HighLevelType< "LValue",
   [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
 > {
@@ -88,91 +91,101 @@ class TypesOrLValueTypesMatch<string summary, string lhs, string rhs> : PredOpTr
   ]>
 >;
 
-// TODO(Heno): replace CVQualified class with QualifierParam when optional
-// parameters are available in MLIR
-class QualifierParam< string name, string desc > : TypeParameter<"bool", desc> {
-  let printer = [{ $_printer << ($_self ? "}] # name # [{" : ""); }];
-  let parser = [{ [&] () -> mlir::FailureOr<bool> { return !parser.parseKeyword( "}] # name # [{" ); } () }];
+//
+// Type qualifiers
+//
+class Qualifier< string name, TypeInterface type_interface, dag qualifier > {
+  TypeInterface interface = type_interface;
+
+  dag param = qualifier;
+
+  code qualifier_methods_definitions = [{
+    bool $cppClass::has_}] # name # [{() const { return getImpl()->is_}] # name # [{; }
+  }];
 }
 
-def ConstParam : QualifierParam<"const", "const qualifier" >;
-def VolatileParam : QualifierParam< "volatile", "volatile qualifier" >;
-def RestrictParam : QualifierParam< "restrict", "restrict qualifier" >;
+class QualfierList< list< Qualifier > quals > {
+  // qualifiers type interfaces
+  list<TypeInterface> interfaces = !foreach(qual, quals, DeclareTypeInterfaceMethods<qual.interface>);
 
-class CVQualified< string name, string mnem, list<Trait> traits = []>
-  : HighLevelType< name, traits >
+  // qualifiers type parameters
+  list<dag> param_list = !foreach(qual, quals, qual.param);
+  dag params = !foldl((ins), param_list, result, param, !con(result, param));
+
+  // qualifiers accessor methods
+  list<code> methods_list = !foreach(qual, quals, qual.qualifier_methods_definitions);
+  code qualifier_methods_definitions = !foldl("",  methods_list, result, methods, !strconcat(result, methods));
+}
+
+class QualifiedType< string name, string mnem, dag params = (ins), QualfierList quals, list<Trait> traits = [] >
+  : HighLevelType< name, !listconcat(traits, quals.interfaces) >
 {
   let mnemonic = mnem;
 
-  let parameters = (ins
-    "bool":$isConst,
-    "bool":$isVolatile
-  );
+  let parameters = !con(params, quals.params);
 
-  let extraClassDeclaration = default_dl_interface_impl #
-  [{
-    bool isConst() const { return this->getIsConst(); }
-    bool isVolatile() const { return this->getIsVolatile(); }
-  }];
+  // TODO remove
+  let extraClassDeclaration = default_dl_interface_impl;
 
-  let builders = [
-    TypeBuilder<(ins
-      CArg<"bool", "false">:$isConst,
-      CArg<"bool", "false">:$isVolatile
-    ), [{ return $_get($_ctxt, isConst, isVolatile); }]>
-  ];
+  let extraClassDefinition = quals.qualifier_methods_definitions;
 
-  let skipDefaultBuilders = 1;
-
-  let parser  = [{
-    return parse_cv_type<}] # cppClassName # [{>($_ctxt, parser);
-  }];
-
-  let printer = [{ return print_cv_type(*this, printer); }];
+  let assemblyFormat = "(`<` params^ `>`)?";
 }
 
-def BoolType : CVQualified< "Bool", "bool" >;
+//
+// optional type qualifier parameter
+//
+class QualifierParam< string name, string desc > : TypeParameter<"bool", desc> {
+  let printer = [{ $_printer << ($_self ? "}] # name # [{" : ""); }];
+  let parser = [{ [&] () -> mlir::FailureOr<bool> {
+    return !$_parser.parseKeyword( "}] # name # [{" ); } ()
+  }];
+  let isOptional = 1;
+}
+
+//
+// high-level language qualifiers
+//
+def ConstParam    : QualifierParam<    "const", "const qualifier" >;
+def VolatileParam : QualifierParam< "volatile", "volatile qualifier" >;
+def RestrictParam : QualifierParam< "restrict", "restrict qualifier" >;
+
+def UnsignedParam : QualifierParam< "unsigned", "unsigned qualifier" >;
+
+def ConstQualifier    : Qualifier< "const"   , ConstQualifierInterface,    (ins ConstParam:$is_const)> {}
+def VolatileQualifier : Qualifier< "volatile", VolatileQualifierInterface, (ins VolatileParam:$is_volatile)> {}
+def RestrictQualifier : Qualifier< "restrict", RestrictQualifierInterface, (ins RestrictParam:$is_restrict)> {}
+
+class CVQualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
+  : QualifiedType< name, mnem, params
+  , QualfierList< [ConstQualifier, VolatileQualifier] >
+  , traits >
+{}
+
+class CVRQualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
+  : QualifiedType< name, mnem, params
+  , QualfierList< [ConstQualifier, VolatileQualifier, RestrictQualifier] >
+  , traits >
+{}
+
+//
+// Basic types
+//
+def VoidType : CVQualifiedType< "Void", "void" > {}
+
+def BoolType : CVQualifiedType< "Bool", "bool" > {}
 
 def BoolLikeType : TypeConstraint<
   Or< [BoolType.predicate, AnyI1.predicate] >,
   "bool like type"
 >;
 
-class IntegerType< string name, string mnem, list<Trait> traits = []>
-  : HighLevelType< name, traits >
-{
-  let mnemonic = mnem;
-
-  let parameters = (ins
-    "bool":$isUnsigned,
-    "bool":$isConst,
-    "bool":$isVolatile
-  );
-
-  let extraClassDeclaration = default_dl_interface_impl #
-  [{
-    bool isUnsigned() const { return this->getIsUnsigned(); }
-    bool isSigned() const { return !this->isUnsigned(); }
-    bool isConst() const { return this->getIsConst(); }
-    bool isVolatile() const { return this->getIsVolatile(); }
-  }];
-
-  let builders = [
-    TypeBuilder<(ins
-      CArg<"bool", "false">:$isUnsigned,
-      CArg<"bool", "false">:$isConst,
-      CArg<"bool", "false">:$isVolatile
-    ), [{ return $_get($_ctxt, isUnsigned, isConst, isVolatile); }]>
-  ];
-
-  let skipDefaultBuilders = 1;
-
-  let parser  = [{
-    return parse_integer_type<}] # cppClassName # [{>($_ctxt, parser);
-  }];
-
-  let printer = [{ return print_integer_type(*this, printer); }];
-}
+//
+// Integer types & traits
+//
+class IntegerType< string name, string mnemonic, list<Trait> traits = []>
+  : CVQualifiedType< name, mnemonic, (ins UnsignedParam:$is_unsigned), traits >
+{}
 
 def CharType     : IntegerType< "Char", "char" >;
 def ShortType    : IntegerType< "Short", "short" >;
@@ -195,8 +208,11 @@ def IntOrBoolType : TypeConstraint<
   "bool or integer like type"
 >;
 
+//
+// Floating point types & traits
+//
 class FloatingType< string name, string mnem, list<Trait> traits = []>
-  : CVQualified< name, mnem, traits >;
+  : CVQualifiedType< name, mnem, (ins), traits >;
 
 def HalfType       : FloatingType< "Half", "half" >;
 def BFloat16Type   : FloatingType< "BFloat16", "bfloat16" >;
@@ -214,38 +230,25 @@ def FloatLikeType : TypeConstraint<
   "float like type"
 >;
 
-def PointerType : HighLevelType< "Pointer",
-  [ DeclareTypeInterfaceMethods< SubElementTypeInterface >
-  , MemRefElementTypeInterface ]
-> {
-  let mnemonic = "ptr";
-
-  let parameters = (ins
-    "Type":$elementType,
-    "bool":$isConst,
-    "bool":$isVolatile
-  );
-
-  let extraClassDeclaration = default_dl_interface_impl #
-  [{
-    bool isConst() const { return this->getIsConst(); }
-    bool isVolatile() const { return this->getIsVolatile(); }
-  }];
-
-  let builders = [
-    TypeBuilder<(ins
-      "Type":$elementType,
-      CArg<"bool", "false">:$isConst,
-      CArg<"bool", "false">:$isVolatile
-    ), [{ return $_get($_ctxt, elementType, isConst, isVolatile); }]>
-  ];
-
-  let skipDefaultBuilders = 1;
-
-  let parser  = [{ return parse_pointer_type($_ctxt, parser); }];
-  let printer = [{ return print_pointer_type(*this, printer); }];
+//
+// Memory related types & traits
+//
+def PointerType : CVRQualifiedType<
+  "Pointer", "ptr",
+  (ins "Type":$elementType),
+  [ DeclareTypeInterfaceMethods< SubElementTypeInterface >, MemRefElementTypeInterface]
+>
+{
+  // TODO can we somehow use optional `params` group and not list all qualifiers?
+  let assemblyFormat = "`<` $elementType (`,` $is_const^ )? (`,` $is_volatile^ )? (`,` $is_restrict^ )? `>`";
 }
 
+def PointerLikeType : TypeConstraint< PointerType.predicate, "pointer like type" >;
+
+
+//
+// Array types
+//
 class WithDimensionsClass
 {
   code default_dimensions_impl = [{
@@ -257,78 +260,61 @@ class WithDimensionsClass
   }];
 }
 
-def SizeParam : TypeParameter<"SizeParam", "size parameter for arrays"> {
-  let printer = [{
-    if ($_self.hasValue())
-      $_printer << $_self.getValue();
-    else
-      $_printer << "?";
-  }];
+def SizeParam : TypeParameter<"SizeParam", "size parameter for arrays"> {}
 
-  let parser = [{ [&] () -> mlir::FailureOr<SizeParam> {
-    if (succeeded(parser.parseOptionalQuestion())) {
-      return unknown_size;
-    }
-
-    mlir::APInt value;
-    if (succeeded(parser.parseInteger(value))) {
-      return SizeParam(value.getLimitedValue());
-    }
-
-    return mlir::failure();
-  }() }];
-}
-
-def ArrayType :
-  HighLevelType< "Array",
-    [ DeclareTypeInterfaceMethods< SubElementTypeInterface >
-    , MemRefElementTypeInterface ]
+def ArrayType : CVRQualifiedType<
+    "Array", "array",
+    (ins "Type":$elementType),
+    [ DeclareTypeInterfaceMethods< SubElementTypeInterface >, MemRefElementTypeInterface]
   >
   , WithDimensionsClass
 {
-  let mnemonic = "array";
+  let extraClassDeclaration = default_dl_interface_impl # default_dimensions_impl;
 
-  let parameters = (ins
-    SizeParam:$size,
-    "Type":$elementType
-    /* TODO(Heno) use OptionalParameter< ConstParam > */
-    /* TODO(Heno) use OptionalParameter< VolatileParam > */
-    /* TODO(Heno) use OptionalParameter< RestrictParam > */
-  );
-
-  let extraClassDeclaration =
-    default_dl_interface_impl #
-    default_dimensions_impl;
-
-  let assemblyFormat = "`<` params `>`";
-}
-
-def NamedType : HighLevelType< "Named", [MemRefElementTypeInterface] > {
-  let mnemonic = "named_type";
-
-  let parameters = (ins TypeNameAttr:$name);
-
-  let builders = [
-    TypeBuilder<(ins "llvm::StringRef":$name), [{
-      return get(mlir::StringAttr::get($_ctxt, name));
-    }]>,
-    TypeBuilderWithInferredContext<(ins "mlir::StringAttr":$name), [{
-      auto ctx = name.getContext();
-      return $_get(ctx, TypeNameAttr::get(ctx, name));
-    }]>
-  ];
-
-  let assemblyFormat = "`<` $name `>`";
-}
-
-def LabelType : HighLevelType< "Label" > {
-  let mnemonic = "label";
+  // TODO can we somehow use optional `params` group and not list all qualifiers?
+  let assemblyFormat = "`<` $elementType (`,` $is_const^ )? (`,` $is_volatile^ )? (`,` $is_restrict^ )? `>`";
 }
 
 def SubscriptableType : TypeConstraint<
   Or< [ArrayType.predicate, PointerType.predicate] >, "array like type"
 >;
 
-def PointerLikeType : TypeConstraint< PointerType.predicate, "pointer like type" >;
+//
+// Tagged types
+//
+def RecordType : CVQualifiedType< "Record", "record", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface] > {
+  // TODO can we somehow use optional `params` group and not list all qualifiers?
+  let assemblyFormat = "`<` $name (`,` $is_const^ )? (`,` $is_volatile^ )? `>`";
+}
+
+def EnumType : CVQualifiedType< "Enum", "enum", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface] > {
+  // TODO can we somehow use optional `params` group and not list all qualifiers?
+  let assemblyFormat = "`<` $name (`,` $is_const^ )? (`,` $is_volatile^ )? `>`";
+}
+
+def TypedefType : CVRQualifiedType< "Typedef", "typedef", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface] > {
+  // TODO can we somehow use optional `params` group and not list all qualifiers?
+  let assemblyFormat = "`<` $name (`,` $is_const^ )? (`,` $is_volatile^ )? (`,` $is_restrict^ )? `>`";
+}
+
+def ElaboratedType : CVRQualifiedType<
+    "Elaborated", "elaborated",
+    (ins "Type":$elementType),
+    [ DeclareTypeInterfaceMethods< SubElementTypeInterface >]
+  >
+{
+  // TODO can we somehow use optional `params` group and not list all qualifiers?
+  let assemblyFormat = "`<` $elementType (`,` $is_const^ )? (`,` $is_volatile^ )? (`,` $is_restrict^ )? `>`";
+}
+
+def LabelType : HighLevelType< "Label" > {
+  let mnemonic = "label";
+}
+
+def ParenType : HighLevelType< "Paren", [MemRefElementTypeInterface] > {
+  let mnemonic = "paren";
+  let parameters = (ins "Type":$elementType);
+  let assemblyFormat = "`<` $elementType `>`";
+}
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
