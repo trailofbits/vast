@@ -10,14 +10,14 @@ VAST_RELAX_WARNINGS
 #include <llvm/Support/raw_ostream.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Util/Common.hpp"
+
 #include "vast/Interfaces/SymbolInterface.hpp"
 
 namespace vast::util
 {
     using vast_symbol_interface = vast::VastSymbolOpInterface;
     using mlir_symbol_interface = mlir::SymbolOpInterface;
-
-    using string_ref     = llvm::StringRef;
 
     void symbols(mlir::Operation *op, auto &&yield) {
         op->walk([&] (mlir::Operation *child) {
