@@ -49,42 +49,9 @@ class NameAttr<string name, string attr_mnemonic>
     }]>,
   ];
 
-  let assemblyFormat = "`<` $name `>`";
+  let assemblyFormat = "$name";
 }
 
 def AnnotationAttr : NameAttr< "Annotation", "annotation" >;
-
-class ElaboratedNameTagAttr< string name, int val >
-  : I32EnumAttrCase< name, val >
-{}
-
-class ElaboratedNameTagList< string name, string summary, list<ElaboratedNameTagAttr> cases >
-  : I32EnumAttr< name, summary, cases >
-{}
-
-def EN_Struct : ElaboratedNameTagAttr< "Struct", 0 >;
-def EN_Union  : ElaboratedNameTagAttr< "Union", 1 >;
-def EN_Enum   : ElaboratedNameTagAttr< "Enum", 2 >;
-
-let cppNamespace = "::vast::hl" in
-def ElaboratedNameTag : ElaboratedNameTagList< "ElaboratedNameTag", "elaborated name tag", [
-  EN_Struct, EN_Union, EN_Enum
-] >;
-
-def TypeNameAttr : HighLevel_Attr< "TypeName", "typename" >
-{
-  // TODO(Heno): optional parameter
-  let parameters = (ins
-    // OptionalParameter<"ElaboratedNameTag">:$tag,
-    "::mlir::StringAttr":$name
-  );
-  let builders = [
-    AttrBuilderWithInferredContext<(ins "::mlir::StringAttr":$name), [{
-      return get(name.getContext(), name);
-    }]>
-  ];
-
-  let assemblyFormat = "`<` params `>`";
-}
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
