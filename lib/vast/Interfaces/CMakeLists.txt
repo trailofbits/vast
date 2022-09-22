@@ -1,3 +1,8 @@
+set(LLVM_OPTIONAL_SOURCES
+  SymbolInterface.cpp
+  TypeQualifiersInterfaces.cpp
+)
+
 function(add_vast_interface_library name)
   add_mlir_library(VAST${name}
     ${name}.cpp
@@ -14,3 +19,4 @@ function(add_vast_interface_library name)
 endfunction(add_vast_interface_library)
 
 add_vast_interface_library(SymbolInterface)
+add_vast_interface_library(TypeQualifiersInterfaces)
