@@ -23,6 +23,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 
+#include "vast/Interfaces/TypeQualifiersInterfaces.hpp"
+
 namespace vast::hl
 {
     template< typename ConcreteTy >
@@ -97,13 +99,22 @@ namespace vast::hl
         CharType, ShortType, IntType, LongType, LongLongType, Int128Type
     >;
 
+    template< typename T >
+    concept high_level_integer_type = integer_types::contains< T >;
+
     using floating_types = util::type_list<
         HalfType, BFloat16Type, FloatType, DoubleType, LongDoubleType, Float128Type
     >;
 
+    template< typename T >
+    concept high_level_floating_type = floating_types::contains< T >;
+
     using scalar_types = util::concat<
         util::type_list< BoolType >, integer_types, floating_types
     >;
+
+    template< typename T >
+    concept high_level_scalar_type = scalar_types::contains< T >;
 
     using composite_types = util::type_list< ArrayType >;
 
@@ -111,12 +122,15 @@ namespace vast::hl
         scalar_types, composite_types, util::type_list< VoidType >
     >;
 
+    template< typename T >
+    concept high_level_type = high_level_types::contains< T >;
+
     using generic_types = util::type_list< LValueType, PointerType >;
 
     /* integer types */
     enum class IntegerKind { Char, Short, Int, Long, LongLong, Int128 };
 
-    inline std::string to_string(IntegerKind kind)
+    constexpr inline std::string_view to_string(IntegerKind kind)
     {
         switch (kind) {
             case IntegerKind::Char:     return "char";
