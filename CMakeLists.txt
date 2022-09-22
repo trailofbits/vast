@@ -185,6 +185,7 @@ if (VAST_INSTALL)
     MLIRHighLevel
 
     VASTSymbolInterface
+    VASTTypeQualifiersInterfaces
   )
 
   install(DIRECTORY ${CMAKE_BINARY_DIR}/include/vast
