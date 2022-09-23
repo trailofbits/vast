@@ -28,6 +28,7 @@ add_mlir_dialect_library(MLIRHighLevel
     MLIRInferTypeOpInterface
 
     VASTSymbolInterface
+    VASTTypedAttrInterface
     VASTTypeQualifiersInterfaces
 )
 
