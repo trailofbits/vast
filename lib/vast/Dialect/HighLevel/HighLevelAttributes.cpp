@@ -10,6 +10,20 @@ VAST_RELAX_WARNINGS
 VAST_RELAX_WARNINGS
 
 namespace mlir {
+
+    template<>
+    struct FieldParser<bool> {
+        static FailureOr<bool> parse(AsmParser &parser) {
+            if (succeeded(parser.parseOptionalKeyword("true"))) {
+                return true;
+            }
+            if (succeeded(parser.parseOptionalKeyword("false"))) {
+                return false;
+            }
+            return failure();
+        }
+    };
+
     template<>
     struct FieldParser<llvm::APInt> {
         static FailureOr<llvm::APInt> parse(AsmParser &parser) {
