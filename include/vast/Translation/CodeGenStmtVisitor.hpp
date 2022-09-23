@@ -503,9 +503,7 @@ namespace vast::hl {
             auto name = mlir::StringAttr::get(&mcontext(), var.name());
 
             auto rty = getLValueReturnType(expr);
-            // reference to global variales first makes reference to global name, that makes
-            // local SSA value that can be referenced the standard way as other variables
-            return VisitVarDeclRefExprImpl(expr, make< GlobalRefOp >(meta_location(expr), rty, name));
+            return make< GlobalRefOp >(meta_location(expr), rty, name);
         }
 
         Operation* VisitDeclRefExpr(const clang::DeclRefExpr *expr) {
