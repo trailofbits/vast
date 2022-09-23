@@ -233,10 +233,9 @@ def FloatLikeType : TypeConstraint<
 //
 // Memory related types & traits
 //
-def PointerType : CVRQualifiedType<
-  "Pointer", "ptr",
+def PointerType : CVRQualifiedType< "Pointer", "ptr",
   (ins "Type":$elementType),
-  [ DeclareTypeInterfaceMethods< SubElementTypeInterface >, MemRefElementTypeInterface]
+  [DeclareTypeInterfaceMethods< SubElementTypeInterface >, MemRefElementTypeInterface]
 >
 {
   // TODO can we somehow use optional `params` group and not list all qualifiers?
@@ -260,19 +259,40 @@ class WithDimensionsClass
   }];
 }
 
-def SizeParam : TypeParameter<"SizeParam", "size parameter for arrays"> {}
+def SizeParam : TypeParameter<"SizeParam", "size parameter for arrays"> {
+  let printer = [{
+    if ($_self.hasValue())
+      $_printer << $_self.getValue();
+    else
+      $_printer << "?";
+  }];
 
-def ArrayType : CVRQualifiedType<
-    "Array", "array",
-    (ins "Type":$elementType),
-    [ DeclareTypeInterfaceMethods< SubElementTypeInterface >, MemRefElementTypeInterface]
+  let parser = [{ [&] () -> mlir::FailureOr<SizeParam> {
+    if (succeeded($_parser.parseOptionalQuestion())) {
+      return unknown_size;
+    }
+
+    mlir::APInt value;
+    if (succeeded($_parser.parseInteger(value))) {
+      return SizeParam(value.getLimitedValue());
+    }
+
+    return mlir::failure();
+  }() }];
+}
+
+def ArrayType : CVRQualifiedType< "Array", "array",
+    (ins SizeParam:$size, "Type":$elementType),
+    [DeclareTypeInterfaceMethods< SubElementTypeInterface >, MemRefElementTypeInterface]
   >
   , WithDimensionsClass
 {
   let extraClassDeclaration = default_dl_interface_impl # default_dimensions_impl;
 
   // TODO can we somehow use optional `params` group and not list all qualifiers?
-  let assemblyFormat = "`<` $elementType (`,` $is_const^ )? (`,` $is_volatile^ )? (`,` $is_restrict^ )? `>`";
+  let assemblyFormat = [{
+    `<` $size `,` $elementType (`,` $is_const^ )? (`,` $is_volatile^ )? (`,` $is_restrict^ )? `>`
+  }];
 }
 
 def SubscriptableType : TypeConstraint<
@@ -297,10 +317,9 @@ def TypedefType : CVRQualifiedType< "Typedef", "typedef", (ins StringRefParamete
   let assemblyFormat = "`<` $name (`,` $is_const^ )? (`,` $is_volatile^ )? (`,` $is_restrict^ )? `>`";
 }
 
-def ElaboratedType : CVRQualifiedType<
-    "Elaborated", "elaborated",
+def ElaboratedType : CVRQualifiedType< "Elaborated", "elaborated",
     (ins "Type":$elementType),
-    [ DeclareTypeInterfaceMethods< SubElementTypeInterface >]
+    [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
   >
 {
   // TODO can we somehow use optional `params` group and not list all qualifiers?
