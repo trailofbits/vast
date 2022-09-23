@@ -90,9 +90,11 @@ namespace vast::hl {
         }
 
         auto with_qualifiers(const clang::ArrayType *ty, qualifiers quals) -> mlir_type {
-            // return ArrayType::get(&ctx, get_size_attr(ty, ctx), element_type);
             auto element_type = visit(ty->getElementType());
-            return with_cvr_qualifiers(type_builder< ArrayType >().bind(element_type), quals).freeze();
+            return with_cvr_qualifiers(type_builder< ArrayType >()
+                .bind(get_size_attr(ty, mcontext()))
+                .bind(element_type), quals)
+                .freeze();
         }
 
         auto make_name_attr(string_ref name) {
