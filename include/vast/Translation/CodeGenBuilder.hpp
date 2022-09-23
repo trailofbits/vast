@@ -218,8 +218,7 @@ namespace vast::hl {
         }
 
         mlir::Value bool_value(mlir::Location loc, bool value) {
-            auto attr = mlir::BoolAttr::get(&mcontext(), value);
-            return create< ConstantOp >(loc, bool_type(), attr);
+            return create< ConstantOp >(loc, bool_type(), value);
         }
 
         mlir::Value true_value(mlir::Location loc) { return bool_value(loc, true); }
