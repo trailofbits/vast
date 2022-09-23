@@ -34,127 +34,12 @@ namespace vast::hl
 
     using FoldResult = mlir::OpFoldResult;
 
-    static void printConstantOp(Printer &printer, auto &op) {
-        printer << " ";
-        printer.printAttributeWithoutType(op.getValue());
-        printer << " : ";
-        printer.printType(op.getType());
-        printer.printOptionalAttrDict(op->getAttrs(), /*elidedAttrs=*/{"value"});
-    }
 
-    FoldResult ConstantIntOp::fold(mlir::ArrayRef<Attribute> operands) {
+    FoldResult ConstantOp::fold(mlir::ArrayRef<Attribute> operands) {
         VAST_CHECK(operands.empty(), "constant has no operands");
         return getValue();
     }
 
-    static void printConstantIntOp(Printer &printer, ConstantIntOp &op) {
-        printConstantOp(printer, op);
-    }
-
-    static ParseResult parseConstantIntOp(Parser &parser, State &st) {
-        auto loc = parser.getCurrentLocation();
-        auto ctx = parser.getBuilder().getContext();
-
-        Attribute attr;
-        llvm::APInt value;
-        if (succeeded(parser.parseOptionalKeyword("true"))) {
-            attr = mlir::BoolAttr::get(ctx, true);
-        } else if (succeeded(parser.parseOptionalKeyword("false"))) {
-            attr = mlir::BoolAttr::get(ctx, false);
-        } else if (failed(parser.parseInteger(value))) {
-            return parser.emitError(loc, "expected integer value");
-        }
-
-        Type rty;
-        if (parser.parseColonType(rty) || parser.parseOptionalAttrDict(st.attributes)) {
-            return mlir::failure();
-        }
-        st.addTypes(rty);
-
-        if (!attr) {
-            auto is_signed = [&]() {
-                if (auto builtin_int = rty.dyn_cast< mlir::IntegerType >())
-                    return builtin_int.isSigned();
-                if (isHighLevelType(rty))
-                    return isSigned(rty);
-                VAST_UNREACHABLE("Cannot decide if {0} is signed or not.", rty);
-            }();
-
-            attr = mlir::IntegerAttr::get(ctx, llvm::APSInt(value, is_signed));
-        }
-
-        st.addAttribute("value", attr);
-        return mlir::success();
-    }
-
-    FoldResult ConstantFloatOp::fold(mlir::ArrayRef<Attribute> operands) {
-        VAST_CHECK(operands.empty(), "constant has no operands");
-        return getValue();
-    }
-
-    static void printConstantFloatOp(Printer &printer, ConstantFloatOp &op) {
-        printConstantOp(printer, op);
-    }
-
-    static ParseResult parseConstantFloatOp(Parser &parser, State &st) {
-        auto loc = parser.getCurrentLocation();
-
-        Attribute value;
-        auto f64 = parser.getBuilder().getF64Type();
-        if (failed(parser.parseAttribute(value, f64))) {
-            return parser.emitError(loc, "expected floating-point value");
-        }
-        st.addAttribute("value", value);
-
-        Type rty;
-        if (parser.parseColonType(rty) || parser.parseOptionalAttrDict(st.attributes)) {
-            return mlir::failure();
-        }
-        st.addTypes(rty);
-
-        return mlir::success();
-    }
-
-    FoldResult ConstantArrayOp::fold(mlir::ArrayRef<Attribute> operands) {
-        VAST_CHECK(operands.empty(), "constant has no operands");
-        return getValue();
-    }
-
-    static void printConstantArrayOp(Printer &printer, ConstantArrayOp &op) {
-        printConstantOp(printer, op);
-    }
-
-    static ParseResult parseConstantArrayOp(Parser &parser, State &st) {
-        VAST_UNIMPLEMENTED;
-    }
-
-    FoldResult ConstantStringOp::fold(mlir::ArrayRef<Attribute> operands) {
-        VAST_ASSERT(operands.empty() && "constant has no operands");
-        return getValue();
-    }
-
-    static void printConstantStringOp(Printer &printer, ConstantStringOp &op) {
-        printConstantOp(printer, op);
-    }
-
-    static ParseResult parseConstantStringOp(Parser &parser, State &st) {
-        auto loc = parser.getCurrentLocation();
-        auto ctx = parser.getBuilder().getContext();
-
-        Attribute value;
-        if (failed(parser.parseAttribute(value, mlir::NoneType::get(ctx)))) {
-            return parser.emitError(loc, "expected string value");
-        }
-        st.addAttribute("value", value);
-
-        Type rty;
-        if (parser.parseColonType(rty) || parser.parseOptionalAttrDict(st.attributes)) {
-            return mlir::failure();
-        }
-        st.addTypes(rty);
-
-        return mlir::success();
-    }
 
     void build_expr_trait(Builder &bld, State &st, Type rty, BuilderCallback expr) {
         assert(expr && "the builder callback for 'expr' block must be present");
@@ -303,27 +188,6 @@ namespace vast::hl
         Builder::InsertionGuard guard(bld);
 
         detail::build_region(bld, st, substmt);
-    }
-
-    mlir::Operation* build_constant(Builder &builder, Attribute value, Type type, Location loc)
-    {
-        if (type.isa< BoolType >()) {
-            return builder.create< ConstantIntOp >(loc, type, value.cast< mlir::BoolAttr >());
-        }
-
-        if (util::is_one_of< integer_types >(type)) {
-            return builder.create< ConstantIntOp >(loc, type, value.cast< mlir::IntegerAttr >());
-        }
-
-        if (util::is_one_of< floating_types >(type)) {
-            return builder.create< ConstantFloatOp >(loc, type, value.cast< mlir::FloatAttr >());
-        }
-
-        if (type.isa< ArrayType >()) {
-            return builder.create< ConstantArrayOp >(loc, type, value.cast< mlir::ArrayAttr >());
-        }
-
-        VAST_UNREACHABLE("unknown constant type");
     }
 
     void ExprOp::build(Builder &bld, State &st, Type rty, std::unique_ptr< Region > &&region) {
