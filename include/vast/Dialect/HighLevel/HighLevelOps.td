@@ -267,7 +267,7 @@ def ReturnOp
 }
 
 def DeclRefOp
-  : HighLevel_Op< "decl.ref", [NoSideEffect, SameOperandsAndResultType] >
+  : HighLevel_Op< "ref", [NoSideEffect, SameOperandsAndResultType] >
   , Arguments<(ins AnyType:$decl)>
   , Results<(outs AnyType:$result)>
 {
