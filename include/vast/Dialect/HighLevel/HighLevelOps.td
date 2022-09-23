@@ -308,6 +308,9 @@ def ConstantOp
   let description = [{ VAST integral constant }];
 
   let builders = [
+    OpBuilder<(ins "Type":$type, "bool":$value), [{
+      build($_builder, $_state, type, BooleanAttr::get(type, value));
+    }]>,
     OpBuilder<(ins "Type":$type, "llvm::APInt":$value), [{
       build($_builder, $_state, type, IntegerAttr::get(type, value));
     }]>,

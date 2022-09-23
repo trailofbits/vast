@@ -38,6 +38,26 @@ class HighLevel_Attr<string name, string attr_mnemonic, list<Trait> traits = []>
   let mnemonic = attr_mnemonic;
 }
 
+def BooleanAttr : HighLevel_Attr<"Boolean", "bool", [TypedAttrInterface] > {
+  let summary = "An Attribute containing a boolean value";
+
+  let description = [{
+    An boolean attribute is a literal attribute that represents a boolean value.
+  }];
+
+  let parameters = (ins AttributeSelfTypeParameter<"">:$type, "bool":$value);
+
+  let builders = [
+    AttrBuilderWithInferredContext<(ins "Type":$type, "bool":$value), [{
+      return $_get(type.getContext(), type, value);
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $value `>`";
+
+  // let genVerifyDecl = 1;
+}
+
 def IntegerAttr : HighLevel_Attr<"Integer", "integer", [TypedAttrInterface] > {
   let summary = "An Attribute containing a integer value";
 
