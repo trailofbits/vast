@@ -9,6 +9,30 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/DialectImplementation.h>
 VAST_RELAX_WARNINGS
 
+namespace mlir {
+    template<>
+    struct FieldParser<llvm::APInt> {
+        static FailureOr<llvm::APInt> parse(AsmParser &parser) {
+            llvm::APInt value;
+            if (parser.parseInteger(value))
+                return failure();
+            return value;
+        }
+    };
+
+    template<>
+    struct FieldParser<llvm::APFloat> {
+        static FailureOr<llvm::APFloat> parse(AsmParser &parser) {
+            // TODO fix float parser
+            double value;
+            if (parser.parseFloat(value))
+                return failure();
+            return llvm::APFloat(value);
+        }
+    };
+
+} // namespace mlir
+
 namespace vast::hl
 {
     using Context = mlir::MLIRContext;
