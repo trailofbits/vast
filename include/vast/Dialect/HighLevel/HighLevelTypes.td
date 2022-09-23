@@ -138,7 +138,7 @@ class QualifiedType< string name, string mnem, dag params = (ins), QualfierList 
 class QualifierParam< string name, string desc > : TypeParameter<"bool", desc> {
   let printer = [{ $_printer << ($_self ? "}] # name # [{" : ""); }];
   let parser = [{ [&] () -> mlir::FailureOr<bool> {
-    return !$_parser.parseKeyword( "}] # name # [{" ); } ()
+    return succeeded($_parser.parseOptionalKeyword( "}] # name # [{" )); } ()
   }];
   let isOptional = 1;
 }
