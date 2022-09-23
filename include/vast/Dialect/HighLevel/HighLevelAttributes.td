@@ -5,6 +5,8 @@
 
 include "mlir/IR/OpBase.td"
 include "mlir/IR/EnumAttr.td"
+include "mlir/IR/AttrTypeBase.td"
+include "mlir/IR/BuiltinAttributeInterfaces.td"
 
 def APSIntAttr : Attr<CPred<"$_self.isa<::mlir::IntegerAttr>()">,
   "arbitrary integer attribute with sign">
@@ -30,10 +32,82 @@ def APFloatAttr : Attr<CPred<"$_self.isa<::mlir::FloatAttr>()">,
   let convertFromStorage = [{ $_self.getValue() }];
 }
 
-class HighLevel_Attr<string name, string attr_mnemonic>
-    : AttrDef< HighLevel_Dialect, name >
+class HighLevel_Attr<string name, string attr_mnemonic, list<Trait> traits = []>
+    : AttrDef< HighLevel_Dialect, name, traits >
 {
   let mnemonic = attr_mnemonic;
+}
+
+def IntegerAttr : HighLevel_Attr<"Integer", "integer", [TypedAttrInterface] > {
+  let summary = "An Attribute containing a integer value";
+
+  let description = [{
+    An integer attribute is a literal attribute that represents an integral
+    value of the specified integer type.
+  }];
+
+  let parameters = (ins AttributeSelfTypeParameter<"">:$type, "llvm::APInt":$value);
+
+  let builders = [
+    AttrBuilderWithInferredContext<(ins "Type":$type, "const llvm::APInt &":$value), [{
+      return $_get(type.getContext(), type, value);
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $value `>`";
+
+  // let genVerifyDecl = 1;
+}
+
+def FloatAttr : HighLevel_Attr<"Float", "float", [TypedAttrInterface] > {
+  let summary = "An Attribute containing a floating point value";
+
+  let description = [{
+    A float attribute is a literal attribute that represents a floating point
+    value of the specified floating point type.
+  }];
+
+  let parameters = (ins AttributeSelfTypeParameter<"">:$type, "llvm::APFloat":$value);
+
+  let builders = [
+    AttrBuilderWithInferredContext<(ins "Type":$type, "const llvm::APFloat &":$value), [{
+      return $_get(type.getContext(), type, value);
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $value `>`";
+
+  // let genVerifyDecl = 1;
+}
+
+// Temporarily copied from builtin dialect, because llvm-15 does not have `TypedAttrInterface` yet.
+def StringAttr : HighLevel_Attr<"String", "str", [TypedAttrInterface] > {
+  let summary = "An Attribute containing a string";
+  let description = [{
+    Syntax:
+
+    ```
+    string-attribute ::= string-literal (`:` type)?
+    ```
+
+    A string attribute is an attribute that represents a string literal value.
+
+    Examples:
+
+    ```mlir
+    "An important string"
+    "string with a type" : !dialect.string
+    ```
+  }];
+  let parameters = (ins StringRefParameter<"">:$value, AttributeSelfTypeParameter<"">:$type);
+  let builders = [
+    AttrBuilderWithInferredContext<(ins "const llvm::Twine &":$value, "Type":$type), [{
+      llvm::SmallVector<char, 32> tempStr;
+      return Base::get(type.getContext(), value.toStringRef(tempStr), type);
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $value `>`";
 }
 
 class NameAttr<string name, string attr_mnemonic>
