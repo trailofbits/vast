@@ -219,7 +219,7 @@ namespace vast::hl {
 
         mlir::Value bool_value(mlir::Location loc, bool value) {
             auto attr = mlir::BoolAttr::get(&mcontext(), value);
-            return create< ConstantIntOp >(loc, bool_type(), attr);
+            return create< ConstantOp >(loc, bool_type(), attr);
         }
 
         mlir::Value true_value(mlir::Location loc) { return bool_value(loc, true); }
@@ -231,11 +231,11 @@ namespace vast::hl {
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APInt value) {
-            return create< ConstantIntOp >(loc, ty, value);
+            return create< ConstantOp >(loc, ty, value);
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APSInt value) {
-            return create< ConstantIntOp >(loc, ty, value);
+            return create< ConstantOp >(loc, ty, value);
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, unsigned int value) {
@@ -243,14 +243,12 @@ namespace vast::hl {
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APFloat value) {
-            auto attr = op_builder().getFloatAttr(to_std_float_type(ty), value);
-            return create< ConstantFloatOp >(loc, ty, attr);
+            return create< ConstantOp >(loc, ty, value);
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::StringRef value) {
             VAST_CHECK(ty.isa< ArrayType >(), "string constant must have array type");
-            auto attr = mlir::StringAttr::get(value, ty);
-            return create< ConstantStringOp >(loc, ty.cast< ArrayType >(), attr);
+            return create< ConstantOp >(loc, ty.cast< ArrayType >(), value);
         }
 
         mlir::func::FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
