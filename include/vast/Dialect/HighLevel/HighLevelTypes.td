@@ -94,53 +94,12 @@ class TypesOrLValueTypesMatch<string summary, string lhs, string rhs> : PredOpTr
 //
 // Type qualifiers
 //
-class Qualifier< string name, TypeInterface type_interface, dag qualifier > {
-  TypeInterface interface = type_interface;
 
-  dag param = qualifier;
-
-  code qualifier_methods_definitions = [{
-    bool $cppClass::has_}] # name # [{() const { return getImpl()->is_}] # name # [{; }
-  }];
-}
-
-class QualfierList< list< Qualifier > quals > {
-  // qualifiers type interfaces
-  list<TypeInterface> interfaces = !foreach(qual, quals, DeclareTypeInterfaceMethods<qual.interface>);
-
-  // qualifiers type parameters
-  list<dag> param_list = !foreach(qual, quals, qual.param);
-  dag params = !foldl((ins), param_list, result, param, !con(result, param));
-
-  // qualifiers accessor methods
-  list<code> methods_list = !foreach(qual, quals, qual.qualifier_methods_definitions);
-  code qualifier_methods_definitions = !foldl("",  methods_list, result, methods, !strconcat(result, methods));
-}
-
-class QualifiedType< string name, string mnem, dag params = (ins), QualfierList quals, list<Trait> traits = [] >
-  : HighLevelType< name, !listconcat(traits, quals.interfaces) >
-{
-  let mnemonic = mnem;
-
-  let parameters = !con(params, quals.params);
-
-  // TODO remove
-  let extraClassDeclaration = default_dl_interface_impl;
-
-  let extraClassDefinition = quals.qualifier_methods_definitions;
-
-  let assemblyFormat = "(`<` params^ `>`)?";
-}
-
-//
-// optional type qualifier parameter
-//
-class QualifierParam< string name, string desc > : TypeParameter<"bool", desc> {
+class QualifierParam< string name, string desc > : OptionalParameter<"bool", desc> {
   let printer = [{ $_printer << ($_self ? "}] # name # [{" : ""); }];
   let parser = [{ [&] () -> mlir::FailureOr<bool> {
     return succeeded($_parser.parseOptionalKeyword( "}] # name # [{" )); } ()
   }];
-  let isOptional = 1;
 }
 
 //
@@ -152,28 +111,62 @@ def RestrictParam : QualifierParam< "restrict", "restrict qualifier" >;
 
 def UnsignedParam : QualifierParam< "unsigned", "unsigned qualifier" >;
 
-def ConstQualifier    : Qualifier< "const"   , ConstQualifierInterface,    (ins ConstParam:$is_const)> {}
-def VolatileQualifier : Qualifier< "volatile", VolatileQualifierInterface, (ins VolatileParam:$is_volatile)> {}
-def RestrictQualifier : Qualifier< "restrict", RestrictQualifierInterface, (ins RestrictParam:$is_restrict)> {}
+class Qualifier< dag qualifier > { dag param = qualifier; }
+
+def ConstQualifier    : Qualifier< (ins ConstParam:$is_const) > {}
+def VolatileQualifier : Qualifier< (ins VolatileParam:$is_volatile) > {}
+def RestrictQualifier : Qualifier< (ins RestrictParam:$is_restrict) > {}
+
+def UnsignedQualifier : Qualifier< (ins UnsignedParam:$is_unsigned) > {}
+
+class QualfiersParams< string name, list<Qualifier> qualifiers>
+  : HighLevel_Attr< name, "quals" >
+{
+  list<dag> param_list = !foreach(qual, qualifiers, qual.param);
+  let parameters = !foldl((ins), param_list, result, param, !con(result, param));
+
+  let assemblyFormat = "params ` `";
+}
+
+def CVQualifiers  : QualfiersParams< "CVQualifiers",  [ConstQualifier, VolatileQualifier] > {}
+def UCVQualifiers : QualfiersParams< "UCVQualifiers", [UnsignedQualifier, ConstQualifier, VolatileQualifier] > {}
+def CVRQualifiers : QualfiersParams< "CVRQualifiers", [ConstQualifier, VolatileQualifier, RestrictQualifier] > {}
+
+class QualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
+  : HighLevelType< name, traits >
+{
+  let mnemonic = mnem;
+
+  let parameters = params;
+
+  // TODO remove
+  let extraClassDeclaration = default_dl_interface_impl;
+
+  let assemblyFormat = "(`<` $quals^ `>`)?";
+}
 
 class CVQualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
-  : QualifiedType< name, mnem, params
-  , QualfierList< [ConstQualifier, VolatileQualifier] >
-  , traits >
+  : QualifiedType< name, mnem, !con(params, (ins OptionalParameter< "CVQualifiersAttr" >:$quals)), traits >
+{}
+
+class UCVQualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
+  : QualifiedType< name, mnem, !con(params, (ins OptionalParameter< "UCVQualifiersAttr" >:$quals)), traits >
 {}
 
 class CVRQualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
-  : QualifiedType< name, mnem, params
-  , QualfierList< [ConstQualifier, VolatileQualifier, RestrictQualifier] >
-  , traits >
+  : QualifiedType< name, mnem, !con(params, (ins OptionalParameter< "CVRQualifiersAttr" >:$quals)), traits >
 {}
 
 //
 // Basic types
 //
-def VoidType : CVQualifiedType< "Void", "void" > {}
+def VoidType : CVQualifiedType< "Void", "void" > {
+  let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
+}
 
-def BoolType : CVQualifiedType< "Bool", "bool" > {}
+def BoolType : CVQualifiedType< "Bool", "bool" > {
+  let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
+}
 
 def BoolLikeType : TypeConstraint<
   Or< [BoolType.predicate, AnyI1.predicate] >,
@@ -184,8 +177,10 @@ def BoolLikeType : TypeConstraint<
 // Integer types & traits
 //
 class IntegerType< string name, string mnemonic, list<Trait> traits = []>
-  : CVQualifiedType< name, mnemonic, (ins UnsignedParam:$is_unsigned), traits >
-{}
+  : UCVQualifiedType< name, mnemonic, (ins), traits >
+{
+  let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
+}
 
 def CharType     : IntegerType< "Char", "char" >;
 def ShortType    : IntegerType< "Short", "short" >;
@@ -212,7 +207,10 @@ def IntOrBoolType : TypeConstraint<
 // Floating point types & traits
 //
 class FloatingType< string name, string mnem, list<Trait> traits = []>
-  : CVQualifiedType< name, mnem, (ins), traits >;
+  : CVQualifiedType< name, mnem, (ins), traits >
+{
+  let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
+}
 
 def HalfType       : FloatingType< "Half", "half" >;
 def BFloat16Type   : FloatingType< "BFloat16", "bfloat16" >;
@@ -234,16 +232,20 @@ def FloatLikeType : TypeConstraint<
 // Memory related types & traits
 //
 def PointerType : CVRQualifiedType< "Pointer", "ptr",
-  (ins "Type":$elementType),
-  [DeclareTypeInterfaceMethods< SubElementTypeInterface >, MemRefElementTypeInterface]
->
+    (ins "Type":$elementType),
+    [DeclareTypeInterfaceMethods< SubElementTypeInterface >, MemRefElementTypeInterface]
+  >
 {
-  // TODO can we somehow use optional `params` group and not list all qualifiers?
-  let assemblyFormat = "`<` $elementType (`,` $is_const^ )? (`,` $is_volatile^ )? (`,` $is_restrict^ )? `>`";
+  let builders = [
+    TypeBuilder<(ins "Type":$element), [{
+      return $_get($_ctxt, element, CVRQualifiersAttr());
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $elementType (`,` $quals^ )? `>`";
 }
 
 def PointerLikeType : TypeConstraint< PointerType.predicate, "pointer like type" >;
-
 
 //
 // Array types
@@ -289,10 +291,13 @@ def ArrayType : CVRQualifiedType< "Array", "array",
 {
   let extraClassDeclaration = default_dl_interface_impl # default_dimensions_impl;
 
-  // TODO can we somehow use optional `params` group and not list all qualifiers?
-  let assemblyFormat = [{
-    `<` $size `,` $elementType (`,` $is_const^ )? (`,` $is_volatile^ )? (`,` $is_restrict^ )? `>`
-  }];
+  let builders = [
+    TypeBuilder<(ins "SizeParam":$size, "Type":$element), [{
+      return $_get($_ctxt, size, element, CVRQualifiersAttr());
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $size `,` $elementType (`,` $quals^ )? `>`";
 }
 
 def SubscriptableType : TypeConstraint<
@@ -302,28 +307,53 @@ def SubscriptableType : TypeConstraint<
 //
 // Tagged types
 //
-def RecordType : CVQualifiedType< "Record", "record", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface] > {
-  // TODO can we somehow use optional `params` group and not list all qualifiers?
-  let assemblyFormat = "`<` $name (`,` $is_const^ )? (`,` $is_volatile^ )? `>`";
+def RecordType : CVQualifiedType<
+  "Record", "record", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
+> {
+
+  let builders = [
+    TypeBuilder<(ins "llvm::StringRef":$name), [{
+      return $_get($_ctxt, name, CVQualifiersAttr());
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
 }
 
-def EnumType : CVQualifiedType< "Enum", "enum", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface] > {
-  // TODO can we somehow use optional `params` group and not list all qualifiers?
-  let assemblyFormat = "`<` $name (`,` $is_const^ )? (`,` $is_volatile^ )? `>`";
+def EnumType : CVQualifiedType<
+  "Enum", "enum", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
+> {
+  let builders = [
+    TypeBuilder<(ins "llvm::StringRef":$name), [{
+      return $_get($_ctxt, name, CVQualifiersAttr());
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
 }
 
-def TypedefType : CVRQualifiedType< "Typedef", "typedef", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface] > {
-  // TODO can we somehow use optional `params` group and not list all qualifiers?
-  let assemblyFormat = "`<` $name (`,` $is_const^ )? (`,` $is_volatile^ )? (`,` $is_restrict^ )? `>`";
+def TypedefType : CVRQualifiedType<
+  "Typedef", "typedef", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
+> {
+  let builders = [
+    TypeBuilder<(ins "llvm::StringRef":$name), [{
+      return $_get($_ctxt, name, CVRQualifiersAttr());
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
 }
 
-def ElaboratedType : CVRQualifiedType< "Elaborated", "elaborated",
-    (ins "Type":$elementType),
-    [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
-  >
-{
-  // TODO can we somehow use optional `params` group and not list all qualifiers?
-  let assemblyFormat = "`<` $elementType (`,` $is_const^ )? (`,` $is_volatile^ )? (`,` $is_restrict^ )? `>`";
+def ElaboratedType : CVRQualifiedType<
+  "Elaborated", "elaborated", (ins "Type":$elementType), [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
+> {
+  let builders = [
+    TypeBuilder<(ins "Type":$element), [{
+      return $_get($_ctxt, element, CVRQualifiersAttr());
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $elementType (`,` $quals^ )? `>`";
 }
 
 def LabelType : HighLevelType< "Label" > {

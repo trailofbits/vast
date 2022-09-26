@@ -14,6 +14,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Translation/CodeGenVisitorBase.hpp"
 #include "vast/Translation/CodeGenVisitorLens.hpp"
 
+#include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
+
 namespace vast::hl {
 
     IntegerKind  get_integer_kind (const clang::BuiltinType *ty);
@@ -45,15 +47,22 @@ namespace vast::hl {
             return this->template make_type< high_level_type >().bind(&mcontext());
         };
 
-        auto with_cv_qualifiers(auto &&state, qualifiers quals) {
-            return std::move(state)
-                .bind(quals.hasConst())
-                .bind(quals.hasVolatile());
+        auto with_ucv_qualifiers(auto &&state, bool is_unsigned, qualifiers q) {
+            return std::move(state).bind_if( is_unsigned || q.hasConst() || q.hasVolatile(),
+                UCVQualifiersAttr::get(&mcontext(), is_unsigned, q.hasConst(), q.hasVolatile())
+            );
         };
 
-        auto with_cvr_qualifiers(auto &&state, qualifiers quals) {
-            return with_cv_qualifiers(std::move(state), quals)
-                .bind(quals.hasRestrict());
+        auto with_cv_qualifiers(auto &&state, qualifiers q) {
+            return std::move(state).bind_if( q.hasConst() || q.hasVolatile(),
+                CVQualifiersAttr::get(&mcontext(), q.hasConst(), q.hasVolatile())
+            );
+        };
+
+        auto with_cvr_qualifiers(auto &&state, qualifiers q) {
+            return std::move(state).bind_if( q.hasConst() || q.hasVolatile() || q.hasRestrict(),
+                CVRQualifiersAttr::get(&mcontext(), q.hasConst(), q.hasVolatile(), q.hasRestrict())
+            );
         };
 
         auto with_qualifiers(auto &&state, const clang::BuiltinType *ty, qualifiers quals) -> mlir_type {
@@ -76,7 +85,7 @@ namespace vast::hl {
         template< high_level_integer_type type >
         auto with_qualifiers(const clang::BuiltinType *ty, qualifiers quals) -> mlir_type {
             assert(ty->isIntegerType());
-            return with_qualifiers(type_builder< type >().bind(ty->isUnsignedIntegerType()), ty, quals);
+            return with_ucv_qualifiers(type_builder< type >(), ty->isUnsignedIntegerType(), quals).freeze();
         }
 
         template< high_level_floating_type type >
