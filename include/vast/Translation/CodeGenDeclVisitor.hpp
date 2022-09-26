@@ -333,9 +333,12 @@ namespace vast::hl {
             return declare(decl, [&] {
                 auto initializer = make_value_builder(decl->getInitExpr());
 
+                auto type = visit(decl->getType());
+
                 return this->template make_operation< EnumConstantOp >()
                     .bind(meta_location(decl))                              // location
                     .bind(decl->getName())                                  // name
+                    .bind(type)                                             // type
                     .bind(decl->getInitVal())                               // value
                     .bind_if(decl->getInitExpr(), std::move(initializer))   // initializer
                     .freeze();

@@ -60,7 +60,7 @@ def TypeDefOp
 
 def EnumConstantOp
   : HighLevel_Op< "enum.const", [NoSideEffect] >
-  , Arguments<(ins StrAttr:$name, APIntAttr:$value)>
+  , Arguments<(ins StrAttr:$name, TypedAttrInterface:$value)>
 {
   let summary = "VAST enum constant declaration";
   let description = [{
@@ -68,7 +68,7 @@ def EnumConstantOp
     It is required to be scoped in Enum operation. For example:
 
     ```
-    hl.enum.const "F" = 2 : si32
+    hl.enum.const "F" = 2 : !hl.int
     ```
 
     A constant can have a constant expression initializer:
@@ -85,14 +85,18 @@ def EnumConstantOp
 
   let regions = (region AnyRegion:$init);
 
-  let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
-      // TODO use identifier
       "llvm::StringRef":$name,
-      "llvm::APSInt":$value,
+      "Type":$type, "llvm::APInt":$value,
       CArg<"BuilderCallback", "std::nullopt">:$init
-    )>
+    ), [{
+      $_state.addAttribute("name", $_builder.getStringAttr(name));
+      $_state.addAttribute("value", IntegerAttr::get(type, value));
+
+      Builder::InsertionGuard guard($_builder);
+      detail::build_region($_builder, $_state, init);
+    }]>,
   ];
 
   let assemblyFormat = [{ $name `=` $value attr-dict (`init` $init^)? }];
