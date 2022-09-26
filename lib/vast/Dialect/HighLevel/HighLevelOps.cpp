@@ -73,14 +73,6 @@ namespace vast::hl
         detail::build_region(bld, st, constants);
     }
 
-    void EnumConstantOp::build(Builder &bld, State &st, llvm::StringRef name, llvm::APSInt value, BuilderCallback init) {
-        st.addAttribute("name", bld.getStringAttr(name));
-        st.addAttribute("value", mlir::IntegerAttr::get(bld.getContext(), value));
-
-        Builder::InsertionGuard guard(bld);
-        detail::build_region(bld, st, init);
-    }
-
     namespace detail {
         void build_record_like_decl(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
             st.addAttribute("name", bld.getStringAttr(name));
