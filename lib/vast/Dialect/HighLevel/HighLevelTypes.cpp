@@ -29,14 +29,17 @@ namespace vast::hl
         VAST_UNIMPLEMENTED;
     }
 
-    mlir::FunctionType getFunctionType(PointerType functionPointer)
+    mlir::FunctionType getFunctionType(Type type)
     {
-        return functionPointer.getElementType().cast< mlir::FunctionType >();
-    }
-
-    mlir::FunctionType getFunctionType(mlir::Type functionPointer)
-    {
-        return getFunctionType(functionPointer.cast< PointerType >());
+        if (auto ty = type.dyn_cast< mlir::FunctionType >())
+            return ty;
+        if (auto ty = type.dyn_cast< LValueType >())
+            return getFunctionType(ty.getElementType());
+        if (auto ty = type.dyn_cast< ParenType >())
+            return getFunctionType(ty.getElementType());
+        if (auto ty = type.dyn_cast< PointerType >())
+            return getFunctionType(ty.getElementType());
+        VAST_UNREACHABLE("unknown type to extract function type");
     }
 
     void HighLevelDialect::registerTypes() {
@@ -72,6 +75,7 @@ namespace vast::hl
 
         VAST_ASSERT(isIntegerType(type));
         return false;
+        // TODO
         // return util::dispatch< integer_types, bool >(type, [] (auto ty) {
         //     return ty.isSigned();
         // });
