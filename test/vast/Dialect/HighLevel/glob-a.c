@@ -6,7 +6,8 @@ int a = 0;
 
 // CHECK-LABEL: func @main
 int main() {
-    // CHECK: [[G:%[0-9]+]] = hl.global.ref "a" : !hl.lvalue<!hl.int>
-    // CHECK: hl.decl.ref [[G]] : !hl.lvalue<!hl.int>
+    // CHECK: [[G:%[0-9]+]] = hl.globref "a" : !hl.lvalue<!hl.int>
+    // CHECK: [[C:%[0-9]+]] = hl.const #hl.integer<1> : !hl.int
+    // CHECK: hl.assign [[C]] to [[G]]
     a = 1;
 }

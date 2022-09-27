@@ -7,7 +7,7 @@ int switch_init(int num)
     // CHECK: hl.scope {
     // CHECK:   [[V:%[0-9]+]] = hl.var "v" : !hl.lvalue<!hl.int>
     // CHECK:   hl.switch {
-    // CHECK:       [[V2:%[0-9]+]] = hl.decl.ref [[V]]
+    // CHECK:       [[V2:%[0-9]+]] = hl.ref [[V]]
     // CHECK:       [[V3:%[0-9]+]] = hl.implicit_cast [[V2]]
     // CHECK:       hl.value.yield [[V3]]
     switch (int v = num; v) {

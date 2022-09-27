@@ -4,21 +4,21 @@
 int puts(const char *str);
 
 int main() {
-    // CHECK: hl.enum.decl "color" : !hl.int<unsigned>  {
-    // CHECK:  hl.enum.const "RED" = 0 : si32
-    // CHECK:  hl.enum.const "GREEN" = 1 : si32
-    // CHECK:  hl.enum.const "BLUE" = 2 : si32
+    // CHECK: hl.enum "color" : !hl.int< unsigned >  {
+    // CHECK:  hl.enum.const "RED" = #hl.integer<0> : !hl.int
+    // CHECK:  hl.enum.const "GREEN" = #hl.integer<1> : !hl.int
+    // CHECK:  hl.enum.const "BLUE" = #hl.integer<2> : !hl.int
     // CHECK: }
 
-    // CHECK: hl.var "r" : !hl.lvalue<!hl.named_type<<"color">>> =  {
+    // CHECK: hl.var "r" : !hl.lvalue<!hl.elaborated<!hl.record<"color">>> =  {
     // CHECK:  [[V1:%[0-9]+]] = hl.enumref "RED" : !hl.int
-    // CHECK:  [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] IntegralCast : !hl.int -> !hl.named_type<<"color">>
-    // CHECK:  hl.value.yield [[V2]] : !hl.named_type<<"color">>
+    // CHECK:  [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] IntegralCast : !hl.int -> !hl.elaborated<!hl.record<"color">>
+    // CHECK:  hl.value.yield [[V2]] : !hl.elaborated<!hl.record<"color">>
     // CHECK: }
     enum color { RED, GREEN, BLUE } r = RED;
 
     // CHECK: hl.switch
-    // CHECK:  hl.decl.ref %0 : !hl.lvalue<!hl.named_type<<"color">>>
+    // CHECK:  hl.ref %0 : !hl.lvalue<!hl.elaborated<!hl.record<"color">>>
     switch(r) {
     // CHECK: hl.case
     // CHECK:  hl.enumref "RED" : !hl.int

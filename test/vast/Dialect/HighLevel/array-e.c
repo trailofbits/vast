@@ -3,7 +3,7 @@
 
 void foo(int size) {
     // CHECK: hl.var "arr" : !hl.lvalue<!hl.array<?, !hl.int>> allocation_size {
-    // CHECK:   hl.decl.ref %arg0 : !hl.lvalue<!hl.int>
+    // CHECK:   hl.ref %arg0 : !hl.lvalue<!hl.int>
     int arr[size];
 }
 
@@ -17,10 +17,10 @@ void bar() {
 
 void baz(int x) {
     // CHECK: hl.var "Y" : !hl.lvalue<!hl.array<?, !hl.int>> allocation_size
-    // CHECK:   hl.decl.ref %arg0 : !hl.lvalue<!hl.int>
+    // CHECK:   hl.ref %arg0 : !hl.lvalue<!hl.int>
     int Y[x];
     ++x;
     // CHECK: hl.var "Z" : !hl.lvalue<!hl.array<?, !hl.int>> allocation_size
-    // CHECK:   hl.decl.ref %arg0 : !hl.lvalue<!hl.int>
+    // CHECK:   hl.ref %arg0 : !hl.lvalue<!hl.int>
     int Z[x];
 }
