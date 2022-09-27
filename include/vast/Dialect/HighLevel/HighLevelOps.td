@@ -74,7 +74,7 @@ def EnumConstantOp
     A constant can have a constant expression initializer:
 
     ```
-    hl.enum.const "G" = 12 : si32 init  {
+    hl.enum.const "G" = #hl.integer<12> : !hl.int init  {
       %0 = hl.enumref "F" : !hl.int
       %1 = hl.enumref "C" : !hl.int
       %2 = hl.add %0, %1 : !hl.int
@@ -279,6 +279,17 @@ def DeclRefOp
   let description = [{ VAST variable reference declaration }];
 
   let assemblyFormat = "$decl attr-dict `:` type($decl)";
+}
+
+def FuncRefOp
+  : HighLevel_Op< "funcref", [NoSideEffect] >
+  , Arguments<(ins FlatSymbolRefAttr:$function)>
+  , Results<(outs AnyType:$result)>
+{
+  let summary = "VAST function reference declaration";
+  let description = [{ VAST function reference declaration }];
+
+  let assemblyFormat = "$function attr-dict `:` type($result)";
 }
 
 def GlobalRefOp
