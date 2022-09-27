@@ -173,6 +173,10 @@ namespace vast::hl {
                 return VisitFunctionNoProtoType(t, quals);
             }
 
+            if (auto t = llvm::dyn_cast< clang::DecayedType >(underlying)) {
+                return VisitDecayedType(t, quals);
+            }
+
             VAST_UNREACHABLE("unsupported qualified type");
             return Type{};
         }
@@ -303,6 +307,14 @@ namespace vast::hl {
 
         auto VisitFunctionProtoType(const clang::FunctionProtoType *ty) -> mlir_type {
             return VisitFunctionProtoType(ty, ty->desugar().getQualifiers());
+        }
+
+        auto VisitDecayedType(const clang::DecayedType *ty, qualifiers /* quals */) -> mlir_type {
+            return DecayedType::get(&mcontext(), visit(ty->getDecayedType()));
+        }
+
+        auto VisitDecayedType(const clang::DecayedType *ty) -> mlir_type {
+            return VisitDecayedType(ty, ty->desugar().getQualifiers());
         }
     };
 
