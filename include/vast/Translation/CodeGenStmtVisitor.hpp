@@ -506,10 +506,16 @@ namespace vast::hl {
             return make< GlobalRefOp >(meta_location(expr), rty, name);
         }
 
+        Operation* VisitFunctionDeclRefExpr(const clang::DeclRefExpr *expr) {
+            auto decl = clang::cast< clang::FunctionDecl >( expr->getDecl()->getUnderlyingDecl() );
+            auto fn = context().lookup_function(decl);
+            auto rty = getLValueReturnType(expr);
+
+            return make< FuncRefOp >(meta_location(expr), rty, mlir::SymbolRefAttr::get(fn));
+        }
+
         Operation* VisitDeclRefExpr(const clang::DeclRefExpr *expr) {
             auto underlying = expr->getDecl()->getUnderlyingDecl();
-
-            // TODO(Heno): deal with function declaration
 
             if (clang::isa< clang::EnumConstantDecl >(underlying)) {
                 return VisitEnumDeclRefExpr(expr);
@@ -519,6 +525,10 @@ namespace vast::hl {
                 if (decl->isFileVarDecl())
                     return VisitFileVarDeclRefExpr(expr);
                 return VisitVarDeclRefExpr(expr);
+            }
+
+            if (clang::isa< clang::FunctionDecl >(underlying)) {
+                return VisitFunctionDeclRefExpr(expr);
             }
 
             VAST_UNREACHABLE("unknown underlying declaration to be referenced");
