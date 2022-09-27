@@ -366,4 +366,10 @@ def ParenType : HighLevelType< "Paren", [MemRefElementTypeInterface] > {
   let assemblyFormat = "`<` $elementType `>`";
 }
 
+def DecayedType : HighLevelType< "Decayed", [MemRefElementTypeInterface] > {
+  let mnemonic = "decayed";
+  let parameters = (ins "Type":$elementType);
+  let assemblyFormat = "`<` $elementType `>`";
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
