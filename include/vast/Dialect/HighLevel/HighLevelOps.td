@@ -220,7 +220,7 @@ def IndirectCallOp
     >
   ]>
   , Arguments<(ins
-      PointerLikeType:$callee,
+      LValueOrType<PointerLikeType>:$callee,
       Variadic<AnyType>:$operands)>
   , Results<(outs AnyType:$result)>
 {
@@ -810,7 +810,7 @@ def Deref
 def AddrLabelExpr
   : HighLevel_Op< "labeladdr", [] >
   , Arguments<(ins LabelType:$label)>
-  , Results<(outs LValueOf<PointerType>:$result)>
+  , Results<(outs LValueOf<PointerLikeType>:$result)>
 {
     let summary = "VAST address of label extension";
     let description = [{ VAST address of label extension }];
