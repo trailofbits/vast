@@ -7,7 +7,7 @@ void basic() {
     do {
     } while (true);
     // CHECK: } while {
-    // CHECK: [[V1:%[0-9]+]] = hl.constant.int true : !hl.bool
+    // CHECK: [[V1:%[0-9]+]] = hl.const #hl.bool<true> : !hl.bool
     // CHECK: hl.cond.yield [[V1]]
     // CHECK: }
 }
@@ -17,7 +17,7 @@ void inner_cond() {
     // CHECK: [[I:%[0-9]+]] = hl.var "i" : !hl.lvalue<!hl.int>
     int i = 0;
     // CHECK: hl.do {
-    // CHECK: [[V1:%[0-9]+]] = hl.decl.ref [[I]]
+    // CHECK: [[V1:%[0-9]+]] = hl.ref [[I]]
     // CHECK: hl.post.inc [[V1]]
     do {
         i++;

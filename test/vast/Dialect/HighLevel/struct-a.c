@@ -12,10 +12,10 @@ struct pair {
   int a, b;
 };
 
-// CHECK: hl.var "p" : !hl.lvalue<!hl.named_type<<"pair">>>
+// CHECK: hl.var "p" : !hl.lvalue<!hl.elaborated<!hl.record<"pair">>>
 struct pair p;
 
-// CHECK: hl.type.decl "forward"
+// CHECK: hl.type "forward"
 struct forward;
 
 // CHECK: hl.struct "forward" : {
@@ -29,17 +29,17 @@ struct forward {
 // CHECK:  hl.field "v" : !hl.int
 // CHECK: }
 
-// CHECK: hl.typedef "wrap_t" : !hl.named_type<<"wrap">>
+// CHECK: hl.typedef "wrap_t" : !hl.elaborated<!hl.record<"wrap">>
 typedef struct wrap {
   int v;
 } wrap_t;
 
-// CHECK: hl.var "w" : !hl.lvalue<!hl.named_type<<"wrap_t">>>
+// CHECK: hl.var "w" : !hl.lvalue<!hl.typedef<"wrap_t">>
 wrap_t w;
 
 // CHECK: hl.struct "compound" : {
-// CHECK:  hl.field "e" : !hl.named_type<<"empty">>
-// CHECK:  hl.field "w" : !hl.named_type<<"wrap_t">>
+// CHECK:  hl.field "e" : !hl.elaborated<!hl.record<"empty">>
+// CHECK:  hl.field "w" : !hl.typedef<"wrap_t">
 // CHECK: }
 struct compound {
   struct empty e;
@@ -47,6 +47,6 @@ struct compound {
 };
 
 int main() {
-  // CHECK: hl.var "e" : !hl.lvalue<!hl.named_type<<"empty">>>
+  // CHECK: hl.var "e" : !hl.lvalue<!hl.elaborated<!hl.record<"empty">>>
   struct empty e;
 }

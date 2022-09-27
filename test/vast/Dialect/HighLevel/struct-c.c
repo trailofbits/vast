@@ -4,7 +4,7 @@
 // CHECK: hl.struct "anonymous[512]" : {
 // CHECK:  hl.field "data" : !hl.int
 // CHECK: }
-// CHECK: hl.var "named" : !hl.lvalue<!hl.named_type<<"anonymous[512]">>>
+// CHECK: hl.var "named" : !hl.lvalue<!hl.elaborated<!hl.record<"anonymous[512]">>>
 struct {
   int data;
 } named;
