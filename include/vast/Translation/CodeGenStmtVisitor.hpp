@@ -356,7 +356,7 @@ namespace vast::hl {
 
                 case clang::CastKind::CK_NullToPointer:          return non_lvalue_cast();
                 case clang::CastKind::CK_ArrayToPointerDecay:
-                // case clang::CastKind::CK_FunctionToPointerDecay:     return;
+                case clang::CastKind::CK_FunctionToPointerDecay:
                 // case clang::CastKind::CK_NullToMemberPointer:        return;
                 // case clang::CastKind::CK_BaseToDerivedMemberPointer: return;
                 // case clang::CastKind::CK_DerivedToBaseMemberPointer: return;
