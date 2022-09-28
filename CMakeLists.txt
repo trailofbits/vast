@@ -32,13 +32,6 @@ project(vast
     HOMEPAGE_URL "https://github.com/trailofbits/vast.git"
 )
 
-#
-# Setup toolchain
-#
-if (USE_SYSTEM_DEPENDENCIES)
-  include(vast_system_deps)
-endif()
-
 include(prevent_in_source_builds)
 
 include(GNUInstallDirs)
