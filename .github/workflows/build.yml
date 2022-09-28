@@ -111,8 +111,8 @@ jobs:
         run: |
           wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 
-          deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main
-          deb-src http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main
+          sudo add-apt-repository 'deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main'
+          sudo apt-get update
 
           sudo apt-get install libllvm15 libmlir-15-dev mlir-15-tools llvm-15 llvm-15-dev
 
