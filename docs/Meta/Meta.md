@@ -13,6 +13,14 @@ that are kept accross transformations.
 
 A metadata identifier.
 
+Syntax:
+
+```
+!meta.id<
+  identifier_t   # value
+>
+```
+
 A metadata identifier can be used to relate operations
 to external metadata storage.
 
