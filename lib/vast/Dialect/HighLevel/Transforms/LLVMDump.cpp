@@ -93,8 +93,6 @@ namespace vast::hl
 void vast::hl::registerHLToLLVMIR(mlir::DialectRegistry &registry)
 {
     registry.insert< HighLevelDialect >();
-    registry.addDialectInterface< HighLevelDialect, ToLLLVMIR >();
-    registry.addDialectInterface< HighLevelDialect, ToLLLVMIR >();
 }
 void vast::hl::registerHLToLLVMIR(mlir::MLIRContext &ctx)
 {
