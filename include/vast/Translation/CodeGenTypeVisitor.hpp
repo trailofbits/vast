@@ -45,25 +45,25 @@ namespace vast::hl {
         template< typename high_level_type >
         auto type_builder() {
             return this->template make_type< high_level_type >().bind(&mcontext());
-        };
+        }
 
         auto with_ucv_qualifiers(auto &&state, bool is_unsigned, qualifiers q) {
             return std::move(state).bind_if( is_unsigned || q.hasConst() || q.hasVolatile(),
                 UCVQualifiersAttr::get(&mcontext(), is_unsigned, q.hasConst(), q.hasVolatile())
             );
-        };
+        }
 
         auto with_cv_qualifiers(auto &&state, qualifiers q) {
             return std::move(state).bind_if( q.hasConst() || q.hasVolatile(),
                 CVQualifiersAttr::get(&mcontext(), q.hasConst(), q.hasVolatile())
             );
-        };
+        }
 
         auto with_cvr_qualifiers(auto &&state, qualifiers q) {
             return std::move(state).bind_if( q.hasConst() || q.hasVolatile() || q.hasRestrict(),
                 CVRQualifiersAttr::get(&mcontext(), q.hasConst(), q.hasVolatile(), q.hasRestrict())
             );
-        };
+        }
 
         auto with_qualifiers(auto &&state, const clang::BuiltinType *ty, qualifiers quals) -> mlir_type {
             return with_cv_qualifiers(std::move(state), quals).freeze();
@@ -84,7 +84,7 @@ namespace vast::hl {
 
         template< high_level_integer_type type >
         auto with_qualifiers(const clang::BuiltinType *ty, qualifiers quals) -> mlir_type {
-            assert(ty->isIntegerType());
+            VAST_ASSERT(ty->isIntegerType());
             return with_ucv_qualifiers(type_builder< type >(), ty->isUnsignedIntegerType(), quals).freeze();
         }
 
