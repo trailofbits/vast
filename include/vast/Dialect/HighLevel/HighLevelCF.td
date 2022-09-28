@@ -91,7 +91,7 @@ def HighLevel_IfOp : ControlFlowOp< "if" >
 
   let extraClassDeclaration = [{
     /// Returns true if an else block exists.
-    bool hasElse() { return !elseRegion().empty(); }
+    bool hasElse() { return !getElseRegion().empty(); }
   }];
 
   let assemblyFormat = [{ $condRegion `then` $thenRegion (`else` $elseRegion^)? attr-dict }];

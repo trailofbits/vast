@@ -38,7 +38,7 @@ namespace vast::hl
         auto up = src->getParentRegion();
         VAST_ASSERT(up != nullptr);
 
-        auto &copy = src.condRegion();
+        auto &copy = src.getCondRegion();
         VAST_ASSERT(size(copy) == 1);
 
         rewriter.cloneRegionBefore(copy, *up, up->end());
@@ -124,10 +124,10 @@ namespace vast::hl
                 }();
                 auto wrap_block = [&]() -> mlir::Block *
                 {
-                    VAST_ASSERT(size(scope.body()) <= 1);
-                    if (size(scope.body()) == 0)
-                        rewriter.createBlock(&scope.body());
-                    return &scope.body().front();
+                    VAST_ASSERT(size(scope.getBody()) <= 1);
+                    if (size(scope.getBody()) == 0)
+                        rewriter.createBlock(&scope.getBody());
+                    return &scope.getBody().front();
                 }();
 
                 // NOTE(lukas): Did not find api to move operations around.
@@ -191,11 +191,11 @@ namespace vast::hl
                 mlir::scf::IfOp scf_if_op = rewriter.create< mlir::scf::IfOp >(
                         op.getLoc(), std::vector< mlir::Type >{}, *coerced,
                         op.hasElse());
-                auto then_result = make_if_block(op.thenRegion(), scf_if_op.getThenRegion());
+                auto then_result = make_if_block(op.getThenRegion(), scf_if_op.getThenRegion());
                 auto else_result = [&]()
                 {
                     if (op.hasElse())
-                        return make_if_block(op.elseRegion(), scf_if_op.getElseRegion());
+                        return make_if_block(op.getElseRegion(), scf_if_op.getElseRegion());
                     return mlir::success();
                 }();
                 if (failed(then_result, else_result))
@@ -230,7 +230,7 @@ namespace vast::hl
 
                 mlir::OpBuilder::InsertionGuard guard(rewriter);
                 rewriter.setInsertionPointAfter(cond_yield);
-                auto coerced_condition = coerce_condition(cond_yield.result(), rewriter);
+                auto coerced_condition = coerce_condition(cond_yield.getResult(), rewriter);
                 if (!coerced_condition)
                     return mlir::failure();
 
@@ -258,8 +258,8 @@ namespace vast::hl
                         op.getLoc(),
                         std::vector< mlir::Type >{},
                         std::vector< mlir::Value >{});
-                auto &before = do_inline(op.condRegion(), scf_while_op.getBefore());
-                auto &after = do_inline(op.bodyRegion(), scf_while_op.getAfter());
+                auto &before = do_inline(op.getCondRegion(), scf_while_op.getBefore());
+                auto &after = do_inline(op.getBodyRegion(), scf_while_op.getAfter());
 
                 if (mlir::failed(before_region(before)) ||
                     mlir::failed(after_region(after, before)))

@@ -248,8 +248,8 @@ namespace vast::hl
                     hl::TranslationUnitOp unit_op, hl::TranslationUnitOp::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
-                auto parent = unit_op.body().getParentRegion();
-                rewriter.inlineRegionBefore(unit_op.body(), *parent, parent->end());
+                auto parent = unit_op.getBody().getParentRegion();
+                rewriter.inlineRegionBefore(unit_op.getBody(), *parent, parent->end());
 
                 // splice newly created translation unit block in the module
                 auto &unit_block = parent->back();
@@ -409,8 +409,8 @@ namespace vast::hl
         template< typename T >
         T inline_init_region(auto src, auto &rewriter)
         {
-            VAST_ASSERT(size(src.initializer()) == 1);
-            auto &init_region = src.initializer();
+            VAST_ASSERT(size(src.getInitializer()) == 1);
+            auto &init_region = src.getInitializer();
             auto &init_block = init_region.back();
 
             auto terminator = mlir::dyn_cast< T >(init_block.getTerminator());
@@ -440,7 +440,7 @@ namespace vast::hl
                 auto a_type = p_type.getElementType().dyn_cast< LLVM::LLVMArrayType >();
                 VAST_PATTERN_CHECK(a_type, "Expected array.");
 
-                for (auto op : init.elements())
+                for (auto op : init.getElements())
                 {
                     auto e_type = LLVM::LLVMPointerType::get(a_type.getElementType());
 
@@ -523,7 +523,7 @@ namespace vast::hl
                         hl::ImplicitCastOp op, hl::ImplicitCastOp::Adaptor ops,
                         mlir::ConversionPatternRewriter &rewriter) const override
             {
-                if (op.kind() == hl::CastKind::LValueToRValue)
+                if (op.getKind() == hl::CastKind::LValueToRValue)
                 {
                     // TODO(lukas): Without `--ccopts -xc` in case of `c = (x = 5)`
                     //              there will be a LValueToRValue cast on rvalue from
@@ -537,7 +537,7 @@ namespace vast::hl
                     rewriter.replaceOp(op, {loaded});
                     return mlir::success();
                 }
-                if (op.kind() == hl::CastKind::IntegralCast)
+                if (op.getKind() == hl::CastKind::IntegralCast)
                 {
                     const auto &dl = this->type_converter().getDataLayoutAnalysis()
                                                            ->getAtOrAbove(op);
@@ -592,7 +592,7 @@ namespace vast::hl
                     return mlir::failure();
 
                 m_ops[0] = rewriter.create< LLVM::LoadOp >(op.getLoc(), alloca);
-                auto target_ty = this->type_converter().convert_type_to_type(op.src().getType());
+                auto target_ty = this->type_converter().convert_type_to_type(op.getSrc().getType());
                 // Probably the easiest way to compose this (some template specialization would
                 // require a lot of boilerplate).
                 auto new_op = [&]()
@@ -630,7 +630,7 @@ namespace vast::hl
                 if (!module)
                     return mlir::failure();
 
-                auto callee = module.lookupSymbol< mlir::LLVM::LLVMFuncOp >(op.callee());
+                auto callee = module.lookupSymbol< mlir::LLVM::LLVMFuncOp >(op.getCallee());
                 if (!callee)
                     return mlir::failure();
 
@@ -642,7 +642,7 @@ namespace vast::hl
                 auto new_call = rewriter.create< mlir::LLVM::CallOp >(
                     op.getLoc(),
                     *rtys,
-                    op.callee(),
+                    op.getCallee(),
                     ops.getOperands());
                 rewriter.replaceOp(op, new_call.getResults());
                 return mlir::success();
@@ -659,12 +659,12 @@ namespace vast::hl
                         hl::CmpOp op, typename CmpOp::Adaptor ops,
                         mlir::ConversionPatternRewriter &rewriter) const override
             {
-                auto predicate = convert_predicate(op.predicate());
+                auto predicate = convert_predicate(op.getPredicate());
                 if (!predicate)
                     return mlir::failure();
 
                 auto new_cmp = rewriter.create< mlir::LLVM::ICmpOp >(
-                    op.getLoc(), *predicate, ops.lhs(), ops.rhs());
+                    op.getLoc(), *predicate, ops.getLhs(), ops.getRhs());
                 rewriter.replaceOp(op, { new_cmp });
                 return mlir::success();
             }

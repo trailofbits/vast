@@ -337,10 +337,6 @@ def ConstantOp
     }]>
   ];
 
-  let extraClassDeclaration = [{
-    Attribute getValue() { return (*this)->getAttr("value"); }
-  }];
-
   let hasFolder = 1;
 
   let assemblyFormat = "$value attr-dict";

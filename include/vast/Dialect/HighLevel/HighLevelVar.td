@@ -28,7 +28,6 @@ class StorageClassImpl
   code storageClassImpl = [{
     constexpr static auto storage_class = "storageClass";
 
-    StorageClass getStorageClass() { return storageClassAttr().getValue(); }
     void setStorageClass(StorageClass spec) { setAttr< StorageClassAttr >(storage_class, spec); }
   }];
 }
@@ -57,7 +56,6 @@ class ThreadStorageClassImpl
   code threadStorageClassImpl = [{
     constexpr static auto thread_storage_class = "threadStorageClass";
 
-    TSClass getThreadStorageClass() { return threadStorageClassAttr().getValue(); }
     void setThreadStorageClass(TSClass spec) { setAttr< TSClassAttr >(thread_storage_class, spec); }
   }];
 }

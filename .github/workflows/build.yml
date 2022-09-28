@@ -39,17 +39,17 @@ jobs:
             export CC=clang-15
             export CXX=clang++-15
 
-            sudo cmake --preset ninja-multi-default --toolchain ./cmake/lld.toolchain.cmake \
+            cmake --preset ninja-multi-default --toolchain ./cmake/lld.toolchain.cmake \
               -D CMAKE_VERBOSE_MAKEFILE=True \
               -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
               -DLLVM_EXTERNAL_LIT=${LLVM_EXTERNAL_LIT} || exit 1
 
-            sudo cmake --build --preset ninja-rel -j $(nproc) || exit 1
-            sudo cmake --build --preset ninja-deb -j $(nproc) || exit 1
+            cmake --build --preset ninja-rel -j $(nproc) || exit 1
+            cmake --build --preset ninja-deb -j $(nproc) || exit 1
 
-            sudo ctest --preset ninja-deb --output-on-failure || exit 1
+            ctest --preset ninja-deb --output-on-failure || exit 1
 
-            sudo cpack -G TXZ --config ./builds/ninja-multi-default/CPackConfig.cmake || exit 1
+            cpack -G TXZ --config ./builds/ninja-multi-default/CPackConfig.cmake || exit 1
 
       - name: Extract package
         working-directory: ${{ steps.build_paths.outputs.install }}

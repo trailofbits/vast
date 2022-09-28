@@ -34,8 +34,7 @@ def HighLevel_Dialect : Dialect {
 
     let hasConstantMaterializer = 1;
 
-    // TODO
-    // let emitAccessorPrefix = kEmitAccessorPrefix_Prefixed;
+    let emitAccessorPrefix = kEmitAccessorPrefix_Prefixed;
 }
 
 class HighLevel_Op< string mnemonic, list< Trait > traits = [] >

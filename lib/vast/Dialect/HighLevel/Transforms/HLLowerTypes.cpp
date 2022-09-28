@@ -539,11 +539,11 @@ namespace vast::hl
         std::vector< mlir::Type > collect_field_tys(hl::StructDeclOp op) const
         {
             std::vector< mlir::Type > out;
-            for (auto &maybe_field : solo_block(op.fields()))
+            for (auto &maybe_field : solo_block(op.getFields()))
             {
                 auto field = mlir::dyn_cast< hl::FieldDeclOp >(maybe_field);
                 VAST_ASSERT(field);
-                out.push_back(field.type());
+                out.push_back(field.getType());
             }
             return out;
         }
@@ -557,7 +557,7 @@ namespace vast::hl
             for (auto &x : solo_block(module_op.getBodyRegion()))
             {
                 if (auto type_decl = mlir::dyn_cast< hl::TypeDeclOp >(x);
-                    type_decl && type_decl.name() == op.name())
+                    type_decl && type_decl.getName() == op.getName())
                 {
                     out.push_back(type_decl);
                 }
@@ -572,8 +572,7 @@ namespace vast::hl
             auto field_tys = collect_field_tys(op);
             auto trg_ty = mlir::TupleType::get(this->getContext(), field_tys);
 
-            rewriter.create< hl::TypeDefOp >(
-                    op.getLoc(), op.name(), trg_ty);
+            rewriter.create< hl::TypeDefOp >(op.getLoc(), op.getName(), trg_ty);
 
             auto type_decls = fetch_decls(op);
             for (auto x : type_decls)

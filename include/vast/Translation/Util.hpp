@@ -28,13 +28,13 @@ namespace vast::hl
             auto &last_block = blocks.back();
 
             auto scope  = mlir::cast< ScopeOp >(last_block.back());
-            auto parent = scope.body().getParentRegion();
+            auto parent = scope.getBody().getParentRegion();
             scope->remove();
 
             auto &prev = parent->getBlocks().back();
 
             mlir::BlockAndValueMapping mapping;
-            scope.body().cloneInto(parent, mapping);
+            scope.getBody().cloneInto(parent, mapping);
 
             auto next = prev.getNextNode();
 
