@@ -20,7 +20,7 @@ namespace vast::hl {
             : InsertionGuard(handle.builder), loc(loc)
             , scope(handle.builder.create< Scope >(loc))
         {
-            auto &block = scope.body().emplaceBlock();
+            auto &block = scope.getBody().emplaceBlock();
             handle.builder.setInsertionPointToStart(&block);
         }
 

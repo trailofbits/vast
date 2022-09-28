@@ -30,8 +30,7 @@ def Meta_Dialect : Dialect {
 
     let useDefaultAttributePrinterParser = 1;
 
-    // TODO
-    // let emitAccessorPrefix = kEmitAccessorPrefix_Prefixed;
+    let emitAccessorPrefix = kEmitAccessorPrefix_Prefixed;
 }
 
 include "MetaAttributes.td"

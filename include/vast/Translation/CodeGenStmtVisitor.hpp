@@ -484,7 +484,7 @@ namespace vast::hl {
             auto decl = clang::cast< clang::EnumConstantDecl >(expr->getDecl()->getUnderlyingDecl());
             auto val = context().enumconsts.lookup(decl);
             auto rty = visit(expr->getType());
-            return make< EnumRefOp >(meta_location(expr), rty, val.name());
+            return make< EnumRefOp >(meta_location(expr), rty, val.getName());
         }
 
         Operation* VisitVarDeclRefExprImpl(const clang::DeclRefExpr *expr, Value var) {
@@ -500,7 +500,7 @@ namespace vast::hl {
         Operation* VisitFileVarDeclRefExpr(const clang::DeclRefExpr *expr) {
             auto decl = getDeclForVarRef(expr);
             auto var  = getDefiningOpOfGlobalVar(decl);
-            auto name = mlir::StringAttr::get(&mcontext(), var.name());
+            auto name = mlir::StringAttr::get(&mcontext(), var.getName());
 
             auto rty = getLValueReturnType(expr);
             return make< GlobalRefOp >(meta_location(expr), rty, name);

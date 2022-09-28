@@ -53,7 +53,7 @@ namespace vast::hl
     bool VarDeclOp::isLocalVarDecl() { return isInFunctionOrMethodContext(); }
 
     bool VarDeclOp::hasLocalStorage() {
-        switch (getStorageClass()) {
+        switch (getStorageClass().value()) {
             case StorageClass::sc_none:
                 return !isFileVarDecl() && getThreadStorageClass() == TSClass::tsc_none;
             case StorageClass::sc_register: return isLocalVarDecl();
