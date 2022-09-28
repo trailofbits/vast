@@ -10,14 +10,14 @@
 // RUN: vast-query --symbol-users=a --scope=foo %t | \
 // RUN: FileCheck %s -check-prefix=FOO
 
-// FOO: hl.decl.ref %0 : !hl.lvalue<!hl.int>
+// FOO: hl.ref %0 : !hl.lvalue<!hl.int>
 int foo() {
     int a;
     return a;
 }
 
-// MAIN: hl.decl.ref %0 : !hl.lvalue<!hl.int>
-// MAIN: hl.decl.ref %0 : !hl.lvalue<!hl.int>
+// MAIN: hl.ref %0 : !hl.lvalue<!hl.int>
+// MAIN: hl.ref %0 : !hl.lvalue<!hl.int>
 int main()
 {
     int a = 1, b = 1;
