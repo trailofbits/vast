@@ -301,7 +301,7 @@ namespace vast::hl
                 auto linkage = LLVM::Linkage::External;
                 auto new_func = rewriter.create< LLVM::LLVMFuncOp >(
                         func_op.getLoc(), func_op.getName(), target_type,
-                        linkage, false, new_attrs);
+                        linkage, false, LLVM::CConv::C, new_attrs);
                 rewriter.inlineRegionBefore(func_op.getBody(),
                                             new_func.getBody(), new_func.end());
                 util::convert_region_types(func_op, new_func, signature);
