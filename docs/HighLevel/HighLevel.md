@@ -33,43 +33,43 @@ for further program analysis.
 
 ## Type constraint definition
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
-### 
+###
 
 ## Operation definition
 
@@ -260,13 +260,13 @@ VAST address of label extension
 
 | Operand | Description |
 | :-----: | ----------- |
-| `label` | 
+| `label` |
 
 #### Results:
 
 | Result | Description |
 | :----: | ----------- |
-| `result` | lvalue to 
+| `result` | lvalue to
 
 ### `hl.addressof` (::vast::hl::AddressOf)
 
@@ -1070,7 +1070,7 @@ Effects: MemoryEffects::Effect{}
 
 | Result | Description |
 | :----: | ----------- |
-| `result` | 
+| `result` |
 
 ### `hl.constant.float` (::vast::hl::ConstantFloatOp)
 
@@ -1116,7 +1116,7 @@ Effects: MemoryEffects::Effect{}
 
 | Result | Description |
 | :----: | ----------- |
-| `result` | 
+| `result` |
 
 ### `hl.continue` (::vast::hl::ContinueOp)
 
@@ -1132,7 +1132,7 @@ operation ::= `hl.continue` attr-dict
 VAST continue statement
 Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
 
-### `hl.decl.ref` (::vast::hl::DeclRefOp)
+### `hl.ref` (::vast::hl::DeclRefOp)
 
 VAST variable reference declaration
 
@@ -1140,7 +1140,7 @@ VAST variable reference declaration
 Syntax:
 
 ```
-operation ::= `hl.decl.ref` $decl attr-dict `:` type($decl)
+operation ::= `hl.ref` $decl attr-dict `:` type($decl)
 ```
 
 VAST variable reference declaration
@@ -1461,13 +1461,13 @@ Enumeration constant servers to link name to an enum value.
 It is required to be scoped in Enum operation. For example:
 
 ```
-hl.enum.const "F" = 2 : si32
+hl.enum.const "F" = #hl.integer<2> : !hl.int
 ```
 
 A constant can have a constant expression initializer:
 
 ```
-hl.enum.const "G" = 12 : si32 init  {
+hl.enum.const "G" = #hl.integer<12> : !hl.int init  {
   %0 = hl.enumref "F" : !hl.int
   %1 = hl.enumref "C" : !hl.int
   %2 = hl.add %0, %1 : !hl.int
@@ -1486,7 +1486,7 @@ Effects: MemoryEffects::Effect{}
 | `name` | ::mlir::StringAttr | string attribute
 | `value` | ::mlir::IntegerAttr | arbitrary integer attribute
 
-### `hl.enum.decl` (::vast::hl::EnumDeclOp)
+### `hl.enum` (::vast::hl::EnumDeclOp)
 
 VAST enum declaration
 
@@ -1494,7 +1494,7 @@ VAST enum declaration
 Syntax:
 
 ```
-operation ::= `hl.enum.decl` $name attr-dict `:` $type $constants
+operation ::= `hl.enum` $name attr-dict `:` $type $constants
 ```
 
 Enum declaration serves to declare region for enum constant declarations.
@@ -1655,7 +1655,7 @@ operation ::= `hl.goto` $label attr-dict
 
 | Operand | Description |
 | :-----: | ----------- |
-| `label` | 
+| `label` |
 
 ### `hl.if` (::vast::hl::IfOp)
 
@@ -1836,7 +1836,7 @@ Effects: MemoryEffects::Effect{}
 
 | Result | Description |
 | :----: | ----------- |
-| `result` | 
+| `result` |
 
 ### `hl.label` (::vast::hl::LabelStmt)
 
@@ -1856,7 +1856,7 @@ Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
 
 | Operand | Description |
 | :-----: | ----------- |
-| `label` | 
+| `label` |
 
 ### `hl.minus` (::vast::hl::MinusOp)
 
