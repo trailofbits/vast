@@ -11,8 +11,9 @@
   _Pragma( "GCC diagnostic ignored \"-Wold-style-cast\"" ) \
   _Pragma( "GCC diagnostic ignored \"-Wunused-parameter\"" ) \
   _Pragma( "GCC diagnostic ignored \"-Wcast-align\"" ) \
-  _Pragma( "GCC diagnostic ignored \"-Wimplicit-int-conversion\"" ) \
-  _Pragma( "GCC diagnostic ignored \"-Wambiguous-reversed-operator\"" )
+  _Pragma( "GCC diagnostic ignored \"-Wambiguous-reversed-operator\"" ) \
+  _Pragma( "GCC diagnostic ignored \"-Woverloaded-virtual\"" )
+
 
 #define VAST_UNRELAX_WARNINGS \
   _Pragma( "GCC diagnostic pop" )
