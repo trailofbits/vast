@@ -6,7 +6,7 @@
 # the LICENSE file found in the root directory of this source tree.
 #
 
-name: Build & Test
+name: Build
 
 on:
   push:
@@ -20,177 +20,62 @@ on:
     branches:
       - '*'
 
+env:
+  CC: clang-15
+  CXX: clang++-15
+
 jobs:
-  build:
-    name: ${{ matrix.config.name }}
-    runs-on: ${{ matrix.config.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-        - {
-          name: 'ubuntu',
-          os: ubuntu-22.04,
-          arch: 'x86_64',
-          llvm_pkg: 'x86_64-linux-gnu-ubuntu-18.04',
-        }
-
-        llvm: [ '15.0.1' ]
-
-    timeout-minutes: 20
+  build_linux:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
 
     steps:
-      - name: Setup the build paths
-        shell: bash
-        id: build_paths
-        run: |
-          build_path="build"
-          source_path="src"
-          install_path="install"
-          downloads_path="downloads"
-          ccache_path="ccache"
-          package_path="package"
-
-          mkdir -p ${source_path} \
-            ${install_path} \
-            ${build_path} \
-            ${downloads_path} \
-            ${ccache_path}
-
-          echo ::set-output name=source::$(pwd)/${source_path}
-          echo ::set-output name=install::$(pwd)/${install_path}
-          echo ::set-output name=build::$(pwd)/${build_path}
-          echo ::set-output name=downloads::$(pwd)/${downloads_path}
-          echo ::set-output name=ccache::$(pwd)/${ccache_path}
-          echo ::set-output name=package::$(pwd)/${package_path}
-
-      - name: Update the cache (downloads)
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.build_paths.outputs.downloads }}
-
-          key: |
-            gitmodules_${{ matrix.config.os }}_${{ matrix.llvm }}_${{ github.sha }}
-          restore-keys: |
-            gitmodules_${{ matrix.config.os }}_${{ matrix.llvm }}
-
-      - name: Update the cache (ccache)
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.build_paths.outputs.ccache }}
-
-          key: |
-            gitmodules_${{ matrix.config.os }}_${{ matrix.llvm }}_${{ github.sha }}
-          restore-keys: |
-            gitmodules_${{ matrix.config.os }}_${{ matrix.llvm }}
-
-      - name: Install linux build requirements
-        if: ${{ matrix.config.name == 'ubuntu' }}
-        shell: bash
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            software-properties-common tar wget libncurses5 \
-            clang-14 cmake ninja-build python3-pip ccache
-
       - name: Clone the vast repository
         uses: actions/checkout@v3
         with:
-          path: ${{ steps.build_paths.outputs.source }}/vast
-          fetch-depth: 0
+          submodules: true
+          fetch-depth: 1
 
-      - name: Install vast test requirements
-        shell: bash
-        run: |
-          sudo pip3 install lit
-          sudo ln -s /usr/bin/FileCheck-14 ${{ steps.build_paths.outputs.install }}/FileCheck
-
-      - name: Install llvm
-        shell: bash
-        working-directory: ${{ steps.build_paths.outputs.downloads }}
-        run: |
-          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-
-          sudo add-apt-repository 'deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main'
-          sudo apt-get update
-
-          sudo apt-get install libllvm15 libmlir-15-dev mlir-15-tools llvm-15 llvm-15-dev
-
-      - name: Set compilers
-        id: envvars
-        run: |
-          echo "::set-output name=cc::clang-14"
-          echo "::set-output name=cxx::clang++-14"
-
-      - name: Configure vast
-        working-directory: ${{ steps.build_paths.outputs.build }}
-
-        env:
-          CCACHE_DIR: ${{ steps.build_paths.outputs.ccache }}
-          VAST_INSTALL_DIR: "${{ steps.build_paths.outputs.install }}"
-
-        run: |
-          cmake -G Ninja -B ${{ steps.build_paths.outputs.build }} \
-            -S ${{ steps.build_paths.outputs.source }}/vast \
-            -D LLVM_EXTERNAL_LIT=/usr/local/bin/lit \
-            -D INSTALL_DIR=${VAST_INSTALL_DIR} \
-            -D VAST_INSTALL=ON \
-            -D ENABLE_TESTING=ON \
-            -D CMAKE_BUILD_TYPE=Release \
-            -D CMAKE_VERBOSE_MAKEFILE=True \
-            -D USE_SYSTEM_DEPENDENCIES=ON \
-            -D SYSTEM_NAME="${{ matrix.config.arch }}-${{ matrix.config.os }}" \
-            -D CMAKE_C_COMPILER=${{ steps.envvars.outputs.cc }} \
-            -D CMAKE_CXX_COMPILER=${{ steps.envvars.outputs.cxx }}
-
-      - name: Build vast
-        working-directory: ${{ steps.build_paths.outputs.build }}
-
-        env:
-          CCACHE_DIR: ${{ steps.build_paths.outputs.ccache}}
-
-        run: |
-          cmake --build .
-
-      - name: Run lit tests
-        if: ${{ matrix.config.name == 'ubuntu' }}
-        working-directory: ${{ steps.build_paths.outputs.build }}
-
-        run: |
-          export PATH="${{ steps.build_paths.outputs.install }}:$PATH"
-          cmake --build . --target check-vast
-
-      - name: Package vast
-        working-directory: ${{ steps.build_paths.outputs.build }}
-        run: |
-          cpack -G TXZ --config ./CPackConfig.cmake
+      - name: Build and run dev container task
+        uses: devcontainers/ci@v0.2
+        with:
+          runCmd: |
+            cmake --preset ninja-multi-default --toolchain ./cmake/lld.toolchain.cmake \
+              -D CMAKE_VERBOSE_MAKEFILE=True \
+              -DCMAKE_PREFIX_PATH="/usr/lib/llvm-15/lib/cmake/mlir/;/usr/lib/llvm-15/lib/cmake/clang/" \
+              -DLLVM_EXTERNAL_LIT=/usr/local/bin/lit || exit 1
+            cmake --build --preset ninja-rel -j $(nproc) || exit 1
+            cmake --build --preset ninja-deb -j $(nproc) || exit 1
+            ctest --preset ninja-deb --output-on-failure || exit 1
+            cpack -G TXZ --config ./builds/ninja-multi-default/CPackConfig.cmake || exit 1
 
       - name: Extract package
         working-directory: ${{ steps.build_paths.outputs.install }}
         run: |
           mkdir vast
-          tar -xf ${{ steps.build_paths.outputs.build }}/package/*.tar.xz -C vast --strip-components=1
+          tar -xf ./builds/ninja-multi-default/package/*.tar.xz -C vast --strip-components=1
 
-      - name: Test codegen example
-        working-directory: ${{ steps.build_paths.outputs.source }}/vast/example/codegen
+      # - name: Test codegen example
+      #   working-directory: ${{ steps.build_paths.outputs.source }}/vast/example/codegen
 
-        run: |
-          LLVM_INSTALL_DIR="${{ steps.build_paths.outputs.install }}/llvm"
-          VAST_CMAKE_DIR="${{ steps.build_paths.outputs.install }}/vast/lib/cmake/vast/"
+      #   run: |
+      #     LLVM_INSTALL_DIR="${{ steps.build_paths.outputs.install }}/llvm"
+      #     VAST_CMAKE_DIR="${{ steps.build_paths.outputs.install }}/vast/lib/cmake/vast/"
 
-          cmake -G Ninja -B build -S . \
-            -D LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR} \
-            -D VAST_CMAKE_DIR=${VAST_CMAKE_DIR} \
-            -D CMAKE_BUILD_TYPE=Release \
-            -D CMAKE_VERBOSE_MAKEFILE=True \
-            -D CMAKE_C_COMPILER=${{ steps.envvars.outputs.cc }} \
-            -D CMAKE_CXX_COMPILER=${{ steps.envvars.outputs.cxx }}
+      #     cmake -G Ninja -B build -S . \
+      #       -D LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR} \
+      #       -D VAST_CMAKE_DIR=${VAST_CMAKE_DIR} \
+      #       -D CMAKE_BUILD_TYPE=Release \
+      #       -D CMAKE_VERBOSE_MAKEFILE=True \
+      #       -D CMAKE_C_COMPILER=${{ steps.envvars.outputs.cc }} \
+      #       -D CMAKE_CXX_COMPILER=${{ steps.envvars.outputs.cxx }}
 
-          cmake --build build
+      #     cmake --build build
 
-      - name: Upload vast package artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: vast-${{ matrix.config.arch }}-${{ matrix.config.os }}
-          path: ${{ steps.build_paths.outputs.build }}/package/
-          retention-days: 30
+      # - name: Upload vast package artifact
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: vast-${{ matrix.config.arch }}-${{ matrix.config.os }}
+      #     path: ${{ steps.build_paths.outputs.build }}/package/
+      #     retention-days: 30
+
