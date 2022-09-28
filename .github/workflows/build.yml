@@ -42,8 +42,7 @@ jobs:
           runCmd: |
             cmake --preset ninja-multi-default --toolchain ./cmake/lld.toolchain.cmake \
               -D CMAKE_VERBOSE_MAKEFILE=True \
-              -DCMAKE_PREFIX_PATH="/usr/lib/llvm-15/lib/cmake/mlir/;/usr/lib/llvm-15/lib/cmake/clang/" \
-              -DLLVM_EXTERNAL_LIT=/usr/local/bin/lit || exit 1
+              -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} || exit 1
             cmake --build --preset ninja-rel -j $(nproc) || exit 1
             cmake --build --preset ninja-deb -j $(nproc) || exit 1
             ctest --preset ninja-deb --output-on-failure || exit 1
