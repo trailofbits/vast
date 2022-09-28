@@ -62,6 +62,8 @@ namespace vast::hl
             case StorageClass::sc_static:
             case StorageClass::sc_private_extern: return false;
         }
+
+        VAST_UNREACHABLE("unknown starage class");
     }
 
     bool VarDeclOp::isStaticLocal() {
