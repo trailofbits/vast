@@ -361,13 +361,13 @@ namespace vast::hl
             }
         };
 
-        struct constant_int : BasePattern< hl::ConstantIntOp >
+        struct constant_int : BasePattern< hl::ConstantOp >
         {
-            using Base = BasePattern< hl::ConstantIntOp >;
+            using Base = BasePattern< hl::ConstantOp >;
             using Base::Base;
 
             mlir::LogicalResult matchAndRewrite(
-                    hl::ConstantIntOp op, hl::ConstantIntOp::Adaptor ops,
+                    hl::ConstantOp op, hl::ConstantOp::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
                 rewriter.replaceOp(op, {make_from(op, rewriter, this->type_converter())});
@@ -375,7 +375,7 @@ namespace vast::hl
             }
 
             static LLVM::ConstantOp make_from(
-                    hl::ConstantIntOp op,
+                    hl::ConstantOp op,
                     mlir::ConversionPatternRewriter &rewriter,
                     auto &&tc)
             {
