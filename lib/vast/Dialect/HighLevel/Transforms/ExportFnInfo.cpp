@@ -99,8 +99,8 @@ namespace vast::hl
         using Base::raw;
 
         WithModifiersEntry &qualifiers() {
-            raw["const"]    = in_dialect().isConst();
-            raw["volatile"] = in_dialect().isVolatile();
+            // raw["const"]    = in_dialect().isConst();
+            // raw["volatile"] = in_dialect().isVolatile();
             // TODO restrict
             // TODO static
             return *this;
