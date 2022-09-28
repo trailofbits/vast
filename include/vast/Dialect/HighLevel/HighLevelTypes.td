@@ -111,19 +111,30 @@ def RestrictParam : QualifierParam< "restrict", "restrict qualifier" >;
 
 def UnsignedParam : QualifierParam< "unsigned", "unsigned qualifier" >;
 
-class Qualifier< dag qualifier > { dag param = qualifier; }
+class Qualifier< dag qualifier, list<Trait> traits > {
+  dag param = qualifier;
 
-def ConstQualifier    : Qualifier< (ins ConstParam:$is_const) > {}
-def VolatileQualifier : Qualifier< (ins VolatileParam:$is_volatile) > {}
-def RestrictQualifier : Qualifier< (ins RestrictParam:$is_restrict) > {}
+  list<Trait> interface = traits;
+}
 
-def UnsignedQualifier : Qualifier< (ins UnsignedParam:$is_unsigned) > {}
+def ConstQualifier    : Qualifier< (ins ConstParam:$is_const), [ConstQualifierInterface] > {}
+def VolatileQualifier : Qualifier< (ins VolatileParam:$is_volatile), [VolatileQualifierInterface] > {}
+def RestrictQualifier : Qualifier< (ins RestrictParam:$is_restrict), [RestrictQualifierInterface] > {}
+
+def UnsignedQualifier : Qualifier< (ins UnsignedParam:$is_unsigned), [] > {}
+
+class FlattenList< list<list<Trait>> traits > {
+  list<Trait> result = !foldl([]<Trait>, traits, res, trait, !listconcat(res, trait));
+}
+
+class FlattenInsList< list<dag> dags > {
+  dag result = !foldl((ins), dags, res, elem, !con(res, elem));
+}
 
 class QualfiersParams< string name, list<Qualifier> qualifiers>
-  : HighLevel_Attr< name, "quals" >
+  : HighLevel_Attr< name, "quals", FlattenList< !foreach(qual, qualifiers, qual.interface) >.result >
 {
-  list<dag> param_list = !foreach(qual, qualifiers, qual.param);
-  let parameters = !foldl((ins), param_list, result, param, !con(result, param));
+  let parameters = FlattenInsList< !foreach(qual, qualifiers, qual.param) >.result;
 
   let assemblyFormat = "params ` `";
 }
@@ -133,7 +144,7 @@ def UCVQualifiers : QualfiersParams< "UCVQualifiers", [UnsignedQualifier, ConstQ
 def CVRQualifiers : QualfiersParams< "CVRQualifiers", [ConstQualifier, VolatileQualifier, RestrictQualifier] > {}
 
 class QualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
-  : HighLevelType< name, traits >
+  : HighLevelType< name, !listconcat(traits, []) >
 {
   let mnemonic = mnem;
 
