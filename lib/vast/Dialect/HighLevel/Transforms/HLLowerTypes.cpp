@@ -171,11 +171,11 @@ namespace vast::hl
             };
         }
 
-        auto make_ptr_type(bool is_const, bool is_volatile)
+        auto make_ptr_type(auto quals)
         {
             return [=](auto t)
             {
-                return PointerType::get(t.getContext(), t, is_const, is_volatile);
+                return PointerType::get(t.getContext(), t, quals);
             };
         }
 
@@ -219,7 +219,7 @@ namespace vast::hl
             return Maybe(t.getElementType())
                 .and_then(convert_pointer_element_typee())
                 .unwrap()
-                .and_then(make_ptr_type(t.isConst(), t.isVolatile()))
+                .and_then(make_ptr_type(t.getQuals()))
                 .take_wrapped< maybe_type_t >();
         }
 
