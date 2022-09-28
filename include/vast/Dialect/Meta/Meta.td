@@ -14,16 +14,24 @@ include "vast/Interfaces/SymbolInterface.td"
 
 def Meta_Dialect : Dialect {
     let name = "meta";
+    let cppNamespace = "::vast::meta";
+
     let summary = "A vast metadata dialect.";
+
     let description = [{
         This dialect intends capture user metadata
         that are kept accross transformations.
     }];
-    let cppNamespace = "::vast::meta";
+
     let extraClassDeclaration = [{
         void registerTypes();
         void registerAttributes();
     }];
+
+    let useDefaultAttributePrinterParser = 1;
+
+    // TODO
+    // let emitAccessorPrefix = kEmitAccessorPrefix_Prefixed;
 }
 
 include "MetaAttributes.td"
