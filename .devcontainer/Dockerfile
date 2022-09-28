@@ -6,7 +6,7 @@ FROM mcr.microsoft.com/vscode/devcontainers/cpp:0-${VARIANT}
 
 # [Optional] Install CMake version different from what base image has already installed.
 # CMake reinstall choices: none, 3.21.5, 3.22.2, or versions from https://cmake.org/download/
-ARG REINSTALL_CMAKE_VERSION_FROM_SOURCE="3.22.2"
+ARG REINSTALL_CMAKE_VERSION_FROM_SOURCE="3.23.3"
 
 # Optionally install the cmake for vcpkg
 COPY ./reinstall-cmake.sh /tmp/
@@ -31,3 +31,6 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
         libllvm15 libmlir-15-dev mlir-15-tools llvm-15 llvm-15-dev
 
 RUN sudo ln -s /usr/bin/FileCheck-15 /usr/bin/FileCheck
+
+RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-15 60
+RUN update-alternatives --install /usr/bin/cc cc /usr/bin/clang-15 60

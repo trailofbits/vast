@@ -22,15 +22,14 @@
 		}
 	},
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "gcc -v",
-
-	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode",
 	"features": {
-		"git": "os-provided"
+		"git": "os-provided",
+		"python": "os-provided"
+	},
+	"containerEnv": {
+		"CMAKE_PREFIX_PATH": "/usr/lib/llvm-15/lib/cmake/mlir/;/usr/lib/llvm-15/lib/cmake/clang/",
+		"LLVM_EXTERNAL_LIT": "/usr/local/bin/lit"
 	}
+
 }
