@@ -3,12 +3,11 @@
 #
 get_property(DIALECT_LIBS GLOBAL PROPERTY MLIR_DIALECT_LIBS)
 
-add_llvm_executable(vast-repl
+add_executable(vast-repl
   vast-repl.cpp
   codegen.cpp
   command.cpp
 )
-llvm_update_compile_flags(vast-repl)
 
 target_link_libraries(vast-repl
     PRIVATE
