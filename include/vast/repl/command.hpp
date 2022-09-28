@@ -87,7 +87,7 @@ namespace vast::repl
 
             static constexpr bool is_string_param = std::is_same_v< base, string_param >;
             static named_param parse(string_ref token) requires(is_string_param) {
-                return { .value = token.str() };
+                return { .value = { token.str() } };
             }
 
             static constexpr bool is_integer_param = std::is_same_v< base, integer_param >;
