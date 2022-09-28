@@ -5,28 +5,46 @@
 
 include "mlir/IR/OpBase.td"
 
-class QualifierTypeInterface< string interface_name, string qualifier >
-    : TypeInterface< interface_name >
-{
-    let cppNamespace = "::vast::hl";
-
-    let description = [{ Interface for types supporting }] # qualifier # [{ qualifier. }];
+def ConstQualifierInterface : AttrInterface< "ConstQualifierInterface" > {
+    let description = [{ This interface to access type qualifiers. }];
+    let cppNamespace = "::vast";
 
     let methods = [
-        InterfaceMethod< "Queries presence of " # qualifier # " qualifier", "bool", "has_" # qualifier >
+        InterfaceMethod<"Returns true if type has const qualifier.",
+            "bool", "hasConst", (ins), [{}],
+            /*defaultImplementation=*/ [{
+                return $_attr.getIsConst();
+            }]
+        >
     ];
 }
 
-def ConstQualifierInterface : QualifierTypeInterface<
-    "ConstQualifierInterface", "const"
->;
+def VolatileQualifierInterface : AttrInterface< "VolatileQualifierInterface" > {
+    let description = [{ This interface to access type qualifiers. }];
+    let cppNamespace = "::vast";
 
-def VolatileQualifierInterface : QualifierTypeInterface<
-    "VolatileQualifierInterface", "volatile"
->;
+    let methods = [
+        InterfaceMethod<"Returns true if type has volatile qualifier.",
+            "bool", "hasVolatile", (ins), [{}],
+            /*defaultImplementation=*/ [{
+                return $_attr.getIsVolatile();
+            }]
+        >
+    ];
+}
 
-def RestrictQualifierInterface : QualifierTypeInterface<
-    "RestrictQualifierInterface", "restrict"
->;
+def RestrictQualifierInterface : AttrInterface< "RestrictQualifierInterface" > {
+    let description = [{ This interface to access type qualifiers. }];
+    let cppNamespace = "::vast";
+
+    let methods = [
+        InterfaceMethod<"Returns true if tzpe has restrict qualifier.",
+            "bool", "hasRestrict", (ins), [{}],
+            /*defaultImplementation=*/ [{
+                return $_attr.getIsRestrict();
+            }]
+        >
+    ];
+}
 
 #endif  // VAST_TYPEQUALIFIERSINTERFACES

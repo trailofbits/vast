@@ -6,6 +6,7 @@
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Interfaces/TypedAttrInterface.hpp"
+#include "vast/Interfaces/TypeQualifiersInterfaces.hpp"
 
 #include "mlir/IR/BuiltinAttributes.h"
 
