@@ -1,4 +1,5 @@
 // RUN: vast-cc --from-source %s | vast-opt --vast-hl-lower-types | FileCheck %s
+// REQUIRES: type-lowering
 
 // CHECK-LABEL: func @test1() -> i32
 int test1()
