@@ -7,94 +7,7 @@ for further program analysis.
 
 [TOC]
 
-## Attribute definition
-
-### AnnotationAttr
-
-
-
-
-#### Parameters:
-
-| Parameter | C++ type | Description |
-| :-------: | :-------: | ----------- |
-| name | `::mlir::StringAttr` |  |
-
-### TypeNameAttr
-
-
-
-
-#### Parameters:
-
-| Parameter | C++ type | Description |
-| :-------: | :-------: | ----------- |
-| name | `::mlir::StringAttr` |  |
-
-## Type constraint definition
-
-###
-
-###
-
-###
-
-###
-
-###
-
-###
-
-###
-
-###
-
-###
-
-###
-
-###
-
-###
-
-###
-
-###
-
-###
-
-###
-
-###
-
-###
-
-###
-
 ## Operation definition
-
-### `hl.constant.int` (::vast::hl::ConstantIntOp)
-
-VAST integral constant
-
-VAST integral constant
-Traits: ConstantLike
-
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
-#### Attributes:
-
-| Attribute | MLIR Type | Description |
-| :-------: | :-------: | ----------- |
-| `value` | ::mlir::IntegerAttr | arbitrary integer attribute with sign
-
-#### Results:
-
-| Result | Description |
-| :----: | ----------- |
-| `result` | bool or integer like type
 
 ### `hl.assign.fadd` (::vast::hl::AddFAssignOp)
 
@@ -153,7 +66,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -227,7 +140,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: Commutative, SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -260,13 +173,13 @@ VAST address of label extension
 
 | Operand | Description |
 | :-----: | ----------- |
-| `label` |
+| `label` | 
 
 #### Results:
 
 | Result | Description |
 | :----: | ----------- |
-| `result` | lvalue to
+| `result` | lvalue to pointer like type
 
 ### `hl.addressof` (::vast::hl::AddressOf)
 
@@ -433,7 +346,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -608,7 +521,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -824,7 +737,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -840,20 +753,6 @@ Effects: MemoryEffects::Effect{}
 | Result | Description |
 | :----: | ----------- |
 | `result` | any type
-
-### `hl.break` (::vast::hl::BreakOp)
-
-VAST break statement
-
-
-Syntax:
-
-```
-operation ::= `hl.break` attr-dict
-```
-
-VAST break statement
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
 
 ### `hl.builtin_bitcast` (::vast::hl::BuiltinBitCastOp)
 
@@ -955,32 +854,6 @@ Interfaces: CallOpInterface
 | :----: | ----------- |
 | `result` | any type
 
-### `hl.case` (::vast::hl::CaseOp)
-
-VAST case statement
-
-
-Syntax:
-
-```
-operation ::= `hl.case` $lhs $body attr-dict
-```
-
-The operation represents a single case of a switch statement.
-
-The generic form of the operation is as follows:
-
-hl.case {
-  ... /* lhs/check region */
-  hl.value.yield %val : !hl.type
-} {
-  ... /* body region */
-}
-
-It represents a C statement of form `case lhs: body;`.
-
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
-
 ### `hl.cmp` (::vast::hl::CmpOp)
 
 VAST comparison operation
@@ -989,12 +862,10 @@ VAST comparison operation
 Syntax:
 
 ```
-operation ::= `hl.cmp` $predicate type($lhs) $lhs `,` $rhs  attr-dict `->` type($result)
+operation ::= `hl.cmp` $predicate $lhs `,` $rhs  attr-dict `:` type(operands) `->` type($result)
 ```
 
 VAST comparison operation
-Traits: Commutative, SameTypeOperands
-
 Interfaces: NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
@@ -1018,119 +889,35 @@ Effects: MemoryEffects::Effect{}
 | :----: | ----------- |
 | `result` | bool or integer like type
 
-### `hl.cond.yield` (::vast::hl::CondYieldOp)
+### `hl.const` (::vast::hl::ConstantOp)
 
-condition yield operation
+VAST integral constant
 
 
 Syntax:
 
 ```
-operation ::= `hl.cond.yield` attr-dict $result `:` type($result)
+operation ::= `hl.const` $value attr-dict
 ```
 
-A condition yield operation is used to terminate the region representing
-condition expression of control flow operations `IfOp`, `WhileOp`, `ForOp`
-and `DoOp`. It yields a boolean value for the conditional branch.
+VAST integral constant
+Traits: ConstantLike
 
-The custom assembly form of the operation is as follows:
-
-hl.cond.yield result : BoolType
-
-Traits: HasParent<IfOp, WhileOp, ForOp, DoOp>, Terminator
-
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
-#### Operands:
+#### Attributes:
 
-| Operand | Description |
-| :-----: | ----------- |
+| Attribute | MLIR Type | Description |
+| :-------: | :-------: | ----------- |
+| `value` | ::mlir::TypedAttr | TypedAttr instance
+
+#### Results:
+
+| Result | Description |
+| :----: | ----------- |
 | `result` | any type
-
-### `hl.constant.array` (::vast::hl::ConstantArrayOp)
-
-VAST constant array
-
-VAST constant array
-Traits: ConstantLike
-
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
-#### Attributes:
-
-| Attribute | MLIR Type | Description |
-| :-------: | :-------: | ----------- |
-| `value` | ::mlir::ArrayAttr | array attribute
-
-#### Results:
-
-| Result | Description |
-| :----: | ----------- |
-| `result` |
-
-### `hl.constant.float` (::vast::hl::ConstantFloatOp)
-
-VAST floating constant
-
-VAST floating constant
-Traits: ConstantLike
-
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
-#### Attributes:
-
-| Attribute | MLIR Type | Description |
-| :-------: | :-------: | ----------- |
-| `value` | ::mlir::FloatAttr | arbitrary floating-point attribute
-
-#### Results:
-
-| Result | Description |
-| :----: | ----------- |
-| `result` | float like type
-
-### `hl.constant.string` (::vast::hl::ConstantStringOp)
-
-VAST constant string
-
-VAST constant string
-Traits: ConstantLike
-
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
-#### Attributes:
-
-| Attribute | MLIR Type | Description |
-| :-------: | :-------: | ----------- |
-| `value` | ::mlir::StringAttr | string attribute
-
-#### Results:
-
-| Result | Description |
-| :----: | ----------- |
-| `result` |
-
-### `hl.continue` (::vast::hl::ContinueOp)
-
-VAST continue statement
-
-
-Syntax:
-
-```
-operation ::= `hl.continue` attr-dict
-```
-
-VAST continue statement
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
 
 ### `hl.ref` (::vast::hl::DeclRefOp)
 
@@ -1146,7 +933,7 @@ operation ::= `hl.ref` $decl attr-dict `:` type($decl)
 VAST variable reference declaration
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -1161,20 +948,6 @@ Effects: MemoryEffects::Effect{}
 | Result | Description |
 | :----: | ----------- |
 | `result` | any type
-
-### `hl.default` (::vast::hl::DefaultOp)
-
-VAST default statement
-
-
-Syntax:
-
-```
-operation ::= `hl.default` $body attr-dict
-```
-
-VAST default statement
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
 
 ### `hl.deref` (::vast::hl::Deref)
 
@@ -1257,7 +1030,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -1331,7 +1104,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -1405,7 +1178,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -1422,30 +1195,6 @@ Effects: MemoryEffects::Effect{}
 | :----: | ----------- |
 | `result` | any type
 
-### `hl.do` (::vast::hl::DoOp)
-
-VAST do-while statement
-
-
-Syntax:
-
-```
-operation ::= `hl.do` $bodyRegion `while` $condRegion attr-dict
-```
-
-The operation represents a do-while statement.
-
-The generic form of the operation is as follows:
-
-hl.do {
-  ... /* body region */
-} cond {
-  ... /* cond region */
-  hl.cond.yield %cond : !hl.bool
-}
-
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
-
 ### `hl.enum.const` (::vast::hl::EnumConstantOp)
 
 VAST enum constant declaration
@@ -1461,7 +1210,7 @@ Enumeration constant servers to link name to an enum value.
 It is required to be scoped in Enum operation. For example:
 
 ```
-hl.enum.const "F" = #hl.integer<2> : !hl.int
+hl.enum.const "F" = 2 : !hl.int
 ```
 
 A constant can have a constant expression initializer:
@@ -1484,7 +1233,7 @@ Effects: MemoryEffects::Effect{}
 | Attribute | MLIR Type | Description |
 | :-------: | :-------: | ----------- |
 | `name` | ::mlir::StringAttr | string attribute
-| `value` | ::mlir::IntegerAttr | arbitrary integer attribute
+| `value` | ::mlir::TypedAttr | TypedAttr instance
 
 ### `hl.enum` (::vast::hl::EnumDeclOp)
 
@@ -1585,6 +1334,185 @@ Effects: MemoryEffects::Effect{}
 | `type` | ::mlir::TypeAttr | any type attribute
 | `bits` | ::mlir::IntegerAttr | 32-bit signless integer attribute
 
+### `hl.funcref` (::vast::hl::FuncRefOp)
+
+VAST function reference declaration
+
+
+Syntax:
+
+```
+operation ::= `hl.funcref` $function attr-dict `:` type($result)
+```
+
+VAST function reference declaration
+Interfaces: NoSideEffect (MemoryEffectOpInterface)
+
+Effects: MemoryEffects::Effect{}
+
+#### Attributes:
+
+| Attribute | MLIR Type | Description |
+| :-------: | :-------: | ----------- |
+| `function` | ::mlir::FlatSymbolRefAttr | flat symbol reference attribute
+
+#### Results:
+
+| Result | Description |
+| :----: | ----------- |
+| `result` | any type
+
+### `hl.globref` (::vast::hl::GlobalRefOp)
+
+VAST global variable reference declaration
+
+
+Syntax:
+
+```
+operation ::= `hl.globref` $global attr-dict `:` type($result)
+```
+
+VAST global variable reference declaration
+Interfaces: NoSideEffect (MemoryEffectOpInterface)
+
+Effects: MemoryEffects::Effect{}
+
+#### Attributes:
+
+| Attribute | MLIR Type | Description |
+| :-------: | :-------: | ----------- |
+| `global` | ::mlir::StringAttr | string attribute
+
+#### Results:
+
+| Result | Description |
+| :----: | ----------- |
+| `result` | any type
+
+### `hl.break` (::vast::hl::BreakOp)
+
+VAST break statement
+
+
+Syntax:
+
+```
+operation ::= `hl.break` attr-dict
+```
+
+VAST break statement
+Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+
+### `hl.case` (::vast::hl::CaseOp)
+
+VAST case statement
+
+
+Syntax:
+
+```
+operation ::= `hl.case` $lhs $body attr-dict
+```
+
+The operation represents a single case of a switch statement.
+
+The generic form of the operation is as follows:
+
+hl.case {
+  ... /* lhs/check region */
+  hl.value.yield %val : !hl.type
+} {
+  ... /* body region */
+}
+
+It represents a C statement of form `case lhs: body;`.
+
+Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+
+### `hl.cond.yield` (::vast::hl::CondYieldOp)
+
+condition yield operation
+
+
+Syntax:
+
+```
+operation ::= `hl.cond.yield` attr-dict $result `:` type($result)
+```
+
+A condition yield operation is used to terminate the region representing
+condition expression of control flow operations `IfOp`, `WhileOp`, `ForOp`
+and `DoOp`. It yields a boolean value for the conditional branch.
+
+The custom assembly form of the operation is as follows:
+
+hl.cond.yield result : BoolType
+
+Traits: HasParent<IfOp, WhileOp, ForOp, DoOp>, Terminator
+
+Interfaces: NoSideEffect (MemoryEffectOpInterface)
+
+Effects: MemoryEffects::Effect{}
+
+#### Operands:
+
+| Operand | Description |
+| :-----: | ----------- |
+| `result` | any type
+
+### `hl.continue` (::vast::hl::ContinueOp)
+
+VAST continue statement
+
+
+Syntax:
+
+```
+operation ::= `hl.continue` attr-dict
+```
+
+VAST continue statement
+Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+
+### `hl.default` (::vast::hl::DefaultOp)
+
+VAST default statement
+
+
+Syntax:
+
+```
+operation ::= `hl.default` $body attr-dict
+```
+
+VAST default statement
+Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+
+### `hl.do` (::vast::hl::DoOp)
+
+VAST do-while statement
+
+
+Syntax:
+
+```
+operation ::= `hl.do` $bodyRegion `while` $condRegion attr-dict
+```
+
+The operation represents a do-while statement.
+
+The generic form of the operation is as follows:
+
+hl.do {
+  ... /* body region */
+} cond {
+  ... /* cond region */
+  hl.cond.yield %cond : !hl.bool
+}
+
+Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+
 ### `hl.for` (::vast::hl::ForOp)
 
 VAST for statement
@@ -1611,34 +1539,6 @@ hl.for {
 
 Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
 
-### `hl.global.ref` (::vast::hl::GlobalRefOp)
-
-VAST global variable reference declaration
-
-
-Syntax:
-
-```
-operation ::= `hl.global.ref` $global attr-dict `:` type($result)
-```
-
-VAST global variable reference declaration
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
-#### Attributes:
-
-| Attribute | MLIR Type | Description |
-| :-------: | :-------: | ----------- |
-| `global` | ::mlir::StringAttr | string attribute
-
-#### Results:
-
-| Result | Description |
-| :----: | ----------- |
-| `result` | any type
-
 ### `hl.goto` (::vast::hl::GotoStmt)
 
 
@@ -1655,7 +1555,7 @@ operation ::= `hl.goto` $label attr-dict
 
 | Operand | Description |
 | :-----: | ----------- |
-| `label` |
+| `label` | 
 
 ### `hl.if` (::vast::hl::IfOp)
 
@@ -1681,6 +1581,179 @@ hl.if {
   ... /* then region */
 } else {
   ... /* else region */
+}
+
+Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+
+### `hl.label.decl` (::vast::hl::LabelDeclOp)
+
+
+
+
+Syntax:
+
+```
+operation ::= `hl.label.decl` $name attr-dict `:` type($result)
+```
+
+
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
+
+Effects: MemoryEffects::Effect{}
+
+#### Attributes:
+
+| Attribute | MLIR Type | Description |
+| :-------: | :-------: | ----------- |
+| `name` | ::mlir::StringAttr | string attribute
+
+#### Results:
+
+| Result | Description |
+| :----: | ----------- |
+| `result` | 
+
+### `hl.label` (::vast::hl::LabelStmt)
+
+VAST control flow operation
+
+
+Syntax:
+
+```
+operation ::= `hl.label` $label $substmt attr-dict
+```
+
+VAST control flow operation
+Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+
+#### Operands:
+
+| Operand | Description |
+| :-----: | ----------- |
+| `label` | 
+
+### `hl.skip` (::vast::hl::SkipStmt)
+
+VAST skip statement
+
+
+Syntax:
+
+```
+operation ::= `hl.skip` attr-dict
+```
+
+VAST skip statement
+Interfaces: NoSideEffect (MemoryEffectOpInterface)
+
+Effects: MemoryEffects::Effect{}
+
+### `hl.switch` (::vast::hl::SwitchOp)
+
+VAST switch statement
+
+
+Syntax:
+
+```
+operation ::= `hl.switch` $condRegion `cases` $cases attr-dict
+```
+
+The operation represents a switch statement.
+
+The generic form of the operation is as follows:
+
+hl.switch {
+  ... /* cond region */
+  hl.value.yield %val : !hl.type
+} cases {
+  ... /* casesregion */
+}
+
+Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+
+### `hl.value.yield` (::vast::hl::ValueYieldOp)
+
+value yield operation
+
+
+Syntax:
+
+```
+operation ::= `hl.value.yield` attr-dict $result `:` type($result)
+```
+
+A value yield operation is used to terminate the case region of a switch
+statement. The yielded value triggers the parent case statement region.
+
+The custom assembly form of the operation is as follows:
+
+hl.value.yield result : type
+
+Traits: Terminator
+
+Interfaces: NoSideEffect (MemoryEffectOpInterface)
+
+Effects: MemoryEffects::Effect{}
+
+#### Operands:
+
+| Operand | Description |
+| :-----: | ----------- |
+| `result` | any type
+
+### `hl.var` (::vast::hl::VarDeclOp)
+
+VAST variable declaration
+
+
+Syntax:
+
+```
+operation ::= `hl.var` $name attr-dict ($storageClass^)? ($threadStorageClass^)? `:` type($result)
+              (`=` $initializer^)?
+              (`allocation_size` $allocation_size^)?
+```
+
+VAST variable declaration
+Interfaces: VastSymbol
+
+#### Attributes:
+
+| Attribute | MLIR Type | Description |
+| :-------: | :-------: | ----------- |
+| `name` | ::mlir::StringAttr | string attribute
+| `storageClass` | ::vast::hl::StorageClassAttr | storage class
+| `threadStorageClass` | ::vast::hl::TSClassAttr | thread storage class
+
+#### Results:
+
+| Result | Description |
+| :----: | ----------- |
+| `result` | any type
+
+### `hl.while` (::vast::hl::WhileOp)
+
+VAST while statement
+
+
+Syntax:
+
+```
+operation ::= `hl.while` $condRegion `do` $bodyRegion attr-dict
+```
+
+The operation takes builders of two mandatory regions -- condition and body
+region. Builders, given the location, build a particular region.
+
+The generic form of the operation is as follows:
+
+hl.while {
+  ... /* condition region */
+  hl.cond.yield %cond : !hl.bool
+} do {
+  ... /* body region */
 }
 
 Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
@@ -1737,7 +1810,7 @@ Interfaces: CallOpInterface
 
 | Operand | Description |
 | :-----: | ----------- |
-| `callee` | pointer like type
+| `callee` | lvalue to pointer like type
 | `operands` | any type
 
 #### Results:
@@ -1794,7 +1867,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -1809,54 +1882,6 @@ Effects: MemoryEffects::Effect{}
 | Result | Description |
 | :----: | ----------- |
 | `result` | any type
-
-### `hl.label.decl` (::vast::hl::LabelDeclOp)
-
-
-
-
-Syntax:
-
-```
-operation ::= `hl.label.decl` $name attr-dict `:` type($result)
-```
-
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
-#### Attributes:
-
-| Attribute | MLIR Type | Description |
-| :-------: | :-------: | ----------- |
-| `name` | ::mlir::StringAttr | string attribute
-
-#### Results:
-
-| Result | Description |
-| :----: | ----------- |
-| `result` |
-
-### `hl.label` (::vast::hl::LabelStmt)
-
-VAST control flow operation
-
-
-Syntax:
-
-```
-operation ::= `hl.label` $label $substmt attr-dict
-```
-
-VAST control flow operation
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
-
-#### Operands:
-
-| Operand | Description |
-| :-----: | ----------- |
-| `label` |
 
 ### `hl.minus` (::vast::hl::MinusOp)
 
@@ -1878,7 +1903,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -1951,7 +1976,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -2025,7 +2050,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: Commutative, SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -2062,7 +2087,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -2098,7 +2123,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -2321,7 +2346,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -2395,7 +2420,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -2469,7 +2494,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -2575,22 +2600,6 @@ Effects: MemoryEffects::Effect{}
 | :----: | ----------- |
 | `result` | integer like type
 
-### `hl.skip` (::vast::hl::SkipStmt)
-
-VAST skip statement
-
-
-Syntax:
-
-```
-operation ::= `hl.skip` attr-dict
-```
-
-VAST skip statement
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
 ### `hl.struct` (::vast::hl::StructDeclOp)
 
 VAST struct declaration
@@ -2672,7 +2681,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -2746,7 +2755,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
+Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
@@ -2789,31 +2798,7 @@ VAST array subscript operator
 | :----: | ----------- |
 | `result` | lvalue to any type
 
-### `hl.switch` (::vast::hl::SwitchOp)
-
-VAST switch statement
-
-
-Syntax:
-
-```
-operation ::= `hl.switch` $condRegion `cases` $cases attr-dict
-```
-
-The operation represents a switch statement.
-
-The generic form of the operation is as follows:
-
-hl.switch {
-  ... /* cond region */
-  hl.value.yield %val : !hl.type
-} cases {
-  ... /* casesregion */
-}
-
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
-
-### `hl.translation.unit` (::vast::hl::TranslationUnitOp)
+### `hl.translation_unit` (::vast::hl::TranslationUnitOp)
 
 VAST translation unit
 
@@ -2821,13 +2806,13 @@ VAST translation unit
 Syntax:
 
 ```
-operation ::= `hl.translation.unit` $body attr-dict
+operation ::= `hl.translation_unit` $body attr-dict
 ```
 
 VAST tranaslation unit
 Traits: IsolatedFromAbove, NoTerminator, SymbolTable
 
-### `hl.type.decl` (::vast::hl::TypeDeclOp)
+### `hl.type` (::vast::hl::TypeDeclOp)
 
 VAST type declaration
 
@@ -2835,7 +2820,7 @@ VAST type declaration
 Syntax:
 
 ```
-operation ::= `hl.type.decl` $name attr-dict
+operation ::= `hl.type` $name attr-dict
 ```
 
 VAST type declaration
@@ -2917,96 +2902,212 @@ Interfaces: NoSideEffect (MemoryEffectOpInterface)
 
 Effects: MemoryEffects::Effect{}
 
-### `hl.value.yield` (::vast::hl::ValueYieldOp)
+## Attribute definition
 
-value yield operation
+### AnnotationAttr
 
-
-Syntax:
-
-```
-operation ::= `hl.value.yield` attr-dict $result `:` type($result)
-```
-
-A value yield operation is used to terminate the case region of a switch
-statement. The yielded value triggers the parent case statement region.
-
-The custom assembly form of the operation is as follows:
-
-hl.value.yield result : type
-
-Traits: Terminator
-
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
-#### Operands:
-
-| Operand | Description |
-| :-----: | ----------- |
-| `result` | any type
-
-### `hl.var` (::vast::hl::VarDeclOp)
-
-VAST variable declaration
 
 
 Syntax:
 
 ```
-operation ::= `hl.var` $name attr-dict ($storageClass^)? ($threadStorageClass^)? `:` type($result)
-              (`=` $initializer^)?
-              (`allocation_size` $allocation_size^)?
+!hl.annotation<
+  ::mlir::StringAttr   # name
+>
 ```
 
-VAST variable declaration
-Interfaces: VastSymbol
 
-#### Attributes:
+#### Parameters:
 
-| Attribute | MLIR Type | Description |
+| Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
-| `name` | ::mlir::StringAttr | string attribute
-| `storageClass` | ::vast::hl::StorageClassAttr | storage class
-| `threadStorageClass` | ::vast::hl::TSClassAttr | thread storage class
+| name | `::mlir::StringAttr` |  |
 
-#### Results:
+### BooleanAttr
 
-| Result | Description |
-| :----: | ----------- |
-| `result` | any type
+An Attribute containing a boolean value
 
-### `hl.while` (::vast::hl::WhileOp)
+Syntax:
 
-VAST while statement
+```
+!hl.bool<
+  ::mlir::Type,   # type
+  bool   # value
+>
+```
+
+An boolean attribute is a literal attribute that represents a boolean value.
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| type | `::mlir::Type` |  |
+| value | `bool` |  |
+
+### CVQualifiersAttr
+
 
 
 Syntax:
 
 ```
-operation ::= `hl.while` $condRegion `do` $bodyRegion attr-dict
+!hl.quals<
+  bool,   # is_const
+  bool   # is_volatile
+>
 ```
 
-The operation takes builders of two mandatory regions -- condition and body
-region. Builders, given the location, build a particular region.
 
-The generic form of the operation is as follows:
+#### Parameters:
 
-hl.while {
-  ... /* condition region */
-  hl.cond.yield %cond : !hl.bool
-} do {
-  ... /* body region */
-}
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| is_const | `bool` | const qualifier |
+| is_volatile | `bool` | volatile qualifier |
 
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+### CVRQualifiersAttr
+
+
+
+Syntax:
+
+```
+!hl.quals<
+  bool,   # is_const
+  bool,   # is_volatile
+  bool   # is_restrict
+>
+```
+
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| is_const | `bool` | const qualifier |
+| is_volatile | `bool` | volatile qualifier |
+| is_restrict | `bool` | restrict qualifier |
+
+### FloatAttr
+
+An Attribute containing a floating point value
+
+Syntax:
+
+```
+!hl.float<
+  ::mlir::Type,   # type
+  llvm::APFloat   # value
+>
+```
+
+A float attribute is a literal attribute that represents a floating point
+value of the specified floating point type.
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| type | `::mlir::Type` |  |
+| value | `llvm::APFloat` |  |
+
+### IntegerAttr
+
+An Attribute containing a integer value
+
+Syntax:
+
+```
+!hl.integer<
+  ::mlir::Type,   # type
+  llvm::APInt   # value
+>
+```
+
+An integer attribute is a literal attribute that represents an integral
+value of the specified integer type.
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| type | `::mlir::Type` |  |
+| value | `llvm::APInt` |  |
+
+### StringAttr
+
+An Attribute containing a string
+
+Syntax:
+
+```
+!hl.str<
+  ::llvm::StringRef,   # value
+  ::mlir::Type   # type
+>
+```
+
+Syntax:
+
+```
+string-attribute ::= string-literal (`:` type)?
+```
+
+A string attribute is an attribute that represents a string literal value.
+
+Examples:
+
+```mlir
+"An important string"
+"string with a type" : !dialect.string
+```
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| value | `::llvm::StringRef` |  |
+| type | `::mlir::Type` |  |
+
+### UCVQualifiersAttr
+
+
+
+Syntax:
+
+```
+!hl.quals<
+  bool,   # is_unsigned
+  bool,   # is_const
+  bool   # is_volatile
+>
+```
+
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| is_unsigned | `bool` | unsigned qualifier |
+| is_const | `bool` | const qualifier |
+| is_volatile | `bool` | volatile qualifier |
 
 ## Type definition
 
 ### ArrayType
 
 
+
+Syntax:
+
+```
+!hl.array<
+  SizeParam,   # size
+  Type,   # elementType
+  CVRQualifiersAttr   # quals
+>
+```
 
 
 #### Parameters:
@@ -3015,121 +3116,251 @@ Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
 | :-------: | :-------: | ----------- |
 | size | `SizeParam` | size parameter for arrays |
 | elementType | `Type` |  |
+| quals | `CVRQualifiersAttr` |  |
 
 ### BFloat16Type
 
 
 
+Syntax:
+
+```
+!hl.bfloat16<
+  CVQualifiersAttr   # quals
+>
+```
+
 
 #### Parameters:
 
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
-| isConst | `bool` |  |
-| isVolatile | `bool` |  |
+| quals | `CVQualifiersAttr` |  |
 
 ### BoolType
 
 
 
+Syntax:
+
+```
+!hl.bool<
+  CVQualifiersAttr   # quals
+>
+```
+
 
 #### Parameters:
 
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
-| isConst | `bool` |  |
-| isVolatile | `bool` |  |
+| quals | `CVQualifiersAttr` |  |
 
 ### CharType
 
 
 
+Syntax:
+
+```
+!hl.char<
+  UCVQualifiersAttr   # quals
+>
+```
+
 
 #### Parameters:
 
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
-| isUnsigned | `bool` |  |
-| isConst | `bool` |  |
-| isVolatile | `bool` |  |
+| quals | `UCVQualifiersAttr` |  |
+
+### DecayedType
+
+
+
+Syntax:
+
+```
+!hl.decayed<
+  Type   # elementType
+>
+```
+
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| elementType | `Type` |  |
 
 ### DoubleType
 
 
 
+Syntax:
+
+```
+!hl.double<
+  CVQualifiersAttr   # quals
+>
+```
+
 
 #### Parameters:
 
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
-| isConst | `bool` |  |
-| isVolatile | `bool` |  |
+| quals | `CVQualifiersAttr` |  |
+
+### ElaboratedType
+
+
+
+Syntax:
+
+```
+!hl.elaborated<
+  Type,   # elementType
+  CVRQualifiersAttr   # quals
+>
+```
+
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| elementType | `Type` |  |
+| quals | `CVRQualifiersAttr` |  |
+
+### EnumType
+
+
+
+Syntax:
+
+```
+!hl.enum<
+  ::llvm::StringRef,   # name
+  CVQualifiersAttr   # quals
+>
+```
+
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| name | `::llvm::StringRef` |  |
+| quals | `CVQualifiersAttr` |  |
 
 ### Float128Type
 
 
 
+Syntax:
+
+```
+!hl.float128<
+  CVQualifiersAttr   # quals
+>
+```
+
 
 #### Parameters:
 
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
-| isConst | `bool` |  |
-| isVolatile | `bool` |  |
+| quals | `CVQualifiersAttr` |  |
 
 ### FloatType
 
 
 
+Syntax:
+
+```
+!hl.float<
+  CVQualifiersAttr   # quals
+>
+```
+
 
 #### Parameters:
 
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
-| isConst | `bool` |  |
-| isVolatile | `bool` |  |
+| quals | `CVQualifiersAttr` |  |
 
 ### HalfType
 
 
 
+Syntax:
+
+```
+!hl.half<
+  CVQualifiersAttr   # quals
+>
+```
+
 
 #### Parameters:
 
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
-| isConst | `bool` |  |
-| isVolatile | `bool` |  |
+| quals | `CVQualifiersAttr` |  |
 
 ### Int128Type
 
 
 
+Syntax:
+
+```
+!hl.int128<
+  UCVQualifiersAttr   # quals
+>
+```
+
 
 #### Parameters:
 
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
-| isUnsigned | `bool` |  |
-| isConst | `bool` |  |
-| isVolatile | `bool` |  |
+| quals | `UCVQualifiersAttr` |  |
 
 ### IntType
 
 
 
+Syntax:
+
+```
+!hl.int<
+  UCVQualifiersAttr   # quals
+>
+```
+
 
 #### Parameters:
 
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
-| isUnsigned | `bool` |  |
-| isConst | `bool` |  |
-| isVolatile | `bool` |  |
+| quals | `UCVQualifiersAttr` |  |
 
 ### LValueType
 
 
+
+Syntax:
+
+```
+!hl.lvalue<
+  Type   # elementType
+>
+```
 
 
 #### Parameters:
@@ -3142,59 +3373,77 @@ Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
 
 
 
+Syntax: `!hl.label`
+
 
 ### LongDoubleType
 
 
 
+Syntax:
+
+```
+!hl.longdouble<
+  CVQualifiersAttr   # quals
+>
+```
+
 
 #### Parameters:
 
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
-| isConst | `bool` |  |
-| isVolatile | `bool` |  |
+| quals | `CVQualifiersAttr` |  |
 
 ### LongLongType
 
 
 
+Syntax:
+
+```
+!hl.longlong<
+  UCVQualifiersAttr   # quals
+>
+```
+
 
 #### Parameters:
 
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
-| isUnsigned | `bool` |  |
-| isConst | `bool` |  |
-| isVolatile | `bool` |  |
+| quals | `UCVQualifiersAttr` |  |
 
 ### LongType
 
 
 
+Syntax:
 
-#### Parameters:
-
-| Parameter | C++ type | Description |
-| :-------: | :-------: | ----------- |
-| isUnsigned | `bool` |  |
-| isConst | `bool` |  |
-| isVolatile | `bool` |  |
-
-### NamedType
-
-
+```
+!hl.long<
+  UCVQualifiersAttr   # quals
+>
+```
 
 
 #### Parameters:
 
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
-| name | `::vast::hl::TypeNameAttr` |  |
+| quals | `UCVQualifiersAttr` |  |
 
-### PointerType
+### ParenType
 
 
+
+Syntax:
+
+```
+!hl.paren<
+  Type   # elementType
+>
+```
 
 
 #### Parameters:
@@ -3202,24 +3451,105 @@ Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
 | elementType | `Type` |  |
-| isConst | `bool` |  |
-| isVolatile | `bool` |  |
 
-### ShortType
+### PointerType
 
 
+
+Syntax:
+
+```
+!hl.ptr<
+  Type,   # elementType
+  CVRQualifiersAttr   # quals
+>
+```
 
 
 #### Parameters:
 
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
-| isUnsigned | `bool` |  |
-| isConst | `bool` |  |
-| isVolatile | `bool` |  |
+| elementType | `Type` |  |
+| quals | `CVRQualifiersAttr` |  |
+
+### RecordType
+
+
+
+Syntax:
+
+```
+!hl.record<
+  ::llvm::StringRef,   # name
+  CVQualifiersAttr   # quals
+>
+```
+
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| name | `::llvm::StringRef` |  |
+| quals | `CVQualifiersAttr` |  |
+
+### ShortType
+
+
+
+Syntax:
+
+```
+!hl.short<
+  UCVQualifiersAttr   # quals
+>
+```
+
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| quals | `UCVQualifiersAttr` |  |
+
+### TypedefType
+
+
+
+Syntax:
+
+```
+!hl.typedef<
+  ::llvm::StringRef,   # name
+  CVRQualifiersAttr   # quals
+>
+```
+
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| name | `::llvm::StringRef` |  |
+| quals | `CVRQualifiersAttr` |  |
 
 ### VoidType
 
 
 
+Syntax:
+
+```
+!hl.void<
+  CVQualifiersAttr   # quals
+>
+```
+
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| quals | `CVQualifiersAttr` |  |
 
