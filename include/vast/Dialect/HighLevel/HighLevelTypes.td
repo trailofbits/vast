@@ -121,7 +121,7 @@ def ConstQualifier    : Qualifier< (ins ConstParam:$is_const), [ConstQualifierIn
 def VolatileQualifier : Qualifier< (ins VolatileParam:$is_volatile), [VolatileQualifierInterface] > {}
 def RestrictQualifier : Qualifier< (ins RestrictParam:$is_restrict), [RestrictQualifierInterface] > {}
 
-def UnsignedQualifier : Qualifier< (ins UnsignedParam:$is_unsigned), [] > {}
+def UnsignedQualifier : Qualifier< (ins UnsignedParam:$is_unsigned), [UnsignedQualifierInterface] > {}
 
 class FlattenList< list<list<Trait>> traits > {
   list<Trait> result = !foldl([]<Trait>, traits, res, trait, !listconcat(res, trait));

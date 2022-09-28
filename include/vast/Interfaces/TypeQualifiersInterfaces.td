@@ -47,4 +47,18 @@ def RestrictQualifierInterface : AttrInterface< "RestrictQualifierInterface" > {
     ];
 }
 
+def UnsignedQualifierInterface : AttrInterface< "UnsignedQualifierInterface" > {
+    let description = [{ This interface to access type qualifiers. }];
+    let cppNamespace = "::vast";
+
+    let methods = [
+        InterfaceMethod<"Returns true if type has unsigned qualifier.",
+            "bool", "hasUnsigned", (ins), [{}],
+            /*defaultImplementation=*/ [{
+                return $_attr.getIsUnsigned();
+            }]
+        >
+    ];
+}
+
 #endif  // VAST_TYPEQUALIFIERSINTERFACES

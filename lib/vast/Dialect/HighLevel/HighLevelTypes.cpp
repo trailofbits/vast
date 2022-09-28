@@ -74,11 +74,9 @@ namespace vast::hl
             return builtin_type.isSigned();
 
         VAST_ASSERT(isIntegerType(type));
-        return false;
-        // TODO
-        // return util::dispatch< integer_types, bool >(type, [] (auto ty) {
-        //     return ty.isSigned();
-        // });
+        return util::dispatch< integer_types, bool >(type, [] (auto ty) {
+            return ty.getQuals().hasUnsigned();
+        });
     }
 
     bool isUnsigned(mlir::Type type)
