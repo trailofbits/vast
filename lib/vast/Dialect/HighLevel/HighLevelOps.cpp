@@ -42,7 +42,7 @@ namespace vast::hl
 
 
     void build_expr_trait(Builder &bld, State &st, Type rty, BuilderCallback expr) {
-        assert(expr && "the builder callback for 'expr' block must be present");
+        VAST_ASSERT(expr && "the builder callback for 'expr' block must be present");
         Builder::InsertionGuard guard(bld);
         detail::build_region(bld, st, expr);
         st.addTypes(rty);
@@ -106,8 +106,8 @@ namespace vast::hl
 
     void IfOp::build(Builder &bld, State &st, BuilderCallback condBuilder, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
     {
-        assert(condBuilder && "the builder callback for 'condition' block must be present");
-        assert(thenBuilder && "the builder callback for 'then' block must be present");
+        VAST_ASSERT(condBuilder && "the builder callback for 'condition' block must be present");
+        VAST_ASSERT(thenBuilder && "the builder callback for 'then' block must be present");
 
         Builder::InsertionGuard guard(bld);
 
@@ -118,8 +118,8 @@ namespace vast::hl
 
     void WhileOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback body)
     {
-        assert(cond && "the builder callback for 'condition' block must be present");
-        assert(body && "the builder callback for 'body' must be present");
+        VAST_ASSERT(cond && "the builder callback for 'condition' block must be present");
+        VAST_ASSERT(body && "the builder callback for 'body' must be present");
 
         Builder::InsertionGuard guard(bld);
 
@@ -129,7 +129,7 @@ namespace vast::hl
 
     void ForOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback incr, BuilderCallback body)
     {
-        assert(body && "the builder callback for 'body' must be present");
+        VAST_ASSERT(body && "the builder callback for 'body' must be present");
         Builder::InsertionGuard guard(bld);
 
         detail::build_region(bld, st, cond);
@@ -139,7 +139,7 @@ namespace vast::hl
 
     void DoOp::build(Builder &bld, State &st, BuilderCallback body, BuilderCallback cond)
     {
-        assert(body && "the builder callback for 'body' must be present");
+        VAST_ASSERT(body && "the builder callback for 'body' must be present");
         Builder::InsertionGuard guard(bld);
 
         detail::build_region(bld, st, body);
@@ -148,7 +148,7 @@ namespace vast::hl
 
     void SwitchOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback body)
     {
-        assert(cond && "the builder callback for 'condition' block must be present");
+        VAST_ASSERT(cond && "the builder callback for 'condition' block must be present");
         Builder::InsertionGuard guard(bld);
 
         detail::build_region(bld, st, cond);
@@ -157,7 +157,7 @@ namespace vast::hl
 
     void CaseOp::build(Builder &bld, State &st, BuilderCallback lhs, BuilderCallback body)
     {
-        assert(lhs && "the builder callback for 'case condition' block must be present");
+        VAST_ASSERT(lhs && "the builder callback for 'case condition' block must be present");
         Builder::InsertionGuard guard(bld);
 
         detail::build_region(bld, st, lhs);
@@ -166,7 +166,7 @@ namespace vast::hl
 
     void DefaultOp::build(Builder &bld, State &st, BuilderCallback body)
     {
-        assert(body && "the builder callback for 'body' block must be present");
+        VAST_ASSERT(body && "the builder callback for 'body' block must be present");
         Builder::InsertionGuard guard(bld);
 
         detail::build_region(bld, st, body);
@@ -176,7 +176,7 @@ namespace vast::hl
     {
         st.addOperands(label);
 
-        assert(substmt && "the builder callback for 'substmt' block must be present");
+        VAST_ASSERT(substmt && "the builder callback for 'substmt' block must be present");
         Builder::InsertionGuard guard(bld);
 
         detail::build_region(bld, st, substmt);
