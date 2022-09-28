@@ -2,12 +2,9 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.245.2/containers/cpp
 {
 	"name": "C++",
-	"build": {
-		"dockerfile": "Dockerfile",
-		// Update 'VARIANT' to pick an Debian / Ubuntu OS version: debian-11, debian-10, ubuntu-22.04, ubuntu-20.04, ubuntu-18.04
-		// Use Debian 11, Ubuntu 18.04 or Ubuntu 22.04 on local arm64/Apple Silicon
-		"args": { "VARIANT": "ubuntu-22.04" }
-	},
+	"image": "xheno/vast-ubuntu-22.04-dev:latest",
+	// to run local build of devcontainer
+	// "build": { "dockerfile": "./Dockerfile" },
 	"runArgs": ["--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined"],
 
 	// Configure tool-specific properties.
