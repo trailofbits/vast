@@ -12,6 +12,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Interfaces/SideEffectInterfaces.h>
 VAST_RELAX_WARNINGS
 
+#include <optional>
 
 namespace vast::hl
 {
