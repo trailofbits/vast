@@ -1,4 +1,5 @@
 // RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-lower-types | FileCheck %s
+// REQUIRES: type-lowering
 
 // CHECK: hl.var "ai" : !hl.lvalue<memref<10xi32>>
 int ai[10];

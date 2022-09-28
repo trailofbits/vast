@@ -1,4 +1,5 @@
 // RUN: vast-cc --from-source %s | vast-opt --vast-hl-lower-types | FileCheck %s
+// REQUIRES: type-lowering
 
 int constant() { return 7; }
 
