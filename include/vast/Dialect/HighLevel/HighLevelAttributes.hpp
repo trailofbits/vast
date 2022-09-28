@@ -4,6 +4,8 @@
 
 #include "vast/Util/Warnings.hpp"
 
+#include "vast/Util/Common.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Interfaces/TypedAttrInterface.hpp"
 #include "vast/Interfaces/TypeQualifiersInterfaces.hpp"
@@ -12,4 +14,3 @@
 
 #define GET_ATTRDEF_CLASSES
 #include "vast/Dialect/HighLevel/HighLevelAttributes.h.inc"
-

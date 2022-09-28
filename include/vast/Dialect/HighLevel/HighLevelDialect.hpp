@@ -12,36 +12,6 @@ VAST_RELAX_WARNINGS
 #include <mlir/Interfaces/SideEffectInterfaces.h>
 VAST_RELAX_WARNINGS
 
-#include <optional>
-
-namespace vast::hl
-{
-    using Type = mlir::Type;
-    using Value = mlir::Value;
-    using Attribute = mlir::Attribute;
-    using Operation = mlir::Operation;
-
-    using Region    = mlir::Region;
-    using Builder   = mlir::OpBuilder;
-    using Location  = mlir::Location;
-    using State     = mlir::OperationState;
-    using TypeRange = mlir::TypeRange;
-
-    using Parser      = mlir::OpAsmParser;
-    using ParseResult = mlir::ParseResult;
-
-    using Printer     = mlir::OpAsmPrinter;
-
-    using LogicalResult = mlir::LogicalResult;
-
-    using FoldResult = mlir::OpFoldResult;
-
-    using BuilderCallback = std::optional<
-        llvm::function_ref< void(Builder &, Location) >
-    >;
-
-} // namespace vast::hl
-
 // Pull in the dialect definition.
 #include "vast/Dialect/HighLevel/HighLevelDialect.h.inc"
 

@@ -13,11 +13,33 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include <variant>
+#include <optional>
 
 namespace vast
 {
-    using Value       = mlir::Value;
-    using Operation   = mlir::Operation;
+    using Type = mlir::Type;
+    using Value = mlir::Value;
+    using Attribute = mlir::Attribute;
+    using Operation = mlir::Operation;
+
+    using Region    = mlir::Region;
+    using Builder   = mlir::OpBuilder;
+    using Location  = mlir::Location;
+    using State     = mlir::OperationState;
+    using TypeRange = mlir::TypeRange;
+
+    using Parser      = mlir::OpAsmParser;
+    using ParseResult = mlir::ParseResult;
+
+    using Printer     = mlir::OpAsmPrinter;
+
+    using LogicalResult = mlir::LogicalResult;
+
+    using FoldResult = mlir::OpFoldResult;
+
+    using BuilderCallback = std::optional<
+        llvm::function_ref< void(Builder &, Location) >
+    >;
 
     using AContext = clang::ASTContext;
     using MContext = mlir::MLIRContext;
