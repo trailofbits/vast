@@ -39,7 +39,9 @@ jobs:
             export CC=clang-15
             export CXX=clang++-15
 
-            cmake --preset ninja-multi-default --toolchain ./cmake/lld.toolchain.cmake \
+            export TOOLCHAIN=$(pwd)/cmake/lld.toolchain.cmake
+
+            cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} \
               -D CMAKE_VERBOSE_MAKEFILE=True \
               -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
               -DLLVM_EXTERNAL_LIT=${LLVM_EXTERNAL_LIT} || exit 1
@@ -55,11 +57,12 @@ jobs:
             mkdir vast-pkg
             tar -xf ./builds/ninja-multi-default/package/*.tar.xz -C vast-pkg --strip-components=1
 
-            VAST_CMAKE_DIR=$(pwd)/vast-pkg/lib/cmake/vast/
+            export VAST_CMAKE_DIR=$(pwd)/vast-pkg/lib/cmake/vast/
 
             cd ./example/codegen
 
             cmake -B build -S . \
+              --toolchain ${TOOLCHAIN} \
               -D CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
               -D VAST_CMAKE_DIR=${VAST_CMAKE_DIR} \
               -D CMAKE_BUILD_TYPE=Release \
