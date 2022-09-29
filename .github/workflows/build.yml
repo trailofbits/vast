@@ -52,32 +52,29 @@ jobs:
             cpack -G TXZ --config ./builds/ninja-multi-default/CPackConfig.cmake || exit 1
 
       - name: Extract package
-        working-directory: ${{ steps.build_paths.outputs.install }}
         run: |
           mkdir vast
           tar -xf ./builds/ninja-multi-default/package/*.tar.xz -C vast --strip-components=1
 
-      # - name: Test codegen example
-      #   working-directory: ${{ steps.build_paths.outputs.source }}/vast/example/codegen
+      - name: Test codegen example
+        working-directory: ./example/codegen
 
-      #   run: |
-      #     LLVM_INSTALL_DIR="${{ steps.build_paths.outputs.install }}/llvm"
-      #     VAST_CMAKE_DIR="${{ steps.build_paths.outputs.install }}/vast/lib/cmake/vast/"
+        run: |
+          LLVM_INSTALL_DIR="${{ steps.build_paths.outputs.install }}/llvm"
+          VAST_CMAKE_DIR="${{ steps.build_paths.outputs.install }}/vast/lib/cmake/vast/"
 
-      #     cmake -G Ninja -B build -S . \
-      #       -D LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR} \
-      #       -D VAST_CMAKE_DIR=${VAST_CMAKE_DIR} \
-      #       -D CMAKE_BUILD_TYPE=Release \
-      #       -D CMAKE_VERBOSE_MAKEFILE=True \
-      #       -D CMAKE_C_COMPILER=${{ steps.envvars.outputs.cc }} \
-      #       -D CMAKE_CXX_COMPILER=${{ steps.envvars.outputs.cxx }}
+          cmake -G Ninja -B build -S . \
+            -D CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+            -D VAST_CMAKE_DIR=${VAST_CMAKE_DIR} \
+            -D CMAKE_BUILD_TYPE=Release \
+            -D CMAKE_VERBOSE_MAKEFILE=True
 
-      #     cmake --build build
+          cmake --build build
 
-      # - name: Upload vast package artifact
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: vast-${{ matrix.config.arch }}-${{ matrix.config.os }}
-      #     path: ${{ steps.build_paths.outputs.build }}/package/
-      #     retention-days: 30
+      - name: Upload vast package artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: vast-x86_64-ubuntu-22.04
+          path: ./builds/ninja-multi-default/package/
+          retention-days: 30
 
