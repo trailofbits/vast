@@ -53,23 +53,6 @@ jobs:
 
             cpack -G TXZ --config ./builds/ninja-multi-default/CPackConfig.cmake || exit 1
 
-            # test codegen example
-            mkdir vast-pkg
-            tar -xf ./builds/ninja-multi-default/package/*.tar.xz -C vast-pkg --strip-components=1
-
-            export VAST_CMAKE_DIR=$(pwd)/vast-pkg/lib/cmake/vast/
-
-            cd ./example/codegen
-
-            cmake -B build -S . \
-              --toolchain ${TOOLCHAIN} \
-              -D CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
-              -D VAST_CMAKE_DIR=${VAST_CMAKE_DIR} \
-              -D CMAKE_BUILD_TYPE=Release \
-              -D CMAKE_VERBOSE_MAKEFILE=True
-
-            cmake --build build
-
       - name: Upload vast package artifact
         uses: actions/upload-artifact@v3
         with:
