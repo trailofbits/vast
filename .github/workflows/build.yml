@@ -55,6 +55,8 @@ jobs:
             mkdir vast-pkg
             tar -xf ./builds/ninja-multi-default/package/*.tar.xz -C vast-pkg --strip-components=1
 
+            VAST_CMAKE_DIR=$(pwd)/vast-pkg/lib/cmake/vast/
+
             cd ./example/codegen
 
             cmake -B build -S . \
