@@ -38,6 +38,15 @@ class HighLevel_Attr<string name, string attr_mnemonic, list<Trait> traits = []>
   let mnemonic = attr_mnemonic;
 }
 
+class APSIntParameter<string desc> :
+    AttrOrTypeParameter<"::llvm::APSInt", desc> {
+  let comparator = [{
+    $_lhs.getBitWidth() == $_rhs.getBitWidth() &&
+    $_lhs.isSigned() == $_rhs.isSigned() &&
+    $_lhs == $_rhs
+  }];
+}
+
 def BooleanAttr : HighLevel_Attr<"Boolean", "bool", [TypedAttrInterface] > {
   let summary = "An Attribute containing a boolean value";
 
@@ -66,7 +75,7 @@ def IntegerAttr : HighLevel_Attr<"Integer", "integer", [TypedAttrInterface] > {
     value of the specified integer type.
   }];
 
-  let parameters = (ins AttributeSelfTypeParameter<"">:$type, "llvm::APSInt":$value);
+  let parameters = (ins AttributeSelfTypeParameter<"">:$type, APSIntParameter<"">:$value);
 
   let builders = [
     AttrBuilderWithInferredContext<(ins "Type":$type, "const llvm::APSInt &":$value), [{
@@ -87,7 +96,7 @@ def FloatAttr : HighLevel_Attr<"Float", "float", [TypedAttrInterface] > {
     value of the specified floating point type.
   }];
 
-  let parameters = (ins AttributeSelfTypeParameter<"">:$type, "llvm::APFloat":$value);
+  let parameters = (ins AttributeSelfTypeParameter<"">:$type, APFloatParameter<"">:$value);
 
   let builders = [
     AttrBuilderWithInferredContext<(ins "Type":$type, "const llvm::APFloat &":$value), [{
@@ -100,10 +109,14 @@ def FloatAttr : HighLevel_Attr<"Float", "float", [TypedAttrInterface] > {
   // let genVerifyDecl = 1;
 }
 
-// Temporarily copied from builtin dialect, because llvm-15 does not have `TypedAttrInterface` yet.
+//
 def StringAttr : HighLevel_Attr<"String", "str", [TypedAttrInterface] > {
   let summary = "An Attribute containing a string";
+
   let description = [{
+    Note: Temporarily copied from builtin dialect, because llvm-15 does not have
+    `TypedAttrInterface` yet.
+
     Syntax:
 
     ```
@@ -119,7 +132,9 @@ def StringAttr : HighLevel_Attr<"String", "str", [TypedAttrInterface] > {
     "string with a type" : !dialect.string
     ```
   }];
+
   let parameters = (ins StringRefParameter<"">:$value, AttributeSelfTypeParameter<"">:$type);
+
   let builders = [
     AttrBuilderWithInferredContext<(ins "const llvm::Twine &":$value, "Type":$type), [{
       llvm::SmallVector<char, 32> tempStr;
