@@ -9,7 +9,6 @@ namespace vast::hl
     template< typename Derived >
     struct DefaultFallBackStmtVisitorMixin {
         Operation* Visit(const clang::Stmt *stmt) {
-            stmt->dump();
             VAST_UNREACHABLE("unsupported stmt: {0}", stmt->getStmtClassName());
         }
     };

@@ -1,5 +1,5 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
-// RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
+// // RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
+// // RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
 
 // CHECK: hl.var "li" : !hl.lvalue<!hl.int< const >>
 // CHECK: hl.const #hl.integer<10> : !hl.int
@@ -35,3 +35,21 @@ const void *null = 0;
 // CHECK: hl.const #hl.integer<1> : !hl.int
 // CHECK: IntegralToBoolean : !hl.int -> !hl.bool
 const _Bool lb = 1;
+
+#define SCHAR_MIN	(-128)
+#define SCHAR_MAX	127
+
+// CHECK: hl.var "scmin" : !hl.lvalue<!hl.char< const >>
+// CHECK:   hl.const #hl.integer<128> : !hl.int
+// CHECK:   hl.minus
+const char scmin = SCHAR_MIN;
+
+// CHECK: hl.var "scmax" : !hl.lvalue<!hl.char< const >>
+// CHECK:   hl.const #hl.integer<127> : !hl.int
+const char scmax = SCHAR_MAX;
+
+#define UCHAR_MAX	255
+
+// CHECK: hl.var "ucmax" : !hl.lvalue<!hl.char< unsigned, const >>
+// CHECK:   hl.const #hl.integer<255> : !hl.int
+const unsigned char ucmax = UCHAR_MAX;
