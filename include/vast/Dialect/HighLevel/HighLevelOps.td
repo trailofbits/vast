@@ -185,7 +185,7 @@ def CallOp
   : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
   , Arguments<(ins
       FlatSymbolRefAttr:$callee,
-      Variadic<AnyType>:$operands)>
+      Variadic<AnyType>:$argOperands)>
   , Results<(outs AnyType:$result)>
 {
   let summary = "VAST call operation";
@@ -201,7 +201,7 @@ def CallOp
   ];
 
   let assemblyFormat = [{
-    $callee `(` $operands `)` attr-dict `:` functional-type( $operands, $result )
+    $callee `(` $argOperands `)` attr-dict `:` functional-type( $argOperands, $result )
   }];
 }
 
@@ -210,7 +210,7 @@ def IndirectCallOp
     DeclareOpInterfaceMethods<CallOpInterface>,
     TypesMatchWith<
       "callee input types match argument types",
-      "callee", "operands",
+      "callee", "argOperands",
       "getFunctionType($_self).getInputs()"
     >,
     TypesMatchWith<
@@ -221,7 +221,7 @@ def IndirectCallOp
   ]>
   , Arguments<(ins
       LValueOrType<PointerLikeType>:$callee,
-      Variadic<AnyType>:$operands)>
+      Variadic<AnyType>:$argOperands)>
   , Results<(outs AnyType:$result)>
 {
   let summary = "VAST call operation";
@@ -237,7 +237,7 @@ def IndirectCallOp
   ];
 
   let assemblyFormat = [{
-    $callee `(` $operands `)` attr-dict `:` type( $callee )
+    $callee `(` $argOperands `)` attr-dict `:` type( $callee )
   }];
 }
 
@@ -843,10 +843,10 @@ def SubscriptOp
 
 class TypeTraitOp< string mnemonic, list< Trait > traits = [] >
   : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
-  , Arguments<(ins TypeAttr:$type)>
+  , Arguments<(ins TypeAttr:$arg)>
   , Results<(outs IntegerLikeType:$result)>
 {
-  let assemblyFormat = [{ $type attr-dict `->` type($result) }];
+  let assemblyFormat = [{ $arg attr-dict `->` type($result) }];
 }
 
 def SizeOfTypeOp : TypeTraitOp< "sizeof.type" > {
