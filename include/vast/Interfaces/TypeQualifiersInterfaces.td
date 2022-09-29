@@ -6,7 +6,7 @@
 include "mlir/IR/OpBase.td"
 
 def ConstQualifierInterface : AttrInterface< "ConstQualifierInterface" > {
-    let description = [{ This interface to access type qualifiers. }];
+    let description = [{ This is interface to access const qualifier. }];
     let cppNamespace = "::vast";
 
     let methods = [
@@ -20,7 +20,7 @@ def ConstQualifierInterface : AttrInterface< "ConstQualifierInterface" > {
 }
 
 def VolatileQualifierInterface : AttrInterface< "VolatileQualifierInterface" > {
-    let description = [{ This interface to access type qualifiers. }];
+    let description = [{ This is interface to access volatile qualifier. }];
     let cppNamespace = "::vast";
 
     let methods = [
@@ -34,7 +34,7 @@ def VolatileQualifierInterface : AttrInterface< "VolatileQualifierInterface" > {
 }
 
 def RestrictQualifierInterface : AttrInterface< "RestrictQualifierInterface" > {
-    let description = [{ This interface to access type qualifiers. }];
+    let description = [{ This is interface to access restrict qualifier. }];
     let cppNamespace = "::vast";
 
     let methods = [
@@ -48,7 +48,7 @@ def RestrictQualifierInterface : AttrInterface< "RestrictQualifierInterface" > {
 }
 
 def UnsignedQualifierInterface : AttrInterface< "UnsignedQualifierInterface" > {
-    let description = [{ This interface to access type qualifiers. }];
+    let description = [{ This is interface to access unsigned qualifier. }];
     let cppNamespace = "::vast";
 
     let methods = [
