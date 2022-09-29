@@ -48,25 +48,25 @@ namespace vast::hl {
         }
 
         auto with_ucv_qualifiers(auto &&state, bool is_unsigned, qualifiers q) {
-            return std::move(state).bind_if( is_unsigned || q.hasConst() || q.hasVolatile(),
+            return std::forward< decltype(state) >(state).bind_if( is_unsigned || q.hasConst() || q.hasVolatile(),
                 UCVQualifiersAttr::get(&mcontext(), is_unsigned, q.hasConst(), q.hasVolatile())
             );
         }
 
         auto with_cv_qualifiers(auto &&state, qualifiers q) {
-            return std::move(state).bind_if( q.hasConst() || q.hasVolatile(),
+            return std::forward< decltype(state) >(state).bind_if( q.hasConst() || q.hasVolatile(),
                 CVQualifiersAttr::get(&mcontext(), q.hasConst(), q.hasVolatile())
             );
         }
 
         auto with_cvr_qualifiers(auto &&state, qualifiers q) {
-            return std::move(state).bind_if( q.hasConst() || q.hasVolatile() || q.hasRestrict(),
+            return std::forward< decltype(state) >(state).bind_if( q.hasConst() || q.hasVolatile() || q.hasRestrict(),
                 CVRQualifiersAttr::get(&mcontext(), q.hasConst(), q.hasVolatile(), q.hasRestrict())
             );
         }
 
         auto with_qualifiers(auto &&state, const clang::BuiltinType *ty, qualifiers quals) -> mlir_type {
-            return with_cv_qualifiers(std::move(state), quals).freeze();
+            return with_cv_qualifiers(std::forward< decltype(state) >(state), quals).freeze();
         }
 
         template< typename high_level_type >
