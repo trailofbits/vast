@@ -6,13 +6,15 @@ VAST is an experimental frontend for the translation of Clang AST to various MLI
 ## Build
 
 To configure project run `cmake` with following default optaions.
-If you want to use system installed `llvm` use:
+If you want to use system installed `llvm` and `mlir` use:
 
 ```
-cmake --preset ninja-multi-default -DLLVM_EXTERNAL_LIT=<path lit binary>
+cmake --preset ninja-multi-default \
+    --toolchain ./cmake/lld.toolchain.cmake \
+    -DCMAKE_PREFIX_PATH=<path to llvm & mlir config>
 ```
 
-To use a specific `llvm` provide `-DLLVM_INSTALL_DIR=<llvm instalation path>` option, where `LLVM_INSTALL_DIR` points to directory containing `LLVMConfig.cmake`.
+To use a specific `llvm` provide `-DCMAKE_PREFIX_PATH=<llvm & mlir instalation paths>` option, where `CMAKE_PREFIX_PATH` points to directory containing `LLVMConfig.cmake` and `MLIRConfig.cmake`.
 
 
 Finally build the project:
@@ -42,5 +44,5 @@ ctest --preset ninja-deb
 VAST is licensed according to the [Apache 2.0](LICENSE) license. VAST links against and uses Clang and LLVM APIs. Clang is also licensed under Apache 2.0, with [LLVM exceptions](https://github.com/llvm/llvm-project/blob/main/clang/LICENSE.TXT).
 
 This research was developed with funding from the Defense Advanced Research Projects Agency (DARPA). The views, opinions and/or findings expressed are those of the author and should not be interpreted as representing the official views or policies of the Department of Defense or the U.S. Government.
- 
+
 Distribution Statement A – Approved for Public Release, Distribution Unlimited
