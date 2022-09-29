@@ -224,8 +224,7 @@ namespace vast::hl {
         mlir::Value true_value(mlir::Location loc) { return bool_value(loc, true); }
         mlir::Value false_value(mlir::Location loc) { return bool_value(loc, false); }
 
-        mlir::Value constant(mlir::Location loc, mlir::Type ty, bool value) {
-            VAST_CHECK(ty.isa< BoolType >(), "mismatched boolean constant type");
+        mlir::Value constant(mlir::Location loc, bool value) {
             return bool_value(loc, value);
         }
 

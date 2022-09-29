@@ -813,12 +813,16 @@ namespace vast::hl {
 
         template< typename LiteralType, typename Value >
         Operation* VisitScalarLiteral(const LiteralType *lit, Value value) {
-            auto type = visit(lit->getType());
-            return constant(meta_location(lit), type, value).getDefiningOp();
+            if constexpr (std::is_same_v< Value, bool >) {
+                return constant(meta_location(lit), value).getDefiningOp();
+            } else {
+                auto type = visit(lit->getType());
+                return constant(meta_location(lit), type, value).getDefiningOp();
+            }
         }
 
         Operation* VisitCharacterLiteral(const clang::CharacterLiteral *lit) {
-            return VisitScalarLiteral(lit, lit->getValue());
+            return VisitScalarLiteral(lit, apsint(lit->getValue()));
         }
 
         Operation* VisitIntegerLiteral(const clang::IntegerLiteral *lit) {
