@@ -60,11 +60,8 @@ jobs:
         working-directory: ./example/codegen
 
         run: |
-          LLVM_INSTALL_DIR="${{ steps.build_paths.outputs.install }}/llvm"
-          VAST_CMAKE_DIR="${{ steps.build_paths.outputs.install }}/vast/lib/cmake/vast/"
-
-          cmake -G Ninja -B build -S . \
-            -D CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+          cmake -B build -S . \
+            -D CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
             -D VAST_CMAKE_DIR=${VAST_CMAKE_DIR} \
             -D CMAKE_BUILD_TYPE=Release \
             -D CMAKE_VERBOSE_MAKEFILE=True
