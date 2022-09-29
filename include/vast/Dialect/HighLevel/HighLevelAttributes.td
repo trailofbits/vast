@@ -66,10 +66,10 @@ def IntegerAttr : HighLevel_Attr<"Integer", "integer", [TypedAttrInterface] > {
     value of the specified integer type.
   }];
 
-  let parameters = (ins AttributeSelfTypeParameter<"">:$type, "llvm::APInt":$value);
+  let parameters = (ins AttributeSelfTypeParameter<"">:$type, "llvm::APSInt":$value);
 
   let builders = [
-    AttrBuilderWithInferredContext<(ins "Type":$type, "const llvm::APInt &":$value), [{
+    AttrBuilderWithInferredContext<(ins "Type":$type, "const llvm::APSInt &":$value), [{
       return $_get(type.getContext(), type, value);
     }]>
   ];

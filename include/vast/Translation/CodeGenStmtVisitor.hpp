@@ -822,7 +822,7 @@ namespace vast::hl {
         }
 
         Operation* VisitIntegerLiteral(const clang::IntegerLiteral *lit) {
-            return VisitScalarLiteral(lit, lit->getValue());
+            return VisitScalarLiteral(lit, llvm::APSInt(lit->getValue(), false));
         }
 
         Operation* VisitFloatingLiteral(const clang::FloatingLiteral *lit) {

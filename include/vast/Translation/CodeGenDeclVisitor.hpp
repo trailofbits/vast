@@ -92,7 +92,7 @@ namespace vast::hl {
                     if (decl->isMain()) {
                         // return zero if no return is present in main
                         auto type = fn.getFunctionType();
-                        auto zero = constant(loc, type.getResult(0), apint(0));
+                        auto zero = constant(loc, type.getResult(0), apsint(0));
                         make< ReturnOp >(loc, zero);
                     } else {
                         make< UnreachableOp >(loc);

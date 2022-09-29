@@ -237,10 +237,6 @@ namespace vast::hl {
             return create< ConstantOp >(loc, ty, value);
         }
 
-        mlir::Value constant(mlir::Location loc, mlir::Type ty, unsigned int value) {
-            return constant(loc, ty, llvm::APInt(32, value));
-        }
-
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APFloat value) {
             return create< ConstantOp >(loc, ty, value);
         }
