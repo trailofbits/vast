@@ -88,7 +88,7 @@ def EnumConstantOp
   let builders = [
     OpBuilder<(ins
       "llvm::StringRef":$name,
-      "Type":$type, "llvm::APInt":$value,
+      "Type":$type, "llvm::APSInt":$value,
       CArg<"BuilderCallback", "std::nullopt">:$init
     ), [{
       $_state.addAttribute("name", $_builder.getStringAttr(name));
@@ -326,7 +326,7 @@ def ConstantOp
     OpBuilder<(ins "Type":$type, "bool":$value), [{
       build($_builder, $_state, type, BooleanAttr::get(type, value));
     }]>,
-    OpBuilder<(ins "Type":$type, "llvm::APInt":$value), [{
+    OpBuilder<(ins "Type":$type, "llvm::APSInt":$value), [{
       build($_builder, $_state, type, IntegerAttr::get(type, value));
     }]>,
     OpBuilder<(ins "Type":$type, "llvm::APFloat":$value), [{

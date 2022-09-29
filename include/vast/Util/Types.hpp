@@ -6,6 +6,7 @@
 
 VAST_RELAX_WARNINGS
 #include <llvm/ADT/APInt.h>
+#include <llvm/ADT/APSInt.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
@@ -32,6 +33,12 @@ namespace vast
     {
         static_assert( bits< I >() <= bits< uint64_t >());
         return llvm::APInt( bits< I >(), uint64_t(value), std::numeric_limits< I >::is_signed );
+    }
+
+    template< typename I >
+    constexpr auto apsint( I value )
+    {
+        return llvm::APSInt( apint(value), std::numeric_limits< I >::is_signed );
     }
 
     static inline std::string format_type(mlir_type type) {

@@ -35,6 +35,17 @@ namespace mlir {
     };
 
     template<>
+    struct FieldParser<llvm::APSInt> {
+        static FailureOr<llvm::APSInt> parse(AsmParser &parser) {
+            llvm::APInt value;
+            if (parser.parseInteger(value))
+                return failure();
+            return llvm::APSInt(value, false);
+        }
+    };
+
+
+    template<>
     struct FieldParser<llvm::APFloat> {
         static FailureOr<llvm::APFloat> parse(AsmParser &parser) {
             // TODO fix float parser
