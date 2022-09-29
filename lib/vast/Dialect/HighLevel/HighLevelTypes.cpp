@@ -127,9 +127,9 @@ namespace vast::hl
         // If this ever is generalised investigate if `SubElementTypeInterface` can be used
         // do this recursion?
         auto collect = [&](ArrayType arr, auto &self) -> mlir::Type {
-            // dims.push_back(arr.getSize());
-            // if (auto nested = arr.getElementType().dyn_cast< ArrayType >())
-            //     return self(nested, self);
+            dims.push_back(arr.getSize());
+            if (auto nested = arr.getElementType().dyn_cast< ArrayType >())
+                return self(nested, self);
             return arr.getElementType();
         };
         return { std::move(dims), collect(*this, collect) };
