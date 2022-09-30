@@ -15,17 +15,17 @@ VAST_UNRELAX_WARNINGS
 namespace vast::util::tc
 {
     // TODO(lukas): Implement.
-    static inline bool is_variadic(mlir::FuncOp op)
+    static inline bool is_variadic(mlir::func::FuncOp op)
     {
         return true;
     }
 
-    static inline auto convert_fn_t(auto &tc, mlir::FuncOp op)
+    static inline auto convert_fn_t(auto &tc, mlir::func::FuncOp op)
     -> std::tuple< mlir::TypeConverter::SignatureConversion, mlir::Type >
     {
         mlir::TypeConverter::SignatureConversion conversion(op.getNumArguments());
         auto target_type = tc.convertFunctionSignature(
-                op.getType(), is_variadic(op), conversion);
+                op.getFunctionType(), is_variadic(op), conversion);
         return { std::move(conversion), target_type };
     }
 
@@ -117,11 +117,11 @@ namespace vast::util::tc
         using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
         using maybe_signature_conversion_t = std::optional< signature_conversion_t >;
 
-        maybe_signature_conversion_t get_conversion_signature(mlir::FuncOp fn,
+        maybe_signature_conversion_t get_conversion_signature(mlir::func::FuncOp fn,
                                                               bool variadic)
         {
             signature_conversion_t conversion(fn.getNumArguments());
-            for (auto arg : llvm::enumerate(fn.getType().getInputs()))
+            for (auto arg : llvm::enumerate(fn.getFunctionType().getInputs()))
             {
                 auto cty = convert_arg_t(arg.value());
                 if (!cty)

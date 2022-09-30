@@ -322,7 +322,7 @@ namespace vast::hl
                                      auto &rewriter) const
             {
                 // No init is taking place
-                if (var_op.initializer().empty())
+                if (var_op.getInitializer().empty())
                     return mlir::success();
 
                 auto yield = inline_init_region< hl::ValueYieldOp >(var_op, rewriter);
