@@ -29,14 +29,14 @@ namespace vast::hl
         {
             using util::State< hl::RecordMemberOp >::State;
 
-            std::optional< StructDeclOp > get_def(auto op, hl::NamedType named_type) const
+            std::optional< StructDeclOp > get_def(auto op, hl::RecordType named_type) const
             {
                 std::optional< StructDeclOp > out;
                 auto yield = [&](auto candidate)
                 {
                     auto op = candidate.getOperation();
                     if (auto struct_decl = mlir::dyn_cast< hl::StructDeclOp >(op))
-                        if (struct_decl.name() == named_type.getName().getName())
+                        if (struct_decl.getName() == named_type.getName())
                         {
                             VAST_ASSERT(!out);
                             out = struct_decl;
@@ -54,12 +54,12 @@ namespace vast::hl
             std::optional< std::size_t > get_idx(auto name, hl::StructDeclOp decl) const
             {
                 std::size_t idx = 0;
-                for (auto &maybe_field : solo_block(decl.fields()))
+                for (auto &maybe_field : solo_block(decl.getFields()))
                 {
                     auto field = mlir::dyn_cast< hl::FieldDeclOp >(maybe_field);
                     if (!field)
                         return {};
-                    if (field.name() == name)
+                    if (field.getName() == name)
                         return { idx };
                     ++idx;
                 }
@@ -85,7 +85,7 @@ namespace vast::hl
 
             mlir::LogicalResult convert()
             {
-                auto parent_type = operands.record().getType();
+                auto parent_type = operands.getRecord().getType();
 
                 auto as_named_type = fetch_record_type(parent_type);
                 if (!as_named_type)
@@ -95,16 +95,16 @@ namespace vast::hl
                 if (!maybe_def)
                     return mlir::failure();
 
-                auto raw_idx = get_idx(op.name(), *maybe_def);
+                auto raw_idx = get_idx(op.getName(), *maybe_def);
                 if (!raw_idx)
                     return mlir::failure();
 
                 auto gep = rewriter.create< ll::StructGEPOp >(
                         op.getLoc(),
                         op.getType(),
-                        operands.record(),
+                        operands.getRecord(),
                         rewriter.getI32IntegerAttr(*raw_idx),
-                        op.nameAttr());
+                        op.getNameAttr());
                 rewriter.replaceOp( op, { gep } );
 
                 return mlir::success();

@@ -55,17 +55,17 @@ namespace vast::hl
             types_t collect_field_tys(hl::StructDeclOp op) const
             {
                 std::vector< mlir::Type > out;
-                if (op.fields().empty())
+                if (op.getFields().empty())
                     return out;
 
-                for (auto &maybe_field : solo_block(op.fields()))
+                for (auto &maybe_field : solo_block(op.getFields()))
                 {
                     auto field = mlir::dyn_cast< hl::FieldDeclOp >(maybe_field);
                     VAST_ASSERT(field);
-                    if (auto c = tc.convert_type_to_type(field.type()))
+                    if (auto c = tc.convert_type_to_type(field.getType()))
                         out.push_back(*c);
                     else
-                        out.push_back(field.type());
+                        out.push_back(field.getType());
                 }
                 return out;
             }
@@ -75,10 +75,11 @@ namespace vast::hl
             {
                 std::vector< hl::TypeDeclOp > out;
                 auto module_op = op->getParentOfType< mlir::ModuleOp >();
-                for (auto &x : solo_block(module_op.body()))
+                VAST_ASSERT(module_op.getBody());
+                for (auto &x : *module_op.getBody())
                 {
                     if (auto type_decl = mlir::dyn_cast< hl::TypeDeclOp >(x);
-                        type_decl && type_decl.name() == op.name())
+                        type_decl && type_decl.getName() == op.getName())
                     {
                         out.push_back(type_decl);
                     }
@@ -100,11 +101,11 @@ namespace vast::hl
             mlir::LogicalResult convert()
             {
                 auto field_tys = collect_field_tys(op);
-                auto name = op.name();
+                auto name = op.getName();
                 auto trg_ty = make_struct_type(*rewriter.getContext(), field_tys, name);
 
                 rewriter.create< hl::TypeDefOp >(
-                        op.getLoc(), op.name(), trg_ty);
+                        op.getLoc(), op.getName(), trg_ty);
 
                 auto type_decls = fetch_decls(op);
                 for (auto x : type_decls)
