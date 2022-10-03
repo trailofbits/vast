@@ -225,16 +225,39 @@ namespace vast::hl
                 return mlir::success();
             }
 
-            static LLVM::ConstantOp make_from(
+            mlir::Attribute convert_attr(auto attr, auto op,
+                                         mlir::ConversionPatternRewriter &rewriter) const
+            {
+                auto target_type = this->type_converter().convert_type_to_type(attr.getType());
+                const auto &dl = this->type_converter().getDataLayoutAnalysis()
+                                                       ->getAtOrAbove(op);
+                if (!target_type)
+                    return {};
+
+                if (auto float_attr = attr.template dyn_cast< FloatAttr >())
+                {
+                    return {};
+                }
+                if (auto int_attr = attr.template dyn_cast< IntegerAttr >())
+                {
+                    auto size = dl.getTypeSizeInBits(*target_type);
+                    auto coerced = int_attr.getValue().sextOrTrunc(size);
+                    return rewriter.getIntegerAttr(*target_type, coerced);
+                }
+                // Not implemented yet.
+                return {};
+            }
+
+            LLVM::ConstantOp make_from(
                     hl::ConstantOp op,
                     mlir::ConversionPatternRewriter &rewriter,
-                    auto &&tc)
+                    auto &&tc) const
             {
                 auto src_ty = op.getType();
                 auto target_ty = tc.convert_type_to_type(src_ty);
 
-                return rewriter.create< LLVM::ConstantOp >(op.getLoc(), *target_ty,
-                                                           op.getValue());
+                auto attr = convert_attr(op.getValue(), op, rewriter);
+                return rewriter.create< LLVM::ConstantOp >(op.getLoc(), *target_ty, attr);
             }
         };
 
