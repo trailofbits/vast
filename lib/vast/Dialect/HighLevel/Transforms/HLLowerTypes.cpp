@@ -287,8 +287,37 @@ namespace vast::hl
         // `llvm::` instead of `std::` to be uniform with `TypeConverter`
         using maybe_attr_t = llvm::Optional< mlir::Attribute >;
 
+        template< typename A, typename ... Args >
+        auto make_hl_attr( Args && ... args ) const
+        {
+            // Expected cheap values are passed around, otherwise perfectly forward.
+            return [=](auto type)
+            {
+                return A::get(type, args ...);
+            };
+        }
+
+        template< typename Attr, typename ... Rest >
+        maybe_attr_t hl_attr_conversion(mlir::Attribute attr) const
+        {
+            if (auto hl_attr = attr.dyn_cast< Attr >())
+            {
+                return Maybe(hl_attr.getType())
+                    .and_then(tc.convert_type_to_type())
+                    .unwrap()
+                    .and_then(make_hl_attr< Attr >(hl_attr.getValue()))
+                    .template take_wrapped< maybe_attr_t >();
+            }
+            if constexpr (sizeof ... (Rest) != 0)
+                return hl_attr_conversion< Rest ... >(attr);
+            return {};
+        }
+
         maybe_attr_t convertAttr(mlir::Attribute attr) const
         {
+            if (auto out = hl_attr_conversion< BooleanAttr, IntegerAttr, FloatAttr >(attr))
+                return out;
+
             if (auto type_attr = attr.dyn_cast< mlir::TypeAttr >())
             {
                 return Maybe(type_attr.getValue())
