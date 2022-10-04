@@ -341,20 +341,25 @@ namespace vast::hl
                 return mlir::success();
             }
 
-            mlir::LogicalResult init(LLVM::AllocaOp alloca, hl::VarDecl var_op,
+            mlir::LogicalResult init(LLVM::AllocaOp alloca, hl::VarDeclOp var_op,
                                      auto &rewriter) const
             {
                 // No init is taking place
                 if (var_op.getInitializer().empty())
                     return mlir::success();
 
+                // Ordering of instructions to avoid broken data flow:
+                //   original hl.var
+                //   inlined init
+                //   llvm operations
                 auto yield = inline_init_region< hl::ValueYieldOp >(var_op, rewriter);
+
+                mlir::OpBuilder::InsertionGuard guard(rewriter);
+                rewriter.setInsertionPointAfter(yield);
                 auto status = store_init(alloca, yield, rewriter);
                 rewriter.eraseOp(yield);
                 return status;
             }
-
-
 
             mlir::LogicalResult matchAndRewrite(
                     hl::VarDeclOp var_op, hl::VarDeclOp::Adaptor ops,
