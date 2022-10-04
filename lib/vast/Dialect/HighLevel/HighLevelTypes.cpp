@@ -75,7 +75,8 @@ namespace vast::hl
 
         VAST_ASSERT(isIntegerType(type));
         return util::dispatch< integer_types, bool >(type, [] (auto ty) {
-            return ty.getQuals().hasUnsigned();
+            auto quals = ty.getQuals();
+            return quals && quals.hasUnsigned();
         });
     }
 
