@@ -130,9 +130,16 @@ namespace vast::hl
             return {};
         }
 
-        auto int_type(unsigned bitwidth)
+        // TODO(lukas): Take optional to denote that is may be `Signless`.
+        auto int_type(unsigned bitwidth, bool is_signed)
         {
-            return mlir::IntegerType::get(&this->mctx, bitwidth);
+            auto signedness = [=]()
+            {
+                if (is_signed)
+                    return mlir::IntegerType::SignednessSemantics::Signed;
+                return mlir::IntegerType::SignednessSemantics::Unsigned;
+            }();
+            return mlir::IntegerType::get(&this->mctx, bitwidth, signedness);
         }
 
         auto convert_type() { return [&](auto t) { return this->convert_type(t); }; }
@@ -144,15 +151,18 @@ namespace vast::hl
         {
             return [&](auto t) -> maybe_type_t {
                 if (t.template isa< hl::VoidType >()) {
-                    return int_type(8u);
+                    return int_type(8u, mlir::IntegerType::SignednessSemantics::Signless);
                 }
                 return this->convert_type_to_type(t);
             };
         }
 
-        auto make_int_type()
+        auto make_int_type(bool is_signed)
         {
-            return [&](auto t) { return int_type(dl.getTypeSizeInBits(t)); };
+            return [=](auto t)
+            {
+                return int_type(dl.getTypeSizeInBits(t), is_signed);
+            };
         }
 
         auto make_float_type()
@@ -202,8 +212,10 @@ namespace vast::hl
         maybe_type_t try_convert_intlike(mlir::Type t)
         {
             // For now `bool` behaves the same way as any other integer type.
-            return Maybe(t).keep_if([](auto t){ return isIntegerType(t) || isBoolType(t); })
-                           .and_then(make_int_type())
+            if (!isIntegerType(t) && !isBoolType(t))
+                return {};
+
+            return Maybe(t).and_then(make_int_type(isSigned(t)))
                            .take_wrapped< maybe_type_t >();
         }
 
