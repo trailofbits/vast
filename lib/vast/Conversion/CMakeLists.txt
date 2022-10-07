@@ -34,3 +34,22 @@ add_library( VASTConversions INTERFACE )
 add_dependencies( VASTConversions
     VASTConversionPassIncGen
 )
+
+add_mlir_dialect_library(VastConversionPasses
+    ToLLVM.cpp
+
+    DEPENDS
+        VASTConversionPassesIncGen
+
+    LINK_LIBS PUBLIC
+        MLIRLowLevel
+        MLIRHighLevel
+        MLIRIR
+        MLIRPass
+        MLIRTransformUtils
+        MLIRExecutionEngine
+        MLIRLLVMCommonConversion
+        MLIRTargetLLVMIRExport
+        MLIRLLVMToLLVMIRTranslation
+        MLIRToLLVMIRTranslationRegistration
+)

@@ -1,17 +1,20 @@
-// Copyright (c) 2021-present, Trail of Bits, Inc.
+// Copyright (c) 2022-present, Trail of Bits, Inc.
 
 #pragma once
 
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-#include <mlir/Pass/Pass.h>
 #include <mlir/Dialect/Func/IR/FuncOps.h>
+#include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/Dialect/PDL/IR/PDL.h>
 #include <mlir/Dialect/PDLInterp/IR/PDLInterp.h>
+#include <mlir/IR/BuiltinOps.h>
+#include <mlir/Pass/Pass.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/LowLevel/LowLevelDialect.hpp"
 
 namespace vast
 {
