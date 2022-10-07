@@ -12,6 +12,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/Interfaces/SideEffectInterfaces.h>
 VAST_RELAX_WARNINGS
 
+#include "vast/Interfaces/SymbolInterface.hpp"
+
 #define GET_OP_CLASSES
 #include "vast/Dialect/LowLevel/LowLevel.h.inc"
 
