@@ -15,4 +15,27 @@ def LowLevel_StructGEPOp
     let summary = "VAST struct gep  operation";
     let description = [{ VAST struct gep operation }];
 }
+
+def UninitializedVar
+    : LowLevel_Op< "unintialized_var", [VastSymbol, NoSideEffect] >
+    , Results<(outs AnyType:$result)>
+{
+    let summary = "Declaration of variable that have not been initialized yet.";
+    let description = [{ Declaration of variable that have not been initialized yet. }];
+
+    let results = (outs AnyType:$result);
+}
+
+def InitializeVar
+    : LowLevel_Op< "initialize", [NoSideEffect] >
+    , Arguments<(ins AnyType:$var, Variadic<AnyType>:$elements)>
+    , Results<(outs AnyType:$result)>
+{
+    let summary = "Initialize a variable.";
+    let description = [{
+        Initialize a variable - for now this operation is a direct lowering from hl.var
+        initialization section. Later there will be need to discover how this ties
+        to constructors.
+    }];
+}
 #endif // VAST_DIALECT_IR_LOWLEVELOPS
