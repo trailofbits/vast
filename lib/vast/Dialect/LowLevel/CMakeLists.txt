@@ -11,7 +11,8 @@ add_mlir_dialect_library(MLIRLowLevel
     MLIRLowLevelIncGen
 
     LINK_LIBS PUBLIC
-         MLIRIR
+    MLIRIR
+    VASTSymbolInterface
 )
 
 target_link_libraries(MLIRLowLevel PRIVATE vast_settings)
