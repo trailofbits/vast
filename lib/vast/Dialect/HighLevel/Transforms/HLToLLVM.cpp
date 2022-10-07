@@ -10,6 +10,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/Conversion/LLVMCommon/TypeConverter.h>
 #include <mlir/Conversion/LLVMCommon/Pattern.h>
+
+#include <llvm/ADT/APFloat.h>
 VAST_UNRELAX_WARNINGS
 
 #include "PassesDetails.hpp"
@@ -236,7 +238,13 @@ namespace vast::hl
 
                 if (auto float_attr = attr.template dyn_cast< FloatAttr >())
                 {
-                    return {};
+                    // NOTE(lukas): We cannot simply forward the return value of `getValue()`
+                    //              because it can have different semantics than one expected
+                    //              by `FloatAttr`.
+                    // TODO(lukas): Is there a better way to convert this?
+                    //              Ideally `APFloat -> APFloat`.
+                    double raw_value = float_attr.getValue().convertToDouble();
+                    return rewriter.getFloatAttr(*target_type, raw_value);
                 }
                 if (auto int_attr = attr.template dyn_cast< IntegerAttr >())
                 {
