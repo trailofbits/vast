@@ -284,116 +284,6 @@ namespace vast::hl
             }
         };
 
-        // Inline the region that is responsible for initialization
-        //  * `rewriter` insert point is invalidated (although documentation of called
-        //    methods does not state it, experimentally it is corrupted)
-        //  * terminator is returned to be used & erased by caller.
-        template< typename T >
-        T inline_init_region(auto src, auto &rewriter)
-        {
-            VAST_ASSERT(size(src.getInitializer()) == 1);
-            auto &init_region = src.getInitializer();
-            auto &init_block = init_region.back();
-
-            auto terminator = mlir::dyn_cast< T >(init_block.getTerminator());
-            VAST_ASSERT(size(init_region) == 1 && terminator);
-            rewriter.inlineRegionBefore(init_region, src->getBlock());
-            auto ip = std::next(mlir::Block::iterator(src));
-            VAST_ASSERT(ip != src->getBlock()->end());
-
-            rewriter.mergeBlockBefore(&init_block, &*ip);
-            return terminator;
-        }
-
-        struct var : BasePattern< hl::VarDeclOp >
-        {
-            using Base = BasePattern< hl::VarDeclOp >;
-            using O = hl::VarDeclOp;
-            using Base::Base;
-
-
-            mlir::LogicalResult unfold_init(LLVM::AllocaOp alloca, hl::InitListExpr init,
-                                            auto &rewriter) const
-            {
-                std::size_t i = 0;
-
-                auto p_type = alloca.getType().cast< LLVM::LLVMPointerType >();
-                VAST_PATTERN_CHECK(p_type, "Expected pointer.");
-                auto a_type = p_type.getElementType().dyn_cast< LLVM::LLVMArrayType >();
-                VAST_PATTERN_CHECK(a_type, "Expected array.");
-
-                for (auto op : init.getElements())
-                {
-                    auto e_type = LLVM::LLVMPointerType::get(a_type.getElementType());
-
-                    auto index = rewriter.template create< LLVM::ConstantOp >(
-                            op.getLoc(), type_converter().convertType(rewriter.getIndexType()),
-                            rewriter.getIntegerAttr(rewriter.getIndexType(), i));
-                    auto where = rewriter.template create< LLVM::GEPOp >(
-                            alloca.getLoc(), e_type, alloca, index.getResult());
-                    rewriter.template create< LLVM::StoreOp >(alloca.getLoc(), op, where);
-                    ++i;
-                }
-                rewriter.eraseOp(init);
-                return mlir::success();
-            }
-
-            mlir::LogicalResult store_init(LLVM::AllocaOp alloca, hl::ValueYieldOp yield,
-                                           auto &rewriter) const
-            {
-                mlir::Value v = yield.getOperand();
-                if (auto init_list = v.getDefiningOp< hl::InitListExpr >())
-                    return unfold_init(alloca, init_list, rewriter);
-
-                rewriter.template create< LLVM::StoreOp >(alloca.getLoc(), v, alloca);
-                return mlir::success();
-            }
-
-            mlir::LogicalResult init(LLVM::AllocaOp alloca, hl::VarDeclOp var_op,
-                                     auto &rewriter) const
-            {
-                // No init is taking place
-                if (var_op.getInitializer().empty())
-                    return mlir::success();
-
-                // Ordering of instructions to avoid broken data flow:
-                //   original hl.var
-                //   inlined init
-                //   llvm operations
-                auto yield = inline_init_region< hl::ValueYieldOp >(var_op, rewriter);
-
-                mlir::OpBuilder::InsertionGuard guard(rewriter);
-                rewriter.setInsertionPointAfter(yield);
-                auto status = store_init(alloca, yield, rewriter);
-                rewriter.eraseOp(yield);
-                return status;
-            }
-
-            mlir::LogicalResult matchAndRewrite(
-                    hl::VarDeclOp var_op, hl::VarDeclOp::Adaptor ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
-            {
-                auto ptr_type = type_converter().convertType(var_op.getType());
-                if (!ptr_type)
-                    return mlir::failure();
-
-                auto count = rewriter.create< LLVM::ConstantOp >(
-                        var_op.getLoc(),
-                        type_converter().convertType(rewriter.getIndexType()),
-                        rewriter.getIntegerAttr(rewriter.getIndexType(), 1));
-                auto alloca = rewriter.create< LLVM::AllocaOp >(
-                        var_op.getLoc(), ptr_type, count, 0);
-
-                if (mlir::failed(init(alloca, var_op, rewriter)))
-                    return mlir::failure();
-
-                rewriter.replaceOp(var_op, {alloca});
-                return mlir::success();
-            }
-
-
-        };
-
         // TODO(lukas): Move to some utils.
         auto create_trunc_or_sext(auto op, mlir::Type target, auto &rewriter,
                                   mlir::Location loc, const auto &dl)
@@ -610,7 +500,6 @@ namespace vast::hl
         patterns.add< pattern::translation_unit >(type_converter);
         patterns.add< pattern::scope >(type_converter);
         patterns.add< pattern::func_op >(type_converter);
-        patterns.add< pattern::var >(type_converter);
         patterns.add< pattern::constant_int >(type_converter);
         patterns.add< pattern::ret >(type_converter);
         patterns.add< pattern::add >(type_converter);
