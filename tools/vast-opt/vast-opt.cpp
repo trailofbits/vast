@@ -17,6 +17,8 @@ VAST_RELAX_WARNINGS
 #include "llvm/Support/ToolOutputFile.h"
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Conversion/Passes.hpp"
+
 #include "vast/Dialect/HighLevel/Passes.hpp"
 #include "vast/Conversion/Passes.hpp"
 #include "vast/Dialect/Dialects.hpp"
