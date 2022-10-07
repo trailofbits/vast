@@ -31,6 +31,8 @@ namespace vast::hl
 
     std::unique_ptr< mlir::Pass > createHLToLLGEPsPass();
 
+    std::unique_ptr< mlir::Pass > createHLToLLVarsPass();
+
     void registerHLToLLVMIR(mlir::DialectRegistry &);
     void registerHLToLLVMIR(mlir::MLIRContext &);
 

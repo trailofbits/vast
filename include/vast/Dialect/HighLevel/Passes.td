@@ -70,6 +70,16 @@ def HLToLLGEPs : Pass<"vast-hl-to-ll-geps", "mlir::ModuleOp"> {
   let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::ll::LowLevelDialect"];
 }
 
+def HLToLLVars : Pass<"vast-hl-to-ll-vars", "mlir::ModuleOp"> {
+  let summary = "Convert hl variables into ll versions.";
+  let description = [{
+    This pass is still a work in progress.
+  }];
+
+  let constructor = "vast::hl::createHLToLLVarsPass()";
+  let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::ll::LowLevelDialect"];
+}
+
 def HLStructsToTuples : Pass<"vast-hl-structs-to-tuples", "mlir::ModuleOp"> {
   let summary = "Transform hl.struct into std tuples.";
   let description = [{
