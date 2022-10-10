@@ -19,6 +19,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+
+#include "vast/Dialect/LowLevel/LowLevelOps.hpp"
+
 #include "vast/Util/TypeConverter.hpp"
 #include "vast/Util/LLVMTypeConverter.hpp"
 #include "vast/Util/Symbols.hpp"
@@ -66,6 +69,18 @@ namespace vast
 
             BasePattern(TypeConverter &tc_) : Base(tc_), tc(tc_) {}
             TypeConverter &type_converter() const { return tc; }
+
+
+            auto mk_alloca(auto &rewriter, mlir::Type trg_type, auto loc) const
+            {
+                    auto count = rewriter.template create< LLVM::ConstantOp >(
+                            loc,
+                            type_converter().convertType(rewriter.getIndexType()),
+                            rewriter.getIntegerAttr(rewriter.getIndexType(), 1));
+
+                    return rewriter.template create< LLVM::AllocaOp >(
+                            loc, trg_type, count, 0);
+            }
         };
 
         template< typename Src >
@@ -107,6 +122,27 @@ namespace vast
 
         using translation_unit = inline_region_from_op< hl::TranslationUnitOp >;
         using scope = inline_region_from_op< hl::ScopeOp >;
+
+
+        struct uninit_var : BasePattern< ll::UninitializedVar >
+        {
+            using op_t = ll::UninitializedVar;
+            using Base = BasePattern< op_t >;
+            using Base::Base;
+
+            mlir::LogicalResult matchAndRewrite(
+                    op_t op, typename op_t::Adaptor ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                auto trg_type = tc.convert_type_to_type(op.getType());
+                VAST_PATTERN_CHECK(trg_type, "Could not convert vardecl type");
+
+                auto alloca = mk_alloca(rewriter, *trg_type, op.getLoc());
+                rewriter.replaceOp(op, {alloca});
+
+                return mlir::success();
+            }
+        };
 
         struct func_op : BasePattern< mlir::func::FuncOp >
         {
@@ -483,6 +519,7 @@ namespace vast
 
         mlir::ConversionTarget target(mctx);
         target.addIllegalDialect< hl::HighLevelDialect >();
+        target.addIllegalDialect< ll::LowLevelDialect >();
         target.addLegalOp< hl::TypeDefOp >();
         target.addIllegalOp< mlir::func::FuncOp >();
         target.markUnknownOpDynamicallyLegal([](auto) { return true; });
@@ -494,6 +531,7 @@ namespace vast
         pattern::TypeConverter type_converter(&mctx, llvm_options , &dl_analysis);
 
         mlir::RewritePatternSet patterns(&mctx);
+        // HL patterns
         patterns.add< pattern::translation_unit >(type_converter);
         patterns.add< pattern::scope >(type_converter);
         patterns.add< pattern::func_op >(type_converter);
@@ -507,6 +545,10 @@ namespace vast
         patterns.add< pattern::assign >(type_converter);
         patterns.add< pattern::implicit_cast >(type_converter);
         patterns.add< pattern::call >(type_converter);
+        patterns.add< pattern::cmp >(type_converter);
+
+        // LL patterns
+        patterns.add< pattern::uninit_var >(type_converter);
         patterns.add< pattern::cmp >(type_converter);
         if (mlir::failed(mlir::applyPartialConversion(op, target, std::move(patterns))))
             return signalPassFailure();
