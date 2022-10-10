@@ -420,6 +420,8 @@ namespace vast
                         hl::ImplicitCastOp op, hl::ImplicitCastOp::Adaptor ops,
                         mlir::ConversionPatternRewriter &rewriter) const override
             {
+                auto trg_type = tc.convert_type_to_type(op.getType());
+                VAST_PATTERN_CHECK(trg_type, "Did not convert type");
                 if (op.getKind() == hl::CastKind::LValueToRValue)
                 {
                     // TODO(lukas): Without `--ccopts -xc` in case of `c = (x = 5)`
@@ -439,7 +441,7 @@ namespace vast
                     const auto &dl = this->type_converter().getDataLayoutAnalysis()
                                                            ->getAtOrAbove(op);
                     auto coerced = create_trunc_or_sext(
-                            ops.getOperands()[0], op.getType(),
+                            ops.getOperands()[0], *trg_type,
                             rewriter, op.getLoc(), dl);
                     rewriter.replaceOp(op, {coerced});
                     return mlir::success();
