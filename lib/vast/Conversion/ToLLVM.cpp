@@ -144,6 +144,82 @@ namespace vast
             }
         };
 
+        struct initialize_var : BasePattern< ll::InitializeVar >
+        {
+            using op_t = ll::InitializeVar;
+            using Base = BasePattern< op_t >;
+            using Base::Base;
+
+            mlir::LogicalResult matchAndRewrite(
+                    op_t op, typename op_t::Adaptor ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                auto index_type = tc.convert_type_to_type(rewriter.getIndexType());
+                VAST_PATTERN_CHECK(index_type, "Was not able to convert index type");
+
+                for (auto element : ops.elements())
+                {
+                    // TODO(lukas): This is not ideal - when lowering into ll we most
+                    //              likely want to have multiple types of initializations?
+                    //              For example `memset` or ctor call?
+                    if (auto init_list_expr = element.getDefiningOp< hl::InitListExpr >())
+                    {
+                        std::size_t i = 0;
+                        for (auto expr_elem : init_list_expr.getElements())
+                        {
+                            auto e_type = LLVM::LLVMPointerType::get(expr_elem.getType());
+                            auto index = rewriter.create< LLVM::ConstantOp >(
+                                    op.getLoc(), *index_type,
+                                    rewriter.getIntegerAttr(rewriter.getIndexType(), i++));
+                            auto gep = rewriter.create< LLVM::GEPOp >(
+                                    op.getLoc(), e_type, ops.var(), index.getResult());
+
+                            rewriter.create< LLVM::StoreOp >(op.getLoc(), expr_elem, gep);
+                        }
+                        rewriter.eraseOp(init_list_expr);
+                        break;
+                    }
+
+                    rewriter.create< LLVM::StoreOp >(op.getLoc(), element, ops.var());
+                }
+
+                // While op is a value, there is no reason not to use the previous alloca,
+                // since we just initialized it.
+                rewriter.replaceOp(op, ops.var());
+
+                return mlir::success();
+            }
+        };
+
+        struct init_list_expr : BasePattern< hl::InitListExpr >
+        {
+            using op_t = hl::InitListExpr;
+            using Base = BasePattern< op_t >;
+            using Base::Base;
+
+            mlir::LogicalResult matchAndRewrite(
+                    op_t op, typename op_t::Adaptor ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                std::vector< mlir::Value > converted;
+                // TODO(lukas): Can we just directly use `getElements`?
+                for (auto element : ops.getElements())
+                    converted.push_back(element);
+
+
+                // We cannot replace the op with just `converted` as there is an internal
+                // assert that number we replace the same count of things.
+                VAST_PATTERN_CHECK(op.getNumResults() == 1, "Unexpected number of results");
+                auto res_type = tc.convert_type_to_type(op.getType(0));
+                VAST_PATTERN_CHECK(res_type, "Failed conversion of InitListExpr res type");
+                auto new_op = rewriter.create< hl::InitListExpr >(
+                        op.getLoc(), *res_type, converted);
+                rewriter.replaceOp(op, new_op.getResults());
+
+                return mlir::success();
+            }
+        };
+
         struct func_op : BasePattern< mlir::func::FuncOp >
         {
             using Base = BasePattern< mlir::func::FuncOp >;
@@ -506,6 +582,13 @@ namespace vast
     } // namespace pattern
 
 
+    template< typename Op >
+    bool has_llvm_only_types(Op op)
+    {
+        return util::for_each_subtype(op.getResultTypes(), mlir::LLVM::isCompatibleType);
+    }
+
+
     struct ToLLVMPass : ToLLVMBase< ToLLVMPass >
     {
         void runOnOperation() override;
@@ -521,6 +604,10 @@ namespace vast
         target.addIllegalDialect< hl::HighLevelDialect >();
         target.addIllegalDialect< ll::LowLevelDialect >();
         target.addLegalOp< hl::TypeDefOp >();
+
+        target.addDynamicallyLegalOp< hl::InitListExpr >(
+                has_llvm_only_types< hl::InitListExpr>);
+
         target.addIllegalOp< mlir::func::FuncOp >();
         target.markUnknownOpDynamicallyLegal([](auto) { return true; });
 
@@ -547,9 +634,12 @@ namespace vast
         patterns.add< pattern::call >(type_converter);
         patterns.add< pattern::cmp >(type_converter);
 
+        patterns.add< pattern::init_list_expr >(type_converter);
+
         // LL patterns
         patterns.add< pattern::uninit_var >(type_converter);
-        patterns.add< pattern::cmp >(type_converter);
+        patterns.add< pattern::initialize_var >(type_converter);
+
         if (mlir::failed(mlir::applyPartialConversion(op, target, std::move(patterns))))
             return signalPassFailure();
     }
