@@ -10,6 +10,49 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::util
 {
+    // Walks all types (including nested types for aggregates) and calls the unary function
+    // on each of them.
+    template< typename UnaryFn >
+    void walk_type(mlir::Type root, UnaryFn &&fn)
+    {
+        fn(root);
+        if (auto aggregate = root.dyn_cast< mlir::SubElementTypeInterface >())
+            aggregate.walkSubTypes(std::forward< UnaryFn >(fn));
+
+    }
+
+    // TODO(lukas): `fn` is copied.
+    template< typename UnaryFn >
+    void walk_type(mlir::TypeRange range, UnaryFn fn)
+    {
+        for (auto type : range)
+            walk_type(type, fn);
+    }
+
+    template< typename R, typename UnaryFn, typename Combine >
+    bool walk_type(R &&type, UnaryFn &&fn, Combine &&combine, bool init)
+    {
+        bool out = init;
+        auto wrap = [impl = std::forward< UnaryFn >(fn),
+                     combine = std::forward< Combine >(combine),
+                     &out](auto element_type)
+        {
+            out = combine(out, impl(element_type));
+        };
+        walk_type(std::forward< R >(type), std::move(wrap));
+
+        return out;
+    }
+
+
+    template< typename R, typename UnaryPred >
+    bool for_each_subtype(R &&type, UnaryPred &&pred)
+    {
+        return walk_type(std::forward< R >(type),
+                         std::forward< UnaryPred >(pred),
+                         std::logical_and{}, true);
+    }
+
     template< typename Self >
     struct TCHelpers
     {
