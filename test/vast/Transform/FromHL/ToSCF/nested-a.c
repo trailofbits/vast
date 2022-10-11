@@ -1,5 +1,4 @@
 // RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-lower-types --vast-hl-structs-to-tuples --vast-hl-to-scf | FileCheck %s
-// REQUIRES: to-scf
 
 int fn()
 {
@@ -14,13 +13,13 @@ int fn()
         if (x == 4)
         {
             // CHECK:     hl.scope {
-            // CHECK:       hl.return %8 : i32
+            // CHECK:       hl.return %8 : si32
             // CHECK:     }
             return x;
         // CHECK:   } else {
         } else {
             // CHECK:     hl.scope {
-            // CHECK:       hl.return %7 : i32
+            // CHECK:       hl.return %7 : si32
             // CHECK:     }
             // CHECK:   }
             return 5;
