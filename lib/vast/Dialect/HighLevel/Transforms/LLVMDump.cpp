@@ -59,16 +59,21 @@ namespace vast::hl
         auto &mctx = this->getContext();
         mlir::ModuleOp op = this->getOperation();
 
-        registerHLToLLVMIR(mctx);
-        mlir::DialectRegistry registry;
-        mlir::registerAllToLLVMIRTranslations(registry);
-        mctx.appendDialectRegistry(registry);
+        // If the old data layout with high level types is left in the module,
+        // some parsing functionality inside the `mlir::translateModuleToLLVMIR`
+        // will fail and no conversion translation happens, even in case these
+        // entries are not used at all.
+        auto old_dl = op->getAttr(mlir::DLTIDialect::kDataLayoutAttrName);
+        op->setAttr(mlir::DLTIDialect::kDataLayoutAttrName,
+                    mlir::DataLayoutSpecAttr::get(&mctx, {}));
 
         llvm::LLVMContext lctx;
         auto lmodule = mlir::translateModuleToLLVMIR(op, lctx);
         if (!lmodule)
             return signalPassFailure();
 
+        // Restore the data layout in case this module is getting re-used later.
+        op->setAttr(mlir::DLTIDialect::kDataLayoutAttrName, old_dl);
 
         llvm::InitializeNativeTarget();
         llvm::InitializeNativeTargetAsmPrinter();
