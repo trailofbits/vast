@@ -66,20 +66,20 @@ namespace vast::hl
                 return {};
             }
 
-            hl::NamedType fetch_record_type(mlir::Type type)
+            hl::RecordType fetch_record_type(mlir::Type type)
             {
-                auto unwrap = [](auto t)
-                {
-                    return t.getElementType().template dyn_cast< hl::NamedType >();
-                };
-
                 // TODO(lukas): Rework if we need to handle more cases, probably use
                 //              type switch.
                 if (auto x = type.dyn_cast< hl::LValueType >())
-                    return unwrap(x);
+                    return fetch_record_type(x.getElementType());
                 if (auto x = type.dyn_cast< hl::PointerType >())
-                    return unwrap(x);
-                return {};
+                    return fetch_record_type(x.getElementType());
+
+                // This is just sugar.
+                if (auto elaborated = type.dyn_cast< hl::ElaboratedType >())
+                    return fetch_record_type(elaborated.getElementType());
+
+                return type.dyn_cast< hl::RecordType >();
 
             }
 
