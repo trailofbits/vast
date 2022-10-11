@@ -10,6 +10,7 @@ VAST_RELAX_WARNINGS
 #include "mlir/Pass/Pass.h"
 #include "mlir/Pass/PassManager.h"
 #include "mlir/Support/FileUtilities.h"
+#include "mlir/Target/LLVMIR/Dialect/All.h"
 #include "mlir/Tools/mlir-opt/MlirOptMain.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/InitLLVM.h"
@@ -32,6 +33,8 @@ int main(int argc, char **argv)
 
     mlir::DialectRegistry registry;
     vast::registerAllDialects(registry);
+    mlir::registerAllToLLVMIRTranslations(registry);
+    vast::hl::registerHLToLLVMIR(registry);
     mlir::registerAllDialects(registry);
     return failed(
         mlir::MlirOptMain(argc, argv, "VAST Optimizer driver\n", registry)
