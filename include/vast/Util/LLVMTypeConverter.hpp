@@ -185,13 +185,19 @@ namespace vast::util::tc
         template< typename ... Args >
         FullLLVMTypeConverter(Args && ... args) : parent_t(std::forward< Args >(args) ... )
         {
-            addConversion([&](hl::NamedType t) { return convert_named_t(t); });
+            addConversion([&](hl::RecordType t) { return convert_record_type(t); });
+            addConversion([&](hl::ElaboratedType t) { return convert_elaborated_type(t); });
         }
 
-        maybe_type_t convert_named_t(hl::NamedType t)
+        maybe_type_t convert_elaborated_type(hl::ElaboratedType t)
+        {
+            return this->convert_type_to_type(t.getElementType());
+        }
+
+        maybe_type_t convert_record_type(hl::RecordType t)
         {
             auto &mctx = this->getContext();
-            auto name = t.getName().getName();
+            auto name = t.getName();
             auto raw = mlir::LLVM::LLVMStructType::getIdentified(&mctx, name);
             if (!raw || raw.getName() != name)
                 return {};
