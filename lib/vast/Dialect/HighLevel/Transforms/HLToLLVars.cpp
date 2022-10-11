@@ -73,6 +73,12 @@ namespace vast::hl
                 auto uninit_var = rewriter.create< ll::UninitializedVar >(op.getLoc(),
                                                                           trg_type);
 
+                if (op.getInitializer().empty())
+                {
+                    rewriter.replaceOp(op, {uninit_var});
+                    return mlir::success();
+                }
+
                 auto yield = inline_init_region< hl::ValueYieldOp >(op, rewriter);
                 rewriter.setInsertionPointAfter(yield);
                 auto initialize = rewriter.create< ll::InitializeVar >(
@@ -82,7 +88,6 @@ namespace vast::hl
 
                 rewriter.replaceOp(op, {initialize});
                 rewriter.eraseOp(yield);
-
 
                 return mlir::success();
             }
