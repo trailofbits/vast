@@ -5,9 +5,14 @@
 
 include "mlir/IR/OpBase.td"
 
+include "mlir/IR/FunctionInterfaces.td"
+
 include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/Interfaces/CastInterfaces.td"
 include "vast/Interfaces/SymbolInterface.td"
+
+include "vast/Dialect/HighLevel/HighLevelLinkage.td"
+
 
 def TranslationUnitOp
   : HighLevel_Op< "translation_unit", [NoTerminator, SymbolTable, IsolatedFromAbove] >
@@ -32,6 +37,105 @@ def ScopeOp : HighLevel_Op< "scope", [NoTerminator] >
   let regions = (region AnyRegion:$body);
 
   let assemblyFormat = [{ $body attr-dict }];
+}
+
+def FuncOp : HighLevel_Op< "func", [
+  AutomaticAllocationScope, CallableOpInterface, FunctionOpInterface,
+  IsolatedFromAbove, Symbol
+] > {
+  let summary = "VAST high-level function definintion or declaration";
+
+  let description = [{
+    Inspired by `cir::FuncOp` and `mlir::func::FuncOp`:
+    > Operations within the function cannot implicitly capture values defined
+    > outside of the function, i.e. Functions are `IsolatedFromAbove`. All
+    > external references must use function arguments or attributes that establish
+    > a symbolic connection (e.g. symbols referenced by name via a string
+    > attribute like SymbolRefAttr). An external function declaration (used when
+    > referring to a function declared in some other module) has no body.
+
+    The function linkage information is specified by `linkage`, as defined by
+    `GlobalLinkageKind` attribute.
+  }];
+
+  let arguments =(ins
+    SymbolNameAttr:$sym_name,
+    TypeAttrOf<FunctionType>:$function_type,
+    DefaultValuedAttr<GlobalLinkageKind, "GlobalLinkageKind::ExternalLinkage">:$linkage,
+    OptionalAttr<StrAttr>:$sym_visibility
+  );
+
+  let regions = (region AnyRegion:$body);
+  let skipDefaultBuilders = 1;
+
+  let builders = [OpBuilder<(ins
+    "llvm::StringRef":$name,
+    "mlir::FunctionType":$type,
+    CArg< "GlobalLinkageKind", "GlobalLinkageKind::ExternalLinkage" >:$linkage,
+    CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
+    CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
+    CArg< "BuilderCallback", "std::nullopt" >:$body), [{
+      Builder::InsertionGuard guard($_builder);
+      detail::build_region($_builder, $_state, body);
+
+      $_state.addAttribute(
+        mlir::SymbolTable::getSymbolAttrName(), $_builder.getStringAttr(name)
+      );
+      $_state.addAttribute(getTypeAttrName(), mlir::TypeAttr::get(type));
+      $_state.addAttribute(
+        "linkage", GlobalLinkageKindAttr::get($_builder.getContext(), linkage)
+      );
+      $_state.attributes.append(attrs.begin(), attrs.end());
+
+      if (arg_attrs.empty())
+        return;
+
+      mlir::function_interface_impl::addArgAndResultAttrs(
+        $_builder, $_state, arg_attrs, /* results */ llvm::None
+      );
+    }] >
+  ];
+
+  let extraClassDeclaration = [{
+    //===------------------------------------------------------------------===//
+    // CallableOpInterface
+    //===------------------------------------------------------------------===//
+
+    /// Returns the region on the current operation that is callable. This may
+    /// return null in the case of an external callable object, e.g. an external
+    /// function.
+    ::mlir::Region *getCallableRegion() {
+      return isExternal() ? nullptr : &getBody();
+    }
+
+    /// Returns the results types that the callable region produces when
+    /// executed.
+    llvm::ArrayRef<Type> getCallableResults() {
+      return getFunctionType().getResults();
+    }
+
+    //===------------------------------------------------------------------===//
+    // FunctionOpInterface Methods
+    //===------------------------------------------------------------------===//
+
+    /// Returns the argument types of this function.
+    llvm::ArrayRef<Type> getArgumentTypes() { return getFunctionType().getInputs(); }
+
+    /// Returns the result types of this function.
+    llvm::ArrayRef<Type> getResultTypes() { return getFunctionType().getResults(); }
+
+    //===------------------------------------------------------------------===//
+    // SymbolOpInterface Methods
+    //===------------------------------------------------------------------===//
+
+    bool isDeclaration() { return isExternal(); }
+  }];
+
+  let assemblyFormat = [{
+    $linkage $sym_name custom< FunctionSignaruteAndBody >($function_type, attr-dict, $body)
+  }];
+
+  let hasVerifier = 1;
 }
 
 def TypeDeclOp
@@ -193,7 +297,7 @@ def CallOp
 
   let skipDefaultBuilders = 1;
   let builders = [
-    OpBuilder< (ins "mlir::func::FuncOp":$callee, CArg<"mlir::ValueRange", "{}">:$operands ), [{
+    OpBuilder< (ins "FuncOp":$callee, CArg<"mlir::ValueRange", "{}">:$operands ), [{
       $_state.addOperands(operands);
       $_state.addAttribute("callee", mlir::SymbolRefAttr::get($_builder.getContext(), callee.getName()));
       $_state.addTypes(callee.getFunctionType().getResults());

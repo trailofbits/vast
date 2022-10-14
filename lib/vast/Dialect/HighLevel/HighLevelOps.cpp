@@ -5,12 +5,15 @@
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
+#include "vast/Util/Common.hpp"
+
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/OperationSupport.h>
 #include <mlir/IR/SymbolTable.h>
 #include <mlir/IR/OpImplementation.h>
+#include <mlir/IR/FunctionImplementation.h>
 
 #include <llvm/Support/ErrorHandling.h>
 
@@ -34,6 +37,134 @@ namespace vast::hl
 
     using FoldResult = mlir::OpFoldResult;
 
+    //===----------------------------------------------------------------------===//
+    // FuncOp
+    //===----------------------------------------------------------------------===//
+
+    // This function is adapted from CIR:
+    //
+    // Verifies linkage types, similar to LLVM:
+    // - functions don't have 'common' linkage
+    // - external functions have 'external' or 'extern_weak' linkage
+    LogicalResult FuncOp::verify() {
+        auto linkage = getLinkage();
+        constexpr auto common = GlobalLinkageKind::CommonLinkage;
+        if (linkage == common) {
+            return emitOpError() << "functions cannot have '"
+                << stringifyGlobalLinkageKind(common)
+                << "' linkage";
+        }
+
+        if (isExternal()) {
+            constexpr auto external = GlobalLinkageKind::ExternalLinkage;
+            constexpr auto weak_external = GlobalLinkageKind::ExternalWeakLinkage;
+            if (linkage != external && linkage != weak_external) {
+                return emitOpError() << "external functions must have '"
+                    << stringifyGlobalLinkageKind(external)
+                    << "' or '"
+                    << stringifyGlobalLinkageKind(weak_external)
+                    << "' linkage";
+            }
+            return mlir::success();
+        }
+        return mlir::success();
+    }
+
+    void add_arg_attrs(Builder &bld, State &st, llvm::ArrayRef< mlir::DictionaryAttr > arg_attrs) {
+        auto non_empty_attrs = [] (mlir::DictionaryAttr attrs) {
+            return attrs && !attrs.empty();
+        };
+
+        // Convert the specified array of dictionary attrs (which may have null
+        // entries) to an ArrayAttr of dictionaries.
+        auto get_array_attr = [&] (llvm::ArrayRef< mlir::DictionaryAttr > dict_attrs) {
+            llvm::SmallVector< Attribute > attrs;
+            for (auto &dict : dict_attrs) {
+                attrs.push_back(dict ? dict : bld.getDictionaryAttr({}));
+            }
+            return bld.getArrayAttr(attrs);
+        };
+
+        // Add the attributes to the function arguments.
+        if (llvm::any_of(arg_attrs, non_empty_attrs)) {
+            st.addAttribute(mlir::function_interface_impl::getArgDictAttrName(), get_array_attr(arg_attrs));
+        }
+    }
+
+    ParseResult parseFunctionSignaruteAndBody(
+        Parser &parser, Attribute &funcion_type, mlir::NamedAttrList &attr_dict, Region &body
+    ) {
+        llvm::SmallVector< Parser::Argument, 8 > arguments;
+        llvm::SmallVector< mlir::DictionaryAttr, 1 > result_attrs;
+        llvm::SmallVector< Type, 8 > arg_types;
+        llvm::SmallVector< Type, 4 > result_types;
+
+        auto &builder = parser.getBuilder();
+
+        bool is_variadic = false;
+        if (mlir::failed(mlir::function_interface_impl::parseFunctionSignature(
+            parser, /*allowVariadic=*/false, arguments, is_variadic, result_types, result_attrs
+        ))) {
+            return mlir::failure();
+        }
+
+
+        for (auto &arg : arguments) {
+            arg_types.push_back(arg.type);
+        }
+
+        // create parsed function type
+        funcion_type = mlir::TypeAttr::get(
+            builder.getFunctionType(arg_types, result_types)
+        );
+
+        // If additional attributes are present, parse them.
+        if (parser.parseOptionalAttrDictWithKeyword(attr_dict)) {
+            return mlir::failure();
+        }
+
+        // TODO: Add the attributes to the function arguments.
+        // VAST_ASSERT(result_attrs.size() == result_types.size());
+        // return mlir::function_interface_impl::addArgAndResultAttrs(
+        //     builder, state, arguments, result_attrs
+        // );
+
+        auto loc = parser.getCurrentLocation();
+        auto parse_result = parser.parseOptionalRegion(
+            body, arguments, /* enableNameShadowing */false
+        );
+
+        if (parse_result.hasValue()) {
+            if (failed(*parse_result))
+                return mlir::failure();
+            // Function body was parsed, make sure its not empty.
+            if (body.empty())
+                return parser.emitError(loc, "expected non-empty function body");
+        }
+
+        return mlir::success();
+    }
+
+    void printFunctionSignaruteAndBody(
+        Printer &printer, FuncOp op, Attribute /* funcion_type */, mlir::DictionaryAttr, Region &body
+    ) {
+        auto fty = op.getFunctionType();
+        mlir::function_interface_impl::printFunctionSignature(
+            printer, op, fty.getInputs(), /* variadic */false, fty.getResults()
+        );
+
+        mlir::function_interface_impl::printFunctionAttributes(
+            printer, op, fty.getNumInputs(), fty.getNumResults(), {"linkage"}
+        );
+
+
+        if (!body.empty()) {
+            printer.printRegion( body,
+                /* printEntryBlockArgs */false,
+                /* printBlockTerminators */true
+            );
+        }
+    }
 
     FoldResult ConstantOp::fold(mlir::ArrayRef<Attribute> operands) {
         VAST_CHECK(operands.empty(), "constant has no operands");

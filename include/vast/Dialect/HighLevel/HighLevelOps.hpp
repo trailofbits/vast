@@ -8,7 +8,8 @@
 #include "vast/Interfaces/SymbolInterface.hpp"
 #include "vast/Interfaces/TypedAttrInterface.hpp"
 
-#include <mlir/Dialect/Func/IR/FuncOps.h>
+#include <mlir/IR/FunctionInterfaces.h>
+#include <mlir/Interfaces/CallInterfaces.h>
 #include <mlir/Interfaces/InferTypeOpInterface.h>
 
 namespace vast::hl
