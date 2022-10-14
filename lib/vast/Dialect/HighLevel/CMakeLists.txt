@@ -6,6 +6,7 @@ add_mlir_dialect_library(MLIRHighLevel
     HighLevelOps.cpp
     HighLevelAttributes.cpp
     HighLevelTypes.cpp
+    HighLevelLinkage.cpp
 
     ADDITIONAL_HEADER_DIRS
     ${PROJECT_SOURCE_DIR}/include/vast
