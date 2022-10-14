@@ -52,14 +52,14 @@ namespace vast::hl
         namespace LLVM = mlir::LLVM;
 
         // Since information is hidden in attribute, entire op must be an argument.
-        bool is_variadic(mlir::func::FuncOp op)
+        bool is_variadic(FuncOp op)
         {
             // TODO(lukas): Implement once hl supports it.
             return false;
         }
 
-        auto convert_fn_t(auto &tc, mlir::func::FuncOp op)
-        -> std::tuple< mlir::TypeConverter::SignatureConversion, mlir::Type >
+        auto convert_fn_t(auto &tc, FuncOp op)
+            -> std::tuple< mlir::TypeConverter::SignatureConversion, mlir::Type >
         {
             mlir::TypeConverter::SignatureConversion conversion(op.getNumArguments());
             auto target_type = tc.convertFunctionSignature(
@@ -155,8 +155,7 @@ namespace vast::hl
             using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
             using maybe_signature_conversion_t = std::optional< signature_conversion_t >;
 
-            maybe_signature_conversion_t get_conversion_signature(mlir::func::FuncOp fn,
-                                                                  bool variadic)
+            maybe_signature_conversion_t get_conversion_signature(FuncOp fn, bool variadic)
             {
                 signature_conversion_t conversion(fn.getNumArguments());
                 for (auto arg : llvm::enumerate(fn.getFunctionType().getInputs()))
@@ -260,19 +259,18 @@ namespace vast::hl
             }
         };
 
-        struct func_op : BasePattern< mlir::func::FuncOp >
+        struct func_op : BasePattern< FuncOp >
         {
-            using Base = BasePattern< mlir::func::FuncOp >;
+            using Base = BasePattern< FuncOp >;
             using Base::Base;
 
             mlir::LogicalResult matchAndRewrite(
-                    mlir::func::FuncOp func_op, mlir::func::FuncOp::Adaptor ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+                FuncOp fn, FuncOp::Adaptor ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
             {
                 auto &tc = this->type_converter();
-                auto maybe_target_type = tc.convert_fn_t(func_op.getFunctionType());
-                auto maybe_signature = tc.get_conversion_signature(func_op,
-                                                                   is_variadic(func_op));
+                auto maybe_target_type = tc.convert_fn_t(fn.getFunctionType());
+                auto maybe_signature = tc.get_conversion_signature(fn, is_variadic(fn));
                 // Type converter failed.
                 if (!maybe_target_type || !*maybe_target_type || !maybe_signature)
                     return mlir::failure();
@@ -284,31 +282,34 @@ namespace vast::hl
                 //              Copy those we want to preserve.
                 mlir::SmallVector< mlir::NamedAttribute, 8 > new_attrs;
 
-                if (auto original_arg_attr = func_op.getAllArgAttrs())
+                if (auto original_arg_attr = fn.getAllArgAttrs())
                 {
                     mlir::SmallVector< mlir::Attribute, 8 > new_arg_attrs;
-                    for (std::size_t i = 0; i < func_op.getNumArguments(); ++i)
+                    for (std::size_t i = 0; i < fn.getNumArguments(); ++i)
                     {
                         const auto &mapping = signature.getInputMapping(i);
                         for (std::size_t j = 0; j < mapping->size; ++j)
                             new_arg_attrs[mapping->inputNo + j] = original_arg_attr[i];
                     }
+
                     new_attrs.push_back(rewriter.getNamedAttr(
-                                mlir::FunctionOpInterface::getArgDictAttrName(),
-                                rewriter.getArrayAttr(new_arg_attrs)));
+                        mlir::FunctionOpInterface::getArgDictAttrName(),
+                        rewriter.getArrayAttr(new_arg_attrs))
+                    );
                 }
                 // TODO(lukas): Linkage?
                 auto linkage = LLVM::Linkage::External;
                 auto new_func = rewriter.create< LLVM::LLVMFuncOp >(
-                        func_op.getLoc(), func_op.getName(), target_type,
-                        linkage, false, LLVM::CConv::C, new_attrs);
-                rewriter.inlineRegionBefore(func_op.getBody(),
+                    fn.getLoc(), fn.getName(), target_type,
+                    linkage, false, LLVM::CConv::C, new_attrs
+                );
+                rewriter.inlineRegionBefore(fn.getBody(),
                                             new_func.getBody(), new_func.end());
-                util::convert_region_types(func_op, new_func, signature);
+                util::convert_region_types(fn, new_func, signature);
 
                 if (mlir::failed(args_to_allocas(new_func, rewriter)))
                     return mlir::failure();
-                rewriter.eraseOp(func_op);
+                rewriter.eraseOp(fn);
                 return mlir::success();
             }
 
@@ -699,7 +700,7 @@ namespace vast::hl
         mlir::ConversionTarget target(mctx);
         target.addIllegalDialect< hl::HighLevelDialect >();
         target.addLegalOp< hl::TypeDefOp >();
-        target.addIllegalOp< mlir::func::FuncOp >();
+        target.addIllegalOp< FuncOp >();
         target.markUnknownOpDynamicallyLegal([](auto) { return true; });
 
         const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
