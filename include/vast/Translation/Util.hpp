@@ -46,7 +46,7 @@ namespace vast::hl
         }
     }
 
-    inline void splice_trailing_scopes(mlir::func::FuncOp &fn) {
+    inline void splice_trailing_scopes(FuncOp &fn) {
         if (fn.empty())
             return;
         splice_trailing_scopes(fn.getBlocks());

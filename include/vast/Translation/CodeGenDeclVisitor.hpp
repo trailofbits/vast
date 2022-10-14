@@ -134,11 +134,11 @@ namespace vast::hl {
                 auto type = visit(decl->getFunctionType()).template cast< mlir::FunctionType >();
                 // make function header, that will be later filled with function body
                 // or returned as declaration in the case of external function
-                return make< mlir::func::FuncOp >(loc, decl->getName(), type);
+                return make< FuncOp >(loc, decl->getName(), type);
             });
 
             if (!is_definition) {
-                fn.setVisibility( mlir::func::FuncOp::Visibility::Private );
+                fn.setVisibility( FuncOp::Visibility::Private );
                 return fn;
             }
 
