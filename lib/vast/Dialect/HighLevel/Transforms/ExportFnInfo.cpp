@@ -213,7 +213,9 @@ namespace vast::hl
             mlir::ModuleOp mod = this->getOperation();
 
             llvm::json::Object top;
-            util::functions(mod, [&](mlir::func::FuncOp fn) {
+
+            // TODO use FunctionOpInterface instead of specific operation
+            util::functions(mod, [&](FuncOp fn) {
                 const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
                 const auto &dl          = dl_analysis.getAtOrAbove(mod);
 
