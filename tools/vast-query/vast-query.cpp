@@ -132,7 +132,7 @@ namespace vast::query
                         show_if(symbol, is_global< hl::VarDeclOp >());
                         break;
                     case cl::show_symbol_type::function:
-                        show_if(symbol, is_one_of< mlir::func::FuncOp >());
+                        show_if(symbol, is_one_of< hl::FuncOp >());
                         break;
                     case cl::show_symbol_type::none: break;
                 }
