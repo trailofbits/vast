@@ -103,9 +103,9 @@ namespace vast::hl {
 
         auto builder() -> CodeGenBuilderHandle { return { op_builder() }; }
 
-        mlir::func::FuncOp get_current_function() {
+        FuncOp get_current_function() {
             auto reg = op_builder().getBlock()->getParent();
-            return reg->template getParentOfType< mlir::func::FuncOp >();
+            return reg->template getParentOfType< FuncOp >();
         }
 
         void set_insertion_point_to_start(mlir::Region *region) {
@@ -245,8 +245,8 @@ namespace vast::hl {
             return create< ConstantOp >(loc, ty.cast< ArrayType >(), value);
         }
 
-        mlir::func::FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
-            return declare< mlir::func::FuncOp >(context().funcdecls, decl, vast_decl_builder);
+        FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
+            return declare< FuncOp >(context().funcdecls, decl, vast_decl_builder);
         }
 
         Value declare(const clang::ParmVarDecl *decl, auto vast_value) {

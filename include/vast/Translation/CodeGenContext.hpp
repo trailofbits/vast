@@ -46,7 +46,7 @@ namespace vast::hl
         using TypeDeclTable = ScopedValueTable< const clang::TypeDecl *, TypeDeclOp >;
         TypeDeclTable typedecls;
 
-        using FuncDeclTable = ScopedValueTable< const clang::FunctionDecl *, mlir::func::FuncOp >;
+        using FuncDeclTable = ScopedValueTable< const clang::FunctionDecl *, FuncOp >;
         FuncDeclTable funcdecls;
 
         using EnumDecls = ScopedValueTable< const clang::EnumDecl *, EnumDeclOp >;
@@ -124,7 +124,7 @@ namespace vast::hl
             return nullptr;
         }
 
-        mlir::func::FuncOp lookup_function(const clang::FunctionDecl *decl, bool with_error = true) {
+        FuncOp lookup_function(const clang::FunctionDecl *decl, bool with_error = true) {
             return symbol(funcdecls, decl, "error: undeclared function '" + decl->getName() + "'", with_error);
         }
 
