@@ -6,18 +6,18 @@
 
 VAST_RELAX_WARNINGS
 #include <mlir/IR/SymbolTable.h>
-#include <mlir/Dialect/Func/IR/FuncOps.h>
 #include <llvm/Support/raw_ostream.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Interfaces/SymbolInterface.hpp"
 
 namespace vast::util
 {
-    using vast_symbol_interface = vast::VastSymbolOpInterface;
-    using mlir_symbol_interface = mlir::SymbolOpInterface;
+    using vast_symbol_interface   = vast::VastSymbolOpInterface;
+    using mlir_symbol_interface   = mlir::SymbolOpInterface;
 
     void symbols(mlir::Operation *op, auto &&yield) {
         op->walk([&] (mlir::Operation *child) {
@@ -40,7 +40,8 @@ namespace vast::util
 
     template< typename Yield >
     void functions(mlir::Operation *op, Yield &&yield) {
-        op->walk([yield = std::forward< Yield >(yield)](mlir::func::FuncOp fn, const mlir::WalkStage &stage) {
+        // TODO use mlir::FunctionOpInterface?
+        op->walk([yield = std::forward< Yield >(yield)](hl::FuncOp fn, const mlir::WalkStage &stage) {
             yield(fn);
         });
     }
