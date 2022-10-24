@@ -1,7 +1,7 @@
 // RUN: vast-cc --from-source %s | FileCheck %s
 // RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK: func @add1([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
+// CHECK: hl.func external @add1 ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int add1(int a, int b)
 {
     // CHECK: [[V1:%[0-9]+]] = hl.ref [[A1]] : !hl.lvalue<!hl.int>
@@ -12,7 +12,7 @@ int add1(int a, int b)
     return a + b;
 }
 
-// CHECK: func @add2([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
+// CHECK: hl.func external @add2 ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int add2(int a, int b)
 {
     // CHECK: [[R:%[0-9]+]] = hl.var "r" : !hl.lvalue<!hl.int> = {
@@ -30,7 +30,7 @@ int add2(int a, int b)
     return r;
 }
 
-// CHECK: func @add3() -> !hl.void
+// CHECK: hl.func external @add3 () -> !hl.void
 void add3()
 {
     // CHECK: hl.var "v" : !hl.lvalue<!hl.int> = {

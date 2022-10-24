@@ -1,7 +1,7 @@
 // RUN: vast-cc --from-source %s | FileCheck %s
 // RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: func @while_break
+// CHECK-LABEL: hl.func external @while_break
 void while_break()
 {
     // CHECK: hl.while
@@ -15,7 +15,7 @@ void while_break()
     // CHECK: }
 }
 
-// CHECK-LABEL: func @while_continue
+// CHECK-LABEL: hl.func external @while_continue
 void while_continue()
 {
     // CHECK: hl.while

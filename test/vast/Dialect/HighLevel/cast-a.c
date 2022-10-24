@@ -1,7 +1,7 @@
 // RUN: vast-cc --from-source %s | FileCheck %s
 // RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: func @cast_cstyle
+// CHECK-LABEL: hl.func external @cast_cstyle
 void cast_cstyle()
 {
     int i = 0;

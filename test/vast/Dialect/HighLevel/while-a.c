@@ -1,7 +1,7 @@
 // RUN: vast-cc --from-source %s | FileCheck %s
 // RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: func @while_empty
+// CHECK-LABEL: hl.func external @while_empty
 void while_empty()
 {
     // CHECK: hl.while
@@ -12,7 +12,7 @@ void while_empty()
     }
 }
 
-// CHECK-LABEL: func @while_simple
+// CHECK-LABEL: hl.func external @while_simple
 void while_simple(int a)
 {
     // CHECK: hl.while
@@ -27,7 +27,7 @@ void while_simple(int a)
     }
 }
 
-// CHECK-LABEL: func @while_nested
+// CHECK-LABEL: hl.func external @while_nested
 void while_nested(int a, int b)
 {
     // CHECK: hl.while

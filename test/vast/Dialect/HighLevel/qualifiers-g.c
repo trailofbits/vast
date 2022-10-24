@@ -5,7 +5,7 @@
 // CHECK: hl.var "b" : !hl.lvalue<!hl.ptr<!hl.float,  restrict >>
 float * restrict a, * restrict b;
 
-// CHECK: @f(!hl.lvalue<!hl.int>, !hl.lvalue<!hl.ptr<!hl.float,  restrict >>, !hl.lvalue<!hl.ptr<!hl.float,  const >>) -> !hl.void
+// CHECK: @f (!hl.lvalue<!hl.int>, !hl.lvalue<!hl.ptr<!hl.float,  restrict >>, !hl.lvalue<!hl.ptr<!hl.float,  const >>) -> !hl.void
 void f(int n, float * restrict a, float * const b);
 
 struct t {
