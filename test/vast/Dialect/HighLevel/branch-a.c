@@ -1,7 +1,7 @@
 // RUN: vast-cc --from-source %s | FileCheck %s
 // RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: func @branch_ret
+// CHECK-LABEL: hl.func external @branch_ret
 int branch_ret(int a, int b)
 {
     // CHECK: hl.if {
@@ -21,7 +21,7 @@ int branch_ret(int a, int b)
     // CHECK: hl.unreachable
 }
 
-// CHECK-LABEL: func @branch_then
+// CHECK-LABEL: hl.func external @branch_then
 int branch_then(int a, int b)
 {
     // CHECK: hl.if
@@ -39,7 +39,7 @@ int branch_then(int a, int b)
     return 1;
 }
 
-// CHECK-LABEL: func @branch_then_noreturn
+// CHECK-LABEL: hl.func external @branch_then_noreturn
 int branch_then_noreturn(int a, int b)
 {
     // CHECK: hl.if
@@ -59,7 +59,7 @@ int branch_then_noreturn(int a, int b)
     return 1;
 }
 
-// CHECK-LABEL: func @branch_then_empty
+// CHECK-LABEL: hl.func external @branch_then_empty
 int branch_then_empty(int a, int b)
 {
     // CHECK: hl.if
@@ -74,7 +74,7 @@ int branch_then_empty(int a, int b)
     return 1;
 }
 
-// CHECK-LABEL: func @branch_else_empty
+// CHECK-LABEL: hl.func external @branch_else_empty
 int branch_else_empty(int a, int b)
 {
     // CHECK: hl.if
@@ -94,7 +94,7 @@ int branch_else_empty(int a, int b)
     return 1;
 }
 
-// CHECK-LABEL: func @branch_empty
+// CHECK-LABEL: hl.func external @branch_empty
 int branch_empty(int a, int b)
 {
     // CHECK: hl.if
@@ -110,7 +110,7 @@ int branch_empty(int a, int b)
     return 1;
 }
 
-// CHECK-LABEL: func @branch_true
+// CHECK-LABEL: hl.func external @branch_true
 int branch_true(int a, int b)
 {
     // CHECK: hl.if

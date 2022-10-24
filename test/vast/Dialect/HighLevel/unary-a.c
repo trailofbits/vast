@@ -1,7 +1,7 @@
 // RUN: vast-cc --from-source %s | FileCheck %s
 // RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: func @arithmetic
+// CHECK-LABEL: hl.func external @arithmetic
 void arithmetic(int a)
 {
     // CHECK: hl.post.inc
@@ -14,7 +14,7 @@ void arithmetic(int a)
     --a;
 }
 
-// CHECK-LABEL: func @sign
+// CHECK-LABEL: hl.func external @sign
 void sign(int a)
 {
     // CHECK: hl.plus
@@ -23,14 +23,14 @@ void sign(int a)
     -a;
 }
 
-// CHECK-LABEL: func @binary
+// CHECK-LABEL: hl.func external @binary
 void binary(int a)
 {
     // CHECK: hl.not
     ~a;
 }
 
-// CHECK-LABEL: func @logical
+// CHECK-LABEL: hl.func external @logical
 void logical(bool a)
 {
     // CHECK: hl.lnot

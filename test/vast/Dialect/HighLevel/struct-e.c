@@ -10,7 +10,7 @@ struct s {
     short b;
 };
 
-// CHECK: func @f() -> !hl.void
+// CHECK: hl.func external @f () -> !hl.void
 void f() {
     // CHECK: [[V:%[0-9]+]] = hl.var "v" : !hl.lvalue<!hl.elaborated<!hl.record<"s">>>
     struct s v;
