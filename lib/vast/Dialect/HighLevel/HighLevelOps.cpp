@@ -157,8 +157,8 @@ namespace vast::hl
             printer, op, fty.getNumInputs(), fty.getNumResults(), {"linkage"}
         );
 
-
         if (!body.empty()) {
+            printer.getStream() << " ";
             printer.printRegion( body,
                 /* printEntryBlockArgs */false,
                 /* printBlockTerminators */true
