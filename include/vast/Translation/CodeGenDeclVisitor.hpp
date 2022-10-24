@@ -13,6 +13,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Translation/CodeGenBuilder.hpp"
 #include "vast/Translation/CodeGenVisitorBase.hpp"
 #include "vast/Translation/CodeGenVisitorLens.hpp"
+#include "vast/Dialect/HighLevel/HighLevelLinkage.hpp"
 #include "vast/Translation/Util.hpp"
 
 namespace vast::hl {
@@ -129,18 +130,24 @@ namespace vast::hl {
             };
 
             llvm::ScopedHashTableScope scope(context().vars);
+
+            auto linkage = get_function_linkage(decl);
+
             auto fn = declare(decl, [&] () {
                 auto loc  = meta_location(decl);
                 auto type = visit(decl->getFunctionType()).template cast< mlir::FunctionType >();
                 // make function header, that will be later filled with function body
                 // or returned as declaration in the case of external function
-                return make< FuncOp >(loc, decl->getName(), type);
+                return make< FuncOp >(loc, decl->getName(), type, linkage);
             });
 
             if (!is_definition) {
-                fn.setVisibility( FuncOp::Visibility::Private );
+                // MLIR requires declrations to have private visibility
+                fn.setVisibility(mlir::SymbolTable::Visibility::Private);
                 return fn;
             }
+
+            fn.setVisibility(get_visibility_from_linkage(linkage));
 
             if (fn.empty()) {
                 emit_function_body(fn);
@@ -267,7 +274,7 @@ namespace vast::hl {
 
         Operation* VisitTypedefDecl(const clang::TypedefDecl *decl) {
             return declare(decl, [&] {
-                auto type = [&]() -> mlir::Type {
+                auto type = [&, this] () -> mlir::Type {
                     auto underlying = decl->getUnderlyingType();
                     if (auto fty = clang::dyn_cast< clang::FunctionType >(underlying)) {
                         return visit(fty);
