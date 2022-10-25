@@ -127,6 +127,15 @@ enable_sanitizers(vast_settings)
 # allow for static analysis options
 include(cmake/static_analyzers.cmake)
 
+option(ENABLE_PDLL_CONVERSIONS "Enable PDLL conversions" OFF)
+if (ENABLE_PDLL_CONVERSIONS)
+  message(STATUS "ENABLE_PDLL_CONVERSIONS")
+  target_compile_definitions(vast_settings
+    INTERFACE
+      -DENABLE_PDLL_CONVERSIONS
+  )
+endif()
+
 #
 # VAST libraries
 #
