@@ -19,3 +19,5 @@ target_link_libraries(vast-opt
 )
 
 mlir_check_all_link_libraries(vast-opt)
+
+add_dependencies( vast-opt VASTConversions )
