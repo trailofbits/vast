@@ -4,13 +4,12 @@
 # VAST: MLIR for Program Analysis
 
 VAST is a library for program analysis and instrumentation of C/C++ and related
-languages. The goal of this tool is to provide a foundation for customizable
-program representation for a broad spectrum of analyses. Using the MLIR
-infrastructure, VAST provides a toolset to represent C/C++ program at various stages of
-the compilation and to transform the representation to the best-fit program
-abstraction.
+languages. VAST provides a foundation for customizable program representation
+for a broad spectrum of analyses. Using the MLIR infrastructure, VAST provides
+a toolset to represent C/C++ program at various stages of the compilation and
+to transform the representation to the best-fit program abstraction.
 
-Whether static or dynamic, the program analysis often requires a specific view
+Whether static or dynamic, program analysis often requires a specific view
 of the source code. The usual requirements for a representation is to be
 easily analyzable, i.e., have a reasonably small set of operations, be truthful
 to the semantics of the analyzed program, and the analysis must be relatable to
@@ -21,17 +20,19 @@ The current state-of-the-art tools leverage compiler infrastructures to perform
 program analysis. This approach is beneficial because it remains truthful to the
 executed program semantics, whether AST or LLVM IR. However, these
 representations come at a cost as they are designed for optimization and code
-generation.
+generation, rather than for program analysis.
 
 The Clang AST is unoptimized and too complex for interpretation-based analysis.
-Also, it lacks program features that Clang inserts during LLVM codegen. On the
-other hand, LLVM is often too low-level and hardly relatable to high-level
-program constructs.
+Also, it lacks program features that Clang inserts during its LLVM code
+generation process. On the other hand, LLVM is often too low-level and hard to
+relate to high-level program constructs.
 
-We plan to design a compiler frontend in VAST with program analysis in mind. To
-be specific, VAST will represent the compilation process as a tower of IRs in
-multiple MLIR dialects. The MLIR allows us to capture high-level features from
-AST and interleave them with low-level dialects.
+VAST is a new compiler front/middle-end designed for program analysis. It
+transforms parsed C and C++ code, in the form of Clang ASTs, into a high-level
+MLIR dialect. The high level dialect is then progressively lowered all the way
+down to LLVM IR. This progression enables VAST to represent the code as a tower
+of IRs in multiple MLIR dialects. The MLIR allows us to capture high-level
+features from AST and interleave them with low-level dialects.
 
 ## A Tower of IRs
 
@@ -43,7 +44,7 @@ the top is a high-level dialect relatable to AST, and at the bottom is a
 low-level LLVM-like dialect. Layers are interlinked with location information.
 Higher layers can also be seen as metadata for lower layers.
 
-This feature simplifies analysis build on top of VAST IR in multiple ways. It
+This feature simplifies analysis built on top of VAST IR in multiple ways. It
 naturally provides __provenance__ to higher levels dialects (and source code)
 from the low levels. Similarly, one can reach for low-level representation from
 the high-level source view. This can have multiple utilizations.  One of them is
