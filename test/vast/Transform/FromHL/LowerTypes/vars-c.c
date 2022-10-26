@@ -1,6 +1,6 @@
 // RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-lower-types | FileCheck %s
 
-// CHECK-LABEL: func @main() -> si32
+// CHECK-LABEL: hl.func external @main () -> si32
 int main()
 {
     // CHECK: hl.var "x" : !hl.lvalue<si32> =  {
