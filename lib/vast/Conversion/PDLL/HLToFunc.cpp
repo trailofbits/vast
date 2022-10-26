@@ -3,7 +3,7 @@
 #include "vast/Conversion/Passes.hpp"
 #include "vast/Util/Common.hpp"
 
-#include "PassesDetails.hpp"
+#include "../PassesDetails.hpp"
 
 #include "vast/Conversion/HLToFunc.hpp"
 
