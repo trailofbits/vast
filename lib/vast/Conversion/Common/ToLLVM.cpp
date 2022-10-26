@@ -14,7 +14,7 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/APFloat.h>
 VAST_UNRELAX_WARNINGS
 
-#include "PassesDetails.hpp"
+#include "../PassesDetails.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
