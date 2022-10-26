@@ -1,5 +1,7 @@
 // RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-lower-types --vast-hl-to-ll-vars --vast-to-llvm | FileCheck %s
 
+// REQUIRES: funcop-lowering
+
 void count()
 {
     // CHECK: [[V0:%[0-9]+]] = llvm.mlir.constant(1 : index) : i64
