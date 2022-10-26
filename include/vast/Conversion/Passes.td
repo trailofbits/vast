@@ -32,7 +32,7 @@ def ToLLVM : Pass<"vast-to-llvm", "mlir::ModuleOp"> {
     This pass is still a work in progress.
   }];
 
-  let constructor = "vast::convert::createToLLVMPass()";
+  let constructor = "vast::createToLLVMPass()";
   let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::ll::LowLevelDialect",
                            "vast::hl::HighLevelDialect"];
 }
