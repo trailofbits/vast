@@ -6,12 +6,12 @@
 VAST is a library for program analysis and instrumentation of C/C++ and related
 languages. The goal of this tool is to provide a foundation for customizable
 program representation for a broad spectrum of analyses. Using the MLIR
-infrastructure, VAST provides a toolset to represent C/C++ at various stages of
+infrastructure, VAST provides a toolset to represent C/C++ program at various stages of
 the compilation and to transform the representation to the best-fit program
 abstraction.
 
 Whether static or dynamic, the program analysis often requires a specific view
-of the source code. The usual requirements for the representation are to be
+of the source code. The usual requirements for a representation is to be
 easily analyzable, i.e., have a reasonably small set of operations, be truthful
 to the semantics of the analyzed program, and the analysis must be relatable to
 the source. It is also beneficial to access the source at various abstraction
@@ -20,7 +20,7 @@ levels.
 The current state-of-the-art tools leverage compiler infrastructures to perform
 program analysis. This approach is beneficial because it remains truthful to the
 executed program semantics, whether AST or LLVM IR. However, these
-representations come at a cost that they are designed for optimization and code
+representations come at a cost as they are designed for optimization and code
 generation.
 
 The Clang AST is unoptimized and too complex for interpretation-based analysis.
@@ -44,7 +44,7 @@ low-level LLVM-like dialect. Layers are interlinked with location information.
 Higher layers can also be seen as metadata for lower layers.
 
 This feature simplifies analysis build on top of VAST IR in multiple ways. It
-naturally provides __provenance__ to source and higher levels of representation
+naturally provides __provenance__ to higher levels dialects (and source code)
 from the low levels. Similarly, one can reach for low-level representation from
 the high-level source view. This can have multiple utilizations.  One of them is
 relating analysis results to the source. For a user, it is invaluable to
@@ -62,7 +62,7 @@ to infer properties about control flow, like loop invariants, one can examine
 high-level operations and relate the results to low-level analysis using
 provenance links.
 
-We expect to provide a DSL library for design own program representation
+We expect to provide a DSL library for design of custom program representation
 abstraction on top of our tower of IRs. The library will provide utilities to
 link other dialects to the rest of the tower so that the provenance is usable
 outside the main pipeline.
