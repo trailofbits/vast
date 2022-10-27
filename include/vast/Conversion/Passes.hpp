@@ -24,7 +24,7 @@ namespace vast
         std::unique_ptr< mlir::Pass > createHLToFuncPass();
     #endif
 
-    std::unique_ptr< mlir::Pass > createToLLVMPass();
+    std::unique_ptr< mlir::Pass > createCoreToLLVMPass();
 
     // Generate the code for registering passes.
     #define GEN_PASS_REGISTRATION

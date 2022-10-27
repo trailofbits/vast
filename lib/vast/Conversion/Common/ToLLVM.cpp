@@ -591,12 +591,12 @@ namespace vast
     }
 
 
-    struct ToLLVMPass : ToLLVMBase< ToLLVMPass >
+    struct CoreToLLVMPass : CoreToLLVMBase< CoreToLLVMPass >
     {
         void runOnOperation() override;
     };
 
-    void ToLLVMPass::runOnOperation()
+    void CoreToLLVMPass::runOnOperation()
     {
         auto &mctx = this->getContext();
         mlir::ModuleOp op = this->getOperation();
@@ -648,7 +648,7 @@ namespace vast
 } // namespace vast
 
 
-std::unique_ptr< mlir::Pass > vast::createToLLVMPass()
+std::unique_ptr< mlir::Pass > vast::createCoreToLLVMPass()
 {
-    return std::make_unique< vast::ToLLVMPass >();
+    return std::make_unique< vast::CoreToLLVMPass >();
 }
