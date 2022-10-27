@@ -8,7 +8,7 @@ include "mlir/IR/BuiltinAttributes.td"
 include "vast/Interfaces/SymbolInterface.td"
 
 def LowLevel_StructGEPOp
-  : LowLevel_Op< "gep" >
+  : LowLevel_Op< "gep", [NoSideEffect] >
   , Arguments<(ins AnyType:$record, I32Attr:$idx, StrAttr:$name)>
   , Results<(outs AnyType:$element)>
 {
@@ -27,7 +27,7 @@ def UninitializedVar
 }
 
 def InitializeVar
-    : LowLevel_Op< "initialize", [NoSideEffect] >
+    : LowLevel_Op< "initialize" >
     , Arguments<(ins AnyType:$var, Variadic<AnyType>:$elements)>
     , Results<(outs AnyType:$result)>
 {
