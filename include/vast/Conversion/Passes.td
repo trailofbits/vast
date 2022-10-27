@@ -24,7 +24,7 @@ def HLToFunc : Pass<"vast-hl-to-func", "mlir::ModuleOp"> {
 
 #endif // ENABLE_PDLL_CONVERSIONS
 
-def ToLLVM : Pass<"vast-to-llvm", "mlir::ModuleOp"> {
+def CoreToLLVM : Pass<"vast-core-to-llvm", "mlir::ModuleOp"> {
   let summary = "VAST to LLVM Dialect conversion";
   let description = [{
     Converts lowest level VAST operations to LLVM dialect. It is expected
@@ -33,7 +33,7 @@ def ToLLVM : Pass<"vast-to-llvm", "mlir::ModuleOp"> {
     This pass is still a work in progress.
   }];
 
-  let constructor = "vast::createToLLVMPass()";
+  let constructor = "vast::createCoreToLLVMPass()";
   let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::ll::LowLevelDialect",
                            "vast::hl::HighLevelDialect"];
 }
