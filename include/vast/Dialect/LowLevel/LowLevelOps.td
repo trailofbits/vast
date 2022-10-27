@@ -7,6 +7,7 @@ include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/IR/BuiltinAttributes.td"
 include "vast/Interfaces/SymbolInterface.td"
 
+// TODO(lukas): Add type constraints.
 def LowLevel_StructGEPOp
   : LowLevel_Op< "gep", [NoSideEffect] >
   , Arguments<(ins AnyType:$record, I32Attr:$idx, StrAttr:$name)>
