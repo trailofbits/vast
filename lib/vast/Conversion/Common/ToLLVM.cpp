@@ -30,22 +30,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast
 {
-    using mctx_t = mlir::MLIRContext;
-
-    namespace
-    {
-        std::size_t size(mlir::Region &region)
-        {
-            return std::distance(region.begin(), region.end());
-        }
-
-        std::size_t size(mlir::Block &block)
-        {
-            return std::distance(block.begin(), block.end());
-        }
-
-    }
-
     // TODO(lukas): In non-debug mode return `mlir::failure()` and do not log
     //              anything.
     #define VAST_PATTERN_CHECK(cond, fmt, ...) \
@@ -59,10 +43,10 @@ namespace vast
 
         using TypeConverter = util::tc::LLVMTypeConverter;
 
-        template< typename O >
-        struct BasePattern : mlir::ConvertOpToLLVMPattern< O >
+        template< typename Op >
+        struct BasePattern : mlir::ConvertOpToLLVMPattern< Op >
         {
-            using Base = mlir::ConvertOpToLLVMPattern< O >;
+            using Base = mlir::ConvertOpToLLVMPattern< Op >;
             using TC_t = util::TypeConverterWrapper< TypeConverter >;
 
             TypeConverter &tc;
@@ -491,7 +475,9 @@ namespace vast
                     return mlir::failure();
 
                 m_ops[0] = rewriter.create< LLVM::LoadOp >(op.getLoc(), alloca);
-                auto target_ty = this->type_converter().convert_type_to_type(op.getSrc().getType());
+                auto target_ty =
+                    this->type_converter().convert_type_to_type(op.getSrc().getType());
+
                 // Probably the easiest way to compose this (some template specialization would
                 // require a lot of boilerplate).
                 auto new_op = [&]()
