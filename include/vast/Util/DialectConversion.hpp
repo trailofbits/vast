@@ -6,18 +6,27 @@ VAST_RELAX_WARNINGS
 #include <mlir/Transforms/DialectConversion.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Util/Common.hpp"
+
+namespace vast
+{
+    using Rewriter = mlir::ConversionPatternRewriter;
+
+    template< typename Op >
+    using OpConversionPattern = mlir::OpConversionPattern< Op >;
+
+} // namespace vast
+
 namespace vast::util
 {
     template< typename Op >
     struct State
     {
-        using rewriter_t = mlir::ConversionPatternRewriter;
-
         Op op;
         typename Op::Adaptor operands;
-        rewriter_t &rewriter;
+        Rewriter &rewriter;
 
-        State(Op op, typename Op::Adaptor operands, rewriter_t &rewriter)
+        State(Op op, typename Op::Adaptor operands, Rewriter &rewriter)
             : op(op), operands(operands), rewriter(rewriter)
         {}
 
@@ -29,7 +38,7 @@ namespace vast::util
     };
 
     template< typename Op, template< typename > class Impl >
-    struct BasePattern : mlir::OpConversionPattern< Op >
+    struct BasePattern : OpConversionPattern< Op >
     {
         using parent_t = mlir::OpConversionPattern< Op >;
         using operation_t = Op;
@@ -38,7 +47,7 @@ namespace vast::util
         mlir::LogicalResult matchAndRewrite(
                 operation_t op,
                 typename operation_t::Adaptor ops,
-                mlir::ConversionPatternRewriter &rewriter) const override
+                Rewriter &rewriter) const override
         {
             // Required, because even if the method is overloaded in one of the
             // children, this method must still compile.
@@ -64,14 +73,14 @@ namespace vast::util
 
         TC &tc;
 
-        TypeConvertingPattern(TC &tc, mlir::MLIRContext *mctx)
+        TypeConvertingPattern(TC &tc, MContext *mctx)
             : parent_t(mctx), tc(tc)
         {}
 
         mlir::LogicalResult matchAndRewrite(
                 operation_t op,
                 typename operation_t::Adaptor ops,
-                mlir::ConversionPatternRewriter &rewriter) const override
+                Rewriter &rewriter) const override
         {
             return Impl< operation_t >(tc, op, ops, rewriter).convert();
         }
