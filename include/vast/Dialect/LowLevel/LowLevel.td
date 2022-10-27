@@ -16,9 +16,11 @@ def LowLevel_Dialect : Dialect {
     let name = "ll";
     let summary = "A vast low-level dialect.";
     let description = [{
-        This dialect is supposed to serve as bottom layer
-        in vast dialect stack. By default there should always
-        exist a pass that lowers this dialect into LLVM Dialect.
+        This dialect serves as a bottom layer in VAST dialect tower.
+        There should always exist a pass that lowers this dialect into LLVM Dialect.
+
+        Work in progress - new operations are still being added and existing can be changed
+        or removed.
     }];
     let cppNamespace = "::vast::ll";
     let extraClassDeclaration = [{
