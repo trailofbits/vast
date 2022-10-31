@@ -518,6 +518,7 @@ namespace vast::hl
             FuncOp new_fn = rewriter.create< FuncOp >(
                 fn.getLoc(), fn.getName(), fn_type, fn.getLinkage(), attributes
             );
+            new_fn.setVisibility(mlir::SymbolTable::Visibility::Private);
 
             // Copy the old region - it will have incorrect arguments (`BlockArgument` on
             // entry `Block`.
