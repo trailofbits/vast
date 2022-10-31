@@ -12,6 +12,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include <vast/Dialect/HighLevel/HighLevelDialect.hpp>
+#include <vast/Dialect/HighLevel/HighLevelOps.hpp>
 #include <vast/Dialect/LowLevel/LowLevelDialect.hpp>
 
 #include <memory>
@@ -25,6 +26,8 @@ namespace vast
     #endif
 
     std::unique_ptr< mlir::Pass > createCoreToLLVMPass();
+
+    std::unique_ptr< mlir::Pass > createHLFuncToFuncPass();
 
     // Generate the code for registering passes.
     #define GEN_PASS_REGISTRATION

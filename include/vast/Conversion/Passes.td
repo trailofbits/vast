@@ -24,6 +24,20 @@ def HLToFunc : Pass<"vast-hl-to-func", "mlir::ModuleOp"> {
 
 #endif // ENABLE_PDLL_CONVERSIONS
 
+def HLFuncToFunc : Pass<"vast-hl-to-func", "mlir::ModuleOp"> {
+  let summary = "Lower high-level functions to func.func operations.";
+  let description = [{
+    Lowers high-level function operations to function dialect.
+
+    Drops high-level information like linkage attributes.
+  }];
+
+  let constructor = "vast::createHLFuncToFuncPass()";
+  let dependentDialects = [
+    "vast::hl::HighLevelDialect", "mlir::func::FuncDialect"
+  ];
+}
+
 def CoreToLLVM : Pass<"vast-core-to-llvm", "mlir::ModuleOp"> {
   let summary = "VAST to LLVM Dialect conversion";
   let description = [{
