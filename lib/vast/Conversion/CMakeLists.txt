@@ -1,5 +1,6 @@
 add_subdirectory(PDLL)
 add_subdirectory(Common)
+add_subdirectory(FromHL)
 
 add_library( VASTConversions INTERFACE )
 
