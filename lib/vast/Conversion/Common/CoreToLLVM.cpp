@@ -454,6 +454,7 @@ namespace vast
 
         using add = one_to_one< hl::AddIOp, LLVM::AddOp >;
         using sub = one_to_one< hl::SubIOp, LLVM::SubOp >;
+        using mul = one_to_one< hl::MulIOp, LLVM::MulOp >;
 
         template< typename Src, typename Trg >
         struct assign_pattern : BasePattern< Src >
@@ -621,6 +622,7 @@ namespace vast
         patterns.add< pattern::ret >(type_converter);
         patterns.add< pattern::add >(type_converter);
         patterns.add< pattern::sub >(type_converter);
+        patterns.add< pattern::mul >(type_converter);
         patterns.add< pattern::declref >(type_converter);
         patterns.add< pattern::assign_add >(type_converter);
         patterns.add< pattern::assign_sub >(type_converter);
