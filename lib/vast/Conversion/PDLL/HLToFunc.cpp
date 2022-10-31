@@ -7,7 +7,8 @@
 
 #include "vast/Conversion/HLToFunc.hpp"
 
-namespace vast {
+namespace vast::pdll
+{
 
     using RewritePatternSet = mlir::RewritePatternSet;
     using FrozenRewritePatternSet = mlir::FrozenRewritePatternSet;
@@ -39,4 +40,4 @@ namespace vast {
         return std::make_unique< HLToFuncPass >();
     }
 
-} // namespace vast
+} // namespace vast::pdll
