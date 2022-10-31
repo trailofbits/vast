@@ -2,6 +2,7 @@
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Util/TypeList.hpp"
 #include <sstream>
 
@@ -29,18 +30,68 @@ namespace vast::hl
         VAST_UNIMPLEMENTED;
     }
 
-    mlir::FunctionType getFunctionType(Type type)
-    {
+    Type getBottomTypedefType(TypedefType def, Module mod) {
+        auto type = getTypedefType(def, mod);
+        if (auto ty = type.dyn_cast< TypedefType >()) {
+            return getBottomTypedefType(ty, mod);
+        }
+        return type;
+    }
+
+    Type getTypedefType(TypedefType type, Module mod) {
+        auto name = type.getName();
+        for (const auto &op : mod) {
+            if (auto def = mlir::dyn_cast< TypeDefOp >(&op)) {
+                if (def.getName() == name) {
+                    return def.getType();
+                }
+            }
+        }
+
+        VAST_UNREACHABLE("unknown typedef name");
+    }
+
+    mlir::FunctionType getFunctionType(Type type, Module mod) {
         if (auto ty = type.dyn_cast< mlir::FunctionType >())
             return ty;
         if (auto ty = type.dyn_cast< LValueType >())
-            return getFunctionType(ty.getElementType());
+            return getFunctionType(ty.getElementType(), mod);
         if (auto ty = type.dyn_cast< ParenType >())
-            return getFunctionType(ty.getElementType());
+            return getFunctionType(ty.getElementType(), mod);
         if (auto ty = type.dyn_cast< PointerType >())
-            return getFunctionType(ty.getElementType());
+            return getFunctionType(ty.getElementType(), mod);
+        if (auto ty = type.dyn_cast< TypedefType >()) {
+            return getFunctionType(getTypedefType(ty, mod), mod);
+        }
+
         VAST_UNREACHABLE("unknown type to extract function type");
     }
+
+    mlir::FunctionType getFunctionType(Value callee) {
+        auto op  = callee.getDefiningOp();
+        auto mod = op->getParentOfType< Module >();
+        return getFunctionType(callee.getType(), mod);
+    }
+
+    mlir::FunctionType getFunctionType(mlir::CallOpInterface call) {
+        auto mod = call->getParentOfType< Module >();
+        return getFunctionType(call.getCallableForCallee(), mod);
+    }
+
+    mlir::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, Module mod) {
+        if (auto sym = callee.dyn_cast< mlir::SymbolRefAttr >()) {
+            return mlir::dyn_cast_or_null< FuncOp >(
+                mlir::SymbolTable::lookupSymbolIn(mod, sym)
+            ).getFunctionType();
+        }
+
+        if (auto value = callee.dyn_cast< Value >()) {
+            return getFunctionType(value.getType(), mod);
+        }
+
+        VAST_UNREACHABLE("unknown callee type");
+    }
+
 
     void HighLevelDialect::registerTypes() {
         addTypes<

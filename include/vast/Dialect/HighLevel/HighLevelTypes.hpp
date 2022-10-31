@@ -13,9 +13,11 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/IR/TypeSupport.h>
 #include <mlir/IR/Types.h>
+#include <mlir/Interfaces/CallInterfaces.h>
 #include <mlir/Interfaces/DataLayoutInterfaces.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Util/Common.hpp"
 #include "vast/Util/DataLayout.hpp"
 #include "vast/Util/TypeList.hpp"
 #include "vast/Util/Types.hpp"
@@ -157,8 +159,16 @@ namespace vast::hl
         }
     }
 
-    mlir::FunctionType getFunctionType(PointerType functionPointer);
-    mlir::FunctionType getFunctionType(mlir::Type functionPointer);
+    mlir::FunctionType getFunctionType(Type function_pointer, Module mod);
+
+    mlir::FunctionType getFunctionType(Value callee);
+    mlir::FunctionType getFunctionType(mlir::CallOpInterface call);
+    mlir::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, Module mod);
+
+    Type getTypedefType(TypedefType type, Module mod);
+
+    // unwraps all typedef aliases to get to real underlying type
+    Type getBottomTypedefType(TypedefType def, Module mod);
 
     bool isBoolType(mlir::Type type);
     bool isIntegerType(mlir::Type type);
