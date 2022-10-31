@@ -11,11 +11,11 @@ int main() {
 
     // CHECK: [[E:%[0-9]+]] = hl.expr : !hl.lvalue<!hl.paren<() -> !hl.int>>
     // CHECK: [[P:%[0-9]+]] = hl.implicit_cast [[E]] FunctionToPointerDecay : !hl.lvalue<!hl.paren<() -> !hl.int>> -> !hl.lvalue<!hl.ptr<!hl.paren<() -> !hl.int>>>
-    // CHECK: hl.indirect_call [[P]]() : !hl.lvalue<!hl.ptr<!hl.paren<() -> !hl.int>>>
+    // CHECK: hl.indirect_call [[P]] : !hl.lvalue<!hl.ptr<!hl.paren<() -> !hl.int>>>() : () -> !hl.int
     (*p)(); // function f invoked through the function designator
 
     // CHECK: [[R:%[0-9]+]] = hl.ref [[FP]] : !hl.lvalue<!hl.ptr<!hl.paren<() -> !hl.int>>>
     // CHECK: [[F:%[0-9]+]] = hl.implicit_cast [[R]] LValueToRValue : !hl.lvalue<!hl.ptr<!hl.paren<() -> !hl.int>>> -> !hl.ptr<!hl.paren<() -> !hl.int>>
-    // CHECK:  hl.indirect_call [[F]]() : !hl.ptr<!hl.paren<() -> !hl.int>>
+    // CHECK:  hl.indirect_call [[F]] : !hl.ptr<!hl.paren<() -> !hl.int>>() : () -> !hl.int
     p();    // function f invoked directly through the pointer
 }
