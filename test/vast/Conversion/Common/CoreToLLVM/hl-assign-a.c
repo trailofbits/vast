@@ -1,6 +1,4 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-lower-types --vast-hl-to-ll-vars --vast-core-to-llvm | FileCheck %s
-
-// REQUIRES: funcop-lowering
+// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-lower-types --vast-hl-to-func --vast-hl-to-ll-vars --vast-core-to-llvm | FileCheck %s
 
 // CHECK: llvm.func @count([[ARG:%arg[0-9]+]]: i32)
 void count(int arg)
