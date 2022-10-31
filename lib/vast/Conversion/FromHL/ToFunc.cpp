@@ -38,7 +38,7 @@ namespace vast
                         other_attrs,
                         arg_attrs
                 );
-                lowered.setVisibility(mlir::SymbolTable::Visibility::Private);
+                lowered.setVisibility(op.getVisibility());
                 rewriter.inlineRegionBefore(op.getBody(),
                                             lowered.getBody(),
                                             lowered.end());
