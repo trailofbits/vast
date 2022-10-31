@@ -561,8 +561,15 @@ namespace vast
                 switch (hl_predicate)
                 {
                     case hl::Predicate::eq : return { mlir::LLVM::ICmpPredicate::eq };
+                    case hl::Predicate::ne : return { mlir::LLVM::ICmpPredicate::ne };
+                    case hl::Predicate::slt : return { mlir::LLVM::ICmpPredicate::slt };
+                    case hl::Predicate::sle : return { mlir::LLVM::ICmpPredicate::sle };
                     case hl::Predicate::sgt : return { mlir::LLVM::ICmpPredicate::sgt };
-                    default : return {};
+                    case hl::Predicate::sge : return { mlir::LLVM::ICmpPredicate::sge };
+                    case hl::Predicate::ult : return { mlir::LLVM::ICmpPredicate::ult };
+                    case hl::Predicate::ule : return { mlir::LLVM::ICmpPredicate::ule };
+                    case hl::Predicate::ugt : return { mlir::LLVM::ICmpPredicate::ugt };
+                    case hl::Predicate::uge : return { mlir::LLVM::ICmpPredicate::uge };
                 }
             }
         };
