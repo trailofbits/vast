@@ -463,19 +463,17 @@ namespace vast
             using Base::Base;
 
             mlir::LogicalResult matchAndRewrite(
-                        Src op, typename Src::Adaptor ops_,
+                        Src op, typename Src::Adaptor ops,
                         mlir::ConversionPatternRewriter &rewriter) const override
             {
-                auto ops = ops_.getOperands();
-                auto alloca = ops[1];
-
-                std::vector< mlir::Value > m_ops{ ops.begin(), ops.end() };
+                auto lhs = ops.getDst();
+                auto rhs = ops.getSrc();
 
                 // TODO(lukas): This should not happen?
-                if (ops[0].getType().template isa< hl::LValueType >())
+                if (rhs.getType().template isa< hl::LValueType >())
                     return mlir::failure();
 
-                m_ops[0] = rewriter.create< LLVM::LoadOp >(op.getLoc(), alloca);
+                auto load_lhs = rewriter.create< LLVM::LoadOp >(op.getLoc(), lhs);
                 auto target_ty =
                     this->type_converter().convert_type_to_type(op.getSrc().getType());
 
@@ -484,12 +482,12 @@ namespace vast
                 auto new_op = [&]()
                 {
                     if constexpr (!std::is_same_v< Trg, void >)
-                        return rewriter.create< Trg >(op.getLoc(), *target_ty, m_ops);
+                        return rewriter.create< Trg >(op.getLoc(), *target_ty, load_lhs, rhs);
                     else
-                        return ops[0];
+                        return rhs;
                 }();
 
-                rewriter.create< LLVM::StoreOp >(op.getLoc(), new_op, alloca);
+                rewriter.create< LLVM::StoreOp >(op.getLoc(), new_op, lhs);
 
                 // `hl.assign` returns value for cases like `int x = y = 5;`
                 rewriter.replaceOp(op, {new_op});
