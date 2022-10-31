@@ -312,16 +312,7 @@ def CallOp
 def IndirectCallOp
   : HighLevel_Op< "indirect_call", [
     DeclareOpInterfaceMethods<CallOpInterface>,
-    TypesMatchWith<
-      "callee input types match argument types",
-      "callee", "argOperands",
-      "getFunctionType($_self).getInputs()"
-    >,
-    TypesMatchWith<
-      "callee result type match result type",
-      "callee", "result",
-      "getFunctionType($_self).getResult(0)"
-    >
+    DeclareOpInterfaceMethods<InferTypeOpInterface>
   ]>
   , Arguments<(ins
       LValueOrType<PointerLikeType>:$callee,
@@ -331,18 +322,11 @@ def IndirectCallOp
   let summary = "VAST call operation";
   let description = [{ VAST call operation }];
 
-  let skipDefaultBuilders = 1;
-  let builders = [
-    OpBuilder< (ins "mlir::Value":$callee, CArg<"mlir::ValueRange", "{}">:$operands ), [{
-      $_state.addOperands(callee);
-      $_state.addOperands(operands);
-      $_state.addTypes(getFunctionType(callee.getType()).getResult(0));
-    }]>
-  ];
-
   let assemblyFormat = [{
-    $callee `(` $argOperands `)` attr-dict `:` type( $callee )
+    $callee `:` type($callee)  `(` $argOperands `)` attr-dict `:` functional-type( $argOperands, $result )
   }];
+
+  // TODO: add verifiers to check that callee type matches arg operands
 }
 
 def ExprOp

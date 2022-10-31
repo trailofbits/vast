@@ -314,6 +314,17 @@ namespace vast::hl
         st.addRegion(std::move(region));
         st.addTypes(rty);
     }
+
+    LogicalResult IndirectCallOp::inferReturnTypes(
+        MContext *context, mlir::Optional<Location> location, mlir::ValueRange operands,
+        mlir::DictionaryAttr attributes, mlir::RegionRange regions,
+        mlir::SmallVectorImpl<Type> &inferredReturnTypes
+    ) {
+        auto callee = operands[0];
+        auto type = getFunctionType(callee);
+        inferredReturnTypes.assign({type.getResult(0)});
+        return mlir::success();
+    }
 }
 
 //===----------------------------------------------------------------------===//
