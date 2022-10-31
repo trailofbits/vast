@@ -7,15 +7,20 @@ include "mlir/Pass/PassBase.td"
 
 #ifdef ENABLE_PDLL_CONVERSIONS
 
-def HLToFunc : Pass<"vast-hl-to-func", "mlir::ModuleOp"> {
+// TODO(lukas): Figure out better naming for passes that are implemented in both PDLL and C++
+//              (if it becomes more common occurence).
+def HLToFunc_pdll : Pass<"vast-hl-to-func-pdll", "mlir::ModuleOp"> {
   let summary = "Lower high-level functions to func.func operations.";
   let description = [{
     Lowers high-level function operations to function dialect.
-
     Drops high-level information like linkage attributes.
+
+    Work in progress (currently does not work properly).
   }];
 
-  let constructor = "vast::createHLToFuncPass()";
+  let cppnamespace = pdll;
+
+  let constructor = "vast::pdll::createHLToFuncPass()";
   let dependentDialects = [
     "vast::hl::HighLevelDialect", "mlir::func::FuncDialect",
     "mlir::pdl::PDLDialect", "mlir::pdl_interp::PDLInterpDialect"
