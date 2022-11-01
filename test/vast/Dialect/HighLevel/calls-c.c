@@ -1,6 +1,6 @@
-// RUN: ignore-test
-// vast-cc --from-source %s | FileCheck %s
-// vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: vast-cc --from-source %s | FileCheck %s
+// RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
+// REQUIRES: typedef-pointer-like-inference
 
 // CHECK: hl.typedef "operation" : !hl.ptr<(!hl.int, !hl.int) -> !hl.int>
 typedef int ( *operation ) ( int, int );
