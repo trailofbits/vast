@@ -311,8 +311,14 @@ def ArrayType : CVRQualifiedType< "Array", "array",
   let assemblyFormat = "`<` $size `,` $elementType (`,` $quals^ )? `>`";
 }
 
+def DecayedType : HighLevelType< "Decayed", [MemRefElementTypeInterface] > {
+  let mnemonic = "decayed";
+  let parameters = (ins "Type":$elementType);
+  let assemblyFormat = "`<` $elementType `>`";
+}
+
 def SubscriptableType : TypeConstraint<
-  Or< [ArrayType.predicate, PointerType.predicate] >, "array like type"
+  Or< [ArrayType.predicate, PointerType.predicate, DecayedType.predicate] >, "subscriptable type"
 >;
 
 //
@@ -373,12 +379,6 @@ def LabelType : HighLevelType< "Label" > {
 
 def ParenType : HighLevelType< "Paren", [MemRefElementTypeInterface] > {
   let mnemonic = "paren";
-  let parameters = (ins "Type":$elementType);
-  let assemblyFormat = "`<` $elementType `>`";
-}
-
-def DecayedType : HighLevelType< "Decayed", [MemRefElementTypeInterface] > {
-  let mnemonic = "decayed";
   let parameters = (ins "Type":$elementType);
   let assemblyFormat = "`<` $elementType `>`";
 }
