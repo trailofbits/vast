@@ -916,7 +916,7 @@ def InitListExpr
 def SubscriptOp
   : HighLevel_Op< "subscript" >
   , Arguments<(ins
-      LValueOf<SubscriptableType>:$array,
+      LValueOrType<SubscriptableType>:$array,
       IntegerLikeType:$index)>
   , Results<(outs LValueOf<AnyType>:$result)>
 {
