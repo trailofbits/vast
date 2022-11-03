@@ -1,6 +1,6 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-lower-types --vast-hl-structs-to-tuples --vast-hl-to-scf | FileCheck %s
+// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-lower-types --vast-hl-to-func --vast-hl-structs-to-tuples --vast-hl-to-scf | FileCheck %s
 
-// CHECK:   hl.func external @fn (%arg0: !hl.lvalue<si32>) -> none {
+// CHECK:   func.func private @fn(%arg0: !hl.lvalue<si32>) -> none {
 void fn(int x)
 {
     // CHECK: scf.while : () -> () {
