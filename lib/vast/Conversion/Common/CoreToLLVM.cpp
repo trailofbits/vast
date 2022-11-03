@@ -65,6 +65,14 @@ namespace vast
                     return rewriter.template create< LLVM::AllocaOp >(
                             loc, trg_type, count, 0);
             }
+
+            auto iN(auto &rewriter, auto loc, mlir::Type type, auto val) const
+            {
+                return rewriter.template create< LLVM::ConstantOp >(
+                        loc,
+                        type,
+                        rewriter.getIntegerAttr(type, val));
+            }
         };
 
         template< typename Src >
@@ -533,6 +541,69 @@ namespace vast
             }
         };
 
+        bool is_lvalue(auto op)
+        {
+            return op && op.getType().template isa< hl::LValueType >();
+        }
+
+        struct prefix_tag {};
+        struct postfix_tag {};
+
+        template< typename Tag >
+        constexpr static bool prefix_yield()
+        {
+            return std::is_same_v< Tag, prefix_tag >;
+        }
+
+        template< typename Tag >
+        constexpr static bool postfix_yield()
+        {
+            return std::is_same_v< Tag, postfix_tag >;
+        }
+
+        template< typename Op, typename Trg, typename YieldAt >
+        struct unary_in_place  : BasePattern< Op >
+        {
+            using Base = BasePattern< Op >;
+            using Base::Base;
+
+
+
+            mlir::LogicalResult matchAndRewrite(
+                        Op op, typename Op::Adaptor ops,
+                        mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                auto arg = ops.getArg();
+                if (is_lvalue(arg))
+                    return mlir::failure();
+
+                auto value = rewriter.create< LLVM::LoadOp >(op.getLoc(), arg);
+                auto one = this->iN(rewriter, op.getLoc(), value.getType(), 1);
+                auto adjust = rewriter.create< Trg >(op.getLoc(), value, one);
+
+                rewriter.create< LLVM::StoreOp >(op.getLoc(), adjust, arg);
+
+                auto yielded = [&]()
+                {
+                    if constexpr (prefix_yield< YieldAt >)
+                        return adjust;
+                    else if constexpr (postfix_yield< YieldAt >)
+                        return value;
+                }();
+
+                rewriter.replaceOp(op, {yielded});
+
+                return mlir::success();
+            }
+        };
+
+        using pre_inc  = unary_in_place< hl::PreIncOp,  LLVM::AddOp, prefix_tag  >;
+        using post_inc = unary_in_place< hl::PostIncOp, LLVM::AddOp, postfix_tag >;
+
+        using pre_dec  = unary_in_place< hl::PreDecOp,  LLVM::SubOp, prefix_tag  >;
+        using post_dec = unary_in_place< hl::PostDecOp, LLVM::SubOp, postfix_tag >;
+
+
         struct cmp : BasePattern< hl::CmpOp >
         {
 
@@ -628,6 +699,11 @@ namespace vast
         patterns.add< pattern::implicit_cast >(type_converter);
         patterns.add< pattern::call >(type_converter);
         patterns.add< pattern::cmp >(type_converter);
+
+        patterns.add< pattern::pre_inc >(type_converter);
+        patterns.add< pattern::post_inc >(type_converter);
+        patterns.add< pattern::pre_dec >(type_converter);
+        patterns.add< pattern::post_dec >(type_converter);
 
         patterns.add< pattern::init_list_expr >(type_converter);
 
