@@ -645,6 +645,28 @@ namespace vast
             }
         };
 
+        struct deref : BasePattern< hl::Deref >
+        {
+            using Base = BasePattern< hl::Deref >;
+            using Base::Base;
+
+            mlir::LogicalResult matchAndRewrite(
+                        hl::Deref op, typename hl::Deref::Adaptor ops,
+                        mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                auto trg_type = tc.convert_type_to_type(op.getType());
+                if (!trg_type)
+                    return mlir::failure();
+
+                auto loaded = rewriter.create< mlir::LLVM::LoadOp >(
+                        op.getLoc(), *trg_type, ops.getAddr());
+                rewriter.replaceOp(op, { loaded });
+
+                return mlir::success();
+            }
+        };
+
+
     } // namespace pattern
 
 
@@ -693,10 +715,14 @@ namespace vast
         patterns.add< pattern::add >(type_converter);
         patterns.add< pattern::sub >(type_converter);
         patterns.add< pattern::mul >(type_converter);
-        patterns.add< pattern::declref >(type_converter);
+
         patterns.add< pattern::assign_add >(type_converter);
         patterns.add< pattern::assign_sub >(type_converter);
         patterns.add< pattern::assign >(type_converter);
+
+        patterns.add< pattern::deref >(type_converter);
+        patterns.add< pattern::declref >(type_converter);
+
         patterns.add< pattern::implicit_cast >(type_converter);
         patterns.add< pattern::call >(type_converter);
         patterns.add< pattern::cmp >(type_converter);
