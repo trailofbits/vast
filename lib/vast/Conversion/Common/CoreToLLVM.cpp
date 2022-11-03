@@ -424,6 +424,7 @@ namespace vast
                         return mlir::failure();
 
                     auto loaded = rewriter.create< LLVM::LoadOp >(op.getLoc(),
+                                                                  *trg_type,
                                                                   ops.getOperands()[0]);
                     rewriter.replaceOp(op, {loaded});
                     return mlir::success();
