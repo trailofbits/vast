@@ -4,16 +4,37 @@
 
 #pragma once
 
-#define VAST_RELAX_WARNINGS \
-  _Pragma( "GCC diagnostic push" ) \
+#define VAST_COMMON_RELAX_WARNINGS \
   _Pragma( "GCC diagnostic ignored \"-Wsign-conversion\"" ) \
   _Pragma( "GCC diagnostic ignored \"-Wconversion\"" ) \
   _Pragma( "GCC diagnostic ignored \"-Wold-style-cast\"" ) \
   _Pragma( "GCC diagnostic ignored \"-Wunused-parameter\"" ) \
   _Pragma( "GCC diagnostic ignored \"-Wcast-align\"" ) \
-  _Pragma( "GCC diagnostic ignored \"-Wambiguous-reversed-operator\"" ) \
-  _Pragma( "GCC diagnostic ignored \"-Woverloaded-virtual\"" )
+  _Pragma( "GCC diagnostic ignored \"-Woverloaded-virtual\"" ) \
+  _Pragma( "GCC diagnostic ignored \"-Wmaybe-uninitialized\"" )
 
+#define VAST_CLANG_RELAX_WARNINGS \
+  _Pragma( "GCC diagnostic ignored \"-Wambiguous-reversed-operator\"" )
+
+#define VAST_GCC_RELAX_WARNINGS \
+  _Pragma( "GCC diagnostic ignored \"-Wuseless-cast\"" ) \
+  _Pragma( "GCC diagnostic ignored \"-Wnull-dereference\"" )
+
+#ifdef __clang__
+#define VAST_RELAX_WARNINGS \
+  _Pragma( "GCC diagnostic push" ) \
+  VAST_COMMON_RELAX_WARNINGS \
+  VAST_CLANG_RELAX_WARNINGS
+#elif __GNUC__
+#define VAST_RELAX_WARNINGS \
+  _Pragma( "GCC diagnostic push" ) \
+  VAST_COMMON_RELAX_WARNINGS \
+  VAST_GCC_RELAX_WARNINGS
+#else
+#define VAST_RELAX_WARNINGS \
+  _Pragma( "GCC diagnostic push" ) \
+  VAST_COMMON_RELAX_WARNINGS
+#endif
 
 #define VAST_UNRELAX_WARNINGS \
   _Pragma( "GCC diagnostic pop" )
