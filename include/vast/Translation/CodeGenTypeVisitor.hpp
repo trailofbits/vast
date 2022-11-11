@@ -72,13 +72,13 @@ namespace vast::hl {
         template< typename high_level_type >
         auto with_qualifiers(const clang::BuiltinType *ty, qualifiers quals) -> mlir_type;
 
-        template<>
-        auto with_qualifiers< VoidType >(const clang::BuiltinType *ty, qualifiers quals) -> mlir_type {
+        template< typename type > requires std::same_as< type, VoidType >
+        auto with_qualifiers(const clang::BuiltinType *ty, qualifiers quals) -> mlir_type {
             return with_cv_qualifiers(type_builder< VoidType >(), quals).freeze();
         }
 
-        template<>
-        auto with_qualifiers< BoolType >(const clang::BuiltinType *ty, qualifiers quals) -> mlir_type {
+        template< typename type > requires std::same_as< type, BoolType >
+        auto with_qualifiers(const clang::BuiltinType *ty, qualifiers quals) -> mlir_type {
             return with_qualifiers(type_builder< BoolType >(), ty, quals);
         }
 
