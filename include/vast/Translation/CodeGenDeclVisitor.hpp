@@ -169,6 +169,7 @@ namespace vast::hl {
                 case clang::SC_PrivateExtern: return StorageClass::sc_private_extern;
                 case clang::SC_Register: return StorageClass::sc_register;
             }
+            VAST_UNREACHABLE("unknown storage class");
         }
 
         TSClass VisitThreadStorageClass(const clang::VarDecl *decl) const {
@@ -178,6 +179,7 @@ namespace vast::hl {
                 case clang::TSCS_thread_local: return TSClass::tsc_cxx_thread;
                 case clang::TSCS__Thread_local: return TSClass::tsc_c_thread;
             }
+            VAST_UNREACHABLE("unknown storage class");
         }
 
         Operation* VisitVarDecl(const clang::VarDecl *decl) {
