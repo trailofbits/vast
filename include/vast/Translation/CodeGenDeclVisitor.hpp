@@ -76,7 +76,7 @@ namespace vast::hl {
                 return op.template hasTrait< mlir::OpTrait::IsTerminator >();
             };
 
-            auto declare_function_params = [&] (auto entry) {
+            auto declare_function_params = [&, this] (auto entry) {
                 // In MLIR the entry block of the function must have the same
                 // argument list as the function itself.
                 auto params = llvm::zip(decl->getDefinition()->parameters(), entry->getArguments());
@@ -110,7 +110,7 @@ namespace vast::hl {
 
                     // emit label declarations
                     llvm::ScopedHashTableScope labels_scope(context().labels);
-                    filter< clang::LabelDecl >(decl->decls(), [&] (auto lab) {
+                    filter< clang::LabelDecl >(decl->decls(), [&, this] (auto lab) {
                         visit(lab);
                     });
 
@@ -281,7 +281,7 @@ namespace vast::hl {
                     }
 
                     // predeclare named underlying types if necessery
-                    walk_type(underlying, [&](auto ty) {
+                    walk_type(underlying, [&, this](auto ty) {
                         if (auto tag = clang::dyn_cast< clang::TagType >(ty)) {
                             visit(tag->getDecl());
                             return true; // stop recursive walk
