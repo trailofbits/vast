@@ -10,15 +10,15 @@
   _Pragma( "GCC diagnostic ignored \"-Wold-style-cast\"" ) \
   _Pragma( "GCC diagnostic ignored \"-Wunused-parameter\"" ) \
   _Pragma( "GCC diagnostic ignored \"-Wcast-align\"" ) \
-  _Pragma( "GCC diagnostic ignored \"-Woverloaded-virtual\"" ) \
-  _Pragma( "GCC diagnostic ignored \"-Wmaybe-uninitialized\"" )
+  _Pragma( "GCC diagnostic ignored \"-Woverloaded-virtual\"" )
 
 #define VAST_CLANG_RELAX_WARNINGS \
   _Pragma( "GCC diagnostic ignored \"-Wambiguous-reversed-operator\"" )
 
 #define VAST_GCC_RELAX_WARNINGS \
   _Pragma( "GCC diagnostic ignored \"-Wuseless-cast\"" ) \
-  _Pragma( "GCC diagnostic ignored \"-Wnull-dereference\"" )
+  _Pragma( "GCC diagnostic ignored \"-Wnull-dereference\"" ) \
+  _Pragma( "GCC diagnostic ignored \"-Wmaybe-uninitialized\"" )
 
 #ifdef __clang__
 #define VAST_RELAX_WARNINGS \
