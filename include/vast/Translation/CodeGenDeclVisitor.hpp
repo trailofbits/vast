@@ -76,24 +76,14 @@ namespace vast::hl {
                 return op.template hasTrait< mlir::OpTrait::IsTerminator >();
             };
 
-            #ifdef __clang__
-            _Pragma( "GCC diagnostic push" ) \
-            _Pragma( "GCC diagnostic ignored \"-Wunused-lambda-capture\"" )
-            #endif
-            // gcc throws internal compiler error without 'this', clang hates it
-
             auto declare_function_params = [&, this] (auto entry) {
                 // In MLIR the entry block of the function must have the same
                 // argument list as the function itself.
                 auto params = llvm::zip(decl->getDefinition()->parameters(), entry->getArguments());
                 for (const auto &[arg, earg] : params) {
-                    declare(arg, earg);
+                    this->declare(arg, earg);
                 }
             };
-
-            #ifdef __clang__
-            _Pragma( "GCC diagnostic pop" )
-            #endif
 
             auto emit_function_terminator = [&] (auto fn) {
                 auto loc = fn.getLoc();
@@ -121,19 +111,9 @@ namespace vast::hl {
                     // emit label declarations
                     llvm::ScopedHashTableScope labels_scope(context().labels);
 
-                    #ifdef __clang__
-                    _Pragma( "GCC diagnostic push" ) \
-                    _Pragma( "GCC diagnostic ignored \"-Wunused-lambda-capture\"" )
-                    #endif
-                    // gcc throws internal compiler error without 'this', clang hates it
-
-                    filter< clang::LabelDecl >(decl->decls(), [&, this] (auto lab) {
-                        visit(lab);
+                    filter< clang::LabelDecl >(decl->decls(), [this] (auto lab) {
+                        this->visit(lab);
                     });
-
-                    #ifdef __clang__
-                    _Pragma( "GCC diagnostic pop" )
-                    #endif
 
                     visit(decl->getBody());
                 }
@@ -303,25 +283,15 @@ namespace vast::hl {
                         return visit(fty);
                     }
 
-                    #ifdef __clang__
-                    _Pragma( "GCC diagnostic push" ) \
-                    _Pragma( "GCC diagnostic ignored \"-Wunused-lambda-capture\"" )
-                    #endif
-                    // gcc throws internal compiler error without 'this', clang hates it
-
                     // predeclare named underlying types if necessery
-                    walk_type(underlying, [&, this](auto ty) {
+                    walk_type(underlying, [=, this](auto ty) {
                         if (auto tag = clang::dyn_cast< clang::TagType >(ty)) {
-                            visit(tag->getDecl());
+                            this->visit(tag->getDecl());
                             return true; // stop recursive walk
                         }
 
                         return false;
                     });
-
-                    #ifdef __clang__
-                    _Pragma( "GCC diagnostic pop" )
-                    #endif
 
                     return visit(underlying);
                 };
