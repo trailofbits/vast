@@ -20,12 +20,12 @@ on:
     branches:
       - '*'
 
-strategy:
-  matrix:
-    compiler: [gcc, clang-15]
 
 jobs:
   build_linux:
+    strategy:
+      matrix:
+        compiler: [gcc, clang-15]
     runs-on: ubuntu-22.04
     timeout-minutes: 15
 
