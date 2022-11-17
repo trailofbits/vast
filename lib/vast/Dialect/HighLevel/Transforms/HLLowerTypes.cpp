@@ -159,7 +159,7 @@ namespace vast::hl
 
         auto make_int_type(bool is_signed)
         {
-            return [=](auto t)
+            return [=, this](auto t)
             {
                 return int_type(dl.getTypeSizeInBits(t), is_signed);
             };
