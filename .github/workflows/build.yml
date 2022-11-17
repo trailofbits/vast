@@ -20,6 +20,10 @@ on:
     branches:
       - '*'
 
+strategy:
+  matrix:
+    compiler: [gcc, clang-15]
+
 jobs:
   build_linux:
     runs-on: ubuntu-22.04
@@ -36,8 +40,7 @@ jobs:
         uses: devcontainers/ci@v0.2
         with:
           runCmd: |
-            export CC=clang-15
-            export CXX=clang++-15
+            export CC=${{ matrix.compiler }}
 
             export TOOLCHAIN=$(pwd)/cmake/lld.toolchain.cmake
 
