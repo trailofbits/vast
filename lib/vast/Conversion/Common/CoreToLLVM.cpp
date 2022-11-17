@@ -568,8 +568,6 @@ namespace vast
             using Base = BasePattern< Op >;
             using Base::Base;
 
-
-
             mlir::LogicalResult matchAndRewrite(
                         Op op, typename Op::Adaptor ops,
                         mlir::ConversionPatternRewriter &rewriter) const override
@@ -584,11 +582,10 @@ namespace vast
 
                 rewriter.create< LLVM::StoreOp >(op.getLoc(), adjust, arg);
 
-                auto yielded = [&]()
-                {
-                    if constexpr (prefix_yield< YieldAt >)
+                auto yielded = [&]() {
+                    if constexpr (prefix_yield< YieldAt >())
                         return adjust;
-                    else if constexpr (postfix_yield< YieldAt >)
+                    else if constexpr (postfix_yield< YieldAt >())
                         return value;
                 }();
 
@@ -626,7 +623,7 @@ namespace vast
             }
 
             auto convert_predicate(auto hl_predicate) const
-            -> std::optional< mlir::LLVM::ICmpPredicate >
+                -> std::optional< mlir::LLVM::ICmpPredicate >
             {
                 // TODO(lukas): Use map later, this is just a proof of concept.
                 switch (hl_predicate)
@@ -642,6 +639,8 @@ namespace vast
                     case hl::Predicate::ugt : return { mlir::LLVM::ICmpPredicate::ugt };
                     case hl::Predicate::uge : return { mlir::LLVM::ICmpPredicate::uge };
                 }
+
+                VAST_UNREACHABLE("unsupported predicate");
             }
         };
 
