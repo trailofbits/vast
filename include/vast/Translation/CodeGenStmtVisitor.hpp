@@ -110,6 +110,8 @@ namespace vast::hl {
         // Operation* VisitBinPtrMemI(clang::BinaryOperator *op);
 
         Operation* VisitBinMul(const clang::BinaryOperator *op) {
+            if (op->getLHS()->getType()->isFloatingType())
+                return VisitBinOp< MulFOp >(op);
             return VisitBinOp< MulIOp >(op);
         }
 
@@ -122,10 +124,14 @@ namespace vast::hl {
         }
 
         Operation* VisitBinAdd(const clang::BinaryOperator *op) {
+            if (op->getLHS()->getType()->isFloatingType())
+                return VisitBinOp< AddFOp >(op);
             return VisitBinOp< AddIOp >(op);
         }
 
         Operation* VisitBinSub(const clang::BinaryOperator *op) {
+            if (op->getLHS()->getType()->isFloatingType())
+                return VisitBinOp< SubFOp >(op);
             return VisitBinOp< SubIOp >(op);
         }
 
