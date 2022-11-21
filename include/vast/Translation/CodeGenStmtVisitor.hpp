@@ -88,6 +88,16 @@ namespace vast::hl {
             return nullptr;
         }
 
+        template< typename IOp, typename FOp >
+        Operation* VisitIFBinOp(const clang::BinaryOperator *op) {
+            auto ty = op->getType();
+            if (ty->isIntegerType())
+                return VisitBinOp< IOp >(op);
+            if (ty->isFloatingType())
+                return VisitBinOp< FOp >(op);
+            return nullptr;
+        }
+
         template< Predicate pred >
         Operation* VisitCmp(const clang::BinaryOperator *op) {
             auto lhs = visit(op->getLHS())->getResult(0);
@@ -110,9 +120,7 @@ namespace vast::hl {
         // Operation* VisitBinPtrMemI(clang::BinaryOperator *op);
 
         Operation* VisitBinMul(const clang::BinaryOperator *op) {
-            if (op->getLHS()->getType()->isFloatingType())
-                return VisitBinOp< MulFOp >(op);
-            return VisitBinOp< MulIOp >(op);
+            return VisitIFBinOp< MulIOp, MulFOp >(op);
         }
 
         Operation* VisitBinDiv(const clang::BinaryOperator *op) {
@@ -124,15 +132,11 @@ namespace vast::hl {
         }
 
         Operation* VisitBinAdd(const clang::BinaryOperator *op) {
-            if (op->getLHS()->getType()->isFloatingType())
-                return VisitBinOp< AddFOp >(op);
-            return VisitBinOp< AddIOp >(op);
+            return VisitIFBinOp< AddIOp, AddFOp >(op);
         }
 
         Operation* VisitBinSub(const clang::BinaryOperator *op) {
-            if (op->getLHS()->getType()->isFloatingType())
-                return VisitBinOp< SubFOp >(op);
-            return VisitBinOp< SubIOp >(op);
+            return VisitIFBinOp< SubIOp, SubFOp >(op);
         }
 
         Operation* VisitBinShl(const clang::BinaryOperator *op) {
