@@ -469,6 +469,14 @@ namespace vast
         using fsub = one_to_one< hl::SubFOp, LLVM::FSubOp >;
         using fmul = one_to_one< hl::MulFOp, LLVM::FMulOp >;
 
+        using sdiv = one_to_one< hl::DivSOp, LLVM::SDivOp >;
+        using udiv = one_to_one< hl::DivUOp, LLVM::UDivOp >;
+        using fdiv = one_to_one< hl::DivFOp, LLVM::FDivOp >;
+
+        using srem = one_to_one< hl::RemSOp, LLVM::SRemOp >;
+        using urem = one_to_one< hl::RemUOp, LLVM::URemOp >;
+        using frem = one_to_one< hl::RemFOp, LLVM::FRemOp >;
+
         template< typename Src, typename Trg >
         struct assign_pattern : BasePattern< Src >
         {
@@ -722,6 +730,14 @@ namespace vast
         patterns.add< pattern::fadd >(type_converter);
         patterns.add< pattern::fsub >(type_converter);
         patterns.add< pattern::fmul >(type_converter);
+
+        patterns.add< pattern::sdiv >(type_converter);
+        patterns.add< pattern::udiv >(type_converter);
+        patterns.add< pattern::fdiv >(type_converter);
+
+        patterns.add< pattern::srem >(type_converter);
+        patterns.add< pattern::urem >(type_converter);
+        patterns.add< pattern::frem >(type_converter);
 
         patterns.add< pattern::assign_add >(type_converter);
         patterns.add< pattern::assign_sub >(type_converter);
