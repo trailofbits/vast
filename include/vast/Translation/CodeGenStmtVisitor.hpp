@@ -98,6 +98,18 @@ namespace vast::hl {
             return nullptr;
         }
 
+        template< typename UOp, typename SOp, typename FOp >
+        Operation* VisitIFBinOp(const clang::BinaryOperator *op) {
+            auto ty = op->getType();
+            if (ty->isUnsignedIntegerType())
+                return VisitBinOp< UOp >(op);
+            if (ty->isIntegerType())
+                return VisitBinOp< SOp >(op);
+            if (ty->isFloatingType())
+                return VisitBinOp< FOp >(op);
+            return nullptr;
+        }
+
         template< Predicate pred >
         Operation* VisitCmp(const clang::BinaryOperator *op) {
             auto lhs = visit(op->getLHS())->getResult(0);
@@ -124,11 +136,11 @@ namespace vast::hl {
         }
 
         Operation* VisitBinDiv(const clang::BinaryOperator *op) {
-            return VisitIBinOp< DivUOp, DivSOp >(op);
+            return VisitIFBinOp< DivUOp, DivSOp, DivFOp >(op);
         }
 
         Operation* VisitBinRem(const clang::BinaryOperator *op) {
-            return VisitIBinOp< RemUOp, RemSOp >(op);
+            return VisitIFBinOp< RemUOp, RemSOp, RemFOp >(op);
         }
 
         Operation* VisitBinAdd(const clang::BinaryOperator *op) {
