@@ -477,6 +477,13 @@ namespace vast
         using urem = one_to_one< hl::RemUOp, LLVM::URemOp >;
         using frem = one_to_one< hl::RemFOp, LLVM::FRemOp >;
 
+        using bor = one_to_one< hl::BinOrOp, LLVM::OrOp >;
+        using band = one_to_one< hl::BinAndOp, LLVM::AndOp >;
+        using bxor = one_to_one< hl::BinXorOp, LLVM::XOrOp >;
+
+        using shl = one_to_one< hl::BinShlOp, LLVM::ShlOp >;
+        using shr = one_to_one< hl::BinShlOp, LLVM::ShlOp >;
+
         template< typename Src, typename Trg >
         struct assign_pattern : BasePattern< Src >
         {
@@ -738,6 +745,13 @@ namespace vast
         patterns.add< pattern::srem >(type_converter);
         patterns.add< pattern::urem >(type_converter);
         patterns.add< pattern::frem >(type_converter);
+
+        patterns.add< pattern::bor >(type_converter);
+        patterns.add< pattern::bxor >(type_converter);
+        patterns.add< pattern::band >(type_converter);
+
+        patterns.add< pattern::shl >(type_converter);
+        patterns.add< pattern::shr >(type_converter);
 
         patterns.add< pattern::assign_add >(type_converter);
         patterns.add< pattern::assign_sub >(type_converter);
