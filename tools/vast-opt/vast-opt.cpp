@@ -32,10 +32,14 @@ int main(int argc, char **argv)
     vast::registerConversionPasses();
 
     mlir::DialectRegistry registry;
+    // register dialects
     vast::registerAllDialects(registry);
+    mlir::registerAllDialects(registry);
+
+    // register conversions
     mlir::registerAllToLLVMIRTranslations(registry);
     vast::hl::registerHLToLLVMIR(registry);
-    mlir::registerAllDialects(registry);
+
     return failed(
         mlir::MlirOptMain(argc, argv, "VAST Optimizer driver\n", registry)
     );
