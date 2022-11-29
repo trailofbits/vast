@@ -30,8 +30,8 @@ namespace vast
         // TODO(lukas): For debuggin purposes, remove later.
         bool contains_value = false;
 
-        Maybe() = default;
-        Maybe(T self_)
+        explicit Maybe() = default;
+        explicit Maybe(T self_)
             : self( std::move(self_ ) ), contains_value(static_cast< bool >(self))
         {}
 
@@ -75,7 +75,7 @@ namespace vast
         auto unwrap()
         {
             // Overall getting value_type is tricky, as types tend to have very
-            // diffferent APIs.
+            // different APIs.
             using rt = typename T::value_type;
             return (has_value()) ? Maybe< rt >( std::move( *self ) ) : Maybe< rt >();
         }
@@ -89,5 +89,8 @@ namespace vast
             return contains_value;
         }
     };
+
+    template< typename T >
+    Maybe(T t) -> Maybe< T >;
 
 } // namespace vast
