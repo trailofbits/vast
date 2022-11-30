@@ -727,17 +727,22 @@ namespace vast
                 {
                     rewriter.create< LLVM::CondBrOp >(
                         op.getLoc(), cmp_lhs, end_block, cmp_lhs.getResult(), rhs_block, llvm::None
-                        );
+                    );
                 }
                 if (std::same_as< LOp, hl::BinLAndOp >)
                 {
                     rewriter.create< LLVM::CondBrOp >(
                         op.getLoc(), cmp_lhs, rhs_block, llvm::None, end_block, cmp_lhs.getResult()
-                        );
+                    );
                 }
 
-                rewriter.replaceOp(op, end_block->getArgument(0));
-                //TODO: unrealized conversion cast
+                //resize the result value to the correct width (from i1 to i32)
+                rewriter.setInsertionPointToStart(end_block);
+                auto end_arg = end_block->getArgument(0);
+                auto zext = rewriter.create< LLVM::ZExtOp >(op.getLoc(),
+                    this->type_converter().convertType(op.getResult().getType()),
+                    end_arg);
+                rewriter.replaceOp(op, { zext });
 
                 return mlir::success();
             }
