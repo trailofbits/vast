@@ -684,6 +684,68 @@ namespace vast
             }
         };
 
+        template< typename LOp >
+        struct logical : BasePattern< LOp >
+        {
+            using Base = BasePattern< LOp >;
+            using Base::Base;
+
+            mlir::LogicalResult matchAndRewrite(
+                LOp op, typename LOp::Adaptor ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                // TODO: catch edge cases (e.g. operand is a constant)
+                auto lhs_type = this->type_converter().convertType(ops.getLhs().getType());
+
+                // Creates llvm dialect constant 0 for comparison
+                auto create_zero = [&](){
+                    return rewriter.create< LLVM::ConstantOp >(
+                        op.getLoc(), lhs_type, rewriter.getIntegerAttr(lhs_type, 0)
+                    );
+                };
+
+                auto cmp_lhs = rewriter.create< LLVM::ICmpOp >(op.getLoc(),
+                    LLVM::ICmpPredicate::eq,
+                    ops.getLhs(),
+                    create_zero());
+
+                //split the current block for lazy evaluation of rhs
+                auto curr_block = rewriter.getBlock();
+                auto rhs_block = curr_block->splitBlock(op);
+                auto end_block = rhs_block->splitBlock(rhs_block->begin());
+                end_block->addArgument(cmp_lhs.getResult().getType(), op.getLoc());
+
+                rewriter.setInsertionPointToStart(rhs_block);
+                auto cmp_rhs = rewriter.create< LLVM::ICmpOp >(op.getLoc(),
+                    LLVM::ICmpPredicate::eq,
+                    ops.getRhs(),
+                    create_zero());
+                rewriter.create< LLVM::BrOp >(op.getLoc(), cmp_rhs.getResult(), end_block);
+
+                rewriter.setInsertionPointToEnd(curr_block);
+                if (std::same_as< LOp, hl::BinLOrOp >)
+                {
+                    rewriter.create< LLVM::CondBrOp >(
+                        op.getLoc(), cmp_lhs, end_block, cmp_lhs.getResult(), rhs_block, llvm::None
+                        );
+                }
+                if (std::same_as< LOp, hl::BinLAndOp >)
+                {
+                    rewriter.create< LLVM::CondBrOp >(
+                        op.getLoc(), cmp_lhs, rhs_block, llvm::None, end_block, cmp_lhs.getResult()
+                        );
+                }
+
+                rewriter.replaceOp(op, end_block->getArgument(0));
+                //TODO: unrealized conversion cast
+
+                return mlir::success();
+            }
+        };
+
+        using land = logical< hl::BinLAndOp >;
+        using lor = logical< hl::BinLOrOp>;
+
 
     } // namespace pattern
 
@@ -770,6 +832,9 @@ namespace vast
         patterns.add< pattern::post_dec >(type_converter);
 
         patterns.add< pattern::init_list_expr >(type_converter);
+
+        patterns.add< pattern::land >(type_converter);
+        patterns.add< pattern::lor >(type_converter);
 
         // LL patterns
         patterns.add< pattern::uninit_var >(type_converter);
