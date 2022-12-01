@@ -20,9 +20,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/repl/cli.hpp"
 #include "vast/repl/command.hpp"
 
-using logical_result = mlir::LogicalResult;
-
-using args_t = std::vector< vast::repl::string_ref >;
+using args_t = std::vector< vast::string_ref >;
 
 args_t load_args(int argc, char **argv) {
     args_t args;

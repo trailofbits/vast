@@ -46,7 +46,7 @@ namespace vast::hl
     // Verifies linkage types, similar to LLVM:
     // - functions don't have 'common' linkage
     // - external functions have 'external' or 'extern_weak' linkage
-    LogicalResult FuncOp::verify() {
+    logical_result FuncOp::verify() {
         auto linkage = getLinkage();
         constexpr auto common = GlobalLinkageKind::CommonLinkage;
         if (linkage == common) {
@@ -315,7 +315,7 @@ namespace vast::hl
         st.addTypes(rty);
     }
 
-    LogicalResult IndirectCallOp::inferReturnTypes(
+    logical_result IndirectCallOp::inferReturnTypes(
         MContext *context, mlir::Optional<Location> location, mlir::ValueRange operands,
         mlir::DictionaryAttr attributes, mlir::RegionRange regions,
         mlir::SmallVectorImpl<Type> &inferredReturnTypes

@@ -28,7 +28,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Symbols.hpp"
 
 using memory_buffer  = std::unique_ptr< llvm::MemoryBuffer >;
-using logical_result = mlir::LogicalResult;
 
 namespace vast::cl
 {

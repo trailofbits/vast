@@ -33,8 +33,6 @@ namespace vast
 
     using Printer     = mlir::OpAsmPrinter;
 
-    using LogicalResult = mlir::LogicalResult;
-
     using FoldResult = mlir::OpFoldResult;
 
     using BuilderCallback = std::optional<
@@ -50,5 +48,7 @@ namespace vast
     using mlir_type  = mlir::Type;
     using clang_type = clang::Type;
 
-    using string_ref = llvm::StringRef;
+    using string_ref     = llvm::StringRef;
+    using logical_result = mlir::LogicalResult;
+
 } // namespace vast
