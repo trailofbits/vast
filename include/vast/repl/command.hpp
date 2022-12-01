@@ -24,9 +24,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::repl
 {
-    using logical_result = mlir::LogicalResult;
-
-    using string_ref     = llvm::StringRef;
     using command_token  = string_ref;
     using command_tokens = llvm::SmallVector< command_token >;
 
