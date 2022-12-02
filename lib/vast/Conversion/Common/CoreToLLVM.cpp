@@ -713,7 +713,7 @@ namespace vast
                 auto curr_block = rewriter.getBlock();
                 auto rhs_block = curr_block->splitBlock(op);
                 auto end_block = rhs_block->splitBlock(rhs_block->begin());
-                end_block->addArgument(cmp_lhs.getResult().getType(), op.getLoc());
+                auto end_arg = end_block->addArgument(cmp_lhs.getResult().getType(), op.getLoc());
 
                 rewriter.setInsertionPointToStart(rhs_block);
                 auto cmp_rhs = rewriter.create< LLVM::ICmpOp >(op.getLoc(),
@@ -738,7 +738,6 @@ namespace vast
 
                 //resize the result value to the correct width (from i1 to i32)
                 rewriter.setInsertionPointToStart(end_block);
-                auto end_arg = end_block->getArgument(0);
                 auto zext = rewriter.create< LLVM::ZExtOp >(op.getLoc(),
                     this->type_converter().convertType(op.getResult().getType()),
                     end_arg);
