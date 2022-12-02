@@ -698,16 +698,14 @@ namespace vast
                 auto lhs_type = this->type_converter().convertType(ops.getLhs().getType());
 
                 // Creates llvm dialect constant 0 for comparison
-                auto create_zero = [&](){
-                    return rewriter.create< LLVM::ConstantOp >(
-                        op.getLoc(), lhs_type, rewriter.getIntegerAttr(lhs_type, 0)
-                    );
-                };
+                auto zero = rewriter.create< LLVM::ConstantOp >(
+                                op.getLoc(), lhs_type, rewriter.getIntegerAttr(lhs_type, 0)
+                            );
 
                 auto cmp_lhs = rewriter.create< LLVM::ICmpOp >(op.getLoc(),
                     LLVM::ICmpPredicate::eq,
                     ops.getLhs(),
-                    create_zero());
+                    zero);
 
                 //split the current block for lazy evaluation of rhs
                 auto curr_block = rewriter.getBlock();
@@ -719,7 +717,7 @@ namespace vast
                 auto cmp_rhs = rewriter.create< LLVM::ICmpOp >(op.getLoc(),
                     LLVM::ICmpPredicate::eq,
                     ops.getRhs(),
-                    create_zero());
+                    zero);
                 rewriter.create< LLVM::BrOp >(op.getLoc(), cmp_rhs.getResult(), end_block);
 
                 rewriter.setInsertionPointToEnd(curr_block);
