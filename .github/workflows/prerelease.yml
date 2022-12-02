@@ -25,6 +25,12 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
+      - name: Clone the vast repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 1
+
       - name: Build and run dev container task
         uses: devcontainers/ci@v0.2
         with:
