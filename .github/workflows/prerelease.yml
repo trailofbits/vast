@@ -54,5 +54,5 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            ./vast/LICENSE
-            ./builds/ninja-multi-default/package/vast-*/*.tar.xz
+            ${{ github.workspace }}/vast/LICENSE
+            ${{ github.workspace }}/vast/builds/ninja-multi-default/package/vast-*/*.tar.xz
