@@ -31,55 +31,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    template< typename ConcreteTy >
-    struct DefaultDL {
-        using dl_t = mlir::DataLayout;
-        using dl_entries_ref = mlir::DataLayoutEntryListRef;
-
-        static unsigned getTypeSizeInBits(const dl_t &dl, dl_entries_ref entries)
-        {
-            VAST_CHECK(entries.size() != 0,
-                "Query for getTypeSizeInBits for {0} failed: Must have at least one entry!",
-                format_type(ConcreteTy{})
-            );
-
-            std::optional<uint32_t> out;
-            auto handle_entry = [&](auto &dl_entry) {
-                if (!out) out = dl_entry.bw;
-                VAST_CHECK(*out == dl_entry.bw, "Inconsistent entries");
-            };
-            apply_on_valid_entries(entries, handle_entry);
-            VAST_CHECK(out.has_value(), "getTypeSizeBits entries did not yield result.");
-            return *out;
-        }
-
-        static unsigned getABIAlignment(const dl_t &dl, dl_entries_ref entries)
-        {
-            VAST_UNIMPLEMENTED;
-        }
-
-        static unsigned getPreferredAlignment(const dl_t &dl, dl_entries_ref entries)
-        {
-            VAST_UNIMPLEMENTED;
-        }
-
-        static void apply_on_valid_entries(dl_entries_ref entries, auto &f)
-        {
-            for (const auto &entry : entries)
-            {
-                auto dl_entry = dl::DLEntry::unwrap(entry);
-                if (is_valid_entry_type(dl_entry.type))
-                    f(dl_entry);
-            }
-        }
-
-        // TODO(lukas): This may no longer be needed.
-        static bool is_valid_entry_type(mlir_type t)
-        {
-            return t.isa< ConcreteTy >();
-        }
-    };
-
     using SizeParam = llvm::Optional< std::uint64_t >;
 
     static auto unknown_size = SizeParam{ std::nullopt };

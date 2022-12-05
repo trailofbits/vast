@@ -18,23 +18,48 @@ class WithDefaultDLTypeInterface {
     using dl_t = mlir::DataLayout;
     using dl_entries_ref = mlir::DataLayoutEntryListRef;
 
-    unsigned getTypeSizeInBits(const mlir::DataLayout &dl,
-                               mlir::DataLayoutEntryListRef entries) const
+    unsigned getTypeSizeInBits(const dl_t &dl, dl_entries_ref entries) const
     {
-        using self_t = std::remove_cvref_t< decltype(*this) >;
-        return DefaultDL< self_t >::getTypeSizeInBits(dl, entries);
+        VAST_CHECK(entries.size() != 0,
+            "Query for getTypeSizeInBits for {0} failed: Must have at least one entry!",
+            format_type(*this)
+        );
+
+        std::optional<uint32_t> out;
+        auto handle_entry = [&](auto &dl_entry) {
+            if (!out) out = dl_entry.bw;
+            VAST_CHECK(*out == dl_entry.bw,
+                       "Inconsistent entries {0}, {1}, entry count: {2}",
+                       *out, dl_entry.bw, entries.size());
+        };
+        apply_on_valid_entries(entries, handle_entry);
+        VAST_CHECK(out.has_value(), "getTypeSizeBits entries did not yield result.");
+        return *out;
     }
-    unsigned getABIAlignment(const mlir::DataLayout &dl,
-                             mlir::DataLayoutEntryListRef entries) const
+
+    unsigned getABIAlignment(const dl_t &dl, dl_entries_ref entries) const
     {
-        using self_t = std::remove_cvref_t< decltype(*this) >;
-        return DefaultDL< self_t >::getABIAlignment(dl, entries);
+        VAST_UNIMPLEMENTED;
     }
-    unsigned getPreferredAlignment(const mlir::DataLayout &dl,
-                                   mlir::DataLayoutEntryListRef entries) const
+
+    unsigned getPreferredAlignment(const dl_t &dl, dl_entries_ref entries) const
     {
-        using self_t = std::remove_cvref_t< decltype(*this) >;
-        return DefaultDL< self_t >::getPreferredAlignment(dl, entries);
+        VAST_UNIMPLEMENTED;
+    }
+
+    void apply_on_valid_entries(dl_entries_ref entries, auto &f) const
+    {
+        for (const auto &entry : entries)
+        {
+            auto dl_entry = dl::DLEntry::unwrap(entry);
+            if (is_valid_entry_type(dl_entry.type))
+                f(dl_entry);
+        }
+    }
+
+    bool is_valid_entry_type(mlir::Type t) const
+    {
+        return t == *this;
     }
   }];
 }
