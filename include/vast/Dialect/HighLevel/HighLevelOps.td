@@ -12,6 +12,7 @@ include "mlir/Interfaces/CastInterfaces.td"
 include "vast/Interfaces/SymbolInterface.td"
 
 include "vast/Dialect/HighLevel/HighLevelLinkage.td"
+include "vast/Dialect/HighLevel/HighLevelCF.td"
 
 
 def TranslationUnitOp
@@ -658,7 +659,6 @@ def BinAndOp : ArithBinOp<"bin.and", []>;
 
 class LogicBinOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
-    , Arguments<(ins AnyType:$lhs, AnyType:$rhs)>
     , Results<(outs AnyType:$result)>
 {
     let summary = "VAST logical binary operation";
@@ -672,7 +672,18 @@ class LogicBinOp< string mnemonic, list< Trait > traits = [] >
         %result = <op> %lhs, %rhs  : type
     }];
 
-    let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` functional-type(operands, results) }];
+    let regions = (region ValueRegion:$lhs, ValueRegion:$rhs);
+
+    let skipDefaultBuilders = 1;
+    let builders = [
+        OpBuilder<(ins
+            "Type":$type,
+            "BuilderCallback":$lhsbuilder,
+            "BuilderCallback":$rhsbuilder
+        )>
+    ];
+
+    let assemblyFormat = [{ $lhs`,` $rhs attr-dict `:` type(results) }];
 }
 
 def BinLAndOp : LogicBinOp<"bin.land", []>;

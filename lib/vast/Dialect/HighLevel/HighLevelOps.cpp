@@ -231,6 +231,28 @@ namespace vast::hl
         return (*this)->getOperand(0);
     }
 
+    void build_logic_op(Builder &bld, State &st, Type type, BuilderCallback lhs, BuilderCallback rhs)
+    {
+        VAST_ASSERT(lhs && "the builder callback for 'lhs' region must be present");
+        VAST_ASSERT(rhs && "the builder callback for 'rhs' region must be present");
+
+        Builder::InsertionGuard guard(bld);
+
+        detail::build_region(bld, st, lhs);
+        detail::build_region(bld, st, rhs);
+        st.addTypes(type);
+    }
+
+    void BinLAndOp::build(Builder &bld, State &st, Type type, BuilderCallback lhs, BuilderCallback rhs)
+    {
+        build_logic_op(bld, st, type, lhs, rhs);
+    }
+
+    void BinLOrOp::build(Builder &bld, State &st, Type type, BuilderCallback lhs, BuilderCallback rhs)
+    {
+        build_logic_op(bld, st, type, lhs, rhs);
+    }
+
     void IfOp::build(Builder &bld, State &st, BuilderCallback condBuilder, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
     {
         VAST_ASSERT(condBuilder && "the builder callback for 'condition' region must be present");
