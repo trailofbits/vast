@@ -195,18 +195,20 @@ namespace vast::hl {
             return VisitBinOp< BinOrOp >(op);
         }
 
+        template< typename LOp >
+        Operation* VisitBinLogical(const clang::BinaryOperator *op) {
+            auto lhs_builder = make_value_builder(op->getLHS());
+            auto rhs_builder = make_value_builder(op->getRHS());
+            auto type = visit(op->getType());
+            return make< LOp >(meta_location(op), type, lhs_builder, rhs_builder);
+        }
+
         Operation* VisitBinLAnd(const clang::BinaryOperator *op) {
-            auto lhs = visit(op->getLHS())->getResult(0);
-            auto rhs = visit(op->getRHS())->getResult(0);
-            auto ty  = visit(op->getType());
-            return make< BinLAndOp >(meta_location(op), ty, lhs, rhs);
+            return VisitBinLogical< BinLAndOp >(op);
         }
 
         Operation* VisitBinLOr(const clang::BinaryOperator *op) {
-            auto lhs = visit(op->getLHS())->getResult(0);
-            auto rhs = visit(op->getRHS())->getResult(0);
-            auto ty  = visit(op->getType());
-            return make< BinLOrOp >(meta_location(op), ty, lhs, rhs);
+            return VisitBinLogical< BinLOrOp >(op);
         }
 
         Operation* VisitBinAssign(const clang::BinaryOperator *op) {
