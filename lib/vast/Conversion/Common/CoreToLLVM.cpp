@@ -684,57 +684,88 @@ namespace vast
             }
         };
 
-        template< typename LOp >
-        struct logical : BasePattern< LOp >
+        template< typename LOp, bool short_on_true >
+        struct bin_logical : BasePattern< LOp >
         {
+
             using Base = BasePattern< LOp >;
             using Base::Base;
+
+            auto rewrite_lhs(
+                LOp op, mlir::ConversionPatternRewriter &rewriter, mlir::Block *end_block ) const
+            {
+                auto curr_block = rewriter.getBlock();
+
+                auto &lhs_block = op.getLhs().front();
+                auto &lhs_yield = op.getLhs().back().back();
+
+                // Get the lhs operand type from yield.
+                auto lhs_val = lhs_yield.getOperand(0);
+                auto lhs_type = this->type_converter().convertType(lhs_val.getType());
+                lhs_val.setType(lhs_type);
+
+                rewriter.inlineRegionBefore(op.getLhs(), end_block);
+                rewriter.mergeBlocks(&lhs_block, curr_block, llvm::None);
+
+                rewriter.setInsertionPointToEnd(curr_block);
+                auto zero = rewriter.create< LLVM::ConstantOp >(
+                    op.getLoc(), lhs_type, rewriter.getIntegerAttr(lhs_type, 0));
+
+                auto cmp_lhs = rewriter.create< LLVM::ICmpOp >(
+                    op.getLoc(), LLVM::ICmpPredicate::eq, lhs_val, zero);
+                rewriter.eraseOp( &lhs_yield );
+
+                return cmp_lhs;
+            }
+
+            auto rewrite_rhs(
+                LOp op, mlir::ConversionPatternRewriter &rewriter, mlir::Block *end_block ) const
+            {
+                auto &rhs_yield = op.getRhs().back().back();
+                auto rhs_val = rhs_yield.getOperand(0);
+                auto rhs_type = this->type_converter().convertType(rhs_val.getType());
+                rhs_val.setType(rhs_type);
+
+                auto &rhs_block = op.getRhs().front();
+                rewriter.setInsertionPointToEnd(&rhs_block);
+                rewriter.inlineRegionBefore(op.getRhs(), end_block);
+
+                auto zero = rewriter.create< LLVM::ConstantOp >(
+                    op.getLoc(), rhs_type, rewriter.getIntegerAttr(rhs_type, 0));
+
+                auto cmp_rhs = rewriter.create< LLVM::ICmpOp >(
+                    op.getLoc(), LLVM::ICmpPredicate::eq, rhs_val, zero);
+                rewriter.eraseOp(&rhs_yield);
+                rewriter.create< LLVM::BrOp >(op.getLoc(), cmp_rhs.getResult(), end_block);
+
+                return cmp_rhs;
+            }
 
             mlir::LogicalResult matchAndRewrite(
                 LOp op, typename LOp::Adaptor ops,
                 mlir::ConversionPatternRewriter &rewriter) const override
             {
-                // TODO: catch edge cases (e.g. operand is a constant)
-                auto lhs_type = this->type_converter().convertType(ops.getLhs().getType());
-
-                // Creates llvm dialect constant 0 for comparison
-                auto zero = rewriter.create< LLVM::ConstantOp >(
-                                op.getLoc(), lhs_type, rewriter.getIntegerAttr(lhs_type, 0)
-                            );
-
-                auto cmp_lhs = rewriter.create< LLVM::ICmpOp >(op.getLoc(),
-                    LLVM::ICmpPredicate::eq,
-                    ops.getLhs(),
-                    zero);
-
-                //split the current block for lazy evaluation of rhs
+                // TODO: Catch edge cases (e.g. operand is a constant).
                 auto curr_block = rewriter.getBlock();
-                auto rhs_block = curr_block->splitBlock(op);
-                auto end_block = rhs_block->splitBlock(rhs_block->begin());
-                auto end_arg = end_block->addArgument(cmp_lhs.getResult().getType(), op.getLoc());
+                auto end_block = curr_block->splitBlock(op);
 
-                rewriter.setInsertionPointToStart(rhs_block);
-                auto cmp_rhs = rewriter.create< LLVM::ICmpOp >(op.getLoc(),
-                    LLVM::ICmpPredicate::eq,
-                    ops.getRhs(),
-                    zero);
-                rewriter.create< LLVM::BrOp >(op.getLoc(), cmp_rhs.getResult(), end_block);
+                auto lhs_res = rewrite_lhs(op, rewriter, end_block);
+                auto rhs_res = rewrite_rhs(op, rewriter, end_block);
+
+                auto end_arg = end_block->addArgument(lhs_res.getResult().getType(), op.getLoc());
 
                 rewriter.setInsertionPointToEnd(curr_block);
-                if (std::same_as< LOp, hl::BinLOrOp >)
+                if constexpr (short_on_true)
                 {
                     rewriter.create< LLVM::CondBrOp >(
-                        op.getLoc(), cmp_lhs, end_block, cmp_lhs.getResult(), rhs_block, llvm::None
+                        op.getLoc(), lhs_res, end_block, lhs_res.getResult(), rhs_res->getBlock(), llvm::None
                     );
-                }
-                if (std::same_as< LOp, hl::BinLAndOp >)
-                {
+                } else {
                     rewriter.create< LLVM::CondBrOp >(
-                        op.getLoc(), cmp_lhs, rhs_block, llvm::None, end_block, cmp_lhs.getResult()
+                        op.getLoc(), lhs_res, rhs_res->getBlock(), llvm::None, end_block, lhs_res.getResult()
                     );
                 }
 
-                //resize the result value to the correct width (from i1 to i32)
                 rewriter.setInsertionPointToStart(end_block);
                 auto zext = rewriter.create< LLVM::ZExtOp >(op.getLoc(),
                     this->type_converter().convertType(op.getResult().getType()),
@@ -745,9 +776,8 @@ namespace vast
             }
         };
 
-        using land = logical< hl::BinLAndOp >;
-        using lor = logical< hl::BinLOrOp>;
-
+        using land = bin_logical< hl::BinLAndOp, false >;
+        using lor = bin_logical< hl::BinLOrOp, true >;
 
     } // namespace pattern
 
