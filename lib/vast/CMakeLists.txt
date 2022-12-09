@@ -1,4 +1,5 @@
 add_subdirectory(Frontend)
+add_subdirectory(ABI)
 add_subdirectory(Conversion)
 add_subdirectory(CodeGen)
 add_subdirectory(Dialect)
