@@ -1,3 +1,4 @@
+add_subdirectory(ABI)
 add_subdirectory(PDLL)
 add_subdirectory(Common)
 add_subdirectory(FromHL)
