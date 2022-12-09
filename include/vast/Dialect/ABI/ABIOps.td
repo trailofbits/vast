@@ -7,13 +7,13 @@ include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/IR/BuiltinAttributes.td"
 include "vast/Interfaces/SymbolInterface.td"
 
-def Forward
-    : ABI_Op< "forward", [NoSideEffect] >
+def DirectOp
+    : ABI_Op< "direct", [NoSideEffect] >
     , Arguments<(ins AnyType:$value)>
-    , Results<(outs AnyType:$result)>
+    , Results<(outs Variadic<AnyType>:$result)>
 {
-    let summary = "Pass argument as it is.";
-    let description = [{ Pass argument as it is. }];
+    let summary = "Pass value directly - usually means by register";
+    let description = [{ Pass value directly - usually means by register. }];
 }
 
 #endif // VAST_DIALECT_IR_ABIOPS
