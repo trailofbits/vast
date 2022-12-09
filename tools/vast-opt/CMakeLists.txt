@@ -18,6 +18,8 @@ target_link_libraries(vast-opt
         vast::settings
 
         clangAST
+
+        vast_abi
 )
 
 mlir_check_all_link_libraries(vast-opt)
