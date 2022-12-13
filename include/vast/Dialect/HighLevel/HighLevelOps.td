@@ -309,8 +309,16 @@ def CallOp
       $_state.addOperands(operands);
       $_state.addAttribute("callee", mlir::SymbolRefAttr::get($_builder.getContext(), callee.getName()));
       $_state.addTypes(callee.getFunctionType().getResults());
-    }] >
-  ];
+    }]>,
+
+    OpBuilder< (ins "llvm::StringRef":$callee,
+                "mlir::TypeRange":$results,
+                CArg<"mlir::ValueRange", "{}">:$operands),
+    [{
+      $_state.addOperands(operands);
+      $_state.addAttribute("callee", mlir::SymbolRefAttr::get($_builder.getContext(), callee));
+      $_state.addTypes(results);
+    }]>];
 
   let assemblyFormat = [{
     $callee `(` $argOperands `)` attr-dict `:` functional-type( $argOperands, $results )
