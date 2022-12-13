@@ -187,12 +187,12 @@ namespace vast::abi
     {
         using args_info_t = std::vector< arg_info >;
 
-        // Return type is stored as first element.
-        args_info_t args;
+        args_info_t _rets;
+        args_info_t _args;
 
         // calling convention.
-
         RawFn raw_fn;
+
         using type = typename arg_info::type;
         using types = typename arg_info::types;
 
@@ -201,23 +201,25 @@ namespace vast::abi
         std::string to_string() const
         {
             std::stringstream ss;
-            for ( std::size_t i = 0; i < args.size(); ++i )
-                ss << args[ i ].to_string() << "\n";
-            ss << "\n";
+            auto fmt = [ & ]( std::string root, const auto &collection )
+            {
+                ss << root << ":\n";
+                for ( const auto &info : collection )
+                    ss << "\t" << info.to_string() << "\n";
+            };
+            fmt( "return", _rets );
+            fmt( "args", _args );
             return ss.str();
         }
 
         void add_return( arg_info i )
         {
-            if ( args.empty() )
-                args.emplace_back( std::move( i ) );
-            else
-                args[ 0 ] = std::move( i );
+            _rets.emplace_back( std::move( i ) );
         }
 
         void add_arg( arg_info i )
         {
-            args.emplace_back( std::move( i ) );
+            _args.emplace_back( std::move( i ) );
         }
 
         auto fn_type()
@@ -231,6 +233,9 @@ namespace vast::abi
             VAST_CHECK( results.size() == 1, "Cannot handle more return types." );
             return results[ 0 ];
         }
+
+        const auto &args() const { return _args; }
+        const auto &rets() const { return _rets; }
     };
 
     template< typename Op >
