@@ -41,6 +41,28 @@ def TodoOp
     let description = [{ Not implemented yet }];
 }
 
+def CallOp
+  : ABI_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
+  , Arguments<(ins
+      FlatSymbolRefAttr:$callee,
+      Variadic<AnyType>:$args)>
+  , Results<(outs AnyType:$result)>
+{
+  let summary = "ABI call operation";
+  let description = [{ ABI call operation }];
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder< (ins "llvm::StringRef":$callee,
+                "mlir::TypeRange":$results,
+                CArg<"mlir::ValueRange", "{}">:$operands),
+    [{
+      $_state.addOperands(operands);
+      $_state.addAttribute("callee", mlir::SymbolRefAttr::get($_builder.getContext(), callee));
+      $_state.addTypes(results);
+    }]>];
+}
+
 // TODO(abi): This is mostly copy & paste of hl.func. Once ABI dialect is stable,
 //            extract shared parts from both definitions into some helper.
 class ABIFuncBase< string mnemonic >
