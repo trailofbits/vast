@@ -23,6 +23,15 @@ def DirectOp
     let description = [{ Pass value directly - usually means by register. }];
 }
 
+def RetDirectOp
+    : ABI_Op< "ret_direct", [NoSideEffect] >
+    , Arguments<(ins AnyType:$value)>
+    , Results<(outs Variadic<AnyType>:$result)>
+{
+    let summary = "Value is returned directly.";
+    let description = [{ Value is returned directly. }];
+}
+
 def TodoOp
     : ABI_Op< "todo", [NoSideEffect] >
     , Arguments<(ins AnyType:$value)>
