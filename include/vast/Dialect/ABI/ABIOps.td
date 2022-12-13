@@ -23,6 +23,15 @@ def DirectOp
     let description = [{ Pass value directly - usually means by register. }];
 }
 
+def TodoOp
+    : ABI_Op< "todo", [NoSideEffect] >
+    , Arguments<(ins AnyType:$value)>
+    , Results<(outs Variadic<AnyType>:$result)>
+{
+    let summary = "Not implement yet.";
+    let description = [{ Not implemented yet }];
+}
+
 // TODO(abi): This is mostly copy & paste of hl.func. Once ABI dialect is stable,
 //            extract shared parts from both definitions into some helper.
 class ABIFuncBase< string mnemonic >
