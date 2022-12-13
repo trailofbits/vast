@@ -11,3 +11,16 @@ VAST_UNRELAX_WARNINGS
 
 #define GET_OP_CLASSES
 #include "vast/Dialect/ABI/ABI.cpp.inc"
+
+namespace vast::abi
+{
+    mlir::CallInterfaceCallable CallOp::getCallableForCallee()
+    {
+        return (*this)->getAttrOfType< mlir::SymbolRefAttr >("callee");
+    }
+
+    mlir::Operation::operand_range CallOp::getArgOperands()
+    {
+        return this->getOperands();
+    }
+} // namespace vast::abi
