@@ -150,4 +150,16 @@ namespace vast {
             }
     };
 
+    template< typename op_t_ >
+    struct match_and_rewrite_state_capture
+    {
+        using op_t = op_t_;
+        using operands_t = typename op_t::Adaptor;
+        using rewriter_t = conversion_rewriter;
+
+        op_t op;
+        operands_t operands;
+        rewriter_t &rewriter;
+    };
+
 } // namespace vast
