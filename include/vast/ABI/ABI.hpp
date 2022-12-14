@@ -135,6 +135,12 @@ namespace vast::abi
         }
     };
 
+    template< typename T >
+    concept has_target_types = requires ( const T &a )
+    {
+        { a.target_types };
+    };
+
     using passing_style_t = std::variant<
         direct
         , extend
@@ -179,6 +185,23 @@ namespace vast::abi
                 else
                     return e.to_string();
             }, style );
+        }
+
+        types target_types() const
+        {
+            auto process = [&]< typename T >( const T &e ) -> types
+            {
+                if constexpr ( has_target_types< T > )
+                {
+                    return e.target_types;
+                } else if ( std::is_same_v< T, std::monostate > ) {
+                    VAST_TODO( "Trying to retrieve target types from monostate" );
+                } else {
+                    return {};
+                }
+            };
+
+            return std::visit( process, style );
         }
     };
 
