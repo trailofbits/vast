@@ -26,7 +26,7 @@ namespace vast
         }
     };
 
-    bool has_terminator(mlir::Block &block)
+    static inline bool has_terminator(mlir::Block &block)
     {
         if (std::distance(block.begin(), block.end()) == 0)
             return false;
@@ -35,7 +35,7 @@ namespace vast
         return last.hasTrait< mlir::OpTrait::IsTerminator >();
     }
 
-    optional_terminator_t get_terminator(mlir::Block &block)
+    static inline optional_terminator_t get_terminator(mlir::Block &block)
     {
         if (has_terminator(block))
             return { block.getTerminator() };
