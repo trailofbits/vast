@@ -16,7 +16,7 @@ include "vast/Dialect/HighLevel/HighLevelLinkage.td"
 
 def DirectOp
     : ABI_Op< "direct", [NoSideEffect] >
-    , Arguments<(ins AnyType:$value)>
+    , Arguments<(ins Variadic<AnyType>:$value)>
     , Results<(outs Variadic<AnyType>:$result)>
 {
     let summary = "Pass value directly - usually means by register";
@@ -41,12 +41,84 @@ def TodoOp
     let description = [{ Not implemented yet }];
 }
 
+
+class HasBody< string mnemonic >
+    : ABI_Op< mnemonic, [NoSideEffect] >
+    , Results<(outs Variadic<AnyType>:$results)>
+{
+    let regions = (region AnyRegion:$body);
+
+    let skipDefaultBuilders = 1;
+    let builders = [
+        OpBuilder<(ins
+            "mlir::TypeRange":$types,
+            CArg< "BuilderCallback", "std::nullopt" >:$bodyBuilder
+        )>
+    ];
+}
+
+def PrologueOp : HasBody< "prologue" >
+{
+    let summary = "WIP";
+    let description = [{ WIP }];
+}
+
+def EpilogueOp : HasBody< "epilogue" >
+{
+    let summary = "WIP";
+    let description = [{ WIP }];
+}
+
+def CallArgsOp : HasBody< "call_args" >
+{
+    let summary = "Not implement yet.";
+    let description = [{ WIP }];
+}
+
+def CallRetsOp : HasBody< "call_rets" >
+{
+    let summary = "Not implement yet.";
+    let description = [{ WIP }];
+}
+
+def CallExecutionOp
+    : ABI_Op< "call_exec", [DeclareOpInterfaceMethods< CallOpInterface >] >
+    , Arguments<(ins
+        FlatSymbolRefAttr:$callee,
+        Variadic<AnyType>:$args)>
+    , Results<(outs AnyType:$result)>
+{
+    let summary = "WIP";
+    let description = [{ WIP }];
+
+    let regions = (region AnyRegion:$body);
+
+    let skipDefaultBuilders = 1;
+    let builders = [
+        OpBuilder< (ins "llvm::StringRef":$callee,
+                        "mlir::TypeRange":$results,
+                        CArg<"mlir::ValueRange", "{}">:$operands,
+                        CArg< "BuilderCallback", "std::nullopt" >:$bodyBuilder)
+                 >
+  ];
+}
+
+def YieldOp
+    : ABI_Op< "yield", [NoSideEffect, Terminator] >
+    , Arguments<(ins Variadic<AnyType>:$values)>
+    , Results<(outs Variadic<AnyType>:$result)>
+{
+    let summary = "WIP";
+    let description = [{ WIP }];
+}
+
+
 def CallOp
   : ABI_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
   , Arguments<(ins
       FlatSymbolRefAttr:$callee,
       Variadic<AnyType>:$args)>
-  , Results<(outs AnyType:$result)>
+  , Results<(outs Variadic<AnyType>:$results)>
 {
   let summary = "ABI call operation";
   let description = [{ ABI call operation }];
