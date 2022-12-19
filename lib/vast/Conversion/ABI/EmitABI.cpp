@@ -18,6 +18,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "../PassesDetails.hpp"
 
+#include "vast/Conversion/Common/Patterns.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
@@ -37,6 +39,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/ABI/ABIOps.hpp"
 
 #include <iostream>
+#include <unordered_map>
 
 namespace vast
 {
@@ -50,10 +53,31 @@ namespace vast
         return out;
     }
 
-    struct TypeConverter : util::TCHelpers< TypeConverter >, mlir::TypeConverter
+    template< typename Op >
+    using abi_info_map_t = std::unordered_map< std::string, abi::func_info< Op > >;
+
+    template< typename R, typename RootOp, typename DL >
+    auto collect_abi_info(RootOp root_op, const DL &dl)
+        -> abi_info_map_t< R >
+    {
+        abi_info_map_t< R > out;
+        auto gather = [&](R op, const mlir::WalkStage &)
+        {
+            auto name = op.getName();
+            out.emplace( name.str(), abi::make_x86_64(op, dl) );
+
+            return mlir::WalkResult::advance();
+        };
+
+        root_op->walk(gather);
+        return out;
+    }
+
+    // TODO(conv:abi): Remove as we most likely do not need this.
+    struct TypeConverter : util::TCHelpers< TypeConverter >, util::IdentityTC
     {
         TypeConverter(const mlir::DataLayout &dl, MContext &mctx)
-            : dl(dl), mctx(mctx)
+            : util::IdentityTC(), dl(dl), mctx(mctx)
         {}
 
         const mlir::DataLayout &dl;
@@ -62,71 +86,40 @@ namespace vast
 
     namespace pattern
     {
-        template< typename Op >
-        struct wrapper_builder
+        template< typename Self >
+        struct abi_info_utils
         {
-            using self_t = wrapper_builder< Op >;
-            using op_t = Op;
-            using operands_t = typename op_t::Adaptor;
-            using func_info_t = abi::func_info< op_t >;
+            using types_t = std::vector< mlir::Type >;
 
-            op_t op;
-            operands_t operands;
-            mlir::ConversionPatternRewriter &rewriter;
-            abi::WrapFuncOp wrapper;
-            func_info_t func_info;
+            const auto &self() const { return static_cast< const Self & >(*this); }
+            auto &self() { return static_cast< Self & >(*this); }
 
-            wrapper_builder(Op op, operands_t operands,
-                            mlir::ConversionPatternRewriter &rewriter,
-                            abi::WrapFuncOp wrapper,
-                            func_info_t func_info)
-                : op(op), operands(operands), rewriter(rewriter), wrapper(wrapper),
-                  func_info(std::move(func_info))
-            {}
-
-            using values_t = std::vector< mlir::Value >;
-
-            auto direct(const abi::direct &arg, mlir::Value concrete_arg)
-                -> values_t
+            types_t abified_args() const
             {
-                auto vals = rewriter.create< abi::DirectOp >(
-                        op.getLoc(),
-                        arg.target_types,
-                        concrete_arg).getResults();
-                return { vals.begin(), vals.end() };
+                types_t out;
+                for (const auto &e : self().abi_info.args())
+                {
+                    auto trgs = e.target_types();
+                    out.insert(out.end(), trgs.begin(), trgs.end());
+                }
+                return out;
             }
 
-            template< typename Impl >
-            auto mk_direct(const abi::direct &arg, mlir::Value concrete_arg)
-                -> values_t
+            types_t abified_rets() const
             {
-                auto vals = rewriter.create< Impl >(
-                        op.getLoc(),
-                        arg.target_types,
-                        concrete_arg).getResults();
-                return { vals.begin(), vals.end() };
+                types_t out;
+                for (const auto &e : self().abi_info.rets())
+                {
+                    auto trgs = e.target_types();
+                    out.insert(out.end(), trgs.begin(), trgs.end());
+                }
+                return out;
             }
 
-            auto mk_ret(const abi::direct &arg, mlir::Value concrete_arg)
+            mlir::FunctionType abified_type()
             {
-                return mk_direct< abi::RetDirectOp >(arg, concrete_arg);
-            }
-
-            auto mk_arg(const abi::direct &arg, mlir::Value concrete_arg)
-            {
-                return mk_direct< abi::DirectOp >(arg, concrete_arg);
-            }
-
-            auto unknown()
-            {
-                VAST_TODO("conv:abi: Classification returned std::monostate!");
-            }
-
-            auto unsupported(const auto &info, mlir::Value concrete_arg)
-                -> values_t
-            {
-                VAST_TODO("conv:abi: unsupported arg_info: {0}", info.to_string());
-                return {};
+                return  mlir::FunctionType::get(self().op.getContext(),
+                                                abified_args(), abified_rets());
             }
 
             void zip(const auto &a, const auto &b, auto &&yield)
@@ -138,121 +131,64 @@ namespace vast
                     yield(*a_it, *b_it);
                     ++a_it; ++b_it;
                 }
-
                 VAST_ASSERT(a_it == a.end() && b_it == b.end());
-
             }
 
-            std::vector< mlir::Value > emit_prologue()
+            void zip_ret(const auto &a, const auto &b, auto &&yield)
             {
-                VAST_ASSERT(func_info.args().size() == wrapper.getArguments().size());
+                auto abi_it = a.begin();
+                auto args_it = b.begin();
 
-                std::vector< mlir::Value > out;
-                auto store = [&](auto vals)
+                while (abi_it != a.end() && args_it != b.end())
                 {
-                    out.insert(out.end(), vals.begin(), vals.end());
-                };
-
-                auto process = [&](const auto &arg_info, auto val)
-                {
-                    std::visit(overloaded {
-                        [&](const abi::direct &arg) { return store(mk_arg(arg, val)); },
-                        [&](const abi::extend &arg) { return store(unsupported(arg, val)); },
-                        [&](const abi::indirect &arg) { return store(unsupported(arg, val)); },
-                        [&](const abi::ignore &arg) { return store(unsupported(arg, val)); },
-                        [&](const abi::expand &arg) { return store(unsupported(arg, val)); },
-                        [&](const abi::coerce_and_expand &arg)
-                        {
-                            return store(unsupported(arg, val));
-                        },
-                        [&](const abi::in_alloca &arg) { return store(unsupported(arg, val)); },
-                        [&](const std::monostate &arg) { return unknown(); },
-                    }, arg_info.style);
-                };
-
-                zip(func_info.args(), wrapper.getArguments(), process);
-
-
-                return out;
-            }
-
-            std::vector< mlir::Value > emit_call( values_t args )
-            {
-                auto val = rewriter.create< abi::CallOp >(
-                        wrapper.getLoc(),
-                        op.getName(),
-                        op.getFunctionType().getResults(),
-                        args ).getResult();
-
-                return { val };
-            }
-
-            auto emit_epilogue( values_t rets )
-            {
-                std::vector< mlir::Value > out;
-                auto store = [&](auto vals)
-                {
-                    out.insert(out.end(), vals.begin(), vals.end());
-                };
-
-                auto process = [&](const auto &arg_info, auto val)
-                {
-                    std::visit(overloaded {
-                        [&](const abi::direct &arg) { return store(mk_ret(arg, val)); },
-                        [&](const abi::extend &arg) { return store(unsupported(arg, val)); },
-                        [&](const abi::indirect &arg) { return store(unsupported(arg, val)); },
-                        [&](const abi::ignore &arg) { return store(unsupported(arg, val)); },
-                        [&](const abi::expand &arg) { return store(unsupported(arg, val)); },
-                        [&](const abi::coerce_and_expand &arg)
-                        {
-                            return store(unsupported(arg, val));
-                        },
-                        [&](const abi::in_alloca &arg) { return store(unsupported(arg, val)); },
-                        [&](const std::monostate &arg) { return unknown(); },
-                    }, arg_info.style);
-                };
-
-                // TODO(abi): Once `sret` is supported, this will fire.
-                VAST_ASSERT(func_info.rets().size() == rets.size());
-                zip(func_info.rets(), rets, process);
-
-                return rewriter.create< hl::ReturnOp >( op.getLoc(), out );
-            }
-
-            auto emit_all()
-            {
-                return emit_epilogue( emit_call( emit_prologue() ) );
+                    std::vector< mlir::Value > collect;
+                    for (std::size_t i = 0; i < abi_it->target_types().size(); ++i)
+                    {
+                        VAST_ASSERT(args_it != b.end());
+                        collect.push_back(*(args_it++));
+                    }
+                    yield(*abi_it, std::move(collect));
+                    ++abi_it;
+                }
             }
 
         };
 
-        struct func_type : OpConversionPattern< mlir::func::FuncOp >
+        template< typename Op >
+        struct abi_transform : match_and_rewrite_state_capture< Op >,
+                               abi_info_utils< abi_transform< Op > >
         {
-            using Base = OpConversionPattern< mlir::func::FuncOp >;
-            using Op = mlir::func::FuncOp;
+            using state_t = match_and_rewrite_state_capture< Op >;
+            using op_t = typename state_t::op_t;
+            using abi_info_t = abi::func_info< mlir::func::FuncOp >;
 
-            TypeConverter &tc;
+            using state_t::op;
+            using state_t::operands;
+            using state_t::rewriter;
 
-            func_type(TypeConverter &tc, MContext &mctx)
-                : Base(tc, &mctx), tc(tc)
+            const abi_info_t &abi_info;
+
+            using materialized_args_t = std::vector< mlir::Value >;
+            using mapped_arg_t = std::tuple< mlir::Type, materialized_args_t >;
+
+            abi_transform(state_t state, const abi_info_t &abi_info)
+                : state_t(std::move(state)), abi_info(abi_info)
             {}
 
+            using types_t = std::vector< mlir::Type >;
 
-            // Wrapper has old type and is supposed to be called. Then it converts
-            // its arguments and calls the "implementation" which has the correct
-            // abi type. Return value of that call is again transformed to the original
-            // type.
-            abi::WrapFuncOp mk_wrapper(Op op, typename Op::Adaptor ops,
-                                       mlir::ConversionPatternRewriter &rewriter) const
+            abi::FuncOp make()
             {
                 mlir::SmallVector< mlir::DictionaryAttr, 8 > arg_attrs;
                 mlir::SmallVector< mlir::NamedAttribute, 8 > other_attrs;
 
                 op.getAllArgAttrs(arg_attrs);
-                auto wrapper = rewriter.create< abi::WrapFuncOp >(
+                auto wrapper = rewriter.template create< abi::FuncOp >(
                         op.getLoc(),
-                        op.getName(),
-                        op.getFunctionType(),
+                        // Temporal, to avoid verification issues, will be changed once
+                        // original func is removed.
+                        "vast.abi" + op.getName().str(),
+                        this->abified_type(),
                         hl::GlobalLinkageKind::InternalLinkage,
                         other_attrs,
                         arg_attrs
@@ -261,37 +197,487 @@ namespace vast
                 // Copying visibility from the original function results in error?
                 wrapper.setVisibility(mlir::SymbolTable::Visibility::Private);
 
-                auto guard = mlir::OpBuilder::InsertionGuard(rewriter);
-                llvm::dbgs() << op.getFunctionType().getInputs().size()
-                             << " " << collect_arg_locs(op).size() << "\n";
-                auto prologue = rewriter.createBlock(&wrapper.getBody(), {},
-                                                     wrapper.getFunctionType().getInputs(),
-                                                     collect_arg_locs(op));
+                mk_prologue(wrapper);
 
-                rewriter.setInsertionPointToStart(prologue);
-
-                // This function has old type, we need to emit rules to modify the type now.
-                auto converted_type = abi::make_x86_64< Op >(op, tc.dl);
-                llvm::dbgs() << converted_type.to_string() << "\n"; llvm::dbgs().flush();
-
-                auto builder = wrapper_builder(op, ops, rewriter,
-                                               wrapper, std::move(converted_type));
-
-                builder.emit_all();
                 return wrapper;
             }
+
+            auto mk_direct(auto &bld, auto loc, const abi::direct &abi_arg,
+                           const mapped_arg_t &entry)
+            {
+                auto &[original_type, args] = entry;
+
+                auto opaque = rewriter.template create< abi::DirectOp >(
+                        op.getLoc(),
+                        original_type,
+                        args);
+                return opaque.getResults();
+            }
+
+            auto fold_arg(auto &bld, auto loc,
+                          const abi::direct &abi_arg, const mapped_arg_t &entry)
+                -> mlir::ResultRange
+            {
+                return mk_direct(bld, loc, abi_arg, entry);
+            }
+
+            auto fold_arg(auto &, auto, const auto &abi_arg, const mapped_arg_t &)
+                -> mlir::ResultRange
+            {
+                VAST_TODO("conv:abi:fold_arg unsupported arg_info: {0}", abi_arg.to_string());
+            }
+
+            auto fold_arg(auto &, auto, const std::monostate &, const mapped_arg_t &)
+                -> mlir::ResultRange
+            {
+                VAST_TODO("conv:abi:fold_arg unsupported arg_info: monostate");
+            }
+
+            auto fold_ret(auto &bld, auto loc,
+                          const abi::direct &abi_arg, const mapped_arg_t &entry)
+                -> mlir::ResultRange
+            {
+                return mk_direct(bld, loc, abi_arg, entry);
+            }
+
+            auto fold_ret(auto &, auto, const auto &abi_arg, const mapped_arg_t &)
+                -> mlir::ResultRange
+            {
+                VAST_TODO("conv:abi:fold_ret unsupported arg_info: {0}", abi_arg.to_string());
+            }
+
+            auto fold_ret(auto &, auto, const std::monostate &, const mapped_arg_t &)
+                -> mlir::ResultRange
+            {
+                VAST_TODO("conv:abi:fold_ret unsupported arg_info: monostate");
+            }
+
+            void mk_prologue(abi::FuncOp func)
+            {
+                std::vector< mlir::Location > arg_locs;
+                auto process = [&](const auto &arg_info, auto loc)
+                {
+                    for (std::size_t i = 0; i < arg_info.target_types().size(); ++i)
+                        arg_locs.push_back(loc);
+                };
+                // TODO(conv:abi): This won't work with `sret`.
+                this->zip(abi_info.args(), collect_arg_locs(op), process);
+
+
+                auto guard = mlir::OpBuilder::InsertionGuard(rewriter);
+                auto entry = rewriter.createBlock(&func.getBody(), {},
+                                                  func.getFunctionType().getInputs(),
+                                                  arg_locs);
+
+                // Compute some mappings that will be needed later.
+                // arg_info -> { original type, [ arguments in the new function] }
+                std::unordered_map< const abi::arg_info *, mapped_arg_t > arg_to_locals;
+
+                auto func_arg_it = func.args_begin();
+                auto op_arg_it = op.args_begin();
+                for (std::size_t i = 0; i < abi_info.args().size(); ++i)
+                {
+                    auto &current = abi_info.args()[i];
+
+                    materialized_args_t mat_args;
+                    for (std::size_t j = 0; j < current.target_types().size(); ++j)
+                        mat_args.push_back( *(func_arg_it++) );
+
+                    auto entry = std::make_tuple((op_arg_it++)->getType(), std::move(mat_args));
+                    arg_to_locals[ &current ] = std::move(entry);
+                }
+
+                rewriter.setInsertionPointToStart(entry);
+
+                materialized_args_t to_yield;
+                auto fold_all_args = [&](auto &bld, auto loc)
+                {
+                    auto store = [&](auto c)
+                    {
+                        to_yield.insert(to_yield.end(), c.begin(), c.end());
+                    };
+
+                    for (const auto &abi_arg : abi_info.args())
+                    {
+                        VAST_ASSERT(arg_to_locals.count(&abi_arg));
+                        const auto &entry = arg_to_locals[ &abi_arg ];
+
+                        auto dispatch = [&](const auto &arg)
+                        {
+                            return store(fold_arg(bld, loc, arg, entry));
+                        };
+                        std::visit(dispatch, abi_arg.style);
+                    }
+
+                    bld.template create< abi::YieldOp >(
+                            loc, op.getFunctionType().getResults(), to_yield );
+                };
+
+                auto abi_prologue = rewriter.template create< abi::PrologueOp >(
+                        op.getLoc(),
+                        op.getFunctionType().getInputs(),
+                        fold_all_args);
+
+                get_body(func, abi_prologue.getResults());
+            }
+
+            void get_body(abi::FuncOp func, const auto &arg_mapping)
+            {
+
+                rewriter.cloneRegionBefore(op.getBody(), func.getBody(),
+                                            func.getBody().end());
+
+                auto entry = &*func.getBody().begin();
+                auto original_entry = &*(std::next(func.getBody().begin()));
+                rewriter.mergeBlocks(original_entry, entry, arg_mapping);
+            }
+
+        };
+
+        template< typename Op >
+        struct call_wrapper : abi_info_utils< call_wrapper< Op > >,
+                              match_and_rewrite_state_capture< Op >
+        {
+            using state_t = match_and_rewrite_state_capture< Op >;
+            using op_t = typename state_t::op_t;
+            using abi_info_t = abi::func_info< mlir::func::FuncOp >;
+
+            using state_t::op;
+            using state_t::operands;
+            using state_t::rewriter;
+
+            const abi_info_t &abi_info;
+
+            call_wrapper(state_t state, const abi_info_t &abi_info)
+                : state_t(std::move(state)), abi_info(abi_info)
+            {}
+
+            using values_t = std::vector< mlir::Value >;
+
+            template< typename Impl >
+            auto mk_direct(auto &bld, auto loc,
+                           const abi::direct &arg, values_t concrete_args)
+                -> values_t
+            {
+                auto vals = rewriter.template create< Impl >(
+                        op.getLoc(),
+                        arg.target_types,
+                        concrete_args).getResults();
+                return { vals.begin(), vals.end() };
+            }
+
+            auto mk_ret(auto &bld, auto loc, const abi::direct &arg, values_t concrete_args)
+            {
+                return mk_direct< abi::DirectOp >(bld, loc, arg, concrete_args);
+            }
+
+            auto mk_ret(auto &, auto, const auto &abi_arg, values_t)
+                -> mlir::ResultRange
+            {
+                VAST_TODO("conv:abi:mk_ret unsupported arg_info: {0}", abi_arg.to_string());
+            }
+
+            auto mk_ret(auto &, auto, const std::monostate &, values_t)
+                -> mlir::ResultRange
+            {
+                VAST_TODO("conv:abi:mk_ret unsupported arg_info: monostate");
+            }
+
+            auto mk_arg(auto &bld, auto loc, const abi::direct &arg, mlir::Value concrete_arg)
+            {
+                return mk_direct< abi::DirectOp >(bld, loc, arg, { concrete_arg });
+            }
+
+
+            auto mk_arg(auto &, auto, const auto &abi_arg, const mlir::Value &)
+                -> mlir::ResultRange
+            {
+                VAST_TODO("conv:abi:mk_arg unsupported arg_info: {0}", abi_arg.to_string());
+            }
+
+            auto mk_arg(auto &, auto, const std::monostate &, const mlir::Value &)
+                -> mlir::ResultRange
+            {
+                VAST_TODO("conv:abi:mk_arg unsupported arg_info: monostate");
+            }
+
+            auto execution_region_maker()
+            {
+                return [&](auto &bld, auto loc)
+                {
+                    auto args = bld.template create< abi::CallArgsOp >(
+                            loc,
+                            this->abified_args(),
+                            args_maker());
+                    auto call = bld.template create< abi::CallOp >(
+                            loc,
+                            op.getCallee(),
+                            this->abified_rets(),
+                            args.getResults());
+                    auto to_yield = bld.template create< abi::CallRetsOp >(
+                            loc,
+                            op.getResult().getType(),
+                            rets_maker(call.getResults()));
+                    bld.template create< abi::YieldOp >(
+                            loc,
+                            op.getResult().getType(),
+                            to_yield.getResults());
+                };
+            }
+
+            auto args_maker()
+            {
+                return [&](auto &bld, auto loc)
+                {
+                    std::vector< mlir::Value > out;
+                    auto store = [&](auto vals)
+                    {
+                        out.insert(out.end(), vals.begin(), vals.end());
+                    };
+
+                    auto process = [&](const auto &arg_info, auto val)
+                    {
+                        auto dispatch = [&](const auto &abi_arg)
+                        {
+                            return store(mk_arg(bld, loc, abi_arg, val));
+                        };
+                        std::visit(dispatch, arg_info.style);
+                    };
+
+                    this->zip(abi_info.args(), op.getArgOperands(), process);
+
+                    bld.template create< abi::YieldOp >(
+                        loc,
+                        this->abified_args(),
+                        out);
+                };
+
+            }
+
+            auto rets_maker(mlir::ValueRange vals)
+            {
+                return [=](auto &bld, auto loc)
+                {
+                    std::vector< mlir::Value > out;
+                    auto store = [&](auto vals)
+                    {
+                        out.insert(out.end(), vals.begin(), vals.end());
+                    };
+
+                    auto process = [&](const auto &arg_info, auto vals)
+                    {
+                        auto dispatch = [&](const auto &abi_arg)
+                        {
+                            return store(mk_ret(bld, loc, abi_arg, vals));
+                        };
+                        std::visit(dispatch, arg_info.style);
+                    };
+
+                    this->zip_ret(abi_info.rets(), vals, process);
+
+                    bld.template create< abi::YieldOp >(
+                        loc,
+                        this->abified_args(),
+                        out);
+                };
+            }
+
+            auto make()
+            {
+                return rewriter.template create< abi::CallExecutionOp >(
+                        op.getLoc(),
+                        op.getCallee(),
+                        op.getResult().getType(),
+                        op.getArgOperands(),
+                        execution_region_maker());
+            }
+        };
+
+
+        template< typename Op >
+        struct return_wrapper : abi_info_utils< return_wrapper< Op > >,
+                                match_and_rewrite_state_capture< Op >
+        {
+            using state_t = match_and_rewrite_state_capture< Op >;
+            using op_t = typename state_t::op_t;
+            using abi_info_t = abi::func_info< mlir::func::FuncOp >;
+
+            using state_t::op;
+            using state_t::operands;
+            using state_t::rewriter;
+
+            const abi_info_t &abi_info;
+
+            return_wrapper(state_t state, const abi_info_t &abi_info)
+                : state_t(std::move(state)), abi_info(abi_info)
+            {}
+
+            using values_t = std::vector< mlir::Value >;
+
+            template< typename Impl >
+            auto mk_direct(auto &bld, auto loc,
+                           const abi::direct &arg, mlir::Value concrete_arg)
+                -> values_t
+            {
+                auto vals = rewriter.template create< Impl >(
+                        op.getLoc(),
+                        arg.target_types,
+                        concrete_arg).getResults();
+                return { vals.begin(), vals.end() };
+            }
+
+            auto mk_ret(auto &bld, auto loc, const abi::direct &arg, mlir::Value concrete_arg)
+            {
+                return mk_direct< abi::DirectOp >(bld, loc, arg, concrete_arg);
+            }
+
+            auto mk_ret(auto &, auto, const auto &abi_arg, const mlir::Value &)
+                -> mlir::ResultRange
+            {
+                VAST_TODO("conv:abi:mk_ret unsupported arg_info: {0}", abi_arg.to_string());
+            }
+
+            auto mk_ret(auto &, auto, const std::monostate &, const mlir::Value &)
+                -> mlir::ResultRange
+            {
+                VAST_TODO("conv:abi:mk_ret unsupported arg_info: monostate");
+            }
+
+            auto wrap_return(mlir::ValueRange vals)
+            {
+                return [=](auto &bld, auto loc)
+                {
+                    std::vector< mlir::Value > out;
+                    auto store = [&](auto to_store)
+                    {
+                        out.insert(out.end(), to_store.begin(), to_store.end());
+                    };
+
+                    auto process = [&](const auto &arg_info, auto val)
+                    {
+                        auto dispatch = [&](const auto &abi_arg)
+                        {
+                            return store(mk_ret(bld, loc, abi_arg, val));
+                        };
+                        std::visit(dispatch, arg_info.style);
+                    };
+
+                    this->zip(abi_info.rets(), vals, process);
+
+                    bld.template create< abi::YieldOp >(
+                        loc,
+                        this->abified_args(),
+                        out);
+                };
+            }
+
+            hl::ReturnOp make()
+            {
+                auto wrapped = rewriter.template create< abi::EpilogueOp >(
+                        op.getLoc(),
+                        this->abified_rets(),
+                        wrap_return(op.getResult()));
+
+                return rewriter.template create< hl::ReturnOp >(
+                        op.getLoc(),
+                        wrapped.getResults());
+            }
+
+        };
+
+
+
+        struct func_type : mlir::OpConversionPattern< mlir::func::FuncOp >
+        {
+            using Base = mlir::OpConversionPattern< mlir::func::FuncOp >;
+            using Op = mlir::func::FuncOp;
+
+            TypeConverter &tc;
+            const abi_info_map_t< mlir::func::FuncOp > &abi_info_map;
+
+            func_type(TypeConverter &tc,
+                      const abi_info_map_t< mlir::func::FuncOp > &abi_info_map,
+                      MContext &mctx)
+                : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
+            {}
 
             mlir::LogicalResult matchAndRewrite(
                     Op op, typename Op::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
-
-                auto wrapper = mk_wrapper(op, ops, rewriter);
-                if (!wrapper)
+                auto abi_map_it = abi_info_map.find(op.getName().str());
+                if (abi_map_it == abi_info_map.end())
                     return mlir::failure();
+
+                const auto &abi_info = abi_map_it->second;
+                abi_transform< Op >({ op, ops, rewriter }, abi_info).make();
                 rewriter.eraseOp(op);
                 return mlir::success();
+            }
+        };
 
+        struct call_op : mlir::OpConversionPattern< hl::CallOp >
+        {
+            using Base = mlir::OpConversionPattern< hl::CallOp >;
+            using Op = hl::CallOp;
+
+            TypeConverter &tc;
+            const abi_info_map_t< mlir::func::FuncOp > &abi_info_map;
+
+            call_op(TypeConverter &tc, const abi_info_map_t< mlir::func::FuncOp > &abi_info_map,
+                    MContext &mctx)
+                : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
+            {}
+
+            mlir::LogicalResult matchAndRewrite(
+                    Op op, typename Op::Adaptor ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                auto abi_map_it = abi_info_map.find(op.getCallee().str());
+                if (abi_map_it == abi_info_map.end())
+                    return mlir::failure();
+
+                const auto &abi_info = abi_map_it->second;
+                auto call = call_wrapper< Op >({op, ops, rewriter}, abi_info).make();
+                rewriter.replaceOp(op, { call });
+                return mlir::success();
+            }
+        };
+
+        struct return_op : mlir::OpConversionPattern< hl::ReturnOp >
+        {
+            using Base = mlir::OpConversionPattern< hl::ReturnOp >;
+            using Op = hl::ReturnOp;
+
+            TypeConverter &tc;
+            const abi_info_map_t< mlir::func::FuncOp > &abi_info_map;
+
+            return_op(TypeConverter &tc,
+                      const abi_info_map_t< mlir::func::FuncOp > &abi_info_map,
+                      MContext &mctx)
+                : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
+            {}
+
+            mlir::LogicalResult matchAndRewrite(
+                    Op op, typename Op::Adaptor ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                auto func = op->getParentOfType< abi::FuncOp >();
+                if (!func)
+                    return mlir::failure();
+
+                auto name = func.getName();
+                if (!name.consume_front("vast.abi"))
+                    return mlir::failure();
+
+                auto abi_map_it = abi_info_map.find(name.str());
+                if (abi_map_it == abi_info_map.end())
+                    return mlir::failure();
+
+                const auto &abi_info = abi_map_it->second;
+                auto ret = return_wrapper< Op >({op, ops, rewriter}, abi_info).make();
+                rewriter.eraseOp(op);
+                return mlir::success();
             }
         };
 
@@ -300,30 +686,100 @@ namespace vast
 
     struct ABIfy : ABIfyBase< ABIfy >
     {
-        void runOnOperation() override
+        using target_t = mlir::ConversionTarget;
+        using patterns_t = mlir::RewritePatternSet;
+        using phase_t = std::tuple< target_t, patterns_t >;
+
+        phase_t first_phase(auto &tc, const auto &abi_info_map)
         {
             auto &mctx = this->getContext();
-            mlir::ModuleOp op = this->getOperation();
 
             mlir::ConversionTarget target(mctx);
             target.markUnknownOpDynamicallyLegal([](auto) { return true; });
+            target.addIllegalOp< hl::CallOp >();
+
+            mlir::RewritePatternSet patterns(&mctx);
+            patterns.add< pattern::call_op >(tc, abi_info_map, mctx);
+
+            return { std::move(target), std::move(patterns) };
+        }
+
+        phase_t second_phase(auto &tc, const auto &abi_info_map)
+        {
+
+            auto &mctx = this->getContext();
+
+            mlir::ConversionTarget target(mctx);
+            target.markUnknownOpDynamicallyLegal([](auto) { return true; });
+
             auto should_transform = [&](mlir::func::FuncOp op)
             {
                 // TODO(abi): Due to some issues with location info of arguments
                 //            declaration are not yet supported.
                 return op.getName() == "main" && !op.isDeclaration();
             };
+
             target.addDynamicallyLegalOp< mlir::func::FuncOp >(should_transform);
 
-            const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
+            mlir::RewritePatternSet patterns(&mctx);
+            patterns.add< pattern::func_type >(tc, abi_info_map, mctx);
 
-            auto type_converter = TypeConverter(dl_analysis.getAtOrAbove(op), mctx);
+            return { std::move(target), std::move(patterns) };
+        }
+
+        phase_t third_phase(auto &tc, const auto &abi_info_map)
+        {
+            auto &mctx = this->getContext();
+
+            mlir::ConversionTarget target(mctx);
+            target.markUnknownOpDynamicallyLegal([](auto) { return true; });
+
+            // Plan is to still leave `hl.return` but it should return values
+            // yielded by `abi.epilogue`.
+            auto is_return_legal = [&](hl::ReturnOp op)
+            {
+                auto func = op->getParentOfType< abi::FuncOp >();
+                if (!func || func.getName() == "main")
+                    return true;
+
+                for (auto val : op.getResult())
+                    if (!val.getDefiningOp< abi::EpilogueOp >())
+                        return false;
+                return true;
+            };
+
+            target.addDynamicallyLegalOp< hl::ReturnOp >(is_return_legal);
 
             mlir::RewritePatternSet patterns(&mctx);
-            patterns.add< pattern::func_type >(type_converter, mctx);
-            if (mlir::failed(mlir::applyPartialConversion(op, target, std::move(patterns))))
+            patterns.add< pattern::return_op >(tc, abi_info_map, mctx);
+
+            return { std::move(target), std::move(patterns) };
+        }
+
+        mlir::LogicalResult run(phase_t phase)
+        {
+            auto [trg, patterns] = std::move(phase);
+            return mlir::applyPartialConversion(this->getOperation(), trg, std::move(patterns));
+        }
+
+        void runOnOperation() override
+        {
+            auto &mctx = this->getContext();
+            mlir::ModuleOp op = this->getOperation();
+
+            const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
+            auto tc = TypeConverter(dl_analysis.getAtOrAbove(op), mctx);
+            auto abi_info_map = collect_abi_info< mlir::func::FuncOp >(
+                    op, dl_analysis.getAtOrAbove(op));
+
+            if (mlir::failed(run(first_phase(tc, abi_info_map))))
                 return signalPassFailure();
 
+            if (mlir::failed(run(second_phase(tc, abi_info_map))))
+                return signalPassFailure();
+
+            if (mlir::failed(run(third_phase(tc, abi_info_map))))
+                return signalPassFailure();
         }
     };
 
