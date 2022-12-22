@@ -6,6 +6,7 @@ add_mlir_dialect_library(MLIRHighLevelTransforms
   LLVMDump.cpp
   HLToLLGEPs.cpp
   HLToLLVars.cpp
+  HLEmitLazyRegions.cpp
 
   DEPENDS
   HighLevelTransformsIncGen

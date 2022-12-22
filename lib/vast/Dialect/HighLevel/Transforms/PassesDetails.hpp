@@ -11,6 +11,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/LowLevel/LowLevelDialect.hpp"
+#include "vast/Dialect/Core/CoreDialect.hpp"
 
 #include <memory>
 
