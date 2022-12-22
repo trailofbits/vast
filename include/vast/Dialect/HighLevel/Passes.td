@@ -115,5 +115,14 @@ def HLToSCF : Pass<"vast-hl-to-scf", "mlir::ModuleOp"> {
   let constructor = "vast::hl::createHLToSCFPass()";
 }
 
+def HLEmitLazyRegions : Pass<"vast-hl-to-lazy-regions", "mlir::ModuleOp"> {
+  let summary = "Transform hl operations that have short-circuiting into lazy operations.";
+  let description = [{
+    This pass is still a work in progress.
+  }];
+
+  let constructor = "vast::hl::createHLEmitLazyRegionsPass()";
+  let dependentDialects = ["vast::core::CoreDialect"];
+}
 
 #endif // VAST_DIALECT_HIGHLEVEL_PASSES_TD
