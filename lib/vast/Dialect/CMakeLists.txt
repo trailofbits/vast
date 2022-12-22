@@ -3,3 +3,4 @@
 add_subdirectory(HighLevel)
 add_subdirectory(LowLevel)
 add_subdirectory(Meta)
+add_subdirectory(Core)
