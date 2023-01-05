@@ -64,12 +64,12 @@ namespace vast {
                 return;
             } else {
                 patterns.add< typename list::head >(patterns.getContext());
-                return populate_conversions< typename list::tail >(patterns);
+                return populate_conversions_base< typename list::tail >(patterns);
             }
         }
 
         template< typename ...lists  >
-        static void populate_conversions(rewrite_pattern_set &patterns) {
+        static void populate_conversions_base(rewrite_pattern_set &patterns) {
             (populate_conversions_impl< lists >(patterns), ...);
         }
 
