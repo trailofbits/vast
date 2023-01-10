@@ -740,7 +740,8 @@ namespace vast::hl {
         Operation* VisitIndirectCall(const clang::CallExpr *expr) {
             auto callee = VisitIndirectCallee(expr->getCallee())->getResult(0);
             auto args   = VisitArguments(expr);
-            return make< IndirectCallOp >(meta_location(expr), callee, args);
+            auto type   = getFunctionType(callee.getType(), context().mod.get()).getResults();
+            return make< IndirectCallOp >(meta_location(expr), type, callee, args);
         }
 
         Operation* VisitCallExpr(const clang::CallExpr *expr) {

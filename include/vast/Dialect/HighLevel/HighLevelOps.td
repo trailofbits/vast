@@ -312,10 +312,10 @@ def CallOp
 def IndirectCallOp
   : HighLevel_Op< "indirect_call", [
     DeclareOpInterfaceMethods<CallOpInterface>,
-    DeclareOpInterfaceMethods<InferTypeOpInterface>
   ]>
   , Arguments<(ins
-      LValueOrType<PointerLikeType>:$callee,
+      // FIXME: LValueOrType<PointerLikeType>
+      AnyType:$callee,
       Variadic<AnyType>:$argOperands)>
   , Results<(outs AnyType:$result)>
 {
