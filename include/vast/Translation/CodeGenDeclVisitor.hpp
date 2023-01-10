@@ -38,7 +38,7 @@ namespace vast::hl {
 
         using Builder = CodeGenBuilderMixin< CodeGenDeclVisitorMixin< Derived >, Derived >;
 
-        using Builder::op_builder;
+        using Builder::builder;
         using Builder::make_value_builder;
 
         using Builder::set_insertion_point_to_start;
@@ -64,7 +64,7 @@ namespace vast::hl {
         }
 
         Operation* VisitFunctionDecl(const clang::FunctionDecl *decl) {
-            InsertionGuard guard(op_builder());
+            InsertionGuard guard(builder());
             auto is_definition = decl->doesThisDeclarationHaveABody();
 
             // emit definition instead of declaration

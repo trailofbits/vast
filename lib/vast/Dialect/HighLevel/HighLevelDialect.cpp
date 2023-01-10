@@ -6,6 +6,7 @@
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 #include "vast/Util/Functions.hpp"
+#include "vast/Util/Common.hpp"
 
 #include <mlir/IR/TypeSupport.h>
 #include <mlir/IR/Builders.h>
@@ -35,13 +36,11 @@ namespace vast::hl
     using DialectParser = mlir::AsmParser;
     using DialectPrinter = mlir::AsmPrinter;
 
-    using OpBuilder = mlir::OpBuilder;
-    using Operation = mlir::Operation;
-
-    Operation *HighLevelDialect::materializeConstant(OpBuilder &builder, Attribute value, Type type, Location loc)
+    Operation *HighLevelDialect::materializeConstant(Builder &builder, Attribute value, Type type, Location loc)
     {
         VAST_UNIMPLEMENTED;
     }
+
 } // namespace vast::hl
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.cpp.inc"
