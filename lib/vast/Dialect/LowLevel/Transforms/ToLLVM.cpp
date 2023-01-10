@@ -39,8 +39,6 @@ namespace vast::ll
         target.addIllegalDialect< ll::LowLevelDialect >();
         target.markUnknownOpDynamicallyLegal([](auto) { return true; });
 
-        const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
-
         mlir::LowerToLLVMOptions llvm_options{ &mctx };
         llvm_options.useBarePtrCallConv = true;
 
