@@ -5,6 +5,8 @@
 #include "vast/Translation/CodeGenContext.hpp"
 #include "vast/Translation/CodeGenMeta.hpp"
 
+#include "vast/Util/Common.hpp"
+
 namespace vast::hl {
 
     template< MetaGeneratorLike MetaGenerator >
@@ -27,7 +29,7 @@ namespace vast::hl {
             : Base(ctx, meta), _builder(ctx.getBodyRegion())
         {}
 
-        mlir::OpBuilder _builder;
+        Builder _builder;
     };
 
 } // namespace vast::hl

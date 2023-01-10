@@ -16,6 +16,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
+#include "vast/Util/Common.hpp"
+
 namespace vast::hl {
 
     CastKind cast_kind(const clang::CastExpr *expr);
@@ -39,7 +41,7 @@ namespace vast::hl {
 
         using Builder = CodeGenBuilderMixin< CodeGenStmtVisitorMixin< Derived >, Derived >;
 
-        using Builder::op_builder;
+        using Builder::builder;
 
         using Builder::constant;
 
@@ -707,7 +709,7 @@ namespace vast::hl {
         // Operation* VisitCXXUuidofExpr(const clang::CXXUuidofExpr *expr)
 
         FuncOp VisitDirectCallee(const clang::FunctionDecl *callee) {
-            InsertionGuard guard(op_builder());
+            InsertionGuard guard(builder());
 
             if (auto fn = context().lookup_function(callee, false /* with error */)) {
                 return fn;

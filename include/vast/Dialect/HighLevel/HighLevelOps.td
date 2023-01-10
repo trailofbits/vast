@@ -75,7 +75,7 @@ def FuncOp : HighLevel_Op< "func", [
     CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
     CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
     CArg< "BuilderCallback", "std::nullopt" >:$body), [{
-      Builder::InsertionGuard guard($_builder);
+      InsertionGuard guard($_builder);
       detail::build_region($_builder, $_state, body);
 
       $_state.addAttribute(
@@ -198,7 +198,7 @@ def EnumConstantOp
       $_state.addAttribute("name", $_builder.getStringAttr(name));
       $_state.addAttribute("value", IntegerAttr::get(type, value));
 
-      Builder::InsertionGuard guard($_builder);
+      InsertionGuard guard($_builder);
       detail::build_region($_builder, $_state, init);
     }]>,
   ];

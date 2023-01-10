@@ -4,24 +4,19 @@
 
 #include "vast/Util/Warnings.hpp"
 
+#include "vast/Util/Common.hpp"
 #include "vast/Translation/CodeGenVisitorLens.hpp"
 
 namespace vast::hl {
 
-    using InsertionGuard = mlir::OpBuilder::InsertionGuard;
-
-    struct CodeGenBuilderHandle {
-        mlir::OpBuilder &builder;
-    };
-
     template< typename Scope >
     struct ScopeGenerator : InsertionGuard {
-        ScopeGenerator(CodeGenBuilderHandle handle, Location loc)
-            : InsertionGuard(handle.builder), loc(loc)
-            , scope(handle.builder.create< Scope >(loc))
+        ScopeGenerator(Builder &builder, Location loc)
+            : InsertionGuard(builder), loc(loc)
+            , scope(builder.create< Scope >(loc))
         {
             auto &block = scope.getBody().emplaceBlock();
-            handle.builder.setInsertionPointToStart(&block);
+            builder.setInsertionPointToStart(&block);
         }
 
         Scope get() { return scope; }
@@ -99,34 +94,35 @@ namespace vast::hl {
 
         using LensType::visit;
 
-        auto op_builder() -> mlir::OpBuilder & { return derived()._builder; }
+        auto builder() -> Builder& { return derived()._builder; }
 
-        auto builder() -> CodeGenBuilderHandle { return { op_builder() }; }
-
-        FuncOp get_current_function() {
-            auto reg = op_builder().getBlock()->getParent();
-            return reg->template getParentOfType< FuncOp >();
+        template< typename Op >
+        Op get_parent_of_type() {
+            auto reg = builder().getInsertionBlock()->getParent();
+            return reg->template getParentOfType< Op >();
         }
 
+        FuncOp get_current_function() { return get_parent_of_type< FuncOp >(); }
+
         void set_insertion_point_to_start(mlir::Region *region) {
-            op_builder().setInsertionPointToStart(&region->front());
+            builder().setInsertionPointToStart(&region->front());
         }
 
         void set_insertion_point_to_end(mlir::Region *region) {
-            op_builder().setInsertionPointToEnd(&region->back());
+            builder().setInsertionPointToEnd(&region->back());
         }
 
         void set_insertion_point_to_start(mlir::Block *block) {
-            op_builder().setInsertionPointToStart(block);
+            builder().setInsertionPointToStart(block);
         }
 
         void set_insertion_point_to_end(mlir::Block *block) {
-            op_builder().setInsertionPointToEnd(block);
+            builder().setInsertionPointToEnd(block);
         }
 
         template< typename Op, typename... Args >
         auto create(Args &&...args) {
-            return op_builder().template create< Op >(std::forward< Args >(args)...);
+            return builder().template create< Op >(std::forward< Args >(args)...);
         }
 
         template< typename op >
@@ -150,7 +146,7 @@ namespace vast::hl {
             return scope.get();
         }
 
-        InsertionGuard insertion_guard() { return InsertionGuard(op_builder()); }
+        InsertionGuard insertion_guard() { return InsertionGuard(builder()); }
 
         // TODO: unify region and stmt builders, they are the same thing but
         // different region builders directly emit new region, while stmt

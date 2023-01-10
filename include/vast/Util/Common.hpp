@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/IR/Value.h>
 #include <mlir/IR/BuiltinOps.h>
+#include <mlir/IR/Builders.h>
 #include <mlir/IR/OwningOpRef.h>
 VAST_UNRELAX_WARNINGS
 
@@ -28,12 +29,12 @@ namespace vast
     using State     = mlir::OperationState;
     using TypeRange = mlir::TypeRange;
 
+    using InsertionGuard = Builder::InsertionGuard;
+
     using Parser      = mlir::OpAsmParser;
     using ParseResult = mlir::ParseResult;
-
     using Printer     = mlir::OpAsmPrinter;
-
-    using FoldResult = mlir::OpFoldResult;
+    using FoldResult  = mlir::OpFoldResult;
 
     using BuilderCallback = std::optional<
         llvm::function_ref< void(Builder &, Location) >
