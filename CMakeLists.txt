@@ -25,7 +25,7 @@ if (ENABLE_VCPKG_CONFIG)
   include(vast_vcpkg_helper)
 endif()
 
-project(vast
+project(VAST
     LANGUAGES C CXX
     VERSION 0.0.0
     DESCRIPTION "Verbose intermediate representation for program analysis"
@@ -33,8 +33,6 @@ project(vast
 )
 
 include(prevent_in_source_builds)
-
-include(GNUInstallDirs)
 
 # check if vast is being used directly or via add_subdirectory,
 # but allow overriding
@@ -48,6 +46,27 @@ endif()
 
 include(project_settings)
 include(project_utils)
+
+#
+# Setup package version
+#
+setup_package_version_variables(vast)
+
+set(VAST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(VAST_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
+set(VAST_INCLUDE_DIR ${VAST_BINARY_DIR}/include)
+
+# Configure Vast Version.inc file.
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/vast/Version.inc.in
+  ${CMAKE_CURRENT_BINARY_DIR}/include/vast/Version.inc
+)
+
+# Configure Vast version info header file.
+configure_file(
+  ${VAST_SOURCE_DIR}/include/vast/Config/config.h.cmake
+  ${VAST_BINARY_DIR}/include/vast/Config/config.h
+)
 
 #
 # CCACHE
@@ -105,6 +124,8 @@ add_definitions(${CLANG_DEFINITIONS})
 #
 # VAST build settings
 #
+
+include(AddVAST)
 
 add_library(vast_settings INTERFACE)
 
