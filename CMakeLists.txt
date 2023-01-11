@@ -125,8 +125,6 @@ add_definitions(${CLANG_DEFINITIONS})
 # VAST build settings
 #
 
-include(AddVAST)
-
 add_library(vast_settings INTERFACE)
 
 include(cmake/compiler_warnings.cmake)

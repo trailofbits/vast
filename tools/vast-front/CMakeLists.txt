@@ -1,20 +1,28 @@
 #
 # VAST Frontend Praser
 #
-set(LLVM_LINK_COMPONENTS Core Support AsmParser)
+link_directories(${LLVM_LIBRARY_DIR})
+
+set( LLVM_LINK_COMPONENTS
+  ${LLVM_TARGETS_TO_BUILD}
+  Option
+  Support
+  TargetParser
+)
 
 get_property(DIALECT_LIBS GLOBAL PROPERTY MLIR_DIALECT_LIBS)
 get_property(CONVERSION_LIBS GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
 
-add_executable(vast-cc vast-cc.cpp)
-llvm_update_compile_flags(vast-cc)
+add_executable(vast-front
+  driver.cpp
+  cc1.cpp
+)
 
-target_link_libraries(vast-cc
+target_link_libraries(vast-front
     PRIVATE
         ${DIALECT_LIBS}
         ${CONVERSION_LIBS}
 
-        MLIROptLib
         MLIRHighLevel
         MLIRHighLevelTransforms
 
@@ -24,6 +32,10 @@ target_link_libraries(vast-cc
         MLIRSupport
 
         FromSourceParser
-)
 
-mlir_check_link_libraries(vast-cc)
+        clangAST
+        clangBasic
+        clangFrontend
+        clangSerialization
+        clangTooling
+)
