@@ -24,6 +24,8 @@ target_link_libraries(vast-cc
         MLIRSupport
 
         FromSourceParser
+
+        vast::frontend
 )
 
 mlir_check_link_libraries(vast-cc)
