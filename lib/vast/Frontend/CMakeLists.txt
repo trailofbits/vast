@@ -1,8 +1,6 @@
 # Copyright (c) 2022-present, Trail of Bits, Inc.
 
 add_library(vast_frontend
-    CompilerInvocation.cpp
-    Driver.cpp
     GenAction.cpp
 )
 
