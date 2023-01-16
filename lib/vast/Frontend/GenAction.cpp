@@ -11,6 +11,7 @@ VAST_RELAX_WARNINGS
 #include <clang/CodeGen/BackendUtil.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Util/Common.hpp"
 #include "vast/Frontend/Common.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
 
@@ -25,21 +26,46 @@ namespace clang {
 
 namespace vast::cc {
 
-    struct vast_gen_consumer : clang_ast_consumer {
+    using output_stream_ptr = std::unique_ptr< llvm::raw_pwrite_stream >;
 
-        using output_stream_t = std::unique_ptr< llvm::raw_pwrite_stream >;
+    using output_type = vast_gen_action::output_type;
+
+    static std::string get_output_stream_suffix(output_type act) {
+        switch (act) {
+            case output_type::emit_assembly: return "s";
+            case output_type::emit_high_level: return "hl";
+            case output_type::emit_cir: return "cir";
+            case output_type::emit_llvm: return "ll";
+            case output_type::emit_obj: return "o";
+            case output_type::none: break;
+        }
+
+        throw compiler_error("unsupported action type");
+    }
+
+    static auto get_output_stream(compiler_instance &ci, string_ref in, output_type act)
+        -> output_stream_ptr
+    {
+        if (act == output_type::none) {
+            return nullptr;
+        }
+
+        return ci.createDefaultOutputFile(false, in, get_output_stream_suffix(act));
+    }
+
+    struct vast_gen_consumer : clang_ast_consumer {
 
         using vast_generator_ptr = std::unique_ptr< vast_generator >;
 
         vast_gen_consumer(
-            vast_gen_action::output_type act,
+            output_type act,
             diagnostics_engine &diags,
             header_search_options &hopts,
             codegen_options &copts,
             target_options &topts,
             language_options &lopts,
             // frontend_options &fopts,
-            output_stream_t os
+            output_stream_ptr os
         )
             : action(act)
             , diags(diags)
@@ -93,8 +119,6 @@ namespace vast::cc {
         }
 
         void HandleTranslationUnit(AContext &acontext) override {
-            using output_type = vast_gen_action::output_type;
-
             // Note that this method is called after `HandleTopLevelDecl` has already
             // ran all over the top level decls. Here clang mostly wraps defered and
             // global codegen, followed by running CIR passes.
@@ -142,7 +166,7 @@ namespace vast::cc {
       private:
         virtual void anchor() {}
 
-        vast_gen_action::output_type action;
+        output_type action;
 
         diagnostics_engine &diags;
 
@@ -153,7 +177,7 @@ namespace vast::cc {
         const language_options &lang_opts;
         // const frontend_options &frontend_opts;
 
-        output_stream_t output_stream;
+        output_stream_ptr output_stream;
 
         AContext *acontext = nullptr;
 
@@ -172,13 +196,12 @@ namespace vast::cc {
         throw compiler_error("ExecuteAction not implemented");
     }
 
-    auto vast_gen_action::CreateASTConsumer(compiler_instance &ci, llvm::StringRef /* input */)
+    auto vast_gen_action::CreateASTConsumer(compiler_instance &ci, string_ref input)
         -> std::unique_ptr< clang::ASTConsumer >
     {
         auto out = ci.takeOutputStream();
         if (!out) {
-            throw compiler_error("getOutputStream not implemented");
-            //     out = getOutputStream(ci, inputFile, action);
+            out = get_output_stream(ci, input, action);
         }
 
         auto result = std::make_unique< vast_gen_consumer >(
@@ -196,11 +219,11 @@ namespace vast::cc {
 
         // Enable generating macro debug info only when debug info is not disabled and
         // also macrod ebug info is enabled
-        // if (ci.getCodeGenOpts().getDebugInfo() != codegenoptions::NoDebugInfo &&
-        //     ci.getCodeGenOpts().MacroDebugInfo) {
-        //     llvm_unreachable("NYI");
-        //     throw compiler_error("CreateASTConsumer not implemented");
-        // }
+        auto &cgo = ci.getCodeGenOpts();
+        auto nodebuginfo = clang::codegenoptions::NoDebugInfo;
+        if (cgo.getDebugInfo() != nodebuginfo && cgo.MacroDebugInfo) {
+            throw compiler_error("Macro debug info not implemented");
+        }
 
         return result;
     }
