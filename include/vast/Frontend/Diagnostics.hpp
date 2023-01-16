@@ -6,6 +6,7 @@
 
 VAST_RELAX_WARNINGS
 #include <clang/Basic/DiagnosticOptions.h>
+#include <clang/Frontend/CompilerInvocation.h>
 #include <clang/Frontend/TextDiagnosticBuffer.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Tooling/Tooling.h>
