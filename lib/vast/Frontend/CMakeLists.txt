@@ -2,7 +2,6 @@
 
 add_library(vast_frontend
     GenAction.cpp
-    Generator.cpp
 )
 
 target_link_libraries(vast_frontend PRIVATE vast_settings)

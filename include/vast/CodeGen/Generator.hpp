@@ -16,19 +16,13 @@ VAST_UNRELAX_WARNINGS
 
 #include <memory>
 
-namespace vast::cc {
-
-    using header_search_options = clang::HeaderSearchOptions;
-    using codegen_options       = clang::CodeGenOptions;
-    using target_options        = clang::TargetOptions;
-    using language_options      = clang::LangOptions;
-    using frontend_options      = clang::FrontendOptions;
+namespace vast::cg {
 
     using clang_ast_consumer    = clang::ASTConsumer;
 
     struct vast_generator : clang_ast_consumer {
 
-        vast_generator(diagnostics_engine &diags, const codegen_options &cgo)
+        vast_generator(cc::diagnostics_engine &diags, const cc::codegen_options &cgo)
             : diags(diags), cgo(cgo)
         {}
 
@@ -65,13 +59,13 @@ namespace vast::cc {
     private:
         virtual void anchor();
 
-        diagnostics_engine &diags;
-        // AContext *acontext;
+        cc::diagnostics_engine &diags;
+        AContext *acontext;
 
-        const codegen_options cgo; // Intentionally copied
+        const cc::codegen_options cgo; // intentionally copied
         // unsigned handling_pop_level_decls;
 
         llvm::SmallVector< clang::FunctionDecl *, 8>  deferred_inline_member_func_defs;
     };
 
-} // namespace vast::cc
+} // namespace vast::cg

@@ -1,13 +1,9 @@
 // Copyright (c) 2023-present, Trail of Bits, Inc.
 
 #include "vast/Frontend/GenAction.hpp"
+#include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-#include <clang/Lex/HeaderSearchOptions.h>
-#include <clang/Basic/CodeGenOptions.h>
-#include <clang/Basic/LangOptions.h>
-#include <clang/Frontend/FrontendOptions.h>
-#include <clang/Basic/TargetInfo.h>
 #include <clang/CodeGen/BackendUtil.h>
 VAST_UNRELAX_WARNINGS
 
@@ -53,9 +49,9 @@ namespace vast::cc {
         return ci.createDefaultOutputFile(false, in, get_output_stream_suffix(act));
     }
 
-    struct vast_gen_consumer : clang_ast_consumer {
+    struct vast_gen_consumer : cg::clang_ast_consumer {
 
-        using vast_generator_ptr = std::unique_ptr< vast_generator >;
+        using vast_generator_ptr = std::unique_ptr< cg::vast_generator >;
 
         vast_gen_consumer(
             output_type act,
@@ -75,7 +71,7 @@ namespace vast::cc {
             , lang_opts(lopts)
             // , frontend_opts(fopts)
             , output_stream(std::move(os))
-            , generator(std::make_unique< vast_generator >(diags, codegen_opts))
+            , generator(std::make_unique< cg::vast_generator >(diags, codegen_opts))
         {}
 
         void Initialize(AContext &ctx) override {

@@ -10,7 +10,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 #include "vast/Frontend/CompilerInstance.hpp"
-#include "vast/Frontend/Generator.hpp"
+#include "vast/CodeGen/Generator.hpp"
 
 namespace llvm {
     class LLVMIRContext;

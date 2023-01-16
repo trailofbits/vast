@@ -2,6 +2,16 @@
 
 #pragma once
 
+#include "vast/Util/Warnings.hpp"
+
+VAST_RELAX_WARNINGS
+#include <clang/Lex/HeaderSearchOptions.h>
+#include <clang/Basic/CodeGenOptions.h>
+#include <clang/Basic/LangOptions.h>
+#include <clang/Basic/TargetInfo.h>
+#include <clang/Frontend/FrontendOptions.h>
+VAST_UNRELAX_WARNINGS
+
 #include "vast/Util/Except.hpp"
 
 namespace vast::cc
@@ -17,5 +27,11 @@ namespace vast::cc
     using argv_t = llvm::ArrayRef< arg_t >;
 
     using argv_storage = llvm::SmallVector< arg_t, 256 >;
+
+    using header_search_options = clang::HeaderSearchOptions;
+    using codegen_options       = clang::CodeGenOptions;
+    using target_options        = clang::TargetOptions;
+    using language_options      = clang::LangOptions;
+    using frontend_options      = clang::FrontendOptions;
 
 } // namespace vast::cc
