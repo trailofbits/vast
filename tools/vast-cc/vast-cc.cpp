@@ -17,4 +17,3 @@ int main(int argc, char **argv) try {
     llvm::errs() << "error: " << e.what() << '\n';
     std::exit(1);
 }
-

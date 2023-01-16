@@ -25,7 +25,8 @@ target_link_libraries(vast_frontend_tool
 
       LLVMSupport
 
-      vast_frontend
+      vast::codegen
+      vast::frontend
       vast_settings
 )
 
