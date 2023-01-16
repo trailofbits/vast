@@ -10,6 +10,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 #include "vast/Frontend/CompilerInstance.hpp"
+#include "vast/Frontend/Generator.hpp"
 
 namespace llvm {
     class LLVMIRContext;
@@ -24,8 +25,6 @@ namespace mlir {
 namespace vast::cc {
 
     struct vast_gen_consumer;
-
-    struct vast_generator;
 
     struct vast_gen_action : clang::ASTFrontendAction {
         enum class output_type {
