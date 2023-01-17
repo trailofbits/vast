@@ -25,10 +25,22 @@ namespace vast::cc
     //     throw std::runtime_error("create_frontend_base_action not implemented");
     // }
 
-    frontend_action_ptr create_frontend_action(compiler_instance &ci) {
+    frontend_action_ptr create_frontend_action(compiler_instance &ci, const vast_args &vargs) {
         auto &opts = ci.getFrontendOpts();
         auto act   = opts.ProgramAction;
         using namespace clang::frontend;
+
+        for (auto arg : vargs.args) {
+            llvm::errs() << arg << "\n";
+        }
+
+        if (vargs.has_option(opt::emit_high_level)) {
+             return std::make_unique< vast::cc::emit_high_level_action >();
+        }
+
+        if (vargs.has_option(opt::emit_cir)) {
+             return std::make_unique< vast::cc::emit_cir_action >();
+        }
 
         switch (act) {
             case EmitAssembly: return std::make_unique< vast::cc::emit_assembly_action >();
@@ -51,7 +63,7 @@ namespace vast::cc
         throw compiler_error("not implemented frontend action");
     }
 
-    bool execute_compiler_invocation(compiler_instance *ci) {
+    bool execute_compiler_invocation(compiler_instance *ci, const vast_args &vargs) {
         auto &opts = ci->getFrontendOpts();
 
         // Honor -help.
@@ -83,7 +95,7 @@ namespace vast::cc
             return false;
 
         // Create and execute the frontend action.
-        auto action = create_frontend_action(*ci);
+        auto action = create_frontend_action(*ci, vargs);
         if (!action)
             return false;
 

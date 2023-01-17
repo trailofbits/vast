@@ -10,6 +10,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 #include "vast/Frontend/CompilerInstance.hpp"
+#include "vast/Frontend/FrontendAction.hpp"
 #include "vast/CodeGen/Generator.hpp"
 
 namespace llvm {
@@ -24,27 +25,18 @@ namespace mlir {
 
 namespace vast::cc {
 
+    namespace opt {
+        constexpr string_ref emit_high_level = "emit-high-level";
+        constexpr string_ref emit_cir = "emit-cir";
+    } // namespace opt
+
     struct vast_gen_consumer;
 
-    struct vast_gen_action : clang::ASTFrontendAction {
-        enum class output_type {
-            emit_assembly,
-            emit_high_level,
-            emit_cir,
-            emit_llvm,
-            emit_obj,
-            none
-        };
+    struct vast_gen_action : frontend_action {
+        virtual ~vast_gen_action() = default;
 
-    private:
-        friend struct vast_gen_consumer;
-
-        OwningModuleRef mlir_module;
-        // std::unique_ptr< llvm::Module > llvm_module;
-
-        MContext *mcontext;
-
-        OwningModuleRef load_module(llvm::MemoryBufferRef mref);
+        vast_gen_consumer *consumer;
+        output_type action;
 
     protected:
 
@@ -57,11 +49,15 @@ namespace vast::cc {
 
         void EndSourceFileAction() override;
 
-    public:
-        virtual ~vast_gen_action() = default;
+    private:
+        friend struct vast_gen_consumer;
 
-        vast_gen_consumer *consumer;
-        output_type action;
+        OwningModuleRef mlir_module;
+        // std::unique_ptr< llvm::Module > llvm_module;
+
+        MContext *mcontext;
+
+        OwningModuleRef load_module(llvm::MemoryBufferRef mref);
     };
 
     //
@@ -87,6 +83,24 @@ namespace vast::cc {
     //
     struct emit_obj_action : vast_gen_action {
         emit_obj_action(MContext *mcontext = nullptr);
+    private:
+        virtual void anchor();
+    };
+
+    //
+    // Emit high level mlir dialect
+    //
+    struct emit_high_level_action : vast_gen_action {
+        emit_high_level_action(MContext *mcontext = nullptr);
+    private:
+        virtual void anchor();
+    };
+
+    //
+    // Emit cir mlir dialect
+    //
+    struct emit_cir_action : vast_gen_action {
+        emit_cir_action(MContext *mcontext = nullptr);
     private:
         virtual void anchor();
     };

@@ -20,17 +20,20 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Frontend/Driver.hpp"
 
 // main frontend method. Lives inside cc1_main.cpp
-extern int cc1_main(vast::cc::argv_t argv, vast::cc::arg_t argv0, void *main_addr);
+namespace vast::cc {
+    extern int cc1(const vast_args & vargs, argv_t argv, arg_t tool, void *main_addr);
+} // namespace vast::cc
 
 VAST_RELAX_WARNINGS
-std::string get_executable_path(vast::cc::arg_t argv0) {
+std::string get_executable_path(vast::cc::arg_t tool) {
     // This just needs to be some symbol in the binary
     void *p = (void *) (intptr_t) get_executable_path;
-    return llvm::sys::fs::getMainExecutable(argv0, p);
+    return llvm::sys::fs::getMainExecutable(tool, p);
 }
 VAST_UNRELAX_WARNINGS
 
-static int execute_cc1_tool(vast::cc::argv_storage &args) {
+
+static int execute_cc1_tool(vast::cc::vast_args &vargs, vast::cc::argv_storage &ccargs) {
     // If we call the cc1 tool from the clangDriver library (through
     // Driver::CC1Main), we need to clean up the options usage count. The options
     // are currently global, and they might have been used previously by the
@@ -40,17 +43,18 @@ static int execute_cc1_tool(vast::cc::argv_storage &args) {
     llvm::BumpPtrAllocator pointer_allocator;
     llvm::StringSaver saver(pointer_allocator);
     llvm::cl::ExpandResponseFiles(
-        saver, &llvm::cl::TokenizeGNUCommandLine, args, /* MarkEOLs */ false
+        saver, &llvm::cl::TokenizeGNUCommandLine, ccargs, /* MarkEOLs */ false
     );
 
-    llvm::StringRef tool = args[1];
+    llvm::StringRef tool = ccargs[1];
 
     VAST_RELAX_WARNINGS
     void *get_executable_path_ptr = (void *) (intptr_t) get_executable_path;
     VAST_UNRELAX_WARNINGS
 
     if (tool == "-cc1") {
-        return cc1_main(llvm::makeArrayRef(args).slice(2), args[0], get_executable_path_ptr);
+        auto ccargs_ref = llvm::makeArrayRef(ccargs).slice(2);
+        return vast::cc::cc1(vargs, ccargs_ref, ccargs[0], get_executable_path_ptr);
     }
 
     llvm::errs() << "error: unknown integrated tool '" << tool << "'. "
@@ -61,7 +65,7 @@ static int execute_cc1_tool(vast::cc::argv_storage &args) {
 int main(int argc, char **argv) try {
     // Initialize variables to call the driver
     llvm::InitLLVM x(argc, argv);
-    vast::cc::argv_storage args(argv, argv + argc);
+    vast::cc::argv_storage cmd_args(argv, argv + argc);
 
     if (llvm::sys::Process::FixupStandardFileDescriptors()) {
         return 1;
@@ -72,14 +76,16 @@ int main(int argc, char **argv) try {
     llvm::BumpPtrAllocator pointer_allocator;
     llvm::StringSaver saver(pointer_allocator);
 
+    auto [vargs, cc_args] = vast::cc::filter_args(cmd_args);
+
     // FIXME: deal with CL mode
 
     // Check if vast-front is in the frontend mode
-    auto first_arg = llvm::find_if(llvm::drop_begin(args), [] (auto a) { return a != nullptr; });
-    if (first_arg != args.end()) {
-        if (std::string_view(args[1]).starts_with("-cc1")) {
+    auto first_arg = llvm::find_if(llvm::drop_begin(cc_args), [] (auto a) { return a != nullptr; });
+    if (first_arg != cc_args.end()) {
+        if (std::string_view(cc_args[1]).starts_with("-cc1")) {
             // FIXME: deal with EOL sentinels
-            return execute_cc1_tool(args);
+            return execute_cc1_tool(vargs, cc_args);
         }
     }
 

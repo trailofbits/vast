@@ -11,6 +11,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Frontend/Common.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
 #include "vast/Frontend/CompilerInstance.hpp"
+#include "vast/Frontend/Options.hpp"
 
 namespace vast::cc
 {
