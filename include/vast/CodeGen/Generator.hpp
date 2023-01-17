@@ -11,6 +11,7 @@ VAST_RELAX_WARNINGS
 #include <llvm/Support/ToolOutputFile.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/CodeGen/Module.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
 #include "vast/Util/Common.hpp"
 
@@ -18,7 +19,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg {
 
-    using clang_ast_consumer    = clang::ASTConsumer;
+    using clang_ast_consumer = clang::ASTConsumer;
 
     struct vast_generator : clang_ast_consumer {
 
@@ -54,7 +55,7 @@ namespace vast::cg {
     protected:
 
         std::unique_ptr< mcontext_t > mcontext;
-        // std::unique_ptr< vast_module > mod;
+        std::unique_ptr< codegen_module > cgm;
 
     private:
         virtual void anchor();

@@ -20,6 +20,20 @@ namespace vast::cg {
     }
 
     void vast_generator::HandleTranslationUnit(acontext_t &/* acontext */) {
+        // Release the builder when there is no error.
+        if (!diags.hasErrorOccurred() && cgm) {
+            cgm->release();
+        }
+
+        // If there are errors before or when releasing the CGM, reset the module to
+        // stop here before invoking the backend.
+        if (diags.hasErrorOccurred()) {
+            if (cgm) {
+                // TODO: CGM->clear();
+                // TODO: M.reset();
+                return;
+            }
+        }
     }
 
     void vast_generator::HandleInlineFunctionDefinition(clang::FunctionDecl */* decl */) {
