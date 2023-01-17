@@ -31,10 +31,10 @@ namespace vast::cg {
             assert(deferred_inline_member_func_defs.empty() || diags.hasErrorOccurred());
         }
 
-        void Initialize(AContext &) override;
+        void Initialize(acontext_t &) override;
 
         bool HandleTopLevelDecl(clang::DeclGroupRef) override;
-        void HandleTranslationUnit(AContext &) override;
+        void HandleTranslationUnit(acontext_t &) override;
         void HandleInlineFunctionDefinition(clang::FunctionDecl *) override;
         void HandleTagDeclDefinition(clang::TagDecl *) override;
         void HandleTagDeclRequiredDefinition(const clang::TagDecl *) override;
@@ -53,14 +53,14 @@ namespace vast::cg {
 
     protected:
 
-        std::unique_ptr< MContext > mcontext;
+        std::unique_ptr< mcontext_t > mcontext;
         // std::unique_ptr< vast_module > mod;
 
     private:
         virtual void anchor();
 
         cc::diagnostics_engine &diags;
-        AContext *acontext;
+        acontext_t *acontext;
 
         const cc::codegen_options cgo; // intentionally copied
         // unsigned handling_pop_level_decls;

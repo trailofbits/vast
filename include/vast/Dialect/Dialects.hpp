@@ -24,7 +24,7 @@ namespace vast {
         >();
     }
 
-    inline void registerAllDialects(MContext &mctx) {
+    inline void registerAllDialects(mcontext_t &mctx) {
         mlir::DialectRegistry registry;
         vast::registerAllDialects(registry);
         mctx.appendDialectRegistry(registry);

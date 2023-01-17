@@ -9,13 +9,13 @@ namespace vast::repl {
     using owning_module_ref = OwningModuleRef;
 
     struct state_t {
-        explicit state_t(MContext &ctx) : ctx(ctx) {}
+        explicit state_t(mcontext_t &ctx) : ctx(ctx) {}
 
         bool exit = false;
 
         std::optional< std::string > source;
 
-        MContext &ctx;
+        mcontext_t &ctx;
         owning_module_ref mod;
     };
 

@@ -35,7 +35,7 @@ args_t load_args(int argc, char **argv) {
 namespace vast::repl
 {
     struct prompt {
-        explicit prompt(MContext &ctx) : cli(ctx) {}
+        explicit prompt(mcontext_t &ctx) : cli(ctx) {}
 
         void init(std::span< string_ref > args) {
             if (args.size() == 1) {
@@ -85,7 +85,7 @@ int main(int argc, char **argv) try {
 
     args_t args = load_args(argc, argv);
 
-    vast::MContext ctx(registry);
+    vast::mcontext_t ctx(registry);
     ctx.loadAllAvailableDialects();
 
     auto prompt = vast::repl::prompt(ctx);

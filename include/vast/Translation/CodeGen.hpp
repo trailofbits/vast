@@ -30,7 +30,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::hl
 {
     namespace detail {
-        static inline MContext& codegen_context_setup(MContext &ctx) {
+        static inline mcontext_t& codegen_context_setup(mcontext_t &ctx) {
             mlir::registerAllDialects(ctx);
             vast::registerAllDialects(ctx);
 
@@ -50,7 +50,7 @@ namespace vast::hl
     {
         using MetaGenerator = typename CodeGenVisitor::MetaGeneratorType;
 
-        CodeGenBase(MContext *mctx, MetaGenerator &meta)
+        CodeGenBase(mcontext_t *mctx, MetaGenerator &meta)
             : _mctx(mctx), _meta(meta), _cgctx(nullptr), _module(nullptr)
         {
             detail::codegen_context_setup(*_mctx);
@@ -102,7 +102,7 @@ namespace vast::hl
 
     private:
 
-        void setup_codegen(AContext &actx) {
+        void setup_codegen(acontext_t &actx) {
             if (_cgctx)
                 return;
 
@@ -142,7 +142,7 @@ namespace vast::hl
             visitor.Visit(decl);
         }
 
-        MContext *_mctx;
+        mcontext_t *_mctx;
         MetaGenerator &_meta;
 
         std::unique_ptr< CodeGenContext > _cgctx;
@@ -175,7 +175,7 @@ namespace vast::hl
 
         using Base = CodeGenBase< Visitor >;
 
-        DefaultCodeGen(AContext *actx, MContext *mctx)
+        DefaultCodeGen(acontext_t *actx, mcontext_t *mctx)
             : meta(actx, mctx), codegen(mctx, meta)
         {}
 

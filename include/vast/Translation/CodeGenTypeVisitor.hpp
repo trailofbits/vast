@@ -21,7 +21,7 @@ namespace vast::hl {
     IntegerKind  get_integer_kind (const clang::BuiltinType *ty);
     FloatingKind get_floating_kind(const clang::BuiltinType *ty);
 
-    SizeParam get_size_attr(const clang::ArrayType *ty, MContext &ctx);
+    SizeParam get_size_attr(const clang::ArrayType *ty, mcontext_t &ctx);
 
     template< typename Derived >
     struct CodeGenTypeVisitorMixin

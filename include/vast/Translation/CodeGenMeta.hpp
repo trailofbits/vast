@@ -36,7 +36,7 @@ namespace vast::hl
     };
 
     struct DefaultMetaGenerator {
-        DefaultMetaGenerator(AContext *actx, MContext *mctx)
+        DefaultMetaGenerator(acontext_t *actx, mcontext_t *mctx)
             : actx(actx), mctx(mctx)
         {}
 
@@ -78,12 +78,12 @@ namespace vast::hl
             return get(clang::TypeLoc(type, nullptr));
         }
 
-        AContext *actx;
-        MContext *mctx;
+        acontext_t *actx;
+        mcontext_t *mctx;
     };
 
     struct IDMetaGenerator {
-        IDMetaGenerator(AContext *actx, MContext *mctx)
+        IDMetaGenerator(acontext_t *actx, mcontext_t *mctx)
             : actx(actx), mctx(mctx)
         {}
 
@@ -106,8 +106,8 @@ namespace vast::hl
 
         mutable meta::identifier_t counter = 0;
 
-        AContext *actx;
-        MContext *mctx;
+        acontext_t *actx;
+        mcontext_t *mctx;
     };
 
 } // namespace vast::hl

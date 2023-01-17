@@ -26,7 +26,7 @@ namespace vast::repl::codegen {
         return slurp(in);
     }
 
-    owning_module_ref emit_module(const std::string &source, MContext *mctx) {
+    owning_module_ref emit_module(const std::string &source, mcontext_t *mctx) {
         auto unit = codegen::ast_from_source(source);
         auto &actx = unit->getASTContext();
         vast::hl::DefaultCodeGen codegen(&actx, mctx);

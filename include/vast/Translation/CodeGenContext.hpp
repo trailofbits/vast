@@ -25,13 +25,13 @@ VAST_UNRELAX_WARNINGS
 namespace vast::hl
 {
     struct CodeGenContext {
-        MContext &mctx;
-        AContext &actx;
+        mcontext_t &mctx;
+        acontext_t &actx;
         OwningModuleRef &mod;
 
         dl::DataLayoutBlueprint dl;
 
-        CodeGenContext(MContext &mctx, AContext &actx, OwningModuleRef &mod)
+        CodeGenContext(mcontext_t &mctx, acontext_t &actx, OwningModuleRef &mod)
             : mctx(mctx)
             , actx(actx)
             , mod(mod)

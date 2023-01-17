@@ -12,7 +12,7 @@
 namespace vast::repl
 {
     struct cli_t {
-        explicit cli_t(MContext &ctx) : state(ctx) {}
+        explicit cli_t(mcontext_t &ctx) : state(ctx) {}
 
         std::string_view help() { return "cli help"; }
 
