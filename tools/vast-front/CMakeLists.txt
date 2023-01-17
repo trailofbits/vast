@@ -27,8 +27,10 @@ target_link_libraries(vast_frontend_tool
 
       vast::codegen
       vast::frontend
-      vast_settings
+      vast::settings
 )
+
+add_library(vast::frontend_tool ALIAS vast_frontend_tool)
 
 add_executable(vast-front
   driver.cpp
@@ -60,6 +62,7 @@ target_link_libraries(vast-front
         clangSerialization
         clangTooling
 
-        vast_frontend_tool
-        vast_settings
+        vast::frontend
+        vast::frontend_tool
+        vast::settings
 )

@@ -4,6 +4,6 @@ add_library(vast_codegen
     Generator.cpp
 )
 
-target_link_libraries(vast_codegen PRIVATE vast_settings)
+target_link_libraries(vast_codegen PRIVATE vast::settings)
 
 add_library(vast::codegen ALIAS vast_codegen)

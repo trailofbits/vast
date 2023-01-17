@@ -11,7 +11,8 @@ add_executable(vast-repl
 
 target_link_libraries(vast-repl
     PRIVATE
-      vast_translation_api
+      vast::translation_api
+      vast::settings
 
       ${DIALECT_LIBS}
       MLIRHighLevel

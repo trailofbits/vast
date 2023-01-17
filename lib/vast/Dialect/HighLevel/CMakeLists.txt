@@ -33,6 +33,6 @@ add_mlir_dialect_library(MLIRHighLevel
     VASTTypeQualifiersInterfaces
 )
 
-target_link_libraries(MLIRHighLevel PRIVATE vast_settings)
+target_link_libraries(MLIRHighLevel PRIVATE vast::settings)
 
 add_subdirectory(Transforms)
