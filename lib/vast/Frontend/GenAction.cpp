@@ -24,8 +24,6 @@ namespace vast::cc {
 
     using output_stream_ptr = std::unique_ptr< llvm::raw_pwrite_stream >;
 
-    using output_type = vast_gen_action::output_type;
-
     static std::string get_output_stream_suffix(output_type act) {
         switch (act) {
             case output_type::emit_assembly: return "s";
@@ -181,7 +179,7 @@ namespace vast::cc {
     };
 
     vast_gen_action::vast_gen_action(output_type act, MContext *montext)
-        : mcontext(montext ? montext : new MContext), action(act)
+        : action(act), mcontext(montext ? montext : new MContext)
     {}
 
     OwningModuleRef vast_gen_action::load_module(llvm::MemoryBufferRef /* mref */) {
@@ -189,7 +187,8 @@ namespace vast::cc {
     }
 
     void vast_gen_action::ExecuteAction() {
-        throw compiler_error("ExecuteAction not implemented");
+        // FIXME: if (getCurrentFileKind().getLanguage() != Language::CIR)
+        this->ASTFrontendAction::ExecuteAction();
     }
 
     auto vast_gen_action::CreateASTConsumer(compiler_instance &ci, string_ref input)
@@ -244,6 +243,18 @@ namespace vast::cc {
 
     emit_obj_action::emit_obj_action(MContext *mcontex)
         : vast_gen_action(output_type::emit_obj, mcontex)
+    {}
+
+    void emit_high_level_action::anchor() {}
+
+    emit_high_level_action::emit_high_level_action(MContext *mcontex)
+        : vast_gen_action(output_type::emit_high_level, mcontex)
+    {}
+
+    void emit_cir_action::anchor() {}
+
+    emit_cir_action::emit_cir_action(MContext *mcontex)
+        : vast_gen_action(output_type::emit_cir, mcontex)
     {}
 
 } // namespace vast::cc

@@ -14,6 +14,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Frontend/Common.hpp"
+#include "vast/Frontend/Options.hpp"
 
 namespace vast::cc
 {

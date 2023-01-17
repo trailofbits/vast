@@ -23,15 +23,4 @@ namespace vast::cc
         using util::error::error;
     };
 
-    using arg_t  = const char *;
-    using argv_t = llvm::ArrayRef< arg_t >;
-
-    using argv_storage = llvm::SmallVector< arg_t, 256 >;
-
-    using header_search_options = clang::HeaderSearchOptions;
-    using codegen_options       = clang::CodeGenOptions;
-    using target_options        = clang::TargetOptions;
-    using language_options      = clang::LangOptions;
-    using frontend_options      = clang::FrontendOptions;
-
 } // namespace vast::cc

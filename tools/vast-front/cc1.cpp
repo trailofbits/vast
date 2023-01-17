@@ -55,112 +55,112 @@ static void error_handler(void *user_data, const char *msg, bool get_crash_diag)
 
 namespace vast::cc {
 
-    bool execute_compiler_invocation(compiler_instance *ci);
+    bool execute_compiler_invocation(compiler_instance *ci, const vast_args &vargs);
 
-} // namespace vast::cc
+    int cc1(const vast_args &vargs, argv_t ccargs, arg_t tool, void *main_addr) {
+        // FIXME: ensureSufficientStack
 
-int cc1_main(argv_t argv, arg_t argv0, void *main_addr) {
-    // FIXME: ensureSufficientStack
+        auto comp = std::make_unique< compiler_instance >();
+        // FIXME: register the support for object-file-wrapped Clang modules.
 
-    auto comp = std::make_unique< compiler_instance >();
-    // FIXME: register the support for object-file-wrapped Clang modules.
+        // Initialize targets first, so that --version shows registered targets.
+        llvm::InitializeAllTargets();
+        llvm::InitializeAllTargetMCs();
+        llvm::InitializeAllAsmPrinters();
+        llvm::InitializeAllAsmParsers();
 
-    // Initialize targets first, so that --version shows registered targets.
-    llvm::InitializeAllTargets();
-    llvm::InitializeAllTargetMCs();
-    llvm::InitializeAllAsmPrinters();
-    llvm::InitializeAllAsmParsers();
+        vast::cc::diagnostics diags(ccargs);
 
-    vast::cc::diagnostics diags(argv);
+        // Setup round-trip remarks for the DiagnosticsEngine used in CreateFromArgs.
+        // if (find(argv, StringRef("-Rround-trip-cc1-args")) != argv.end()) {
+        //     diags.setSeverity(diag::remark_cc1_round_trip_generated, diag::Severity::Remark, {});
+        // }
 
-    // Setup round-trip remarks for the DiagnosticsEngine used in CreateFromArgs.
-    // if (find(argv, StringRef("-Rround-trip-cc1-args")) != argv.end()) {
-    //     diags.setSeverity(diag::remark_cc1_round_trip_generated, diag::Severity::Remark, {});
-    // }
+        auto success = compiler_invocation::create_from_args(comp->getInvocation(), diags, ccargs, tool);
 
-    auto success = compiler_invocation::create_from_args(comp->getInvocation(), diags, argv, argv0);
+        auto &frontend_opts = comp->getFrontendOpts();
+        // auto &target_opts   = comp->getFrontendOpts();
+        auto &header_opts   = comp->getHeaderSearchOpts();
 
-    auto &frontend_opts = comp->getFrontendOpts();
-    // auto &target_opts   = comp->getFrontendOpts();
-    auto &header_opts   = comp->getHeaderSearchOpts();
+        if (frontend_opts.TimeTrace || !frontend_opts.TimeTracePath.empty()) {
+            frontend_opts.TimeTrace = 1;
+            llvm::timeTraceProfilerInitialize(frontend_opts.TimeTraceGranularity, tool);
+        }
 
-    if (frontend_opts.TimeTrace || !frontend_opts.TimeTracePath.empty()) {
-        frontend_opts.TimeTrace = 1;
-        llvm::timeTraceProfilerInitialize(frontend_opts.TimeTraceGranularity, argv0);
-    }
+        // --print-supported-cpus takes priority over the actual compilation.
+        // if (opts.PrintSupportedCPUs) {
+        //     return PrintSupportedCPUs(target_opts.Triple);
+        // }
 
-    // --print-supported-cpus takes priority over the actual compilation.
-    // if (opts.PrintSupportedCPUs) {
-    //     return PrintSupportedCPUs(target_opts.Triple);
-    // }
+        // Infer the builtin include path if unspecified.
+        if (header_opts.UseBuiltinIncludes && header_opts.ResourceDir.empty()) {
+            header_opts.ResourceDir = clang_invocation::GetResourcesPath(tool, main_addr);
+        }
 
-    // Infer the builtin include path if unspecified.
-    if (header_opts.UseBuiltinIncludes && header_opts.ResourceDir.empty()) {
-        header_opts.ResourceDir = clang_invocation::GetResourcesPath(argv0, main_addr);
-    }
+        // Create the actual diagnostics engine.
+        if (comp->createDiagnostics(); !comp->hasDiagnostics()) {
+            return 1;
+        }
 
-    // Create the actual diagnostics engine.
-    if (comp->createDiagnostics(); !comp->hasDiagnostics()) {
-        return 1;
-    }
+        // Set an error handler, so that any LLVM backend diagnostics go through our
+        // error handler.
+        llvm::install_fatal_error_handler(error_handler, static_cast<void*>(&comp->getDiagnostics()));
 
-    // Set an error handler, so that any LLVM backend diagnostics go through our
-    // error handler.
-    llvm::install_fatal_error_handler(error_handler, static_cast<void*>(&comp->getDiagnostics()));
+        diags.flush();
+        if (!success) {
+            comp->getDiagnosticClient().finish();
+            return 1;
+        }
 
-    diags.flush();
-    if (!success) {
-        comp->getDiagnosticClient().finish();
-        return 1;
-    }
+        // Execute the frontend actions.
+        {
+            llvm::TimeTraceScope TimeScope("ExecuteCompiler");
+            success = execute_compiler_invocation(comp.get(), vargs);
+        }
 
-    // Execute the frontend actions.
-    {
-        llvm::TimeTraceScope TimeScope("ExecuteCompiler");
-        success = execute_compiler_invocation(comp.get());
-    }
+        // If any timers were active but haven't been destroyed yet, print their
+        // results now.  This happens in -disable-free mode.
+        llvm::TimerGroup::printAll(llvm::errs());
+        llvm::TimerGroup::clearAll();
 
-    // If any timers were active but haven't been destroyed yet, print their
-    // results now.  This happens in -disable-free mode.
-    llvm::TimerGroup::printAll(llvm::errs());
-    llvm::TimerGroup::clearAll();
+        using small_string = llvm::SmallString<128>;
 
-    using small_string = llvm::SmallString<128>;
+        if (llvm::timeTraceProfilerEnabled()) {
+            small_string path(frontend_opts.OutputFile);
+            llvm::sys::path::replace_extension(path, "json");
 
-    if (llvm::timeTraceProfilerEnabled()) {
-        small_string path(frontend_opts.OutputFile);
-        llvm::sys::path::replace_extension(path, "json");
+            if (!frontend_opts.TimeTracePath.empty()) {
+                // replace the suffix to '.json' directly
+                small_string trace_path(frontend_opts.TimeTracePath);
+                if (llvm::sys::fs::is_directory(trace_path)) {
+                    llvm::sys::path::append(trace_path, llvm::sys::path::filename(path));
+                }
 
-        if (!frontend_opts.TimeTracePath.empty()) {
-            // replace the suffix to '.json' directly
-            small_string trace_path(frontend_opts.TimeTracePath);
-            if (llvm::sys::fs::is_directory(trace_path)) {
-                llvm::sys::path::append(trace_path, llvm::sys::path::filename(path));
+                path.assign(trace_path);
             }
 
-            path.assign(trace_path);
+            if (auto profiler_output = comp->createOutputFile(
+                    path.str(), /*Binary=*/false, /*RemoveFileOnSignal=*/false,
+                    /*useTemporary=*/false)) {
+                llvm::timeTraceProfilerWrite(*profiler_output);
+                profiler_output.reset();
+                llvm::timeTraceProfilerCleanup();
+                comp->clearOutputFiles(false);
+            }
         }
 
-        if (auto profiler_output = comp->createOutputFile(
-                path.str(), /*Binary=*/false, /*RemoveFileOnSignal=*/false,
-                /*useTemporary=*/false)) {
-            llvm::timeTraceProfilerWrite(*profiler_output);
-            profiler_output.reset();
-            llvm::timeTraceProfilerCleanup();
-            comp->clearOutputFiles(false);
+        // Our error handler depends on the Diagnostics object, which we're
+        // potentially about to delete. Uninstall the handler now so that any
+        // later errors use the default handling behavior instead.
+        llvm::remove_fatal_error_handler();
+
+        // When running with -disable-free, don't do any destruction or shutdown.
+        if (frontend_opts.DisableFree) {
+            llvm::BuryPointer(std::move(comp));
+            return !success;
         }
-    }
 
-    // Our error handler depends on the Diagnostics object, which we're
-    // potentially about to delete. Uninstall the handler now so that any
-    // later errors use the default handling behavior instead.
-    llvm::remove_fatal_error_handler();
-
-    // When running with -disable-free, don't do any destruction or shutdown.
-    if (frontend_opts.DisableFree) {
-        llvm::BuryPointer(std::move(comp));
         return !success;
     }
 
-    return !success;
-}
+} // namespace vast::cc

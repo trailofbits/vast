@@ -2,8 +2,9 @@
 
 add_library(vast_frontend
     GenAction.cpp
+    Options.cpp
 )
 
-target_link_libraries(vast_frontend PRIVATE vast_settings)
+target_link_libraries(vast_frontend PRIVATE vast::settings)
 
 add_library(vast::frontend ALIAS vast_frontend)
