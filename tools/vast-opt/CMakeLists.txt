@@ -15,7 +15,7 @@ target_link_libraries(vast-opt
         MLIROptLib
         MLIRHighLevel
 
-        vast_settings
+        vast::settings
 )
 
 mlir_check_all_link_libraries(vast-opt)

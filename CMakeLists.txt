@@ -155,6 +155,8 @@ if (ENABLE_PDLL_CONVERSIONS)
   )
 endif()
 
+add_library(vast::settings ALIAS vast_settings)
+
 #
 # VAST libraries
 #
@@ -170,8 +172,8 @@ add_library(vast INTERFACE)
 
 target_link_libraries(vast
   INTERFACE
-    vast_translation_api
-    vast_settings
+    vast::translation_api
+    vast::settings
 )
 
 target_include_directories(vast

@@ -20,7 +20,7 @@ set(VAST_LSP_SERVER_LIBS
   MLIRSupport
   MLIRIR
 
-  vast_settings
+  vast::settings
 )
 
 add_llvm_tool(vast-lsp-server

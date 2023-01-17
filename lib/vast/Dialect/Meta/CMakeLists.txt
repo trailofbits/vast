@@ -17,4 +17,4 @@ add_mlir_dialect_library(MLIRMeta
     MLIRSupport
 )
 
-target_link_libraries(MLIRMeta PRIVATE vast_settings)
+target_link_libraries(MLIRMeta PRIVATE vast::settings)

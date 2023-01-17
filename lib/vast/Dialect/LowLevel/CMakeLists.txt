@@ -15,6 +15,6 @@ add_mlir_dialect_library(MLIRLowLevel
     VASTSymbolInterface
 )
 
-target_link_libraries(MLIRLowLevel PRIVATE vast_settings)
+target_link_libraries(MLIRLowLevel PRIVATE vast::settings)
 
 add_subdirectory(Transforms)

@@ -24,7 +24,7 @@ if (ENABLE_PDLL_CONVERSIONS)
             MLIRMeta
             MLIRHighLevel
 
-            vast_settings
+            vast::settings
     )
 
 endif() # ENABLE_PDLL_CONVERSIONS
