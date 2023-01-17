@@ -2,6 +2,7 @@
 
 add_library(vast_codegen
     Generator.cpp
+    Module.cpp
 )
 
 target_link_libraries(vast_codegen PRIVATE vast::settings)
