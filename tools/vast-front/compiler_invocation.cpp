@@ -49,17 +49,6 @@ namespace vast::cc
             default: throw compiler_error("unsupported frontend action");
         }
 
-        if (act != clang::frontend::PluginAction) {
-            throw compiler_error("unsupported frontend action");
-        }
-
-        for (const auto &plugin : clang::FrontendPluginRegistry::entries()) {
-            if (plugin.getName() == opts.ActionName) {
-                // TODO emit MLIR
-                // TODO emit HL
-            }
-        }
-
         throw compiler_error("not implemented frontend action");
     }
 
