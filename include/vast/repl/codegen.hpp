@@ -23,6 +23,6 @@ namespace vast::repl::codegen {
     // TODO(Heno): return buffer
     std::string get_source(std::filesystem::path source);
 
-    owning_module_ref emit_module(const std::string &source, MContext *ctx);
+    owning_module_ref emit_module(const std::string &source, mcontext_t *ctx);
 
 } // namespace vast::repl::codegen

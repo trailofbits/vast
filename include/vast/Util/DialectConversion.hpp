@@ -73,7 +73,7 @@ namespace vast::util
 
         TC &tc;
 
-        TypeConvertingPattern(TC &tc, MContext *mctx)
+        TypeConvertingPattern(TC &tc, mcontext_t *mctx)
             : parent_t(mctx), tc(tc)
         {}
 

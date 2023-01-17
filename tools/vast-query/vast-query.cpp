@@ -166,7 +166,7 @@ namespace vast
         return result;
     }
 
-    logical_result do_query(MContext &ctx, memory_buffer buffer) {
+    logical_result do_query(mcontext_t &ctx, memory_buffer buffer) {
         llvm::SourceMgr source_mgr;
         source_mgr.AddNewSourceBuffer(std::move(buffer), llvm::SMLoc());
 
@@ -204,7 +204,7 @@ namespace vast
         }
     }
 
-    logical_result run(MContext &ctx) {
+    logical_result run(mcontext_t &ctx) {
         std::string err;
         if (auto input = mlir::openInputFile(cl::options->input_file, &err))
             return do_query(ctx, std::move(input));
@@ -223,7 +223,7 @@ int main(int argc, char **argv) {
     vast::registerAllDialects(registry);
     mlir::registerAllDialects(registry);
 
-    vast::MContext ctx(registry);
+    vast::mcontext_t ctx(registry);
     ctx.loadAllAvailableDialects();
 
     std::exit(failed(vast::run(ctx)));

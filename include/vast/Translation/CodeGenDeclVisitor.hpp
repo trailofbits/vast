@@ -253,7 +253,7 @@ namespace vast::hl {
             }
         }
 
-        static inline std::string parse_annotation(AContext &ctx, const clang::Attr *attr) {
+        static inline std::string parse_annotation(acontext_t &ctx, const clang::Attr *attr) {
             // Clang does not provide a nicer interface :(
             std::string buff; llvm::raw_string_ostream stream(buff);
             auto policy = ctx.getPrintingPolicy();

@@ -17,7 +17,7 @@ namespace vast::pdll
     {
         using HLToFuncBase::HLToFuncBase;
 
-        LogicalResult initialize(MContext *ctx) override {
+        LogicalResult initialize(mcontext_t *ctx) override {
             // Build the pattern set within the `initialize` to avoid recompiling PDL
             // patterns during each `runOnOperation` invocation.
             RewritePatternSet pattern_list(ctx);

@@ -72,7 +72,7 @@ namespace vast::cc {
             , generator(std::make_unique< cg::vast_generator >(diags, codegen_opts))
         {}
 
-        void Initialize(AContext &ctx) override {
+        void Initialize(acontext_t &ctx) override {
             assert(!acontext && "initialized multiple times");
             acontext = &ctx;
             generator->Initialize(ctx);
@@ -95,7 +95,7 @@ namespace vast::cc {
         }
 
         void emit_backend_output(clang::BackendAction backend_action) {
-            // llvm::LLVMContext llvm_context;
+            // llvm::LLVmcontext_t llvm_context;
             throw compiler_error("HandleTranslationUnit for emit llvm not implemented");
 
             std::unique_ptr< llvm::Module > mod = nullptr /* todo lower_from_vast_to_llvm */;
@@ -112,7 +112,7 @@ namespace vast::cc {
             );
         }
 
-        void HandleTranslationUnit(AContext &acontext) override {
+        void HandleTranslationUnit(acontext_t &acontext) override {
             // Note that this method is called after `HandleTopLevelDecl` has already
             // ran all over the top level decls. Here clang mostly wraps defered and
             // global codegen, followed by running CIR passes.
@@ -173,13 +173,13 @@ namespace vast::cc {
 
         output_stream_ptr output_stream;
 
-        AContext *acontext = nullptr;
+        acontext_t *acontext = nullptr;
 
         vast_generator_ptr generator;
     };
 
-    vast_gen_action::vast_gen_action(output_type act, MContext *montext)
-        : action(act), mcontext(montext ? montext : new MContext)
+    vast_gen_action::vast_gen_action(output_type act, mcontext_t *montext)
+        : action(act), mcontext(montext ? montext : new mcontext_t)
     {}
 
     OwningModuleRef vast_gen_action::load_module(llvm::MemoryBufferRef /* mref */) {
@@ -229,31 +229,31 @@ namespace vast::cc {
 
     void emit_assembly_action::anchor() {}
 
-    emit_assembly_action::emit_assembly_action(MContext *mcontex)
+    emit_assembly_action::emit_assembly_action(mcontext_t *mcontex)
         : vast_gen_action(output_type::emit_assembly, mcontex)
     {}
 
     void emit_llvm_action::anchor() {}
 
-    emit_llvm_action::emit_llvm_action(MContext *mcontex)
+    emit_llvm_action::emit_llvm_action(mcontext_t *mcontex)
         : vast_gen_action(output_type::emit_llvm, mcontex)
     {}
 
     void emit_obj_action::anchor() {}
 
-    emit_obj_action::emit_obj_action(MContext *mcontex)
+    emit_obj_action::emit_obj_action(mcontext_t *mcontex)
         : vast_gen_action(output_type::emit_obj, mcontex)
     {}
 
     void emit_high_level_action::anchor() {}
 
-    emit_high_level_action::emit_high_level_action(MContext *mcontex)
+    emit_high_level_action::emit_high_level_action(mcontext_t *mcontex)
         : vast_gen_action(output_type::emit_high_level, mcontex)
     {}
 
     void emit_cir_action::anchor() {}
 
-    emit_cir_action::emit_cir_action(MContext *mcontex)
+    emit_cir_action::emit_cir_action(mcontext_t *mcontex)
         : vast_gen_action(output_type::emit_cir, mcontex)
     {}
 

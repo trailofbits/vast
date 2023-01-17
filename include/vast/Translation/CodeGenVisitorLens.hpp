@@ -31,11 +31,11 @@ namespace vast::hl {
         auto context()       -> CodeGenContext      & { return derived().ctx; }
         auto context() const -> CodeGenContext const& { return derived().ctx; }
 
-        auto mcontext()       -> MContext      & { return context().mctx; }
-        auto mcontext() const -> MContext const& { return context().mctx; }
+        auto mcontext()       -> mcontext_t      & { return context().mctx; }
+        auto mcontext() const -> mcontext_t const& { return context().mctx; }
 
-        auto acontext()       -> AContext      & { return context().actx; }
-        auto acontext() const -> AContext const& { return context().actx; }
+        auto acontext()       -> acontext_t      & { return context().actx; }
+        auto acontext() const -> acontext_t const& { return context().actx; }
 
         //
         // meta

@@ -22,7 +22,7 @@ namespace vast {
     //
     // To specify the legalization and illegalization of operations:
     //
-    // `static conversion_target create_conversion_target(MContext &context)`
+    // `static conversion_target create_conversion_target(mcontext_t &context)`
     //
     // To populate rewrite patterns:
     //
@@ -36,7 +36,7 @@ namespace vast {
     // struct ExamplePass : ModuleConversionPassMixin< ExamplePass, ExamplePassBase > {
     //     using base = ModuleConversionPassMixin< ExamplePass, ExamplePassBase >;
     //
-    //     static conversion_target create_conversion_target(MContext &context) {
+    //     static conversion_target create_conversion_target(mcontext_t &context) {
     //         conversion_target target(context);
     //         // setup target here
     //         return target;

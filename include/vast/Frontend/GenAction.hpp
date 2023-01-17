@@ -40,7 +40,7 @@ namespace vast::cc {
 
     protected:
 
-        vast_gen_action(output_type action, MContext *mcontext = nullptr);
+        vast_gen_action(output_type action, mcontext_t *mcontext = nullptr);
 
         std::unique_ptr< clang::ASTConsumer >
         CreateASTConsumer(compiler_instance &ci, llvm::StringRef InFile) override;
@@ -55,7 +55,7 @@ namespace vast::cc {
         OwningModuleRef mlir_module;
         // std::unique_ptr< llvm::Module > llvm_module;
 
-        MContext *mcontext;
+        mcontext_t *mcontext;
 
         OwningModuleRef load_module(llvm::MemoryBufferRef mref);
     };
@@ -64,7 +64,7 @@ namespace vast::cc {
     // Emit assembly
     //
     struct emit_assembly_action : vast_gen_action {
-        emit_assembly_action(MContext *mcontext = nullptr);
+        emit_assembly_action(mcontext_t *mcontext = nullptr);
     private:
         virtual void anchor();
     };
@@ -73,7 +73,7 @@ namespace vast::cc {
     // Emit LLVM
     //
     struct emit_llvm_action : vast_gen_action {
-        emit_llvm_action(MContext *mcontext = nullptr);
+        emit_llvm_action(mcontext_t *mcontext = nullptr);
     private:
         virtual void anchor();
     };
@@ -82,7 +82,7 @@ namespace vast::cc {
     // Emit obj
     //
     struct emit_obj_action : vast_gen_action {
-        emit_obj_action(MContext *mcontext = nullptr);
+        emit_obj_action(mcontext_t *mcontext = nullptr);
     private:
         virtual void anchor();
     };
@@ -91,7 +91,7 @@ namespace vast::cc {
     // Emit high level mlir dialect
     //
     struct emit_high_level_action : vast_gen_action {
-        emit_high_level_action(MContext *mcontext = nullptr);
+        emit_high_level_action(mcontext_t *mcontext = nullptr);
     private:
         virtual void anchor();
     };
@@ -100,7 +100,7 @@ namespace vast::cc {
     // Emit cir mlir dialect
     //
     struct emit_cir_action : vast_gen_action {
-        emit_cir_action(MContext *mcontext = nullptr);
+        emit_cir_action(mcontext_t *mcontext = nullptr);
     private:
         virtual void anchor();
     };

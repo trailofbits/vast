@@ -41,8 +41,8 @@ namespace vast
         llvm::function_ref< void(Builder &, Location) >
     >;
 
-    using AContext = clang::ASTContext;
-    using MContext = mlir::MLIRContext;
+    using acontext_t = clang::ASTContext;
+    using mcontext_t = mlir::MLIRContext;
 
     using Module          = mlir::ModuleOp;
     using OwningModuleRef = mlir::OwningOpRef< Module >;

@@ -6,7 +6,7 @@ namespace vast::cg {
 
     void vast_generator::anchor() {}
 
-    void vast_generator::Initialize(AContext &acontext) {
+    void vast_generator::Initialize(acontext_t &acontext) {
         this->acontext = &acontext;
 
         mcontext = std::make_unique<mlir::MLIRContext>();
@@ -19,8 +19,7 @@ namespace vast::cg {
         throw cc::compiler_error("HandleTopLevelDecl not implemented");
     }
 
-    void vast_generator::HandleTranslationUnit(AContext &/* acontext */) {
-        throw cc::compiler_error("HandleTranslationUnit not implemented");
+    void vast_generator::HandleTranslationUnit(acontext_t &/* acontext */) {
     }
 
     void vast_generator::HandleInlineFunctionDefinition(clang::FunctionDecl */* decl */) {

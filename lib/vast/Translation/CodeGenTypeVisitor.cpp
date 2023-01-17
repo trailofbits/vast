@@ -56,7 +56,7 @@ namespace vast::hl {
     }
 
     namespace detail {
-        SizeParam get_size_attr(const clang::ConstantArrayType *arr, MContext &ctx) {
+        SizeParam get_size_attr(const clang::ConstantArrayType *arr, mcontext_t &ctx) {
             // Represents the canonical version of C arrays with a specified
             // constant size.
 
@@ -66,7 +66,7 @@ namespace vast::hl {
             return SizeParam(arr->getSize().getLimitedValue());
         }
 
-        SizeParam get_size_attr(const clang::DependentSizedArrayType *arr, MContext &ctx) {
+        SizeParam get_size_attr(const clang::DependentSizedArrayType *arr, mcontext_t &ctx) {
             // Represents an array type in C++ whose size is a value-dependent
             // expression.
 
@@ -80,7 +80,7 @@ namespace vast::hl {
             return {};
         }
 
-        SizeParam get_size_attr(const clang::IncompleteArrayType *arr, MContext &ctx) {
+        SizeParam get_size_attr(const clang::IncompleteArrayType *arr, mcontext_t &ctx) {
             // Represents a C array with an unspecified size.
 
             // For example 'int A[]' has an IncompleteArrayType where the
@@ -88,7 +88,7 @@ namespace vast::hl {
             return {};
         }
 
-        SizeParam get_size_attr(const clang::VariableArrayType *arr, MContext &ctx) {
+        SizeParam get_size_attr(const clang::VariableArrayType *arr, mcontext_t &ctx) {
             // Represents a C array with a specified size that is not an
             // integer-constant-expression.
 
@@ -105,7 +105,7 @@ namespace vast::hl {
         }
     } // namespace detail
 
-    SizeParam get_size_attr(const clang::ArrayType *ty, MContext &ctx) {
+    SizeParam get_size_attr(const clang::ArrayType *ty, mcontext_t &ctx) {
         return llvm::TypeSwitch< const clang::ArrayType *, SizeParam >(ty)
             .Case< clang::ConstantArrayType
                  , clang::DependentSizedArrayType
