@@ -44,6 +44,9 @@ namespace vast
     using acontext_t = clang::ASTContext;
     using mcontext_t = mlir::MLIRContext;
 
+    // FIXME: eventually replace with tower_module
+    using vast_module = mlir::ModuleOp;
+
     using Module          = mlir::ModuleOp;
     using OwningModuleRef = mlir::OwningOpRef< Module >;
 

@@ -42,10 +42,8 @@ namespace vast::cg {
 
         // bool EmitFunction(const clang::FunctionDecl *FD);
 
-        // mlir::ModuleOp getModule();
-        // std::unique_ptr<mlir::MLIRContext> takeContext() {
-        //     return std::move(mlirCtx);
-        // };
+        vast_module get_module();
+        std::unique_ptr< mcontext_t > take_context();
 
         // bool verifyModule();
 

@@ -6,13 +6,22 @@ namespace vast::cg {
 
     void vast_generator::anchor() {}
 
-    void vast_generator::Initialize(acontext_t &acontext) {
-        this->acontext = &acontext;
+    void vast_generator::Initialize(acontext_t &actx) {
+        this->acontext = &actx;
 
-        mcontext = std::make_unique<mlir::MLIRContext>();
+        mcontext = std::make_unique< mcontext_t >();
         // TODO initialize dialects here
-        // CGM = std::make_unique<CIRGenModule>(*mlirCtx.get(), astCtx, codeGenOpts,
-        //                                     Diags);
+        cgm = std::make_unique< codegen_module >(
+            *mcontext, actx, diags, cgo
+        );
+    }
+
+    vast_module vast_generator::get_module() {
+        return cgm->get_module();
+    }
+
+    std::unique_ptr< mcontext_t > vast_generator::take_context() {
+        return std::move(mcontext);
     }
 
     bool vast_generator::HandleTopLevelDecl(clang::DeclGroupRef /* decl */) {
