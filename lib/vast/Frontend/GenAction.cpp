@@ -5,6 +5,7 @@
 
 VAST_RELAX_WARNINGS
 #include <clang/CodeGen/BackendUtil.h>
+#include <llvm/Support/Signals.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
@@ -118,11 +119,51 @@ namespace vast::cc {
             high_level
         };
 
-        void emit_mlir_output(target_dialect /* dialect */, vast_module mod) {
+        void setup_vast_pipeline_and_execute() {
+            throw compiler_error("setup_vast_pipeline_and_execute not implemented");
+        }
+
+        void emit_mlir_output(target_dialect /* dialect */, vast_module mod, mcontext_t *mctx) {
             if (!output_stream || !mod)
                 return;
 
-            throw compiler_error("HandleTranslationUnit for emit HL not implemented");
+            // Handle source manager properly given that lifetime analysis
+            // might emit warnings and remarks.
+            auto &src_mgr = acontext->getSourceManager();
+            auto main_file_id = src_mgr.getMainFileID();
+
+            auto file_buff = llvm::MemoryBuffer::getMemBuffer(
+                src_mgr.getBufferOrFake(main_file_id)
+            );
+
+            llvm::SourceMgr mlir_src_mgr;
+            mlir_src_mgr.AddNewSourceBuffer(std::move(file_buff), llvm::SMLoc());
+
+            if (vargs.has_option(opt::vast_verify_diags)) {
+                mlir::SourceMgrDiagnosticVerifierHandler src_mgr_handler(mlir_src_mgr, mctx);
+                mctx->printOpOnDiagnostic(false);
+                setup_vast_pipeline_and_execute();
+
+                // Verify the diagnostic handler to make sure that each of the
+                // diagnostics matched.
+                if (src_mgr_handler.verify().failed()) {
+                    llvm::sys::RunInterruptHandlers();
+                    throw cc::compiler_error("failed mlir codegen", 1);
+                }
+            } else {
+                mlir::SourceMgrDiagnosticHandler src_mgr_handler(mlir_src_mgr, mctx);
+                setup_vast_pipeline_and_execute();
+            }
+
+            // Emit remaining defaulted C++ methods
+            if (!vargs.has_option(opt::disable_emit_cxx_default)) {
+                generator->build_default_methods();
+            }
+
+            // FIXME: we cannot roundtrip prettyForm=true right now.
+            mlir::OpPrintingFlags flags;
+            flags.enableDebugInfo(/* prettyForm */ false);
+            mod->print(*output_stream, flags);
         }
 
         void HandleTranslationUnit(acontext_t &acontext) override {
@@ -131,13 +172,14 @@ namespace vast::cc {
             // global codegen, followed by running CIR passes.
             generator->HandleTranslationUnit(acontext);
 
-            auto mod = generator->get_module();
+            auto mod  = generator->get_module();
+            auto mctx = generator->take_context();
 
             switch (action) {
                 case output_type::emit_assembly:
                     return emit_backend_output(clang::BackendAction::Backend_EmitAssembly);
                 case output_type::emit_high_level:
-                    return emit_mlir_output(target_dialect::high_level, mod);
+                    return emit_mlir_output(target_dialect::high_level, mod, mctx.get());
                 case output_type::emit_cir:
                     throw compiler_error("HandleTranslationUnit for emit CIR not implemented");
                 case output_type::emit_llvm:
