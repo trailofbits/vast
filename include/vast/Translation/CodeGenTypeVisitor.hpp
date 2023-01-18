@@ -130,6 +130,11 @@ namespace vast::hl {
             return with_cvr_qualifiers(type_builder< ElaboratedType >().bind(element_type), quals).freeze();
         }
 
+        auto with_qualifiers(const clang::BlockPointerType *ty, qualifiers quals) -> mlir_type {
+            auto pointee = visit(ty->getPointeeType());
+            return with_cvr_qualifiers(type_builder< PointerType >().bind(pointee), quals).freeze();
+        }
+
         auto Visit(clang::QualType ty) -> mlir_type {
             auto underlying = ty.getTypePtr();
             auto quals      = ty.getQualifiers();
@@ -175,6 +180,10 @@ namespace vast::hl {
 
             if (auto t = llvm::dyn_cast< clang::DecayedType >(underlying)) {
                 return VisitDecayedType(t, quals);
+            }
+
+            if (auto t = llvm::dyn_cast< clang::BlockPointerType >(underlying)) {
+                return VisitBlockPointerType(t, quals);
             }
 
             VAST_UNREACHABLE("unsupported qualified type");
@@ -315,6 +324,14 @@ namespace vast::hl {
 
         auto VisitDecayedType(const clang::DecayedType *ty) -> mlir_type {
             return VisitDecayedType(ty, ty->desugar().getQualifiers());
+        }
+
+        auto VisitBlockPointerType(const clang::BlockPointerType *ty, qualifiers quals) -> mlir_type {
+            return with_qualifiers(ty, quals);
+        }
+
+        auto VisitBlockPointerType(const clang::BlockPointerType *ty) -> mlir_type {
+            return with_qualifiers(ty, ty->desugar().getQualifiers());
         }
     };
 
