@@ -686,83 +686,34 @@ namespace vast
             }
         };
 
-        template< typename LOp, bool short_on_true >
-        struct lazy_bin_logical : BasePattern< LOp >
+        // Drop types of operations that will be processed by pass for core(lazy) operations.
+        template< typename LazyOp >
+        struct lazy_op_type : BasePattern< LazyOp >
         {
-            using Base = BasePattern< LOp >;
+            using Base = BasePattern< LazyOp >;
             using Base::Base;
 
-            auto insert_lazy_to_block(mlir::Operation& lazy_op, mlir::Block* target,
-                mlir::ConversionPatternRewriter &rewriter) const
-            {
-                auto &lazy_region = lazy_op.getRegion(0);
-                auto &lazy_block = lazy_region.front();
-
-                auto &yield = lazy_block.back();
-                auto res = yield.getOperand(0);
-                rewriter.eraseOp(&yield);
-
-                rewriter.inlineRegionBefore(lazy_region, *target->getParent(), ++(target->getIterator()));
-                rewriter.mergeBlocks(&lazy_block, target, llvm::None);
-
-                rewriter.eraseOp(&lazy_op);
-
-                return res;
-            }
-
             mlir::LogicalResult matchAndRewrite(
-                LOp op, typename LOp::Adaptor ops,
+                LazyOp op, typename LazyOp::Adaptor ops,
                 mlir::ConversionPatternRewriter &rewriter) const override
             {
-                auto curr_block = rewriter.getBlock();
-                auto rhs_block = curr_block->splitBlock(op);
-                auto end_block = rhs_block->splitBlock(op);
-
-                auto lhs_res = insert_lazy_to_block(*op.getLhs().getDefiningOp(), curr_block, rewriter);
-                auto rhs_res = insert_lazy_to_block(*op.getRhs().getDefiningOp(), rhs_block, rewriter);
-
-                auto lhs_res_type = this->type_converter().convertType(lhs_res.getType());
-
-                rewriter.setInsertionPointToEnd(curr_block);
-                auto zero = rewriter.create< LLVM::ConstantOp >(
-                    op.getLoc(), lhs_res_type, rewriter.getIntegerAttr(lhs_res_type, 0)
-                );
-
-                auto cmp_lhs = rewriter.create< LLVM::ICmpOp >(
-                    op.getLoc(), LLVM::ICmpPredicate::eq, lhs_res, zero
-                );
-
-                auto end_arg = end_block->addArgument(cmp_lhs.getType(), op.getLoc());
-
-                if constexpr (short_on_true)
+                auto lower_res_type = [&]()
                 {
-                    rewriter.create< LLVM::CondBrOp >(
-                        op.getLoc(), cmp_lhs, end_block, cmp_lhs.getResult(), rhs_block, llvm::None
-                    );
-                } else {
-                    rewriter.create< LLVM::CondBrOp >(
-                        op.getLoc(), cmp_lhs, rhs_block, llvm::None, end_block, cmp_lhs.getResult()
-                    );
-                }
+                    auto result = op.getResult();
+                    result.setType(this->type_converter().convertType(result.getType()));
+                };
 
-                rewriter.setInsertionPointToEnd(rhs_block);
-                auto cmp_rhs = rewriter.create< LLVM::ICmpOp >(
-                    op.getLoc(), LLVM::ICmpPredicate::eq, rhs_res, zero);
-                rewriter.create< LLVM::BrOp >(op.getLoc(), cmp_rhs.getResult(), end_block);
-
-                rewriter.setInsertionPointToStart(end_block);
-                auto zext = rewriter.create< LLVM::ZExtOp >(op.getLoc(),
-                    this->type_converter().convertType(op.getResult().getType()),
-                    end_arg);
-                rewriter.replaceOp(op, { zext });
+                rewriter.updateRootInPlace(op, lower_res_type);
 
                 return mlir::success();
             }
+
         };
 
-        using lazy_land = lazy_bin_logical< core::BinLAndOp, false >;
-        using lazy_lor = lazy_bin_logical< core::BinLOrOp, true >;
-
+        using lazy_op = lazy_op_type< core::LazyOp >;
+        using lazy_land = lazy_op_type< core::BinLAndOp >;
+        using lazy_lor = lazy_op_type< core::BinLOrOp >;
+        using hl_yield = lazy_op_type< hl::ValueYieldOp >;
     } // namespace pattern
 
 
@@ -772,6 +723,11 @@ namespace vast
         return util::for_each_subtype(op.getResultTypes(), mlir::LLVM::isCompatibleType);
     }
 
+    template < typename Op >
+    bool has_llvm_return_type(Op op)
+    {
+        return mlir::LLVM::isCompatibleType(op.getResult().getType());
+    }
 
     struct CoreToLLVMPass : CoreToLLVMBase< CoreToLLVMPass >
     {
@@ -783,14 +739,17 @@ namespace vast
         auto &mctx = this->getContext();
         mlir::ModuleOp op = this->getOperation();
 
-
         mlir::ConversionTarget target(mctx);
         target.addIllegalDialect< hl::HighLevelDialect >();
         target.addIllegalDialect< ll::LowLevelDialect >();
-        target.addIllegalDialect< core::CoreDialect>();
+        target.addLegalDialect< core::CoreDialect>();
         target.addLegalOp< hl::TypeDefOp >();
-        target.addLegalOp< hl::ValueYieldOp >();
-        target.addLegalOp< core::LazyOp >();
+        target.addLegalOp< hl::ValueYieldOp>();
+
+        target.addDynamicallyLegalOp< core::LazyOp >(has_llvm_return_type< core::LazyOp >);
+        target.addDynamicallyLegalOp< core::BinLAndOp >(has_llvm_return_type< core::BinLAndOp>);
+        target.addDynamicallyLegalOp< core::BinLOrOp >(has_llvm_return_type< core::BinLOrOp>);
+        target.addDynamicallyLegalOp< hl::ValueYieldOp >(has_llvm_return_type< hl::ValueYieldOp >);
 
         target.addDynamicallyLegalOp< hl::InitListExpr >(
                 has_llvm_only_types< hl::InitListExpr>);
@@ -852,11 +811,14 @@ namespace vast
 
         patterns.add< pattern::init_list_expr >(type_converter);
 
+        patterns.add< pattern::hl_yield >(type_converter);
+
         // LL patterns
         patterns.add< pattern::uninit_var >(type_converter);
         patterns.add< pattern::initialize_var >(type_converter);
 
         // Core patterns
+        patterns.add< pattern::lazy_op >(type_converter);
         patterns.add< pattern::lazy_land >(type_converter);
         patterns.add< pattern::lazy_lor >(type_converter);
 
