@@ -9,7 +9,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::cg {
 
     void codegen_module::release() {
-        // TODO: buildDeferred();
+        build_deferred();
         // TODO: buildVTablesOpportunistically();
         // TODO: applyGlobalValReplacements();
         // TODO: applyReplacements();
@@ -21,7 +21,7 @@ namespace vast::cg {
         // TODO: buildCXXThreadLocalInitFunc();
         // TODO: ObjCRuntime
         if (actx.getLangOpts().CUDA) {
-            llvm_unreachable("unsupported cuda module release");
+            throw cc::compiler_error("unsupported cuda module release");
         }
         // TODO: OpenMPRuntime
         // TODO: PGOReader
@@ -32,17 +32,17 @@ namespace vast::cg {
         // TODO: CIRGenPGO
         // TODO: CoverageMapping
         if (codegen_opts.SanitizeCfiCrossDso) {
-            llvm_unreachable("unsupported SanitizeCfiCrossDso module release");
+            throw cc::compiler_error("unsupported SanitizeCfiCrossDso module release");
         }
         // TODO: buildAtAvailableLinkGuard();
         if (actx.getTargetInfo().getTriple().isWasm() && !actx.getTargetInfo().getTriple().isOSEmscripten()) {
-            llvm_unreachable("unsupported WASM module release");
+            throw cc::compiler_error("unsupported WASM module release");
         }
 
         // Emit reference of __amdgpu_device_library_preserve_asan_functions to
         // preserve ASAN functions in bitcode libraries.
         if (lang_opts.Sanitize.has(clang::SanitizerKind::Address)) {
-            llvm_unreachable("unsupported AddressSanitizer module release");
+            throw cc::compiler_error("unsupported AddressSanitizer module release");
         }
 
         // TODO: buildLLVMUsed();// TODO: SanStats
@@ -67,6 +67,49 @@ namespace vast::cg {
         // deferred_decls_to_emit, so use it directly for emission.
         for (auto &decl : default_methods_to_emit) {
             build_global_decl(decl);
+        }
+    }
+
+    void codegen_module::build_deferred() {
+        // Emit deferred declare target declarations
+        if (lang_opts.OpenMP && !lang_opts.OpenMPSimd) {
+            throw cc::compiler_error("build_deferred for openmp not implemented");
+        }
+
+        // Emit code for any potentially referenced deferred decls. Since a previously
+        // unused static decl may become used during the generation of code for a
+        // static function, iterate until no changes are made.
+        if (!deferred_vtables.empty()) {
+            throw cc::compiler_error("build_deferred for vtables not implemented");
+        }
+
+        // Emit CUDA/HIP static device variables referenced by host code only. Note we
+        // should not clear CUDADeviceVarODRUsedByHost since it is still needed for
+        // further handling.
+        if (lang_opts.CUDA && lang_opts.CUDAIsDevice) {
+            throw cc::compiler_error("build_deferred for cuda not implemented");
+        }
+
+        // Stop if we're out of both deferred vtables and deferred declarations.
+        if (deferred_decls_tot_emit.empty())
+            return;
+
+        // Grab the list of decls to emit. If buildGlobalDefinition schedules more
+        // work, it will not interfere with this.
+        std::vector< clang::GlobalDecl > curr_decls_to_emit;
+        curr_decls_to_emit.swap(deferred_decls_tot_emit);
+
+        for (auto &decl : curr_decls_to_emit) {
+            build_global_decl(decl);
+
+            // FIXME: rework to worklist?
+            // If we found out that we need to emit more decls, do that recursively.
+            // This has the advantage that the decls are emitted in a DFS and related
+            // ones are close together, which is convenient for testing.
+            if (!deferred_vtables.empty() || !deferred_decls_tot_emit.empty()) {
+                build_deferred();
+                assert(deferred_vtables.empty() && deferred_decls_tot_emit.empty());
+            }
         }
     }
 

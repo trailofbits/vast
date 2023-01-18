@@ -37,7 +37,27 @@ namespace vast::cg {
 
         bool verify_module();
 
-        void build_default_methods();
+        // Emit any needed decls for which code generation was deferred.
+        void build_deferred();
+
+        // Helper for `buildDeferred` to apply actual codegen.
+        void build_global_decl(clang::GlobalDecl &decl);
+
+        // A queue of (optional) vtables to consider emitting.
+        std::vector< const clang::CXXRecordDecl * > deferred_vtables;
+
+        // This contains all the decls which have definitions but which are deferred
+        // for emission and therefore should only be output if they are actually
+        // used. If a decl is in this, then it is known to have not been referenced
+        // yet.
+        std::map< llvm::StringRef, clang::GlobalDecl > deferred_decls;
+
+        // This is a list of deferred decls which we have seen that *are* actually
+        // referenced. These get code generated when the module is done.
+        std::vector< clang::GlobalDecl > deferred_decls_tot_emit;
+        void add_deferred_decl_to_emit(clang::GlobalDecl decl) {
+            deferred_decls_tot_emit.emplace_back(decl);
+        }
 
         // After HandleTranslation finishes, differently from deferred_decls_to_emit,
         // default_methods_to_emit is only called after a set of vast passes run.
@@ -47,7 +67,7 @@ namespace vast::cg {
             default_methods_to_emit.emplace_back(decl);
         }
 
-        void build_global_decl(clang::GlobalDecl &decl);
+        void build_default_methods();
 
       private:
 
