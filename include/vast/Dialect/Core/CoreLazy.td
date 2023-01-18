@@ -12,14 +12,18 @@ include "vast/Interfaces/SymbolInterface.td"
 
 def ValueRegion : Region< HasOneBlock, "value region" >;
 
-class lazyEval< string mnemonic, list < Trait > traits = [] > : Core_Op< mnemonic, !listconcat(traits, []) >, Results<(outs AnyType:$result)> {
+class lazyEval< string mnemonic, list < Trait > traits = [] >
+    : Core_Op< mnemonic, !listconcat(traits, []) >, Results<(outs AnyType:$result)>
+{
     let summary = "lazy evaluator";
     let description = [{ VAST lazy evaluator }];
 }
 
 def Core_LazyOp : lazyEval< "lazy.op", [] > {
     let summary = "Lazily evaluate a region.";
-    let description = [{ An operation that marks that the region it contains should be evalutated only whe necessary. }];
+    let description = [{
+        An operation that marks that the region it contains should be evalutated only when necessary.
+    }];
 
     let regions = (region ValueRegion:$lazy);
 

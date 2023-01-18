@@ -2,6 +2,7 @@
 
 add_mlir_conversion_library(VASTCommonConversionPasses
     IRsToLLVM.cpp
+    CoreToLLVM.cpp
 
     DEPENDS
         VASTConversionPassIncGen
