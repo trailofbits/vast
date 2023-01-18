@@ -12,7 +12,7 @@ namespace vast::cg {
         build_deferred();
         // TODO: buildVTablesOpportunistically();
         // TODO: applyGlobalValReplacements();
-        // TODO: applyReplacements();
+        apply_replacements();
         // TODO: checkAliases();
         // TODO: buildMultiVersionFunctions();
         // TODO: buildCXXGlobalInitFunc();
@@ -35,7 +35,8 @@ namespace vast::cg {
             throw cc::compiler_error("unsupported SanitizeCfiCrossDso module release");
         }
         // TODO: buildAtAvailableLinkGuard();
-        if (actx.getTargetInfo().getTriple().isWasm() && !actx.getTargetInfo().getTriple().isOSEmscripten()) {
+        const auto &target_triplet = actx.getTargetInfo().getTriple();
+        if (target_triplet.isWasm() && !target_triplet.isOSEmscripten()) {
             throw cc::compiler_error("unsupported WASM module release");
         }
 
@@ -52,6 +53,16 @@ namespace vast::cg {
         }
 
         // TODO: FINISH THE REST OF THIS
+    }
+
+    void codegen_module::add_replacement(string_ref name, mlir::Operation *op) {
+        replacements[name] = op;
+    }
+
+    void codegen_module::apply_replacements() {
+        if (!replacements.empty()) {
+            throw cc::compiler_error("unsupported function replacement in module release");
+        }
     }
 
     bool codegen_module::verify_module() {
