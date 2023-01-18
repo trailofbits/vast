@@ -35,6 +35,8 @@ namespace vast::cg {
 
         vast_module get_module() { return mod; }
 
+        bool verify_module();
+
         void build_default_methods();
 
         // After HandleTranslation finishes, differently from deferred_decls_to_emit,
