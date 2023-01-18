@@ -57,4 +57,16 @@ namespace vast::cg {
         throw cc::compiler_error("HandleTagDeclRequiredDefinition not implemented");
     }
 
+    bool vast_generator::verify_module() {
+        throw cc::compiler_error("verify_module not implemented");
+    }
+
+    void vast_generator::build_deferred_decls() {
+        throw cc::compiler_error("build_deferred_decls not implemented");
+    }
+
+    void vast_generator::build_default_methods() {
+        throw cc::compiler_error("build_default_methods not implemented");
+    }
+
 } // namespace vast::cc

@@ -45,10 +45,10 @@ namespace vast::cg {
         vast_module get_module();
         std::unique_ptr< mcontext_t > take_context();
 
-        // bool verifyModule();
+        bool verify_module();
 
-        // void buildDeferredDecls();
-        // void buildDefaultMethods();
+        void build_deferred_decls();
+        void build_default_methods();
 
     protected:
 
