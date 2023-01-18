@@ -30,22 +30,18 @@ namespace vast::cc
         auto act   = opts.ProgramAction;
         using namespace clang::frontend;
 
-        for (auto arg : vargs.args) {
-            llvm::errs() << arg << "\n";
-        }
-
         if (vargs.has_option(opt::emit_high_level)) {
-             return std::make_unique< vast::cc::emit_high_level_action >();
+             return std::make_unique< vast::cc::emit_high_level_action >(vargs);
         }
 
         if (vargs.has_option(opt::emit_cir)) {
-             return std::make_unique< vast::cc::emit_cir_action >();
+             return std::make_unique< vast::cc::emit_cir_action >(vargs);
         }
 
         switch (act) {
-            case EmitAssembly: return std::make_unique< vast::cc::emit_assembly_action >();
-            case EmitLLVM: return std::make_unique< vast::cc::emit_llvm_action >();
-            case EmitObj: return std::make_unique< vast::cc::emit_obj_action >();
+            case EmitAssembly: return std::make_unique< vast::cc::emit_assembly_action >(vargs);
+            case EmitLLVM: return std::make_unique< vast::cc::emit_llvm_action >(vargs);
+            case EmitObj: return std::make_unique< vast::cc::emit_obj_action >(vargs);
             default: throw compiler_error("unsupported frontend action");
         }
 
