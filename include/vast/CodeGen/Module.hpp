@@ -4,6 +4,10 @@
 
 #include "vast/Util/Warnings.hpp"
 
+VAST_RELAX_WARNINGS
+#include <clang/AST/GlobalDecl.h>
+VAST_UNRELAX_WARNINGS
+
 #include "vast/Util/Common.hpp"
 #include "vast/CodeGen/Builder.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
@@ -30,6 +34,18 @@ namespace vast::cg {
         void release();
 
         vast_module get_module() { return mod; }
+
+        void build_default_methods();
+
+        // After HandleTranslation finishes, differently from deferred_decls_to_emit,
+        // default_methods_to_emit is only called after a set of vast passes run.
+        // See add_default_methods_to_emit usage for examples.
+        std::vector< clang::GlobalDecl > default_methods_to_emit;
+        void add_default_methods_to_emit(clang::GlobalDecl decl) {
+            default_methods_to_emit.emplace_back(decl);
+        }
+
+        void build_global_decl(clang::GlobalDecl &decl);
 
       private:
 
