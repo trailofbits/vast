@@ -303,7 +303,11 @@ namespace vast::cc {
     }
 
     void vast_gen_action::EndSourceFileAction() {
-        throw compiler_error("EndSourceFileAction not implemented");
+        // If the consumer creation failed, do nothing.
+        if (!getCompilerInstance().hasASTConsumer())
+            return;
+
+        // TODO: pass the module around
     }
 
     void emit_assembly_action::anchor() {}
