@@ -12,6 +12,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Frontend/Options.hpp"
 #include "vast/Frontend/Common.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
+#include "vast/CodeGen/Passes.hpp"
 
 namespace clang {
     class CXXRecordDecl;
@@ -119,13 +120,31 @@ namespace vast::cc {
             high_level
         };
 
-        void setup_vast_pipeline_and_execute() {
-            throw compiler_error("setup_vast_pipeline_and_execute not implemented");
-        }
-
-        void emit_mlir_output(target_dialect /* dialect */, vast_module mod, mcontext_t *mctx) {
-            if (!output_stream || !mod)
+        void emit_mlir_output(target_dialect target, vast_module mod, mcontext_t *mctx) {
+            if (!output_stream || !mod) {
                 return;
+            }
+
+            const bool disable_vast_verifier = vargs.has_option(opt::disable_vast_verifier);
+
+            auto execute_vast_pipeline = [&] {
+                // FIXME: parse pass options and deal with different passes in more sane way
+                switch (target) {
+                    case target_dialect::high_level: {
+                        return cg::emit_high_level_pass(
+                            mod, mctx, acontext, disable_vast_verifier
+                        );
+                    }
+                }
+
+                throw cc::compiler_error("codegen: unsupported target dialect");
+            };
+
+            auto setup_vast_pipeline_and_execute = [&] {
+                if (execute_vast_pipeline().failed()) {
+                    throw cc::compiler_error("codegen: MLIR pass manager fails when running vast passes");
+                }
+            };
 
             // Handle source manager properly given that lifetime analysis
             // might emit warnings and remarks.
@@ -148,7 +167,7 @@ namespace vast::cc {
                 // diagnostics matched.
                 if (src_mgr_handler.verify().failed()) {
                     llvm::sys::RunInterruptHandlers();
-                    throw cc::compiler_error("failed mlir codegen", 1);
+                    throw cc::compiler_error("failed mlir codegen");
                 }
             } else {
                 mlir::SourceMgrDiagnosticHandler src_mgr_handler(mlir_src_mgr, mctx);
