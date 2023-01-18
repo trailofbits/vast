@@ -14,6 +14,7 @@ VAST_UNRELAX_WARNINGS
 #include <vast/Dialect/HighLevel/HighLevelDialect.hpp>
 #include <vast/Dialect/HighLevel/HighLevelOps.hpp>
 #include <vast/Dialect/LowLevel/LowLevelDialect.hpp>
+#include <vast/Dialect/Core/CoreDialect.hpp>
 
 #include <memory>
 
@@ -29,6 +30,8 @@ namespace vast
     #endif
 
     std::unique_ptr< mlir::Pass > createIRsToLLVMPass();
+
+    std::unique_ptr< mlir::Pass > createCoreToLLVMPass();
 
     std::unique_ptr< mlir::Pass > createHLFuncToFuncPass();
 

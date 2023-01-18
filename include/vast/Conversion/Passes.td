@@ -57,4 +57,15 @@ def IRsToLLVM : Pass<"vast-irs-to-llvm", "mlir::ModuleOp"> {
                            "vast::hl::HighLevelDialect"];
 }
 
+def CoreToLLVM : Pass<"vast-core-to-llvm", "mlir::ModuleOp"> {
+  let summary = "VAST Core dialec to LLVM Dialect conversion";
+  let description = [{
+    Converts core dialect operations to LLVM dialect.
+    }];
+
+  let constructor = "vast::createCoreToLLVMPass()";
+  let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::core::CoreDialect",
+                           "vast::hl::HighLevelDialect"];
+}
+
 #endif // VAST_CONVERSION_PASSES_TD
