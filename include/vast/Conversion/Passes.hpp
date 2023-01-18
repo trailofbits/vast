@@ -28,7 +28,7 @@ namespace vast
         } // namespace pdll
     #endif
 
-    std::unique_ptr< mlir::Pass > createCoreToLLVMPass();
+    std::unique_ptr< mlir::Pass > createIRsToLLVMPass();
 
     std::unique_ptr< mlir::Pass > createHLFuncToFuncPass();
 

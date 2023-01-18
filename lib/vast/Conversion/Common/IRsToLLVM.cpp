@@ -729,12 +729,12 @@ namespace vast
         return mlir::LLVM::isCompatibleType(op.getResult().getType());
     }
 
-    struct CoreToLLVMPass : CoreToLLVMBase< CoreToLLVMPass >
+    struct IRsToLLVMPass : IRsToLLVMBase< IRsToLLVMPass >
     {
         void runOnOperation() override;
     };
 
-    void CoreToLLVMPass::runOnOperation()
+    void IRsToLLVMPass::runOnOperation()
     {
         auto &mctx = this->getContext();
         mlir::ModuleOp op = this->getOperation();
@@ -828,7 +828,7 @@ namespace vast
 } // namespace vast
 
 
-std::unique_ptr< mlir::Pass > vast::createCoreToLLVMPass()
+std::unique_ptr< mlir::Pass > vast::createIRsToLLVMPass()
 {
-    return std::make_unique< vast::CoreToLLVMPass >();
+    return std::make_unique< vast::IRsToLLVMPass >();
 }
