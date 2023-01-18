@@ -8,9 +8,9 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
+#include "vast/Frontend/Options.hpp"
 #include "vast/Frontend/Common.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
-
 
 namespace clang {
     class CXXRecordDecl;
@@ -59,6 +59,7 @@ namespace vast::cc {
             target_options &topts,
             language_options &lopts,
             // frontend_options &fopts,
+            const vast_args &vargs,
             output_stream_ptr os
         )
             : action(act)
@@ -68,6 +69,7 @@ namespace vast::cc {
             , target_opts(topts)
             , lang_opts(lopts)
             // , frontend_opts(fopts)
+            , vargs(vargs)
             , output_stream(std::move(os))
             , generator(std::make_unique< cg::vast_generator >(diags, codegen_opts))
         {}
@@ -95,7 +97,7 @@ namespace vast::cc {
         }
 
         void emit_backend_output(clang::BackendAction backend_action) {
-            // llvm::LLVmcontext_t llvm_context;
+            // llvm::LLVMcontext_t llvm_context;
             throw compiler_error("HandleTranslationUnit for emit llvm not implemented");
 
             std::unique_ptr< llvm::Module > mod = nullptr /* todo lower_from_vast_to_llvm */;
@@ -112,17 +114,30 @@ namespace vast::cc {
             );
         }
 
+        enum class target_dialect {
+            high_level
+        };
+
+        void emit_mlir_output(target_dialect /* dialect */, vast_module mod) {
+            if (!output_stream || !mod)
+                return;
+
+            throw compiler_error("HandleTranslationUnit for emit HL not implemented");
+        }
+
         void HandleTranslationUnit(acontext_t &acontext) override {
             // Note that this method is called after `HandleTopLevelDecl` has already
             // ran all over the top level decls. Here clang mostly wraps defered and
             // global codegen, followed by running CIR passes.
             generator->HandleTranslationUnit(acontext);
 
+            auto mod = generator->get_module();
+
             switch (action) {
                 case output_type::emit_assembly:
                     return emit_backend_output(clang::BackendAction::Backend_EmitAssembly);
                 case output_type::emit_high_level:
-                    throw compiler_error("HandleTranslationUnit for emit HL not implemented");
+                    return emit_mlir_output(target_dialect::high_level, mod);
                 case output_type::emit_cir:
                     throw compiler_error("HandleTranslationUnit for emit CIR not implemented");
                 case output_type::emit_llvm:
@@ -171,6 +186,8 @@ namespace vast::cc {
         const language_options &lang_opts;
         // const frontend_options &frontend_opts;
 
+        const vast_args &vargs;
+
         output_stream_ptr output_stream;
 
         acontext_t *acontext = nullptr;
@@ -178,8 +195,8 @@ namespace vast::cc {
         vast_generator_ptr generator;
     };
 
-    vast_gen_action::vast_gen_action(output_type act, mcontext_t *montext)
-        : action(act), mcontext(montext ? montext : new mcontext_t)
+    vast_gen_action::vast_gen_action(output_type act, const vast_args &vargs, mcontext_t *montext)
+        : action(act), mcontext(montext ? montext : new mcontext_t), vargs(vargs)
     {}
 
     OwningModuleRef vast_gen_action::load_module(llvm::MemoryBufferRef /* mref */) {
@@ -207,6 +224,7 @@ namespace vast::cc {
             , ci.getTargetOpts()
             , ci.getLangOpts()
             // , ci.getFrontendOpts()
+            , vargs
             , std::move(out)
         );
 
@@ -229,32 +247,32 @@ namespace vast::cc {
 
     void emit_assembly_action::anchor() {}
 
-    emit_assembly_action::emit_assembly_action(mcontext_t *mcontex)
-        : vast_gen_action(output_type::emit_assembly, mcontex)
+    emit_assembly_action::emit_assembly_action(const vast_args &vargs, mcontext_t *mcontex)
+        : vast_gen_action(output_type::emit_assembly, vargs, mcontex)
     {}
 
     void emit_llvm_action::anchor() {}
 
-    emit_llvm_action::emit_llvm_action(mcontext_t *mcontex)
-        : vast_gen_action(output_type::emit_llvm, mcontex)
+    emit_llvm_action::emit_llvm_action(const vast_args &vargs, mcontext_t *mcontex)
+        : vast_gen_action(output_type::emit_llvm, vargs, mcontex)
     {}
 
     void emit_obj_action::anchor() {}
 
-    emit_obj_action::emit_obj_action(mcontext_t *mcontex)
-        : vast_gen_action(output_type::emit_obj, mcontex)
+    emit_obj_action::emit_obj_action(const vast_args &vargs, mcontext_t *mcontex)
+        : vast_gen_action(output_type::emit_obj, vargs, mcontex)
     {}
 
     void emit_high_level_action::anchor() {}
 
-    emit_high_level_action::emit_high_level_action(mcontext_t *mcontex)
-        : vast_gen_action(output_type::emit_high_level, mcontex)
+    emit_high_level_action::emit_high_level_action(const vast_args &vargs, mcontext_t *mcontex)
+        : vast_gen_action(output_type::emit_high_level, vargs, mcontex)
     {}
 
     void emit_cir_action::anchor() {}
 
-    emit_cir_action::emit_cir_action(mcontext_t *mcontex)
-        : vast_gen_action(output_type::emit_cir, mcontex)
+    emit_cir_action::emit_cir_action(const vast_args &vargs, mcontext_t *mcontex)
+        : vast_gen_action(output_type::emit_cir, vargs, mcontex)
     {}
 
 } // namespace vast::cc

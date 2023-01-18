@@ -28,6 +28,9 @@ namespace vast::cc {
     namespace opt {
         constexpr string_ref emit_high_level = "emit-high-level";
         constexpr string_ref emit_cir = "emit-cir";
+
+        constexpr string_ref disable_vast_verifier = "disable-vast-verifier";
+        constexpr string_ref vast_verify_diags = "verify-diags";
     } // namespace opt
 
     struct vast_gen_consumer;
@@ -40,10 +43,10 @@ namespace vast::cc {
 
     protected:
 
-        vast_gen_action(output_type action, mcontext_t *mcontext = nullptr);
+        vast_gen_action(output_type action, const vast_args &vargs, mcontext_t *mcontext = nullptr);
 
         std::unique_ptr< clang::ASTConsumer >
-        CreateASTConsumer(compiler_instance &ci, llvm::StringRef InFile) override;
+        CreateASTConsumer(compiler_instance &ci, string_ref input) override;
 
         void ExecuteAction() override;
 
@@ -58,13 +61,15 @@ namespace vast::cc {
         mcontext_t *mcontext;
 
         OwningModuleRef load_module(llvm::MemoryBufferRef mref);
+
+        const vast_args &vargs;
     };
 
     //
     // Emit assembly
     //
     struct emit_assembly_action : vast_gen_action {
-        emit_assembly_action(mcontext_t *mcontext = nullptr);
+        emit_assembly_action(const vast_args &vargs, mcontext_t *mcontext = nullptr);
     private:
         virtual void anchor();
     };
@@ -73,7 +78,7 @@ namespace vast::cc {
     // Emit LLVM
     //
     struct emit_llvm_action : vast_gen_action {
-        emit_llvm_action(mcontext_t *mcontext = nullptr);
+        emit_llvm_action(const vast_args &vargs, mcontext_t *mcontext = nullptr);
     private:
         virtual void anchor();
     };
@@ -82,7 +87,7 @@ namespace vast::cc {
     // Emit obj
     //
     struct emit_obj_action : vast_gen_action {
-        emit_obj_action(mcontext_t *mcontext = nullptr);
+        emit_obj_action(const vast_args &vargs, mcontext_t *mcontext = nullptr);
     private:
         virtual void anchor();
     };
@@ -91,7 +96,7 @@ namespace vast::cc {
     // Emit high level mlir dialect
     //
     struct emit_high_level_action : vast_gen_action {
-        emit_high_level_action(mcontext_t *mcontext = nullptr);
+        emit_high_level_action(const vast_args &vargs, mcontext_t *mcontext = nullptr);
     private:
         virtual void anchor();
     };
@@ -100,7 +105,7 @@ namespace vast::cc {
     // Emit cir mlir dialect
     //
     struct emit_cir_action : vast_gen_action {
-        emit_cir_action(mcontext_t *mcontext = nullptr);
+        emit_cir_action(const vast_args &vargs, mcontext_t *mcontext = nullptr);
     private:
         virtual void anchor();
     };
