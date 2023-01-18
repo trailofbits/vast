@@ -66,7 +66,7 @@ namespace vast::cg {
     }
 
     void vast_generator::build_default_methods() {
-        throw cc::compiler_error("build_default_methods not implemented");
+        cgm->build_default_methods();
     }
 
 } // namespace vast::cc

@@ -50,4 +50,16 @@ namespace vast::cg {
         // TODO: FINISH THE REST OF THIS
     }
 
+    void codegen_module::build_global_decl(clang::GlobalDecl &/* decl */) {
+        throw cc::compiler_error("build_global_decl not implemented");
+    }
+
+    void codegen_module::build_default_methods() {
+        // Differently from deferred_decls_to_emit, there's no recurrent use of
+        // deferred_decls_to_emit, so use it directly for emission.
+        for (auto &decl : default_methods_to_emit) {
+            build_global_decl(decl);
+        }
+    }
+
 } // namespace vast::cg
