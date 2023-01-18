@@ -33,6 +33,8 @@ namespace vast::cg {
         // Finalize vast code generation.
         void release();
 
+        void add_replacement(string_ref name, mlir::Operation *Op);
+
         vast_module get_module() { return mod; }
 
         bool verify_module();
@@ -85,6 +87,13 @@ namespace vast::cg {
 
         // A "module" matches a c/cpp source file: containing a list of functions.
         vast_module mod;
+
+        // FIXME: should we use llvm::TrackingVH<mlir::Operation> here?
+        using replacements_map = llvm::StringMap< mlir::Operation * >;
+        replacements_map replacements;
+
+        // Call replaceAllUsesWith on all pairs in replacements.
+        void apply_replacements();
     };
 
 } // namespace vast::cg
