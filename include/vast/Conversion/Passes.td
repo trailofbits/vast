@@ -43,7 +43,7 @@ def HLFuncToFunc : Pass<"vast-hl-to-func", "mlir::ModuleOp"> {
   ];
 }
 
-def CoreToLLVM : Pass<"vast-core-to-llvm", "mlir::ModuleOp"> {
+def IRsToLLVM : Pass<"vast-irs-to-llvm", "mlir::ModuleOp"> {
   let summary = "VAST to LLVM Dialect conversion";
   let description = [{
     Converts lowest level VAST operations to LLVM dialect. It is expected
@@ -52,7 +52,7 @@ def CoreToLLVM : Pass<"vast-core-to-llvm", "mlir::ModuleOp"> {
     This pass is still a work in progress.
   }];
 
-  let constructor = "vast::createCoreToLLVMPass()";
+  let constructor = "vast::createIRsToLLVMPass()";
   let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::ll::LowLevelDialect",
                            "vast::hl::HighLevelDialect"];
 }
