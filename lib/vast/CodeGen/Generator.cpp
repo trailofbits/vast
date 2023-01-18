@@ -58,7 +58,7 @@ namespace vast::cg {
     }
 
     bool vast_generator::verify_module() {
-        throw cc::compiler_error("verify_module not implemented");
+        return cgm->verify_module();
     }
 
     void vast_generator::build_deferred_decls() {

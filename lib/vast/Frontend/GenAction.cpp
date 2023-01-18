@@ -191,6 +191,12 @@ namespace vast::cc {
             // global codegen, followed by running CIR passes.
             generator->HandleTranslationUnit(acontext);
 
+            if (!vargs.has_option(opt::disable_vast_verifier)) {
+                if (!generator->verify_module()) {
+                    throw compiler_error("codegen: module verification error before running vast passes");
+                }
+            }
+
             auto mod  = generator->get_module();
             auto mctx = generator->take_context();
 

@@ -2,6 +2,10 @@
 
 #include "vast/CodeGen/Module.hpp"
 
+VAST_RELAX_WARNINGS
+#include <mlir/IR/Verifier.h>
+VAST_UNRELAX_WARNINGS
+
 namespace vast::cg {
 
     void codegen_module::release() {
@@ -48,6 +52,10 @@ namespace vast::cg {
         }
 
         // TODO: FINISH THE REST OF THIS
+    }
+
+    bool codegen_module::verify_module() {
+        return mlir::verify(mod).succeeded();
     }
 
     void codegen_module::build_global_decl(clang::GlobalDecl &/* decl */) {
