@@ -3,6 +3,7 @@
 #pragma once
 
 #include "vast/Util/Warnings.hpp"
+#include "vast/Util/Common.hpp"
 
 VAST_RELAX_WARNINGS
 #include "mlir/Transforms/DialectConversion.h"
