@@ -22,6 +22,7 @@ namespace vast
     using Value = mlir::Value;
     using Attribute = mlir::Attribute;
     using Operation = mlir::Operation;
+    using Block = mlir::Block;
 
     using Region    = mlir::Region;
     using Builder   = mlir::OpBuilder;
