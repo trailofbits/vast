@@ -37,10 +37,15 @@ namespace vast::hl
 
             mlir::BlockAndValueMapping mapper;
 
-            auto lhs_lazy = rewriter.create< core::LazyOp >(op.getLoc(), op.getType());
+            // Extracting the return type from the yield at the end of the block.
+            auto lhs_lazy = rewriter.create< core::LazyOp >(
+                op.getLoc(), op.getLhs().back().back().getOperand(0).getType()
+            );
             op.getLhs().cloneInto(&lhs_lazy.getLazy(), mapper);
 
-            auto rhs_lazy = rewriter.create< core::LazyOp >(op.getLoc(), op.getType());
+            auto rhs_lazy = rewriter.create< core::LazyOp >(
+                op.getLoc(), op.getRhs().back().back().getOperand(0).getType()
+            );
             op.getRhs().cloneInto(&rhs_lazy.getLazy(), mapper);
 
             auto logical = rewriter.create< LOp >(op.getLoc(), op.getType(), lhs_lazy, rhs_lazy);
