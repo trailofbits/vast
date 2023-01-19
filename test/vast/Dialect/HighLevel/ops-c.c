@@ -36,18 +36,26 @@ void bit_ops(int a, int b) {
     // CHECK: hl.bin.and [[V2]], [[V4]]
     int and = a & b;
 
+    // CHECK: hl.bin.land {
     // CHECK: [[V1:%[0-9]+]] = hl.ref %arg0 : !hl.lvalue<!hl.int>
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
+    // CHECK: hl.value.yield [[A:%[0-9]+]] : !hl.int
+    // CHECK: }, {
     // CHECK: [[V3:%[0-9]+]] = hl.ref %arg1 : !hl.lvalue<!hl.int>
     // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast [[V3]]
-    // CHECK: hl.bin.land [[V2]], [[V4]]
+    // CHECK: hl.value.yield [[B:%[0-9]+]] : !hl.int
+    // CHECK: } : !hl.int
     int land = a && b;
 
+    // CHECK: hl.bin.lor {
     // CHECK: [[V1:%[0-9]+]] = hl.ref %arg0 : !hl.lvalue<!hl.int>
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
+    // CHECK: hl.value.yield [[A:%[0-9]+]] : !hl.int
+    // CHECK: }, {
     // CHECK: [[V3:%[0-9]+]] = hl.ref %arg1 : !hl.lvalue<!hl.int>
     // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast [[V3]]
-    // CHECK: hl.bin.lor [[V2]], [[V4]]
+    // CHECK: hl.value.yield [[B:%[0-9]+]] : !hl.int
+    // CHECK: } : !hl.int
     int lor  = a || b;
 
     // CHECK: [[V1:%[0-9]+]] = hl.ref %arg0 : !hl.lvalue<!hl.int>
