@@ -16,6 +16,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Core/CoreOps.hpp"
 
+#include "vast/Util/Common.hpp"
 #include "vast/Util/TypeList.hpp"
 #include "vast/Util/DialectConversion.hpp"
 
@@ -27,24 +28,25 @@ namespace vast
 
         using conversion_rewriter = mlir::ConversionPatternRewriter;
 
-        template< typename LOp, bool short_on_true >
-        struct lazy_bin_logical : operation_conversion_pattern< LOp >
+        template< typename Op >
+        struct lazy_base : operation_conversion_pattern< Op >
         {
-            using base = operation_conversion_pattern< LOp >;
+            using base = operation_conversion_pattern< Op >;
             using base::base;
-            using adaptor_t = typename LOp::Adaptor;
 
-            auto insert_lazy_to_block(mlir::Operation* lazy_op, mlir::Block* target,
-                conversion_rewriter &rewriter) const
+            auto lazy_into_block(
+                Operation* lazy_op, Block* target, conversion_rewriter &rewriter) const
             {
                 auto &lazy_region = lazy_op->getRegion(0);
-                auto &lazy_block = lazy_region.front();
+                auto &lazy_block = lazy_region.back();
 
                 auto &yield = lazy_block.back();
                 auto res = yield.getOperand(0);
                 rewriter.eraseOp(&yield);
 
-                rewriter.inlineRegionBefore(lazy_region, *target->getParent(), ++(target->getIterator()));
+                rewriter.inlineRegionBefore(
+                    lazy_region, *target->getParent(), ++(target->getIterator())
+                );
                 rewriter.mergeBlocks(&lazy_block, target, llvm::None);
 
                 rewriter.eraseOp(lazy_op);
@@ -52,23 +54,46 @@ namespace vast
                 return res;
             }
 
+            auto iN(auto &rewriter, auto loc, Type type, auto val) const
+            {
+                return rewriter.template create< LLVM::ConstantOp >(
+                        loc,
+                        type,
+                        rewriter.getIntegerAttr(type, val));
+            }
+        };
+
+        template< typename LOp, bool short_on_true >
+        struct lazy_bin_logical : lazy_base< LOp >
+        {
+            using base = lazy_base< LOp >;
+            using base::base;
+            using adaptor_t = typename LOp::Adaptor;
+            using base::lazy_into_block;
+            using base::iN;
+
+            void cond_br_lhs(
+                conversion_rewriter &rewriter, auto loc, Value cond, Block *rhs, Block *end) const
+            {
+                if constexpr (short_on_true) {
+                    rewriter.create< LLVM::CondBrOp >(loc, cond, end, cond, rhs, llvm::None);
+                } else {
+                    rewriter.create< LLVM::CondBrOp >(loc, cond, rhs, llvm::None, end, cond);
+                }
+            }
+
             logical_result matchAndRewrite(
-                LOp op, adaptor_t ops,
-                conversion_rewriter &rewriter) const override
+                LOp op, adaptor_t ops, conversion_rewriter &rewriter) const override
             {
                 auto curr_block = rewriter.getBlock();
                 auto rhs_block = curr_block->splitBlock(op);
                 auto end_block = rhs_block->splitBlock(op);
 
-                auto lhs_res = insert_lazy_to_block(ops.getLhs().getDefiningOp(), curr_block, rewriter);
-                auto rhs_res = insert_lazy_to_block(ops.getRhs().getDefiningOp(), rhs_block, rewriter);
-
-                auto lhs_res_type = lhs_res.getType();
+                auto lhs_res = lazy_into_block(ops.getLhs().getDefiningOp(), curr_block, rewriter);
+                auto rhs_res = lazy_into_block(ops.getRhs().getDefiningOp(), rhs_block, rewriter);
 
                 rewriter.setInsertionPointToEnd(curr_block);
-                auto zero = rewriter.create< LLVM::ConstantOp >(
-                    op.getLoc(), lhs_res_type, rewriter.getIntegerAttr(lhs_res_type, 0)
-                );
+                auto zero = iN(rewriter, op.getLoc(), lhs_res.getType(), 0);
 
                 auto cmp_lhs = rewriter.create< LLVM::ICmpOp >(
                     op.getLoc(), LLVM::ICmpPredicate::eq, lhs_res, zero
@@ -76,27 +101,18 @@ namespace vast
 
                 auto end_arg = end_block->addArgument(cmp_lhs.getType(), op.getLoc());
 
-                if constexpr (short_on_true)
-                {
-                    rewriter.create< LLVM::CondBrOp >(
-                        op.getLoc(), cmp_lhs, end_block, cmp_lhs.getResult(), rhs_block, llvm::None
-                    );
-                } else {
-                    rewriter.create< LLVM::CondBrOp >(
-                        op.getLoc(), cmp_lhs, rhs_block, llvm::None, end_block, cmp_lhs.getResult()
-                    );
-                }
+                cond_br_lhs(rewriter, op.getLoc(), cmp_lhs, rhs_block, end_block);
 
                 rewriter.setInsertionPointToEnd(rhs_block);
+
                 auto cmp_rhs = rewriter.create< LLVM::ICmpOp >(
-                    op.getLoc(), LLVM::ICmpPredicate::eq, rhs_res, zero);
+                    op.getLoc(), LLVM::ICmpPredicate::eq, rhs_res, zero
+                );
+
                 rewriter.create< LLVM::BrOp >(op.getLoc(), cmp_rhs.getResult(), end_block);
 
                 rewriter.setInsertionPointToStart(end_block);
-                auto zext = rewriter.create< LLVM::ZExtOp >(op.getLoc(),
-                    op.getResult().getType(),
-                    end_arg);
-                rewriter.replaceOp(op, { zext });
+                rewriter.replaceOpWithNewOp< LLVM::ZExtOp >(op, op.getResult().getType(), end_arg);
 
                 return logical_result::success();
             }
@@ -114,16 +130,16 @@ namespace vast
 
         static conversion_target create_conversion_target(MContext &context) {
             conversion_target target(context);
+
             target.addIllegalDialect< vast::core::CoreDialect >();
             target.addLegalOp< core::LazyOp >();
+
             target.addLegalDialect< mlir::LLVM::LLVMDialect>();
             return target;
         }
 
         static void populate_conversions(rewrite_pattern_set &patterns) {
-            populate_conversions_base<
-                pattern::bin_lop_conversions
-            >(patterns);
+            populate_conversions_base< pattern::bin_lop_conversions >(patterns);
         }
     };
 
