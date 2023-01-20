@@ -96,7 +96,7 @@ namespace vast
                 auto zero = iN(rewriter, op.getLoc(), lhs_res.getType(), 0);
 
                 auto cmp_lhs = rewriter.create< LLVM::ICmpOp >(
-                    op.getLoc(), LLVM::ICmpPredicate::eq, lhs_res, zero
+                    op.getLoc(), LLVM::ICmpPredicate::ne, lhs_res, zero
                 );
 
                 auto end_arg = end_block->addArgument(cmp_lhs.getType(), op.getLoc());
@@ -106,7 +106,7 @@ namespace vast
                 rewriter.setInsertionPointToEnd(rhs_block);
 
                 auto cmp_rhs = rewriter.create< LLVM::ICmpOp >(
-                    op.getLoc(), LLVM::ICmpPredicate::eq, rhs_res, zero
+                    op.getLoc(), LLVM::ICmpPredicate::ne, rhs_res, zero
                 );
 
                 rewriter.create< LLVM::BrOp >(op.getLoc(), cmp_rhs.getResult(), end_block);
