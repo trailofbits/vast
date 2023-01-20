@@ -87,6 +87,13 @@ namespace vast
             logical_result matchAndRewrite(
                 LOp op, adaptor_t ops, conversion_rewriter &rewriter) const override
             {
+                /* Splitting the block at the place of the logical operation.
+                 * It is divided into 3 parts:
+                 *   1) the operations that happen before the logical operation, to this
+                 *      part the evaluation of lhs is appended
+                 *   2) empty block to which the evaluation of rhs is inserted
+                 *   3) end block that recieves the evaluation of the logical operation
+                 */
                 auto curr_block = rewriter.getBlock();
                 auto rhs_block = curr_block->splitBlock(op);
                 auto end_block = rhs_block->splitBlock(op);
@@ -101,16 +108,15 @@ namespace vast
                     op.getLoc(), LLVM::ICmpPredicate::ne, lhs_res, zero
                 );
 
+                // Block argument that recieves the result value
                 auto end_arg = end_block->addArgument(cmp_lhs.getType(), op.getLoc());
 
                 cond_br_lhs(rewriter, op.getLoc(), cmp_lhs, rhs_block, end_block);
 
                 rewriter.setInsertionPointToEnd(rhs_block);
-
                 auto cmp_rhs = rewriter.create< LLVM::ICmpOp >(
                     op.getLoc(), LLVM::ICmpPredicate::ne, rhs_res, zero
                 );
-
                 rewriter.create< LLVM::BrOp >(op.getLoc(), cmp_rhs.getResult(), end_block);
 
                 rewriter.setInsertionPointToStart(end_block);
