@@ -38,16 +38,18 @@ namespace vast
                 Operation* lazy_op, Block* target, conversion_rewriter &rewriter) const
             {
                 auto &lazy_region = lazy_op->getRegion(0);
-                auto &lazy_block = lazy_region.back();
 
-                auto &yield = lazy_block.back();
+                // Last block should have hl.value.yield with the final value
+                auto &yield = lazy_region.back().back();
                 auto res = yield.getOperand(0);
                 rewriter.eraseOp(&yield);
 
+                auto &first_block = lazy_region.front();
+                // The rewriter API doesn't provide a call to insert into a selected block
                 rewriter.inlineRegionBefore(
                     lazy_region, *target->getParent(), ++(target->getIterator())
                 );
-                rewriter.mergeBlocks(&lazy_block, target, llvm::None);
+                rewriter.mergeBlocks(&first_block, target, llvm::None);
 
                 rewriter.eraseOp(lazy_op);
 
