@@ -136,7 +136,9 @@ namespace vast::hl {
         }
 
         auto Visit(clang::QualType ty) -> mlir_type {
-            auto underlying = ty.getTypePtr();
+            auto underlying = ty.getTypePtrOrNull();
+            VAST_ASSERT(underlying != nullptr);
+
             auto quals      = ty.getQualifiers();
             if (auto t = llvm::dyn_cast< clang::BuiltinType >(underlying)) {
                 return VisitBuiltinType(t, quals);
@@ -367,8 +369,14 @@ namespace vast::hl {
         }
 
         auto Visit(clang::QualType ty) -> mlir_type {
-            auto [underlying, quals] = ty.split();
-            return StoreDataLayout(underlying, Base::Visit(ty));
+            // The underlying type pointer of a QualType can be null. The
+            // getTypePtr will assert in such case. How should it handle the
+            // data layout if underlying pointer is null?
+            if (!ty.isNull()) {
+                auto [underlying, quals] = ty.split();
+                return StoreDataLayout(underlying, Base::Visit(ty));
+            }
+            return Type{};
         }
     };
 
