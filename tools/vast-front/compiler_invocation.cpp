@@ -31,14 +31,15 @@ namespace vast::cc
         using namespace clang::frontend;
 
         if (vargs.has_option(opt::emit_high_level)) {
-             return std::make_unique< vast::cc::emit_high_level_action >(vargs);
+            return std::make_unique< vast::cc::emit_high_level_action >(vargs);
         }
 
         if (vargs.has_option(opt::emit_cir)) {
-             return std::make_unique< vast::cc::emit_cir_action >(vargs);
+            return std::make_unique< vast::cc::emit_cir_action >(vargs);
         }
 
         switch (act) {
+            case ASTDump:  return std::make_unique< clang::ASTDumpAction >();
             case EmitAssembly: return std::make_unique< vast::cc::emit_assembly_action >(vargs);
             case EmitLLVM: return std::make_unique< vast::cc::emit_llvm_action >(vargs);
             case EmitObj: return std::make_unique< vast::cc::emit_obj_action >(vargs);

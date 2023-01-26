@@ -82,8 +82,12 @@ namespace vast::cc {
             generator->Initialize(ctx);
         }
 
-        bool HandleTopLevelDecl(clang::DeclGroupRef /* decl */) override {
-            throw compiler_error("HandleTopLevelDecl not implemented");
+        bool HandleTopLevelDecl(clang::DeclGroupRef decl) override {
+            clang::PrettyStackTraceDecl crash_info(
+                *decl.begin(), clang::SourceLocation(), acontext->getSourceManager(),
+                "LLVM IR generation of declaration"
+            );
+            return generator->HandleTopLevelDecl(decl);
         }
 
         void HandleCXXStaticMemberVarInstantiation(clang::VarDecl * /* decl */) override {
@@ -188,7 +192,7 @@ namespace vast::cc {
         void HandleTranslationUnit(acontext_t &acontext) override {
             // Note that this method is called after `HandleTopLevelDecl` has already
             // ran all over the top level decls. Here clang mostly wraps defered and
-            // global codegen, followed by running CIR passes.
+            // global codegen, followed by running vast passes.
             generator->HandleTranslationUnit(acontext);
 
             if (!vargs.has_option(opt::disable_vast_verifier)) {
