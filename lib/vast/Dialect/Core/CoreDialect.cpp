@@ -29,11 +29,7 @@ namespace vast::core
         >();
     }
 
-    using DialectParser = mlir::AsmParser;
-    using DialectPrinter = mlir::AsmPrinter;
-
     using OpBuilder = mlir::OpBuilder;
-    using Operation = mlir::Operation;
 
     Operation *CoreDialect::materializeConstant(OpBuilder &builder, Attribute value, Type type, Location loc)
     {

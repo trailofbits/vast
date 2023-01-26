@@ -17,9 +17,6 @@ VAST_RELAX_WARNINGS
 
 namespace vast::core
 {
-    using DialectParser = mlir::AsmParser;
-    using DialectPrinter = mlir::AsmPrinter;
-
     void CoreDialect::registerAttributes()
     {
         addAttributes<
