@@ -33,20 +33,24 @@ namespace vast::hl
         using base::base;
         using adaptor_t = typename source::Adaptor;
 
-        logical_result matchAndRewrite(source op, adaptor_t adaptor, conversion_rewriter &rewriter) const override {
+        auto region_value_yield_type(Region &region) const {
+            return region.back().back().getOperand(0).getType();
+        }
 
-            mlir::BlockAndValueMapping mapper;
+        logical_result matchAndRewrite(
+            source op, adaptor_t adaptor, conversion_rewriter &rewriter) const override
+        {
+            auto lazy_side = [&] (Region &side) {
+                auto lazy_op = rewriter.create< core::LazyOp >(
+                    op.getLoc(), region_value_yield_type(side)
+                );
+                auto &lazy_region = lazy_op.getLazy();
+                rewriter.inlineRegionBefore(side, lazy_region, lazy_region.end());
+                return lazy_op;
+            };
 
-            // Extracting the return type from the yield at the end of the block.
-            auto lhs_lazy = rewriter.create< core::LazyOp >(
-                op.getLoc(), op.getLhs().back().back().getOperand(0).getType()
-            );
-            op.getLhs().cloneInto(&lhs_lazy.getLazy(), mapper);
-
-            auto rhs_lazy = rewriter.create< core::LazyOp >(
-                op.getLoc(), op.getRhs().back().back().getOperand(0).getType()
-            );
-            op.getRhs().cloneInto(&rhs_lazy.getLazy(), mapper);
+            auto lhs_lazy = lazy_side(op.getLhs());
+            auto rhs_lazy = lazy_side(op.getRhs());
 
             auto logical = rewriter.create< LOp >(op.getLoc(), op.getType(), lhs_lazy, rhs_lazy);
             rewriter.replaceOp(op, { logical });
@@ -64,13 +68,15 @@ namespace vast::hl
         bin_lop_pattern< hl::BinLOrOp,  core::BinLOrOp >
     >;
 
-    struct HLEmitLazyRegionsPass : ModuleConversionPassMixin< HLEmitLazyRegionsPass, HLEmitLazyRegionsBase > {
+    struct HLEmitLazyRegionsPass
+        : ModuleConversionPassMixin< HLEmitLazyRegionsPass, HLEmitLazyRegionsBase >
+    {
 
         using base = ModuleConversionPassMixin< HLEmitLazyRegionsPass, HLEmitLazyRegionsBase>;
 
         static conversion_target create_conversion_target(MContext &context) {
             conversion_target target(context);
-            target.addLegalDialect< vast::core::CoreDialect>();
+            target.addLegalDialect< vast::core::CoreDialect >();
             return target;
         }
 
