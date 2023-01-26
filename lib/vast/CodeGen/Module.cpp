@@ -73,8 +73,67 @@ namespace vast::cg {
         throw cc::compiler_error("build_global_decl not implemented");
     }
 
-    void codegen_module::build_top_level_decl(clang::Decl */* decl */) {
-        throw cc::compiler_error("build_top_level_decl not implemented");
+    void codegen_module::build_global(clang::GlobalDecl /*decl*/) {
+        throw cc::compiler_error("build_global not implemented");
+    }
+
+    void codegen_module::build_top_level_decl(clang::Decl *decl) {
+        // Ignore dependent declarations
+        if (decl->isTemplated())
+            return;
+
+        // Consteval function shouldn't be emitted.
+        if (auto *fn = llvm::dyn_cast< clang::FunctionDecl >(decl)) {
+            if (fn->isConsteval()) {
+                return;
+            }
+        }
+
+        switch (decl->getKind()) {
+            case clang::Decl::Var:
+            case clang::Decl::Decomposition:
+            case clang::Decl::VarTemplateSpecialization: {
+                build_global(llvm::cast< clang::VarDecl >(decl));
+                if (!llvm::isa< clang::DecompositionDecl >(decl)) {
+                    throw cc::compiler_error("codegen for DecompositionDecl not implemented");
+                }
+                break;
+            }
+            case clang::Decl::CXXMethod:
+            case clang::Decl::Function: {
+                build_global(llvm::cast< clang::FunctionDecl >(decl));
+                if (!codegen_opts.CoverageMapping) {
+                    throw cc::compiler_error("codegen Coverage Mapping not supported");
+                }
+                break;
+            }
+            // case clang::Decl::Namespace:
+            // case clang::Decl::ClassTemplateSpecialization:
+            // case clang::Decl::CXXRecord:
+            // case clang::Decl::UsingShadow:
+            // case clang::Decl::ClassTemplate:
+            // case clang::Decl::VarTemplate:
+            // case clang::Decl::Concept:
+            // case clang::Decl::VarTemplatePartialSpecialization:
+            // case clang::Decl::FunctionTemplate:
+            // case clang::Decl::TypeAliasTemplate:
+            // case clang::Decl::Block:
+            // case clang::Decl::Empty:
+            // case clang::Decl::Binding:
+            // case clang::Decl::Using:
+            // case clang::Decl::UsingEnum:
+            // case clang::Decl::NamespaceAlias:
+            // case clang::Decl::UsingDirective:
+            // case clang::Decl::CXXConstructor:
+            // case clang::Decl::StaticAssert:
+            // case clang::Decl::Typedef:
+            // case clang::Decl::TypeAlias:
+            // case clang::Decl::Record:
+            // case clang::Decl::Enum:
+            default: throw cc::compiler_error(
+                std::string("codegen for '") + decl->getDeclKindName() + "' not implemented"
+            );
+        }
     }
 
     void codegen_module::build_default_methods() {
