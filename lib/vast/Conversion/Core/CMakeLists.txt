@@ -1,7 +1,7 @@
 # Copyright (c) 2022-present, Trail of Bits, Inc.
 
-add_mlir_conversion_library(VASTCommonConversionPasses
-    IRsToLLVM.cpp
+add_mlir_conversion_library(VASTCoreConversionPasses
+    ToLLVM.cpp
 
     DEPENDS
         VASTConversionPassIncGen
