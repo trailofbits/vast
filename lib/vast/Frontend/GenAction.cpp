@@ -82,12 +82,12 @@ namespace vast::cc {
             generator->Initialize(ctx);
         }
 
-        bool HandleTopLevelDecl(clang::DeclGroupRef decl) override {
+        bool HandleTopLevelDecl(clang::DeclGroupRef decls) override {
             clang::PrettyStackTraceDecl crash_info(
-                *decl.begin(), clang::SourceLocation(), acontext->getSourceManager(),
+                *decls.begin(), clang::SourceLocation(), acontext->getSourceManager(),
                 "LLVM IR generation of declaration"
             );
-            return generator->HandleTopLevelDecl(decl);
+            return generator->HandleTopLevelDecl(decls);
         }
 
         void HandleCXXStaticMemberVarInstantiation(clang::VarDecl * /* decl */) override {
