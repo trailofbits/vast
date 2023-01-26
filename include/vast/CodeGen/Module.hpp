@@ -42,8 +42,10 @@ namespace vast::cg {
         // Emit any needed decls for which code generation was deferred.
         void build_deferred();
 
-        // Helper for `buildDeferred` to apply actual codegen.
+        // Helper for `build_deferred` to apply actual codegen.
         void build_global_decl(clang::GlobalDecl &decl);
+
+        void build_top_level_decl(clang::Decl *decl);
 
         // A queue of (optional) vtables to consider emitting.
         std::vector< const clang::CXXRecordDecl * > deferred_vtables;

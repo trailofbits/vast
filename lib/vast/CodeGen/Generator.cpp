@@ -24,8 +24,17 @@ namespace vast::cg {
         return std::move(mcontext);
     }
 
-    bool vast_generator::HandleTopLevelDecl(clang::DeclGroupRef /* decl */) {
-        throw cc::compiler_error("HandleTopLevelDecl not implemented");
+    bool vast_generator::HandleTopLevelDecl(clang::DeclGroupRef decls) {
+        if (diags.hasErrorOccurred())
+            return true;
+
+        defer_handle_of_top_level_decl defer(*this);
+
+        for (auto decl : decls) {
+            cgm->build_top_level_decl(decl);
+        }
+
+        return true;
     }
 
     void vast_generator::HandleTranslationUnit(acontext_t &/* acontext */) {
@@ -62,7 +71,22 @@ namespace vast::cg {
     }
 
     void vast_generator::build_deferred_decls() {
-        throw cc::compiler_error("build_deferred_decls not implemented");
+        if (deferred_inline_member_func_defs.empty())
+            return;
+
+        // Emit any deferred inline method definitions. Note that more deferred
+        // methods may be added during this loop, since ASTConsumer callbacks can be
+        // invoked if AST inspection results in declarations being added.
+        auto deferred = deferred_inline_member_func_defs;
+        deferred_inline_member_func_defs.clear();
+
+        defer_handle_of_top_level_decl defer(*this);
+        for (auto decl : deferred) {
+            cgm->build_top_level_decl(decl);
+        }
+
+        // Recurse to handle additional deferred inline method definitions.
+        build_deferred_decls();
     }
 
     void vast_generator::build_default_methods() {

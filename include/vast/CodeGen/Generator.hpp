@@ -58,6 +58,30 @@ namespace vast::cg {
     private:
         virtual void anchor();
 
+        unsigned deffered_top_level_decls = 0;
+
+        // Use this when emitting decls to block re-entrant decl emission. It will
+        // emit all deferred decls on scope exit. Set emit_deferred to false if decl
+        // emission must be deferred longer, like at the end of a tag definition.
+        struct defer_handle_of_top_level_decl {
+
+            vast_generator &self;
+            bool emit_deferred;
+
+            explicit defer_handle_of_top_level_decl(vast_generator &self, bool emit_deferred = true)
+                : self(self), emit_deferred(emit_deferred)
+            {
+                ++self.deffered_top_level_decls;
+            }
+
+            ~defer_handle_of_top_level_decl() {
+                unsigned level = --self.deffered_top_level_decls;
+                if (level == 0 && emit_deferred) {
+                    self.build_deferred_decls();
+                }
+            }
+        };
+
         cc::diagnostics_engine &diags;
         acontext_t *acontext;
 

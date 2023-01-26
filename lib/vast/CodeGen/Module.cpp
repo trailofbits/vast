@@ -73,6 +73,10 @@ namespace vast::cg {
         throw cc::compiler_error("build_global_decl not implemented");
     }
 
+    void codegen_module::build_top_level_decl(clang::Decl */* decl */) {
+        throw cc::compiler_error("build_top_level_decl not implemented");
+    }
+
     void codegen_module::build_default_methods() {
         // Differently from deferred_decls_to_emit, there's no recurrent use of
         // deferred_decls_to_emit, so use it directly for emission.
