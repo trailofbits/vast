@@ -3,8 +3,6 @@
 #ifndef VAST_DIALECT_CORE
 #define VAST_DIALECT_CORE
 
-include "mlir/IR/RegionKindInterface.td"
-
 include "vast/Interfaces/SymbolInterface.td"
 
 def Core_Dialect : Dialect {
@@ -14,7 +12,10 @@ def Core_Dialect : Dialect {
     let summary = "Utility dialect to provide common features for other dialects.";
 
     let description = [{
-        ...
+        Dialect providing features that may be used by other dialects.
+        These features can be used by including "vast/Dialect/Core/CoreTools.td"
+        It also provides lazy.op for lazy evaluation of expressions and
+        binary logical operations that make use of it.
     }];
 
     let extraClassDeclaration = [{
@@ -30,8 +31,7 @@ def Core_Dialect : Dialect {
 class Core_Op< string mnemonic, list< Trait > traits = [] >
     : Op< Core_Dialect, mnemonic, traits >;
 
-def HasOneBlock   : CPred<"$_self.hasOneBlock()">;
-
-include "CoreLazy.td"
+include "vast/Dialect/Core/CoreTools.td"
+include "vast/Dialect/Core/CoreLazy.td"
 
 #endif // VAST_DIALECT_CORE
