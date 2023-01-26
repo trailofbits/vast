@@ -55,7 +55,6 @@ def HighLevel_ValueYieldOp : HighLevel_Op< "value.yield", [
 
 // TODO(Heno): constraints on regions
 def CondRegion  : Region< HasOneBlock, "condition region" >;
-def ValueRegion : Region< HasOneBlock, "value region" >;
 def CasesRegion : Region< HasOneBlock, "cases region" >;
 
 def HighLevel_IfOp : ControlFlowOp< "if" >

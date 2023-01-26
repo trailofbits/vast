@@ -10,19 +10,17 @@ include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/Interfaces/CastInterfaces.td"
 include "vast/Interfaces/SymbolInterface.td"
 
-def ValueRegion : Region< HasOneBlock, "value region" >;
-
-class lazyEval< string mnemonic, list < Trait > traits = [] >
+class LazyEval< string mnemonic, list < Trait > traits = [] >
     : Core_Op< mnemonic, !listconcat(traits, []) >, Results<(outs AnyType:$result)>
 {
     let summary = "lazy evaluator";
     let description = [{ VAST lazy evaluator }];
 }
 
-def Core_LazyOp : lazyEval< "lazy.op", [] > {
+def Core_LazyOp : LazyEval< "lazy.op", [] > {
     let summary = "Lazily evaluate a region.";
     let description = [{
-        An operation that marks that the region it contains should be evalutated only when necessary.
+        The operation serves to encapsulate delayed evaluation in its region.
     }];
 
     let regions = (region ValueRegion:$lazy);

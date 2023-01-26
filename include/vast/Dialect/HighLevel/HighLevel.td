@@ -40,8 +40,7 @@ def HighLevel_Dialect : Dialect {
 class HighLevel_Op< string mnemonic, list< Trait > traits = [] >
     : Op< HighLevel_Dialect, mnemonic, traits >;
 
-def HasOneBlock : CPred<"$_self.hasOneBlock()">;
-
+include "vast/Dialect/Core/CoreTools.td"
 include "HighLevelAttributes.td"
 include "HighLevelTypes.td"
 include "HighLevelVar.td"
