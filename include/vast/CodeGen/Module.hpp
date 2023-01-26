@@ -45,6 +45,8 @@ namespace vast::cg {
         // Helper for `build_deferred` to apply actual codegen.
         void build_global_decl(clang::GlobalDecl &decl);
 
+        void build_global(clang::GlobalDecl decl);
+
         void build_top_level_decl(clang::Decl *decl);
 
         // A queue of (optional) vtables to consider emitting.
