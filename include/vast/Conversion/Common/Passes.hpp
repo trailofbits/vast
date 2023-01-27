@@ -41,7 +41,7 @@ namespace vast {
     //     }
     //
     //     static void populate_conversions(rewrite_pattern_set &patterns) {
-    //         base::populate_conversions<
+    //         base::populate_conversions_base<
     //             // pass conversion type_lists here
     //         >(patterns);
     //     }
