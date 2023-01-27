@@ -5,6 +5,8 @@
 
 include "vast/Interfaces/SymbolInterface.td"
 
+include "vast/Dialect/Core/Utils.td"
+
 def Core_Dialect : Dialect {
     let name = "core";
     let cppNamespace = "::vast::core";
@@ -13,7 +15,7 @@ def Core_Dialect : Dialect {
 
     let description = [{
         Dialect providing features that may be used by other dialects.
-        These features can be used by including "vast/Dialect/Core/Core.td"
+        These features can be used by including "vast/Dialect/Core/Utils.td"
         It also provides lazy.op for lazy evaluation of expressions and
         binary logical operations that make use of it.
     }];
@@ -30,10 +32,6 @@ def Core_Dialect : Dialect {
 
 class Core_Op< string mnemonic, list< Trait > traits = [] >
     : Op< Core_Dialect, mnemonic, traits >;
-
-def HasOneBlock   : CPred<"$_self.hasOneBlock()">;
-
-def ValueRegion : Region< HasOneBlock, "value region" >;
 
 include "vast/Dialect/Core/CoreLazy.td"
 

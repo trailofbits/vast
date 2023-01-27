@@ -13,7 +13,7 @@ include "mlir/IR/RegionKindInterface.td"
 include "vast/Interfaces/SymbolInterface.td"
 include "vast/Interfaces/TypedAttrInterface.td"
 
-include "vast/Dialect/Core/Core.td"
+include "vast/Dialect/Core/Utils.td"
 
 def HighLevel_Dialect : Dialect {
     let name = "hl";

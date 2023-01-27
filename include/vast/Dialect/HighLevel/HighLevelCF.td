@@ -53,10 +53,6 @@ def HighLevel_ValueYieldOp : HighLevel_Op< "value.yield", [
   let assemblyFormat = [{ attr-dict $result `:` type($result) }];
 }
 
-// TODO(Heno): constraints on regions
-def CondRegion  : Region< HasOneBlock, "condition region" >;
-def CasesRegion : Region< HasOneBlock, "cases region" >;
-
 def HighLevel_IfOp : ControlFlowOp< "if" >
 {
   let summary = "VAST if statement";
