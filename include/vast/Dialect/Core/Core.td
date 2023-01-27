@@ -13,7 +13,7 @@ def Core_Dialect : Dialect {
 
     let description = [{
         Dialect providing features that may be used by other dialects.
-        These features can be used by including "vast/Dialect/Core/CoreTools.td"
+        These features can be used by including "vast/Dialect/Core/Core.td"
         It also provides lazy.op for lazy evaluation of expressions and
         binary logical operations that make use of it.
     }];
@@ -31,7 +31,10 @@ def Core_Dialect : Dialect {
 class Core_Op< string mnemonic, list< Trait > traits = [] >
     : Op< Core_Dialect, mnemonic, traits >;
 
-include "vast/Dialect/Core/CoreTools.td"
+def HasOneBlock   : CPred<"$_self.hasOneBlock()">;
+
+def ValueRegion : Region< HasOneBlock, "value region" >;
+
 include "vast/Dialect/Core/CoreLazy.td"
 
 #endif // VAST_DIALECT_CORE

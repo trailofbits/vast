@@ -13,6 +13,8 @@ include "mlir/IR/RegionKindInterface.td"
 include "vast/Interfaces/SymbolInterface.td"
 include "vast/Interfaces/TypedAttrInterface.td"
 
+include "vast/Dialect/Core/Core.td"
+
 def HighLevel_Dialect : Dialect {
     let name = "hl";
     let cppNamespace = "::vast::hl";
@@ -40,7 +42,6 @@ def HighLevel_Dialect : Dialect {
 class HighLevel_Op< string mnemonic, list< Trait > traits = [] >
     : Op< HighLevel_Dialect, mnemonic, traits >;
 
-include "vast/Dialect/Core/CoreTools.td"
 include "HighLevelAttributes.td"
 include "HighLevelTypes.td"
 include "HighLevelVar.td"
