@@ -1,4 +1,5 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
+
 #ifndef VAST_DIALECT_CORE_CORELAZY
 #define VAST_DIALECT_CORE_CORELAZY
 
@@ -28,7 +29,7 @@ def Core_LazyOp : LazyEval< "lazy.op", [] > {
     let assemblyFormat = [{ $lazy attr-dict `:` type(results) }];
 }
 
-class LogicBinOp< string mnemonic, list< Trait > traits = [] >
+class Core_LogicBinOp< string mnemonic, list< Trait > traits = [] >
     : Core_Op< mnemonic, traits >
     , Arguments<(ins AnyType:$lhs, AnyType:$rhs)>
     , Results<(outs AnyType:$result)>
@@ -47,7 +48,7 @@ class LogicBinOp< string mnemonic, list< Trait > traits = [] >
     let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` functional-type(operands, results) }];
 }
 
-def BinLAndOp : LogicBinOp<"bin.land", []>;
-def BinLOrOp  : LogicBinOp< "bin.lor", []>;
+def Core_BinLAndOp : Core_LogicBinOp<"bin.land", []>;
+def Core_BinLOrOp  : Core_LogicBinOp< "bin.lor", []>;
 
 #endif //VAST_DIALECT_CORE_CORELAZY
