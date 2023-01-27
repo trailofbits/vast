@@ -37,11 +37,11 @@ namespace vast
             auto lazy_into_block(
                 Operation* lazy_op, Block* target, conversion_rewriter &rewriter) const
             {
-                auto &lazy_region = lazy_op->getRegion(0);
+                auto &lazy_region = dyn_cast< core::LazyOp >(*lazy_op).getLazy();
 
                 // Last block should have hl.value.yield with the final value
                 auto &yield = lazy_region.back().back();
-                auto res = yield.getOperand(0);
+                auto res = dyn_cast< hl::ValueYieldOp>(yield).getResult();
                 rewriter.eraseOp(&yield);
 
                 auto &first_block = lazy_region.front();
