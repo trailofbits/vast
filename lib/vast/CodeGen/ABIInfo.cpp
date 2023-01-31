@@ -16,19 +16,7 @@ namespace vast::cg
         return false;
     }
 
-    abi_arg_info aarch64_abi_info::classify_return_type(
-        qual_type /* rty */, bool /* variadic */
-    ) const {
-        throw cc::compiler_error("aarch64_abi_info::classify_return_type not implemented");
-    }
-
-    abi_arg_info aarch64_abi_info::classify_arg_type(
-        qual_type /* rty */, bool /* variadic */, unsigned /* calling_convention */
-    ) const {
-        throw cc::compiler_error("aarch64_abi_info::classify_arg_type not implemented");
-    }
-
-    void  aarch64_abi_info::compute_info(function_info_t &fninfo) const {
+    void default_abi_info::compute_info(function_info_t &fninfo) const {
         // Top level vast has unlimited arguments and return types. Lowering for ABI
         // specific concerns should happen during a lowering phase. Assume
         // everything is direct for now.
@@ -46,35 +34,16 @@ namespace vast::cg
         fninfo.get_return_info() = process(fninfo.get_return_type());
     }
 
-    void x86_64_abi_info::compute_info(function_info_t &/* fninfo */) const {
-        throw cc::compiler_error("x86_64_abi_info::compute_info not implemented");
-    }
-
-    abi_arg_info x86_64_abi_info::classify_return_type(
+    abi_arg_info default_abi_info::classify_return_type(
         qual_type /* rty */, bool /* variadic */
     ) const {
-        throw cc::compiler_error("x86_64_abi_info::classify_return_type not implemented");
+        throw cc::compiler_error("default_abi_info::classify_return_type not implemented");
     }
 
-    abi_arg_info x86_64_abi_info::classify_arg_type(
+    abi_arg_info default_abi_info::classify_arg_type(
         qual_type /* rty */, bool /* variadic */, unsigned /* calling_convention */
     ) const {
-        throw cc::compiler_error("x86_64_abi_info::classify_arg_type not implemented");
+        throw cc::compiler_error("default_abi_info::classify_arg_type not implemented");
     }
 
-    void darwin_x86_64_abi_info::compute_info(function_info_t &/* fninfo */) const {
-        throw cc::compiler_error("darwin_x86_64_abi_info::compute_info not implemented");
-    }
-
-    abi_arg_info darwin_x86_64_abi_info::classify_return_type(
-        qual_type /* rty */, bool /* variadic */
-    ) const {
-        throw cc::compiler_error("darwin_x86_64_abi_info::classify_return_type not implemented");
-    }
-
-    abi_arg_info darwin_x86_64_abi_info::classify_arg_type(
-        qual_type /* rty */, bool /* variadic */, unsigned /* calling_convention */
-    ) const {
-        throw cc::compiler_error("darwin_x86_64_abi_info::classify_arg_type not implemented");
-    }
 } // namespace vast::cg

@@ -146,7 +146,7 @@ namespace vast::cg
 
         function_infos.InsertNode(fninfo, insert_pos);
 
-        if (functions_being_processed.insert(fninfo).second) {
+        if (!functions_being_processed.insert(fninfo).second) {
             throw cc::compiler_error("trying to process a function recursively");
         }
 
