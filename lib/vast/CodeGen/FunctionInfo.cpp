@@ -5,14 +5,14 @@
 namespace vast::cg {
 
     function_info_t *function_info_t::create(
-            unsigned calling_convention,
-            bool instance_method,
-            bool chain_call,
-            const clang::FunctionType::ExtInfo &info,
-            llvm::ArrayRef< ext_param_info > params,
-            qual_type rty,
-            llvm::ArrayRef< qual_type > arg_types,
-            required_args required
+        unsigned calling_convention,
+        bool instance_method,
+        bool chain_call,
+        const ext_info &info,
+        ext_parameter_info_span params,
+        can_qual_type rty,
+        can_qual_types_span arg_types,
+        required_args required
     ) {
         assert(params.empty() || params.size() == arg_types.size());
         assert(!required.allows_optional_args()

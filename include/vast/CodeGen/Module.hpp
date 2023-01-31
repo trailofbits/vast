@@ -17,7 +17,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 namespace vast::cg {
 
-    enum class global_emit { defininition, declaration };
+    enum class global_emit { definition, declaration };
 
     struct codegen_module {
         codegen_module(const codegen_module &) = delete;
@@ -29,7 +29,9 @@ namespace vast::cg {
             const cc::codegen_options &cgo
         )
             : builder(mctx), actx(actx)
-            , diags(diags), lang_opts(actx.getLangOpts()), codegen_opts(cgo)
+            , diags(diags)
+            , target(actx.getTargetInfo())
+            , lang_opts(actx.getLangOpts()), codegen_opts(cgo)
             , mod(mlir::ModuleOp::create(builder.getUnknownLoc()))
             , types(*this)
         {}
@@ -49,7 +51,7 @@ namespace vast::cg {
         // function will use the specified type if it has to create it.
         // TODO: this is a bit weird as `GetAddr` given we give back a FuncOp?
         vast::hl::FuncOp get_addr_of_function(
-            clang::GlobalDecl decl, mlir::Type ty = nullptr,
+            clang::GlobalDecl decl, mlir_type ty = nullptr,
             bool for_vtable = false, bool dontdefer = false,
             global_emit emit = global_emit::declaration
         );
@@ -129,6 +131,8 @@ namespace vast::cg {
         acontext_t &actx;
 
         cc::diagnostics_engine &diags;
+
+        const clang::TargetInfo &target;
 
         const cc::language_options &lang_opts;
         const cc::codegen_options &codegen_opts;

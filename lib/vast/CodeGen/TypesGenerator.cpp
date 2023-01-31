@@ -16,7 +16,7 @@ namespace vast::cg
         throw cc::compiler_error("to_vast_calling_conv not implemented");
     }
 
-    mlir::Type types_generator::convert_type(clang::QualType type) {
+    mlir_type types_generator::convert_type(qual_type type) {
         throw cc::compiler_error("convert_type not implemented");
     }
 
@@ -48,6 +48,7 @@ namespace vast::cg
         auto fty = fn->getType()->getCanonicalTypeUnqualified();
 
         assert(llvm::isa< clang::FunctionType >(fty));
+        (void) cgm;
         // TODO: setCUDAKernelCallingConvention
 
         // When declaring a function without a prototype, always use a
@@ -108,15 +109,15 @@ namespace vast::cg
     }
 
     const function_info_t &types_generator::arrange_function_info(
-        qual_type rty,
+        can_qual_type rty,
         bool instance_method,
         bool chain_call,
-        qual_types_span arg_types,
+        can_qual_types_span arg_types,
         ext_info info,
         ext_parameter_info_span params,
         required_args args
     ) {
-        assert(llvm::all_of(arg_types, [] (qual_type ty) {
+        assert(llvm::all_of(arg_types, [] (can_qual_type ty) {
             return ty.isCanonicalAsParam(); })
         );
 

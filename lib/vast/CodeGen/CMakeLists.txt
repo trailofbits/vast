@@ -1,6 +1,7 @@
 # Copyright (c) 2023-present, Trail of Bits, Inc.
 
 add_library(vast_codegen
+    ABIInfo.cpp
     FunctionInfo.cpp
     Generator.cpp
     Module.cpp
