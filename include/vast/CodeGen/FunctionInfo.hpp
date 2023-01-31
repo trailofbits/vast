@@ -409,7 +409,6 @@ namespace vast::cg
             }
         }
 
-        /// getASTcalling_convention() - Return the AST-specified calling convention
         clang::CallingConv get_ast_calling_convention() const {
             return clang::CallingConv(ast_calling_convention);
         }

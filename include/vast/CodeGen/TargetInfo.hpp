@@ -30,16 +30,14 @@ namespace vast::cg
         {}
     };
 
-    struct x86_64_target_info :  target_info_t {
+    struct x86_64_target_info : target_info_t {
         x86_64_target_info(types_generator &types, x86_avx_abi_level avx_level)
             : target_info_t(std::make_unique< x86_64_abi_info >(types, avx_level))
         {}
     };
 
-    struct darwin_x86_64_target_info :  target_info_t {
-        darwin_x86_64_target_info(types_generator &types, x86_avx_abi_level avx_level)
-            : target_info_t(std::make_unique< darwin_x86_64_abi_info >(types, avx_level))
-        {}
+    struct darwin_x86_64_target_info : x86_64_target_info {
+        using x86_64_target_info::x86_64_target_info;
     };
 
 } // namespace vast::cg
