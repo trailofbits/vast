@@ -9,7 +9,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/Types.h>
 VAST_UNRELAX_WARNINGS
 
-#include <vast/CodeGen/Types.hpp>
+#include "vast/CodeGen/CallingConv.hpp"
+#include "vast/CodeGen/Types.hpp"
 
 namespace vast::cg
 {
@@ -297,11 +298,11 @@ namespace vast::cg
         friend info_trailing_object< function_info_t >;
 
         /// The vast::calling_conv to use for this function (as specified by the user).
-        unsigned calling_convention : 8;
+        calling_conv calling_convention;
 
         /// The vast::calling_conv to actually use for this function, which may depend
         /// on the ABI.
-        unsigned effective_calling_convention : 8;
+        calling_conv effective_calling_convention : 8;
 
         /// The clang::calling_conv that this was originally created with.
         unsigned ast_calling_convention : 6;
@@ -353,7 +354,7 @@ namespace vast::cg
 
       public:
         static function_info_t *create(
-            unsigned calling_convention,
+            calling_conv calling_convention,
             bool instance_method,
             bool chainCall,
             const ext_info &ext_info,
@@ -469,7 +470,7 @@ namespace vast::cg
 
         // get_calling_convention - REturn the user specified calling convention, which
         // has been translated into a CIR CC.
-        unsigned get_calling_convention() const { return calling_convention; }
+        calling_conv get_calling_convention() const { return calling_convention; }
 
         can_qual_type get_return_type() const { return get_args_buffer()[0].type; }
 

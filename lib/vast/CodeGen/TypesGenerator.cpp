@@ -2,6 +2,7 @@
 
 #include "vast/CodeGen/TypesGenerator.hpp"
 #include "vast/CodeGen/Module.hpp"
+#include "vast/CodeGen/CallingConv.hpp"
 
 #include "vast/Frontend/Common.hpp"
 
@@ -12,8 +13,12 @@ namespace vast::cg
         , abi_info(cgm.get_target_info().get_abi_info())
     {}
 
-    unsigned types_generator::to_vast_calling_conv(clang::CallingConv cc) {
-        throw cc::compiler_error("to_vast_calling_conv not implemented");
+    calling_conv types_generator::to_vast_calling_conv(clang::CallingConv cc) {
+        if (cc != clang::CC_C) {
+            cc::compiler_error("No other calling conventions implemented.");
+        }
+
+        return calling_conv::C;
     }
 
     mlir_type types_generator::convert_type(qual_type type) {
@@ -132,7 +137,7 @@ namespace vast::cg
             return *fninfo;
         }
 
-        unsigned cc = to_vast_calling_conv(info.getCC());
+        auto cc = to_vast_calling_conv(info.getCC());
 
         // Construction the function info. We co-allocate the ArgInfos.
         auto fninfo = function_info_t::create(
