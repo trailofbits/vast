@@ -5,7 +5,7 @@
 namespace vast::cg {
 
     function_info_t *function_info_t::create(
-        unsigned calling_convention,
+        calling_conv calling_convention,
         bool instance_method,
         bool chain_call,
         const ext_info &info,

@@ -12,6 +12,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/ABIInfo.hpp"
+#include "vast/CodeGen/CallingConv.hpp"
 #include "vast/CodeGen/FunctionInfo.hpp"
 
 namespace vast::cg {
@@ -24,7 +25,7 @@ namespace vast::cg {
         types_generator(codegen_module &cgm);
 
         // Convert clang calling convention to LLVM calling convention.
-        unsigned to_vast_calling_conv(clang::CallingConv cc);
+        calling_conv to_vast_calling_conv(clang::CallingConv cc);
 
         const abi_info_t &get_abi_info() const { return abi_info; }
 
