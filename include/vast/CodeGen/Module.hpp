@@ -10,9 +10,14 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 #include "vast/CodeGen/Builder.hpp"
+#include "vast/CodeGen/TargetInfo.hpp"
+#include "vast/CodeGen/TypesGenerator.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
 
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 namespace vast::cg {
+
+    enum class global_emit { defininition, declaration };
 
     struct codegen_module {
         codegen_module(const codegen_module &) = delete;
@@ -25,7 +30,8 @@ namespace vast::cg {
         )
             : builder(mctx), actx(actx)
             , diags(diags), lang_opts(actx.getLangOpts()), codegen_opts(cgo)
-            , mod( mlir::ModuleOp::create(builder.getUnknownLoc()) )
+            , mod(mlir::ModuleOp::create(builder.getUnknownLoc()))
+            , types(*this)
         {}
 
         const cc::diagnostics_engine &get_diags() const { return diags; }
@@ -39,15 +45,52 @@ namespace vast::cg {
 
         bool verify_module();
 
+        // Return the address of the given function. If ty is non-null, then this
+        // function will use the specified type if it has to create it.
+        // TODO: this is a bit weird as `GetAddr` given we give back a FuncOp?
+        vast::hl::FuncOp get_addr_of_function(
+            clang::GlobalDecl decl, mlir::Type ty = nullptr,
+            bool for_vtable = false, bool dontdefer = false,
+            global_emit emit = global_emit::declaration
+        );
+
+        mlir::Operation *get_addr_of_function(
+            clang::GlobalDecl decl,
+            global_emit emit = global_emit::declaration
+        );
+
+        const target_info_t &get_target_info();
+
+        bool should_emit_function(clang::GlobalDecl /* decl */);
+
+        // Make sure that this type is translated.
+        void update_completed_type(const clang::TagDecl *DECL_CONTEXT);
+
+        void build_global_definition(clang::GlobalDecl decl, mlir::Operation *Op = nullptr);
+        void build_global_function_definition(clang::GlobalDecl decl, mlir::Operation *op);
+        void build_global_var_definition(const clang::VarDecl *decl, bool tentative = false);
+
         // Emit any needed decls for which code generation was deferred.
         void build_deferred();
 
         // Helper for `build_deferred` to apply actual codegen.
         void build_global_decl(clang::GlobalDecl &decl);
 
+        // Emit code for a single global function or var decl. Forward declarations
+        // are emitted lazily.
         void build_global(clang::GlobalDecl decl);
 
         void build_top_level_decl(clang::Decl *decl);
+
+        // Determine whether the definition must be emitted; if this returns
+        // false, the definition can be emitted lazily if it's used.
+        bool must_be_emitted(const clang::ValueDecl *glob);
+
+        // Determine whether the definition can be emitted eagerly, or should be
+        // delayed until the end of the translation unit. This is relevant for
+        // definitions whose linkage can change, e.g. implicit function instantions
+        // which may later be explicitly instantiated.
+        bool may_be_emitted_eagerly(const clang::ValueDecl *decl);
 
         // A queue of (optional) vtables to consider emitting.
         std::vector< const clang::CXXRecordDecl * > deferred_vtables;
@@ -76,6 +119,7 @@ namespace vast::cg {
         void build_default_methods();
 
       private:
+        mutable std::unique_ptr< target_info_t > target_info;
 
         // The builder is a helper class to create IR inside a function. The
         // builder is stateful, in particular it keeps an "insertion point": this
@@ -95,6 +139,9 @@ namespace vast::cg {
         // FIXME: should we use llvm::TrackingVH<mlir::Operation> here?
         using replacements_map = llvm::StringMap< mlir::Operation * >;
         replacements_map replacements;
+
+        // Per-module type mapping from clang AST to VAST high-level types.
+        types_generator types;
 
         // Call replaceAllUsesWith on all pairs in replacements.
         void apply_replacements();

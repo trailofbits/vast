@@ -55,6 +55,14 @@ namespace vast::cg {
         // TODO: FINISH THE REST OF THIS
     }
 
+    const target_info_t &codegen_module::get_target_info() {
+        if (target_info) {
+            return *target_info;
+        }
+
+        throw cc::compiler_error("get_target_info not implemented");
+    }
+
     void codegen_module::add_replacement(string_ref name, mlir::Operation *op) {
         replacements[name] = op;
     }
@@ -65,16 +73,216 @@ namespace vast::cg {
         }
     }
 
+    vast::hl::FuncOp codegen_module::get_addr_of_function(
+        clang::GlobalDecl /* decl */, mlir::Type /* ty */,
+        bool /* for_vtable */, bool /* dontdefer */,
+        emit_for_definition /* is_for_definition */
+    ) {
+        throw cc::compiler_error("get_addr_of_function not implemented");
+    }
+
+    mlir::Operation *codegen_module::get_addr_of_function(
+        clang::GlobalDecl /* decl */, emit_for_definition /* is_for_definition */
+    ) {
+        throw cc::compiler_error("get_addr_of_function not implemented");
+    }
+
     bool codegen_module::verify_module() {
         return mlir::verify(mod).succeeded();
+    }
+
+    void codegen_module::update_completed_type(const clang::TagDecl */* decl */) {
+        throw cc::compiler_error("update_completed_type not implemented");
+    }
+
+    bool codegen_module::should_emit_function(clang::GlobalDecl /* decl */) {
+        // TODO: implement this -- requires defining linkage for vast
+        return true;
+    }
+
+    void codegen_module::build_global_definition(clang::GlobalDecl glob, mlir::Operation *op) {
+        const auto *decl = llvm::cast< clang::ValueDecl >(glob.getDecl());
+
+        if (const auto *fn = llvm::dyn_cast< clang::FunctionDecl >(decl)) {
+            // At -O0, don't generate vast for functions with available_externally linkage.
+            if (!should_emit_function(glob))
+                return;
+
+            if (fn->isMultiVersion()) {
+                throw cc::compiler_error("codegen for multi version function not implemented");
+            }
+
+            if (const auto *method = llvm::dyn_cast< clang::CXXMethodDecl >(decl)) {
+                throw cc::compiler_error("methods not implemented");
+            }
+
+            return build_global_function_definition(glob, op);
+        }
+
+        if (const auto *var = llvm::dyn_cast< clang::VarDecl >(decl))
+            return build_global_var_definition(var, !var->hasDefinition());
+
+        llvm_unreachable("Invalid argument to buildGlobalDefinition()");
+
+    }
+
+    void codegen_module::build_global_function_definition(clang::GlobalDecl decl, mlir::Operation *op) {
+        // auto const *fn_decl = llvm::cast< clang::FunctionDecl >(decl.getDecl());
+
+        // Compute the function info and vast type.
+        const auto &fty_info = types.arrange_global_decl(decl);
+        auto ty = types.get_function_type(fty_info);
+
+        // Get or create the prototype for the function.
+        // if (!V || (V.getValueType() != Ty))
+        // TODO: Figure out what to do here? llvm uses a GlobalValue for the FuncOp in mlir
+        op = get_addr_of_function(
+            decl, ty, /*ForVTable=*/false, /*DontDefer=*/true,
+            emit_for_definition::for_definition
+        );
+
+        auto fn = mlir::cast< vast::hl::FuncOp >(op);
+        // Already emitted.
+        if (!fn.isDeclaration()) {
+            return;
+        }
+
+        // setFunctionLinkage(GD, Fn);
+        // // TODO setGVProperties
+        // // TODO MaubeHandleStaticInExternC
+        // // TODO maybeSetTrivialComdat
+        // // TODO setLLVMFunctionFEnvAttributes
+
+        // CIRGenFunction CGF{*this, builder};
+        // CurCGF = &CGF;
+        // {
+        //     mlir::OpBuilder::InsertionGuard guard(builder);
+        //     CGF.generateCode(GD, Fn, FI);
+        // }
+        // CurCGF = nullptr;
+
+        // // TODO: setNonAliasAttributes
+        // // TODO: SetLLVMFunctionAttributesForDeclaration
+
+        // assert(!D->getAttr<ConstructorAttr>() && "not implemented");
+        // assert(!D->getAttr<DestructorAttr>() && "not implemented");
+        // assert(!D->getAttr<AnnotateAttr>() && "not implemented");
+    }
+
+    void codegen_module::build_global_var_definition(const clang::VarDecl */* decl */, bool /* tentative */) {
+        throw cc::compiler_error("build_global_var_definition not implemented");
     }
 
     void codegen_module::build_global_decl(clang::GlobalDecl &/* decl */) {
         throw cc::compiler_error("build_global_decl not implemented");
     }
 
-    void codegen_module::build_global(clang::GlobalDecl /*decl*/) {
-        throw cc::compiler_error("build_global not implemented");
+    bool codegen_module::must_be_emitted(const clang::ValueDecl *glob) {
+        // Never defer when EmitAllDecls is specified.
+        assert(!lang_opts.EmitAllDecls && "EmitAllDecls not implemented");
+        assert(!codegen_opts.KeepStaticConsts && "KeepStaticConsts not implemented");
+
+        return actx.DeclMustBeEmitted(glob);
+    }
+
+    bool codegen_module::may_be_emitted_eagerly(const clang::ValueDecl *glob) {
+        assert(!lang_opts.OpenMP && "not supported");
+
+        if (const auto *fn = llvm::dyn_cast< clang::FunctionDecl >(glob)) {
+            // Implicit template instantiations may change linkage if they are later
+            // explicitly instantiated, so they should not be emitted eagerly.
+            constexpr auto implicit = clang::TSK_ImplicitInstantiation;
+            assert(fn->getTemplateSpecializationKind() != implicit && "not implemented");
+            assert(!fn->isTemplated() && "templates not implemented");
+            return true;
+        }
+
+
+        if (const auto *vr = llvm::dyn_cast< clang::VarDecl >(glob)) {
+            // A definition of an inline constexpr static data member may change
+            // linkage later if it's redeclared outside the class.
+            constexpr auto weak_unknown = clang::ASTContext::InlineVariableDefinitionKind::WeakUnknown;
+            assert(actx.getInlineVariableDefinitionKind(vr) != weak_unknown && "not implemented");
+            return true;
+        }
+
+        throw cc::compiler_error("unsupported value decl");
+    }
+
+    void codegen_module::build_global(clang::GlobalDecl decl) {
+        const auto *glob = llvm::cast< clang::ValueDecl >(decl.getDecl());
+
+        assert(!glob->hasAttr< clang::WeakRefAttr >() && "not implemented");
+        assert(!glob->hasAttr< clang::AliasAttr >() && "not implemented");
+        assert(!glob->hasAttr< clang::IFuncAttr >() && "not implemented");
+        assert(!glob->hasAttr< clang::CPUDispatchAttr >() && "not implemented");
+        assert(!lang_opts.CUDA && "not implemented");
+        assert(!lang_opts.OpenMP && "not implemented");
+
+        // Ignore declarations, they will be emitted on their first use.
+        if (const auto *fn = llvm::dyn_cast< clang::FunctionDecl >(glob)) {
+            // Forward declarations are emitted lazily on first use.
+            if (!fn->doesThisDeclarationHaveABody()) {
+                if (!fn->doesDeclarationForceExternallyVisibleDefinition())
+                    return;
+                throw cc::compiler_error("build_global FunctionDecl not implemented");
+                // auto mangled_name = getMangledName(decl);
+
+                // // Compute the function info and CIR type.
+                // const auto &FI = getTypes().arrangeGlobalDeclaration(decl);
+                // mlir::Type Ty = getTypes().GetFunctionType(FI);
+
+                // GetOrCreateCIRFunction(MangledName, Ty, decl, /*ForVTable=*/false,
+                //                         /*DontDefer=*/false);
+                // return;
+            }
+        } else {
+            throw cc::compiler_error("build_global VarDecl not implemented");
+
+            // const auto *var = llvm::cast< clang::VarDecl>(glob);
+            // assert(var->isFileVarDecl() && "Cannot emit local var decl as global.");
+            // if (var->isThisDeclarationADefinition() != VarDecl::Definition &&
+            //     !astCtx.isMSStaticDataMemberInlineDefinition(var)) {
+            //     assert(!getLangOpts().OpenMP && "not implemented");
+            //     // If this declaration may have caused an inline variable definition
+            //     // to change linkage, make sure that it's emitted.
+            //     // TODO probably use GetAddrOfGlobalVar(var) below?
+            //     assert((astCtx.getInlineVariableDefinitionKind(var) !=
+            //             ASTContext::InlineVariableDefinitionKind::Strong) &&
+            //             "not implemented");
+            //     return;
+            // }
+        }
+
+        // Defer code generation to first use when possible, e.g. if this is an inline
+        // function. If the global mjust always be emitted, do it eagerly if possible
+        // to benefit from cache locality.
+        if (must_be_emitted(glob) && may_be_emitted_eagerly(glob)) {
+            // Emit the definition if it can't be deferred.
+            return build_global_definition(glob);
+        }
+
+        // // If we're deferring emission of a C++ variable with an initializer, remember
+        // // the order in which it appeared on the file.
+        // if (getLangOpts().CPlusPlus && isa<VarDecl>(glob) &&
+        //     cast<VarDecl>(glob)->hasInit()) {
+        //     DelayedCXXInitPosition[glob] = CXXGlobalInits.size();
+        //     CXXGlobalInits.push_back(nullptr);
+        // }
+
+        // llvm::StringRef MangledName = getMangledName(GD);
+        // if (getGlobalValue(MangledName) != nullptr) {
+        //     // The value has already been used and should therefore be emitted.
+        //     addDeferredDeclToEmit(GD);
+        // } else if (MustBeEmitted(glob)) {
+        //     // The value must be emitted, but cannot be emitted eagerly.
+        //     assert(!MayBeEmittedEagerly(glob));
+        //     addDeferredDeclToEmit(GD);
+        // } else {
+        //     // Otherwise, remember that we saw a deferred decl with this name. The first
+        //     // use of the mangled name will cause it to move into DeferredDeclsToEmit.
+        //     DeferredDecls[MangledName] = GD;
+        // }
     }
 
     void codegen_module::build_top_level_decl(clang::Decl *decl) {
@@ -94,7 +302,7 @@ namespace vast::cg {
             case clang::Decl::Decomposition:
             case clang::Decl::VarTemplateSpecialization: {
                 build_global(llvm::cast< clang::VarDecl >(decl));
-                if (!llvm::isa< clang::DecompositionDecl >(decl)) {
+                if (llvm::isa< clang::DecompositionDecl >(decl)) {
                     throw cc::compiler_error("codegen for DecompositionDecl not implemented");
                 }
                 break;
@@ -102,7 +310,7 @@ namespace vast::cg {
             case clang::Decl::CXXMethod:
             case clang::Decl::Function: {
                 build_global(llvm::cast< clang::FunctionDecl >(decl));
-                if (!codegen_opts.CoverageMapping) {
+                if (codegen_opts.CoverageMapping) {
                     throw cc::compiler_error("codegen Coverage Mapping not supported");
                 }
                 break;
