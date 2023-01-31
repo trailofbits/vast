@@ -55,12 +55,62 @@ namespace vast::cg {
         // TODO: FINISH THE REST OF THIS
     }
 
+    x86_avx_abi_level avx_level(const clang::TargetInfo &target) {
+        const auto &abi = target.getABI();
+
+        if (abi == "avx512")
+            return x86_avx_abi_level::avx512;
+        if (abi == "avx")
+            return x86_avx_abi_level::avx;
+        return x86_avx_abi_level::none;
+    }
+
+    using target_info_ptr = std::unique_ptr< target_info_t >;
+    target_info_ptr get_target_info_impl(
+        const clang::TargetInfo &target, types_generator &types
+    ) {
+        const auto &triple = target.getTriple();
+        const auto &abi = target.getABI();
+
+        auto aarch64_info = [&] {
+            if (abi == "aapcs" || abi == "darwinpcs") {
+                cc::compiler_error("Only Darwin supported for aarch64");
+            }
+
+            auto abi_kind = aarch64_abi_info::abi_kind::darwin_pcs;
+            return target_info_ptr(new aarch64_target_info(types, abi_kind));
+        };
+
+        auto x86_64_info = [&] {
+            auto os = triple.getOS();
+            if (os == llvm::Triple::Linux) {
+                return target_info_ptr(
+                    new x86_64_target_info(types, avx_level(target))
+                );
+            }
+
+            if (os == llvm::Triple::Darwin) {
+                return target_info_ptr(
+                    new darwin_x86_64_target_info(types, avx_level(target))
+                );
+            }
+
+            throw cc::compiler_error("Unsupported x86_64 OS type.");
+        };
+
+        switch (triple.getArch()) {
+            case llvm::Triple::aarch64: return aarch64_info();
+            case llvm::Triple::x86_64:  return x86_64_info();
+            default: throw cc::compiler_error("Target not yet supported.");
+        }
+    }
+
     const target_info_t &codegen_module::get_target_info() {
-        if (target_info) {
-            return *target_info;
+        if (!target_info) {
+            target_info = get_target_info_impl(target, types);
         }
 
-        throw cc::compiler_error("get_target_info not implemented");
+        return *target_info;
     }
 
     void codegen_module::add_replacement(string_ref name, mlir::Operation *op) {
@@ -74,15 +124,15 @@ namespace vast::cg {
     }
 
     vast::hl::FuncOp codegen_module::get_addr_of_function(
-        clang::GlobalDecl /* decl */, mlir::Type /* ty */,
+        clang::GlobalDecl /* decl */, mlir_type /* ty */,
         bool /* for_vtable */, bool /* dontdefer */,
-        emit_for_definition /* is_for_definition */
+        global_emit /* is_for_definition */
     ) {
         throw cc::compiler_error("get_addr_of_function not implemented");
     }
 
     mlir::Operation *codegen_module::get_addr_of_function(
-        clang::GlobalDecl /* decl */, emit_for_definition /* is_for_definition */
+        clang::GlobalDecl /* decl */, global_emit /* is_for_definition */
     ) {
         throw cc::compiler_error("get_addr_of_function not implemented");
     }
@@ -138,7 +188,7 @@ namespace vast::cg {
         // TODO: Figure out what to do here? llvm uses a GlobalValue for the FuncOp in mlir
         op = get_addr_of_function(
             decl, ty, /*ForVTable=*/false, /*DontDefer=*/true,
-            emit_for_definition::for_definition
+            global_emit::definition
         );
 
         auto fn = mlir::cast< vast::hl::FuncOp >(op);
@@ -230,7 +280,7 @@ namespace vast::cg {
 
                 // // Compute the function info and CIR type.
                 // const auto &FI = getTypes().arrangeGlobalDeclaration(decl);
-                // mlir::Type Ty = getTypes().GetFunctionType(FI);
+                // mlir_type Ty = getTypes().GetFunctionType(FI);
 
                 // GetOrCreateCIRFunction(MangledName, Ty, decl, /*ForVTable=*/false,
                 //                         /*DontDefer=*/false);

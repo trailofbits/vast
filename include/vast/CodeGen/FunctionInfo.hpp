@@ -9,14 +9,13 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/Types.h>
 VAST_UNRELAX_WARNINGS
 
+#include <vast/CodeGen/Types.hpp>
+
 namespace vast::cg
 {
-    using qual_type = clang::CanQualType;
-
     /// abi_arg_info - Helper class to encapsulate information about how a specific C
     /// type should be passed to or returned from a function.
-    class abi_arg_info {
-      public:
+    struct abi_arg_info {
         enum class abi_arg_kind : std::uint8_t
         {
             /// Direct - Pass the argument directly using the normal converted vast type,
@@ -72,11 +71,11 @@ namespace vast::cg
         };
 
       private:
-        mlir::Type type_data; // canHaveCoerceToType();
+        mlir_type type_data; // canHaveCoerceToType();
 
         union {
-            mlir::Type padding_type;                    // canHavePaddingType()
-            mlir::Type unpadded_coerce_and_expand_type; // isCoerceAndExpand()
+            mlir_type padding_type;                    // canHavePaddingType()
+            mlir_type unpadded_coerce_and_expand_type; // isCoerceAndExpand()
         };
 
         struct direct_attr_info {
@@ -103,7 +102,7 @@ namespace vast::cg
             return is_direct() || is_extend() || is_indirect() || is_indirect_aliased() || is_expand();
         }
 
-        void set_padding_type(mlir::Type type) {
+        void set_padding_type(mlir_type type) {
             assert(can_have_padding_type());
             padding_type = type;
         }
@@ -118,9 +117,9 @@ namespace vast::cg
         {}
 
         static abi_arg_info get_direct(
-            mlir::Type type       = nullptr,
+            mlir_type type       = nullptr,
             unsigned offset       = 0,
-            mlir::Type padding    = nullptr,
+            mlir_type padding    = nullptr,
             bool can_be_flattened = true,
             unsigned align        = 0
         ) {
@@ -135,10 +134,10 @@ namespace vast::cg
         }
 
         static abi_arg_info get_sign_extend(
-            clang::QualType qual_type, mlir::Type type = nullptr
+            qual_type qtype, mlir_type type = nullptr
         ) {
             // FIXME constructor
-            assert(qual_type->isIntegralOrEnumerationType() && "Unexpected QualType");
+            assert(qtype->isIntegralOrEnumerationType() && "Unexpected QualType");
             auto info = abi_arg_info(abi_arg_kind::extend);
             info.set_coerce_to_type(type);
             info.set_padding_type(nullptr);
@@ -149,10 +148,10 @@ namespace vast::cg
         }
 
         static abi_arg_info get_zero_extend(
-            clang::QualType qual_type, mlir::Type type = nullptr
+            qual_type qtype, mlir_type type = nullptr
         ) {
             // FIXME constructor
-            assert(qual_type->isIntegralOrEnumerationType() && "Unexpected QualType");
+            assert(qtype->isIntegralOrEnumerationType() && "Unexpected QualType");
             auto info = abi_arg_info(abi_arg_kind::extend);
             info.set_coerce_to_type(type);
             info.set_padding_type(nullptr);
@@ -164,15 +163,15 @@ namespace vast::cg
 
         // abi_arg_info will record the argument as being extended based on the sign of
         // it's type.
-        static abi_arg_info get_extend(clang::QualType qual_type, mlir::Type type = nullptr) {
-            assert(qual_type->isIntegralOrEnumerationType() && "Unexpected QualType");
-            if (qual_type->hasSignedIntegerRepresentation()) {
-                return get_sign_extend(qual_type, type);
+        static abi_arg_info get_extend(qual_type qtype, mlir_type type = nullptr) {
+            assert(qtype->isIntegralOrEnumerationType() && "Unexpected QualType");
+            if (qtype->hasSignedIntegerRepresentation()) {
+                return get_sign_extend(qtype, type);
             }
-            return get_zero_extend(qual_type, type);
+            return get_zero_extend(qtype, type);
         }
 
-        static abi_arg_info getIgnore() { return abi_arg_info(abi_arg_kind::ignore); }
+        static abi_arg_info get_ignore() { return abi_arg_info(abi_arg_kind::ignore); }
 
         abi_arg_kind get_kind() const { return kind; }
         bool is_direct() const { return kind == abi_arg_kind::direct; }
@@ -218,23 +217,23 @@ namespace vast::cg
             return can_be_flattened;
         }
 
-        mlir::Type get_padding_type() const {
+        mlir_type get_padding_type() const {
             return (can_have_padding_type() ? padding_type : nullptr);
         }
 
-        mlir::Type get_coerce_to_type() const {
+        mlir_type get_coerce_to_type() const {
             assert(can_have_coerce_to_type() && "Invalid kind!");
             return type_data;
         }
 
-        void set_coerce_to_type(mlir::Type type) {
+        void set_coerce_to_type(mlir_type type) {
             assert(can_have_coerce_to_type() && "Invalid kind!");
             type_data = type;
         }
     };
 
     struct function_info_arg_info {
-        qual_type type;
+        can_qual_type type;
         abi_arg_info info;
     };
 
@@ -281,8 +280,6 @@ namespace vast::cg
             return num_required;
         }
     };
-
-    using ext_param_info = clang::FunctionProtoType::ExtParameterInfo;
 
     template< typename info_t >
     using info_trailing_object = llvm::TrailingObjects<
@@ -359,10 +356,10 @@ namespace vast::cg
             unsigned calling_convention,
             bool instance_method,
             bool chainCall,
-            const clang::FunctionType::ExtInfo &ext_info,
-            llvm::ArrayRef< ext_param_info > params,
-            qual_type rty,
-            llvm::ArrayRef< qual_type > arg_types,
+            const ext_info &ext_info,
+            ext_parameter_info_span params,
+            can_qual_type rty,
+            can_qual_types_span arg_types,
             required_args required
         );
 
@@ -380,11 +377,11 @@ namespace vast::cg
             llvm::FoldingSetNodeID &id,
             bool instance_method,
             bool /* chain_call */,
-            const clang::FunctionType::ExtInfo &info,
-            llvm::ArrayRef< ext_param_info > params,
+            const ext_info &info,
+            ext_parameter_info_span params,
             required_args required,
-            qual_type rty,
-            llvm::ArrayRef< qual_type > arg_types
+            can_qual_type rty,
+            can_qual_types_span arg_types
         ) {
             id.AddInteger(info.getCC());
             id.AddBoolean(instance_method);
@@ -437,8 +434,8 @@ namespace vast::cg
             }
 
             get_return_type().Profile(id);
-            for (const auto &I : arguments()) {
-                I.type.Profile(id);
+            for (const auto &i : arguments()) {
+                i.type.Profile(id);
             }
         }
 
@@ -457,7 +454,7 @@ namespace vast::cg
 
         unsigned arg_size() const { return num_args; }
 
-        llvm::ArrayRef< ext_param_info > get_ext_param_infos() const {
+        ext_parameter_info_span get_ext_param_infos() const {
             if (!has_ext_parameter_infos)
                 return {};
             return llvm::makeArrayRef(get_ext_param_infos_buffer(), num_args);
@@ -474,7 +471,7 @@ namespace vast::cg
         // has been translated into a CIR CC.
         unsigned get_calling_convention() const { return calling_convention; }
 
-        qual_type get_return_type() const { return get_args_buffer()[0].type; }
+        can_qual_type get_return_type() const { return get_args_buffer()[0].type; }
 
         abi_arg_info &get_return_info() { return get_args_buffer()[0].info; }
         const abi_arg_info &get_return_info() const { return get_args_buffer()[0].info; }

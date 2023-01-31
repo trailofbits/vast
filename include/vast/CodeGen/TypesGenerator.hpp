@@ -21,12 +21,6 @@ namespace vast::cg {
     // This class organizes the cross-module state that is used while lowering
     // AST types to VAST high-level types.
     struct types_generator {
-        using qual_type       = clang::CanQualType;
-        using qual_types_span = llvm::ArrayRef< qual_type >;
-
-        using ext_info = clang::FunctionType::ExtInfo;
-        using ext_parameter_info_span = llvm::ArrayRef< ext_param_info >;
-
         types_generator(codegen_module &cgm);
 
         // Convert clang calling convention to LLVM calling convention.
@@ -84,8 +78,8 @@ namespace vast::cg {
         mlir::FunctionType get_function_type(clang::GlobalDecl decl);
         mlir::FunctionType get_function_type(const function_info_t &info);
 
-        // Convert type into a mlir::Type.
-        mlir::Type convert_type(clang::QualType type);
+        // Convert type into a mlir_type.
+        mlir_type convert_type(qual_type type);
 
         // "Arrange" the vast information for a call or type with the given
         // signature. This is largely an internal method; other clients should use
@@ -93,8 +87,8 @@ namespace vast::cg {
         //
         // \param arg_types - must all actually be canonical as params
         const function_info_t &arrange_function_info(
-            qual_type rty, bool instance_method, bool chain_call,
-            qual_types_span arg_types,
+            can_qual_type rty, bool instance_method, bool chain_call,
+            can_qual_types_span arg_types,
             ext_info info,
             ext_parameter_info_span params,
             required_args args
