@@ -15,14 +15,14 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/CallingConv.hpp"
 #include "vast/CodeGen/FunctionInfo.hpp"
 
-namespace vast::cg {
+#include "vast/Translation/CodeGenDriver.hpp"
 
-    struct codegen_module;
+namespace vast::cg {
 
     // This class organizes the cross-module state that is used while lowering
     // AST types to VAST high-level types.
     struct types_generator {
-        types_generator(codegen_module &cgm);
+        types_generator(codegen_driver &codegen);
 
         // Convert clang calling convention to LLVM calling convention.
         calling_conv to_vast_calling_conv(clang::CallingConv cc);
@@ -30,7 +30,7 @@ namespace vast::cg {
         using type_cache_t = llvm::DenseMap< const clang::Type *, mlir_type >;
         type_cache_t type_cache;
 
-        const abi_info_t &get_abi_info() const { return abi_info; }
+        // const abi_info_t &get_abi_info() const { return abi_info; }
 
         // The arrangement methods are split into three families:
         //   - those meant to drive the signature and prologue/epilogue
@@ -99,11 +99,11 @@ namespace vast::cg {
             required_args args
         );
     private:
-        codegen_module &cgm;
+        codegen_driver &codegen;
 
         // This should not be moved earlier, since its initialization depends on some
         // of the previous reference members being already initialized
-        const abi_info_t &abi_info;
+        // const abi_info_t &abi_info;
 
         // Hold memoized function_info_t results
         llvm::FoldingSet< function_info_t > function_infos;

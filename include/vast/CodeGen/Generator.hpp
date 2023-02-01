@@ -11,7 +11,6 @@ VAST_RELAX_WARNINGS
 #include <llvm/Support/ToolOutputFile.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/CodeGen/Module.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
 #include "vast/Translation/CodeGenDriver.hpp"
 #include "vast/Util/Common.hpp"
@@ -27,8 +26,6 @@ namespace vast::cg {
         vast_generator(cc::diagnostics_engine &diags, const cc::codegen_options &cgo)
             : diags(diags), cgo(cgo)
         {}
-
-        ~vast_generator() { assert(diags.hasErrorOccurred()); }
 
         void Initialize(acontext_t &) override;
 

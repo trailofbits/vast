@@ -17,3 +17,4 @@ namespace vast::cg
     };
 
 } // namespace vast::cg
+
