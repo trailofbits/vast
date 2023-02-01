@@ -3,6 +3,7 @@ add_library( vast_translation_api STATIC
   CodeGenTypeVisitor.cpp
   DataLayout.cpp
   CodeGen.cpp
+  CodeGenDriver.cpp
 )
 
 target_link_libraries( vast_translation_api

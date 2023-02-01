@@ -14,6 +14,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/TypesGenerator.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
 
+#include "vast/Translation/CodeGen.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 namespace vast::cg {
 
@@ -28,11 +30,10 @@ namespace vast::cg {
             cc::diagnostics_engine &diags,
             const cc::codegen_options &cgo
         )
-            : builder(mctx), actx(actx)
+            : actx(actx)
             , diags(diags)
             , target(actx.getTargetInfo())
             , lang_opts(actx.getLangOpts()), codegen_opts(cgo)
-            , mod(mlir::ModuleOp::create(builder.getUnknownLoc()))
             , types(*this)
         {}
 
@@ -43,7 +44,7 @@ namespace vast::cg {
 
         void add_replacement(string_ref name, mlir::Operation *Op);
 
-        vast_module get_module() { return mod; }
+        acontext_t &get_ast_context() { return actx; }
 
         bool verify_module();
 
@@ -123,11 +124,6 @@ namespace vast::cg {
       private:
         mutable std::unique_ptr< target_info_t > target_info;
 
-        // The builder is a helper class to create IR inside a function. The
-        // builder is stateful, in particular it keeps an "insertion point": this
-        // is where the next operations will be introduced.
-        codegen_builder builder;
-
         acontext_t &actx;
 
         cc::diagnostics_engine &diags;
@@ -136,9 +132,6 @@ namespace vast::cg {
 
         const cc::language_options &lang_opts;
         const cc::codegen_options &codegen_opts;
-
-        // A "module" matches a c/cpp source file: containing a list of functions.
-        vast_module mod;
 
         // FIXME: should we use llvm::TrackingVH<mlir::Operation> here?
         using replacements_map = llvm::StringMap< mlir::Operation * >;

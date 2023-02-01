@@ -14,13 +14,13 @@ namespace vast::util
     struct error : std::runtime_error {
         int exit;
 
-        error(std::string err, int exit = 1)
+        explicit error(std::string err, int exit = 1)
             : std::runtime_error(err)
             , exit(exit) {}
     };
 
     struct system_error : std::system_error {
-        system_error(const char *w)
+        explicit system_error(const char *w)
             : std::system_error(errno, std::system_category(), w) {}
     };
 

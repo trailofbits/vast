@@ -137,10 +137,6 @@ namespace vast::cg {
         throw cc::compiler_error("get_addr_of_function not implemented");
     }
 
-    bool codegen_module::verify_module() {
-        return mlir::verify(mod).succeeded();
-    }
-
     void codegen_module::update_completed_type(const clang::TagDecl */* decl */) {
         throw cc::compiler_error("update_completed_type not implemented");
     }
@@ -260,6 +256,7 @@ namespace vast::cg {
     }
 
     void codegen_module::build_global(clang::GlobalDecl decl) {
+        // builder.
         const auto *glob = llvm::cast< clang::ValueDecl >(decl.getDecl());
 
         assert(!glob->hasAttr< clang::WeakRefAttr >() && "not implemented");

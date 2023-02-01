@@ -179,9 +179,9 @@ namespace vast::cc {
             }
 
             // Emit remaining defaulted C++ methods
-            if (!vargs.has_option(opt::disable_emit_cxx_default)) {
-                generator->build_default_methods();
-            }
+            // if (!vargs.has_option(opt::disable_emit_cxx_default)) {
+            //     generator->build_default_methods();
+            // }
 
             // FIXME: we cannot roundtrip prettyForm=true right now.
             mlir::OpPrintingFlags flags;
@@ -201,7 +201,7 @@ namespace vast::cc {
                 }
             }
 
-            auto mod  = generator->get_module();
+            auto mod  = generator->take_module();
             auto mctx = generator->take_context();
 
             switch (action) {

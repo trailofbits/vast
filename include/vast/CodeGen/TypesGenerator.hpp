@@ -27,6 +27,9 @@ namespace vast::cg {
         // Convert clang calling convention to LLVM calling convention.
         calling_conv to_vast_calling_conv(clang::CallingConv cc);
 
+        using type_cache_t = llvm::DenseMap< const clang::Type *, mlir_type >;
+        type_cache_t type_cache;
+
         const abi_info_t &get_abi_info() const { return abi_info; }
 
         // The arrangement methods are split into three families:
@@ -81,6 +84,7 @@ namespace vast::cg {
 
         // Convert type into a mlir_type.
         mlir_type convert_type(qual_type type);
+        mlir_type convert_type_impl(const clang::Type *type);
 
         // "Arrange" the vast information for a call or type with the given
         // signature. This is largely an internal method; other clients should use
