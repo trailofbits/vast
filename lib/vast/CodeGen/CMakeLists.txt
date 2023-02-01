@@ -4,7 +4,6 @@ add_library(vast_codegen
     ABIInfo.cpp
     FunctionInfo.cpp
     Generator.cpp
-    Module.cpp
     Passes.cpp
     TargetInfo.cpp
     TypesGenerator.cpp

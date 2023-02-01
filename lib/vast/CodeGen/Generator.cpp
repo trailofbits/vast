@@ -10,9 +10,16 @@ namespace vast::cg {
         this->acontext = &actx;
         this->mcontext = std::make_unique< mcontext_t >();
 
+        codegen_driver_options options {
+            .verbose_diagnostics = true,
+            // forwarded options form clang codegen
+            .coverage_mapping   = bool(cgo.CoverageMapping),
+            .keep_static_consts = bool(cgo.KeepStaticConsts)
+        };
+
         // TODO initialize dialects here
         this->codegen = std::make_unique< codegen_driver >(
-            *acontext, *mcontext
+            *acontext, *mcontext, options
         );
     }
 
@@ -24,7 +31,7 @@ namespace vast::cg {
         if (diags.hasErrorOccurred())
             return true;
 
-        return codegen->handle_top_level_decl(decls);
+        return codegen->handle_top_level_decl(decls), true;
     }
 
     void vast_generator::HandleTranslationUnit(acontext_t &acontext) {
