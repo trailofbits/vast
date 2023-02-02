@@ -14,23 +14,23 @@ VAST_RELAX_WARNINGS
 
 namespace vast::hl
 {
-    Type LValueType::replaceImmediateSubElements(llvm::ArrayRef<mlir::Attribute>, llvm::ArrayRef<mlir::Type>) const {
+    Type LValueType::replaceImmediateSubElements(llvm::ArrayRef<mlir::Attribute>, llvm::ArrayRef<mlir_type>) const {
         VAST_UNIMPLEMENTED;
     }
 
-    Type ElaboratedType::replaceImmediateSubElements(llvm::ArrayRef<mlir::Attribute>, llvm::ArrayRef<mlir::Type>) const {
+    Type ElaboratedType::replaceImmediateSubElements(llvm::ArrayRef<mlir::Attribute>, llvm::ArrayRef<mlir_type>) const {
         VAST_UNIMPLEMENTED;
     }
 
-    Type PointerType::replaceImmediateSubElements(llvm::ArrayRef<mlir::Attribute>, llvm::ArrayRef<mlir::Type>) const {
+    Type PointerType::replaceImmediateSubElements(llvm::ArrayRef<mlir::Attribute>, llvm::ArrayRef<mlir_type>) const {
         VAST_UNIMPLEMENTED;
     }
 
-    Type ArrayType::replaceImmediateSubElements(llvm::ArrayRef<mlir::Attribute>, llvm::ArrayRef<mlir::Type>) const {
+    Type ArrayType::replaceImmediateSubElements(llvm::ArrayRef<mlir::Attribute>, llvm::ArrayRef<mlir_type>) const {
         VAST_UNIMPLEMENTED;
     }
 
-    Type getBottomTypedefType(TypedefType def, Module mod) {
+    Type getBottomTypedefType(TypedefType def, vast_module mod) {
         auto type = getTypedefType(def, mod);
         if (auto ty = type.dyn_cast< TypedefType >()) {
             return getBottomTypedefType(ty, mod);
@@ -38,7 +38,7 @@ namespace vast::hl
         return type;
     }
 
-    Type getTypedefType(TypedefType type, Module mod) {
+    Type getTypedefType(TypedefType type, vast_module mod) {
         auto name = type.getName();
         for (const auto &op : mod) {
             if (auto def = mlir::dyn_cast< TypeDefOp >(&op)) {
@@ -51,7 +51,7 @@ namespace vast::hl
         VAST_UNREACHABLE("unknown typedef name");
     }
 
-    mlir::FunctionType getFunctionType(Type type, Module mod) {
+    mlir::FunctionType getFunctionType(Type type, vast_module mod) {
         if (auto ty = type.dyn_cast< mlir::FunctionType >())
             return ty;
         if (auto ty = type.dyn_cast< LValueType >())
@@ -69,16 +69,16 @@ namespace vast::hl
 
     mlir::FunctionType getFunctionType(Value callee) {
         auto op  = callee.getDefiningOp();
-        auto mod = op->getParentOfType< Module >();
+        auto mod = op->getParentOfType< vast_module >();
         return getFunctionType(callee.getType(), mod);
     }
 
     mlir::FunctionType getFunctionType(mlir::CallOpInterface call) {
-        auto mod = call->getParentOfType< Module >();
+        auto mod = call->getParentOfType< vast_module >();
         return getFunctionType(call.getCallableForCallee(), mod);
     }
 
-    mlir::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, Module mod) {
+    mlir::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, vast_module mod) {
         if (auto sym = callee.dyn_cast< mlir::SymbolRefAttr >()) {
             return mlir::dyn_cast_or_null< FuncOp >(
                 mlir::SymbolTable::lookupSymbolIn(mod, sym)
@@ -100,22 +100,22 @@ namespace vast::hl
         >();
     }
 
-    bool isBoolType(mlir::Type type)
+    bool isBoolType(mlir_type type)
     {
         return type.isa< BoolType >();
     }
 
-    bool isIntegerType(mlir::Type type)
+    bool isIntegerType(mlir_type type)
     {
         return util::is_one_of< integer_types >(type);
     }
 
-    bool isFloatingType(mlir::Type type)
+    bool isFloatingType(mlir_type type)
     {
         return util::is_one_of< floating_types >(type);
     }
 
-    bool isSigned(mlir::Type type)
+    bool isSigned(mlir_type type)
     {
         if (isBoolType(type)) {
             return false;
@@ -131,12 +131,12 @@ namespace vast::hl
         });
     }
 
-    bool isUnsigned(mlir::Type type)
+    bool isUnsigned(mlir_type type)
     {
         return !(isSigned(type));
     }
 
-    bool isHighLevelType(mlir::Type type)
+    bool isHighLevelType(mlir_type type)
     {
         return util::is_one_of< high_level_types >(type);
     }
@@ -153,7 +153,7 @@ namespace vast::hl
     template< typename T >
     using walk_fn = llvm::function_ref< void( T ) >;
 
-    using walk_types = walk_fn< mlir::Type >;
+    using walk_types = walk_fn< mlir_type >;
     using walk_attrs = walk_fn< mlir::Attribute >;
 
     void LValueType::walkImmediateSubElements(walk_attrs, walk_types tys) const {
@@ -173,12 +173,12 @@ namespace vast::hl
         tys( this->getElementType() );
     }
 
-    auto ArrayType::dim_and_type() -> std::tuple< dimensions_t, mlir::Type >
+    auto ArrayType::dim_and_type() -> std::tuple< dimensions_t, mlir_type >
     {
         dimensions_t dims;
         // If this ever is generalised investigate if `SubElementTypeInterface` can be used
         // do this recursion?
-        auto collect = [&](ArrayType arr, auto &self) -> mlir::Type {
+        auto collect = [&](ArrayType arr, auto &self) -> mlir_type {
             dims.push_back(arr.getSize());
             if (auto nested = arr.getElementType().dyn_cast< ArrayType >())
                 return self(nested, self);

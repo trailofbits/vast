@@ -177,7 +177,7 @@ namespace vast
         bool wasThreadingEnabled = ctx.isMultithreadingEnabled();
         ctx.disableMultithreading();
 
-        OwningModuleRef mod(mlir::parseSourceFile< mlir::ModuleOp >(source_mgr, &ctx));
+        owning_module_ref mod(mlir::parseSourceFile< vast_module >(source_mgr, &ctx));
         ctx.enableMultithreading(wasThreadingEnabled);
         if (!mod) {
             llvm::errs() << "error: cannot parse module\n";

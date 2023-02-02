@@ -8,6 +8,6 @@
 
 namespace vast::hl
 {
-    void emit_data_layout(mcontext_t &ctx, OwningModuleRef &mod, const dl::DataLayoutBlueprint &dl);
+    void emit_data_layout(mcontext_t &ctx, owning_module_ref &mod, const dl::DataLayoutBlueprint &dl);
 
 } // namespace vast::hl

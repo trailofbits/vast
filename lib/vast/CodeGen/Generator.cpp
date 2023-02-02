@@ -50,12 +50,8 @@ namespace vast::cg {
         throw cc::compiler_error("HandleTagDeclRequiredDefinition not implemented");
     }
 
-    bool vast_generator::verify_module() const {
-        return codegen->verify_module();
-    }
+    bool vast_generator::verify_module() const { return codegen->verify_module(); }
 
-    vast_module vast_generator::take_module() {
-        return codegen->take_module();
-    }
+    owning_module_ref vast_generator::freeze() { return codegen->freeze(); }
 
 } // namespace vast::cc

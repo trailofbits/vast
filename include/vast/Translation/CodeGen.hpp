@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 #include <clang/Frontend/ASTUnit.h>
 #include <mlir/Dialect/DLTI/DLTI.h>
 #include <mlir/Dialect/SCF/IR/SCF.h>
+#include <mlir/IR/Verifier.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/MLIRContext.h>
@@ -56,12 +57,12 @@ namespace vast::hl
             detail::codegen_context_setup(*_mctx);
         }
 
-        OwningModuleRef emit_module(clang::ASTUnit *unit) {
+        owning_module_ref emit_module(clang::ASTUnit *unit) {
             append_to_module(unit);
             return freeze();
         }
 
-        OwningModuleRef emit_module(clang::Decl *decl) {
+        owning_module_ref emit_module(clang::Decl *decl) {
             append_to_module(decl);
             return freeze();
         }
@@ -76,7 +77,7 @@ namespace vast::hl
 
         void append_to_module(clang::Type *type) { append_impl(type); }
 
-        OwningModuleRef freeze() {
+        owning_module_ref freeze() {
             emit_data_layout(*_mctx, _module, _cgctx->data_layout());
             return std::move(_module);
         }
@@ -100,6 +101,8 @@ namespace vast::hl
             VariablesScope     globs;
         };
 
+        bool verify_module() const { return mlir::verify(_module.get()).succeeded(); }
+
     private:
 
         void setup_codegen(acontext_t &actx) {
@@ -107,7 +110,7 @@ namespace vast::hl
                 return;
 
             // TODO(Heno): fix module location
-            _module = { Module::create(mlir::UnknownLoc::get(_mctx)) };
+            _module = { vast_module::create(mlir::UnknownLoc::get(_mctx)) };
 
             _cgctx = std::make_unique< CodeGenContext >(*_mctx, actx, _module);
 
@@ -149,7 +152,7 @@ namespace vast::hl
         std::unique_ptr< CodegenScope >   _scope;
         std::unique_ptr< CodeGenVisitor > _visitor;
 
-        OwningModuleRef _module;
+        owning_module_ref _module;
     };
 
     template< typename Derived >
@@ -179,13 +182,17 @@ namespace vast::hl
             : meta(actx, mctx), codegen(mctx, meta)
         {}
 
-        OwningModuleRef emit_module(clang::ASTUnit *unit) {
+        owning_module_ref emit_module(clang::ASTUnit *unit) {
             return codegen.emit_module(unit);
         }
 
-        OwningModuleRef emit_module(clang::Decl *decl) {
+        owning_module_ref emit_module(clang::Decl *decl) {
             return codegen.emit_module(decl);
         }
+
+        bool verify_module() const { return codegen.verify_module(); }
+
+        owning_module_ref freeze() { return codegen.freeze(); }
 
         MetaGenerator meta;
         CodeGenBase< Visitor > codegen;

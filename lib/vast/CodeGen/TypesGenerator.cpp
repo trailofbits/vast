@@ -1,16 +1,15 @@
 // Copyright (c) 2023-present, Trail of Bits, Inc.
 
 #include "vast/CodeGen/TypesGenerator.hpp"
-#include "vast/CodeGen/Module.hpp"
 #include "vast/CodeGen/CallingConv.hpp"
 
 #include "vast/Frontend/Common.hpp"
 
 namespace vast::cg
 {
-    types_generator::types_generator(codegen_module &cgm)
-        : cgm{cgm}
-        , abi_info(cgm.get_target_info().get_abi_info())
+    types_generator::types_generator(codegen_driver &codegen)
+        : codegen{codegen}
+        // , abi_info(cgm.get_target_info().get_abi_info())
     {}
 
     calling_conv types_generator::to_vast_calling_conv(clang::CallingConv cc) {
@@ -53,7 +52,6 @@ namespace vast::cg
         auto fty = fn->getType()->getCanonicalTypeUnqualified();
 
         assert(llvm::isa< clang::FunctionType >(fty));
-        (void) cgm;
         // TODO: setCUDAKernelCallingConvention
 
         // When declaring a function without a prototype, always use a
@@ -154,7 +152,7 @@ namespace vast::cg
         assert(info.getCC() != clang::CallingConv::CC_SpirFunction && "not supported");
         assert(info.getCC() != clang::CC_Swift && "Swift not supported");
         assert(info.getCC() != clang::CC_SwiftAsync && "Swift not supported");
-        abi_info.compute_info(*fninfo);
+        // abi_info.compute_info(*fninfo);
 
         // Loop over all of the computed argument and return value info. If any of
         // them are direct or extend without a specified coerce type, specify the

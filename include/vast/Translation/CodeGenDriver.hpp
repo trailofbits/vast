@@ -12,6 +12,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
+#include "vast/Translation/CodeGen.hpp"
+
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DataLayout.hpp"
 
@@ -53,6 +55,7 @@ namespace vast::cg
             : actx(actx)
             , mctx(mctx)
             , options(opts)
+            , codegen(&actx, &mctx)
         {}
 
         ~codegen_driver() {
@@ -71,9 +74,10 @@ namespace vast::cg
         void handle_top_level_decl(clang::DeclGroupRef decls);
         void handle_top_level_decl(clang::Decl *decl);
 
-        vast_module take_module() { return std::move(mod); }
+        // vast_module take_module() { return std::move(mod); }
 
         void finalize();
+        owning_module_ref freeze();
 
     private:
         // Return the address of the given function. If ty is non-null, then this
@@ -155,7 +159,6 @@ namespace vast::cg
 
         acontext_t &actx;
         mcontext_t &mctx;
-        vast_module mod;
 
         codegen_driver_options options;
 
@@ -164,6 +167,9 @@ namespace vast::cg
         friend struct defer_handle_of_top_level_decl;
 
         llvm::SmallVector< clang::FunctionDecl *, 8 > deferred_inline_member_func_defs;
+
+        // FIXME: make configurable
+        hl::CodeGenWithMetaIDs codegen;
     };
 
 } // namespace vast::cg
