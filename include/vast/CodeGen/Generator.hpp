@@ -35,7 +35,7 @@ namespace vast::cg {
         void HandleTagDeclDefinition(clang::TagDecl *) override;
         void HandleTagDeclRequiredDefinition(const clang::TagDecl *) override;
 
-        vast_module take_module();
+        owning_module_ref freeze();
         std::unique_ptr< mcontext_t > take_context();
 
         bool verify_module() const;

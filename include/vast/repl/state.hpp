@@ -6,8 +6,6 @@
 
 namespace vast::repl {
 
-    using owning_module_ref = OwningModuleRef;
-
     struct state_t {
         explicit state_t(mcontext_t &ctx) : ctx(ctx) {}
 

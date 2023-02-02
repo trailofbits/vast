@@ -6,6 +6,5 @@
 
 namespace vast::repl {
 
-    using owning_module_ref = OwningModuleRef;
 
 } // namespace vast::repl

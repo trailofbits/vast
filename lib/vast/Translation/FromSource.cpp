@@ -41,8 +41,8 @@ namespace vast::hl
         "id-meta", llvm::cl::desc("Attach ids to nodes as metadata")
     );
 
-    static OwningModuleRef from_source_parser(
-        const llvm::MemoryBuffer *input, mlir::MLIRContext *mctx
+    static owning_module_ref from_source_parser(
+        const llvm::MemoryBuffer *input, mcontext_t *mctx
     ) {
         auto ast = clang::tooling::buildASTFromCodeWithArgs(
             input->getBuffer(), compiler_args
@@ -60,7 +60,7 @@ namespace vast::hl
     mlir::LogicalResult registerFromSourceParser() {
         mlir::TranslateToMLIRRegistration from_source(
             "from-source",
-            [](llvm::SourceMgr &mgr, mlir::MLIRContext *ctx) -> OwningModuleRef {
+            [](llvm::SourceMgr &mgr, mlir::MLIRContext *ctx) -> owning_module_ref {
                 VAST_CHECK(mgr.getNumBuffers() == 1,    "expected single input buffer");
                 auto buffer = mgr.getMemoryBuffer(mgr.getMainFileID());
                 return from_source_parser(buffer, ctx);

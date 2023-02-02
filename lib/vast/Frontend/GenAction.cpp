@@ -124,7 +124,7 @@ namespace vast::cc {
             high_level
         };
 
-        void emit_mlir_output(target_dialect target, vast_module mod, mcontext_t *mctx) {
+        void emit_mlir_output(target_dialect target, owning_module_ref mod, mcontext_t *mctx) {
             if (!output_stream || !mod) {
                 return;
             }
@@ -136,7 +136,7 @@ namespace vast::cc {
                 switch (target) {
                     case target_dialect::high_level: {
                         return cg::emit_high_level_pass(
-                            mod, mctx, acontext, disable_vast_verifier
+                            std::move(mod), mctx, acontext, disable_vast_verifier
                         );
                     }
                 }
@@ -201,14 +201,14 @@ namespace vast::cc {
                 }
             }
 
-            auto mod  = generator->take_module();
+            auto mod  = generator->freeze();
             auto mctx = generator->take_context();
 
             switch (action) {
                 case output_type::emit_assembly:
                     return emit_backend_output(clang::BackendAction::Backend_EmitAssembly);
                 case output_type::emit_high_level:
-                    return emit_mlir_output(target_dialect::high_level, mod, mctx.get());
+                    return emit_mlir_output(target_dialect::high_level, std::move(mod), mctx.get());
                 case output_type::emit_cir:
                     throw compiler_error("HandleTranslationUnit for emit CIR not implemented");
                 case output_type::emit_llvm:
@@ -270,7 +270,7 @@ namespace vast::cc {
         : action(act), mcontext(montext ? montext : new mcontext_t), vargs(vargs)
     {}
 
-    OwningModuleRef vast_gen_action::load_module(llvm::MemoryBufferRef /* mref */) {
+    owning_module_ref vast_gen_action::load_module(llvm::MemoryBufferRef /* mref */) {
         throw compiler_error("load_module not implemented");
     }
 

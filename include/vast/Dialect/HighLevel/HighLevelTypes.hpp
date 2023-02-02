@@ -74,7 +74,7 @@ namespace vast::hl
         }
 
         // TODO(lukas): This may no longer be needed.
-        static bool is_valid_entry_type(mlir::Type t)
+        static bool is_valid_entry_type(mlir_type t)
         {
             return t.isa< ConcreteTy >();
         }
@@ -93,7 +93,7 @@ namespace vast::hl
 
 namespace vast::hl
 {
-    using Type = mlir::Type;
+    using Type = mlir_type;
     using Context = mlir::MLIRContext;
 
     using DialectParser = mlir::AsmParser;
@@ -161,30 +161,30 @@ namespace vast::hl
         }
     }
 
-    mlir::FunctionType getFunctionType(Type function_pointer, Module mod);
+    mlir::FunctionType getFunctionType(Type function_pointer, vast_module mod);
 
     mlir::FunctionType getFunctionType(Value callee);
     mlir::FunctionType getFunctionType(mlir::CallOpInterface call);
-    mlir::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, Module mod);
+    mlir::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, vast_module mod);
 
-    Type getTypedefType(TypedefType type, Module mod);
+    Type getTypedefType(TypedefType type, vast_module mod);
 
     // unwraps all typedef aliases to get to real underlying type
-    Type getBottomTypedefType(TypedefType def, Module mod);
+    Type getBottomTypedefType(TypedefType def, vast_module mod);
 
-    bool isBoolType(mlir::Type type);
-    bool isIntegerType(mlir::Type type);
-    bool isFloatingType(mlir::Type type);
+    bool isBoolType(mlir_type type);
+    bool isIntegerType(mlir_type type);
+    bool isFloatingType(mlir_type type);
 
-    bool isSigned(mlir::Type type);
-    bool isUnsigned(mlir::Type type);
+    bool isSigned(mlir_type type);
+    bool isUnsigned(mlir_type type);
 
-    bool isHighLevelType(mlir::Type type);
+    bool isHighLevelType(mlir_type type);
 
-    static inline mlir::Type to_std_float_type(mlir::Type ty) {
+    static inline mlir_type to_std_float_type(mlir_type ty) {
         using fty = mlir::FloatType;
         auto ctx = ty.getContext();
-        return llvm::TypeSwitch<mlir::Type, mlir::Type>(ty)
+        return llvm::TypeSwitch< mlir_type, mlir_type >(ty)
             .Case< HalfType       >([&] (auto t) { return fty::getF16(ctx);  })
             .Case< BFloat16Type   >([&] (auto t) { return fty::getBF16(ctx); })
             .Case< FloatType      >([&] (auto t) { return fty::getF32(ctx);  })
@@ -193,7 +193,7 @@ namespace vast::hl
             .Case< Float128Type   >([&] (auto t) { return fty::getF128(ctx); })
             .Default([] (auto t) {
                 VAST_UNREACHABLE("unknown float type: {0}", format_type(t));
-                return mlir::Type();
+                return mlir_type();
             });
     }
 

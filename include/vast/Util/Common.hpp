@@ -46,9 +46,7 @@ namespace vast
 
     // FIXME: eventually replace with tower_module
     using vast_module = mlir::ModuleOp;
-
-    using Module          = mlir::ModuleOp;
-    using OwningModuleRef = mlir::OwningOpRef< Module >;
+    using owning_module_ref = mlir::OwningOpRef< vast_module >;
 
     using mlir_type  = mlir::Type;
     using clang_type = clang::Type;
