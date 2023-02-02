@@ -19,7 +19,7 @@ namespace vast::cg {
 
         // TODO initialize dialects here
         this->codegen = std::make_unique< codegen_driver >(
-            *acontext, *mcontext, options
+            *acontext, *mcontext, options, get_target_info()
         );
     }
 
@@ -53,5 +53,64 @@ namespace vast::cg {
     bool vast_generator::verify_module() const { return codegen->verify_module(); }
 
     owning_module_ref vast_generator::freeze() { return codegen->freeze(); }
+
+    x86_avx_abi_level avx_level(const clang::TargetInfo &target) {
+        const auto &abi = target.getABI();
+
+        if (abi == "avx512")
+            return x86_avx_abi_level::avx512;
+        if (abi == "avx")
+            return x86_avx_abi_level::avx;
+        return x86_avx_abi_level::none;
+    }
+
+    using target_info_ptr = std::unique_ptr< target_info_t >;
+    target_info_ptr get_target_info_impl(
+        const clang::TargetInfo &target, const type_info_t &type_info
+    ) {
+        const auto &triple = target.getTriple();
+        const auto &abi = target.getABI();
+
+        auto aarch64_info = [&] {
+            if (abi == "aapcs" || abi == "darwinpcs") {
+                cc::compiler_error("Only Darwin supported for aarch64");
+            }
+
+            auto abi_kind = aarch64_abi_info::abi_kind::darwin_pcs;
+            return target_info_ptr(new aarch64_target_info(type_info, abi_kind));
+        };
+
+        auto x86_64_info = [&] {
+            auto os = triple.getOS();
+            if (os == llvm::Triple::Linux) {
+                return target_info_ptr(
+                    new x86_64_target_info(type_info, avx_level(target))
+                );
+            }
+
+            if (os == llvm::Triple::Darwin) {
+                return target_info_ptr(
+                    new darwin_x86_64_target_info(type_info, avx_level(target))
+                );
+            }
+
+            throw cc::compiler_error("Unsupported x86_64 OS type.");
+        };
+
+        switch (triple.getArch()) {
+            case llvm::Triple::aarch64: return aarch64_info();
+            case llvm::Triple::x86_64:  return x86_64_info();
+            default: throw cc::compiler_error("Target not yet supported.");
+        }
+    }
+
+    const target_info_t &vast_generator::get_target_info() {
+        if (!target_info) {
+            const auto &target = acontext->getTargetInfo();
+            target_info = get_target_info_impl(target, codegen->get_type_info());
+        }
+
+        return *target_info;
+    }
 
 } // namespace vast::cc

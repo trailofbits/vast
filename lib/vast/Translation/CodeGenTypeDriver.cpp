@@ -12,9 +12,9 @@ namespace vast::cg
     {}
 
     mlir_type type_conversion_driver::convert_type(qual_type /* type */) {
-        throw cg::unimplemented("types_generator::convert_type");
+        throw cg::unimplemented("type_conversion_driver::convert_type");
         (void)driver;
-    }
+  }
 
     mlir::FunctionType type_conversion_driver::get_function_type(clang::GlobalDecl /* decl */) {
         throw cg::unimplemented("get_function_type");

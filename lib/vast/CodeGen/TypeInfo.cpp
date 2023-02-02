@@ -5,11 +5,13 @@
 
 #include "vast/Frontend/Common.hpp"
 
+#include "vast/Translation/CodeGenDriver.hpp"
+
 namespace vast::cg
 {
     type_info_t::type_info_t(codegen_driver &codegen)
         : codegen{codegen}
-        // , abi_info(cgm.get_target_info().get_abi_info())
+        , abi_info(codegen.get_target_info().get_abi_info())
     {}
 
     calling_conv type_info_t::to_vast_calling_conv(clang::CallingConv cc) {
@@ -140,7 +142,7 @@ namespace vast::cg
         assert(info.getCC() != clang::CallingConv::CC_SpirFunction && "not supported");
         assert(info.getCC() != clang::CC_Swift && "Swift not supported");
         assert(info.getCC() != clang::CC_SwiftAsync && "Swift not supported");
-        // abi_info.compute_info(*fninfo);
+        abi_info.compute_info(*fninfo);
 
         throw cc::compiler_error("arrange_function_info not implemented");
 

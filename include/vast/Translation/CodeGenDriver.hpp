@@ -20,6 +20,7 @@ VAST_UNRELAX_WARNINGS
 
 // FIXME: bringing dependency from upper layer
 #include "vast/CodeGen/TypeInfo.hpp"
+#include "vast/CodeGen/TargetInfo.hpp"
 
 namespace vast::cg
 {
@@ -54,12 +55,16 @@ namespace vast::cg
     struct codegen_driver {
 
         explicit codegen_driver(
-            acontext_t &actx, mcontext_t &mctx, codegen_driver_options opts
+              acontext_t &actx
+            , mcontext_t &mctx
+            , codegen_driver_options opts
+            , const target_info_t &target_info
         )
             : actx(actx)
             , mctx(mctx)
             , options(opts)
             , codegen(&actx, &mctx)
+            , target_info(target_info)
             , type_info(*this)
             , type_conv(*this)
         {}
@@ -80,10 +85,11 @@ namespace vast::cg
         void handle_top_level_decl(clang::DeclGroupRef decls);
         void handle_top_level_decl(clang::Decl *decl);
 
-        // vast_module take_module() { return std::move(mod); }
-
         void finalize();
         owning_module_ref freeze();
+
+        const target_info_t &get_target_info() const { return target_info; }
+        const type_info_t &get_type_info() const { return type_info; }
 
     private:
         // Return the address of the given function. If ty is non-null, then this
@@ -176,6 +182,8 @@ namespace vast::cg
 
         // FIXME: make configurable
         hl::CodeGenWithMetaIDs codegen;
+
+        const target_info_t &target_info;
 
         type_info_t type_info;
         type_conversion_driver type_conv;

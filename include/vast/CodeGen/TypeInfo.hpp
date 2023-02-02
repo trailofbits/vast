@@ -93,7 +93,7 @@ namespace vast::cg {
 
         // This should not be moved earlier, since its initialization depends on some
         // of the previous reference members being already initialized
-        // const abi_info_t &abi_info;
+        const abi_info_t &abi_info;
 
         // Hold memoized function_info_t results
         llvm::FoldingSet< function_info_t > function_infos;
