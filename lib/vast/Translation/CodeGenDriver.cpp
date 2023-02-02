@@ -9,6 +9,9 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Translation/Error.hpp"
 
+// FIXME: get rid of dependency from upper layer
+#include "vast/CodeGen/TypeInfo.hpp"
+
 namespace vast::cg
 {
     defer_handle_of_top_level_decl::defer_handle_of_top_level_decl(
@@ -210,9 +213,9 @@ namespace vast::cg
         // auto const *fn_decl = llvm::cast< clang::FunctionDecl >(decl.getDecl());
 
         // Compute the function info and vast type.
+        const auto &fty_info = type_info.arrange_global_decl(decl);
+        /* auto ty = */ type_conv.get_function_type(fty_info);
         throw cg::unimplemented("build_global_function_definition type emition ");
-        // const auto &fty_info = types.arrange_global_decl(decl);
-        // auto ty = types.get_function_type(fty_info);
 
         // Get or create the prototype for the function.
         // if (!V || (V.getValueType() != Ty))

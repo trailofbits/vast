@@ -13,9 +13,13 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 #include "vast/Translation/CodeGen.hpp"
+#include "vast/Translation/CodeGenTypeDriver.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DataLayout.hpp"
+
+// FIXME: bringing dependency from upper layer
+#include "vast/CodeGen/TypeInfo.hpp"
 
 namespace vast::cg
 {
@@ -56,6 +60,8 @@ namespace vast::cg
             , mctx(mctx)
             , options(opts)
             , codegen(&actx, &mctx)
+            , type_info(*this)
+            , type_conv(*this)
         {}
 
         ~codegen_driver() {
@@ -96,7 +102,7 @@ namespace vast::cg
 
         bool should_emit_function(clang::GlobalDecl decl);
 
-        void build_global_definition(clang::GlobalDecl decl, mlir::Operation *Op = nullptr);
+        void build_global_definition(clang::GlobalDecl decl, mlir::Operation *op = nullptr);
         void build_global_function_definition(clang::GlobalDecl decl, mlir::Operation *op);
         void build_global_var_definition(const clang::VarDecl *decl, bool tentative = false);
 
@@ -170,6 +176,9 @@ namespace vast::cg
 
         // FIXME: make configurable
         hl::CodeGenWithMetaIDs codegen;
+
+        type_info_t type_info;
+        type_conversion_driver type_conv;
     };
 
 } // namespace vast::cg

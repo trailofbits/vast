@@ -15,20 +15,16 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/CallingConv.hpp"
 #include "vast/CodeGen/FunctionInfo.hpp"
 
-#include "vast/Translation/CodeGenDriver.hpp"
-
 namespace vast::cg {
+    struct codegen_driver;
 
     // This class organizes the cross-module state that is used while lowering
     // AST types to VAST high-level types.
-    struct types_generator {
-        types_generator(codegen_driver &codegen);
+    struct type_info_t {
+        type_info_t(codegen_driver &codegen);
 
         // Convert clang calling convention to LLVM calling convention.
         calling_conv to_vast_calling_conv(clang::CallingConv cc);
-
-        using type_cache_t = llvm::DenseMap< const clang::Type *, mlir_type >;
-        type_cache_t type_cache;
 
         // const abi_info_t &get_abi_info() const { return abi_info; }
 
@@ -79,12 +75,6 @@ namespace vast::cg {
             clang::CanQual<clang::FunctionProtoType> type
         );
 
-        mlir::FunctionType get_function_type(clang::GlobalDecl decl);
-        mlir::FunctionType get_function_type(const function_info_t &info);
-
-        // Convert type into a mlir_type.
-        mlir_type convert_type(qual_type type);
-        mlir_type convert_type_impl(const clang::Type *type);
 
         // "Arrange" the vast information for a call or type with the given
         // signature. This is largely an internal method; other clients should use

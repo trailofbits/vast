@@ -6,7 +6,7 @@ add_library(vast_codegen
     Generator.cpp
     Passes.cpp
     TargetInfo.cpp
-    TypesGenerator.cpp
+    TypeInfo.cpp
 )
 
 target_link_libraries(vast_codegen PRIVATE vast::settings)
