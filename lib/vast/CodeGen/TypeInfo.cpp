@@ -1,18 +1,18 @@
 // Copyright (c) 2023-present, Trail of Bits, Inc.
 
-#include "vast/CodeGen/TypesGenerator.hpp"
+#include "vast/CodeGen/TypeInfo.hpp"
 #include "vast/CodeGen/CallingConv.hpp"
 
 #include "vast/Frontend/Common.hpp"
 
 namespace vast::cg
 {
-    types_generator::types_generator(codegen_driver &codegen)
+    type_info_t::type_info_t(codegen_driver &codegen)
         : codegen{codegen}
         // , abi_info(cgm.get_target_info().get_abi_info())
     {}
 
-    calling_conv types_generator::to_vast_calling_conv(clang::CallingConv cc) {
+    calling_conv type_info_t::to_vast_calling_conv(clang::CallingConv cc) {
         if (cc != clang::CC_C) {
             cc::compiler_error("No other calling conventions implemented.");
         }
@@ -20,11 +20,7 @@ namespace vast::cg
         return calling_conv::C;
     }
 
-    mlir_type types_generator::convert_type(qual_type type) {
-        throw cc::compiler_error("convert_type not implemented");
-    }
-
-    const function_info_t &types_generator::arrange_global_decl(
+    const function_info_t &type_info_t::arrange_global_decl(
         clang::GlobalDecl glob
     ) {
         auto decl = glob.getDecl();
@@ -40,7 +36,7 @@ namespace vast::cg
         return arrange_function_decl(fn);
     }
 
-    const function_info_t &types_generator::arrange_function_decl(
+    const function_info_t &type_info_t::arrange_function_decl(
         const clang::FunctionDecl *fn
     ) {
         if (const auto *method = llvm::dyn_cast< clang::CXXMethodDecl >(fn)) {
@@ -69,19 +65,19 @@ namespace vast::cg
         return arrange_free_function_type(fty.castAs< clang::FunctionProtoType >());
     }
 
-    const function_info_t &types_generator::arrange_cxx_method_decl(
+    const function_info_t &type_info_t::arrange_cxx_method_decl(
         const clang::CXXMethodDecl * /* decl */
     ) {
         throw cc::compiler_error("arrange_cxx_method_decl not implemented");
     }
 
-    const function_info_t &types_generator::arrange_cxx_structor_decl(
+    const function_info_t &type_info_t::arrange_cxx_structor_decl(
         clang::GlobalDecl /* decl */
     ) {
         throw cc::compiler_error("arrange_cxx_structor_decl not implemented");
     }
 
-    const function_info_t &types_generator::arrange_cxx_method_type(
+    const function_info_t &type_info_t::arrange_cxx_method_type(
         const clang::CXXRecordDecl * /* record */,
         const clang::FunctionProtoType * /* prototype */,
         const clang::CXXMethodDecl * /* method */
@@ -89,7 +85,7 @@ namespace vast::cg
         throw cc::compiler_error("arrange_free_function_type not implemented");
     }
 
-    // const function_info_t &types_generator::arrange_free_function_call(
+    // const function_info_t &type_info_t::arrange_free_function_call(
     //     const CallArgList &Args,
     //     const clang::FunctionType *Ty,
     //     bool ChainCall
@@ -97,21 +93,13 @@ namespace vast::cg
     //    throw cc::compiler_error("arrange_free_function_call not implemented");
     // }
 
-    const function_info_t &types_generator::arrange_free_function_type(
+    const function_info_t &type_info_t::arrange_free_function_type(
         clang::CanQual< clang::FunctionProtoType > /* type */
     ) {
         throw cc::compiler_error("arrange_free_function_type not implemented");
     }
 
-    mlir::FunctionType types_generator::get_function_type(clang::GlobalDecl /* decl */) {
-        throw cc::compiler_error("get_function_type not implemented");
-    }
-
-    mlir::FunctionType types_generator::get_function_type(const function_info_t & /* info */) {
-        throw cc::compiler_error("get_function_type not implemented");
-    }
-
-    const function_info_t &types_generator::arrange_function_info(
+    const function_info_t &type_info_t::arrange_function_info(
         can_qual_type rty,
         bool instance_method,
         bool chain_call,
@@ -154,24 +142,27 @@ namespace vast::cg
         assert(info.getCC() != clang::CC_SwiftAsync && "Swift not supported");
         // abi_info.compute_info(*fninfo);
 
+        throw cc::compiler_error("arrange_function_info not implemented");
+
         // Loop over all of the computed argument and return value info. If any of
         // them are direct or extend without a specified coerce type, specify the
         // default now.
-        auto convert = [&] (auto &info, auto &&type) {
-            if (info.can_have_coerce_to_type() && info.get_coerce_to_type() == nullptr) {
-                info.set_coerce_to_type(convert_type(type));
-            }
-        };
+        // auto convert = [&] (auto &info, auto &&type) {
+        //     if (info.can_have_coerce_to_type() && info.get_coerce_to_type() == nullptr) {
+        //         info.set_coerce_to_type(convert_type(type));
+        //     }
+        // };
 
-        convert(fninfo->get_return_info(), fninfo->get_return_type());
+        // convert(fninfo->get_return_info(), fninfo->get_return_type());
 
-        for (auto &i : fninfo->arguments()) {
-            convert(i.info, i.type);
-        }
+        // for (auto &i : fninfo->arguments()) {
+        //     convert(i.info, i.type);
+        // }
 
-        if (functions_being_processed.erase(fninfo)) {
-            throw cc::compiler_error("function info not being processed");
-        }
+        // if (functions_being_processed.erase(fninfo)) {
+        //     throw cc::compiler_error("function info not being processed");
+        // }
+        (void)codegen;
 
         return *fninfo;
     }
