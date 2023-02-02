@@ -72,12 +72,6 @@ namespace vast::cg
         };
 
       private:
-        mlir_type type_data; // canHaveCoerceToType();
-
-        union {
-            mlir_type padding_type;                    // canHavePaddingType()
-            mlir_type unpadded_coerce_and_expand_type; // isCoerceAndExpand()
-        };
 
         struct direct_attr_info {
             unsigned offset;
@@ -103,31 +97,20 @@ namespace vast::cg
             return is_direct() || is_extend() || is_indirect() || is_indirect_aliased() || is_expand();
         }
 
-        void set_padding_type(mlir_type type) {
-            assert(can_have_padding_type());
-            padding_type = type;
-        }
-
       public:
         abi_arg_info(abi_arg_kind kind = abi_arg_kind::direct)
-            : type_data(nullptr)
-            , padding_type(nullptr)
-            , direct_attr{ 0, 0 }
+            : direct_attr{ 0, 0 }
             , kind(kind)
             , can_be_flattened(false)
         {}
 
         static abi_arg_info get_direct(
-            mlir_type type       = nullptr,
             unsigned offset       = 0,
-            mlir_type padding    = nullptr,
             bool can_be_flattened = true,
             unsigned align        = 0
         ) {
             // FIXME constructor
             auto info = abi_arg_info(abi_arg_kind::direct);
-            info.set_coerce_to_type(type);
-            info.set_padding_type(padding);
             info.set_direct_offset(offset);
             info.set_direct_align(align);
             info.set_can_be_flattened(can_be_flattened);
@@ -140,8 +123,6 @@ namespace vast::cg
             // FIXME constructor
             assert(qtype->isIntegralOrEnumerationType() && "Unexpected QualType");
             auto info = abi_arg_info(abi_arg_kind::extend);
-            info.set_coerce_to_type(type);
-            info.set_padding_type(nullptr);
             info.set_direct_offset(0);
             info.set_direct_align(0);
             info.set_sign_ext(true);
@@ -154,8 +135,6 @@ namespace vast::cg
             // FIXME constructor
             assert(qtype->isIntegralOrEnumerationType() && "Unexpected QualType");
             auto info = abi_arg_info(abi_arg_kind::extend);
-            info.set_coerce_to_type(type);
-            info.set_padding_type(nullptr);
             info.set_direct_offset(0);
             info.set_direct_align(0);
             info.set_sign_ext(false);
@@ -217,21 +196,8 @@ namespace vast::cg
             assert(is_direct() && "Invalid kind!");
             return can_be_flattened;
         }
-
-        mlir_type get_padding_type() const {
-            return (can_have_padding_type() ? padding_type : nullptr);
-        }
-
-        mlir_type get_coerce_to_type() const {
-            assert(can_have_coerce_to_type() && "Invalid kind!");
-            return type_data;
-        }
-
-        void set_coerce_to_type(mlir_type type) {
-            assert(can_have_coerce_to_type() && "Invalid kind!");
-            type_data = type;
-        }
     };
+
 
     struct function_info_arg_info {
         can_qual_type type;
