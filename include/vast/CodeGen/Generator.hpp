@@ -40,6 +40,8 @@ namespace vast::cg {
 
         bool verify_module() const;
 
+        const target_info_t &get_target_info();
+
     protected:
         std::unique_ptr< codegen_driver > codegen = nullptr;
         std::unique_ptr< mcontext_t > mcontext = nullptr;
@@ -49,6 +51,8 @@ namespace vast::cg {
 
         cc::diagnostics_engine &diags;
         acontext_t *acontext;
+
+        mutable std::unique_ptr< target_info_t > target_info;
 
         const cc::codegen_options cgo; // intentionally copied
     };

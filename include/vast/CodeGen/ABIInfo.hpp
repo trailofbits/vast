@@ -12,7 +12,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg
 {
-    struct types_generator;
+    struct type_info_t;
 
     /// abi_info_t - Target specific hooks for defining how a type should be passed or
     /// returned from functions.
@@ -20,9 +20,9 @@ namespace vast::cg
         abi_info_t() = delete;
 
       public:
-        types_generator &types;
+        const type_info_t &types;
 
-        abi_info_t(types_generator &types)
+        abi_info_t(const type_info_t &types)
             : types{ types }
         {}
 
@@ -36,7 +36,7 @@ namespace vast::cg
     };
 
     struct default_abi_info : abi_info_t {
-        default_abi_info(types_generator &types)
+        default_abi_info(const type_info_t &types)
             : abi_info_t{ types }
         {}
 
@@ -58,7 +58,7 @@ namespace vast::cg
             win64
         };
 
-        aarch64_abi_info(types_generator &types, abi_kind kind)
+        aarch64_abi_info(const type_info_t &types, abi_kind kind)
             : default_abi_info(types)
             , kind(kind)
         {}
@@ -76,7 +76,7 @@ namespace vast::cg
     enum class x86_avx_abi_level { none, avx, avx512 };
 
     struct x86_64_abi_info : default_abi_info {
-        x86_64_abi_info(types_generator &types, x86_avx_abi_level /* avx_level */)
+        x86_64_abi_info(const type_info_t &types, x86_avx_abi_level /* avx_level */)
             : default_abi_info(types)
             /* , avx_level(avx_level) */
         {}
@@ -85,7 +85,7 @@ namespace vast::cg
     };
 
     struct darwin_x86_64_abi_info : default_abi_info {
-        darwin_x86_64_abi_info(types_generator &types, x86_avx_abi_level /* avx_level */)
+        darwin_x86_64_abi_info(type_info_t &types, x86_avx_abi_level /* avx_level */)
             : default_abi_info(types)
             /* , avx_level(avx_level) */
         {}
