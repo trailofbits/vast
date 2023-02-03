@@ -27,6 +27,10 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/TypeConverter.hpp"
 #include "vast/Util/LLVMTypeConverter.hpp"
 #include "vast/Util/Symbols.hpp"
+#include "vast/Util/TypeList.hpp"
+
+#include "vast/Conversion/Common/Patterns.hpp"
+#include "vast/Conversion/Common/Passes.hpp"
 
 #include <iostream>
 
@@ -92,6 +96,10 @@ namespace vast
             }
         };
 
+        using ignore_patterns = util::type_list<
+            ignore_pattern< hl::DeclRefOp >
+        >;
+
         template< typename Op >
         struct inline_region_from_op : BasePattern< Op >
         {
@@ -114,8 +122,10 @@ namespace vast
             }
         };
 
-        using translation_unit = inline_region_from_op< hl::TranslationUnitOp >;
-        using scope = inline_region_from_op< hl::ScopeOp >;
+        using inline_region_from_op_conversions = util::type_list<
+            inline_region_from_op< hl::TranslationUnitOp >,
+            inline_region_from_op< hl::ScopeOp >
+        >;
 
 
         struct uninit_var : BasePattern< ll::UninitializedVar >
@@ -213,6 +223,12 @@ namespace vast
                 return mlir::success();
             }
         };
+
+        using init_conversions = util::type_list<
+            uninit_var,
+            initialize_var,
+            init_list_expr
+        >;
 
         struct func_op : BasePattern< mlir::func::FuncOp >
         {
@@ -412,8 +428,7 @@ namespace vast
 
             mlir::LogicalResult matchAndRewrite(
                         hl::ImplicitCastOp op, hl::ImplicitCastOp::Adaptor ops,
-                        mlir::ConversionPatternRewriter &rewriter) const override
-            {
+                        mlir::ConversionPatternRewriter &rewriter) const override {
                 auto trg_type = tc.convert_type_to_type(op.getType());
                 VAST_PATTERN_CHECK(trg_type, "Did not convert type");
                 if (op.getKind() == hl::CastKind::LValueToRValue)
@@ -463,28 +478,30 @@ namespace vast
             }
         };
 
-        using add = one_to_one< hl::AddIOp, LLVM::AddOp >;
-        using sub = one_to_one< hl::SubIOp, LLVM::SubOp >;
-        using mul = one_to_one< hl::MulIOp, LLVM::MulOp >;
+        using one_to_one_conversions = util::type_list<
+            one_to_one< hl::AddIOp, LLVM::AddOp >,
+            one_to_one< hl::SubIOp, LLVM::SubOp >,
+            one_to_one< hl::MulIOp, LLVM::MulOp >,
 
-        using fadd = one_to_one< hl::AddFOp, LLVM::FAddOp >;
-        using fsub = one_to_one< hl::SubFOp, LLVM::FSubOp >;
-        using fmul = one_to_one< hl::MulFOp, LLVM::FMulOp >;
+            one_to_one< hl::AddFOp, LLVM::FAddOp >,
+            one_to_one< hl::SubFOp, LLVM::FSubOp >,
+            one_to_one< hl::MulFOp, LLVM::FMulOp >,
 
-        using sdiv = one_to_one< hl::DivSOp, LLVM::SDivOp >;
-        using udiv = one_to_one< hl::DivUOp, LLVM::UDivOp >;
-        using fdiv = one_to_one< hl::DivFOp, LLVM::FDivOp >;
+            one_to_one< hl::DivSOp, LLVM::SDivOp >,
+            one_to_one< hl::DivUOp, LLVM::UDivOp >,
+            one_to_one< hl::DivFOp, LLVM::FDivOp >,
 
-        using srem = one_to_one< hl::RemSOp, LLVM::SRemOp >;
-        using urem = one_to_one< hl::RemUOp, LLVM::URemOp >;
-        using frem = one_to_one< hl::RemFOp, LLVM::FRemOp >;
+            one_to_one< hl::RemSOp, LLVM::SRemOp >,
+            one_to_one< hl::RemUOp, LLVM::URemOp >,
+            one_to_one< hl::RemFOp, LLVM::FRemOp >,
 
-        using bor = one_to_one< hl::BinOrOp, LLVM::OrOp >;
-        using band = one_to_one< hl::BinAndOp, LLVM::AndOp >;
-        using bxor = one_to_one< hl::BinXorOp, LLVM::XOrOp >;
+            one_to_one< hl::BinOrOp, LLVM::OrOp >,
+            one_to_one< hl::BinAndOp, LLVM::AndOp >,
+            one_to_one< hl::BinXorOp, LLVM::XOrOp >,
 
-        using shl = one_to_one< hl::BinShlOp, LLVM::ShlOp >;
-        using shr = one_to_one< hl::BinShlOp, LLVM::ShlOp >;
+            one_to_one< hl::BinShlOp, LLVM::ShlOp >,
+            one_to_one< hl::BinShlOp, LLVM::ShlOp >
+        >;
 
         template< typename Src, typename Trg >
         struct assign_pattern : BasePattern< Src >
@@ -525,11 +542,12 @@ namespace vast
             }
         };
 
-        using assign_add = assign_pattern< hl::AddIAssignOp, LLVM::AddOp >;
-        using assign_sub = assign_pattern< hl::SubIAssignOp, LLVM::SubOp >;
-        using assign = assign_pattern< hl::AssignOp, void >;
+        using assign_conversions = util::type_list<
+            assign_pattern< hl::AddIAssignOp, LLVM::AddOp >,
+            assign_pattern< hl::SubIAssignOp, LLVM::SubOp >,
+            assign_pattern< hl::AssignOp, void >
+        >;
 
-        using declref = ignore_pattern< hl::DeclRefOp >;
 
         struct call : BasePattern< hl::CallOp >
         {
@@ -616,12 +634,13 @@ namespace vast
             }
         };
 
-        using pre_inc  = unary_in_place< hl::PreIncOp,  LLVM::AddOp, prefix_tag  >;
-        using post_inc = unary_in_place< hl::PostIncOp, LLVM::AddOp, postfix_tag >;
+        using unary_in_place_conversions = util::type_list<
+            unary_in_place< hl::PreIncOp,  LLVM::AddOp, prefix_tag  >,
+            unary_in_place< hl::PostIncOp, LLVM::AddOp, postfix_tag >,
 
-        using pre_dec  = unary_in_place< hl::PreDecOp,  LLVM::SubOp, prefix_tag  >;
-        using post_dec = unary_in_place< hl::PostDecOp, LLVM::SubOp, postfix_tag >;
-
+            unary_in_place< hl::PreDecOp,  LLVM::SubOp, prefix_tag  >,
+            unary_in_place< hl::PostDecOp, LLVM::SubOp, postfix_tag >
+        >;
 
         struct cmp : BasePattern< hl::CmpOp >
         {
@@ -686,6 +705,16 @@ namespace vast
             }
         };
 
+        using base_op_conversions = util::type_list<
+            func_op,
+            constant_int,
+            ret,
+            implicit_cast,
+            call,
+            cmp,
+            deref
+        >;
+
         // Drop types of operations that will be processed by pass for core(lazy) operations.
         template< typename LazyOp >
         struct lazy_op_type : BasePattern< LazyOp >
@@ -707,13 +736,14 @@ namespace vast
 
                 return mlir::success();
             }
-
         };
 
-        using lazy_op = lazy_op_type< core::LazyOp >;
-        using lazy_land = lazy_op_type< core::BinLAndOp >;
-        using lazy_lor = lazy_op_type< core::BinLOrOp >;
-        using hl_yield = lazy_op_type< hl::ValueYieldOp >;
+        using lazy_op_type_conversions = util::type_list<
+            lazy_op_type< core::LazyOp >,
+            lazy_op_type< core::BinLAndOp >,
+            lazy_op_type< core::BinLOrOp >,
+            lazy_op_type< hl::ValueYieldOp >
+        >;
     } // namespace pattern
 
 
@@ -729,102 +759,45 @@ namespace vast
         return mlir::LLVM::isCompatibleType(op.getResult().getType());
     }
 
-    struct IRsToLLVMPass : IRsToLLVMBase< IRsToLLVMPass >
+    struct IRsToLLVMPass : ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >
     {
-        void runOnOperation() override;
+        using base = ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >;
+
+        static conversion_target create_conversion_target(MContext &context) {
+            conversion_target target(context);
+
+            target.addIllegalDialect< hl::HighLevelDialect >();
+            target.addIllegalDialect< ll::LowLevelDialect >();
+            target.addLegalDialect< core::CoreDialect>();
+            target.addLegalOp< hl::TypeDefOp >();
+            target.addLegalOp< hl::ValueYieldOp>();
+
+            target.addDynamicallyLegalOp< core::LazyOp >(has_llvm_return_type< core::LazyOp >);
+            target.addDynamicallyLegalOp< core::BinLAndOp >(has_llvm_return_type< core::BinLAndOp>);
+            target.addDynamicallyLegalOp< core::BinLOrOp >(has_llvm_return_type< core::BinLOrOp>);
+            target.addDynamicallyLegalOp< hl::ValueYieldOp >(has_llvm_return_type< hl::ValueYieldOp >);
+
+            target.addDynamicallyLegalOp< hl::InitListExpr >(
+                    has_llvm_only_types< hl::InitListExpr>);
+
+            target.addIllegalOp< mlir::func::FuncOp >();
+            target.markUnknownOpDynamicallyLegal([](auto) { return true; });
+
+            return target;
+        }
+
+        static void populate_conversions(rewrite_pattern_set &patterns, type_converter &converter) {
+            base::populate_conversions_base<
+                pattern::one_to_one_conversions,
+                pattern::inline_region_from_op_conversions,
+                pattern::assign_conversions,
+                pattern::init_conversions,
+                pattern::base_op_conversions,
+                pattern::ignore_patterns,
+                pattern::lazy_op_type_conversions
+            >(patterns, converter);
+        }
     };
-
-    void IRsToLLVMPass::runOnOperation()
-    {
-        auto &mctx = this->getContext();
-        mlir::ModuleOp op = this->getOperation();
-
-        mlir::ConversionTarget target(mctx);
-        target.addIllegalDialect< hl::HighLevelDialect >();
-        target.addIllegalDialect< ll::LowLevelDialect >();
-        target.addLegalDialect< core::CoreDialect>();
-        target.addLegalOp< hl::TypeDefOp >();
-        target.addLegalOp< hl::ValueYieldOp>();
-
-        target.addDynamicallyLegalOp< core::LazyOp >(has_llvm_return_type< core::LazyOp >);
-        target.addDynamicallyLegalOp< core::BinLAndOp >(has_llvm_return_type< core::BinLAndOp>);
-        target.addDynamicallyLegalOp< core::BinLOrOp >(has_llvm_return_type< core::BinLOrOp>);
-        target.addDynamicallyLegalOp< hl::ValueYieldOp >(has_llvm_return_type< hl::ValueYieldOp >);
-
-        target.addDynamicallyLegalOp< hl::InitListExpr >(
-                has_llvm_only_types< hl::InitListExpr>);
-
-        target.addIllegalOp< mlir::func::FuncOp >();
-        target.markUnknownOpDynamicallyLegal([](auto) { return true; });
-
-        const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
-
-        mlir::LowerToLLVMOptions llvm_options{ &mctx };
-        llvm_options.useBarePtrCallConv = true;
-        pattern::TypeConverter type_converter(&mctx, llvm_options , &dl_analysis);
-
-        mlir::RewritePatternSet patterns(&mctx);
-        // HL patterns
-        patterns.add< pattern::translation_unit >(type_converter);
-        patterns.add< pattern::scope >(type_converter);
-        patterns.add< pattern::func_op >(type_converter);
-        patterns.add< pattern::constant_int >(type_converter);
-        patterns.add< pattern::ret >(type_converter);
-        patterns.add< pattern::add >(type_converter);
-        patterns.add< pattern::sub >(type_converter);
-        patterns.add< pattern::mul >(type_converter);
-
-        patterns.add< pattern::fadd >(type_converter);
-        patterns.add< pattern::fsub >(type_converter);
-        patterns.add< pattern::fmul >(type_converter);
-
-        patterns.add< pattern::sdiv >(type_converter);
-        patterns.add< pattern::udiv >(type_converter);
-        patterns.add< pattern::fdiv >(type_converter);
-
-        patterns.add< pattern::srem >(type_converter);
-        patterns.add< pattern::urem >(type_converter);
-        patterns.add< pattern::frem >(type_converter);
-
-        patterns.add< pattern::bor >(type_converter);
-        patterns.add< pattern::bxor >(type_converter);
-        patterns.add< pattern::band >(type_converter);
-
-        patterns.add< pattern::shl >(type_converter);
-        patterns.add< pattern::shr >(type_converter);
-
-        patterns.add< pattern::assign_add >(type_converter);
-        patterns.add< pattern::assign_sub >(type_converter);
-        patterns.add< pattern::assign >(type_converter);
-
-        patterns.add< pattern::deref >(type_converter);
-        patterns.add< pattern::declref >(type_converter);
-
-        patterns.add< pattern::implicit_cast >(type_converter);
-        patterns.add< pattern::call >(type_converter);
-        patterns.add< pattern::cmp >(type_converter);
-
-        patterns.add< pattern::pre_inc >(type_converter);
-        patterns.add< pattern::post_inc >(type_converter);
-        patterns.add< pattern::pre_dec >(type_converter);
-        patterns.add< pattern::post_dec >(type_converter);
-
-        patterns.add< pattern::init_list_expr >(type_converter);
-
-        patterns.add< pattern::hl_yield >(type_converter);
-
-        // LL patterns
-        patterns.add< pattern::uninit_var >(type_converter);
-        patterns.add< pattern::initialize_var >(type_converter);
-
-        // Core patterns
-        patterns.add< pattern::lazy_op >(type_converter);
-        patterns.add< pattern::lazy_land >(type_converter);
-        patterns.add< pattern::lazy_lor >(type_converter);
-
-        if (mlir::failed(mlir::applyPartialConversion(op, target, std::move(patterns))))
-            return signalPassFailure();
-    }
 } // namespace vast
 
 
