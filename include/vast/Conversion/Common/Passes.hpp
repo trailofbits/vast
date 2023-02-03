@@ -8,6 +8,8 @@ VAST_RELAX_WARNINGS
 #include "mlir/Transforms/DialectConversion.h"
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Util/LLVMTypeConverter.hpp"
+
 #include <vast/Conversion/Common/Passes.hpp>
 
 namespace vast {
@@ -87,6 +89,57 @@ namespace vast {
         }
 
         // interface with pass base
+        void runOnOperation() override { run_on_operation(); }
+    };
+
+    template< typename derived_t, template< typename > typename base_t >
+    struct ModuleLLVMConversionPassMixin : base_t< derived_t > {
+
+        using base = base_t< derived_t >;
+
+        using base::getContext;
+        using base::getOperation;
+        using base::signalPassFailure;
+
+        using rewrite_pattern_set = mlir::RewritePatternSet;
+
+        using type_converter = util::tc::LLVMTypeConverter;
+
+        template< typename list >
+        static void populate_conversions_impl(
+            rewrite_pattern_set &patterns, type_converter &converter)
+        {
+            if constexpr ( list::empty ) {
+                return;
+            } else {
+                patterns.add< typename list::head >(converter);
+                return populate_conversions_base< typename list::tail >(patterns, converter);
+            }
+        }
+
+        template< typename ...lists  >
+        static void populate_conversions_base(rewrite_pattern_set &patterns, type_converter &converter) {
+            (populate_conversions_impl< lists >(patterns, converter), ...);
+        }
+
+        void run_on_operation() {
+            auto &ctx   = getContext();
+            auto target = derived_t::create_conversion_target(ctx);
+            const auto &dl_analysis = this->template getAnalysis< mlir::DataLayoutAnalysis >();
+
+            mlir::LowerToLLVMOptions llvm_options{ &ctx };
+            llvm_options.useBarePtrCallConv = true;
+            type_converter converter(&ctx, llvm_options , &dl_analysis);
+
+            // populate all patterns
+            rewrite_pattern_set patterns(&ctx);
+            derived_t::populate_conversions(patterns, converter);
+
+            // run on operation
+            if (failed(applyPartialConversion(getOperation(), target, std::move(patterns))))
+                signalPassFailure();
+        }
+
         void runOnOperation() override { run_on_operation(); }
     };
 }
