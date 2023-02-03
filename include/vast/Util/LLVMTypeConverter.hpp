@@ -8,6 +8,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Conversion/LLVMCommon/TypeConverter.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Util/Maybe.hpp"
 #include "vast/Util/TypeConverter.hpp"
 
