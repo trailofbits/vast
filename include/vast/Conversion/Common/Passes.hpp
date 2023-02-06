@@ -128,7 +128,9 @@ namespace vast {
             const auto &dl_analysis = this->template getAnalysis< mlir::DataLayoutAnalysis >();
 
             mlir::LowerToLLVMOptions llvm_options{ &ctx };
-            llvm_options.useBarePtrCallConv = true;
+
+            derived_t::set_llvm_opts(llvm_options);
+
             type_converter converter(&ctx, llvm_options , &dl_analysis);
 
             // populate all patterns
