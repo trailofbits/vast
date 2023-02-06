@@ -22,6 +22,11 @@ namespace vast::hl {
 
     CastKind cast_kind(const clang::CastExpr *expr);
 
+} // namespace vast::hl
+
+
+namespace vast::cg {
+
     template< typename Derived >
     struct CodeGenStmtVisitorMixin
         : clang::ConstStmtVisitor< CodeGenStmtVisitorMixin< Derived >, Operation* >
@@ -104,15 +109,15 @@ namespace vast::hl {
             return nullptr;
         }
 
-        template< Predicate pred >
+        template< hl::Predicate pred >
         Operation* VisitCmp(const clang::BinaryOperator *op) {
             auto lhs = visit(op->getLHS())->getResult(0);
             auto rhs = visit(op->getRHS())->getResult(0);
             auto res = visit(op->getType());
-            return make< CmpOp >(meta_location(op), res, pred, lhs, rhs);
+            return make< hl::CmpOp >(meta_location(op), res, pred, lhs, rhs);
         }
 
-        template< Predicate upred, Predicate spred >
+        template< hl::Predicate upred, hl::Predicate spred >
         Operation* VisitICmp(const clang::BinaryOperator *op) {
             auto ty = op->getLHS()->getType();
             if (ty->isUnsignedIntegerType())
@@ -128,67 +133,67 @@ namespace vast::hl {
         // Operation* VisitBinPtrMemI(clang::BinaryOperator *op);
 
         Operation* VisitBinMul(const clang::BinaryOperator *op) {
-            return VisitIFBinOp< MulIOp, MulFOp >(op);
+            return VisitIFBinOp< hl::MulIOp, hl::MulFOp >(op);
         }
 
         Operation* VisitBinDiv(const clang::BinaryOperator *op) {
-            return VisitIFBinOp< DivUOp, DivSOp, DivFOp >(op);
+            return VisitIFBinOp< hl::DivUOp, hl::DivSOp, hl::DivFOp >(op);
         }
 
         Operation* VisitBinRem(const clang::BinaryOperator *op) {
-            return VisitIFBinOp< RemUOp, RemSOp, RemFOp >(op);
+            return VisitIFBinOp< hl::RemUOp, hl::RemSOp, hl::RemFOp >(op);
         }
 
         Operation* VisitBinAdd(const clang::BinaryOperator *op) {
-            return VisitIFBinOp< AddIOp, AddFOp >(op);
+            return VisitIFBinOp< hl::AddIOp, hl::AddFOp >(op);
         }
 
         Operation* VisitBinSub(const clang::BinaryOperator *op) {
-            return VisitIFBinOp< SubIOp, SubFOp >(op);
+            return VisitIFBinOp< hl::SubIOp, hl::SubFOp >(op);
         }
 
         Operation* VisitBinShl(const clang::BinaryOperator *op) {
-            return VisitBinOp< BinShlOp >(op);
+            return VisitBinOp< hl::BinShlOp >(op);
         }
 
         Operation* VisitBinShr(const clang::BinaryOperator *op) {
-            return VisitBinOp< BinShrOp >(op);
+            return VisitBinOp< hl::BinShrOp >(op);
         }
 
         Operation* VisitBinLT(const clang::BinaryOperator *op) {
-            return VisitICmp< Predicate::ult, Predicate::slt >(op);
+            return VisitICmp< hl::Predicate::ult, hl::Predicate::slt >(op);
         }
 
         Operation* VisitBinGT(const clang::BinaryOperator *op) {
-            return VisitICmp< Predicate::ugt, Predicate::sgt >(op);
+            return VisitICmp< hl::Predicate::ugt, hl::Predicate::sgt >(op);
         }
 
         Operation* VisitBinLE(const clang::BinaryOperator *op) {
-            return VisitICmp< Predicate::ule, Predicate::sle >(op);
+            return VisitICmp< hl::Predicate::ule, hl::Predicate::sle >(op);
         }
 
         Operation* VisitBinGE(const clang::BinaryOperator *op) {
-            return VisitICmp< Predicate::uge, Predicate::sge >(op);
+            return VisitICmp< hl::Predicate::uge, hl::Predicate::sge >(op);
         }
 
         Operation* VisitBinEQ(const clang::BinaryOperator *op) {
-            return VisitCmp< Predicate::eq >(op);
+            return VisitCmp< hl::Predicate::eq >(op);
         }
 
         Operation* VisitBinNE(const clang::BinaryOperator *op) {
-            return VisitCmp< Predicate::ne >(op);
+            return VisitCmp< hl::Predicate::ne >(op);
         }
 
         Operation* VisitBinAnd(const clang::BinaryOperator *op) {
-            return VisitBinOp< BinAndOp >(op);
+            return VisitBinOp< hl::BinAndOp >(op);
         }
 
         Operation* VisitBinXor(const clang::BinaryOperator *op) {
-            return VisitBinOp< BinXorOp >(op);
+            return VisitBinOp< hl::BinXorOp >(op);
         }
 
         Operation* VisitBinOr(const clang::BinaryOperator *op) {
-            return VisitBinOp< BinOrOp >(op);
+            return VisitBinOp< hl::BinOrOp >(op);
         }
 
         template< typename LOp >
@@ -200,11 +205,11 @@ namespace vast::hl {
         }
 
         Operation* VisitBinLAnd(const clang::BinaryOperator *op) {
-            return VisitBinLogical< BinLAndOp >(op);
+            return VisitBinLogical< hl::BinLAndOp >(op);
         }
 
         Operation* VisitBinLOr(const clang::BinaryOperator *op) {
-            return VisitBinLogical< BinLOrOp >(op);
+            return VisitBinLogical< hl::BinLOrOp >(op);
         }
 
         template< typename Op >
@@ -225,7 +230,7 @@ namespace vast::hl {
         }
 
         Operation* VisitBinAssign(const clang::BinaryOperator *op) {
-            return VisitAssignBinOp< AssignOp >(op);
+            return VisitAssignBinOp< hl::AssignOp >(op);
         }
 
         //
@@ -233,50 +238,46 @@ namespace vast::hl {
         //
 
         Operation* VisitBinMulAssign(const clang::CompoundAssignOperator *op) {
-            return VisitAssignBinOp< MulIAssignOp >(op);
+            return VisitAssignBinOp< hl::MulIAssignOp >(op);
         }
 
-        Operation* VisitBinDivAssign(const clang::CompoundAssignOperator *op) {
-            return VisitAssignIBinOp< DivUAssignOp, DivSAssignOp >(op);
+            return VisitAssignIBinOp< hl::DivUAssignOp, hl::DivSAssignOp >(op);
         }
 
         Operation* VisitBinRemAssign(const clang::CompoundAssignOperator *op) {
-            return VisitAssignIBinOp< RemUAssignOp, RemSAssignOp >(op);
+            return VisitAssignIBinOp< hl::RemUAssignOp, hl::RemSAssignOp >(op);
         }
 
         Operation* VisitBinAddAssign(const clang::CompoundAssignOperator *op) {
-            return VisitAssignBinOp< AddIAssignOp >(op);
+            return VisitAssignBinOp< hl::AddIAssignOp >(op);
         }
 
         Operation* VisitBinSubAssign(const clang::CompoundAssignOperator *op) {
-            return VisitAssignBinOp< SubIAssignOp >(op);
+            return VisitAssignBinOp< hl::SubIAssignOp >(op);
         }
 
         Operation* VisitBinShlAssign(const clang::CompoundAssignOperator *op) {
-            return VisitAssignBinOp< BinShlAssignOp >(op);
+            return VisitAssignBinOp< hl::BinShlAssignOp >(op);
         }
 
         Operation* VisitBinShrAssign(const clang::CompoundAssignOperator *op) {
-            return VisitAssignBinOp< BinShrAssignOp >(op);
+            return VisitAssignBinOp< hl::BinShrAssignOp >(op);
         }
 
         Operation* VisitBinAndAssign(const clang::CompoundAssignOperator *op) {
-            return VisitAssignBinOp< BinAndAssignOp >(op);
+            return VisitAssignBinOp< hl::BinAndAssignOp >(op);
         }
 
         Operation* VisitBinOrAssign(const clang::CompoundAssignOperator *op) {
-            return VisitAssignBinOp< BinOrAssignOp >(op);
+            return VisitAssignBinOp< hl::BinOrAssignOp >(op);
         }
 
         Operation* VisitBinXorAssign(const clang::CompoundAssignOperator *op) {
-            return VisitAssignBinOp< BinXorAssignOp >(op);
-        }
+            return VisitAssignBinOp< hl::BinXorAssignOp >(op);
 
-        Operation* VisitBinComma(const clang::BinaryOperator *op) {
-            auto lhs = visit(op->getLHS())->getResult(0);
             auto rhs = visit(op->getRHS())->getResult(0);
             auto ty  = visit(op->getType());
-            return make< BinComma >(meta_location(op), ty, lhs, rhs);
+            return make< hl::BinComma >(meta_location(op), ty, lhs, rhs);
         }
 
         //
@@ -293,50 +294,50 @@ namespace vast::hl {
         Operation* VisitUnderlyingTypePreservingUnary(const clang::UnaryOperator *op) {
             auto arg = visit(op->getSubExpr())->getResult(0);
             auto type = arg.getType();
-            if (auto ltype = type.template dyn_cast< LValueType >()) {
+            if (auto ltype = type.template dyn_cast< hl::LValueType >()) {
                 type = ltype.getElementType();
             }
             return make< Op >(meta_location(op), type, arg);
         }
 
         Operation* VisitUnaryPostInc(const clang::UnaryOperator *op) {
-            return VisitUnderlyingTypePreservingUnary< PostIncOp >(op);
+            return VisitUnderlyingTypePreservingUnary< hl::PostIncOp >(op);
         }
 
         Operation* VisitUnaryPostDec(const clang::UnaryOperator *op) {
-            return VisitUnderlyingTypePreservingUnary< PostDecOp >(op);
+            return VisitUnderlyingTypePreservingUnary< hl::PostDecOp >(op);
         }
 
         Operation* VisitUnaryPreInc(const clang::UnaryOperator *op) {
-            return VisitUnderlyingTypePreservingUnary< PreIncOp >(op);
+            return VisitUnderlyingTypePreservingUnary< hl::PreIncOp >(op);
         }
 
         Operation* VisitUnaryPreDec(const clang::UnaryOperator *op) {
-            return VisitUnderlyingTypePreservingUnary< PreDecOp >(op);
+            return VisitUnderlyingTypePreservingUnary< hl::PreDecOp >(op);
         }
 
         Operation* VisitUnaryAddrOf(const clang::UnaryOperator *op) {
-            return VisitUnary< AddressOf >(op, visit(op->getType()));
+            return VisitUnary< hl::AddressOf >(op, visit(op->getType()));
         }
 
         Operation* VisitUnaryDeref(const clang::UnaryOperator *op) {
-            return VisitUnary< Deref >(op, visit_as_lvalue_type(op->getType()));
+            return VisitUnary< hl::Deref >(op, visit_as_lvalue_type(op->getType()));
         }
 
         Operation* VisitUnaryPlus(const clang::UnaryOperator *op) {
-            return VisitUnderlyingTypePreservingUnary< PlusOp >(op);
+            return VisitUnderlyingTypePreservingUnary< hl::PlusOp >(op);
         }
 
         Operation* VisitUnaryMinus(const clang::UnaryOperator *op) {
-            return VisitUnderlyingTypePreservingUnary< MinusOp >(op);
+            return VisitUnderlyingTypePreservingUnary< hl::MinusOp >(op);
         }
 
         Operation* VisitUnaryNot(const clang::UnaryOperator *op) {
-            return VisitUnderlyingTypePreservingUnary< NotOp >(op);
+            return VisitUnderlyingTypePreservingUnary< hl::NotOp >(op);
         }
 
         Operation* VisitUnaryLNot(const clang::UnaryOperator *op) {
-            return VisitUnderlyingTypePreservingUnary< LNotOp >(op);
+            return VisitUnderlyingTypePreservingUnary< hl::LNotOp >(op);
         }
 
         // Operation* VisitUnaryReal(const clang::UnaryOperator *op)
@@ -374,7 +375,7 @@ namespace vast::hl {
             auto lvalue_cast        = [&] { return visit_as_lvalue_type(expr->getType()); };
             auto non_lvalue_cast    = [&] { return visit(expr->getType()); };
             auto keep_category_cast = [&] {
-                if (from.isa< LValueType >())
+                if (from.isa< hl::LValueType >())
                     return lvalue_cast();
                 return non_lvalue_cast();
             };
@@ -473,19 +474,19 @@ namespace vast::hl {
         Operation* VisitCast(const clang::CastExpr *expr) {
             auto arg = visit(expr->getSubExpr());
             auto rty = VisitCastReturnType(expr, arg->getResultTypes().front());
-            return make< Cast >(meta_location(expr), rty, arg->getResult(0), cast_kind(expr));
+            return make< Cast >(meta_location(expr), rty, arg->getResult(0), hl::cast_kind(expr));
         }
 
         Operation* VisitImplicitCastExpr(const clang::ImplicitCastExpr *expr) {
-             return VisitCast< ImplicitCastOp >(expr);
+             return VisitCast< hl::ImplicitCastOp >(expr);
         }
 
         Operation* VisitCStyleCastExpr(const clang::CStyleCastExpr *expr) {
-            return VisitCast< CStyleCastOp >(expr);
+            return VisitCast< hl::CStyleCastOp >(expr);
         }
 
         Operation* VisitBuiltinBitCastExpr(const clang::BuiltinBitCastExpr *expr) {
-            return VisitCast< BuiltinBitCastOp >(expr);
+            return VisitCast< hl::BuiltinBitCastOp >(expr);
         }
 
         // Operation* VisitCXXFunctionalCastExpr(const clang::CXXFunctionalCastExpr *expr)
@@ -515,20 +516,20 @@ namespace vast::hl {
             return clang::cast< clang::VarDecl >(expr->getDecl()->getUnderlyingDecl());
         }
 
-        VarDeclOp getDefiningOpOfGlobalVar(const clang::VarDecl *decl) {
-            return context().vars.lookup(decl).template getDefiningOp< VarDeclOp >();
+        hl::VarDeclOp getDefiningOpOfGlobalVar(const clang::VarDecl *decl) {
+            return context().vars.lookup(decl).template getDefiningOp< hl::VarDeclOp >();
         }
 
         Operation* VisitEnumDeclRefExpr(const clang::DeclRefExpr *expr) {
             auto decl = clang::cast< clang::EnumConstantDecl >(expr->getDecl()->getUnderlyingDecl());
             auto val = context().enumconsts.lookup(decl);
             auto rty = visit(expr->getType());
-            return make< EnumRefOp >(meta_location(expr), rty, val.getName());
+            return make< hl::EnumRefOp >(meta_location(expr), rty, val.getName());
         }
 
         Operation* VisitVarDeclRefExprImpl(const clang::DeclRefExpr *expr, Value var) {
             auto rty = getLValueReturnType(expr);
-            return make< DeclRefOp >(meta_location(expr), rty, var);
+            return make< hl::DeclRefOp >(meta_location(expr), rty, var);
         }
 
         Operation* VisitVarDeclRefExpr(const clang::DeclRefExpr *expr) {
@@ -542,7 +543,7 @@ namespace vast::hl {
             auto name = mlir::StringAttr::get(&mcontext(), var.getName());
 
             auto rty = getLValueReturnType(expr);
-            return make< GlobalRefOp >(meta_location(expr), rty, name);
+            return make< hl::GlobalRefOp >(meta_location(expr), rty, name);
         }
 
         Operation* VisitFunctionDeclRefExpr(const clang::DeclRefExpr *expr) {
@@ -550,7 +551,7 @@ namespace vast::hl {
             auto fn = context().lookup_function(decl);
             auto rty = getLValueReturnType(expr);
 
-            return make< FuncRefOp >(meta_location(expr), rty, mlir::SymbolRefAttr::get(fn));
+            return make< hl::FuncRefOp >(meta_location(expr), rty, mlir::SymbolRefAttr::get(fn));
         }
 
         Operation* VisitDeclRefExpr(const clang::DeclRefExpr *expr) {
@@ -580,28 +581,28 @@ namespace vast::hl {
         Operation* VisitReturnStmt(const clang::ReturnStmt *stmt) {
             auto loc = meta_location(stmt);
             if (auto ret = stmt->getRetValue())
-                return make< ReturnOp >(loc, visit(ret)->getResults());
-            return make< ReturnOp >(loc);
+                return make< hl::ReturnOp >(loc, visit(ret)->getResults());
+            return make< hl::ReturnOp >(loc);
         }
 
 
         Operation* VisitBreakStmt(const clang::BreakStmt *stmt) {
-            return make< BreakOp >(meta_location(stmt));
+            return make< hl::BreakOp >(meta_location(stmt));
         }
 
         Operation* VisitContinueStmt(const clang::ContinueStmt *stmt) {
-            return make< ContinueOp >(meta_location(stmt));
+            return make< hl::ContinueOp >(meta_location(stmt));
         }
 
         Operation* VisitCaseStmt(const clang::CaseStmt *stmt) {
             auto lhs_builder  = make_value_builder(stmt->getLHS());
             auto body_builder = make_region_builder(stmt->getSubStmt());
-            return make< CaseOp >(meta_location(stmt), lhs_builder, body_builder);
+            return make< hl::CaseOp >(meta_location(stmt), lhs_builder, body_builder);
         }
 
         Operation* VisitDefaultStmt(const clang::DefaultStmt *stmt) {
             auto body_builder = make_region_builder(stmt->getSubStmt());
-            return make< DefaultOp >(meta_location(stmt), body_builder);
+            return make< hl::DefaultOp >(meta_location(stmt), body_builder);
         }
 
         Operation* VisitSwitchStmt(const clang::SwitchStmt *stmt) {
@@ -610,7 +611,7 @@ namespace vast::hl {
             auto make_switch_op = [&] {
                 auto cond_builder = make_value_builder(stmt->getCond());
                 auto body_builder = make_region_builder(stmt->getBody());
-                return make< SwitchOp >(loc, cond_builder, body_builder);
+                return make< hl::SwitchOp >(loc, cond_builder, body_builder);
             };
 
             if (stmt->getInit()) {
@@ -626,13 +627,13 @@ namespace vast::hl {
         Operation* VisitDoStmt(const clang::DoStmt *stmt) {
             auto cond_builder = make_cond_builder(stmt->getCond());
             auto body_builder = make_region_builder(stmt->getBody());
-            return make< DoOp >(meta_location(stmt), body_builder, cond_builder);
+            return make< hl::DoOp >(meta_location(stmt), body_builder, cond_builder);
         }
 
         Operation* VisitWhileStmt(const clang::WhileStmt *stmt) {
             auto cond_builder = make_cond_builder(stmt->getCond());
             auto body_builder = make_region_builder(stmt->getBody());
-            return make< WhileOp >(meta_location(stmt), cond_builder, body_builder);
+            return make< hl::WhileOp >(meta_location(stmt), cond_builder, body_builder);
         }
 
         // Operation* VisitCXXCatchStmt(const clang::CXXCatchStmt *stmt)
@@ -648,8 +649,8 @@ namespace vast::hl {
                 auto incr = make_region_builder(stmt->getInc());
                 auto body = make_region_builder(stmt->getBody());
                 if (auto cond = stmt->getCond())
-                    return make< ForOp >(loc, make_cond_builder(cond), incr, body);
-                return make< ForOp >(loc, make_yield_true(), incr, body);
+                    return make< hl::ForOp >(loc, make_cond_builder(cond), incr, body);
+                return make< hl::ForOp >(loc, make_yield_true(), incr, body);
             };
 
             if (stmt->getInit()) {
@@ -664,18 +665,18 @@ namespace vast::hl {
 
         Operation* VisitGotoStmt(const clang::GotoStmt *stmt) {
             auto lab = visit(stmt->getLabel())->getResult(0);
-            return make< GotoStmt >(meta_location(stmt), lab);
+            return make< hl::GotoStmt >(meta_location(stmt), lab);
         }
         // Operation* VisitIndirectGotoStmt(const clang::IndirectGotoStmt *stmt)
 
         Operation* VisitLabelStmt(const clang::LabelStmt *stmt) {
             auto lab = visit(stmt->getDecl())->getResult(0);
             auto sub_builder = make_region_builder(stmt->getSubStmt());
-            return make< LabelStmt >(meta_location(stmt), lab, sub_builder);
+            return make< hl::LabelStmt >(meta_location(stmt), lab, sub_builder);
         }
 
         Operation* VisitIfStmt(const clang::IfStmt *stmt) {
-            return this->template make_operation< IfOp >()
+            return this->template make_operation< hl::IfOp >()
                 .bind(meta_location(stmt))
                 .bind(make_cond_builder(stmt->getCond()))
                 .bind(make_region_builder(stmt->getThen()))
@@ -691,7 +692,7 @@ namespace vast::hl {
             auto name = context().get_decl_name(expr->getMemberDecl());
             auto base = visit(expr->getBase())->getResult(0);
             auto type = visit_as_lvalue_type(expr->getType());
-            return make< RecordMemberOp >(meta_location(expr), type, base, name);
+            return make< hl::RecordMemberOp >(meta_location(expr), type, base, name);
         }
 
         // Operation* VisitAbstractConditionalOperator(const clang::AbstractConditionalOperator *op)
@@ -700,7 +701,7 @@ namespace vast::hl {
         Operation* VisitAddrLabelExpr(const clang::AddrLabelExpr *expr) {
             auto lab = visit(expr->getLabel())->getResult(0);
             auto rty = visit_as_lvalue_type(expr->getType());
-            return make< AddrLabelExpr >(meta_location(expr), rty, lab);
+            return make< hl::AddrLabelExpr >(meta_location(expr), rty, lab);
         }
 
         Operation* VisitConstantExpr(const clang::ConstantExpr *expr) {
@@ -712,7 +713,7 @@ namespace vast::hl {
             auto rty    = visit_as_lvalue_type(expr->getType());
             auto base   = visit(expr->getBase())->getResult(0);
             auto offset = visit(expr->getIdx())->getResult(0);
-            return make< SubscriptOp >(meta_location(expr), rty, base, offset);
+            return make< hl::SubscriptOp >(meta_location(expr), rty, base, offset);
         }
 
         // Operation* VisitArrayTypeTraitExpr(const clang::ArrayTypeTraitExpr *expr)
@@ -745,7 +746,7 @@ namespace vast::hl {
         // Operation* VisitCXXUnresolvedConstructExpr(const clang::CXXThrowExpr *expr)
         // Operation* VisitCXXUuidofExpr(const clang::CXXUuidofExpr *expr)
 
-        FuncOp VisitDirectCallee(const clang::FunctionDecl *callee) {
+        hl::FuncOp VisitDirectCallee(const clang::FunctionDecl *callee) {
             InsertionGuard guard(builder());
 
             if (auto fn = context().lookup_function(callee, false /* with error */)) {
@@ -753,7 +754,7 @@ namespace vast::hl {
             }
 
             set_insertion_point_to_start(&context().getBodyRegion());
-            return mlir::cast< FuncOp >(visit(callee));
+            return mlir::cast< hl::FuncOp >(visit(callee));
         }
 
         Operation* VisitIndirectCallee(const clang::Expr *callee) {
@@ -773,14 +774,14 @@ namespace vast::hl {
         Operation* VisitDirectCall(const clang::CallExpr *expr) {
             auto callee = VisitDirectCallee(expr->getDirectCallee());
             auto args   = VisitArguments(expr);
-            return make< CallOp >(meta_location(expr), callee, args);
+            return make< hl::CallOp >(meta_location(expr), callee, args);
         }
 
         Operation* VisitIndirectCall(const clang::CallExpr *expr) {
             auto callee = VisitIndirectCallee(expr->getCallee())->getResult(0);
             auto args   = VisitArguments(expr);
-            auto type   = getFunctionType(callee.getType(), context().mod.get()).getResults();
-            return make< IndirectCallOp >(meta_location(expr), type, callee, args);
+            auto type   = hl::getFunctionType(callee.getType(), context().mod.get()).getResults();
+            return make< hl::IndirectCallOp >(meta_location(expr), type, callee, args);
         }
 
         Operation* VisitCallExpr(const clang::CallExpr *expr) {
@@ -800,7 +801,7 @@ namespace vast::hl {
 
         Operation* VisitParenExpr(const clang::ParenExpr *expr) {
             auto [region, type] = make_value_yield_region(expr->getSubExpr());
-            return make< ExprOp >(meta_location(expr), type, std::move(region));
+            return make< hl::ExprOp >(meta_location(expr), type, std::move(region));
         }
 
         // Operation* VisitParenListExpr(const clang::ParenListExpr *expr)
@@ -831,11 +832,11 @@ namespace vast::hl {
             auto kind = expr->getKind();
 
             if (kind == clang::UETT_SizeOf) {
-                return VisitTraitExpr< SizeOfTypeOp, SizeOfExprOp >(expr);
+                return VisitTraitExpr< hl::SizeOfTypeOp, hl::SizeOfExprOp >(expr);
             }
 
             if (kind == clang::UETT_AlignOf) {
-                return VisitTraitExpr< AlignOfTypeOp, AlignOfExprOp >(expr);
+                return VisitTraitExpr< hl::AlignOfTypeOp, hl::AlignOfExprOp >(expr);
             }
 
             VAST_UNREACHABLE("unsupported UnaryExprOrTypeTraitExpr");
@@ -844,7 +845,7 @@ namespace vast::hl {
         // Operation* VisitVAArgExpr(const clang::VAArgExpr *expr)
 
         Operation* VisitNullStmt(const clang::NullStmt *stmt) {
-            return make< SkipStmt >(meta_location(stmt));
+            return make< hl::SkipStmt >(meta_location(stmt));
         }
 
         //
@@ -889,8 +890,8 @@ namespace vast::hl {
                 elements.push_back(visit(elem)->getResult(0));
             }
 
-            return make< InitListExpr >(meta_location(expr), ty, elements);
+            return make< hl::InitListExpr >(meta_location(expr), ty, elements);
         }
     };
 
-} // namespace vast::hl
+} // namespace vast::cg

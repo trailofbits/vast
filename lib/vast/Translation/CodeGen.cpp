@@ -2,6 +2,6 @@
 
 #include "vast/Translation/CodeGen.hpp"
 
-namespace vast::hl
+namespace vast::cg
 {
-} // namespace vast::hl
+} // namespace vast::cg

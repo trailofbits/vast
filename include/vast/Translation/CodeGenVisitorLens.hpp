@@ -12,7 +12,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Translation/CodeGenVisitorBase.hpp"
 #include "vast/Translation/Util.hpp"
 
-namespace vast::hl {
+namespace vast::cg {
 
     //
     // CodeGenVisitorLens
@@ -52,7 +52,7 @@ namespace vast::hl {
         auto visit(Token token) { return derived().Visit(token); }
 
         template< typename Token >
-        Type visit_as_lvalue_type(Token token) { return derived().VisitLValueType(token); }
+        mlir_type visit_as_lvalue_type(Token token) { return derived().VisitLValueType(token); }
     };
 
-} // namespace vast::hl
+} // namespace vast::cg

@@ -14,7 +14,7 @@ VAST_UNRELAX_WARNINGS
 
 #include <concepts>
 
-namespace vast::hl
+namespace vast::cg
 {
     template< typename T >
     concept MetaLike = requires(T meta) {
@@ -110,4 +110,4 @@ namespace vast::hl
         mcontext_t *mctx;
     };
 
-} // namespace vast::hl
+} // namespace vast::cg

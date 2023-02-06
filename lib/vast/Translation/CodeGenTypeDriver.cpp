@@ -14,23 +14,38 @@ namespace vast::cg
         : driver(driver)
     {}
 
-    mlir_type type_conversion_driver::convert_type(qual_type /* type */) {
-        throw cg::unimplemented("type_conversion_driver::convert_type");
+    mlir_type type_conversion_driver::convert_record_decl_type(const clang::RecordDecl */* decl */) {
+        throw cg::unimplemented("convert_record_decl_type");
+
+    }
+
+    mlir_type type_conversion_driver::convert_type(qual_type type) {
+        auto canonical = driver.acontext().getCanonicalType(type);
+        const auto *ty = canonical.getTypePtr();
+
+        if (const auto *record_type = clang::dyn_cast< clang::RecordType >(canonical)) {
+            return convert_record_decl_type(record_type->getDecl());
+        }
+
+        if (auto it = type_cache.find(ty); it != type_cache.end()) {
+            return it->second;
+        }
+
+        // FIXME make type_conversion_driver responsible for visitation
+        auto result = driver.codegen.convert(canonical);
+        type_cache[ty] = result;
+        return result;
     }
 
     mlir::FunctionType type_conversion_driver::get_function_type(clang::GlobalDecl /* decl */) {
         throw cg::unimplemented("get_function_type");
     }
 
-    mlir_type type_conversion_driver::get_coerce_to_type(const abi_arg_info &info) {
-        throw cg::unimplemented("get_coerce_to_type");
-    }
-
     mlir::FunctionType type_conversion_driver::get_function_type(const function_info_t &fninfo) {
         auto lock = driver.make_lock(&fninfo);
         using abi_kind = abi_arg_info::abi_arg_kind;
 
-        auto process_type_info = [&] (auto info) -> mlir_type {
+        auto process_type_info = [&] (const auto &info, auto type) -> mlir_type {
             switch (info.get_kind()) {
             case abi_kind::ignore:
                 // TODO: This should probably be the None type from the builtin
@@ -38,13 +53,13 @@ namespace vast::cg
                 return nullptr;
             case abi_kind::extend:
             case abi_kind::direct:
-                return get_coerce_to_type(info);
+                return convert_type(type);
             default:
                 throw cg::codegen_error("unsupported abi kind");
             }
         };
 
-        auto rty = process_type_info(fninfo.get_return_info());
+        auto rty = process_type_info(fninfo.get_return_info(), fninfo.get_return_type());
 
         clang_to_vast_arg_mapping vast_function_args(
             driver.acontext(), fninfo, true /* only_required_args */
@@ -65,7 +80,7 @@ namespace vast::cg
             auto [first_vast_arg, num_vast_args] = vast_function_args.get_vast_args(arg_no);
             assert(first_vast_arg == 1);
 
-            arg_types[first_vast_arg] = process_type_info(arg_info);
+            arg_types[first_vast_arg] = process_type_info(arg_info, it->type);
         }
 
         auto *mctx = &driver.mcontext();

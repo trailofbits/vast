@@ -12,7 +12,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 
-namespace vast::hl
+namespace vast::cg
 {
     inline void splice_trailing_scopes(mlir::Region::BlockListType &blocks) {
         auto has_trailing_scope = [&] {
@@ -21,13 +21,13 @@ namespace vast::hl
             auto &last_block = blocks.back();
             if (last_block.empty())
                 return false;
-            return mlir::isa< ScopeOp >(last_block.back());
+            return mlir::isa< hl::ScopeOp >(last_block.back());
         };
 
         while (has_trailing_scope()) {
             auto &last_block = blocks.back();
 
-            auto scope  = mlir::cast< ScopeOp >(last_block.back());
+            auto scope  = mlir::cast< hl::ScopeOp >(last_block.back());
             auto parent = scope.getBody().getParentRegion();
             scope->remove();
 
@@ -46,7 +46,7 @@ namespace vast::hl
         }
     }
 
-    inline void splice_trailing_scopes(FuncOp &fn) {
+    inline void splice_trailing_scopes(hl::FuncOp &fn) {
         if (fn.empty())
             return;
         splice_trailing_scopes(fn.getBlocks());
@@ -56,4 +56,4 @@ namespace vast::hl
         splice_trailing_scopes(reg.getBlocks());
     }
 
-} // namespace vast::hl
+} // namespace vast::cg

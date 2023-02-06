@@ -98,6 +98,8 @@ namespace vast::cg
 
         function_processing_lock make_lock(const function_info_t *fninfo);
 
+        friend struct type_conversion_driver;
+
     private:
         // Return the address of the given function. If ty is non-null, then this
         // function will use the specified type if it has to create it.
@@ -188,7 +190,7 @@ namespace vast::cg
         llvm::SmallVector< clang::FunctionDecl *, 8 > deferred_inline_member_func_defs;
 
         // FIXME: make configurable
-        hl::CodeGenWithMetaIDs codegen;
+        CodeGenWithMetaIDs codegen;
 
         const target_info_t &target_info;
 

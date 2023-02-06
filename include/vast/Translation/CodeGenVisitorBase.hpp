@@ -7,7 +7,7 @@
 
 #include "vast/Util/Common.hpp"
 
-namespace vast::hl {
+namespace vast::cg {
 
     template< MetaGeneratorLike MetaGenerator >
     struct CodeGenVisitorBase
@@ -32,4 +32,4 @@ namespace vast::hl {
         Builder _builder;
     };
 
-} // namespace vast::hl
+} // namespace vast::cg

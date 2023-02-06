@@ -22,7 +22,7 @@ VAST_UNRELAX_WARNINGS
 
 #include <variant>
 
-namespace vast::hl
+namespace vast::cg
 {
     struct CodeGenContext {
         mcontext_t &mctx;
@@ -40,22 +40,22 @@ namespace vast::hl
         using VarTable = ScopedValueTable< const clang::VarDecl *, Value >;
         VarTable vars;
 
-        using TypeDefTable = ScopedValueTable< const clang::TypedefDecl *, TypeDefOp >;
+        using TypeDefTable = ScopedValueTable< const clang::TypedefDecl *, hl::TypeDefOp >;
         TypeDefTable typedefs;
 
-        using TypeDeclTable = ScopedValueTable< const clang::TypeDecl *, TypeDeclOp >;
+        using TypeDeclTable = ScopedValueTable< const clang::TypeDecl *, hl::TypeDeclOp >;
         TypeDeclTable typedecls;
 
-        using FuncDeclTable = ScopedValueTable< const clang::FunctionDecl *, FuncOp >;
+        using FuncDeclTable = ScopedValueTable< const clang::FunctionDecl *, hl::FuncOp >;
         FuncDeclTable funcdecls;
 
-        using EnumDecls = ScopedValueTable< const clang::EnumDecl *, EnumDeclOp >;
+        using EnumDecls = ScopedValueTable< const clang::EnumDecl *, hl::EnumDeclOp >;
         EnumDecls enumdecls;
 
-        using EnumConstants = ScopedValueTable< const clang::EnumConstantDecl *, EnumConstantOp >;
+        using EnumConstants = ScopedValueTable< const clang::EnumConstantDecl *, hl::EnumConstantOp >;
         EnumConstants enumconsts;
 
-        using LabelTable = ScopedValueTable< const clang::LabelDecl*, LabelDeclOp >;
+        using LabelTable = ScopedValueTable< const clang::LabelDecl*, hl::LabelDeclOp >;
         LabelTable labels;
 
         size_t anonymous_count = 0;
@@ -124,7 +124,7 @@ namespace vast::hl
             return nullptr;
         }
 
-        FuncOp lookup_function(const clang::FunctionDecl *decl, bool with_error = true) {
+        hl::FuncOp lookup_function(const clang::FunctionDecl *decl, bool with_error = true) {
             return symbol(funcdecls, decl, "error: undeclared function '" + decl->getName() + "'", with_error);
         }
 
@@ -147,4 +147,4 @@ namespace vast::hl
         mlir::IntegerAttr i32(int32_t v) { return interger_attr(v); }
         mlir::IntegerAttr i64(int64_t v) { return interger_attr(v); }
     };
-} // namespace vast::hl
+} // namespace vast::cg

@@ -16,12 +16,12 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 
-namespace vast::hl {
+namespace vast::cg {
 
-    IntegerKind  get_integer_kind (const clang::BuiltinType *ty);
-    FloatingKind get_floating_kind(const clang::BuiltinType *ty);
+    hl::IntegerKind  get_integer_kind (const clang::BuiltinType *ty);
+    hl::FloatingKind get_floating_kind(const clang::BuiltinType *ty);
 
-    SizeParam get_size_attr(const clang::ArrayType *ty, mcontext_t &ctx);
+    hl::SizeParam get_size_attr(const clang::ArrayType *ty, mcontext_t &ctx);
 
     template< typename Derived >
     struct CodeGenTypeVisitorMixin
@@ -49,19 +49,19 @@ namespace vast::hl {
 
         auto with_ucv_qualifiers(auto &&state, bool is_unsigned, qualifiers q) {
             return std::forward< decltype(state) >(state).bind_if( is_unsigned || q.hasConst() || q.hasVolatile(),
-                UCVQualifiersAttr::get(&mcontext(), is_unsigned, q.hasConst(), q.hasVolatile())
+                hl::UCVQualifiersAttr::get(&mcontext(), is_unsigned, q.hasConst(), q.hasVolatile())
             );
         }
 
         auto with_cv_qualifiers(auto &&state, qualifiers q) {
             return std::forward< decltype(state) >(state).bind_if( q.hasConst() || q.hasVolatile(),
-                CVQualifiersAttr::get(&mcontext(), q.hasConst(), q.hasVolatile())
+                hl::CVQualifiersAttr::get(&mcontext(), q.hasConst(), q.hasVolatile())
             );
         }
 
         auto with_cvr_qualifiers(auto &&state, qualifiers q) {
             return std::forward< decltype(state) >(state).bind_if( q.hasConst() || q.hasVolatile() || q.hasRestrict(),
-                CVRQualifiersAttr::get(&mcontext(), q.hasConst(), q.hasVolatile(), q.hasRestrict())
+                hl::CVRQualifiersAttr::get(&mcontext(), q.hasConst(), q.hasVolatile(), q.hasRestrict())
             );
         }
 
@@ -72,35 +72,35 @@ namespace vast::hl {
         template< typename high_level_type >
         auto with_qualifiers(const clang::BuiltinType *ty, qualifiers quals) -> mlir_type;
 
-        template< typename type > requires std::same_as< type, VoidType >
+        template< typename type > requires std::same_as< type, hl::VoidType >
         auto with_qualifiers(const clang::BuiltinType *ty, qualifiers quals) -> mlir_type {
-            return with_cv_qualifiers(type_builder< VoidType >(), quals).freeze();
+            return with_cv_qualifiers(type_builder< hl::VoidType >(), quals).freeze();
         }
 
-        template< typename type > requires std::same_as< type, BoolType >
+        template< typename type > requires std::same_as< type, hl::BoolType >
         auto with_qualifiers(const clang::BuiltinType *ty, qualifiers quals) -> mlir_type {
-            return with_qualifiers(type_builder< BoolType >(), ty, quals);
+            return with_qualifiers(type_builder< hl::BoolType >(), ty, quals);
         }
 
-        template< high_level_integer_type type >
+        template< hl::high_level_integer_type type >
         auto with_qualifiers(const clang::BuiltinType *ty, qualifiers quals) -> mlir_type {
             VAST_ASSERT(ty->isIntegerType());
             return with_ucv_qualifiers(type_builder< type >(), ty->isUnsignedIntegerType(), quals).freeze();
         }
 
-        template< high_level_floating_type type >
+        template< hl::high_level_floating_type type >
         auto with_qualifiers(const clang::BuiltinType *ty, qualifiers quals) -> mlir_type {
             return with_qualifiers(type_builder< type >(), ty, quals);
         }
 
         auto with_qualifiers(const clang::PointerType *ty, qualifiers quals) -> mlir_type {
             auto pointee = visit(ty->getPointeeType());
-            return with_cvr_qualifiers(type_builder< PointerType >().bind(pointee), quals).freeze();
+            return with_cvr_qualifiers(type_builder< hl::PointerType >().bind(pointee), quals).freeze();
         }
 
         auto with_qualifiers(const clang::ArrayType *ty, qualifiers quals) -> mlir_type {
             auto element_type = visit(ty->getElementType());
-            return with_cvr_qualifiers(type_builder< ArrayType >()
+            return with_cvr_qualifiers(type_builder< hl::ArrayType >()
                 .bind(get_size_attr(ty, mcontext()))
                 .bind(element_type), quals)
                 .freeze();
@@ -112,22 +112,22 @@ namespace vast::hl {
 
         auto with_qualifiers(const clang::RecordType *ty, qualifiers quals) -> mlir_type {
             auto name = make_name_attr( context().decl_name(ty->getDecl()) );
-            return with_cv_qualifiers( type_builder< RecordType >().bind(name), quals ).freeze();
+            return with_cv_qualifiers( type_builder< hl::RecordType >().bind(name), quals ).freeze();
         }
 
         auto with_qualifiers(const clang::EnumType *ty, qualifiers quals) -> mlir_type {
             auto name = make_name_attr( context().decl_name(ty->getDecl()) );
-            return with_cv_qualifiers( type_builder< RecordType >().bind(name), quals ).freeze();
+            return with_cv_qualifiers( type_builder< hl::RecordType >().bind(name), quals ).freeze();
         }
 
         auto with_qualifiers(const clang::TypedefType *ty, qualifiers quals) -> mlir_type {
             auto name = make_name_attr( ty->getDecl()->getName() );
-            return with_cvr_qualifiers( type_builder< TypedefType >().bind(name), quals ).freeze();
+            return with_cvr_qualifiers( type_builder< hl::TypedefType >().bind(name), quals ).freeze();
         }
 
         auto with_qualifiers(const clang::ElaboratedType *ty, qualifiers quals) -> mlir_type {
             auto element_type = visit(ty->getNamedType());
-            return with_cvr_qualifiers(type_builder< ElaboratedType >().bind(element_type), quals).freeze();
+            return with_cvr_qualifiers(type_builder< hl::ElaboratedType >().bind(element_type), quals).freeze();
         }
 
         auto with_qualifiers(const clang::BlockPointerType *ty, qualifiers quals) -> mlir_type {
@@ -199,7 +199,7 @@ namespace vast::hl {
         }
 
         auto VisitLValueType(clang::QualType ty) -> mlir_type {
-            return LValueType::get(&mcontext(), visit(ty));
+            return hl::LValueType::get(&mcontext(), visit(ty));
         }
 
         auto VisitFunctionType(const clang::FunctionType *ty) -> mlir_type {
@@ -222,32 +222,32 @@ namespace vast::hl {
 
         auto VisitBuiltinType(const clang::BuiltinType *ty, qualifiers quals) -> mlir_type {
             if (ty->isVoidType()) {
-                return with_qualifiers< VoidType >(ty, quals);
+                return with_qualifiers< hl::VoidType >(ty, quals);
             }
 
             if (ty->isBooleanType()) {
-                return with_qualifiers< BoolType >(ty, quals);
+                return with_qualifiers< hl::BoolType >(ty, quals);
             }
 
             if (ty->isIntegerType()) {
                 switch (get_integer_kind(ty)) {
-                    case IntegerKind::Char:     return with_qualifiers< CharType >(ty, quals);
-                    case IntegerKind::Short:    return with_qualifiers< ShortType >(ty, quals);
-                    case IntegerKind::Int:      return with_qualifiers< IntType >(ty, quals);
-                    case IntegerKind::Long:     return with_qualifiers< LongType >(ty, quals);
-                    case IntegerKind::LongLong: return with_qualifiers< LongLongType >(ty, quals);
-                    case IntegerKind::Int128:   return with_qualifiers< Int128Type >(ty, quals);
+                    case hl::IntegerKind::Char:     return with_qualifiers< hl::CharType >(ty, quals);
+                    case hl::IntegerKind::Short:    return with_qualifiers< hl::ShortType >(ty, quals);
+                    case hl::IntegerKind::Int:      return with_qualifiers< hl::IntType >(ty, quals);
+                    case hl::IntegerKind::Long:     return with_qualifiers< hl::LongType >(ty, quals);
+                    case hl::IntegerKind::LongLong: return with_qualifiers< hl::LongLongType >(ty, quals);
+                    case hl::IntegerKind::Int128:   return with_qualifiers< hl::Int128Type >(ty, quals);
                 }
             }
 
             if (ty->isFloatingType()) {
                 switch (get_floating_kind(ty)) {
-                    case FloatingKind::Half:       return with_qualifiers< HalfType >(ty, quals);
-                    case FloatingKind::BFloat16:   return with_qualifiers< BFloat16Type >(ty, quals);
-                    case FloatingKind::Float:      return with_qualifiers< FloatType >(ty, quals);
-                    case FloatingKind::Double:     return with_qualifiers< DoubleType >(ty, quals);
-                    case FloatingKind::LongDouble: return with_qualifiers< LongDoubleType >(ty, quals);
-                    case FloatingKind::Float128:   return with_qualifiers< Float128Type >(ty, quals);
+                    case hl::FloatingKind::Half:       return with_qualifiers< hl::HalfType >(ty, quals);
+                    case hl::FloatingKind::BFloat16:   return with_qualifiers< hl::BFloat16Type >(ty, quals);
+                    case hl::FloatingKind::Float:      return with_qualifiers< hl::FloatType >(ty, quals);
+                    case hl::FloatingKind::Double:     return with_qualifiers< hl::DoubleType >(ty, quals);
+                    case hl::FloatingKind::LongDouble: return with_qualifiers< hl::LongDoubleType >(ty, quals);
+                    case hl::FloatingKind::Float128:   return with_qualifiers< hl::Float128Type >(ty, quals);
                 }
             }
 
@@ -295,7 +295,7 @@ namespace vast::hl {
         }
 
         auto VisitParenType(const clang::ParenType *ty, qualifiers /* quals */) -> mlir_type {
-            return ParenType::get(&mcontext(), visit(ty->getInnerType()));
+            return hl::ParenType::get(&mcontext(), visit(ty->getInnerType()));
         }
 
         auto VisitParenType(const clang::ParenType *ty) -> mlir_type {
@@ -319,7 +319,7 @@ namespace vast::hl {
         }
 
         auto VisitDecayedType(const clang::DecayedType *ty, qualifiers /* quals */) -> mlir_type {
-            return DecayedType::get(&mcontext(), visit(ty->getDecayedType()));
+            return hl::DecayedType::get(&mcontext(), visit(ty->getDecayedType()));
         }
 
         auto VisitDecayedType(const clang::DecayedType *ty) -> mlir_type {
@@ -372,4 +372,4 @@ namespace vast::hl {
         }
     };
 
-} // namespace vast::hl
+} // namespace vast::cg

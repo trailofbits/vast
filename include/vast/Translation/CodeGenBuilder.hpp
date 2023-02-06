@@ -7,7 +7,7 @@
 #include "vast/Util/Common.hpp"
 #include "vast/Translation/CodeGenVisitorLens.hpp"
 
-namespace vast::hl {
+namespace vast::cg {
 
     template< typename Scope >
     struct ScopeGenerator : InsertionGuard {
@@ -25,8 +25,8 @@ namespace vast::hl {
         Scope scope;
     };
 
-    using HighLevelScope = ScopeGenerator< ScopeOp >;
-    using TranslationUnitScope = ScopeGenerator< TranslationUnitOp >;
+    using HighLevelScope = ScopeGenerator< hl::ScopeOp >;
+    using TranslationUnitScope = ScopeGenerator< hl::TranslationUnitOp >;
 
     //
     // composable builder state
@@ -102,7 +102,7 @@ namespace vast::hl {
             return reg->template getParentOfType< Op >();
         }
 
-        FuncOp get_current_function() { return get_parent_of_type< FuncOp >(); }
+        hl::FuncOp get_current_function() { return get_parent_of_type< hl::FuncOp >(); }
 
         void set_insertion_point_to_start(mlir::Region *region) {
             builder().setInsertionPointToStart(&region->front());
@@ -172,7 +172,7 @@ namespace vast::hl {
             auto &block = reg->back();
             set_insertion_point_to_end( &block );
             auto type = block.back().getResult(0).getType();
-            create< ValueYieldOp >(meta_location(stmt), block.back().getResult(0));
+            create< hl::ValueYieldOp >(meta_location(stmt), block.back().getResult(0));
 
             return { std::move(reg), type };
         }
@@ -188,11 +188,11 @@ namespace vast::hl {
         }
 
         auto make_value_builder(const clang::Stmt *stmt) {
-            return make_stmt_builder< ValueYieldOp >(stmt);
+            return make_stmt_builder< hl::ValueYieldOp >(stmt);
         }
 
         auto make_cond_builder(const clang::Stmt *stmt) {
-            return make_stmt_builder< CondYieldOp >(stmt);
+            return make_stmt_builder< hl::CondYieldOp >(stmt);
         }
 
         auto make_region_builder(const clang::Stmt *stmt) {
@@ -205,16 +205,16 @@ namespace vast::hl {
 
         auto make_yield_true() {
             return [this](auto &bld, auto loc) {
-                create< CondYieldOp >(loc, true_value(loc));
+                create< hl::CondYieldOp >(loc, true_value(loc));
             };
         }
 
-        BoolType bool_type() {
-            return visit(acontext().BoolTy).template cast< BoolType >();
+        hl::BoolType bool_type() {
+            return visit(acontext().BoolTy).template cast< hl::BoolType >();
         }
 
         mlir::Value bool_value(mlir::Location loc, bool value) {
-            return create< ConstantOp >(loc, bool_type(), value);
+            return create< hl::ConstantOp >(loc, bool_type(), value);
         }
 
         mlir::Value true_value(mlir::Location loc) { return bool_value(loc, true); }
@@ -225,24 +225,24 @@ namespace vast::hl {
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APInt value) {
-            return create< ConstantOp >(loc, ty, value);
+            return create< hl::ConstantOp >(loc, ty, value);
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APSInt value) {
-            return create< ConstantOp >(loc, ty, value);
+            return create< hl::ConstantOp >(loc, ty, value);
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::APFloat value) {
-            return create< ConstantOp >(loc, ty, value);
+            return create< hl::ConstantOp >(loc, ty, value);
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::StringRef value) {
-            VAST_CHECK(ty.isa< ArrayType >(), "string constant must have array type");
-            return create< ConstantOp >(loc, ty.cast< ArrayType >(), value);
+            VAST_CHECK(ty.isa< hl::ArrayType >(), "string constant must have array type");
+            return create< hl::ConstantOp >(loc, ty.cast< hl::ArrayType >(), value);
         }
 
-        FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
-            return declare< FuncOp >(context().funcdecls, decl, vast_decl_builder);
+        hl::FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
+            return declare< hl::FuncOp >(context().funcdecls, decl, vast_decl_builder);
         }
 
         Value declare(const clang::ParmVarDecl *decl, auto vast_value) {
@@ -253,24 +253,24 @@ namespace vast::hl {
             return declare< Value >(context().vars, decl, vast_decl_builder);
         }
 
-        LabelDeclOp declare(const clang::LabelDecl *decl, auto vast_decl_builder) {
-            return declare< LabelDeclOp >(context().labels, decl, vast_decl_builder);
+        hl::LabelDeclOp declare(const clang::LabelDecl *decl, auto vast_decl_builder) {
+            return declare< hl::LabelDeclOp >(context().labels, decl, vast_decl_builder);
         }
 
-        TypeDefOp declare(const clang::TypedefDecl *decl, auto vast_decl_builder) {
-            return declare< TypeDefOp >(context().typedefs, decl, vast_decl_builder);
+        hl::TypeDefOp declare(const clang::TypedefDecl *decl, auto vast_decl_builder) {
+            return declare< hl::TypeDefOp >(context().typedefs, decl, vast_decl_builder);
         }
 
-        TypeDeclOp declare(const clang::TypeDecl *decl, auto vast_decl_builder) {
-            return declare< TypeDeclOp >(context().typedecls, decl, vast_decl_builder);
+        hl::TypeDeclOp declare(const clang::TypeDecl *decl, auto vast_decl_builder) {
+            return declare< hl::TypeDeclOp >(context().typedecls, decl, vast_decl_builder);
         }
 
-        EnumDeclOp declare(const clang::EnumDecl *decl, auto vast_decl_builder) {
-            return declare< EnumDeclOp >(context().enumdecls, decl, vast_decl_builder);
+        hl::EnumDeclOp declare(const clang::EnumDecl *decl, auto vast_decl_builder) {
+            return declare< hl::EnumDeclOp >(context().enumdecls, decl, vast_decl_builder);
         }
 
-        EnumConstantOp declare(const clang::EnumConstantDecl *decl, auto vast_decl_builder) {
-            return declare< EnumConstantOp >(context().enumconsts, decl, vast_decl_builder);
+        hl::EnumConstantOp declare(const clang::EnumConstantDecl *decl, auto vast_decl_builder) {
+            return declare< hl::EnumConstantOp >(context().enumconsts, decl, vast_decl_builder);
         }
 
         template< typename SymbolValue >
@@ -288,4 +288,4 @@ namespace vast::hl {
         }
     };
 
-} // namespace vast::hl
+} // namespace vast::cg
