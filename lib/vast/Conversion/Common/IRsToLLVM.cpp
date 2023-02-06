@@ -768,17 +768,17 @@ namespace vast
 
             target.addIllegalDialect< hl::HighLevelDialect >();
             target.addIllegalDialect< ll::LowLevelDialect >();
-            target.addLegalDialect< core::CoreDialect>();
+            target.addLegalDialect< core::CoreDialect >();
+
             target.addLegalOp< hl::TypeDefOp >();
-            target.addLegalOp< hl::ValueYieldOp>();
 
             target.addDynamicallyLegalOp< core::LazyOp >(has_llvm_return_type< core::LazyOp >);
-            target.addDynamicallyLegalOp< core::BinLAndOp >(has_llvm_return_type< core::BinLAndOp>);
-            target.addDynamicallyLegalOp< core::BinLOrOp >(has_llvm_return_type< core::BinLOrOp>);
+            target.addDynamicallyLegalOp< core::BinLAndOp >(has_llvm_return_type< core::BinLAndOp >);
+            target.addDynamicallyLegalOp< core::BinLOrOp >(has_llvm_return_type< core::BinLOrOp >);
             target.addDynamicallyLegalOp< hl::ValueYieldOp >(has_llvm_return_type< hl::ValueYieldOp >);
 
             target.addDynamicallyLegalOp< hl::InitListExpr >(
-                    has_llvm_only_types< hl::InitListExpr>);
+                    has_llvm_only_types< hl::InitListExpr >);
 
             target.addIllegalOp< mlir::func::FuncOp >();
             target.markUnknownOpDynamicallyLegal([](auto) { return true; });
@@ -797,6 +797,11 @@ namespace vast
                 pattern::lazy_op_type_conversions
             >(patterns, converter);
         }
+
+        static void set_llvm_opts(mlir::LowerToLLVMOptions &llvm_options) {
+            llvm_options.useBarePtrCallConv = true;
+        }
+
     };
 } // namespace vast
 
