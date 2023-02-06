@@ -88,8 +88,10 @@ namespace vast::cg {
             ext_parameter_info_span params,
             required_args args
         );
-    private:
+
         codegen_driver &codegen;
+
+    private:
 
         // This should not be moved earlier, since its initialization depends on some
         // of the previous reference members being already initialized
@@ -97,8 +99,6 @@ namespace vast::cg {
 
         // Hold memoized function_info_t results
         llvm::FoldingSet< function_info_t > function_infos;
-
-        llvm::SmallPtrSet< const function_info_t*, 4 > functions_being_processed;
     };
 
 } // namespace vast::cg
