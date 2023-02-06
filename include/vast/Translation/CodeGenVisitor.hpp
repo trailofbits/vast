@@ -10,7 +10,7 @@
 #include "vast/Translation/CodeGenVisitorBase.hpp"
 #include "vast/Translation/CodeGenFallBackVisitor.hpp"
 
-namespace vast::hl
+namespace vast::cg
 {
     //
     // DefaultCodeGenVisitorMixin
@@ -56,4 +56,4 @@ namespace vast::hl
         using MixinType::Visit;
     };
 
-} // namespace vast::hl
+} // namespace vast::cg

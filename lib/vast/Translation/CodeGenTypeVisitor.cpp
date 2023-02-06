@@ -2,71 +2,71 @@
 
 #include "vast/Translation/CodeGenTypeVisitor.hpp"
 
-namespace vast::hl {
+namespace vast::cg {
 
     using BuiltinType = clang::BuiltinType;
 
-    IntegerKind get_integer_kind(const clang::BuiltinType *ty)
+    hl::IntegerKind get_integer_kind(const clang::BuiltinType *ty)
     {
         switch (ty->getKind()) {
             case BuiltinType::Char_U:
             case BuiltinType::UChar:
             case BuiltinType::Char_S:
             case BuiltinType::SChar:
-                return IntegerKind::Char;
+                return hl::IntegerKind::Char;
             case BuiltinType::Short:
             case BuiltinType::UShort:
-                return IntegerKind::Short;
+                return hl::IntegerKind::Short;
             case BuiltinType::Int:
             case BuiltinType::UInt:
-                return IntegerKind::Int;
+                return hl::IntegerKind::Int;
             case BuiltinType::Long:
             case BuiltinType::ULong:
-                return IntegerKind::Long;
+                return hl::IntegerKind::Long;
             case BuiltinType::LongLong:
             case BuiltinType::ULongLong:
-                return IntegerKind::LongLong;
+                return hl::IntegerKind::LongLong;
             case BuiltinType::Int128:
             case BuiltinType::UInt128:
-                return IntegerKind::Int128;
+                return hl::IntegerKind::Int128;
             default:
                 VAST_UNREACHABLE("unknown integer kind");
         }
     }
 
-    FloatingKind get_floating_kind(const clang::BuiltinType *ty)
+    hl::FloatingKind get_floating_kind(const clang::BuiltinType *ty)
     {
         switch (ty->getKind()) {
             case BuiltinType::Half:
             case BuiltinType::Float16:
-                return FloatingKind::Half;
+                return hl::FloatingKind::Half;
             case BuiltinType::BFloat16:
-                return FloatingKind::BFloat16;
+                return hl::FloatingKind::BFloat16;
             case BuiltinType::Float:
-                return FloatingKind::Float;
+                return hl::FloatingKind::Float;
             case BuiltinType::Double:
-                return FloatingKind::Double;
+                return hl::FloatingKind::Double;
             case BuiltinType::LongDouble:
-                return FloatingKind::LongDouble;
+                return hl::FloatingKind::LongDouble;
             case BuiltinType::Float128:
-                return FloatingKind::Float128;
+                return hl::FloatingKind::Float128;
             default:
                 VAST_UNREACHABLE("unknown floating kind");
         }
     }
 
     namespace detail {
-        SizeParam get_size_attr(const clang::ConstantArrayType *arr, mcontext_t &ctx) {
+        hl::SizeParam get_size_attr(const clang::ConstantArrayType *arr, mcontext_t &ctx) {
             // Represents the canonical version of C arrays with a specified
             // constant size.
 
             // For example, the canonical type for 'int A[4 + 4*100]' is a
             // ConstantArrayType where the element type is 'int' and the size is
             // 404.
-            return SizeParam(arr->getSize().getLimitedValue());
+            return hl::SizeParam(arr->getSize().getLimitedValue());
         }
 
-        SizeParam get_size_attr(const clang::DependentSizedArrayType *arr, mcontext_t &ctx) {
+        hl::SizeParam get_size_attr(const clang::DependentSizedArrayType *arr, mcontext_t &ctx) {
             // Represents an array type in C++ whose size is a value-dependent
             // expression.
 
@@ -80,7 +80,7 @@ namespace vast::hl {
             return {};
         }
 
-        SizeParam get_size_attr(const clang::IncompleteArrayType *arr, mcontext_t &ctx) {
+        hl::SizeParam get_size_attr(const clang::IncompleteArrayType *arr, mcontext_t &ctx) {
             // Represents a C array with an unspecified size.
 
             // For example 'int A[]' has an IncompleteArrayType where the
@@ -88,7 +88,7 @@ namespace vast::hl {
             return {};
         }
 
-        SizeParam get_size_attr(const clang::VariableArrayType *arr, mcontext_t &ctx) {
+        hl::SizeParam get_size_attr(const clang::VariableArrayType *arr, mcontext_t &ctx) {
             // Represents a C array with a specified size that is not an
             // integer-constant-expression.
 
@@ -105,8 +105,8 @@ namespace vast::hl {
         }
     } // namespace detail
 
-    SizeParam get_size_attr(const clang::ArrayType *ty, mcontext_t &ctx) {
-        return llvm::TypeSwitch< const clang::ArrayType *, SizeParam >(ty)
+    hl::SizeParam get_size_attr(const clang::ArrayType *ty, mcontext_t &ctx) {
+        return llvm::TypeSwitch< const clang::ArrayType *, hl::SizeParam >(ty)
             .Case< clang::ConstantArrayType
                  , clang::DependentSizedArrayType
                  , clang::IncompleteArrayType

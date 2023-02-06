@@ -4,7 +4,7 @@
 
 #include "vast/Util/Warnings.hpp"
 
-namespace vast::hl
+namespace vast::cg
 {
     template< typename Derived >
     struct DefaultFallBackStmtVisitorMixin {
@@ -76,4 +76,4 @@ namespace vast::hl
         }
     };
 
-} // namespace vast::hl
+} // namespace vast::cg

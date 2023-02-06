@@ -16,7 +16,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelLinkage.hpp"
 #include "vast/Translation/Util.hpp"
 
-namespace vast::hl {
+namespace vast::cg {
 
     template< typename Derived >
     struct CodeGenDeclVisitorMixin
@@ -88,15 +88,15 @@ namespace vast::hl {
             auto emit_function_terminator = [&] (auto fn) {
                 auto loc = fn.getLoc();
                 if (decl->getReturnType()->isVoidType()) {
-                    make< ReturnOp >(loc);
+                    make< hl::ReturnOp >(loc);
                 } else {
                     if (decl->isMain()) {
                         // return zero if no return is present in main
                         auto type = fn.getFunctionType();
                         auto zero = constant(loc, type.getResult(0), apsint(0));
-                        make< ReturnOp >(loc, zero);
+                        make< hl::ReturnOp >(loc, zero);
                     } else {
-                        make< UnreachableOp >(loc);
+                        make< hl::UnreachableOp >(loc);
                     }
                 }
             };
@@ -132,14 +132,14 @@ namespace vast::hl {
 
             llvm::ScopedHashTableScope scope(context().vars);
 
-            auto linkage = get_function_linkage(decl);
+            auto linkage = hl::get_function_linkage(decl);
 
             auto fn = declare(decl, [&] () {
                 auto loc  = meta_location(decl);
                 auto type = visit(decl->getFunctionType()).template cast< mlir::FunctionType >();
                 // make function header, that will be later filled with function body
                 // or returned as declaration in the case of external function
-                return make< FuncOp >(loc, decl->getName(), type, linkage);
+                return make< hl::FuncOp >(loc, decl->getName(), type, linkage);
             });
 
             if (!is_definition) {
@@ -161,24 +161,24 @@ namespace vast::hl {
         // Variable Declration
         //
 
-        StorageClass VisitStorageClass(const clang::VarDecl *decl) const {
+        hl::StorageClass VisitStorageClass(const clang::VarDecl *decl) const {
             switch (decl->getStorageClass()) {
-                case clang::SC_None: return StorageClass::sc_none;
-                case clang::SC_Auto: return StorageClass::sc_auto;
-                case clang::SC_Static: return StorageClass::sc_static;
-                case clang::SC_Extern: return StorageClass::sc_extern;
-                case clang::SC_PrivateExtern: return StorageClass::sc_private_extern;
-                case clang::SC_Register: return StorageClass::sc_register;
+                case clang::SC_None: return hl::StorageClass::sc_none;
+                case clang::SC_Auto: return hl::StorageClass::sc_auto;
+                case clang::SC_Static: return hl::StorageClass::sc_static;
+                case clang::SC_Extern: return hl::StorageClass::sc_extern;
+                case clang::SC_PrivateExtern: return hl::StorageClass::sc_private_extern;
+                case clang::SC_Register: return hl::StorageClass::sc_register;
             }
             VAST_UNREACHABLE("unknown storage class");
         }
 
-        TSClass VisitThreadStorageClass(const clang::VarDecl *decl) const {
+        hl::TSClass VisitThreadStorageClass(const clang::VarDecl *decl) const {
             switch (decl->getTSCSpec()) {
-                case clang::TSCS_unspecified: return TSClass::tsc_none;
-                case clang::TSCS___thread: return TSClass::tsc_gnu_thread;
-                case clang::TSCS_thread_local: return TSClass::tsc_cxx_thread;
-                case clang::TSCS__Thread_local: return TSClass::tsc_c_thread;
+                case clang::TSCS_unspecified: return hl::TSClass::tsc_none;
+                case clang::TSCS___thread: return hl::TSClass::tsc_gnu_thread;
+                case clang::TSCS_thread_local: return hl::TSClass::tsc_cxx_thread;
+                case clang::TSCS__Thread_local: return hl::TSClass::tsc_c_thread;
             }
             VAST_UNREACHABLE("unknown storage class");
         }
@@ -197,7 +197,7 @@ namespace vast::hl {
                     }
                 };
 
-                auto var = this->template make_operation< VarDeclOp >()
+                auto var = this->template make_operation< hl::VarDeclOp >()
                     .bind(meta_location(decl))                                  // location
                     .bind(visit_as_lvalue_type(type))                           // type
                     .bind(decl->getUnderlyingDecl()->getName())                 // name
@@ -205,11 +205,11 @@ namespace vast::hl {
                     .bind_region_if(has_allocator, std::move(array_allocator))  // array allocator
                     .freeze();
 
-                if (auto sc = VisitStorageClass(decl); sc != StorageClass::sc_none) {
+                if (auto sc = VisitStorageClass(decl); sc != hl::StorageClass::sc_none) {
                     var.setStorageClass(sc);
                 }
 
-                if (auto tsc = VisitThreadStorageClass(decl); tsc != TSClass::tsc_none) {
+                if (auto tsc = VisitThreadStorageClass(decl); tsc != hl::TSClass::tsc_none) {
                     var.setThreadStorageClass(tsc);
                 }
 
@@ -271,7 +271,7 @@ namespace vast::hl {
             auto &actx = acontext();
             for (auto attr: from->getAttrs()) {
                 auto annot = mlir::StringAttr::get(to->getContext(), parse_annotation(actx, attr));
-                to->setAttr("annotation", AnnotationAttr::get(annot));
+                to->setAttr("annotation", hl::AnnotationAttr::get(annot));
             }
         }
 
@@ -297,7 +297,7 @@ namespace vast::hl {
                 };
 
                 // create typedef operation
-                auto def = this->template make_operation< TypeDefOp >()
+                auto def = this->template make_operation< hl::TypeDefOp >()
                     .bind(meta_location(decl)) // location
                     .bind(decl->getName())     // name
                     .bind(type())              // type
@@ -312,7 +312,7 @@ namespace vast::hl {
 
         Operation* VisitLabelDecl(const clang::LabelDecl *decl) {
             return declare(decl, [&] {
-                return this->template make_operation< LabelDeclOp >()
+                return this->template make_operation< hl::LabelDeclOp >()
                     .bind(meta_location(decl))  // location
                     .bind(decl->getName())      // name
                     .freeze();
@@ -330,7 +330,7 @@ namespace vast::hl {
                     }
                 };
 
-                return this->template make_operation< EnumDeclOp >()
+                return this->template make_operation< hl::EnumDeclOp >()
                     .bind(meta_location(decl))                              // location
                     .bind(decl->getName())                                  // name
                     .bind(visit(decl->getIntegerType()))                    // type
@@ -345,7 +345,7 @@ namespace vast::hl {
 
                 auto type = visit(decl->getType());
 
-                return this->template make_operation< EnumConstantOp >()
+                return this->template make_operation< hl::EnumConstantOp >()
                     .bind(meta_location(decl))                              // location
                     .bind(decl->getName())                                  // name
                     .bind(type)                                             // type
@@ -366,7 +366,7 @@ namespace vast::hl {
             // declare the type first to allow recursive type definitions
             if (!decl->isCompleteDefinition()) {
                 return declare(decl, [&] {
-                    return this->template make_operation< TypeDeclOp >()
+                    return this->template make_operation< hl::TypeDeclOp >()
                         .bind(meta_location(decl)) // location
                         .bind(decl->getName())     // name
                         .freeze();
@@ -393,9 +393,9 @@ namespace vast::hl {
 
         Operation* VisitRecordDecl(const clang::RecordDecl *decl) {
             if (decl->isUnion()) {
-                return make_record_decl< UnionDeclOp >(decl);
+                return make_record_decl< hl::UnionDeclOp >(decl);
             } else {
-                return make_record_decl< StructDeclOp >(decl);
+                return make_record_decl< hl::StructDeclOp >(decl);
             }
         }
 
@@ -409,7 +409,7 @@ namespace vast::hl {
                 }
             }
 
-            return this->template make_operation< FieldDeclOp >()
+            return this->template make_operation< hl::FieldDeclOp >()
                 .bind(meta_location(decl))              // location
                 .bind(context().get_decl_name(decl))    // name
                 .bind(visit(decl->getType()))           // type
@@ -419,4 +419,4 @@ namespace vast::hl {
         }
     };
 
-} // namespace vast::hl
+} // namespace vast::cg

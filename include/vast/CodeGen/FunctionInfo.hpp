@@ -322,7 +322,7 @@ namespace vast::cg
         static function_info_t *create(
             calling_conv calling_convention,
             bool instance_method,
-            bool chainCall,
+            bool chain_call,
             const ext_info &ext_info,
             ext_parameter_info_span params,
             can_qual_type rty,

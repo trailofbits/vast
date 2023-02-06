@@ -27,8 +27,9 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Translation/DataLayout.hpp"
 #include "vast/Translation/CodeGenMeta.hpp"
+#include "vast/Translation/Types.hpp"
 
-namespace vast::hl
+namespace vast::cg
 {
     namespace detail {
         static inline mcontext_t& codegen_context_setup(mcontext_t &ctx) {
@@ -57,6 +58,13 @@ namespace vast::hl
             detail::codegen_context_setup(*_mctx);
         }
 
+        CodeGenBase(acontext_t *actx, mcontext_t *mctx, MetaGenerator &meta)
+            : CodeGenBase(mctx, meta)
+        {
+            setup_codegen(*actx);
+        }
+
+
         owning_module_ref emit_module(clang::ASTUnit *unit) {
             append_to_module(unit);
             return freeze();
@@ -78,18 +86,18 @@ namespace vast::hl
         void append_to_module(clang::Type *type) { append_impl(type); }
 
         owning_module_ref freeze() {
-            emit_data_layout(*_mctx, _module, _cgctx->data_layout());
+            hl::emit_data_layout(*_mctx, _module, _cgctx->data_layout());
             return std::move(_module);
         }
 
         template< typename From, typename Symbol >
         using ScopedSymbolTable = llvm::ScopedHashTableScope< From, Symbol >;
 
-        using TypeDefsScope      = ScopedSymbolTable< const clang::TypedefDecl *, TypeDefOp >;
-        using TypeDeclsScope     = ScopedSymbolTable< const clang::TypeDecl *, TypeDeclOp >;
-        using EnumDeclsScope     = ScopedSymbolTable< const clang::EnumDecl *, EnumDeclOp >;
-        using EnumConstantsScope = ScopedSymbolTable< const clang::EnumConstantDecl *, EnumConstantOp >;
-        using FunctionsScope     = ScopedSymbolTable< const clang::FunctionDecl *, FuncOp >;
+        using TypeDefsScope      = ScopedSymbolTable< const clang::TypedefDecl *, hl::TypeDefOp >;
+        using TypeDeclsScope     = ScopedSymbolTable< const clang::TypeDecl *, hl::TypeDeclOp >;
+        using EnumDeclsScope     = ScopedSymbolTable< const clang::EnumDecl *, hl::EnumDeclOp >;
+        using EnumConstantsScope = ScopedSymbolTable< const clang::EnumConstantDecl *, hl::EnumConstantOp >;
+        using FunctionsScope     = ScopedSymbolTable< const clang::FunctionDecl *, hl::FuncOp >;
         using VariablesScope     = ScopedSymbolTable< const clang::VarDecl *, Value >;
 
         struct CodegenScope {
@@ -102,6 +110,9 @@ namespace vast::hl
         };
 
         bool verify_module() const { return mlir::verify(_module.get()).succeeded(); }
+
+
+        mlir_type convert(qual_type type) { return _visitor->Visit(type); }
 
     private:
 
@@ -179,7 +190,7 @@ namespace vast::hl
         using Base = CodeGenBase< Visitor >;
 
         DefaultCodeGen(acontext_t *actx, mcontext_t *mctx)
-            : meta(actx, mctx), codegen(mctx, meta)
+            : meta(actx, mctx), codegen(actx, mctx, meta)
         {}
 
         owning_module_ref emit_module(clang::ASTUnit *unit) {
@@ -194,10 +205,12 @@ namespace vast::hl
 
         owning_module_ref freeze() { return codegen.freeze(); }
 
+        mlir_type convert(qual_type type) { return codegen.convert(type); }
+
         MetaGenerator meta;
         CodeGenBase< Visitor > codegen;
     };
 
     using CodeGenWithMetaIDs = DefaultCodeGen< DefaultCodeGenVisitorConfig, IDMetaGenerator >;
 
-} // namespace vast::hl
+} // namespace vast::cg

@@ -28,13 +28,14 @@ namespace vast::cg
         // Convert type into a mlir_type.
         mlir_type convert_type(qual_type type);
 
-        mlir_type get_coerce_to_type(const abi_arg_info &info);
 
         friend struct function_processing_lock;
 
       private:
         void start_function_processing(const function_info_t *fninfo);
         void finish_function_processing(const function_info_t *fninfo);
+
+        mlir_type convert_record_decl_type(const clang::RecordDecl *decl);
 
         using type_cache_t = llvm::DenseMap< const clang::Type *, mlir_type >;
         type_cache_t type_cache;
