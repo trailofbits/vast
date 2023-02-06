@@ -167,6 +167,10 @@ namespace vast::cg
         }
     }
 
+    function_processing_lock codegen_driver::make_lock(const function_info_t *fninfo) {
+        return function_processing_lock(type_conv, fninfo);
+    }
+
     owning_module_ref codegen_driver::freeze() { return codegen.freeze(); }
 
     vast::hl::FuncOp codegen_driver::get_addr_of_function(

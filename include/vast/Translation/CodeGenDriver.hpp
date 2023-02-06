@@ -91,6 +91,13 @@ namespace vast::cg
         const target_info_t &get_target_info() const { return target_info; }
         const type_info_t &get_type_info() const { return type_info; }
 
+        const acontext_t &acontext() const { return actx; }
+
+        const mcontext_t &mcontext() const { return mctx; }
+        mcontext_t &mcontext() { return mctx; }
+
+        function_processing_lock make_lock(const function_info_t *fninfo);
+
     private:
         // Return the address of the given function. If ty is non-null, then this
         // function will use the specified type if it has to create it.

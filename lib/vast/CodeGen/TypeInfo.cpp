@@ -32,8 +32,8 @@ namespace vast::cg
 
         const auto *fn = llvm::cast< clang::FunctionDecl >(decl);
 
-        assert(!llvm::isa< clang::CXXConstructorDecl >(decl) && "not implemented");
-        assert(!llvm::isa< clang::CXXDestructorDecl >(decl) && "not implemented");
+        assert(!llvm::isa< clang::CXXConstructorDecl >(decl) && "NYI");
+        assert(!llvm::isa< clang::CXXDestructorDecl >(decl) && "NYI");
 
         return arrange_function_decl(fn);
     }
@@ -134,9 +134,7 @@ namespace vast::cg
 
         function_infos.InsertNode(fninfo, insert_pos);
 
-        if (!functions_being_processed.insert(fninfo).second) {
-            throw cc::compiler_error("trying to process a function recursively");
-        }
+        auto lock = codegen.make_lock(fninfo);
 
         // Compute ABI inforamtion.
         assert(info.getCC() != clang::CallingConv::CC_SpirFunction && "not supported");
@@ -144,27 +142,10 @@ namespace vast::cg
         assert(info.getCC() != clang::CC_SwiftAsync && "Swift not supported");
         abi_info.compute_info(*fninfo);
 
-        throw cc::compiler_error("arrange_function_info not implemented");
-
+        // FIXME: deal with type coersion later in the vast pipeline
         // Loop over all of the computed argument and return value info. If any of
         // them are direct or extend without a specified coerce type, specify the
         // default now.
-        // auto convert = [&] (auto &info, auto &&type) {
-        //     if (info.can_have_coerce_to_type() && info.get_coerce_to_type() == nullptr) {
-        //         info.set_coerce_to_type(convert_type(type));
-        //     }
-        // };
-
-        // convert(fninfo->get_return_info(), fninfo->get_return_type());
-
-        // for (auto &i : fninfo->arguments()) {
-        //     convert(i.info, i.type);
-        // }
-
-        // if (functions_being_processed.erase(fninfo)) {
-        //     throw cc::compiler_error("function info not being processed");
-        // }
-        (void)codegen;
 
         return *fninfo;
     }

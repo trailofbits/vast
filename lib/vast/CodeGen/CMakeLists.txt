@@ -2,6 +2,7 @@
 
 add_library(vast_codegen
     ABIInfo.cpp
+    ArgInfo.cpp
     FunctionInfo.cpp
     Generator.cpp
     Passes.cpp
