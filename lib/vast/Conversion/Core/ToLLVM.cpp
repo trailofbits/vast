@@ -29,7 +29,7 @@ namespace vast
         using conversion_rewriter = mlir::ConversionPatternRewriter;
 
         template< typename Op >
-        struct lazy_base : operation_conversion_pattern< Op >
+        struct lazy_base : operation_conversion_pattern< Op >, llvm_pattern_utils
         {
             using base = operation_conversion_pattern< Op >;
             using base::base;
@@ -54,14 +54,6 @@ namespace vast
                 rewriter.eraseOp(lazy_op);
 
                 return res;
-            }
-
-            auto iN(auto &rewriter, auto loc, Type type, auto val) const
-            {
-                return rewriter.template create< LLVM::ConstantOp >(
-                        loc,
-                        type,
-                        rewriter.getIntegerAttr(type, val));
             }
         };
 

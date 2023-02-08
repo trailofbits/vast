@@ -50,16 +50,15 @@ namespace vast
         using TypeConverter = util::tc::LLVMTypeConverter;
 
         template< typename Op >
-        struct BasePattern : mlir::ConvertOpToLLVMPattern< Op >
+        struct BasePattern : operation_to_llvm_conversion_pattern< Op >
         {
-            using Base = mlir::ConvertOpToLLVMPattern< Op >;
+            using Base = operation_to_llvm_conversion_pattern< Op >;
             using TC_t = util::TypeConverterWrapper< TypeConverter >;
 
             TypeConverter &tc;
 
             BasePattern(TypeConverter &tc_) : Base(tc_), tc(tc_) {}
             TypeConverter &type_converter() const { return tc; }
-
 
             auto mk_alloca(auto &rewriter, mlir::Type trg_type, auto loc) const
             {
@@ -70,14 +69,6 @@ namespace vast
 
                     return rewriter.template create< LLVM::AllocaOp >(
                             loc, trg_type, count, 0);
-            }
-
-            auto iN(auto &rewriter, auto loc, mlir::Type type, auto val) const
-            {
-                return rewriter.template create< LLVM::ConstantOp >(
-                        loc,
-                        type,
-                        rewriter.getIntegerAttr(type, val));
             }
         };
 
@@ -616,7 +607,7 @@ namespace vast
                     return mlir::failure();
 
                 auto value = rewriter.create< LLVM::LoadOp >(op.getLoc(), arg);
-                auto one = this->iN(rewriter, op.getLoc(), value.getType(), 1);
+                auto one = this->anyN(rewriter, op.getLoc(), value.getType(), 1);
                 auto adjust = rewriter.create< Trg >(op.getLoc(), value, one);
 
                 rewriter.create< LLVM::StoreOp >(op.getLoc(), adjust, arg);
