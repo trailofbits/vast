@@ -791,6 +791,7 @@ namespace vast
                 pattern::one_to_one_conversions,
                 pattern::inline_region_from_op_conversions,
                 pattern::assign_conversions,
+                pattern::unary_in_place_conversions,
                 pattern::init_conversions,
                 pattern::base_op_conversions,
                 pattern::ignore_patterns,
