@@ -7,6 +7,7 @@
 
 VAST_RELAX_WARNINGS
 #include "mlir/Transforms/DialectConversion.h"
+#include "mlir/Conversion/LLVMCommon/Pattern.h"
 VAST_UNRELAX_WARNINGS
 
 namespace vast {
@@ -59,6 +60,45 @@ namespace vast {
     {
         using base = mlir::OpConversionPattern< op_t >;
         using base::base;
+    };
+
+    struct llvm_pattern_utils
+    {
+        auto iN(auto &rewriter, auto loc, mlir::Type type, auto val) const
+        {
+            return rewriter.template create< mlir::LLVM::ConstantOp >(
+                    loc,
+                    type,
+                    rewriter.getIntegerAttr(type, val));
+        }
+
+        auto fN(auto &rewriter, auto loc, mlir::Type type, auto val) const
+        {
+            return rewriter.template create< mlir::LLVM::ConstantOp >(
+                    loc,
+                    type,
+                    rewriter.getFloatAttr(type, val));
+        }
+
+        auto anyN(auto &rewriter, auto loc, mlir::Type type, auto val) const
+        {
+            if (type.isIntOrIndex())
+                return iN(rewriter, loc, type, val);
+            if (type.isa< mlir::FloatType >())
+                return fN(rewriter, loc, type, val);
+            VAST_UNREACHABLE("not an integer or float type");
+        }
+    };
+
+    template< typename op_t >
+    struct operation_to_llvm_conversion_pattern
+        : mlir::ConvertOpToLLVMPattern< op_t >, llvm_pattern_utils
+    {
+            using base = mlir::ConvertOpToLLVMPattern< op_t >;
+            using base::base;
+
+            using llvm_util = llvm_pattern_utils;
+            using llvm_util::llvm_util;
     };
 
 } // namespace vast
