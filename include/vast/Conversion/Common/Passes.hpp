@@ -92,6 +92,28 @@ namespace vast {
         void runOnOperation() override { run_on_operation(); }
     };
 
+    // Sibling of the above module for passes that go to the LLVM dialect.
+    // Example usage:
+    //
+    // struct ExamplePass : ModuleLLVMConversionPassMixin< ExamplePass, ExamplePassBase > {
+    //     using base = ModuleLLVMConversionPassMixin< ExamplePass, ExamplePassBase >;
+    //
+    //     static conversion_target create_conversion_target(MContext &context) {
+    //         conversion_target target(context);
+    //         // setup target here
+    //         return target;
+    //     }
+    //
+    //     static void populate_conversions(rewrite_pattern_set &patterns) {
+    //         base::populate_conversions_base<
+    //             // pass conversion type_lists here
+    //         >(patterns);
+    //     }
+    //     static void set_llvm_options(mlir::LowerToLLVMOptions &llvm_options) {
+    //          llvm_options.myOption = my_value;
+    //     }
+    // }
+    //
     template< typename derived_t, template< typename > typename base_t >
     struct ModuleLLVMConversionPassMixin : base_t< derived_t > {
 
