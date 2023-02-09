@@ -607,7 +607,7 @@ namespace vast
                     return mlir::failure();
 
                 auto value = rewriter.create< LLVM::LoadOp >(op.getLoc(), arg);
-                auto one = this->anyN(rewriter, op.getLoc(), value.getType(), 1);
+                auto one = this->constant(rewriter, op.getLoc(), value.getType(), 1);
                 auto adjust = rewriter.create< Trg >(op.getLoc(), value, one);
 
                 rewriter.create< LLVM::StoreOp >(op.getLoc(), adjust, arg);

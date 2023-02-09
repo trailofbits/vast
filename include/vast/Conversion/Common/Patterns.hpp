@@ -80,7 +80,7 @@ namespace vast {
                     rewriter.getFloatAttr(type, val));
         }
 
-        auto anyN(auto &rewriter, auto loc, mlir::Type type, auto val) const
+        auto constant(auto &rewriter, auto loc, mlir::Type type, auto val) const
         {
             if (type.isIntOrIndex())
                 return iN(rewriter, loc, type, val);
