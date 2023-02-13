@@ -75,7 +75,8 @@ namespace vast::hl {
         Operation* VisitBinOp(const clang::BinaryOperator *op) {
             auto lhs = visit(op->getLHS())->getResult(0);
             auto rhs = visit(op->getRHS())->getResult(0);
-            return make< Op >(meta_location(op), lhs, rhs);
+            auto type = visit(op->getType());
+            return make< Op >(meta_location(op), type, lhs, rhs);
         }
 
         template< typename UOp, typename SOp >
@@ -92,6 +93,9 @@ namespace vast::hl {
         Operation* VisitIFBinOp(const clang::BinaryOperator *op) {
             auto ty = op->getType();
             if (ty->isIntegerType())
+                return VisitBinOp< IOp >(op);
+            // FIXME: eventually decouple arithmetic and pointer additions?
+            if (ty->isPointerType())
                 return VisitBinOp< IOp >(op);
             if (ty->isFloatingType())
                 return VisitBinOp< FOp >(op);
@@ -122,6 +126,8 @@ namespace vast::hl {
         Operation* VisitICmp(const clang::BinaryOperator *op) {
             auto ty = op->getLHS()->getType();
             if (ty->isUnsignedIntegerType())
+                return VisitCmp< upred >(op);
+            if (ty->isPointerType())
                 return VisitCmp< upred >(op);
             if (ty->isIntegerType())
                 return VisitCmp< spred >(op);
