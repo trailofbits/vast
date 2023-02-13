@@ -621,7 +621,7 @@ def CStyleCastOp     : CastOp< "cstyle_cast", [] >;
 def BuiltinBitCastOp : CastOp< "builtin_bitcast", [] >;
 
 class ArithBinOp< string mnemonic, list< Trait > traits = [] >
-    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect, SameOperandsAndResultType]) >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
     , Arguments<(ins AnyType:$lhs, AnyType:$rhs)>
     , Results<(outs AnyType:$result)>
 {
@@ -633,10 +633,10 @@ class ArithBinOp< string mnemonic, list< Trait > traits = [] >
 
         The custom assembly form of the operation is as follows:
 
-        %result = <op> %lhs, %rhs  : type
+        %result = <op> %lhs, %rhs  : functional-type(operands, results)
     }];
 
-    let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` type($result) }];
+    let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` functional-type(operands, results) }];
 }
 
 def AddIOp : ArithBinOp< "add", [Commutative]>;
@@ -724,14 +724,9 @@ def BinShrOp : ShiftOp<"bin.shr", []>;
 
 
 class CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< Trait > traits = [] >
-    : HighLevel_Op< mnemonic, !listconcat(traits, [
-        TypesMatchWith<
-          "underlying destination type match result type",
-          "dst", "result",
-          "$_self.cast< LValueType >().getElementType()"
-        >
-    ])>
-    , Arguments<(ins LValueOrType<Type>:$src, LValueOf<Type>:$dst)>
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
+    // FIXME: add argument constraints and infer return type
+    , Arguments<(ins AnyType:$src, AnyType:$dst)>
     , Results<(outs Type:$result)>
 {
     let summary = "VAST compound assign operation";
@@ -742,24 +737,16 @@ class CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< Trai
 
         The custom assembly form of the operation is as follows:
 
-        %result = <assign.op> src to dst : type(src)
+        %result = <assign.op> src to dst functional-type(operands, results)
 
         It represents C compound assignment statement:
 
         dst =<op> src;
     }];
 
-    let skipDefaultBuilders = 1;
-    let builders = [ OpBuilder<(ins "Value":$dst, "Value":$src), [{
-        $_state.addOperands(src);
-        $_state.addOperands(dst);
-        auto type = dst.getType().cast< LValueType >();
-        $_state.addTypes(type.getElementType());
-      }]>
-    ];
 
     let assemblyFormat = [{
-      $src `to` $dst attr-dict `:` type(operands) `->` type(results)
+      $src `to` $dst attr-dict `:` functional-type(operands, results)
     }];
 }
 
