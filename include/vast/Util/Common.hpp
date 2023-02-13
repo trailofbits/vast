@@ -51,6 +51,9 @@ namespace vast
     using mlir_type  = mlir::Type;
     using clang_type = clang::Type;
 
+    using operation  = mlir::Operation*;
+    using mlir_value = mlir::Value;
+
     using string_ref     = llvm::StringRef;
     using logical_result = mlir::LogicalResult;
 

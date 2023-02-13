@@ -173,27 +173,13 @@ namespace vast::cg
 
     owning_module_ref codegen_driver::freeze() { return codegen.freeze(); }
 
-    vast::hl::FuncOp codegen_driver::get_addr_of_function(
-        clang::GlobalDecl /* decl */, mlir_type /* ty */,
-        bool /* for_vtable */, bool /* dontdefer */,
-        global_emit /* is_for_definition */
-    ) {
-        throw cg::unimplemented("get_addr_of_function");
-    }
-
-    mlir::Operation *codegen_driver::get_addr_of_function(
-        clang::GlobalDecl /* decl */, global_emit /* is_for_definition */
-    ) {
-        throw cg::unimplemented("get_addr_of_function");
-    }
-
-    void codegen_driver::build_global_definition(clang::GlobalDecl glob, mlir::Operation *op) {
+    operation codegen_driver::build_global_definition(clang::GlobalDecl glob) {
         const auto *decl = llvm::cast< clang::ValueDecl >(glob.getDecl());
 
         if (const auto *fn = llvm::dyn_cast< clang::FunctionDecl >(decl)) {
             // At -O0, don't generate vast for functions with available_externally linkage.
             if (!should_emit_function(glob))
-                return;
+                return nullptr;
 
             if (fn->isMultiVersion()) {
                 throw cg::unimplemented("codegen for multi version function");
@@ -203,7 +189,7 @@ namespace vast::cg
                 throw cg::unimplemented("cxx methods");
             }
 
-            return build_global_function_definition(glob, op);
+            return build_global_function_definition(glob);
         }
 
         if (const auto *var = llvm::dyn_cast< clang::VarDecl >(decl))
@@ -213,27 +199,21 @@ namespace vast::cg
 
     }
 
-    void codegen_driver::build_global_function_definition(clang::GlobalDecl decl, mlir::Operation *op) {
+    operation codegen_driver::build_global_function_definition(clang::GlobalDecl decl) {
         // auto const *fn_decl = llvm::cast< clang::FunctionDecl >(decl.getDecl());
 
         // Compute the function info and vast type.
         const auto &fty_info = type_info.arrange_global_decl(decl);
-        /* auto ty = */ type_conv.get_function_type(fty_info);
-        throw cg::unimplemented("build_global_function_definition type emition ");
+        auto ty = type_conv.get_function_type(fty_info);
 
-        // Get or create the prototype for the function.
-        // if (!V || (V.getValueType() != Ty))
-        // TODO: Figure out what to do here? llvm uses a GlobalValue for the FuncOp in mlir
-        // op = get_addr_of_function(
-        //     decl, ty, /*ForVTable=*/false, /*DontDefer=*/true,
-        //     global_emit::definition
-        // );
+        assert(!lang().CUDA && "NYI");
+        auto op = codegen.build_function_prototype(decl, ty);
 
-        // auto fn = mlir::cast< vast::hl::FuncOp >(op);
-        // // Already emitted.
-        // if (!fn.isDeclaration()) {
-        //     return;
-        // }
+        auto fn = mlir::cast< vast::hl::FuncOp >(op);
+        // Already emitted.
+        if (!fn.isDeclaration()) {
+            return op;
+        }
 
         // setFunctionLinkage(GD, Fn);
         // // TODO setGVProperties
@@ -252,9 +232,12 @@ namespace vast::cg
         // // TODO: setNonAliasAttributes
         // // TODO: SetLLVMFunctionAttributesForDeclaration
 
-        // assert(!D->getAttr<ConstructorAttr>() && "not implemented");
-        // assert(!D->getAttr<DestructorAttr>() && "not implemented");
-        // assert(!D->getAttr<AnnotateAttr>() && "not implemented");
+        // assert(!D->getAttr<ConstructorAttr>() && "NYI");
+        // assert(!D->getAttr<DestructorAttr>() && "NYI");
+        // assert(!D->getAttr<AnnotateAttr>() && "NYI");
+
+        throw cg::unimplemented("build_global_function_definition type emition ");
+        return op;
     }
 
     bool codegen_driver::should_emit_function(clang::GlobalDecl /* decl */) {
@@ -262,31 +245,31 @@ namespace vast::cg
         return true;
     }
 
-    void codegen_driver::build_global_var_definition(const clang::VarDecl */* decl */, bool /* tentative */) {
+    operation codegen_driver::build_global_var_definition(const clang::VarDecl */* decl */, bool /* tentative */) {
         throw cg::unimplemented("build_global_var_definition");
     }
 
-    void codegen_driver::build_global_decl(clang::GlobalDecl &/* decl */) {
+    operation codegen_driver::build_global_decl(const clang::GlobalDecl &/* decl */) {
         throw cg::unimplemented("build_global_decl");
     }
 
-    void codegen_driver::build_global(clang::GlobalDecl decl) {
+    operation codegen_driver::build_global(clang::GlobalDecl decl) {
         const auto *glob = llvm::cast< clang::ValueDecl >(decl.getDecl());
 
-        assert(!glob->hasAttr< clang::WeakRefAttr >() && "not implemented");
-        assert(!glob->hasAttr< clang::AliasAttr >() && "not implemented");
-        assert(!glob->hasAttr< clang::IFuncAttr >() && "not implemented");
-        assert(!glob->hasAttr< clang::CPUDispatchAttr >() && "not implemented");
+        assert(!glob->hasAttr< clang::WeakRefAttr >() && "NYI");
+        assert(!glob->hasAttr< clang::AliasAttr >() && "NYI");
+        assert(!glob->hasAttr< clang::IFuncAttr >() && "NYI");
+        assert(!glob->hasAttr< clang::CPUDispatchAttr >() && "NYI");
 
-        assert(!lang().CUDA && "not implemented");
-        assert(!lang().OpenMP && "not implemented");
+        assert(!lang().CUDA && "NYI");
+        assert(!lang().OpenMP && "NYI");
 
         // Ignore declarations, they will be emitted on their first use.
         if (const auto *fn = llvm::dyn_cast< clang::FunctionDecl >(glob)) {
             // Forward declarations are emitted lazily on first use.
             if (!fn->doesThisDeclarationHaveABody()) {
                 if (!fn->doesDeclarationForceExternallyVisibleDefinition())
-                    return;
+                    return nullptr;
                 throw cg::unimplemented("build_global FunctionDecl");
                 // auto mangled_name = getMangledName(decl);
 
@@ -305,13 +288,13 @@ namespace vast::cg
             // assert(var->isFileVarDecl() && "Cannot emit local var decl as global.");
             // if (var->isThisDeclarationADefinition() != VarDecl::Definition &&
             //     !astCtx.isMSStaticDataMemberInlineDefinition(var)) {
-            //     assert(!getLangOpts().OpenMP && "not implemented");
+            //     assert(!getLangOpts().OpenMP && "NYI");
             //     // If this declaration may have caused an inline variable definition
             //     // to change linkage, make sure that it's emitted.
             //     // TODO probably use GetAddrOfGlobalVar(var) below?
             //     assert((astCtx.getInlineVariableDefinitionKind(var) !=
             //             ASTContext::InlineVariableDefinitionKind::Strong) &&
-            //             "not implemented");
+            //             "NYI");
             //     return;
             // }
         }
@@ -345,12 +328,14 @@ namespace vast::cg
         //     // use of the mangled name will cause it to move into DeferredDeclsToEmit.
         //     DeferredDecls[MangledName] = GD;
         // }
+
+        throw cg::unimplemented("build_global");
     }
 
     bool codegen_driver::must_be_emitted(const clang::ValueDecl *glob) {
         // Never defer when EmitAllDecls is specified.
-        assert(!lang().EmitAllDecls && "EmitAllDecls not implemented");
-        assert(!options.keep_static_consts && "KeepStaticConsts not implemented");
+        assert(!lang().EmitAllDecls && "EmitAllDecls NYI");
+        assert(!options.keep_static_consts && "KeepStaticConsts NYI");
 
         return actx.DeclMustBeEmitted(glob);
     }
@@ -362,8 +347,8 @@ namespace vast::cg
             // Implicit template instantiations may change linkage if they are later
             // explicitly instantiated, so they should not be emitted eagerly.
             constexpr auto implicit = clang::TSK_ImplicitInstantiation;
-            assert(fn->getTemplateSpecializationKind() != implicit && "not implemented");
-            assert(!fn->isTemplated() && "templates not implemented");
+            assert(fn->getTemplateSpecializationKind() != implicit && "NYI");
+            assert(!fn->isTemplated() && "templates NYI");
             return true;
         }
 
@@ -372,17 +357,45 @@ namespace vast::cg
             // A definition of an inline constexpr static data member may change
             // linkage later if it's redeclared outside the class.
             constexpr auto weak_unknown = clang::ASTContext::InlineVariableDefinitionKind::WeakUnknown;
-            assert(actx.getInlineVariableDefinitionKind(vr) != weak_unknown && "not implemented");
+            assert(actx.getInlineVariableDefinitionKind(vr) != weak_unknown && "NYI");
             return true;
         }
 
         throw cg::unimplemented("unsupported value decl");
     }
 
+    operation codegen_driver::get_global_value(string_ref name) {
+        return codegen.get_global_value(name);
+    }
+
+    mlir_value codegen_driver::get_global_value(const clang::Decl *decl) {
+        return codegen.get_global_value(decl);
+    }
+
+    const std::vector< clang::GlobalDecl >& codegen_driver::default_methods_to_emit() const {
+        return codegen.default_methods_to_emit();
+    }
+
+    const std::vector< clang::GlobalDecl >& codegen_driver::deferred_decls_to_emit() const {
+        return codegen.deferred_decls_to_emit();
+    }
+
+    const std::vector< const clang::CXXRecordDecl * >& codegen_driver::deferred_vtables() const {
+        return codegen.deferred_vtables();
+    }
+
+    const std::map< string_ref, clang::GlobalDecl >& codegen_driver::deferred_decls() const {
+        return codegen.deferred_decls();
+    }
+
+    std::vector< clang::GlobalDecl >&& codegen_driver::receive_deferred_decls_to_emit() {
+        return codegen.receive_deferred_decls_to_emit();
+    }
+
     void codegen_driver::build_default_methods() {
         // Differently from deferred_decls_to_emit, there's no recurrent use of
         // deferred_decls_to_emit, so use it directly for emission.
-        for (auto &decl : default_methods_to_emit) {
+        for (const auto &decl : default_methods_to_emit()) {
             build_global_decl(decl);
         }
     }
@@ -396,7 +409,7 @@ namespace vast::cg
         // Emit code for any potentially referenced deferred decls. Since a previously
         // unused static decl may become used during the generation of code for a
         // static function, iterate until no changes are made.
-        if (!deferred_vtables.empty()) {
+        if (!deferred_vtables().empty()) {
             throw cg::unimplemented("build_deferred for vtables");
         }
 
@@ -408,14 +421,12 @@ namespace vast::cg
         }
 
         // Stop if we're out of both deferred vtables and deferred declarations.
-        if (deferred_decls_tot_emit.empty())
+        if (deferred_decls_to_emit().empty())
             return;
 
-        // Grab the list of decls to emit. If buildGlobalDefinition schedules more
+        // Grab the list of decls to emit. If build_global_definition schedules more
         // work, it will not interfere with this.
-        std::vector< clang::GlobalDecl > curr_decls_to_emit;
-        curr_decls_to_emit.swap(deferred_decls_tot_emit);
-
+        auto curr_decls_to_emit = receive_deferred_decls_to_emit();
         for (auto &decl : curr_decls_to_emit) {
             build_global_decl(decl);
 
@@ -423,9 +434,9 @@ namespace vast::cg
             // If we found out that we need to emit more decls, do that recursively.
             // This has the advantage that the decls are emitted in a DFS and related
             // ones are close together, which is convenient for testing.
-            if (!deferred_vtables.empty() || !deferred_decls_tot_emit.empty()) {
+            if (!deferred_vtables().empty() || !deferred_decls_to_emit().empty()) {
                 build_deferred();
-                assert(deferred_vtables.empty() && deferred_decls_tot_emit.empty());
+                assert(deferred_vtables().empty() && deferred_decls_to_emit().empty());
             }
         }
     }

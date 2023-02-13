@@ -90,6 +90,10 @@ namespace vast::cg
             return std::move(_module);
         }
 
+        operation build_function_prototype(clang::GlobalDecl decl, mlir_type fty) {
+            return _visitor->build_function_prototype(decl, fty);
+        }
+
         template< typename From, typename Symbol >
         using ScopedSymbolTable = llvm::ScopedHashTableScope< From, Symbol >;
 
@@ -111,6 +115,35 @@ namespace vast::cg
 
         bool verify_module() const { return mlir::verify(_module.get()).succeeded(); }
 
+        operation get_global_value(string_ref name) {
+            return _cgctx->get_global_value(name);
+        }
+
+        mlir_value get_global_value(const clang::Decl *decl) {
+            return _cgctx->get_global_value(decl);
+        }
+
+        const std::vector< clang::GlobalDecl >& default_methods_to_emit() const {
+            return _cgctx->default_methods_to_emit;
+        }
+
+        const std::vector< clang::GlobalDecl >& deferred_decls_to_emit() const {
+            return _cgctx->deferred_decls_to_emit;
+        }
+
+        const std::vector< const clang::CXXRecordDecl * >& deferred_vtables() const {
+            return _cgctx->deferred_vtables;
+        }
+
+        const std::map< string_ref, clang::GlobalDecl >& deferred_decls() const {
+            return _cgctx->deferred_decls;
+        }
+
+        std::vector< clang::GlobalDecl >&& receive_deferred_decls_to_emit() {
+            std::vector< clang::GlobalDecl > current;
+            current.swap(_cgctx->deferred_decls_to_emit);
+            return std::move(current);
+        }
 
         mlir_type convert(qual_type type) { return _visitor->Visit(type); }
 
@@ -206,6 +239,38 @@ namespace vast::cg
         owning_module_ref freeze() { return codegen.freeze(); }
 
         mlir_type convert(qual_type type) { return codegen.convert(type); }
+
+        operation build_function_prototype(clang::GlobalDecl decl, mlir_type fty) {
+            return codegen.build_function_prototype(decl, fty);
+        }
+
+        operation get_global_value(string_ref name) {
+            return codegen.get_global_value(name);
+        }
+
+        mlir_value get_global_value(const clang::Decl *decl) {
+            return codegen.get_global_value(decl);
+        }
+
+        const std::vector< clang::GlobalDecl >& default_methods_to_emit() const {
+            return codegen.default_methods_to_emit();
+        }
+
+        const std::vector< clang::GlobalDecl >& deferred_decls_to_emit() const {
+            return codegen.deferred_decls_to_emit();
+        }
+
+        const std::vector< const clang::CXXRecordDecl * >& deferred_vtables() const {
+            return codegen.deferred_vtables();
+        }
+
+        const std::map< string_ref, clang::GlobalDecl >& deferred_decls() const {
+            return codegen.deferred_decls();
+        }
+
+        std::vector< clang::GlobalDecl >&& receive_deferred_decls_to_emit() {
+            return codegen.receive_deferred_decls_to_emit();
+        }
 
         MetaGenerator meta;
         CodeGenBase< Visitor > codegen;

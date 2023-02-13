@@ -47,9 +47,6 @@ namespace vast::cg
         ~defer_handle_of_top_level_decl();
     };
 
-    // tags for globals emition
-    enum class global_emit { definition, declaration };
-
     // This is a layer that provides interface between
     // clang codegen and vast codegen
     struct codegen_driver {
@@ -101,34 +98,30 @@ namespace vast::cg
         friend struct type_conversion_driver;
 
     private:
-        // Return the address of the given function. If ty is non-null, then this
-        // function will use the specified type if it has to create it.
-        // TODO: this is a bit weird as `get_addr` given we give back a FuncOp?
-        vast::hl::FuncOp get_addr_of_function(
-            clang::GlobalDecl decl, mlir_type ty = nullptr,
-            bool for_vtable = false, bool dontdefer = false,
-            global_emit emit = global_emit::declaration
-        );
-
-        mlir::Operation *get_addr_of_function(
-            clang::GlobalDecl decl,
-            global_emit emit = global_emit::declaration
-        );
-
         bool should_emit_function(clang::GlobalDecl decl);
 
-        void build_global_definition(clang::GlobalDecl decl, mlir::Operation *op = nullptr);
-        void build_global_function_definition(clang::GlobalDecl decl, mlir::Operation *op);
-        void build_global_var_definition(const clang::VarDecl *decl, bool tentative = false);
+        operation build_global_definition(clang::GlobalDecl decl);
+        operation build_global_function_definition(clang::GlobalDecl decl);
+        operation build_global_var_definition(const clang::VarDecl *decl, bool tentative = false);
 
         // Emit any needed decls for which code generation was deferred.
         void build_deferred();
 
         // Helper for `build_deferred` to apply actual codegen.
-        void build_global_decl(clang::GlobalDecl &decl);
+        operation build_global_decl(const clang::GlobalDecl &decl);
         // Emit code for a single global function or var decl.
         // Forward declarations are emitted lazily.
-        void build_global(clang::GlobalDecl decl);
+        operation build_global(clang::GlobalDecl decl);
+
+        operation get_global_value(string_ref name);
+        mlir_value get_global_value(const clang::Decl *decl);
+
+        const std::vector< clang::GlobalDecl >& default_methods_to_emit() const;
+        const std::vector< clang::GlobalDecl >& deferred_decls_to_emit() const;
+        const std::vector< const clang::CXXRecordDecl * >& deferred_vtables() const;
+        const std::map< string_ref, clang::GlobalDecl >& deferred_decls() const;
+
+        std::vector< clang::GlobalDecl >&& receive_deferred_decls_to_emit();
 
         // Determine whether the definition must be emitted; if this returns
         // false, the definition can be emitted lazily if it's used.
@@ -142,30 +135,6 @@ namespace vast::cg
 
         void build_deferred_decls();
         void build_default_methods();
-
-        // A queue of (optional) vtables to consider emitting.
-        std::vector< const clang::CXXRecordDecl * > deferred_vtables;
-
-        // This contains all the decls which have definitions but which are deferred
-        // for emission and therefore should only be output if they are actually
-        // used. If a decl is in this, then it is known to have not been referenced
-        // yet.
-        std::map< llvm::StringRef, clang::GlobalDecl > deferred_decls;
-
-        // This is a list of deferred decls which we have seen that *are* actually
-        // referenced. These get code generated when the module is done.
-        std::vector< clang::GlobalDecl > deferred_decls_tot_emit;
-        void add_deferred_decl_to_emit(clang::GlobalDecl decl) {
-            deferred_decls_tot_emit.emplace_back(decl);
-        }
-
-        // After HandleTranslation finishes, differently from deferred_decls_to_emit,
-        // default_methods_to_emit is only called after a set of vast passes run.
-        // See add_default_methods_to_emit usage for examples.
-        std::vector< clang::GlobalDecl > default_methods_to_emit;
-        void add_default_methods_to_emit(clang::GlobalDecl decl) {
-            default_methods_to_emit.emplace_back(decl);
-        }
 
         // FIXME: should we use llvm::TrackingVH<mlir::Operation> here?
         using replacements_map = llvm::StringMap< mlir::Operation * >;

@@ -4,6 +4,7 @@
 
 #include "vast/Translation/CodeGenContext.hpp"
 #include "vast/Translation/CodeGenMeta.hpp"
+#include "vast/Translation/Mangler.hpp"
 
 #include "vast/Util/Common.hpp"
 
@@ -13,11 +14,12 @@ namespace vast::cg {
     struct CodeGenVisitorBase
     {
         CodeGenVisitorBase(CodeGenContext &ctx, MetaGenerator &meta)
-            : ctx(ctx), meta(meta)
+            : ctx(ctx), meta(meta), mangler(ctx.actx.createMangleContext())
         {}
 
         CodeGenContext &ctx;
         MetaGenerator &meta;
+        CodeGenMangler mangler;
     };
 
     template< MetaGeneratorLike MetaGenerator >
