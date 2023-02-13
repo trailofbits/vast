@@ -5,12 +5,17 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
+#include <clang/AST/GlobalDecl.h>
 #include <clang/AST/ASTContext.h>
 #include <llvm/ADT/ScopedHashTable.h>
+#include <llvm/ADT/SmallPtrSet.h>
+#include <llvm/IR/GlobalValue.h>
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/IR/Value.h>
 #include <mlir/Support/LogicalResult.h>
 VAST_UNRELAX_WARNINGS
+
+#include "vast/Translation/Error.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
@@ -60,6 +65,53 @@ namespace vast::cg
 
         size_t anonymous_count = 0;
         llvm::DenseMap< const clang::TagDecl *, std::string > tag_names;
+
+        /// Set of global decls for which we already diagnosed mangled name conflict.
+        /// Required to not issue a warning (on a mangling conflict) multiple times
+        /// for the same decl.
+        llvm::DenseSet< clang::GlobalDecl > diagnosed_conflicting_definitions;
+
+        // FIXME: we duplicate information with VarTable
+        llvm::DenseMap< string_ref, mlir_value > globals;
+
+        // A set of references that have only been seen via a weakref so far. This is
+        // used to remove the weak of the reference if we ever see a direct reference
+        // or a definition.
+        llvm::SmallPtrSet< operation, 10 > weak_ref_references;
+
+        // This contains all the decls which have definitions but which are deferred
+        // for emission and therefore should only be output if they are actually
+        // used. If a decl is in this, then it is known to have not been referenced
+        // yet.
+        std::map< string_ref, clang::GlobalDecl > deferred_decls;
+
+        // A queue of (optional) vtables to consider emitting.
+        std::vector< const clang::CXXRecordDecl * > deferred_vtables;
+
+        // This is a list of deferred decls which we have seen that *are* actually
+        // referenced. These get code generated when the module is done.
+        std::vector< clang::GlobalDecl > deferred_decls_to_emit;
+        void add_deferred_decl_to_emit(clang::GlobalDecl decl) {
+            deferred_decls_to_emit.emplace_back(decl);
+        }
+
+        // After HandleTranslation finishes, differently from deferred_decls_to_emit,
+        // default_methods_to_emit is only called after a set of vast passes run.
+        // See add_default_methods_to_emit usage for examples.
+        std::vector< clang::GlobalDecl > default_methods_to_emit;
+        void add_default_methods_to_emit(clang::GlobalDecl decl) {
+            default_methods_to_emit.emplace_back(decl);
+        }
+
+        operation get_global_value(string_ref name) {
+            if (auto global = mlir::SymbolTable::lookupSymbolIn(mod.get(), name))
+                return global;
+            return {};
+        }
+
+        mlir_value get_global_value(const clang::Decl * /* decl */) {
+            throw cg::unimplemented("get_global_value");
+        }
 
         std::string get_decl_name(const clang::NamedDecl *decl) {
             if (decl->getIdentifier())

@@ -7,20 +7,27 @@
 VAST_RELAX_WARNINGS
 #include <clang/AST/DeclVisitor.h>
 #include <clang/AST/Attr.h>
+#include <clang/Basic/Diagnostic.h>
+#include <clang/Frontend/FrontendDiagnostic.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Translation/CodeGenMeta.hpp"
 #include "vast/Translation/CodeGenBuilder.hpp"
 #include "vast/Translation/CodeGenVisitorBase.hpp"
 #include "vast/Translation/CodeGenVisitorLens.hpp"
-#include "vast/Dialect/HighLevel/HighLevelLinkage.hpp"
+#include "vast/Translation/CodeGenFunction.hpp"
+#include "vast/Translation/Mangler.hpp"
 #include "vast/Translation/Util.hpp"
+
+#include "vast/Dialect/HighLevel/HighLevelLinkage.hpp"
+
+#include "vast/Translation/Error.hpp"
 
 namespace vast::cg {
 
     template< typename Derived >
     struct CodeGenDeclVisitorMixin
-        : clang::ConstDeclVisitor< CodeGenDeclVisitorMixin< Derived >, Operation* >
+        : clang::ConstDeclVisitor< CodeGenDeclVisitorMixin< Derived >, operation >
         , CodeGenVisitorLens< CodeGenDeclVisitorMixin< Derived >, Derived >
         , CodeGenBuilderMixin< CodeGenDeclVisitorMixin< Derived >, Derived >
     {
@@ -32,6 +39,8 @@ namespace vast::cg {
         using LensType::acontext;
 
         using LensType::meta_location;
+
+        using LensType::name_mangler;
 
         using LensType::visit;
         using LensType::visit_as_lvalue_type;
@@ -63,7 +72,229 @@ namespace vast::cg {
             }
         }
 
-        Operation* VisitFunctionDecl(const clang::FunctionDecl *decl) {
+        static bool is_defaulted_method(const clang::FunctionDecl *function_decl)  {
+            if (function_decl->isDefaulted() && clang::isa< clang::CXXMethodDecl >(function_decl)) {
+                auto method = clang::cast< clang::CXXMethodDecl >(function_decl);
+                return method->isCopyAssignmentOperator() || method->isMoveAssignmentOperator();
+            }
+
+            return false;
+        }
+
+        // Effectively create the CIR instruction, properly handling insertion points.
+        vast_function create_vast_function(
+            mlir::Location loc, mangled_name_ref mangled_name, mlir::FunctionType fty, const clang::FunctionDecl *function_decl
+        ) {
+            // At the point we need to create the function, the insertion point
+            // could be anywhere (e.g. callsite). Do not rely on whatever it might
+            // be, properly save, find the appropriate place and restore.
+            InsertionGuard guard(builder());
+            auto linkage = hl::get_function_linkage(function_decl);
+
+            // make function header, that will be later filled with function body
+            // or returned as declaration in the case of external function
+            auto fn = make< hl::FuncOp >(loc, mangled_name.name, fty, linkage);
+            assert(fn.isDeclaration() && "expected empty body");
+
+            mlir::SymbolTable::setSymbolVisibility(
+                fn, mlir::SymbolTable::Visibility::Private
+            );
+
+            return fn;
+        }
+
+        bool record_conflicting_definition(clang::GlobalDecl glob) {
+            return context().diagnosed_conflicting_definitions.insert(glob).second;
+        }
+
+        vast_function get_or_create_vast_function(
+            mangled_name_ref mangled_name, mlir_type type, clang::GlobalDecl glob, global_emition emit
+        ) {
+            assert(!emit.for_vtable && "NYI");
+            assert(!emit.thunk && "NYI");
+
+            const auto *decl = glob.getDecl();
+
+            // Any attempts to use a MultiVersion function should result in retrieving the
+            // iFunc instead. Name mangling will handle the rest of the changes.
+            if (const auto *fn = clang::cast_or_null< clang::FunctionDecl >(decl)) {
+                if (acontext().getLangOpts().OpenMPIsDevice)
+                    llvm_unreachable("open MP NYI");
+                if (fn->isMultiVersion())
+                    llvm_unreachable("NYI");
+            }
+
+            // Lookup the entry, lazily creating it if necessary.
+            auto *entry = context().get_global_value(mangled_name.name);
+            if (entry) {
+                if ( !mlir::isa< hl::FuncOp >(entry) ) {
+                    throw cg::unimplemented( "only supports FuncOp for now" );
+                }
+
+                if (context().weak_ref_references.erase(entry)) {
+                    llvm_unreachable("NYI");
+                }
+
+                // Handle dropped DLL attributes.
+                if (decl && !decl->hasAttr< clang::DLLImportAttr>() && !decl->hasAttr< clang::DLLExportAttr >()) {
+                    llvm_unreachable("NYI");
+                    // TODO: Entry->setDLLStorageClass
+                    // setDSOLocal(Entry);
+                }
+
+                // If there are two attempts to define the same mangled name, issue an error.
+                auto fn = mlir::cast< hl::FuncOp >(entry);
+                if (is_for_definition(emit) && fn && !fn.isDeclaration()) {
+                    // Check that glob is not yet in DiagnosedConflictingDefinitions is required
+                    // to make sure that we issue and error only once.
+                    if (auto other = name_mangler().lookup_representative_decl(mangled_name)) {
+                        if (glob.getCanonicalDecl().getDecl()) {
+                            if (record_conflicting_definition(glob)) {
+                                auto &diags = acontext().getDiagnostics();
+                                // FIXME: this should not be responsibility of visitor
+                                diags.Report(decl->getLocation(), clang::diag::err_duplicate_mangled_name) << mangled_name.name;
+                                diags.Report(other->getDecl()->getLocation(), clang::diag::note_previous_definition);
+                            }
+                        }
+                    }
+                }
+
+                if (fn && fn.getFunctionType() == type) {
+                    return fn;
+                }
+
+                llvm_unreachable("NYI");
+
+                // TODO: clang checks here if this is a llvm::GlobalAlias... how will we
+                // support this?
+            }
+
+            // This function doesn't have a complete type (for example, the return type is
+            // an incomplete struct). Use a fake type instead, and make sure not to try to
+            // set attributes.
+            bool is_incomplete_function = false;
+
+            mlir::FunctionType fty;
+            if (type.isa< mlir::FunctionType >()) {
+                fty = type.cast< mlir::FunctionType >();
+            } else {
+                throw cg::unimplemented("functions with incomplete types");
+                is_incomplete_function = true;
+            }
+
+            auto *function_decl = llvm::cast< clang::FunctionDecl >(decl);
+            assert(function_decl && "Only FunctionDecl supported so far.");
+
+            // TODO: CodeGen includeds the linkage (ExternalLinkage) and only passes the
+            // mangled_name if entry is nullptr
+            auto fn = create_vast_function(meta_location(function_decl), mangled_name, fty, function_decl);
+
+            if (entry) {
+                llvm_unreachable("NYI");
+            }
+
+            // TODO: This might not be valid, seems the uniqueing system doesn't make
+            // sense for MLIR
+            // assert(F->getName().getStringRef() == MangledName && "name was uniqued!");
+
+            if (decl) {
+                ; // TODO: set function attributes from the declaration
+            }
+
+            // TODO: set function attributes from the missing attributes param
+
+            // TODO: Handle extra attributes
+
+            if (emit.defer) {
+                // All MSVC dtors other than the base dtor are linkonce_odr and delegate to
+                // each other bottoming out wiht the base dtor. Therefore we emit non-base
+                // dtors on usage, even if there is no dtor definition in the TU.
+                if (decl && clang::isa< clang::CXXDestructorDecl >(decl)) {
+                    llvm_unreachable("NYI");
+                }
+
+                // This is the first use or definition of a mangled name. If there is a
+                // deferred decl with this name, remember that we need to emit it at the end
+                // of the file.
+                // FIXME: encapsulate this eventually
+                auto &deffered = context().deferred_decls;
+                if (auto ddi = deffered.find(mangled_name.name); ddi != deffered.end()) {
+                    // Move the potentially referenced deferred decl to the
+                    // DeferredDeclsToEmit list, and remove it from DeferredDecls (since we
+                    // don't need it anymore).
+
+                    context().add_deferred_decl_to_emit(ddi->second);
+                    deffered.erase(ddi);
+
+                    // Otherwise, there are cases we have to worry about where we're using a
+                    // declaration for which we must emit a definition but where we might not
+                    // find a top-level definition.
+                    //   - member functions defined inline in their classes
+                    //   - friend functions defined inline in some class
+                    //   - special member functions with implicit definitions
+                    // If we ever change our AST traversal to walk into class methods, this
+                    // will be unnecessary.
+                    //
+                    // We also don't emit a definition for a function if it's going to be an
+                    // entry in a vtable, unless it's already marked as used.
+                } else if (acontext().getLangOpts().CPlusPlus && decl) {
+                    // Look for a declaration that's lexically in a record.
+                    const auto *function_decl = clang::cast< clang::FunctionDecl >(decl)->getMostRecentDecl();
+                    for (; function_decl; function_decl = function_decl->getPreviousDecl()) {
+                        if (clang::isa< clang::CXXRecordDecl >(function_decl->getLexicalDeclContext())) {
+                            if (function_decl->doesThisDeclarationHaveABody()) {
+                                if (is_defaulted_method(function_decl)) {
+                                    context().add_default_methods_to_emit(glob.getWithDecl(function_decl));
+                                } else {
+                                    context().add_deferred_decl_to_emit(glob.getWithDecl(function_decl));
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!is_incomplete_function) {
+                assert(fn.getFunctionType() == type);
+                return fn;
+            }
+
+            throw cg::unimplemented("codegen of incomplete function");
+        }
+
+        vast_function get_addr_of_function(
+            clang::GlobalDecl decl, mlir_type fty, global_emition emit
+        ) {
+            assert(!emit.for_vtable && "NYI");
+
+            // TODO: is this true for vast?
+            assert(!clang::cast< clang::FunctionDecl >(decl.getDecl())->isConsteval() &&
+                "consteval function should never be emitted"
+            );
+
+            assert(fty && "missing funciton type");
+            // TODO: do we need this:
+            // if (!type) {
+            //     const auto *fn = clang::cast< clang::FunctionDecl >(decl.getDecl());
+            //     type = type_conv.get_function_type(fn->getType());
+            // }
+
+            assert(!clang::dyn_cast< clang::CXXDestructorDecl >( decl.getDecl() ) && "NYI");
+
+
+            auto mangled_name = name_mangler().get_mangled_name(decl, acontext().getTargetInfo(), /* module name hash */ "");
+            return get_or_create_vast_function(mangled_name, fty, decl, emit);
+        }
+
+        // Implelements buildGlobalFunctionDefinition of cir codegen
+        operation build_function_prototype(clang::GlobalDecl decl, mlir_type fty) {
+            // Get or create the prototype for the function.
+            // TODO: Figure out what to do here? llvm uses a GlobalValue for the FuncOp in mlir
+            return get_addr_of_function(decl, fty, deferred_emit_definition);
+        }
+
+        operation VisitFunctionDecl(const clang::FunctionDecl *decl) {
             InsertionGuard guard(builder());
             auto is_definition = decl->doesThisDeclarationHaveABody();
 
@@ -183,7 +414,7 @@ namespace vast::cg {
             VAST_UNREACHABLE("unknown storage class");
         }
 
-        Operation* VisitVarDecl(const clang::VarDecl *decl) {
+        operation VisitVarDecl(const clang::VarDecl *decl) {
             return declare(decl, [&] {
                 auto type = decl->getType();
                 bool has_allocator = type->isVariableArrayType();
@@ -217,18 +448,18 @@ namespace vast::cg {
             }).getDefiningOp();
         }
 
-        Operation* VisitParmVarDecl(const clang::ParmVarDecl *decl) {
+        operation VisitParmVarDecl(const clang::ParmVarDecl *decl) {
             if (auto var = context().vars.lookup(decl))
                 return var.getDefiningOp();
             context().error("error: missing parameter declaration " + decl->getName());
             return nullptr;
         }
 
-        // Operation* VisitImplicitParamDecl(const clang::ImplicitParamDecl *decl)
+        // operation VisitImplicitParamDecl(const clang::ImplicitParamDecl *decl)
 
-        // Operation* VisitLinkageSpecDecl(const clang::LinkageSpecDecl *decl)
+        // operation VisitLinkageSpecDecl(const clang::LinkageSpecDecl *decl)
 
-        Operation* VisitTranslationUnitDecl(const clang::TranslationUnitDecl *tu) {
+        operation VisitTranslationUnitDecl(const clang::TranslationUnitDecl *tu) {
             auto loc = meta_location(tu);
             return this->template make_scoped< TranslationUnitScope >(loc, [&] {
                 for (const auto &decl : tu->decls()) {
@@ -237,7 +468,7 @@ namespace vast::cg {
             });
         }
 
-        // Operation* VisitTypedefNameDecl(const clang::TypedefNameDecl *decl)
+        // operation VisitTypedefNameDecl(const clang::TypedefNameDecl *decl)
 
         inline void walk_type(clang::QualType type, invocable< clang::Type * > auto &&yield) {
             if (yield(type)) {
@@ -275,7 +506,7 @@ namespace vast::cg {
             }
         }
 
-        Operation* VisitTypedefDecl(const clang::TypedefDecl *decl) {
+        operation VisitTypedefDecl(const clang::TypedefDecl *decl) {
             return declare(decl, [&] {
                 auto type = [&, this] () -> mlir::Type {
                     auto underlying = decl->getUnderlyingType();
@@ -308,9 +539,9 @@ namespace vast::cg {
             });
         }
 
-        // Operation* VisitTypeAliasDecl(const clang::TypeAliasDecl *decl)
+        // operation VisitTypeAliasDecl(const clang::TypeAliasDecl *decl)
 
-        Operation* VisitLabelDecl(const clang::LabelDecl *decl) {
+        operation VisitLabelDecl(const clang::LabelDecl *decl) {
             return declare(decl, [&] {
                 return this->template make_operation< hl::LabelDeclOp >()
                     .bind(meta_location(decl))  // location
@@ -322,7 +553,7 @@ namespace vast::cg {
         //
         // Enum Declarations
         //
-        Operation* VisitEnumDecl(const clang::EnumDecl *decl) {
+        operation VisitEnumDecl(const clang::EnumDecl *decl) {
             return declare(decl, [&] {
                 auto constants = [&] (auto &bld, auto loc) {
                     for (auto con : decl->enumerators()) {
@@ -339,7 +570,7 @@ namespace vast::cg {
             });
         }
 
-        Operation* VisitEnumConstantDecl(const clang::EnumConstantDecl *decl) {
+        operation VisitEnumConstantDecl(const clang::EnumConstantDecl *decl) {
             return declare(decl, [&] {
                 auto initializer = make_value_builder(decl->getInitExpr());
 
@@ -359,7 +590,7 @@ namespace vast::cg {
         // Record Declaration
         //
         template< typename Decl >
-        Operation* make_record_decl(const clang::RecordDecl *decl) {
+        operation make_record_decl(const clang::RecordDecl *decl) {
             auto loc  = meta_location(decl);
             auto name = context().decl_name(decl);
 
@@ -391,7 +622,7 @@ namespace vast::cg {
             return make< Decl >(loc, name, fields);
         }
 
-        Operation* VisitRecordDecl(const clang::RecordDecl *decl) {
+        operation VisitRecordDecl(const clang::RecordDecl *decl) {
             if (decl->isUnion()) {
                 return make_record_decl< hl::UnionDeclOp >(decl);
             } else {
@@ -399,7 +630,7 @@ namespace vast::cg {
             }
         }
 
-        Operation* VisitFieldDecl(const clang::FieldDecl *decl) {
+        operation VisitFieldDecl(const clang::FieldDecl *decl) {
             // define field type if the field defines a new nested type
             if (auto tag = decl->getType()->getAsTagDecl()) {
                 if (tag->isThisDeclarationADefinition()) {
