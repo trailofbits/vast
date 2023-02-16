@@ -620,6 +620,40 @@ def ImplicitCastOp   : CastOp< "implicit_cast", [] >;
 def CStyleCastOp     : CastOp< "cstyle_cast", [] >;
 def BuiltinBitCastOp : CastOp< "builtin_bitcast", [] >;
 
+class IsInteger< string arg > : PredOpTrait< "value is of an integer type",
+    CPred< "$" # arg # ".getType().isa< hl::IntType>()" >
+>;
+
+class IsLong< string arg > : PredOpTrait< "value is of an integer type",
+    CPred< "$" # arg # ".getType().isa< hl::LongType>()" >
+>;
+
+class IsPointer< string arg > : PredOpTrait< "value is of an integer type",
+    CPred< "$" # arg # ".getType().isa< hl::PointerType >()" >
+>;
+
+class IsPointerAdditive< string lhs, string rhs, string res > : PredOpTrait< "IsAdditive",
+    And< [Or< [And< [IsPointer< lhs >.predicate, IsInteger< rhs>.predicate] >,
+               And< [IsInteger< lhs >.predicate, IsPointer< rhs >.predicate] >] >,
+         IsPointer< res >.predicate
+    ] >
+>;
+
+class IsPointerSub< string lhs, string rhs, string res > : PredOpTrait< "subtracting two pointers",
+    And< [IsPointer< lhs >.predicate, IsPointer< rhs >.predicate, IsLong< res >.predicate] >
+>;
+
+class IsAdditive< string lhs, string rhs, string res > : PredOpTrait< "is additive operation", Or<[
+        IsPointerAdditive< lhs, rhs, res >.predicate,
+        AllTypesMatch< [lhs, rhs, res] >.predicate
+    ]>
+>;
+
+class IsSub< string lhs, string rhs, string res > : PredOpTrait< "subtraction operation", Or< [
+        IsAdditive< lhs, rhs, res >.predicate, IsPointerSub< lhs, rhs, res >.predicate
+    ] >
+>;
+
 class ArithBinOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
     , Arguments<(ins AnyType:$lhs, AnyType:$rhs)>
@@ -636,25 +670,41 @@ class ArithBinOp< string mnemonic, list< Trait > traits = [] >
         %result = <op> %lhs, %rhs  : functional-type(operands, results)
     }];
 
+    let skipDefaultBuilders = 1;
+    let builders = [ OpBuilder<(ins "Value":$lhs, "Value":$rhs), [{
+        $_state.addOperands(lhs);
+        $_state.addOperands(rhs);
+        auto type = lhs.getType();
+        if(rhs.getType().isa< hl::PointerType >())
+            type = rhs.getType();
+        $_state.addTypes(type);
+      }]>
+    ];
+
     let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` functional-type(operands, results) }];
 }
 
-def AddIOp : ArithBinOp< "add", [Commutative]>;
-def AddFOp : ArithBinOp<"fadd", []>;
-def SubIOp : ArithBinOp< "sub", []>;
-def SubFOp : ArithBinOp<"fsub", []>;
-def MulIOp : ArithBinOp< "mul", [Commutative]>;
-def MulFOp : ArithBinOp<"fmul", []>;
-def DivSOp : ArithBinOp<"sdiv", []>;
-def DivUOp : ArithBinOp<"udiv", []>;
-def DivFOp : ArithBinOp<"fdiv", []>;
-def RemSOp : ArithBinOp<"srem", []>;
-def RemUOp : ArithBinOp<"urem", []>;
-def RemFOp : ArithBinOp<"frem", []>;
+class StandardArithBinOp< string mnemonic, list< Trait > traits = [] >
+    : ArithBinOp< mnemonic, !listconcat(traits, [SameOperandsAndResultType]) >;
 
-def BinXorOp : ArithBinOp<"bin.xor", []>;
-def BinOrOp  : ArithBinOp< "bin.or", []>;
-def BinAndOp : ArithBinOp<"bin.and", []>;
+
+def AddIOp : ArithBinOp< "add", [Commutative, IsAdditive< "lhs", "rhs", "result" >]>;
+def SubIOp : ArithBinOp< "sub", [IsSub< "lhs", "rhs", "result" >]>;
+
+def AddFOp : StandardArithBinOp<"fadd", []>;
+def SubFOp : StandardArithBinOp<"fsub", []>;
+def MulIOp : StandardArithBinOp< "mul", [Commutative]>;
+def MulFOp : StandardArithBinOp<"fmul", []>;
+def DivSOp : StandardArithBinOp<"sdiv", []>;
+def DivUOp : StandardArithBinOp<"udiv", []>;
+def DivFOp : StandardArithBinOp<"fdiv", []>;
+def RemSOp : StandardArithBinOp<"srem", []>;
+def RemUOp : StandardArithBinOp<"urem", []>;
+def RemFOp : StandardArithBinOp<"frem", []>;
+
+def BinXorOp : StandardArithBinOp<"bin.xor", []>;
+def BinOrOp  : StandardArithBinOp< "bin.or", []>;
+def BinAndOp : StandardArithBinOp<"bin.and", []>;
 
 
 class LogicBinOp< string mnemonic, list< Trait > traits = [] >
