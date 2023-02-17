@@ -772,11 +772,30 @@ class ShiftOp< string mnemonic, list< Trait > traits = [] >
 def BinShlOp : ShiftOp<"bin.shl", []>;
 def BinShrOp : ShiftOp<"bin.shr", []>;
 
+class IsLValuePointer< string arg > : PredOpTrait< "value is of an integer type",
+    CPred< "$" # arg # ".getType().cast< LValueType >().getElementType().isa< hl::PointerType >()" >
+>;
+
+class IsCompoundPtrAdditive< string lhs, string rhs, string res > : PredOpTrait< "IsAdditive",
+    And< [IsLValuePointer< lhs >.predicate, IsInteger< rhs>.predicate, IsPointer< res >.predicate ] >
+>;
+
+class IsCompoundAdditive< string lhs, string rhs, string res > : PredOpTrait< "is additive operation", Or<[
+        IsCompoundPtrAdditive< lhs, rhs, res >.predicate,
+        And< [CPred< "$" # lhs # ".getType().cast< LValueType >().getElementType() == $" # rhs # ".getType()" >, AllTypesMatch< [rhs, res] >.predicate] >
+    ]>
+>;
 
 class CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< Trait > traits = [] >
-    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [
+        TypesMatchWith<
+          "underlying destination type match result type",
+          "dst", "result",
+          "$_self.cast< LValueType >().getElementType()"
+        >
+    ])>
     // FIXME: add argument constraints and infer return type
-    , Arguments<(ins AnyType:$src, AnyType:$dst)>
+    , Arguments<(ins LValueOrType< Type >:$src, AnyType:$dst)>
     , Results<(outs Type:$result)>
 {
     let summary = "VAST compound assign operation";
@@ -787,16 +806,24 @@ class CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< Trai
 
         The custom assembly form of the operation is as follows:
 
-        %result = <assign.op> src to dst functional-type(operands, results)
+        %result = <assign.op> src to dst : functional-type(operands, results)
 
         It represents C compound assignment statement:
 
         dst =<op> src;
     }];
 
+    let skipDefaultBuilders = 1;
+    let builders = [ OpBuilder<(ins "Value":$dst, "Value":$src), [{
+        $_state.addOperands(src);
+        $_state.addOperands(dst);
+        auto type = dst.getType().cast< LValueType >();
+        $_state.addTypes(type.getElementType());
+      }]>
+    ];
 
     let assemblyFormat = [{
-      $src `to` $dst attr-dict `:` functional-type(operands, results)
+      $dst`to` $src attr-dict `:` type(operands) `->` type(results)
     }];
 }
 
@@ -804,9 +831,9 @@ class CompoundAssignOp< string mnemonic, list< Trait > traits = [] >
     : CompoundAssignOpTemplate< mnemonic, AnyType, traits > {}
 
 def AssignOp     : CompoundAssignOp< "assign" >;
-def AddIAssignOp : CompoundAssignOp< "assign.add"  >;
+def AddIAssignOp : CompoundAssignOp< "assign.add", [IsCompoundAdditive< "dst", "src", "result" >] >;
 def AddFAssignOp : CompoundAssignOp< "assign.fadd" >;
-def SubIAssignOp : CompoundAssignOp< "assign.sub"  >;
+def SubIAssignOp : CompoundAssignOp< "assign.sub", [IsCompoundAdditive< "dst", "src", "result" >] >;
 def SubFAssignOp : CompoundAssignOp< "assign.fsub" >;
 def MulIAssignOp : CompoundAssignOp< "assign.mul"  >;
 def MulFAssignOp : CompoundAssignOp< "assign.fmul" >;
