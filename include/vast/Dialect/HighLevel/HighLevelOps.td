@@ -777,12 +777,15 @@ class IsLValuePointer< string arg > : PredOpTrait< "value is of an integer type"
 >;
 
 class IsCompoundPtrAdditive< string lhs, string rhs, string res > : PredOpTrait< "IsAdditive",
-    And< [IsLValuePointer< lhs >.predicate, IsInteger< rhs>.predicate, IsPointer< res >.predicate ] >
+    And< [IsLValuePointer< lhs >.predicate,
+          IsInteger< rhs>.predicate,
+          IsPointer< res >.predicate ] >
 >;
 
-class IsCompoundAdditive< string lhs, string rhs, string res > : PredOpTrait< "is additive operation", Or<[
+class IsCompoundAdditive< string lhs, string rhs, string res > : PredOpTrait< "is additive operation",
+    Or<[
         IsCompoundPtrAdditive< lhs, rhs, res >.predicate,
-        And< [CPred< "$" # lhs # ".getType().cast< LValueType >().getElementType() == $" # rhs # ".getType()" >, AllTypesMatch< [rhs, res] >.predicate] >
+        CPred< "$" # lhs # ".getType().cast< LValueType >().getElementType() ==$" # res # ".getType()" >
     ]>
 >;
 
@@ -823,7 +826,7 @@ class CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< Trai
     ];
 
     let assemblyFormat = [{
-      $dst`to` $src attr-dict `:` type(operands) `->` type(results)
+      $src `to` $dst attr-dict `:` type(operands) `->` type(results)
     }];
 }
 
