@@ -75,8 +75,7 @@ namespace vast::hl {
         Operation* VisitBinOp(const clang::BinaryOperator *op) {
             auto lhs = visit(op->getLHS())->getResult(0);
             auto rhs = visit(op->getRHS())->getResult(0);
-            auto type = visit(op->getType());
-            return make< Op >(meta_location(op), type, lhs, rhs);
+            return make< Op >(meta_location(op), lhs, rhs);
         }
 
         template< typename UOp, typename SOp >
