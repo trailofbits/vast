@@ -8,7 +8,7 @@ int add1(int a, int b)
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int
     // CHECK: [[V3:%[0-9]+]] = hl.ref [[A2]] : !hl.lvalue<!hl.int>
     // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast [[V3]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int
-    // CHECK: hl.add [[V2]], [[V4]] : !hl.int
+    // CHECK: hl.add [[V2]], [[V4]] : (!hl.int, !hl.int) -> !hl.int
     return a + b;
 }
 
@@ -20,7 +20,7 @@ int add2(int a, int b)
     // CHECK:   [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int
     // CHECK:   [[V3:%[0-9]+]] = hl.ref [[A2]] : !hl.lvalue<!hl.int>
     // CHECK:   [[V4:%[0-9]+]] = hl.implicit_cast [[V3]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int
-    // CHECK:   [[V5:%[0-9]+]] = hl.add [[V2]], [[V4]] : !hl.int
+    // CHECK:   [[V5:%[0-9]+]] = hl.add [[V2]], [[V4]] : (!hl.int, !hl.int) -> !hl.int
     // CHECK:   hl.value.yield [[V5]]
     int r = a + b;
 
@@ -36,7 +36,7 @@ void add3()
     // CHECK: hl.var "v" : !hl.lvalue<!hl.int> = {
     // CHECK:   [[V1:%[0-9]+]] = hl.const #hl.integer<1> : !hl.int
     // CHECK:   [[V2:%[0-9]+]] = hl.const #hl.integer<2> : !hl.int
-    // CHECK:   [[V3:%[0-9]+]] = hl.add [[V1]], [[V2]] : !hl.int
+    // CHECK:   [[V3:%[0-9]+]] = hl.add [[V1]], [[V2]] : (!hl.int, !hl.int) -> !hl.int
     // CHECK:   hl.value.yield [[V3]]
     int v = 1 + 2;
 }

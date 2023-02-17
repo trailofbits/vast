@@ -13,5 +13,5 @@
 // CHECK:  hl.enum.const "G" = #hl.integer<12> : !hl.int init
 // CHECK:   [[V1:%[0-9]+]] = hl.enumref "F" : !hl.int
 // CHECK:   [[V2:%[0-9]+]] = hl.enumref "C" : !hl.int
-// CHECK:   [[V3:%[0-9]+]] = hl.add [[V1]], [[V2]] : !hl.int
+// CHECK:   [[V3:%[0-9]+]] = hl.add [[V1]], [[V2]] : (!hl.int, !hl.int) -> !hl.int
 enum Foo { A, B, C=10, D, E=1, F, G=F+C };
