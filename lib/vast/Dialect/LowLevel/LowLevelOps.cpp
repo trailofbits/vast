@@ -11,3 +11,12 @@ VAST_UNRELAX_WARNINGS
 
 #define GET_OP_CLASSES
 #include "vast/Dialect/LowLevel/LowLevel.cpp.inc"
+
+namespace vast::ll
+{
+    mlir::SuccessorOperands Br::getSuccessorOperands( unsigned idx )
+    {
+        VAST_CHECK( idx == 0, "ll::Br can have only one successor!" );
+        return mlir::SuccessorOperands( operandsMutable() );
+    }
+} // namespace vast::ll
