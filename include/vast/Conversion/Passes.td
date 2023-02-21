@@ -43,6 +43,21 @@ def HLFuncToFunc : Pass<"vast-hl-to-func", "mlir::ModuleOp"> {
   ];
 }
 
+def HLToLLCF : Pass<"vast-hl-to-ll-cf", "mlir::ModuleOp"> {
+  let summary = "VAST HL control flow to LL control flow";
+  let description = [{
+    Transforms high level control flow operations into their low level
+    representation.
+
+    This pass is still a work in progress.
+  }];
+
+  let constructor = "vast::createHLToLLCFPass()";
+  let dependentDialects = ["vast::ll::LowLevelDialect",
+                           "vast::hl::HighLevelDialect"];
+}
+
+
 def IRsToLLVM : Pass<"vast-irs-to-llvm", "mlir::ModuleOp"> {
   let summary = "VAST to LLVM Dialect conversion";
   let description = [{
