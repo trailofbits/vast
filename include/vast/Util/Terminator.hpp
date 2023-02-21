@@ -24,6 +24,12 @@ namespace vast
                 return {};
             return mlir::dyn_cast< T >(**this);
         }
+
+        template< typename ... Args >
+        bool is_one_of() const
+        {
+            return has_value() && (mlir::isa< Args >( **this ) || ... );
+        }
     };
 
     static inline bool has_terminator(mlir::Block &block)
