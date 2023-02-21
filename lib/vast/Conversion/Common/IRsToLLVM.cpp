@@ -494,6 +494,52 @@ namespace vast
             one_to_one< hl::BinShlOp, LLVM::ShlOp >
         >;
 
+
+        struct br : BasePattern< ll::Br >
+        {
+            using Base = BasePattern< ll::Br >;
+            using Base::Base;
+
+            using op_t = ll::Br;
+            using adaptor_t = typename op_t::Adaptor;
+
+            mlir::LogicalResult matchAndRewrite(
+                        op_t op, adaptor_t ops,
+                        mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                auto br = rewriter.create< LLVM::BrOp >( op.getLoc(),
+                                                         ops.operands(), op.dest() );
+                rewriter.eraseOp( op );
+
+                return mlir::success();
+            }
+
+        };
+
+        struct cond_br : BasePattern< ll::CondBr >
+        {
+            using Base = BasePattern< ll::CondBr >;
+            using Base::Base;
+
+            using op_t = ll::CondBr;
+            using adaptor_t = typename op_t::Adaptor;
+
+            mlir::LogicalResult matchAndRewrite(
+                        op_t op, adaptor_t ops,
+                        mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                auto br = rewriter.create< LLVM::CondBrOp >(
+                        op.getLoc(),
+                        ops.cond(),
+                        op.true_dest() , ops.true_operands(),
+                        op.false_dest(), ops.false_operands());
+                rewriter.eraseOp( op );
+
+                return mlir::success();
+            }
+
+        };
+
         template< typename Src, typename Trg >
         struct assign_pattern : BasePattern< Src >
         {
@@ -735,6 +781,11 @@ namespace vast
             lazy_op_type< core::BinLOrOp >,
             lazy_op_type< hl::ValueYieldOp >
         >;
+
+        using ll_cf_conversions = util::type_list<
+            cond_br,
+            br
+        >;
     } // namespace pattern
 
 
@@ -787,7 +838,8 @@ namespace vast
                 pattern::init_conversions,
                 pattern::base_op_conversions,
                 pattern::ignore_patterns,
-                pattern::lazy_op_type_conversions
+                pattern::lazy_op_type_conversions,
+                patterns::ll_cf_conversions
             >(patterns, converter);
         }
 
