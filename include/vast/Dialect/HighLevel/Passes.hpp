@@ -35,6 +35,8 @@ namespace vast::hl
 
     std::unique_ptr< mlir::Pass > createHLEmitLazyRegionsPass();
 
+    std::unique_ptr< mlir::Pass > createDCEPass();
+
     void registerHLToLLVMIR(mlir::DialectRegistry &);
     void registerHLToLLVMIR(mlir::MLIRContext &);
 

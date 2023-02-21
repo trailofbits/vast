@@ -35,6 +35,16 @@ def ExportFnInfo : Pass<"vast-export-fn-info", "mlir::ModuleOp"> {
   ];
 }
 
+def DCE : Pass<"vast-hl-dce", "mlir::ModuleOp"> {
+  let summary = "Trim dead code";
+  let description = [{
+    Removes unreachable code, such as code after return or break/continue.
+  }];
+
+  let dependentDialects = ["vast::hl::HighLevelDialect"];
+  let constructor = "vast::hl::createDCEPass()";
+}
+
 def HLLowerTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
   let summary = "Lower high-level types to standard types";
   let description = [{
