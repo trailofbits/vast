@@ -15,7 +15,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast
 {
-    namespace pattern
+    namespace
     {
         struct func : OpConversionPattern< hl::FuncOp >
         {
@@ -49,7 +49,26 @@ namespace vast
             }
         };
 
-    } // namespace pattern
+        struct ret : OpConversionPattern< hl::ReturnOp >
+        {
+            using parent_t = OpConversionPattern< hl::ReturnOp >;
+            using parent_t::parent_t;
+
+
+            mlir::LogicalResult matchAndRewrite(
+                    hl::ReturnOp op,
+                    hl::ReturnOp::Adaptor ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                rewriter.create< mlir::func::ReturnOp >(op.getLoc(),
+                                                        ops.getResult());
+
+                rewriter.eraseOp(op);
+                return mlir::success();
+            }
+        };
+
+    } // namespace
 
     struct HLFuncToFuncPass : HLFuncToFuncBase< HLFuncToFuncPass >
     {
@@ -60,10 +79,12 @@ namespace vast
 
             mlir::ConversionTarget trg(mctx);
             trg.addIllegalOp< hl::FuncOp >();
+            trg.addIllegalOp< hl::ReturnOp >();
             trg.markUnknownOpDynamicallyLegal([](auto){ return true; });
 
             mlir::RewritePatternSet patterns(&mctx);
-            patterns.add< pattern::func >(patterns.getContext());
+            patterns.add< func >(patterns.getContext());
+            patterns.add< ret >(patterns.getContext());
 
             if (mlir::failed(mlir::applyPartialConversion(
                              op, trg, std::move(patterns))))
