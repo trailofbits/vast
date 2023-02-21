@@ -676,7 +676,13 @@ class ArithBinOp< string mnemonic, list< Trait > traits = [] >
         $_state.addOperands(rhs);
         auto type = lhs.getType();
         if(rhs.getType().isa< hl::PointerType >())
-            type = rhs.getType();
+        {
+            // Both operands are pointers -> it's a subtraction
+            if(type.isa< hl::PointerType >())
+                type = odsBuilder.getType< hl::LongType >();
+            else
+                type = rhs.getType();
+        }
         $_state.addTypes(type);
       }]>
     ];
