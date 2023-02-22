@@ -135,7 +135,7 @@ def HighLevel_CondOp : ControlFlowOp< "cond", [DeclareOpInterfaceMethods< Region
   let assemblyFormat = [{ $condRegion `?` $thenRegion `:` $elseRegion attr-dict `:` type(results) }];
 }
 
-def HighLevel_WhileOp : ControlFlowOp< "while" >
+def HighLevel_WhileOp : ControlFlowOp< "while", [NoTerminator] >
 {
   let summary = "VAST while statement";
   let description = [{
