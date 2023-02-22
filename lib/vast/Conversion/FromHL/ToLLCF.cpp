@@ -12,6 +12,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Conversion/Common/Passes.hpp"
+#include "vast/Conversion/Common/Patterns.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DialectConversion.hpp"
@@ -310,6 +311,7 @@ namespace vast
     struct HLToLLCF : ModuleConversionPassMixin< HLToLLCF, HLToLLCFBase >
     {
         using base = ModuleConversionPassMixin< HLToLLCF, HLToLLCFBase >;
+        using config_t = typename base::config_t;
 
         static auto create_conversion_target( MContext &mctx )
         {
@@ -318,15 +320,13 @@ namespace vast
             trg.addLegalDialect< hl::HighLevelDialect >();
 
             trg.addLegalOp< mlir::cf::BranchOp >();
-            trg.addIllegalOp< hl::IfOp >();
-            trg.addIllegalOp< hl::WhileOp >();
             trg.markUnknownOpDynamicallyLegal([](auto){ return true; });
             return trg;
         }
 
-        static void populate_conversions( rewrite_pattern_set &patterns )
+        static void populate_conversions(config_t &config)
         {
-            base::populate_conversions< pattern::all >( patterns );
+            base::populate_conversions_base< pattern::all >(config);
         }
     };
 

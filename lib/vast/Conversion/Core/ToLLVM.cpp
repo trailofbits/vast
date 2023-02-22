@@ -127,6 +127,7 @@ namespace vast
 
     struct CoreToLLVMPass : ModuleConversionPassMixin< CoreToLLVMPass, CoreToLLVMBase > {
         using base = ModuleConversionPassMixin< CoreToLLVMPass, CoreToLLVMBase >;
+        using config_t = typename base::config_t;
 
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
@@ -138,8 +139,8 @@ namespace vast
             return target;
         }
 
-        static void populate_conversions(rewrite_pattern_set &patterns) {
-            populate_conversions_base< pattern::bin_lop_conversions >(patterns);
+        static void populate_conversions(config_t &config) {
+            populate_conversions_base< pattern::bin_lop_conversions >(config);
         }
     };
 
