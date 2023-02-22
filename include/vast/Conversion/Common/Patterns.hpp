@@ -5,16 +5,16 @@
 #include "vast/Util/Warnings.hpp"
 #include "vast/Util/Common.hpp"
 
+#include "vast/Conversion/Common/Types.hpp"
+
 VAST_RELAX_WARNINGS
 #include "mlir/Transforms/DialectConversion.h"
+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
 #include "mlir/Conversion/LLVMCommon/Pattern.h"
 VAST_UNRELAX_WARNINGS
 
 namespace vast {
 
-    using pattern_rewriter = mlir::PatternRewriter;
-
-    using conversion_rewriter = mlir::ConversionPatternRewriter;
 
     template< typename derived_pattern >
     struct mlir_pattern_mixin {
@@ -60,6 +60,11 @@ namespace vast {
     {
         using base = mlir::OpConversionPattern< op_t >;
         using base::base;
+
+        static void legalize( conversion_target &trg )
+        {
+            trg.addIllegalOp< op_t >();
+        }
     };
 
     struct llvm_pattern_utils
@@ -99,6 +104,12 @@ namespace vast {
 
             using llvm_util = llvm_pattern_utils;
             using llvm_util::llvm_util;
+
+
+            static void legalize( conversion_target &trg )
+            {
+                trg.addIllegalOp< op_t >();
+            }
     };
 
 } // namespace vast
