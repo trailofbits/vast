@@ -21,6 +21,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelLinkage.hpp"
 
+#include "vast/CodeGen/FunctionInfo.hpp"
+
 #include "vast/Translation/Error.hpp"
 
 namespace vast::cg {
@@ -56,7 +58,6 @@ namespace vast::cg {
         using Builder::get_current_function;
 
         using Builder::constant;
-        using Builder::declare;
 
         template< typename Op, typename... Args >
         auto make(Args &&...args) {
@@ -97,7 +98,7 @@ namespace vast::cg {
             assert(fn.isDeclaration() && "expected empty body");
 
             mlir::SymbolTable::setSymbolVisibility(
-                fn, mlir::SymbolTable::Visibility::Private
+                fn, get_visibility_from_linkage(linkage)
             );
 
             return fn;
@@ -310,9 +311,10 @@ namespace vast::cg {
             auto declare_function_params = [&, this] (auto entry) {
                 // In MLIR the entry block of the function must have the same
                 // argument list as the function itself.
+                // FIXME: driver solves this already
                 auto params = llvm::zip(decl->getDefinition()->parameters(), entry->getArguments());
                 for (const auto &[arg, earg] : params) {
-                    this->declare(arg, earg);
+                    context().declare(arg, mlir_value(earg));
                 }
             };
 
@@ -365,7 +367,7 @@ namespace vast::cg {
 
             auto linkage = hl::get_function_linkage(decl);
 
-            auto fn = declare(decl, [&] () {
+            auto fn = context().declare(decl, [&] () {
                 auto loc  = meta_location(decl);
                 auto type = visit(decl->getFunctionType()).template cast< mlir::FunctionType >();
                 // make function header, that will be later filled with function body
@@ -415,7 +417,7 @@ namespace vast::cg {
         }
 
         operation VisitVarDecl(const clang::VarDecl *decl) {
-            return declare(decl, [&] {
+            return context().declare(decl, [&] {
                 auto type = decl->getType();
                 bool has_allocator = type->isVariableArrayType();
                 bool has_init = decl->getInit();
@@ -507,7 +509,7 @@ namespace vast::cg {
         }
 
         operation VisitTypedefDecl(const clang::TypedefDecl *decl) {
-            return declare(decl, [&] {
+            return context().declare(decl, [&] {
                 auto type = [&, this] () -> mlir::Type {
                     auto underlying = decl->getUnderlyingType();
                     if (auto fty = clang::dyn_cast< clang::FunctionType >(underlying)) {
@@ -542,7 +544,7 @@ namespace vast::cg {
         // operation VisitTypeAliasDecl(const clang::TypeAliasDecl *decl)
 
         operation VisitLabelDecl(const clang::LabelDecl *decl) {
-            return declare(decl, [&] {
+            return context().declare(decl, [&] {
                 return this->template make_operation< hl::LabelDeclOp >()
                     .bind(meta_location(decl))  // location
                     .bind(decl->getName())      // name
@@ -554,7 +556,7 @@ namespace vast::cg {
         // Enum Declarations
         //
         operation VisitEnumDecl(const clang::EnumDecl *decl) {
-            return declare(decl, [&] {
+            return context().declare(decl, [&] {
                 auto constants = [&] (auto &bld, auto loc) {
                     for (auto con : decl->enumerators()) {
                         visit(con);
@@ -571,7 +573,7 @@ namespace vast::cg {
         }
 
         operation VisitEnumConstantDecl(const clang::EnumConstantDecl *decl) {
-            return declare(decl, [&] {
+            return context().declare(decl, [&] {
                 auto initializer = make_value_builder(decl->getInitExpr());
 
                 auto type = visit(decl->getType());
@@ -596,7 +598,7 @@ namespace vast::cg {
 
             // declare the type first to allow recursive type definitions
             if (!decl->isCompleteDefinition()) {
-                return declare(decl, [&] {
+                return context().declare(decl, [&] {
                     return this->template make_operation< hl::TypeDeclOp >()
                         .bind(meta_location(decl)) // location
                         .bind(decl->getName())     // name

@@ -10,11 +10,19 @@ namespace vast::cg {
         this->acontext = &actx;
         this->mcontext = std::make_unique< mcontext_t >();
 
-        codegen_driver_options options {
+        codegen_options options {
             .verbose_diagnostics = true,
             // forwarded options form clang codegen
-            .coverage_mapping   = bool(cgo.CoverageMapping),
-            .keep_static_consts = bool(cgo.KeepStaticConsts)
+            .coverage_mapping                = bool(cgo.CoverageMapping),
+            .keep_static_consts              = bool(cgo.KeepStaticConsts),
+            .patchable_function_entry_count  = cgo.PatchableFunctionEntryCount,
+            .patchable_function_entry_offset = cgo.PatchableFunctionEntryOffset,
+            .no_use_jump_tables              = bool(cgo.NoUseJumpTables),
+            .no_inline_line_tables           = bool(cgo.NoInlineLineTables),
+            .packed_stack                    = bool(cgo.PackedStack),
+            .warn_stack_size                 = cgo.WarnStackSize,
+            .strict_return                   = bool(cgo.StrictReturn),
+            .optimization_level              = cgo.OptimizationLevel,
         };
 
         // TODO initialize dialects here

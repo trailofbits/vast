@@ -9,7 +9,7 @@
 namespace vast::cg {
 
     logical_result emit_high_level_pass(
-        owning_module_ref mod, mcontext_t *mctx, acontext_t *actx, bool enable_verifier
+        vast_module mod, mcontext_t *mctx, acontext_t *actx, bool enable_verifier
     );
 
 } // namespace vast::cg

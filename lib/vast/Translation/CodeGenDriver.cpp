@@ -200,7 +200,7 @@ namespace vast::cg
     }
 
     operation codegen_driver::build_global_function_definition(clang::GlobalDecl decl) {
-        // auto const *fn_decl = llvm::cast< clang::FunctionDecl >(decl.getDecl());
+        auto const *function_decl = llvm::cast< clang::FunctionDecl >(decl.getDecl());
 
         // Compute the function info and vast type.
         const auto &fty_info = type_info.arrange_global_decl(decl);
@@ -215,30 +215,35 @@ namespace vast::cg
             return op;
         }
 
-        // setFunctionLinkage(GD, Fn);
-        // // TODO setGVProperties
-        // // TODO MaubeHandleStaticInExternC
-        // // TODO maybeSetTrivialComdat
-        // // TODO setLLVMFunctionFEnvAttributes
+        // TODO setGVProperties
+        // TODO MaubeHandleStaticInExternC
+        // TODO maybeSetTrivialComdat
+        // TODO setLLVMFunctionFEnvAttributes
 
-        // CIRGenFunction CGF{*this, builder};
-        // CurCGF = &CGF;
-        // {
-        //     mlir::OpBuilder::InsertionGuard guard(builder);
-        //     CGF.generateCode(GD, Fn, FI);
-        // }
-        // CurCGF = nullptr;
+        fn = build_function_body(fn, decl, fty_info);
 
-        // // TODO: setNonAliasAttributes
-        // // TODO: SetLLVMFunctionAttributesForDeclaration
+        // TODO: setNonAliasAttributes
+        // TODO: SetLLVMFunctionAttributesForDeclaration
 
-        // assert(!D->getAttr<ConstructorAttr>() && "NYI");
-        // assert(!D->getAttr<DestructorAttr>() && "NYI");
-        // assert(!D->getAttr<AnnotateAttr>() && "NYI");
+        if (function_decl->getAttr< clang::ConstructorAttr >()) {
+            throw cg::unimplemented("ctor emition");
+        }
 
-        throw cg::unimplemented("build_global_function_definition type emition ");
+        if (function_decl->getAttr< clang::DestructorAttr >()) {
+            throw cg::unimplemented("dtor emition");
+        }
+
+        if (function_decl->getAttr< clang::AnnotateAttr >()) {
+            throw cg::unimplemented("annotated emition");
+        }
+
         return op;
     }
+
+    CodeGenContext::VarTable & codegen_driver::variables_symbol_table() {
+        return codegen.variables_symbol_table();
+    }
+
 
     bool codegen_driver::should_emit_function(clang::GlobalDecl /* decl */) {
         // TODO: implement this -- requires defining linkage for vast

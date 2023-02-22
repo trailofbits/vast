@@ -3,6 +3,7 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
+#include <clang/AST/Decl.h>
 #include <clang/AST/CanonicalType.h>
 #include <llvm/ADT/FoldingSet.h>
 #include <llvm/Support/TrailingObjects.h>
@@ -14,6 +15,10 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg
 {
+    /// Type for representing both the decl and type of parameters to a function.
+    /// The decl must be either a ParmVarDecl or ImplicitParamDecl.
+    struct function_arg_list : public llvm::SmallVector<const clang::VarDecl *, 16> {};
+
     /// abi_arg_info - Helper class to encapsulate information about how a specific C
     /// type should be passed to or returned from a function.
     struct abi_arg_info {

@@ -5,6 +5,7 @@ add_library(vast_codegen
     ArgInfo.cpp
     FunctionInfo.cpp
     Generator.cpp
+    ItaniumCXXABI.cpp
     Passes.cpp
     TargetInfo.cpp
     TypeInfo.cpp

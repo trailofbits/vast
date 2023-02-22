@@ -19,17 +19,13 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/DataLayout.hpp"
 
 // FIXME: bringing dependency from upper layer
+#include "vast/CodeGen/CXXABI.hpp"
 #include "vast/CodeGen/TypeInfo.hpp"
 #include "vast/CodeGen/TargetInfo.hpp"
 
 namespace vast::cg
 {
-    struct codegen_driver_options {
-        bool verbose_diagnostics = true;
-        // forwarded options form clang codegen
-        unsigned int coverage_mapping = false;
-        unsigned int keep_static_consts = false;
-    };
+
 
     struct codegen_driver;
 
@@ -54,12 +50,13 @@ namespace vast::cg
         explicit codegen_driver(
               acontext_t &actx
             , mcontext_t &mctx
-            , codegen_driver_options opts
+            , codegen_options opts
             , const target_info_t &target_info
         )
             : actx(actx)
             , mctx(mctx)
             , options(opts)
+            , cxx_abi(create_cxx_abi(actx))
             , codegen(&actx, &mctx)
             , target_info(target_info)
             , type_info(*this)
@@ -100,9 +97,30 @@ namespace vast::cg
     private:
         bool should_emit_function(clang::GlobalDecl decl);
 
+        vast_cxx_abi get_cxx_abi() const;
+
+        static vast_cxx_abi *create_cxx_abi(const acontext_t &actx) {
+            switch (actx.getCXXABIKind()) {
+                case clang::TargetCXXABI::GenericItanium:
+                case clang::TargetCXXABI::GenericAArch64:
+                case clang::TargetCXXABI::AppleARM64:
+                    return create_vast_itanium_cxx_abi(actx);
+                default:
+                    llvm_unreachable("invalid C++ ABI kind");
+            }
+        }
+
+        CodeGenContext::VarTable &variables_symbol_table();
+
+        bool has_this_return(clang::GlobalDecl decl) const;
+        bool has_most_derived_return(clang::GlobalDecl decl) const;
+
         operation build_global_definition(clang::GlobalDecl decl);
         operation build_global_function_definition(clang::GlobalDecl decl);
         operation build_global_var_definition(const clang::VarDecl *decl, bool tentative = false);
+
+        function_arg_list build_function_arg_list(clang::GlobalDecl decl);
+        hl::FuncOp build_function_body(hl::FuncOp fn, clang::GlobalDecl decl, const function_info_t &fty_info);
 
         // Emit any needed decls for which code generation was deferred.
         void build_deferred();
@@ -115,6 +133,9 @@ namespace vast::cg
 
         operation get_global_value(string_ref name);
         mlir_value get_global_value(const clang::Decl *decl);
+
+
+        bool may_drop_function_return(qual_type rty) const;
 
         const std::vector< clang::GlobalDecl >& default_methods_to_emit() const;
         const std::vector< clang::GlobalDecl >& deferred_decls_to_emit() const;
@@ -150,13 +171,14 @@ namespace vast::cg
         acontext_t &actx;
         mcontext_t &mctx;
 
-        codegen_driver_options options;
+        codegen_options options;
 
         unsigned deffered_top_level_decls = 0;
 
         friend struct defer_handle_of_top_level_decl;
-
         llvm::SmallVector< clang::FunctionDecl *, 8 > deferred_inline_member_func_defs;
+
+        std::unique_ptr< vast_cxx_abi > cxx_abi;
 
         // FIXME: make configurable
         CodeGenWithMetaIDs codegen;
@@ -165,6 +187,7 @@ namespace vast::cg
 
         type_info_t type_info;
         type_conversion_driver type_conv;
+
     };
 
 } // namespace vast::cg

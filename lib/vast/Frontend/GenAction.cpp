@@ -135,9 +135,7 @@ namespace vast::cc {
                 // FIXME: parse pass options and deal with different passes in more sane way
                 switch (target) {
                     case target_dialect::high_level: {
-                        return cg::emit_high_level_pass(
-                            std::move(mod), mctx, acontext, disable_vast_verifier
-                        );
+                        return cg::emit_high_level_pass(mod.get(), mctx, acontext, disable_vast_verifier);
                     }
                 }
 
