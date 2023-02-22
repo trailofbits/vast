@@ -804,6 +804,7 @@ namespace vast
     struct IRsToLLVMPass : ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >
     {
         using base = ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >;
+        using config_t = typename base::config_t;
 
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
@@ -829,7 +830,7 @@ namespace vast
             return target;
         }
 
-        static void populate_conversions(rewrite_pattern_set &patterns, type_converter &converter) {
+        static void populate_conversions(config_t &config) {
             base::populate_conversions_base<
                 pattern::one_to_one_conversions,
                 pattern::inline_region_from_op_conversions,
@@ -839,8 +840,8 @@ namespace vast
                 pattern::base_op_conversions,
                 pattern::ignore_patterns,
                 pattern::lazy_op_type_conversions,
-                patterns::ll_cf_conversions
-            >(patterns, converter);
+                pattern::ll_cf_conversions
+            >(config);
         }
 
         static void set_llvm_opts(mlir::LowerToLLVMOptions &llvm_options) {

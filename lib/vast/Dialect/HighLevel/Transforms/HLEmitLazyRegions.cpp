@@ -71,8 +71,8 @@ namespace vast::hl
     struct HLEmitLazyRegionsPass
         : ModuleConversionPassMixin< HLEmitLazyRegionsPass, HLEmitLazyRegionsBase >
     {
-
         using base = ModuleConversionPassMixin< HLEmitLazyRegionsPass, HLEmitLazyRegionsBase>;
+        using config_t = typename base::config_t;
 
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
@@ -80,10 +80,10 @@ namespace vast::hl
             return target;
         }
 
-        static void populate_conversions(rewrite_pattern_set &patterns) {
+        static void populate_conversions(config_t &config) {
             populate_conversions_base<
                 bin_lop_conversions
-            >(patterns);
+            >(config);
         }
     };
 
