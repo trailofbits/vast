@@ -78,6 +78,14 @@ namespace vast::hl {
             return make< Op >(meta_location(op), lhs, rhs);
         }
 
+        template< typename Op >
+        Operation* VisitArithBinOp(const clang::BinaryOperator *op) {
+            auto lhs = visit(op->getLHS())->getResult(0);
+            auto rhs = visit(op->getRHS())->getResult(0);
+            auto type = visit(op->getType());
+            return make< Op >(meta_location(op), lhs, rhs, type);
+        }
+
         template< typename UOp, typename SOp >
         Operation* VisitIBinOp(const clang::BinaryOperator *op) {
             auto ty = op->getType();
@@ -89,27 +97,27 @@ namespace vast::hl {
         }
 
         template< typename IOp, typename FOp >
-        Operation* VisitIFBinOp(const clang::BinaryOperator *op) {
+        Operation* VisitArithIFBinOp(const clang::BinaryOperator *op) {
             auto ty = op->getType();
             if (ty->isIntegerType())
-                return VisitBinOp< IOp >(op);
+                return VisitArithBinOp< IOp >(op);
             // FIXME: eventually decouple arithmetic and pointer additions?
             if (ty->isPointerType())
-                return VisitBinOp< IOp >(op);
+                return VisitArithBinOp< IOp >(op);
             if (ty->isFloatingType())
-                return VisitBinOp< FOp >(op);
+                return VisitArithBinOp< FOp >(op);
             return nullptr;
         }
 
         template< typename UOp, typename SOp, typename FOp >
-        Operation* VisitIFBinOp(const clang::BinaryOperator *op) {
+        Operation* VisitArithIFBinOp(const clang::BinaryOperator *op) {
             auto ty = op->getType();
             if (ty->isUnsignedIntegerType())
-                return VisitBinOp< UOp >(op);
+                return VisitArithBinOp< UOp >(op);
             if (ty->isIntegerType())
-                return VisitBinOp< SOp >(op);
+                return VisitArithBinOp< SOp >(op);
             if (ty->isFloatingType())
-                return VisitBinOp< FOp >(op);
+                return VisitArithBinOp< FOp >(op);
             return nullptr;
         }
 
@@ -137,23 +145,23 @@ namespace vast::hl {
         // Operation* VisitBinPtrMemI(clang::BinaryOperator *op);
 
         Operation* VisitBinMul(const clang::BinaryOperator *op) {
-            return VisitIFBinOp< MulIOp, MulFOp >(op);
+            return VisitArithIFBinOp< MulIOp, MulFOp >(op);
         }
 
         Operation* VisitBinDiv(const clang::BinaryOperator *op) {
-            return VisitIFBinOp< DivUOp, DivSOp, DivFOp >(op);
+            return VisitArithIFBinOp< DivUOp, DivSOp, DivFOp >(op);
         }
 
         Operation* VisitBinRem(const clang::BinaryOperator *op) {
-            return VisitIFBinOp< RemUOp, RemSOp, RemFOp >(op);
+            return VisitArithIFBinOp< RemUOp, RemSOp, RemFOp >(op);
         }
 
         Operation* VisitBinAdd(const clang::BinaryOperator *op) {
-            return VisitIFBinOp< AddIOp, AddFOp >(op);
+            return VisitArithIFBinOp< AddIOp, AddFOp >(op);
         }
 
         Operation* VisitBinSub(const clang::BinaryOperator *op) {
-            return VisitIFBinOp< SubIOp, SubFOp >(op);
+            return VisitArithIFBinOp< SubIOp, SubFOp >(op);
         }
 
         Operation* VisitBinShl(const clang::BinaryOperator *op) {
@@ -189,15 +197,15 @@ namespace vast::hl {
         }
 
         Operation* VisitBinAnd(const clang::BinaryOperator *op) {
-            return VisitBinOp< BinAndOp >(op);
+            return VisitArithBinOp< BinAndOp >(op);
         }
 
         Operation* VisitBinXor(const clang::BinaryOperator *op) {
-            return VisitBinOp< BinXorOp >(op);
+            return VisitArithBinOp< BinXorOp >(op);
         }
 
         Operation* VisitBinOr(const clang::BinaryOperator *op) {
-            return VisitBinOp< BinOrOp >(op);
+            return VisitArithBinOp< BinOrOp >(op);
         }
 
         template< typename LOp >
