@@ -153,13 +153,6 @@ namespace vast
             return begin;
         }
 
-        auto terminate( auto &bld, mlir::Block *where, auto loc )
-        {
-            return guarded_at_end( bld, where, [ & ] {
-                return bld.template create< ll::ScopeRet >( loc );
-            });
-        }
-
         auto cond_yield( mlir::Block *block )
         {
             auto cond_yield = get_terminator( *block ).cast< hl::CondYieldOp >();
@@ -292,7 +285,6 @@ namespace vast
                 };
 
                 tie( scope_entry, cond_block );
-                terminate( rewriter, body_block, op.getLoc() );
 
                 rewriter.eraseOp( op );
                 return mlir::success();
@@ -304,7 +296,33 @@ namespace vast
             }
         };
 
-        using all = util::make_list< if_op, while_op >;
+        template< typename F, typename T >
+        struct replace_op : operation_conversion_pattern< F >
+        {
+            using op_t = F;
+            using parent_t = operation_conversion_pattern< F >;
+            using parent_t::parent_t;
+
+            mlir::LogicalResult matchAndRewrite(
+                    op_t op,
+                    typename op_t::Adaptor ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                rewriter.create< T >( op.getLoc() );
+                rewriter.eraseOp( op );
+                return mlir::success();
+            }
+        };
+
+        using replace_continue = replace_op< hl::ContinueOp, ll::ScopeRecurse >;
+        using replace_break    = replace_op< hl::BreakOp,    ll::ScopeRet >;
+
+        using all = util::make_list<
+              if_op
+            , while_op
+            , replace_break
+            , replace_continue
+        >;
 
     } // namespace pattern
 
