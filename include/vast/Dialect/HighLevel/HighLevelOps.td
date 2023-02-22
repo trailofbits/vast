@@ -69,7 +69,7 @@ def FuncOp : HighLevel_Op< "func", [
   let regions = (region AnyRegion:$body);
   let skipDefaultBuilders = 1;
 
-  let builders = [OpBuilder<(ins
+  let builders = [OpBuilder< (ins
     "llvm::StringRef":$name,
     "mlir::FunctionType":$type,
     CArg< "GlobalLinkageKind", "GlobalLinkageKind::ExternalLinkage" >:$linkage,
@@ -194,7 +194,7 @@ def EnumConstantOp
     OpBuilder<(ins
       "llvm::StringRef":$name,
       "Type":$type, "llvm::APSInt":$value,
-      CArg<"BuilderCallback", "std::nullopt">:$init
+      CArg< "BuilderCallback", "std::nullopt" >:$init
     ), [{
       $_state.addAttribute("name", $_builder.getStringAttr(name));
       $_state.addAttribute("value", IntegerAttr::get(type, value));
@@ -252,12 +252,12 @@ class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
   let assemblyFormat = [{ $name attr-dict `:` $fields }];
 }
 
-def StructDeclOp : RecordLikeDeclOp<"struct"> {
+def StructDeclOp : RecordLikeDeclOp< "struct" > {
   let summary = "VAST struct declaration";
   let description = [{ VAST struct declaration }];
 }
 
-def UnionDeclOp : RecordLikeDeclOp<"union"> {
+def UnionDeclOp : RecordLikeDeclOp< "union" > {
   let summary = "VAST record declaration";
   let description = [{ VAST record declaration }];
 }
@@ -298,11 +298,11 @@ def CallOp
 
   let skipDefaultBuilders = 1;
   let builders = [
-    OpBuilder< (ins "FuncOp":$callee, CArg<"mlir::ValueRange", "{}">:$operands ), [{
+    OpBuilder< (ins "FuncOp":$callee, CArg< "mlir::ValueRange", "{}" >:$operands ), [{
       $_state.addOperands(operands);
       $_state.addAttribute("callee", mlir::SymbolRefAttr::get($_builder.getContext(), callee.getName()));
       $_state.addTypes(callee.getFunctionType().getResults());
-    }]>
+    }] >
   ];
 
   let assemblyFormat = [{
@@ -313,7 +313,7 @@ def CallOp
 def IndirectCallOp
   : HighLevel_Op< "indirect_call", [
     DeclareOpInterfaceMethods<CallOpInterface>,
-  ]>
+  ] >
   , Arguments<(ins
       // FIXME: LValueOrType<PointerLikeType>
       AnyType:$callee,
@@ -349,7 +349,7 @@ def ExprOp
 
 def ReturnOp
   : HighLevel_Op< "return", [Terminator, NoSideEffect] >
-  , Arguments<(ins Variadic<AnyType>:$result)>
+  , Arguments<(ins Variadic< AnyType >:$result)>
 {
   let assemblyFormat = "($result^ `:` type($result))? attr-dict";
 
@@ -404,7 +404,7 @@ def EnumRefOp
 }
 
 def ConstantOp
-  : HighLevel_Op< "const", [ConstantLike, NoSideEffect, AllTypesMatch< ["value", "result"]>] >
+  : HighLevel_Op< "const", [ConstantLike, NoSideEffect, AllTypesMatch< ["value", "result"] >] >
   , Arguments<(ins TypedAttrInterface:$value)>
   , Results<(outs AnyType:$result)>
 {
@@ -439,7 +439,7 @@ def UnreachableOp : HighLevel_Op<"unreachable", [Terminator, NoSideEffect]> {
 
 class CastKindAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
-class CastKindList< string name, string summary, list<CastKindAttr> cases >
+class CastKindList< string name, string summary, list< CastKindAttr > cases >
   : I64EnumAttr< name, summary, cases > {}
 
 def Dependent : CastKindAttr<"Dependent", 0>;
@@ -633,13 +633,13 @@ class IsPointer< string arg > : PredOpTrait< "value is of an integer type",
 >;
 
 class IsPointerAdditive< string lhs, string rhs, string res > : PredOpTrait< "IsAdditive",
-    And< [Or< [And< [IsPointer< lhs >.predicate, IsInteger< rhs>.predicate] >,
+    And< [Or< [And< [IsPointer< lhs >.predicate, IsInteger< rhs >.predicate] >,
                And< [IsInteger< lhs >.predicate, IsPointer< rhs >.predicate] >] >,
          IsPointer< res >.predicate
     ] >
 >;
 
-class IsPointerSub< string lhs, string rhs, string res > : PredOpTrait< "subtracting two pointers",
+class PtrDiffLike< string lhs, string rhs, string res > : PredOpTrait< "subtracting two pointers",
     And< [IsPointer< lhs >.predicate, IsPointer< rhs >.predicate, IsLong< res >.predicate] >
 >;
 
@@ -650,7 +650,7 @@ class IsAdditive< string lhs, string rhs, string res > : PredOpTrait< "is additi
 >;
 
 class IsSub< string lhs, string rhs, string res > : PredOpTrait< "subtraction operation", Or< [
-        IsAdditive< lhs, rhs, res >.predicate, IsPointerSub< lhs, rhs, res >.predicate
+        IsAdditive< lhs, rhs, res >.predicate, PtrDiffLike< lhs, rhs, res >.predicate
     ] >
 >;
 
@@ -791,7 +791,7 @@ class IsCompoundPtrAdditive< string lhs, string rhs, string res > : PredOpTrait<
 class IsCompoundAdditive< string lhs, string rhs, string res > : PredOpTrait< "is additive operation",
     Or<[
         IsCompoundPtrAdditive< lhs, rhs, res >.predicate,
-        CPred< "$" # lhs # ".getType().cast< LValueType >().getElementType() ==$" # res # ".getType()" >
+        CPred< "$" # lhs # ".getType().cast< LValueType >().getElementType() == $" # res # ".getType()" >
     ]>
 >;
 
