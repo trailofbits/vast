@@ -120,6 +120,14 @@ namespace vast::cg {
             builder().setInsertionPointToEnd(block);
         }
 
+        bool has_insertion_block() {
+            return builder().getInsertionBlock();
+        }
+
+        void clear_insertion_point() {
+            builder().clearInsertionPoint();
+        }
+
         template< typename Op, typename... Args >
         auto create(Args &&...args) {
             return builder().template create< Op >(std::forward< Args >(args)...);
@@ -241,51 +249,6 @@ namespace vast::cg {
             return create< hl::ConstantOp >(loc, ty.cast< hl::ArrayType >(), value);
         }
 
-        hl::FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
-            return declare< hl::FuncOp >(context().funcdecls, decl, vast_decl_builder);
-        }
-
-        Value declare(const clang::ParmVarDecl *decl, auto vast_value) {
-            return declare< Value >(context().vars, decl, [vast_value] { return vast_value; });
-        }
-
-        Value declare(const clang::VarDecl *decl, auto vast_decl_builder) {
-            return declare< Value >(context().vars, decl, vast_decl_builder);
-        }
-
-        hl::LabelDeclOp declare(const clang::LabelDecl *decl, auto vast_decl_builder) {
-            return declare< hl::LabelDeclOp >(context().labels, decl, vast_decl_builder);
-        }
-
-        hl::TypeDefOp declare(const clang::TypedefDecl *decl, auto vast_decl_builder) {
-            return declare< hl::TypeDefOp >(context().typedefs, decl, vast_decl_builder);
-        }
-
-        hl::TypeDeclOp declare(const clang::TypeDecl *decl, auto vast_decl_builder) {
-            return declare< hl::TypeDeclOp >(context().typedecls, decl, vast_decl_builder);
-        }
-
-        hl::EnumDeclOp declare(const clang::EnumDecl *decl, auto vast_decl_builder) {
-            return declare< hl::EnumDeclOp >(context().enumdecls, decl, vast_decl_builder);
-        }
-
-        hl::EnumConstantOp declare(const clang::EnumConstantDecl *decl, auto vast_decl_builder) {
-            return declare< hl::EnumConstantOp >(context().enumconsts, decl, vast_decl_builder);
-        }
-
-        template< typename SymbolValue >
-        SymbolValue declare(auto &table, const auto *decl, auto vast_decl_builder) {
-            if (auto con = table.lookup(decl)) {
-                return con;
-            }
-
-            auto value = vast_decl_builder();
-            if (failed(table.declare(decl, value))) {
-                context().error("error: multiple declarations with the same name: " + decl->getName());
-            }
-
-            return value;
-        }
     };
 
 } // namespace vast::cg

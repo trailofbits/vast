@@ -1,10 +1,12 @@
 add_library( vast_translation_api STATIC
+  CodeGenScope.cpp
   CodeGenStmtVisitor.cpp
   CodeGenTypeVisitor.cpp
   DataLayout.cpp
   CodeGen.cpp
   CodeGenDriver.cpp
   CodeGenTypeDriver.cpp
+  CodeGenFunction.cpp
   Mangler.cpp
 )
 

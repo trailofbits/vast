@@ -53,6 +53,10 @@ namespace vast::cg
             : BaseType(ctx, gen)
         {}
 
+        using BaseType::set_insertion_point_to_start;
+        using BaseType::has_insertion_block;
+        using BaseType::clear_insertion_point;
+
         using MixinType::Visit;
     };
 

@@ -15,6 +15,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Support/LogicalResult.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Translation/CodeGenScope.hpp"
 #include "vast/Translation/Error.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
@@ -41,6 +42,8 @@ namespace vast::cg
             , actx(actx)
             , mod(mod)
         {}
+
+        lexical_scope_context *current_lexical_scope = nullptr;
 
         using VarTable = ScopedValueTable< const clang::VarDecl *, Value >;
         VarTable vars;
@@ -178,6 +181,53 @@ namespace vast::cg
 
         hl::FuncOp lookup_function(const clang::FunctionDecl *decl, bool with_error = true) {
             return symbol(funcdecls, decl, "error: undeclared function '" + decl->getName() + "'", with_error);
+        }
+
+
+        hl::FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
+            return declare< hl::FuncOp >(funcdecls, decl, vast_decl_builder);
+        }
+
+        mlir_value declare(const clang::VarDecl *decl, mlir_value vast_value) {
+            return declare< mlir_value >(vars, decl, [vast_value] { return vast_value; });
+        }
+
+        mlir_value declare(const clang::VarDecl *decl, auto vast_decl_builder) {
+            return declare< mlir_value >(vars, decl, vast_decl_builder);
+        }
+
+        hl::LabelDeclOp declare(const clang::LabelDecl *decl, auto vast_decl_builder) {
+            return declare< hl::LabelDeclOp >(labels, decl, vast_decl_builder);
+        }
+
+        hl::TypeDefOp declare(const clang::TypedefDecl *decl, auto vast_decl_builder) {
+            return declare< hl::TypeDefOp >(typedefs, decl, vast_decl_builder);
+        }
+
+        hl::TypeDeclOp declare(const clang::TypeDecl *decl, auto vast_decl_builder) {
+            return declare< hl::TypeDeclOp >(typedecls, decl, vast_decl_builder);
+        }
+
+        hl::EnumDeclOp declare(const clang::EnumDecl *decl, auto vast_decl_builder) {
+            return declare< hl::EnumDeclOp >(enumdecls, decl, vast_decl_builder);
+        }
+
+        hl::EnumConstantOp declare(const clang::EnumConstantDecl *decl, auto vast_decl_builder) {
+            return declare< hl::EnumConstantOp >(enumconsts, decl, vast_decl_builder);
+        }
+
+        template< typename SymbolValue >
+        SymbolValue declare(auto &table, const auto *decl, auto vast_decl_builder) {
+            if (auto con = table.lookup(decl)) {
+                return con;
+            }
+
+            auto value = vast_decl_builder();
+            if (failed(table.declare(decl, value))) {
+                error("error: multiple declarations with the same name: " + decl->getName());
+            }
+
+            return value;
         }
 
         //
