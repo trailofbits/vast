@@ -10,6 +10,7 @@ namespace TypeTrait {
 class trait : public TypeTrait::TraitBase< type, trait > {};
 
 CORE_TRAIT(IntegralTypeTrait);
+CORE_TRAIT(BoolTypeTrait);
 CORE_TRAIT(CharTypeTrait);
 CORE_TRAIT(ShortTypeTrait);
 CORE_TRAIT(IntegerTypeTrait);

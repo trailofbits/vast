@@ -20,6 +20,7 @@ def ValueRegion : Region< HasOneBlock, "value region" >;
 //
 
 def IntegralTypeTrait : NativeTypeTrait< "IntegralTypeTrait" >;
+def BoolTypeTrait     : NativeTypeTrait< "BoolTypeTrait" >;
 def CharTypeTrait     : NativeTypeTrait< "CharTypeTrait" >;
 def ShortTypeTrait    : NativeTypeTrait< "ShortTypeTrait" >;
 def IntegerTypeTrait  : NativeTypeTrait< "IntegerTypeTrait" >;
@@ -35,6 +36,10 @@ def PointerTypeTrait  : NativeTypeTrait< "PointerTypeTrait" >;
 
 class IsIntegral< string arg > : PredOpTrait< "value is of an integral type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::IntegralTypeTrait >()" >
+>;
+
+class IsBool< string arg > : PredOpTrait< "value is of a bool type",
+    CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::BoolTypeTrait >()" >
 >;
 
 class IsChar< string arg > : PredOpTrait< "value is of a char type",
