@@ -10,6 +10,8 @@ include "mlir/IR/BuiltinTypeInterfaces.td"
 include "vast/Dialect/HighLevel/HighLevelAttributes.td"
 include "vast/Interfaces/TypeQualifiersInterfaces.td"
 
+include "vast/Dialect/Core/Utils.td"
+
 // NOTE(lukas): I have no idea how to do this both in a sane way and in tablegen
 class WithDefaultDLTypeInterface {
   code default_dl_interface_impl = [{
@@ -188,17 +190,17 @@ def BoolLikeType : TypeConstraint<
 // Integer types & traits
 //
 class IntegerType< string name, string mnemonic, list<Trait> traits = []>
-  : UCVQualifiedType< name, mnemonic, (ins), traits >
+  : UCVQualifiedType< name, mnemonic, (ins), !listconcat(traits, [IntegralTypeTrait]) >
 {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
 
-def CharType     : IntegerType< "Char", "char" >;
-def ShortType    : IntegerType< "Short", "short" >;
-def IntType      : IntegerType< "Int", "int" >;
-def LongType     : IntegerType< "Long", "long" >;
-def LongLongType : IntegerType< "LongLong", "longlong" >;
-def Int128Type   : IntegerType< "Int128", "int128" >;
+def CharType     : IntegerType< "Char", "char", [CharTypeTrait] >;
+def ShortType    : IntegerType< "Short", "short", [ShortTypeTrait] >;
+def IntType      : IntegerType< "Int", "int", [IntegerTypeTrait] >;
+def LongType     : IntegerType< "Long", "long", [LongTypeTrait] >;
+def LongLongType : IntegerType< "LongLong", "longlong", [LongLongTypeTrait] >;
+def Int128Type   : IntegerType< "Int128", "int128", [Int128TypeTrait] >;
 
 def HLIntegerType : AnyTypeOf<[
   CharType, ShortType, IntType, LongType, LongLongType, Int128Type,
@@ -244,7 +246,10 @@ def FloatLikeType : TypeConstraint<
 //
 def PointerType : CVRQualifiedType< "Pointer", "ptr",
     (ins "Type":$elementType),
-    [DeclareTypeInterfaceMethods< SubElementTypeInterface >, MemRefElementTypeInterface]
+    [DeclareTypeInterfaceMethods< SubElementTypeInterface >,
+     MemRefElementTypeInterface,
+     PointerTypeTrait
+    ]
   >
 {
   let builders = [
