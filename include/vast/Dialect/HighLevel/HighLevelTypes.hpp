@@ -27,6 +27,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Interfaces/TypeQualifiersInterfaces.hpp"
 
+#include "vast/Dialect/Core/TypeTraits.hpp"
+
 namespace vast::hl
 {
     template< typename ConcreteTy >

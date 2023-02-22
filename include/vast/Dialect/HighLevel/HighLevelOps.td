@@ -14,6 +14,8 @@ include "vast/Interfaces/SymbolInterface.td"
 include "vast/Dialect/HighLevel/HighLevelLinkage.td"
 include "vast/Dialect/HighLevel/HighLevelCF.td"
 
+include "vast/Dialect/Core/Utils.td"
+
 
 def TranslationUnitOp
   : HighLevel_Op< "translation_unit", [NoTerminator, SymbolTable, IsolatedFromAbove] >
@@ -619,18 +621,6 @@ class CastOp< string mnemonic, list< Trait > traits = [] >
 def ImplicitCastOp   : CastOp< "implicit_cast", [] >;
 def CStyleCastOp     : CastOp< "cstyle_cast", [] >;
 def BuiltinBitCastOp : CastOp< "builtin_bitcast", [] >;
-
-class IsInteger< string arg > : PredOpTrait< "value is of an integer type",
-    CPred< "$" # arg # ".getType().isa< hl::IntType>()" >
->;
-
-class IsLong< string arg > : PredOpTrait< "value is of an integer type",
-    CPred< "$" # arg # ".getType().isa< hl::LongType>()" >
->;
-
-class IsPointer< string arg > : PredOpTrait< "value is of an integer type",
-    CPred< "$" # arg # ".getType().isa< hl::PointerType >()" >
->;
 
 class IsPointerAdditive< string lhs, string rhs, string res > : PredOpTrait< "IsAdditive",
     And< [Or< [And< [IsPointer< lhs >.predicate, IsInteger< rhs >.predicate] >,
