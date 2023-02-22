@@ -44,7 +44,7 @@ def ScopeOp : HighLevel_Op< "scope", [NoTerminator] >
 
 def FuncOp : HighLevel_Op< "func", [
   AutomaticAllocationScope, CallableOpInterface, FunctionOpInterface,
-  IsolatedFromAbove, Symbol
+  IsolatedFromAbove, Symbol, NoTerminator
 ] > {
   let summary = "VAST high-level function definintion or declaration";
 
