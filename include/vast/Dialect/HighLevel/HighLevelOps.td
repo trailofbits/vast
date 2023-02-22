@@ -671,20 +671,11 @@ class ArithBinOp< string mnemonic, list< Trait > traits = [] >
     }];
 
     let skipDefaultBuilders = 1;
-    let builders = [ OpBuilder<(ins "Value":$lhs, "Value":$rhs), [{
+    let builders = [ OpBuilder< (ins "Value":$lhs, "Value":$rhs, "Type":$rtype), [{
         $_state.addOperands(lhs);
         $_state.addOperands(rhs);
-        auto type = lhs.getType();
-        if(rhs.getType().isa< hl::PointerType >())
-        {
-            // Both operands are pointers -> it's a subtraction
-            if(type.isa< hl::PointerType >())
-                type = odsBuilder.getType< hl::LongType >();
-            else
-                type = rhs.getType();
-        }
-        $_state.addTypes(type);
-      }]>
+        $_state.addTypes(rtype);
+      }] >
     ];
 
     let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` functional-type(operands, results) }];
