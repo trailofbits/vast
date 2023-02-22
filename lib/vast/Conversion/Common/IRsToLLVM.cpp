@@ -507,9 +507,8 @@ namespace vast
                         op_t op, adaptor_t ops,
                         mlir::ConversionPatternRewriter &rewriter) const override
             {
-                auto br = rewriter.create< LLVM::BrOp >( op.getLoc(),
-                                                         ops.operands(), op.dest() );
-                rewriter.eraseOp( op );
+                rewriter.create< LLVM::BrOp >(op.getLoc(), ops.operands(), op.dest());
+                rewriter.eraseOp(op);
 
                 return mlir::success();
             }
