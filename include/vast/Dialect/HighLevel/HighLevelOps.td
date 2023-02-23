@@ -622,9 +622,16 @@ def ImplicitCastOp   : CastOp< "implicit_cast", [] >;
 def CStyleCastOp     : CastOp< "cstyle_cast", [] >;
 def BuiltinBitCastOp : CastOp< "builtin_bitcast", [] >;
 
-class IsPointerAdditive< string lhs, string rhs, string res > : PredOpTrait< "IsAdditive",
-    And< [Or< [And< [IsPointer< lhs >.predicate, IsInteger< rhs >.predicate] >,
-               And< [IsInteger< lhs >.predicate, IsPointer< rhs >.predicate] >] >,
+class IsPointerCompatible< string arg > : PredTypeTrait< "type can be added/subtracted to a pointer",
+    And< [IsIntegral< arg >.predicate,
+          Neg< IsShort< arg >.predicate >,
+          Neg< IsChar< arg >.predicate >,
+          Neg< IsBool< arg >.predicate >
+    ] >
+>;
+class IsPointerAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation on pointers",
+    And< [Or< [And< [IsPointer< lhs >.predicate, IsPointerCompatible< rhs >.predicate] >,
+               And< [IsPointerCompatible< lhs >.predicate, IsPointer< rhs >.predicate] >] >,
          IsPointer< res >.predicate
     ] >
 >;
