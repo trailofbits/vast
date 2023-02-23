@@ -609,8 +609,8 @@ def CastKind : CastKindList< "CastKind", "cast kind", [
 
 class CastOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
-    , Arguments<(ins AnyType:$value, CastKind:$kind)>
-    , Results<(outs AnyType:$result)>
+    , Arguments< (ins AnyType:$value, CastKind:$kind) >
+    , Results< (outs AnyType:$result) >
 {
     let summary = "VAST cast operation";
     let description = [{ VAST cast operation }];
@@ -683,23 +683,23 @@ class StandardArithBinOp< string mnemonic, list< Trait > traits = [] >
     : ArithBinOp< mnemonic, !listconcat(traits, [SameOperandsAndResultType]) >;
 
 
-def AddIOp : ArithBinOp< "add", [Commutative, IsAdditive< "lhs", "rhs", "result" >]>;
-def SubIOp : ArithBinOp< "sub", [IsSub< "lhs", "rhs", "result" >]>;
+def AddIOp : ArithBinOp< "add", [Commutative, IsAdditive< "lhs", "rhs", "result" >] >;
+def SubIOp : ArithBinOp< "sub", [IsSub< "lhs", "rhs", "result" >] >;
 
-def AddFOp : StandardArithBinOp<"fadd", []>;
-def SubFOp : StandardArithBinOp<"fsub", []>;
-def MulIOp : StandardArithBinOp< "mul", [Commutative]>;
-def MulFOp : StandardArithBinOp<"fmul", []>;
-def DivSOp : StandardArithBinOp<"sdiv", []>;
-def DivUOp : StandardArithBinOp<"udiv", []>;
-def DivFOp : StandardArithBinOp<"fdiv", []>;
-def RemSOp : StandardArithBinOp<"srem", []>;
-def RemUOp : StandardArithBinOp<"urem", []>;
-def RemFOp : StandardArithBinOp<"frem", []>;
+def AddFOp : StandardArithBinOp< "fadd", [] >;
+def SubFOp : StandardArithBinOp< "fsub", [] >;
+def MulIOp : StandardArithBinOp<  "mul", [Commutative] >;
+def MulFOp : StandardArithBinOp< "fmul", [] >;
+def DivSOp : StandardArithBinOp< "sdiv", [] >;
+def DivUOp : StandardArithBinOp< "udiv", [] >;
+def DivFOp : StandardArithBinOp< "fdiv", [] >;
+def RemSOp : StandardArithBinOp< "srem", [] >;
+def RemUOp : StandardArithBinOp< "urem", [] >;
+def RemFOp : StandardArithBinOp< "frem", [] >;
 
-def BinXorOp : StandardArithBinOp<"bin.xor", []>;
-def BinOrOp  : StandardArithBinOp< "bin.or", []>;
-def BinAndOp : StandardArithBinOp<"bin.and", []>;
+def BinXorOp : StandardArithBinOp< "bin.xor", [] >;
+def BinOrOp  : StandardArithBinOp<  "bin.or", [] >;
+def BinAndOp : StandardArithBinOp< "bin.and", [] >;
 
 
 class LogicBinOp< string mnemonic, list< Trait > traits = [] >
@@ -731,13 +731,13 @@ class LogicBinOp< string mnemonic, list< Trait > traits = [] >
     let assemblyFormat = [{ $lhs`,` $rhs attr-dict `:` type(results) }];
 }
 
-def BinLAndOp : LogicBinOp<"bin.land", []>;
-def BinLOrOp  : LogicBinOp< "bin.lor", []>;
+def BinLAndOp : LogicBinOp< "bin.land", [] >;
+def BinLOrOp  : LogicBinOp<  "bin.lor", [] >;
 
 def BinComma
   : HighLevel_Op< "bin.comma", [NoSideEffect] >
-  , Arguments<(ins AnyType:$lhs, AnyType:$rhs)>
-  , Results<(outs AnyType:$result)>
+  , Arguments< (ins AnyType:$lhs, AnyType:$rhs) >
+  , Results< (outs AnyType:$result) >
 {
     let summary = "VAST binary operation";
 
@@ -747,7 +747,7 @@ def BinComma
 class ShiftOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
         NoSideEffect, AllTypesMatch<["lhs", "result"]>
-    ])>
+    ]) >
     , Arguments<(ins IntegerLikeType:$lhs, IntegerLikeType:$rhs)>
     , Results<(outs IntegerLikeType:$result)>
 {
