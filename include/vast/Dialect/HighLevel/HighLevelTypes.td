@@ -52,48 +52,6 @@ class HighLevelType< string name, list<Trait> traits = []>
 }
 
 //
-// LValue high-level type and its utilities
-//
-def LValue : HighLevelType< "LValue",
-  [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
-> {
-  let mnemonic = "lvalue";
-
-  let parameters = (ins
-    "Type":$elementType
-  );
-
-  let assemblyFormat = "`<` $elementType `>`";
-}
-
-class LValueOf<TypeConstraint value> : Type< And< [
-    LValue.predicate,
-    SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()", value.predicate >
-  ] >,
-  "lvalue to " # value.summary
->;
-
-class LValueOrType<TypeConstraint value> : Type<
-  Or< [
-    And< [
-      LValue.predicate,
-      SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()", value.predicate >
-    ] >,
-    value.predicate
-  ] >,
-  "lvalue to " # value.summary
->;
-
-class TypesOrLValueTypesMatch<string summary, string lhs, string rhs> : PredOpTrait< summary,
-  Or<[
-    TypesMatchWith< "underlying lvalue type does not match",
-      lhs, rhs, "LValueType::get( $_ctxt, $_self )"
-    >.predicate,
-    AllTypesMatch< ["src", "dst"] >.predicate
-  ]>
->;
-
-//
 // Type qualifiers
 //
 
@@ -171,6 +129,120 @@ class CVRQualifiedType< string name, string mnem, dag params = (ins), list<Trait
 {}
 
 //
+// Tagged types and utils
+//
+def RecordType : CVQualifiedType<
+  "Record", "record", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
+> {
+
+  let builders = [
+    TypeBuilder<(ins "llvm::StringRef":$name), [{
+      return $_get($_ctxt, name, CVQualifiersAttr());
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
+}
+
+def EnumType : CVQualifiedType<
+  "Enum", "enum", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
+> {
+  let builders = [
+    TypeBuilder<(ins "llvm::StringRef":$name), [{
+      return $_get($_ctxt, name, CVQualifiersAttr());
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
+}
+
+def TypedefType : CVRQualifiedType<
+  "Typedef", "typedef", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface, TypedefTrait]
+> {
+  let builders = [
+    TypeBuilder<(ins "llvm::StringRef":$name), [{
+      return $_get($_ctxt, name, CVRQualifiersAttr());
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
+}
+
+def ElaboratedType : CVRQualifiedType<
+  "Elaborated", "elaborated", (ins "Type":$elementType), [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
+> {
+  let builders = [
+    TypeBuilder<(ins "Type":$element), [{
+      return $_get($_ctxt, element, CVRQualifiersAttr());
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $elementType (`,` $quals^ )? `>`";
+}
+
+def LabelType : HighLevelType< "Label" > {
+  let mnemonic = "label";
+}
+
+def ParenType : HighLevelType< "Paren", [MemRefElementTypeInterface] > {
+  let mnemonic = "paren";
+  let parameters = (ins "Type":$elementType);
+  let assemblyFormat = "`<` $elementType `>`";
+}
+
+class ContainsTypedef< list< string > tl > : PredOpTrait< "contains typedef type",
+    Or< !foreach(type, tl, IsTypedef< type >.predicate) >
+>;
+
+class TypesMatchOrTypedef< list< string > tl > : PredOpTrait<
+    "all types match or there is a typedef",
+    Or< [AllTypesMatch< tl >.predicate, ContainsTypedef< tl >.predicate ] >
+>;
+
+//
+// LValue high-level type and its utilities
+//
+def LValue : HighLevelType< "LValue",
+  [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
+> {
+  let mnemonic = "lvalue";
+
+  let parameters = (ins
+    "Type":$elementType
+  );
+
+  let assemblyFormat = "`<` $elementType `>`";
+}
+
+class LValueOf<TypeConstraint value> : Type< And< [
+    LValue.predicate,
+    SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()", value.predicate >
+  ] >,
+  "lvalue to " # value.summary
+>;
+
+class LValueOrType<TypeConstraint value> : Type<
+  Or< [
+    And< [
+      LValue.predicate,
+      SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()", value.predicate >
+    ] >,
+    value.predicate,
+    TypedefType.predicate
+  ] >,
+  "lvalue to " # value.summary
+>;
+
+class TypesOrLValueTypesMatch<string summary, string lhs, string rhs> : PredOpTrait< summary,
+  Or<[
+    TypesMatchWith< "underlying lvalue type does not match",
+      lhs, rhs, "LValueType::get( $_ctxt, $_self )"
+    >.predicate,
+    AllTypesMatch< ["src", "dst"] >.predicate
+  ]>
+>;
+
+//
 // Basic types
 //
 def VoidType : CVQualifiedType< "Void", "void" > {
@@ -182,7 +254,7 @@ def BoolType : CVQualifiedType< "Bool", "bool" > {
 }
 
 def BoolLikeType : TypeConstraint<
-  Or< [BoolType.predicate, AnyI1.predicate] >,
+  Or< [BoolType.predicate, AnyI1.predicate, TypedefType.predicate] >,
   "bool like type"
 >;
 
@@ -203,7 +275,7 @@ def LongLongType : IntegerType< "LongLong", "longlong", [LongLongTypeTrait] >;
 def Int128Type   : IntegerType< "Int128", "int128", [Int128TypeTrait] >;
 
 def HLIntegerType : AnyTypeOf<[
-  CharType, ShortType, IntType, LongType, LongLongType, Int128Type,
+  CharType, ShortType, IntType, LongType, LongLongType, Int128Type, TypedefType
 ]>;
 
 def IntegerLikeType : TypeConstraint<
@@ -233,7 +305,7 @@ def LongDoubleType : FloatingType< "LongDouble", "longdouble" >;
 def Float128Type   : FloatingType< "Float128", "float128" >;
 
 def HLFloatType : AnyTypeOf<[
-  HalfType, BFloat16Type, FloatType, DoubleType, LongDoubleType, Float128Type
+  HalfType, BFloat16Type, FloatType, DoubleType, LongDoubleType, Float128Type, TypedefType
 ]>;
 
 def FloatLikeType : TypeConstraint<
@@ -325,67 +397,5 @@ def DecayedType : HighLevelType< "Decayed", [MemRefElementTypeInterface] > {
 def SubscriptableType : TypeConstraint<
   Or< [ArrayType.predicate, PointerType.predicate, DecayedType.predicate] >, "subscriptable type"
 >;
-
-//
-// Tagged types
-//
-def RecordType : CVQualifiedType<
-  "Record", "record", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
-> {
-
-  let builders = [
-    TypeBuilder<(ins "llvm::StringRef":$name), [{
-      return $_get($_ctxt, name, CVQualifiersAttr());
-    }]>
-  ];
-
-  let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
-}
-
-def EnumType : CVQualifiedType<
-  "Enum", "enum", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
-> {
-  let builders = [
-    TypeBuilder<(ins "llvm::StringRef":$name), [{
-      return $_get($_ctxt, name, CVQualifiersAttr());
-    }]>
-  ];
-
-  let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
-}
-
-def TypedefType : CVRQualifiedType<
-  "Typedef", "typedef", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
-> {
-  let builders = [
-    TypeBuilder<(ins "llvm::StringRef":$name), [{
-      return $_get($_ctxt, name, CVRQualifiersAttr());
-    }]>
-  ];
-
-  let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
-}
-
-def ElaboratedType : CVRQualifiedType<
-  "Elaborated", "elaborated", (ins "Type":$elementType), [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
-> {
-  let builders = [
-    TypeBuilder<(ins "Type":$element), [{
-      return $_get($_ctxt, element, CVRQualifiersAttr());
-    }]>
-  ];
-
-  let assemblyFormat = "`<` $elementType (`,` $quals^ )? `>`";
-}
-
-def LabelType : HighLevelType< "Label" > {
-  let mnemonic = "label";
-}
-
-def ParenType : HighLevelType< "Paren", [MemRefElementTypeInterface] > {
-  let mnemonic = "paren";
-  let parameters = (ins "Type":$elementType);
-  let assemblyFormat = "`<` $elementType `>`";
-}
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
