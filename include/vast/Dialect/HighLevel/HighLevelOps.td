@@ -623,12 +623,13 @@ def CStyleCastOp     : CastOp< "cstyle_cast", [] >;
 def BuiltinBitCastOp : CastOp< "builtin_bitcast", [] >;
 
 class IsPointerCompatible< string arg > : PredTypeTrait< "type can be added/subtracted to a pointer",
-    And< [IsIntegral< arg >.predicate,
-          Neg< IsShort< arg >.predicate >,
-          Neg< IsChar< arg >.predicate >,
-          Neg< IsBool< arg >.predicate >
-    ] >
+   And< [IsIntegral< arg >.predicate,
+         Neg< IsShort< arg >.predicate >,
+         Neg< IsChar< arg >.predicate >,
+         Neg< IsBool< arg >.predicate >
+        ] >
 >;
+
 class IsPointerAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation on pointers",
     And< [Or< [And< [IsPointer< lhs >.predicate, IsPointerCompatible< rhs >.predicate] >,
                And< [IsPointerCompatible< lhs >.predicate, IsPointer< rhs >.predicate] >] >,
@@ -641,8 +642,8 @@ class PtrDiffLike< string lhs, string rhs, string res > : PredOpTrait< "is a sub
 >;
 
 class IsAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation (types match or are ptr and integral)", Or<[
+        TypesMatchOrTypedef< [lhs, rhs, res] >.predicate,
         IsPointerAdditive< lhs, rhs, res >.predicate,
-        AllTypesMatch< [lhs, rhs, res] >.predicate
     ]>
 >;
 
@@ -669,7 +670,7 @@ class ArithBinOp< string mnemonic, list< Trait > traits = [] >
     }];
 
     let skipDefaultBuilders = 1;
-    let builders = [ OpBuilder< (ins "Value":$lhs, "Value":$rhs, "Type":$rtype), [{
+    let builders = [ OpBuilder< (ins "Type":$rtype, "Value":$lhs, "Value":$rhs), [{
         $_state.addOperands(lhs);
         $_state.addOperands(rhs);
         $_state.addTypes(rtype);
@@ -680,7 +681,9 @@ class ArithBinOp< string mnemonic, list< Trait > traits = [] >
 }
 
 class StandardArithBinOp< string mnemonic, list< Trait > traits = [] >
-    : ArithBinOp< mnemonic, !listconcat(traits, [SameOperandsAndResultType]) >;
+    : ArithBinOp< mnemonic, !listconcat(traits,
+                    [TypesMatchOrTypedef< ["lhs", "rhs", "result"] >])
+                >;
 
 
 def AddIOp : ArithBinOp< "add", [Commutative, IsAdditive< "lhs", "rhs", "result" >] >;
@@ -746,7 +749,7 @@ def BinComma
 
 class ShiftOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
-        NoSideEffect, AllTypesMatch<["lhs", "result"]>
+        NoSideEffect, TypesMatchOrTypedef<["lhs", "result"]>
     ]) >
     , Arguments<(ins IntegerLikeType:$lhs, IntegerLikeType:$rhs)>
     , Results<(outs IntegerLikeType:$result)>
@@ -780,7 +783,8 @@ class IsCompoundPtrAdditive< string lhs, string rhs, string res > : PredOpTrait<
 class IsCompoundAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation (types match or are ptr and integral)",
     Or<[
         IsCompoundPtrAdditive< lhs, rhs, res >.predicate,
-        CPred< "$" # lhs # ".getType().cast< LValueType >().getElementType() == $" # res # ".getType()" >
+        CPred< "$" # lhs # ".getType().cast< LValueType >().getElementType() == $" # res # ".getType()" >,
+        ContainsTypedef< [lhs, rhs] >.predicate
     ]>
 >;
 
