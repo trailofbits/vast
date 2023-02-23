@@ -636,17 +636,18 @@ class IsPointerAdditive< string lhs, string rhs, string res > : PredOpTrait< "is
     ] >
 >;
 
-class PtrDiffLike< string lhs, string rhs, string res > : PredOpTrait< "subtracting two pointers",
+class PtrDiffLike< string lhs, string rhs, string res > : PredOpTrait< "is a subtraction of pointers",
     And< [IsPointer< lhs >.predicate, IsPointer< rhs >.predicate, IsLong< res >.predicate] >
 >;
 
-class IsAdditive< string lhs, string rhs, string res > : PredOpTrait< "is additive operation", Or<[
+class IsAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation (types match or are ptr and integral)", Or<[
         IsPointerAdditive< lhs, rhs, res >.predicate,
         AllTypesMatch< [lhs, rhs, res] >.predicate
     ]>
 >;
 
-class IsSub< string lhs, string rhs, string res > : PredOpTrait< "subtraction operation", Or< [
+class IsSub< string lhs, string rhs, string res > : PredOpTrait< "is a subtraction operation (types match or are ptr and integral)",
+    Or< [
         IsAdditive< lhs, rhs, res >.predicate, PtrDiffLike< lhs, rhs, res >.predicate
     ] >
 >;
@@ -766,17 +767,17 @@ class ShiftOp< string mnemonic, list< Trait > traits = [] >
 def BinShlOp : ShiftOp<"bin.shl", []>;
 def BinShrOp : ShiftOp<"bin.shr", []>;
 
-class IsLValuePointer< string arg > : PredOpTrait< "value is of an integer type",
+class IsLValuePointer< string arg > : PredOpTrait< "lvalue is of an integer type",
     CPred< "$" # arg # ".getType().cast< LValueType >().getElementType().isa< hl::PointerType >()" >
 >;
 
-class IsCompoundPtrAdditive< string lhs, string rhs, string res > : PredOpTrait< "IsAdditive",
+class IsCompoundPtrAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation on pointers",
     And< [IsLValuePointer< lhs >.predicate,
           IsInteger< rhs>.predicate,
           IsPointer< res >.predicate ] >
 >;
 
-class IsCompoundAdditive< string lhs, string rhs, string res > : PredOpTrait< "is additive operation",
+class IsCompoundAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation (types match or are ptr and integral)",
     Or<[
         IsCompoundPtrAdditive< lhs, rhs, res >.predicate,
         CPred< "$" # lhs # ".getType().cast< LValueType >().getElementType() == $" # res # ".getType()" >
