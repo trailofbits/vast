@@ -30,6 +30,8 @@ def Int128TypeTrait   : NativeTypeTrait< "Int128TypeTrait" >;
 
 def PointerTypeTrait  : NativeTypeTrait< "PointerTypeTrait" >;
 
+def TypedefTrait      : NativeTypeTrait< "TypedefTrait" >;
+
 //
 // Type trait predicates
 //
@@ -69,6 +71,11 @@ class IsInt128< string arg > : PredOpTrait< "value is of a int128 type",
 
 class IsPointer< string arg > : PredOpTrait< "value is of a pointer type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::PointerTypeTrait >()" >
+>;
+
+
+class IsTypedef< string arg > : PredOpTrait< "value is of a typedefed type",
+    CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::TypedefTrait >()" >
 >;
 
 #endif // VAST_DIALECT_CORE_UTILS
