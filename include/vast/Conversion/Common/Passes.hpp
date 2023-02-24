@@ -130,10 +130,16 @@ namespace vast {
 
             if (failed(populate::apply_conversions(std::move(config))))
                 return signalPassFailure();
+
+            this->after_operation();
         }
 
         // interface with pass base
         void runOnOperation() override { run_on_operation(); }
+
+        // Override to specify what is supposed to run after `run_on_operation` is finished.
+        // This will run *only if the `run_on_operation* was successful.
+        virtual void after_operation() {};
     };
 
     // Sibling of the above module for passes that go to the LLVM dialect.
