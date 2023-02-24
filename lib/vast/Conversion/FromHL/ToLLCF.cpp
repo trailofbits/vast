@@ -357,6 +357,17 @@ namespace vast::conv
         {
             base::populate_conversions_base< pattern::all >(config);
         }
+
+        void after_operation() override
+        {
+            auto exec = [&](ll::Scope scope)
+            {
+                mlir::IRRewriter rewriter{ &this->getContext() };
+                // We really don't care if anything ws remove or not.
+                std::ignore = mlir::eraseUnreachableBlocks(rewriter, scope.body());
+            };
+            this->getOperation().walk( exec );
+        }
     };
 
 } // namespace vast::conv
