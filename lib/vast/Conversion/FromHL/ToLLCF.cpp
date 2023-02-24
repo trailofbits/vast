@@ -27,7 +27,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "../PassesDetails.hpp"
 
-namespace vast
+namespace vast::conv
 {
     namespace
     {
@@ -285,8 +285,9 @@ namespace vast
         }
     };
 
-    std::unique_ptr< mlir::Pass > createHLToLLCFPass()
-    {
-        return std::make_unique< HLToLLCF >();
-    }
-} // namespace vast
+} // namespace vast::conv
+
+std::unique_ptr< mlir::Pass > vast::createHLToLLCFPass()
+{
+    return std::make_unique< vast::conv::HLToLLCF >();
+}
