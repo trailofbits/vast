@@ -142,6 +142,16 @@ def Scope
                          with either branch, scope return or their conditional variants. }];
 
     let regions = (region AnyRegion:$body);
+
+    let extraClassDeclaration = [{
+        mlir::Block *start_block()
+        {
+            auto size = std::distance(body().begin(), body().end());
+            if (size < 2)
+                return nullptr;
+            return &*std::next(body().begin());
+        }
+    }];
 }
 
 def InlineScope
