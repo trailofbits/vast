@@ -55,4 +55,17 @@ namespace vast::conv
         bld.inlineRegionBefore(region, *before->getParent(), before);
     }
 
+    static inline std::size_t size(mlir::Block &block)
+    {
+        return std::distance(block.begin(), block.end());
+    }
+
+    static inline std::size_t size(mlir::Region &region)
+    {
+        return std::distance(region.begin(), region.end());
+    }
+
+    static inline bool empty(mlir::Block &block) { return size(block) == 0; }
+    static inline bool empty(mlir::Region &region) { return size(region) == 0; }
+
 } // namespace vast::conv
