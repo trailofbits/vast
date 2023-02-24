@@ -58,6 +58,16 @@ namespace vast::util::tc
 
         }
 
+        // Moving the converter caused bugs in the code - since the base class has no comments
+        // on this, we defensively forbid any sorts of copies/moves. This should usually pose
+        // no problem as one type converter per pass has long enough lifetime to be passed
+        // as a reference.
+        LLVMTypeConverter(const LLVMTypeConverter &) = delete;
+        LLVMTypeConverter(LLVMTypeConverter &&) = delete;
+
+        LLVMTypeConverter &operator=(const LLVMTypeConverter &) = delete;
+        LLVMTypeConverter &operator=(LLVMTypeConverter &&) = delete;
+
         maybe_types_t do_conversion(mlir::Type t)
         {
             types_t out;
