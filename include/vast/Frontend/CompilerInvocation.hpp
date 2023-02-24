@@ -18,8 +18,8 @@ namespace vast::cc
     using clang_invocation = clang::CompilerInvocation;
 
     struct compiler_invocation {
-        static bool create_from_args(clang_invocation &inv, diagnostics &diag, argv_t argv, arg_t argv0) {
-            return clang_invocation::CreateFromArgs(inv, argv, diag.engine, argv0);
+        static bool create_from_args(clang_invocation &inv, diagnostics_engine &engine, argv_t argv, arg_t argv0) {
+            return clang_invocation::CreateFromArgs(inv, argv, engine, argv0);
         }
     };
 
