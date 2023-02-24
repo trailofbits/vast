@@ -19,6 +19,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Terminator.hpp"
 #include "vast/Util/TypeList.hpp"
 
+#include "vast/Conversion/Common/Block.hpp"
+#include "vast/Conversion/Common/Rewriter.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
@@ -42,61 +45,6 @@ namespace vast
             auto coerced = rewriter.create< hl::ImplicitCastOp >(
                 op.getLoc(), i1, op, hl::CastKind::IntegralCast);
             return { coerced };
-        }
-
-        template< typename Op, typename Builder >
-        auto extract_as_block( Op op, Builder &bld )
-            -> std::tuple< mlir::Block *, mlir::Block *, mlir::Block * >
-        {
-            auto it = mlir::Block::iterator( op );
-            auto head = op->getBlock();
-
-            auto body = bld.splitBlock( head, it );
-            ++it;
-
-            auto tail = bld.splitBlock( body, it );
-            VAST_CHECK( head && body && tail, "Extract instruction as solo block failed." );
-            return { head, body, tail };
-        }
-
-        template< typename Op, typename Builder >
-        auto split_at_op( Op op, Builder &bld )
-        {
-            auto it = mlir::Block::iterator( op );
-            auto head = op->getBlock();
-
-            auto body = bld.splitBlock( head, it );
-
-            return std::make_tuple( head, body );
-        }
-
-        auto guarded( auto &bld, auto &&fn )
-        {
-            auto g = mlir::OpBuilder::InsertionGuard( bld );
-            return fn();
-        }
-
-        auto guarded_at_end( auto &bld, mlir::Block *block, auto &&fn )
-        {
-            auto g = mlir::OpBuilder::InsertionGuard( bld );
-            bld.setInsertionPointToEnd( block );
-            return fn();
-        }
-
-        template< typename Trg, typename Bld, typename ... Args >
-        auto make_after_op( Bld &bld, Operation *op, Args && ... args )
-        {
-            mlir::OpBuilder::InsertionGuard guard( bld );
-            bld.setInsertionPointAfter( op );
-            return bld.template create< Trg >( std::forward< Args >( args ) ... );
-        }
-
-        template< typename Trg, typename Bld, typename ... Args >
-        auto make_at_end( Bld &bld, mlir::Block *block, Args && ... args )
-        {
-            mlir::OpBuilder::InsertionGuard guard( bld );
-            bld.setInsertionPointToEnd( block );
-            return bld.template create< Trg >( std::forward< Args >( args ) ... );
         }
 
         template< typename Op, typename Bld >
@@ -139,17 +87,6 @@ namespace vast
             VAST_CHECK( begin == end, "Region has more than one block" );
 
             bld.inlineRegionBefore( region, before );
-            return begin;
-        }
-
-        template< typename Op, typename Bld >
-        mlir::Block *inline_region( Op op, Bld &bld, mlir::Region &region, mlir::Region &dest )
-        {
-            auto begin = &region.front();
-            auto end   = &region.back();
-            VAST_CHECK( begin == end, "Region has more than one block" );
-
-            bld.inlineRegionBefore( region, dest, dest.end() );
             return begin;
         }
 
