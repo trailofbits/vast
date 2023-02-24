@@ -107,9 +107,17 @@ namespace vast::conv
             });
         }
 
-        bool is_hl_terminator( const auto &terminator )
+        [[ maybe_unused ]]
+        bool is_hl_terminator( const optional_terminator_t &terminator )
         {
             return terminator.template is_one_of< hl::ReturnOp, hl::BreakOp, hl::ContinueOp >();
+        }
+
+        bool is_hl_terminator( mlir::Operation *op )
+        {
+            return  op && (    mlir::isa< hl::ReturnOp >( op )
+                            || mlir::isa< hl::BreakOp >( op )
+                            || mlir::isa< hl::ContinueOp >( op ) );
         }
 
     } // namespace
@@ -233,6 +241,64 @@ namespace vast::conv
             }
         };
 
+        struct for_op : operation_conversion_pattern< hl::ForOp >
+        {
+            using op_t = hl::ForOp;
+            using parent_t = operation_conversion_pattern< op_t >;
+            using parent_t::parent_t;
+
+            mlir::LogicalResult matchAndRewrite(
+                    op_t op,
+                    typename op_t::Adaptor ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+            {
+                auto scope = rewriter.create< ll::Scope >( op.getLoc() );
+                auto scope_entry = rewriter.createBlock( &scope.body() );
+
+                auto cond_block = inline_region( op, rewriter,
+                                                 op.getCondRegion(), scope.body() );
+
+                auto body_block = inline_region( op, rewriter,
+                                                 op.getBodyRegion(), scope.body() );
+
+                auto inc_block = inline_region( op, rewriter,
+                                                op.getIncrRegion(), scope.body() );
+
+                auto cond_yield = get_terminator( *cond_block ).cast< hl::CondYieldOp >();
+                auto value = guarded( rewriter, [ & ] {
+                    rewriter.setInsertionPointAfter( cond_yield );
+                    return coerce_condition( cond_yield.getResult(), rewriter );
+                });
+                VAST_CHECK( value, "Condition region yield unexpected type" );
+
+                guarded( rewriter, [ & ] {
+                    rewriter.setInsertionPointToEnd( cond_block );
+                    rewriter.template create< ll::CondScopeRet >( op.getLoc(), *value,
+                                                                  body_block );
+                    rewriter.eraseOp( cond_yield );
+                });
+
+                auto tie = [ & ]( auto from, auto to )
+                {
+                    if ( !empty( *from ) && is_hl_terminator( &from->back() ) )
+                        return;
+
+                    guarded( rewriter, [ & ] {
+                        rewriter.setInsertionPointToEnd( from );
+                        rewriter.template create< ll::Br >( op.getLoc(), to );
+                    } );
+                };
+
+                tie( scope_entry, cond_block );
+                tie( body_block, inc_block );
+                tie( inc_block, cond_block );
+
+                rewriter.eraseOp( op );
+
+                return mlir::success();
+            }
+        };
+
         template< typename F, typename T >
         struct replace_op : operation_conversion_pattern< F >
         {
@@ -257,6 +323,7 @@ namespace vast::conv
         using all = util::make_list<
               if_op
             , while_op
+            , for_op
             , replace_break
             , replace_continue
         >;
