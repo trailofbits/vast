@@ -177,15 +177,22 @@ namespace vast {
         {
             rewrite_pattern_set patterns;
             conversion_target target;
-            type_converter converter;
+            // Type converter cannot be moved!
+            type_converter &converter;
 
             mlir::MLIRContext *getContext() { return patterns.getContext(); }
 
             config_t(rewrite_pattern_set patterns, conversion_target target,
-                     type_converter converter)
+                     type_converter &converter)
                 : patterns(std::move(patterns)),
                   target(std::move(target)),
-                  converter(std::move(converter))
+                  converter(converter)
+            {}
+
+            config_t( config_t &&o )
+                : patterns(std::move(o.patterns)),
+                  target(std::move(o.target)),
+                  converter(o.converter)
             {}
         };
 
@@ -201,14 +208,12 @@ namespace vast {
             const auto &dl_analysis = this->template getAnalysis< mlir::DataLayoutAnalysis >();
 
             mlir::LowerToLLVMOptions llvm_options{ &ctx };
-
             derived_t::set_llvm_opts(llvm_options);
 
-            type_converter converter(&ctx, llvm_options , &dl_analysis);
-
+            auto tc = type_converter(&ctx, llvm_options, &dl_analysis);
             auto config = config_t { rewrite_pattern_set(&ctx),
                                      derived_t::create_conversion_target(ctx),
-                                     type_converter(&ctx, llvm_options, &dl_analysis) };
+                                     tc };
             // populate all patterns
             derived_t::populate_conversions(config);
 
