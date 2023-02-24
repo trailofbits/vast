@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Transforms/DialectConversion.h>
 #include <mlir/Rewrite/FrozenRewritePatternSet.h>
 #include <mlir/Transforms/GreedyPatternRewriteDriver.h>
+#include <mlir/Transforms/RegionUtils.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Conversion/Common/Passes.hpp"
@@ -158,6 +159,9 @@ namespace vast::conv
 
                 auto tie = [ & ]( auto from, auto to )
                 {
+                    if ( !empty( *from ) && is_hl_terminator( &from->back() ) )
+                        return;
+
                     VAST_CHECK( from != to, "Emitting branch would create self loop in if." );
                     guarded( rewriter, [ & ] {
                         rewriter.setInsertionPointToEnd( from );
@@ -223,6 +227,9 @@ namespace vast::conv
 
                 auto tie = [ & ]( auto from, auto to )
                 {
+                    if ( !empty( *from ) && is_hl_terminator( &from->back() ) )
+                        return;
+
                     guarded( rewriter, [ & ] {
                         rewriter.setInsertionPointToEnd( from );
                         rewriter.template create< ll::Br >( op.getLoc(), to );
