@@ -158,6 +158,10 @@ namespace vast::cg
 
         mlir_type convert(qual_type type) { return _visitor->Visit(type); }
 
+        void update_completed_type(clang::TagDecl */* decl */) {
+            throw cg::unimplemented("update_completed_type");
+        }
+
         CodeGenContext::VarTable& variables_symbol_table() { return _cgctx->vars; }
 
         // correspond to clang::CodeGenFunction::GenerateCode
@@ -646,11 +650,17 @@ namespace vast::cg
             return codegen.emit_module(decl);
         }
 
+        void append_to_module(clang::Decl *decl) { codegen.append_to_module(decl);}
+
         bool verify_module() const { return codegen.verify_module(); }
 
         owning_module_ref freeze() { return codegen.freeze(); }
 
         mlir_type convert(qual_type type) { return codegen.convert(type); }
+
+        void update_completed_type(clang::TagDecl *decl) {
+            codegen.update_completed_type(decl);
+        }
 
         operation build_function_prototype(clang::GlobalDecl decl, mlir_type fty) {
             return codegen.build_function_prototype(decl, fty);

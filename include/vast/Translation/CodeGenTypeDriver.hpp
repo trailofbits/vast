@@ -28,6 +28,7 @@ namespace vast::cg
         // Convert type into a mlir_type.
         mlir_type convert_type(qual_type type);
 
+        void update_completed_type(const clang::TagDecl *tag);
 
         friend struct function_processing_lock;
 

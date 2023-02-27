@@ -158,17 +158,21 @@ namespace vast::cg
             // case clang::Decl::UsingDirective:
             // case clang::Decl::CXXConstructor:
             // case clang::Decl::StaticAssert:
-            // case clang::Decl::Typedef:
-            // case clang::Decl::TypeAlias:
-            // case clang::Decl::Record:
-            // case clang::Decl::Enum:
-            default: throw cg::unimplemented(std::string("codegen for '") + decl->getDeclKindName());
-            (void) mctx;
+            case clang::Decl::Typedef:
+            case clang::Decl::TypeAlias:
+            case clang::Decl::Record:
+            case clang::Decl::Enum:
+                return codegen.append_to_module(decl);
+            default: throw cg::unimplemented(std::string("codegen for: ") + decl->getDeclKindName());
         }
     }
 
     function_processing_lock codegen_driver::make_lock(const function_info_t *fninfo) {
         return function_processing_lock(type_conv, fninfo);
+    }
+
+    void codegen_driver::update_completed_type(const clang::TagDecl *tag) {
+        type_conv.update_completed_type(tag);
     }
 
     owning_module_ref codegen_driver::freeze() { return codegen.freeze(); }

@@ -37,6 +37,14 @@ namespace vast::cg
         return result;
     }
 
+    // UpdateCompletedType - When we find the full definition for a TagDecl,
+    // replace the 'opaque' type we previously made for it if applicable.
+    void type_conversion_driver::update_completed_type(const clang::TagDecl * /* tag */) {
+        // TODO: we probably do not need this
+        // this should be resolved as a separate vast pass
+        // when we lower enums and structs to ll/core types
+    }
+
     mlir::FunctionType type_conversion_driver::get_function_type(clang::GlobalDecl /* decl */) {
         throw cg::unimplemented("get_function_type");
     }
