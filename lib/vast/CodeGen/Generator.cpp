@@ -50,8 +50,30 @@ namespace vast::cg {
         throw cc::compiler_error("HandleInlineFunctionDefinition not implemented");
     }
 
-    void vast_generator::HandleTagDeclDefinition(clang::TagDecl */* decl */) {
-        throw cc::compiler_error("HandleTagDeclDefinition not implemented");
+    // HandleTagDeclDefinition - This callback is invoked each time a TagDecl to
+    // (e.g. struct, union, enum, class) is completed. This allows the client hack
+    // on the type, which can occur at any point in the file (because these can be
+    // defined in declspecs).
+    void vast_generator::HandleTagDeclDefinition(clang::TagDecl *decl) {
+        if (diags.hasErrorOccurred()) {
+            return;
+        }
+
+        // Don't allow re-entrant calls to generator triggered by PCH
+        // deserialization to emit deferred decls.
+        defer_handle_of_top_level_decl handling_decl(*codegen, /* emit deferred */false);
+
+        codegen->update_completed_type(decl);
+
+        // For MSVC compatibility, treat declarations of static data members with
+        // inline initializers as definitions.
+        if (acontext->getTargetInfo().getCXXABI().isMicrosoft()) {
+            llvm_unreachable("NYI");
+        }
+        // For OpenMP emit declare reduction functions, if required.
+        if (acontext->getLangOpts().OpenMP) {
+            llvm_unreachable("NYI");
+        }
     }
 
     void vast_generator::HandleTagDeclRequiredDefinition(const clang::TagDecl */* decl */) {

@@ -92,6 +92,8 @@ namespace vast::cg
 
         function_processing_lock make_lock(const function_info_t *fninfo);
 
+        void update_completed_type(const clang::TagDecl *tag);
+
         friend struct type_conversion_driver;
 
     private:

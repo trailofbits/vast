@@ -217,8 +217,13 @@ namespace vast::cc {
             }
         }
 
-        void HandleTagDeclDefinition(clang::TagDecl */* decl */) override {
-            throw compiler_error("HandleTagDeclDefinition not implemented");
+        void HandleTagDeclDefinition(clang::TagDecl *decl) override {
+            clang::PrettyStackTraceDecl crash_info(
+                decl, clang::SourceLocation(), acontext->getSourceManager(),
+                "vast generation of declaration"
+            );
+
+            generator->HandleTagDeclDefinition(decl);
         }
 
         // void HandleTagDeclRequiredDefinition(clang::TagDecl */* decl */) override {
