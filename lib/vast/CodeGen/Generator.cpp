@@ -90,19 +90,16 @@ namespace vast::cg {
 
         auto x86_64_info = [&] {
             auto os = triple.getOS();
-            if (os == llvm::Triple::Linux) {
+
+            if (os == llvm::Triple::Win32) {
+                throw cg::unimplemented( "target info for Win32" );
+            } else {
                 return target_info_ptr(
                     new x86_64_target_info(type_info, avx_level(target))
                 );
             }
 
-            if (os == llvm::Triple::Darwin) {
-                return target_info_ptr(
-                    new darwin_x86_64_target_info(type_info, avx_level(target))
-                );
-            }
-
-            throw cc::compiler_error("Unsupported x86_64 OS type.");
+            throw cc::compiler_error(std::string("Unsupported x86_64 OS type: ") + triple.getOSName().str());
         };
 
         switch (triple.getArch()) {
