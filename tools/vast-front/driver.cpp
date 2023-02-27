@@ -25,15 +25,27 @@ namespace vast::cc {
 } // namespace vast::cc
 
 VAST_RELAX_WARNINGS
-std::string get_executable_path(vast::cc::arg_t tool) {
-    // This just needs to be some symbol in the binary
+std::string get_executable_path(vast::cc::arg_t tool, bool canonical_prefixes) {
+    if (!canonical_prefixes) {
+        llvm::SmallString<128> executable_path(tool);
+        // Do a PATH lookup if Argv0 isn't a valid path.
+        if (!llvm::sys::fs::exists(executable_path)) {
+            if (auto prog = llvm::sys::findProgramByName(executable_path)) {
+                executable_path = *prog;
+            }
+        }
+        return std::string(executable_path.str());
+    }
+
+    // This just needs to be some symbol in the binary; C++ doesn't
+    // allow taking the address of ::main however.
     void *p = (void *) (intptr_t) get_executable_path;
     return llvm::sys::fs::getMainExecutable(tool, p);
 }
 VAST_UNRELAX_WARNINGS
 
 
-static int execute_cc1_tool(vast::cc::vast_args &vargs, vast::cc::argv_storage &ccargs) {
+static int execute_cc1_tool(const vast::cc::vast_args &vargs, vast::cc::argv_storage &ccargs) {
     // If we call the cc1 tool from the clangDriver library (through
     // Driver::CC1Main), we need to clean up the options usage count. The options
     // are currently global, and they might have been used previously by the
@@ -62,6 +74,23 @@ static int execute_cc1_tool(vast::cc::vast_args &vargs, vast::cc::argv_storage &
     return 1;
 }
 
+bool has_canonical_prefixes_option(const vast::cc::argv_storage &args) {
+    bool result = true;
+
+    for (auto arg : args) {
+        // Skip end-of-line response file markers
+        if (arg == nullptr)
+            continue;
+        if (vast::string_ref(arg) == "-canonical-prefixes") {
+            result = true;
+        } else if (vast::string_ref(arg) == "-no-canonical-prefixes") {
+            result = false;
+        }
+    }
+
+    return result;
+}
+
 int main(int argc, char **argv) try {
     // Initialize variables to call the driver
     llvm::InitLLVM x(argc, argv);
@@ -76,51 +105,29 @@ int main(int argc, char **argv) try {
     llvm::BumpPtrAllocator pointer_allocator;
     llvm::StringSaver saver(pointer_allocator);
 
-    auto [vargs, cc_args] = vast::cc::filter_args(cmd_args);
+    auto [vargs, ccargs] = vast::cc::filter_args(cmd_args);
 
     // FIXME: deal with CL mode
 
     // Check if vast-front is in the frontend mode
-    auto first_arg = llvm::find_if(llvm::drop_begin(cc_args), [] (auto a) { return a != nullptr; });
-    if (first_arg != cc_args.end()) {
-        if (std::string_view(cc_args[1]).starts_with("-cc1")) {
+    auto first_arg = llvm::find_if(llvm::drop_begin(ccargs), [] (auto a) { return a != nullptr; });
+    if (first_arg != ccargs.end()) {
+        if (std::string_view(ccargs[1]).starts_with("-cc1")) {
             // FIXME: deal with EOL sentinels
-            return execute_cc1_tool(vargs, cc_args);
+            return execute_cc1_tool(vargs, ccargs);
         }
     }
 
-    throw vast::cc::compiler_error( "unsupported non -cc1 mode" );
+    // Handle options that need handling before the real command line parsing in
+    // Driver::BuildCompilation()
+    bool canonical_prefixes = has_canonical_prefixes_option(ccargs);
+
     // FIXME: handle options that need handling before the real command line parsing
+    std::string driver_path = get_executable_path(ccargs[0], canonical_prefixes);
 
-    // std::string driver_path = get_executable_path(args[0]);
-
-    // // Not in the frontend mode - continue in the compiler driver mode.
-    // vast::cc::driver driver(driver_path, args);
-    // auto comp = driver.make_compilation(args);
-    // vast::cc::failing_commands failing;
-
-    // // Run the driver
-    // driver.execute(*comp, failing);
-
-    // int res = 1;
-    // for (const auto &[cmd_res, cmd] : failing) {
-    //     res = (!res) ? cmd_res : res;
-
-    //     // If result status is < 0 (e.g. when sys::ExecuteAndWait returns -1),
-    //     // then the driver command signalled an error. On Windows, abort will
-    //     // return an exit code of 3. In these cases, generate additional diagnostic
-    //     // information if possible.
-    //     if (win_32 ? cmd_res == 3 : cmd_res < 0) {
-    //         // driver.generate_comp_diagnostics(*c, *failing);
-    //         break;
-    //     }
-    // }
-
-    // diags.client->finish();
-
-    // // If we have multiple failing commands, we return the result of the first
-    // // failing command.
-    // return res;
+    // Not in the frontend mode - continue in the compiler driver mode.
+    vast::cc::driver driver(driver_path, vargs, ccargs, &execute_cc1_tool, canonical_prefixes);
+    return driver.execute();
 } catch (vast::cc::compiler_error &e) {
     llvm::errs() << "vast-cc error: " << e.what() << '\n';
     std::exit(e.exit);

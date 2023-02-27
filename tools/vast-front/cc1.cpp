@@ -69,14 +69,14 @@ namespace vast::cc {
         llvm::InitializeAllAsmPrinters();
         llvm::InitializeAllAsmParsers();
 
-        vast::cc::diagnostics diags(ccargs);
+        vast::cc::buffered_diagnostics diags(ccargs);
 
         // Setup round-trip remarks for the DiagnosticsEngine used in CreateFromArgs.
         // if (find(argv, StringRef("-Rround-trip-cc1-args")) != argv.end()) {
         //     diags.setSeverity(diag::remark_cc1_round_trip_generated, diag::Severity::Remark, {});
         // }
 
-        auto success = compiler_invocation::create_from_args(comp->getInvocation(), diags, ccargs, tool);
+        auto success = compiler_invocation::create_from_args(comp->getInvocation(), diags.engine, ccargs, tool);
 
         auto &frontend_opts = comp->getFrontendOpts();
         // auto &target_opts   = comp->getFrontendOpts();

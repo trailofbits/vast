@@ -30,6 +30,9 @@ namespace vast::cc {
     using clang_driver      = clang::driver::Driver;
     using clang_compilation = clang::driver::Compilation;
 
+    using parsed_clang_name = clang::driver::ParsedClangName;
+    using toolchain         = clang::driver::ToolChain;
+
     using repro_level   = clang_driver::ReproLevel;
     using driver_status = clang_driver::CommandStatus;
     using clang_command = clang::driver::Command;
@@ -46,25 +49,75 @@ namespace vast::cc {
         static constexpr bool llvm_on_linux = false;
     #endif
 
+    static const char *get_stable_cstr(std::set<std::string> &saved_string, string_ref str) {
+        return saved_string.insert(std::string(str)).first->c_str();
+    }
+
+    static void insert_target_and_mode_args(
+        const parsed_clang_name &name_parts, argv_storage &ccargs,
+        std::set<std::string> &saved_string
+    ) {
+        // Put target and mode arguments at the start of argument list so that
+        // arguments specified in command line could override them. Avoid putting
+        // them at index 0, as an option like '-cc1' must remain the first.
+        int insertion_point = 0;
+        if (ccargs.size() > 0)
+            ++insertion_point;
+
+        if (name_parts.DriverMode) {
+            // Add the mode flag to the arguments.
+            ccargs.insert(ccargs.begin() + insertion_point,
+                            get_stable_cstr(saved_string, name_parts.DriverMode));
+        }
+
+        if (name_parts.TargetIsValid) {
+            const char *arr[] = {"-target", get_stable_cstr(saved_string, name_parts.TargetPrefix)};
+            ccargs.insert(ccargs.begin() + insertion_point, std::begin(arr), std::end(arr));
+        }
+    }
+
+    template< typename result_type >
+    static result_type check_env_var(const char *env_opt_set, const char *env_opt_file, std::string &opt_file) {
+        if (const char *str = ::getenv(env_opt_set)) {
+            result_type opt_val = str;
+            if (const char *var = ::getenv(env_opt_file)) {
+                opt_file = var;
+            }
+            return opt_val;
+        }
+
+        return result_type{};
+    }
+
+    //
+    // vast::driver
+    //
     struct driver {
         using exec_compile_t  = llvm::function_ref< int(const vast_args &, argv_storage &) >;
         using compilation_ptr = std::unique_ptr< clang_compilation >;
 
         driver(const std::string &path, const vast_args &vargs,
-               argv_storage &cc_args, exec_compile_t cc1
+               argv_storage &ccargs, exec_compile_t cc1, bool canonical_prefixes
         )
-            : compile(cc1), vargs(vargs), cc_args(cc_args), diag(cc_args, path)
+            : compile(cc1), vargs(vargs), ccargs(ccargs), diag(ccargs, path)
             , drv(path, llvm::sys::getDefaultTargetTriple(), diag.engine, "vast compiler")
         {
-            // FIXME: use SetInstallDir(Args, TheDriver, CanonicalPrefixes);
-            // FIXME: set target and mode
+            set_install_dir(ccargs, canonical_prefixes);
+
+            auto target_and_mode = toolchain::getTargetAndModeFromProgramName(ccargs[0]);
+            drv.setTargetAndMode(target_and_mode);
+
+            std::set<std::string> saved_string;
+            // TODO fill saved strings
+
+            insert_target_and_mode_args(target_and_mode, ccargs, saved_string);
 
             // Ensure the CC1Command actually catches cc1 crashes
             llvm::CrashRecoveryContext::Enable();
         }
 
         compilation_ptr make_compilation() {
-            return compilation_ptr( drv.BuildCompilation(cc_args) );
+            return compilation_ptr( drv.BuildCompilation(ccargs) );
         }
 
         std::optional< repro_level > get_repro_level(const compilation_ptr &comp) const {
@@ -99,6 +152,10 @@ namespace vast::cc {
         using failing_commands = llvm::SmallVector< std::pair< int, const clang_command * >, 4 >;
 
         int execute() {
+            if (!set_backdoor_driver_outputs_from_env_vars()) {
+                return 1;
+            }
+
             auto comp  = make_compilation();
             auto level = get_repro_level(comp);
             if (!level) {
@@ -188,9 +245,87 @@ namespace vast::cc {
             return result;
         }
 
+        bool set_backdoor_driver_outputs_from_env_vars() {
+            drv.CCPrintOptions = check_env_var<bool>(
+                "CC_PRINT_OPTIONS", "CC_PRINT_OPTIONS_FILE", drv.CCPrintOptionsFilename
+            );
+
+            // TODO:
+            // if (check_env_var<bool>("CC_PRINT_HEADERS", "CC_PRINT_HEADERS_FILE", drv.CCPrintHeadersFilename)) {
+            //     drv.CCPrintHeadersFormat = HIFMT_Textual;
+            //     drv.CCPrintHeadersfiltering = HIFIL_None;
+            // } else {
+            //     auto env_var = check_env_var<std::string>(
+            //         "CC_PRINT_HEADERS_FORMAT", "CC_PRINT_HEADERS_FILE",
+            //         drv.CCPrintHeadersFilename
+            //     );
+
+            //     if (!env_var.empty()) {
+            //         drv.CCPrintHeadersFormat = stringToHeaderIncludeFormatKind(env_var.c_str());
+            //         if (!drv.CCPrintHeadersFormat) {
+            //             drv.Diag(clang::diag::err_drv_print_header_env_var) << 0 << env_var;
+            //             return false;
+            //         }
+
+            //         const char *filtering_string = ::getenv("CC_PRINT_HEADERS_FILTERING");
+            //         HeaderIncludefilteringKind filtering;
+
+            //         if (!stringToHeaderIncludefiltering(filtering_string, filtering)) {
+            //             drv.Diag(clang::diag::err_drv_print_header_env_var) << 1 << filtering_string;
+            //             return false;
+            //         }
+
+            //         if ((drv.CCPrintHeadersFormat == HIFMT_Textual && filtering != HIFIL_None) ||
+            //             (drv.CCPrintHeadersFormat == HIFMT_JSON && filtering != HIFIL_Only_Direct_System)
+            //         ) {
+            //             drv.Diag(clang::diag::err_drv_print_header_env_var_combination) << env_var << filtering_string;
+            //             return false;
+            //         }
+            //         drv.CCPrintHeadersfiltering = filtering;
+            //     }
+            // }
+
+            drv.CCLogDiagnostics = check_env_var<bool>(
+                "CC_LOG_DIAGNOSTICS", "CC_LOG_DIAGNOSTICS_FILE",
+                drv.CCLogDiagnosticsFilename
+            );
+
+            drv.CCPrintProcessStats = check_env_var<bool>(
+                "CC_PRINT_PROC_STAT", "CC_PRINT_PROC_STAT_FILE",
+                drv.CCPrintStatReportFilename
+            );
+
+            return true;
+        }
+
+        void set_install_dir(argv_storage &argv, bool canonical_prefixes) {
+            // Attempt to find the original path used to invoke the driver, to determine
+            // the installed path. We do this manually, because we want to support that
+            // path being a symlink.
+            llvm::SmallString< 128 > installed_path(argv[0]);
+
+            // Do a PATH lookup, if there are no directory components.
+            if (llvm::sys::path::filename(installed_path) == installed_path) {
+                if (auto tmp = llvm::sys::findProgramByName(llvm::sys::path::filename(installed_path.str()))) {
+                    installed_path = *tmp;
+                }
+            }
+
+            // FIXME: We don't actually canonicalize this, we just make it absolute.
+            if (canonical_prefixes) {
+                llvm::sys::fs::make_absolute(installed_path);
+            }
+
+            string_ref installed_path_parent(llvm::sys::path::parent_path(installed_path));
+            if (llvm::sys::fs::exists(installed_path_parent)) {
+                drv.setInstalledDir(installed_path_parent);
+            }
+        }
+
+
         exec_compile_t compile;
         const vast_args &vargs;
-        argv_storage & cc_args;
+        argv_storage &ccargs;
 
         errs_diagnostics diag;
         clang_driver drv;

@@ -102,7 +102,6 @@ namespace vast::cc
         explicit errs_diagnostics(llvm::ArrayRef<const char *> argv, const std::string &path)
             : opts(argv), printer(opts, path), engine(make_ids(), opts, printer.get(), false)
         {
-            // FIXME: deal with DiagnosticSerializationFile
             if (!opts->DiagnosticSerializationFile.empty()) {
                 auto consumer = clang::serialized_diags::create(
                     opts->DiagnosticSerializationFile, opts.get(), /* MergeChildRecords */true
