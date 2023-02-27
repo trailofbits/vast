@@ -186,6 +186,10 @@ namespace vast::cg {
                 return VisitBlockPointerType(t, quals);
             }
 
+            if (auto t = llvm::dyn_cast< clang::AttributedType >(underlying)) {
+                return VisitAttributedType(t, quals);
+            }
+
             VAST_UNREACHABLE("unsupported qualified type");
             return Type{};
         }
@@ -332,6 +336,15 @@ namespace vast::cg {
 
         auto VisitBlockPointerType(const clang::BlockPointerType *ty) -> mlir_type {
             return with_qualifiers(ty, ty->desugar().getQualifiers());
+        }
+
+        auto VisitAttributedType(const clang::AttributedType *ty, qualifiers /* quals */) -> mlir_type {
+            return hl::AttributedType::get(&mcontext(), visit(ty->getModifiedType()));
+        }
+
+        auto VisitAttributedType(const clang::AttributedType *ty) -> mlir_type {
+            return hl::AttributedType::get(&mcontext(), visit(ty->getModifiedType()));
+            return VisitAttributedType(ty,  ty->desugar().getQualifiers());
         }
     };
 
