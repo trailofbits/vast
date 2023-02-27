@@ -36,8 +36,4 @@ namespace vast::cg
         {}
     };
 
-    struct darwin_x86_64_target_info : x86_64_target_info {
-        using x86_64_target_info::x86_64_target_info;
-    };
-
 } // namespace vast::cg

@@ -84,13 +84,4 @@ namespace vast::cg
         virtual ~x86_64_abi_info() = default;
     };
 
-    struct darwin_x86_64_abi_info : default_abi_info {
-        darwin_x86_64_abi_info(type_info_t &types, x86_avx_abi_level /* avx_level */)
-            : default_abi_info(types)
-            /* , avx_level(avx_level) */
-        {}
-
-        virtual ~darwin_x86_64_abi_info() = default;
-    };
-
 } // namespace vast::cg
