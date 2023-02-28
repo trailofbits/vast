@@ -170,20 +170,23 @@ namespace vast::conv::irstollvm
         init_list_expr
     >;
 
-    struct func_op : base_pattern< mlir::func::FuncOp >
+    template< typename Op >
+    struct func_op : base_pattern< Op >
     {
-        using base = base_pattern< mlir::func::FuncOp >;
+        using op_t = Op;
+        using base = base_pattern< op_t >;
         using base::base;
 
         mlir::LogicalResult matchAndRewrite(
-                mlir::func::FuncOp func_op, mlir::func::FuncOp::Adaptor ops,
+                op_t func_op, typename op_t::Adaptor ops,
                 mlir::ConversionPatternRewriter &rewriter) const override
         {
             auto &tc = this->type_converter();
 
             auto maybe_target_type = tc.convert_fn_t(func_op.getFunctionType());
+            // TODO(irs-to-llvm): Handle varargs.
             auto maybe_signature =
-                tc.get_conversion_signature(func_op, util::tc::is_variadic(func_op));
+                tc.get_conversion_signature(func_op, /* variadic */ true);
 
             // Type converter failed.
             if (!maybe_target_type || !*maybe_target_type || !maybe_signature)
@@ -260,7 +263,7 @@ namespace vast::conv::irstollvm
 
             auto count = rewriter.create< LLVM::ConstantOp >(
                     arg.getLoc(),
-                    type_converter().convertType(rewriter.getIndexType()),
+                    this->type_converter().convertType(rewriter.getIndexType()),
                     rewriter.getIntegerAttr(rewriter.getIndexType(), 1));
 
             auto alloca_op = rewriter.create< LLVM::AllocaOp >(
@@ -270,6 +273,11 @@ namespace vast::conv::irstollvm
             rewriter.create< mlir::LLVM::StoreOp >(arg.getLoc(), arg, alloca_op);
 
             return mlir::success();
+        }
+
+        static void legalize(conversion_target &target)
+        {
+            target.addIllegalOp< op_t >();
         }
     };
 
@@ -633,7 +641,8 @@ namespace vast::conv::irstollvm
     };
 
     using base_op_conversions = util::type_list<
-        func_op,
+        func_op< mlir::func::FuncOp >,
+        func_op< hl::FuncOp >,
         constant_int,
         implicit_cast,
         call,
