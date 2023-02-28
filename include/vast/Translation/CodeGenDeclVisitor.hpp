@@ -309,7 +309,8 @@ namespace vast::cg {
             }
 
             auto is_terminator = [] (auto &op) {
-                return op.template hasTrait< mlir::OpTrait::IsTerminator >();
+                return op.template hasTrait< mlir::OpTrait::IsTerminator >() ||
+                       mlir::isa< hl::ReturnOp >(op);
             };
 
             auto declare_function_params = [&, this] (auto entry) {
