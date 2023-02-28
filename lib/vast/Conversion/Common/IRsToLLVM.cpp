@@ -360,6 +360,7 @@ namespace vast::conv::irstollvm
 
     using return_conversions = util::type_list<
           ret< hl::ReturnOp >
+        , ret< ll::ReturnOp >
         , ret< mlir::func::ReturnOp >
     >;
 
