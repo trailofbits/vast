@@ -155,8 +155,12 @@ namespace vast::util::tc
                 return {};
 
             // LLVM function can have only one return value;
-            if (r_res->size() != 1)
+            if (r_res->size() > 1)
                 return {};
+
+            if (r_res->empty())
+                r_res->emplace_back(mlir::LLVM::LLVMVoidType::get(t.getContext()));
+
             // TODO(lukas): Not sure how to get info if the type is variadic or not here.
             return mlir::LLVM::LLVMFunctionType::get(r_res->front(), *a_res, false);
         }
