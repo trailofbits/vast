@@ -203,6 +203,7 @@ if (VAST_INSTALL)
     vast
     vast_settings
     vast_translation_api
+    vast_codegen
 
     MLIRMeta
     MLIRHighLevel

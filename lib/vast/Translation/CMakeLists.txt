@@ -21,6 +21,7 @@ target_link_libraries( vast_translation_api
         MLIRSupport
 
         vast::settings
+        vast::codegen
 )
 
 if (NOT LLVM_ENABLE_RTTI)
