@@ -134,6 +134,18 @@ def CondScopeRet
     ];
 }
 
+def ReturnOp
+    : LowLevel_Op< "return", [NoSideEffect, Terminator] >
+    , Arguments<(ins Variadic<AnyType>:$result)>
+{
+    let assemblyFormat = "($result^ `:` type($result))? attr-dict";
+
+    // Allow building a ReturnOp with no return operand.
+    let builders = [
+        OpBuilder<(ins), [{ build($_builder, $_state, llvm::None); }]>
+    ];
+}
+
 def Scope
     : LowLevel_Op< "scope", [NoRegionArguments] >
 {
