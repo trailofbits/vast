@@ -270,6 +270,10 @@ namespace vast::hl
 
             if (mlir::failed(a_res) || mlir::failed(r_res))
                 return llvm::None;
+
+            if (rty.size() == 1 && rty[0].isa< mlir::NoneType >())
+                rty.clear();
+
             return mlir::FunctionType::get(&mctx, aty, rty);
         }
     };
