@@ -18,6 +18,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Frontend/Common.hpp"
 #include "vast/Frontend/Driver.hpp"
+#include "vast/Frontend/Options.hpp"
 
 // main frontend method. Lives inside cc1_main.cpp
 namespace vast::cc {
@@ -93,6 +94,27 @@ bool has_canonical_prefixes_option(const vast::cc::argv_storage &args) {
     return result;
 }
 
+void preprocess_vast_arguments(vast::cc::argv_storage &args) {
+    auto plugin_arg = "-Xclang";
+    // annotate vast arguments as plugin arguments to not be rejected as unknown arguments
+    auto is_plugin_argument = [&] (auto it) {
+        return vast::string_ref( *std::prev(it) ) == plugin_arg;
+    };
+
+    auto make_plugin_argument = [&] (auto it) {
+        if (is_plugin_argument(it))
+            return it;
+        return std::next(args.insert(it, plugin_arg));
+    };
+
+    for (auto it = args.begin(); it != args.end(); it++) {
+        auto arg = vast::string_ref(*it);
+        if (arg.startswith(vast::cc::vast_option_prefix)) {
+            it = make_plugin_argument(it);
+        }
+    }
+}
+
 int main(int argc, char **argv) try {
     // Initialize variables to call the driver
     llvm::InitLLVM x(argc, argv);
@@ -121,6 +143,8 @@ int main(int argc, char **argv) try {
     // Handle options that need handling before the real command line parsing in
     // Driver::BuildCompilation()
     bool canonical_prefixes = has_canonical_prefixes_option(cmd_args);
+
+    preprocess_vast_arguments(cmd_args);
 
     // FIXME: handle options that need handling before the real command line parsing
     std::string driver_path = get_executable_path(cmd_args[0], canonical_prefixes);
