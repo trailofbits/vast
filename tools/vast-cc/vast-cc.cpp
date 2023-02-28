@@ -14,13 +14,10 @@ VAST_UNRELAX_WARNINGS
 
 #include <vast/Translation/Register.hpp>
 
-int main(int argc, char **argv) try {
+int main(int argc, char **argv) {
     vast::registerAllTranslations();
 
     return failed(
         mlir::mlirTranslateMain(argc, argv, "VAST Translation Testing Tool")
     );
-} catch (std::exception &e) {
-    llvm::errs() << "error: " << e.what() << '\n';
-    std::exit(1);
 }
