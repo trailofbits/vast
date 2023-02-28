@@ -326,6 +326,8 @@ namespace vast::conv
 
         using replace_continue = replace_op< hl::ContinueOp, ll::ScopeRecurse >;
         using replace_break    = replace_op< hl::BreakOp,    ll::ScopeRet >;
+        using replace_return   = replace_op< hl::ReturnOp,   ll::ReturnOp >;
+
 
         using all = util::make_list<
               if_op
@@ -333,6 +335,7 @@ namespace vast::conv
             , for_op
             , replace_break
             , replace_continue
+            , replace_return
         >;
 
     } // namespace pattern
