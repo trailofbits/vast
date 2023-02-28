@@ -38,7 +38,9 @@ namespace vast::cg
     // Returns true if decl is a function decl with internal linkage and needs a
     // unique suffix after the mangled name.
     static bool is_unique_internal_linkage_decl(clang::GlobalDecl /* decl */, const std::string &module_name_hash) {
-        assert(module_name_hash.empty() && "Unique internal linkage names NYI");
+        if (!module_name_hash.empty()) {
+            throw cg::codegen_error( "Unique internal linkage names NYI");
+        }
         return false;
     }
 
@@ -58,7 +60,10 @@ namespace vast::cg
         llvm::SmallString< 256 > buffer;
         llvm::raw_svector_ostream out(buffer);
 
-        assert(module_name_hash.empty() && "NYI");
+        if (!module_name_hash.empty()) {
+            throw cg::unimplemented("mangling wih uninitilized module");
+        }
+
         if (mangle_context->shouldMangleDeclName(named)) {
             mangle_context->mangleName(decl.getWithDecl(named), out);
         } else {
@@ -83,7 +88,9 @@ namespace vast::cg
         // mangling is done to make sure that the final name can be properly
         // demangled. For example, for C functions without prototypes, name mangling
         // is not done and the unique suffix should not be appended then.
-        assert(!is_unique_internal_linkage_decl(decl, module_name_hash) && "NYI");
+        if (is_unique_internal_linkage_decl(decl, module_name_hash)) {
+            throw cg::unimplemented("mangling of unique internal linkage decl");
+        }
 
         if (const auto *fn = clang::dyn_cast< clang::FunctionDecl >(named)) {
             assert(!fn->isMultiVersion() && "NYI");

@@ -362,7 +362,9 @@ namespace vast::cg
             // Implicit template instantiations may change linkage if they are later
             // explicitly instantiated, so they should not be emitted eagerly.
             constexpr auto implicit = clang::TSK_ImplicitInstantiation;
-            assert(fn->getTemplateSpecializationKind() != implicit && "NYI");
+            if (fn->getTemplateSpecializationKind() != implicit) {
+                throw cg::unimplemented("implicit template specialization emition");
+            }
             assert(!fn->isTemplated() && "templates NYI");
             return true;
         }
@@ -372,7 +374,9 @@ namespace vast::cg
             // A definition of an inline constexpr static data member may change
             // linkage later if it's redeclared outside the class.
             constexpr auto weak_unknown = clang::ASTContext::InlineVariableDefinitionKind::WeakUnknown;
-            assert(actx.getInlineVariableDefinitionKind(vr) != weak_unknown && "NYI");
+            if (actx.getInlineVariableDefinitionKind(vr) == weak_unknown) {
+                throw cg::unimplemented("inline variable definitions");
+            }
             return true;
         }
 
