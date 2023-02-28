@@ -17,7 +17,15 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg
 {
-    struct mangled_name_ref { string_ref name; };
+    struct mangled_name_ref {
+        string_ref name;
+
+        friend std::strong_ordering operator<=>(const mangled_name_ref &a, const mangled_name_ref &b) {
+            return a.name == b.name ? std::strong_ordering::equal :
+                   a.name < b.name  ? std::strong_ordering::less
+                                    : std::strong_ordering::greater;
+        }
+    };
 
     struct CodeGenMangler {
 

@@ -19,11 +19,11 @@ namespace vast::cg
     )
         : codegen(codegen), emit_deferred(emit_deferred)
     {
-        ++codegen.deffered_top_level_decls;
+        ++codegen.deferred_top_level_decls;
     }
 
     defer_handle_of_top_level_decl::~defer_handle_of_top_level_decl() {
-        unsigned level = --codegen.deffered_top_level_decls;
+        unsigned level = --codegen.deferred_top_level_decls;
         if (level == 0 && emit_deferred) {
             codegen.build_deferred_decls();
         }
@@ -262,6 +262,10 @@ namespace vast::cg
         throw cg::unimplemented("build_global_decl");
     }
 
+    mangled_name_ref codegen_driver::get_mangled_name(clang::GlobalDecl decl) {
+        return codegen.get_mangled_name(decl);
+    }
+
     operation codegen_driver::build_global(clang::GlobalDecl decl) {
         const auto *glob = llvm::cast< clang::ValueDecl >(decl.getDecl());
 
@@ -291,21 +295,21 @@ namespace vast::cg
                 // return;
             }
         } else {
-            throw cg::unimplemented("build_global VarDecl");
+            const auto *var = llvm::cast< clang::VarDecl >(glob);
+            assert(var->isFileVarDecl() && "Cannot emit local var decl as global.");
+            if (var->isThisDeclarationADefinition() != clang::VarDecl::Definition &&
+                !acontext().isMSStaticDataMemberInlineDefinition(var)
+            ) {
+                assert(!lang().OpenMP && "NYI");
+                // If this declaration may have caused an inline variable definition
+                // to change linkage, make sure that it's emitted.
+                // TODO probably use GetAddrOfGlobalVar(var) below?
+                assert((acontext().getInlineVariableDefinitionKind(var) !=
+                    clang::ASTContext::InlineVariableDefinitionKind::Strong
+                ) && "NYI");
 
-            // const auto *var = llvm::cast< clang::VarDecl>(glob);
-            // assert(var->isFileVarDecl() && "Cannot emit local var decl as global.");
-            // if (var->isThisDeclarationADefinition() != VarDecl::Definition &&
-            //     !astCtx.isMSStaticDataMemberInlineDefinition(var)) {
-            //     assert(!getLangOpts().OpenMP && "NYI");
-            //     // If this declaration may have caused an inline variable definition
-            //     // to change linkage, make sure that it's emitted.
-            //     // TODO probably use GetAddrOfGlobalVar(var) below?
-            //     assert((astCtx.getInlineVariableDefinitionKind(var) !=
-            //             ASTContext::InlineVariableDefinitionKind::Strong) &&
-            //             "NYI");
-            //     return;
-            // }
+                return {};
+            }
         }
 
         // Defer code generation to first use when possible, e.g. if this is an inline
@@ -316,29 +320,31 @@ namespace vast::cg
             return build_global_definition(glob);
         }
 
-        // // If we're deferring emission of a C++ variable with an initializer, remember
-        // // the order in which it appeared on the file.
-        // if (getLangOpts().CPlusPlus && isa<VarDecl>(glob) &&
-        //     cast<VarDecl>(glob)->hasInit()) {
-        //     DelayedCXXInitPosition[glob] = CXXGlobalInits.size();
-        //     CXXGlobalInits.push_back(nullptr);
-        // }
+        // If we're deferring emission of a C++ variable with an initializer, remember
+        // the order in which it appeared on the file.
+        if (lang().CPlusPlus && clang::isa< clang::VarDecl >(glob) &&
+            clang::cast< clang::VarDecl >(glob)->hasInit()
+        ) {
+            throw cg::unimplemented("build_global CXX GlobalVar");
+            // DelayedCXXInitPosition[glob] = CXXGlobalInits.size();
+            // CXXGlobalInits.push_back(nullptr);
+        }
 
-        // llvm::StringRef MangledName = getMangledName(GD);
-        // if (getGlobalValue(MangledName) != nullptr) {
-        //     // The value has already been used and should therefore be emitted.
-        //     addDeferredDeclToEmit(GD);
-        // } else if (MustBeEmitted(glob)) {
-        //     // The value must be emitted, but cannot be emitted eagerly.
-        //     assert(!MayBeEmittedEagerly(glob));
-        //     addDeferredDeclToEmit(GD);
-        // } else {
-        //     // Otherwise, remember that we saw a deferred decl with this name. The first
-        //     // use of the mangled name will cause it to move into DeferredDeclsToEmit.
-        //     DeferredDecls[MangledName] = GD;
-        // }
+        auto mangled_name = get_mangled_name(decl);
+        if (get_global_value(mangled_name) != nullptr) {
+            // The value has already been used and should therefore be emitted.
+            codegen.add_deferred_decl_to_emit(decl);
+        } else if (must_be_emitted(glob)) {
+            // The value must be emitted, but cannot be emitted eagerly.
+            assert(!may_be_emitted_eagerly(glob));
+            codegen.add_deferred_decl_to_emit(decl);
+        } else {
+            // Otherwise, remember that we saw a deferred decl with this name. The first
+            // use of the mangled name will cause it to move into DeferredDeclsToEmit.
+            codegen.set_deferred_decl(mangled_name, decl);
+        }
 
-        throw cg::unimplemented("build_global");
+        return {};
     }
 
     bool codegen_driver::must_be_emitted(const clang::ValueDecl *glob) {
@@ -373,7 +379,7 @@ namespace vast::cg
         throw cg::unimplemented("unsupported value decl");
     }
 
-    operation codegen_driver::get_global_value(string_ref name) {
+    operation codegen_driver::get_global_value(mangled_name_ref name) {
         return codegen.get_global_value(name);
     }
 
@@ -393,7 +399,7 @@ namespace vast::cg
         return codegen.deferred_vtables();
     }
 
-    const std::map< string_ref, clang::GlobalDecl >& codegen_driver::deferred_decls() const {
+    const std::map< mangled_name_ref, clang::GlobalDecl >& codegen_driver::deferred_decls() const {
         return codegen.deferred_decls();
     }
 

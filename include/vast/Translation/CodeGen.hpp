@@ -118,12 +118,20 @@ namespace vast::cg
             return mlir::verify(_module.get()).succeeded();
         }
 
-        operation get_global_value(string_ref name) {
+        operation get_global_value(mangled_name_ref name) {
             return _cgctx->get_global_value(name);
         }
 
         mlir_value get_global_value(const clang::Decl *decl) {
             return _cgctx->get_global_value(decl);
+        }
+
+        mangled_name_ref get_mangled_name(clang::GlobalDecl decl) {
+            return _visitor->get_mangled_name(decl);
+        }
+
+        void add_deferred_decl_to_emit(clang::GlobalDecl decl) {
+            _cgctx->add_deferred_decl_to_emit(decl);
         }
 
         const std::vector< clang::GlobalDecl >& default_methods_to_emit() const {
@@ -138,7 +146,11 @@ namespace vast::cg
             return _cgctx->deferred_vtables;
         }
 
-        const std::map< string_ref, clang::GlobalDecl >& deferred_decls() const {
+        void set_deferred_decl(mangled_name_ref name, clang::GlobalDecl decl) {
+            _cgctx->deferred_decls[name] = decl;
+        }
+
+        const std::map< mangled_name_ref, clang::GlobalDecl >& deferred_decls() const {
             return _cgctx->deferred_decls;
         }
 
@@ -563,6 +575,8 @@ namespace vast::cg
             _visitor->clear_insertion_point();
         }
 
+        void dump_module() { _cgctx->dump_module(); }
+
     private:
 
         void setup_codegen(acontext_t &actx) {
@@ -666,12 +680,16 @@ namespace vast::cg
             return codegen.build_function_prototype(decl, fty);
         }
 
-        operation get_global_value(string_ref name) {
+        operation get_global_value(mangled_name_ref name) {
             return codegen.get_global_value(name);
         }
 
         mlir_value get_global_value(const clang::Decl *decl) {
             return codegen.get_global_value(decl);
+        }
+
+        void add_deferred_decl_to_emit(clang::GlobalDecl decl) {
+            codegen.add_deferred_decl_to_emit(decl);
         }
 
         const std::vector< clang::GlobalDecl >& default_methods_to_emit() const {
@@ -686,7 +704,11 @@ namespace vast::cg
             return codegen.deferred_vtables();
         }
 
-        const std::map< string_ref, clang::GlobalDecl >& deferred_decls() const {
+        void set_deferred_decl(mangled_name_ref name, clang::GlobalDecl decl) {
+            codegen.set_deferred_decl(name, decl);
+        }
+
+        const std::map< mangled_name_ref, clang::GlobalDecl >& deferred_decls() const {
             return codegen.deferred_decls();
         }
 
@@ -696,6 +718,10 @@ namespace vast::cg
 
         CodeGenContext::VarTable & variables_symbol_table() {
             return codegen.variables_symbol_table();
+        }
+
+        mangled_name_ref get_mangled_name(clang::GlobalDecl decl) {
+            return codegen.get_mangled_name(decl);
         }
 
         template< typename Token >
@@ -749,6 +775,8 @@ namespace vast::cg
         void clear_insertion_point() {
             codegen.clear_insertion_point();
         }
+
+        void dump_module() { codegen.dump_module(); }
 
         MetaGenerator meta;
         CodeGenBase< Visitor > codegen;

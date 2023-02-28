@@ -96,7 +96,12 @@ namespace vast::cg
 
         friend struct type_conversion_driver;
 
+        mangled_name_ref get_mangled_name(clang::GlobalDecl decl);
+
+        void dump_module() { codegen.dump_module(); }
+
     private:
+
         bool should_emit_function(clang::GlobalDecl decl);
 
         vast_cxx_abi get_cxx_abi() const;
@@ -133,7 +138,7 @@ namespace vast::cg
         // Forward declarations are emitted lazily.
         operation build_global(clang::GlobalDecl decl);
 
-        operation get_global_value(string_ref name);
+        operation get_global_value(mangled_name_ref name);
         mlir_value get_global_value(const clang::Decl *decl);
 
 
@@ -142,7 +147,7 @@ namespace vast::cg
         const std::vector< clang::GlobalDecl >& default_methods_to_emit() const;
         const std::vector< clang::GlobalDecl >& deferred_decls_to_emit() const;
         const std::vector< const clang::CXXRecordDecl * >& deferred_vtables() const;
-        const std::map< string_ref, clang::GlobalDecl >& deferred_decls() const;
+        const std::map< mangled_name_ref, clang::GlobalDecl >& deferred_decls() const;
 
         std::vector< clang::GlobalDecl >&& receive_deferred_decls_to_emit();
 
@@ -175,7 +180,7 @@ namespace vast::cg
 
         codegen_options options;
 
-        unsigned deffered_top_level_decls = 0;
+        unsigned deferred_top_level_decls = 0;
 
         friend struct defer_handle_of_top_level_decl;
         llvm::SmallVector< clang::FunctionDecl *, 8 > deferred_inline_member_func_defs;

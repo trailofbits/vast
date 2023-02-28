@@ -17,6 +17,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Translation/CodeGenScope.hpp"
 #include "vast/Translation/Error.hpp"
+#include "vast/Translation/Mangler.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
@@ -86,7 +87,7 @@ namespace vast::cg
         // for emission and therefore should only be output if they are actually
         // used. If a decl is in this, then it is known to have not been referenced
         // yet.
-        std::map< string_ref, clang::GlobalDecl > deferred_decls;
+        std::map< mangled_name_ref, clang::GlobalDecl > deferred_decls;
 
         // A queue of (optional) vtables to consider emitting.
         std::vector< const clang::CXXRecordDecl * > deferred_vtables;
@@ -106,8 +107,8 @@ namespace vast::cg
             default_methods_to_emit.emplace_back(decl);
         }
 
-        operation get_global_value(string_ref name) {
-            if (auto global = mlir::SymbolTable::lookupSymbolIn(mod.get(), name))
+        operation get_global_value(mangled_name_ref name) {
+            if (auto global = mlir::SymbolTable::lookupSymbolIn(mod.get(), name.name))
                 return global;
             return {};
         }
@@ -248,5 +249,7 @@ namespace vast::cg
         mlir::IntegerAttr i16(int16_t v) { return interger_attr(v); }
         mlir::IntegerAttr i32(int32_t v) { return interger_attr(v); }
         mlir::IntegerAttr i64(int64_t v) { return interger_attr(v); }
+
+        void dump_module() { mod->dump(); }
     };
 } // namespace vast::cg
