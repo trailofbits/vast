@@ -132,7 +132,7 @@ namespace vast::cg {
 
         auto with_qualifiers(const clang::BlockPointerType *ty, qualifiers quals) -> mlir_type {
             auto pointee = visit(ty->getPointeeType());
-            return with_cvr_qualifiers(type_builder< PointerType >().bind(pointee), quals).freeze();
+            return with_cvr_qualifiers(type_builder< hl::PointerType >().bind(pointee), quals).freeze();
         }
 
         auto Visit(clang::QualType ty) -> mlir_type {
