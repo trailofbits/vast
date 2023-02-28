@@ -21,6 +21,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Frontend/Diagnostics.hpp"
+#include "vast/Frontend/GenAction.hpp"
 
 namespace vast::cc {
 
@@ -96,8 +97,7 @@ namespace vast::cc {
         using exec_compile_t  = int (*)(argv_storage_base &);
         using compilation_ptr = std::unique_ptr< clang_compilation >;
 
-        driver(const std::string &path, argv_storage_base &cmd_args, exec_compile_t cc1, bool canonical_prefixes
-        )
+        driver(const std::string &path, argv_storage_base &cmd_args, exec_compile_t cc1, bool canonical_prefixes)
             : cc1_entry_point(cc1), cmd_args(cmd_args), diag(cmd_args, path)
             , drv(path, llvm::sys::getDefaultTargetTriple(), diag.engine, "vast compiler")
         {
@@ -111,8 +111,7 @@ namespace vast::cc {
 
             insert_target_and_mode_args(target_and_mode, cmd_args, saved_string);
 
-            // Ensure the CC1Command actually catches cc1 crashes
-            llvm::CrashRecoveryContext::Enable();
+            preprocess_vast_args(cmd_args);
         }
 
         compilation_ptr make_compilation() {
@@ -299,6 +298,14 @@ namespace vast::cc {
             );
 
             return true;
+        }
+
+        void preprocess_vast_args(argv_storage_base &cmd_args) {
+            auto [vargs, ccargs] = vast::cc::filter_args(cmd_args);
+            // force no link step in case of emiting mlir file
+            if (vast::cc::opt::emit_only_mlir(vargs)) {
+                cmd_args.push_back("-c");
+            }
         }
 
         void set_install_dir(argv_storage_base &argv, bool canonical_prefixes) {

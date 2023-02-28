@@ -32,7 +32,13 @@ namespace vast::cc {
         constexpr string_ref disable_vast_verifier = "disable-vast-verifier";
         constexpr string_ref vast_verify_diags = "verify-diags";
         constexpr string_ref disable_emit_cxx_default = "disable-emit-cxx-default";
+
+        bool emit_only_mlir(const vast_args &vargs);
+
     } // namespace opt
+
+
+
 
     struct vast_gen_consumer;
 

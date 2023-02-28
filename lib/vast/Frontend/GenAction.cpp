@@ -24,6 +24,19 @@ namespace clang {
 
 namespace vast::cc {
 
+    namespace opt {
+
+        bool emit_only_mlir(const vast_args &vargs) {
+            for (auto arg : {emit_high_level, emit_cir}) {
+                if (vargs.has_option(arg))
+                    return true;
+            }
+
+            return false;
+        }
+
+    } // namespace opt
+
     using output_stream_ptr = std::unique_ptr< llvm::raw_pwrite_stream >;
 
     static std::string get_output_stream_suffix(output_type act) {
