@@ -42,6 +42,8 @@ namespace vast::cg {
 
         const target_info_t &get_target_info();
 
+        void dump_module() { codegen->dump_module(); }
+
     protected:
         std::unique_ptr< codegen_driver > codegen = nullptr;
         std::unique_ptr< mcontext_t > mcontext = nullptr;

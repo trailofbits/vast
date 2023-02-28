@@ -126,7 +126,7 @@ namespace vast::cg {
             }
 
             // Lookup the entry, lazily creating it if necessary.
-            auto *entry = context().get_global_value(mangled_name.name);
+            auto *entry = context().get_global_value(mangled_name);
             if (entry) {
                 if ( !mlir::isa< hl::FuncOp >(entry) ) {
                     throw cg::unimplemented( "only supports FuncOp for now" );
@@ -218,14 +218,14 @@ namespace vast::cg {
                 // deferred decl with this name, remember that we need to emit it at the end
                 // of the file.
                 // FIXME: encapsulate this eventually
-                auto &deffered = context().deferred_decls;
-                if (auto ddi = deffered.find(mangled_name.name); ddi != deffered.end()) {
+                auto &deferred = context().deferred_decls;
+                if (auto ddi = deferred.find(mangled_name); ddi != deferred.end()) {
                     // Move the potentially referenced deferred decl to the
                     // DeferredDeclsToEmit list, and remove it from DeferredDecls (since we
                     // don't need it anymore).
 
                     context().add_deferred_decl_to_emit(ddi->second);
-                    deffered.erase(ddi);
+                    deferred.erase(ddi);
 
                     // Otherwise, there are cases we have to worry about where we're using a
                     // declaration for which we must emit a definition but where we might not
@@ -262,6 +262,10 @@ namespace vast::cg {
             }
 
             throw cg::unimplemented("codegen of incomplete function");
+        }
+
+        mangled_name_ref get_mangled_name(clang::GlobalDecl decl) {
+            return name_mangler().get_mangled_name(decl, acontext().getTargetInfo(), /* module name hash */ "");
         }
 
         vast_function get_addr_of_function(
