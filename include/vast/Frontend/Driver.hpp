@@ -54,25 +54,25 @@ namespace vast::cc {
     }
 
     static void insert_target_and_mode_args(
-        const parsed_clang_name &name_parts, argv_storage &ccargs,
+        const parsed_clang_name &name_parts, argv_storage_base &cmd_args,
         std::set<std::string> &saved_string
     ) {
         // Put target and mode arguments at the start of argument list so that
         // arguments specified in command line could override them. Avoid putting
         // them at index 0, as an option like '-cc1' must remain the first.
         int insertion_point = 0;
-        if (ccargs.size() > 0)
+        if (cmd_args.size() > 0)
             ++insertion_point;
 
         if (name_parts.DriverMode) {
             // Add the mode flag to the arguments.
-            ccargs.insert(ccargs.begin() + insertion_point,
+            cmd_args.insert(cmd_args.begin() + insertion_point,
                             get_stable_cstr(saved_string, name_parts.DriverMode));
         }
 
         if (name_parts.TargetIsValid) {
             const char *arr[] = {"-target", get_stable_cstr(saved_string, name_parts.TargetPrefix)};
-            ccargs.insert(ccargs.begin() + insertion_point, std::begin(arr), std::end(arr));
+            cmd_args.insert(cmd_args.begin() + insertion_point, std::begin(arr), std::end(arr));
         }
     }
 
@@ -93,31 +93,34 @@ namespace vast::cc {
     // vast::driver
     //
     struct driver {
-        using exec_compile_t  = llvm::function_ref< int(const vast_args &, argv_storage &) >;
+        using exec_compile_t  = int (*)(argv_storage_base &);
         using compilation_ptr = std::unique_ptr< clang_compilation >;
 
-        driver(const std::string &path, const vast_args &vargs,
-               argv_storage &ccargs, exec_compile_t cc1, bool canonical_prefixes
+        driver(const std::string &path, argv_storage_base &cmd_args, exec_compile_t cc1, bool canonical_prefixes
         )
-            : compile(cc1), vargs(vargs), ccargs(ccargs), diag(ccargs, path)
+            : cc1_entry_point(cc1), cmd_args(cmd_args), diag(cmd_args, path)
             , drv(path, llvm::sys::getDefaultTargetTriple(), diag.engine, "vast compiler")
         {
-            set_install_dir(ccargs, canonical_prefixes);
+            set_install_dir(cmd_args, canonical_prefixes);
 
-            auto target_and_mode = toolchain::getTargetAndModeFromProgramName(ccargs[0]);
+            auto target_and_mode = toolchain::getTargetAndModeFromProgramName(cmd_args[0]);
             drv.setTargetAndMode(target_and_mode);
 
             std::set<std::string> saved_string;
             // TODO fill saved strings
 
-            insert_target_and_mode_args(target_and_mode, ccargs, saved_string);
+            insert_target_and_mode_args(target_and_mode, cmd_args, saved_string);
 
             // Ensure the CC1Command actually catches cc1 crashes
             llvm::CrashRecoveryContext::Enable();
         }
 
         compilation_ptr make_compilation() {
-            return compilation_ptr( drv.BuildCompilation(ccargs) );
+            drv.CC1Main = cc1_entry_point;
+            // Ensure the CC1Command actually catches cc1 crashes
+            llvm::CrashRecoveryContext::Enable();
+
+            return compilation_ptr( drv.BuildCompilation(cmd_args) );
         }
 
         std::optional< repro_level > get_repro_level(const compilation_ptr &comp) const {
@@ -298,7 +301,7 @@ namespace vast::cc {
             return true;
         }
 
-        void set_install_dir(argv_storage &argv, bool canonical_prefixes) {
+        void set_install_dir(argv_storage_base &argv, bool canonical_prefixes) {
             // Attempt to find the original path used to invoke the driver, to determine
             // the installed path. We do this manually, because we want to support that
             // path being a symlink.
@@ -323,9 +326,8 @@ namespace vast::cc {
         }
 
 
-        exec_compile_t compile;
-        const vast_args &vargs;
-        argv_storage &ccargs;
+        exec_compile_t cc1_entry_point;
+        argv_storage_base &cmd_args;
 
         errs_diagnostics diag;
         clang_driver drv;

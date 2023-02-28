@@ -45,7 +45,7 @@ std::string get_executable_path(vast::cc::arg_t tool, bool canonical_prefixes) {
 VAST_UNRELAX_WARNINGS
 
 
-static int execute_cc1_tool(const vast::cc::vast_args &vargs, vast::cc::argv_storage &ccargs) {
+static int execute_cc1_tool(vast::cc::argv_storage_base &cmd_args) {
     // If we call the cc1 tool from the clangDriver library (through
     // Driver::CC1Main), we need to clean up the options usage count. The options
     // are currently global, and they might have been used previously by the
@@ -55,18 +55,20 @@ static int execute_cc1_tool(const vast::cc::vast_args &vargs, vast::cc::argv_sto
     llvm::BumpPtrAllocator pointer_allocator;
     llvm::StringSaver saver(pointer_allocator);
     llvm::cl::ExpandResponseFiles(
-        saver, &llvm::cl::TokenizeGNUCommandLine, ccargs, /* MarkEOLs */ false
+        saver, &llvm::cl::TokenizeGNUCommandLine, cmd_args, /* MarkEOLs */ false
     );
 
-    llvm::StringRef tool = ccargs[1];
+    llvm::StringRef tool = cmd_args[1];
 
     VAST_RELAX_WARNINGS
     void *get_executable_path_ptr = (void *) (intptr_t) get_executable_path;
     VAST_UNRELAX_WARNINGS
 
+    auto [vargs, ccargs] = vast::cc::filter_args(cmd_args);
+
     if (tool == "-cc1") {
         auto ccargs_ref = llvm::makeArrayRef(ccargs).slice(2);
-        return vast::cc::cc1(vargs, ccargs_ref, ccargs[0], get_executable_path_ptr);
+        return vast::cc::cc1(vargs, ccargs_ref, cmd_args[0], get_executable_path_ptr);
     }
 
     llvm::errs() << "error: unknown integrated tool '" << tool << "'. "
@@ -105,28 +107,26 @@ int main(int argc, char **argv) try {
     llvm::BumpPtrAllocator pointer_allocator;
     llvm::StringSaver saver(pointer_allocator);
 
-    auto [vargs, ccargs] = vast::cc::filter_args(cmd_args);
-
     // FIXME: deal with CL mode
 
     // Check if vast-front is in the frontend mode
-    auto first_arg = llvm::find_if(llvm::drop_begin(ccargs), [] (auto a) { return a != nullptr; });
-    if (first_arg != ccargs.end()) {
-        if (std::string_view(ccargs[1]).starts_with("-cc1")) {
+    auto first_arg = llvm::find_if(llvm::drop_begin(cmd_args), [] (auto a) { return a != nullptr; });
+    if (first_arg != cmd_args.end()) {
+        if (std::string_view(cmd_args[1]).starts_with("-cc1")) {
             // FIXME: deal with EOL sentinels
-            return execute_cc1_tool(vargs, ccargs);
+            return execute_cc1_tool(cmd_args);
         }
     }
 
     // Handle options that need handling before the real command line parsing in
     // Driver::BuildCompilation()
-    bool canonical_prefixes = has_canonical_prefixes_option(ccargs);
+    bool canonical_prefixes = has_canonical_prefixes_option(cmd_args);
 
     // FIXME: handle options that need handling before the real command line parsing
-    std::string driver_path = get_executable_path(ccargs[0], canonical_prefixes);
+    std::string driver_path = get_executable_path(cmd_args[0], canonical_prefixes);
 
     // Not in the frontend mode - continue in the compiler driver mode.
-    vast::cc::driver driver(driver_path, vargs, ccargs, &execute_cc1_tool, canonical_prefixes);
+    vast::cc::driver driver(driver_path, cmd_args, &execute_cc1_tool, canonical_prefixes);
     return driver.execute();
 } catch (vast::cc::compiler_error &e) {
     llvm::errs() << "vast-cc error: " << e.what() << '\n';

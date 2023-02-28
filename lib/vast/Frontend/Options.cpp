@@ -49,7 +49,7 @@ namespace vast::cc {
         args.push_back(arg);
     }
 
-    std::pair< vast_args, argv_storage > filter_args(const argv_storage &args) {
+    std::pair< vast_args, argv_storage > filter_args(const argv_storage_base &args) {
         vast_args vargs;
         argv_storage rest;
 

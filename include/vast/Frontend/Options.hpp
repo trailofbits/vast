@@ -20,6 +20,7 @@ namespace vast::cc
     using argv_t = llvm::ArrayRef< arg_t >;
 
     using argv_storage = llvm::SmallVector< arg_t, 256 >;
+    using argv_storage_base = llvm::SmallVectorImpl< arg_t >;
 
     using header_search_options = clang::HeaderSearchOptions;
     using codegen_options       = clang::CodeGenOptions;
@@ -43,5 +44,6 @@ namespace vast::cc
         void push_back(arg_t arg);
     };
 
-    std::pair< vast_args, argv_storage > filter_args(const argv_storage &args);
+    std::pair< vast_args, argv_storage > filter_args(const argv_storage_base &args);
+
 } // namespace vast::cc
