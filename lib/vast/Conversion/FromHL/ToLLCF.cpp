@@ -318,7 +318,7 @@ namespace vast::conv
                     typename op_t::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
-                rewriter.create< T >( op.getLoc() );
+                rewriter.create< T >( op.getLoc(), ops.getOperands() );
                 rewriter.eraseOp( op );
                 return mlir::success();
             }
