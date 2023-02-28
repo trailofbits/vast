@@ -363,13 +363,21 @@ namespace vast::conv
 
         void after_operation() override
         {
-            auto exec = [&](ll::Scope scope)
+            auto clean_scopes = [&](ll::Scope scope)
             {
                 mlir::IRRewriter rewriter{ &this->getContext() };
                 // We really don't care if anything ws remove or not.
                 std::ignore = mlir::eraseUnreachableBlocks(rewriter, scope.body());
             };
-            this->getOperation().walk( exec );
+            this->getOperation().walk(clean_scopes);
+
+            auto clean_functions = [&](hl::FuncOp fn)
+            {
+                mlir::IRRewriter rewriter{ &this->getContext() };
+                // We really don't care if anything ws remove or not.
+                std::ignore = mlir::eraseUnreachableBlocks(rewriter, fn.getBody());
+            };
+            this->getOperation().walk(clean_functions);
         }
     };
 
