@@ -130,11 +130,13 @@ namespace vast::util::tc
         using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
         using maybe_signature_conversion_t = std::optional< signature_conversion_t >;
 
-        maybe_signature_conversion_t get_conversion_signature(mlir::func::FuncOp fn,
+        maybe_signature_conversion_t get_conversion_signature(mlir::FunctionOpInterface fn,
                                                               bool variadic)
         {
             signature_conversion_t conversion(fn.getNumArguments());
-            for (auto arg : llvm::enumerate(fn.getFunctionType().getInputs()))
+            auto fn_type = fn.getFunctionType().dyn_cast< mlir::FunctionType >();
+            VAST_ASSERT(fn_type);
+            for (auto arg : llvm::enumerate(fn_type.getInputs()))
             {
                 auto cty = convert_arg_t(arg.value());
                 if (!cty)
