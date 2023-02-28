@@ -90,7 +90,9 @@ namespace vast::hl
             return dump(llvm::outs());
 
         std::error_code ec;
-        llvm::raw_fd_stream out(outname, ec);
+        llvm::raw_fd_ostream out(outname, ec);
+
+        VAST_CHECK(!ec, "Cannot store bitcode: {0}", ec.message());
         dump(out);
     }
 } // namespace vast::hl
