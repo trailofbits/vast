@@ -74,7 +74,7 @@ namespace vast::hl
 
         using base = ModuleConversionPassMixin< HLEmitLazyRegionsPass, HLEmitLazyRegionsBase>;
 
-        static conversion_target create_conversion_target(MContext &context) {
+        static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
             target.addLegalDialect< vast::core::CoreDialect >();
             return target;

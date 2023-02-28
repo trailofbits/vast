@@ -128,13 +128,13 @@ namespace vast
     struct CoreToLLVMPass : ModuleConversionPassMixin< CoreToLLVMPass, CoreToLLVMBase > {
         using base = ModuleConversionPassMixin< CoreToLLVMPass, CoreToLLVMBase >;
 
-        static conversion_target create_conversion_target(MContext &context) {
+        static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
 
             target.addIllegalDialect< vast::core::CoreDialect >();
             target.addLegalOp< core::LazyOp >();
 
-            target.addLegalDialect< mlir::LLVM::LLVMDialect>();
+            target.addLegalDialect< mlir::LLVM::LLVMDialect >();
             return target;
         }
 

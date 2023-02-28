@@ -754,7 +754,7 @@ namespace vast
     {
         using base = ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >;
 
-        static conversion_target create_conversion_target(MContext &context) {
+        static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
 
             target.addIllegalDialect< hl::HighLevelDialect >();
@@ -769,7 +769,8 @@ namespace vast
             target.addDynamicallyLegalOp< hl::ValueYieldOp >(has_llvm_return_type< hl::ValueYieldOp >);
 
             target.addDynamicallyLegalOp< hl::InitListExpr >(
-                    has_llvm_only_types< hl::InitListExpr >);
+                has_llvm_only_types< hl::InitListExpr >
+            );
 
             target.addIllegalOp< mlir::func::FuncOp >();
             target.markUnknownOpDynamicallyLegal([](auto) { return true; });
@@ -795,10 +796,9 @@ namespace vast
         }
 
     };
+
+    std::unique_ptr< mlir::Pass > createIRsToLLVMPass() {
+        return std::make_unique< vast::IRsToLLVMPass >();
+    }
+
 } // namespace vast
-
-
-std::unique_ptr< mlir::Pass > vast::createIRsToLLVMPass()
-{
-    return std::make_unique< vast::IRsToLLVMPass >();
-}
