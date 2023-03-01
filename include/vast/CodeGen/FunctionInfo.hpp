@@ -438,8 +438,8 @@ namespace vast::cg
             return get_ext_param_infos()[arg_idx];
         }
 
-        // get_calling_convention - REturn the user specified calling convention, which
-        // has been translated into a CIR CC.
+        // get_calling_convention - Return the user specified calling convention, which
+        // has been translated into a vast calling conv.
         calling_conv get_calling_convention() const { return calling_convention; }
 
         can_qual_type get_return_type() const { return get_args_buffer()[0].type; }

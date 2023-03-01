@@ -6,12 +6,13 @@
 #include "vast/Frontend/Common.hpp"
 
 #include "vast/Translation/CodeGenDriver.hpp"
+#include "vast/CodeGen/TypeInfo.hpp"
+#include "vast/CodeGen/ABIInfo.hpp"
 
 namespace vast::cg
 {
     type_info_t::type_info_t(codegen_driver &codegen)
         : codegen{codegen}
-        , abi_info(codegen.get_target_info().get_abi_info())
     {}
 
     calling_conv type_info_t::to_vast_calling_conv(clang::CallingConv cc) {
@@ -23,7 +24,7 @@ namespace vast::cg
     }
 
     const function_info_t &type_info_t::arrange_global_decl(
-        clang::GlobalDecl glob
+        clang::GlobalDecl glob, target_info_t &target_info
     ) {
         auto decl = glob.getDecl();
         assert(!llvm::dyn_cast< clang::ObjCMethodDecl >(decl)
@@ -35,11 +36,11 @@ namespace vast::cg
         assert(!llvm::isa< clang::CXXConstructorDecl >(decl) && "NYI");
         assert(!llvm::isa< clang::CXXDestructorDecl >(decl) && "NYI");
 
-        return arrange_function_decl(fn);
+        return arrange_function_decl(fn, target_info);
     }
 
     const function_info_t &type_info_t::arrange_function_decl(
-        const clang::FunctionDecl *fn
+        const clang::FunctionDecl *fn, target_info_t &target_info
     ) {
         if (const auto *method = llvm::dyn_cast< clang::CXXMethodDecl >(fn)) {
             if (method->isInstance()) {
@@ -60,7 +61,8 @@ namespace vast::cg
                 /* instance_method */ false,
                 /* chain_call */ false, {},
                 noproto->getExtInfo(), {},
-                require_all_args
+                require_all_args,
+                target_info
             );
         }
 
@@ -108,7 +110,8 @@ namespace vast::cg
         can_qual_types_span arg_types,
         ext_info info,
         ext_parameter_info_span params,
-        required_args args
+        required_args args,
+        target_info_t &target_info
     ) {
         assert(llvm::all_of(arg_types, [] (can_qual_type ty) {
             return ty.isCanonicalAsParam(); })
@@ -136,11 +139,12 @@ namespace vast::cg
 
         auto lock = codegen.make_lock(fninfo);
 
-        // Compute ABI inforamtion.
+        const auto &abi = target_info.get_abi_info();
+        // FIXME: remove and make vast pass: compute ABI inforamtion.
         assert(info.getCC() != clang::CallingConv::CC_SpirFunction && "not supported");
         assert(info.getCC() != clang::CC_Swift && "Swift not supported");
         assert(info.getCC() != clang::CC_SwiftAsync && "Swift not supported");
-        abi_info.compute_info(*fninfo);
+        abi.compute_info(*fninfo);
 
         // FIXME: deal with type coersion later in the vast pipeline
         // Loop over all of the computed argument and return value info. If any of

@@ -82,7 +82,7 @@ namespace vast::cg {
             return false;
         }
 
-        // Effectively create the CIR instruction, properly handling insertion points.
+        // Effectively create the vast instruction, properly handling insertion points.
         vast_function create_vast_function(
             mlir::Location loc, mangled_name_ref mangled_name, mlir::FunctionType fty, const clang::FunctionDecl *function_decl
         ) {
@@ -292,7 +292,7 @@ namespace vast::cg {
             return get_or_create_vast_function(mangled_name, fty, decl, emit);
         }
 
-        // Implelements buildGlobalFunctionDefinition of cir codegen
+        // Implelements buildGlobalFunctionDefinition of vast codegen
         operation build_function_prototype(clang::GlobalDecl decl, mlir_type fty) {
             // Get or create the prototype for the function.
             // TODO: Figure out what to do here? llvm uses a GlobalValue for the FuncOp in mlir

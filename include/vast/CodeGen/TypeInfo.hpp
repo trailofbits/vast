@@ -17,6 +17,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg {
     struct codegen_driver;
+    struct target_info_t;
 
     // This class organizes the cross-module state that is used while lowering
     // AST types to VAST high-level types.
@@ -25,8 +26,6 @@ namespace vast::cg {
 
         // Convert clang calling convention to LLVM calling convention.
         calling_conv to_vast_calling_conv(clang::CallingConv cc);
-
-        // const abi_info_t &get_abi_info() const { return abi_info; }
 
         // The arrangement methods are split into three families:
         //   - those meant to drive the signature and prologue/epilogue
@@ -47,8 +46,8 @@ namespace vast::cg {
         //   formal signature inferred from the specific argument types used at the
         //   call-site. However, some targets (e.g. x86-64) screw with this for
         //   compatability reasons.
-        const function_info_t &arrange_global_decl(clang::GlobalDecl decl);
-        const function_info_t &arrange_function_decl(const clang::FunctionDecl *fn);
+        const function_info_t &arrange_global_decl(clang::GlobalDecl decl, target_info_t &target_info);
+        const function_info_t &arrange_function_decl(const clang::FunctionDecl *fn, target_info_t &target_info);
 
         // C++ methods have some special rules and also have implicit parameters.
         const function_info_t &arrange_cxx_method_decl(
@@ -75,7 +74,6 @@ namespace vast::cg {
             clang::CanQual<clang::FunctionProtoType> type
         );
 
-
         // "Arrange" the vast information for a call or type with the given
         // signature. This is largely an internal method; other clients should use
         // one of the above routines, which ultimatley defer to this.
@@ -86,16 +84,13 @@ namespace vast::cg {
             can_qual_types_span arg_types,
             ext_info info,
             ext_parameter_info_span params,
-            required_args args
+            required_args args,
+            target_info_t &target_info
         );
 
         codegen_driver &codegen;
 
     private:
-
-        // This should not be moved earlier, since its initialization depends on some
-        // of the previous reference members being already initialized
-        const abi_info_t &abi_info;
 
         // Hold memoized function_info_t results
         llvm::FoldingSet< function_info_t > function_infos;

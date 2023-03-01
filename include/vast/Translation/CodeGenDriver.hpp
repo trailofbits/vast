@@ -22,11 +22,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/CXXABI.hpp"
 #include "vast/CodeGen/TypeInfo.hpp"
 #include "vast/CodeGen/TargetInfo.hpp"
-
 namespace vast::cg
 {
-
-
     struct codegen_driver;
 
     // Use this when emitting decls to block re-entrant decl emission. It will
@@ -43,25 +40,38 @@ namespace vast::cg
         ~defer_handle_of_top_level_decl();
     };
 
+    using target_info_ptr = std::unique_ptr< target_info_t >;
+
+    x86_avx_abi_level avx_level(const clang::TargetInfo &target);
+
+    namespace detail {
+        target_info_ptr initialize_target_info(
+            const clang::TargetInfo &target, const type_info_t &type_info
+        );
+    } // namespace detail
+
     // This is a layer that provides interface between
     // clang codegen and vast codegen
+
     struct codegen_driver {
 
         explicit codegen_driver(
               acontext_t &actx
             , mcontext_t &mctx
             , codegen_options opts
-            , const target_info_t &target_info
         )
             : actx(actx)
             , mctx(mctx)
             , options(opts)
             , cxx_abi(create_cxx_abi(actx))
             , codegen(&actx, &mctx)
-            , target_info(target_info)
-            , type_info(*this)
             , type_conv(*this)
-        {}
+        {
+            type_info = std::make_unique< type_info_t >(*this);
+
+            const auto &target = actx.getTargetInfo();
+            target_info = detail::initialize_target_info(target, get_type_info());
+        }
 
         ~codegen_driver() {
             assert(deferred_inline_member_func_defs.empty());
@@ -82,8 +92,11 @@ namespace vast::cg
         void finalize();
         owning_module_ref freeze();
 
-        const target_info_t &get_target_info() const { return target_info; }
-        const type_info_t &get_type_info() const { return type_info; }
+        const target_info_t &get_target_info() const { return *target_info; }
+        target_info_t &get_target_info() { return *target_info; }
+
+        const type_info_t &get_type_info() const { return *type_info; }
+        type_info_t &get_type_info() { return *type_info; }
 
         const acontext_t &acontext() const { return actx; }
 
@@ -190,9 +203,9 @@ namespace vast::cg
         // FIXME: make configurable
         CodeGenWithMetaIDs codegen;
 
-        const target_info_t &target_info;
+        mutable std::unique_ptr< target_info_t > target_info;
+        mutable std::unique_ptr< type_info_t > type_info;
 
-        type_info_t type_info;
         type_conversion_driver type_conv;
 
     };
