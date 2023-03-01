@@ -111,20 +111,6 @@ def HLStructsToLLVM : Pass<"vast-hl-structs-to-llvm", "mlir::ModuleOp"> {
   let dependentDialects = ["mlir::LLVM::LLVMDialect"];
 }
 
-def HLToSCF : Pass<"vast-hl-to-scf", "mlir::ModuleOp"> {
-  let summary = "Lower control flow constructs into SCF.";
-  let description = [{
-    Pass lowers high-level control flow constructs (such as `IfOp` for example) to their
-    equivalents in `SCF` dialect. Requires types on relevant operations to be in standard
-    dialect.
-
-    This pass is still a work in progress.
-  }];
-
-  let dependentDialects = ["mlir::scf::SCFDialect", "mlir::LLVM::LLVMDialect"];
-  let constructor = "vast::hl::createHLToSCFPass()";
-}
-
 def HLEmitLazyRegions : Pass<"vast-hl-to-lazy-regions", "mlir::ModuleOp"> {
   let summary = "Transform hl operations that have short-circuiting into lazy operations.";
   let description = [{
