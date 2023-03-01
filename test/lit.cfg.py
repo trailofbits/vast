@@ -46,10 +46,15 @@ config.test_source_root = os.path.dirname(__file__)
 # test_exec_root: The root path where tests should be run.
 config.test_exec_root = os.path.join(config.vast_obj_root, 'test')
 config.vast_test_util = os.path.join(config.vast_src_root, 'test/utils')
-config.vast_tools_dir = os.path.join(config.vast_obj_root, 'bin')
+config.vast_tools_dir = os.path.join(config.vast_obj_root, 'tools')
 
 tools = [ 'vast-opt', 'vast-cc', 'vast-query' ]
-utils = [ 'ignore-test' ]
 
-llvm_config.add_tool_substitutions(tools, config.vast_tools_dir)
-llvm_config.add_tool_substitutions(utils, config.vast_test_util)
+if 'BUILD_TYPE' in lit_config.params:
+    config.vast_build_type = lit_config.params['BUILD_TYPE']
+else:
+    config.vast_build_type = "Debug"
+
+for tool in tools:
+    path = [config.vast_tools_dir, tool, config.vast_build_type]
+    llvm_config.add_tool_substitutions([tool], os.path.join(*path))
