@@ -48,7 +48,9 @@ namespace vast::cg
                 vast_arg_no += vast_args.number_of_args;
             }
 
-            assert(!swap_this_with_sret && "NYI");
+            if (swap_this_with_sret) {
+                throw cg::codegen_error("unsupported swap this with sret");
+            }
         }
         assert(arg_no == arg_info.size());
 
