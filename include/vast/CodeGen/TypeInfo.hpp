@@ -24,6 +24,15 @@ namespace vast::cg {
     struct type_info_t {
         type_info_t(codegen_driver &codegen);
 
+        ~type_info_t() {
+            // clean up function infos
+            std::vector< std::unique_ptr< function_info_t > > ptrs;
+            for (auto &info : function_infos) {
+                ptrs.emplace_back(&info);
+            }
+            function_infos.clear();
+        }
+
         // Convert clang calling convention to LLVM calling convention.
         calling_conv to_vast_calling_conv(clang::CallingConv cc);
 
