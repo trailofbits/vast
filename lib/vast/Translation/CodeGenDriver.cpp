@@ -29,6 +29,55 @@ namespace vast::cg
         }
     }
 
+    x86_avx_abi_level avx_level(const clang::TargetInfo &target) {
+        const auto &abi = target.getABI();
+
+        if (abi == "avx512")
+            return x86_avx_abi_level::avx512;
+        if (abi == "avx")
+            return x86_avx_abi_level::avx;
+        return x86_avx_abi_level::none;
+    }
+
+
+    namespace detail {
+        target_info_ptr initialize_target_info(
+            const clang::TargetInfo &target, const type_info_t &type_info
+        ) {
+            const auto &triple = target.getTriple();
+            const auto &abi = target.getABI();
+
+            auto aarch64_info = [&] {
+                if (abi == "aapcs" || abi == "darwinpcs") {
+                    throw cg::unimplemented("Only Darwin supported for aarch64");
+                }
+
+                auto abi_kind = aarch64_abi_info::abi_kind::darwin_pcs;
+                return target_info_ptr(new aarch64_target_info(type_info, abi_kind));
+            };
+
+            auto x86_64_info = [&] {
+                auto os = triple.getOS();
+
+                if (os == llvm::Triple::Win32) {
+                    throw cg::unimplemented( "target info for Win32" );
+                } else {
+                    return target_info_ptr(
+                        new x86_64_target_info(type_info, avx_level(target))
+                    );
+                }
+
+                throw cg::unimplemented(std::string("Unsupported x86_64 OS type: ") + triple.getOSName().str());
+            };
+
+            switch (triple.getArch()) {
+                case llvm::Triple::aarch64: return aarch64_info();
+                case llvm::Triple::x86_64:  return x86_64_info();
+                default: throw cg::unimplemented("Target not yet supported.");
+            }
+        }
+    } // namespace detail
+
     void codegen_driver::finalize() {
         build_deferred();
         // TODO: buildVTablesOpportunistically();
@@ -207,7 +256,7 @@ namespace vast::cg
         auto const *function_decl = llvm::cast< clang::FunctionDecl >(decl.getDecl());
 
         // Compute the function info and vast type.
-        const auto &fty_info = type_info.arrange_global_decl(decl);
+        const auto &fty_info = type_info->arrange_global_decl(decl, get_target_info());
         auto ty = type_conv.get_function_type(fty_info);
 
         assert(!lang().CUDA && "NYI");
@@ -286,7 +335,7 @@ namespace vast::cg
                 throw cg::unimplemented("build_global FunctionDecl");
                 // auto mangled_name = getMangledName(decl);
 
-                // // Compute the function info and CIR type.
+                // Compute the function info and vast type.
                 // const auto &FI = getTypes().arrangeGlobalDeclaration(decl);
                 // mlir_type Ty = getTypes().GetFunctionType(FI);
 

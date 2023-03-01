@@ -65,7 +65,6 @@ namespace vast::cg
             setup_codegen(*actx);
         }
 
-
         owning_module_ref emit_module(clang::ASTUnit *unit) {
             append_to_module(unit);
             return freeze();
