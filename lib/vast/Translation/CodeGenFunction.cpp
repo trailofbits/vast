@@ -51,18 +51,17 @@ namespace vast::cg
                     // return getTypes().inheritingCtorHasParams(inherited, decl.getCtorType());
                 }
             }
-
-            if (passed_params) {
-                for (auto *param : function_decl->parameters()) {
-                    args.push_back(param);
-                    if (param->hasAttr< clang::PassObjectSizeAttr >()) {
-                        throw cg::unimplemented("build_function_arg_list: PassObjectSizeAttr function param");
-                    }
-                }
-            }
-
             return true;
         } ();
+
+        if (passed_params) {
+            for (auto *param : function_decl->parameters()) {
+                args.push_back(param);
+                if (param->hasAttr< clang::PassObjectSizeAttr >()) {
+                    throw cg::unimplemented("build_function_arg_list: PassObjectSizeAttr function param");
+                }
+            }
+        }
 
         if (method) {
             if (clang::isa< clang::CXXConstructorDecl >(method) || clang::isa< clang::CXXDestructorDecl>(method)) {
