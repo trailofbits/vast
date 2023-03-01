@@ -362,7 +362,7 @@ namespace vast::cg
             // Implicit template instantiations may change linkage if they are later
             // explicitly instantiated, so they should not be emitted eagerly.
             constexpr auto implicit = clang::TSK_ImplicitInstantiation;
-            if (fn->getTemplateSpecializationKind() != implicit) {
+            if (fn->getTemplateSpecializationKind() == implicit) {
                 throw cg::unimplemented("implicit template specialization emition");
             }
             assert(!fn->isTemplated() && "templates NYI");
