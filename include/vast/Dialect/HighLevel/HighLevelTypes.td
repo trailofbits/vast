@@ -398,68 +398,6 @@ def SubscriptableType : TypeConstraint<
   Or< [ArrayType.predicate, PointerType.predicate, DecayedType.predicate] >, "subscriptable type"
 >;
 
-//
-// Tagged types
-//
-def RecordType : CVQualifiedType<
-  "Record", "record", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
-> {
-
-  let builders = [
-    TypeBuilder<(ins "llvm::StringRef":$name), [{
-      return $_get($_ctxt, name, CVQualifiersAttr());
-    }]>
-  ];
-
-  let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
-}
-
-def EnumType : CVQualifiedType<
-  "Enum", "enum", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
-> {
-  let builders = [
-    TypeBuilder<(ins "llvm::StringRef":$name), [{
-      return $_get($_ctxt, name, CVQualifiersAttr());
-    }]>
-  ];
-
-  let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
-}
-
-def TypedefType : CVRQualifiedType<
-  "Typedef", "typedef", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
-> {
-  let builders = [
-    TypeBuilder<(ins "llvm::StringRef":$name), [{
-      return $_get($_ctxt, name, CVRQualifiersAttr());
-    }]>
-  ];
-
-  let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
-}
-
-def ElaboratedType : CVRQualifiedType<
-  "Elaborated", "elaborated", (ins "Type":$elementType), [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
-> {
-  let builders = [
-    TypeBuilder<(ins "Type":$element), [{
-      return $_get($_ctxt, element, CVRQualifiersAttr());
-    }]>
-  ];
-
-  let assemblyFormat = "`<` $elementType (`,` $quals^ )? `>`";
-}
-
-def LabelType : HighLevelType< "Label" > {
-  let mnemonic = "label";
-}
-
-def ParenType : HighLevelType< "Paren", [MemRefElementTypeInterface] > {
-  let mnemonic = "paren";
-  let parameters = (ins "Type":$elementType);
-  let assemblyFormat = "`<` $elementType `>`";
-}
-
 def AttributedType : HighLevelType< "Attributed" > {
   let mnemonic = "attributed";
   // TODO: add attribute field

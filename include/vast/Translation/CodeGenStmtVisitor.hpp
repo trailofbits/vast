@@ -241,6 +241,7 @@ namespace vast::cg {
             return VisitAssignBinOp< hl::MulIAssignOp >(op);
         }
 
+        Operation* VisitBinDivAssign(const clang::CompoundAssignOperator *op) {
             return VisitAssignIBinOp< hl::DivUAssignOp, hl::DivSAssignOp >(op);
         }
 
@@ -274,7 +275,10 @@ namespace vast::cg {
 
         Operation* VisitBinXorAssign(const clang::CompoundAssignOperator *op) {
             return VisitAssignBinOp< hl::BinXorAssignOp >(op);
+        }
 
+        Operation* VisitBinComma(const clang::BinaryOperator *op) {
+            auto lhs = visit(op->getLHS())->getResult(0);
             auto rhs = visit(op->getRHS())->getResult(0);
             auto ty  = visit(op->getType());
             return make< hl::BinComma >(meta_location(op), ty, lhs, rhs);
