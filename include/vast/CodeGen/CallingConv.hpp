@@ -5,7 +5,7 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-// TODO: This whole file needs translated to vast::hl
+// TODO: This whole file needs translation to vast::hl
 
 namespace vast::cg {
 
