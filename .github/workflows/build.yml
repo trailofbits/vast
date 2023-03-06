@@ -27,7 +27,7 @@ jobs:
       matrix:
         compiler: [gcc, clang-15]
     runs-on: ubuntu-22.04
-    timeout-minutes: 15
+    timeout-minutes: 32
 
     steps:
       - name: Clone the vast repository
