@@ -183,6 +183,8 @@ namespace vast::cg
             assert(fn && "generating code for a null function");
             const auto function_decl = clang::cast< clang::FunctionDecl >(decl.getDecl());
 
+            auto guard = _visitor->make_insertion_guard();
+
             if (function_decl->isInlineBuiltinDeclaration()) {
                 throw cg::unimplemented("emit body of inline builtin declaration");
             } else {
@@ -574,6 +576,10 @@ namespace vast::cg
             _visitor->clear_insertion_point();
         }
 
+        insertion_guard make_insertion_guard() {
+            return _visitor->make_insertion_guard();
+        }
+
         void dump_module() { _cgctx->dump_module(); }
 
     private:
@@ -773,6 +779,10 @@ namespace vast::cg
 
         void clear_insertion_point() {
             codegen.clear_insertion_point();
+        }
+
+        insertion_guard make_insertion_guard() {
+            return codegen.make_insertion_guard();
         }
 
         void dump_module() { codegen.dump_module(); }

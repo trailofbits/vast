@@ -25,7 +25,7 @@ namespace vast::cg {
         Scope scope;
     };
 
-    using HighLevelScope = ScopeGenerator< hl::ScopeOp >;
+    using HighLevelScope       = ScopeGenerator< hl::ScopeOp >;
     using TranslationUnitScope = ScopeGenerator< hl::TranslationUnitOp >;
 
     //
