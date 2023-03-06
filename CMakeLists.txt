@@ -205,6 +205,7 @@ if (VAST_INSTALL)
     vast_translation_api
     vast_codegen
 
+    MLIRCore
     MLIRMeta
     MLIRHighLevel
 
