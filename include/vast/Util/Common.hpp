@@ -57,4 +57,6 @@ namespace vast
     using string_ref     = llvm::StringRef;
     using logical_result = mlir::LogicalResult;
 
+    using insertion_guard = Builder::InsertionGuard;
+
 } // namespace vast

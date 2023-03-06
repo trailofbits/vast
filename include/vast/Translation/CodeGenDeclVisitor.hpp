@@ -299,6 +299,7 @@ namespace vast::cg {
             return get_addr_of_function(decl, fty, deferred_emit_definition);
         }
 
+        // FIXME: remove as this duplicates logic from codegen driver
         operation VisitFunctionDecl(const clang::FunctionDecl *decl) {
             InsertionGuard guard(builder());
             auto is_definition = decl->doesThisDeclarationHaveABody();

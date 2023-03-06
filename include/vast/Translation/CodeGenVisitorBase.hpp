@@ -55,6 +55,10 @@ namespace vast::cg {
             _builder.clearInsertionPoint();
         }
 
+        insertion_guard make_insertion_guard() {
+            return { _builder };
+        }
+
         Builder _builder;
     };
 
