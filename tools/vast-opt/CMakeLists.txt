@@ -16,6 +16,8 @@ target_link_libraries(vast-opt
         MLIRHighLevel
 
         vast::settings
+
+        clangAST
 )
 
 mlir_check_all_link_libraries(vast-opt)
