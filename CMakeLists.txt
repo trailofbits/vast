@@ -140,7 +140,9 @@ target_include_directories(vast_settings INTERFACE
 )
 
 if (NOT LLVM_ENABLE_RTTI)
-  set_target_properties(vast_settings PROPERTIES COMPILE_FLAGS "-fno-rtti")
+  message( FATAL_ERROR
+    "VAST does not support build without RTTI, yet. Please build LLVM with LLVM_ENABLE_RTTI."
+  )
 endif()
 
 # sanitizer options if supported by compiler
