@@ -121,6 +121,10 @@ link_directories(${LLVM_BUILD_LIBRARY_DIR})
 add_definitions(${LLVM_DEFINITIONS})
 add_definitions(${CLANG_DEFINITIONS})
 
+llvm_map_components_to_libnames(LLVM_LIBS
+  ${LLVM_TARGETS_TO_BUILD} support target option
+)
+
 #
 # VAST build settings
 #
@@ -204,6 +208,8 @@ if (VAST_INSTALL)
     vast_settings
     vast_translation_api
     vast_codegen
+    vast_frontend
+    vast_frontend_tool
 
     MLIRCore
     MLIRMeta

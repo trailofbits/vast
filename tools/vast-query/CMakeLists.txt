@@ -7,13 +7,11 @@ add_executable(vast-query vast-query.cpp)
 llvm_update_compile_flags(vast-query)
 
 target_link_libraries(vast-query
-    PRIVATE
-        ${DIALECT_LIBS}
-        MLIRHighLevel
+  PRIVATE
+    ${DIALECT_LIBS}
+    MLIRHighLevel
+
+    vast::settings
 )
 
 mlir_check_all_link_libraries(vast-query)
-
-if (NOT LLVM_ENABLE_RTTI)
-  set_target_properties(vast-query PROPERTIES COMPILE_FLAGS "-fno-rtti")
-endif()

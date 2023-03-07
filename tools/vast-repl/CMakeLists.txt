@@ -24,7 +24,3 @@ target_link_libraries(vast-repl
 )
 
 mlir_check_all_link_libraries(vast-repl)
-
-if (NOT LLVM_ENABLE_RTTI)
-  set_target_properties(vast-repl PROPERTIES COMPILE_FLAGS "-fno-rtti")
-endif()
