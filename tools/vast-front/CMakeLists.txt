@@ -50,7 +50,7 @@ target_link_libraries(vast-front
         MLIRPass
         MLIRSupport
 
-        LLVM
+        LLVMTarget
         LLVMSupport
 
         FromSourceParser
