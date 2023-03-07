@@ -31,47 +31,72 @@ namespace vast::cg {
     //
     // composable builder state
     //
-    template< typename T >
-    struct ComposeState;
+    template< typename result_type, typename bind_type >
+    struct compose_state_t;
 
-    template< typename T >
-    ComposeState(T) -> ComposeState< T >;
+    template< typename result_type, typename bind_type >
+    struct compose_state_t {
 
-    template< typename T >
-    struct ComposeState {
-        ComposeState(T &&value) : value(std::forward< T >(value)) {}
+        compose_state_t(bind_type &&binder) : binder(std::forward< bind_type >(binder)) {}
+
+        template< typename arg_t >
+        static constexpr bool valid(const arg_t &arg) {
+            if constexpr (std::convertible_to< arg_t , bool >) {
+                return static_cast< bool >(arg);
+            } else {
+                // initialized non-boolean arg is always valid
+                return true;
+            }
+        }
+
+        template< typename ...args_t >
+        static constexpr bool valid(const args_t &...args) { return (valid(args) && ...); }
 
         template< typename ...args_t >
         constexpr inline auto bind(args_t &&...args) && {
-            auto binded = [... args = std::forward< args_t >(args), value = std::move(value)] (auto &&...rest) {
-                return value(args..., std::forward< decltype(rest) >(rest)...);
+            auto binded = [... args = std::forward< args_t >(args), binder = std::move(binder)] (auto &&...rest) {
+                if (!valid(args...)) {
+                    return result_type{};
+                }
+                return binder(args..., std::forward< decltype(rest) >(rest)...);
             };
-            return ComposeState< decltype(binded) >(std::move(binded));
+            return compose_state_t< result_type, decltype(binded) >(std::move(binded));
         }
 
         template< typename arg_t >
         constexpr inline auto bind_if(bool cond, arg_t &&arg) && {
-            auto binded = [cond, arg = std::forward< arg_t >(arg), value = std::move(value)] (auto &&...args) {
-                if (cond)
-                    return value(arg, std::forward< decltype(args) >(args)...);
-                return value(std::forward< decltype(args) >(args)...);
+            auto binded = [cond, arg = std::forward< arg_t >(arg), binder = std::move(binder)] (auto &&...args) {
+                if (cond) {
+                    if (!valid(arg)) {
+                        return result_type{};
+                    }
+
+                    return binder(arg, std::forward< decltype(args) >(args)...);
+                }
+
+                return binder(std::forward< decltype(args) >(args)...);
             };
-            return ComposeState< decltype(binded) >(std::move(binded));
+            return compose_state_t< result_type, decltype(binded) >(std::move(binded));
         }
 
         template< typename arg_t >
         constexpr inline auto bind_region_if(bool cond, arg_t &&arg) && {
-            auto binded = [cond, arg = std::forward< arg_t >(arg), value = std::move(value)] (auto &&...args) {
-                if (cond)
-                    return value(arg, std::forward< decltype(args) >(args)...);
-                return value(std::nullopt, std::forward< decltype(args) >(args)...);
+            auto binded = [cond, arg = std::forward< arg_t >(arg), binder = std::move(binder)] (auto &&...args) {
+                if (cond) {
+                    if (!valid(arg)) {
+                        return result_type{};
+                    }
+
+                    return binder(arg, std::forward< decltype(args) >(args)...);
+                }
+                return binder(std::nullopt, std::forward< decltype(args) >(args)...);
             };
-            return ComposeState< decltype(binded) >(std::move(binded));
+            return compose_state_t< result_type, decltype(binded) >(std::move(binded));
         }
 
-        auto freeze() { return value(); }
+        auto freeze() { return binder(); }
 
-        T value;
+        bind_type binder;
     };
 
     //
@@ -133,16 +158,21 @@ namespace vast::cg {
             return builder().template create< Op >(std::forward< Args >(args)...);
         }
 
+        template< typename result_type, typename builder_type >
+        auto make_compose_impl(builder_type &&builder) {
+            return compose_state_t< result_type, builder_type >(std::forward< builder_type >(builder));
+        }
+
         template< typename op >
         auto make_operation() {
-            return ComposeState([&] (auto&& ...args) {
+            return make_compose_impl< op >([&] (auto&& ...args) {
                 return create< op >(std::forward< decltype(args) >(args)...);
             });
         }
 
         template< typename type >
         auto make_type() {
-            return ComposeState([&] (auto&& ...args) {
+            return make_compose_impl< type >([&] (auto&& ...args) {
                 return type::get(std::forward< decltype(args) >(args)...);
             });
         }
@@ -240,7 +270,7 @@ namespace vast::cg {
             return create< hl::ConstantOp >(loc, bool_type(), value);
         }
 
-        mlir::Value true_value(mlir::Location loc) { return bool_value(loc, true); }
+        mlir::Value true_value(mlir::Location loc)  { return bool_value(loc, true); }
         mlir::Value false_value(mlir::Location loc) { return bool_value(loc, false); }
 
         mlir::Value constant(mlir::Location loc, bool value) {
