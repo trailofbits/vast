@@ -1,33 +1,26 @@
 #
 # VAST Frontend Praser
 #
-link_directories(${LLVM_LIBRARY_DIR})
-
-set( LLVM_LINK_COMPONENTS
-  ${LLVM_TARGETS_TO_BUILD}
-  Option
-  Support
-  TargetParser
-)
 
 get_property(DIALECT_LIBS GLOBAL PROPERTY MLIR_DIALECT_LIBS)
 get_property(CONVERSION_LIBS GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
 
 add_library(vast_frontend_tool
-    compiler_invocation.cpp
+  compiler_invocation.cpp
 )
 
 target_link_libraries(vast_frontend_tool
-    PRIVATE
-      clangBasic
-      clangDriver
-      clangFrontend
+  PUBLIC
+    clangBasic
+    clangDriver
+    clangFrontend
 
-      LLVMSupport
+    ${LLVM_LIBS}
 
-      vast::codegen
-      vast::frontend
-      vast::settings
+    vast::codegen
+    vast::frontend
+  PRIVATE
+    vast::settings
 )
 
 add_library(vast::frontend_tool ALIAS vast_frontend_tool)
@@ -38,32 +31,26 @@ add_executable(vast-front
 )
 
 target_link_libraries(vast-front
-    PRIVATE
-        ${DIALECT_LIBS}
-        ${CONVERSION_LIBS}
+  PRIVATE
+    ${DIALECT_LIBS}
+    ${CONVERSION_LIBS}
 
-        MLIRHighLevel
-        MLIRHighLevelTransforms
+    MLIRHighLevel
+    MLIRHighLevelTransforms
 
-        MLIRIR
-        MLIRParser
-        MLIRPass
-        MLIRSupport
+    MLIRIR
+    MLIRParser
+    MLIRPass
+    MLIRSupport
 
-        LLVM
-        LLVMSupport
+    FromSourceParser
 
-        FromSourceParser
+    clangAST
+    clangCodeGen
+    clangFrontend
+    clangSerialization
+    clangTooling
 
-        clangAST
-        clangBasic
-        clangCodeGen
-        clangDriver
-        clangFrontend
-        clangSerialization
-        clangTooling
-
-        vast::frontend
-        vast::frontend_tool
-        vast::settings
+    vast::frontend_tool
+    vast::settings
 )

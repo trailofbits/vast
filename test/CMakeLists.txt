@@ -11,6 +11,7 @@ set(VAST_TEST_DEPENDS
   vast-query
   vast-opt
   vast-cc
+  vast-front
 )
 
 add_lit_testsuite(check-vast "Running the VAST regression tests"

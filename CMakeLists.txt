@@ -121,6 +121,10 @@ link_directories(${LLVM_BUILD_LIBRARY_DIR})
 add_definitions(${LLVM_DEFINITIONS})
 add_definitions(${CLANG_DEFINITIONS})
 
+llvm_map_components_to_libnames(LLVM_LIBS
+  ${LLVM_TARGETS_TO_BUILD} support target option
+)
+
 #
 # VAST build settings
 #
@@ -136,7 +140,9 @@ target_include_directories(vast_settings INTERFACE
 )
 
 if (NOT LLVM_ENABLE_RTTI)
-  set_target_properties(vast_settings PROPERTIES COMPILE_FLAGS "-fno-rtti")
+  message( FATAL_ERROR
+    "VAST does not support build without RTTI, yet. Please build LLVM with LLVM_ENABLE_RTTI."
+  )
 endif()
 
 # sanitizer options if supported by compiler
@@ -204,6 +210,8 @@ if (VAST_INSTALL)
     vast_settings
     vast_translation_api
     vast_codegen
+    vast_frontend
+    vast_frontend_tool
 
     MLIRCore
     MLIRMeta
