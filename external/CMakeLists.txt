@@ -8,4 +8,5 @@
 
 set(GAP_ENABLE_VCPKG OFF)
 set(GAP_ENABLE_TESTING OFF)
+set(GAP_ENABLE_EXAMPLES OFF)
 add_subdirectory(gap)
