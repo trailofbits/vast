@@ -45,6 +45,23 @@ namespace vast::cc {
         return std::nullopt;
     }
 
+    std::optional< std::vector< string_ref > > vast_args::get_options_list(string_ref opt) const {
+        if (auto list = get_option(opt)) {
+            std::vector< string_ref > opts;
+
+            auto tail = list.value();
+            while (!tail.empty()) {
+                auto [lhs, rhs] = tail.split(';');
+                opts.push_back(lhs);
+                tail = rhs;
+            }
+
+            return opts;
+        }
+
+        return std::nullopt;
+    }
+
     void vast_args::push_back(arg_t arg) {
         args.push_back(arg);
     }

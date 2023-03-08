@@ -41,6 +41,9 @@ namespace vast::cc
         // from option of form -vast-"name"="value" returns the "value"
         std::optional< string_ref > get_option(string_ref opt) const;
 
+        // from option of form -vast-"name"="value1;value2;value3" returns list of values
+        std::optional< std::vector< string_ref > > get_options_list(string_ref opt) const;
+
         void push_back(arg_t arg);
     };
 
