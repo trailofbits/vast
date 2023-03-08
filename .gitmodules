@@ -1,3 +1,3 @@
 [submodule "external/gap"]
 	path = external/gap
-	url = git@github.com:lifting-bits/gap.git
+	url = https://github.com/lifting-bits/gap.git
