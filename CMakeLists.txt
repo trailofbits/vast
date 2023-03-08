@@ -161,7 +161,17 @@ if (ENABLE_PDLL_CONVERSIONS)
   )
 endif()
 
+target_link_libraries(vast_settings
+  INTERFACE
+    gap::gap
+)
+
 add_library(vast::settings ALIAS vast_settings)
+
+#
+# Add external libraries
+#
+add_subdirectory(external)
 
 #
 # VAST libraries
@@ -212,6 +222,10 @@ if (VAST_INSTALL)
     vast_codegen
     vast_frontend
     vast_frontend_tool
+
+    gap
+    gap-core
+    gap-settings
 
     MLIRCore
     MLIRMeta
