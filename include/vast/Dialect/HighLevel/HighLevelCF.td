@@ -3,6 +3,8 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELCF
 
+include "mlir/Interfaces/ControlFlowInterfaces.td"
+
 class ControlFlowOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits,
         [SingleBlock, NoTerminator, NoRegionArguments, RecursiveSideEffects]
@@ -14,7 +16,7 @@ class ControlFlowOp< string mnemonic, list< Trait > traits = [] >
 
 def HighLevel_CondYieldOp : HighLevel_Op< "cond.yield", [
   // TODO(Heno): add ReturnLike trait
-  NoSideEffect, Terminator, ParentOneOf<["IfOp", "WhileOp", "ForOp", "DoOp"]>
+  NoSideEffect, Terminator, ParentOneOf<["IfOp", "WhileOp", "ForOp", "DoOp", "CondOp"]>
 ] > {
   let summary = "condition yield operation";
   let description = [{
@@ -92,6 +94,43 @@ def HighLevel_IfOp : ControlFlowOp< "if" >
   let assemblyFormat = [{ $condRegion `then` $thenRegion (`else` $elseRegion^)? attr-dict }];
 }
 
+def HighLevel_CondOp : ControlFlowOp< "cond", [DeclareOpInterfaceMethods< RegionBranchOpInterface, ["areTypesCompatible"] > ] >
+    , Results<(outs AnyType:$result)>
+{
+  let summary = "VAST conditional statement";
+  let description = [{
+    The operation takes builders of two mandatory regions -- condition and then
+    region -- and one builder optional region representing else block of C if statement.
+    Builders, given the location, build a particular region.
+
+    The generic form of the operation is as follows:
+
+    hl.cond {
+      ... /* condition region */
+      hl.cond.yield %cond : !hl.bool
+    } ? {
+      ... /* true region */
+    } : {
+      ... /* false region */
+    }
+  }];
+
+  let regions = (region CondRegion:$condRegion, ValueRegion:$trueRegion, ValueRegion:$falseRegion);
+
+  let hasRegionVerifier = 1;
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "Type":$type,
+      "BuilderCallback":$condBuilder,
+      "BuilderCallback":$trueBuilder,
+      "BuilderCallback":$falseBuilder
+    )>
+  ];
+
+  let assemblyFormat = [{ $condRegion `?` $trueRegion `:` $falseRegion attr-dict `:` type(results) }];
+}
 
 def HighLevel_WhileOp : ControlFlowOp< "while" >
 {
