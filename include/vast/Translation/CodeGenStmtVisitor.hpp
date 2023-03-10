@@ -703,7 +703,7 @@ namespace vast::cg {
         // Operation* VisitAbstractConditionalOperator(const clang::BinaryConditionalOperator *op)
 
         Operation* VisitConditionalOperator(const clang::ConditionalOperator *op) {
-            auto type = visit_as_lvalue_type(op->getType());
+            auto type = visit(op->getType());
             auto cond = make_cond_builder(op->getCond());
             auto true_expr = make_value_builder(op->getTrueExpr());
             auto false_expr = make_value_builder(op->getFalseExpr());
