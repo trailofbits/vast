@@ -99,8 +99,7 @@ def HighLevel_CondOp : ControlFlowOp< "cond", [DeclareOpInterfaceMethods< Region
 {
   let summary = "VAST conditional statement";
   let description = [{
-    The operation takes builders of two mandatory regions -- condition and then
-    region -- and one builder optional region representing else block of C if statement.
+    The operation takes builders of three regions -- condition, true branch and false branch.
     Builders, given the location, build a particular region.
 
     The generic form of the operation is as follows:
