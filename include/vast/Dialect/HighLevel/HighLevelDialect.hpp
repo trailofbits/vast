@@ -10,6 +10,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/Dialect.h>
 #include <mlir/IR/OperationSupport.h>
 #include <mlir/Interfaces/SideEffectInterfaces.h>
+#include <mlir/Interfaces/ControlFlowInterfaces.h>
 VAST_RELAX_WARNINGS
 
 // Pull in the dialect definition.

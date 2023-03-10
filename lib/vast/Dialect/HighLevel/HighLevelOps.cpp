@@ -265,6 +265,62 @@ namespace vast::hl
         detail::build_region(bld, st, elseBuilder);
     }
 
+    void CondOp::build(Builder &bld, State &st, Type type, BuilderCallback condBuilder, BuilderCallback trueBuilder, BuilderCallback falseBuilder)
+    {
+        VAST_ASSERT(condBuilder  && "the builder callback for 'condition' region must be present");
+        VAST_ASSERT(trueBuilder  && "the builder callback for 'true' region must be present");
+        VAST_ASSERT(falseBuilder && "the builder callback for 'false' region must be present");
+
+        InsertionGuard guard(bld);
+
+        detail::build_region(bld, st, condBuilder);
+        detail::build_region(bld, st, trueBuilder);
+        detail::build_region(bld, st, falseBuilder);
+        st.addTypes(type);
+    }
+
+    void CondOp::getSuccessorRegions(
+        llvm::Optional< unsigned > index,
+        llvm::ArrayRef< mlir::Attribute > operands,
+        llvm::SmallVectorImpl< mlir::RegionSuccessor > &regions
+    )
+    {
+        if (index.has_value())
+        {
+            if (index.value() == 0)
+            {
+                regions.push_back(mlir::RegionSuccessor(&getCondRegion(), getCondRegion().getArguments()));
+                return;
+            }
+            if (index.value() == 1)
+            {
+                regions.push_back(mlir::RegionSuccessor(&getTrueRegion(), getTrueRegion().getArguments()));
+                regions.push_back(mlir::RegionSuccessor(&getFalseRegion(), getFalseRegion().getArguments()));
+                return;
+            }
+            regions.push_back(mlir::RegionSuccessor(getOperation()->getResults()));
+            return;
+        }
+        regions.push_back(mlir::RegionSuccessor(&getCondRegion(), getCondRegion().getArguments()));
+    }
+
+    bool CondOp::areTypesCompatible(mlir::Type lhs, mlir::Type rhs)
+    {
+        namespace tt = mlir::TypeTrait;
+        bool compatible = lhs == rhs
+            || lhs.hasTrait< tt::TypedefTrait >() || rhs.hasTrait< tt::TypedefTrait >()
+            || (lhs.hasTrait< tt::PointerTypeTrait >() && rhs.hasTrait< tt::PointerTypeTrait >());
+        VAST_ASSERT(compatible && "failed to verify CondOp types");
+        return compatible;
+    }
+
+    mlir::LogicalResult CondOp::verifyRegions()
+    {
+        auto true_type = dyn_cast< hl::ValueYieldOp >(getTrueRegion().back().back()).getResult().getType();
+        auto false_type = dyn_cast< hl::ValueYieldOp >(getFalseRegion().back().back()).getResult().getType();
+        return mlir::success(areTypesCompatible(true_type, false_type));
+    }
+
     void WhileOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback body)
     {
         VAST_ASSERT(cond && "the builder callback for 'condition' region must be present");
