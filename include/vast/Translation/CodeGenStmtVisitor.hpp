@@ -117,8 +117,16 @@ namespace vast::cg {
             return make< hl::CmpOp >(meta_location(op), res, pred, lhs, rhs);
         }
 
-        template< hl::Predicate upred, hl::Predicate spred >
-        Operation* VisitICmp(const clang::BinaryOperator *op) {
+        template< hl::FPredicate pred >
+        Operation* VisitFCmp(const clang::BinaryOperator *op) {
+            auto lhs = visit(op->getLHS())->getResult(0);
+            auto rhs = visit(op->getRHS())->getResult(0);
+            auto res = visit(op->getType());
+            return make< hl::FCmpOp >(meta_location(op), res, pred, lhs, rhs);
+        }
+
+        template< hl::Predicate upred, hl::Predicate spred, hl::FPredicate fpred >
+        Operation* VisitCmp(const clang::BinaryOperator *op) {
             auto ty = op->getLHS()->getType();
             if (ty->isUnsignedIntegerType())
                 return VisitCmp< upred >(op);
@@ -126,6 +134,8 @@ namespace vast::cg {
                 return VisitCmp< upred >(op);
             if (ty->isIntegerType())
                 return VisitCmp< spred >(op);
+            if (ty->isFloatingType())
+                return VisitFCmp< fpred >(op);
             return nullptr;
         }
 
@@ -160,28 +170,31 @@ namespace vast::cg {
             return VisitBinOp< hl::BinShrOp >(op);
         }
 
+        using ipred = hl::Predicate;
+        using fpred = hl::FPredicate;
+
         Operation* VisitBinLT(const clang::BinaryOperator *op) {
-            return VisitICmp< hl::Predicate::ult, hl::Predicate::slt >(op);
+            return VisitCmp< ipred::ult, ipred::slt, fpred::olt >(op);
         }
 
         Operation* VisitBinGT(const clang::BinaryOperator *op) {
-            return VisitICmp< hl::Predicate::ugt, hl::Predicate::sgt >(op);
+            return VisitCmp< ipred::ugt, ipred::sgt, fpred::ogt >(op);
         }
 
         Operation* VisitBinLE(const clang::BinaryOperator *op) {
-            return VisitICmp< hl::Predicate::ule, hl::Predicate::sle >(op);
+            return VisitCmp< ipred::ule, ipred::sle, fpred::ole >(op);
         }
 
         Operation* VisitBinGE(const clang::BinaryOperator *op) {
-            return VisitICmp< hl::Predicate::uge, hl::Predicate::sge >(op);
+            return VisitCmp< ipred::uge, ipred::sge, fpred::oge >(op);
         }
 
         Operation* VisitBinEQ(const clang::BinaryOperator *op) {
-            return VisitCmp< hl::Predicate::eq >(op);
+            return VisitCmp< ipred::eq, ipred::eq, fpred::oeq >(op);
         }
 
         Operation* VisitBinNE(const clang::BinaryOperator *op) {
-            return VisitCmp< hl::Predicate::ne >(op);
+            return VisitCmp< ipred::ne, ipred::ne, fpred::une >(op);
         }
 
         Operation* VisitBinAnd(const clang::BinaryOperator *op) {
