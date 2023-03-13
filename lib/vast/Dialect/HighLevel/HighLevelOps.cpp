@@ -187,6 +187,12 @@ namespace vast::hl
         build_expr_trait(bld, st, rty, expr);
     }
 
+    void StmtExprOp::build(Builder &bld, State &st, Type rty, std::unique_ptr< Region > &&region) {
+        InsertionGuard guard(bld);
+        st.addRegion(std::move(region));
+        st.addTypes(rty);
+    }
+
     void VarDeclOp::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback init, BuilderCallback alloc) {
         st.addAttribute("name", bld.getStringAttr(name));
         InsertionGuard guard(bld);

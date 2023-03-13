@@ -1089,4 +1089,21 @@ def AlignOfExprOp : ExprTraitOp< "alignof.expr" > {
   let description = [{ VAST expr alignof operator }];
 }
 
+def StmtExprOp
+  : HighLevel_Op< "stmt.expr", [RecursiveSideEffects, SingleBlock] >
+  , Results<(outs AnyType:$result)>
+{
+  let summary = "VAST statement expression";
+  let description = [{ VAST statement expression }];
+
+  let regions = (region SizedRegion<1>:$substmt);
+
+  let skipDefaultBuilders = 1;
+  let builders = [ OpBuilder<(ins "Type":$rty, "std::unique_ptr< Region > &&":$region)> ];
+
+  let assemblyFormat = [{
+     attr-dict `:` type($result) $substmt
+  }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
