@@ -140,11 +140,12 @@ namespace vast::hl {
             case GlobalLinkageKind::PrivateLinkage:
                 return Visibility::Private;
             case GlobalLinkageKind::ExternalLinkage:
+            case GlobalLinkageKind::AvailableExternallyLinkage:
             case GlobalLinkageKind::ExternalWeakLinkage:
             case GlobalLinkageKind::LinkOnceODRLinkage:
                 return Visibility::Public;
             default:
-                VAST_UNREACHABLE("unsupported linkage kind");
+                VAST_UNREACHABLE("unsupported linkage kind {0}", stringifyGlobalLinkageKind(linkage));
         }
 
         VAST_UNREACHABLE("missed linkage kind");
