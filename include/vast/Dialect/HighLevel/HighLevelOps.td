@@ -879,7 +879,6 @@ def Predicate : PredicateList< "Predicate", "comparison predicate", [
   ICmpPredicateUGT, ICmpPredicateUGE
 ] >;
 
-
 def CmpOp
   : HighLevel_Op< "cmp", [NoSideEffect] >
   , Arguments<(ins Predicate:$predicate, AnyType:$lhs, AnyType:$rhs)>
@@ -890,6 +889,48 @@ def CmpOp
 
   let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type(operands) `->` type($result)";
 }
+
+class FPredicateAttr< string name, int val > : I64EnumAttrCase< name, val > {}
+
+class FPredicateList< string name, string summary, list<FPredicateAttr> cases >
+  : I64EnumAttr< name, summary, cases > {}
+
+def FPredicateFalse : FPredicateAttr<"ffalse", 0>;
+def FPredicateOEQ   : FPredicateAttr<"oeq",    1>;
+def FPredicateOGT   : FPredicateAttr<"ogt",    2>;
+def FPredicateOGE   : FPredicateAttr<"oge",    3>;
+def FPredicateOLT   : FPredicateAttr<"olt",    4>;
+def FPredicateOLE   : FPredicateAttr<"ole",    5>;
+def FPredicateONE   : FPredicateAttr<"one",    6>;
+def FPredicateORD   : FPredicateAttr<"ord",    7>;
+def FPredicateUNO   : FPredicateAttr<"uno",    8>;
+def FPredicateUEQ   : FPredicateAttr<"ueq",    9>;
+def FPredicateUGT   : FPredicateAttr<"ugt",   10>;
+def FPredicateUGE   : FPredicateAttr<"uge",   11>;
+def FPredicateULT   : FPredicateAttr<"ult",   12>;
+def FPredicateULE   : FPredicateAttr<"ule",   13>;
+def FPredicateUNE   : FPredicateAttr<"une",   14>;
+def FPredicateTrue  : FPredicateAttr<"ftrue", 15>;
+
+let cppNamespace = "::vast::hl" in
+def FPredicate : FPredicateList< "FPredicate", "floating point comparison predicate", [
+  FPredicateFalse, FPredicateOEQ, FPredicateOGT, FPredicateOGE,
+  FPredicateOLT, FPredicateOLE, FPredicateONE, FPredicateORD,
+  FPredicateUNO, FPredicateUEQ, FPredicateUGT, FPredicateUGE,
+  FPredicateULT, FPredicateULE, FPredicateUNE, FPredicateTrue
+] >;
+
+def FCmpOp
+  : HighLevel_Op< "fcmp", [NoSideEffect] >
+  , Arguments<(ins FPredicate:$predicate, FloatLikeType:$lhs, FloatLikeType:$rhs)>
+  , Results<(outs IntOrBoolType:$result)>
+{
+  let summary = "VAST flaoting point comparison operation";
+  let description = [{ VAST flaoting point comparison operation }];
+
+  let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type(operands) `->` type($result)";
+}
+
 
 
 class UnInplaceOp< string mnemonic, list< Trait > traits = [] >
