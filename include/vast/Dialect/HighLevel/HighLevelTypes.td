@@ -405,4 +405,10 @@ def AttributedType : HighLevelType< "Attributed" > {
   let assemblyFormat = "`<` $elementType `>`";
 }
 
+def AdjustedType : HighLevelType< "Adjusted" > {
+  let mnemonic = "adjusted";
+  let parameters = (ins "Type":$original, "Type":$adjusted);
+  let assemblyFormat = "`<` $original `,` $adjusted `>`";
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
