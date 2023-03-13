@@ -190,6 +190,10 @@ namespace vast::cg {
                 return VisitAttributedType(t, quals);
             }
 
+            if (auto t = llvm::dyn_cast< clang::AdjustedType >(underlying)) {
+                return VisitAdjustedType(t, quals);
+            }
+
             VAST_UNREACHABLE("unsupported qualified type");
             return Type{};
         }
@@ -343,12 +347,23 @@ namespace vast::cg {
         }
 
         auto VisitAttributedType(const clang::AttributedType *ty, qualifiers /* quals */) -> mlir_type {
+            // FIXME add qualifiers?
             return hl::AttributedType::get(&mcontext(), visit(ty->getModifiedType()));
         }
 
         auto VisitAttributedType(const clang::AttributedType *ty) -> mlir_type {
-            return hl::AttributedType::get(&mcontext(), visit(ty->getModifiedType()));
             return VisitAttributedType(ty,  ty->desugar().getQualifiers());
+        }
+
+        auto VisitAdjustedType(const clang::AdjustedType *ty, qualifiers /* quals */) -> mlir_type {
+            // FIXME add qualifiers?
+            auto orig = visit(ty->getOriginalType());
+            auto adju = visit(ty->getAdjustedType());
+            return hl::AdjustedType::get(&mcontext(), orig, adju);
+        }
+
+        auto VisitAdjustedType(const clang::AdjustedType *ty) -> mlir_type {
+            return VisitAdjustedType(ty,  ty->desugar().getQualifiers());
         }
     };
 
