@@ -825,12 +825,16 @@ namespace vast::cg {
         // Operation* VisitOverloadExpr(const clang::OverloadExpr *expr)
 
         Operation* VisitParenExpr(const clang::ParenExpr *expr) {
-            auto [region, type] = make_value_yield_region(expr->getSubExpr());
-            return make< hl::ExprOp >(meta_location(expr), type, std::move(region));
+            auto [reg, rty] = make_value_yield_region(expr->getSubExpr());
+            return make< hl::ExprOp >(meta_location(expr), rty, std::move(reg));
         }
 
         // Operation* VisitParenListExpr(const clang::ParenListExpr *expr)
-        // Operation* VisitStmtExpr(const clang::StmtExpr *expr)
+        Operation* VisitStmtExpr(const clang::StmtExpr *expr) {
+            auto loc = meta_location(expr);
+            auto [reg, rty] = make_value_yield_region(expr->getSubStmt());
+            return make< hl::StmtExprOp >(loc, rty, std::move(reg));
+        }
 
         template< typename Op >
         Operation* ExprTypeTrait(const clang::UnaryExprOrTypeTraitExpr *expr, auto rty, auto loc) {
