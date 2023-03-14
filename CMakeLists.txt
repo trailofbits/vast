@@ -256,7 +256,7 @@ if (VAST_INSTALL)
     PATTERN "CMakeFiles" EXCLUDE
   )
 
-  set(VAST_EXPORT_NAME vastTargets)
+  set(VAST_EXPORT_NAME VASTTargets)
 
   install(TARGETS ${VAST_INSTALL_TARGETS}
     EXPORT ${VAST_EXPORT_NAME}
