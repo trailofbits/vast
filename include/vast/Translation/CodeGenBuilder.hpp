@@ -172,14 +172,29 @@ namespace vast::cg {
             return reg;
         }
 
+        std::unique_ptr< Region > make_stmt_region(const clang::CompoundStmt *stmt) {
+            auto guard = insertion_guard();
+
+            auto reg = std::make_unique< Region >();
+            set_insertion_point_to_start( &reg->emplaceBlock() );
+            for (auto s : stmt->body()) {
+                visit(s);
+            }
+
+            return reg;
+        }
+
         using RegionAndType = std::pair< std::unique_ptr< Region >, Type >;
-        RegionAndType make_value_yield_region(const clang::Stmt *stmt) {
+
+        template< typename StmtType >
+        RegionAndType make_value_yield_region(const StmtType *stmt) {
             auto guard  = insertion_guard();
             auto reg    = make_stmt_region(stmt);
 
             auto &block = reg->back();
             set_insertion_point_to_end( &block );
             auto type = block.back().getResult(0).getType();
+            VAST_CHECK(type, "value region require last operation to be value");
             create< hl::ValueYieldOp >(meta_location(stmt), block.back().getResult(0));
 
             return { std::move(reg), type };

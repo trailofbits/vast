@@ -832,7 +832,8 @@ namespace vast::cg {
         // Operation* VisitParenListExpr(const clang::ParenListExpr *expr)
         Operation* VisitStmtExpr(const clang::StmtExpr *expr) {
             auto loc = meta_location(expr);
-            auto [reg, rty] = make_value_yield_region(expr->getSubStmt());
+            auto sub = llvm::cast< clang::CompoundStmt >(expr->getSubStmt());
+            auto [reg, rty] = make_value_yield_region(sub);
             return make< hl::StmtExprOp >(loc, rty, std::move(reg));
         }
 
