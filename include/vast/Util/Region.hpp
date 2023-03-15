@@ -15,10 +15,13 @@ namespace vast {
 
     Region* build_region(Builder &bld, State &st, BuilderCallback callback);
 
-    hl::ValueYieldOp get_maybe_yielded_value(Region &reg);
+    hl::ValueYieldOp get_maybe_yield(Region &reg);
+    hl::ValueYieldOp get_yield(Region &reg);
 
-    hl::ValueYieldOp get_yielded_value(Region &reg);
+    mlir_value get_maybe_yielded_value(Region &reg);
+    mlir_value get_yielded_value(Region &reg);
 
+    mlir_type get_maybe_yielded_type(Region &reg);
     mlir_type get_yielded_type(Region &reg);
 
     mlir::RegionSuccessor trivial_region_succ(Region *reg);
