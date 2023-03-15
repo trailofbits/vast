@@ -161,18 +161,18 @@ if (ENABLE_PDLL_CONVERSIONS)
   )
 endif()
 
-target_link_libraries(vast_settings
-  INTERFACE
-    gap::gap
-    vast::util
-)
-
 add_library(vast::settings ALIAS vast_settings)
 
 #
 # Add external libraries
 #
 add_subdirectory(external)
+
+target_link_libraries(vast_settings
+  INTERFACE
+    gap::gap
+    vast::util
+)
 
 #
 # VAST libraries
@@ -225,10 +225,6 @@ if (VAST_INSTALL)
     vast_frontend_tool
     vast_util
 
-    gap
-    gap-core
-    gap-settings
-
     MLIRCore
     MLIRMeta
     MLIRHighLevel
@@ -237,6 +233,16 @@ if (VAST_INSTALL)
     VASTTypedAttrInterface
     VASTTypeQualifiersInterfaces
   )
+
+  if (ENABLE_GAP_SUBMODULE)
+    set(VAST_INSTALL_TARGETS
+      ${VAST_INSTALL_TARGETS}
+
+      gap
+      gap-core
+      gap-settings
+    )
+  endif()
 
   install(DIRECTORY ${CMAKE_BINARY_DIR}/include/vast
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
