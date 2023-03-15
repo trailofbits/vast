@@ -15,8 +15,7 @@ namespace vast::cg
     {}
 
     mlir_type type_conversion_driver::convert_record_decl_type(const clang::RecordDecl */* decl */) {
-        throw cg::unimplemented("convert_record_decl_type");
-
+        VAST_UNIMPLEMENTED;
     }
 
     mlir_type type_conversion_driver::convert_type(qual_type type) {
@@ -46,7 +45,7 @@ namespace vast::cg
     }
 
     mlir::FunctionType type_conversion_driver::get_function_type(clang::GlobalDecl /* decl */) {
-        throw cg::unimplemented("get_function_type");
+        VAST_UNIMPLEMENTED;
     }
 
     mlir::FunctionType type_conversion_driver::get_function_type(const function_info_t &fninfo) {
@@ -63,7 +62,7 @@ namespace vast::cg
             case abi_kind::direct:
                 return convert_type(type);
             default:
-                throw cg::codegen_error("unsupported abi kind");
+                VAST_UNREACHABLE("unsupported abi kind");
             }
         };
 
@@ -75,18 +74,18 @@ namespace vast::cg
 
         llvm::SmallVector< mlir_type , 8> arg_types(vast_function_args.get_total_vast_args());
 
-        assert(!vast_function_args.has_sret_arg() && "NYI");
-        assert(!vast_function_args.has_inalloca_arg() && "NYI");
+        VAST_CHECK(!vast_function_args.has_sret_arg(), "NYI");
+        VAST_CHECK(!vast_function_args.has_inalloca_arg(), "NYI");
 
         // Add in all of the required arguments.
         auto end = std::next(fninfo.arg_begin(), fninfo.get_num_required_args());
         unsigned arg_no = 0;
         for (auto it = fninfo.arg_begin(); it != end; ++it, ++arg_no) {
             const auto &arg_info = it->info;
-            assert(!vast_function_args.has_padding_arg(arg_no) && "NYI");
+            VAST_CHECK(!vast_function_args.has_padding_arg(arg_no), "NYI");
 
             auto [first_vast_arg, num_vast_args] = vast_function_args.get_vast_args(arg_no);
-            assert(first_vast_arg == 1);
+            VAST_ASSERT(num_vast_args == 1);
 
             arg_types[first_vast_arg] = process_type_info(arg_info, it->type);
         }
@@ -97,13 +96,13 @@ namespace vast::cg
 
     void type_conversion_driver::start_function_processing(const function_info_t *fninfo) {
         if (bool inserted = functions_being_processed.insert(fninfo).second; !inserted) {
-            throw cg::codegen_error("trying to process a function recursively");
+            VAST_UNREACHABLE("trying to process a function recursively");
         }
     }
 
     void type_conversion_driver::finish_function_processing(const function_info_t *fninfo) {
         if (auto erased = functions_being_processed.erase(fninfo); !erased) {
-            throw cg::codegen_error("function info not being processed");
+            VAST_UNREACHABLE("function info not being processed");
         }
     }
 
