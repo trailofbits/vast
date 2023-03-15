@@ -6,7 +6,11 @@
 # the LICENSE file found in the root directory of this source tree.
 #
 
-set(GAP_ENABLE_VCPKG OFF)
-set(GAP_ENABLE_TESTING OFF)
-set(GAP_ENABLE_EXAMPLES OFF)
-add_subdirectory(gap)
+option(VAST_ENABLE_GAP_SUBMODULE "Enable build with gap submodule" ON)
+
+if (VAST_ENABLE_GAP_SUBMODULE)
+    set(GAP_ENABLE_VCPKG OFF)
+    set(GAP_ENABLE_TESTING OFF)
+    set(GAP_ENABLE_EXAMPLES OFF)
+    add_subdirectory(gap)
+endif()
