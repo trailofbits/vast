@@ -168,7 +168,7 @@ add_library(vast::settings ALIAS vast_settings)
 #
 add_subdirectory(external)
 
-if (NOT ENABLE_GAP_SUBMODULE)
+if (NOT VAST_ENABLE_GAP_SUBMODULE)
     find_package(gap CONFIG REQUIRED)
 endif()
 
@@ -238,7 +238,7 @@ if (VAST_INSTALL)
     VASTTypeQualifiersInterfaces
   )
 
-  if (ENABLE_GAP_SUBMODULE)
+  if (VAST_ENABLE_GAP_SUBMODULE)
     set(VAST_INSTALL_TARGETS
       ${VAST_INSTALL_TARGETS}
 
