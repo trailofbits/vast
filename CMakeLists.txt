@@ -164,6 +164,7 @@ endif()
 target_link_libraries(vast_settings
   INTERFACE
     gap::gap
+    vast::util
 )
 
 add_library(vast::settings ALIAS vast_settings)
@@ -222,6 +223,7 @@ if (VAST_INSTALL)
     vast_codegen
     vast_frontend
     vast_frontend_tool
+    vast_util
 
     gap
     gap-core
