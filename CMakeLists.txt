@@ -168,6 +168,10 @@ add_library(vast::settings ALIAS vast_settings)
 #
 add_subdirectory(external)
 
+if (NOT ENABLE_GAP_SUBMODULE)
+    find_package(gap CONFIG REQUIRED)
+endif()
+
 target_link_libraries(vast_settings
   INTERFACE
     gap::gap
