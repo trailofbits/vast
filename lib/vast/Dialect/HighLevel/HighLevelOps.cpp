@@ -23,11 +23,6 @@
 
 namespace vast::hl
 {
-    namespace detail
-    {
-
-    } // namespace detail
-
     using FoldResult = mlir::OpFoldResult;
 
     //===----------------------------------------------------------------------===//
