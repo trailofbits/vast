@@ -80,7 +80,8 @@ namespace vast::cg {
         // );
 
         const function_info_t &arrange_free_function_type(
-            clang::CanQual<clang::FunctionProtoType> type
+            clang::CanQual<clang::FunctionProtoType> type,
+            target_info_t &target_info
         );
 
         // "Arrange" the vast information for a call or type with the given

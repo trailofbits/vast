@@ -66,7 +66,7 @@ namespace vast::cg
             );
         }
 
-        return arrange_free_function_type(fty.castAs< clang::FunctionProtoType >());
+        return arrange_free_function_type(fty.castAs< clang::FunctionProtoType >(), target_info);
     }
 
     const function_info_t &type_info_t::arrange_cxx_method_decl(
@@ -86,7 +86,7 @@ namespace vast::cg
         const clang::FunctionProtoType * /* prototype */,
         const clang::CXXMethodDecl * /* method */
     ) {
-        throw cc::compiler_error("arrange_free_function_type not implemented");
+        throw cc::compiler_error("arrange_cxx_method_type not implemented");
     }
 
     // const function_info_t &type_info_t::arrange_free_function_call(
@@ -97,10 +97,59 @@ namespace vast::cg
     //    throw cc::compiler_error("arrange_free_function_call not implemented");
     // }
 
-    const function_info_t &type_info_t::arrange_free_function_type(
-        clang::CanQual< clang::FunctionProtoType > /* type */
+    // Adds the formal parameters in FPT to the given prefix. If any parameter in
+    // FPT has pass_object_size_attrs, then we'll add parameters for those, too.
+    static void append_parameter_types(
+        const type_info_t &type_info,
+        llvm::SmallVectorImpl< clang::CanQualType > &prefix,
+        llvm::SmallVectorImpl< clang::FunctionProtoType::ExtParameterInfo > &param_infos,
+        clang::CanQual< clang::FunctionProtoType > function_type
     ) {
-        throw cc::compiler_error("arrange_free_function_type not implemented");
+        // Fast path: don't touch param info if we don't need to.
+        if (!function_type->hasExtParameterInfos()) {
+            assert(param_infos.empty() && "We have paramInfos, but the prototype doesn't?");
+            prefix.append(function_type->param_type_begin(), function_type->param_type_end());
+            return;
+        }
+
+        VAST_UNREACHABLE("params NYI");
+    }
+
+    const function_info_t &arrange_function_info(
+        type_info_t &type_info, bool instance_method,
+        llvm::SmallVectorImpl< clang::CanQualType > &prefix,
+        clang::CanQual< clang::FunctionProtoType > function_type,
+        target_info_t &target_info
+    ) {
+        llvm::SmallVector< clang::FunctionProtoType::ExtParameterInfo, 16 > param_infos;
+        auto required = required_args::for_prototype_plus(function_type, prefix.size());
+
+        // FIXME: Kill copy. -- from codegen
+        append_parameter_types(type_info, prefix, param_infos, function_type);
+        auto resultType = function_type->getReturnType().getUnqualifiedType();
+
+        return type_info.arrange_function_info(
+            resultType, instance_method,
+            /* chain call=*/ false, prefix,
+            function_type->getExtInfo(),
+            param_infos, required,
+            target_info
+        );
+    }
+
+
+    const function_info_t &type_info_t::arrange_free_function_type(
+        clang::CanQual< clang::FunctionProtoType > function_type,
+        target_info_t &target_info
+    ) {
+        llvm::SmallVector< clang::CanQualType, 16 > arg_types;
+        return ::vast::cg::arrange_function_info(
+            *this,
+            /* instance method */ false,
+            arg_types,
+            function_type,
+            target_info
+        );
     }
 
     const function_info_t &type_info_t::arrange_function_info(
