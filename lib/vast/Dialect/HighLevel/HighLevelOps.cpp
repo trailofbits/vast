@@ -6,6 +6,7 @@
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 #include "vast/Util/Common.hpp"
+#include "vast/Util/Region.hpp"
 
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
@@ -24,15 +25,7 @@ namespace vast::hl
 {
     namespace detail
     {
-        Region* build_region(Builder &bld, State &st, BuilderCallback callback)
-        {
-            auto reg = st.addRegion();
-            if (callback.has_value()) {
-                bld.createBlock(reg);
-                callback.value()(bld, st.location);
-            }
-            return reg;
-        }
+
     } // namespace detail
 
     using FoldResult = mlir::OpFoldResult;
@@ -175,7 +168,7 @@ namespace vast::hl
     void build_expr_trait(Builder &bld, State &st, Type rty, BuilderCallback expr) {
         VAST_ASSERT(expr && "the builder callback for 'expr' region must be present");
         InsertionGuard guard(bld);
-        detail::build_region(bld, st, expr);
+        build_region(bld, st, expr);
         st.addTypes(rty);
     }
 
@@ -197,8 +190,8 @@ namespace vast::hl
         st.addAttribute("name", bld.getStringAttr(name));
         InsertionGuard guard(bld);
 
-        detail::build_region(bld, st, init);
-        detail::build_region(bld, st, alloc);
+        build_region(bld, st, init);
+        build_region(bld, st, alloc);
 
         st.addTypes(type);
     }
@@ -207,7 +200,7 @@ namespace vast::hl
         st.addAttribute("name", bld.getStringAttr(name));
         st.addAttribute("type", mlir::TypeAttr::get(type));
         InsertionGuard guard(bld);
-        detail::build_region(bld, st, constants);
+        build_region(bld, st, constants);
     }
 
     namespace detail {
@@ -215,7 +208,7 @@ namespace vast::hl
             st.addAttribute("name", bld.getStringAttr(name));
 
             InsertionGuard guard(bld);
-            detail::build_region(bld, st, fields);
+            build_region(bld, st, fields);
         }
     } // anamespace detail
 
@@ -244,8 +237,8 @@ namespace vast::hl
 
         Builder::InsertionGuard guard(bld);
 
-        detail::build_region(bld, st, lhs);
-        detail::build_region(bld, st, rhs);
+        build_region(bld, st, lhs);
+        build_region(bld, st, rhs);
         st.addTypes(type);
     }
 
@@ -266,22 +259,22 @@ namespace vast::hl
 
         InsertionGuard guard(bld);
 
-        detail::build_region(bld, st, condBuilder);
-        detail::build_region(bld, st, thenBuilder);
-        detail::build_region(bld, st, elseBuilder);
+        build_region(bld, st, condBuilder);
+        build_region(bld, st, thenBuilder);
+        build_region(bld, st, elseBuilder);
     }
 
-    void CondOp::build(Builder &bld, State &st, Type type, BuilderCallback condBuilder, BuilderCallback trueBuilder, BuilderCallback falseBuilder)
+    void CondOp::build(Builder &bld, State &st, Type type, BuilderCallback condBuilder, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
     {
-        VAST_ASSERT(condBuilder  && "the builder callback for 'condition' region must be present");
-        VAST_ASSERT(trueBuilder  && "the builder callback for 'true' region must be present");
-        VAST_ASSERT(falseBuilder && "the builder callback for 'false' region must be present");
+        VAST_ASSERT(condBuilder && "the builder callback for 'condition' region must be present");
+        VAST_ASSERT(thenBuilder && "the builder callback for 'true' region must be present");
+        VAST_ASSERT(elseBuilder && "the builder callback for 'false' region must be present");
 
         InsertionGuard guard(bld);
 
-        detail::build_region(bld, st, condBuilder);
-        detail::build_region(bld, st, trueBuilder);
-        detail::build_region(bld, st, falseBuilder);
+        build_region(bld, st, condBuilder);
+        build_region(bld, st, thenBuilder);
+        build_region(bld, st, elseBuilder);
         st.addTypes(type);
     }
 
@@ -289,25 +282,21 @@ namespace vast::hl
         llvm::Optional< unsigned > index,
         llvm::ArrayRef< mlir::Attribute > operands,
         llvm::SmallVectorImpl< mlir::RegionSuccessor > &regions
-    )
-    {
-        if (index.has_value())
-        {
-            if (index.value() == 0)
-            {
-                regions.push_back(mlir::RegionSuccessor(&getCondRegion(), getCondRegion().getArguments()));
-                return;
+    ) {
+        if (index) {
+            if (index.value() == 0) {
+                regions.push_back(trivial_region_succ(&getCondRegion()));
+            } else if (index.value() == 1) {
+                regions.push_back(trivial_region_succ(&getThenRegion()));
+                regions.push_back(trivial_region_succ(&getElseRegion()));
+            } else {
+                regions.push_back(mlir::RegionSuccessor(
+                    getOperation()->getResults())
+                );
             }
-            if (index.value() == 1)
-            {
-                regions.push_back(mlir::RegionSuccessor(&getTrueRegion(), getTrueRegion().getArguments()));
-                regions.push_back(mlir::RegionSuccessor(&getFalseRegion(), getFalseRegion().getArguments()));
-                return;
-            }
-            regions.push_back(mlir::RegionSuccessor(getOperation()->getResults()));
-            return;
+        } else {
+            regions.push_back(trivial_region_succ(&getCondRegion()));
         }
-        regions.push_back(mlir::RegionSuccessor(&getCondRegion(), getCondRegion().getArguments()));
     }
 
     bool CondOp::areTypesCompatible(mlir::Type lhs, mlir::Type rhs)
@@ -320,11 +309,11 @@ namespace vast::hl
         return compatible;
     }
 
-    mlir::LogicalResult CondOp::verifyRegions()
+    logical_result CondOp::verifyRegions()
     {
-        auto true_type = dyn_cast< hl::ValueYieldOp >(getTrueRegion().back().back()).getResult().getType();
-        auto false_type = dyn_cast< hl::ValueYieldOp >(getFalseRegion().back().back()).getResult().getType();
-        return mlir::success(areTypesCompatible(true_type, false_type));
+        auto then_type = get_yielded_type(getThenRegion());
+        auto else_type = get_yielded_type(getElseRegion());
+        return mlir::success(areTypesCompatible(then_type, else_type));
     }
 
     void WhileOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback body)
@@ -334,8 +323,8 @@ namespace vast::hl
 
         InsertionGuard guard(bld);
 
-        detail::build_region(bld, st, cond);
-        detail::build_region(bld, st, body);
+        build_region(bld, st, cond);
+        build_region(bld, st, body);
     }
 
     void ForOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback incr, BuilderCallback body)
@@ -343,9 +332,9 @@ namespace vast::hl
         VAST_ASSERT(body && "the builder callback for 'body' region must be present");
         InsertionGuard guard(bld);
 
-        detail::build_region(bld, st, cond);
-        detail::build_region(bld, st, incr);
-        detail::build_region(bld, st, body);
+        build_region(bld, st, cond);
+        build_region(bld, st, incr);
+        build_region(bld, st, body);
     }
 
     void DoOp::build(Builder &bld, State &st, BuilderCallback body, BuilderCallback cond)
@@ -353,8 +342,8 @@ namespace vast::hl
         VAST_ASSERT(body && "the builder callback for 'body' region must be present");
         InsertionGuard guard(bld);
 
-        detail::build_region(bld, st, body);
-        detail::build_region(bld, st, cond);
+        build_region(bld, st, body);
+        build_region(bld, st, cond);
     }
 
     void SwitchOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback body)
@@ -362,8 +351,8 @@ namespace vast::hl
         VAST_ASSERT(cond && "the builder callback for 'condition' region must be present");
         InsertionGuard guard(bld);
 
-        detail::build_region(bld, st, cond);
-        detail::build_region(bld, st, body);
+        build_region(bld, st, cond);
+        build_region(bld, st, body);
     }
 
     void CaseOp::build(Builder &bld, State &st, BuilderCallback lhs, BuilderCallback body)
@@ -371,8 +360,8 @@ namespace vast::hl
         VAST_ASSERT(lhs && "the builder callback for 'case condition' region must be present");
         InsertionGuard guard(bld);
 
-        detail::build_region(bld, st, lhs);
-        detail::build_region(bld, st, body);
+        build_region(bld, st, lhs);
+        build_region(bld, st, body);
     }
 
     void DefaultOp::build(Builder &bld, State &st, BuilderCallback body)
@@ -380,7 +369,7 @@ namespace vast::hl
         VAST_ASSERT(body && "the builder callback for 'body' region must be present");
         InsertionGuard guard(bld);
 
-        detail::build_region(bld, st, body);
+        build_region(bld, st, body);
     }
 
     void LabelStmt::build(Builder &bld, State &st, Value label, BuilderCallback substmt)
@@ -390,7 +379,7 @@ namespace vast::hl
         VAST_ASSERT(substmt && "the builder callback for 'substmt' region must be present");
         InsertionGuard guard(bld);
 
-        detail::build_region(bld, st, substmt);
+        build_region(bld, st, substmt);
     }
 
     void ExprOp::build(Builder &bld, State &st, Type rty, std::unique_ptr< Region > &&region) {
