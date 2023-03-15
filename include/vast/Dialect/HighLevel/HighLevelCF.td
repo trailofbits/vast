@@ -82,7 +82,7 @@ def HighLevel_IfOp : ControlFlowOp< "if" >
     OpBuilder<(ins
       "BuilderCallback":$condBuilder,
       "BuilderCallback":$thenBuilder,
-      CArg< "BuilderCallback", "std::nullopt">:$elseBuilder
+      CArg<"BuilderCallback", "std::nullopt">:$elseBuilder
     )>
   ];
 
@@ -114,7 +114,11 @@ def HighLevel_CondOp : ControlFlowOp< "cond", [DeclareOpInterfaceMethods< Region
     }
   }];
 
-  let regions = (region CondRegion:$condRegion, ValueRegion:$trueRegion, ValueRegion:$falseRegion);
+  let regions = (region
+    CondRegion:$condRegion,
+    ValueRegion:$thenRegion,
+    ValueRegion:$elseRegion
+  );
 
   let hasRegionVerifier = 1;
 
@@ -123,12 +127,12 @@ def HighLevel_CondOp : ControlFlowOp< "cond", [DeclareOpInterfaceMethods< Region
     OpBuilder<(ins
       "Type":$type,
       "BuilderCallback":$condBuilder,
-      "BuilderCallback":$trueBuilder,
-      "BuilderCallback":$falseBuilder
+      "BuilderCallback":$thenBuilder,
+      "BuilderCallback":$elseBuilder
     )>
   ];
 
-  let assemblyFormat = [{ $condRegion `?` $trueRegion `:` $falseRegion attr-dict `:` type(results) }];
+  let assemblyFormat = [{ $condRegion `?` $thenRegion `:` $elseRegion attr-dict `:` type(results) }];
 }
 
 def HighLevel_WhileOp : ControlFlowOp< "while" >
