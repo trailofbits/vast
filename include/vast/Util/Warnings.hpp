@@ -59,6 +59,9 @@ namespace vast
 
     #define VAST_UNIMPLEMENTED VAST_UNREACHABLE("not implemented: {0}", __PRETTY_FUNCTION__);
 
+    #define VAST_UNIMPLEMENTED_MSG(msg) \
+      VAST_UNREACHABLE("not implemented: {0} because {1}", __PRETTY_FUNCTION__, msg);
+
     #define VAST_UNIMPLEMENTED_IF(cond) \
       if (cond) { VAST_UNREACHABLE("not implemented: {0}", __PRETTY_FUNCTION__); }
 
