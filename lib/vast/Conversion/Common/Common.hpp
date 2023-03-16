@@ -16,8 +16,8 @@ namespace vast::conv::irstollvm
     #define VAST_PATTERN_CHECK(cond, fmt, ...) \
         VAST_CHECK(cond, fmt, __VA_ARGS__)
 
-    #define VAST_PATTERN_FAIL(fmt, ...) \
-        VAST_UNREACHABLE(fmt, __VA_ARGS__)
+    #define VAST_PATTERN_FAIL(...) \
+        VAST_UNREACHABLE(__VA_ARGS__)
 
     // I would consider to just use the entire namespace, everything
     // has (unfortunately) prefixed name with `LLVM` anyway.
