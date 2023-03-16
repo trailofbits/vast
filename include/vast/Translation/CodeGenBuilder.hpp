@@ -290,8 +290,7 @@ namespace vast::cg {
         }
 
         mlir::Value constant(mlir::Location loc, mlir::Type ty, llvm::StringRef value) {
-            VAST_CHECK(ty.isa< hl::ArrayType >(), "string constant must have array type");
-            return create< hl::ConstantOp >(loc, ty.cast< hl::ArrayType >(), value);
+            return create< hl::ConstantOp >(loc, ty, value);
         }
 
     };
