@@ -345,7 +345,7 @@ namespace vast::conv
         using base = ModuleConversionPassMixin< HLToLLCF, HLToLLCFBase >;
         using config_t = typename base::config_t;
 
-        static auto create_conversion_target( MContext &mctx )
+        static auto create_conversion_target( mcontext_t &mctx )
         {
             mlir::ConversionTarget trg(mctx);
             trg.addLegalDialect< ll::LowLevelDialect >();
