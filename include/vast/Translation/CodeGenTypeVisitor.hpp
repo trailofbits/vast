@@ -215,9 +215,13 @@ namespace vast::cg {
                 }
             }
 
-            auto rty   = visit(ty->getReturnType());
+
             auto *mctx = &mcontext();
-            return mlir::FunctionType::get(mctx, args, rty);
+            if (ty->getReturnType()->isVoidType()) {
+                return mlir::FunctionType::get(mctx, args, {});
+            } else {
+                return mlir::FunctionType::get(mctx, args, visit(ty->getReturnType()));
+            }
         }
 
         auto VisitBuiltinType(const clang::BuiltinType *ty) -> mlir_type {
