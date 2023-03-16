@@ -95,7 +95,7 @@ namespace vast::cg {
             // make function header, that will be later filled with function body
             // or returned as declaration in the case of external function
             auto fn = make< hl::FuncOp >(loc, mangled_name.name, fty, linkage);
-            assert(fn.isDeclaration() && "expected empty body");
+            VAST_CHECK(fn.isDeclaration(), "expected empty body");
 
             mlir::SymbolTable::setSymbolVisibility(
                 fn, get_visibility_from_linkage(linkage)
@@ -111,34 +111,26 @@ namespace vast::cg {
         vast_function get_or_create_vast_function(
             mangled_name_ref mangled_name, mlir_type type, clang::GlobalDecl glob, global_emition emit
         ) {
-            assert(!emit.for_vtable && "NYI");
-            assert(!emit.thunk && "NYI");
+            VAST_UNIMPLEMENTED_IF(emit.for_vtable);
+            VAST_UNIMPLEMENTED_IF(emit.thunk);
 
             const auto *decl = glob.getDecl();
 
             // Any attempts to use a MultiVersion function should result in retrieving the
             // iFunc instead. Name mangling will handle the rest of the changes.
             if (const auto *fn = clang::cast_or_null< clang::FunctionDecl >(decl)) {
-                if (acontext().getLangOpts().OpenMPIsDevice)
-                    llvm_unreachable("open MP NYI");
-                if (fn->isMultiVersion())
-                    llvm_unreachable("NYI");
+                VAST_UNIMPLEMENTED_IF(acontext().getLangOpts().OpenMPIsDevice);
+                VAST_UNIMPLEMENTED_IF(fn->isMultiVersion());
             }
 
             // Lookup the entry, lazily creating it if necessary.
             auto *entry = context().get_global_value(mangled_name);
             if (entry) {
-                if ( !mlir::isa< hl::FuncOp >(entry) ) {
-                    throw cg::unimplemented( "only supports FuncOp for now" );
-                }
-
-                if (context().weak_ref_references.erase(entry)) {
-                    llvm_unreachable("NYI");
-                }
+                VAST_UNIMPLEMENTED_IF(!mlir::isa< hl::FuncOp >(entry));
+                VAST_UNIMPLEMENTED_IF(context().weak_ref_references.erase(entry));
 
                 // Handle dropped DLL attributes.
-                if (decl && !decl->hasAttr< clang::DLLImportAttr>() && !decl->hasAttr< clang::DLLExportAttr >()) {
-                    llvm_unreachable("NYI");
+                if (decl && !decl->hasAttr< clang::DLLImportAttr >() && !decl->hasAttr< clang::DLLExportAttr >()) {
                     // TODO: Entry->setDLLStorageClass
                     // setDSOLocal(Entry);
                 }
@@ -160,11 +152,13 @@ namespace vast::cg {
                     }
                 }
 
+                type.dump();
+                fn.getFunctionType().dump();
                 if (fn && fn.getFunctionType() == type) {
                     return fn;
                 }
 
-                llvm_unreachable("NYI");
+                VAST_UNREACHABLE("NYI");
 
                 // TODO: clang checks here if this is a llvm::GlobalAlias... how will we
                 // support this?
@@ -179,24 +173,24 @@ namespace vast::cg {
             if (type.isa< mlir::FunctionType >()) {
                 fty = type.cast< mlir::FunctionType >();
             } else {
-                throw cg::unimplemented("functions with incomplete types");
+                VAST_UNIMPLEMENTED_MSG("functions with incomplete types");
                 is_incomplete_function = true;
             }
 
             auto *function_decl = llvm::cast< clang::FunctionDecl >(decl);
-            assert(function_decl && "Only FunctionDecl supported so far.");
+            VAST_CHECK(function_decl, "Only FunctionDecl supported so far.");
 
             // TODO: CodeGen includeds the linkage (ExternalLinkage) and only passes the
             // mangled_name if entry is nullptr
             auto fn = create_vast_function(meta_location(function_decl), mangled_name, fty, function_decl);
 
             if (entry) {
-                llvm_unreachable("NYI");
+                VAST_UNIMPLEMENTED;
             }
 
             // TODO: This might not be valid, seems the uniqueing system doesn't make
             // sense for MLIR
-            // assert(F->getName().getStringRef() == MangledName && "name was uniqued!");
+            // VAST_ASSERT(F->getName().getStringRef() == MangledName && "name was uniqued!");
 
             if (decl) {
                 ; // TODO: set function attributes from the declaration
@@ -211,7 +205,7 @@ namespace vast::cg {
                 // each other bottoming out wiht the base dtor. Therefore we emit non-base
                 // dtors on usage, even if there is no dtor definition in the TU.
                 if (decl && clang::isa< clang::CXXDestructorDecl >(decl)) {
-                    llvm_unreachable("NYI");
+                    VAST_UNIMPLEMENTED;
                 }
 
                 // This is the first use or definition of a mangled name. If there is a
@@ -257,11 +251,11 @@ namespace vast::cg {
             }
 
             if (!is_incomplete_function) {
-                assert(fn.getFunctionType() == type);
+                VAST_ASSERT(fn.getFunctionType() == type);
                 return fn;
             }
 
-            throw cg::unimplemented("codegen of incomplete function");
+            VAST_UNREACHABLE("codegen of incomplete function");
         }
 
         mangled_name_ref get_mangled_name(clang::GlobalDecl decl) {
@@ -271,24 +265,26 @@ namespace vast::cg {
         vast_function get_addr_of_function(
             clang::GlobalDecl decl, mlir_type fty, global_emition emit
         ) {
-            assert(!emit.for_vtable && "NYI");
+            VAST_UNIMPLEMENTED_IF(emit.for_vtable);
 
             // TODO: is this true for vast?
-            assert(!clang::cast< clang::FunctionDecl >(decl.getDecl())->isConsteval() &&
+            VAST_CHECK(!clang::cast< clang::FunctionDecl >(decl.getDecl())->isConsteval(),
                 "consteval function should never be emitted"
             );
 
-            assert(fty && "missing funciton type");
+            VAST_CHECK(fty, "missing funciton type");
             // TODO: do we need this:
             // if (!type) {
             //     const auto *fn = clang::cast< clang::FunctionDecl >(decl.getDecl());
             //     type = type_conv.get_function_type(fn->getType());
             // }
 
-            assert(!clang::dyn_cast< clang::CXXDestructorDecl >( decl.getDecl() ) && "NYI");
+            VAST_UNIMPLEMENTED_IF(clang::dyn_cast< clang::CXXDestructorDecl >(decl.getDecl()));
 
+            auto mangled_name = name_mangler().get_mangled_name(
+                decl, acontext().getTargetInfo(), /* module name hash */ ""
+            );
 
-            auto mangled_name = name_mangler().get_mangled_name(decl, acontext().getTargetInfo(), /* module name hash */ "");
             return get_or_create_vast_function(mangled_name, fty, decl, emit);
         }
 
