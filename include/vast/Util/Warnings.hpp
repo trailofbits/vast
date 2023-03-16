@@ -59,6 +59,9 @@ namespace vast
 
     #define VAST_UNIMPLEMENTED VAST_UNREACHABLE("not implemented: {0}", __PRETTY_FUNCTION__);
 
+    #define VAST_UNIMPLEMENTED_IF(cond) \
+      if (cond) { VAST_UNREACHABLE("not implemented: {0}", __PRETTY_FUNCTION__); }
+
     #define VAST_DEBUG(fmt, ...) LLVM_DEBUG(VAST_REPORT(__VA_ARGS__))
 
     #define VAST_CHECK(cond, fmt, ...) if (!(cond)) { VAST_UNREACHABLE(fmt __VA_OPT__(,) __VA_ARGS__); }
