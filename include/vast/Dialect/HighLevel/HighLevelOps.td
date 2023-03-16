@@ -293,7 +293,7 @@ def CallOp
   , Arguments<(ins
       FlatSymbolRefAttr:$callee,
       Variadic<AnyType>:$argOperands)>
-  , Results<(outs AnyType:$result)>
+  , Results<(outs Variadic<AnyType>:$results)>
 {
   let summary = "VAST call operation";
   let description = [{ VAST call operation }];
@@ -308,7 +308,7 @@ def CallOp
   ];
 
   let assemblyFormat = [{
-    $callee `(` $argOperands `)` attr-dict `:` functional-type( $argOperands, $result )
+    $callee `(` $argOperands `)` attr-dict `:` functional-type( $argOperands, $results )
   }];
 }
 
@@ -320,13 +320,13 @@ def IndirectCallOp
       // FIXME: LValueOrType<PointerLikeType>
       AnyType:$callee,
       Variadic<AnyType>:$argOperands)>
-  , Results<(outs AnyType:$result)>
+  , Results<(outs Variadic<AnyType>:$results)>
 {
   let summary = "VAST call operation";
   let description = [{ VAST call operation }];
 
   let assemblyFormat = [{
-    $callee `:` type($callee)  `(` $argOperands `)` attr-dict `:` functional-type( $argOperands, $result )
+    $callee `:` type($callee)  `(` $argOperands `)` attr-dict `:` functional-type( $argOperands, $results )
   }];
 
   // TODO: add verifiers to check that callee type matches arg operands
