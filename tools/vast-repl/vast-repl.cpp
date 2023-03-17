@@ -42,7 +42,7 @@ namespace vast::repl
                 auto params = parse_params< cmd::load::command_params >(args);
                 cli.exec(make_command< cmd::load >(params));
             } else {
-                throw std::runtime_error("unsupported arguments");
+                VAST_UNREACHABLE("unsupported arguments");
             }
         }
 

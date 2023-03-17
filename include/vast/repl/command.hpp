@@ -110,7 +110,7 @@ namespace vast::repl
         template< const char *name, typename params_storage >
         auto get_param(const params_storage &params) {
             if constexpr (std::tuple_size_v< params_storage > == 0) {
-                throw std::runtime_error(("unknown param name " + std::string(name)));
+                VAST_UNREACHABLE(("unknown param name " + std::string(name)).c_str());
             } else {
                 using current = typename std::tuple_element< 0, params_storage >::type;
 
@@ -244,7 +244,7 @@ namespace vast::repl
         }
 
         if constexpr (params_list::empty) {
-            throw std::runtime_error(("no match for param: " + tokens.front()).str());
+            VAST_UNREACHABLE(("no match for param: " + tokens.front()).str().c_str());
         } else {
             using current_param = typename params_list::head;
             using rest          = typename params_list::tail;
@@ -273,7 +273,7 @@ namespace vast::repl
 
         if constexpr (commands::empty) {
             // we did not recursivelly match any of known commands
-            throw std::runtime_error(("no match for command: " + tokens.front()).str());
+            VAST_UNREACHABLE(("no match for command: " + tokens.front()).str().c_str());
         } else {
             using current_command = typename commands::head;
             using rest            = typename commands::tail;
