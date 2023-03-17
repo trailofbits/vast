@@ -150,7 +150,7 @@ int switch_block(int num)
     return 0;
 }
 
-// CHECK: hl.func external @switch_single ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.void
+// CHECK: hl.func external @switch_single ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> ()
 void switch_single(int num)
 {
     int v = 0;
@@ -166,7 +166,7 @@ void switch_single(int num)
         v++;
 }
 
-// CHECK: hl.func external @switch_no_compound ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.void
+// CHECK: hl.func external @switch_no_compound ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> ()
 void switch_no_compound(int num)
 {
     int v = 0;

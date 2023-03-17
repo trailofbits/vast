@@ -14,10 +14,10 @@ long long e(void);
 // CHECK: func external @e () -> !hl.longlong
 
 void f(void);
-// CHECK: func external @f () -> !hl.void
+// CHECK: func external @f () -> ()
 
 void g(int);
-// CHECK: func external @g (!hl.lvalue<!hl.int>) -> !hl.void
+// CHECK: func external @g (!hl.lvalue<!hl.int>) -> ()
 
 void h(int, int);
-// CHECK: func external @h (!hl.lvalue<!hl.int>, !hl.lvalue<!hl.int>) -> !hl.void
+// CHECK: func external @h (!hl.lvalue<!hl.int>, !hl.lvalue<!hl.int>) -> ()
