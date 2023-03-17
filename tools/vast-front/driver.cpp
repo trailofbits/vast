@@ -19,6 +19,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Frontend/Driver.hpp"
 #include "vast/Frontend/Options.hpp"
 
+#include "vast/Config/config.h"
+
 // main frontend method. Lives inside cc1_main.cpp
 namespace vast::cc {
     extern int cc1(const vast_args & vargs, argv_t argv, arg_t tool, void *main_addr);
@@ -117,6 +119,14 @@ void preprocess_vast_arguments(vast::cc::argv_storage &args) {
 int main(int argc, char **argv) try {
     // Initialize variables to call the driver
     llvm::InitLLVM x(argc, argv);
+
+    auto msg = llvm::formatv(
+        "PLEASE submit a bug report to {0} and include the crash backtrace, "
+        "preprocessed source, and associated run script.\n", vast::bug_report_url
+    ).str();
+
+    llvm::setBugReportMsg(msg.c_str());
+
     vast::cc::argv_storage cmd_args(argv, argv + argc);
 
     if (llvm::sys::Process::FixupStandardFileDescriptors()) {
