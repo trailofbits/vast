@@ -190,7 +190,9 @@ namespace vast::conv::irstollvm
 
             // Type converter failed.
             if (!maybe_target_type || !*maybe_target_type || !maybe_signature)
-                VAST_PATTERN_FAIL("Failed to convert function type.");;
+            {
+                VAST_PATTERN_FAIL("Failed to convert function type.");
+            }
 
             auto target_type = *maybe_target_type;
             auto signature = *maybe_signature;
@@ -222,7 +224,9 @@ namespace vast::conv::irstollvm
             util::convert_region_types(func_op, new_func, signature);
 
             if (mlir::failed(args_to_allocas(new_func, rewriter)))
-                VAST_PATTERN_FAIL("Failed to convert func arguments");;
+            {
+                VAST_PATTERN_FAIL("Failed to convert func arguments");
+            }
             rewriter.eraseOp(func_op);
             return mlir::success();
         }
