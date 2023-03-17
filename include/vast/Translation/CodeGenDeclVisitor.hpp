@@ -23,8 +23,6 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/FunctionInfo.hpp"
 
-#include "vast/Translation/Error.hpp"
-
 namespace vast::cg {
 
     template< typename Derived >

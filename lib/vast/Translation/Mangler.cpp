@@ -1,7 +1,6 @@
 // Copyright (c) 2023, Trail of Bits, Inc.
 
 #include <vast/Translation/Mangler.hpp>
-#include <vast/Translation/Error.hpp>
 
 namespace vast::cg
 {
@@ -13,12 +12,10 @@ namespace vast::cg
         // Some ABIs don't have constructor variants. Make sure that base and complete
         // constructors get mangled the same.
         if (const auto *ctor = clang::dyn_cast< clang::CXXConstructorDecl >(canonical.getDecl())) {
-            if (!target_info.getCXXABI().hasConstructorVariants()) {
-                throw cg::unimplemented("cxx abi for constructor variants");
-            }
+            VAST_UNIMPLEMENTED_IF(!target_info.getCXXABI().hasConstructorVariants());
         }
 
-        // assert(!langOpts.CUDAIsDevice && "NYI");
+        // VAST_UNIMPLEMENTED_IF(!langOpts.CUDAIsDevice);
 
         // Keep the first result in the case of a mangling collision.
         auto mangled_name = mangle(decl, module_name_hash);
@@ -39,7 +36,7 @@ namespace vast::cg
     // unique suffix after the mangled name.
     static bool is_unique_internal_linkage_decl(clang::GlobalDecl /* decl */, const std::string &module_name_hash) {
         if (!module_name_hash.empty()) {
-            throw cg::codegen_error( "Unique internal linkage names NYI");
+            VAST_UNIMPLEMENTED_MSG( "Unique internal linkage names NYI");
         }
         return false;
     }
@@ -61,21 +58,21 @@ namespace vast::cg
         llvm::raw_svector_ostream out(buffer);
 
         if (!module_name_hash.empty()) {
-            throw cg::unimplemented("mangling wih uninitilized module");
+            VAST_UNIMPLEMENTED_MSG("mangling with uninitilized module");
         }
 
         if (mangle_context->shouldMangleDeclName(named)) {
             mangle_context->mangleName(decl.getWithDecl(named), out);
         } else {
             auto *identifier = named->getIdentifier();
-            assert(identifier && "Attempt to mangle unnamed decl.");
+            VAST_CHECK(identifier, "Attempt to mangle unnamed decl.");
 
             const auto *fn = clang::dyn_cast< clang::FunctionDecl >(named);
 
             if (is_x86_regular(fn)) {
-                throw cg::unimplemented("x86 function name mangling");
+                VAST_UNIMPLEMENTED_MSG("x86 function name mangling");
             } else if (is_cuda_kernel_name(fn, decl)) {
-                throw cg::unimplemented("cuda name mangling");
+                VAST_UNIMPLEMENTED_MSG("cuda name mangling");
             } else {
                 out << identifier->getName();
             }
@@ -88,15 +85,13 @@ namespace vast::cg
         // mangling is done to make sure that the final name can be properly
         // demangled. For example, for C functions without prototypes, name mangling
         // is not done and the unique suffix should not be appended then.
-        if (is_unique_internal_linkage_decl(decl, module_name_hash)) {
-            throw cg::unimplemented("mangling of unique internal linkage decl");
-        }
+        VAST_UNIMPLEMENTED_IF(is_unique_internal_linkage_decl(decl, module_name_hash));
 
         if (const auto *fn = clang::dyn_cast< clang::FunctionDecl >(named)) {
-            assert(!fn->isMultiVersion() && "NYI");
+            VAST_UNIMPLEMENTED_IF(fn->isMultiVersion());
         }
 
-        // assert(!CGM.getLangOpts().GPURelocatableDeviceCode && "NYI");
+        // VAST_UNIMPLEMENTED_IF(CGM.getLangOpts().GPURelocatableDeviceCode);
 
         return std::string(out.str());
     }

@@ -16,7 +16,6 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Translation/CodeGenScope.hpp"
-#include "vast/Translation/Error.hpp"
 #include "vast/Translation/Mangler.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
@@ -114,7 +113,7 @@ namespace vast::cg
         }
 
         mlir_value get_global_value(const clang::Decl * /* decl */) {
-            throw cg::unimplemented("get_global_value");
+            VAST_UNIMPLEMENTED;
         }
 
         std::string get_decl_name(const clang::NamedDecl *decl) {

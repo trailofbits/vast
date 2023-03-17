@@ -7,8 +7,6 @@ VAST_RELAX_WARNINGS
 #include <clang/Basic/TargetInfo.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Translation/Error.hpp"
-
 // FIXME: get rid of dependency from upper layer
 #include "vast/CodeGen/TypeInfo.hpp"
 
@@ -31,13 +29,13 @@ namespace vast::cg
         const auto *method = clang::dyn_cast< clang::CXXMethodDecl >(function_decl);
         if (method && method->isInstance()) {
             if (has_this_return(decl)) {
-                llvm_unreachable("NYI");
+                VAST_UNIMPLEMENTED;
             }
             else if (has_most_derived_return(decl)) {
-                llvm_unreachable("NYI");
+                VAST_UNIMPLEMENTED;
             }
 
-            llvm_unreachable("NYI");
+            VAST_UNIMPLEMENTED;
             // get_cxx_abi.buildThisParam(*this, args);
         }
 
@@ -47,7 +45,7 @@ namespace vast::cg
         bool passed_params = [&] {
             if (const auto *ctor = clang::dyn_cast< clang::CXXConstructorDecl >(function_decl)) {
                 if (auto inherited = ctor->getInheritedConstructor()) {
-                    throw cg::unimplemented("build_function_arg_list: inherited ctor");
+                    VAST_UNIMPLEMENTED_MSG("build_function_arg_list: inherited ctor");
                     // return getTypes().inheritingCtorHasParams(inherited, decl.getCtorType());
                 }
             }
@@ -58,14 +56,14 @@ namespace vast::cg
             for (auto *param : function_decl->parameters()) {
                 args.push_back(param);
                 if (param->hasAttr< clang::PassObjectSizeAttr >()) {
-                    throw cg::unimplemented("build_function_arg_list: PassObjectSizeAttr function param");
+                    VAST_UNIMPLEMENTED_MSG("build_function_arg_list: PassObjectSizeAttr function param");
                 }
             }
         }
 
         if (method) {
             if (clang::isa< clang::CXXConstructorDecl >(method) || clang::isa< clang::CXXDestructorDecl>(method)) {
-                throw cg::unimplemented("build_function_arg_list: PassObjectSizeAttr for dtor/ctor");
+                VAST_UNIMPLEMENTED;
                 // get_cxx_abi().addImplicitStructorParams(*this, rty, args);
             }
         }
@@ -77,7 +75,7 @@ namespace vast::cg
         // We can't just disard the return value for a record type with a complex
         // destructor or a non-trivially copyable type.
         if (const auto *recorrd_type = rty.getCanonicalType()->getAs< clang::RecordType >()) {
-            llvm_unreachable("NYI");
+            VAST_UNIMPLEMENTED;
         }
 
         return rty.isTriviallyCopyableType(acontext());
@@ -120,7 +118,7 @@ namespace vast::cg
             );
 
             // if (SanOpts.has(SanitizerKind::Return)) {
-            //     llvm_unreachable("NYI");
+            //     VAST_UNIMPLEMENTED;
             // }
 
             if (shoud_emit_unreachable) {

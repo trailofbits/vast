@@ -3,8 +3,6 @@
 #include "vast/CodeGen/TypeInfo.hpp"
 #include "vast/CodeGen/CallingConv.hpp"
 
-#include "vast/Frontend/Common.hpp"
-
 #include "vast/Translation/CodeGenDriver.hpp"
 #include "vast/CodeGen/TypeInfo.hpp"
 #include "vast/CodeGen/ABIInfo.hpp"
@@ -16,10 +14,7 @@ namespace vast::cg
     {}
 
     calling_conv type_info_t::to_vast_calling_conv(clang::CallingConv cc) {
-        if (cc != clang::CC_C) {
-            cc::compiler_error("No other calling conventions implemented.");
-        }
-
+        VAST_UNIMPLEMENTED_IF(cc != clang::CC_C);
         return calling_conv::C;
     }
 
@@ -27,14 +22,14 @@ namespace vast::cg
         clang::GlobalDecl glob, target_info_t &target_info
     ) {
         auto decl = glob.getDecl();
-        assert(!llvm::dyn_cast< clang::ObjCMethodDecl >(decl)
-            && "This is reported as a FIXME in codegen"
+        VAST_CHECK(!llvm::dyn_cast< clang::ObjCMethodDecl >(decl),
+            "This is reported as a FIXME in codegen"
         );
 
         const auto *fn = llvm::cast< clang::FunctionDecl >(decl);
 
-        assert(!llvm::isa< clang::CXXConstructorDecl >(decl) && "NYI");
-        assert(!llvm::isa< clang::CXXDestructorDecl >(decl) && "NYI");
+        VAST_UNIMPLEMENTED_IF(llvm::isa< clang::CXXConstructorDecl >(decl));
+        VAST_UNIMPLEMENTED_IF(llvm::isa< clang::CXXDestructorDecl >(decl));
 
         return arrange_function_decl(fn, target_info);
     }
@@ -50,7 +45,7 @@ namespace vast::cg
 
         auto fty = fn->getType()->getCanonicalTypeUnqualified();
 
-        assert(llvm::isa< clang::FunctionType >(fty));
+        VAST_ASSERT(llvm::isa< clang::FunctionType >(fty));
         // TODO: setCUDAKernelCallingConvention
 
         // When declaring a function without a prototype, always use a
@@ -72,13 +67,13 @@ namespace vast::cg
     const function_info_t &type_info_t::arrange_cxx_method_decl(
         const clang::CXXMethodDecl * /* decl */
     ) {
-        throw cc::compiler_error("arrange_cxx_method_decl not implemented");
+        VAST_UNIMPLEMENTED;
     }
 
     const function_info_t &type_info_t::arrange_cxx_structor_decl(
         clang::GlobalDecl /* decl */
     ) {
-        throw cc::compiler_error("arrange_cxx_structor_decl not implemented");
+        VAST_UNIMPLEMENTED;
     }
 
     const function_info_t &type_info_t::arrange_cxx_method_type(
@@ -86,7 +81,7 @@ namespace vast::cg
         const clang::FunctionProtoType * /* prototype */,
         const clang::CXXMethodDecl * /* method */
     ) {
-        throw cc::compiler_error("arrange_cxx_method_type not implemented");
+        VAST_UNIMPLEMENTED;
     }
 
     // const function_info_t &type_info_t::arrange_free_function_call(
@@ -94,7 +89,7 @@ namespace vast::cg
     //     const clang::FunctionType *Ty,
     //     bool ChainCall
     // ) {
-    //    throw cc::compiler_error("arrange_free_function_call not implemented");
+    //    VAST_UNIMPLEMENTED;
     // }
 
     // Adds the formal parameters in FPT to the given prefix. If any parameter in
@@ -107,12 +102,12 @@ namespace vast::cg
     ) {
         // Fast path: don't touch param info if we don't need to.
         if (!function_type->hasExtParameterInfos()) {
-            assert(param_infos.empty() && "We have paramInfos, but the prototype doesn't?");
+            VAST_CHECK(param_infos.empty(), "We have paramInfos, but the prototype doesn't?");
             prefix.append(function_type->param_type_begin(), function_type->param_type_end());
             return;
         }
 
-        VAST_UNREACHABLE("params NYI");
+        VAST_UNIMPLEMENTED;
     }
 
     const function_info_t &arrange_function_info(
@@ -162,7 +157,7 @@ namespace vast::cg
         required_args args,
         target_info_t &target_info
     ) {
-        assert(llvm::all_of(arg_types, [] (can_qual_type ty) {
+        VAST_ASSERT(llvm::all_of(arg_types, [] (can_qual_type ty) {
             return ty.isCanonicalAsParam(); })
         );
 
@@ -190,9 +185,9 @@ namespace vast::cg
 
         const auto &abi = target_info.get_abi_info();
         // FIXME: remove and make vast pass: compute ABI inforamtion.
-        assert(info.getCC() != clang::CallingConv::CC_SpirFunction && "not supported");
-        assert(info.getCC() != clang::CC_Swift && "Swift not supported");
-        assert(info.getCC() != clang::CC_SwiftAsync && "Swift not supported");
+        VAST_UNIMPLEMENTED_IF(info.getCC() == clang::CallingConv::CC_SpirFunction);
+        VAST_UNIMPLEMENTED_IF(info.getCC() == clang::CC_Swift);
+        VAST_UNIMPLEMENTED_IF(info.getCC() == clang::CC_SwiftAsync);
         abi.compute_info(*fninfo);
 
         // FIXME: deal with type coersion later in the vast pipeline

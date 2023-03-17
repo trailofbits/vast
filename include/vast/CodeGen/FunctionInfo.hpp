@@ -126,7 +126,7 @@ namespace vast::cg
             qual_type qtype, mlir_type type = nullptr
         ) {
             // FIXME constructor
-            assert(qtype->isIntegralOrEnumerationType() && "Unexpected QualType");
+            VAST_CHECK(qtype->isIntegralOrEnumerationType(), "Unexpected QualType");
             auto info = abi_arg_info(abi_arg_kind::extend);
             info.set_direct_offset(0);
             info.set_direct_align(0);
@@ -138,7 +138,7 @@ namespace vast::cg
             qual_type qtype, mlir_type type = nullptr
         ) {
             // FIXME constructor
-            assert(qtype->isIntegralOrEnumerationType() && "Unexpected QualType");
+            VAST_CHECK(qtype->isIntegralOrEnumerationType(), "Unexpected QualType");
             auto info = abi_arg_info(abi_arg_kind::extend);
             info.set_direct_offset(0);
             info.set_direct_align(0);
@@ -149,7 +149,7 @@ namespace vast::cg
         // abi_arg_info will record the argument as being extended based on the sign of
         // it's type.
         static abi_arg_info get_extend(qual_type qtype, mlir_type type = nullptr) {
-            assert(qtype->isIntegralOrEnumerationType() && "Unexpected QualType");
+            VAST_CHECK(qtype->isIntegralOrEnumerationType(), "Unexpected QualType");
             if (qtype->hasSignedIntegerRepresentation()) {
                 return get_sign_extend(qtype, type);
             }
@@ -173,32 +173,32 @@ namespace vast::cg
 
         // Direct/Extend accessors
         unsigned get_direct_offset() const {
-            assert((is_direct() || is_extend()) && "Not a direct or extend kind");
+            VAST_CHECK((is_direct() || is_extend()), "Not a direct or extend kind");
             return direct_attr.offset;
         }
 
         void set_direct_offset(unsigned offset) {
-            assert((is_direct() || is_extend()) && "Not a direct or extend kind");
+            VAST_CHECK((is_direct() || is_extend()), "Not a direct or extend kind");
             direct_attr.offset = offset;
         }
 
         void set_direct_align(unsigned align) {
-            assert((is_direct() || is_extend()) && "Not a direct or extend kind");
+            VAST_CHECK((is_direct() || is_extend()), "Not a direct or extend kind");
             direct_attr.align = align;
         }
 
         void set_sign_ext(bool sext) {
-            assert(is_extend() && "Invalid kind!");
+            VAST_CHECK(is_extend(), "Invalid kind!");
             signext = sext;
         }
 
         void set_can_be_flattened(bool flatten) {
-            assert(is_direct() && "Invalid kind!");
+            VAST_CHECK(is_direct(), "Invalid kind!");
             can_be_flattened = flatten;
         }
 
         bool get_can_be_flattened() const {
-            assert(is_direct() && "Invalid kind!");
+            VAST_CHECK(is_direct(), "Invalid kind!");
             return can_be_flattened;
         }
     };
@@ -223,7 +223,7 @@ namespace vast::cg
       public:
 
         required_args(require_all_args_t) : num_required(~0U) {}
-        explicit required_args(unsigned n) : num_required(n) { assert(n != ~0U); }
+        explicit required_args(unsigned n) : num_required(n) { VAST_ASSERT(n != ~0U); }
 
         unsigned get_opaque_data() const { return num_required; }
 
@@ -237,7 +237,7 @@ namespace vast::cg
         static required_args for_prototype_plus(
             const clang::FunctionProtoType *prototype, unsigned /* additional */
         ) {
-            assert(!prototype->isVariadic() && "not supported");
+            VAST_UNIMPLEMENTED_IF(prototype->isVariadic());
             return { require_all_args };
         }
 
@@ -248,7 +248,7 @@ namespace vast::cg
         }
 
         unsigned get_num_required_args() const {
-            assert(allows_optional_args());
+            VAST_ASSERT(allows_optional_args());
             return num_required;
         }
     };
@@ -432,7 +432,7 @@ namespace vast::cg
         }
 
         ext_param_info get_ext_param_infos(unsigned arg_idx) const {
-            assert(arg_idx <= num_args);
+            VAST_ASSERT(arg_idx <= num_args);
             if (!has_ext_parameter_infos)
                 return ext_param_info();
             return get_ext_param_infos()[arg_idx];
@@ -452,7 +452,7 @@ namespace vast::cg
         bool is_variadic() const { return required.allows_optional_args(); }
         required_args get_required_args() const { return required; }
         unsigned get_num_required_args() const {
-            assert(!is_variadic() && "variadic not implemented");
+            VAST_UNIMPLEMENTED_IF(is_variadic());
             return is_variadic() ? get_required_args().get_num_required_args() : arg_size();
         }
 

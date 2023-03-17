@@ -74,7 +74,7 @@ namespace vast::cg
         }
 
         ~codegen_driver() {
-            assert(deferred_inline_member_func_defs.empty());
+            VAST_ASSERT(deferred_inline_member_func_defs.empty());
         }
 
         codegen_driver(const codegen_driver &) = delete;
@@ -126,7 +126,7 @@ namespace vast::cg
                 case clang::TargetCXXABI::AppleARM64:
                     return create_vast_itanium_cxx_abi(actx);
                 default:
-                    llvm_unreachable("invalid C++ ABI kind");
+                    VAST_UNREACHABLE("invalid C++ ABI kind");
             }
         }
 

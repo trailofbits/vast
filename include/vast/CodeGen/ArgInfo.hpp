@@ -61,14 +61,14 @@ namespace vast::cg
         unsigned get_total_vast_args() const { return total_vast_args; }
 
         bool has_padding_arg(unsigned arg_idx) const {
-            assert(arg_idx < arg_info.size());
+            VAST_ASSERT(arg_idx < arg_info.size());
             return arg_info[arg_idx].padding_arg_index != invalid_index;
         }
 
         /// Returns index of first vast argument corresponding to arg_idx, and their
         /// quantity.
         std::pair< unsigned, unsigned > get_vast_args(unsigned arg_idx) const {
-            assert(arg_idx < arg_info.size());
+            VAST_ASSERT(arg_idx < arg_info.size());
             return std::make_pair(
                 arg_info[arg_idx].first_arg_index, arg_info[arg_idx].number_of_args
             );

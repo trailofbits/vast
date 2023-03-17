@@ -13,7 +13,7 @@ namespace vast::cg
     vast_cxx_abi *create_vast_itanium_cxx_abi(const acontext_t &actx) {
         switch (actx.getCXXABIKind()) {
             case clang::TargetCXXABI::GenericItanium:
-                assert(actx.getTargetInfo().getTriple().getArch() != llvm::Triple::le32 && "le32 NYI");
+                VAST_UNIMPLEMENTED_IF(actx.getTargetInfo().getTriple().getArch() == llvm::Triple::le32);
                 LLVM_FALLTHROUGH;
             case clang::TargetCXXABI::GenericAArch64:
             case clang::TargetCXXABI::AppleARM64:
@@ -22,7 +22,7 @@ namespace vast::cg
                 return new vast_itanium_cxx_abi();
 
             default:
-                llvm_unreachable("bad or NYI ABI kind");
+                VAST_UNREACHABLE("bad or NYI ABI kind");
         }
     }
 } // namespace vast::cg

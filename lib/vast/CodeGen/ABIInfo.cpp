@@ -3,8 +3,6 @@
 #include <vast/CodeGen/ABIInfo.hpp>
 #include <vast/CodeGen/TargetInfo.hpp>
 
-#include <vast/Frontend/Common.hpp>
-
 namespace vast::cg
 {
     bool is_void_type(qual_type type) {
@@ -36,13 +34,13 @@ namespace vast::cg
     abi_arg_info default_abi_info::classify_return_type(
         qual_type /* rty */, bool /* variadic */
     ) const {
-        throw cc::compiler_error("default_abi_info::classify_return_type not implemented");
+        VAST_UNIMPLEMENTED;
     }
 
     abi_arg_info default_abi_info::classify_arg_type(
         qual_type /* rty */, bool /* variadic */, unsigned /* calling_convention */
     ) const {
-        throw cc::compiler_error("default_abi_info::classify_arg_type not implemented");
+        VAST_UNIMPLEMENTED;
     }
 
 } // namespace vast::cg

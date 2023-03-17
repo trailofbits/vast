@@ -10,7 +10,6 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/SmallPtrSet.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Translation/Error.hpp"
 #include "vast/Util/Common.hpp"
 
 namespace vast::cg
@@ -85,7 +84,7 @@ namespace vast::cg
             // Create the cleanup block but dont hook it up around just yet.
             InsertionGuard guard(builder);
             cleanup_block = builder.createBlock(builder.getBlock()->getParent());
-            assert(builder.getInsertionBlock() && "Should be valid");
+            VAST_ASSERT(builder.getInsertionBlock());
             return cleanup_block;
         }
 
@@ -109,7 +108,7 @@ namespace vast::cg
         // get or create because of potential unreachable return statements, note
         // that for those, all source location maps to the first one found.
         mlir::Block *create_ret_block(mlir::Location /* loc */) {
-            assert((is_switch() || ret_blocks.size() == 0) && "only switches can hold more than one ret block");
+            VAST_CHECK((is_switch() || ret_blocks.size() == 0), "only switches can hold more than one ret block");
 
             // Create the cleanup block but dont hook it up around just yet.
             // InsertionGuard guard(CGF.builder);
@@ -117,7 +116,7 @@ namespace vast::cg
             // ret_blocks.push_back(b);
             // ret_locs.push_back(loc);
             // return b;
-            throw cg::unimplemented("create_ret_block");
+            VAST_UNIMPLEMENTED;
         }
 
       public:
@@ -127,7 +126,7 @@ namespace vast::cg
         mlir::Block *get_or_create_ret_block(mlir::Location loc) {
             unsigned int region_idx = 0;
             if (is_switch()) {
-                throw cg::unimplemented("switch region block");
+                VAST_UNIMPLEMENTED_MSG("switch region block");
             }
             if (region_idx >= ret_blocks.size()) {
                 return create_ret_block(loc);
@@ -175,7 +174,7 @@ namespace vast::cg
 
             // Handle pending gotos and the solved labels in this scope.
             if (!local_scope->pending_gotos.empty()) {
-                throw cg::unimplemented( "scope cleanup of unresolved gotos" );
+                VAST_UNIMPLEMENTED_MSG( "scope cleanup of unresolved gotos" );
             }
             local_scope->solved_labels.clear();
             // TODO clean up blocks

@@ -47,7 +47,7 @@ namespace vast::cg {
     }
 
     void vast_generator::HandleInlineFunctionDefinition(clang::FunctionDecl */* decl */) {
-        throw cc::compiler_error("HandleInlineFunctionDefinition not implemented");
+        VAST_UNIMPLEMENTED;
     }
 
     // HandleTagDeclDefinition - This callback is invoked each time a TagDecl to
@@ -68,16 +68,17 @@ namespace vast::cg {
         // For MSVC compatibility, treat declarations of static data members with
         // inline initializers as definitions.
         if (acontext->getTargetInfo().getCXXABI().isMicrosoft()) {
-            llvm_unreachable("NYI");
+            VAST_UNIMPLEMENTED;
         }
+
         // For OpenMP emit declare reduction functions, if required.
         if (acontext->getLangOpts().OpenMP) {
-            llvm_unreachable("NYI");
+            VAST_UNIMPLEMENTED;
         }
     }
 
     void vast_generator::HandleTagDeclRequiredDefinition(const clang::TagDecl */* decl */) {
-        throw cc::compiler_error("HandleTagDeclRequiredDefinition not implemented");
+        VAST_UNIMPLEMENTED;
     }
 
     bool vast_generator::verify_module() const { return codegen->verify_module(); }

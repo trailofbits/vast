@@ -3,8 +3,6 @@
 #include <vast/CodeGen/ArgInfo.hpp>
 #include <vast/CodeGen/ABIInfo.hpp>
 
-#include <vast/Translation/Error.hpp>
-
 namespace vast::cg
 {
     using abi_kind = abi_arg_info::abi_arg_kind;
@@ -17,19 +15,19 @@ namespace vast::cg
         const auto &ret_info = fninfo.get_return_info();
 
         if (ret_info.get_kind() == abi_kind::indirect) {
-            throw cg::unimplemented("info for abi_arg_info::indirect");
+            VAST_UNIMPLEMENTED_MSG("info for abi_arg_info::indirect");
         }
 
         unsigned arg_no   = 0;
         unsigned num_args = only_required_args ? fninfo.get_num_required_args() : fninfo.arg_size();
         for (auto it = fninfo.arg_begin(); arg_no < num_args; ++it, ++arg_no) {
-            assert(it != fninfo.arg_end());
+            VAST_ASSERT(it != fninfo.arg_end());
             const auto &ai = it->info;
             // Collect data about vast arguments corresponding to Clang argument arg_no.
             auto &vast_args = arg_info[arg_no];
 
             // if (ai.get_padding_type()) {
-            //     throw cg::unimplemented("padding types info");
+            //     VAST_UNIMPLEMENTED_MSG("padding types info");
             // }
 
             vast_args.number_of_args = [&] () -> unsigned {
@@ -39,7 +37,7 @@ namespace vast::cg
                         // FIXME: deal with struct types
                         return 1;
                     }
-                    default: throw cg::codegen_error("unsupported abi kind");
+                    default: VAST_UNREACHABLE("unsupported abi kind");
                 }
             } ();
 
@@ -49,12 +47,12 @@ namespace vast::cg
             }
 
             if (swap_this_with_sret) {
-                throw cg::codegen_error("unsupported swap this with sret");
+                VAST_UNIMPLEMENTED_MSG("unsupported swap this with sret");
             }
         }
-        assert(arg_no == arg_info.size());
+        VAST_ASSERT(arg_no == arg_info.size());
 
-        // assert(!fninfo.uses_in_alloca() && "NYI");
+        // VAST_CHECK(!fninfo.uses_in_alloca(), "NYI");
 
         total_vast_args = vast_arg_no;
     }
