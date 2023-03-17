@@ -16,7 +16,6 @@ VAST_RELAX_WARNINGS
 #include <llvm/Support/VirtualFileSystem.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Frontend/Common.hpp"
 #include "vast/Frontend/Driver.hpp"
 #include "vast/Frontend/Options.hpp"
 
@@ -152,9 +151,6 @@ int main(int argc, char **argv) try {
     // Not in the frontend mode - continue in the compiler driver mode.
     vast::cc::driver driver(driver_path, cmd_args, &execute_cc1_tool, canonical_prefixes);
     return driver.execute();
-} catch (vast::cc::compiler_error &e) {
-    llvm::errs() << "vast-cc error: " << e.what() << '\n';
-    std::exit(e.exit);
 } catch (std::exception &e) {
     llvm::errs() << "error: " << e.what() << '\n';
     std::exit(1);

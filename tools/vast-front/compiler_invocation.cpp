@@ -12,7 +12,6 @@ VAST_RELAX_WARNINGS
 #include <llvm/Option/OptTable.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Frontend/Common.hpp"
 #include "vast/Frontend/CompilerInstance.hpp"
 #include "vast/Frontend/GenAction.hpp"
 
@@ -20,10 +19,6 @@ namespace vast::cc
 {
     using frontend_action_ptr = std::unique_ptr< clang::FrontendAction >;
     using compiler_instance   = clang::CompilerInstance;
-
-    // static frontend_action_ptr create_frontend_base_action(compiler_instance &/* ci */) {
-    //     throw std::runtime_error("create_frontend_base_action not implemented");
-    // }
 
     frontend_action_ptr create_frontend_action(compiler_instance &ci, const vast_args &vargs) {
         auto &opts = ci.getFrontendOpts();
@@ -43,10 +38,10 @@ namespace vast::cc
             case EmitAssembly: return std::make_unique< vast::cc::emit_assembly_action >(vargs);
             case EmitLLVM: return std::make_unique< vast::cc::emit_llvm_action >(vargs);
             case EmitObj: return std::make_unique< vast::cc::emit_obj_action >(vargs);
-            default: throw compiler_error("unsupported frontend action");
+            default: VAST_UNREACHABLE("unsupported frontend action");
         }
 
-        throw compiler_error("not implemented frontend action");
+        VAST_UNIMPLEMENTED_MSG("not implemented frontend action");
     }
 
     bool execute_compiler_invocation(compiler_instance *ci, const vast_args &vargs) {

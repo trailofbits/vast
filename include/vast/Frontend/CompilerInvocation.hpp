@@ -8,7 +8,6 @@ VAST_RELAX_WARNINGS
 #include <clang/Frontend/CompilerInvocation.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Frontend/Common.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
 #include "vast/Frontend/CompilerInstance.hpp"
 #include "vast/Frontend/Options.hpp"

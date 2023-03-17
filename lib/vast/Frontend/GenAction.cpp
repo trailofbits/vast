@@ -10,7 +10,6 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 #include "vast/Frontend/Options.hpp"
-#include "vast/Frontend/Common.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
 #include "vast/CodeGen/Passes.hpp"
 
@@ -49,7 +48,7 @@ namespace vast::cc {
             case output_type::none: break;
         }
 
-        throw compiler_error("unsupported action type");
+        VAST_UNREACHABLE("unsupported action type");
     }
 
     static auto get_output_stream(compiler_instance &ci, string_ref in, output_type act)
@@ -90,7 +89,7 @@ namespace vast::cc {
         {}
 
         void Initialize(acontext_t &ctx) override {
-            assert(!acontext && "initialized multiple times");
+            VAST_CHECK(!acontext, "initialized multiple times");
             acontext = &ctx;
             generator->Initialize(ctx);
         }
@@ -104,20 +103,20 @@ namespace vast::cc {
         }
 
         void HandleCXXStaticMemberVarInstantiation(clang::VarDecl * /* decl */) override {
-            throw compiler_error("HandleCXXStaticMemberVarInstantiation not implemented");
+            VAST_UNIMPLEMENTED;
         }
 
         void HandleInlineFunctionDefinition(clang::FunctionDecl * /* decl */) override {
-            throw compiler_error("HandleInlineFunctionDefinition not implemented");
+            VAST_UNIMPLEMENTED;
         }
 
         void HandleInterestingDecl(clang::DeclGroupRef /* decl */) override {
-            throw compiler_error("HandleInterestingDecl not implemented");
+            VAST_UNIMPLEMENTED;
         }
 
         void emit_backend_output(clang::BackendAction backend_action) {
             // llvm::LLVMcontext_t llvm_context;
-            throw compiler_error("HandleTranslationUnit for emit llvm not implemented");
+            VAST_UNIMPLEMENTED;
 
             std::unique_ptr< llvm::Module > mod = nullptr /* todo lower_from_vast_to_llvm */;
             clang::EmitBackendOutput(
@@ -152,12 +151,12 @@ namespace vast::cc {
                     }
                 }
 
-                throw cc::compiler_error("codegen: unsupported target dialect");
+                VAST_UNREACHABLE("codegen: unsupported target dialect");
             };
 
             auto setup_vast_pipeline_and_execute = [&] {
                 if (execute_vast_pipeline().failed()) {
-                    throw cc::compiler_error("codegen: MLIR pass manager fails when running vast passes");
+                    VAST_UNREACHABLE("codegen: MLIR pass manager fails when running vast passes");
                 }
             };
 
@@ -182,7 +181,7 @@ namespace vast::cc {
                 // diagnostics matched.
                 if (src_mgr_handler.verify().failed()) {
                     llvm::sys::RunInterruptHandlers();
-                    throw cc::compiler_error("failed mlir codegen");
+                    VAST_UNREACHABLE("failed mlir codegen");
                 }
             } else {
                 mlir::SourceMgrDiagnosticHandler src_mgr_handler(mlir_src_mgr, mctx);
@@ -208,7 +207,7 @@ namespace vast::cc {
 
             if (!vargs.has_option(opt::disable_vast_verifier)) {
                 if (!generator->verify_module()) {
-                    throw compiler_error("codegen: module verification error before running vast passes");
+                    VAST_UNREACHABLE("codegen: module verification error before running vast passes");
                 }
             }
 
@@ -221,7 +220,7 @@ namespace vast::cc {
                 case output_type::emit_high_level:
                     return emit_mlir_output(target_dialect::high_level, std::move(mod), mctx.get());
                 case output_type::emit_cir:
-                    throw compiler_error("HandleTranslationUnit for emit CIR not implemented");
+                    VAST_UNIMPLEMENTED_MSG("HandleTranslationUnit for emit CIR not implemented");
                 case output_type::emit_llvm:
                     return emit_backend_output(clang::BackendAction::Backend_EmitLL);
                 case output_type::emit_obj:
@@ -240,23 +239,23 @@ namespace vast::cc {
         }
 
         // void HandleTagDeclRequiredDefinition(clang::TagDecl */* decl */) override {
-        //     throw compiler_error("HandleTagDeclRequiredDefinition not implemented");
+        //     VAST_UNIMPLEMENTED;
         // }
 
         void CompleteTentativeDefinition(clang::VarDecl */* decl */) override {
-            throw compiler_error("CompleteTentativeDefinition not implemented");
+            VAST_UNIMPLEMENTED;
         }
 
         void CompleteExternalDeclaration(clang::VarDecl */* decl */) override {
-            throw compiler_error("CompleteExternalDeclaration not implemented");
+            VAST_UNIMPLEMENTED;
         }
 
         void AssignInheritanceModel(clang::CXXRecordDecl */* decl */) override {
-            throw compiler_error("AssignInheritanceModel not implemented");
+            VAST_UNIMPLEMENTED;
         }
 
         void HandleVTable(clang::CXXRecordDecl */* decl */) override {
-            throw compiler_error("HandleVTable not implemented");
+            VAST_UNIMPLEMENTED;
         }
 
       private:
@@ -287,7 +286,7 @@ namespace vast::cc {
     {}
 
     owning_module_ref vast_gen_action::load_module(llvm::MemoryBufferRef /* mref */) {
-        throw compiler_error("load_module not implemented");
+        VAST_UNIMPLEMENTED;
     }
 
     void vast_gen_action::ExecuteAction() {
@@ -322,7 +321,7 @@ namespace vast::cc {
         auto &cgo = ci.getCodeGenOpts();
         auto nodebuginfo = clang::codegenoptions::NoDebugInfo;
         if (cgo.getDebugInfo() != nodebuginfo && cgo.MacroDebugInfo) {
-            throw compiler_error("Macro debug info not implemented");
+            VAST_UNIMPLEMENTED_MSG("Macro debug info not implemented");
         }
 
         return result;

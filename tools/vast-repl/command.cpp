@@ -7,7 +7,7 @@ namespace vast::repl::cmd {
 
     void check_source(const state_t &state) {
         if (!state.source.has_value()) {
-            throw std::runtime_error("error: missing source");
+            VAST_UNREACHABLE("error: missing source");
         }
     }
 
@@ -34,7 +34,7 @@ namespace vast::repl::cmd {
     // help command
     //
     void help::run(state_t&) const {
-        throw std::runtime_error("help not implemented");
+        VAST_UNIMPLEMENTED;
     };
 
     //

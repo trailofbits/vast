@@ -15,12 +15,14 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Frontend/Common.hpp"
 #include "vast/Frontend/Options.hpp"
 
 namespace vast::cc
 {
     using diagnostics_engine = clang::DiagnosticsEngine;
+
+    template< typename T >
+    using llvm_cnt_ptr = llvm::IntrusiveRefCntPtr< T >;
 
     //
     // diagnostics options
