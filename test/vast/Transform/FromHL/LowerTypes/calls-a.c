@@ -17,7 +17,7 @@ int main()
     // CHECK: hl.call @constant() : () -> si32
     int c = constant();
 
-    // CHECK: hl.call @noop() : () -> none
+    // CHECK: hl.call @noop() : ()
     noop();
 
     // CHECK: hl.call @add([[V1:%[0-9]+]], [[V2:%[0-9]+]]) : (si32, si32) -> si32

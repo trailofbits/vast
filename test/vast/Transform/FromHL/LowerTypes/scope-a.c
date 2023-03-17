@@ -13,7 +13,7 @@ int test1()
     return a;
 }
 
-// CHECK-LABEL: hl.func external @test2 () attributes {sym_visibility = "private"} {
+// CHECK-LABEL: hl.func external @test2 ()
 void test2()
 {
     // CHECK: hl.scope
