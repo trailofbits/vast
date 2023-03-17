@@ -51,16 +51,19 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast
 {
-    #define VAST_REPORT(...) llvm::dbgs() << "[vast] " << llvm::formatv(__VA_ARGS__) << "\n";
+    #define VAST_REPORT(...) do { \
+      llvm::dbgs() << "[vast] " << llvm::formatv(__VA_ARGS__) << "\n"; \
+    } while(0)
 
-    #define VAST_UNREACHABLE(...) \
-      VAST_REPORT(__VA_ARGS__) \
-      llvm_unreachable(nullptr);
+    #define VAST_UNREACHABLE(...) do { \
+      VAST_REPORT(__VA_ARGS__); \
+      llvm_unreachable(nullptr); \
+    } while (0)
 
-    #define VAST_UNIMPLEMENTED VAST_UNREACHABLE("not implemented: {0}", __PRETTY_FUNCTION__);
+    #define VAST_UNIMPLEMENTED VAST_UNREACHABLE("not implemented: {0}", __PRETTY_FUNCTION__)
 
     #define VAST_UNIMPLEMENTED_MSG(msg) \
-      VAST_UNREACHABLE("not implemented: {0} because {1}", __PRETTY_FUNCTION__, msg);
+      VAST_UNREACHABLE("not implemented: {0} because {1}", __PRETTY_FUNCTION__, msg)
 
     #define VAST_UNIMPLEMENTED_IF(cond) \
       if (cond) { VAST_UNREACHABLE("not implemented: {0}", __PRETTY_FUNCTION__); }
