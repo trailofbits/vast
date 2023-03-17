@@ -6,6 +6,6 @@
 // CHECK: hl.return [[V1]] : !hl.int
 int a() { return 7; }
 
-// CHECK-LABEL: hl.func external @b () -> ()
+// CHECK-LABEL: hl.func external @b ()
 // CHECK: hl.return
 void b() { return; }
