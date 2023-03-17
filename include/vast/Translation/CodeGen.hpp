@@ -170,7 +170,7 @@ namespace vast::cg
         mlir_type convert(qual_type type) { return _visitor->Visit(type); }
 
         void update_completed_type(clang::TagDecl */* decl */) {
-            throw cg::unimplemented("update_completed_type");
+            VAST_UNIMPLEMENTED;
         }
 
         CodeGenContext::VarTable& variables_symbol_table() { return _cgctx->vars; }
@@ -180,13 +180,13 @@ namespace vast::cg
             hl::FuncOp fn, clang::GlobalDecl decl,  const function_info_t &fty_info,
             function_arg_list args, const codegen_options &options
         ) {
-            assert(fn && "generating code for a null function");
+            VAST_CHECK(fn, "generating code for a null function");
             const auto function_decl = clang::cast< clang::FunctionDecl >(decl.getDecl());
 
             auto guard = _visitor->make_insertion_guard();
 
             if (function_decl->isInlineBuiltinDeclaration()) {
-                throw cg::unimplemented("emit body of inline builtin declaration");
+                VAST_UNIMPLEMENTED_MSG("emit body of inline builtin declaration");
             } else {
                 // Detect the unusual situation where an inline version is shadowed by a
                 // non-inline version. In that case we should pick the external one
@@ -195,14 +195,14 @@ namespace vast::cg
                 // replacement.
                 for (const auto *prev = function_decl->getPreviousDecl(); prev; prev = prev->getPreviousDecl()) {
                     if (LLVM_UNLIKELY(prev->isInlineBuiltinDeclaration())) {
-                        throw cg::unimplemented("emit body of inline builtin declaration");
+                        VAST_UNIMPLEMENTED_MSG("emit body of inline builtin declaration");
                     }
                 }
             }
 
             // Check if we should generate debug info for this function.
             if (function_decl->hasAttr< clang::NoDebugAttr >()) {
-                throw cg::unimplemented("emit no debug meta");
+                VAST_UNIMPLEMENTED_MSG("emit no debug meta");
             }
 
             // The function might not have a body if we're generating thunks for a
@@ -239,13 +239,13 @@ namespace vast::cg
                 // tests when the time comes, but CIR should be intrinsically scope
                 // accurate, so no need to tie coroutines to such markers.
                 if (clang::isa< clang::CoroutineBodyStmt >(body)) {
-                    throw cg::unimplemented("emit lifetime markers");
+                    VAST_UNIMPLEMENTED_MSG("emit lifetime markers");
                 }
 
                 // Initialize helper which will detect jumps which can cause invalid
                 // lifetime markers.
                 if (options.should_emit_lifetime_markers) {
-                    throw cg::unimplemented("emit lifetime markers");
+                    VAST_UNIMPLEMENTED_MSG("emit lifetime markers");
                 }
             }
 
@@ -256,7 +256,7 @@ namespace vast::cg
                 auto begin_loc = meta_location(body);
                 auto end_loc = meta_location(body);
 
-                assert(fn.isDeclaration() && "Function already has body?");
+                VAST_CHECK(fn.isDeclaration(), "Function already has body?");
                 auto *entry_block = fn.addEntryBlock();
                 _visitor->set_insertion_point_to_start(entry_block);
 
@@ -270,7 +270,7 @@ namespace vast::cg
 
                 // Save parameters for coroutine function.
                 if (body && clang::isa_and_nonnull< clang::CoroutineBodyStmt >(body)) {
-                    throw cg::unimplemented("coroutine parameters");
+                    VAST_UNIMPLEMENTED_MSG("coroutine parameters");
                 }
 
                 // Generate the body of the function.
@@ -278,25 +278,25 @@ namespace vast::cg
 
                 const auto &lang = _cgctx->actx.getLangOpts();
 
-                if (clang::isa< clang::CXXDestructorDecl >(function_decl))
-                    llvm_unreachable("NYI");
-                else if (clang::isa< clang::CXXConstructorDecl >(function_decl))
-                    llvm_unreachable("NYI");
-                else if (lang.CUDA && !lang.CUDAIsDevice && function_decl->hasAttr< clang::CUDAGlobalAttr >())
-                    llvm_unreachable("NYI");
-                else if (auto method = clang::dyn_cast< clang::CXXMethodDecl >(function_decl); method && method->isLambdaStaticInvoker()) {
-                    llvm_unreachable("NYI");
+                if (clang::isa< clang::CXXDestructorDecl >(function_decl)) {
+                    VAST_UNIMPLEMENTED;
+                } else if (clang::isa< clang::CXXConstructorDecl >(function_decl)) {
+                    VAST_UNIMPLEMENTED;
+                } else if (lang.CUDA && !lang.CUDAIsDevice && function_decl->hasAttr< clang::CUDAGlobalAttr >()) {
+                    VAST_UNIMPLEMENTED;
+                } else if (auto method = clang::dyn_cast< clang::CXXMethodDecl >(function_decl); method && method->isLambdaStaticInvoker()) {
+                    VAST_UNIMPLEMENTED;
                 } else if (function_decl->isDefaulted() && clang::isa< clang::CXXMethodDecl >(function_decl) &&
                     (clang::cast< clang::CXXMethodDecl >(function_decl)->isCopyAssignmentOperator() ||
                      clang::cast< clang::CXXMethodDecl >(function_decl)->isMoveAssignmentOperator())
                 ) {
-                    llvm_unreachable("NYI");
+                    VAST_UNIMPLEMENTED;
                 } else if (body) {
                     if (mlir::failed(build_function_body(body))) {
-                        throw cg::codegen_error("failed function body codegen");
+                        VAST_UNREACHABLE("failed function body codegen");
                     }
                 } else {
-                    llvm_unreachable("no definition for emitted function");
+                    VAST_UNIMPLEMENTED_MSG("no definition for emitted function");
                 }
             }
 
@@ -319,7 +319,7 @@ namespace vast::cg
             const auto *decl = glob.getDecl();
             const auto *function_decl = clang::dyn_cast_or_null< clang::FunctionDecl >(decl);
             if (function_decl && function_decl->usesSEHTry()) {
-                llvm_unreachable("NYI");
+                VAST_UNIMPLEMENTED;
             }
 
             const auto &lang = _cgctx->actx.getLangOpts();
@@ -333,46 +333,51 @@ namespace vast::cg
             //
             unsigned entry_count = 0, entry_offset = 0;
             if (const auto *attr = decl ? decl->getAttr< clang::PatchableFunctionEntryAttr >() : nullptr) {
-                llvm_unreachable("NYI");
+                VAST_UNIMPLEMENTED;
             } else {
-                entry_count = options.patchable_function_entry_count;
+                entry_count  = options.patchable_function_entry_count;
                 entry_offset = options.patchable_function_entry_offset;
             }
+
             if (entry_count && entry_offset <= entry_count) {
-                llvm_unreachable("NYI");
+                VAST_UNIMPLEMENTED;
             }
 
             // Add no-jump-tables value.
-            if (options.no_use_jump_tables)
-                llvm_unreachable("NYI");
+            if (options.no_use_jump_tables) {
+                VAST_UNIMPLEMENTED;
+            }
 
             // Add no-inline-line-tables value.
-            if (options.no_inline_line_tables)
-                llvm_unreachable("NYI");
+            if (options.no_inline_line_tables) {
+                VAST_UNIMPLEMENTED;
+            }
 
             // TODO: Add profile-sample-accurate value.
 
-            if (decl && decl->hasAttr< clang::CFICanonicalJumpTableAttr >())
-                llvm_unreachable("NYI");
+            if (decl && decl->hasAttr< clang::CFICanonicalJumpTableAttr >()) {
+                VAST_UNIMPLEMENTED;
+            }
 
-            if (decl && decl->hasAttr< clang::NoProfileFunctionAttr >())
-                llvm_unreachable("NYI");
+            if (decl && decl->hasAttr< clang::NoProfileFunctionAttr >()) {
+                VAST_UNIMPLEMENTED;
+            }
 
             if (function_decl && lang.OpenCL) {
-                llvm_unreachable("NYI");
+                VAST_UNIMPLEMENTED;
             }
 
             // If we are checking function types, emit a function type signature as
             // prologue data.
             // if (function_decl && lang.CPlusPlus && SanOpts.has(SanitizerKind::Function)) {
-            //     llvm_unreachable("NYI");
+            //     VAST_UNIMPLEMENTED;
             // }
 
             // If we're checking nullability, we need to know whether we can check the
             // return value. Initialize the flag to 'true' and refine it in
             // buildParmDecl.
             // if (SanOpts.has(SanitizerKind::NullabilityReturn)) {
-            //     llvm_unreachable("NYI");
+            //     VAST_UNIMPLEMENTED;
             // }
 
             // If we're in C++ mode and the function name is "main", it is guaranteed to
@@ -409,11 +414,11 @@ namespace vast::cg
             // TODO: return value checking
 
             if (get_debug_info()) {
-                llvm_unreachable("NYI");
+                VAST_UNIMPLEMENTED;
             }
 
             // if (ShouldInstrumentFunction()) {
-            //     llvm_unreachable("NYI");
+            //     VAST_UNIMPLEMENTED;
             // }
 
             // Since emitting the mcount call here impacts optimizations such as
@@ -421,15 +426,15 @@ namespace vast::cg
             // backend. The attribute "counting-function" is set to mcount function name
             // which is architecture dependent.
             // if (options.InstrumentForProfiling) {
-            //     llvm_unreachable("NYI");
+            //     VAST_UNIMPLEMENTED;
             // }
 
             if (options.packed_stack) {
-                llvm_unreachable("NYI");
+                VAST_UNIMPLEMENTED;
             }
 
             if (options.warn_stack_size != UINT_MAX) {
-                llvm_unreachable("NYI");
+                VAST_UNIMPLEMENTED;
             }
 
             // TODO: emitstartehspec
@@ -437,7 +442,7 @@ namespace vast::cg
             // TODO: prologuecleanupdepth
 
             if (lang.OpenMP && decl) {
-                llvm_unreachable("NYI");
+                VAST_UNIMPLEMENTED;
             }
 
             // TODO: build_function_prolog
@@ -461,7 +466,7 @@ namespace vast::cg
             if (decl && clang::isa< clang::CXXMethodDecl>(decl) &&
                 clang::cast< clang::CXXMethodDecl>(decl)->isInstance()
             ) {
-                throw cg::unimplemented( "emit prologue of cxx methods" );
+                VAST_UNIMPLEMENTED_MSG( "emit prologue of cxx methods" );
             }
 
             // If any of the arguments have a variably modified type, make sure to emit
@@ -480,19 +485,19 @@ namespace vast::cg
                 } ();
 
                 if (type->isVariablyModifiedType()) {
-                    llvm_unreachable("NYI");
+                    VAST_UNIMPLEMENTED;
                 }
             }
 
             // Emit a location at the end of the prologue.
             if (get_debug_info()) {
-                llvm_unreachable("NYI");
+                VAST_UNIMPLEMENTED;
             }
 
             // TODO: Do we need to handle this in two places like we do with
             // target-features/target-cpu?
             if (const auto *vec_width = function_decl->getAttr< clang::MinVectorWidthAttr >()) {
-                llvm_unreachable("NYI");
+                VAST_UNIMPLEMENTED;
             }
         }
 
@@ -503,10 +508,11 @@ namespace vast::cg
             llvm::ScopedHashTableScope var_scope(variables_symbol_table());
 
             auto result = logical_result::success();
-            if (const auto stmt = clang::dyn_cast< clang::CompoundStmt >(body))
+            if (const auto stmt = clang::dyn_cast< clang::CompoundStmt >(body)) {
                 result = build_compound_stmt_without_scope(*stmt);
-            else
+            } else {
                 result = build_stmt(body, /* use current scope */ true);
+            }
 
             // This is checked after emitting the function body so we know if there are
             // any permitted infinite loops.

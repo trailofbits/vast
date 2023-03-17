@@ -8,7 +8,6 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/Passes.hpp"
-#include "vast/Frontend/Common.hpp"
 
 namespace vast::cg {
 

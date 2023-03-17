@@ -14,8 +14,8 @@ namespace vast::cg {
         can_qual_types_span arg_types,
         required_args required
     ) {
-        assert(params.empty() || params.size() == arg_types.size());
-        assert(!required.allows_optional_args()
+        VAST_ASSERT(params.empty() || params.size() == arg_types.size());
+        VAST_ASSERT(!required.allows_optional_args()
             || required.get_num_required_args() <= arg_types.size()
         );
 

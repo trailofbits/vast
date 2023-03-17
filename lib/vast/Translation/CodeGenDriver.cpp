@@ -7,8 +7,6 @@ VAST_RELAX_WARNINGS
 #include <clang/Basic/TargetInfo.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Translation/Error.hpp"
-
 // FIXME: get rid of dependency from upper layer
 #include "vast/CodeGen/TypeInfo.hpp"
 
@@ -49,7 +47,7 @@ namespace vast::cg
 
             auto aarch64_info = [&] {
                 if (abi == "aapcs" || abi == "darwinpcs") {
-                    throw cg::unimplemented("Only Darwin supported for aarch64");
+                    VAST_UNIMPLEMENTED_MSG("Only Darwin supported for aarch64");
                 }
 
                 auto abi_kind = aarch64_abi_info::abi_kind::darwin_pcs;
@@ -60,20 +58,20 @@ namespace vast::cg
                 auto os = triple.getOS();
 
                 if (os == llvm::Triple::Win32) {
-                    throw cg::unimplemented( "target info for Win32" );
+                    VAST_UNIMPLEMENTED_MSG( "target info for Win32" );
                 } else {
                     return target_info_ptr(
                         new x86_64_target_info(type_info, avx_level(target))
                     );
                 }
 
-                throw cg::unimplemented(std::string("Unsupported x86_64 OS type: ") + triple.getOSName().str());
+                VAST_UNIMPLEMENTED_MSG(std::string("Unsupported x86_64 OS type: ") + triple.getOSName().str());
             };
 
             switch (triple.getArch()) {
                 case llvm::Triple::aarch64: return aarch64_info();
                 case llvm::Triple::x86_64:  return x86_64_info();
-                default: throw cg::unimplemented("Target not yet supported.");
+                default: VAST_UNREACHABLE("Target not yet supported.");
             }
         }
     } // namespace detail
@@ -91,7 +89,7 @@ namespace vast::cg
         // TODO: buildCXXThreadLocalInitFunc();
         // TODO: ObjCRuntime
         if (lang().CUDA) {
-            throw cg::unimplemented("cuda module release");
+            VAST_UNIMPLEMENTED_MSG("cuda module release");
         }
         // TODO: OpenMPRuntime
         // TODO: PGOReader
@@ -105,13 +103,13 @@ namespace vast::cg
         // TODO: buildAtAvailableLinkGuard();
         const auto &target_triplet = actx.getTargetInfo().getTriple();
         if (target_triplet.isWasm() && !target_triplet.isOSEmscripten()) {
-            throw cg::unimplemented("WASM module release");
+            VAST_UNIMPLEMENTED_MSG("WASM module release");
         }
 
         // Emit reference of __amdgpu_device_library_preserve_asan_functions to
         // preserve ASAN functions in bitcode libraries.
         if (lang().Sanitize.has(clang::SanitizerKind::Address)) {
-            throw cg::unimplemented("AddressSanitizer module release");
+            VAST_UNIMPLEMENTED_MSG("AddressSanitizer module release");
         }
 
         // TODO: buildLLVMUsed();// TODO: SanStats
@@ -176,7 +174,7 @@ namespace vast::cg
             case clang::Decl::VarTemplateSpecialization: {
                 build_global(llvm::cast< clang::VarDecl >(decl));
                 if (llvm::isa< clang::DecompositionDecl >(decl)) {
-                    throw cg::unimplemented("codegen for DecompositionDecl");
+                    VAST_UNIMPLEMENTED_MSG("codegen for DecompositionDecl");
                 }
                 break;
             }
@@ -184,7 +182,7 @@ namespace vast::cg
             case clang::Decl::Function: {
                 build_global(llvm::cast< clang::FunctionDecl >(decl));
                 if (options.coverage_mapping) {
-                    throw cg::unimplemented("coverage mapping not supported");
+                    VAST_UNIMPLEMENTED_MSG("coverage mapping not supported");
                 }
                 break;
             }
@@ -212,7 +210,7 @@ namespace vast::cg
             case clang::Decl::Record:
             case clang::Decl::Enum:
                 return codegen.append_to_module(decl);
-            default: throw cg::unimplemented(std::string("codegen for: ") + decl->getDeclKindName());
+            default: VAST_UNREACHABLE((std::string("codegen for: ") + decl->getDeclKindName()).c_str());
         }
     }
 
@@ -235,11 +233,11 @@ namespace vast::cg
                 return nullptr;
 
             if (fn->isMultiVersion()) {
-                throw cg::unimplemented("codegen for multi version function");
+                VAST_UNIMPLEMENTED_MSG("codegen for multi version function");
             }
 
             if (const auto *method = llvm::dyn_cast< clang::CXXMethodDecl >(decl)) {
-                throw cg::unimplemented("cxx methods");
+                VAST_UNIMPLEMENTED_MSG("cxx methods");
             }
 
             return build_global_function_definition(glob);
@@ -248,7 +246,7 @@ namespace vast::cg
         if (const auto *var = llvm::dyn_cast< clang::VarDecl >(decl))
             return build_global_var_definition(var, !var->hasDefinition());
 
-        llvm_unreachable("Invalid argument to buildGlobalDefinition()");
+        VAST_UNREACHABLE("Invalid argument to buildGlobalDefinition()");
 
     }
 
@@ -259,7 +257,7 @@ namespace vast::cg
         const auto &fty_info = type_info->arrange_global_decl(decl, get_target_info());
         auto ty = type_conv.get_function_type(fty_info);
 
-        assert(!lang().CUDA && "NYI");
+        VAST_UNIMPLEMENTED_IF(lang().CUDA);
         auto op = codegen.build_function_prototype(decl, ty);
 
         auto fn = mlir::cast< vast::hl::FuncOp >(op);
@@ -279,15 +277,15 @@ namespace vast::cg
         // TODO: SetLLVMFunctionAttributesForDeclaration
 
         if (function_decl->getAttr< clang::ConstructorAttr >()) {
-            throw cg::unimplemented("ctor emition");
+            VAST_UNIMPLEMENTED_MSG("ctor emition");
         }
 
         if (function_decl->getAttr< clang::DestructorAttr >()) {
-            throw cg::unimplemented("dtor emition");
+            VAST_UNIMPLEMENTED_MSG("dtor emition");
         }
 
         if (function_decl->getAttr< clang::AnnotateAttr >()) {
-            throw cg::unimplemented("annotated emition");
+            VAST_UNIMPLEMENTED_MSG("annotated emition");
         }
 
         return op;
@@ -304,11 +302,11 @@ namespace vast::cg
     }
 
     operation codegen_driver::build_global_var_definition(const clang::VarDecl */* decl */, bool /* tentative */) {
-        throw cg::unimplemented("build_global_var_definition");
+        VAST_UNIMPLEMENTED;
     }
 
     operation codegen_driver::build_global_decl(const clang::GlobalDecl &/* decl */) {
-        throw cg::unimplemented("build_global_decl");
+        VAST_UNIMPLEMENTED;
     }
 
     mangled_name_ref codegen_driver::get_mangled_name(clang::GlobalDecl decl) {
@@ -318,13 +316,13 @@ namespace vast::cg
     operation codegen_driver::build_global(clang::GlobalDecl decl) {
         const auto *glob = llvm::cast< clang::ValueDecl >(decl.getDecl());
 
-        assert(!glob->hasAttr< clang::WeakRefAttr >() && "NYI");
-        assert(!glob->hasAttr< clang::AliasAttr >() && "NYI");
-        assert(!glob->hasAttr< clang::IFuncAttr >() && "NYI");
-        assert(!glob->hasAttr< clang::CPUDispatchAttr >() && "NYI");
+        VAST_UNIMPLEMENTED_IF(glob->hasAttr< clang::WeakRefAttr >());
+        VAST_UNIMPLEMENTED_IF(glob->hasAttr< clang::AliasAttr >());
+        VAST_UNIMPLEMENTED_IF(glob->hasAttr< clang::IFuncAttr >());
+        VAST_UNIMPLEMENTED_IF(glob->hasAttr< clang::CPUDispatchAttr >());
 
-        assert(!lang().CUDA && "NYI");
-        assert(!lang().OpenMP && "NYI");
+        VAST_UNIMPLEMENTED_IF(lang().CUDA);
+        VAST_UNIMPLEMENTED_IF(lang().OpenMP);
 
         // Ignore declarations, they will be emitted on their first use.
         if (const auto *fn = llvm::dyn_cast< clang::FunctionDecl >(glob)) {
@@ -332,7 +330,7 @@ namespace vast::cg
             if (!fn->doesThisDeclarationHaveABody()) {
                 if (!fn->doesDeclarationForceExternallyVisibleDefinition())
                     return nullptr;
-                throw cg::unimplemented("build_global FunctionDecl");
+                VAST_UNIMPLEMENTED_MSG("FunctionDecl");
                 // auto mangled_name = getMangledName(decl);
 
                 // Compute the function info and vast type.
@@ -345,17 +343,18 @@ namespace vast::cg
             }
         } else {
             const auto *var = llvm::cast< clang::VarDecl >(glob);
-            assert(var->isFileVarDecl() && "Cannot emit local var decl as global.");
+            VAST_CHECK(var->isFileVarDecl(), "Cannot emit local var decl as global.");
             if (var->isThisDeclarationADefinition() != clang::VarDecl::Definition &&
                 !acontext().isMSStaticDataMemberInlineDefinition(var)
             ) {
-                assert(!lang().OpenMP && "NYI");
+                VAST_UNIMPLEMENTED_IF(lang().OpenMP);
                 // If this declaration may have caused an inline variable definition
                 // to change linkage, make sure that it's emitted.
                 // TODO probably use GetAddrOfGlobalVar(var) below?
-                assert((acontext().getInlineVariableDefinitionKind(var) !=
+                VAST_UNIMPLEMENTED_IF(
+                    acontext().getInlineVariableDefinitionKind(var) ==
                     clang::ASTContext::InlineVariableDefinitionKind::Strong
-                ) && "NYI");
+                );
 
                 return {};
             }
@@ -374,7 +373,7 @@ namespace vast::cg
         if (lang().CPlusPlus && clang::isa< clang::VarDecl >(glob) &&
             clang::cast< clang::VarDecl >(glob)->hasInit()
         ) {
-            throw cg::unimplemented("build_global CXX GlobalVar");
+            VAST_UNIMPLEMENTED_MSG("build_global CXX GlobalVar");
             // DelayedCXXInitPosition[glob] = CXXGlobalInits.size();
             // CXXGlobalInits.push_back(nullptr);
         }
@@ -385,7 +384,7 @@ namespace vast::cg
             codegen.add_deferred_decl_to_emit(decl);
         } else if (must_be_emitted(glob)) {
             // The value must be emitted, but cannot be emitted eagerly.
-            assert(!may_be_emitted_eagerly(glob));
+            VAST_ASSERT(!may_be_emitted_eagerly(glob));
             codegen.add_deferred_decl_to_emit(decl);
         } else {
             // Otherwise, remember that we saw a deferred decl with this name. The first
@@ -398,23 +397,21 @@ namespace vast::cg
 
     bool codegen_driver::must_be_emitted(const clang::ValueDecl *glob) {
         // Never defer when EmitAllDecls is specified.
-        assert(!lang().EmitAllDecls && "EmitAllDecls NYI");
-        assert(!options.keep_static_consts && "KeepStaticConsts NYI");
+        VAST_UNIMPLEMENTED_IF(lang().EmitAllDecls);
+        VAST_UNIMPLEMENTED_IF(options.keep_static_consts);
 
         return actx.DeclMustBeEmitted(glob);
     }
 
     bool codegen_driver::may_be_emitted_eagerly(const clang::ValueDecl *glob) {
-        assert(!lang().OpenMP && "not supported");
+        VAST_UNIMPLEMENTED_IF(lang().OpenMP);
 
         if (const auto *fn = llvm::dyn_cast< clang::FunctionDecl >(glob)) {
             // Implicit template instantiations may change linkage if they are later
             // explicitly instantiated, so they should not be emitted eagerly.
             constexpr auto implicit = clang::TSK_ImplicitInstantiation;
-            if (fn->getTemplateSpecializationKind() == implicit) {
-                throw cg::unimplemented("implicit template specialization emition");
-            }
-            assert(!fn->isTemplated() && "templates NYI");
+            VAST_UNIMPLEMENTED_IF(fn->getTemplateSpecializationKind() == implicit);
+            VAST_UNIMPLEMENTED_IF(fn->isTemplated());
             return true;
         }
 
@@ -423,13 +420,11 @@ namespace vast::cg
             // A definition of an inline constexpr static data member may change
             // linkage later if it's redeclared outside the class.
             constexpr auto weak_unknown = clang::ASTContext::InlineVariableDefinitionKind::WeakUnknown;
-            if (actx.getInlineVariableDefinitionKind(vr) == weak_unknown) {
-                throw cg::unimplemented("inline variable definitions");
-            }
+            VAST_UNIMPLEMENTED_IF(actx.getInlineVariableDefinitionKind(vr) == weak_unknown);
             return true;
         }
 
-        throw cg::unimplemented("unsupported value decl");
+        VAST_UNREACHABLE("unsupported value decl");
     }
 
     operation codegen_driver::get_global_value(mangled_name_ref name) {
@@ -470,27 +465,22 @@ namespace vast::cg
 
     void codegen_driver::build_deferred() {
         // Emit deferred declare target declarations
-        if (lang().OpenMP && !lang().OpenMPSimd) {
-            throw cg::unimplemented("build_deferred for openmp");
-        }
+        VAST_UNIMPLEMENTED_IF(lang().OpenMP && !lang().OpenMPSimd);
 
         // Emit code for any potentially referenced deferred decls. Since a previously
         // unused static decl may become used during the generation of code for a
         // static function, iterate until no changes are made.
-        if (!deferred_vtables().empty()) {
-            throw cg::unimplemented("build_deferred for vtables");
-        }
+        VAST_UNIMPLEMENTED_IF(!deferred_vtables().empty());
 
         // Emit CUDA/HIP static device variables referenced by host code only. Note we
         // should not clear CUDADeviceVarODRUsedByHost since it is still needed for
         // further handling.
-        if (lang().CUDA && lang().CUDAIsDevice) {
-            throw cg::unimplemented("build_deferred for cuda");
-        }
+        VAST_UNIMPLEMENTED_IF(lang().CUDA && lang().CUDAIsDevice);
 
         // Stop if we're out of both deferred vtables and deferred declarations.
-        if (deferred_decls_to_emit().empty())
+        if (deferred_decls_to_emit().empty()) {
             return;
+        }
 
         // Grab the list of decls to emit. If build_global_definition schedules more
         // work, it will not interfere with this.
@@ -504,7 +494,7 @@ namespace vast::cg
             // ones are close together, which is convenient for testing.
             if (!deferred_vtables().empty() || !deferred_decls_to_emit().empty()) {
                 build_deferred();
-                assert(deferred_vtables().empty() && deferred_decls_to_emit().empty());
+                VAST_ASSERT(deferred_vtables().empty() && deferred_decls_to_emit().empty());
             }
         }
     }
@@ -515,7 +505,7 @@ namespace vast::cg
 
     void codegen_driver::apply_replacements() {
         if (!replacements.empty()) {
-            throw cg::unimplemented(" function replacement in module release");
+            VAST_UNIMPLEMENTED_MSG(" function replacement in module release");
         }
     }
 

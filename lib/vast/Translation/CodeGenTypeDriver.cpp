@@ -4,7 +4,6 @@
 
 #include "vast/Translation/CodeGenTypeDriver.hpp"
 #include "vast/Translation/CodeGenDriver.hpp"
-#include "vast/Translation/Error.hpp"
 
 #include "vast/CodeGen/ArgInfo.hpp"
 
