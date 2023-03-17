@@ -8,7 +8,7 @@ typedef int array_t[10];
 // CHECK: hl.typedef "array_ptr_t" : !hl.ptr<!hl.typedef<"array_t">>
 typedef array_t* array_ptr_t;
 
-// CHECK: hl.func external @foo (%arg0: !hl.lvalue<!hl.typedef<"array_ptr_t">>) -> !hl.void
+// CHECK: hl.func external @foo (%arg0: !hl.lvalue<!hl.typedef<"array_ptr_t">>) -> ()
 void foo(array_ptr_t array_ptr) {
     int x = (*array_ptr)[1];
 }
@@ -16,6 +16,6 @@ void foo(array_ptr_t array_ptr) {
 void bar() {
     // CHECK: hl.var "arr_10" : !hl.lvalue<!hl.array<10, !hl.int>>
     int arr_10[10];
-    // CHECK: hl.call @foo([[V:%[0-9]+]]) : (!hl.ptr<!hl.array<10, !hl.int>>) -> !hl.void
+    // CHECK: hl.call @foo([[V:%[0-9]+]]) : (!hl.ptr<!hl.array<10, !hl.int>>) -> ()
     foo(&arr_10);
 }

@@ -18,7 +18,7 @@ int main()
     // CHECK: hl.call @constant() : () -> !hl.int
     int c = constant();
 
-    // CHECK: hl.call @noop() : () -> !hl.void
+    // CHECK: hl.call @noop() : () -> ()
     noop();
 
     // CHECK: hl.call @add([[V1:%[0-9]+]], [[V2:%[0-9]+]]) : (!hl.int, !hl.int) -> !hl.int

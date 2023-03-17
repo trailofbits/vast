@@ -30,7 +30,7 @@ int add2(int a, int b)
     return r;
 }
 
-// CHECK: hl.func external @add3 () -> !hl.void
+// CHECK: hl.func external @add3 () -> ()
 void add3()
 {
     // CHECK: hl.var "v" : !hl.lvalue<!hl.int> = {
