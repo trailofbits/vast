@@ -7,6 +7,7 @@
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Region.hpp"
+#include "vast/Util/TypeTraits.hpp"
 
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
@@ -293,28 +294,7 @@ namespace vast::hl
         st.addTypes(type);
     }
 
-    void CondOp::getSuccessorRegions(
-        llvm::Optional< unsigned > index,
-        llvm::ArrayRef< mlir::Attribute > operands,
-        llvm::SmallVectorImpl< mlir::RegionSuccessor > &regions
-    ) {
-        if (index) {
-            if (index.value() == 0) {
-                regions.push_back(trivial_region_succ(&getCondRegion()));
-            } else if (index.value() == 1) {
-                regions.push_back(trivial_region_succ(&getThenRegion()));
-                regions.push_back(trivial_region_succ(&getElseRegion()));
-            } else {
-                regions.push_back(mlir::RegionSuccessor(
-                    getOperation()->getResults())
-                );
-            }
-        } else {
-            regions.push_back(trivial_region_succ(&getCondRegion()));
-        }
-    }
-
-    bool CondOp::areTypesCompatible(mlir::Type lhs, mlir::Type rhs)
+    bool CondOp::typesMatch(mlir::Type lhs, mlir::Type rhs)
     {
         namespace tt = mlir::TypeTrait;
         auto normalize = [](mlir::Type type) {
@@ -325,18 +305,22 @@ namespace vast::hl
         };
         auto lhs_norm = normalize(lhs);
         auto rhs_norm = normalize(rhs);
-        bool compatible = lhs_norm == rhs_norm
-            || lhs_norm.hasTrait< tt::TypedefTrait >() || rhs_norm.hasTrait< tt::TypedefTrait >()
-            || (lhs_norm.hasTrait< tt::PointerTypeTrait >() && rhs_norm.hasTrait< tt::PointerTypeTrait >());
-        VAST_ASSERT(compatible && "failed to verify CondOp types");
-        return compatible;
+        return lhs_norm == rhs_norm
+            || any_with_trait< tt::TypedefTrait >(lhs_norm, rhs_norm)
+            || all_with_trait< tt::PointerTypeTrait >(lhs_norm, rhs_norm);
     }
 
     logical_result CondOp::verifyRegions()
     {
         auto then_type = get_yielded_type(getThenRegion());
         auto else_type = get_yielded_type(getElseRegion());
-        return mlir::success(areTypesCompatible(then_type, else_type));
+        bool compatible = typesMatch(then_type, else_type);
+        if (!compatible)
+        {
+            llvm::errs() << "Failed to verify that return types " << then_type
+                << ", " << else_type << " in CondOp regions match.\n";
+        }
+        return mlir::success(compatible);
     }
 
     void WhileOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback body)
