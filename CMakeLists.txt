@@ -32,6 +32,8 @@ project(VAST
     HOMEPAGE_URL "https://github.com/trailofbits/vast.git"
 )
 
+set(BUG_REPORT_URL "https://github.com/trailofbits/vast/issues" CACHE STRING "")
+
 include(prevent_in_source_builds)
 
 # check if vast is being used directly or via add_subdirectory,
