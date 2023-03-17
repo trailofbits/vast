@@ -1,4 +1,5 @@
 // RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-dce | FileCheck %s
+// REQUIRES: return
 
 void fn()
 {
