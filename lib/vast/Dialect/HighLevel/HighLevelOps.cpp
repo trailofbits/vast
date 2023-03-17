@@ -317,9 +317,17 @@ namespace vast::hl
     bool CondOp::areTypesCompatible(mlir::Type lhs, mlir::Type rhs)
     {
         namespace tt = mlir::TypeTrait;
-        bool compatible = lhs == rhs
-            || lhs.hasTrait< tt::TypedefTrait >() || rhs.hasTrait< tt::TypedefTrait >()
-            || (lhs.hasTrait< tt::PointerTypeTrait >() && rhs.hasTrait< tt::PointerTypeTrait >());
+        auto normalize = [](mlir::Type type) {
+           auto type_casted = type.dyn_cast< hl::LValueType >();
+           if (type_casted)
+               return type_casted.getElementType();
+            return type;
+        };
+        auto lhs_norm = normalize(lhs);
+        auto rhs_norm = normalize(rhs);
+        bool compatible = lhs_norm == rhs_norm
+            || lhs_norm.hasTrait< tt::TypedefTrait >() || rhs_norm.hasTrait< tt::TypedefTrait >()
+            || (lhs_norm.hasTrait< tt::PointerTypeTrait >() && rhs_norm.hasTrait< tt::PointerTypeTrait >());
         VAST_ASSERT(compatible && "failed to verify CondOp types");
         return compatible;
     }
