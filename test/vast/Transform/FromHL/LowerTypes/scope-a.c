@@ -1,6 +1,6 @@
 // RUN: vast-cc --from-source %s | vast-opt --vast-hl-lower-types | FileCheck %s
 
-// CHECK-LABEL: hl.func external @test1 () -> si32
+// CHECK-LABEL: hl.func external @test1 () -> si32 attributes {sym_visibility = "private"} {
 int test1()
 {
     // CHECK: hl.scope
@@ -13,7 +13,7 @@ int test1()
     return a;
 }
 
-// CHECK-LABEL: hl.func external @test2 () -> none
+// CHECK-LABEL: hl.func external @test2 () attributes {sym_visibility = "private"} {
 void test2()
 {
     // CHECK: hl.scope
@@ -35,7 +35,7 @@ void test2()
     }
 }
 
-// CHECK-LABEL: hl.func external @test3 () -> si32
+// CHECK-LABEL: hl.func external @test3 () -> si32 attributes {sym_visibility = "private"} {
 int test3()
 {
     // CHECK: hl.var "b" : !hl.lvalue<si32>
@@ -53,7 +53,7 @@ int test3()
     return 0;
 }
 
-// CHECK-LABEL: hl.func external @test4 () -> si32
+// CHECK-LABEL: hl.func external @test4 () -> si32 attributes {sym_visibility = "private"} {
 int test4()
 {
     // CHECK-NOT: hl.scope
