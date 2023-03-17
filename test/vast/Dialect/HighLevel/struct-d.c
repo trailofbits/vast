@@ -18,7 +18,7 @@ struct s* p = 0;
 // CHECK: }
 struct s { int a; };
 
-// CHECK: hl.func external @g () -> ()
+// CHECK: hl.func external @g ()
 void g(void)
 {
     // TODO: locally scoped structs
