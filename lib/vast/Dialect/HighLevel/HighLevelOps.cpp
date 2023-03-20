@@ -306,6 +306,7 @@ namespace vast::hl
         auto lhs_norm = normalize(lhs);
         auto rhs_norm = normalize(rhs);
         return lhs_norm == rhs_norm
+            || all_with_trait< tt::IntegralTypeTrait >(lhs_norm, rhs_norm)
             || any_with_trait< tt::TypedefTrait >(lhs_norm, rhs_norm)
             || all_with_trait< tt::PointerTypeTrait >(lhs_norm, rhs_norm);
     }
