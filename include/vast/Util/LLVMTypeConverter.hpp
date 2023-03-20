@@ -155,8 +155,7 @@ namespace vast::util::tc
                 return {};
 
             // LLVM function can have only one return value;
-            if (r_res->size() > 1)
-                return {};
+            VAST_ASSERT(r_res->size() <= 1 );
 
             if (r_res->empty())
                 r_res->emplace_back(mlir::LLVM::LLVMVoidType::get(t.getContext()));
