@@ -36,8 +36,8 @@ namespace vast::conv
         return std::make_tuple( head, body );
     }
 
-    template< typename Op, typename Bld >
-    mlir::Block *inline_region( Op op, Bld &bld, mlir::Region &region, mlir::Region &dest )
+    template< typename Bld >
+    mlir::Block *inline_region( Bld &bld, mlir::Region &region, mlir::Region &dest )
     {
         auto begin = &region.front();
         auto end   = &region.back();

@@ -204,12 +204,12 @@ namespace vast::conv
                 auto &cond_region = op.getCondRegion();
                 auto &body_region = op.getBodyRegion();
 
-                auto body_block = inline_region( op, rewriter,
+                auto body_block = inline_region( rewriter,
                                                  body_region, scope.body() );
 
                 // Condition block cannot be entry because entry block cannot have
                 // predecessors and body block will jump to it.
-                auto cond_block = inline_region( op, rewriter, cond_region, scope.body() );
+                auto cond_block = inline_region( rewriter, cond_region, scope.body() );
 
                 auto cond_yield = get_terminator( *cond_block ).cast< hl::CondYieldOp >();
                 auto value = guarded( rewriter, [ & ] {
@@ -262,13 +262,13 @@ namespace vast::conv
                 auto scope = rewriter.create< ll::Scope >( op.getLoc() );
                 auto scope_entry = rewriter.createBlock( &scope.body() );
 
-                auto cond_block = inline_region( op, rewriter,
+                auto cond_block = inline_region( rewriter,
                                                  op.getCondRegion(), scope.body() );
 
-                auto body_block = inline_region( op, rewriter,
+                auto body_block = inline_region( rewriter,
                                                  op.getBodyRegion(), scope.body() );
 
-                auto inc_block = inline_region( op, rewriter,
+                auto inc_block = inline_region( rewriter,
                                                 op.getIncrRegion(), scope.body() );
 
                 auto cond_yield = get_terminator( *cond_block ).cast< hl::CondYieldOp >();
