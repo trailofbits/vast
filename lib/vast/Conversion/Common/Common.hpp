@@ -53,24 +53,6 @@ namespace vast::conv::irstollvm
         static void legalize(conversion_target &) {}
     };
 
-    // TODO(conv:irs-to-llvm): Move to some utils.
-    auto create_trunc_or_sext(auto op, mlir::Type target, auto &rewriter,
-                              mlir::Location loc, const auto &dl)
-        -> mlir::Value
-    {
-        VAST_ASSERT(op.getType().template isa< mlir::IntegerType >() &&
-                    target.isa< mlir::IntegerType >());
-        auto new_bw = dl.getTypeSizeInBits(target);
-        auto original_bw = dl.getTypeSizeInBits(op.getType());
-
-        if (new_bw == original_bw)
-            return op;
-        else if (new_bw > original_bw)
-            return rewriter.template create< mlir::LLVM::SExtOp >(loc, target, op);
-        else
-            return rewriter.template create< mlir::LLVM::TruncOp >(loc, target, op);
-    }
-
     template< typename src_t, typename trg_t >
     struct one_to_one : base_pattern< src_t >
     {
