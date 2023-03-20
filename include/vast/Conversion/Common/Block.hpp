@@ -10,6 +10,15 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::conv
 {
+    // Give operation `op` in the block:
+    // ```
+    // head = ...
+    // op = ...
+    // tail = ...
+    // ```
+    // Each of `head, op, tail` are in separate blocks ( no control flow transfer is injected )
+    // and return value are pointers to these newly formed blocks.
+    // `[ head_block, op_block, tail_block ]`.
     template< typename Op, typename Builder >
     auto extract_as_block( Op op, Builder &bld )
         -> std::tuple< mlir::Block *, mlir::Block *, mlir::Block * >
@@ -25,6 +34,21 @@ namespace vast::conv
         return { head, body, tail };
     }
 
+    // Give operation `op` in the block:
+    // ```
+    // head = ...
+    // op = ...
+    // tail = ...
+    // ```
+    // Split the block into two:
+    // ```
+    // bb1:
+    //   head
+    // bb2:
+    //   op
+    //   tail
+    // ```
+    // Returned value are pointers `[ bb1, bb2 ]`.
     template< typename Op, typename Builder >
     auto split_at_op( Op op, Builder &bld )
     {
