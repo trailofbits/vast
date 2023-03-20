@@ -28,7 +28,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::target::llvmir
 {
-    class ToLLLVMIR : public mlir::LLVMTranslationDialectInterface
+    class ToLLVMIR : public mlir::LLVMTranslationDialectInterface
     {
       public:
         using Base = mlir::LLVMTranslationDialectInterface;
