@@ -101,6 +101,7 @@ namespace vast::cg
         using TypeDeclsScope     = ScopedSymbolTable< const clang::TypeDecl *, hl::TypeDeclOp >;
         using EnumDeclsScope     = ScopedSymbolTable< const clang::EnumDecl *, hl::EnumDeclOp >;
         using EnumConstantsScope = ScopedSymbolTable< const clang::EnumConstantDecl *, hl::EnumConstantOp >;
+        using LabelTable         = ScopedSymbolTable< const clang::LabelDecl*, hl::LabelDeclOp >;
         using FunctionsScope     = ScopedSymbolTable< const clang::FunctionDecl *, hl::FuncOp >;
         using VariablesScope     = ScopedSymbolTable< const clang::VarDecl *, Value >;
 
@@ -109,6 +110,7 @@ namespace vast::cg
             TypeDeclsScope     typedecls;
             EnumDeclsScope     enumdecls;
             EnumConstantsScope enumconsts;
+            LabelTable         labels;
             FunctionsScope     funcdecls;
             VariablesScope     globs;
         };
@@ -604,6 +606,7 @@ namespace vast::cg
                 .typedecls  = _cgctx->typedecls,
                 .enumdecls  = _cgctx->enumdecls,
                 .enumconsts = _cgctx->enumconsts,
+                .labels     = _cgctx->labels,
                 .funcdecls  = _cgctx->funcdecls,
                 .globs      = _cgctx->vars
             });
