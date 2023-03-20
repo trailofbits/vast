@@ -108,12 +108,6 @@ namespace vast::conv
             });
         }
 
-        [[ maybe_unused ]]
-        bool is_hl_terminator( const optional_terminator_t &terminator )
-        {
-            return terminator.template is_one_of< hl::ReturnOp, hl::BreakOp, hl::ContinueOp >();
-        }
-
         bool is_hl_terminator( mlir::Operation *op )
         {
             return  op && (    mlir::isa< hl::ReturnOp >( op )
@@ -329,7 +323,7 @@ namespace vast::conv
         using replace_return   = replace_op< hl::ReturnOp,   ll::ReturnOp >;
 
 
-        using all = util::make_list<
+        using cf_patterns = util::make_list<
               if_op
             , while_op
             , for_op
@@ -358,7 +352,7 @@ namespace vast::conv
 
         static void populate_conversions(config_t &config)
         {
-            base::populate_conversions_base< pattern::all >(config);
+            base::populate_conversions_base< pattern::cf_patterns >(config);
         }
 
         void after_operation() override
