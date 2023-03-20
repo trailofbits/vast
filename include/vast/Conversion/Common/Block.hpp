@@ -19,8 +19,8 @@ namespace vast::conv
     // Each of `head, op, tail` are in separate blocks ( no control flow transfer is injected )
     // and return value are pointers to these newly formed blocks.
     // `[ head_block, op_block, tail_block ]`.
-    template< typename Op, typename Builder >
-    auto extract_as_block( Op op, Builder &bld )
+    template< typename op_t, typename bld_t >
+    auto extract_as_block( op_t op, bld_t &bld )
         -> std::tuple< mlir::Block *, mlir::Block *, mlir::Block * >
     {
         auto it = mlir::Block::iterator( op );
@@ -49,8 +49,8 @@ namespace vast::conv
     //   tail
     // ```
     // Returned value are pointers `[ bb1, bb2 ]`.
-    template< typename Op, typename Builder >
-    auto split_at_op( Op op, Builder &bld )
+    template< typename op_t, typename bld_t >
+    auto split_at_op( op_t op, bld_t &bld )
     {
         auto it = mlir::Block::iterator( op );
         auto head = op->getBlock();
@@ -60,8 +60,8 @@ namespace vast::conv
         return std::make_tuple( head, body );
     }
 
-    template< typename Bld >
-    mlir::Block *inline_region( Bld &bld, mlir::Region &region, mlir::Region &dest )
+    template< typename bld_t >
+    mlir::Block *inline_region( bld_t &bld, mlir::Region &region, mlir::Region &dest )
     {
         auto begin = &region.front();
         auto end   = &region.back();
