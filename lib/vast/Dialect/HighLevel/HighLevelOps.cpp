@@ -298,9 +298,9 @@ namespace vast::hl
     {
         namespace tt = mlir::TypeTrait;
         auto normalize = [](mlir::Type type) {
-           auto type_casted = type.dyn_cast< hl::LValueType >();
-           if (type_casted)
-               return type_casted.getElementType();
+            auto type_casted = type.dyn_cast< hl::LValueType >();
+            if (type_casted)
+                return type_casted.getElementType();
             return type;
         };
         auto lhs_norm = normalize(lhs);
@@ -317,8 +317,8 @@ namespace vast::hl
         bool compatible = typesMatch(then_type, else_type);
         if (!compatible)
         {
-            llvm::errs() << "Failed to verify that return types " << then_type
-                << ", " << else_type << " in CondOp regions match.\n";
+            VAST_REPORT("Failed to verify that return types {0}, {1} in CondOp regions match.",
+                then_type, else_type);
         }
         return mlir::success(compatible);
     }
