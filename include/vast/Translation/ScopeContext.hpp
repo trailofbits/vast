@@ -57,4 +57,45 @@ namespace vast::cg
         std::queue< action_t > deferred_codegen_actions;
     };
 
+    // Refers to block scope §6.2.1 of C standard
+    //
+    // If the declarator or type specifier that declares the identifier appears
+    // inside a block or within the list of parameter declarations in a function
+    // definition, the identifier has block scope, which terminates at the end
+    // of the associated block.
+    struct block_scope : scope_context {
+
+    };
+
+
+    // refers to function scope §6.2.1 of C standard
+    struct function_scope : block_scope {
+        // label scope
+    };
+
+    // Refers to function prototype scope §6.2.1 of C standard
+    //
+    // If the declarator or type specifier that declares the identifier appears
+    // within the list of parameter declarations in a function prototype (not
+    // part of a function definition), the identifier has function prototype
+    // scope, which terminates at the end of the function declarator
+    struct prototype_scope : scope_context {
+
+    };
+
+    // Refers to file scope §6.2.1 of C standard
+    //
+    // If the declarator or type specifier that declares the identifier appears
+    // outside of any block or list of parameters, the identifier has file
+    // scope, which terminates at the end of the translation unit.
+    struct module_scope : scope_context {
+
+    };
+
+    // Scope of member names for structures and unions
+
+    struct members_scope : scope_context {
+
+    };
+
 } // namespace vast::cg
