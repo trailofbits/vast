@@ -93,6 +93,23 @@ namespace vast {
                 return fN(rewriter, loc, type, val);
             VAST_UNREACHABLE("not an integer or float type");
         }
+
+        static auto create_trunc_or_sext(auto op, mlir::Type target, auto &rewriter,
+                                         mlir::Location loc, const auto &dl)
+            -> mlir::Value
+        {
+            VAST_ASSERT(op.getType().template isa< mlir::IntegerType >() &&
+                        target.isa< mlir::IntegerType >());
+            auto new_bw = dl.getTypeSizeInBits(target);
+            auto original_bw = dl.getTypeSizeInBits(op.getType());
+
+            if (new_bw == original_bw)
+                return op;
+            else if (new_bw > original_bw)
+                return rewriter.template create< mlir::LLVM::SExtOp >(loc, target, op);
+            else
+                return rewriter.template create< mlir::LLVM::TruncOp >(loc, target, op);
+        }
     };
 
     template< typename op_t >
