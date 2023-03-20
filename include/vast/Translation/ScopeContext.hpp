@@ -11,6 +11,27 @@
 
 namespace vast::cg
 {
+    template< typename From, typename To >
+    struct scoped_table : llvm::ScopedHashTable< From, To >
+    {
+        using value_type = To;
+
+        using base = llvm::ScopedHashTable< From, To >;
+        using base::base;
+
+        using base::count;
+        using base::insert;
+
+        logical_result declare(const From &from, const To &to) {
+            if (count(from)) {
+                return mlir::failure();
+            }
+
+            insert(from, to);
+            return mlir::success();
+        }
+    };
+
     struct scope_context {
         using action_t = std::function< void() >;
 
