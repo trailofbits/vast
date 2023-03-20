@@ -16,6 +16,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Translation/CodeGenScope.hpp"
+#include "vast/Translation/ScopeContext.hpp"
 #include "vast/Translation/Mangler.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
@@ -23,7 +24,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Util/Functions.hpp"
-#include "vast/Util/ScopeTable.hpp"
 #include "vast/Util/Common.hpp"
 
 #include <variant>
@@ -45,25 +45,25 @@ namespace vast::cg
 
         lexical_scope_context *current_lexical_scope = nullptr;
 
-        using VarTable = ScopedValueTable< const clang::VarDecl *, Value >;
+        using VarTable = scoped_table< const clang::VarDecl *, Value >;
         VarTable vars;
 
-        using TypeDefTable = ScopedValueTable< const clang::TypedefDecl *, hl::TypeDefOp >;
+        using TypeDefTable = scoped_table< const clang::TypedefDecl *, hl::TypeDefOp >;
         TypeDefTable typedefs;
 
-        using TypeDeclTable = ScopedValueTable< const clang::TypeDecl *, hl::TypeDeclOp >;
+        using TypeDeclTable = scoped_table< const clang::TypeDecl *, hl::TypeDeclOp >;
         TypeDeclTable typedecls;
 
-        using FuncDeclTable = ScopedValueTable< const clang::FunctionDecl *, hl::FuncOp >;
+        using FuncDeclTable = scoped_table< const clang::FunctionDecl *, hl::FuncOp >;
         FuncDeclTable funcdecls;
 
-        using EnumDecls = ScopedValueTable< const clang::EnumDecl *, hl::EnumDeclOp >;
+        using EnumDecls = scoped_table< const clang::EnumDecl *, hl::EnumDeclOp >;
         EnumDecls enumdecls;
 
-        using EnumConstants = ScopedValueTable< const clang::EnumConstantDecl *, hl::EnumConstantOp >;
+        using EnumConstants = scoped_table< const clang::EnumConstantDecl *, hl::EnumConstantOp >;
         EnumConstants enumconsts;
 
-        using LabelTable = ScopedValueTable< const clang::LabelDecl*, hl::LabelDeclOp >;
+        using LabelTable = scoped_table< const clang::LabelDecl*, hl::LabelDeclOp >;
         LabelTable labels;
 
         size_t anonymous_count = 0;
@@ -170,8 +170,8 @@ namespace vast::cg
 
         auto error(llvm::Twine msg) { return mod->emitError(msg); }
 
-        template< typename Table, typename Token, typename ValueType = typename Table::ValueType >
-        ValueType symbol(Table &table, Token token, llvm::Twine msg, bool with_error = true) {
+        template< typename Table, typename Token, typename ValueType = typename Table::value_type >
+        ValueType symbol(Table &table, const Token &token, llvm::Twine msg, bool with_error = true) {
             if (auto val = table.lookup(token))
                 return val;
             if (with_error)
@@ -182,7 +182,6 @@ namespace vast::cg
         hl::FuncOp lookup_function(const clang::FunctionDecl *decl, bool with_error = true) {
             return symbol(funcdecls, decl, "error: undeclared function '" + decl->getName() + "'", with_error);
         }
-
 
         hl::FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
             return declare< hl::FuncOp >(funcdecls, decl, vast_decl_builder);
