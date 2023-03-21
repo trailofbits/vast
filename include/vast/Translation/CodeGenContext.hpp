@@ -180,7 +180,7 @@ namespace vast::cg
         }
 
         hl::FuncOp lookup_function(const clang::FunctionDecl *decl, bool with_error = true) {
-            return symbol(funcdecls, decl, "error: undeclared function '" + decl->getName() + "'", with_error);
+            return symbol(funcdecls, decl, "undeclared function '" + decl->getName() + "'", with_error);
         }
 
         hl::FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
