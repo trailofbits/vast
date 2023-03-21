@@ -92,7 +92,10 @@ namespace vast::cg {
 
             // make function header, that will be later filled with function body
             // or returned as declaration in the case of external function
-            auto fn = make< hl::FuncOp >(loc, mangled_name.name, fty, linkage);
+            auto fn = context().declare(function_decl, [&] () {
+                return make< hl::FuncOp >(loc, mangled_name.name, fty, linkage);
+            });
+
             VAST_CHECK(fn.isDeclaration(), "expected empty body");
 
             mlir::SymbolTable::setSymbolVisibility(
@@ -150,8 +153,6 @@ namespace vast::cg {
                     }
                 }
 
-                type.dump();
-                fn.getFunctionType().dump();
                 if (fn && fn.getFunctionType() == type) {
                     return fn;
                 }
@@ -295,6 +296,10 @@ namespace vast::cg {
 
         // FIXME: remove as this duplicates logic from codegen driver
         operation VisitFunctionDecl(const clang::FunctionDecl *decl) {
+            if (auto fn = context().lookup_function(decl, false /* emit no error */)) {
+                return fn;
+            }
+
             InsertionGuard guard(builder());
             auto is_definition = decl->doesThisDeclarationHaveABody();
 
