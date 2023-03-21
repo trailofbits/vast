@@ -361,15 +361,18 @@ def ReturnOp
   ];
 }
 
+// use InferTypeOpInterface
 def DeclRefOp
-  : HighLevel_Op< "ref", [NoSideEffect, SameOperandsAndResultType] >
+  : HighLevel_Op< "ref", [NoSideEffect,
+      DeclareOpInterfaceMethods<InferTypeOpInterface>
+  ] >
   , Arguments<(ins AnyType:$decl)>
-  , Results<(outs AnyType:$result)>
+  , Results<(outs LValueOf<AnyType>:$result)>
 {
   let summary = "VAST variable reference declaration";
   let description = [{ VAST variable reference declaration }];
 
-  let assemblyFormat = "$decl attr-dict `:` type($decl)";
+  let assemblyFormat = "$decl attr-dict `:`type(operands)";
 }
 
 def FuncRefOp
