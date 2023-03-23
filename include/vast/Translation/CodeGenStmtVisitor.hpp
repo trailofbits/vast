@@ -354,7 +354,7 @@ namespace vast::cg {
         }
 
         Operation* VisitUnaryLNot(const clang::UnaryOperator *op) {
-            return VisitUnderlyingTypePreservingUnary< hl::LNotOp >(op);
+            return VisitUnary< hl::LNotOp >(op, visit(op->getType()));
         }
 
         // Operation* VisitUnaryReal(const clang::UnaryOperator *op)

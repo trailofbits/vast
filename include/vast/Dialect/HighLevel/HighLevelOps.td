@@ -986,7 +986,26 @@ class TypePreservingUnOp< string mnemonic, list< Trait > traits = [] >
 def PlusOp  : TypePreservingUnOp< "plus", [] >;
 def MinusOp : TypePreservingUnOp< "minus", [] >;
 def NotOp   : TypePreservingUnOp< "not", [] >;
-def LNotOp  : TypePreservingUnOp< "lnot", [] >;
+
+class LogicalUnOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoSideEffect]) >
+    , Arguments< (ins AnyType:$arg) >
+    , Results< (outs IntOrBoolType:$res) >
+{
+    let summary = "VAST unary logical operation";
+    let description = [{
+        High-level unary logical operation assures that
+        result has the right type.
+
+        The custom assembly form of the operation is as follows:
+
+        %result = <op> %arg : type -> ret_type
+    }];
+
+    let assemblyFormat = [{ $arg attr-dict `:` type($arg) `->` type($res) }];
+}
+
+def LNotOp  : LogicalUnOp< "lnot", [] >;
 
 def AddressOf
   : HighLevel_Op< "addressof", [] >
