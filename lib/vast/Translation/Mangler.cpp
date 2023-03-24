@@ -96,3 +96,12 @@ namespace vast::cg
         return std::string(out.str());
     }
 } // namespace vast::cg
+
+
+namespace llvm {
+
+    [[nodiscard]] hash_code hash_value(vast::cg::mangled_name_ref mangled) {
+        return hash_value(mangled.name);
+    }
+
+} // llvm

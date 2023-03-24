@@ -18,7 +18,9 @@ VAST_UNRELAX_WARNINGS
 namespace vast::cg
 {
     struct mangled_name_ref {
-        string_ref name;
+        using value_type = string_ref;
+
+        value_type name;
 
         friend std::strong_ordering operator<=>(const mangled_name_ref &a, const mangled_name_ref &b) {
             return a.name == b.name ? std::strong_ordering::equal :
@@ -26,7 +28,40 @@ namespace vast::cg
                                     : std::strong_ordering::greater;
         }
     };
+} // namespace vast::cg
 
+namespace llvm {
+    // Compute a hash_code for a mangled_name_ref
+
+    [[nodiscard]] hash_code hash_value(vast::cg::mangled_name_ref mangled);
+
+    // Provide DenseMapInfo for mangled_name_refs
+    template<>
+    struct DenseMapInfo< vast::cg::mangled_name_ref, void > {
+        using info_type  = vast::cg::mangled_name_ref;
+        using value_type = info_type::value_type;
+        using base = DenseMapInfo< value_type, void >;
+
+        static inline info_type getEmptyKey() {
+            return { base::getEmptyKey() };
+        }
+
+        static inline info_type getTombstoneKey() {
+            return { base::getTombstoneKey() };
+        }
+
+        static unsigned getHashValue(info_type val) {
+            return base::getHashValue(val.name);
+        }
+
+        static bool isEqual(info_type lhs, info_type rhs) {
+            return base::isEqual(lhs.name, rhs.name);
+        }
+    };
+} // namespace llvm
+
+namespace vast::cg
+{
     struct CodeGenMangler {
 
         explicit CodeGenMangler(clang::MangleContext *mangle_context)

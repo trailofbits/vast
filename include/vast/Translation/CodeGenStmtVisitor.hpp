@@ -565,7 +565,8 @@ namespace vast::cg {
 
         Operation* VisitFunctionDeclRefExpr(const clang::DeclRefExpr *expr) {
             auto decl = clang::cast< clang::FunctionDecl >( expr->getDecl()->getUnderlyingDecl() );
-            auto fn = context().lookup_function(decl);
+            auto mangled = derived().get_mangled_name(decl);
+            auto fn = context().lookup_function(mangled);
             auto rty = getLValueReturnType(expr);
 
             return make< hl::FuncRefOp >(meta_location(expr), rty, mlir::SymbolRefAttr::get(fn));
@@ -774,7 +775,8 @@ namespace vast::cg {
         hl::FuncOp VisitDirectCallee(const clang::FunctionDecl *callee) {
             InsertionGuard guard(builder());
 
-            if (auto fn = context().lookup_function(callee, false /* with error */)) {
+            auto mangled = derived().get_mangled_name(callee);
+            if (auto fn = context().lookup_function(mangled, false /* with error */)) {
                 return fn;
             }
 
