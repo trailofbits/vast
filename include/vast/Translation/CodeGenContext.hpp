@@ -54,7 +54,7 @@ namespace vast::cg
         using TypeDeclTable = scoped_table< const clang::TypeDecl *, hl::TypeDeclOp >;
         TypeDeclTable typedecls;
 
-        using FuncDeclTable = scoped_table< const clang::FunctionDecl *, hl::FuncOp >;
+        using FuncDeclTable = scoped_table< mangled_name_ref, hl::FuncOp >;
         FuncDeclTable funcdecls;
 
         using EnumDecls = scoped_table< const clang::EnumDecl *, hl::EnumDeclOp >;
@@ -74,8 +74,7 @@ namespace vast::cg
         /// for the same decl.
         llvm::DenseSet< clang::GlobalDecl > diagnosed_conflicting_definitions;
 
-        // FIXME: we duplicate information with VarTable
-        llvm::DenseMap< string_ref, mlir_value > globals;
+        llvm::DenseMap< mangled_name_ref, mlir_value > global_decls;
 
         // A set of references that have only been seen via a weakref so far. This is
         // used to remove the weak of the reference if we ever see a direct reference
@@ -179,51 +178,51 @@ namespace vast::cg
             return nullptr;
         }
 
-        hl::FuncOp lookup_function(const clang::FunctionDecl *decl, bool with_error = true) {
-            return symbol(funcdecls, decl, "undeclared function '" + decl->getName() + "'", with_error);
+        hl::FuncOp lookup_function(mangled_name_ref mangled, bool with_error = true) {
+            return symbol(funcdecls, mangled, "undeclared function '" + mangled.name + "'", with_error);
         }
 
-        hl::FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
-            return declare< hl::FuncOp >(funcdecls, decl, vast_decl_builder);
+        hl::FuncOp declare(mangled_name_ref mangled, auto vast_decl_builder) {
+            return declare< hl::FuncOp >(funcdecls, mangled, vast_decl_builder, mangled.name);
         }
 
         mlir_value declare(const clang::VarDecl *decl, mlir_value vast_value) {
-            return declare< mlir_value >(vars, decl, [vast_value] { return vast_value; });
+            return declare< mlir_value >(vars, decl, [vast_value] { return vast_value; }, decl->getName());
         }
 
         mlir_value declare(const clang::VarDecl *decl, auto vast_decl_builder) {
-            return declare< mlir_value >(vars, decl, vast_decl_builder);
+            return declare< mlir_value >(vars, decl, vast_decl_builder, decl->getName());
         }
 
         hl::LabelDeclOp declare(const clang::LabelDecl *decl, auto vast_decl_builder) {
-            return declare< hl::LabelDeclOp >(labels, decl, vast_decl_builder);
+            return declare< hl::LabelDeclOp >(labels, decl, vast_decl_builder, decl->getName());
         }
 
         hl::TypeDefOp declare(const clang::TypedefDecl *decl, auto vast_decl_builder) {
-            return declare< hl::TypeDefOp >(typedefs, decl, vast_decl_builder);
+            return declare< hl::TypeDefOp >(typedefs, decl, vast_decl_builder, decl->getName());
         }
 
         hl::TypeDeclOp declare(const clang::TypeDecl *decl, auto vast_decl_builder) {
-            return declare< hl::TypeDeclOp >(typedecls, decl, vast_decl_builder);
+            return declare< hl::TypeDeclOp >(typedecls, decl, vast_decl_builder, decl->getName());
         }
 
         hl::EnumDeclOp declare(const clang::EnumDecl *decl, auto vast_decl_builder) {
-            return declare< hl::EnumDeclOp >(enumdecls, decl, vast_decl_builder);
+            return declare< hl::EnumDeclOp >(enumdecls, decl, vast_decl_builder, decl->getName());
         }
 
         hl::EnumConstantOp declare(const clang::EnumConstantDecl *decl, auto vast_decl_builder) {
-            return declare< hl::EnumConstantOp >(enumconsts, decl, vast_decl_builder);
+            return declare< hl::EnumConstantOp >(enumconsts, decl, vast_decl_builder, decl->getName());
         }
 
-        template< typename SymbolValue >
-        SymbolValue declare(auto &table, const auto *decl, auto vast_decl_builder) {
-            if (auto con = table.lookup(decl)) {
+        template< typename SymbolValue, typename Key >
+        SymbolValue declare(auto &table, Key &&key, auto vast_decl_builder, string_ref name) {
+            if (auto con = table.lookup(key)) {
                 return con;
             }
 
             auto value = vast_decl_builder();
-            if (failed(table.declare(decl, value))) {
-                error("error: multiple declarations with the same name: " + decl->getName());
+            if (failed(table.declare(std::forward< Key >(key), value))) {
+                error("error: multiple declarations with the same name: " + name);
             }
 
             return value;

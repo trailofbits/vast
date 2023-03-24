@@ -92,7 +92,7 @@ namespace vast::cg {
 
             // make function header, that will be later filled with function body
             // or returned as declaration in the case of external function
-            auto fn = context().declare(function_decl, [&] () {
+            auto fn = context().declare(mangled_name, [&] () {
                 return make< hl::FuncOp >(loc, mangled_name.name, fty, linkage);
             });
 
@@ -257,10 +257,6 @@ namespace vast::cg {
             VAST_UNREACHABLE("codegen of incomplete function");
         }
 
-        mangled_name_ref get_mangled_name(clang::GlobalDecl decl) {
-            return name_mangler().get_mangled_name(decl, acontext().getTargetInfo(), /* module name hash */ "");
-        }
-
         vast_function get_addr_of_function(
             clang::GlobalDecl decl, mlir_type fty, global_emition emit
         ) {
@@ -280,10 +276,7 @@ namespace vast::cg {
 
             VAST_UNIMPLEMENTED_IF(clang::dyn_cast< clang::CXXDestructorDecl >(decl.getDecl()));
 
-            auto mangled_name = name_mangler().get_mangled_name(
-                decl, acontext().getTargetInfo(), /* module name hash */ ""
-            );
-
+            auto mangled_name = derived().get_mangled_name(decl);
             return get_or_create_vast_function(mangled_name, fty, decl, emit);
         }
 
@@ -296,7 +289,9 @@ namespace vast::cg {
 
         // FIXME: remove as this duplicates logic from codegen driver
         operation VisitFunctionDecl(const clang::FunctionDecl *decl) {
-            if (auto fn = context().lookup_function(decl, false /* emit no error */)) {
+            auto mangled = derived().get_mangled_name(decl);
+
+            if (auto fn = context().lookup_function(mangled, false /* emit no error */)) {
                 return fn;
             }
 
@@ -372,7 +367,7 @@ namespace vast::cg {
 
             auto linkage = hl::get_function_linkage(decl);
 
-            auto fn = context().declare(decl, [&] () {
+            auto fn = context().declare(mangled, [&] () {
                 auto loc  = meta_location(decl);
                 auto type = visit(decl->getFunctionType()).template cast< mlir::FunctionType >();
                 // make function header, that will be later filled with function body
