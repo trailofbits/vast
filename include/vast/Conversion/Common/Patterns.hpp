@@ -15,6 +15,21 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast {
 
+    namespace detail
+    {
+        static inline bool is_ok( const auto &v ) { return static_cast< bool >( v ); }
+        static inline bool is_ok( logical_result r ) { return mlir::succeeded( r ); }
+    } // namespace detail
+
+    // TODO(conv): In non-debug mode return `mlir::failure()` and do not log
+    //             anything.
+    // If this header is ever exported, probably remove this.
+    #define VAST_PATTERN_CHECK(cond, ...) \
+        VAST_CHECK( detail::is_ok(cond), __VA_ARGS__)
+
+    #define VAST_PATTERN_FAIL(...) \
+        VAST_UNREACHABLE(__VA_ARGS__)
+
 
     template< typename derived_pattern >
     struct mlir_pattern_mixin {
