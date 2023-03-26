@@ -76,7 +76,7 @@ namespace vast::target::llvmir
         return lmodule;
     }
 
-    void prepare_module(mlir::Operation *op)
+    void prepare_hl_module(mlir::Operation *op)
     {
         auto mctx = op->getContext();
         mlir::PassManager pm(mctx);
