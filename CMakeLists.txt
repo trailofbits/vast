@@ -229,6 +229,7 @@ if (VAST_INSTALL)
     vast_codegen
     vast_frontend
     vast_frontend_tool
+    vast_target_llvmir
     vast_util
 
     MLIRCore
