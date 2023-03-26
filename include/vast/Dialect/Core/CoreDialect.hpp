@@ -14,4 +14,3 @@ VAST_RELAX_WARNINGS
 
 // Pull in the dialect definition.
 #include "vast/Dialect/Core/CoreDialect.h.inc"
-

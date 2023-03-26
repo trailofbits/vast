@@ -4,6 +4,7 @@
 #define VAST_DIALECT_CORE_UTILS
 
 include "mlir/IR/BuiltinTypes.td"
+include "mlir/IR/DialectBase.td"
 
 def HasOneBlock   : CPred<"$_self.hasOneBlock()">;
 

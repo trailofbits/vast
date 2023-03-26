@@ -3,6 +3,7 @@ add_mlir_dialect_library(MLIRCore
     CoreDialect.cpp
     CoreOps.cpp
     CoreTypes.cpp
+    CoreTraits.cpp
     CoreAttributes.cpp
 
     ADDITIONAL_HEADER_DIRS
