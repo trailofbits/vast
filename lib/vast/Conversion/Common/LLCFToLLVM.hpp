@@ -80,12 +80,16 @@ namespace vast::conv::irstollvm::ll_cf
             auto &last = block.back();
             std::vector< mlir::Value > no_vals;
 
-            if (mlir::isa< ll::ScopeRet >(last)) {
+            if (auto ret = mlir::dyn_cast< ll::ScopeRet >(last)) {
                 make_after_op< LLVM::BrOp >(rewriter, &last, last.getLoc(), no_vals, &end);
-            } else if (mlir::isa< ll::ScopeRecurse >(last)) {
-                make_after_op< LLVM::BrOp >(rewriter, &last, last.getLoc(), no_vals, &start);
-            } else if (mlir::isa< ll::CondScopeRet >(last)) {
-                make_after_op< LLVM::BrOp >(rewriter, &last, last.getLoc(), no_vals, &start);
+            } else if (auto ret = mlir::isa< ll::ScopeRecurse >(last)) {
+                make_after_op< LLVM::BrOp >(rewriter, &last, last.getLoc(),
+                                            no_vals, &start);
+            } else if (auto ret = mlir::dyn_cast< ll::CondScopeRet >(last)) {
+                make_after_op< LLVM::CondBrOp >(rewriter, &last, last.getLoc(),
+                                                ret.cond(),
+                                                ret.dest(), ret.operands(),
+                                                &end, no_vals);
             } else {
                 // Nothing to do (do not erase, since it is a standard branching).
                 return mlir::success();
