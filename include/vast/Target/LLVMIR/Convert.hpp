@@ -4,6 +4,10 @@
 
 #include "vast/Util/Warnings.hpp"
 
+VAST_RELAX_WARNINGS
+#include <mlir/IR/DialectRegistry.h>
+VAST_UNRELAX_WARNINGS
+
 #include <memory>
 #include <string>
 
@@ -30,5 +34,8 @@ namespace vast::target::llvmir
     // Run all passes needed to go from a product of vast frontend (module in `hl` dialect)
     // to a module in lowest representation (mostly LLVM dialect right now).
     void prepare_hl_module(mlir::Operation *op);
+
+    void register_vast_to_llvm_ir(mlir::DialectRegistry &registry);
+    void register_vast_to_llvm_ir(mcontext_t &mctx);
 
 } // namespace vast::target::llvmir
