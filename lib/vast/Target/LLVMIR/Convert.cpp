@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 
 #include <mlir/ExecutionEngine/ExecutionEngine.h>
 #include <mlir/Target/LLVMIR/Export.h>
+#include <mlir/Target/LLVMIR/Dialect/All.h>
 #include <mlir/Target/LLVMIR/LLVMTranslationInterface.h>
 #include <mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h>
 
@@ -92,6 +93,19 @@ namespace vast::target::llvmir
         auto run_result = pm.run(op);
 
         VAST_CHECK(mlir::succeeded(run_result), "Some pass in prepare_module() failed");
+    }
+
+    void register_vast_to_llvm_ir(mlir::DialectRegistry &registry)
+    {
+        registry.insert< hl::HighLevelDialect >();
+        mlir::registerAllToLLVMIRTranslations(registry);
+    }
+
+    void register_vast_to_llvm_ir(mcontext_t &mctx)
+    {
+        mlir::DialectRegistry registry;
+        register_vast_to_llvm_ir(registry);
+        mctx.appendDialectRegistry(registry);
     }
 
 } // namespace vast::target::llvmir
