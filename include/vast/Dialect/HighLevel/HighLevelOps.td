@@ -15,6 +15,7 @@ include "vast/Dialect/HighLevel/HighLevelLinkage.td"
 include "vast/Dialect/HighLevel/HighLevelCF.td"
 
 include "vast/Dialect/Core/Utils.td"
+include "vast/Dialect/Core/CoreTraits.td"
 
 
 def TranslationUnitOp
@@ -350,7 +351,7 @@ def ExprOp
 }
 
 def ReturnOp
-  : HighLevel_Op< "return", [NoSideEffect] >
+  : HighLevel_Op< "return", [NoSideEffect, soft_terminator] >
   , Arguments<(ins Variadic<AnyType>:$result)>
 {
   let assemblyFormat = "($result^ `:` type($result))? attr-dict";

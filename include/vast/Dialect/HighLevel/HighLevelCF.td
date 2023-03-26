@@ -5,6 +5,8 @@
 
 include "mlir/Interfaces/ControlFlowInterfaces.td"
 
+include "vast/Dialect/Core/CoreTraits.td"
+
 class ControlFlowOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits,
         [SingleBlock, NoTerminator, NoRegionArguments, RecursiveSideEffects]
@@ -239,7 +241,7 @@ def HighLevel_DoOp : ControlFlowOp< "do" >
   }];
 }
 
-def HighLevel_BreakOp : ControlFlowOp< "break" >
+def HighLevel_BreakOp : ControlFlowOp< "break", [soft_terminator] >
 {
   let summary = "VAST break statement";
   let description = [{ VAST break statement }];
@@ -247,7 +249,7 @@ def HighLevel_BreakOp : ControlFlowOp< "break" >
   let assemblyFormat = [{ attr-dict }];
 }
 
-def HighLevel_ContinueOp : ControlFlowOp< "continue" >
+def HighLevel_ContinueOp : ControlFlowOp< "continue", [soft_terminator] >
 {
   let summary = "VAST continue statement";
   let description = [{ VAST continue statement }];
