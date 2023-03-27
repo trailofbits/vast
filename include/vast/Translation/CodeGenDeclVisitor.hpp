@@ -276,7 +276,7 @@ namespace vast::cg {
 
             VAST_UNIMPLEMENTED_IF(clang::dyn_cast< clang::CXXDestructorDecl >(decl.getDecl()));
 
-            auto mangled_name = derived().get_mangled_name(decl);
+            auto mangled_name = context().get_mangled_name(decl);
             return get_or_create_vast_function(mangled_name, fty, decl, emit);
         }
 
@@ -289,7 +289,7 @@ namespace vast::cg {
 
         // FIXME: remove as this duplicates logic from codegen driver
         operation VisitFunctionDecl(const clang::FunctionDecl *decl) {
-            auto mangled = derived().get_mangled_name(decl);
+            auto mangled = context().get_mangled_name(decl);
 
             if (auto fn = context().lookup_function(mangled, false /* emit no error */)) {
                 return fn;

@@ -13,17 +13,11 @@ namespace vast::cg {
     template< MetaGeneratorLike MetaGenerator >
     struct CodeGenVisitorBase
     {
-        CodeGenVisitorBase(CodeGenContext &ctx, MetaGenerator &meta)
-            : ctx(ctx), meta(meta), mangler(ctx.actx.createMangleContext())
+        CodeGenVisitorBase(CodeGenContext &ctx, MetaGenerator &meta) : ctx(ctx), meta(meta)
         {}
-
-        mangled_name_ref get_mangled_name(clang::GlobalDecl decl) {
-            return mangler.get_mangled_name(decl, ctx.actx.getTargetInfo(), /* module name hash */ "");
-        }
 
         CodeGenContext &ctx;
         MetaGenerator &meta;
-        CodeGenMangler mangler;
     };
 
     template< MetaGeneratorLike MetaGenerator >

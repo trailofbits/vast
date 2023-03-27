@@ -565,7 +565,7 @@ namespace vast::cg {
 
         Operation* VisitFunctionDeclRefExpr(const clang::DeclRefExpr *expr) {
             auto decl = clang::cast< clang::FunctionDecl >( expr->getDecl()->getUnderlyingDecl() );
-            auto mangled = derived().get_mangled_name(decl);
+            auto mangled = context().get_mangled_name(decl);
             auto fn = context().lookup_function(mangled);
             auto rty = getLValueReturnType(expr);
 
@@ -775,7 +775,7 @@ namespace vast::cg {
         hl::FuncOp VisitDirectCallee(const clang::FunctionDecl *callee) {
             InsertionGuard guard(builder());
 
-            auto mangled = derived().get_mangled_name(callee);
+            auto mangled = context().get_mangled_name(callee);
             if (auto fn = context().lookup_function(mangled, false /* with error */)) {
                 return fn;
             }

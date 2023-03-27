@@ -41,9 +41,14 @@ namespace vast::cg
             : mctx(mctx)
             , actx(actx)
             , mod(mod)
+            , mangler(actx.createMangleContext())
         {}
 
         lexical_scope_context *current_lexical_scope = nullptr;
+
+        // Never move this!
+        // It owns the strings that mangled_name_ref uses
+        CodeGenMangler mangler;
 
         using VarTable = scoped_table< const clang::VarDecl *, Value >;
         VarTable vars;
@@ -89,6 +94,10 @@ namespace vast::cg
 
         // A queue of (optional) vtables to consider emitting.
         std::vector< const clang::CXXRecordDecl * > deferred_vtables;
+
+        mangled_name_ref get_mangled_name(clang::GlobalDecl decl) {
+            return mangler.get_mangled_name(decl, actx.getTargetInfo(), /* module name hash */ "");
+        }
 
         // This is a list of deferred decls which we have seen that *are* actually
         // referenced. These get code generated when the module is done.
