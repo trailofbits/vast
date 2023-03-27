@@ -128,7 +128,7 @@ namespace vast::cg
         }
 
         mangled_name_ref get_mangled_name(clang::GlobalDecl decl) {
-            return _visitor->get_mangled_name(decl);
+            return _cgctx->get_mangled_name(decl);
         }
 
         void add_deferred_decl_to_emit(clang::GlobalDecl decl) {
