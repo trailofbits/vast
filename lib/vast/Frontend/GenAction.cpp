@@ -34,6 +34,10 @@ namespace vast::cc {
             return false;
         }
 
+        bool emit_only_llvm(const vast_args &vargs) {
+            return vargs.has_option(emit_llvm);
+        }
+
     } // namespace opt
 
     using output_stream_ptr = std::unique_ptr< llvm::raw_pwrite_stream >;
