@@ -5,13 +5,19 @@
 
 VAST_RELAX_WARNINGS
 #include <clang/CodeGen/BackendUtil.h>
+
 #include <llvm/Support/Signals.h>
+
+#include <mlir/Target/LLVMIR/LLVMTranslationInterface.h>
+#include <mlir/Target/LLVMIR/Dialect/All.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 #include "vast/Frontend/Options.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
 #include "vast/CodeGen/Passes.hpp"
+
+#include "vast/Target/LLVMIR/Convert.hpp"
 
 namespace clang {
     class CXXRecordDecl;
@@ -117,12 +123,14 @@ namespace vast::cc {
         void HandleInterestingDecl(clang::DeclGroupRef /* decl */) override {
             VAST_UNIMPLEMENTED;
         }
+        void emit_backend_output(clang::BackendAction backend_action,
+                                 owning_module_ref mlir_module, mcontext_t *mctx)
+        {
+            llvm::LLVMContext llvm_context;
+            target::llvmir::register_vast_to_llvm_ir(*mctx);
+            target::llvmir::prepare_hl_module(mlir_module.get());
+            auto mod = target::llvmir::translate(mlir_module.get(), llvm_context, "tmp");
 
-        void emit_backend_output(clang::BackendAction backend_action) {
-            // llvm::LLVMcontext_t llvm_context;
-            VAST_UNIMPLEMENTED;
-
-            std::unique_ptr< llvm::Module > mod = nullptr /* todo lower_from_vast_to_llvm */;
             clang::EmitBackendOutput(
                   diags
                 , header_search_opts
@@ -218,17 +226,21 @@ namespace vast::cc {
             auto mod  = generator->freeze();
             auto mctx = generator->take_context();
 
-            switch (action) {
+            switch (action)
+            {
                 case output_type::emit_assembly:
-                    return emit_backend_output(clang::BackendAction::Backend_EmitAssembly);
+                    return emit_backend_output(clang::BackendAction::Backend_EmitAssembly,
+                                               std::move(mod), mctx.get());
                 case output_type::emit_high_level:
                     return emit_mlir_output(target_dialect::high_level, std::move(mod), mctx.get());
                 case output_type::emit_cir:
                     VAST_UNIMPLEMENTED_MSG("HandleTranslationUnit for emit CIR not implemented");
                 case output_type::emit_llvm:
-                    return emit_backend_output(clang::BackendAction::Backend_EmitLL);
+                    return emit_backend_output(clang::BackendAction::Backend_EmitLL,
+                                               std::move(mod), mctx.get());
                 case output_type::emit_obj:
-                    return emit_backend_output(clang::BackendAction::Backend_EmitObj);
+                    return emit_backend_output(clang::BackendAction::Backend_EmitObj,
+                                               std::move(mod), mctx.get());
                 case output_type::none: break;
             }
         }
