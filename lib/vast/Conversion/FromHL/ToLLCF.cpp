@@ -23,6 +23,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Conversion/Common/Block.hpp"
 #include "vast/Conversion/Common/Rewriter.hpp"
 
+
+#include "vast/Dialect/Core/CoreTraits.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
@@ -32,6 +34,8 @@ namespace vast::conv
 {
     namespace
     {
+        static inline const char *tie_fail = "base_pattern::tie failed.";
+
         auto coerce_condition(auto op, mlir::ConversionPatternRewriter &rewriter)
         -> std::optional< mlir::Value >
         {
@@ -48,40 +52,8 @@ namespace vast::conv
             return { coerced };
         }
 
-        template< typename Op, typename Bld >
-        auto inline_cond_region( Op op, mlir::Region &region, Bld &bld, mlir::Block *before,
-                                 mlir::Block *true_block, mlir::Block *false_block )
-            -> mlir::Block *
-        {
-            auto begin = &region.front();
-            auto end   = &region.back();
-
-            VAST_CHECK( begin == end, "Condition region has more than one block" );
-
-            // What if there is a hl.cond.yield sooner or multiple of those?
-            auto cond_yield = get_terminator( *end ).cast< hl::CondYieldOp >();
-            bld.inlineRegionBefore( region, before );
-
-            VAST_CHECK( cond_yield, "Last block of condition region did not end with yield." );
-
-            auto value = guarded( bld, [ & ] {
-                bld.setInsertionPointAfter( cond_yield );
-                return coerce_condition( cond_yield.getResult(), bld );
-            });
-            VAST_CHECK( value, "Condition region yield unexpected type" );
-
-            guarded( bld, [ & ] {
-                bld.setInsertionPointToEnd( end );
-                bld.template create< ll::CondBr >( op.getLoc(), *value,
-                                                   true_block, false_block );
-                bld.eraseOp( cond_yield );
-            });
-
-            return begin;
-        }
-
-        template< typename Op, typename Bld >
-        mlir::Block *inline_region( Op op, Bld &bld, mlir::Region &region, mlir::Block *before )
+        template< typename Bld >
+        mlir::Block *inline_region_before( Bld &bld, mlir::Region &region, mlir::Block *before )
         {
             auto begin = &region.front();
             auto end   = &region.back();
@@ -93,7 +65,7 @@ namespace vast::conv
 
         auto cond_yield( mlir::Block *block )
         {
-            auto cond_yield = get_terminator( *block ).cast< hl::CondYieldOp >();
+            auto cond_yield = hard_terminator_t::get( *block ).cast< hl::CondYieldOp >();
             VAST_CHECK( cond_yield, "Block does not have a hl::CondYieldOp as terminator." );
             return cond_yield;
         }
@@ -108,20 +80,172 @@ namespace vast::conv
             });
         }
 
-        bool is_hl_terminator( mlir::Operation *op )
+        template< typename Fn, typename H, typename ... Args >
+        auto apply( Fn &&fn, mlir::Operation *op )
         {
-            return  op && (    mlir::isa< hl::ReturnOp >( op )
-                            || mlir::isa< hl::BreakOp >( op )
-                            || mlir::isa< hl::ContinueOp >( op ) );
+            if ( auto casted = llvm::dyn_cast< H >( op ) )
+                return fn( casted );
+            if constexpr ( sizeof ... ( Args ) == 0 )
+                return fn( op );
+            else
+                return apply< Fn, Args ... >( std::forward< Fn >( fn ), op );
+        }
+
+        template< typename Fn, typename ... Args >
+        auto apply( Fn &&fn, Operation *op, util::type_list< Args ... > )
+        {
+            return apply< Fn, Args ... >( std::forward< Fn >( fn ), op );
         }
 
     } // namespace
 
     namespace pattern
     {
-        struct if_op : OpConversionPattern< hl::IfOp >
+        auto get_cond_yield( mlir::Block &block )
         {
-            using parent_t = OpConversionPattern< hl::IfOp >;
+            return terminator_t< hl::CondYieldOp >::get( block ).op();
+        }
+
+        // We do not use patterns, because for example `hl.continue` in for loop is kinda tricky
+        // as it does not use the same "entrypoint" as the scope and uses increment region
+        // instead.
+        template< typename bld_t >
+        struct handle_terminators
+        {
+            using result_t = mlir::LogicalResult;
+            using maybe_result_t = std::optional< mlir::LogicalResult >;
+
+            using maybe_op_t = std::optional< mlir::Operation * >;
+
+            bld_t &bld;
+            // `entry` - where to jump in case of `continue`.
+            //         - `nullptr` means the entry block of the scope is used.
+            // `exit` - where to jump in case of `break`
+            //        - `nullptr` means the next block after scope is used.
+            mlir::Block *entry;
+            mlir::Block *exit;
+
+            handle_terminators( bld_t &bld, mlir::Block *entry, mlir::Block *exit )
+                : bld( bld ), entry( entry ), exit( exit )
+            {}
+
+            result_t run( mlir::Region &region )
+            {
+                // Go instructions by instruction.
+                for ( auto &block : region )
+                    if ( mlir::failed( run( block ) ) )
+                        return mlir::failure();
+                return mlir::success();
+            }
+
+            result_t run( mlir::Block &block )
+            {
+                for ( auto &op : block )
+                    if ( mlir::failed( run( &op ) ) )
+                        return mlir::failure();
+                return mlir::success();
+            }
+
+            result_t run( mlir::Operation *op )
+            {
+                if ( mlir::failed( replace( op ) ) )
+                    return mlir::failure();
+
+                if ( starts_cf_scope( op ) )
+                    return mlir::success();
+
+                for ( auto &region : op->getRegions() )
+                    if ( mlir::failed( run( region ) ) )
+                        return mlir::failure();
+                return mlir::success();
+            }
+
+            bool starts_cf_scope( mlir::Operation *op )
+            {
+                // TODO( conv:hltollcf ): Define & use some trait instead.
+                // TODO( conv:hltollcf ): Missing ops.
+                return mlir::isa< hl::ForOp >( op ) || mlir::isa< hl::WhileOp >( op );
+            }
+
+            // TODO( conv:hltollcf ): Refactor using wrapper once we have it finalized.
+            maybe_op_t do_replace( hl::ContinueOp op )
+            {
+                auto g = mlir::OpBuilder::InsertionGuard( bld );
+                bld.setInsertionPointAfter( op );
+                if ( entry )
+                    return bld.template create< ll::Br >( op.getLoc(), entry );
+                return bld.template create< ll::ScopeRecurse >( op.getLoc() );
+            }
+
+            maybe_op_t do_replace( hl::ReturnOp op )
+            {
+                auto g = mlir::OpBuilder::InsertionGuard( bld );
+                bld.setInsertionPointAfter( op );
+                return bld.template create< ll::ReturnOp >( op.getLoc(), op.getResult() );
+            }
+
+            maybe_op_t do_replace( hl::BreakOp op )
+            {
+                auto g = mlir::OpBuilder::InsertionGuard( bld );
+                bld.setInsertionPointAfter( op );
+                if ( exit )
+                    return bld.template create< ll::Br >( op.getLoc(), exit );
+                return bld.template create< ll::ScopeRet >( op.getLoc() );
+            }
+
+            // We did not match, do nothing.
+            maybe_op_t do_replace( mlir::Operation *op )
+            {
+                return {};
+            }
+
+            result_t replace( mlir::Operation *op )
+            {
+                auto dispatch = [this]( auto op )
+                {
+                    if ( auto replaced = do_replace( op ) )
+                        bld.eraseOp( op );
+                    return mlir::success();
+                };
+
+                using ops = util::make_list< hl::BreakOp, hl::ContinueOp, hl::ReturnOp >;
+                return apply( dispatch, op, ops{} );
+            }
+
+        };
+
+        template< typename op_t >
+        struct base_pattern : OpConversionPattern< op_t >
+        {
+            using parent_t = OpConversionPattern< op_t >;
+            using parent_t::parent_t;
+
+            static logical_result tie( auto &&bld, auto loc,
+                                       mlir::Block &from, mlir::Block &to )
+            {
+                if ( !empty( from ) && any_terminator_t::get( from ) )
+                    return mlir::success();
+
+                VAST_CHECK( &from != &to, "Cannot create self-loop." );
+                bld.template make_at_end< ll::Br >( &from, loc, &to );
+                return mlir::success();
+            }
+
+            // Returns `[ cond_yield, coerced operand of cond_yield ]`
+            static auto fetch_cond_yield( auto &&bld, mlir::Block &cond_block )
+            {
+                auto cond_yield = get_cond_yield( cond_block );
+                auto g = bld.guard();
+                bld->setInsertionPointAfter( cond_yield );
+                auto value = coerce_condition( cond_yield.getResult(), *bld );
+
+                return std::make_tuple( cond_yield, value );
+            }
+        };
+
+        struct if_op : base_pattern< hl::IfOp >
+        {
+            using parent_t = base_pattern< hl::IfOp >;
             using parent_t::parent_t;
 
             mlir::LogicalResult matchAndRewrite(
@@ -129,46 +253,43 @@ namespace vast::conv
                     hl::IfOp::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
+                auto bld = rewriter_wrapper_t( rewriter );
+
                 //auto [ head, body, tail ] = extract_as_block( op, rewriter );
                 auto [ original_block, tail_block ] = split_at_op( op, rewriter );
                 VAST_CHECK( original_block && tail_block,
                             "Failed extraction of ifop into block." );
 
-                auto cond_block = inline_region( op, rewriter, op.getCondRegion(), tail_block );
+                auto cond_block = inline_region_before( rewriter,
+                                                        op.getCondRegion(), tail_block );
                 auto cond_yield_op = cond_yield( cond_block );
                 auto cond_value    = coerce_yield( cond_yield_op, rewriter );
 
                 auto false_block = [ &, tail_block = tail_block ] {
                     if ( op.hasElse() )
-                        return inline_region( op, rewriter, op.getElseRegion(), tail_block );
+                        return inline_region_before( rewriter, op.getElseRegion(), tail_block );
                     return tail_block;
                 }();
 
-                auto true_block = inline_region( op, rewriter, op.getThenRegion(), tail_block );
+                auto true_block = inline_region_before( rewriter,
+                                                        op.getThenRegion(), tail_block );
 
-                make_at_end< ll::CondBr >( rewriter, cond_block, op.getLoc(),
-                                           cond_value,
-                                           true_block, false_block );
+                bld.make_at_end< ll::CondBr >( cond_block,
+                                               op.getLoc(), cond_value,
+                                               true_block, false_block );
                 rewriter.eraseOp( cond_yield_op );
 
-                auto tie = [ & ]( auto from, auto to )
-                {
-                    if ( !empty( *from ) && is_hl_terminator( &from->back() ) )
-                        return;
 
-                    VAST_CHECK( from != to, "Emitting branch would create self loop in if." );
-                    guarded( rewriter, [ & ] {
-                        rewriter.setInsertionPointToEnd( from );
-                        rewriter.template create< ll::Br >( op.getLoc(), to );
-                    } );
-                };
-
-                tie( true_block, tail_block );
+                VAST_PATTERN_CHECK(parent_t::tie( bld, op.getLoc(), *true_block, *tail_block ),
+                                   tie_fail);
                 if ( false_block != tail_block )
-                    tie( false_block, tail_block );
+                {
+                    VAST_PATTERN_CHECK(parent_t::tie( bld, op.getLoc(),
+                                                      *false_block, *tail_block ),
+                                       tie_fail);
+                }
 
                 rewriter.mergeBlocks( cond_block, original_block, llvm::None );
-
                 rewriter.eraseOp( op );
 
                 return mlir::success();
@@ -181,9 +302,9 @@ namespace vast::conv
 
         };
 
-        struct while_op : OpConversionPattern< hl::WhileOp >
+        struct while_op : base_pattern< hl::WhileOp >
         {
-            using parent_t = OpConversionPattern< hl::WhileOp >;
+            using parent_t = base_pattern< hl::WhileOp >;
             using parent_t::parent_t;
 
             mlir::LogicalResult matchAndRewrite(
@@ -191,12 +312,20 @@ namespace vast::conv
                     hl::WhileOp::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
+                auto bld = rewriter_wrapper_t( rewriter );
+
                 auto scope = rewriter.create< ll::Scope >( op.getLoc() );
                 auto scope_entry = rewriter.createBlock( &scope.body() );
 
-                //auto [ head, body, tail ] = extract_as_block( op, rewriter );
                 auto &cond_region = op.getCondRegion();
                 auto &body_region = op.getBodyRegion();
+
+                if ( mlir::failed( handle_terminators( rewriter,
+                                                       nullptr,
+                                                       nullptr ).run( op.getBodyRegion() ) ) )
+                {
+                    return mlir::failure();
+                }
 
                 auto body_block = inline_region( rewriter,
                                                  body_region, scope.body() );
@@ -205,32 +334,16 @@ namespace vast::conv
                 // predecessors and body block will jump to it.
                 auto cond_block = inline_region( rewriter, cond_region, scope.body() );
 
-                auto cond_yield = get_terminator( *cond_block ).cast< hl::CondYieldOp >();
-                auto value = guarded( rewriter, [ & ] {
-                    rewriter.setInsertionPointAfter( cond_yield );
-                    return coerce_condition( cond_yield.getResult(), rewriter );
-                });
+                auto [ cond_yield, value ] = fetch_cond_yield( bld, *cond_block );
                 VAST_CHECK( value, "Condition region yield unexpected type" );
 
-                guarded( rewriter, [ & ] {
-                    rewriter.setInsertionPointToEnd( cond_block );
-                    rewriter.template create< ll::CondScopeRet >( op.getLoc(), *value,
-                                                                  body_block );
-                    rewriter.eraseOp( cond_yield );
-                });
+                bld.make_at_end< ll::CondScopeRet >( cond_block,
+                                                     op.getLoc(), *value, body_block );
+                rewriter.eraseOp( cond_yield );
 
-                auto tie = [ & ]( auto from, auto to )
-                {
-                    if ( !empty( *from ) && is_hl_terminator( &from->back() ) )
-                        return;
-
-                    guarded( rewriter, [ & ] {
-                        rewriter.setInsertionPointToEnd( from );
-                        rewriter.template create< ll::Br >( op.getLoc(), to );
-                    } );
-                };
-
-                tie( scope_entry, cond_block );
+                VAST_PATTERN_CHECK(parent_t::tie( bld, op.getLoc(),
+                                                   *scope_entry, *cond_block ),
+                                   tie_fail);
 
                 rewriter.eraseOp( op );
                 return mlir::success();
@@ -242,10 +355,10 @@ namespace vast::conv
             }
         };
 
-        struct for_op : operation_conversion_pattern< hl::ForOp >
+        struct for_op : base_pattern< hl::ForOp >
         {
             using op_t = hl::ForOp;
-            using parent_t = operation_conversion_pattern< op_t >;
+            using parent_t = base_pattern< op_t >;
             using parent_t::parent_t;
 
             mlir::LogicalResult matchAndRewrite(
@@ -253,83 +366,80 @@ namespace vast::conv
                     typename op_t::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
+                auto bld = rewriter_wrapper_t( rewriter );
                 auto scope = rewriter.create< ll::Scope >( op.getLoc() );
                 auto scope_entry = rewriter.createBlock( &scope.body() );
 
                 auto cond_block = inline_region( rewriter,
                                                  op.getCondRegion(), scope.body() );
 
-                auto body_block = inline_region( rewriter,
-                                                 op.getBodyRegion(), scope.body() );
-
                 auto inc_block = inline_region( rewriter,
                                                 op.getIncrRegion(), scope.body() );
 
-                auto cond_yield = get_terminator( *cond_block ).cast< hl::CondYieldOp >();
-                auto value = guarded( rewriter, [ & ] {
-                    rewriter.setInsertionPointAfter( cond_yield );
-                    return coerce_condition( cond_yield.getResult(), rewriter );
-                });
-                VAST_CHECK( value, "Condition region yield unexpected type" );
-
-                guarded( rewriter, [ & ] {
-                    rewriter.setInsertionPointToEnd( cond_block );
-                    rewriter.template create< ll::CondScopeRet >( op.getLoc(), *value,
-                                                                  body_block );
-                    rewriter.eraseOp( cond_yield );
-                });
-
-                auto tie = [ & ]( auto from, auto to )
+                if ( mlir::failed( handle_terminators( rewriter,
+                                                       inc_block,
+                                                       nullptr ).run( op.getBodyRegion() ) ) )
                 {
-                    if ( !empty( *from ) && is_hl_terminator( &from->back() ) )
-                        return;
+                        return mlir::failure();
+                }
+                auto body_block = inline_region( rewriter,
+                                                 op.getBodyRegion(), scope.body() );
+                auto [ cond_yield, value ] = fetch_cond_yield( bld, *cond_block );
+                VAST_PATTERN_CHECK( value, "Condition region yield unexpected type" );
 
-                    guarded( rewriter, [ & ] {
-                        rewriter.setInsertionPointToEnd( from );
-                        rewriter.template create< ll::Br >( op.getLoc(), to );
-                    } );
+                bld.make_at_end< ll::CondScopeRet >( cond_block,
+                                                     op.getLoc(), *value, body_block );
+                rewriter.eraseOp( cond_yield );
+
+                auto mk_tie = [ & ]( auto &from, auto &to )
+                {
+                    return parent_t::tie( bld, op.getLoc(), from, to );
                 };
 
-                tie( scope_entry, cond_block );
-                tie( body_block, inc_block );
-                tie( inc_block, cond_block );
+                VAST_PATTERN_CHECK( mk_tie( *scope_entry, *cond_block ), tie_fail );
+                VAST_PATTERN_CHECK( mk_tie( *body_block, *inc_block ), tie_fail );
+                VAST_PATTERN_CHECK( mk_tie( *inc_block, *cond_block ), tie_fail );
 
                 rewriter.eraseOp( op );
 
                 return mlir::success();
             }
+
+            static void legalize( conversion_target &trg )
+            {
+                trg.addIllegalOp< hl::ForOp >();
+            }
         };
 
-        template< typename F, typename T >
-        struct replace_op : operation_conversion_pattern< F >
+        template< typename op_t, typename trg_t >
+        struct replace : base_pattern< op_t >
         {
-            using op_t = F;
-            using parent_t = operation_conversion_pattern< F >;
+            using parent_t = base_pattern< op_t >;
             using parent_t::parent_t;
+
 
             mlir::LogicalResult matchAndRewrite(
                     op_t op,
                     typename op_t::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
             {
-                rewriter.create< T >( op.getLoc(), ops.getOperands() );
+                rewriter.create< trg_t >( op.getLoc(), ops.getOperands() );
                 rewriter.eraseOp( op );
                 return mlir::success();
             }
+
+            static void legalize( conversion_target &trg )
+            {
+                trg.addIllegalOp< op_t >();
+                trg.addLegalOp< trg_t >();
+            }
         };
-
-        using replace_continue = replace_op< hl::ContinueOp, ll::ScopeRecurse >;
-        using replace_break    = replace_op< hl::BreakOp,    ll::ScopeRet >;
-        using replace_return   = replace_op< hl::ReturnOp,   ll::ReturnOp >;
-
 
         using cf_patterns = util::make_list<
               if_op
             , while_op
             , for_op
-            , replace_break
-            , replace_continue
-            , replace_return
+            , replace< hl::ReturnOp, ll::ReturnOp >
         >;
 
     } // namespace pattern
@@ -344,6 +454,10 @@ namespace vast::conv
             mlir::ConversionTarget trg(mctx);
             trg.addLegalDialect< ll::LowLevelDialect >();
             trg.addLegalDialect< hl::HighLevelDialect >();
+
+            trg.addIllegalOp< hl::ContinueOp >();
+            trg.addIllegalOp< hl::BreakOp >();
+            trg.addIllegalOp< hl::ReturnOp >();
 
             trg.addLegalOp< mlir::cf::BranchOp >();
             trg.markUnknownOpDynamicallyLegal([](auto){ return true; });
