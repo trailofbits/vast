@@ -31,6 +31,12 @@ namespace vast {
         VAST_UNREACHABLE(__VA_ARGS__)
 
 
+    template< typename T >
+    concept has_legalize = requires ( T a )
+    {
+        a.legalize( std::declval< conversion_target & >() );
+    };
+
     template< typename derived_pattern >
     struct mlir_pattern_mixin {
 
