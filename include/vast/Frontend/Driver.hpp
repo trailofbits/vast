@@ -306,6 +306,10 @@ namespace vast::cc {
             if (vast::cc::opt::emit_only_mlir(vargs)) {
                 cmd_args.push_back("-c");
             }
+
+            if (vast::cc::opt::emit_only_llvm(vargs)) {
+                cmd_args.push_back("-emit-llvm");
+            }
         }
 
         void set_install_dir(argv_storage_base &argv, bool canonical_prefixes) {
