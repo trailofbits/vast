@@ -29,6 +29,9 @@ namespace vast::conv
         auto &operator*() { return bld; }
         const auto &operator*() const { return bld; }
 
+        auto *operator->() { return &bld; }
+        const auto *operator->() const { return &bld; }
+
         auto guarded( auto &&fn )
         {
             auto g = guard();
