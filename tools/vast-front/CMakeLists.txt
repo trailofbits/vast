@@ -19,6 +19,7 @@ target_link_libraries(vast_frontend_tool
 
     vast::codegen
     vast::frontend
+    vast::target_llvmir
   PRIVATE
     vast::settings
 )
