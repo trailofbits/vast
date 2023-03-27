@@ -10,6 +10,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/LLVMTypeConverter.hpp"
 #include "vast/Conversion/Common/Types.hpp"
+#include "vast/Conversion/Common/Patterns.hpp"
 
 namespace vast {
 
@@ -36,7 +37,8 @@ namespace vast {
         template< typename pattern, typename config_t >
         static void legalize(config_t &config)
         {
-            pattern::legalize(config.target);
+            if constexpr ( has_legalize< pattern > )
+                pattern::legalize(config.target);
         }
 
         auto &self() { return static_cast< self_t & >(*this); }
