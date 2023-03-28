@@ -124,7 +124,7 @@ def CondScopeRet
     let description = [{ Terminate or branch. }];
 
     let successors = (successor AnySuccessor:$dest);
-    let arguments = (ins AnyType:$cond, Variadic<AnyType>:$operands);
+    let arguments = (ins AnyType:$cond, Variadic<AnyType>:$cond_operands);
 
     let builders = [
 
