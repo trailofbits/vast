@@ -4,7 +4,6 @@
 
 #include "vast/Dialect/Core/CoreDialect.hpp"
 #include "vast/Interfaces/SymbolInterface.hpp"
-#include "vast/Interfaces/TypedAttrInterface.hpp"
 #include "vast/Util/Common.hpp"
 
 #include <mlir/IR/FunctionInterfaces.h>

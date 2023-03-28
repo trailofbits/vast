@@ -251,7 +251,6 @@ if (VAST_INSTALL)
     MLIRLowLevel
 
     VASTSymbolInterface
-    VASTTypedAttrInterface
     VASTTypeQualifiersInterfaces
   )
 

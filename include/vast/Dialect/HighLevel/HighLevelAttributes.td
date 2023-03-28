@@ -109,7 +109,7 @@ def FloatAttr : HighLevel_Attr<"Float", "float", [TypedAttrInterface] > {
   // let genVerifyDecl = 1;
 }
 
-//
+// TODO:
 def StringAttr : HighLevel_Attr<"String", "str", [TypedAttrInterface] > {
   let summary = "An Attribute containing a string";
 

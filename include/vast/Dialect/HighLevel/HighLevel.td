@@ -9,9 +9,9 @@ include "mlir/IR/SymbolInterfaces.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
 include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/IR/RegionKindInterface.td"
+include "mlir/IR/BuiltinAttributeInterfaces.td"
 
 include "vast/Interfaces/SymbolInterface.td"
-include "vast/Interfaces/TypedAttrInterface.td"
 
 include "vast/Dialect/Core/Utils.td"
 

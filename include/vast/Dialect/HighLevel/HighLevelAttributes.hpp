@@ -11,7 +11,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Common.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
-#include "vast/Interfaces/TypedAttrInterface.hpp"
 #include "vast/Interfaces/TypeQualifiersInterfaces.hpp"
 
 #include "mlir/IR/BuiltinAttributes.h"
