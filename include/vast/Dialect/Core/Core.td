@@ -26,8 +26,6 @@ def Core_Dialect : Dialect {
     }];
 
     let hasConstantMaterializer = 1;
-
-    let emitAccessorPrefix = kEmitAccessorPrefix_Prefixed;
 }
 
 class Core_Op< string mnemonic, list< Trait > traits = [] >
