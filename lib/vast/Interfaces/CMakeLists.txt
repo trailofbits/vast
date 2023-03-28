@@ -1,6 +1,5 @@
 set(LLVM_OPTIONAL_SOURCES
   SymbolInterface.cpp
-  TypedAttrInterface.cpp
   TypeQualifiersInterfaces.cpp
 )
 
@@ -20,5 +19,4 @@ function(add_vast_interface_library name)
 endfunction(add_vast_interface_library)
 
 add_vast_interface_library(SymbolInterface)
-add_vast_interface_library(TypedAttrInterface)
 add_vast_interface_library(TypeQualifiersInterfaces)
