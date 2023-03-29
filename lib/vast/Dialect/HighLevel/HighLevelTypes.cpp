@@ -14,22 +14,6 @@ VAST_RELAX_WARNINGS
 
 namespace vast::hl
 {
-    Type LValueType::replaceImmediateSubElements(llvm::ArrayRef<mlir::Attribute>, llvm::ArrayRef<mlir_type>) const {
-        VAST_UNIMPLEMENTED;
-    }
-
-    Type ElaboratedType::replaceImmediateSubElements(llvm::ArrayRef<mlir::Attribute>, llvm::ArrayRef<mlir_type>) const {
-        VAST_UNIMPLEMENTED;
-    }
-
-    Type PointerType::replaceImmediateSubElements(llvm::ArrayRef<mlir::Attribute>, llvm::ArrayRef<mlir_type>) const {
-        VAST_UNIMPLEMENTED;
-    }
-
-    Type ArrayType::replaceImmediateSubElements(llvm::ArrayRef<mlir::Attribute>, llvm::ArrayRef<mlir_type>) const {
-        VAST_UNIMPLEMENTED;
-    }
-
     Type getBottomTypedefType(TypedefType def, vast_module mod) {
         auto type = getTypedefType(def, mod);
         if (auto ty = type.dyn_cast< TypedefType >()) {
@@ -156,22 +140,6 @@ namespace vast::hl
     using walk_types = walk_fn< mlir_type >;
     using walk_attrs = walk_fn< mlir::Attribute >;
 
-    void LValueType::walkImmediateSubElements(walk_attrs, walk_types tys) const {
-        tys( this->getElementType() );
-    }
-
-    void ElaboratedType::walkImmediateSubElements(walk_attrs, walk_types tys) const {
-        tys( this->getElementType() );
-    }
-
-
-    void PointerType::walkImmediateSubElements(walk_attrs, walk_types tys) const {
-        tys( this->getElementType() );
-    }
-
-    void ArrayType::walkImmediateSubElements(walk_attrs, walk_types tys) const {
-        tys( this->getElementType() );
-    }
 
     auto ArrayType::dim_and_type() -> std::tuple< dimensions_t, mlir_type >
     {

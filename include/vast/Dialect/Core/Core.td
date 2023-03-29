@@ -26,6 +26,8 @@ def Core_Dialect : Dialect {
     }];
 
     let hasConstantMaterializer = 1;
+
+    let useFoldAPI = kEmitFoldAdaptorFolder;
 }
 
 class Core_Op< string mnemonic, list< Trait > traits = [] >
