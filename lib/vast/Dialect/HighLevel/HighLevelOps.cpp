@@ -125,7 +125,7 @@ namespace vast::hl
             body, arguments, /* enableNameShadowing */false
         );
 
-        if (parse_result.hasValue()) {
+        if (parse_result.has_value()) {
             if (failed(*parse_result))
                 return mlir::failure();
             // Function body was parsed, make sure its not empty.

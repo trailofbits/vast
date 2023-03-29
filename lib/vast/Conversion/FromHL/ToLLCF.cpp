@@ -249,9 +249,9 @@ namespace vast::conv
             using parent_t::parent_t;
 
             mlir::LogicalResult matchAndRewrite(
-                    hl::IfOp op,
-                    hl::IfOp::Adaptor ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+                hl::IfOp op,
+                hl::IfOp::Adaptor ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
             {
                 auto bld = rewriter_wrapper_t( rewriter );
 
@@ -308,14 +308,14 @@ namespace vast::conv
             using parent_t::parent_t;
 
             mlir::LogicalResult matchAndRewrite(
-                    hl::WhileOp op,
-                    hl::WhileOp::Adaptor ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+                hl::WhileOp op,
+                hl::WhileOp::Adaptor ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
             {
                 auto bld = rewriter_wrapper_t( rewriter );
 
                 auto scope = rewriter.create< ll::Scope >( op.getLoc() );
-                auto scope_entry = rewriter.createBlock( &scope.body() );
+                auto scope_entry = rewriter.createBlock( &scope.getBody() );
 
                 auto &cond_region = op.getCondRegion();
                 auto &body_region = op.getBodyRegion();
@@ -328,11 +328,11 @@ namespace vast::conv
                 }
 
                 auto body_block = inline_region( rewriter,
-                                                 body_region, scope.body() );
+                                                 body_region, scope.getBody() );
 
                 // Condition block cannot be entry because entry block cannot have
                 // predecessors and body block will jump to it.
-                auto cond_block = inline_region( rewriter, cond_region, scope.body() );
+                auto cond_block = inline_region( rewriter, cond_region, scope.getBody() );
 
                 auto [ cond_yield, value ] = fetch_cond_yield( bld, *cond_block );
                 VAST_CHECK( value, "Condition region yield unexpected type" );
@@ -362,19 +362,21 @@ namespace vast::conv
             using parent_t::parent_t;
 
             mlir::LogicalResult matchAndRewrite(
-                    op_t op,
-                    typename op_t::Adaptor ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+                op_t op,
+                typename op_t::Adaptor ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
             {
                 auto bld = rewriter_wrapper_t( rewriter );
                 auto scope = rewriter.create< ll::Scope >( op.getLoc() );
-                auto scope_entry = rewriter.createBlock( &scope.body() );
+                auto scope_entry = rewriter.createBlock( &scope.getBody() );
 
-                auto cond_block = inline_region( rewriter,
-                                                 op.getCondRegion(), scope.body() );
+                auto make_inline_region = [&] (auto &&reg)
+                {
+                    return inline_region( rewriter, std::forward< decltype(reg) >(reg),
+                                          scope.getBody() );
+                };
 
-                auto inc_block = inline_region( rewriter,
-                                                op.getIncrRegion(), scope.body() );
+                auto inc_block = make_inline_region( op.getIncrRegion() );
 
                 if ( mlir::failed( handle_terminators( rewriter,
                                                        inc_block,
@@ -382,8 +384,10 @@ namespace vast::conv
                 {
                         return mlir::failure();
                 }
-                auto body_block = inline_region( rewriter,
-                                                 op.getBodyRegion(), scope.body() );
+
+                auto cond_block = make_inline_region( op.getCondRegion() );
+                auto body_block = make_inline_region( op.getBodyRegion() );
+
                 auto [ cond_yield, value ] = fetch_cond_yield( bld, *cond_block );
                 VAST_PATTERN_CHECK( value, "Condition region yield unexpected type" );
 
@@ -419,9 +423,9 @@ namespace vast::conv
 
 
             mlir::LogicalResult matchAndRewrite(
-                    op_t op,
-                    typename op_t::Adaptor ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+                op_t op,
+                typename op_t::Adaptor ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
             {
                 rewriter.create< trg_t >( op.getLoc(), ops.getOperands() );
                 rewriter.eraseOp( op );
@@ -475,7 +479,7 @@ namespace vast::conv
             {
                 mlir::IRRewriter rewriter{ &this->getContext() };
                 // We really don't care if anything ws remove or not.
-                std::ignore = mlir::eraseUnreachableBlocks(rewriter, scope.body());
+                std::ignore = mlir::eraseUnreachableBlocks(rewriter, scope.getBody());
             };
             this->getOperation().walk(clean_scopes);
 

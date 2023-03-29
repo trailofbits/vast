@@ -34,7 +34,7 @@ namespace vast::conv::irstollvm::ll_cf
                     op_t op, adaptor_t ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
         {
-            rewriter.create< LLVM::BrOp >(op.getLoc(), ops.operands(), op.dest());
+            rewriter.create< LLVM::BrOp >(op.getLoc(), ops.getOperands(), op.getDest());
             rewriter.eraseOp(op);
 
             return mlir::success();
@@ -55,10 +55,11 @@ namespace vast::conv::irstollvm::ll_cf
                     mlir::ConversionPatternRewriter &rewriter) const override
         {
             rewriter.create< LLVM::CondBrOp >(
-                    op.getLoc(),
-                    ops.cond(),
-                    op.true_dest() , ops.true_operands(),
-                    op.false_dest(), ops.false_operands());
+                op.getLoc(),
+                ops.getCond(),
+                op.getTrueDest() , ops.getTrueOperands(),
+                op.getFalseDest(), ops.getFalseOperands()
+            );
             rewriter.eraseOp( op );
 
             return mlir::success();
@@ -87,8 +88,8 @@ namespace vast::conv::irstollvm::ll_cf
                                             no_vals, &start);
             } else if (auto ret = mlir::dyn_cast< ll::CondScopeRet >(last)) {
                 make_after_op< LLVM::CondBrOp >(rewriter, &last, last.getLoc(),
-                                                ret.cond(),
-                                                ret.dest(), ret.operands(),
+                                                ret.getCond(),
+                                                ret.getDest(), ret.getOperands(),
                                                 &end, no_vals);
             } else {
                 // Nothing to do (do not erase, since it is a standard branching).
@@ -109,15 +110,15 @@ namespace vast::conv::irstollvm::ll_cf
             if (!op.start_block())
                 return mlir::failure();
 
-            for ( auto &block : op.body() )
+            for ( auto &block : op.getBody() )
             {
                 auto s = replace_terminator(rewriter, block, *op.start_block(), *tail_block);
                 if (mlir::failed(s))
                     return mlir::failure();
             }
 
-            auto op_entry_block = &*op.body().begin();
-            inline_region_blocks(rewriter, op.body(), mlir::Region::iterator(tail_block));
+            auto op_entry_block = &*op.getBody().begin();
+            inline_region_blocks(rewriter, op.getBody(), mlir::Region::iterator(tail_block));
 
             rewriter.mergeBlocks(op_entry_block, head_block, std::nullopt);
             rewriter.eraseOp(op);

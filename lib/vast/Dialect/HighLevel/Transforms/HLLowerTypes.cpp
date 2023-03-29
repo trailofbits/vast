@@ -248,8 +248,8 @@ namespace vast::hl
             auto [dims, nested_ty] = arr.dim_and_type();
             std::vector< int64_t > coerced_dim;
             for (auto dim : dims) {
-                if (dim.hasValue()) {
-                    coerced_dim.push_back(dim.getValue());
+                if (dim.has_value()) {
+                    coerced_dim.push_back(dim.value());
                 } else {
                     coerced_dim.push_back(-1 /* unknown dim */ );
                 }
