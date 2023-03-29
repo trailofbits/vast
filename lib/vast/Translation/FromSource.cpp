@@ -59,7 +59,7 @@ namespace vast::hl
 
     mlir::LogicalResult registerFromSourceParser() {
         mlir::TranslateToMLIRRegistration from_source(
-            "from-source",
+            "from-source", "from c/c++ source code to vast high-level mlir",
             [](llvm::SourceMgr &mgr, mlir::MLIRContext *ctx) -> owning_module_ref {
                 VAST_CHECK(mgr.getNumBuffers() == 1,    "expected single input buffer");
                 auto buffer = mgr.getMemoryBuffer(mgr.getMainFileID());
