@@ -112,9 +112,16 @@ namespace vast::cc {
         }
 
         // Execute the frontend actions.
-        {
+        try {
             llvm::TimeTraceScope TimeScope("ExecuteCompiler");
             success = execute_compiler_invocation(comp.get(), vargs);
+        } catch ( ... ) {
+            // TODO( vast-front ): This is required as `~clang::CompilerInstance` would
+            //                     fire an assert as stack unwinds.
+            comp->setSema(nullptr);
+            comp->setASTConsumer(nullptr);
+            comp->clearOutputFiles(true);
+            throw;
         }
 
         // If any timers were active but haven't been destroyed yet, print their
