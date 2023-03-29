@@ -73,32 +73,33 @@ def Br
 
 def CondBr
     : LowLevel_Op< "cond_br", [Terminator, AttrSizedOperandSegments] >
+    , Arguments<(ins AnyType:$cond, Variadic<AnyType>:$trueOperands, Variadic<AnyType>:$falseOperands )>
 {
     let summary = "Conditional branch.";
     let description = [{ Direct branch }];
 
-    let arguments = (ins AnyType:$cond,
-                         Variadic<AnyType>:$true_operands,
-                         Variadic<AnyType>:$false_operands);
-    let successors = (successor AnySuccessor:$true_dest, AnySuccessor:$false_dest);
+    let successors = (successor AnySuccessor:$trueDest, AnySuccessor:$falseDest);
 
     let builders = [
-        OpBuilder< (ins "mlir::Value":$cond,
-                        "mlir::ValueRange":$true_operands, "mlir::Block *":$true_dest,
-                        "mlir::ValueRange":$false_operands, "mlir::Block *":$false_dest),
+        OpBuilder< (ins
+            "mlir::Value":$cond,
+            "mlir::ValueRange":$trueOperands, "mlir::Block *":$trueDest,
+            "mlir::ValueRange":$falseOperands, "mlir::Block *":$falseDest),
         [{
             build($_builder, $_state,
                   cond,
-                  true_operands, false_operands,
-                  true_dest, false_dest);
+                  trueOperands, falseOperands,
+                  trueDest, falseDest);
         }] >,
-        OpBuilder< (ins "mlir::Value":$cond,
-                        "mlir::Block *":$true_dest, "mlir::Block *":$false_dest),
+        OpBuilder< (ins
+            "mlir::Value":$cond,
+            "mlir::Block *":$trueDest,
+            "mlir::Block *":$falseDest),
         [{
             build($_builder, $_state,
                   cond,
                   mlir::ValueRange(), mlir::ValueRange(),
-                  true_dest, false_dest);
+                  trueDest, falseDest);
         }] >
     ];
 }
@@ -159,10 +160,10 @@ def Scope
     let extraClassDeclaration = [{
         mlir::Block *start_block()
         {
-            auto size = std::distance(body().begin(), body().end());
+            auto size = std::distance(getBody().begin(), getBody().end());
             if (size < 2)
                 return nullptr;
-            return &*std::next(body().begin());
+            return &*std::next(getBody().begin());
         }
     }];
 }

@@ -17,6 +17,6 @@ namespace vast::ll
     mlir::SuccessorOperands Br::getSuccessorOperands( unsigned idx )
     {
         VAST_CHECK( idx == 0, "ll::Br can have only one successor!" );
-        return mlir::SuccessorOperands( operandsMutable() );
+        return mlir::SuccessorOperands( getOperandsMutable() );
     }
 } // namespace vast::ll

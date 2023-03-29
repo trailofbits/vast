@@ -102,7 +102,7 @@ namespace vast::conv::irstollvm
             auto index_type = tc.convert_type_to_type(rewriter.getIndexType());
             VAST_PATTERN_CHECK(index_type, "Was not able to convert index type");
 
-            for (auto element : ops.elements())
+            for (auto element : ops.getElements())
             {
                 // TODO(lukas): This is not ideal - when lowering into ll we most
                 //              likely want to have multiple types of initializations?
@@ -117,7 +117,7 @@ namespace vast::conv::irstollvm
                                 op.getLoc(), *index_type,
                                 rewriter.getIntegerAttr(rewriter.getIndexType(), i++));
                         auto gep = rewriter.create< LLVM::GEPOp >(
-                                op.getLoc(), e_type, ops.var(), index.getResult());
+                                op.getLoc(), e_type, ops.getVar(), index.getResult());
 
                         rewriter.create< LLVM::StoreOp >(op.getLoc(), expr_elem, gep);
                     }
@@ -125,12 +125,12 @@ namespace vast::conv::irstollvm
                     break;
                 }
 
-                rewriter.create< LLVM::StoreOp >(op.getLoc(), element, ops.var());
+                rewriter.create< LLVM::StoreOp >(op.getLoc(), element, ops.getVar());
             }
 
             // While op is a value, there is no reason not to use the previous alloca,
             // since we just initialized it.
-            rewriter.replaceOp(op, ops.var());
+            rewriter.replaceOp(op, ops.getVar());
 
             return mlir::success();
         }

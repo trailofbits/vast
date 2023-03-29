@@ -351,8 +351,8 @@ class WithDimensionsClass
 
 def SizeParam : TypeParameter<"SizeParam", "size parameter for arrays"> {
   let printer = [{
-    if ($_self.hasValue())
-      $_printer << $_self.getValue();
+    if ($_self.has_value())
+      $_printer << $_self.value();
     else
       $_printer << "?";
   }];
