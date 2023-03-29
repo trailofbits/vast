@@ -269,7 +269,7 @@ namespace vast::hl
             auto r_res = convertTypes(t.getResults(), rty);
 
             if (mlir::failed(a_res) || mlir::failed(r_res))
-                return llvm::None;
+                return std::nullopt;
 
             if (rty.size() == 1 && rty[0].isa< mlir::NoneType >())
                 rty.clear();

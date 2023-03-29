@@ -143,7 +143,7 @@ def ReturnOp
 
     // Allow building a ReturnOp with no return operand.
     let builders = [
-        OpBuilder<(ins), [{ build($_builder, $_state, llvm::None); }]>
+        OpBuilder<(ins), [{ build($_builder, $_state, std::nullopt); }]>
     ];
 }
 

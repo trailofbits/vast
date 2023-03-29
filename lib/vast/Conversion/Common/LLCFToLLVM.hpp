@@ -119,7 +119,7 @@ namespace vast::conv::irstollvm::ll_cf
             auto op_entry_block = &*op.body().begin();
             inline_region_blocks(rewriter, op.body(), mlir::Region::iterator(tail_block));
 
-            rewriter.mergeBlocks(op_entry_block, head_block, llvm::None);
+            rewriter.mergeBlocks(op_entry_block, head_block, std::nullopt);
             rewriter.eraseOp(op);
             return mlir::success();
         }

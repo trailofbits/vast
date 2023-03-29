@@ -95,7 +95,7 @@ def FuncOp : HighLevel_Op< "func", [
         return;
 
       mlir::function_interface_impl::addArgAndResultAttrs(
-        $_builder, $_state, arg_attrs, /* results */ llvm::None
+        $_builder, $_state, arg_attrs, /* results */ std::nullopt
       );
     }] >
   ];
@@ -358,7 +358,7 @@ def ReturnOp
 
   // Allow building a ReturnOp with no return operand.
   let builders = [
-    OpBuilder<(ins), [{ build($_builder, $_state, llvm::None); }]>
+    OpBuilder<(ins), [{ build($_builder, $_state, std::nullopt); }]>
   ];
 }
 
