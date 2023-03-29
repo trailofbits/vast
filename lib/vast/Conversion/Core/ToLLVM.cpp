@@ -49,7 +49,7 @@ namespace vast
                 rewriter.inlineRegionBefore(
                     lazy_region, *target->getParent(), ++(target->getIterator())
                 );
-                rewriter.mergeBlocks(&first_block, target, llvm::None);
+                rewriter.mergeBlocks(&first_block, target, std::nullopt);
 
                 rewriter.eraseOp(lazy_op);
 
@@ -70,9 +70,9 @@ namespace vast
                 conversion_rewriter &rewriter, auto loc, Value cond, Block *rhs, Block *end) const
             {
                 if constexpr (short_on_true) {
-                    rewriter.create< LLVM::CondBrOp >(loc, cond, end, cond, rhs, llvm::None);
+                    rewriter.create< LLVM::CondBrOp >(loc, cond, end, cond, rhs, std::nullopt);
                 } else {
-                    rewriter.create< LLVM::CondBrOp >(loc, cond, rhs, llvm::None, end, cond);
+                    rewriter.create< LLVM::CondBrOp >(loc, cond, rhs, std::nullopt, end, cond);
                 }
             }
 

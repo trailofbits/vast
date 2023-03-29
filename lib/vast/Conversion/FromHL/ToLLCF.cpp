@@ -289,7 +289,7 @@ namespace vast::conv
                                        tie_fail);
                 }
 
-                rewriter.mergeBlocks( cond_block, original_block, llvm::None );
+                rewriter.mergeBlocks( cond_block, original_block, std::nullopt );
                 rewriter.eraseOp( op );
 
                 return mlir::success();
