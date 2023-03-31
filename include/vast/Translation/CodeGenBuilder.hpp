@@ -235,8 +235,9 @@ namespace vast::cg {
             return [stmt, this](auto &bld, auto loc) {
                 visit(stmt);
                 auto &op = bld.getBlock()->back();
-                VAST_ASSERT(op.getNumResults() == 1);
-                create< YieldType >(loc, op.getResult(0));
+                VAST_ASSERT(op.getNumResults() <= 1);
+                if (op.getNumResults() > 0)
+                    create< YieldType >(loc, op.getResult(0));
             };
         }
 
