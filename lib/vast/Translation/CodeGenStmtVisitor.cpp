@@ -89,4 +89,21 @@ namespace vast::hl
         VAST_UNREACHABLE( "unsupported cast kind" );
     }
 
+    IdentKind ident_kind(const clang::PredefinedExpr *expr)
+    {
+        switch(expr->getIdentKind())
+        {
+            case clang::PredefinedExpr::IdentKind::Func : return IdentKind::Func;
+            case clang::PredefinedExpr::IdentKind::Function : return IdentKind::Function;
+            case clang::PredefinedExpr::IdentKind::LFunction : return IdentKind::LFunction;
+            case clang::PredefinedExpr::IdentKind::FuncDName : return IdentKind::FuncDName;
+            case clang::PredefinedExpr::IdentKind::FuncSig : return IdentKind::FuncSig;
+            case clang::PredefinedExpr::IdentKind::LFuncSig : return IdentKind::LFuncSig;
+            case clang::PredefinedExpr::IdentKind::PrettyFunction :
+                return IdentKind::PrettyFunction;
+            case clang::PredefinedExpr::IdentKind::PrettyFunctionNoVirtual :
+                return IdentKind::PrettyFunctionNoVirtual;
+        }
+    }
+
 } // namespace vast::hl
