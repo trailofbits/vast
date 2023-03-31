@@ -307,7 +307,13 @@ namespace vast::hl
     {
         auto then_type = get_yielded_type(getThenRegion());
         auto else_type = get_yielded_type(getElseRegion());
-        return mlir::success(areTypesCompatible(then_type, else_type));
+        bool compatible = typesMatch(then_type, else_type);
+        if (!compatible)
+        {
+            VAST_REPORT("Failed to verify that return types {0}, {1} in CondOp regions match. See location {2}",
+                then_type, else_type, getLoc());
+        }
+        return mlir::success(compatible);
     }
 
     void WhileOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback body)
