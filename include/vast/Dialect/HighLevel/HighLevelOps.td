@@ -1129,4 +1129,41 @@ def StmtExprOp
   }];
 }
 
+class IdentKindAttr< string name, int val > : I64EnumAttrCase< name, val > {}
+
+class IdentKindList< string name, string summary, list< IdentKindAttr > cases >
+  : I64EnumAttr< name, summary, cases > {}
+
+def Func : IdentKindAttr<"Func", 0>;
+def Function : IdentKindAttr<"Function", 1>;
+def LFunction : IdentKindAttr<"LFunction", 2>;
+def FuncDName : IdentKindAttr<"FuncDName", 3>;
+def FuncSig : IdentKindAttr<"FuncSig", 4>;
+def LFuncSig : IdentKindAttr<"LFuncSig", 5>;
+def PrettyFunction : IdentKindAttr<"PrettyFunction", 6>;
+def PrettyFunctionNoVirtual : IdentKindAttr<"PrettyFunctionNoVirtual", 7>;
+
+let cppNamespace = "::vast::hl" in
+def IdentKind : IdentKindList< "IdentKind", "ident kind", [
+    Func,
+    Function,
+    LFunction,
+    FuncDName,
+    FuncSig,
+    LFuncSig,
+    PrettyFunction,
+    PrettyFunctionNoVirtual
+] >;
+
+def PredefinedExpr
+  : HighLevel_Op< "predefined.expr" >
+    , Arguments<(ins AnyType:$value, IdentKind:$kind)>
+    , Results<(outs AnyType:$result)>
+{
+    let summary = "VAT predefined expr ( such as __func__ )";
+    let description = [{ VAT predefined expr ( such as __func__ ) }];
+
+    let assemblyFormat = "$value $kind attr-dict `:` type($value) `->` type($result)";
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
