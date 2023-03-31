@@ -94,7 +94,7 @@ def HighLevel_IfOp : ControlFlowOp< "if" >
   let assemblyFormat = [{ $condRegion `then` $thenRegion (`else` $elseRegion^)? attr-dict }];
 }
 
-def HighLevel_CondOp : ControlFlowOp< "cond", [DeclareOpInterfaceMethods< RegionBranchOpInterface, ["areTypesCompatible"] > ] >
+def HighLevel_CondOp : ControlFlowOp< "cond" >
     , Results<(outs AnyType:$result)>
 {
   let summary = "VAST conditional statement";
@@ -131,6 +131,10 @@ def HighLevel_CondOp : ControlFlowOp< "cond", [DeclareOpInterfaceMethods< Region
       "BuilderCallback":$elseBuilder
     )>
   ];
+
+  let extraClassDeclaration = [{
+    bool typesMatch(mlir::Type lhs, mlir::Type rhs);
+  }];
 
   let assemblyFormat = [{ $condRegion `?` $thenRegion `:` $elseRegion attr-dict `:` type(results) }];
 }

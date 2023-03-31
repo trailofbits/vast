@@ -7,6 +7,7 @@
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Region.hpp"
+#include "vast/Util/TypeTraits.hpp"
 
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
@@ -293,35 +294,13 @@ namespace vast::hl
         st.addTypes(type);
     }
 
-    void CondOp::getSuccessorRegions(
-        llvm::Optional< unsigned > index,
-        llvm::ArrayRef< mlir::Attribute > operands,
-        llvm::SmallVectorImpl< mlir::RegionSuccessor > &regions
-    ) {
-        if (index) {
-            if (index.value() == 0) {
-                regions.push_back(trivial_region_succ(&getCondRegion()));
-            } else if (index.value() == 1) {
-                regions.push_back(trivial_region_succ(&getThenRegion()));
-                regions.push_back(trivial_region_succ(&getElseRegion()));
-            } else {
-                regions.push_back(mlir::RegionSuccessor(
-                    getOperation()->getResults())
-                );
-            }
-        } else {
-            regions.push_back(trivial_region_succ(&getCondRegion()));
-        }
-    }
-
-    bool CondOp::areTypesCompatible(mlir::Type lhs, mlir::Type rhs)
+    bool CondOp::typesMatch(mlir::Type lhs, mlir::Type rhs)
     {
         namespace tt = mlir::TypeTrait;
-        bool compatible = lhs == rhs
-            || lhs.hasTrait< tt::TypedefTrait >() || rhs.hasTrait< tt::TypedefTrait >()
-            || (lhs.hasTrait< tt::PointerTypeTrait >() && rhs.hasTrait< tt::PointerTypeTrait >());
-        VAST_ASSERT(compatible && "failed to verify CondOp types");
-        return compatible;
+        return lhs == rhs
+            || all_with_trait< tt::IntegralTypeTrait >(lhs, rhs)
+            || any_with_trait< tt::TypedefTrait >(lhs, rhs)
+            || all_with_trait< tt::PointerTypeTrait >(lhs, rhs);
     }
 
     logical_result CondOp::verifyRegions()
