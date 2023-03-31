@@ -21,6 +21,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::hl {
 
     CastKind cast_kind(const clang::CastExpr *expr);
+    IdentKind ident_kind(const clang::PredefinedExpr *expr);
 
 } // namespace vast::hl
 
@@ -590,6 +591,18 @@ namespace vast::cg {
             }
 
             VAST_UNREACHABLE("unknown underlying declaration to be referenced");
+        }
+
+        Operation *VisitPredefinedExpr(const clang::PredefinedExpr *expr)
+        {
+            auto name = expr->getFunctionName();
+            VAST_CHECK(name, "clang::PredefinedExpr without name has missing support.");
+
+            auto name_as_op = this->VisitStringLiteral(name)->getResult(0);
+            auto kind = hl::ident_kind( expr );
+
+            return make< hl::PredefinedExpr >(meta_location(expr),
+                                              name_as_op.getType(), name_as_op, kind);
         }
 
         //
