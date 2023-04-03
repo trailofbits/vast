@@ -185,29 +185,48 @@ namespace vast::cc {
             }
         }
 
+        void compile_via_vast(auto mod, mcontext_t *mctx)
+        {
+            const bool disable_vast_verifier = vargs.has_option(opt::disable_vast_verifier);
+            auto pass = cg::emit_high_level_pass(mod, mctx,
+                                                 acontext, disable_vast_verifier);
+            if (pass.failed())
+                VAST_UNREACHABLE("codegen: MLIR pass manager fails when running vast passes");
+
+        }
+
         void emit_mlir_output(target_dialect target, owning_module_ref mod, mcontext_t *mctx) {
             if (!output_stream || !mod) {
                 return;
             }
 
-            const bool disable_vast_verifier = vargs.has_option(opt::disable_vast_verifier);
+            auto setup_pipeline_and_execute = [&]
+            {
+                // TODO: Is there any reason to ever not use vast?
+                switch (target)
+                {
+                    case target_dialect::high_level:
+                    case target_dialect::low_level:
+                    case target_dialect::llvm:
+                        compile_via_vast(mod.get(), mctx);
+                }
 
-            auto execute_vast_pipeline = [&] {
-                // FIXME: parse pass options and deal with different passes in more sane way
-                switch (target) {
-                    case target_dialect::high_level: {
-                        return cg::emit_high_level_pass(mod.get(), mctx, acontext, disable_vast_verifier);
+                switch (target)
+                {
+                    case target_dialect::high_level:
+                        break;
+                    case target_dialect::llvm:
+                    {
+                        // TODO: These should probably be moved outside of `target::llvmir`.
+                        target::llvmir::register_vast_to_llvm_ir(*mctx);
+                        target::llvmir::prepare_hl_module(mod.get());
+                        break;
                     }
-                }
-
-                VAST_UNREACHABLE("codegen: unsupported target dialect");
-            };
-
-            auto setup_vast_pipeline_and_execute = [&] {
-                if (execute_vast_pipeline().failed()) {
-                    VAST_UNREACHABLE("codegen: MLIR pass manager fails when running vast passes");
+                    default:
+                        VAST_UNREACHABLE("Cannot emit {0}, missing support", to_string(target));
                 }
             };
+
 
             // Handle source manager properly given that lifetime analysis
             // might emit warnings and remarks.
@@ -224,7 +243,7 @@ namespace vast::cc {
             if (vargs.has_option(opt::vast_verify_diags)) {
                 mlir::SourceMgrDiagnosticVerifierHandler src_mgr_handler(mlir_src_mgr, mctx);
                 mctx->printOpOnDiagnostic(false);
-                setup_vast_pipeline_and_execute();
+                setup_pipeline_and_execute();
 
                 // Verify the diagnostic handler to make sure that each of the
                 // diagnostics matched.
@@ -234,7 +253,7 @@ namespace vast::cc {
                 }
             } else {
                 mlir::SourceMgrDiagnosticHandler src_mgr_handler(mlir_src_mgr, mctx);
-                setup_vast_pipeline_and_execute();
+                setup_pipeline_and_execute();
             }
 
             // Emit remaining defaulted C++ methods
