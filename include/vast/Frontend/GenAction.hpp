@@ -30,6 +30,8 @@ namespace vast::cc {
         constexpr string_ref emit_cir = "emit-cir";
         constexpr string_ref emit_llvm = "emit-llvm";
 
+        constexpr string_ref emit_mlir = "emit-mlir";
+
         constexpr string_ref disable_vast_verifier = "disable-vast-verifier";
         constexpr string_ref vast_verify_diags = "verify-diags";
         constexpr string_ref disable_emit_cxx_default = "disable-emit-cxx-default";
@@ -84,6 +86,15 @@ namespace vast::cc {
     //
     struct emit_llvm_action : vast_gen_action {
         emit_llvm_action(const vast_args &vargs, mcontext_t *mcontext = nullptr);
+    private:
+        virtual void anchor();
+    };
+
+    //
+    // Emit MLIR
+    //
+    struct emit_mlir_action : vast_gen_action {
+        emit_mlir_action(const vast_args &vargs, mcontext_t *mcontext = nullptr);
     private:
         virtual void anchor();
     };
