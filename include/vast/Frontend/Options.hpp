@@ -30,7 +30,11 @@ namespace vast::cc
 
     constexpr string_ref vast_option_prefix = "-vast-";
 
-    struct vast_args {
+    struct vast_args
+    {
+        using option_list = std::vector< string_ref >;
+        using maybe_option_list = std::optional< option_list >;
+
         argv_storage args;
 
         // detects the presence of an option in one of formats:
@@ -42,7 +46,7 @@ namespace vast::cc
         std::optional< string_ref > get_option(string_ref opt) const;
 
         // from option of form -vast-"name"="value1;value2;value3" returns list of values
-        std::optional< std::vector< string_ref > > get_options_list(string_ref opt) const;
+        maybe_option_list get_options_list(string_ref opt) const;
 
         void push_back(arg_t arg);
     };
