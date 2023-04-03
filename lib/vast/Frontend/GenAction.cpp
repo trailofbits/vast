@@ -32,7 +32,7 @@ namespace vast::cc {
     namespace opt {
 
         bool emit_only_mlir(const vast_args &vargs) {
-            for (auto arg : {emit_high_level, emit_cir}) {
+            for (auto arg : {emit_high_level, emit_cir, emit_mlir}) {
                 if (vargs.has_option(arg))
                     return true;
             }
@@ -53,6 +53,7 @@ namespace vast::cc {
             case output_type::emit_assembly: return "s";
             case output_type::emit_high_level: return "hl";
             case output_type::emit_cir: return "cir";
+            case output_type::emit_mlir: return "mlir";
             case output_type::emit_llvm: return "ll";
             case output_type::emit_obj: return "o";
             case output_type::none: break;
@@ -144,9 +145,45 @@ namespace vast::cc {
             );
         }
 
+        // TODO: Introduce helper wrapper on top of `vast_args`?
         enum class target_dialect {
             high_level
+            , low_level
+            , llvm
         };
+
+        target_dialect parse_target_dialect(const vast_args::maybe_option_list &list)
+        {
+            if (!list)
+                return target_dialect::high_level;
+
+            if (list->size() != 1)
+                VAST_UNREACHABLE("Can emit only one dialect.");
+
+            return parse_target_dialect(list->front());
+        }
+
+        target_dialect parse_target_dialect(llvm::StringRef from)
+        {
+            auto trg = from.lower();
+            if (trg == "hl" || trg == "high_level")
+                return target_dialect::high_level;
+            if (trg == "ll" || trg == "low_level")
+                return target_dialect::low_level;
+            if (trg == "llvm")
+                return target_dialect::llvm;
+            VAST_UNREACHABLE("Unknown option of target dialect: {0}", trg);
+        }
+
+        [[nodiscard]] static inline std::string to_string(target_dialect target)
+        {
+            switch (target)
+            {
+                case target_dialect::high_level: return "high_level";
+                case target_dialect::low_level: return "low_level";
+                case target_dialect::llvm: return "llvm";
+            }
+        }
 
         void emit_mlir_output(target_dialect target, owning_module_ref mod, mcontext_t *mctx) {
             if (!output_stream || !mod) {
@@ -235,6 +272,11 @@ namespace vast::cc {
                     return emit_mlir_output(target_dialect::high_level, std::move(mod), mctx.get());
                 case output_type::emit_cir:
                     VAST_UNIMPLEMENTED_MSG("HandleTranslationUnit for emit CIR not implemented");
+                case output_type::emit_mlir:
+                {
+                    auto trg = parse_target_dialect(vargs.get_options_list(opt::emit_mlir));
+                    return emit_mlir_output(trg, std::move(mod), mctx.get());
+                }
                 case output_type::emit_llvm:
                     return emit_backend_output(clang::BackendAction::Backend_EmitLL,
                                                std::move(mod), mctx.get());
@@ -351,30 +393,42 @@ namespace vast::cc {
         // TODO: pass the module around
     }
 
+    // emit assembly
     void emit_assembly_action::anchor() {}
 
     emit_assembly_action::emit_assembly_action(const vast_args &vargs, mcontext_t *mcontex)
         : vast_gen_action(output_type::emit_assembly, vargs, mcontex)
     {}
 
+    // emit_llvm
     void emit_llvm_action::anchor() {}
 
     emit_llvm_action::emit_llvm_action(const vast_args &vargs, mcontext_t *mcontex)
         : vast_gen_action(output_type::emit_llvm, vargs, mcontex)
     {}
 
+    // emit_mlir
+    void emit_mlir_action::anchor() {}
+
+    emit_mlir_action::emit_mlir_action(const vast_args &vargs, mcontext_t *mcontex)
+        : vast_gen_action(output_type::emit_mlir, vargs, mcontex)
+    {}
+
+    // emit_obj
     void emit_obj_action::anchor() {}
 
     emit_obj_action::emit_obj_action(const vast_args &vargs, mcontext_t *mcontex)
         : vast_gen_action(output_type::emit_obj, vargs, mcontex)
     {}
 
+    // emit high level
     void emit_high_level_action::anchor() {}
 
     emit_high_level_action::emit_high_level_action(const vast_args &vargs, mcontext_t *mcontex)
         : vast_gen_action(output_type::emit_high_level, vargs, mcontex)
     {}
 
+    // emit cir
     void emit_cir_action::anchor() {}
 
     emit_cir_action::emit_cir_action(const vast_args &vargs, mcontext_t *mcontex)
