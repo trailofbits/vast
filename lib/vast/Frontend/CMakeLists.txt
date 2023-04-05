@@ -5,9 +5,12 @@ add_library(vast_frontend
     Options.cpp
 )
 
+mk_clang_libs(frontend_clang_libs clangCodeGen)
 target_link_libraries(vast_frontend
     PUBLIC
         vast::target_llvmir
+
+        ${frontend_clang_libs}
     PRIVATE
         vast::settings)
 

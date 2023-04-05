@@ -123,9 +123,22 @@ link_directories(${LLVM_BUILD_LIBRARY_DIR})
 add_definitions(${LLVM_DEFINITIONS})
 add_definitions(${CLANG_DEFINITIONS})
 
-llvm_map_components_to_libnames(LLVM_LIBS
-  ${LLVM_TARGETS_TO_BUILD} support target option
-)
+if (LLVM_LINK_LLVM_DYLIB)
+    set(LLVM_LIBS LLVM)
+else()
+    llvm_map_components_to_libnames(LLVM_LIBS
+      ${LLVM_TARGETS_TO_BUILD} support target option
+    )
+endif()
+
+# TODO(cmake): With newer cmake there should be a better way to do this.
+function(mk_clang_libs out)
+    if (CLANG_LINK_CLANG_DYLIB)
+        set(${out} clang-cpp PARENT_SCOPE)
+    else()
+        set(${out} ${ARGN} PARENT_SCOPE)
+    endif()
+endfunction()
 
 #
 # VAST build settings
