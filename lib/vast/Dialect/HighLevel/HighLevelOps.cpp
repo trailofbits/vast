@@ -315,6 +315,12 @@ namespace vast::hl
     bool CondOp::typesMatch(mlir::Type lhs, mlir::Type rhs)
     {
         namespace tt = mlir::TypeTrait;
+
+        if (!lhs)
+            return !rhs || rhs.isa< hl::VoidType, mlir::NoneType >();
+        if (!rhs)
+            return !lhs || lhs.isa< hl::VoidType, mlir::NoneType >();
+
         return lhs == rhs
             || all_with_trait< tt::IntegralTypeTrait >(lhs, rhs)
             || any_with_trait< tt::TypedefTrait >(lhs, rhs)
@@ -325,10 +331,6 @@ namespace vast::hl
     {
         auto then_type = get_maybe_yielded_type(getThenRegion());
         auto else_type = get_maybe_yielded_type(getElseRegion());
-        if ( !then_type )
-            return mlir::success(!else_type || else_type.isa< hl::VoidType >());
-        if ( !else_type )
-            return mlir::success(!then_type || then_type.isa< hl::VoidType >());
 
         bool compatible = typesMatch(then_type, else_type);
         if (!compatible)
