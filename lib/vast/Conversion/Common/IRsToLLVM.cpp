@@ -532,12 +532,23 @@ namespace vast::conv::irstollvm
             if (!rtys)
                 return mlir::failure();
 
-            auto new_call = rewriter.create< mlir::LLVM::CallOp >(
-                op.getLoc(),
-                *rtys,
-                op.getCallee(),
-                ops.getOperands());
-            rewriter.replaceOp(op, new_call.getResults());
+            auto mk_call = [&](auto ... args)
+            {
+                return rewriter.create< mlir::LLVM::CallOp >(op.getLoc(), args ...);
+            };
+
+            if (rtys->empty() || rtys->front().isa< mlir::LLVM::LLVMVoidType >())
+            {
+                // We cannot pass in void type as some internal check inside `mlir::LLVM`
+                // dialect will fire - it would create a value of void type, which is
+                // not allowed.
+                mk_call(std::vector< mlir::Type >{}, op.getCallee(), ops.getOperands());
+                rewriter.eraseOp(op);
+            } else {
+                auto call = mk_call(*rtys, op.getCallee(), ops.getOperands());
+                rewriter.replaceOp(op, call.getResults());
+            }
+
             return mlir::success();
         }
     };
