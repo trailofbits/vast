@@ -241,7 +241,7 @@ namespace vast::conv::irstollvm
                 return mlir::failure();
 
             if (fn.empty())
-                return mlir::failure();
+                return mlir::success();
 
             auto &block = fn.front();
             if (!block.isEntryBlock())
