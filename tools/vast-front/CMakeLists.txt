@@ -53,5 +53,6 @@ target_link_libraries(vast-front
     clangTooling
 
     vast::frontend_tool
+    vast::target_llvmir
     vast::settings
 )
