@@ -25,7 +25,7 @@ namespace vast {
     //             anything.
     // If this header is ever exported, probably remove this.
     #define VAST_PATTERN_CHECK(cond, ...) \
-        VAST_CHECK( detail::is_ok(cond), __VA_ARGS__)
+        VAST_CHECK( ::vast::detail::is_ok(cond), __VA_ARGS__)
 
     #define VAST_PATTERN_FAIL(...) \
         VAST_UNREACHABLE(__VA_ARGS__)
