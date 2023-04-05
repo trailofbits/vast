@@ -9,17 +9,16 @@ add_library(vast_frontend_tool
   compiler_invocation.cpp
 )
 
+
+mk_clang_libs(frontend_tool_clang_libs clangBasic clangDriver clangFrontend)
 target_link_libraries(vast_frontend_tool
   PUBLIC
-    clangBasic
-    clangDriver
-    clangFrontend
+    ${frontend_tool_clang_libs}
 
     ${LLVM_LIBS}
 
     vast::codegen
     vast::frontend
-    vast::target_llvmir
   PRIVATE
     vast::settings
 )
@@ -31,6 +30,7 @@ add_executable(vast-front
   cc1.cpp
 )
 
+mk_clang_libs(front_clang_libs clangAST clangFrontend clangSerialization clangTooling)
 target_link_libraries(vast-front
   PRIVATE
     ${DIALECT_LIBS}
@@ -46,13 +46,8 @@ target_link_libraries(vast-front
 
     FromSourceParser
 
-    clangAST
-    clangCodeGen
-    clangFrontend
-    clangSerialization
-    clangTooling
+    ${front_clang_libs}
 
     vast::frontend_tool
-    vast::target_llvmir
     vast::settings
 )
