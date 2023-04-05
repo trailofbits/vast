@@ -51,4 +51,21 @@ class Core_LogicBinOp< string mnemonic, list< Trait > traits = [] >
 def Core_BinLAndOp : Core_LogicBinOp<"bin.land", []>;
 def Core_BinLOrOp  : Core_LogicBinOp< "bin.lor", []>;
 
+// TODO( core ): Probably move it outside or enforce that operands are lazy blocks.
+def Core_SelectOp
+    : Core_Op< "select" >
+    , Arguments<(ins AnyType:$cond, AnyType:$thenRegion, AnyType:$elseRegion)>
+    , Results<(outs Variadic<AnyType>:$results)>
+{
+    let summary = "Select a value based on condition.";
+    let description = [{
+        Usual select operation. First operand is selected if predicate is true, second
+        otherwise (to mirror how ternary works in C).
+
+        %result = <op> %cond %lhs, %rhs  : type
+    }];
+
+    let assemblyFormat = [{ $cond `,` $thenRegion `,` $elseRegion attr-dict `:` functional-type(operands, results) }];
+}
+
 #endif //VAST_DIALECT_CORE_CORELAZY
