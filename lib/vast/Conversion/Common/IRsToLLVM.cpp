@@ -739,7 +739,37 @@ namespace vast::conv::irstollvm
             };
 
             rewriter.updateRootInPlace(op, lower_res_type);
+            return mlir::success();
+        }
+    };
 
+    template< typename yield_like >
+    struct fixup_yield_types : base_pattern< yield_like >
+    {
+        using op_t = yield_like;
+        using base = base_pattern< yield_like >;
+        using base::base;
+
+        mlir::LogicalResult matchAndRewrite(
+            op_t op, typename op_t::Adaptor ops,
+            mlir::ConversionPatternRewriter &rewriter) const override
+        {
+            if (ops.getResult().getType().template isa< mlir::LLVM::LLVMVoidType >())
+            {
+                rewriter.eraseOp(op);
+                return mlir::success();
+            }
+
+            // Proceed with "normal path"
+            // TODO: This will probably need rework. If not, merge with implementation
+            //       in `lazy_op_type`.
+            auto lower_res_type = [&]()
+            {
+                auto result = op.getResult();
+                result.setType(this->type_converter().convertType(result.getType()));
+            };
+
+            rewriter.updateRootInPlace(op, lower_res_type);
             return mlir::success();
         }
     };
@@ -748,7 +778,7 @@ namespace vast::conv::irstollvm
         lazy_op_type< core::LazyOp >,
         lazy_op_type< core::BinLAndOp >,
         lazy_op_type< core::BinLOrOp >,
-        lazy_op_type< hl::ValueYieldOp >
+        fixup_yield_types< hl::ValueYieldOp >
     >;
 
     struct IRsToLLVMPass : ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >
