@@ -5,6 +5,10 @@ add_library(vast_frontend
     Options.cpp
 )
 
-target_link_libraries(vast_frontend PRIVATE vast::settings)
+target_link_libraries(vast_frontend
+    PUBLIC
+        vast::target_llvmir
+    PRIVATE
+        vast::settings)
 
 add_library(vast::frontend ALIAS vast_frontend)
