@@ -406,7 +406,35 @@ namespace vast::conv::irstollvm
             }
             return mlir::failure();
         }
+    };
 
+    struct cstyle_cast : base_pattern< hl::CStyleCastOp >
+    {
+        using op_t = hl::CStyleCastOp;
+        using base = base_pattern< op_t >;
+        using base::base;
+
+        logical_result matchAndRewrite(
+                    op_t op, typename op_t::Adaptor ops,
+                    conversion_rewriter &rewriter) const override
+        {
+            // TODO: According to what clang does, this will need more handling
+            //       based on different value categories. For now, just lower types.
+            auto to_void = [&]
+            {
+                rewriter.replaceOp(op, ops.getOperands());
+                return mlir::success();
+            };
+
+            switch (op.getKind())
+            {
+                case hl::CastKind::ToVoid:
+                    return to_void();
+                default:
+                    return mlir::failure();
+            }
+            return mlir::success();
+        }
     };
 
 
@@ -675,6 +703,7 @@ namespace vast::conv::irstollvm
         func_op< hl::FuncOp >,
         constant_int,
         implicit_cast,
+        cstyle_cast,
         call,
         cmp,
         deref,
