@@ -18,7 +18,7 @@ class LazyEval< string mnemonic, list < Trait > traits = [] >
     let description = [{ VAST lazy evaluator }];
 }
 
-def Core_LazyOp : LazyEval< "lazy.op", [] > {
+def Core_LazyOp : LazyEval< "lazy.op", [NoTerminator] > {
     let summary = "Lazily evaluate a region.";
     let description = [{
         The operation serves to encapsulate delayed evaluation in its region.
