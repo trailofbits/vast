@@ -234,6 +234,7 @@ if (VAST_INSTALL)
     MLIRCore
     MLIRMeta
     MLIRHighLevel
+    MLIRLowLevel
 
     VASTSymbolInterface
     VASTTypedAttrInterface
