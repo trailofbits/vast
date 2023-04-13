@@ -319,9 +319,7 @@ namespace vast::cg
         const clang::VarDecl *init_decl;
         const clang::Expr *init_expr = decl->getAnyInitializer(init_decl);
 
-        if (!tentative) {
-            VAST_UNIMPLEMENTED_IF(!init_expr);
-
+        if (!tentative && init_expr) {
             VAST_ASSERT(!(decl->getType()->isIncompleteType()));
 
             codegen.append_to_module(decl);
