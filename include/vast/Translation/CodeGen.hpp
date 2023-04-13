@@ -77,7 +77,7 @@ namespace vast::cg
 
         void append_to_module(clang::ASTUnit *unit) { append_impl(unit); }
 
-        void append_to_module(clang::Decl *decl) { append_impl(decl); }
+        void append_to_module(const clang::Decl *decl) { append_impl(decl); }
 
         void append_to_module(clang::Stmt *stmt) { append_impl(stmt); }
 
@@ -615,7 +615,7 @@ namespace vast::cg
         }
 
         template< typename AST >
-        void append_impl(AST ast) {
+        void append_impl(const AST ast) {
             setup_codegen(ast->getASTContext());
             process(ast, *_visitor);
         }
@@ -629,7 +629,7 @@ namespace vast::cg
             unit->visitLocalTopLevelDecls(&visitor, process_root_decl);
         }
 
-        void process(clang::Decl *decl, CodeGenVisitor &visitor) {
+        void process(const clang::Decl *decl, CodeGenVisitor &visitor) {
             visitor.Visit(decl);
         }
 
@@ -678,7 +678,7 @@ namespace vast::cg
             return codegen.emit_module(decl);
         }
 
-        void append_to_module(clang::Decl *decl) { codegen.append_to_module(decl);}
+        void append_to_module(const clang::Decl *decl) { codegen.append_to_module(decl);}
 
         bool verify_module() const { return codegen.verify_module(); }
 
@@ -792,6 +792,10 @@ namespace vast::cg
 
         insertion_guard make_insertion_guard() {
             return codegen.make_insertion_guard();
+        }
+
+        operation visit_var_decl(const clang::VarDecl *decl) {
+            return codegen.visit_var_decl(decl);
         }
 
         void dump_module() { codegen.dump_module(); }
