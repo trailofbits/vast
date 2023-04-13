@@ -34,6 +34,7 @@ namespace vast::cg {
         void HandleInlineFunctionDefinition(clang::FunctionDecl *) override;
         void HandleTagDeclDefinition(clang::TagDecl *) override;
         void HandleTagDeclRequiredDefinition(const clang::TagDecl *) override;
+        void CompleteTentativeDefinition(clang::VarDecl *decl) override;
 
         owning_module_ref freeze();
         std::unique_ptr< mcontext_t > take_context();

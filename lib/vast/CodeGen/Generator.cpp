@@ -50,6 +50,10 @@ namespace vast::cg {
         VAST_UNIMPLEMENTED;
     }
 
+    void vast_generator::CompleteTentativeDefinition(clang::VarDecl *decl){
+        codegen->handle_top_level_decl(decl);
+    }
+
     // HandleTagDeclDefinition - This callback is invoked each time a TagDecl to
     // (e.g. struct, union, enum, class) is completed. This allows the client hack
     // on the type, which can occur at any point in the file (because these can be

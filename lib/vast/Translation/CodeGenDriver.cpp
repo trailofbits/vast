@@ -301,8 +301,33 @@ namespace vast::cg
         return true;
     }
 
-    operation codegen_driver::build_global_var_definition(const clang::VarDecl */* decl */, bool /* tentative */) {
-        VAST_UNIMPLEMENTED;
+    operation codegen_driver::build_global_var_definition(const clang::VarDecl *decl, bool tentative) {
+        VAST_UNIMPLEMENTED_IF(lang().OpenCL || lang().OpenMPIsDevice);
+
+        VAST_UNIMPLEMENTED_IF(decl->needsDestruction(actx) == clang::QualType::DK_cxx_destructor);
+
+        VAST_UNIMPLEMENTED_IF(lang().CUDA);
+        VAST_UNIMPLEMENTED_IF(lang().OpenMP);
+
+        VAST_UNIMPLEMENTED_IF(decl->hasAttr< clang::LoaderUninitializedAttr >());
+        VAST_UNIMPLEMENTED_IF(decl->hasAttr< clang::AnnotateAttr >());
+        VAST_UNIMPLEMENTED_IF(decl->hasAttr< clang::SectionAttr >());
+
+        // TLS_None is 0 in the enum
+        VAST_UNIMPLEMENTED_IF(decl->getTLSKind());
+
+        const clang::VarDecl *init_decl;
+        const clang::Expr *init_expr = decl->getAnyInitializer(init_decl);
+
+        if (!tentative) {
+            VAST_UNIMPLEMENTED_IF(!init_expr);
+
+            VAST_ASSERT(!(decl->getType()->isIncompleteType()));
+
+            codegen.append_to_module(decl);
+        }
+
+        return codegen.visit_var_decl(decl);
     }
 
     operation codegen_driver::build_global_decl(const clang::GlobalDecl &/* decl */) {
@@ -356,7 +381,7 @@ namespace vast::cg
                     clang::ASTContext::InlineVariableDefinitionKind::Strong
                 );
 
-                return {};
+                return build_global_var_definition(var, var->isThisDeclarationADefinition() == clang::VarDecl::TentativeDefinition);
             }
         }
 
