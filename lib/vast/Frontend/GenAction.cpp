@@ -242,8 +242,8 @@ namespace vast::cc {
         //     VAST_UNIMPLEMENTED;
         // }
 
-        void CompleteTentativeDefinition(clang::VarDecl */* decl */) override {
-            VAST_UNIMPLEMENTED;
+        void CompleteTentativeDefinition(clang::VarDecl *decl) override {
+            generator->CompleteTentativeDefinition(decl);
         }
 
         void CompleteExternalDeclaration(clang::VarDecl */* decl */) override {
