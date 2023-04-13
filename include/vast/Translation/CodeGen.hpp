@@ -588,6 +588,10 @@ namespace vast::cg
             return _visitor->make_insertion_guard();
         }
 
+        operation visit_var_decl(const clang::VarDecl *decl) {
+            return _visitor->VisitVarDecl(decl);
+        }
+
         void dump_module() { _cgctx->dump_module(); }
 
     private:
