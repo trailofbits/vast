@@ -313,8 +313,7 @@ namespace vast::cg
         VAST_UNIMPLEMENTED_IF(decl->hasAttr< clang::AnnotateAttr >());
         VAST_UNIMPLEMENTED_IF(decl->hasAttr< clang::SectionAttr >());
 
-        // TLS_None is 0 in the enum
-        VAST_UNIMPLEMENTED_IF(decl->getTLSKind());
+        VAST_UNIMPLEMENTED_IF(decl->getTLSKind() != clang::VarDecl::TLS_None);
 
         const clang::VarDecl *init_decl;
         const clang::Expr *init_expr = decl->getAnyInitializer(init_decl);
