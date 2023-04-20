@@ -270,6 +270,15 @@ namespace vast::hl
         build_logic_op(bld, st, type, lhs, rhs);
     }
 
+    void BinComma::build(Builder &bld, State &st, Type type, Operation *lhsop, Operation *rhsop)
+    {
+        if (lhsop->getNumResults() > 0)
+            st.addOperands(lhsop->getResult(0));
+        if (rhsop->getNumResults() > 0)
+            st.addOperands(rhsop->getResult(0));
+        st.addTypes(type);
+    }
+
     void IfOp::build(Builder &bld, State &st, BuilderCallback condBuilder, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
     {
         VAST_ASSERT(condBuilder && "the builder callback for 'condition' region must be present");
