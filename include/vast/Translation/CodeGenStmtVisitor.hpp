@@ -291,10 +291,10 @@ namespace vast::cg {
         }
 
         Operation* VisitBinComma(const clang::BinaryOperator *op) {
-            auto lhs = visit(op->getLHS())->getResult(0);
-            auto rhs = visit(op->getRHS())->getResult(0);
+            auto lhs_op = visit(op->getLHS());
+            auto rhs_op = visit(op->getRHS());
             auto ty  = visit(op->getType());
-            return make< hl::BinComma >(meta_location(op), ty, lhs, rhs);
+            return make< hl::BinComma >(meta_location(op), ty, lhs_op, rhs_op);
         }
 
         //

@@ -741,11 +741,20 @@ def BinLAndOp : LogicBinOp< "bin.land", [] >;
 def BinLOrOp  : LogicBinOp<  "bin.lor", [] >;
 
 def BinComma
-  : HighLevel_Op< "bin.comma", [NoSideEffect] >
-  , Arguments< (ins AnyType:$lhs, AnyType:$rhs) >
+  : HighLevel_Op< "bin.comma", [NoSideEffect, SameVariadicOperandSize] >
+  , Arguments< (ins Optional<AnyType>:$lhs, Optional<AnyType>:$rhs) >
   , Results< (outs AnyType:$result) >
 {
     let summary = "VAST binary operation";
+
+    let skipDefaultBuilders = 1;
+    let builders = [
+        OpBuilder<(ins
+            "Type":$type,
+            "Operation *":$lhsop,
+            "Operation *":$rhsop
+        )>
+    ];
 
     let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` functional-type(operands, results) }];
 }
