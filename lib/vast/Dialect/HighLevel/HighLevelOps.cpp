@@ -272,16 +272,15 @@ namespace vast::hl
 
     void BinComma::build(Builder &bld, State &st, Type type, Operation *lhsop, Operation *rhsop)
     {
-        auto lhs_count = lhsop->getNumResults();
-        auto rhs_count = rhsop->getNumResults();
+        int32_t lhs_count = lhsop->getNumResults();
+        int32_t rhs_count = rhsop->getNumResults();
         if (lhs_count > 0)
             st.addOperands(lhsop->getResult(0));
         if (rhs_count > 0)
             st.addOperands(rhsop->getResult(0));
 
         st.addAttribute(getOperandSegmentSizesAttrName(st.name),
-                        bld.getI32VectorAttr({ static_cast< int32_t >(lhs_count),
-                                               static_cast< int32_t >(rhs_count)})
+                        bld.getI32VectorAttr({ lhs_count, rhs_count })
         );
 
         st.addTypes(type);
