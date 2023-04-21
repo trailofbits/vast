@@ -741,7 +741,7 @@ def BinLAndOp : LogicBinOp< "bin.land", [] >;
 def BinLOrOp  : LogicBinOp<  "bin.lor", [] >;
 
 def BinComma
-  : HighLevel_Op< "bin.comma", [NoSideEffect, SameVariadicOperandSize] >
+  : HighLevel_Op< "bin.comma", [NoSideEffect, AttrSizedOperandSegments] >
   , Arguments< (ins Optional<AnyType>:$lhs, Optional<AnyType>:$rhs) >
   , Results< (outs AnyType:$result) >
 {
