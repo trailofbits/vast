@@ -10,8 +10,8 @@ namespace vast::cg {
         bool chain_call,
         const ext_info &info,
         ext_parameter_info_span params,
-        can_qual_type rty,
-        can_qual_types_span arg_types,
+        qual_type rty,
+        qual_types_span arg_types,
         required_args required
     ) {
         VAST_ASSERT(params.empty() || params.size() == arg_types.size());

@@ -9,7 +9,6 @@ namespace vast::cg
     using mlir_type = mlir::Type;
 
     using qual_type = clang::QualType;
-    using can_qual_type = clang::CanQualType;
-    using can_qual_types_span = llvm::ArrayRef< can_qual_type >;
+    using qual_types_span = llvm::ArrayRef< qual_type >;
 
 } // namespace vast::cg

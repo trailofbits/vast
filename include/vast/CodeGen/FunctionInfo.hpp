@@ -205,7 +205,7 @@ namespace vast::cg
 
 
     struct function_info_arg_info {
-        can_qual_type type;
+        qual_type type;
         abi_arg_info info;
     };
 
@@ -330,8 +330,8 @@ namespace vast::cg
             bool chain_call,
             const ext_info &ext_info,
             ext_parameter_info_span params,
-            can_qual_type rty,
-            can_qual_types_span arg_types,
+            qual_type rty,
+            qual_types_span arg_types,
             required_args required
         );
 
@@ -352,8 +352,8 @@ namespace vast::cg
             const ext_info &info,
             ext_parameter_info_span params,
             required_args required,
-            can_qual_type rty,
-            can_qual_types_span arg_types
+            qual_type rty,
+            qual_types_span arg_types
         ) {
             id.AddInteger(info.getCC());
             id.AddBoolean(instance_method);
@@ -442,7 +442,7 @@ namespace vast::cg
         // has been translated into a vast calling conv.
         calling_conv get_calling_convention() const { return calling_convention; }
 
-        can_qual_type get_return_type() const { return get_args_buffer()[0].type; }
+        qual_type get_return_type() const { return get_args_buffer()[0].type; }
 
         abi_arg_info &get_return_info() { return get_args_buffer()[0].info; }
         const abi_arg_info &get_return_info() const { return get_args_buffer()[0].info; }

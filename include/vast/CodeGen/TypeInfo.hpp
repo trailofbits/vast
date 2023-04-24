@@ -80,7 +80,7 @@ namespace vast::cg {
         // );
 
         const function_info_t &arrange_free_function_type(
-            clang::CanQual<clang::FunctionProtoType> type,
+            const clang::FunctionProtoType *function_type,
             target_info_t &target_info
         );
 
@@ -90,8 +90,8 @@ namespace vast::cg {
         //
         // \param arg_types - must all actually be canonical as params
         const function_info_t &arrange_function_info(
-            can_qual_type rty, bool instance_method, bool chain_call,
-            can_qual_types_span arg_types,
+            qual_type rty, bool instance_method, bool chain_call,
+            qual_types_span arg_types,
             ext_info info,
             ext_parameter_info_span params,
             required_args args,
