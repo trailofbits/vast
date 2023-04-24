@@ -18,10 +18,9 @@ namespace vast::cg
     }
 
     mlir_type type_conversion_driver::convert_type(qual_type type) {
-        auto canonical = driver.acontext().getCanonicalType(type);
-        const auto *ty = canonical.getTypePtr();
+        const auto *ty = type.getTypePtr();
 
-        if (const auto *record_type = clang::dyn_cast< clang::RecordType >(canonical)) {
+        if (const auto *record_type = clang::dyn_cast< clang::RecordType >(ty)) {
             return convert_record_decl_type(record_type->getDecl());
         }
 
@@ -30,7 +29,7 @@ namespace vast::cg
         }
 
         // FIXME make type_conversion_driver responsible for visitation
-        auto result = driver.codegen.convert(canonical);
+        auto result = driver.codegen.convert(type);
         type_cache[ty] = result;
         return result;
     }
