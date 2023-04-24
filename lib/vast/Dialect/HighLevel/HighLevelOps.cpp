@@ -315,10 +315,19 @@ namespace vast::hl
     bool CondOp::typesMatch(mlir::Type lhs, mlir::Type rhs)
     {
         namespace tt = mlir::TypeTrait;
-        return lhs == rhs
-            || all_with_trait< tt::IntegralTypeTrait >(lhs, rhs)
-            || any_with_trait< tt::TypedefTrait >(lhs, rhs)
-            || all_with_trait< tt::PointerTypeTrait >(lhs, rhs);
+        auto normalize = [](mlir::Type type) {
+            auto type_casted = type.dyn_cast< hl::LValueType >();
+            if (type_casted)
+                return type_casted.getElementType();
+            return type;
+        };
+        auto lhs_norm = normalize(lhs);
+        auto rhs_norm = normalize(rhs);
+
+        return lhs_norm == rhs_norm
+            || all_with_trait< tt::IntegralTypeTrait >(lhs_norm, rhs_norm)
+            || any_with_trait< tt::TypedefTrait >(lhs_norm, rhs_norm)
+            || all_with_trait< tt::PointerTypeTrait >(lhs_norm, rhs_norm);
     }
 
     logical_result CondOp::verifyRegions()
