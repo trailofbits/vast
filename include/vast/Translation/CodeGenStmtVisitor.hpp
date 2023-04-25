@@ -902,7 +902,9 @@ namespace vast::cg {
             if constexpr (std::is_same_v< Value, bool >) {
                 return constant(meta_location(lit), value).getDefiningOp();
             } else {
-                auto type = visit(lit->getType());
+                // in C string literals are arrays and therefore lvalues
+                auto type = lit->isLValue() ? visit_as_lvalue_type(lit->getType())
+                                            : visit(lit->getType());
                 return constant(meta_location(lit), type, value).getDefiningOp();
             }
         }
