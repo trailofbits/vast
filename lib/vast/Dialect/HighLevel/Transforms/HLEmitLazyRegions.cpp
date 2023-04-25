@@ -94,7 +94,7 @@ namespace vast::hl
         {
             auto &cond_block = op.getCondRegion().front();
             VAST_PATTERN_CHECK(conv::size(op.getCondRegion()) == 1,
-                               "Unsupported shape of cond region of hl::CondOp");
+                               "Unsupported shape of cond region of hl::CondOp:\n{0}", op);
 
             auto yield = terminator_t< hl::CondYieldOp >::get(cond_block);
             VAST_PATTERN_CHECK(yield, "Was not able to retrieve cond yield, {0}.", op);
