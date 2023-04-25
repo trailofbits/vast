@@ -24,6 +24,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/TypeList.hpp"
 #include "vast/Util/DialectConversion.hpp"
 #include "vast/Util/Terminator.hpp"
+#include "vast/Util/Region.hpp"
 
 namespace vast::hl
 {
@@ -31,11 +32,6 @@ namespace vast::hl
 
     struct lazy_utils
     {
-        static auto region_value_yield_type(Region &region)
-        {
-            return region.back().back().getOperand(0).getType();
-        }
-
         static auto lazy_side(auto &&rewriter, mlir::Location loc, mlir::Region &side)
         {
             // Passed by val, we are expecting only mlir lightweight objects.
@@ -50,7 +46,7 @@ namespace vast::hl
                 {
                     return mk_lazy_op(mlir::NoneType::get(rewriter.getContext()));
                 }
-                return mk_lazy_op(region_value_yield_type(side));
+                return mk_lazy_op(get_yielded_type(side));
             }();
 
             auto &lazy_region = lazy_op.getLazy();
