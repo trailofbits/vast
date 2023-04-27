@@ -23,6 +23,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Frontend/Diagnostics.hpp"
 #include "vast/Frontend/GenAction.hpp"
 
+#include "vast/Config/config.h"
+
 namespace vast::cc {
 
     //
@@ -101,6 +103,8 @@ namespace vast::cc {
             : cc1_entry_point(cc1), cmd_args(cmd_args), diag(cmd_args, path)
             , drv(path, llvm::sys::getDefaultTargetTriple(), diag.engine, "vast compiler")
         {
+            drv.ResourceDir = CLANG_RESOURCE_DIR;
+
             set_install_dir(cmd_args, canonical_prefixes);
 
             auto target_and_mode = toolchain::getTargetAndModeFromProgramName(cmd_args[0]);
