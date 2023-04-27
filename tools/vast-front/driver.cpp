@@ -19,8 +19,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Frontend/Driver.hpp"
 #include "vast/Frontend/Options.hpp"
 
-#include "vast/Config/config.h"
-
 // main frontend method. Lives inside cc1_main.cpp
 namespace vast::cc {
     extern int cc1(const vast_args & vargs, argv_t argv, arg_t tool, void *main_addr);
