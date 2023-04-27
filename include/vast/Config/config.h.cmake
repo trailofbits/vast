@@ -15,6 +15,8 @@
 #else
 #define VAST_CONFIG_H
 
+#define CLANG_RESOURCE_DIR "${CLANG_RESOURCE_DIR}"
+
 namespace vast {
 
     constexpr std::string_view version = "${VAST_VERSION}";

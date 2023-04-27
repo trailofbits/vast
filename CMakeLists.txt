@@ -65,6 +65,16 @@ configure_file(
 )
 
 # Configure Vast version info header file.
+
+
+#
+# Clang
+#
+find_package(Clang REQUIRED CONFIG)
+
+set(CLANG_RESOURCE_DIR  ${CLANG_CMAKE_DIR}/../../clang/${LLVM_VERSION})
+message(${CLANG_RESOURCE_DIR})
+
 configure_file(
   ${VAST_SOURCE_DIR}/include/vast/Config/config.h.cmake
   ${VAST_BINARY_DIR}/include/vast/Config/config.h
@@ -92,11 +102,6 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 #
 find_package(MLIR REQUIRED CONFIG)
 message(STATUS "Using MLIRConfig.cmake in: ${MLIR_DIR}")
-
-#
-# Clang
-#
-find_package(Clang REQUIRED CONFIG)
 
 #
 # LLVM Libraries
