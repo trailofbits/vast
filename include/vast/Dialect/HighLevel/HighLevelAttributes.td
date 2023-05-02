@@ -186,9 +186,9 @@ def StringLiteralAttr : HighLevel_Attr< "StringLiteral", "strlit", [TypedAttrInt
             { '\t', 't' },
             { '\v', 'v' },
         };
-        for (auto pair : pairs) {
-            if (c == pair.first)
-                return pair.second;
+        for (auto [fst, snd] : pairs) {
+            if (c == fst)
+                return snd;
         }
         return c;
     }
