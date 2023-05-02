@@ -145,6 +145,72 @@ def StringAttr : HighLevel_Attr<"String", "str", [TypedAttrInterface] > {
   let assemblyFormat = "`<` $value `>`";
 }
 
+def StringLiteralAttr : HighLevel_Attr< "StringLiteral", "strlit", [TypedAttrInterface] > {
+  let summary = "An Attribute containing an escaped string";
+  let hasCustomAssemblyFormat = 1;
+
+  let description = [{
+    Syntax:
+
+    ```
+    string-attribute ::= string-literal (`:` type)?
+    ```
+
+    A string literal attribute is an attribute that represents an escaped string literal value.
+
+    Examples:
+
+    ```mlir
+    "An important string"
+    "string with a type" : !dialect.string
+    ```
+  }];
+
+  let parameters = (ins StringRefParameter<"">:$value, AttributeSelfTypeParameter<"">:$type);
+
+  let builders = [
+    AttrBuilderWithInferredContext<(ins "const llvm::Twine &":$value, "Type":$type), [{
+      llvm::SmallVector<char, 32> tempStr;
+      return Base::get(type.getContext(), escapeString(value.toStringRef(tempStr)), type);
+    }]>
+  ];
+
+  let extraClassDeclaration = [{
+    static char escapeChar(char c) {
+        std::pair< char, char > const pairs[] {
+            { '\a', 'a' },
+            { '\b', 'b' },
+            { '\f', 'f' },
+            { '\n', 'n' },
+            { '\r', 'r' },
+            { '\t', 't' },
+            { '\v', 'v' },
+        };
+        for (auto pair : pairs) {
+            if (c == pair.first)
+                return pair.second;
+        }
+        return c;
+    }
+
+    static std::string escapeString(llvm::StringRef src) {
+        std::string res;
+        llvm::raw_string_ostream stream(res);
+
+        for (unsigned char C : src) {
+            if (C == '\\')
+                stream << '\\' << C;
+            else if (llvm::sys::locale::isPrint(C) && C != '"')
+                stream << C;
+            else
+                stream << '\\' << escapeChar(C);
+        }
+        return res;
+    }
+  }];
+}
+
+
 class NameAttr<string name, string attr_mnemonic>
   : HighLevel_Attr< name, attr_mnemonic >
 {
