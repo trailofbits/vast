@@ -432,7 +432,7 @@ def ConstantOp
       build($_builder, $_state, type, FloatAttr::get(type, value));
     }]>,
     OpBuilder<(ins "Type":$type, "llvm::StringRef":$value), [{
-      build($_builder, $_state, type, StringAttr::get(value, type));
+      build($_builder, $_state, type, StringLiteralAttr::get(value, type));
     }]>
   ];
 
