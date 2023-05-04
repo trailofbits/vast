@@ -224,7 +224,7 @@ namespace vast::cg {
             auto &block = reg->back();
             set_insertion_point_to_end( &block );
             auto type = block.back().getResult(0).getType();
-            VAST_CHECK(type, "value region require last operation to be value");
+            VAST_CHECK(block.back().getNumResults(), "value region require last operation to be value");
             create< hl::ValueYieldOp >(meta_location(stmt), block.back().getResult(0));
 
             return { std::move(reg), type };
