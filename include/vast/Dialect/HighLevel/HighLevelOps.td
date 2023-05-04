@@ -1179,4 +1179,16 @@ def PredefinedExpr
     let assemblyFormat = "$value $kind attr-dict `:` type($value) `->` type($result)";
 }
 
+// TODO(void-call): Remove optionals
+def ExtensionOp
+  : HighLevel_Op< "gnu.extension" >
+    , Arguments<(ins Optional< AnyType >:$value)>
+    , Results<(outs Optional< AnyType >:$result)>
+{
+    let summary = "VAST extension (__extension__) keyword";
+    let description = [{ VAST op corresponding to GNU __extension__ keyword. }];
+
+    let assemblyFormat = "$value attr-dict `:` type($value) `->` type($result)";
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
