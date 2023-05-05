@@ -177,9 +177,9 @@ namespace vast::hl
         return mlir::success();
     }
 
-    FoldResult ConstantOp::fold(mlir::ArrayRef<Attribute> operands) {
-        VAST_CHECK(operands.empty(), "constant has no operands");
-        return getValue();
+    FoldResult ConstantOp::fold(FoldAdaptor adaptor) {
+        VAST_CHECK(adaptor.getOperands().empty(), "constant has no operands");
+        return adaptor.getValue();
     }
 
 

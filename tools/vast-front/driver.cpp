@@ -57,7 +57,7 @@ static int execute_cc1_tool(vast::cc::argv_storage_base &cmd_args) {
     llvm::BumpPtrAllocator pointer_allocator;
     llvm::StringSaver saver(pointer_allocator);
     llvm::cl::ExpandResponseFiles(
-        saver, &llvm::cl::TokenizeGNUCommandLine, cmd_args, /* MarkEOLs */ false
+        saver, &llvm::cl::TokenizeGNUCommandLine, cmd_args
     );
 
     llvm::StringRef tool = cmd_args[1];
@@ -69,7 +69,7 @@ static int execute_cc1_tool(vast::cc::argv_storage_base &cmd_args) {
     auto [vargs, ccargs] = vast::cc::filter_args(cmd_args);
 
     if (tool == "-cc1") {
-        auto ccargs_ref = llvm::makeArrayRef(ccargs).slice(2);
+        auto ccargs_ref = llvm::ArrayRef(ccargs).slice(2);
         return vast::cc::cc1(vargs, ccargs_ref, cmd_args[0], get_executable_path_ptr);
     }
 

@@ -428,7 +428,7 @@ namespace vast::cg
         ext_parameter_info_span get_ext_param_infos() const {
             if (!has_ext_parameter_infos)
                 return {};
-            return llvm::makeArrayRef(get_ext_param_infos_buffer(), num_args);
+            return {get_ext_param_infos_buffer(), num_args};
         }
 
         ext_param_info get_ext_param_infos(unsigned arg_idx) const {

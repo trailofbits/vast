@@ -58,7 +58,7 @@ namespace vast::util
 
     void yield_symbol_users(mlir_symbol_interface op, auto scope, auto &&yield) {
         if (auto users = op.getSymbolUses(scope)) {
-            for (auto use : users.getValue()) {
+            for (auto use : *users) {
                 yield(use.getUser());
             }
         }
