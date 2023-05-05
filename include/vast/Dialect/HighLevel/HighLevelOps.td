@@ -66,7 +66,9 @@ def FuncOp : HighLevel_Op< "func", [
     SymbolNameAttr:$sym_name,
     TypeAttrOf<FunctionType>:$function_type,
     DefaultValuedAttr<GlobalLinkageKind, "GlobalLinkageKind::ExternalLinkage">:$linkage,
-    OptionalAttr<StrAttr>:$sym_visibility
+    OptionalAttr<StrAttr>:$sym_visibility,
+    OptionalAttr<DictArrayAttr>:$arg_attrs,
+    OptionalAttr<DictArrayAttr>:$res_attrs
   );
 
   let regions = (region AnyRegion:$body);
@@ -78,6 +80,7 @@ def FuncOp : HighLevel_Op< "func", [
     CArg< "GlobalLinkageKind", "GlobalLinkageKind::ExternalLinkage" >:$linkage,
     CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
     CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
+    CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$res_attrs,
     CArg< "BuilderCallback", "std::nullopt" >:$body), [{
       InsertionGuard guard($_builder);
       build_region($_builder, $_state, body);
@@ -85,7 +88,7 @@ def FuncOp : HighLevel_Op< "func", [
       $_state.addAttribute(
         mlir::SymbolTable::getSymbolAttrName(), $_builder.getStringAttr(name)
       );
-      $_state.addAttribute(getTypeAttrName(), mlir::TypeAttr::get(type));
+      $_state.addAttribute(getFunctionTypeAttrName($_state.name), mlir::TypeAttr::get(type));
       $_state.addAttribute(
         "linkage", GlobalLinkageKindAttr::get($_builder.getContext(), linkage)
       );
@@ -95,7 +98,8 @@ def FuncOp : HighLevel_Op< "func", [
         return;
 
       mlir::function_interface_impl::addArgAndResultAttrs(
-        $_builder, $_state, arg_attrs, /* results */ std::nullopt
+        $_builder, $_state, arg_attrs, res_attrs,
+        getArgAttrsAttrName($_state.name), getResAttrsAttrName($_state.name)
       );
     }] >
   ];
@@ -136,7 +140,7 @@ def FuncOp : HighLevel_Op< "func", [
   }];
 
   let assemblyFormat = [{
-    $linkage $sym_name custom< FunctionSignaruteAndBody >($function_type, attr-dict, $body)
+    $linkage $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
   }];
 
   let hasVerifier = 1;
