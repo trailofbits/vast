@@ -7,7 +7,6 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/PatternMatch.h>
 #include <mlir/Transforms/GreedyPatternRewriteDriver.h>
 #include <mlir/Transforms/DialectConversion.h>
-#include <mlir/IR/BlockAndValueMapping.h>
 VAST_UNRELAX_WARNINGS
 
 #include "PassesDetails.hpp"

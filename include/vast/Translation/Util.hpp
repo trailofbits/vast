@@ -5,7 +5,7 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-#include <mlir/IR/BlockAndValueMapping.h>
+#include <mlir/IR/IRMapping.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/Region.h>
 VAST_UNRELAX_WARNINGS
@@ -33,7 +33,7 @@ namespace vast::cg
 
             auto &prev = parent->getBlocks().back();
 
-            mlir::BlockAndValueMapping mapping;
+            mlir::IRMapping mapping;
             scope.getBody().cloneInto(parent, mapping);
 
             auto next = prev.getNextNode();

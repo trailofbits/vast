@@ -62,8 +62,10 @@ namespace vast::hl
         {
             // `getType()` is not reliable in reality since for example for `mlir::TypeAttr`
             // it returns none. Lowering of types in attributes will be always best effort.
-            if (isHighLevelType(attr.getValue().getType()))
+            auto typed_attr = mlir::dyn_cast< mlir::TypedAttr >(attr.getValue());
+            if (typed_attr && isHighLevelType(typed_attr.getType()))
                 return true;
+
             if (auto type_attr = attr.getValue().dyn_cast< mlir::TypeAttr >();
                 type_attr && contains_hl_type(type_attr.getValue()))
             {
