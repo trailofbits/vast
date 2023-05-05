@@ -61,28 +61,7 @@ namespace vast::hl
         return mlir::success();
     }
 
-    void add_arg_attrs(Builder &bld, State &st, llvm::ArrayRef< mlir::DictionaryAttr > arg_attrs) {
-        auto non_empty_attrs = [] (mlir::DictionaryAttr attrs) {
-            return attrs && !attrs.empty();
-        };
-
-        // Convert the specified array of dictionary attrs (which may have null
-        // entries) to an ArrayAttr of dictionaries.
-        auto get_array_attr = [&] (llvm::ArrayRef< mlir::DictionaryAttr > dict_attrs) {
-            llvm::SmallVector< Attribute > attrs;
-            for (auto &dict : dict_attrs) {
-                attrs.push_back(dict ? dict : bld.getDictionaryAttr({}));
-            }
-            return bld.getArrayAttr(attrs);
-        };
-
-        // Add the attributes to the function arguments.
-        if (llvm::any_of(arg_attrs, non_empty_attrs)) {
-            st.addAttribute(mlir::function_interface_impl::getArgDictAttrName(), get_array_attr(arg_attrs));
-        }
-    }
-
-    ParseResult parseFunctionSignaruteAndBody(
+    ParseResult parseFunctionSignatureAndBody(
         Parser &parser, Attribute &funcion_type, mlir::NamedAttrList &attr_dict, Region &body
     ) {
         llvm::SmallVector< Parser::Argument, 8 > arguments;
@@ -136,7 +115,7 @@ namespace vast::hl
         return mlir::success();
     }
 
-    void printFunctionSignaruteAndBody(
+    void printFunctionSignatureAndBody(
         Printer &printer, FuncOp op, Attribute /* funcion_type */, mlir::DictionaryAttr, Region &body
     ) {
         auto fty = op.getFunctionType();
@@ -145,7 +124,7 @@ namespace vast::hl
         );
 
         mlir::function_interface_impl::printFunctionAttributes(
-            printer, op, fty.getNumInputs(), fty.getNumResults(), {"linkage"}
+            printer, op, {"linkage", op.getFunctionTypeAttrName() }
         );
 
         if (!body.empty()) {
