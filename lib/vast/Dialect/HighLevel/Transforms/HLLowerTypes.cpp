@@ -440,50 +440,24 @@ namespace vast::hl
         using Base = LowerHLTypePatternBase;
         using Base::Base;
 
-
-        // This is a very random list that is pulled from sources of mlir of version
-        // llvm-14.
-        static bool is_fn_attr(mlir::NamedAttribute attr)
-        {
-            auto name = attr.getName();
-            if (name == mlir::SymbolTable::getSymbolAttrName() ||
-                name == mlir::FunctionOpInterface::getTypeAttrName() ||
-                name == "std.varargs")
-            {
-                return false;
-            }
-
-            // Expected the checks will expand.
-            return true;
-        }
-
-        auto lower_fn_attrs(FuncOp fn) const
-        {
-            return this->Base::lower_attrs(fn->getAttrs(), is_fn_attr);
-        }
-
         using attrs_t = mlir::SmallVector< mlir::Attribute, 4 >;
         using maybe_attrs_t = std::optional< attrs_t >;
         using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
 
-        attrs_t lower_args_attrs(FuncOp fn, mlir::ArrayAttr arg_dict,
-                                 const signature_conversion_t &signature) const
+        auto lower_attrs(FuncOp fn, mlir::ArrayAttr attrs) const
         {
-            attrs_t new_attrs;
-            for (std::size_t i = 0; i < fn.getNumArguments(); ++i)
-            {
-                auto mapping = signature.getInputMapping(i);
-                for (std::size_t j = 0; j < mapping->size; ++j)
-                    new_attrs.push_back(arg_dict[i]);
-            }
-            return new_attrs;
-        }
+            std::vector< mlir::DictionaryAttr > partials;
+            if (!attrs)
+                return partials;
 
-        maybe_attrs_t lower_args_attrs(FuncOp fn, const signature_conversion_t &signature) const
-        {
-            if (auto arg_dict = fn.getAllArgAttrs())
-                return { lower_args_attrs(fn, arg_dict, signature) };
-            return {};
+            for (auto attr : attrs)
+            {
+                auto as_dict = mlir::dyn_cast< mlir::DictionaryAttr >(attr);
+                VAST_ASSERT(as_dict);
+
+                partials.emplace_back(as_dict);
+            }
+            return partials;
         }
 
         // As the reference how to lower functions, the `StandardToLLVM` conversion
@@ -504,14 +478,10 @@ namespace vast::hl
                 return mlir::failure();
             }
 
-            auto attributes = lower_fn_attrs(fn);
-            if (auto arg_attrs = lower_args_attrs(fn, *sigconvert))
-            {
-                auto as_attr = rewriter.getNamedAttr(
-                        mlir::FunctionOpInterface::getArgDictAttrName(),
-                        rewriter.getArrayAttr(*arg_attrs));
-                attributes.push_back(as_attr);
-            }
+            // TODO(hllowertypes): What about function attributes?
+            std::vector< mlir::NamedAttribute > attributes;
+            auto arg_attrs = lower_attrs(fn, fn.getArgAttrsAttr());
+            auto res_attrs = lower_attrs(fn, fn.getResAttrsAttr());
 
             auto maybe_fn_type = getTypeConverter()->convert_type_to_type(fn.getFunctionType());
             if (!maybe_fn_type)
@@ -522,7 +492,8 @@ namespace vast::hl
 
             // Create new function with converted type
             FuncOp new_fn = rewriter.create< FuncOp >(
-                fn.getLoc(), fn.getName(), fn_type, fn.getLinkage(), attributes
+                fn.getLoc(), fn.getName(), fn_type, fn.getLinkage(),
+                attributes, arg_attrs, res_attrs
             );
             new_fn.setVisibility(mlir::SymbolTable::Visibility::Private);
 
