@@ -74,6 +74,6 @@ namespace vast
 
     #define VAST_ASSERT(cond) if (!(cond)) { VAST_UNREACHABLE("assertion: " #cond " failed"); }
 
-    #define VAST_TODO(fmt, ... ) VAST_UNREACHABLE("[vast-todo]: " # fmt, __VA_ARGS__ )
+    #define VAST_TODO(fmt, ... ) VAST_UNREACHABLE("[vast-todo]: " # fmt __VA_OPT__(,) __VA_ARGS__ )
 
 }
