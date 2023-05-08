@@ -416,11 +416,11 @@ namespace vast
                             args.getResults());
                     auto to_yield = bld.template create< abi::CallRetsOp >(
                             loc,
-                            op.getResult().getType(),
+                            op.getResults().getType(),
                             rets_maker(call.getResults()));
                     bld.template create< abi::YieldOp >(
                             loc,
-                            op.getResult().getType(),
+                            op.getResults().getType(),
                             to_yield.getResults());
                 };
             }
@@ -487,7 +487,7 @@ namespace vast
                 return rewriter.template create< abi::CallExecutionOp >(
                         op.getLoc(),
                         op.getCallee(),
-                        op.getResult().getType(),
+                        op.getResults().getType(),
                         op.getArgOperands(),
                         execution_region_maker());
             }
