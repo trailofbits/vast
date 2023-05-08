@@ -35,7 +35,7 @@ jobs:
         uses: devcontainers/ci@v0.2
         with:
           runCmd: |
-            export CC=clang-15
+            export CC=clang-16
             export TOOLCHAIN=$(pwd)/cmake/lld.toolchain.cmake
 
             cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} \

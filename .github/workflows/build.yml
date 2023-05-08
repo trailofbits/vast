@@ -25,7 +25,7 @@ jobs:
   build_linux:
     strategy:
       matrix:
-        compiler: [gcc, clang-15]
+        compiler: [gcc, clang-16]
     runs-on: ubuntu-22.04
     timeout-minutes: 32
 
