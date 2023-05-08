@@ -21,16 +21,16 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 
 RUN pip3 install lit
 
-# Install LLVM 15
+# Install LLVM 16
 RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-RUN add-apt-repository 'deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main'
+RUN add-apt-repository 'deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main'
 
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends \
-        clang-15 clang-tools-15 libclang-common-15-dev libclang-15-dev \
-        libllvm15 libmlir-15-dev mlir-15-tools llvm-15 llvm-15-dev
+        clang-16 clang-tools-16 libclang-common-16-dev libclang-16-dev \
+        libllvm16 libmlir-16-dev mlir-16-tools llvm-16 llvm-16-dev
 
-RUN sudo ln -s /usr/bin/FileCheck-15 /usr/bin/FileCheck
+RUN sudo ln -s /usr/bin/FileCheck-16 /usr/bin/FileCheck
 
-RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-15 60
-RUN update-alternatives --install /usr/bin/cc cc /usr/bin/clang-15 60
+RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-16 60
+RUN update-alternatives --install /usr/bin/cc cc /usr/bin/clang-16 60
