@@ -93,4 +93,16 @@ def ABIfy : Pass<"vast-abify", "mlir::ModuleOp"> {
   let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::ll::LowLevelDialect",
                            "vast::hl::HighLevelDialect", "vast::abi::ABIDialect"];
 }
+
+def LowerABI : Pass<"vast-lower-abi", "mlir::ModuleOp"> {
+  let summary = "Lower abi operations.";
+  let description = [{
+    This pass is still a work in progress.
+  }];
+
+  let constructor = "vast::createLowerABIPass()";
+  let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::ll::LowLevelDialect",
+                           "vast::hl::HighLevelDialect", "vast::abi::ABIDialect"];
+}
+
 #endif // VAST_CONVERSION_PASSES_TD

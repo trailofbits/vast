@@ -2,6 +2,7 @@
 
 add_mlir_conversion_library(VASTABIConversionPasses
     EmitABI.cpp
+    LowerABI.cpp
 
     DEPENDS
         VASTConversionPassIncGen
