@@ -40,6 +40,8 @@ namespace vast
 
     std::unique_ptr< mlir::Pass > createABIfyPass();
 
+    std::unique_ptr< mlir::Pass > createLowerABIPass();
+
     // Generate the code for registering passes.
     #define GEN_PASS_REGISTRATION
     #include "vast/Conversion/Passes.h.inc"
