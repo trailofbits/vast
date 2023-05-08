@@ -198,28 +198,16 @@ namespace vast::conv::irstollvm
             auto target_type = *maybe_target_type;
             auto signature = *maybe_signature;
 
-            // TODO(lukas): We will want to lower a lot of stuff most likely.
-            //              Copy those we want to preserve.
-            mlir::SmallVector< mlir::NamedAttribute, 8 > new_attrs;
+            // TODO(irs-to-llvm): Currently it is unclear what to do with the
+            //                    arg/res attributes as it looks like we may not
+            //                    want to lower them all.
 
-            if (auto original_arg_attr = func_op.getAllArgAttrs())
-            {
-                mlir::SmallVector< mlir::Attribute, 8 > new_arg_attrs;
-                for (std::size_t i = 0; i < func_op.getNumArguments(); ++i)
-                {
-                    const auto &mapping = signature.getInputMapping(i);
-                    for (std::size_t j = 0; j < mapping->size; ++j)
-                        new_arg_attrs[mapping->inputNo + j] = original_arg_attr[i];
-                }
-                new_attrs.push_back(rewriter.getNamedAttr(
-                            mlir::FunctionOpInterface::getArgDictAttrName(),
-                            rewriter.getArrayAttr(new_arg_attrs)));
-            }
+
             // TODO(lukas): Linkage?
             auto linkage = LLVM::Linkage::External;
             auto new_func = rewriter.create< LLVM::LLVMFuncOp >(
                     func_op.getLoc(), func_op.getName(), target_type,
-                    linkage, false, LLVM::CConv::C, new_attrs);
+                    linkage, false, LLVM::CConv::C);
             rewriter.inlineRegionBefore(func_op.getBody(),
                                         new_func.getBody(), new_func.end());
             util::convert_region_types(func_op, new_func, signature);
