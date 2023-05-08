@@ -76,15 +76,15 @@ namespace vast
     // TODO(conv:abi): Remove as we most likely do not need this.
     struct TypeConverter : util::TCHelpers< TypeConverter >, util::IdentityTC
     {
-        TypeConverter(const mlir::DataLayout &dl, MContext &mctx)
+        TypeConverter(const mlir::DataLayout &dl, mcontext_t &mctx)
             : util::IdentityTC(), dl(dl), mctx(mctx)
         {}
 
         const mlir::DataLayout &dl;
-        MContext &mctx;
+        mcontext_t &mctx;
     };
 
-    namespace pattern
+    namespace
     {
         template< typename Self >
         struct abi_info_utils
@@ -597,7 +597,7 @@ namespace vast
 
             func_type(TypeConverter &tc,
                       const abi_info_map_t< mlir::func::FuncOp > &abi_info_map,
-                      MContext &mctx)
+                      mcontext_t &mctx)
                 : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
             {}
 
@@ -625,7 +625,7 @@ namespace vast
             const abi_info_map_t< mlir::func::FuncOp > &abi_info_map;
 
             call_op(TypeConverter &tc, const abi_info_map_t< mlir::func::FuncOp > &abi_info_map,
-                    MContext &mctx)
+                    mcontext_t &mctx)
                 : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
             {}
 
@@ -654,7 +654,7 @@ namespace vast
 
             return_op(TypeConverter &tc,
                       const abi_info_map_t< mlir::func::FuncOp > &abi_info_map,
-                      MContext &mctx)
+                      mcontext_t &mctx)
                 : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
             {}
 
@@ -675,13 +675,14 @@ namespace vast
                     return mlir::failure();
 
                 const auto &abi_info = abi_map_it->second;
-                auto ret = return_wrapper< Op >({op, ops, rewriter}, abi_info).make();
+                return_wrapper< Op >({op, ops, rewriter}, abi_info).make();
+
                 rewriter.eraseOp(op);
                 return mlir::success();
             }
         };
 
-    } // namespace pattern
+    } // namespace
 
 
     struct ABIfy : ABIfyBase< ABIfy >
@@ -699,7 +700,7 @@ namespace vast
             target.addIllegalOp< hl::CallOp >();
 
             mlir::RewritePatternSet patterns(&mctx);
-            patterns.add< pattern::call_op >(tc, abi_info_map, mctx);
+            patterns.add< call_op >(tc, abi_info_map, mctx);
 
             return { std::move(target), std::move(patterns) };
         }
@@ -722,7 +723,7 @@ namespace vast
             target.addDynamicallyLegalOp< mlir::func::FuncOp >(should_transform);
 
             mlir::RewritePatternSet patterns(&mctx);
-            patterns.add< pattern::func_type >(tc, abi_info_map, mctx);
+            patterns.add< func_type >(tc, abi_info_map, mctx);
 
             return { std::move(target), std::move(patterns) };
         }
@@ -751,7 +752,7 @@ namespace vast
             target.addDynamicallyLegalOp< hl::ReturnOp >(is_return_legal);
 
             mlir::RewritePatternSet patterns(&mctx);
-            patterns.add< pattern::return_op >(tc, abi_info_map, mctx);
+            patterns.add< return_op >(tc, abi_info_map, mctx);
 
             return { std::move(target), std::move(patterns) };
         }
