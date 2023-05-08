@@ -15,7 +15,7 @@ include "vast/Interfaces/SymbolInterface.td"
 include "vast/Dialect/HighLevel/HighLevelLinkage.td"
 
 def DirectOp
-    : ABI_Op< "direct", [NoSideEffect] >
+    : ABI_Op< "direct" >
     , Arguments<(ins Variadic<AnyType>:$value)>
     , Results<(outs Variadic<AnyType>:$result)>
 {
@@ -24,7 +24,7 @@ def DirectOp
 }
 
 def RetDirectOp
-    : ABI_Op< "ret_direct", [NoSideEffect] >
+    : ABI_Op< "ret_direct" >
     , Arguments<(ins AnyType:$value)>
     , Results<(outs Variadic<AnyType>:$result)>
 {
@@ -33,7 +33,7 @@ def RetDirectOp
 }
 
 def TodoOp
-    : ABI_Op< "todo", [NoSideEffect] >
+    : ABI_Op< "todo" >
     , Arguments<(ins AnyType:$value)>
     , Results<(outs Variadic<AnyType>:$result)>
 {
@@ -43,7 +43,7 @@ def TodoOp
 
 
 class HasBody< string mnemonic >
-    : ABI_Op< mnemonic, [NoSideEffect] >
+    : ABI_Op< mnemonic >
     , Results<(outs Variadic<AnyType>:$results)>
 {
     let regions = (region AnyRegion:$body);
@@ -104,7 +104,7 @@ def CallExecutionOp
 }
 
 def YieldOp
-    : ABI_Op< "yield", [NoSideEffect, Terminator] >
+    : ABI_Op< "yield", [Terminator] >
     , Arguments<(ins Variadic<AnyType>:$values)>
     , Results<(outs Variadic<AnyType>:$result)>
 {
@@ -149,7 +149,9 @@ class ABIFuncBase< string mnemonic >
         SymbolNameAttr:$sym_name,
         TypeAttrOf<FunctionType>:$function_type,
         DefaultValuedAttr<GlobalLinkageKind, "hl::GlobalLinkageKind::ExternalLinkage">:$linkage,
-        OptionalAttr<StrAttr>:$sym_visibility
+        OptionalAttr<StrAttr>:$sym_visibility,
+        OptionalAttr<DictArrayAttr>:$arg_attrs,
+        OptionalAttr<DictArrayAttr>:$res_attrs
     );
 
     let regions = (region AnyRegion:$body);
@@ -160,14 +162,16 @@ class ABIFuncBase< string mnemonic >
         "mlir::FunctionType":$type,
         CArg< "hl::GlobalLinkageKind", "hl::GlobalLinkageKind::ExternalLinkage" >:$linkage,
         CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
-        CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs), [{
+        CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
+        CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$res_attrs), [{
             Builder::InsertionGuard guard($_builder);
 
             $_state.addRegion();
             $_state.addAttribute(
                 mlir::SymbolTable::getSymbolAttrName(), $_builder.getStringAttr(name)
             );
-            $_state.addAttribute(getTypeAttrName(), mlir::TypeAttr::get(type));
+            $_state.addAttribute(getFunctionTypeAttrName($_state.name),
+                                 mlir::TypeAttr::get(type));
             $_state.addAttribute(
                 "linkage", hl::GlobalLinkageKindAttr::get($_builder.getContext(), linkage)
             );
@@ -177,7 +181,8 @@ class ABIFuncBase< string mnemonic >
                 return;
 
             mlir::function_interface_impl::addArgAndResultAttrs(
-                $_builder, $_state, arg_attrs, /* results */ llvm::None
+                $_builder, $_state, arg_attrs, res_attrs,
+                getArgAttrsAttrName($_state.name), getResAttrsAttrName($_state.name)
             );
         }] >
     ];
@@ -197,19 +202,17 @@ class ABIFuncBase< string mnemonic >
         /// Returns the results types that the callable region produces when
         /// executed.
         llvm::ArrayRef<Type> getCallableResults() {
-            return function_type().getResults();
+            return getFunctionType().getResults();
         }
 
         //===------------------------------------------------------------------===//
         // FunctionOpInterface Methods
         //===------------------------------------------------------------------===//
-        mlir::FunctionType getFunctionType() { return function_type(); }
-
         /// Returns the argument types of this function.
-        llvm::ArrayRef<Type> getArgumentTypes() { return function_type().getInputs(); }
+        llvm::ArrayRef<Type> getArgumentTypes() { return getFunctionType().getInputs(); }
 
         /// Returns the result types of this function.
-        llvm::ArrayRef<Type> getResultTypes() { return function_type().getResults(); }
+        llvm::ArrayRef<Type> getResultTypes() { return getFunctionType().getResults(); }
 
         //===------------------------------------------------------------------===//
         // SymbolOpInterface Methods
