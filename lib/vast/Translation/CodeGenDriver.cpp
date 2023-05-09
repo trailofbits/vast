@@ -473,7 +473,7 @@ namespace vast::cg
         return codegen.deferred_decls();
     }
 
-    std::vector< clang::GlobalDecl >&& codegen_driver::receive_deferred_decls_to_emit() {
+    std::vector< clang::GlobalDecl > codegen_driver::receive_deferred_decls_to_emit() {
         return codegen.receive_deferred_decls_to_emit();
     }
 
