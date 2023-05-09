@@ -162,7 +162,7 @@ namespace vast::cg
         const std::vector< const clang::CXXRecordDecl * >& deferred_vtables() const;
         const std::map< mangled_name_ref, clang::GlobalDecl >& deferred_decls() const;
 
-        std::vector< clang::GlobalDecl >&& receive_deferred_decls_to_emit();
+        std::vector< clang::GlobalDecl > receive_deferred_decls_to_emit();
 
         // Determine whether the definition must be emitted; if this returns
         // false, the definition can be emitted lazily if it's used.

@@ -155,10 +155,10 @@ namespace vast::cg
             return _cgctx->deferred_decls;
         }
 
-        std::vector< clang::GlobalDecl >&& receive_deferred_decls_to_emit() {
+        std::vector< clang::GlobalDecl > receive_deferred_decls_to_emit() {
             std::vector< clang::GlobalDecl > current;
             current.swap(_cgctx->deferred_decls_to_emit);
-            return std::move(current);
+            return current;
         }
 
         lexical_scope_context * current_lexical_scope() {
@@ -730,7 +730,7 @@ namespace vast::cg
             return codegen.deferred_decls();
         }
 
-        std::vector< clang::GlobalDecl >&& receive_deferred_decls_to_emit() {
+        std::vector< clang::GlobalDecl > receive_deferred_decls_to_emit() {
             return codegen.receive_deferred_decls_to_emit();
         }
 
