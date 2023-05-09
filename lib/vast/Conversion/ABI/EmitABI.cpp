@@ -572,7 +572,7 @@ namespace vast
 
                     bld.template create< abi::YieldOp >(
                         loc,
-                        this->abified_args(),
+                        this->abified_rets(),
                         out);
                 };
             }
