@@ -90,6 +90,7 @@ namespace vast
         struct abi_info_utils
         {
             using types_t = std::vector< mlir::Type >;
+            using abi_info_t = abi::func_info< hl::FuncOp >;
 
             const auto &self() const { return static_cast< const Self & >(*this); }
             auto &self() { return static_cast< Self & >(*this); }
@@ -160,7 +161,8 @@ namespace vast
         {
             using state_t = match_and_rewrite_state_capture< Op >;
             using op_t = typename state_t::op_t;
-            using abi_info_t = abi::func_info< mlir::func::FuncOp >;
+            using abi_utils = abi_info_utils< abi_transform< Op > >;
+            using abi_info_t = typename abi_utils::abi_info_t;
 
             using state_t::op;
             using state_t::operands;
@@ -340,7 +342,9 @@ namespace vast
         {
             using state_t = match_and_rewrite_state_capture< Op >;
             using op_t = typename state_t::op_t;
-            using abi_info_t = abi::func_info< mlir::func::FuncOp >;
+
+            using abi_utils = abi_info_utils< call_wrapper< Op > >;
+            using abi_info_t = typename abi_utils::abi_info_t;
 
             using state_t::op;
             using state_t::operands;
@@ -500,7 +504,9 @@ namespace vast
         {
             using state_t = match_and_rewrite_state_capture< Op >;
             using op_t = typename state_t::op_t;
-            using abi_info_t = abi::func_info< mlir::func::FuncOp >;
+
+            using abi_utils = abi_info_utils< return_wrapper< Op > >;
+            using abi_info_t = typename abi_utils::abi_info_t;
 
             using state_t::op;
             using state_t::operands;
@@ -585,18 +591,16 @@ namespace vast
 
         };
 
-
-
-        struct func_type : mlir::OpConversionPattern< mlir::func::FuncOp >
+        template< typename Op >
+        struct func_type : mlir::OpConversionPattern< Op >
         {
-            using Base = mlir::OpConversionPattern< mlir::func::FuncOp >;
-            using Op = mlir::func::FuncOp;
+            using Base = mlir::OpConversionPattern< Op >;
 
             TypeConverter &tc;
-            const abi_info_map_t< mlir::func::FuncOp > &abi_info_map;
+            const abi_info_map_t< hl::FuncOp > &abi_info_map;
 
             func_type(TypeConverter &tc,
-                      const abi_info_map_t< mlir::func::FuncOp > &abi_info_map,
+                      const abi_info_map_t< hl::FuncOp > &abi_info_map,
                       mcontext_t &mctx)
                 : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
             {}
@@ -622,9 +626,9 @@ namespace vast
             using Op = hl::CallOp;
 
             TypeConverter &tc;
-            const abi_info_map_t< mlir::func::FuncOp > &abi_info_map;
+            const abi_info_map_t< hl::FuncOp > &abi_info_map;
 
-            call_op(TypeConverter &tc, const abi_info_map_t< mlir::func::FuncOp > &abi_info_map,
+            call_op(TypeConverter &tc, const abi_info_map_t< hl::FuncOp > &abi_info_map,
                     mcontext_t &mctx)
                 : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
             {}
@@ -650,10 +654,10 @@ namespace vast
             using Op = hl::ReturnOp;
 
             TypeConverter &tc;
-            const abi_info_map_t< mlir::func::FuncOp > &abi_info_map;
+            const abi_info_map_t< hl::FuncOp > &abi_info_map;
 
             return_op(TypeConverter &tc,
-                      const abi_info_map_t< mlir::func::FuncOp > &abi_info_map,
+                      const abi_info_map_t< hl::FuncOp > &abi_info_map,
                       mcontext_t &mctx)
                 : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
             {}
@@ -713,17 +717,17 @@ namespace vast
             mlir::ConversionTarget target(mctx);
             target.markUnknownOpDynamicallyLegal([](auto) { return true; });
 
-            auto should_transform = [&](mlir::func::FuncOp op)
+            auto should_transform = [&](hl::FuncOp op)
             {
                 // TODO(abi): Due to some issues with location info of arguments
                 //            declaration are not yet supported.
                 return op.getName() == "main" && !op.isDeclaration();
             };
 
-            target.addDynamicallyLegalOp< mlir::func::FuncOp >(should_transform);
+            target.addDynamicallyLegalOp< hl::FuncOp >(should_transform);
 
             mlir::RewritePatternSet patterns(&mctx);
-            patterns.add< func_type >(tc, abi_info_map, mctx);
+            patterns.add< func_type< hl::FuncOp > >(tc, abi_info_map, mctx);
 
             return { std::move(target), std::move(patterns) };
         }
@@ -770,7 +774,7 @@ namespace vast
 
             const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
             auto tc = TypeConverter(dl_analysis.getAtOrAbove(op), mctx);
-            auto abi_info_map = collect_abi_info< mlir::func::FuncOp >(
+            auto abi_info_map = collect_abi_info< hl::FuncOp >(
                     op, dl_analysis.getAtOrAbove(op));
 
             if (mlir::failed(run(first_phase(tc, abi_info_map))))
