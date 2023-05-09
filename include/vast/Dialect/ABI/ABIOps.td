@@ -139,7 +139,7 @@ def CallOp
 //            extract shared parts from both definitions into some helper.
 class ABIFuncBase< string mnemonic >
     : ABI_Op< mnemonic, [ AutomaticAllocationScope, CallableOpInterface, FunctionOpInterface,
-                          IsolatedFromAbove, Symbol ] >
+                          IsolatedFromAbove, Symbol, NoTerminator ] >
 {
     let description = [{
         Placeholder.
