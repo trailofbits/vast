@@ -259,7 +259,7 @@ namespace vast::hl
             st.addOperands(rhsop->getResult(0));
 
         st.addAttribute(getOperandSegmentSizesAttrName(st.name),
-                        bld.getI32VectorAttr({ lhs_count, rhs_count })
+                        bld.getDenseI32ArrayAttr({ lhs_count, rhs_count })
         );
 
         st.addTypes(type);
