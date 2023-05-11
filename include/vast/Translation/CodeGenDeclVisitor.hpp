@@ -614,9 +614,11 @@ namespace vast::cg {
             auto fields = [&](auto &bld, auto loc) {
                 for (auto field : decl->fields()) {
                     auto field_type = field->getType();
-                    if (clang::isa< clang::ElaboratedType >(field_type)) {
-                        visit(field_type->getAsTagDecl());
-                    }
+                    // If there is a nested structure.
+                    if (auto tag = field_type->getAsTagDecl())
+                        visit(tag);
+                    else
+                        visit(field_type);
                     visit(field);
                 }
             };
