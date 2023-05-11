@@ -14,6 +14,18 @@ VAST_RELAX_WARNINGS
 
 namespace vast::hl
 {
+    Type strip_elaborated(mlir::Value v)
+    {
+        return strip_elaborated(v.getType());
+    }
+
+    Type strip_elaborated(Type t)
+    {
+        if (auto e = mlir::dyn_cast<hl::ElaboratedType>(t))
+            return e.getElementType();
+        return t;
+    }
+
     Type getBottomTypedefType(TypedefType def, vast_module mod) {
         auto type = getTypedefType(def, mod);
         if (auto ty = type.dyn_cast< TypedefType >()) {
