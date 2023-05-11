@@ -17,24 +17,24 @@ int fun1(int arg1, double arg2) {
 
 INT2 fun2(INT2 arg1, INT arg2) {
     // CHECK: hl.cond {
-    // CHECK: hl.cond.yield [[X:%[0-9]+]] : !hl.typedef<"INT2">
+    // CHECK: hl.cond.yield [[X:%[0-9]+]] : !hl.elaborated<!hl.typedef<"INT2">>
     // CHECK: } ? {
-    // CHECK: hl.value.yield [[X:%[0-9]+]] : !hl.typedef<"INT">
+    // CHECK: hl.value.yield [[X:%[0-9]+]] : !hl.elaborated<!hl.typedef<"INT">>
     // CHECK: } : {
-    // CHECK: hl.value.yield [[X:%[0-9]+]] : !hl.typedef<"INT2">
-    // CHECK: } : !hl.int
+    // CHECK: hl.value.yield [[X:%[0-9]+]] : !hl.elaborated<!hl.typedef<"INT2">>
+    // CHECK: } : !hl.elaborated<!hl.typedef<"INT">>
     INT res = arg1 ? arg2 : arg1;
     return res;
 }
 
 void* fun3(INT2 arg1, INT arg2) {
     // CHECK: hl.cond {
-    // CHECK: hl.cond.yield [[X:%[0-9]+]] : !hl.typedef<"INT2">
+    // CHECK: hl.cond.yield [[X:%[0-9]+]] : !hl.elaborated<!hl.typedef<"INT2">>
     // CHECK: } ? {
-    // CHECK: hl.value.yield [[X:%[0-9]+]] : !hl.ptr<!hl.typedef<"INT">>
+    // CHECK: hl.value.yield [[X:%[0-9]+]] : !hl.ptr<!hl.elaborated<!hl.typedef<"INT">>>
     // CHECK: } : {
-    // CHECK: hl.value.yield [[X:%[0-9]+]] : !hl.ptr<!hl.typedef<"INT2">>
-    // CHECK: } : !hl.ptr<!hl.typedef<"INT">>
+    // CHECK: hl.value.yield [[X:%[0-9]+]] : !hl.ptr<!hl.elaborated<!hl.typedef<"INT2">>>
+    // CHECK: } : !hl.ptr<!hl.elaborated<!hl.typedef<"INT">>>
     void* res = arg1 ? &arg2 : &arg1;
     return res;
 }

@@ -34,12 +34,12 @@ typedef struct wrap {
   int v;
 } wrap_t;
 
-// CHECK: hl.var "w" : !hl.lvalue<!hl.typedef<"wrap_t">>
+// CHECK: hl.var "w" : !hl.lvalue<!hl.elaborated<!hl.typedef<"wrap_t">>>
 wrap_t w;
 
 // CHECK: hl.struct "compound" : {
 // CHECK:  hl.field "e" : !hl.elaborated<!hl.record<"empty">>
-// CHECK:  hl.field "w" : !hl.typedef<"wrap_t">
+// CHECK:  hl.field "w" : !hl.elaborated<!hl.typedef<"wrap_t">>
 // CHECK: }
 struct compound {
   struct empty e;
