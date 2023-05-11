@@ -98,7 +98,7 @@ namespace vast::hl
             auto yield = terminator_t< hl::CondYieldOp >::get(cond_block);
             VAST_PATTERN_CHECK(yield, "Was not able to retrieve cond yield, {0}.", op);
 
-            rewriter.mergeBlockBefore(&cond_block, op, llvm::None);
+            rewriter.mergeBlockBefore(&cond_block, op, std::nullopt);
 
             auto then_region = lazy_side(rewriter, op.getLoc(), op.getThenRegion());
             auto else_region = lazy_side(rewriter, op.getLoc(), op.getElseRegion());
