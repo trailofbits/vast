@@ -300,6 +300,11 @@ namespace vast::hl
         if (!rhs)
             return !lhs || lhs.isa< hl::VoidType, mlir::NoneType >();
 
+        if (auto e = mlir::dyn_cast< hl::ElaboratedType >(lhs))
+            return typesMatch(e.getElementType(), rhs);
+        if (auto e = mlir::dyn_cast< hl::ElaboratedType >(rhs))
+            return typesMatch(lhs, e.getElementType());
+
         return lhs == rhs
             || all_with_trait< tt::IntegralTypeTrait >(lhs, rhs)
             || any_with_trait< tt::TypedefTrait >(lhs, rhs)
