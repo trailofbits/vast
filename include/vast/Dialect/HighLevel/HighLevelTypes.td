@@ -190,8 +190,13 @@ def ParenType : HighLevelType< "Paren", [MemRefElementTypeInterface] > {
   let assemblyFormat = "`<` $elementType `>`";
 }
 
+class IsMaybeWrappedTypedef< string arg > : PredOpTrait<
+    "type is a typedef, maybe wrapped in the elaborated type",
+    CPred< "::vast::hl::strip_elaborated($" # arg # ").hasTrait< mlir::TypeTrait::TypedefTrait >()" >
+>;
+
 class ContainsTypedef< list< string > tl > : PredOpTrait< "contains typedef type",
-    Or< !foreach(type, tl, IsTypedef< type >.predicate) >
+    Or< !foreach(type, tl, IsMaybeWrappedTypedef< type >.predicate) >
 >;
 
 class TypesMatchOrTypedef< list< string > tl > : PredOpTrait<
@@ -279,7 +284,8 @@ def HLIntegerType : AnyTypeOf<[
 ]>;
 
 def IntegerLikeType : TypeConstraint<
-  Or< [HLIntegerType.predicate, AnyInteger.predicate] >,
+  Or< [HLIntegerType.predicate, AnyInteger.predicate,
+       IsMaybeWrappedTypedef< "_self" >.predicate] >,
   "integer like type"
 >;
 
