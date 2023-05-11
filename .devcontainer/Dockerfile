@@ -28,7 +28,7 @@ RUN add-apt-repository 'deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 m
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends \
         clang-16 clang-tools-16 libclang-common-16-dev libclang-16-dev \
-        libllvm16 libmlir-16-dev mlir-16-tools llvm-16 llvm-16-dev
+        libllvm16 libmlir-16-dev mlir-16-tools llvm-16 llvm-16-dev libclang-rt-16-dev
 
 RUN sudo ln -s /usr/bin/FileCheck-16 /usr/bin/FileCheck
 
