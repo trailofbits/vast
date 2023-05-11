@@ -16,14 +16,14 @@ const volatile enum e cvv;
 // CHECK: hl.typedef "def" : !hl.elaborated<!hl.record<"e">>
 typedef enum e def;
 
-// CHECK: hl.var "d" : !hl.lvalue<!hl.typedef<"def">>
+// CHECK: hl.var "d" : !hl.lvalue<!hl.elaborated<!hl.typedef<"def">>>
 def d;
 
-// CHECK: hl.var "cd" : !hl.lvalue<!hl.typedef<"def",  const >>
+// CHECK: hl.var "cd" : !hl.lvalue<!hl.elaborated<!hl.typedef<"def">,  const >>
 const def cd;
 
-// CHECK: hl.var "vd" : !hl.lvalue<!hl.typedef<"def",  volatile >>
+// CHECK: hl.var "vd" : !hl.lvalue<!hl.elaborated<!hl.typedef<"def">,  volatile >>
 volatile def vd;
 
-// CHECK: hl.var "cvd" : !hl.lvalue<!hl.typedef<"def",  const, volatile >>
+// CHECK: hl.var "cvd" : !hl.lvalue<!hl.elaborated<!hl.typedef<"def">,  const, volatile >>
 const volatile def cvd;

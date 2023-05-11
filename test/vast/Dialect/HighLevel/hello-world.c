@@ -1,4 +1,5 @@
 // RUN: vast-front %s -vast-emit-high-level -o - | FileCheck %s
+// REQUIRES: vast-front-includes
 
 // CHECK: hl.func external @printf
 #include <stdio.h>

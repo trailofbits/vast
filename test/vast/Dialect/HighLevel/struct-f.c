@@ -12,5 +12,5 @@ typedef struct Y {} X;
 // TODO: this is elaborated "X"
 struct X x;
 
-// CHECK: hl.typedef "Y" : !hl.typedef<"X">
+// CHECK: hl.typedef "Y" : !hl.elaborated<!hl.typedef<"X">>
 typedef X Y;
