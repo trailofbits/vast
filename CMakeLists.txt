@@ -72,8 +72,7 @@ configure_file(
 #
 find_package(Clang REQUIRED CONFIG)
 
-set(CLANG_RESOURCE_DIR  ${CLANG_CMAKE_DIR}/../../clang/${LLVM_VERSION})
-message(${CLANG_RESOURCE_DIR})
+set(CLANG_RESOURCE_DIR  ${LLVM_LIBRARY_DIR}/clang/${LLVM_VERSION_MAJOR})
 
 configure_file(
   ${VAST_SOURCE_DIR}/include/vast/Config/config.h.cmake
@@ -96,7 +95,6 @@ FindAndSelectClangCompiler()
 find_package(LLVM 16 REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-
 #
 # MLIR
 #
