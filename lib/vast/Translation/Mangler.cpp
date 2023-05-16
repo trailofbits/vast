@@ -11,7 +11,7 @@ namespace vast::cg
 
         // Some ABIs don't have constructor variants. Make sure that base and complete
         // constructors get mangled the same.
-        if (const auto *ctor = clang::dyn_cast< clang::CXXConstructorDecl >(canonical.getDecl())) {
+        if (/*const auto *ctor =*/ clang::dyn_cast< clang::CXXConstructorDecl >(canonical.getDecl())) {
             VAST_UNIMPLEMENTED_IF(!target_info.getCXXABI().hasConstructorVariants());
         }
 

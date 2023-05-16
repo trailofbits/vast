@@ -74,7 +74,7 @@ namespace vast::cg
     bool codegen_driver::may_drop_function_return(qual_type rty) const {
         // We can't just disard the return value for a record type with a complex
         // destructor or a non-trivially copyable type.
-        if (const auto *recorrd_type = rty.getCanonicalType()->getAs< clang::RecordType >()) {
+        if (/*const auto *record_type =*/ rty.getCanonicalType()->getAs< clang::RecordType >()) {
             VAST_UNIMPLEMENTED;
         }
 

@@ -104,6 +104,7 @@ namespace vast::hl
             case clang::PredefinedExpr::IdentKind::PrettyFunctionNoVirtual :
                 return IdentKind::PrettyFunctionNoVirtual;
         }
+        VAST_UNREACHABLE( "unsupported ident kind" );
     }
 
 } // namespace vast::hl

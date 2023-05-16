@@ -250,7 +250,7 @@ namespace vast::hl {
         auto &actx = decl->getASTContext();
         auto linkage = actx.GetGVALinkageForFunction(decl);
 
-        if (const auto *dtor = clang::dyn_cast< clang::CXXDestructorDecl >(decl)) {
+        if (/*const auto *dtor =*/ clang::dyn_cast< clang::CXXDestructorDecl >(decl)) {
             VAST_UNIMPLEMENTED;
         }
 

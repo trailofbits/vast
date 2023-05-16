@@ -236,7 +236,7 @@ namespace vast::cg
                 VAST_UNIMPLEMENTED_MSG("codegen for multi version function");
             }
 
-            if (const auto *method = llvm::dyn_cast< clang::CXXMethodDecl >(decl)) {
+            if (/*const auto *method =*/ llvm::dyn_cast< clang::CXXMethodDecl >(decl)) {
                 VAST_UNIMPLEMENTED_MSG("cxx methods");
             }
 
