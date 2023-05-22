@@ -82,3 +82,8 @@ namespace vast::hl
 
 #define GET_OP_CLASSES
 #include "vast/Dialect/HighLevel/HighLevel.h.inc"
+
+namespace vast::hl
+{
+    FuncOp getCallee(CallOp call);
+}

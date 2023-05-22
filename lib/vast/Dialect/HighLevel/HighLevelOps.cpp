@@ -1,5 +1,6 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
+#include "mlir/Interfaces/CallInterfaces.h"
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
@@ -399,7 +400,11 @@ namespace vast::hl
         st.addTypes(rty);
     }
 
-
+    FuncOp getCallee(CallOp call)
+    {
+        auto coi = mlir::cast<mlir::CallOpInterface>(call.getOperation());
+        return mlir::dyn_cast_or_null<FuncOp>(coi.resolveCallable());
+    }
 }
 
 //===----------------------------------------------------------------------===//
