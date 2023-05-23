@@ -27,6 +27,10 @@ def UninitializedVar
     let description = [{ Declaration of variable that have not been initialized yet. }];
 
     let results = (outs AnyType:$result);
+
+    let assemblyFormat = [{
+        attr-dict `:` type($result)
+    }];
 }
 
 def InitializeVar
@@ -39,6 +43,10 @@ def InitializeVar
         Initialize a variable - for now this operation is a direct lowering from hl.var
         initialization section. Later there will be need to discover how this ties
         to constructors.
+    }];
+
+    let assemblyFormat = [{
+        operands attr-dict `:` functional-type(operands, results)
     }];
 }
 
@@ -102,6 +110,13 @@ def CondBr
                   trueDest, falseDest);
         }] >
     ];
+
+    let assemblyFormat = [{
+        $cond `:` type($cond) `,`
+        $trueDest (`(` $trueOperands^ `:` type($trueOperands) `)`)? `,`
+        $falseDest (`(` $falseOperands^ `:` type($falseOperands) `)`)?
+        attr-dict
+    }];
 }
 
 def ScopeRet
@@ -109,6 +124,8 @@ def ScopeRet
 {
     let summary = "Terminator of scope.";
     let description = [{ Terminator of scopes (for example during lowering of loops). }];
+
+    let assemblyFormat = [{attr-dict}];
 }
 
 def ScopeRecurse
@@ -116,6 +133,8 @@ def ScopeRecurse
 {
     let summary = "Jump to first block of scope.";
     let description = [{ Modelling continue. }];
+
+    let assemblyFormat = [{attr-dict}];
 }
 
 def CondScopeRet
@@ -125,7 +144,7 @@ def CondScopeRet
     let description = [{ Terminate or branch. }];
 
     let successors = (successor AnySuccessor:$dest);
-    let arguments = (ins AnyType:$cond, Variadic<AnyType>:$cond_operands);
+    let arguments = (ins AnyType:$cond, Variadic<AnyType>:$dest_operands);
 
     let builders = [
 
@@ -134,18 +153,22 @@ def CondScopeRet
             build($_builder, $_state, cond, mlir::ValueRange(), dest);
         }] >
     ];
-}
+
+    let assemblyFormat = [{
+        $cond `:` type($cond) `,`
+        $dest (`(` $dest_operands^ `:` type($dest_operands) `)`)? attr-dict
+    }];}
 
 def ReturnOp
     : LowLevel_Op< "return", [Terminator] >
     , Arguments<(ins Variadic<AnyType>:$result)>
 {
-    let assemblyFormat = "($result^ `:` type($result))? attr-dict";
-
     // Allow building a ReturnOp with no return operand.
     let builders = [
         OpBuilder<(ins), [{ build($_builder, $_state, std::nullopt); }]>
     ];
+
+    let assemblyFormat = "($result^ `:` type($result))? attr-dict";
 }
 
 def Scope
@@ -165,6 +188,10 @@ def Scope
                 return nullptr;
             return &*std::next(getBody().begin());
         }
+    }];
+
+    let assemblyFormat = [{
+        $body attr-dict
     }];
 }
 
