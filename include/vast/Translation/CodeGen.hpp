@@ -17,6 +17,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
+#include "vast/Util/Triple.hpp"
 
 #include "vast/Translation/CodeGenVisitor.hpp"
 #include "vast/Translation/CodeGenFallBackVisitor.hpp"
@@ -602,6 +603,9 @@ namespace vast::cg
 
             // TODO(Heno): fix module location
             _module = { vast_module::create(mlir::UnknownLoc::get(_mctx)) };
+            // TODO(cg): For now we do not have our own operation, so we cannot
+            //           introduce new ctor.
+            set_triple(*_module, actx.getTargetInfo().getTriple().str());
 
             _cgctx = std::make_unique< CodeGenContext >(*_mctx, actx, _module);
 
