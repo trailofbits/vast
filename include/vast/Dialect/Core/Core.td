@@ -23,6 +23,8 @@ def Core_Dialect : Dialect {
     let extraClassDeclaration = [{
         void registerTypes();
         void registerAttributes();
+
+        static std::string getTargetTripleAttrName() { return "vast.core.target_triple"; }
     }];
 
     let hasConstantMaterializer = 1;
