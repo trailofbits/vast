@@ -2,16 +2,16 @@
 
 void fn()
 {
-    // CHECK: "ll.scope"() ({
+    // CHECK: ll.scope {
     // CHECK-NEXT: ll.br ^bb1
 
     // CHECK: ^bb1:  // pred: ^bb0
-    // CHECK: "ll.cond_scope_ret"(%5)[^bb2] : (i1) -> ()
+    // CHECK: ll.cond_scope_ret [[V1:%[0-9]+]] : i1, ^bb2
 
     // CHECK: ^bb2:  // pred: ^bb1
-    // CHECK: "ll.scope_ret"() : () -> ()
+    // CHECK: ll.scope_ret
 
-    // CHECK: }) : () -> ()
+    // CHECK: }
     for (int i = 0; i < 15; ++i)
     {
         ++i;
