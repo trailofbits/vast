@@ -89,7 +89,7 @@ namespace vast::conv::irstollvm::ll_cf
             } else if (auto ret = mlir::dyn_cast< ll::CondScopeRet >(last)) {
                 make_after_op< LLVM::CondBrOp >(rewriter, &last, last.getLoc(),
                                                 ret.getCond(),
-                                                ret.getDest(), ret.getOperands(),
+                                                ret.getDest(), ret.getDestOperands(),
                                                 &end, no_vals);
             } else {
                 // Nothing to do (do not erase, since it is a standard branching).
