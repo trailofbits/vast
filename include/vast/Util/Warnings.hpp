@@ -21,7 +21,8 @@
 #define VAST_GCC_RELAX_WARNINGS \
   _Pragma( "GCC diagnostic ignored \"-Wuseless-cast\"" ) \
   _Pragma( "GCC diagnostic ignored \"-Wnull-dereference\"" ) \
-  _Pragma( "GCC diagnostic ignored \"-Wmaybe-uninitialized\"" )
+  _Pragma( "GCC diagnostic ignored \"-Wmaybe-uninitialized\"" ) \
+  _Pragma( "GCC diagnostic ignored \"-Wduplicated-branches\"" )
 
 #ifdef __clang__
 #define VAST_RELAX_WARNINGS \
