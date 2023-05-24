@@ -20,7 +20,7 @@ def LowLevel_StructGEPOp
 }
 
 def UninitializedVar
-    : LowLevel_Op< "unintialized_var", [VastSymbol] >
+    : LowLevel_Op< "uninitialized_var", [VastSymbol] >
     , Results<(outs AnyType:$result)>
 {
     let summary = "Declaration of variable that have not been initialized yet.";
