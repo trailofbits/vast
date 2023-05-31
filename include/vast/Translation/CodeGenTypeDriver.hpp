@@ -26,6 +26,7 @@ namespace vast::cg
         mlir::FunctionType get_function_type(const function_info_t &info);
 
         // Convert type into a mlir_type.
+        template< bool lvalue = false >
         mlir_type convert_type(qual_type type);
 
         void update_completed_type(const clang::TagDecl *tag);

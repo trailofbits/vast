@@ -171,6 +171,7 @@ namespace vast::cg
         }
 
         mlir_type convert(qual_type type) { return _visitor->Visit(type); }
+        mlir_type convert_to_lvalue(qual_type type) { return _visitor->VisitLValueType(type); }
 
         void update_completed_type(clang::TagDecl */* decl */) {
             VAST_UNIMPLEMENTED;
@@ -693,6 +694,7 @@ namespace vast::cg
         owning_module_ref freeze() { return codegen.freeze(); }
 
         mlir_type convert(qual_type type) { return codegen.convert(type); }
+        mlir_type convert_to_lvalue(qual_type type) { return codegen.convert_to_lvalue(type); }
 
         void update_completed_type(clang::TagDecl *decl) {
             codegen.update_completed_type(decl);
