@@ -17,6 +17,7 @@ namespace vast::cg
         VAST_UNIMPLEMENTED;
     }
 
+    template< bool lvalue >
     mlir_type type_conversion_driver::convert_type(qual_type type) {
         const auto *ty = type.getTypePtr();
 
@@ -29,7 +30,14 @@ namespace vast::cg
         }
 
         // FIXME make type_conversion_driver responsible for visitation
-        auto result = driver.codegen.convert(type);
+
+        mlir_type result;
+        if constexpr (lvalue) {
+            result = driver.codegen.convert_to_lvalue(type);
+        } else {
+            result = driver.codegen.convert(type);
+        }
+
         type_cache[ty] = result;
         return result;
     }
@@ -50,7 +58,7 @@ namespace vast::cg
         auto lock = driver.make_lock(&fninfo);
         using abi_kind = abi_arg_info::abi_arg_kind;
 
-        auto process_type_info = [&] (const auto &info, auto type) -> mlir_type {
+        auto process_type_info = [&] (const auto &info, auto type, bool arg = true) -> mlir_type {
             switch (info.get_kind()) {
             case abi_kind::ignore:
                 // TODO: This should probably be the None type from the builtin
@@ -58,13 +66,15 @@ namespace vast::cg
                 return nullptr;
             case abi_kind::extend:
             case abi_kind::direct:
+                if (arg)
+                    return convert_type< true >(type);
                 return convert_type(type);
             default:
                 VAST_UNREACHABLE("unsupported abi kind");
             }
         };
 
-        auto rty = process_type_info(fninfo.get_return_info(), fninfo.get_return_type());
+        auto rty = process_type_info(fninfo.get_return_info(), fninfo.get_return_type(), false);
 
         clang_to_vast_arg_mapping vast_function_args(
             driver.acontext(), fninfo, true /* only_required_args */
