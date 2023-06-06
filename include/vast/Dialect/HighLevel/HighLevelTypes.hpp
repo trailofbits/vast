@@ -126,6 +126,13 @@ namespace vast::hl
     // unwraps all typedef aliases to get to real underlying type
     Type getBottomTypedefType(TypedefType def, vast_module mod);
 
+    static inline Type getBottomTypedefType(mlir_type type, vast_module mod)
+    {
+        if (auto def = mlir::dyn_cast< TypedefType >(strip_elaborated(type)))
+            return getBottomTypedefType(def, mod);
+        return type;
+    }
+
     bool isBoolType(mlir_type type);
     bool isIntegerType(mlir_type type);
     bool isFloatingType(mlir_type type);
