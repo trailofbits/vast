@@ -333,7 +333,8 @@ namespace vast::hl
 
         maybe_attr_t convertAttr(mlir::Attribute attr) const
         {
-            if (auto out = hl_attr_conversion< BooleanAttr, IntegerAttr, FloatAttr >(attr))
+            if (auto out = hl_attr_conversion< BooleanAttr, IntegerAttr, FloatAttr,
+                                               StringAttr, StringLiteralAttr >(attr))
                 return out;
 
             if (auto type_attr = attr.dyn_cast< mlir::TypeAttr >())
@@ -408,6 +409,16 @@ namespace vast::hl
         using Base = LowerHLTypePatternBase;
         using Base::Base;
 
+
+        auto get_type_attr_conversion() const
+        {
+            return [=](mlir::TypedAttr attr) -> std::optional< mlir::Attribute >
+            {
+                auto converted = getAttrConverter().convertAttr(attr);
+                return (converted) ? converted : attr;
+            };
+        }
+
         mlir::LogicalResult matchAndRewrite(
             mlir::Operation *op, mlir::ArrayRef< mlir::Value > ops,
             mlir::ConversionPatternRewriter &rewriter) const override
@@ -426,7 +437,9 @@ namespace vast::hl
                 for (std::size_t i = 0; i < rty.size(); ++i)
                     op->getResult(i).setType(rty[i]);
                 // Return types can be encoded as attrs.
-                lower_attrs(op);
+                auto attrs = op->getAttrDictionary();
+                auto nattrs = attrs.replaceSubElements(get_type_attr_conversion());
+                op->setAttrs(nattrs.dyn_cast< mlir::DictionaryAttr >());
             };
             // It has to be done in one "transaction".
             rewriter.updateRootInPlace(op, lower_op);
