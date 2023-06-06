@@ -121,6 +121,8 @@ namespace vast {
             config.patterns.template add< pattern >(config.getContext());
         }
 
+        auto &self() { return static_cast< derived_t & >(*this); }
+
         void run_on_operation() {
             auto &ctx   = getContext();
             auto target = derived_t::create_conversion_target(ctx);
@@ -128,7 +130,7 @@ namespace vast {
             auto config = config_t { rewrite_pattern_set(&ctx),
                                      derived_t::create_conversion_target(ctx) };
 
-            derived_t::populate_conversions(config);
+            self().populate_conversions(config);
 
             if (failed(populate::apply_conversions(std::move(config))))
                 return signalPassFailure();
