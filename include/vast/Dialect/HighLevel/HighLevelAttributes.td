@@ -136,7 +136,7 @@ def StringAttr : HighLevel_Attr<"String", "str", [TypedAttrInterface] > {
   let parameters = (ins StringRefParameter<"">:$value, AttributeSelfTypeParameter<"">:$type);
 
   let builders = [
-    AttrBuilderWithInferredContext<(ins "const llvm::Twine &":$value, "Type":$type), [{
+    AttrBuilderWithInferredContext<(ins "Type":$type, "const llvm::Twine &":$value), [{
       llvm::SmallVector<char, 32> tempStr;
       return Base::get(type.getContext(), value.toStringRef(tempStr), type);
     }]>
@@ -169,7 +169,7 @@ def StringLiteralAttr : HighLevel_Attr< "StringLiteral", "strlit", [TypedAttrInt
   let parameters = (ins StringRefParameter<"">:$value, AttributeSelfTypeParameter<"">:$type);
 
   let builders = [
-    AttrBuilderWithInferredContext<(ins "const llvm::Twine &":$value, "Type":$type), [{
+    AttrBuilderWithInferredContext<(ins "Type":$type, "const llvm::Twine &":$value), [{
       llvm::SmallVector<char, 32> tempStr;
       return Base::get(type.getContext(), escapeString(value.toStringRef(tempStr)), type);
     }]>
