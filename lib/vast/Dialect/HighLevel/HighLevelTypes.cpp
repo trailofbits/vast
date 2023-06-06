@@ -28,7 +28,7 @@ namespace vast::hl
 
     Type getBottomTypedefType(TypedefType def, vast_module mod) {
         auto type = getTypedefType(def, mod);
-        if (auto ty = type.dyn_cast< TypedefType >()) {
+        if (auto ty = strip_elaborated(type).dyn_cast< TypedefType >()) {
             return getBottomTypedefType(ty, mod);
         }
         return type;
