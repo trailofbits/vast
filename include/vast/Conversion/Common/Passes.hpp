@@ -125,8 +125,6 @@ namespace vast {
 
         void run_on_operation() {
             auto &ctx   = getContext();
-            auto target = derived_t::create_conversion_target(ctx);
-
             auto config = config_t { rewrite_pattern_set(&ctx),
                                      derived_t::create_conversion_target(ctx) };
 
