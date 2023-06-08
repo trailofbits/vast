@@ -74,6 +74,16 @@ namespace vast {
         using base::base;
     };
 
+    struct generic_conversion_pattern : mlir::ConversionPattern
+    {
+        using base = mlir::ConversionPattern;
+
+        generic_conversion_pattern(mlir::TypeConverter &tc,
+                                   mcontext_t &mctx)
+            : base(tc, mlir::Pattern::MatchAnyOpTypeTag{}, 1, &mctx)
+        {}
+    };
+
     template< typename op_t >
     struct operation_conversion_pattern
         : mlir_pattern_mixin< operation_conversion_pattern< op_t > >
