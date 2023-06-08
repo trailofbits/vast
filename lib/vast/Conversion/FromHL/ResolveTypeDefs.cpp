@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Transforms/DialectConversion.h>
 #include <mlir/Rewrite/FrozenRewritePatternSet.h>
 #include <mlir/Transforms/GreedyPatternRewriteDriver.h>
+#include <mlir/Transforms/DialectConversion.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Conversion/Common/Passes.hpp"
@@ -16,6 +17,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DialectConversion.hpp"
+#include "vast/Util/TypeUtils.hpp"
 
 #include "vast/Conversion/Common/Rewriter.hpp"
 
@@ -29,92 +31,181 @@ namespace vast::conv
     {
         using type_map = std::map< mlir_type, mlir_type >;
 
-        struct typedef_resolver
+        namespace pattern
         {
-            vast_module mod;
-
-            mlir_type nested_type(mlir_type type)
+            struct type_converter : mlir::TypeConverter,
+                                    util::TCHelpers< type_converter >
             {
-                return hl::getBottomTypedefType(type, mod);
-            }
+                using maybe_type = std::optional< mlir_type >;
 
-            auto get_mapper()
-            {
-                return [=](hl::ElaboratedType type) -> std::optional< mlir_type >
+                mcontext_t &mctx;
+                vast_module mod;
+
+                type_converter(mcontext_t &mctx, vast_module mod)
+                    : mlir::TypeConverter(),
+                      mctx(mctx),
+                      mod(mod)
                 {
-                    return { nested_type(type) };
-                };
-            }
-
-            auto do_conversion(mlir_type type)
-            {
-                if (auto subelements = mlir::dyn_cast< mlir::SubElementTypeInterface >(type))
-                {
-                    return subelements.replaceSubElements(get_mapper());
+                    addConversion([&](mlir_type t)
+                    {
+                        return this->convert(t);
+                    });
+                    addConversion([&](mlir::SubElementTypeInterface t)
+                    {
+                        return this->convert(t);
+                    });
                 }
-                return nested_type(type);
-            }
 
-            void fixup_entry_block(mlir::Block *block)
-            {
-                for (std::size_t i = 0; i < block->getNumArguments(); ++i)
+                maybe_types_t do_conversion(mlir_type type)
                 {
-                    auto arg = block->getArgument(i);
-                    arg.setType(do_conversion(arg.getType()));
+                    types_t out;
+                    if (mlir::succeeded(this->convertTypes(type, out)))
+                        return { std::move(out) };
+                    return {};
                 }
-            }
 
-            auto get_process()
+                // TODO(conv): This may need to be precomputed instead.
+                maybe_type nested_type(mlir_type type)
+                {
+                    return hl::getBottomTypedefType(type, mod);
+                }
+
+                maybe_type convert(mlir_type type)
+                {
+                    return nested_type(type);
+                }
+
+                maybe_type convert(mlir::SubElementTypeInterface with_subelements)
+                {
+                    auto replacer = [&](hl::ElaboratedType elaborated)
+                    {
+                        return nested_type( elaborated );
+                    };
+                    return with_subelements.replaceSubElements(replacer);
+                }
+            };
+
+            struct resolve_typedef : generic_conversion_pattern
             {
-                return [=](mlir::Operation *nested)
+                using base = generic_conversion_pattern;
+                using base::base;
+
+                type_converter &tc;
+
+                resolve_typedef(type_converter &tc, mcontext_t &mctx)
+                    : base(tc, mctx),
+                      tc(tc)
+                {}
+
+
+                logical_result rewrite(hl::FuncOp fn,
+                                       mlir::ArrayRef< mlir::Value > ops,
+                                       mlir::ConversionPatternRewriter &rewriter) const
+                {
+                    auto trg = tc.convert_type_to_type(fn.getFunctionType());
+                    VAST_PATTERN_CHECK(trg, "Failed type conversion of, {0}", fn);
+
+                    auto change = [&]()
+                    {
+                        fn.setType(*trg);
+                        if (fn->getNumRegions() != 0)
+                            fixup_entry_block(&*fn->getRegions().begin()->begin());
+                        // TODO(conv): Not yet sure how to ideally propagate this.
+                        std::ignore = fix_attrs(fn.getOperation());
+                    };
+
+                    rewriter.updateRootInPlace(fn, change);
+                    return mlir::success();
+                }
+
+                logical_result matchAndRewrite(
+                        mlir::Operation *op,
+                        mlir::ArrayRef< mlir::Value > ops,
+                        mlir::ConversionPatternRewriter &rewriter) const override
                 {
                     // Special case for functions, it may be that we can unify it with
                     // the generic one.
-                    if (auto fn = mlir::dyn_cast< hl::FuncOp >(nested))
+                    if (auto fn = mlir::dyn_cast< hl::FuncOp >(op))
+                        return rewrite(fn, ops, rewriter);
+
+                    auto new_rtys = tc.convert_types_to_types(op->getResultTypes());
+                    VAST_PATTERN_CHECK(new_rtys, "Type conversion failed in op {0}", *op);
+
+                    auto do_change = [&]()
                     {
-                        auto type = fn.getFunctionType();
-                        fn.setType(do_conversion(type));
-                        if (nested->getNumRegions() != 0)
-                            fixup_entry_block(&*nested->getRegions().begin()->begin());
+                        for (std::size_t i = 0; i < new_rtys->size(); ++i)
+                            op->getResult(i).setType((*new_rtys)[i]);
 
-                        return;
-                    }
+                        if (op->getNumRegions() != 0)
+                            fixup_entry_block(&*op->getRegions().begin()->begin());
 
-                    // Generic conversion of only result types.
-                    std::vector< mlir_type > new_types;
-                    for (auto res : nested->getResultTypes())
+                        // TODO(conv): Not yet sure how to ideally propagate this.
+                        std::ignore = fix_attrs(op);
+                    };
+
+                    rewriter.updateRootInPlace(op, do_change);
+
+                    return mlir::success();
+                }
+
+                void fixup_entry_block(mlir::Block *block) const
+                {
+                    for (std::size_t i = 0; i < block->getNumArguments(); ++i)
                     {
-                        auto trg_type = do_conversion(res);
-                        new_types.push_back(trg_type);
+                        auto arg = block->getArgument(i);
+                        auto trg = tc.convert_type_to_type(arg.getType());
+                        VAST_PATTERN_CHECK(trg, "Type conversion failed: {0}", arg);
+                        arg.setType(*trg);
                     }
+                }
 
+                logical_result fix_attrs(mlir::Operation *op) const
+                {
+                    return util::AttributeConverter(*op->getContext(), tc).convert(op);
+                }
+            };
 
+            using all = util::make_list< resolve_typedef >;
 
-                    if (nested->getNumRegions() != 0)
-                        fixup_entry_block(&*nested->getRegions().begin()->begin());
-
-                    for (std::size_t i = 0; i < new_types.size(); ++i)
-                        nested->getResult(i).setType(new_types[i]);
-                };
-            }
-
-            void run(mlir::Operation *op)
-            {
-                op->walk(get_process());
-            }
-        };
-
+        } // namespace pattern
     } // namespace
 
-    struct ResolveTypeDefs : ResolveTypeDefsBase< ResolveTypeDefs >
+    struct ResolveTypeDefs : ModuleConversionPassMixin< ResolveTypeDefs, ResolveTypeDefsBase >
     {
-        using base = ResolveTypeDefsBase< ResolveTypeDefsBase >;
+        using base = ModuleConversionPassMixin< ResolveTypeDefs, ResolveTypeDefsBase >;
+        using config_t = typename base::config_t;
+
+        static auto create_conversion_target(mcontext_t &mctx)
+        {
+            mlir::ConversionTarget trg(mctx);
+
+            auto is_legal = [](operation op)
+            {
+                return !has_type_somewhere< hl::TypedefType >(op) ||
+                       mlir::isa< hl::TypeDefOp >(op);
+            };
+
+            trg.markUnknownOpDynamicallyLegal(is_legal);
+            return trg;
+        }
 
         void runOnOperation() override
         {
-            auto op = this->getOperation();
-            typedef_resolver{ op }.run(op.getOperation());
+            auto &mctx = getContext();
+            auto target = create_conversion_target(mctx);
+            vast_module op = getOperation();
 
+            rewrite_pattern_set patterns(&mctx);
+
+            auto tc = pattern::type_converter(mctx, op);
+            patterns.template add< pattern::resolve_typedef >(tc, mctx);
+
+            if (mlir::failed(mlir::applyPartialConversion(op,
+                                                          target,
+                                                          std::move(patterns))))
+            {
+                return signalPassFailure();
+            }
         }
 
     };
