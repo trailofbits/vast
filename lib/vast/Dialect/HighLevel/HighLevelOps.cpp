@@ -8,7 +8,7 @@
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Region.hpp"
-#include "vast/Util/TypeTraits.hpp"
+#include "vast/Util/TypeUtils.hpp"
 
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
