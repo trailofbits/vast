@@ -410,9 +410,10 @@ namespace vast::hl
         using Base::Base;
 
 
+        template< typename T >
         auto get_type_attr_conversion() const
         {
-            return [=](mlir::TypedAttr attr) -> std::optional< mlir::Attribute >
+            return [=](T attr) -> std::optional< mlir::Attribute >
             {
                 auto converted = getAttrConverter().convertAttr(attr);
                 return (converted) ? converted : attr;
@@ -438,7 +439,10 @@ namespace vast::hl
                     op->getResult(i).setType(rty[i]);
                 // Return types can be encoded as attrs.
                 auto attrs = op->getAttrDictionary();
-                auto nattrs = attrs.replaceSubElements(get_type_attr_conversion());
+                auto nattrs = attrs.replaceSubElements(
+                        get_type_attr_conversion< mlir::TypeAttr >(),
+                        get_type_attr_conversion< mlir::TypedAttr >()
+                );
                 op->setAttrs(nattrs.dyn_cast< mlir::DictionaryAttr >());
             };
             // It has to be done in one "transaction".
