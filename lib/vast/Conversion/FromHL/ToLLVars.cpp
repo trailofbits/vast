@@ -20,7 +20,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/LLVMTypeConverter.hpp"
 #include "vast/Util/Symbols.hpp"
 
-namespace vast::hl
+namespace vast
 {
     namespace pattern
     {
@@ -121,10 +121,10 @@ namespace vast::hl
                 return signalPassFailure();
         }
     };
-}
+} // namespace vast
 
 
-std::unique_ptr< mlir::Pass > vast::hl::createHLToLLVarsPass()
+std::unique_ptr< mlir::Pass > vast::createHLToLLVarsPass()
 {
-    return std::make_unique< vast::hl::HLToLLVarsPass >();
+    return std::make_unique< vast::HLToLLVarsPass >();
 }

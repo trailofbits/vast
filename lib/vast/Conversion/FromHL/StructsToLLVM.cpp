@@ -25,7 +25,7 @@ VAST_UNRELAX_WARNINGS
 
 #include <unordered_map>
 
-namespace vast::hl
+namespace vast
 {
 
     namespace pattern
@@ -152,9 +152,9 @@ namespace vast::hl
         }
     };
 
-} // namespace vast::hl
+} // namespace vast
 
-std::unique_ptr< mlir::Pass > vast::hl::createHLStructsToLLVMPass()
+std::unique_ptr< mlir::Pass > vast::createHLStructsToLLVMPass()
 {
     return std::make_unique< HLStructsToLLVMPass >();
 }
