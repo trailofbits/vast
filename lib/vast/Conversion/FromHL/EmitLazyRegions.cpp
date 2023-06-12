@@ -25,7 +25,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Terminator.hpp"
 #include "vast/Util/Region.hpp"
 
-namespace vast::hl
+namespace vast
 {
     using conversion_rewriter = mlir::ConversionPatternRewriter;
 
@@ -149,4 +149,4 @@ namespace vast::hl
         return std::make_unique< HLEmitLazyRegionsPass >();
     }
 
-} // namespace vast::hl
+} // namespace vast

@@ -16,21 +16,9 @@ namespace vast::hl
 {
     std::unique_ptr< mlir::Pass > createHLLowerTypesPass();
 
-    std::unique_ptr< mlir::Pass > createHLStructsToTuplesPass();
-
-    std::unique_ptr< mlir::Pass > createHLStructsToLLVMPass();
-
-    std::unique_ptr< mlir::Pass > createHLLowerEnumsPass();
-
     std::unique_ptr< mlir::Pass > createLLVMDumpPass();
 
     std::unique_ptr< mlir::Pass > createExportFnInfoPass();
-
-    std::unique_ptr< mlir::Pass > createHLToLLGEPsPass();
-
-    std::unique_ptr< mlir::Pass > createHLToLLVarsPass();
-
-    std::unique_ptr< mlir::Pass > createHLEmitLazyRegionsPass();
 
     std::unique_ptr< mlir::Pass > createDCEPass();
 

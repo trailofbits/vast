@@ -3,6 +3,10 @@
 add_library(vast_conversion_from_hl
     ToLLCF.cpp
     ToFunc.cpp
+    EmitLazyRegions.cpp
+    StructsToLLVM.cpp
+    ToLLGEPs.cpp
+    ToLLVars.cpp
 )
 
 target_link_libraries(vast_conversion_from_hl

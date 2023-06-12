@@ -105,4 +105,44 @@ def LowerABI : Pass<"vast-lower-abi", "mlir::ModuleOp"> {
                            "vast::hl::HighLevelDialect", "vast::abi::ABIDialect"];
 }
 
+def HLToLLGEPs : Pass<"vast-hl-to-ll-geps", "mlir::ModuleOp"> {
+  let summary = "Convert hl.member to ll.gep";
+  let description = [{
+    This pass is still a work in progress.
+  }];
+
+  let constructor = "vast::createHLToLLGEPsPass()";
+  let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::ll::LowLevelDialect"];
+}
+
+def HLToLLVars : Pass<"vast-hl-to-ll-vars", "mlir::ModuleOp"> {
+  let summary = "Convert hl variables into ll versions.";
+  let description = [{
+    This pass is still a work in progress.
+  }];
+
+  let constructor = "vast::createHLToLLVarsPass()";
+  let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::ll::LowLevelDialect"];
+}
+
+def HLStructsToLLVM : Pass<"vast-hl-structs-to-llvm", "mlir::ModuleOp"> {
+  let summary = "Transform hl.struct into llvm types without applying ABI conversions.";
+  let description = [{
+    This pass is still a work in progress.
+  }];
+
+  let constructor = "vast::createHLStructsToLLVMPass()";
+  let dependentDialects = ["mlir::LLVM::LLVMDialect"];
+}
+
+def HLEmitLazyRegions : Pass<"vast-hl-to-lazy-regions", "mlir::ModuleOp"> {
+  let summary = "Transform hl operations that have short-circuiting into lazy operations.";
+  let description = [{
+    This pass is still a work in progress.
+  }];
+
+  let constructor = "vast::createHLEmitLazyRegionsPass()";
+  let dependentDialects = ["vast::core::CoreDialect"];
+}
+
 #endif // VAST_CONVERSION_PASSES_TD

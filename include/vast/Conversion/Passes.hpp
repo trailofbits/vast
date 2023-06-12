@@ -30,17 +30,29 @@ namespace vast
         } // namespace pdll
     #endif
 
+    // Common
     std::unique_ptr< mlir::Pass > createIRsToLLVMPass();
 
+    // Core
     std::unique_ptr< mlir::Pass > createCoreToLLVMPass();
 
+    // ABI
+    std::unique_ptr< mlir::Pass > createABIfyPass();
+
+    std::unique_ptr< mlir::Pass > createLowerABIPass();
+
+    // FromHL
     std::unique_ptr< mlir::Pass > createHLFuncToFuncPass();
 
     std::unique_ptr< mlir::Pass > createHLToLLCFPass();
 
-    std::unique_ptr< mlir::Pass > createABIfyPass();
+    std::unique_ptr< mlir::Pass > createHLToLLGEPsPass();
 
-    std::unique_ptr< mlir::Pass > createLowerABIPass();
+    std::unique_ptr< mlir::Pass > createHLToLLVarsPass();
+
+    std::unique_ptr< mlir::Pass > createHLStructsToLLVMPass();
+
+    std::unique_ptr< mlir::Pass > createHLEmitLazyRegionsPass();
 
     // Generate the code for registering passes.
     #define GEN_PASS_REGISTRATION

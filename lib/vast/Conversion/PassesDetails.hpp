@@ -15,6 +15,10 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/LowLevel/LowLevelDialect.hpp"
+#include "vast/Dialect/Core/CoreDialect.hpp"
+#include "vast/Dialect/ABI/ABIDialect.hpp"
+
+#include "vast/Conversion/Passes.hpp"
 
 namespace vast
 {

@@ -635,81 +635,9 @@ namespace vast::hl
             return *this;
         }
     };
-
-    template< typename Pass >
-    struct PassUtils : Pass
-    {
-        const mlir::DataLayout &get_data_layout()
-        {
-            const auto &dl_analysis = this->template getAnalysis< mlir::DataLayoutAnalysis >();
-            return dl_analysis.getAtOrAbove(this->getOperation());
-        }
-
-        TypeConverter make_type_converter()
-        {
-            return TypeConverter(get_data_layout(), this->getContext());
-        }
-    };
-
-    struct HLStructsToTuplesPass : HLStructsToTuplesBase< HLStructsToTuplesPass >
-    {
-        void runOnOperation() override
-        {
-            auto op = this->getOperation();
-            auto &mctx = this->getContext();
-
-            // TODO(lukas): Simply inherit and overload to accept everything but that one op.
-            // TODO(lukas): Will probably need to emit extracts as well.
-            mlir::ConversionTarget trg(mctx);
-            trg.addIllegalOp< hl::StructDeclOp >();
-            trg.addLegalOp< hl::TypeDefOp >();
-
-            mlir::RewritePatternSet patterns(&mctx);
-            const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
-            TypeConverter type_converter(dl_analysis.getAtOrAbove(op), mctx);
-
-            patterns.add< LowerStructDeclOp >(type_converter, patterns.getContext());
-            if (mlir::failed(mlir::applyPartialConversion(
-                             op, trg, std::move(patterns))))
-            {
-                return signalPassFailure();
-            }
-        }
-    };
-
-    struct HLLowerEnumsPass : PassUtils< HLLowerEnumsBase< HLLowerEnumsPass > >
-    {
-        void runOnOperation() override
-        {
-            auto op = this->getOperation();
-            auto &mctx = this->getContext();
-
-            mlir::RewritePatternSet patterns(&mctx);
-
-            auto trg = ConversionTargetBuilder(mctx)
-                .unkown_as_legal()
-                .illegal< hl::EnumDeclOp >()
-                .take();
-
-            auto tc = this->make_type_converter();
-
-            if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
-                return signalPassFailure();
-        }
-    };
-}
-
-std::unique_ptr< mlir::Pass > vast::hl::createHLLowerEnumsPass()
-{
-    return std::make_unique< HLLowerEnumsPass >();
-}
+} // namespace vast
 
 std::unique_ptr< mlir::Pass > vast::hl::createHLLowerTypesPass()
 {
     return std::make_unique< HLLowerTypesPass >();
-}
-
-std::unique_ptr< mlir::Pass > vast::hl::createHLStructsToTuplesPass()
-{
-    return std::make_unique< HLStructsToTuplesPass >();
 }

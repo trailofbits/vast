@@ -17,7 +17,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Symbols.hpp"
 #include "vast/Util/DialectConversion.hpp"
 
-namespace vast::hl
+namespace vast
 {
     namespace pattern
     {
@@ -29,9 +29,9 @@ namespace vast::hl
         {
             using util::State< hl::RecordMemberOp >::State;
 
-            std::optional< StructDeclOp > get_def(auto op, hl::RecordType named_type) const
+            std::optional< hl::StructDeclOp > get_def(auto op, hl::RecordType named_type) const
             {
-                std::optional< StructDeclOp > out;
+                std::optional< hl::StructDeclOp > out;
                 auto yield = [&](auto candidate)
                 {
                     auto op = candidate.getOperation();
@@ -135,10 +135,10 @@ namespace vast::hl
                 return signalPassFailure();
         }
     };
-}
+} // namespace vast
 
 
-std::unique_ptr< mlir::Pass > vast::hl::createHLToLLGEPsPass()
+std::unique_ptr< mlir::Pass > vast::createHLToLLGEPsPass()
 {
-    return std::make_unique< vast::hl::HLToLLGEPsPass >();
+    return std::make_unique< vast::HLToLLGEPsPass >();
 }
