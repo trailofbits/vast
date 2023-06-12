@@ -476,6 +476,7 @@ namespace vast::abi
                     // Missing lo part.
                     VAST_ASSERT( hi == Class::SSE || hi == Class::Integer
                                                   || hi == Class::X87Up );
+                    [[ fallthrough ]];
                 }
 
                 case Class::SSEUp:
