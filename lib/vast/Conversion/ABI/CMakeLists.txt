@@ -1,21 +1,30 @@
 # Copyright (c) 2022-present, Trail of Bits, Inc.
 
-add_mlir_conversion_library(VASTABIConversionPasses
+add_library(vast_conversion_abi STATIC
     EmitABI.cpp
     LowerABI.cpp
-
-    DEPENDS
-        VASTConversionPassIncGen
-
-    LINK_LIBS PUBLIC
-        MLIRLowLevel
-        MLIRHighLevel
-        MLIRIR
-        MLIRPass
-        MLIRTransformUtils
-        MLIRExecutionEngine
-        MLIRLLVMCommonConversion
-        MLIRTargetLLVMIRExport
-        MLIRLLVMToLLVMIRTranslation
-        MLIRToLLVMIRTranslationRegistration
 )
+
+target_link_libraries(vast_conversion_abi
+  PRIVATE
+    MLIRLowLevel
+    MLIRHighLevel
+    MLIRIR
+    MLIRPass
+    MLIRLowLevel
+    MLIRHighLevel
+    MLIRIR
+    MLIRPass
+    MLIRTransformUtils
+    MLIRExecutionEngine
+    MLIRLLVMCommonConversion
+    MLIRTargetLLVMIRExport
+    MLIRLLVMToLLVMIRTranslation
+    MLIRToLLVMIRTranslationRegistration
+
+    vast::settings
+)
+
+add_dependencies(vast_conversion_abi VASTConversionPassIncGen)
+
+add_library(vast::conversion::abi ALIAS vast_conversion_abi)

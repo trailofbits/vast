@@ -243,6 +243,13 @@ if (VAST_INSTALL)
     vast_settings
     vast_translation_api
     vast_codegen
+
+    vast_conversion_all
+    vast_conversion_abi
+    vast_conversion_common
+    vast_conversion_core
+    vast_conversion_from_hl
+
     vast_frontend
     vast_frontend_tool
     vast_target_llvmir

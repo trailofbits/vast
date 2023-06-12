@@ -34,7 +34,8 @@ mk_clang_libs(front_clang_libs clangAST clangFrontend clangSerialization clangTo
 target_link_libraries(vast-front
   PRIVATE
     ${DIALECT_LIBS}
-    ${CONVERSION_LIBS}
+
+    vast::conversion::all
 
     MLIRHighLevel
     MLIRHighLevelTransforms

@@ -12,16 +12,16 @@ target_link_libraries(vast-opt
         ${DIALECT_LIBS}
         ${CONVERSION_LIBS}
 
+        vast::conversion::all
+
         MLIROptLib
         MLIRHighLevel
 
-        vast::settings
-
         clangAST
 
-        vast_abi
+        vast::settings
 )
 
 mlir_check_all_link_libraries(vast-opt)
 
-add_dependencies( vast-opt VASTConversions )
+add_dependencies(vast-opt vast::conversion::all)
