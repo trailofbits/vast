@@ -104,7 +104,7 @@ namespace vast::abi
 
     struct expand : with_target_type
     {
-        static inline const constexpr std::string_view str = "wxpand";
+        static inline const constexpr std::string_view str = "expand";
         using with_target_type::with_target_type;
 
         std::string to_string() const
