@@ -5,6 +5,7 @@ add_library(vast_high_level_transforms STATIC
   HLLowerTypes.cpp
   LLVMDump.cpp
   DCE.cpp
+  ResolveTypeDefs.cpp
 )
 
 target_link_libraries(vast_high_level_transforms
