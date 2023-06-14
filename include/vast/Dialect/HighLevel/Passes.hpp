@@ -22,6 +22,8 @@ namespace vast::hl
 
     std::unique_ptr< mlir::Pass > createDCEPass();
 
+    std::unique_ptr< mlir::Pass > createResolveTypeDefsPass();
+
     void registerHLToLLVMIR(mlir::DialectRegistry &);
     void registerHLToLLVMIR(mlir::MLIRContext &);
 

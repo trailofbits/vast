@@ -54,8 +54,6 @@ namespace vast
 
     std::unique_ptr< mlir::Pass > createHLEmitLazyRegionsPass();
 
-    std::unique_ptr< mlir::Pass > createResolveTypeDefsPass();
-
     // Generate the code for registering passes.
     #define GEN_PASS_REGISTRATION
     #include "vast/Conversion/Passes.h.inc"

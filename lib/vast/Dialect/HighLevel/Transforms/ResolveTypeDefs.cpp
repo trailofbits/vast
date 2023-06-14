@@ -23,9 +23,9 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 
-#include "../PassesDetails.hpp"
+#include "PassesDetails.hpp"
 
-namespace vast::conv
+namespace vast::hl
 {
     namespace
     {
@@ -109,7 +109,7 @@ namespace vast::conv
                     {
                         fn.setType(*trg);
                         if (fn->getNumRegions() != 0)
-                            fixup_entry_block(&*fn->getRegions().begin()->begin());
+                            fixup_entry_block(*fn->getRegions().begin());
                         // TODO(conv): Not yet sure how to ideally propagate this.
                         std::ignore = fix_attrs(fn.getOperation());
                     };
@@ -137,7 +137,7 @@ namespace vast::conv
                             op->getResult(i).setType((*new_rtys)[i]);
 
                         if (op->getNumRegions() != 0)
-                            fixup_entry_block(&*op->getRegions().begin()->begin());
+                            fixup_entry_block(*op->getRegions().begin());
 
                         // TODO(conv): Not yet sure how to ideally propagate this.
                         std::ignore = fix_attrs(op);
@@ -148,11 +148,14 @@ namespace vast::conv
                     return mlir::success();
                 }
 
-                void fixup_entry_block(mlir::Block *block) const
+                void fixup_entry_block(mlir::Region &region) const
                 {
-                    for (std::size_t i = 0; i < block->getNumArguments(); ++i)
+                    if (region.empty())
+                        return;
+                    auto &block = *region.begin();
+                    for (std::size_t i = 0; i < block.getNumArguments(); ++i)
                     {
-                        auto arg = block->getArgument(i);
+                        auto arg = block.getArgument(i);
                         auto trg = tc.convert_type_to_type(arg.getType());
                         VAST_PATTERN_CHECK(trg, "Type conversion failed: {0}", arg);
                         arg.setType(*trg);
@@ -210,9 +213,9 @@ namespace vast::conv
 
     };
 
-} // namespace vast::conv
+} // namespace vast::hl
 
-std::unique_ptr< mlir::Pass > vast::createResolveTypeDefsPass()
+std::unique_ptr< mlir::Pass > vast::hl::createResolveTypeDefsPass()
 {
-    return std::make_unique< vast::conv::ResolveTypeDefs >();
+    return std::make_unique< vast::hl::ResolveTypeDefs >();
 }

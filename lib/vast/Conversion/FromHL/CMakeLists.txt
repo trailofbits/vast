@@ -7,7 +7,6 @@ add_library(vast_conversion_from_hl
     StructsToLLVM.cpp
     ToLLGEPs.cpp
     ToLLVars.cpp
-    ResolveTypeDefs.cpp
 )
 
 target_link_libraries(vast_conversion_from_hl

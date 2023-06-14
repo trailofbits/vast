@@ -145,15 +145,4 @@ def HLEmitLazyRegions : Pass<"vast-hl-to-lazy-regions", "mlir::ModuleOp"> {
   let dependentDialects = ["vast::core::CoreDialect"];
 }
 
-def ResolveTypeDefs : Pass<"vast-hl-resolve-typedefs", "mlir::ModuleOp"> {
-  let summary = "Remove `hl::TypeDef type from types.";
-  let description = [{
-    Resolve typedefs types - this is usefull for more low-level analysis
-    or transformations.
-  }];
-
-  let constructor = "vast::createResolveTypeDefsPass()";
-  let dependentDialects = ["vast::hl::HighLevelDialect"];
-}
-
 #endif // VAST_CONVERSION_PASSES_TD
