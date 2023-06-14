@@ -13,6 +13,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/LowLevel/LowLevelDialect.hpp"
 #include "vast/Dialect/Core/CoreDialect.hpp"
 
+#include "vast/Dialect/HighLevel/Passes.hpp"
+
 #include <memory>
 
 namespace vast::hl

@@ -8,7 +8,7 @@ set(VAST_LSP_SERVER_LIBS
   ${CONVERSION_LIBS}
 
   MLIRHighLevel
-  MLIRHighLevelTransforms
+  vast::high_level::transforms
 
   MLIRAnalysis
   MLIRDialect

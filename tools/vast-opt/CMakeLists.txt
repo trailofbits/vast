@@ -12,6 +12,7 @@ target_link_libraries(vast-opt
         ${DIALECT_LIBS}
         ${CONVERSION_LIBS}
 
+        vast::high_level::transforms
         vast::conversion::all
 
         MLIROptLib
