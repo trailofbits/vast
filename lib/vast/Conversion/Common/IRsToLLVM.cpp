@@ -23,12 +23,14 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
 #include "vast/Dialect/Core/CoreOps.hpp"
+#include "vast/Dialect/Core/TypeTraits.hpp"
 
 #include "vast/Util/TypeConverter.hpp"
 #include "vast/Util/LLVMTypeConverter.hpp"
 #include "vast/Util/Symbols.hpp"
 #include "vast/Util/Terminator.hpp"
 #include "vast/Util/TypeList.hpp"
+#include "vast/Util/Common.hpp"
 
 #include "vast/Conversion/Common/Passes.hpp"
 
@@ -608,12 +610,59 @@ namespace vast::conv::irstollvm
         }
     };
 
+    struct logical_not : base_pattern< hl::LNotOp >
+    {
+        using base = base_pattern< hl::LNotOp >;
+        using base::base;
+        using adaptor_t = typename hl::LNotOp::Adaptor;
+        using integer_t = mlir::IntegerType;
+
+        Operation * create_cmp(conversion_rewriter &rewriter, hl::LNotOp &op, Value lhs, Value rhs) const {
+            namespace tt = mlir::TypeTrait;
+
+            auto lhs_type = hl::getBottomTypedefType(lhs.getType(),
+                                                op->getParentOfType< vast::vast_module >());
+            if (lhs_type.template hasTrait< tt::FloatingTypeTrait >()) {
+                auto i1_type = integer_t::get(op.getContext(), 1, integer_t::Signless);
+
+                return rewriter.create< LLVM::FCmpOp >(
+                            op.getLoc(), i1_type,
+                            LLVM::FCmpPredicate::une,
+                            lhs, rhs
+                       );
+            }
+            if (lhs_type.template hasTrait< tt::IntegralTypeTrait >()) {
+                return rewriter.create< LLVM::ICmpOp >(
+                    op.getLoc(),
+                    LLVM::ICmpPredicate::ne,
+                    lhs, rhs
+                );
+            }
+            VAST_UNREACHABLE("Unknwon cmp type.");
+        }
+
+        logical_result matchAndRewrite(hl::LNotOp op, adaptor_t adaptor, conversion_rewriter &rewriter) const override {
+            auto zero = this->constant(rewriter, op.getLoc(), adaptor.getArg().getType(), 0);
+
+            auto cmp = create_cmp(rewriter, op, adaptor.getArg(), zero);
+
+            auto true_i1 = this->iN(rewriter, op.getLoc(), cmp->getResult(0).getType(), 1);
+            auto xor_val = rewriter.create< LLVM::XOrOp >(op.getLoc(), cmp->getResult(0), true_i1);
+
+            auto i32_type = integer_t::get(op.getContext(), 32, integer_t::Signless);
+            rewriter.replaceOpWithNewOp< LLVM::ZExtOp >(op, i32_type, xor_val);
+            return logical_result::success();
+        }
+
+    };
+
     using unary_in_place_conversions = util::type_list<
         unary_in_place< hl::PreIncOp,  LLVM::AddOp, prefix_tag  >,
         unary_in_place< hl::PostIncOp, LLVM::AddOp, postfix_tag >,
 
         unary_in_place< hl::PreDecOp,  LLVM::SubOp, prefix_tag  >,
-        unary_in_place< hl::PostDecOp, LLVM::SubOp, postfix_tag >
+        unary_in_place< hl::PostDecOp, LLVM::SubOp, postfix_tag >,
+        logical_not
     >;
 
     struct cmp : base_pattern< hl::CmpOp >
