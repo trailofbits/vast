@@ -29,6 +29,8 @@ def LongTypeTrait     : NativeTypeTrait< "LongTypeTrait" >;
 def LongLongTypeTrait : NativeTypeTrait< "LongLongTypeTrait" >;
 def Int128TypeTrait   : NativeTypeTrait< "Int128TypeTrait" >;
 
+def FloatingTypeTrait : NativeTypeTrait< "FloatingTypeTrait" >;
+
 def PointerTypeTrait  : NativeTypeTrait< "PointerTypeTrait" >;
 
 def TypedefTrait      : NativeTypeTrait< "TypedefTrait" >;

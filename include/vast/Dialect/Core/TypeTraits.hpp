@@ -18,6 +18,8 @@ CORE_TRAIT(LongTypeTrait);
 CORE_TRAIT(LongLongTypeTrait);
 CORE_TRAIT(Int128TypeTrait);
 
+CORE_TRAIT(FloatingTypeTrait);
+
 CORE_TRAIT(PointerTypeTrait);
 
 CORE_TRAIT(TypedefTrait);
