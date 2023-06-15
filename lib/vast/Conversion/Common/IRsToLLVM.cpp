@@ -618,11 +618,9 @@ namespace vast::conv::irstollvm
         using integer_t = mlir::IntegerType;
 
         Operation * create_cmp(conversion_rewriter &rewriter, hl::LNotOp &op, Value lhs, Value rhs) const {
-            namespace tt = mlir::TypeTrait;
+            auto lhs_type = lhs.getType();
 
-            auto lhs_type = hl::getBottomTypedefType(lhs.getType(),
-                                                op->getParentOfType< vast::vast_module >());
-            if (lhs_type.template hasTrait< tt::FloatingTypeTrait >()) {
+            if (llvm::isa< mlir::FloatType >(lhs_type)) {
                 auto i1_type = integer_t::get(op.getContext(), 1, integer_t::Signless);
 
                 return rewriter.create< LLVM::FCmpOp >(
@@ -631,7 +629,8 @@ namespace vast::conv::irstollvm
                             lhs, rhs
                        );
             }
-            if (lhs_type.template hasTrait< tt::IntegralTypeTrait >()) {
+
+            if (llvm::isa< mlir::IntegerType >(lhs_type)) {
                 return rewriter.create< LLVM::ICmpOp >(
                     op.getLoc(),
                     LLVM::ICmpPredicate::ne,
