@@ -323,7 +323,7 @@ def IntOrBoolType : TypeConstraint<
 // Floating point types & traits
 //
 class FloatingType< string name, string mnem, list<Trait> traits = []>
-  : CVQualifiedType< name, mnem, (ins), traits >
+  : CVQualifiedType< name, mnem, (ins), !listconcat(traits, [FloatingTypeTrait]) >
 {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
