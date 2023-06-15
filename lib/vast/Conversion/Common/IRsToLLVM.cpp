@@ -380,7 +380,7 @@ namespace vast::conv::irstollvm
                                                               *trg_type,
                                                               ops.getOperands()[0]);
                 rewriter.replaceOp(op, {loaded});
-                return mlir::success();
+                return logical_result::success();
             }
             if (op.getKind() == hl::CastKind::IntegralCast)
             {
@@ -390,9 +390,23 @@ namespace vast::conv::irstollvm
                         ops.getOperands()[0], *trg_type,
                         rewriter, op.getLoc(), dl);
                 rewriter.replaceOp(op, {coerced});
-                return mlir::success();
+                return logical_result::success();
             }
-            return mlir::failure();
+            if (op.getKind() == hl::CastKind::IntegralToFloating)
+            {
+                llvm::errs() << ops.getValue().getType() << "\n";
+                if (op.getOperand().getType().isUnsignedInteger())
+                {
+                    rewriter.replaceOpWithNewOp< LLVM::UIToFPOp >(op, *trg_type, ops.getValue());
+                    return logical_result::success();
+                }
+                if (op.getOperand().getType().isSignedInteger())
+                {
+                    rewriter.replaceOpWithNewOp< LLVM::SIToFPOp >(op, *trg_type, ops.getValue());
+                    return logical_result::success();
+                }
+            }
+            return logical_result::failure();
         }
     };
 
