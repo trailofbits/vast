@@ -396,7 +396,6 @@ namespace vast::conv::irstollvm
             }
             if (op.getKind() == hl::CastKind::IntegralToFloating)
             {
-                llvm::errs() << ops.getValue().getType() << "\n";
                 if (op.getOperand().getType().isUnsignedInteger())
                 {
                     rewriter.replaceOpWithNewOp< LLVM::UIToFPOp >(op, *trg_type, ops.getValue());
