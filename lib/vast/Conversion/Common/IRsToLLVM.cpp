@@ -647,8 +647,10 @@ namespace vast::conv::irstollvm
             auto true_i1 = this->iN(rewriter, op.getLoc(), cmp->getResult(0).getType(), 1);
             auto xor_val = rewriter.create< LLVM::XOrOp >(op.getLoc(), cmp->getResult(0), true_i1);
 
-            auto i32_type = integer_t::get(op.getContext(), 32, integer_t::Signless);
-            rewriter.replaceOpWithNewOp< LLVM::ZExtOp >(op, i32_type, xor_val);
+            auto res_type = this->type_converter().convert_type_to_type(op.getResult().getType());
+            if (!res_type)
+                return logical_result::failure();
+            rewriter.replaceOpWithNewOp< LLVM::ZExtOp >(op, *res_type, xor_val);
             return logical_result::success();
         }
 
