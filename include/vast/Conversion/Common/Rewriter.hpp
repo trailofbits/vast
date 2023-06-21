@@ -64,6 +64,9 @@ namespace vast::conv
         }
     };
 
+    template< typename I >
+    rewriter_wrapper_t( I & ) -> rewriter_wrapper_t< I >;
+
     auto guarded( auto &bld, auto &&fn )
     {
         auto g = mlir::OpBuilder::InsertionGuard( bld );
