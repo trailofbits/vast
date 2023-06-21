@@ -84,6 +84,30 @@ namespace vast::conv::irstollvm
         }
     };
 
+    template< typename src_t >
+    struct erase_pattern : base_pattern< src_t >
+    {
+        using base = base_pattern< src_t >;
+        using base::base;
+
+        mlir::LogicalResult matchAndRewrite(
+                    src_t op, typename src_t::Adaptor ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+        {
+            auto trg_type = this->tc.convert_type_to_type(op.getType());
+            VAST_PATTERN_CHECK(trg_type, "Could not convert type, {0}", op);
+
+            auto undef = rewriter.create< mlir::LLVM::UndefOp >(op.getLoc(), *trg_type);
+            rewriter.replaceOp(op, { undef });
+            return mlir::success();
+        }
+
+        static void legalize(auto &trg)
+        {
+            trg.template addIllegalOp< src_t >();
+        }
+    };
+
     template< typename Op >
     bool has_llvm_only_types(Op op)
     {
