@@ -46,7 +46,7 @@ class HasBody< string mnemonic >
     : ABI_Op< mnemonic >
     , Results<(outs Variadic<AnyType>:$results)>
 {
-    let regions = (region AnyRegion:$body);
+    let regions = (region SizedRegion< 1 >:$body);
 
     let skipDefaultBuilders = 1;
     let builders = [
