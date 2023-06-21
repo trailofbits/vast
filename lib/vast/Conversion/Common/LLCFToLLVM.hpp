@@ -118,9 +118,11 @@ namespace vast::conv::irstollvm::ll_cf
             }
 
             auto op_entry_block = &*op.getBody().begin();
+            rewriter.setInsertionPointToEnd(head_block);
+            rewriter.create< mlir::LLVM::BrOp >(op.getLoc(), std::vector< mlir::Value >{},
+                                                op_entry_block);
             inline_region_blocks(rewriter, op.getBody(), mlir::Region::iterator(tail_block));
 
-            rewriter.mergeBlocks(op_entry_block, head_block, std::nullopt);
             rewriter.eraseOp(op);
             return mlir::success();
         }
