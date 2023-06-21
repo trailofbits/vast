@@ -246,7 +246,7 @@ class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
     , Arguments<(ins StrAttr:$name)>
 {
   // TODO(Heno): add region constraints
-  let regions = (region AnyRegion:$fields);
+  let regions = (region SizedRegion< 1 >:$fields);
 
   let skipDefaultBuilders = 1;
   let builders = [
