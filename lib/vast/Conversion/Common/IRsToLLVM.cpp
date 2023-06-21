@@ -43,6 +43,10 @@ namespace vast::conv::irstollvm
         ignore_pattern< hl::DeclRefOp >
     >;
 
+    using erase_patterns = util::type_list<
+        erase_pattern< hl::LabelDeclOp >
+    >;
+
     template< typename Op >
     struct inline_region_from_op : base_pattern< Op >
     {
@@ -63,11 +67,75 @@ namespace vast::conv::irstollvm
             rewriter.eraseOp(unit_op);
             return mlir::success();
         }
+
     };
 
+    // TODO(conv): Finish and properly test.
+    struct label_stmt : base_pattern< hl::LabelStmt >
+    {
+        using Op = hl::LabelStmt;
+        using base = base_pattern< Op >;
+        using base::base;
+
+        mlir::LogicalResult matchAndRewrite(
+                Op unit_op, typename Op::Adaptor ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
+        {
+            auto parent = unit_op.getBody().getParentRegion();
+            rewriter.inlineRegionBefore(unit_op.getBody(), *parent, parent->end());
+
+            // splice newly created translation unit block in the module
+            auto &unit_block = parent->back();
+            rewriter.mergeBlocks(&parent->front(), &unit_block, ops.getOperands());
+
+            rewriter.eraseOp(unit_op);
+            return mlir::success();
+        }
+
+        // TODO(conv): Turn on once this is completed.
+        static void legalize(auto &trg)
+        {
+            trg.template LegalOp< hl::LabelStmt >();
+        }
+    };
+
+    struct scope_op : base_pattern< hl::ScopeOp >
+    {
+        using Op = hl::ScopeOp;
+        using base = base_pattern< Op >;
+        using base::base;
+
+        mlir::LogicalResult matchAndRewrite(
+                Op op, typename Op::Adaptor ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
+        {
+            auto [head_bb, tail_bb ] = split_at_op(op, rewriter);
+
+            inline_region_blocks(rewriter, op.getBody(), mlir::Region::iterator(tail_bb));
+
+            auto no_vals = std::vector< mlir::Value >{};
+
+            auto op_bb = &*std::next(mlir::Region::iterator(head_bb));
+            rewriter.setInsertionPointToEnd(head_bb);
+            rewriter.create< mlir::LLVM::BrOp >(op.getLoc(), no_vals, op_bb);
+
+            rewriter.setInsertionPointToEnd(op_bb);
+            rewriter.create< mlir::LLVM::BrOp >(op.getLoc(), no_vals, tail_bb);
+
+            rewriter.eraseOp(op);
+            return mlir::success();
+        }
+
+        static void legalize(auto &trg)
+        {
+            trg.template addIllegalOp< hl::ScopeOp >();
+        }
+    };
+
+    // TODO(conv): Figure out if these can be somehow unified.
     using inline_region_from_op_conversions = util::type_list<
         inline_region_from_op< hl::TranslationUnitOp >,
-        inline_region_from_op< hl::ScopeOp >
+        scope_op
     >;
 
     struct subscript : base_pattern< hl::SubscriptOp >
@@ -998,6 +1066,7 @@ namespace vast::conv::irstollvm
                 init_conversions,
                 base_op_conversions,
                 ignore_patterns,
+                erase_patterns,
                 lazy_op_type_conversions,
                 ll_cf::conversions
             >(config);
