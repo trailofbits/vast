@@ -614,15 +614,38 @@ namespace vast::conv::irstollvm
                 return rewriter.create< mlir::LLVM::CallOp >(op.getLoc(), args ...);
             };
 
+            auto coerce_arg = [&](std::size_t idx) -> mlir::Value
+            {
+                auto original_arg = op.getOperands()[idx];
+                auto conv_arg = ops.getOperands()[idx];
+
+                if (auto lvalue = mlir::dyn_cast< hl::LValueType >(original_arg.getType()))
+                {
+                    auto loc = original_arg.getLoc();
+                    auto trg_type = convert(lvalue.getElementType());
+                    // `LvalueType` is really a pointer?
+                    return rewriter.create< mlir::LLVM::LoadOp >(loc, trg_type, conv_arg);
+                }
+                return conv_arg;
+            };
+
+            auto coerced_args = [&]() -> std::vector< mlir::Value >
+            {
+                std::vector< mlir::Value > out;
+                for (std::size_t i = 0; i < ops.getOperands().size(); ++i)
+                    out.push_back(coerce_arg(i));
+                return out;
+            }();
+
             if (rtys->empty() || rtys->front().isa< mlir::LLVM::LLVMVoidType >())
             {
                 // We cannot pass in void type as some internal check inside `mlir::LLVM`
                 // dialect will fire - it would create a value of void type, which is
                 // not allowed.
-                mk_call(std::vector< mlir::Type >{}, op.getCallee(), ops.getOperands());
+                mk_call(std::vector< mlir::Type >{}, op.getCallee(), coerced_args);
                 rewriter.eraseOp(op);
             } else {
-                auto call = mk_call(*rtys, op.getCallee(), ops.getOperands());
+                auto call = mk_call(*rtys, op.getCallee(), coerced_args);
                 rewriter.replaceOp(op, call.getResults());
             }
 
