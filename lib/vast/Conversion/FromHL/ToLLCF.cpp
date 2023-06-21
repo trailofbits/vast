@@ -255,7 +255,6 @@ namespace vast::conv
             {
                 auto bld = rewriter_wrapper_t( rewriter );
 
-                //auto [ head, body, tail ] = extract_as_block( op, rewriter );
                 auto [ original_block, tail_block ] = split_at_op( op, rewriter );
                 VAST_CHECK( original_block && tail_block,
                             "Failed extraction of ifop into block." );
