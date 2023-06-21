@@ -269,6 +269,36 @@ def UnionDeclOp : RecordLikeDeclOp< "union" > {
   let description = [{ VAST record declaration }];
 }
 
+def ClassDeclOp : RecordLikeDeclOp< "class" > {
+  let summary = "VAST C++ class declaration";
+  let description = [{ VAST C++ class declaration }];
+}
+
+def CxxStructDeclOp : RecordLikeDeclOp< "cxxstruct" > {
+  let summary = "VAST C++ struct declaration";
+  let description = [{ VAST C++ struct declaration }];
+}
+
+class AccessSpecLikeOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoTerminator, VastSymbol]) >
+    , Arguments<(ins)>
+{ }
+
+def PublicAccessOp : AccessSpecLikeOp< "public" > {
+  let summary = "VAST C++ public access specification declaration";
+  let description = [{ VAST C++ public access specification declaration }];
+}
+
+def PrivateAccessOp : AccessSpecLikeOp< "private" > {
+  let summary = "VAST C++ private access specification declaration";
+  let description = [{ VAST C++ private access specification declaration }];
+}
+
+def ProtectedAccessOp : AccessSpecLikeOp< "protected" > {
+  let summary = "VAST C++ protected access specification declaration";
+  let description = [{ VAST C++ protected access specification declaration }];
+}
+
 def FieldDeclOp
   : HighLevel_Op< "field", [VastSymbol] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type, OptionalAttr<I32Attr>:$bits)>
