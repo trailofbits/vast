@@ -466,7 +466,22 @@ namespace vast::conv::irstollvm
                     return logical_result::success();
                 }
             }
-            return logical_result::failure();
+
+            if (op.getKind() == hl::CastKind::ArrayToPointerDecay)
+            {
+                auto cast = rewriter.create< mlir::LLVM::BitcastOp >(op.getLoc(),
+                                                                     *trg_type,
+                                                                     ops.getOperands()[0]);
+                rewriter.replaceOp(op, {cast});
+                return mlir::success();
+            }
+
+            if (op.getKind() == hl::CastKind::NoOp)
+            {
+                rewriter.replaceOp(op, { ops.getOperands()[0] });
+                return mlir::success();
+            }
+            return mlir::failure();
         }
     };
 
