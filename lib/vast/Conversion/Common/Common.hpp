@@ -42,6 +42,13 @@ namespace vast::conv::irstollvm
         // Some operations want more fine-grained control, and we really just
         // want to set entire dialects as illegal.
         static void legalize(conversion_target &) {}
+
+        auto convert(mlir::Type t) const -> mlir::Type
+        {
+            auto trg_type = tc.convert_type_to_type(t);
+            VAST_CHECK(trg_type, "Failed to convert type: {0}", t);
+            return *trg_type;
+        }
     };
 
     template< typename src_t, typename trg_t >
