@@ -70,6 +70,29 @@ namespace vast::conv::irstollvm
         inline_region_from_op< hl::ScopeOp >
     >;
 
+    struct subscript : base_pattern< hl::SubscriptOp >
+    {
+        using Op = hl::SubscriptOp;
+        using base = base_pattern< Op >;
+        using base::base;
+
+        mlir::LogicalResult matchAndRewrite(
+                Op op, typename Op::Adaptor ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
+        {
+            auto trg_type = tc.convert_type_to_type(op.getType());
+            VAST_PATTERN_CHECK(trg_type, "Could not convert vardecl type");
+
+            auto gep = rewriter.create< mlir::LLVM::GEPOp >(
+                    op.getLoc(),
+                    *trg_type, ops.getArray(),
+                    ops.getIndex() );
+
+            rewriter.replaceOp(op, { gep });
+            return mlir::success();
+        }
+    };
+
 
     struct uninit_var : base_pattern< ll::UninitializedVar >
     {
@@ -866,6 +889,7 @@ namespace vast::conv::irstollvm
         call,
         cmp,
         deref,
+        subscript,
         propagate_yield< hl::ExprOp, hl::ValueYieldOp >
     >;
 
