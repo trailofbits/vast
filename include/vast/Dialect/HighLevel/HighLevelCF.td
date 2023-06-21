@@ -348,7 +348,7 @@ def HighLevel_LabelStmt
   : ControlFlowOp< "label" >
   , Arguments<(ins LabelType:$label)>
 {
-  let regions = (region SizedRegion<1>:$substmt);
+  let regions = (region SizedRegion<1>:$body);
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -358,7 +358,7 @@ def HighLevel_LabelStmt
     )>
   ];
 
-  let assemblyFormat = [{ $label $substmt attr-dict }];
+  let assemblyFormat = [{ $label $body attr-dict }];
 }
 
 def HighLevel_GotoStmt
