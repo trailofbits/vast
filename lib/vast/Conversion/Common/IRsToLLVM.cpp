@@ -194,7 +194,8 @@ namespace vast::conv::irstollvm
             // Type converter failed.
             if (!maybe_target_type || !*maybe_target_type || !maybe_signature)
             {
-                VAST_PATTERN_FAIL("Failed to convert function type.");
+                VAST_PATTERN_FAIL("Failed to convert function type: {0}",
+                                  func_op.getFunctionType());
             }
 
             auto target_type = *maybe_target_type;
