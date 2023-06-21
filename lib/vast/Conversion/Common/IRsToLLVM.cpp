@@ -282,6 +282,29 @@ namespace vast::conv::irstollvm
         using base = base_pattern< hl::ConstantOp >;
         using base::base;
 
+        static inline constexpr const char *strlit_global_var_prefix = "vast.strlit.constant_";
+
+        std::string next_strlit_name(vast_module mod) const
+        {
+            std::size_t current = 0;
+            for (auto &op : mod.getOps())
+            {
+                auto global = mlir::dyn_cast< mlir::LLVM::GlobalOp >(op);
+                if (!global)
+                    continue;
+
+                auto name = global.getName();
+                if (!name.consume_front(strlit_global_var_prefix))
+                    continue;
+
+                std::size_t idx = 0;
+                name.getAsInteger(10, idx);
+                current = std::max< std::size_t >(idx, current);
+            }
+            return strlit_global_var_prefix + std::to_string(current + 1);
+
+        }
+
         mlir::LogicalResult matchAndRewrite(
                 hl::ConstantOp op, hl::ConstantOp::Adaptor ops,
                 mlir::ConversionPatternRewriter &rewriter) const override
@@ -315,20 +338,55 @@ namespace vast::conv::irstollvm
                 auto coerced = int_attr.getValue().sextOrTrunc(size);
                 return rewriter.getIntegerAttr(*target_type, coerced);
             }
-            // Not implemented yet.
-            return {};
+            VAST_PATTERN_FAIL("Trying to convert attr that is not supported, {0} in op {1}",
+                              attr, op);
         }
 
-        LLVM::ConstantOp make_from(
+        mlir::Value convert_strlit(hl::ConstantOp op, auto rewriter, auto &tc,
+                                   mlir_type target_type, hl::StringLiteralAttr str_lit) const
+        {
+            // We need to include the terminating `0` which will not happen
+            // if we "just" pass the value in.
+            auto twine = llvm::Twine(std::string_view(str_lit.getValue().data(),
+                                                      str_lit.getValue().size() + 1));
+            auto converted_attr = mlir::StringAttr::get(op->getContext(), twine);
+
+            auto ptr_type = mlir::dyn_cast< mlir::LLVM::LLVMPointerType >(target_type);
+
+            auto mod = op->getParentOfType< mlir::ModuleOp >();
+            auto name = next_strlit_name(mod);
+
+            rewriter.guarded([&]()
+            {
+                rewriter->setInsertionPoint(&*mod.begin());
+                rewriter->template create< mlir::LLVM::GlobalOp >(
+                    op.getLoc(),
+                    ptr_type.getElementType(),
+                    true, /* is constant */
+                    LLVM::Linkage::Internal,
+                    name,
+                    converted_attr);
+            });
+
+            return rewriter->template create< mlir::LLVM::AddressOfOp >(op.getLoc(),
+                                                                        target_type,
+                                                                        name);
+        }
+
+
+        mlir::Value make_from(
                 hl::ConstantOp op,
                 mlir::ConversionPatternRewriter &rewriter,
                 auto &&tc) const
         {
-            auto src_ty = op.getType();
-            auto target_ty = tc.convert_type_to_type(src_ty);
+            auto target_type = this->convert(op.getType());
+
+            if (auto str_lit = mlir::dyn_cast< hl::StringLiteralAttr >(op.getValue()))
+                return convert_strlit(op, rewriter_wrapper_t(rewriter), tc,
+                                      target_type, str_lit);
 
             auto attr = convert_attr(op.getValue(), op, rewriter);
-            return rewriter.create< LLVM::ConstantOp >(op.getLoc(), *target_ty, attr);
+            return rewriter.create< LLVM::ConstantOp >(op.getLoc(), target_type, attr);
         }
     };
 
