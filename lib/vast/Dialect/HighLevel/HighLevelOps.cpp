@@ -210,13 +210,21 @@ namespace vast::hl
             InsertionGuard guard(bld);
             build_region(bld, st, fields);
         }
-    } // anamespace detail
+    } // namespace detail
 
     void StructDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
         detail::build_record_like_decl(bld, st, name, fields);
     }
 
     void UnionDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
+        detail::build_record_like_decl(bld, st, name, fields);
+    }
+
+    void CxxStructDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
+        detail::build_record_like_decl(bld, st, name, fields);
+    }
+
+    void ClassDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
         detail::build_record_like_decl(bld, st, name, fields);
     }
 
