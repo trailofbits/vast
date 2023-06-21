@@ -42,6 +42,7 @@ namespace vast::util::tc
         template< typename ... Args >
         LLVMTypeConverter(Args && ... args) : parent_t(std::forward< Args >(args) ... )
         {
+            addConversion([&](hl::LabelType t) { return t; });
             addConversion([&](hl::LValueType t) { return this->convert_lvalue_type(t); });
             addConversion([&](hl::PointerType t) { return this->convert_pointer_type(t); });
             addConversion([&](mlir::MemRefType t) { return this->convert_memref_type(t); });
