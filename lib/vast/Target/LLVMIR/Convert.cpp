@@ -84,11 +84,16 @@ namespace vast::target::llvmir
         // TODO(target:llvmir): This should be refactored out as a pipeline so we
         //                      can run it from command line as well.
         // TODO(target:llvmir): Add missing passes.
-        pm.addPass(hl::createDCEPass());
         pm.addPass(hl::createHLLowerTypesPass());
+        pm.addPass(hl::createDCEPass());
+        pm.addPass(hl::createResolveTypeDefsPass());
         pm.addPass(createHLToLLCFPass());
         pm.addPass(createHLToLLVarsPass());
+        pm.addPass(createHLEmitLazyRegionsPass());
+        pm.addPass(createHLToLLGEPsPass());
+        pm.addPass(createHLStructsToLLVMPass());
         pm.addPass(createIRsToLLVMPass());
+        pm.addPass(createCoreToLLVMPass());
 
         auto run_result = pm.run(op);
 
