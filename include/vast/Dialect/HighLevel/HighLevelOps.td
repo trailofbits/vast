@@ -280,13 +280,13 @@ def CxxStructDeclOp : RecordLikeDeclOp< "cxxstruct" > {
 }
 
 def PublicAccess :
-  I32EnumAttrCase<"PublicAccess", 0, "public">;
+  I32EnumAttrCase<"as_public", 0, "public">;
 def ProtectedAccess :
-  I32EnumAttrCase<"ProtectedAccess", 1, "protected">;
+  I32EnumAttrCase<"as_protected", 1, "protected">;
 def PrivateAccess :
-  I32EnumAttrCase<"PrivateAccess", 2, "private">;
+  I32EnumAttrCase<"as_private", 2, "private">;
 def NoneAccess :
-  I32EnumAttrCase<"NoneAccess", 3, "none">;
+  I32EnumAttrCase<"as_none", 3, "none">;
 
 def AccessSpecifier : I32EnumAttr<
     "AccessSpecifier", "Access specifier",

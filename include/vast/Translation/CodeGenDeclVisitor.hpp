@@ -648,6 +648,20 @@ namespace vast::cg {
         //
         // C++ Record Declaration
         //
+        hl::AccessSpecifier convert_access(clang::AccessSpecifier spec) {
+            switch(spec) {
+                case clang::AccessSpecifier::AS_public:
+                    return hl::AccessSpecifier::as_public;
+                case clang::AccessSpecifier::AS_protected:
+                    return hl::AccessSpecifier::as_protected;
+                case clang::AccessSpecifier::AS_private:
+                    return hl::AccessSpecifier::as_private;
+                case clang::AccessSpecifier::AS_none:
+                    return hl::AccessSpecifier::as_none;
+            }
+            VAST_UNREACHABLE("unknown access specifier");
+        }
+
         template< typename Decl >
         operation make_record_decl(const clang::CXXRecordDecl *decl) {
             auto loc  = meta_location(decl);
@@ -669,7 +683,7 @@ namespace vast::cg {
                     make< hl::CxxBaseSpecifierOp >(
                         loc,
                         visit(base.getType()),
-                        *hl::symbolizeAccessSpecifier(base.getAccessSpecifier()),
+                        convert_access(base.getAccessSpecifier()),
                         base.isVirtual());
                 }
 
@@ -711,7 +725,7 @@ namespace vast::cg {
             auto loc = meta_location(decl);
             return make< hl::AccessSpecifierOp >(
                 loc,
-                *hl::symbolizeAccessSpecifier(decl->getAccess()));
+                convert_access(decl->getAccess()));
         }
 
         operation VisitFieldDecl(const clang::FieldDecl *decl) {
