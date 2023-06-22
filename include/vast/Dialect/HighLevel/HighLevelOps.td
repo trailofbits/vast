@@ -279,19 +279,33 @@ def CxxStructDeclOp : RecordLikeDeclOp< "cxxstruct" > {
   let description = [{ VAST C++ struct declaration }];
 }
 
-class AccessSpecLikeOp< string mnemonic, list< Trait > traits = [] >
-    : HighLevel_Op< mnemonic, !listconcat(traits, [NoTerminator, VastSymbol]) >
-    , Arguments<(ins)>
-{ }
+def PublicAccess :
+  I32EnumAttrCase<"PublicAccess", 0, "public">;
+def ProtectedAccess :
+  I32EnumAttrCase<"ProtectedAccess", 1, "protected">;
+def PrivateAccess :
+  I32EnumAttrCase<"PrivateAccess", 2, "private">;
+def NoneAccess :
+  I32EnumAttrCase<"NoneAccess", 3, "none">;
 
-def PublicAccessOp : AccessSpecLikeOp< "public" > {
-  let summary = "VAST C++ public access specification declaration";
-  let description = [{ VAST C++ public access specification declaration }];
+def AccessSpecifier : I32EnumAttr<
+    "AccessSpecifier", "Access specifier",
+    [
+        PublicAccess, ProtectedAccess,
+        PrivateAccess, NoneAccess
+    ]>
+{
+  let cppNamespace = "::vast::hl";
 }
 
-def PrivateAccessOp : AccessSpecLikeOp< "private" > {
-  let summary = "VAST C++ private access specification declaration";
-  let description = [{ VAST C++ private access specification declaration }];
+def AccessSpecifierOp
+    : HighLevel_Op< "access", [NoTerminator, VastSymbol] >
+    , Arguments<(ins AccessSpecifier:$spec)>
+{
+  let summary = "VAST C++ access specifier declaration";
+  let description = [{ VAST C++ access specifier declaration }];
+
+  let assemblyFormat = [{ attr-dict $spec }];
 }
 
 def ProtectedAccessOp : AccessSpecLikeOp< "protected" > {
