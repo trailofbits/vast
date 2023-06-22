@@ -687,12 +687,6 @@ namespace vast::cg {
             return make< Decl >(loc, name, fields);
         }
 
-        template< typename Decl >
-        operation make_access_spec(const clang::AccessSpecDecl *decl) {
-            auto loc = meta_location(decl);
-            return make< Decl >(loc);
-        }
-
         operation VisitRecordDecl(const clang::RecordDecl *decl) {
             if (decl->isUnion()) {
                 return make_record_decl< hl::UnionDeclOp >(decl);
@@ -710,17 +704,10 @@ namespace vast::cg {
         }
 
         operation VisitAccessSpecDecl(const clang::AccessSpecDecl *decl) {
-            switch (decl->getAccess()) {
-                case clang::AccessSpecifier::AS_public:
-                    return make_access_spec< hl::PublicAccessOp >(decl);
-                case clang::AccessSpecifier::AS_private:
-                    return make_access_spec< hl::PrivateAccessOp >(decl);
-                case clang::AccessSpecifier::AS_protected:
-                    return make_access_spec< hl::ProtectedAccessOp >(decl);
-                default:
-                    VAST_UNREACHABLE("unknown access specifier");
-                    return nullptr;
-            }
+            auto loc = meta_location(decl);
+            return make< hl::AccessSpecifierOp >(
+                loc,
+                *hl::symbolizeAccessSpecifier(decl->getAccess()));
         }
 
         operation VisitFieldDecl(const clang::FieldDecl *decl) {
