@@ -308,9 +308,14 @@ def AccessSpecifierOp
   let assemblyFormat = [{ attr-dict $spec }];
 }
 
-def ProtectedAccessOp : AccessSpecLikeOp< "protected" > {
-  let summary = "VAST C++ protected access specification declaration";
-  let description = [{ VAST C++ protected access specification declaration }];
+def CxxBaseSpecifierOp
+  : HighLevel_Op< "base", [VastSymbol] >
+  , Arguments<(ins TypeAttr:$type, AccessSpecifier:$access, UnitAttr:$is_virtual)>
+{
+  let summary = "VAST base class specifier";
+  let description = [{ VAST base class specifier }];
+
+  let assemblyFormat = [{ $type attr-dict $access (`virtual` $is_virtual^)? }];
 }
 
 def FieldDeclOp
