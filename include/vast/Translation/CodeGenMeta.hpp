@@ -6,6 +6,7 @@
 
 VAST_RELAX_WARNINGS
 #include <clang/AST/ASTContext.h>
+#include <clang/AST/CXXInheritance.h>
 #include <clang/AST/TypeLoc.h>
 #include <clang/Basic/FileEntry.h>
 VAST_UNRELAX_WARNINGS
@@ -78,6 +79,10 @@ namespace vast::cg
             return get(clang::TypeLoc(type, nullptr));
         }
 
+        DefaultMeta get(const clang::CXXBaseSpecifier &spec) const {
+            return get(spec.getBeginLoc());
+        }
+
         acontext_t *actx;
         mcontext_t *mctx;
     };
@@ -103,6 +108,7 @@ namespace vast::cg
         DefaultMeta get(const clang::Expr *expr) const { return get_impl(expr); }
         DefaultMeta get(const clang::Type *type) const { return get_impl(type); }
         DefaultMeta get(clang::QualType type) const { return get_impl(type); }
+        DefaultMeta get(const clang::CXXBaseSpecifier &spec) const { return get_impl(spec); }
 
         mutable meta::identifier_t counter = 0;
 

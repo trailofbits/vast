@@ -663,12 +663,16 @@ namespace vast::cg {
                 });
             }
 
-            // generate record definition
-            if (decl->field_empty()) {
-                return make< Decl >(loc, name);
-            }
-
             auto fields = [&](auto &bld, auto loc) {
+                for (auto &base : decl->bases()) {
+                    auto loc = meta_location(base);
+                    make< hl::CxxBaseSpecifierOp >(
+                        loc,
+                        visit(base.getType()),
+                        *hl::symbolizeAccessSpecifier(base.getAccessSpecifier()),
+                        base.isVirtual());
+                }
+
                 for (auto child: decl->decls()) {
                     if (auto field = clang::dyn_cast< clang::FieldDecl >(child)) {
                         auto field_type = field->getType();
