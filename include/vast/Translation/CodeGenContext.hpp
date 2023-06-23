@@ -72,7 +72,7 @@ namespace vast::cg
         LabelTable labels;
 
         size_t anonymous_count = 0;
-        llvm::DenseMap< const clang::TagDecl *, std::string > tag_names;
+        llvm::DenseMap< const clang::NamedDecl *, std::string > tag_names;
 
         /// Set of global decls for which we already diagnosed mangled name conflict.
         /// Required to not issue a warning (on a mangling conflict) multiple times
@@ -130,7 +130,7 @@ namespace vast::cg
             return "anonymous[" + std::to_string(decl->getID()) + "]";
         }
 
-        std::string get_namespaced_for_decl_name(const clang::TagDecl *decl) {
+        std::string get_namespaced_for_decl_name(const clang::NamedDecl *decl) {
             // gather contexts
             std::vector< const clang::DeclContext * > dctxs;
             for (const auto *dctx = decl->getDeclContext(); dctx; dctx = dctx->getParent()) {
@@ -145,7 +145,7 @@ namespace vast::cg
                 if (llvm::isa< clang::FunctionDecl >(dctx))
                     continue;
 
-                if (const auto *d = llvm::dyn_cast< clang::TagDecl >(dctx)) {
+                if (const auto *d = llvm::dyn_cast< clang::NamedDecl >(dctx)) {
                     name += get_decl_name(d);
                 } else {
                     VAST_UNREACHABLE("unknown decl context: {0}", dctx->getDeclKindName());
@@ -157,11 +157,11 @@ namespace vast::cg
             return name;
         }
 
-        std::string get_namespaced_decl_name(const clang::TagDecl *decl) {
+        std::string get_namespaced_decl_name(const clang::NamedDecl *decl) {
             return get_namespaced_for_decl_name(decl) + get_decl_name(decl);
         }
 
-        llvm::StringRef decl_name(const clang::TagDecl *decl) {
+        llvm::StringRef decl_name(const clang::NamedDecl *decl) {
             if (tag_names.count(decl)) {
                 return tag_names[decl];
             }
