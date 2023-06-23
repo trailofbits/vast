@@ -72,4 +72,14 @@ def ResolveTypeDefs : Pass<"vast-hl-resolve-typedefs", "mlir::ModuleOp"> {
   let dependentDialects = ["vast::hl::HighLevelDialect"];
 }
 
+def SpliceTrailingScopes : Pass<"vast-hl-splice-trailing-scopes", "mlir::ModuleOp"> {
+  let summary = "Remove trailing `hl::Scope`s.";
+  let description = [{
+    Removes trailing scopes.
+  }];
+
+  let constructor = "vast::hl::createSpliceTrailingScopes()";
+  let dependentDialects = ["vast::hl::HighLevelDialect"];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_PASSES_TD
