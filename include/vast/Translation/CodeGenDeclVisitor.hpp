@@ -452,7 +452,7 @@ namespace vast::cg {
                 auto var = this->template make_operation< hl::VarDeclOp >()
                     .bind(meta_location(decl))                                  // location
                     .bind(visit_as_lvalue_type(type))                           // type
-                    .bind(decl->getUnderlyingDecl()->getName())                 // name
+                    .bind(context().decl_name(decl->getUnderlyingDecl()))       // name
                     .bind_region_if(has_init, std::move(initializer))           // initializer
                     .bind_region_if(has_allocator, std::move(array_allocator))  // array allocator
                     .freeze();
@@ -698,6 +698,8 @@ namespace vast::cg {
                         visit(field);
                     } else if (auto access = clang::dyn_cast< clang::AccessSpecDecl >(child)) {
                         visit(access);
+                    } else if (auto var = clang::dyn_cast< clang::VarDecl >(child)) {
+                        visit(var);
                     }
                 }
             };
