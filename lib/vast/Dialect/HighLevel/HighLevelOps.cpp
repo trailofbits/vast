@@ -210,6 +210,14 @@ namespace vast::hl
             InsertionGuard guard(bld);
             build_region(bld, st, fields);
         }
+
+        void build_cxx_record_like_decl(Builder &bld, State &st, llvm::StringRef name, BuilderCallback bases, BuilderCallback fields) {
+            st.addAttribute("name", bld.getStringAttr(name));
+
+            InsertionGuard guard(bld);
+            build_region(bld, st, bases);
+            build_region(bld, st, fields);
+        }
     } // namespace detail
 
     void StructDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
@@ -220,12 +228,12 @@ namespace vast::hl
         detail::build_record_like_decl(bld, st, name, fields);
     }
 
-    void CxxStructDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
-        detail::build_record_like_decl(bld, st, name, fields);
+    void CxxStructDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback bases, BuilderCallback fields) {
+        detail::build_cxx_record_like_decl(bld, st, name, bases, fields);
     }
 
-    void ClassDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
-        detail::build_record_like_decl(bld, st, name, fields);
+    void ClassDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback bases, BuilderCallback fields) {
+        detail::build_cxx_record_like_decl(bld, st, name, bases, fields);
     }
 
     mlir::CallInterfaceCallable CallOp::getCallableForCallee()

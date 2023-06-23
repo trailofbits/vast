@@ -269,12 +269,33 @@ def UnionDeclOp : RecordLikeDeclOp< "union" > {
   let description = [{ VAST record declaration }];
 }
 
-def ClassDeclOp : RecordLikeDeclOp< "class" > {
+class CxxRecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoTerminator, VastSymbol]) >
+    , Arguments<(ins StrAttr:$name)>
+{
+  // TODO(Heno): add region constraints
+  let regions = (region
+      AnyRegion:$bases,
+      AnyRegion:$fields);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "llvm::StringRef":$name,
+       CArg<"BuilderCallback", "std::nullopt">:$bases,
+       CArg<"BuilderCallback", "std::nullopt">:$fields
+    )>
+  ];
+
+  let assemblyFormat = [{ $name attr-dict `:` $bases $fields }];
+}
+
+def ClassDeclOp : CxxRecordLikeDeclOp< "class" > {
   let summary = "VAST C++ class declaration";
   let description = [{ VAST C++ class declaration }];
 }
 
-def CxxStructDeclOp : RecordLikeDeclOp< "cxxstruct" > {
+def CxxStructDeclOp : CxxRecordLikeDeclOp< "cxxstruct" > {
   let summary = "VAST C++ struct declaration";
   let description = [{ VAST C++ struct declaration }];
 }
