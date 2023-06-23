@@ -677,7 +677,7 @@ namespace vast::cg {
                 });
             }
 
-            auto fields = [&](auto &bld, auto loc) {
+            auto bases = [&](auto &bld, auto loc) {
                 for (auto &base : decl->bases()) {
                     auto loc = meta_location(base);
                     make< hl::CxxBaseSpecifierOp >(
@@ -686,7 +686,9 @@ namespace vast::cg {
                         convert_access(base.getAccessSpecifier()),
                         base.isVirtual());
                 }
+            };
 
+            auto fields = [&](auto &bld, auto loc) {
                 for (auto child: decl->decls()) {
                     if (auto field = clang::dyn_cast< clang::FieldDecl >(child)) {
                         auto field_type = field->getType();
@@ -704,7 +706,7 @@ namespace vast::cg {
                 }
             };
 
-            return make< Decl >(loc, name, fields);
+            return make< Decl >(loc, name, bases, fields);
         }
 
         operation VisitRecordDecl(const clang::RecordDecl *decl) {
