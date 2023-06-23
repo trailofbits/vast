@@ -6,6 +6,7 @@ add_library(vast_high_level_transforms STATIC
   LLVMDump.cpp
   DCE.cpp
   ResolveTypeDefs.cpp
+  SpliceTrailingScopes.cpp
 )
 
 target_link_libraries(vast_high_level_transforms
