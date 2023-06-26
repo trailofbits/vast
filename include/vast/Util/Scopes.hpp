@@ -6,21 +6,16 @@
 
 namespace vast
 {
-    bool has_trailing_scope(mlir::Region::BlockListType &blocks) {
-        if (blocks.empty())
+    bool is_trailing_scope(operation op) {
+        if (!mlir::isa< hl::ScopeOp >(op))
             return false;
-        auto &last_block = blocks.back();
-        if (last_block.empty())
-            return false;
-        return mlir::isa< hl::ScopeOp >(last_block.back());
-    }
-
-    bool has_trailing_scope(Region &r) { return has_trailing_scope(r.getBlocks()); }
-
-    bool has_trailing_scope(operation op){
-        for (auto &r : op->getRegions())
-            if (has_trailing_scope(r))
-                return true;
+        if (auto parent = op->getParentRegion()) {
+            if(parent->hasOneBlock()) {
+                auto &block = parent->back();
+                // check if we have only the scope operation in the block
+                return &block.front() == &block.back();
+            }
+        }
         return false;
     }
 } //namespace vast
