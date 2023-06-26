@@ -14,6 +14,15 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg
 {
+    template< typename T >
+    void filter(const auto &decls, auto &&yield) {
+        for ( auto decl : decls) {
+            if (auto s = clang::dyn_cast< T >(decl)) {
+                yield(s);
+            }
+        }
+    }
+
     inline void splice_trailing_scopes(mlir::Region::BlockListType &blocks) {
         auto has_trailing_scope = [&] {
             if (blocks.empty())

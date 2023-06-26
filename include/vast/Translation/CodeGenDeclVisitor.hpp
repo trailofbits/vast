@@ -62,15 +62,6 @@ namespace vast::cg {
             return this->template create< Op >(std::forward< Args >(args)...);
         }
 
-        template< typename T >
-        void filter(const auto &decls, auto &&yield) {
-            for ( auto decl : decls) {
-                if (auto s = clang::dyn_cast< T >(decl)) {
-                    yield(s);
-                }
-            }
-        }
-
         static bool is_defaulted_method(const clang::FunctionDecl *function_decl)  {
             if (function_decl->isDefaulted() && clang::isa< clang::CXXMethodDecl >(function_decl)) {
                 auto method = clang::cast< clang::CXXMethodDecl >(function_decl);
