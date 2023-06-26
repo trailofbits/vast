@@ -280,9 +280,23 @@ namespace vast::cg {
             return get_addr_of_function(decl, fty, deferred_emit_definition);
         }
 
+        clang::GlobalDecl get_gdecl(const clang::FunctionDecl *decl) {
+            return decl;
+        }
+
+        clang::GlobalDecl get_gdecl(const clang::CXXConstructorDecl *decl) {
+            return clang::GlobalDecl(decl, clang::CXXCtorType::Ctor_Complete);
+        }
+
+        clang::GlobalDecl get_gdecl(const clang::CXXDestructorDecl *decl) {
+            return clang::GlobalDecl(decl, clang::CXXDtorType::Dtor_Complete);
+        }
+
         // FIXME: remove as this duplicates logic from codegen driver
-        operation VisitFunctionDecl(const clang::FunctionDecl *decl) {
-            auto mangled = context().get_mangled_name(decl);
+        template< typename Decl >
+        operation VisitFunctionLikeDecl(const Decl *decl) {
+            auto gdecl = get_gdecl(decl);
+            auto mangled = context().get_mangled_name(gdecl);
 
             if (auto fn = context().lookup_function(mangled, false /* emit no error */)) {
                 return fn;
@@ -384,7 +398,7 @@ namespace vast::cg {
 
             llvm::ScopedHashTableScope scope(context().vars);
 
-            auto linkage = hl::get_function_linkage(decl);
+            auto linkage = hl::get_function_linkage(gdecl);
 
             auto fn = context().declare(mangled, [&] () {
                 auto loc  = meta_location(decl);
@@ -407,6 +421,18 @@ namespace vast::cg {
             }
 
             return fn;
+        }
+
+        operation VisitFunctionDecl(const clang::FunctionDecl *decl) {
+            return VisitFunctionLikeDecl(decl);
+        }
+
+        operation VisitCXXConstructorDecl(const clang::CXXConstructorDecl *decl) {
+            return VisitFunctionLikeDecl(decl);
+        }
+
+        operation VisitCXXDestructorDecl(const clang::CXXDestructorDecl *decl) {
+            return VisitFunctionLikeDecl(decl);
         }
 
         //
