@@ -1,4 +1,4 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-to-lazy-regions | FileCheck %s
+// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-splice-trailing-scopes --vast-hl-to-lazy-regions | FileCheck %s
 
 void logic_assign_to_different_type() {
     // CHECK: [[L:%[0-9]+]] = core.lazy.op {
