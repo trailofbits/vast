@@ -1221,6 +1221,18 @@ def StmtExprOp
   }];
 }
 
+def ThisOp
+  : HighLevel_Op< "this", [] >
+  , Results<(outs AnyType:$result)>
+{
+  let summary = "VAST this operator";
+  let description = [{ VAST this operator }];
+
+  let assemblyFormat = [{
+     attr-dict `:` type($result)
+  }];
+}
+
 class IdentKindAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
 class IdentKindList< string name, string summary, list< IdentKindAttr > cases >

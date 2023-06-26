@@ -904,6 +904,11 @@ namespace vast::cg {
             return make< hl::SkipStmt >(meta_location(stmt));
         }
 
+        Operation* VisitCXXThisExpr(const clang::CXXThisExpr *expr) {
+            auto rty = visit(expr->getType());
+            return make< hl::ThisOp >(meta_location(expr), rty);
+        }
+
         //
         // Literals
         //
