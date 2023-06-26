@@ -1,4 +1,4 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-lower-types --vast-hl-to-func | FileCheck %s
+// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-splice-trailing-scopes --vast-hl-lower-types --vast-hl-to-func | FileCheck %s
 
 // CHECK: func.func private @foo()
 void foo();
