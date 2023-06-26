@@ -270,6 +270,10 @@ namespace vast::cg
                 // Emit the standard function prologue.
                 start_function(decl, fn, fty_info, args, loc, options);
 
+                filter< clang::LabelDecl >(function_decl->decls(), [this] (auto lab) {
+                    this->_visitor->Visit(lab);
+                });
+
                 // Initialize lexical scope information.
 
                 // Save parameters for coroutine function.
