@@ -444,4 +444,16 @@ def AdjustedType : HighLevelType< "Adjusted" > {
   let assemblyFormat = "`<` $original `,` $adjusted `>`";
 }
 
+def LValueReferenceType : HighLevelType< "LValueReference" > {
+  let mnemonic = "lvalue_reference";
+  let parameters = (ins "Type":$referenceType);
+  let assemblyFormat = "`<` $referenceType `>`";
+}
+
+def RValueReferenceType : HighLevelType< "RValueReference" > {
+  let mnemonic = "rvalue_reference";
+  let parameters = (ins "Type":$referenceType);
+  let assemblyFormat = "`<` $referenceType `>`";
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES

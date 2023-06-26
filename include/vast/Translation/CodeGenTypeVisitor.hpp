@@ -194,6 +194,15 @@ namespace vast::cg {
                 return VisitAdjustedType(t, quals);
             }
 
+            if (auto t = llvm::dyn_cast< clang::LValueReferenceType >(underlying)) {
+                return VisitLValueReferenceType(t, quals);
+            }
+
+            if (auto t = llvm::dyn_cast< clang::RValueReferenceType >(underlying)) {
+                return VisitRValueReferenceType(t, quals);
+            }
+
+            ty.dump();
             VAST_UNREACHABLE("unsupported qualified type");
             return Type{};
         }
@@ -364,6 +373,24 @@ namespace vast::cg {
 
         auto VisitAdjustedType(const clang::AdjustedType *ty) -> mlir_type {
             return VisitAdjustedType(ty,  ty->desugar().getQualifiers());
+        }
+
+        auto VisitLValueReferenceType(const clang::LValueReferenceType *ty, qualifiers /* quals */) -> mlir_type {
+            auto pointee = visit(ty->getPointeeType());
+            return hl::LValueReferenceType::get(&mcontext(), pointee);
+        }
+
+        auto VisitLValueReferenceType(const clang::LValueReferenceType *ty) -> mlir_type {
+            return VisitLValueReferenceType(ty, ty->desugar().getQualifiers());
+        }
+
+        auto VisitRValueReferenceType(const clang::RValueReferenceType *ty, qualifiers /* quals */) -> mlir_type {
+            auto pointee = visit(ty->getPointeeType());
+            return hl::RValueReferenceType::get(&mcontext(), pointee);
+        }
+
+        auto VisitRValueReferenceType(const clang::RValueReferenceType *ty) -> mlir_type {
+            return VisitRValueReferenceType(ty, ty->desugar().getQualifiers());
         }
     };
 
