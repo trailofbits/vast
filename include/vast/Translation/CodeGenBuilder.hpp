@@ -268,8 +268,6 @@ namespace vast::cg {
         auto make_region_builder(const clang::Stmt *stmt) {
             return [stmt, this](auto &bld, auto) {
                 if (stmt) visit(stmt);
-                // TODO let other pass remove trailing scopes?
-                splice_trailing_scopes(*bld.getBlock()->getParent());
             };
         }
 

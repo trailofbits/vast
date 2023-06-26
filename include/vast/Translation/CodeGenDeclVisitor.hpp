@@ -351,9 +351,6 @@ namespace vast::cg {
                     visit(decl->getBody());
                 }
 
-                // TODO make as pass
-                splice_trailing_scopes(fn);
-
                 auto &last_block = fn.getBlocks().back();
                 auto &ops        = last_block.getOperations();
                 set_insertion_point_to_end(&last_block);
