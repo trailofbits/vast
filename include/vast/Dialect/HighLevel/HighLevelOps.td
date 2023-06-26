@@ -287,7 +287,7 @@ class CxxRecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
     )>
   ];
 
-  let assemblyFormat = [{ $name attr-dict `:` $bases $fields }];
+  let assemblyFormat = [{ $name attr-dict `:` `bases` $bases $fields }];
 }
 
 def ClassDeclOp : CxxRecordLikeDeclOp< "class" > {
