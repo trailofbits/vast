@@ -42,35 +42,20 @@ namespace vast::hl
                 splice_trailing_scopes(type_converter &tc, mcontext_t &mctx)
                     : base(tc, mctx) {}
 
-                inline void splice(Region &reg, conversion_rewriter &rewriter) const
-                {
-                    auto &blocks = reg.getBlocks();
-                    while (has_trailing_scope(blocks))
-                    {
-                        auto &last_block = blocks.back();
-
-                        auto scope  = mlir::cast< hl::ScopeOp >(last_block.back());
-                        auto parent = scope.getBody().getParentRegion();
-
-                        auto &prev = parent->getBlocks().back();
-
-                        rewriter.inlineRegionBefore(scope.getBody(), *parent, parent->end());
-
-                        auto next = prev.getNextNode();
-
-                        // The next here is wrong
-                        rewriter.mergeBlockBefore(next, &last_block.back());
-
-                        rewriter.eraseOp(scope);
-                    }
-                }
-
                 logical_result matchAndRewrite(
-                        operation op, mlir::ArrayRef< Value >, conversion_rewriter &rewriter) const override
+                        operation op,
+                        mlir::ArrayRef< Value >,
+                        conversion_rewriter &rewriter
+                ) const override
                 {
+                    auto scope = mlir::dyn_cast< hl::ScopeOp >(op);
+                    if(!scope)
+                        return logical_result::failure();
+                    auto &body = scope.getBody();
+                    auto target = scope->getBlock();
 
-                    for (auto &r : op->getRegions())
-                        splice(r, rewriter);
+                    rewriter.inlineRegionBefore(body, *op->getParentRegion(), target->getIterator());
+                    rewriter.eraseBlock(target);
                     return logical_result::success();
                 }
             };
@@ -88,7 +73,7 @@ namespace vast::hl
 
             auto is_legal = [](operation op)
             {
-                return !has_trailing_scope(op);
+                return !is_trailing_scope(op);
             };
 
             target.markUnknownOpDynamicallyLegal(is_legal);
