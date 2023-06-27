@@ -1,5 +1,4 @@
-// RUN: vast-cc --from-source %s | FileCheck %s
-// RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: vast-cc --from-source %s | vast-opt --vast-hl-splice-trailing-scopes | FileCheck %s
 
 // CHECK-LABEL: hl.func external @test1 () -> !hl.int
 int test1()
@@ -29,7 +28,7 @@ void test2()
         int a;
     }
 
-    // CHECK-NOT: hl.scope
+    // CHECK: hl.scope
     // CHECK: hl.var "a" : !hl.lvalue<!hl.int>
     {
         int a;

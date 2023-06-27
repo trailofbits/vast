@@ -82,6 +82,7 @@ int branch_else_empty(int a, int b)
     // CHECK: hl.cond.yield [[V1]]
     if (a <= b) {
         // CHECK: } then {
+        // CHECK-NEXT: hl.scope
         // CHECK-NEXT: hl.var "c" : !hl.lvalue<!hl.int> =
         // CHECK: [[V2:%[0-9]+]] = hl.const #hl.integer<7> : !hl.int
         // CHECK: hl.value.yield [[V2]]
