@@ -1,5 +1,5 @@
 // RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
-// RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
 
 void add(int* a, int b) {
     // CHECK: [[A1:%[0-9]+]] = hl.add [[B1:%[0-9]+]], [[C1:%[0-9]+]] : (!hl.ptr<!hl.int>, !hl.int) -> !hl.ptr<!hl.int>
