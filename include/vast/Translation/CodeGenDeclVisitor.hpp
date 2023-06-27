@@ -405,7 +405,7 @@ namespace vast::cg {
                 auto type = visit(decl->getFunctionType()).template cast< mlir::FunctionType >();
                 // make function header, that will be later filled with function body
                 // or returned as declaration in the case of external function
-                return make< hl::FuncOp >(loc, decl->getName(), type, linkage);
+                return make< hl::FuncOp >(loc, mangled.name, type, linkage);
             });
 
             if (!is_definition) {
