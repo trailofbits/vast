@@ -19,6 +19,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Translation/Mangler.hpp"
 #include "vast/Translation/Util.hpp"
 
+#include "vast/Util/Scopes.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelLinkage.hpp"
 
 #include "vast/CodeGen/FunctionInfo.hpp"
@@ -342,11 +344,38 @@ namespace vast::cg {
                     visit(decl->getBody());
                 }
 
-                auto &last_block = fn.getBlocks().back();
+                auto &fn_blocks  = fn.getBlocks();
+                auto &last_block = fn_blocks.back();
                 auto &ops        = last_block.getOperations();
                 set_insertion_point_to_end(&last_block);
 
-                if (ops.empty() || !is_terminator(ops.back())) {
+                auto last_op = &ops.back();
+
+                // Making sure, that if the operation is enclosed in a trailing
+                // scope, then the termiantor is evaluated in this scope (which
+                // will then be spliced by subsequent pass)
+                auto scope = mlir::dyn_cast< hl::ScopeOp >(ops.back());
+
+                while (scope) {
+                    auto parent = scope->getParentRegion();
+                    if (parent->hasOneBlock()
+                        && parent->back().begin() == --parent->back().end())
+                    {
+                        last_op = get_last_op(scope);
+                        set_insertion_point_to_end(&scope.getBody());
+                        if (last_op)
+                            scope = mlir::dyn_cast< hl::ScopeOp >(last_op);
+                        else
+                            scope = nullptr;
+                    } else {
+                        break;
+                    }
+                }
+
+                if (ops.empty()
+                    || !last_op
+                    || !is_terminator(*last_op))
+                {
                     emit_function_terminator(fn);
                 }
             };
