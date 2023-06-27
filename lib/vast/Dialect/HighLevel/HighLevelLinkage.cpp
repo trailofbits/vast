@@ -250,10 +250,6 @@ namespace vast::hl {
         auto &actx = decl->getASTContext();
         auto linkage = actx.GetGVALinkageForFunction(decl);
 
-        if (const auto *dtor = clang::dyn_cast< clang::CXXDestructorDecl >(decl)) {
-            VAST_UNIMPLEMENTED;
-        }
-
         if (auto ctor = clang::dyn_cast< clang::CXXConstructorDecl >(decl)) {
             if (ctor->isInheritingConstructor() && actx.getTargetInfo().getCXXABI().isMicrosoft()) {
                 // Just like in LLVM codegen:
