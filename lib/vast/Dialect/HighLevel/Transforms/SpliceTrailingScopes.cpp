@@ -51,11 +51,20 @@ namespace vast::hl
                     auto scope = mlir::dyn_cast< hl::ScopeOp >(op);
                     if(!scope)
                         return logical_result::failure();
+
                     auto &body = scope.getBody();
+                    auto &start = body.front();
                     auto target = scope->getBlock();
 
+                    // vast-cc adds UnreachableOp as a terminator because
+                    // the real terminator is hidden inside the scope
+                    if (isa< hl::UnreachableOp >(target->back()))
+                        rewriter.eraseOp(&target->back());
+
                     rewriter.inlineRegionBefore(body, *op->getParentRegion(), target->getIterator());
-                    rewriter.eraseBlock(target);
+                    rewriter.mergeBlocks(&start, target, mlir::ValueRange());
+                    rewriter.eraseOp(op);
+
                     return logical_result::success();
                 }
             };
