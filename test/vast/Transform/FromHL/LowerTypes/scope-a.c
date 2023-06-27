@@ -28,7 +28,7 @@ void test2()
         int a;
     }
 
-    // CHECK-NOT: hl.scope
+    // CHECK: hl.scope
     // CHECK: hl.var "a" : !hl.lvalue<si32>
     {
         int a;
