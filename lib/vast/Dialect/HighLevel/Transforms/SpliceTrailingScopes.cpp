@@ -57,7 +57,12 @@ namespace vast::hl
                     auto target = scope->getBlock();
 
                     rewriter.inlineRegionBefore(body, *op->getParentRegion(), target->getIterator());
-                    rewriter.mergeBlocks(&start, target, mlir::ValueRange());
+                    rewriter.mergeBlocks(&start, target, start.getArguments());
+
+                    // we need to explicitly unlink the scope op from the block otherwise
+                    // it breaks nested scopes... MLIR keeps the operation around for some
+                    // (unspecified) time
+                    op->remove();
                     rewriter.eraseOp(op);
 
                     return logical_result::success();
