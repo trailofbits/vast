@@ -1,7 +1,7 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
-// RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: vast-cc --from-source %s | FileCheck %s
+// RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: hl.func external @arithmetic
+// CHECK-LABEL: hl.func external @_Z10arithmetici
 void arithmetic(int a)
 {
     // CHECK: hl.post.inc
@@ -14,7 +14,7 @@ void arithmetic(int a)
     --a;
 }
 
-// CHECK-LABEL: hl.func external @sign
+// CHECK-LABEL: hl.func external @_Z4signi
 void sign(int a)
 {
     // CHECK: hl.plus
@@ -23,14 +23,14 @@ void sign(int a)
     -a;
 }
 
-// CHECK-LABEL: hl.func external @binary
+// CHECK-LABEL: hl.func external @_Z6binaryi
 void binary(int a)
 {
     // CHECK: hl.not
     ~a;
 }
 
-// CHECK-LABEL: hl.func external @logical
+// CHECK-LABEL: hl.func external @_Z7logicalb
 void logical(bool a)
 {
     // CHECK: hl.lnot
