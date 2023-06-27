@@ -12,7 +12,7 @@ namespace vast
         if (auto parent = op->getParentRegion()) {
             if(parent->hasOneBlock()) {
                 auto &block = parent->back();
-                auto &last = --block.end();
+                auto last = --block.end();
 
                 // vast-cc adds UnreachableOp if it doesn't see a proper terminator
                 // But the real terminator might be enclosed in the scope
