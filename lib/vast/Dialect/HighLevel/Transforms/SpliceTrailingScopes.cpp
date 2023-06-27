@@ -56,11 +56,6 @@ namespace vast::hl
                     auto &start = body.front();
                     auto target = scope->getBlock();
 
-                    // vast-cc adds UnreachableOp as a terminator because
-                    // the real terminator is hidden inside the scope
-                    if (isa< hl::UnreachableOp >(target->back()))
-                        rewriter.eraseOp(&target->back());
-
                     rewriter.inlineRegionBefore(body, *op->getParentRegion(), target->getIterator());
                     rewriter.mergeBlocks(&start, target, mlir::ValueRange());
                     rewriter.eraseOp(op);
