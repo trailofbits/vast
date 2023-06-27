@@ -1,7 +1,7 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
-// RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: vast-cc --from-source %s | FileCheck %s
+// RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: hl.func external @loop_simple
+// CHECK-LABEL: hl.func external @_Z11loop_simplev
 void loop_simple()
 {
     // CHECK: hl.scope {
@@ -18,7 +18,7 @@ void loop_simple()
     int after_loop;
 }
 
-// CHECK-LABEL: hl.func external @loop_noinit
+// CHECK-LABEL: hl.func external @_Z11loop_noinitv
 void loop_noinit()
 {
     int i = 0;
@@ -33,7 +33,7 @@ void loop_noinit()
     for (;i < 100; ++i) {}
 }
 
-// CHECK-LABEL: hl.func external @loop_noincr
+// CHECK-LABEL: hl.func external @_Z11loop_noincrv
 void loop_noincr()
 {
     // CHECK: hl.var "i" : !hl.lvalue<!hl.int>
@@ -47,7 +47,7 @@ void loop_noincr()
     for (int i = 0; i < 100;) { ++i; }
 }
 
-// CHECK-LABEL: hl.func external @loop_infinite
+// CHECK-LABEL: hl.func external @_Z13loop_infinitev
 void loop_infinite()
 {
     // CHECK: hl.for {
@@ -59,7 +59,7 @@ void loop_infinite()
     for (;;) {}
 }
 
-// CHECK-LABEL: hl.func external @loop_nested
+// CHECK-LABEL: hl.func external @_Z11loop_nestedv
 void loop_nested()
 {
     // CHECK: hl.var "i" : !hl.lvalue<!hl.int>

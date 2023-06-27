@@ -1,7 +1,7 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
-// RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: vast-cc --from-source %s | FileCheck %s
+// RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: hl.func external @basic
+// CHECK-LABEL: hl.func external @_Z5basicv
 void basic() {
     // CHECK: hl.do {
     do {
@@ -12,7 +12,7 @@ void basic() {
     // CHECK: }
 }
 
-// CHECK-LABEL: hl.func external @inner_cond
+// CHECK-LABEL: hl.func external @_Z10inner_condv
 void inner_cond() {
     // CHECK: [[I:%[0-9]+]] = hl.var "i" : !hl.lvalue<!hl.int>
     int i = 0;

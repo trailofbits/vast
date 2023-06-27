@@ -1,7 +1,7 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
-// RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: vast-cc --from-source %s | FileCheck %s
+// RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: hl.func external @while_empty
+// CHECK-LABEL: hl.func external @_Z11while_emptyv
 void while_empty()
 {
     // CHECK: hl.while
@@ -12,7 +12,7 @@ void while_empty()
     }
 }
 
-// CHECK-LABEL: hl.func external @while_simple
+// CHECK-LABEL: hl.func external @_Z12while_simplei
 void while_simple(int a)
 {
     // CHECK: hl.while
@@ -27,7 +27,7 @@ void while_simple(int a)
     }
 }
 
-// CHECK-LABEL: hl.func external @while_nested
+// CHECK-LABEL: hl.func external @_Z12while_nestedii
 void while_nested(int a, int b)
 {
     // CHECK: hl.while
