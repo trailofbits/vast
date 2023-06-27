@@ -18,4 +18,11 @@ namespace vast
         }
         return false;
     }
+
+    inline operation get_last_op(hl::ScopeOp scope) {
+        auto &last_block = scope.getBody().back();
+        if (last_block.empty())
+            return nullptr;
+        return &last_block.back();
+    }
 } //namespace vast
