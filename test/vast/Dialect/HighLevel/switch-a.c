@@ -1,5 +1,5 @@
-// RUN: vast-cc --from-source %s | FileCheck %s
-// RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
+// RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
 
 // CHECK: hl.func external @switch_simple ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int switch_simple(int num)

@@ -1,4 +1,4 @@
-// RUN: vast-cc --from-source %s | FileCheck %s
+// RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
 
 // CHECK: hl.func external @abort
 // CHECK-NOT: hl.func external @abort
