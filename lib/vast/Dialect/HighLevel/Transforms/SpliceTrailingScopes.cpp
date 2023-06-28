@@ -1,25 +1,16 @@
 // Copyright (c) 2023-present, Trail of Bits, Inc.
 
 #include "vast/Conversion/Passes.hpp"
+#include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-#include <mlir/Dialect/Func/IR/FuncOps.h>
-#include <mlir/Dialect/ControlFlow/IR/ControlFlowOps.h>
+#include <mlir/IR/IRMapping.h>
 
-#include <mlir/Transforms/DialectConversion.h>
-#include <mlir/Rewrite/FrozenRewritePatternSet.h>
-#include <mlir/Transforms/GreedyPatternRewriteDriver.h>
 #include <mlir/Transforms/DialectConversion.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Conversion/Common/Passes.hpp"
-#include "vast/Conversion/Common/Patterns.hpp"
-
 #include "vast/Util/Common.hpp"
-#include "vast/Util/DialectConversion.hpp"
 #include "vast/Util/Scopes.hpp"
-
-#include "vast/Conversion/Common/Rewriter.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/Passes.hpp"
@@ -28,88 +19,69 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    namespace
+    struct SpliceTrailingScopes : SpliceTrailingScopesBase< SpliceTrailingScopes >
     {
-        namespace pattern
+        using base = SpliceTrailingScopesBase< SpliceTrailingScopes >;
+
+        using operations_t = std::vector< operation >;
+
+        operations_t to_splice;
+
+        void splice_trailing_scope(operation op)
         {
-            using type_converter = mlir::TypeConverter;
+            auto scope = mlir::dyn_cast< hl::ScopeOp >(op);
+            VAST_ASSERT(scope && "Op is not a scope!");
 
-            struct splice_trailing_scopes : generic_conversion_pattern
+            auto parent = scope->getParentRegion();
+            auto target = scope->getBlock();
+
+            auto &body = scope.getBody();
+            bool empty_body = body.empty();
+            auto &start = body.front();
+
+            scope->remove();
+
+            parent->getBlocks().splice(target->getIterator(), body.getBlocks());
+
+            auto &ops = target->getOperations();
+
+            if (!empty_body)
             {
-                using base = generic_conversion_pattern;
-                using base::base;
+                ops.splice(ops.end(), start.getOperations());
+                start.erase();
+            }
+            scope.erase();
+        }
 
-                splice_trailing_scopes(type_converter &tc, mcontext_t &mctx)
-                    : base(tc, mctx) {}
-
-                logical_result matchAndRewrite(
-                        operation op,
-                        mlir::ArrayRef< Value >,
-                        conversion_rewriter &rewriter
-                ) const override
-                {
-                    auto scope = mlir::dyn_cast< hl::ScopeOp >(op);
-                    if(!scope)
-                        return logical_result::failure();
-
-                    auto &body = scope.getBody();
-                    auto &start = body.front();
-                    auto target = scope->getBlock();
-
-                    rewriter.inlineRegionBefore(body, *op->getParentRegion(), target->getIterator());
-                    rewriter.mergeBlocks(&start, target, start.getArguments());
-
-                    // we need to explicitly unlink the scope op from the block otherwise
-                    // it breaks nested scopes... MLIR keeps the operation around for some
-                    // (unspecified) time
-                    op->remove();
-                    rewriter.eraseOp(op);
-
-                    return logical_result::success();
-                }
-            };
-        } // namespace pattern
-    } // namespace
-
-    struct SpliceTrailingScopes : ModuleConversionPassMixin< SpliceTrailingScopes, SpliceTrailingScopesBase >
-    {
-        using base = ModuleConversionPassMixin< SpliceTrailingScopes, SpliceTrailingScopesBase >;
-        using config_t = typename base::config_t;
-
-        static auto create_conversion_target(mcontext_t &mctx)
+        void find(Block &block)
         {
-            conversion_target target(mctx);
+            for (auto &op : block.getOperations())
+                find(&op);
+        }
 
-            auto is_legal = [](operation op)
-            {
-                return !is_trailing_scope(op);
-            };
+        void find(Region &region)
+        {
+            for (auto &block : region.getBlocks())
+                find(block);
+        }
 
-            target.markUnknownOpDynamicallyLegal(is_legal);
-            return target;
+        void find(operation op)
+        {
+            if (is_trailing_scope(op))
+                to_splice.emplace_back(op);
+            for (auto &region : op->getRegions())
+                find(region);
         }
 
         void runOnOperation() override
         {
-            auto &mctx = getContext();
-            auto target = create_conversion_target(mctx);
-            vast_module op = getOperation();
-
-            rewrite_pattern_set patterns(&mctx);
-
-            auto tc = pattern::type_converter();
-            patterns.template add< pattern::splice_trailing_scopes >(tc, mctx);
-
-            if (mlir::failed(mlir::applyPartialConversion(op,
-                                                          target,
-                                                          std::move(patterns))))
-            {
-                return signalPassFailure();
-            }
+            auto op = getOperation();
+            find(op);
+            std::reverse(to_splice.begin(), to_splice.end());
+            for (auto op : to_splice)
+                splice_trailing_scope(op);
         }
-
     };
-
 } // namespace vast::hl
 
 std::unique_ptr< mlir::Pass > vast::hl::createSpliceTrailingScopes()
