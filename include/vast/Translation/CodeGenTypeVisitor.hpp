@@ -375,18 +375,23 @@ namespace vast::cg {
             return VisitAdjustedType(ty,  ty->desugar().getQualifiers());
         }
 
-        auto VisitLValueReferenceType(const clang::LValueReferenceType *ty, qualifiers /* quals */) -> mlir_type {
+        template< typename Op, typename Type >
+        auto create_reference_type(const Type *ty, qualifiers /* quals */) -> mlir_type {
             auto pointee = visit(ty->getPointeeType());
-            return hl::LValueReferenceType::get(&mcontext(), pointee);
+            auto ref = hl::ReferenceType::get(&mcontext(), pointee);
+            return Op::get(&mcontext(), ref);
+        }
+
+        auto VisitLValueReferenceType(const clang::LValueReferenceType *ty, qualifiers quals) -> mlir_type {
+            return create_reference_type< hl::LValueType >(ty, quals);
         }
 
         auto VisitLValueReferenceType(const clang::LValueReferenceType *ty) -> mlir_type {
             return VisitLValueReferenceType(ty, ty->desugar().getQualifiers());
         }
 
-        auto VisitRValueReferenceType(const clang::RValueReferenceType *ty, qualifiers /* quals */) -> mlir_type {
-            auto pointee = visit(ty->getPointeeType());
-            return hl::RValueReferenceType::get(&mcontext(), pointee);
+        auto VisitRValueReferenceType(const clang::RValueReferenceType *ty, qualifiers quals) -> mlir_type {
+            return create_reference_type< hl::RValueType >(ty, quals);
         }
 
         auto VisitRValueReferenceType(const clang::RValueReferenceType *ty) -> mlir_type {
