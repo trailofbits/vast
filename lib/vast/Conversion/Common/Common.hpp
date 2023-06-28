@@ -94,11 +94,7 @@ namespace vast::conv::irstollvm
                     src_t op, typename src_t::Adaptor ops,
                     mlir::ConversionPatternRewriter &rewriter) const override
         {
-            auto trg_type = this->tc.convert_type_to_type(op.getType());
-            VAST_PATTERN_CHECK(trg_type, "Could not convert type, {0}", op);
-
-            auto undef = rewriter.create< mlir::LLVM::UndefOp >(op.getLoc(), *trg_type);
-            rewriter.replaceOp(op, { undef });
+            rewriter.eraseOp(op);
             return mlir::success();
         }
 
