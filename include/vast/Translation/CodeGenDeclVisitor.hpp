@@ -679,6 +679,8 @@ namespace vast::cg {
                         visit(access);
                     } else if (auto var = clang::dyn_cast< clang::VarDecl >(child)) {
                         visit(var);
+                    } else if (auto func = clang::dyn_cast< clang::FunctionDecl >(child)) {
+                        visit(func);
                     }
                 }
             };
