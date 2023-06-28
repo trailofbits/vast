@@ -303,7 +303,7 @@ namespace vast::cg {
             }
 
             InsertionGuard guard(builder());
-            auto is_definition = decl->doesThisDeclarationHaveABody();
+            auto is_definition = decl->isThisDeclarationADefinition();
 
             // emit definition instead of declaration
             if (!is_definition && decl->getDefinition()) {
