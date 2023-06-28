@@ -716,8 +716,12 @@ namespace vast::conv::irstollvm
                 {
                     auto loc = original_arg.getLoc();
                     auto trg_type = convert(lvalue.getElementType());
-                    // `LvalueType` is really a pointer?
-                    return rewriter.create< mlir::LLVM::LoadOp >(loc, trg_type, conv_arg);
+                    // TODO(conv:irstollvm): First of all, sometimes we got lvalue argument
+                    //                       but the function expects the element type.
+                    //                       I am not 100% sure if the bitcast is correct
+                    //                       solution, but it solves the string literal
+                    //                       problem.
+                    return rewriter.create< mlir::LLVM::BitcastOp >(loc, trg_type, conv_arg);
                 }
                 return conv_arg;
             };
