@@ -633,47 +633,6 @@ namespace vast::cg {
             });
         }
 
-        //
-        // Record Declaration
-        //
-        template< typename Decl >
-        operation make_record_decl(const clang::RecordDecl *decl) {
-            auto loc  = meta_location(decl);
-            auto name = context().decl_name(decl);
-
-            // declare the type first to allow recursive type definitions
-            if (!decl->isCompleteDefinition()) {
-                return context().declare(decl, [&] {
-                    return this->template make_operation< hl::TypeDeclOp >()
-                        .bind(meta_location(decl)) // location
-                        .bind(decl->getName())     // name
-                        .freeze();
-                });
-            }
-
-            // generate record definition
-            if (decl->field_empty()) {
-                return make< Decl >(loc, name);
-            }
-
-            auto fields = [&](auto &bld, auto loc) {
-                for (auto field : decl->fields()) {
-                    auto field_type = field->getType();
-                    // If there is a nested structure.
-                    if (auto tag = field_type->getAsTagDecl())
-                        visit(tag);
-                    else
-                        visit(field_type);
-                    visit(field);
-                }
-            };
-
-            return make< Decl >(loc, name, fields);
-        }
-
-        //
-        // C++ Record Declaration
-        //
         hl::AccessSpecifier convert_access(clang::AccessSpecifier spec) {
             switch(spec) {
                 case clang::AccessSpecifier::AS_public:
@@ -688,8 +647,11 @@ namespace vast::cg {
             VAST_UNREACHABLE("unknown access specifier");
         }
 
-        template< typename Decl >
-        operation make_record_decl(const clang::CXXRecordDecl *decl) {
+        //
+        // Record Declaration
+        //
+        template< typename Op, typename Decl >
+        operation make_record_decl(const Decl *decl) {
             auto loc  = meta_location(decl);
             auto name = context().decl_name(decl);
 
@@ -702,17 +664,6 @@ namespace vast::cg {
                         .freeze();
                 });
             }
-
-            auto bases = [&](auto &bld, auto loc) {
-                for (auto &base : decl->bases()) {
-                    auto loc = meta_location(base);
-                    make< hl::CxxBaseSpecifierOp >(
-                        loc,
-                        visit(base.getType()),
-                        convert_access(base.getAccessSpecifier()),
-                        base.isVirtual());
-                }
-            };
 
             auto fields = [&](auto &bld, auto loc) {
                 for (auto child: decl->decls()) {
@@ -732,7 +683,22 @@ namespace vast::cg {
                 }
             };
 
-            return make< Decl >(loc, name, bases, fields);
+            if constexpr (std::is_same_v< Decl, clang::CXXRecordDecl >) {
+                auto bases = [&](auto &bld, auto loc) {
+                    for (auto &base : decl->bases()) {
+                        auto loc = meta_location(base);
+                        make< hl::CxxBaseSpecifierOp >(
+                            loc,
+                            visit(base.getType()),
+                            convert_access(base.getAccessSpecifier()),
+                            base.isVirtual());
+                    }
+                };
+
+                return make< Op >(loc, name, bases, fields);
+            }
+
+            return make< Op >(loc, name, fields);
         }
 
         operation VisitRecordDecl(const clang::RecordDecl *decl) {
@@ -746,9 +712,8 @@ namespace vast::cg {
         operation VisitCXXRecordDecl(const clang::CXXRecordDecl *decl) {
             if (decl->isClass()) {
                 return make_record_decl< hl::ClassDeclOp >(decl);
-            } else {
-                return make_record_decl< hl::CxxStructDeclOp>(decl);
             }
+            return make_record_decl< hl::CxxStructDeclOp >(decl);
         }
 
         operation VisitAccessSpecDecl(const clang::AccessSpecDecl *decl) {
