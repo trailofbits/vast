@@ -273,6 +273,21 @@ class TypesOrLValueTypesMatch<string summary, string lhs, string rhs> : PredOpTr
 >;
 
 //
+// RValue high-level type
+//
+def RValue : HighLevelType< "RValue",
+  [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
+> {
+  let mnemonic = "rvalue";
+
+  let parameters = (ins
+    "Type":$elementType
+  );
+
+  let assemblyFormat = "`<` $elementType `>`";
+}
+
+//
 // Basic types
 //
 def VoidType : CVQualifiedType< "Void", "void" > {
@@ -444,14 +459,8 @@ def AdjustedType : HighLevelType< "Adjusted" > {
   let assemblyFormat = "`<` $original `,` $adjusted `>`";
 }
 
-def LValueReferenceType : HighLevelType< "LValueReference" > {
-  let mnemonic = "lvalue_reference";
-  let parameters = (ins "Type":$referenceType);
-  let assemblyFormat = "`<` $referenceType `>`";
-}
-
-def RValueReferenceType : HighLevelType< "RValueReference" > {
-  let mnemonic = "rvalue_reference";
+def ReferenceType : HighLevelType< "Reference" > {
+  let mnemonic = "reference";
   let parameters = (ins "Type":$referenceType);
   let assemblyFormat = "`<` $referenceType `>`";
 }
