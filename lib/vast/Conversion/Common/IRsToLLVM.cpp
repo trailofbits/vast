@@ -43,10 +43,6 @@ namespace vast::conv::irstollvm
         ignore_pattern< hl::DeclRefOp >
     >;
 
-    using erase_patterns = util::type_list<
-        erase_pattern< hl::LabelDeclOp >
-    >;
-
     template< typename Op >
     struct inline_region_from_op : base_pattern< Op >
     {
@@ -81,12 +77,13 @@ namespace vast::conv::irstollvm
                 Op unit_op, typename Op::Adaptor ops,
                 mlir::ConversionPatternRewriter &rewriter) const override
         {
-            auto parent = unit_op.getBody().getParentRegion();
-            rewriter.inlineRegionBefore(unit_op.getBody(), *parent, parent->end());
+            auto parent = unit_op->getParentRegion();
+            inline_region_blocks(rewriter, unit_op.getBody(),
+                                 mlir::Region::iterator(parent->end()));
 
             // splice newly created translation unit block in the module
             auto &unit_block = parent->back();
-            rewriter.mergeBlocks(&parent->front(), &unit_block, ops.getOperands());
+            rewriter.mergeBlockBefore(&unit_block, unit_op, {});
 
             rewriter.eraseOp(unit_op);
             return mlir::success();
@@ -95,9 +92,14 @@ namespace vast::conv::irstollvm
         // TODO(conv): Turn on once this is completed.
         static void legalize(auto &trg)
         {
-            trg.template LegalOp< hl::LabelStmt >();
+            trg.template addIllegalOp< hl::LabelStmt >();
         }
     };
+
+    using label_patterns = util::type_list<
+        erase_pattern< hl::LabelDeclOp >,
+        label_stmt
+    >;
 
     struct scope_op : base_pattern< hl::ScopeOp >
     {
@@ -1066,7 +1068,7 @@ namespace vast::conv::irstollvm
                 init_conversions,
                 base_op_conversions,
                 ignore_patterns,
-                erase_patterns,
+                label_patterns,
                 lazy_op_type_conversions,
                 ll_cf::conversions
             >(config);
