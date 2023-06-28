@@ -320,7 +320,7 @@ def AccessSpecifier : I32EnumAttr<
 }
 
 def AccessSpecifierOp
-    : HighLevel_Op< "access", [NoTerminator, VastSymbol] >
+    : HighLevel_Op< "access", [] >
     , Arguments<(ins AccessSpecifier:$spec)>
 {
   let summary = "VAST C++ access specifier declaration";
