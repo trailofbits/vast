@@ -684,6 +684,11 @@ namespace vast::cg {
                     } else if (auto dtor = clang::dyn_cast< clang::CXXDestructorDecl >(child)) {
                         visit(dtor);
                     } else if (auto func = clang::dyn_cast< clang::FunctionDecl >(child)) {
+                        auto name = func->getDeclName();
+                        if (name.getNameKind() != clang::DeclarationName::NameKind::Identifier) {
+                            // TODO(frabert): cannot mangle non-identifiers for now
+                            continue;
+                        }
                         visit(func);
                     }
                 }
