@@ -202,6 +202,14 @@ namespace vast::cg {
                 return VisitRValueReferenceType(t, quals);
             }
 
+            if (auto t = llvm::dyn_cast< clang::TypeOfExprType >(underlying)) {
+                return VisitTypeOfExprType(t, quals);
+            }
+
+            if (auto t = llvm::dyn_cast< clang::TypeOfType >(underlying)) {
+                return VisitTypeOfType(t, quals);
+            }
+
             ty.dump();
             VAST_UNREACHABLE("unsupported qualified type");
             return Type{};
@@ -396,6 +404,26 @@ namespace vast::cg {
 
         auto VisitRValueReferenceType(const clang::RValueReferenceType *ty) -> mlir_type {
             return VisitRValueReferenceType(ty, ty->desugar().getQualifiers());
+        }
+
+        auto VisitTypeOfExprType(const clang::TypeOfExprType *ty, qualifiers /* quals */) -> mlir_type {
+            // FIXME(bpp): Add qualifiers?
+            auto desugared_type = visit(ty->desugar());
+            return hl::TypeOfExprType::get(&mcontext(), desugared_type);
+        }
+
+        auto VisitTypeOfExprType(const clang::TypeOfExprType *ty) -> mlir_type {
+            return VisitTypeOfExprType(ty, ty->desugar().getQualifiers());
+        }
+
+        auto VisitTypeOfType(const clang::TypeOfType *ty, qualifiers /* quals */) -> mlir_type {
+            // FIXME(bpp): Add qualifiers?
+            auto desugared_type = visit(ty->desugar());
+            return hl::TypeOfType::get(&mcontext(), desugared_type);
+        }
+
+        auto VisitTypeOfType(const clang::TypeOfType *ty) -> mlir_type {
+            return VisitTypeOfType(ty, ty->desugar().getQualifiers());
         }
     };
 
