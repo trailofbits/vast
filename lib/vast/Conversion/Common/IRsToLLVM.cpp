@@ -40,7 +40,8 @@ VAST_UNRELAX_WARNINGS
 namespace vast::conv::irstollvm
 {
     using ignore_patterns = util::type_list<
-        ignore_pattern< hl::DeclRefOp >
+        ignore_pattern< hl::DeclRefOp >,
+        ignore_pattern< hl::PredefinedExpr >
     >;
 
     template< typename Op >
@@ -67,26 +68,37 @@ namespace vast::conv::irstollvm
     };
 
     // TODO(conv): Finish and properly test.
-    struct label_stmt : base_pattern< hl::LabelStmt >
+    struct label_stmt : ll_cf::scope_like< hl::LabelStmt >
     {
         using Op = hl::LabelStmt;
-        using base = base_pattern< Op >;
+        using base = ll_cf::scope_like< Op >;
         using base::base;
+
+        mlir::Block *start_block(Op op) const override
+        {
+            return &*op.getBody().begin();
+        }
 
         mlir::LogicalResult matchAndRewrite(
                 Op unit_op, typename Op::Adaptor ops,
                 mlir::ConversionPatternRewriter &rewriter) const override
         {
-            auto parent = unit_op->getParentRegion();
-            inline_region_blocks(rewriter, unit_op.getBody(),
-                                 mlir::Region::iterator(parent->end()));
+            // If we do not have any branching inside, we can just "inline"
+            // the op.
+            if (unit_op.getBody().hasOneBlock())
+            {
+                auto parent = unit_op->getParentRegion();
+                inline_region_blocks(rewriter, unit_op.getBody(),
+                                     mlir::Region::iterator(parent->end()));
 
-            // splice newly created translation unit block in the module
-            auto &unit_block = parent->back();
-            rewriter.mergeBlockBefore(&unit_block, unit_op, {});
+                // splice newly created translation unit block in the module
+                auto &unit_block = parent->back();
+                rewriter.mergeBlockBefore(&unit_block, unit_op, {});
 
-            rewriter.eraseOp(unit_op);
-            return mlir::success();
+                rewriter.eraseOp(unit_op);
+                return mlir::success();
+            }
+            return base::handle_multiblock(unit_op, ops, rewriter);
         }
 
         // TODO(conv): Turn on once this is completed.

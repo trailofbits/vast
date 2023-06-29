@@ -106,6 +106,7 @@ namespace vast::hl
             addConversion([&](mlir::Type t) { return this->try_convert_floatlike(t); });
 
             addConversion([&](hl::LValueType t) { return this->convert_lvalue_type(t); });
+            addConversion([&](hl::DecayedType t) { return this->convert_decayed_type(t); });
 
             // Use provided data layout to get the correct type.
             addConversion([&](hl::PointerType t) { return this->convert_ptr_type(t); });
@@ -226,6 +227,14 @@ namespace vast::hl
             return Maybe(t).keep_if(isFloatingType)
                            .and_then(make_float_type())
                            .take_wrapped< maybe_type_t >();
+        }
+
+        maybe_type_t convert_decayed_type(hl::DecayedType t)
+        {
+            return Maybe(t.getElementType())
+                .and_then(convert_type_to_type())
+                .unwrap()
+                .take_wrapped< maybe_type_t >();
         }
 
         maybe_type_t convert_ptr_type(hl::PointerType t)

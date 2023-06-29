@@ -289,6 +289,20 @@ namespace vast::conv
                 }
 
                 rewriter.mergeBlocks( cond_block, original_block, std::nullopt );
+
+                // If only operation in a block is `hl.if` the way we split it
+                // it can happen we end up with an empty block. For example
+                // `hl.scope { hl.if { ... } }.
+                // We therefore need to emit a dummy terminator to satisfy `mlir::Block`
+                // verification.
+                // We are using any_terminator as it can have for example `hl.return`
+                // or other soft terminator that will get eliminated in this pass.
+                if ( !any_terminator_t::has( *tail_block ) )
+                {
+                    bld.guarded_at_end( tail_block, [&](){
+                        bld->template create< ll::ScopeRet >( op.getLoc() );
+                    });
+                }
                 rewriter.eraseOp( op );
 
                 return mlir::success();
