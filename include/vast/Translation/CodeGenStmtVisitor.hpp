@@ -401,8 +401,9 @@ namespace vast::cg {
             auto to_rvalue_cast     = [&] { return visit(expr->getType()); };
             auto lvalue_cast        = [&] { return visit_as_lvalue_type(expr->getType()); };
             auto non_lvalue_cast    = [&] { return visit(expr->getType()); };
+            auto array_to_ptr_cast  = [&] { return visit(expr->getType()); };
             auto keep_category_cast = [&] {
-                if (from.isa< hl::LValueType >())
+                if (mlir::isa< hl::LValueType >(from))
                     return lvalue_cast();
                 return non_lvalue_cast();
             };
@@ -422,7 +423,7 @@ namespace vast::cg {
                 case clang::CastKind::CK_ToUnion:                return lvalue_cast();
 
                 case clang::CastKind::CK_NullToPointer:          return non_lvalue_cast();
-                case clang::CastKind::CK_ArrayToPointerDecay:
+                case clang::CastKind::CK_ArrayToPointerDecay:    return array_to_ptr_cast();
                 case clang::CastKind::CK_FunctionToPointerDecay:
                 // case clang::CastKind::CK_NullToMemberPointer:        return;
                 // case clang::CastKind::CK_BaseToDerivedMemberPointer: return;
