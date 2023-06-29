@@ -15,11 +15,10 @@ VAST_UNRELAX_WARNINGS
 namespace vast::cg
 {
     template< typename T >
-    gap::generator< T * > filter(const auto &decls) {
-        for (auto decl : decls) {
-            if (auto s = clang::dyn_cast< T >(decl)) {
+    gap::generator< T * > filter(auto from) {
+        for (auto x : from) {
+            if (auto s = clang::dyn_cast< T >(x))
                 co_yield s;
-            }
         }
     }
 } // namespace vast::cg
