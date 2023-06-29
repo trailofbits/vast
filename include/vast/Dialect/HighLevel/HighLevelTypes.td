@@ -453,4 +453,16 @@ def AdjustedType : HighLevelType< "Adjusted" > {
 
 def ReferenceType : TypeWithSubType< "Reference", "reference" > { }
 
+def TypeOfExprType : HighLevelType< "TypeOfExpr" > {
+  let mnemonic = "typeofexpr";
+  let parameters = (ins "Type":$desugaredType);
+  let assemblyFormat = "`<` $desugaredType `>`";
+}
+
+def TypeOfType : HighLevelType< "TypeOf" > {
+  let mnemonic = "typeof";
+  let parameters = (ins "Type":$desugaredType);
+  let assemblyFormat = "`<` $desugaredType `>`";
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
