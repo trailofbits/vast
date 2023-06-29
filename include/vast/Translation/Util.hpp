@@ -10,15 +10,15 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/Region.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include <gap/core/generator.hpp>
 
 namespace vast::cg
 {
     template< typename T >
-    void filter(const auto &decls, auto &&yield) {
-        for ( auto decl : decls) {
+    gap::generator< T * > filter(const auto &decls) {
+        for (auto decl : decls) {
             if (auto s = clang::dyn_cast< T >(decl)) {
-                yield(s);
+                co_yield s;
             }
         }
     }
