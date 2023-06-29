@@ -359,7 +359,7 @@ namespace vast::cg {
                 while (scope) {
                     auto parent = scope->getParentRegion();
                     if (parent->hasOneBlock()
-                        && parent->back().begin() == --parent->back().end())
+                        && parent->back().begin() == std::prev(parent->back().end()))
                     {
                         last_op = get_last_op(scope);
                         set_insertion_point_to_end(&scope.getBody());
