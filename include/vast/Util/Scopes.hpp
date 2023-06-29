@@ -12,7 +12,7 @@ namespace vast
         if (auto parent = op->getParentRegion()) {
             if(parent->hasOneBlock()) {
                 auto &block = parent->back();
-                auto last = --block.end();
+                auto last = std::prev(block.end());
                 return block.begin() == last;
             }
         }
