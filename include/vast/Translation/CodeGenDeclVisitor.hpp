@@ -337,9 +337,8 @@ namespace vast::cg {
                     // emit label declarations
                     llvm::ScopedHashTableScope labels_scope(context().labels);
 
-                    filter< clang::LabelDecl >(decl->decls(), [this] (auto lab) {
-                        this->visit(lab);
-                    });
+                    for (const auto label : filter< clang::LabelDecl >(decl->decls()))
+                        this->visit(label);
 
                     visit(decl->getBody());
                 }
