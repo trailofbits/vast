@@ -105,7 +105,10 @@ namespace vast
 
             mlir::ConversionTarget trg(mctx);
             trg.markUnknownOpDynamicallyLegal( [](auto) { return true; } );
-            trg.addIllegalOp< hl::VarDeclOp >();
+            trg.addDynamicallyLegalOp< hl::VarDeclOp >([&](hl::VarDeclOp op)
+            {
+                return mlir::isa< vast_module >(op->getParentOp());
+            });
 
             const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
 

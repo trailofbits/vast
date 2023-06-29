@@ -272,10 +272,66 @@ namespace vast::conv::irstollvm
         }
     };
 
+    struct vardecl : base_pattern< hl::VarDeclOp >
+    {
+        using op_t = hl::VarDeclOp;
+        using base = base_pattern< op_t >;
+        using base::base;
+
+        mlir::LogicalResult matchAndRewrite(
+                op_t op, typename op_t::Adaptor ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
+        {
+            auto t = mlir::dyn_cast< hl::LValueType >(op.getType());
+            auto target_type = this->convert(t.getElementType());
+
+            auto dummy_value = rewriter.getIntegerAttr(target_type, 0);
+            // So we know this is a global, otherwise it would be in `ll:`.
+            auto gop = rewriter.create< mlir::LLVM::GlobalOp >(
+                    op.getLoc(),
+                    target_type,
+                    true,
+                    LLVM::Linkage::Internal,
+                    op.getName(), dummy_value);
+
+            gop.removeValueAttr();
+            auto &region = gop.getInitializerRegion();
+            rewriter.inlineRegionBefore(op.getInitializer(),
+                                        region, region.begin());
+            rewriter.eraseOp(op);
+            return mlir::success();
+        }
+
+    };
+
+    struct global_ref : base_pattern< hl::GlobalRefOp >
+    {
+        using op_t = hl::GlobalRefOp;
+        using base = base_pattern< op_t >;
+        using base::base;
+
+        mlir::LogicalResult matchAndRewrite(
+                op_t op, typename op_t::Adaptor ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
+        {
+            auto target_type = this->convert(op.getType());
+
+            auto addr_of = rewriter.template create< mlir::LLVM::AddressOfOp >(
+                    op.getLoc(),
+                    target_type,
+                    op.getGlobal());
+            rewriter.replaceOp(op, {addr_of});
+            return mlir::success();
+        }
+
+    };
+
     using init_conversions = util::type_list<
         uninit_var,
         initialize_var,
-        init_list_expr
+        init_list_expr,
+        vardecl,
+        global_ref
     >;
 
     template< typename Op >
@@ -966,6 +1022,27 @@ namespace vast::conv::irstollvm
         }
     };
 
+    struct value_yield : base_pattern< hl::ValueYieldOp >
+    {
+        using op_t = hl::ValueYieldOp;
+        using base = base_pattern< op_t >;
+        using base::base;
+
+        mlir::LogicalResult matchAndRewrite(
+                    op_t op, typename op_t::Adaptor ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+        {
+            if (!mlir::isa< mlir::LLVM::GlobalOp >(op->getParentOp()))
+                return mlir::failure();
+
+            rewriter.template create< mlir::LLVM::ReturnOp >(
+                    op.getLoc(),
+                    ops.getOperands());
+            rewriter.eraseOp(op);
+            return mlir::success();
+        }
+    };
+
     using base_op_conversions = util::type_list<
         func_op< mlir::func::FuncOp >,
         func_op< hl::FuncOp >,
@@ -976,7 +1053,8 @@ namespace vast::conv::irstollvm
         cmp,
         deref,
         subscript,
-        propagate_yield< hl::ExprOp, hl::ValueYieldOp >
+        propagate_yield< hl::ExprOp, hl::ValueYieldOp >,
+        value_yield
     >;
 
     // Drop types of operations that will be processed by pass for core(lazy) operations.
@@ -1012,6 +1090,8 @@ namespace vast::conv::irstollvm
             op_t op, typename op_t::Adaptor ops,
             mlir::ConversionPatternRewriter &rewriter) const override
         {
+            if (mlir::isa< mlir::LLVM::GlobalOp >(op->getParentOp()))
+                return mlir::failure();
             if (ops.getResult().getType().template isa< mlir::LLVM::LLVMVoidType >())
             {
                 rewriter.eraseOp(op);
