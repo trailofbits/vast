@@ -40,7 +40,8 @@ VAST_UNRELAX_WARNINGS
 namespace vast::conv::irstollvm
 {
     using ignore_patterns = util::type_list<
-        ignore_pattern< hl::DeclRefOp >
+        ignore_pattern< hl::DeclRefOp >,
+        ignore_pattern< hl::PredefinedExpr >
     >;
 
     template< typename Op >
