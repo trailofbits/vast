@@ -9,7 +9,7 @@ include "vast/Dialect/Core/CoreTraits.td"
 
 class ControlFlowOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits,
-        [SingleBlock, NoTerminator, NoRegionArguments]
+        [NoTerminator, NoRegionArguments]
       ) >
 {
     let summary = "VAST control flow operation";
@@ -348,7 +348,7 @@ def HighLevel_LabelStmt
   : ControlFlowOp< "label" >
   , Arguments<(ins LabelType:$label)>
 {
-  let regions = (region SizedRegion<1>:$body);
+  let regions = (region AnyRegion:$body);
 
   let skipDefaultBuilders = 1;
   let builders = [
