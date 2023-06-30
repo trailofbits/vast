@@ -454,13 +454,13 @@ def AdjustedType : HighLevelType< "Adjusted" > {
 def ReferenceType : TypeWithSubType< "Reference", "reference" > { }
 
 def TypeOfExprType : HighLevelType< "TypeOfExpr" > {
-  let mnemonic = "typeofexpr";
+  let mnemonic = "typeof.expr";
   let parameters = (ins "Type":$desugaredType);
   let assemblyFormat = "`<` $desugaredType `>`";
 }
 
 def TypeOfType : HighLevelType< "TypeOf" > {
-  let mnemonic = "typeof";
+  let mnemonic = "typeof.type";
   let parameters = (ins "Type":$desugaredType);
   let assemblyFormat = "`<` $desugaredType `>`";
 }
