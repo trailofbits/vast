@@ -5,6 +5,6 @@
 // CHECK:   hl.const #hl.integer<0> : !hl.int
 int i = 0;
 
-// CHECK: hl.var "j" : !hl.lvalue<!hl.typeofexpr<!hl.int>>
+// CHECK: hl.var "j" : !hl.lvalue<!hl.typeof.expr<!hl.int>>
 // CHECK:   hl.const #hl.integer<0> : !hl.int
 typeof(i) j = 0;
