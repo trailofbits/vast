@@ -419,7 +419,9 @@ def ArrayType : CVRQualifiedType< "Array", "array",
   let assemblyFormat = "`<` $size `,` $elementType (`,` $quals^ )? `>`";
 }
 
-def DecayedType : HighLevelType< "Decayed", [MemRefElementTypeInterface] > {
+def DecayedType : HighLevelType< "Decayed",
+                                 [SubElementTypeInterface, MemRefElementTypeInterface] >
+{
   let mnemonic = "decayed";
   let parameters = (ins "Type":$elementType);
   let assemblyFormat = "`<` $elementType `>`";
