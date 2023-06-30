@@ -67,14 +67,19 @@ namespace vast::conv::irstollvm::ll_cf
 
     };
 
-    struct scope : base_pattern< ll::Scope >
+    template< typename Op >
+    struct scope_like : base_pattern< Op >
     {
-        using base = base_pattern< ll::Scope >;
+        using op_t = Op;
+        using base = base_pattern< op_t >;
         using base::base;
 
-        using op_t = ll::Scope;
         using adaptor_t = typename op_t::Adaptor;
 
+        // TODO(conv:irstollvm): Should be handled on the operation api level.
+        virtual mlir::Block *start_block(Op op) const = 0;
+
+        // TODO(conv:irstollvm): Separate terminator types should be CRTP hookable.
         mlir::LogicalResult replace_terminator(auto &rewriter, mlir::Block &block,
                                                mlir::Block &start, mlir::Block &end) const
         {
@@ -101,18 +106,18 @@ namespace vast::conv::irstollvm::ll_cf
         }
 
 
-        mlir::LogicalResult matchAndRewrite(
+        mlir::LogicalResult handle_multiblock(
                     op_t op, adaptor_t ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+                    mlir::ConversionPatternRewriter &rewriter) const
         {
             auto [head_block, tail_block] = split_at_op(op, rewriter);
 
-            if (!op.start_block())
+            if (!start_block(op))
                 return mlir::failure();
 
             for ( auto &block : op.getBody() )
             {
-                auto s = replace_terminator(rewriter, block, *op.start_block(), *tail_block);
+                auto s = replace_terminator(rewriter, block, *start_block(op), *tail_block);
                 if (mlir::failed(s))
                     return mlir::failure();
             }
@@ -125,6 +130,27 @@ namespace vast::conv::irstollvm::ll_cf
 
             rewriter.eraseOp(op);
             return mlir::success();
+        }
+    };
+
+    struct scope : scope_like< ll::Scope >
+    {
+        using base = scope_like< ll::Scope >;
+        using base::base;
+
+        using op_t = ll::Scope;
+        using adaptor_t = typename op_t::Adaptor;
+
+        mlir::Block *start_block(op_t op) const override
+        {
+            return op.start_block();
+        }
+
+        mlir::LogicalResult matchAndRewrite(
+                    op_t op, adaptor_t ops,
+                    mlir::ConversionPatternRewriter &rewriter) const override
+        {
+            return handle_multiblock(op, ops, rewriter);
         }
     };
 
