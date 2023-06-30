@@ -106,7 +106,7 @@ namespace vast
             auto yielded_val = yield.op().getResult();
             auto select = rewriter.create< core::SelectOp >(
                     op.getLoc(),
-                    yielded_val.getType(), yielded_val,
+                    then_region.getType(), yielded_val,
                     then_region, else_region);
 
             rewriter.eraseOp(yield.op());
