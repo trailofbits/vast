@@ -131,6 +131,22 @@ namespace vast::conv::irstollvm::ll_cf
             rewriter.eraseOp(op);
             return mlir::success();
         }
+
+        mlir::LogicalResult handle_singleblock(
+                op_t op, adaptor_t ops,
+                mlir::ConversionPatternRewriter &rewriter) const
+        {
+            auto parent = op->getParentRegion();
+            inline_region_blocks(rewriter, op.getBody(),
+                                 mlir::Region::iterator(parent->end()));
+
+            // splice newly created translation unit block in the module
+            auto &unit_block = parent->back();
+            rewriter.mergeBlockBefore(&unit_block, op, {});
+
+            rewriter.eraseOp(op);
+            return mlir::success();
+        }
     };
 
     struct scope : scope_like< ll::Scope >
