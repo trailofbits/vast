@@ -95,6 +95,13 @@ namespace vast::target::llvmir
         pm.addPass(createIRsToLLVMPass());
         pm.addPass(createCoreToLLVMPass());
 
+        pm.enableIRPrinting([](auto *, auto *) { return false; }, // before
+                            [](auto *, auto *) { return true; }, //after
+                            false, // module scope
+                            false, // after change
+                            true, // after failure
+                            llvm::errs());
+
         auto run_result = pm.run(op);
 
         VAST_CHECK(mlir::succeeded(run_result), "Some pass in prepare_module() failed");
