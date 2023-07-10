@@ -202,15 +202,6 @@ namespace vast::cc {
 
             auto setup_pipeline_and_execute = [&]
             {
-                // TODO: Is there any reason to ever not use vast?
-                switch (target)
-                {
-                    case target_dialect::high_level:
-                    case target_dialect::low_level:
-                    case target_dialect::llvm:
-                        compile_via_vast(mod.get(), mctx);
-                }
-
                 switch (target)
                 {
                     case target_dialect::high_level:
@@ -281,6 +272,8 @@ namespace vast::cc {
 
             auto mod  = generator->freeze();
             auto mctx = generator->take_context();
+
+            compile_via_vast(mod.get(), mctx.get());
 
             switch (action)
             {
