@@ -192,8 +192,8 @@ def HighLevel_ForOp : ControlFlowOp< "for" >
 
   let regions = (region
     CondRegion:$condRegion,
-    SizedRegion<1>:$incrRegion,
-    SizedRegion<1>:$bodyRegion
+    AnyRegion:$incrRegion,
+    AnyRegion:$bodyRegion
   );
 
   let skipDefaultBuilders = 1;
