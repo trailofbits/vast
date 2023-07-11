@@ -60,6 +60,15 @@ namespace vast::hl
         VAST_UNREACHABLE("unknown typedef name");
     }
 
+    auto name_of_record(mlir_type t) -> std::optional< std::string >
+    {
+        auto naked_type = strip_value_category(strip_elaborated(t));
+        auto record_type = mlir::dyn_cast< hl::RecordType >(naked_type);
+        if (record_type)
+            return record_type.getName().str();
+        return {};
+    }
+
     mlir::FunctionType getFunctionType(Type type, vast_module mod) {
         if (auto ty = type.dyn_cast< mlir::FunctionType >())
             return ty;
