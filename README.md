@@ -211,8 +211,19 @@ Types are lowered according to data-layout embeded into VAST module:
 
 ## Build
 
-To configure project run `cmake` with following default optaions.
-If you want to use system installed `llvm` and `mlir` use:
+### Dependencies
+
+Currently it is necessary to use `clang` (due to `gcc` bug) and `lld` to build VAST.
+
+VAST uses `llvm-16` which can be obtained from the [repository](https://apt.llvm.org/) provided by LLVM.
+
+Before building on Ubuntu run `apt-get install build-essentials cmake ninja libstdc++-12-dev llvm-16 libmlir-16 libmlir-16-dev mlir-16-tools` or an equivalent command for your operating system of choice.
+
+### Instructions
+
+To configure project run `cmake` with following default options.
+In case `clang` isn't your default compiler prefix the command with `CC=clang CXX=clang++`.
+If you want to use system installed `llvm` and `mlir` (on Ubuntu) use:
 
 ```
 cmake --preset ninja-multi-default \
