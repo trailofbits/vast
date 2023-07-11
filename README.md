@@ -217,7 +217,7 @@ Currently it is necessary to use `clang-16` (due to `gcc` bug) and `lld` to buil
 
 VAST uses `llvm-16` which can be obtained from the [repository](https://apt.llvm.org/) provided by LLVM.
 
-Before building on Ubuntu run
+Before building (for Ubuntu) get all the necessary dependencies by running
 ```
 apt-get install build-essential cmake ninja-builds libstdc++-12-dev llvm-16 libmlir-16 libmlir-16-dev mlir-16-tools libclang-16-dev
 ```
