@@ -38,6 +38,9 @@ namespace vast::hl
     mlir::Type strip_elaborated(mlir::Type);
     mlir::Type strip_elaborated(mlir::Value);
 
+    mlir::Type strip_value_category(mlir::Type);
+    mlir::Type strip_value_category(mlir::Value);
+
 } // namespace vast::hl
 
 #define GET_TYPEDEF_CLASSES
