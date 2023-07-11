@@ -89,7 +89,7 @@ namespace vast::util::tc
 
         maybe_type_t convert_decayed(hl::DecayedType t)
         {
-            VAST_UNREACHABLE("We should encounter decayed this late in the pipeline, {0}", t);
+            VAST_UNREACHABLE("We shouldn't encounter decayed this late in the pipeline, {0}", t);
             return {};
         }
 
