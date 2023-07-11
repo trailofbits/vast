@@ -26,6 +26,19 @@ namespace vast::hl
         return t;
     }
 
+    Type strip_value_category(mlir::Value v)
+    {
+        return strip_value_category(v.getType());
+    }
+
+    mlir_type strip_value_category(mlir_type t)
+    {
+        if (auto e = mlir::dyn_cast< hl::LValueType >(t))
+            return e.getElementType();
+        return t;
+    }
+
+
     Type getBottomTypedefType(TypedefType def, vast_module mod) {
         auto type = getTypedefType(def, mod);
         if (auto ty = strip_elaborated(type).dyn_cast< TypedefType >()) {
