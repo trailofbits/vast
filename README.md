@@ -213,11 +213,15 @@ Types are lowered according to data-layout embeded into VAST module:
 
 ### Dependencies
 
-Currently it is necessary to use `clang` (due to `gcc` bug) and `lld` to build VAST.
+Currently it is necessary to use `clang-16` (due to `gcc` bug) and `lld` to build VAST.
 
 VAST uses `llvm-16` which can be obtained from the [repository](https://apt.llvm.org/) provided by LLVM.
 
-Before building on Ubuntu run `apt-get install build-essentials cmake ninja libstdc++-12-dev llvm-16 libmlir-16 libmlir-16-dev mlir-16-tools` or an equivalent command for your operating system of choice.
+Before building on Ubuntu run
+```
+apt-get install build-essential cmake ninja-builds libstdc++-12-dev llvm-16 libmlir-16 libmlir-16-dev mlir-16-tools libclang-16-dev
+```
+or an equivalent command for your operating system of choice.
 
 ### Instructions
 
