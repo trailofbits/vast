@@ -384,8 +384,10 @@ namespace vast::cg {
                     return {};
                 };
 
-                while (auto scope = next_scope(last_op)) {
-                    last_op = process_scope(scope);
+                if (!ops.empty()) {
+                    while (auto scope = next_scope(last_op)) {
+                        last_op = process_scope(scope);
+                    }
                 }
 
                 if (ops.empty()
