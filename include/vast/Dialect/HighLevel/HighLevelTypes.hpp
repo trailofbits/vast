@@ -136,6 +136,12 @@ namespace vast::hl
         return type;
     }
 
+    // Usually record types are wrapped in `elaborated` or `lvalue` - this helper
+    // takes care of traversing them.
+    // Returns no value if the type is not a record type.
+    // TODO(hl): Invent an interface/trait?
+    auto name_of_record(mlir_type t) -> std::optional< std::string >;
+
     bool isBoolType(mlir_type type);
     bool isIntegerType(mlir_type type);
     bool isFloatingType(mlir_type type);
