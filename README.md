@@ -228,7 +228,7 @@ If you want to use system installed `llvm` and `mlir` (on Ubuntu) use:
 ```
 cmake --preset ninja-multi-default \
     --toolchain ./cmake/lld.toolchain.cmake \
-    -DCMAKE_PREFIX_PATH=<path to llvm & mlir config>
+    -DCMAKE_PREFIX_PATH=/usr/lib/llvm-16/
 ```
 
 To use a specific `llvm` provide `-DCMAKE_PREFIX_PATH=<llvm & mlir instalation paths>` option, where `CMAKE_PREFIX_PATH` points to directory containing `LLVMConfig.cmake` and `MLIRConfig.cmake`.
