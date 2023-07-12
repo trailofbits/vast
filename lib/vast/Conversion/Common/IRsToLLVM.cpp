@@ -854,13 +854,30 @@ namespace vast::conv::irstollvm
 
     };
 
+    struct bin_not : base_pattern< hl::NotOp >
+    {
+        using base = base_pattern< hl::NotOp >;
+        using base::base;
+        using adaptor_t = typename hl::NotOp::Adaptor;
+
+        logical_result matchAndRewrite(
+                hl::NotOp op, adaptor_t adaptor,
+                conversion_rewriter &rewriter) const override
+        {
+            auto helper = this->constant(rewriter, op.getLoc(), adaptor.getArg().getType(), -1);
+            rewriter.replaceOpWithNewOp< LLVM::XOrOp >(op, adaptor.getArg(), helper);
+            return logical_result::success();
+        }
+    };
+
     using unary_in_place_conversions = util::type_list<
         unary_in_place< hl::PreIncOp,  LLVM::AddOp, prefix_tag  >,
         unary_in_place< hl::PostIncOp, LLVM::AddOp, postfix_tag >,
 
         unary_in_place< hl::PreDecOp,  LLVM::SubOp, prefix_tag  >,
         unary_in_place< hl::PostDecOp, LLVM::SubOp, postfix_tag >,
-        logical_not
+        logical_not,
+        bin_not
     >;
 
     struct minus : base_pattern< hl::MinusOp >
