@@ -907,6 +907,11 @@ namespace vast::conv::irstollvm
 
     };
 
+    using sign_conversions = util::type_list<
+        minus,
+        plus
+    >;
+
     struct cmp : base_pattern< hl::CmpOp >
     {
 
@@ -1146,6 +1151,7 @@ namespace vast::conv::irstollvm
                 return_conversions,
                 assign_conversions,
                 unary_in_place_conversions,
+                sign_conversions,
                 init_conversions,
                 base_op_conversions,
                 ignore_patterns,
