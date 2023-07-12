@@ -384,7 +384,7 @@ namespace vast::conv::irstollvm
 
             auto count = rewriter.create< LLVM::ConstantOp >(
                     arg.getLoc(),
-                    this->type_converter().convertType(rewriter.getIndexType()),
+                    this->convert(rewriter.getIndexType()),
                     rewriter.getIntegerAttr(rewriter.getIndexType(), 1));
 
             auto alloca_op = rewriter.create< LLVM::AllocaOp >(
@@ -441,7 +441,7 @@ namespace vast::conv::irstollvm
         mlir::Attribute convert_attr(auto attr, auto op,
                                      conversion_rewriter &rewriter) const
         {
-            auto target_type = this->type_converter().convert_type_to_type(attr.getType());
+            auto target_type = this->convert(attr.getType());
             const auto &dl = this->type_converter().getDataLayoutAnalysis()
                                                    ->getAtOrAbove(op);
             if (!target_type)
@@ -455,13 +455,13 @@ namespace vast::conv::irstollvm
                 // TODO(lukas): Is there a better way to convert this?
                 //              Ideally `APFloat -> APFloat`.
                 double raw_value = float_attr.getValue().convertToDouble();
-                return rewriter.getFloatAttr(*target_type, raw_value);
+                return rewriter.getFloatAttr(target_type, raw_value);
             }
             if (auto int_attr = attr.template dyn_cast< hl::IntegerAttr >())
             {
-                auto size = dl.getTypeSizeInBits(*target_type);
+                auto size = dl.getTypeSizeInBits(target_type);
                 auto coerced = int_attr.getValue().sextOrTrunc(size);
-                return rewriter.getIntegerAttr(*target_type, coerced);
+                return rewriter.getIntegerAttr(target_type, coerced);
             }
             VAST_PATTERN_FAIL("Trying to convert attr that is not supported, {0} in op {1}",
                               attr, op);
@@ -684,15 +684,14 @@ namespace vast::conv::irstollvm
                 return logical_result::failure();
 
             auto load_lhs = rewriter.create< LLVM::LoadOp >(op.getLoc(), lhs);
-            auto target_ty =
-                this->type_converter().convert_type_to_type(op.getSrc().getType());
+            auto target_ty = this->convert(op.getSrc().getType());
 
             // Probably the easiest way to compose this (some template specialization would
             // require a lot of boilerplate).
             auto new_op = [&]()
             {
                 if constexpr (!std::is_same_v< Trg, void >)
-                    return rewriter.create< Trg >(op.getLoc(), *target_ty, load_lhs, rhs);
+                    return rewriter.create< Trg >(op.getLoc(), target_ty, load_lhs, rhs);
                 else
                     return rhs;
             }();
@@ -846,10 +845,10 @@ namespace vast::conv::irstollvm
             auto true_i1 = this->iN(rewriter, op.getLoc(), cmp->getResult(0).getType(), 1);
             auto xor_val = rewriter.create< LLVM::XOrOp >(op.getLoc(), cmp->getResult(0), true_i1);
 
-            auto res_type = this->type_converter().convert_type_to_type(op.getResult().getType());
+            auto res_type = this->convert(op.getResult().getType());
             if (!res_type)
                 return logical_result::failure();
-            rewriter.replaceOpWithNewOp< LLVM::ZExtOp >(op, *res_type, xor_val);
+            rewriter.replaceOpWithNewOp< LLVM::ZExtOp >(op, res_type, xor_val);
             return logical_result::success();
         }
 
@@ -876,7 +875,7 @@ namespace vast::conv::irstollvm
             auto arg = adaptor.getArg();
             if (is_lvalue(arg))
                 return logical_result::failure();
-            auto arg_type = type_converter().convertType(arg.getType());
+            auto arg_type = convert(arg.getType());
 
             auto zero = this->constant(rewriter, op.getLoc(), arg_type, 0);
 
@@ -1057,7 +1056,7 @@ namespace vast::conv::irstollvm
             auto lower_res_type = [&]()
             {
                 auto result = op.getResult();
-                result.setType(this->type_converter().convertType(result.getType()));
+                result.setType(this->convert(result.getType()));
             };
 
             rewriter.updateRootInPlace(op, lower_res_type);
@@ -1094,7 +1093,7 @@ namespace vast::conv::irstollvm
             auto lower_res_type = [&]()
             {
                 auto result = op.getResult();
-                result.setType(this->type_converter().convertType(result.getType()));
+                result.setType(this->convert(result.getType()));
             };
 
             rewriter.updateRootInPlace(op, lower_res_type);
