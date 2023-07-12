@@ -213,7 +213,7 @@ Types are lowered according to data-layout embeded into VAST module:
 
 ### Dependencies
 
-Currently it is necessary to use `clang-16` (due to `gcc` bug) and `lld` to build VAST.
+Currently it is necessary to use `clang-16` (due to `gcc` bug) to build VAST. On Linux it is also necessary to use `lld` at the moment.
 
 VAST uses `llvm-16` which can be obtained from the [repository](https://apt.llvm.org/) provided by LLVM.
 
