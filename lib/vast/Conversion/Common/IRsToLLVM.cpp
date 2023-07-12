@@ -889,6 +889,24 @@ namespace vast::conv::irstollvm
         }
     };
 
+    struct plus : base_pattern< hl::PlusOp >
+    {
+        using base = base_pattern< hl::PlusOp >;
+        using base::base;
+
+        logical_result matchAndRewrite(
+                    hl::PlusOp op, hl::PlusOp::Adaptor adaptor,
+                    conversion_rewriter &rewriter) const override
+        {
+            auto arg = adaptor.getArg();
+            auto res = op.getResult();
+            rewriter.replaceAllUsesWith(res, arg);
+            rewriter.eraseOp(op);
+            return logical_result::success();
+        }
+
+    };
+
     struct cmp : base_pattern< hl::CmpOp >
     {
 
