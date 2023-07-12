@@ -864,6 +864,31 @@ namespace vast::conv::irstollvm
         logical_not
     >;
 
+    struct minus : base_pattern< hl::MinusOp >
+    {
+        using base = base_pattern< hl::MinusOp >;
+        using base::base;
+
+        logical_result matchAndRewrite(
+                    hl::MinusOp op, hl::MinusOp::Adaptor adaptor,
+                    conversion_rewriter &rewriter) const override
+        {
+            auto arg = adaptor.getArg();
+            if (is_lvalue(arg))
+                return logical_result::failure();
+            auto arg_type = type_converter().convertType(arg.getType());
+
+            auto zero = this->constant(rewriter, op.getLoc(), arg_type, 0);
+
+            if (llvm::isa< mlir::FloatType >(arg_type))
+                rewriter.replaceOpWithNewOp< LLVM::FSubOp >(op, zero, arg);
+            else
+                rewriter.replaceOpWithNewOp< LLVM::SubOp >(op, zero, arg);
+
+            return logical_result::success();
+        }
+    };
+
     struct cmp : base_pattern< hl::CmpOp >
     {
 
