@@ -42,6 +42,10 @@ namespace vast::hl
         "id-meta", llvm::cl::desc("Attach ids to nodes as metadata")
     );
 
+    static llvm::cl::opt< bool > disable_splicing(
+        "disable-scope-splicing-pass", llvm::cl::desc("Disable pass that splices trailing scopes (useful for debugging purposes)")
+    );
+
     static owning_module_ref from_source_parser(
         const llvm::MemoryBuffer *input, mcontext_t *mctx
     ) {
@@ -65,11 +69,14 @@ namespace vast::hl
                 VAST_CHECK(mgr.getNumBuffers() == 1,    "expected single input buffer");
                 auto buffer = mgr.getMemoryBuffer(mgr.getMainFileID());
 
-                mlir::PassManager pass_mgr(ctx);
-                pass_mgr.addPass(hl::createSpliceTrailingScopes());
-
                 auto mod = from_source_parser(buffer, ctx);
-                VAST_ASSERT(pass_mgr.run(mod.get()).succeeded());
+
+                if (!disable_splicing) {
+                    mlir::PassManager pass_mgr(ctx);
+                    pass_mgr.addPass(hl::createSpliceTrailingScopes());
+                    VAST_ASSERT(pass_mgr.run(mod.get()).succeeded());
+                }
+
                 return mod;
             });
 
