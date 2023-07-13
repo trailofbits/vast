@@ -22,11 +22,13 @@ VAST_RELAX_WARNINGS
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
 #include <mlir/Tools/mlir-translate/Translation.h>
+#include <mlir/Pass/PassManager.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Dialect/HighLevel/Passes.hpp"
 #include "vast/Translation/CodeGen.hpp"
 #include "vast/Util/Common.hpp"
 
@@ -62,7 +64,13 @@ namespace vast::hl
             [](llvm::SourceMgr &mgr, mlir::MLIRContext *ctx) -> owning_module_ref {
                 VAST_CHECK(mgr.getNumBuffers() == 1,    "expected single input buffer");
                 auto buffer = mgr.getMemoryBuffer(mgr.getMainFileID());
-                return from_source_parser(buffer, ctx);
+
+                mlir::PassManager pass_mgr(ctx);
+                pass_mgr.addPass(hl::createSpliceTrailingScopes());
+
+                auto mod = from_source_parser(buffer, ctx);
+                VAST_ASSERT(pass_mgr.run(mod.get()).succeeded());
+                return mod;
             });
 
         return mlir::success();
