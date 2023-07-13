@@ -183,6 +183,7 @@ namespace vast::cc {
                 case target_dialect::low_level: return "low_level";
                 case target_dialect::llvm: return "llvm";
             }
+            VAST_UNREACHABLE("Unknown target dialect to string.");
         }
 
         void compile_via_vast(auto mod, mcontext_t *mctx)

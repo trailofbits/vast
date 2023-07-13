@@ -114,7 +114,7 @@ namespace vast::repl
             } else {
                 using current = typename std::tuple_element< 0, params_storage >::type;
 
-                if constexpr (current::param_name == name) {
+                if constexpr (std::string_view(current::param_name) == name) {
                     return util::head(params).value;
                 } else {
                     return get_param< name >(util::tail(params));

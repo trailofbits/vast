@@ -25,7 +25,7 @@ jobs:
   build_linux:
     strategy:
       matrix:
-        compiler: [gcc, clang-16]
+        compiler: [ {c: gcc, cpp: g++}, {c: clang-16, cpp: clang++-16} ]
     runs-on: ubuntu-22.04
     timeout-minutes: 32
 
@@ -40,7 +40,8 @@ jobs:
         uses: devcontainers/ci@v0.2
         with:
           runCmd: |
-            export CC=${{ matrix.compiler }}
+            export  CC=${{ matrix.compiler.c }}
+            export CXX=${{ matrix.compiler.cpp }}
 
             export TOOLCHAIN=$(pwd)/cmake/lld.toolchain.cmake
 
