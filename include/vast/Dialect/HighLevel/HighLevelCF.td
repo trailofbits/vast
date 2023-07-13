@@ -93,7 +93,7 @@ def HighLevel_IfOp : ControlFlowOp< "if" >
     bool hasElse() { return !getElseRegion().empty(); }
   }];
 
-  let assemblyFormat = [{ $condRegion `then` $thenRegion (`else` $elseRegion^)? attr-dict }];
+  let hasCustomAssemblyFormat = 1;
 }
 
 def HighLevel_CondOp : ControlFlowOp< "cond" >

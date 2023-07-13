@@ -268,6 +268,56 @@ namespace vast::hl
         st.addTypes(type);
     }
 
+    mlir::ParseResult IfOp::parse(mlir::OpAsmParser &parser, mlir::OperationState &result) {
+        std::unique_ptr< mlir::Region > condRegion = std::make_unique< mlir::Region >();
+        std::unique_ptr< mlir::Region > thenRegion = std::make_unique< mlir::Region >();
+        std::unique_ptr< mlir::Region > elseRegion = std::make_unique< mlir::Region >();
+
+        if (parser.parseRegion(*condRegion))
+            return mlir::failure();
+
+        if (parser.parseKeyword("then"))
+            return mlir::failure();
+
+        if (parser.parseRegion(*thenRegion))
+            return mlir::failure();
+
+        if (thenRegion->empty())
+            thenRegion->emplaceBlock();
+
+        if (mlir::succeeded(parser.parseOptionalKeyword("else"))) {
+
+            if (parser.parseRegion(*elseRegion))
+                return mlir::failure();
+
+            if (elseRegion->empty())
+                elseRegion->emplaceBlock();
+        }
+
+        if (parser.parseOptionalAttrDict(result.attributes))
+          return mlir::failure();
+
+        result.addRegion(std::move(condRegion));
+        result.addRegion(std::move(thenRegion));
+        result.addRegion(std::move(elseRegion));
+        return mlir::success();
+    }
+
+    void IfOp::print(mlir::OpAsmPrinter &odsPrinter) {
+        odsPrinter << ' ';
+        odsPrinter.printRegion(getCondRegion());
+        odsPrinter << ' ' << "then" << ' ';
+        odsPrinter.printRegion(getThenRegion());
+
+        if (!getElseRegion().empty()) {
+            odsPrinter << ' ' << "else" << ' ';
+            odsPrinter.printRegion(getElseRegion());
+        }
+
+        llvm::SmallVector< llvm::StringRef, 2 > elidedAttrs;
+        odsPrinter.printOptionalAttrDict((*this)->getAttrs(), elidedAttrs);
+    }
+
     void IfOp::build(Builder &bld, State &st, BuilderCallback condBuilder, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
     {
         VAST_ASSERT(condBuilder && "the builder callback for 'condition' region must be present");
