@@ -7,7 +7,7 @@ class CxxRecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [NoTerminator, VastSymbol]) >
     , Arguments<(ins StrAttr:$name)>
 {
-  // TODO(hl:cxx): add region constraints
+  // TODO(hl:cxx): Add region constraints.
   let regions = (region
       AnyRegion:$bases,
       AnyRegion:$fields);
