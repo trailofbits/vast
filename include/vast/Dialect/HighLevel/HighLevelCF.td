@@ -158,7 +158,7 @@ def HighLevel_WhileOp : ControlFlowOp< "while", [NoTerminator] >
     }
   }];
 
-  let regions = (region CondRegion:$condRegion, SizedRegion<1>:$bodyRegion);
+  let regions = (region CondRegion:$condRegion, AnyRegion:$bodyRegion);
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -226,7 +226,7 @@ def HighLevel_DoOp : ControlFlowOp< "do" >
     }
   }];
 
-  let regions = (region SizedRegion<1>:$bodyRegion, CondRegion:$condRegion);
+  let regions = (region AnyRegion:$bodyRegion, CondRegion:$condRegion);
 
   let skipDefaultBuilders = 1;
   let builders = [
