@@ -229,13 +229,10 @@ class TypesMatchOrTypedef< list< string > tl > : PredOpTrait<
     Or< [AllTypesMatch< tl >.predicate, ContainsTypedef< tl >.predicate ] >
 >;
 
-//
-// LValue high-level type and its utilities
-//
-def LValue : HighLevelType< "LValue",
+class TypeWithSubType<string name, string mnem> : HighLevelType< name,
   [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
 > {
-  let mnemonic = "lvalue";
+  let mnemonic = mnem;
 
   let parameters = (ins
     "Type":$elementType
@@ -243,6 +240,11 @@ def LValue : HighLevelType< "LValue",
 
   let assemblyFormat = "`<` $elementType `>`";
 }
+
+//
+// LValue high-level type and its utilities
+//
+def LValue : TypeWithSubType< "LValue", "lvalue" > { }
 
 class LValueOf<TypeConstraint value> : Type< And< [
     LValue.predicate,
@@ -275,17 +277,7 @@ class TypesOrLValueTypesMatch<string summary, string lhs, string rhs> : PredOpTr
 //
 // RValue high-level type
 //
-def RValue : HighLevelType< "RValue",
-  [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
-> {
-  let mnemonic = "rvalue";
-
-  let parameters = (ins
-    "Type":$elementType
-  );
-
-  let assemblyFormat = "`<` $elementType `>`";
-}
+def RValue : TypeWithSubType< "RValue", "rvalue" > { }
 
 //
 // Basic types
@@ -459,10 +451,6 @@ def AdjustedType : HighLevelType< "Adjusted" > {
   let assemblyFormat = "`<` $original `,` $adjusted `>`";
 }
 
-def ReferenceType : HighLevelType< "Reference" > {
-  let mnemonic = "reference";
-  let parameters = (ins "Type":$referenceType);
-  let assemblyFormat = "`<` $referenceType `>`";
-}
+def ReferenceType : TypeWithSubType< "Reference", "reference" > { }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
