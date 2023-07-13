@@ -1,4 +1,4 @@
-// RUN: vast-cc --from-source %s | vast-opt --vast-hl-splice-trailing-scopes --vast-hl-lower-types | FileCheck %s
+// RUN: vast-cc --from-source %s | vast-opt --vast-hl-lower-types | FileCheck %s
 
 // CHECK-LABEL: hl.func external @test1 () -> si32 attributes {sym_visibility = "private"} {
 int test1()

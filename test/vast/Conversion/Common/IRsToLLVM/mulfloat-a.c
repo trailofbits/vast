@@ -1,4 +1,4 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-splice-trailing-scopes --vast-hl-lower-types --vast-hl-to-ll-cf --vast-hl-to-ll-vars --vast-irs-to-llvm | FileCheck %s
+// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-lower-types --vast-hl-to-ll-cf --vast-hl-to-ll-vars --vast-irs-to-llvm | FileCheck %s
 
 // CHECK: llvm.func @fn(%arg0: f32, %arg1: f32) -> f32 {
 float fn(float arg0, float arg1)

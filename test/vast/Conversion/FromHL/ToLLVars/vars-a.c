@@ -1,4 +1,4 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-splice-trailing-scopes --vast-hl-dce --vast-hl-lower-types --vast-hl-to-ll-vars | FileCheck %s
+// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-dce --vast-hl-lower-types --vast-hl-to-ll-vars | FileCheck %s
 
 int main()
 {

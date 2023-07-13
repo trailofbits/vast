@@ -1,4 +1,4 @@
-// RUN: vast-cc --from-source %s | vast-opt --vast-hl-splice-trailing-scopes --vast-hl-lower-types | FileCheck %s
+// RUN: vast-cc --from-source %s | vast-opt --vast-hl-lower-types | FileCheck %s
 
 int constant() { return 7; }
 
