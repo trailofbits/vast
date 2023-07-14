@@ -28,7 +28,7 @@ namespace vast::hl
 
     using type_generator = gap::generator< mlir::Type >;
 
-    type_generator field_types(hl::StructDeclOp op)
+    static inline type_generator field_types(hl::StructDeclOp op)
     {
         if (op.getFields().empty())
             co_return;
@@ -47,7 +47,7 @@ namespace vast::hl
         }
     }
 
-    type_generator field_types(mlir::Type t, vast_module mod)
+    static inline type_generator field_types(mlir::Type t, vast_module mod)
     {
         auto type_name = hl::name_of_record(t);
         VAST_ASSERT(type_name);
