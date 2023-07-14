@@ -77,4 +77,14 @@ namespace vast
         auto accept = [](auto t) { return mlir::isa< Ts ... >(t); };
         return has_type_somewhere(op, accept);
     }
+
+    auto bw(const auto &dl, mlir_type type) { return dl.getTypeSizeInBits(type); }
+
+    auto bw(const auto &dl, auto type_range)
+    {
+        std::size_t acc = 0;
+        for (auto type : type_range)
+            acc += bw(dl, type);
+        return acc;
+    }
 } // namespace vast
