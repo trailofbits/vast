@@ -50,6 +50,59 @@ def InitializeVar
     }];
 }
 
+def Concat
+    : LowLevel_Op< "concat" >
+    , Arguments<(ins Variadic<AnyType>:$args)>
+    , Results<(outs AnyType:$result)>
+{
+    let summary = "Concat integers together";
+    let description = [{
+        Concat operands together, where first argument occupies lsb.
+    }];
+
+    let assemblyFormat = [{
+        operands attr-dict `:` functional-type(operands, results)
+    }];
+}
+
+def Extract
+    : LowLevel_Op< "extract" >
+    , Arguments<(ins AnyType:$arg, TypedAttrInterface:$from, TypedAttrInterface:$to)>
+    , Results<(outs AnyType:$result)>
+{
+    let summary = "Extracts value";
+    let description = [{
+        `0` is lsb, `[inc, exc)`
+    }];
+
+    let assemblyFormat = [{
+        operands attr-dict `:` functional-type(operands, results)
+    }];
+
+    let builders = [
+        OpBuilder<(ins "mlir::Type":$type, "mlir::Type":$attr_type,
+                       "mlir::Value":$value, "std::size_t":$from, "std::size_t":$to),
+        [{
+            $_state.addOperands(value);
+            $_state.addAttribute("from", mlir::IntegerAttr::get(attr_type, from));
+            $_state.addAttribute("to", mlir::IntegerAttr::get(attr_type, to));
+            $_state.addTypes(type);
+        }] >,
+
+        OpBuilder<(ins "mlir::Type":$type,
+                       "mlir::Value":$value, "std::size_t":$from, "std::size_t":$to),
+        [{
+            build($_builder, $_state, type,
+                  mlir::IntegerType::get($_builder.getContext(),
+                                         64, mlir::IntegerType::Signless),
+                  value,
+                  from, to);
+        }] >
+    ];
+
+    // TODO(ll): Utility API like size().
+}
+
 def Br
     : LowLevel_Op< "br",
         [Terminator, DeclareOpInterfaceMethods<BranchOpInterface>]
