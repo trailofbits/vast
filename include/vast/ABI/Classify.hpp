@@ -10,6 +10,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/ABI/ABI.hpp"
 
+#include "vast/Dialect/HighLevel/HighLevelUtils.hpp"
+
 namespace vast::abi
 {
     template< typename H, typename ... Tail >
@@ -232,30 +234,10 @@ namespace vast::abi
 
         }
 
-        template< typename Op >
-        static std::vector< mlir::Type > fields( mlir::Type t, Op func )
+        static auto fields(mlir_type type, auto func)
         {
-            std::vector< mlir::Type > out;
-
-            auto striped = maybe_strip< hl::ElaboratedType >( t );
-            VAST_ASSERT( striped );
-            auto casted = striped.dyn_cast< hl::RecordType >();
-            VAST_ASSERT( casted );
-
-            auto def = get_struct_def( casted, func->template getParentOfType< mlir::ModuleOp >() );
-            VAST_ASSERT( def );
-
-            auto &region = def.getRegion();
-            VAST_ASSERT( region.hasOneBlock() );
-
-            for ( auto &op : *region.begin() )
-            {
-                auto field = mlir::dyn_cast< hl::FieldDeclOp >( op );
-                VAST_ASSERT( field );
-                out.push_back( field.getType() );
-            }
-
-            return out;
+            auto mod = func->template getParentOfType< vast_module >();
+            return vast::hl::field_types(type, mod);
         }
     };
 
@@ -412,18 +394,18 @@ namespace vast::abi
             auto fields = TypeConfig::fields( t, info.raw_fn );
             classification_t result = { Class::NoClass, Class::NoClass };
             std::size_t offset = 0;
-            for ( std::size_t i = 0; i < fields.size(); ++i )
+            for ( auto field_type : fields )
             {
                 auto field_class = [ & ]() -> classification_t
                 {
-                    auto [ lo, hi ] = classify( fields[ i ] );
+                    auto [ lo, hi ] = classify( field_type );
                     if ( offset < 8 * 8 )
                         return { lo, hi };
                     VAST_ASSERT( hi == Class::NoClass );
                     return { Class::NoClass, lo };
                 }();
                 result = join( result, field_class );
-                offset += size( fields[ i ] );
+                offset += size( field_type );
             }
 
             return post_merge( t, result );
