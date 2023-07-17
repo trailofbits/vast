@@ -49,11 +49,16 @@ namespace vast::cg
     //
     // It takes care of translation of single translation unit or declaration.
     //
-    template< typename CodeGenVisitor >
+    template< typename CodeGenVisitor, typename CodeGenContext = CodeGenContext >
     struct CodeGenBase
     {
         using MetaGenerator = typename CodeGenVisitor::MetaGeneratorType;
 
+        using code_gen_context = CodeGenContext;
+
+        CodeGenBase(CodeGenContext cgctx, MetaGenerator &meta)
+            : _cgctx(std::move(cgctx)), _meta(meta), _module(nullptr) {}
+        
         CodeGenBase(mcontext_t *mctx, MetaGenerator &meta)
             : _mctx(mctx), _meta(meta), _cgctx(nullptr), _module(nullptr)
         {
@@ -177,7 +182,7 @@ namespace vast::cg
             VAST_UNIMPLEMENTED;
         }
 
-        CodeGenContext::VarTable& variables_symbol_table() { return _cgctx->vars; }
+        typename CodeGenContext::VarTable& variables_symbol_table() { return _cgctx->vars; }
 
         // correspond to clang::CodeGenFunction::GenerateCode
         hl::FuncOp emit_function_prologue(
