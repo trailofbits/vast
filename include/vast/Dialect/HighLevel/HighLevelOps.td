@@ -43,12 +43,18 @@ def ScopeOp : HighLevel_Op< "scope", [NoTerminator] >
   let assemblyFormat = [{ $body attr-dict }];
 }
 
-def FuncOp : HighLevel_Op< "func", [
-  AutomaticAllocationScope, CallableOpInterface, FunctionOpInterface,
-  IsolatedFromAbove, Symbol, NoTerminator
-] > {
-  let summary = "VAST high-level function definintion or declaration";
-
+class FuncLikeOp< string mnemonic, dag additional_args >
+    : HighLevel_Op< mnemonic, [
+        AutomaticAllocationScope, CallableOpInterface, FunctionOpInterface,
+        IsolatedFromAbove, Symbol, NoTerminator ] >
+    , Arguments< !con((ins
+        SymbolNameAttr:$sym_name,
+        TypeAttrOf<FunctionType>:$function_type,
+        DefaultValuedAttr<GlobalLinkageKind, "GlobalLinkageKind::ExternalLinkage">:$linkage,
+        OptionalAttr<StrAttr>:$sym_visibility,
+        OptionalAttr<DictArrayAttr>:$arg_attrs,
+        OptionalAttr<DictArrayAttr>:$res_attrs ), additional_args) >
+{
   let description = [{
     Inspired by `cir::FuncOp` and `mlir::func::FuncOp`:
     > Operations within the function cannot implicitly capture values defined
@@ -61,15 +67,6 @@ def FuncOp : HighLevel_Op< "func", [
     The function linkage information is specified by `linkage`, as defined by
     `GlobalLinkageKind` attribute.
   }];
-
-  let arguments =(ins
-    SymbolNameAttr:$sym_name,
-    TypeAttrOf<FunctionType>:$function_type,
-    DefaultValuedAttr<GlobalLinkageKind, "GlobalLinkageKind::ExternalLinkage">:$linkage,
-    OptionalAttr<StrAttr>:$sym_visibility,
-    OptionalAttr<DictArrayAttr>:$arg_attrs,
-    OptionalAttr<DictArrayAttr>:$res_attrs
-  );
 
   let regions = (region AnyRegion:$body);
   let skipDefaultBuilders = 1;
@@ -139,11 +136,15 @@ def FuncOp : HighLevel_Op< "func", [
     bool isDeclaration() { return isExternal(); }
   }];
 
+  let hasVerifier = 1;
+}
+
+def FuncOp : FuncLikeOp< "func", (ins) > {
+  let summary = "VAST high-level function definintion or declaration";
+
   let assemblyFormat = [{
     $linkage $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
   }];
-
-  let hasVerifier = 1;
 }
 
 def TypeDeclOp

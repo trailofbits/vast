@@ -36,22 +36,23 @@ namespace vast::hl
     // Verifies linkage types, similar to LLVM:
     // - functions don't have 'common' linkage
     // - external functions have 'external' or 'extern_weak' linkage
-    logical_result FuncOp::verify() {
-        auto linkage = getLinkage();
+    template<typename Op>
+    logical_result verify_funclike(Op* self) {
+        auto linkage = self->getLinkage();
         constexpr auto common = GlobalLinkageKind::CommonLinkage;
         if (linkage == common) {
-            return emitOpError() << "functions cannot have '"
+            return self->emitOpError() << "functions cannot have '"
                 << stringifyGlobalLinkageKind(common)
                 << "' linkage";
         }
 
         // isExternal(FunctionOpInterface) only checks for empty bodyonly checks for empty body...
         // We need to be able to handle functions with internal linkage without body.
-        if (linkage != GlobalLinkageKind::InternalLinkage && isExternal()) {
+        if (linkage != GlobalLinkageKind::InternalLinkage && self->isExternal()) {
             constexpr auto external = GlobalLinkageKind::ExternalLinkage;
             constexpr auto weak_external = GlobalLinkageKind::ExternalWeakLinkage;
             if (linkage != external && linkage != weak_external) {
-                return emitOpError() << "external functions must have '"
+                return self->emitOpError() << "external functions must have '"
                     << stringifyGlobalLinkageKind(external)
                     << "' or '"
                     << stringifyGlobalLinkageKind(weak_external)
@@ -60,6 +61,14 @@ namespace vast::hl
             return mlir::success();
         }
         return mlir::success();
+    }
+
+    logical_result FuncOp::verify() {
+        return verify_funclike(this);
+    }
+
+    logical_result MethodOp::verify() {
+        return verify_funclike(this);
     }
 
     ParseResult parseFunctionSignatureAndBody(
@@ -116,8 +125,9 @@ namespace vast::hl
         return mlir::success();
     }
 
+    template< typename Op >
     void printFunctionSignatureAndBody(
-        Printer &printer, FuncOp op, Attribute /* funcion_type */, mlir::DictionaryAttr, Region &body
+        Printer &printer, Op op, Attribute /* funcion_type */, mlir::DictionaryAttr, Region &body
     ) {
         auto fty = op.getFunctionType();
         mlir::function_interface_impl::printFunctionSignature(

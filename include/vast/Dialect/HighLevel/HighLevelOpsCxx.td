@@ -85,4 +85,33 @@ def ThisOp
   }];
 }
 
+def NoRef :
+  I32EnumAttrCase<"ref_none", 0, "ref_none">;
+def LValueRef :
+  I32EnumAttrCase<"ref_lvalue", 1, "ref_lvalue">;
+def RValueRef :
+  I32EnumAttrCase<"ref_rvalue", 2, "ref_rvalue">;
+
+def RefQualifier : I32EnumAttr<
+    "RefQualifier", "ref qualifier",
+    [
+        NoRef, LValueRef, RValueRef
+    ]>
+{
+  let cppNamespace = "::vast::hl";
+}
+
+def MethodOp 
+    : FuncLikeOp< "method", (ins
+        UnitAttr:$is_virtual,
+        RefQualifier:$ref,
+        CVQualifiers:$cv) >
+{
+  let summary = "VAST high-level method definintion or declaration";
+
+  let assemblyFormat = [{
+    $linkage (`virtual` $is_virtual^)? $ref $cv $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
+  }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS_CXX
