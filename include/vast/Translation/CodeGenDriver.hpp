@@ -56,15 +56,14 @@ namespace vast::cg
     struct codegen_driver {
 
         explicit codegen_driver(
-              acontext_t &actx
-            , mcontext_t &mctx
+            CodeGenContext &cgctx
             , codegen_options opts
         )
-            : actx(actx)
-            , mctx(mctx)
+            : actx(cgctx.actx)
+            , mctx(cgctx.mctx)
             , options(opts)
             , cxx_abi(create_cxx_abi(actx))
-            , codegen(&actx, &mctx)
+            , codegen(cgctx)
             , type_conv(*this)
         {
             type_info = std::make_unique< type_info_t >(*this);

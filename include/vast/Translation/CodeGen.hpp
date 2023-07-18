@@ -676,10 +676,10 @@ namespace vast::cg
 
         using Base = CodeGenBase< Visitor >;
 
-        DefaultCodeGen(acontext_t *actx, mcontext_t *mctx)
-            : meta(actx, mctx), codegen(actx, mctx, meta)
+        DefaultCodeGen(CodeGenContext &cgctx)
+            : meta(&cgctx.actx, &cgctx.mctx), codegen(&cgctx.actx, &cgctx.mctx, meta)
         {}
-
+        
         owning_module_ref emit_module(clang::ASTUnit *unit) {
             return codegen.emit_module(unit);
         }
