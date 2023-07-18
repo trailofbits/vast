@@ -28,7 +28,16 @@ namespace vast::cg
 
             ctx.loadAllAvailableDialects();
             return ctx;
-        };
+        }
+
+        static inline owning_module_ref create_module(mcontext_t &mctx, acontext_t &actx) {
+            // TODO(Heno): fix module location
+            auto module_ref = owning_module_ref(vast_module::create(mlir::UnknownLoc::get(&mctx)));
+            // TODO(cg): For now we do not have our own operation, so we cannot
+            //           introduce new ctor.
+            set_triple(*module_ref, actx.getTargetInfo().getTriple().str());
+            return module_ref;
+        }
 
     } // namespace detail
 
@@ -598,11 +607,7 @@ namespace vast::cg
             if (_cgctx)
                 return;
 
-            // TODO(Heno): fix module location
-            _module = { vast_module::create(mlir::UnknownLoc::get(_mctx)) };
-            // TODO(cg): For now we do not have our own operation, so we cannot
-            //           introduce new ctor.
-            set_triple(*_module, actx.getTargetInfo().getTriple().str());
+            _module = detail::create_module(*_mctx, actx);
             
             _cgctx = std::make_unique< CodeGenContext >(*_mctx, actx, _module);
 
@@ -807,7 +812,7 @@ namespace vast::cg
         void dump_module() { codegen.dump_module(); }
 
         MetaGenerator meta;
-        CodeGenBase< Visitor > codegen;            
+        CodeGenBase< Visitor > codegen;
     };
 
     using CodeGenWithMetaIDs = DefaultCodeGen< DefaultCodeGenVisitorConfig, IDMetaGenerator >;
