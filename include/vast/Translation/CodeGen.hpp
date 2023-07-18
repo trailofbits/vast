@@ -5,31 +5,19 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-#include <clang/AST/Expr.h>
 #include <clang/Frontend/ASTUnit.h>
-#include <mlir/Dialect/DLTI/DLTI.h>
-#include <mlir/Dialect/SCF/IR/SCF.h>
 #include <mlir/IR/Verifier.h>
-#include <mlir/IR/BuiltinOps.h>
-#include <mlir/IR/Builders.h>
-#include <mlir/IR/MLIRContext.h>
 #include <mlir/InitAllDialects.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Util/Common.hpp"
 #include "vast/Util/Triple.hpp"
 
 #include "vast/Translation/CodeGenVisitor.hpp"
-#include "vast/Translation/CodeGenFallBackVisitor.hpp"
 
-#include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
-#include "vast/Dialect/Meta/MetaDialect.hpp"
 #include "vast/Dialect/Dialects.hpp"
 
 #include "vast/Translation/DataLayout.hpp"
-#include "vast/Translation/CodeGenMeta.hpp"
 #include "vast/Translation/CodeGenOptions.hpp"
-#include "vast/Translation/Types.hpp"
 
 namespace vast::cg
 {
@@ -615,7 +603,7 @@ namespace vast::cg
             // TODO(cg): For now we do not have our own operation, so we cannot
             //           introduce new ctor.
             set_triple(*_module, actx.getTargetInfo().getTriple().str());
-
+            
             _cgctx = std::make_unique< CodeGenContext >(*_mctx, actx, _module);
 
             _scope = std::unique_ptr< CodegenScope >( new CodegenScope{
@@ -819,7 +807,7 @@ namespace vast::cg
         void dump_module() { codegen.dump_module(); }
 
         MetaGenerator meta;
-        CodeGenBase< Visitor > codegen;
+        CodeGenBase< Visitor > codegen;            
     };
 
     using CodeGenWithMetaIDs = DefaultCodeGen< DefaultCodeGenVisitorConfig, IDMetaGenerator >;
