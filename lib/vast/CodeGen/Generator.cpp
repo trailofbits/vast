@@ -1,6 +1,8 @@
 // Copyright (c) 2023-present, Trail of Bits, Inc.
 
 #include "vast/CodeGen/Generator.hpp"
+#include "vast/Translation/CodeGenContext.hpp"
+#include <memory>
 
 namespace vast::cg {
 
@@ -25,9 +27,9 @@ namespace vast::cg {
             .optimization_level              = cgo.OptimizationLevel,
         };
 
-        CodeGenContext cgctx(*this->mcontext, *this->acontext);
+        this->cgcontext = std::make_unique< CodeGenContext >(*this->mcontext, *this->acontext);
         // TODO initialize dialects here
-        this->codegen = std::make_unique< codegen_driver >(cgctx, options);
+        this->codegen = std::make_unique< codegen_driver >(*this->cgcontext, options);
     }
 
     std::unique_ptr< mcontext_t > vast_generator::take_context() {

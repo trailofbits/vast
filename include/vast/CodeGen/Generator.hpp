@@ -49,6 +49,7 @@ namespace vast::cg {
     protected:
         std::unique_ptr< codegen_driver > codegen = nullptr;
         std::unique_ptr< mcontext_t > mcontext = nullptr;
+        std::unique_ptr< CodeGenContext > cgcontext = nullptr;
 
     private:
         virtual void anchor();
