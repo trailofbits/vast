@@ -10,8 +10,6 @@ VAST_RELAX_WARNINGS
 #include <mlir/InitAllDialects.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Util/Triple.hpp"
-
 #include "vast/Translation/CodeGenVisitor.hpp"
 
 #include "vast/Dialect/Dialects.hpp"
@@ -29,16 +27,6 @@ namespace vast::cg
             ctx.loadAllAvailableDialects();
             return ctx;
         }
-
-        static inline owning_module_ref create_module(mcontext_t &mctx, acontext_t &actx) {
-            // TODO(Heno): fix module location
-            auto module_ref = owning_module_ref(vast_module::create(mlir::UnknownLoc::get(&mctx)));
-            // TODO(cg): For now we do not have our own operation, so we cannot
-            //           introduce new ctor.
-            set_triple(*module_ref, actx.getTargetInfo().getTriple().str());
-            return module_ref;
-        }
-
     } // namespace detail
 
     //
@@ -53,19 +41,12 @@ namespace vast::cg
 
         using code_gen_context = CodeGenContext;
 
-        CodeGenBase(CodeGenContext cgctx, MetaGenerator &meta)
-            : _cgctx(std::move(cgctx)), _meta(meta), _module(nullptr) {}
-        
-        CodeGenBase(mcontext_t *mctx, MetaGenerator &meta)
-            : _mctx(mctx), _meta(meta), _cgctx(nullptr), _module(nullptr)
+        CodeGenBase(CodeGenContext &cgctx, MetaGenerator &meta)
+            : _meta(meta)
+            , _cgctx(cgctx)
         {
             detail::codegen_context_setup(*_mctx);
-        }
-
-        CodeGenBase(acontext_t *actx, mcontext_t *mctx, MetaGenerator &meta)
-            : CodeGenBase(mctx, meta)
-        {
-            setup_codegen(*actx);
+            setup_codegen(_cgctx.actx);
         }
 
         owning_module_ref emit_module(clang::ASTUnit *unit) {
@@ -89,8 +70,8 @@ namespace vast::cg
         void append_to_module(clang::Type *type) { append_impl(type); }
 
         owning_module_ref freeze() {
-            hl::emit_data_layout(*_mctx, _module, _cgctx->data_layout());
-            return std::move(_module);
+            hl::emit_data_layout(*_mctx, _cgctx.mod, _cgctx.data_layout());
+            return std::move(_cgctx.mod);
         }
 
         operation build_function_prototype(clang::GlobalDecl decl, mlir_type fty) {
@@ -119,57 +100,57 @@ namespace vast::cg
         };
 
         bool verify_module() const {
-            return mlir::verify(_module.get()).succeeded();
+            return mlir::verify(_cgctx.mod.get()).succeeded();
         }
 
         operation get_global_value(mangled_name_ref name) {
-            return _cgctx->get_global_value(name);
+            return _cgctx.get_global_value(name);
         }
 
         mlir_value get_global_value(const clang::Decl *decl) {
-            return _cgctx->get_global_value(decl);
+            return _cgctx.get_global_value(decl);
         }
 
         mangled_name_ref get_mangled_name(clang::GlobalDecl decl) {
-            return _cgctx->get_mangled_name(decl);
+            return _cgctx.get_mangled_name(decl);
         }
 
         void add_deferred_decl_to_emit(clang::GlobalDecl decl) {
-            _cgctx->add_deferred_decl_to_emit(decl);
+            _cgctx.add_deferred_decl_to_emit(decl);
         }
 
         const std::vector< clang::GlobalDecl >& default_methods_to_emit() const {
-            return _cgctx->default_methods_to_emit;
+            return _cgctx.default_methods_to_emit;
         }
 
         const std::vector< clang::GlobalDecl >& deferred_decls_to_emit() const {
-            return _cgctx->deferred_decls_to_emit;
+            return _cgctx.deferred_decls_to_emit;
         }
 
         const std::vector< const clang::CXXRecordDecl * >& deferred_vtables() const {
-            return _cgctx->deferred_vtables;
+            return _cgctx.deferred_vtables;
         }
 
         void set_deferred_decl(mangled_name_ref name, clang::GlobalDecl decl) {
-            _cgctx->deferred_decls[name] = decl;
+            _cgctx.deferred_decls[name] = decl;
         }
 
         const std::map< mangled_name_ref, clang::GlobalDecl >& deferred_decls() const {
-            return _cgctx->deferred_decls;
+            return _cgctx.deferred_decls;
         }
 
         std::vector< clang::GlobalDecl > receive_deferred_decls_to_emit() {
             std::vector< clang::GlobalDecl > current;
-            current.swap(_cgctx->deferred_decls_to_emit);
+            current.swap(_cgctx.deferred_decls_to_emit);
             return current;
         }
 
         lexical_scope_context * current_lexical_scope() {
-            return _cgctx->current_lexical_scope;
+            return _cgctx.current_lexical_scope;
         }
 
         void set_current_lexical_scope(lexical_scope_context *scope) {
-            _cgctx->current_lexical_scope = scope;
+            _cgctx.current_lexical_scope = scope;
         }
 
         mlir_type convert(qual_type type) { return _visitor->Visit(type); }
@@ -179,7 +160,7 @@ namespace vast::cg
             VAST_UNIMPLEMENTED;
         }
 
-        typename CodeGenContext::VarTable& variables_symbol_table() { return _cgctx->vars; }
+        typename CodeGenContext::VarTable& variables_symbol_table() { return _cgctx.vars; }
 
         // correspond to clang::CodeGenFunction::GenerateCode
         hl::FuncOp emit_function_prologue(
@@ -285,7 +266,7 @@ namespace vast::cg
                 // Generate the body of the function.
                 // TODO: PGO.assignRegionCounters
 
-                const auto &lang = _cgctx->actx.getLangOpts();
+                const auto &lang = _cgctx.actx.getLangOpts();
 
                 if (clang::isa< clang::CXXDestructorDecl >(function_decl)) {
                     VAST_UNIMPLEMENTED;
@@ -331,7 +312,7 @@ namespace vast::cg
                 VAST_UNIMPLEMENTED;
             }
 
-            const auto &lang = _cgctx->actx.getLangOpts();
+            const auto &lang = _cgctx.actx.getLangOpts();
 
             // auto curr_function_decl = decl ? decl->getNonClosureContext() : nullptr;
 
@@ -552,35 +533,35 @@ namespace vast::cg
         }
 
         hl::FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
-            return _cgctx->declare(decl, vast_decl_builder);
+            return _cgctx.declare(decl, vast_decl_builder);
         }
 
         mlir_value declare(const clang::VarDecl *decl, mlir_value vast_value) {
-            return _cgctx->declare(decl, vast_value);
+            return _cgctx.declare(decl, vast_value);
         }
 
         mlir_value declare(const clang::VarDecl *decl, auto vast_decl_builder) {
-            return _cgctx->declare(decl, vast_decl_builder);
+            return _cgctx.declare(decl, vast_decl_builder);
         }
 
         hl::LabelDeclOp declare(const clang::LabelDecl *decl, auto vast_decl_builder) {
-            return _cgctx->declare(decl, vast_decl_builder);
+            return _cgctx.declare(decl, vast_decl_builder);
         }
 
         hl::TypeDefOp declare(const clang::TypedefDecl *decl, auto vast_decl_builder) {
-            return _cgctx->declare(decl, vast_decl_builder);
+            return _cgctx.declare(decl, vast_decl_builder);
         }
 
         hl::TypeDeclOp declare(const clang::TypeDecl *decl, auto vast_decl_builder) {
-            return _cgctx->declare(decl, vast_decl_builder);
+            return _cgctx.declare(decl, vast_decl_builder);
         }
 
         hl::EnumDeclOp declare(const clang::EnumDecl *decl, auto vast_decl_builder) {
-            return _cgctx->declare(decl, vast_decl_builder);
+            return _cgctx.declare(decl, vast_decl_builder);
         }
 
         hl::EnumConstantOp declare(const clang::EnumConstantDecl *decl, auto vast_decl_builder) {
-            return _cgctx->declare(decl, vast_decl_builder);
+            return _cgctx.declare(decl, vast_decl_builder);
         }
 
         bool has_insertion_block() {
@@ -599,29 +580,22 @@ namespace vast::cg
             return _visitor->VisitVarDecl(decl);
         }
 
-        void dump_module() { _cgctx->dump_module(); }
+        void dump_module() { _cgctx.dump_module(); }
 
     private:
 
         void setup_codegen(acontext_t &actx) {
-            if (_cgctx)
-                return;
-
-            _module = detail::create_module(*_mctx, actx);
-            
-            _cgctx = std::make_unique< CodeGenContext >(*_mctx, actx, _module);
-
             _scope = std::unique_ptr< CodegenScope >( new CodegenScope{
-                .typedefs   = _cgctx->typedefs,
-                .typedecls  = _cgctx->typedecls,
-                .enumdecls  = _cgctx->enumdecls,
-                .enumconsts = _cgctx->enumconsts,
-                .labels     = _cgctx->labels,
-                .funcdecls  = _cgctx->funcdecls,
-                .globs      = _cgctx->vars
+                .typedefs   = _cgctx.typedefs,
+                .typedecls  = _cgctx.typedecls,
+                .enumdecls  = _cgctx.enumdecls,
+                .enumconsts = _cgctx.enumconsts,
+                .labels     = _cgctx.labels,
+                .funcdecls  = _cgctx.funcdecls,
+                .globs      = _cgctx.vars
             });
 
-            _visitor = std::make_unique< CodeGenVisitor >(*_cgctx, _meta);
+            _visitor = std::make_unique< CodeGenVisitor >(_cgctx, _meta);
         }
 
         template< typename AST >
@@ -646,11 +620,9 @@ namespace vast::cg
         mcontext_t *_mctx;
         MetaGenerator &_meta;
 
-        std::unique_ptr< CodeGenContext > _cgctx;
+        CodeGenContext &_cgctx;
         std::unique_ptr< CodegenScope >   _scope;
         std::unique_ptr< CodeGenVisitor > _visitor;
-
-        owning_module_ref _module;
     };
 
     template< typename Derived >
@@ -677,9 +649,9 @@ namespace vast::cg
         using Base = CodeGenBase< Visitor >;
 
         DefaultCodeGen(CodeGenContext &cgctx)
-            : meta(&cgctx.actx, &cgctx.mctx), codegen(&cgctx.actx, &cgctx.mctx, meta)
+            : meta(&cgctx.actx, &cgctx.mctx), codegen(cgctx, meta)
         {}
-        
+
         owning_module_ref emit_module(clang::ASTUnit *unit) {
             return codegen.emit_module(unit);
         }
