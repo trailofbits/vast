@@ -25,23 +25,39 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Util/Functions.hpp"
 #include "vast/Util/Common.hpp"
+#include "vast/Util/Triple.hpp"
 
 #include <variant>
 
 namespace vast::cg
 {
+    namespace detail {
+        static inline owning_module_ref create_module(mcontext_t &mctx, acontext_t &actx) {
+            // TODO(Heno): fix module location
+            auto module_ref = owning_module_ref(vast_module::create(mlir::UnknownLoc::get(&mctx)));
+            // TODO(cg): For now we do not have our own operation, so we cannot
+            //           introduce new ctor.
+            set_triple(*module_ref, actx.getTargetInfo().getTriple().str());
+            return module_ref;
+        }
+    } // namespace detail
+    
     struct CodeGenContext {
         mcontext_t &mctx;
         acontext_t &actx;
-        owning_module_ref &mod;
+        owning_module_ref mod;
 
         dl::DataLayoutBlueprint dl;
-
-        CodeGenContext(mcontext_t &mctx, acontext_t &actx, owning_module_ref &mod)
+        
+        CodeGenContext(mcontext_t &mctx, acontext_t &actx, owning_module_ref &&mod)
             : mctx(mctx)
             , actx(actx)
-            , mod(mod)
+            , mod(std::move(mod))
             , mangler(actx.createMangleContext())
+        {}
+
+        CodeGenContext(mcontext_t &mctx, acontext_t &actx)
+            : CodeGenContext(mctx, actx, detail::create_module(mctx, actx))
         {}
 
         lexical_scope_context *current_lexical_scope = nullptr;

@@ -55,9 +55,7 @@ namespace vast::hl
 
         auto actx = &ast->getASTContext();
 
-        auto mod = cg::detail::create_module(*mctx, *actx);
-
-        cg::CodeGenContext cgctx(*mctx, *actx, mod);
+        cg::CodeGenContext cgctx(*mctx, *actx);
 
         if (id_meta_flag) {
             return cg::CodeGenWithMetaIDs(cgctx).emit_module(ast.get());
