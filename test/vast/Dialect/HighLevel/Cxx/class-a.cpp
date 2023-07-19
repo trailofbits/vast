@@ -19,4 +19,19 @@ public:
 
     // CHECK: %0 = hl.var "C::y" sc_static : !hl.lvalue<!hl.int>
     static int y;
+
+    // CHECK: hl.method external virtual ref_none @_ZN1C5get_xEv () -> !hl.int
+    virtual int get_x();
+
+    // CHECK: hl.method external ref_none const @_ZNK1C5get_yEv () -> !hl.int
+    int get_y() const;
+
+    // CHECK: hl.method external ref_none volatile @_ZNV1C5get_zEv () -> !hl.int
+    int get_z() volatile;
+
+    // CHECK: hl.method external ref_lvalue @_ZNR1C5get_wEv () -> !hl.int
+    int get_w() &;
+
+    // CHECK: hl.method external ref_rvalue @_ZNO1C5get_pEv () -> !hl.int
+    int get_p() &&;
 };
