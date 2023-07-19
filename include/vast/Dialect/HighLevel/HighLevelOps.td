@@ -43,17 +43,17 @@ def ScopeOp : HighLevel_Op< "scope", [NoTerminator] >
   let assemblyFormat = [{ $body attr-dict }];
 }
 
-class FuncLikeOp< string mnemonic, dag additional_args >
+class FuncLikeOp< string mnemonic >
     : HighLevel_Op< mnemonic, [
         AutomaticAllocationScope, CallableOpInterface, FunctionOpInterface,
         IsolatedFromAbove, Symbol, NoTerminator ] >
-    , Arguments< !con((ins
+    , Arguments< (ins
         SymbolNameAttr:$sym_name,
         TypeAttrOf<FunctionType>:$function_type,
         DefaultValuedAttr<GlobalLinkageKind, "GlobalLinkageKind::ExternalLinkage">:$linkage,
         OptionalAttr<StrAttr>:$sym_visibility,
         OptionalAttr<DictArrayAttr>:$arg_attrs,
-        OptionalAttr<DictArrayAttr>:$res_attrs ), additional_args) >
+        OptionalAttr<DictArrayAttr>:$res_attrs) >
 {
   let description = [{
     Inspired by `cir::FuncOp` and `mlir::func::FuncOp`:
@@ -139,7 +139,7 @@ class FuncLikeOp< string mnemonic, dag additional_args >
   let hasVerifier = 1;
 }
 
-def FuncOp : FuncLikeOp< "func", (ins) > {
+def FuncOp : FuncLikeOp< "func" > {
   let summary = "VAST high-level function definintion or declaration";
 
   let assemblyFormat = [{
