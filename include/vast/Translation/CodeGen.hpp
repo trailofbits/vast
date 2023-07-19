@@ -89,6 +89,7 @@ namespace vast::cg
         using EnumConstantsScope = ScopedSymbolTable< const clang::EnumConstantDecl *, hl::EnumConstantOp >;
         using LabelTable         = ScopedSymbolTable< const clang::LabelDecl*, hl::LabelDeclOp >;
         using FunctionsScope     = ScopedSymbolTable< mangled_name_ref, hl::FuncOp >;
+        using MethodsScope       = ScopedSymbolTable< mangled_name_ref, hl::MethodOp >;
         using VariablesScope     = ScopedSymbolTable< const clang::VarDecl *, Value >;
 
         struct CodegenScope {
@@ -98,6 +99,7 @@ namespace vast::cg
             EnumConstantsScope enumconsts;
             LabelTable         labels;
             FunctionsScope     funcdecls;
+            MethodsScope       methdecls;
             VariablesScope     globs;
         };
 
@@ -597,6 +599,7 @@ namespace vast::cg
                 .enumconsts = _cgctx.enumconsts,
                 .labels     = _cgctx.labels,
                 .funcdecls  = _cgctx.funcdecls,
+                .methdecls  = _cgctx.methdecls,
                 .globs      = _cgctx.vars
             });
 
