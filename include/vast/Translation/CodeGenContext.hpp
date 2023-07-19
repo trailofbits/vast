@@ -210,6 +210,10 @@ namespace vast::cg
             return symbol(funcdecls, mangled, "undeclared function '" + mangled.name + "'", with_error);
         }
 
+        hl::MethodOp lookup_method(mangled_name_ref mangled, bool with_error = true) {
+            return symbol(methdecls, mangled, "undeclared method '" + mangled.name + "'", with_error);
+        }
+
         template< typename Op >
         Op declare(mangled_name_ref mangled, auto vast_decl_builder) {
             if constexpr (std::is_same_v< Op, hl::FuncOp >) {

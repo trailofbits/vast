@@ -298,8 +298,16 @@ namespace vast::cg {
             auto gdecl = get_gdecl(decl);
             auto mangled = context().get_mangled_name(gdecl);
 
-            if (auto fn = context().lookup_function(mangled, false /* emit no error */)) {
-                return fn;
+            if constexpr (std::is_same_v< Op, hl::FuncOp >) {
+                if (auto fn = context().lookup_function(mangled, false /* emit no error */)) {
+                    return fn;
+                }
+            }
+
+            if constexpr (std::is_same_v< Op, hl::MethodOp >) {
+                if (auto fn = context().lookup_method(mangled, false /* emit no error */)) {
+                    return fn;
+                }
             }
 
             InsertionGuard guard(builder());
@@ -433,19 +441,31 @@ namespace vast::cg {
 
         operation VisitCXXMethodDecl(const clang::CXXMethodDecl *decl) {
             return VisitFunctionLikeDecl< hl::MethodOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
-                return make< hl::MethodOp >(loc, name, type, linkage);
+                return make< hl::MethodOp >(loc, name, type, linkage,
+                    decl->isVirtual(),
+                    decl->isConst(),
+                    decl->isVolatile(),
+                    convert_ref_qual(decl->getRefQualifier()));
             });
         }
 
         operation VisitCXXConstructorDecl(const clang::CXXConstructorDecl *decl) {
-            return VisitFunctionLikeDecl< hl::FuncOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
-                return make< hl::FuncOp >(loc, name, type, linkage);
+            return VisitFunctionLikeDecl< hl::MethodOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
+                return make< hl::MethodOp >(loc, name, type, linkage,
+                    decl->isVirtual(),
+                    decl->isConst(),
+                    decl->isVolatile(),
+                    convert_ref_qual(decl->getRefQualifier()));
             });
         }
 
         operation VisitCXXDestructorDecl(const clang::CXXDestructorDecl *decl) {
-            return VisitFunctionLikeDecl< hl::FuncOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
-                return make< hl::FuncOp >(loc, name, type, linkage);
+            return VisitFunctionLikeDecl< hl::MethodOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
+                return make< hl::MethodOp >(loc, name, type, linkage,
+                    decl->isVirtual(),
+                    decl->isConst(),
+                    decl->isVolatile(),
+                    convert_ref_qual(decl->getRefQualifier()));
             });
         }
 
@@ -659,6 +679,18 @@ namespace vast::cg {
                     return hl::AccessSpecifier::as_none;
             }
             VAST_UNREACHABLE("unknown access specifier");
+        }
+
+        hl::RefQualifier convert_ref_qual(clang::RefQualifierKind kind) {
+            switch(kind) {
+                case clang::RefQualifierKind::RQ_None:
+                    return hl::RefQualifier::ref_none;
+                case clang::RefQualifierKind::RQ_LValue:
+                    return hl::RefQualifier::ref_lvalue;
+                case clang::RefQualifierKind::RQ_RValue:
+                    return hl::RefQualifier::ref_rvalue;
+            }
+            VAST_UNREACHABLE("unknown ref qualifier");
         }
 
         //
