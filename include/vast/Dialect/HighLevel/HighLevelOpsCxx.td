@@ -102,73 +102,36 @@ def RefQualifier : I32EnumAttr<
 }
 
 def MethodOp 
-    : FuncLikeOp< "method" >
+    : FuncLikeOp< "method", (ins
+        UnitAttr:$is_virtual,
+        UnitAttr:$is_const,
+        UnitAttr:$is_volatile,
+        RefQualifier:$ref), (ins
+        CArg< "bool", "false" >:$is_virtual,
+        CArg< "bool", "false" >:$is_const,
+        CArg< "bool", "false" >:$is_volatile,
+        CArg< "RefQualifier", "RefQualifier::ref_none" >:$ref), [{
+          if (is_virtual) {
+            $_state.addAttribute(
+              "is_virtual", mlir::UnitAttr::get($_builder.getContext())
+            );
+          }
+          if (is_const) {
+            $_state.addAttribute(
+              "is_const", mlir::UnitAttr::get($_builder.getContext())
+            );
+          }
+          if (is_volatile) {
+            $_state.addAttribute(
+              "is_volatile", mlir::UnitAttr::get($_builder.getContext())
+            );
+          }
+          $_state.addAttribute(
+            "ref", RefQualifierAttr::get($_builder.getContext(), ref)
+          );
+        }] >
 {
   let summary = "VAST high-level method definintion or declaration";
-
-  let arguments = (ins
-    SymbolNameAttr:$sym_name,
-    TypeAttrOf<FunctionType>:$function_type,
-    DefaultValuedAttr<GlobalLinkageKind, "GlobalLinkageKind::ExternalLinkage">:$linkage,
-    UnitAttr:$is_virtual,
-    UnitAttr:$is_const,
-    UnitAttr:$is_volatile,
-    RefQualifier:$ref,
-    OptionalAttr<StrAttr>:$sym_visibility,
-    OptionalAttr<DictArrayAttr>:$arg_attrs,
-    OptionalAttr<DictArrayAttr>:$res_attrs);
-
-  let builders = [OpBuilder< (ins
-    "llvm::StringRef":$name,
-    "mlir::FunctionType":$type,
-    CArg< "GlobalLinkageKind", "GlobalLinkageKind::ExternalLinkage" >:$linkage,
-    CArg< "bool", "false" >:$is_virtual,
-    CArg< "bool", "false" >:$is_const,
-    CArg< "bool", "false" >:$is_volatile,
-    CArg< "RefQualifier", "RefQualifier::ref_none" >:$ref,
-    CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
-    CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
-    CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$res_attrs,
-    CArg< "BuilderCallback", "std::nullopt" >:$body), [{
-      InsertionGuard guard($_builder);
-      build_region($_builder, $_state, body);
-
-      $_state.addAttribute(
-        mlir::SymbolTable::getSymbolAttrName(), $_builder.getStringAttr(name)
-      );
-      $_state.addAttribute(getFunctionTypeAttrName($_state.name), mlir::TypeAttr::get(type));
-      $_state.addAttribute(
-        "linkage", GlobalLinkageKindAttr::get($_builder.getContext(), linkage)
-      );
-      if (is_virtual) {
-        $_state.addAttribute(
-          "is_virtual", mlir::UnitAttr::get($_builder.getContext())
-        );
-      }
-      if (is_const) {
-        $_state.addAttribute(
-          "is_const", mlir::UnitAttr::get($_builder.getContext())
-        );
-      }
-      if (is_volatile) {
-        $_state.addAttribute(
-          "is_volatile", mlir::UnitAttr::get($_builder.getContext())
-        );
-      }
-      $_state.addAttribute(
-        "ref", RefQualifierAttr::get($_builder.getContext(), ref)
-      );
-      $_state.attributes.append(attrs.begin(), attrs.end());
-
-      if (arg_attrs.empty())
-        return;
-
-      mlir::function_interface_impl::addArgAndResultAttrs(
-        $_builder, $_state, arg_attrs, res_attrs,
-        getArgAttrsAttrName($_state.name), getResAttrsAttrName($_state.name)
-      );
-    }] >
-  ];
 
   let assemblyFormat = [{
     $linkage (`virtual` $is_virtual^)? $ref (`const` $is_const^)? (`volatile` $is_volatile^)? $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
