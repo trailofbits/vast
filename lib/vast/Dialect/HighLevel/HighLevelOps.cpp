@@ -135,7 +135,14 @@ namespace vast::hl
         );
 
         mlir::function_interface_impl::printFunctionAttributes(
-            printer, op, {"linkage", op.getFunctionTypeAttrName() }
+            printer, op, {
+                "linkage",
+                op.getFunctionTypeAttrName(),
+                "is_virtual",
+                "is_const",
+                "is_volatile",
+                "ref"
+            }
         );
 
         if (!body.empty()) {
