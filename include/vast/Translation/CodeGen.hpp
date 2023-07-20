@@ -42,7 +42,8 @@ namespace vast::cg
         using code_gen_context = CodeGenContext;
 
         CodeGenBase(CodeGenContext &cgctx, MetaGenerator &meta)
-            : _meta(meta)
+            : _mctx(&cgctx.mctx)
+            , _meta(meta)
             , _cgctx(cgctx)
         {
             detail::codegen_context_setup(*_mctx);
