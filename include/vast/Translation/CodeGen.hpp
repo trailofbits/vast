@@ -586,6 +586,9 @@ namespace vast::cg
     private:
 
         void setup_codegen(acontext_t &actx) {
+            if (_scope)
+                return;
+            
             _scope = std::unique_ptr< CodegenScope >( new CodegenScope{
                 .typedefs   = _cgctx.typedefs,
                 .typedecls  = _cgctx.typedecls,
