@@ -90,6 +90,7 @@ namespace vast::cg
         using LabelTable         = ScopedSymbolTable< const clang::LabelDecl*, hl::LabelDeclOp >;
         using FunctionsScope     = ScopedSymbolTable< mangled_name_ref, hl::FuncOp >;
         using MethodsScope       = ScopedSymbolTable< mangled_name_ref, hl::MethodOp >;
+        using DtorsScope         = ScopedSymbolTable< mangled_name_ref, hl::DtorOp >;
         using VariablesScope     = ScopedSymbolTable< const clang::VarDecl *, Value >;
 
         struct CodegenScope {
@@ -100,6 +101,7 @@ namespace vast::cg
             LabelTable         labels;
             FunctionsScope     funcdecls;
             MethodsScope       methdecls;
+            DtorsScope         dtordecls;
             VariablesScope     globs;
         };
 
@@ -600,6 +602,7 @@ namespace vast::cg
                 .labels     = _cgctx.labels,
                 .funcdecls  = _cgctx.funcdecls,
                 .methdecls  = _cgctx.methdecls,
+                .dtordecls  = _cgctx.dtordecls,
                 .globs      = _cgctx.vars
             });
 

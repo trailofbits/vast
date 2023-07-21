@@ -101,7 +101,7 @@ def RefQualifier : I32EnumAttr<
   let cppNamespace = "::vast::hl";
 }
 
-def MethodOp 
+def MethodOp
     : FuncLikeOp< "method", (ins
         UnitAttr:$is_virtual,
         UnitAttr:$is_const,
@@ -135,6 +135,25 @@ def MethodOp
 
   let assemblyFormat = [{
     $linkage (`virtual` $is_virtual^)? $ref (`const` $is_const^)? (`volatile` $is_volatile^)? $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
+  }];
+}
+
+def DtorOp
+    : FuncLikeOp< "dtor",
+        (ins UnitAttr:$is_virtual),
+        (ins CArg< "bool", "false" >:$is_virtual),
+        [{
+          if (is_virtual) {
+            $_state.addAttribute(
+              "is_virtual", mlir::UnitAttr::get($_builder.getContext())
+            );
+          }
+        }] >
+{
+  let summary = "VAST high-level destructor definintion or declaration";
+
+  let assemblyFormat = [{
+    $linkage (`virtual` $is_virtual^)? $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
   }];
 }
 
