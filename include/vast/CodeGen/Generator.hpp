@@ -47,9 +47,9 @@ namespace vast::cg {
         void dump_module() { codegen->dump_module(); }
 
     protected:
-        std::unique_ptr< codegen_driver > codegen = nullptr;
         std::unique_ptr< mcontext_t > mcontext = nullptr;
         std::unique_ptr< CodeGenContext > cgcontext = nullptr;
+        std::unique_ptr< codegen_driver > codegen = nullptr;
 
     private:
         virtual void anchor();
