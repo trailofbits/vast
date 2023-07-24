@@ -88,7 +88,7 @@ namespace vast::cg {
 
     bool vast_generator::verify_module() const { return codegen->verify_module(); }
 
-    owning_module_ref vast_generator::freeze() { return codegen->freeze(); }
+    owning_module_ref vast_generator::freeze() { return std::move(cgcontext->mod); }
 
     type_info_t   &vast_generator::get_type_info()   { return codegen->get_type_info(); }
     target_info_t &vast_generator::get_target_info() { return codegen->get_target_info(); }
