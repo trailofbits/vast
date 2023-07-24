@@ -58,10 +58,12 @@ namespace vast::hl
         cg::CodeGenContext cgctx(*mctx, *actx);
 
         if (id_meta_flag) {
-            return cg::CodeGenWithMetaIDs(cgctx).emit_module(ast.get());
+            cg::CodeGenWithMetaIDs(cgctx).emit_module(ast.get());
         } else {
-            return cg::DefaultCodeGen(cgctx).emit_module(ast.get());
+            cg::DefaultCodeGen(cgctx).emit_module(ast.get());
         }
+        
+        return std::move(cgctx.mod);
     }
 
     mlir::LogicalResult registerFromSourceParser() {

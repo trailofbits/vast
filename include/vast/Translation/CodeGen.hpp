@@ -50,14 +50,16 @@ namespace vast::cg
             setup_codegen(_cgctx.actx);
         }
 
-        owning_module_ref emit_module(clang::ASTUnit *unit) {
+        vast_module emit_module(clang::ASTUnit *unit) {
             append_to_module(unit);
-            return freeze();
+            emit_data_layout();
+            return _cgctx.mod.get();
         }
 
-        owning_module_ref emit_module(clang::Decl *decl) {
+        vast_module emit_module(clang::Decl *decl) {
             append_to_module(decl);
-            return freeze();
+            emit_data_layout();
+            return _cgctx.mod.get();
         }
 
         void append_to_module(clang::ASTUnit *unit) { append_impl(unit); }
@@ -70,11 +72,10 @@ namespace vast::cg
 
         void append_to_module(clang::Type *type) { append_impl(type); }
 
-        owning_module_ref freeze() {
+        void emit_data_layout() {
             hl::emit_data_layout(*_mctx, _cgctx.mod, _cgctx.data_layout());
-            return std::move(_cgctx.mod);
         }
-
+        
         operation build_function_prototype(clang::GlobalDecl decl, mlir_type fty) {
             return _visitor->build_function_prototype(decl, fty);
         }
@@ -656,19 +657,19 @@ namespace vast::cg
             : meta(&cgctx.actx, &cgctx.mctx), codegen(cgctx, meta)
         {}
 
-        owning_module_ref emit_module(clang::ASTUnit *unit) {
+        vast_module emit_module(clang::ASTUnit *unit) {
             return codegen.emit_module(unit);
         }
 
-        owning_module_ref emit_module(clang::Decl *decl) {
+        vast_module emit_module(clang::Decl *decl) {
             return codegen.emit_module(decl);
         }
 
-        void append_to_module(const clang::Decl *decl) { codegen.append_to_module(decl);}
+        void emit_data_layout() { codegen.emit_data_layout(); }
+
+        void append_to_module(const clang::Decl *decl) { codegen.append_to_module(decl); }
 
         bool verify_module() const { return codegen.verify_module(); }
-
-        owning_module_ref freeze() { return codegen.freeze(); }
 
         mlir_type convert(qual_type type) { return codegen.convert(type); }
         mlir_type convert_to_lvalue(qual_type type) { return codegen.convert_to_lvalue(type); }

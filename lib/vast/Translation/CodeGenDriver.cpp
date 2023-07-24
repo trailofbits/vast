@@ -77,6 +77,7 @@ namespace vast::cg
     } // namespace detail
 
     void codegen_driver::finalize() {
+        codegen.emit_data_layout();
         build_deferred();
         // TODO: buildVTablesOpportunistically();
         // TODO: applyGlobalValReplacements();
@@ -221,8 +222,6 @@ namespace vast::cg
     void codegen_driver::update_completed_type(const clang::TagDecl *tag) {
         type_conv.update_completed_type(tag);
     }
-
-    owning_module_ref codegen_driver::freeze() { return codegen.freeze(); }
 
     operation codegen_driver::build_global_definition(clang::GlobalDecl glob) {
         const auto *decl = llvm::cast< clang::ValueDecl >(glob.getDecl());

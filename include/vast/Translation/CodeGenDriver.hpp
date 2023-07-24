@@ -89,7 +89,6 @@ namespace vast::cg
         void handle_top_level_decl(clang::Decl *decl);
 
         void finalize();
-        owning_module_ref freeze();
 
         const target_info_t &get_target_info() const { return *target_info; }
         target_info_t &get_target_info() { return *target_info; }
