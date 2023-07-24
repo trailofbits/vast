@@ -48,7 +48,7 @@ namespace vast::cg
         owning_module_ref mod;
 
         dl::DataLayoutBlueprint dl;
-        
+
         CodeGenContext(mcontext_t &mctx, acontext_t &actx, owning_module_ref &&mod)
             : mctx(mctx)
             , actx(actx)
