@@ -86,4 +86,10 @@ namespace vast::hl
 namespace vast::hl
 {
     FuncOp getCallee(CallOp call);
+
+    using funclike_ops = util::type_list<
+        hl::FuncOp,
+        hl::MethodOp,
+        hl::DtorOp
+    >;
 }

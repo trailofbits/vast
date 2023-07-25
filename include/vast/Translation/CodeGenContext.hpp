@@ -222,27 +222,8 @@ namespace vast::cg
         }
 
         template< typename Op >
-        struct is_funclike {
-            static constexpr bool value = false;
-        };
-
-        template<>
-        struct is_funclike< hl::FuncOp > {
-            static constexpr bool value = true;
-        };
-
-        template<>
-        struct is_funclike< hl::MethodOp > {
-            static constexpr bool value = true;
-        };
-
-        template<>
-        struct is_funclike< hl::DtorOp > {
-            static constexpr bool value = true;
-        };
-
-        template< typename Op >
         Op declare(mangled_name_ref mangled, auto vast_decl_builder) {
+            static_assert(hl::funclike_ops::contains< Op >, "Declaring unknown operation type");
             if constexpr (std::is_same_v< Op, hl::FuncOp >) {
                 return declare< Op >(funcdecls, mangled, vast_decl_builder, mangled.name);
             } else if constexpr (std::is_same_v< Op, hl::MethodOp >) {
@@ -250,7 +231,6 @@ namespace vast::cg
             } else if constexpr (std::is_same_v< Op, hl::DtorOp >) {
                 return declare< Op >(dtordecls, mangled, vast_decl_builder, mangled.name);
             }
-            static_assert(is_funclike< Op >::value, "Declaring unknown operation type");
         }
 
         mlir_value declare(const clang::VarDecl *decl, mlir_value vast_value) {
