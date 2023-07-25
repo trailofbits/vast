@@ -1,6 +1,9 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
 #include "vast/repl/command.hpp"
+
+#include "mlir/Pass/PassManager.h"
+#include "vast/Conversion/Passes.hpp"
 #include "vast/repl/common.hpp"
 
 namespace vast::repl::cmd {
@@ -113,6 +116,25 @@ namespace vast::repl::cmd {
             case meta_action::add: add(state); break;
             case meta_action::get: get(state); break;
         }
-    };
+    }
+
+    //
+    // apply command
+    //
+    void apply::run(state_t &state) const {
+        check_and_emit_module(state);
+
+        mlir::PassManager pm(&state.ctx);
+
+        // auto pp = get_param< pass_param >(params);
+       
+        pm.addPass(vast::createHLToLLCFPass());
+
+        auto run_result = pm.run(state.mod.get());
+
+        VAST_CHECK(mlir::succeeded(run_result), "Some pass in apply() failed");
+
+        llvm::outs() << state.mod.get() << "\n";
+    }
 
 } // namespace vast::repl::cmd
