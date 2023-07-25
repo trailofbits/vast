@@ -73,7 +73,7 @@ def IRsToLLVM : Pass<"vast-irs-to-llvm", "mlir::ModuleOp"> {
 }
 
 def CoreToLLVM : Pass<"vast-core-to-llvm", "mlir::ModuleOp"> {
-  let summary = "VAST Core dialec to LLVM Dialect conversion";
+  let summary = "VAST Core dialect to LLVM Dialect conversion";
   let description = [{
     Converts core dialect operations to LLVM dialect.
     }];
