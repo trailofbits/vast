@@ -217,7 +217,29 @@ namespace vast::repl
             params_storage params;
         };
 
-        using command_list = util::type_list< exit, help, load, show, meta >;
+        //
+        // apply command
+        //
+        struct apply : base {
+            static constexpr string_ref name() { return "apply"; }
+
+            static constexpr inline char pass_param[] = "pass_name";
+
+            using command_params = util::type_list<
+                named_param< pass_param, string_param >
+            >;
+
+            using params_storage = command_params::as_tuple;
+
+            apply(const params_storage &params) : params(params) {}
+            apply(params_storage &&params) : params(std::move(params)) {}
+
+            void run(state_t &state) const override;
+
+            params_storage params;
+        };
+
+        using command_list = util::type_list< exit, help, load, show, meta, apply >;
 
     } // namespace command
 
