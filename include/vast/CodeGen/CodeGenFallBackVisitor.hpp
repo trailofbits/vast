@@ -4,6 +4,8 @@
 
 #include "vast/Util/Warnings.hpp"
 
+#include "vast/Translation/CodeGenUnsupportedVisitor.hpp"
+
 namespace vast::cg
 {
     template< typename Derived >
@@ -46,6 +48,11 @@ namespace vast::cg
         using TypeVisitor::Visit;
     };
 
+    template< typename Derived >
+    using FallbackVisitorConfig = UnsupportedFallBackVisitorMixin< Derived,
+        DefaultFallBackVisitorMixin
+    >;
+
     //
     // CodeGenFallBackVisitorMixin
     //
@@ -72,6 +79,7 @@ namespace vast::cg
         auto VisitWithFallBack(auto token) {
             if (auto result = DefaultVisitorMixin::Visit(token))
                 return result;
+
             return FallBackVisitorMixin::Visit(token);
         }
     };
