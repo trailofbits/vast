@@ -12,6 +12,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/LowLevel/LowLevelDialect.hpp"
 #include "vast/Dialect/Meta/MetaDialect.hpp"
 #include "vast/Dialect/Core/CoreDialect.hpp"
+#include "vast/Dialect/Unsupported/UnsupportedDialect.hpp"
 
 #include "vast/Util/Common.hpp"
 
@@ -22,7 +23,8 @@ namespace vast {
             vast::hl::HighLevelDialect,
             vast::ll::LowLevelDialect,
             vast::meta::MetaDialect,
-            vast::core::CoreDialect
+            vast::core::CoreDialect,
+            vast::us::UnsupportedDialect
         >();
     }
 

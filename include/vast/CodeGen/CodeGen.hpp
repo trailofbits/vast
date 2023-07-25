@@ -633,7 +633,7 @@ namespace vast::cg
     template< typename Derived >
     using DefaultCodeGenVisitorConfig = CodeGenFallBackVisitorMixin< Derived,
         DefaultCodeGenVisitorMixin,
-        DefaultFallBackVisitorMixin
+        FallbackVisitorConfig
     >;
 
     //
