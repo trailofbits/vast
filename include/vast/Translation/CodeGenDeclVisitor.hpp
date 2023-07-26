@@ -293,21 +293,15 @@ namespace vast::cg {
         }
 
         template< typename Op >
-        operation lookup_funclike(mangled_name_ref mangled);
-
-        template< >
-        operation lookup_funclike< hl::FuncOp >(mangled_name_ref mangled) {
-            return context().lookup_function(mangled, false /* emit no error */);
-        }
-
-        template< >
-        operation lookup_funclike< hl::MethodOp >(mangled_name_ref mangled) {
-            return context().lookup_method(mangled, false /* emit no error */);
-        }
-
-        template< >
-        operation lookup_funclike< hl::DtorOp >(mangled_name_ref mangled) {
-            return context().lookup_destructor(mangled, false /* emit no error */);
+        operation lookup_funclike(mangled_name_ref mangled) {
+            static_assert(hl::funclike_ops::contains< Op >, "Operation is not func-like");
+            if constexpr (std::is_same_v< Op, hl::FuncOp >) {
+                return context().lookup_function(mangled, false /* emit no error */);
+            } else if constexpr (std::is_same_v< Op, hl::MethodOp >) {
+                return context().lookup_method(mangled, false /* emit no error */);
+            } else if constexpr (std::is_same_v< Op, hl::DtorOp >) {
+                return context().lookup_destructor(mangled, false /* emit no error */);
+            }
         }
 
         // FIXME: remove as this duplicates logic from codegen driver
