@@ -92,4 +92,7 @@ namespace vast::hl
         hl::MethodOp,
         hl::DtorOp
     >;
+
+    template< typename T >
+    concept function_like = funclike_ops::contains< T >;
 }

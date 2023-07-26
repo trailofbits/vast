@@ -221,9 +221,8 @@ namespace vast::cg
             return symbol(dtordecls, mangled, "undeclared destructor '" + mangled.name + "'", with_error);
         }
 
-        template< typename Op >
+        template< hl::function_like Op >
         Op declare(mangled_name_ref mangled, auto vast_decl_builder) {
-            static_assert(hl::funclike_ops::contains< Op >, "Declaring unknown operation type");
             if constexpr (std::is_same_v< Op, hl::FuncOp >) {
                 return declare< Op >(funcdecls, mangled, vast_decl_builder, mangled.name);
             } else if constexpr (std::is_same_v< Op, hl::MethodOp >) {

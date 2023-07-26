@@ -292,9 +292,8 @@ namespace vast::cg {
             return clang::GlobalDecl(decl, clang::CXXDtorType::Dtor_Complete);
         }
 
-        template< typename Op >
+        template< hl::function_like Op >
         operation lookup_funclike(mangled_name_ref mangled) {
-            static_assert(hl::funclike_ops::contains< Op >, "Operation is not func-like");
             if constexpr (std::is_same_v< Op, hl::FuncOp >) {
                 return context().lookup_function(mangled, false /* emit no error */);
             } else if constexpr (std::is_same_v< Op, hl::MethodOp >) {
