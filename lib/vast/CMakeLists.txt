@@ -15,4 +15,5 @@ if (VAST_BUILD_FRONTEND)
     add_subdirectory(CC1)
 endif()
 
+add_subdirectory(Tower)
 add_subdirectory(Util)
