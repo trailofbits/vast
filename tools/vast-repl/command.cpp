@@ -2,9 +2,9 @@
 
 #include "vast/repl/command.hpp"
 
-#include "mlir/Pass/PassManager.h"
 #include "vast/Conversion/Passes.hpp"
 #include "vast/repl/common.hpp"
+#include "vast/Tower/Tower.hpp"
 
 namespace vast::repl::cmd {
 
@@ -124,17 +124,9 @@ namespace vast::repl::cmd {
     void apply::run(state_t &state) const {
         check_and_emit_module(state);
 
-        mlir::PassManager pm(&state.ctx);
+        auto [tm, th] = tower::manager_t::get(state.ctx, std::move(state.mod));
 
-        // auto pp = get_param< pass_param >(params);
-       
-        pm.addPass(vast::createHLToLLCFPass());
-
-        auto run_result = pm.run(state.mod.get());
-
-        VAST_CHECK(mlir::succeeded(run_result), "Some pass in apply() failed");
-
-        llvm::outs() << state.mod.get() << "\n";
+        llvm::outs() << tm.apply(th, createHLToLLCFPass()).mod << "\n";
     }
 
 } // namespace vast::repl::cmd
