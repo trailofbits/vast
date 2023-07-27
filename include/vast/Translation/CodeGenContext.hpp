@@ -81,6 +81,12 @@ namespace vast::cg
         using MethodDeclTable = scoped_table< mangled_name_ref, hl::MethodOp >;
         MethodDeclTable methdecls;
 
+        using DtorDeclTable = scoped_table< mangled_name_ref, hl::DtorOp >;
+        DtorDeclTable dtordecls;
+
+        using CtorDeclTable = scoped_table< mangled_name_ref, hl::CtorOp >;
+        CtorDeclTable ctordecls;
+
         using EnumDecls = scoped_table< const clang::EnumDecl *, hl::EnumDeclOp >;
         EnumDecls enumdecls;
 
@@ -214,12 +220,24 @@ namespace vast::cg
             return symbol(methdecls, mangled, "undeclared method '" + mangled.name + "'", with_error);
         }
 
-        template< typename Op >
+        hl::DtorOp lookup_destructor(mangled_name_ref mangled, bool with_error = true) {
+            return symbol(dtordecls, mangled, "undeclared destructor '" + mangled.name + "'", with_error);
+        }
+
+        hl::CtorOp lookup_constructor(mangled_name_ref mangled, bool with_error = true) {
+            return symbol(ctordecls, mangled, "undeclared constructor '" + mangled.name + "'", with_error);
+        }
+
+        template< hl::function_like Op >
         Op declare(mangled_name_ref mangled, auto vast_decl_builder) {
             if constexpr (std::is_same_v< Op, hl::FuncOp >) {
                 return declare< Op >(funcdecls, mangled, vast_decl_builder, mangled.name);
-            } else {
+            } else if constexpr (std::is_same_v< Op, hl::MethodOp >) {
                 return declare< Op >(methdecls, mangled, vast_decl_builder, mangled.name);
+            } else if constexpr (std::is_same_v< Op, hl::DtorOp >) {
+                return declare< Op >(dtordecls, mangled, vast_decl_builder, mangled.name);
+            } else if constexpr (std::is_same_v< Op, hl::CtorOp >) {
+                return declare< Op >(ctordecls, mangled, vast_decl_builder, mangled.name);
             }
         }
 

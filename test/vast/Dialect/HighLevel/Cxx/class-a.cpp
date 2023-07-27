@@ -2,7 +2,12 @@
 // RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
 
 // CHECK: hl.class "A" :
-class A {};
+class A {
+// CHECK: hl.access protected
+protected:
+    // CHECK: hl.dtor external virtual @_ZN1AD1Ev ()
+    virtual ~A();
+};
 
 // CHECK: hl.class "B" :
 class B {};
@@ -34,4 +39,7 @@ public:
 
     // CHECK: hl.method external ref_rvalue @_ZNO1C5get_pEv () -> !hl.int
     int get_p() &&;
+
+    // CHECK: hl.ctor external @_ZN1CC1Ei (!hl.lvalue<!hl.int>)
+    C(int x);
 };

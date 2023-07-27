@@ -71,6 +71,14 @@ namespace vast::hl
         return verify_funclike(this);
     }
 
+    logical_result DtorOp::verify() {
+        return verify_funclike(this);
+    }
+
+    logical_result CtorOp::verify() {
+        return verify_funclike(this);
+    }
+
     ParseResult parseFunctionSignatureAndBody(
         Parser &parser, Attribute &funcion_type, mlir::NamedAttrList &attr_dict, Region &body
     ) {

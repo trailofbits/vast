@@ -292,22 +292,27 @@ namespace vast::cg {
             return clang::GlobalDecl(decl, clang::CXXDtorType::Dtor_Complete);
         }
 
+        template< hl::function_like Op >
+        operation lookup_funclike(mangled_name_ref mangled) {
+            if constexpr (std::is_same_v< Op, hl::FuncOp >) {
+                return context().lookup_function(mangled, false /* emit no error */);
+            } else if constexpr (std::is_same_v< Op, hl::MethodOp >) {
+                return context().lookup_method(mangled, false /* emit no error */);
+            } else if constexpr (std::is_same_v< Op, hl::DtorOp >) {
+                return context().lookup_destructor(mangled, false /* emit no error */);
+            } else if constexpr (std::is_same_v< Op, hl::CtorOp >) {
+                return context().lookup_constructor(mangled, false /* emit no error */);
+            }
+        }
+
         // FIXME: remove as this duplicates logic from codegen driver
         template< typename Op, typename Decl, typename Builder >
         operation VisitFunctionLikeDecl(const Decl *decl, Builder builder_callback) {
             auto gdecl = get_gdecl(decl);
             auto mangled = context().get_mangled_name(gdecl);
 
-            if constexpr (std::is_same_v< Op, hl::FuncOp >) {
-                if (auto fn = context().lookup_function(mangled, false /* emit no error */)) {
-                    return fn;
-                }
-            }
-
-            if constexpr (std::is_same_v< Op, hl::MethodOp >) {
-                if (auto fn = context().lookup_method(mangled, false /* emit no error */)) {
-                    return fn;
-                }
+            if (auto fn = lookup_funclike< Op >(mangled)) {
+                return fn;
             }
 
             InsertionGuard guard(builder());
@@ -450,22 +455,14 @@ namespace vast::cg {
         }
 
         operation VisitCXXConstructorDecl(const clang::CXXConstructorDecl *decl) {
-            return VisitFunctionLikeDecl< hl::MethodOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
-                return make< hl::MethodOp >(loc, name, type, linkage,
-                    decl->isVirtual(),
-                    decl->isConst(),
-                    decl->isVolatile(),
-                    convert_ref_qual(decl->getRefQualifier()));
+            return VisitFunctionLikeDecl< hl::CtorOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
+                return make< hl::CtorOp >(loc, name, type, linkage);
             });
         }
 
         operation VisitCXXDestructorDecl(const clang::CXXDestructorDecl *decl) {
-            return VisitFunctionLikeDecl< hl::MethodOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
-                return make< hl::MethodOp >(loc, name, type, linkage,
-                    decl->isVirtual(),
-                    decl->isConst(),
-                    decl->isVolatile(),
-                    convert_ref_qual(decl->getRefQualifier()));
+            return VisitFunctionLikeDecl< hl::DtorOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
+                return make< hl::DtorOp >(loc, name, type, linkage, decl->isVirtual());
             });
         }
 
