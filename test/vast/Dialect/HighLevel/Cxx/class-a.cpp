@@ -39,4 +39,7 @@ public:
 
     // CHECK: hl.method external ref_rvalue @_ZNO1C5get_pEv () -> !hl.int
     int get_p() &&;
+
+    // CHECK: hl.ctor external @_ZN1CC1Ei (!hl.lvalue<!hl.int>)
+    C(int x);
 };

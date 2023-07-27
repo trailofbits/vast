@@ -157,4 +157,13 @@ def DtorOp
   }];
 }
 
+def CtorOp : FuncLikeOp< "ctor" >
+{
+  let summary = "VAST high-level constructor definintion or declaration";
+
+  let assemblyFormat = [{
+    $linkage $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
+  }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS_CXX

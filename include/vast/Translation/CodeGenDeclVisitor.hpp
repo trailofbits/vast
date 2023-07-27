@@ -300,6 +300,8 @@ namespace vast::cg {
                 return context().lookup_method(mangled, false /* emit no error */);
             } else if constexpr (std::is_same_v< Op, hl::DtorOp >) {
                 return context().lookup_destructor(mangled, false /* emit no error */);
+            } else if constexpr (std::is_same_v< Op, hl::CtorOp >) {
+                return context().lookup_constructor(mangled, false /* emit no error */);
             }
         }
 
@@ -453,12 +455,8 @@ namespace vast::cg {
         }
 
         operation VisitCXXConstructorDecl(const clang::CXXConstructorDecl *decl) {
-            return VisitFunctionLikeDecl< hl::MethodOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
-                return make< hl::MethodOp >(loc, name, type, linkage,
-                    decl->isVirtual(),
-                    decl->isConst(),
-                    decl->isVolatile(),
-                    convert_ref_qual(decl->getRefQualifier()));
+            return VisitFunctionLikeDecl< hl::CtorOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
+                return make< hl::CtorOp >(loc, name, type, linkage);
             });
         }
 

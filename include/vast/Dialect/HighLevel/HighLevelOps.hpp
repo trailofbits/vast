@@ -90,7 +90,8 @@ namespace vast::hl
     using funclike_ops = util::type_list<
         hl::FuncOp,
         hl::MethodOp,
-        hl::DtorOp
+        hl::DtorOp,
+        hl::CtorOp
     >;
 
     template< typename T >
