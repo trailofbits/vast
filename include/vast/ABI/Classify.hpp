@@ -396,6 +396,7 @@ namespace vast::abi
             std::size_t offset = 0;
             for ( auto field_type : fields )
             {
+                offset += size( field_type );
                 auto field_class = [ & ]() -> classification_t
                 {
                     auto [ lo, hi ] = classify( field_type );
@@ -405,7 +406,6 @@ namespace vast::abi
                     return { Class::NoClass, lo };
                 }();
                 result = join( result, field_class );
-                offset += size( field_type );
             }
 
             return post_merge( t, result );
