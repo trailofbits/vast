@@ -161,6 +161,9 @@ namespace vast::cg
                 if (llvm::isa< clang::FunctionDecl >(dctx))
                     continue;
 
+                if (llvm::isa< clang::LinkageSpecDecl >(dctx))
+                    continue;
+
                 if (const auto *d = llvm::dyn_cast< clang::NamedDecl >(dctx)) {
                     name += get_decl_name(d);
                 } else {
