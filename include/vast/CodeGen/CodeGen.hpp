@@ -579,7 +579,7 @@ namespace vast::cg
         }
 
         operation visit_var_decl(const clang::VarDecl *decl) {
-            return _visitor->VisitVarDecl(decl);
+            return _visitor->Visit(decl);
         }
 
         void dump_module() { _cgctx.dump_module(); }
