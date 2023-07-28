@@ -444,6 +444,15 @@ namespace vast::abi
 
         using half_class_result = std::variant< arg_info, type, std::monostate >;
 
+        static inline std::string to_string( const half_class_result &a )
+        {
+            if ( auto arg = std::get_if< arg_info >( &a ) )
+                return arg->to_string();
+            if ( auto t = std::get_if< type >( &a ) )
+                return "type";
+            return "monostate";
+        }
+
         // Both parts are passed as argument.
         half_class_result return_lo( type t, classification_t c )
         {
@@ -552,7 +561,7 @@ namespace vast::abi
                 return arg_info::make< direct >( *coerced_type );
             }
 
-            // Both returned types, we need to comboine them.
+            // Both returned types, we need to combine them.
             auto lo_type = get_if< type >( &low );
             auto hi_type = get_if< type >( &high );
             VAST_ASSERT( lo_type && hi_type );
