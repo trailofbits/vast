@@ -1,17 +1,17 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
-#include "vast/Util/Common.hpp"
+#pragma once
 
-namespace mlir
-{
-    class Pass;
-}
+#include "mlir/IR/IRMapping.h"
+#include "mlir/Pass/Pass.h"
+#include "vast/Util/Common.hpp"
 
 namespace vast::tower
 {
     struct handle_t {
         std::size_t id;
         vast_module mod;
+        mlir::IRMapping prev;
     };
 
     using pass_ptr_t = std::unique_ptr< mlir::Pass >;
