@@ -164,6 +164,20 @@ if (NOT LLVM_ENABLE_RTTI)
   )
 endif()
 
+# enable exception on failure
+option(ENABLE_VAST_EXCEPTION "Enable exception throw on vast failure" OFF)
+if(ENABLE_VAST_EXCEPTION)
+  target_compile_definitions(vast_settings
+    INTERFACE
+      -DENABLE_VAST_EXCEPTION
+  )
+
+  target_compile_options(vast_settings
+    INTERFACE
+      -fexceptions
+  )
+endif()
+
 # sanitizer options if supported by compiler
 include(cmake/sanitizers.cmake)
 enable_sanitizers(vast_settings)
