@@ -47,16 +47,55 @@ VAST_RELAX_WARNINGS
 #include <llvm/Support/Debug.h>
 VAST_UNRELAX_WARNINGS
 
+#ifdef ENABLE_VAST_EXCEPTION
+#include <stdexcept>
+#include <sstream>
+
+namespace vast
+{
+    struct error_stream {
+      private:
+        std::stringstream buff;
+
+       public:
+        error_stream(std::stringstream ss = std::stringstream())
+              : buff(std::move(ss)) {}
+        ~error_stream() noexcept(false) {
+            throw std::runtime_error(buff.str());
+        }
+
+        template <typename V>
+        error_stream& operator<<(V &&s) {
+            // explicit cast to std::string to avoid compiler error
+            // during implicit type conversion
+            buff << static_cast<std::string>(std::forward<V>(s));
+            return *this;
+        }
+    };
+} // namespace vast
+
+  #define vast_error vast::error_stream
+#else
+  #define vast_error llvm::dbgs
+#endif
+
+#define vast_debug llvm::dbgs
+
 #define DEBUG_TYPE "vast"
 
 namespace vast
 {
+
+    #define VAST_ERROR(...) do { \
+      vast_error() << "[VAST Error] " << llvm::formatv(__VA_ARGS__) << "\n"; \
+    } while(0)
+
     #define VAST_REPORT(...) do { \
-      llvm::dbgs() << "[vast] " << llvm::formatv(__VA_ARGS__) << "\n"; \
+      vast_debug() << "[VAST Debug] " << llvm::formatv(__VA_ARGS__) << "\n"; \
     } while(0)
 
     #define VAST_UNREACHABLE(...) do { \
-      VAST_REPORT(__VA_ARGS__); \
+      VAST_ERROR(__VA_ARGS__); \
       llvm_unreachable(nullptr); \
     } while (0)
 
