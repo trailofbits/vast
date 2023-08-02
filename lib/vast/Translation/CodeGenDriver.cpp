@@ -250,7 +250,7 @@ namespace vast::cg
     }
 
     operation codegen_driver::build_global_function_definition(clang::GlobalDecl decl) {
-        auto const *function_decl = llvm::cast< clang::FunctionDecl >(decl.getDecl());
+        const auto *function_decl = llvm::cast< clang::FunctionDecl >(decl.getDecl());
 
         // Compute the function info and vast type.
         const auto &fty_info = type_info->arrange_global_decl(decl, get_target_info());
@@ -377,7 +377,16 @@ namespace vast::cg
                     clang::ASTContext::InlineVariableDefinitionKind::Strong
                 );
 
-                return build_global_var_definition(var, var->isThisDeclarationADefinition() == clang::VarDecl::TentativeDefinition);
+                return build_global_var_definition(
+                    var,
+                    var->isThisDeclarationADefinition() == clang::VarDecl::TentativeDefinition
+                );
+            }
+            if (var->getStorageClass() == clang::StorageClass::SC_Static) {
+                return build_global_var_definition(
+                    var,
+                    var->isThisDeclarationADefinition() == clang::VarDecl::TentativeDefinition
+                );
             }
         }
 
