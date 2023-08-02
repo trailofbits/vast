@@ -9,14 +9,12 @@
 name: Linters
 
 on:
-  push:
-    paths-ignore: "docs/**"
   pull_request:
     paths-ignore: "docs/**"
 
 jobs:
-  build_linux:
-    runs-on: ubuntu-latest
+  cpp-linter:
+    runs-on: ubuntu-22.04
     steps:
       - name: Clone the vast repository
         uses: actions/checkout@v3
@@ -24,15 +22,24 @@ jobs:
           submodules: true
           fetch-depth: 1
 
+      - name: Export compile commands
+        uses: devcontainers/ci@v0.2
+        with:
+          runCmd: |
+            export CC=clang-16
+            export TOOLCHAIN=$(pwd)/cmake/lld.toolchain.cmake
+            cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} \
+              -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+
       - name: Run C++ Linters
         uses: cpp-linter/cpp-linter-action@v2
         id: linter
-        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version: 16
           style: file
+          database: ./builds/ninja-multi-default/
           lines-changed-only: true
           thread-comments: true
           step-summary: true
