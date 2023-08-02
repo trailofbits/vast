@@ -47,7 +47,7 @@ VAST_RELAX_WARNINGS
 #include <llvm/Support/Debug.h>
 VAST_UNRELAX_WARNINGS
 
-#ifdef ENABLE_VAST_EXCEPTION
+#ifdef VAST_ENABLE_EXCEPTIONS
 #include <stdexcept>
 #include <sstream>
 

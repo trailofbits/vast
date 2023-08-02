@@ -165,11 +165,11 @@ if (NOT LLVM_ENABLE_RTTI)
 endif()
 
 # enable exception on failure
-option(ENABLE_VAST_EXCEPTION "Enable exception throw on vast failure" OFF)
-if(ENABLE_VAST_EXCEPTION)
+option(VAST_ENABLE_EXCEPTIONS "Enable exception throw on vast failure" OFF)
+if (VAST_ENABLE_EXCEPTIONS)
   target_compile_definitions(vast_settings
     INTERFACE
-      -DENABLE_VAST_EXCEPTION
+      -DVAST_ENABLE_EXCEPTIONS
   )
 
   target_compile_options(vast_settings
