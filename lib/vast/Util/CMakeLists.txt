@@ -2,6 +2,7 @@
 
 add_library(vast_util
     Region.cpp
+    Warnings.cpp
 )
 
 target_link_libraries(vast_util PRIVATE vast::settings)

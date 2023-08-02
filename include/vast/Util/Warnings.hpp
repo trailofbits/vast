@@ -50,19 +50,33 @@ VAST_UNRELAX_WARNINGS
 #ifdef VAST_ENABLE_EXCEPTIONS
 #include <stdexcept>
 #include <sstream>
+#endif
 
-namespace vast
-{
-    struct error_stream {
-        explicit error_stream() : ss(buff) {}
+#define SECOND_ARG(A,B,...) B
+#define CONCAT(A,B) A ## B
 
-        ~error_stream() noexcept(false) {
+#define DETECT_EXIST_TRUE ~,1
+
+// DETECT_EXIST merely concats a converted macro to the end of DETECT_EXIST_TRUE.
+// If empty, DETECT_EXIST_TRUE converts fine.  If not 0 remains second argument.
+#define DETECT_EXIST(X) DETECT_EXIST_IMPL(CONCAT(DETECT_EXIST_TRUE,X), 0, ~)
+#define DETECT_EXIST_IMPL(...) SECOND_ARG(__VA_ARGS__)
+
+#define DEBUG_TYPE "vast"
+
+namespace vast {
+
+#ifdef VAST_ENABLE_EXCEPTIONS
+    struct error_throwing_stream {
+        explicit error_throwing_stream() : ss(buff) {}
+
+        ~error_throwing_stream() noexcept(false) {
             ss.flush();
             throw std::runtime_error(buff);
         }
 
         template< typename T >
-        error_stream& operator<<(T &&value) {
+        error_throwing_stream& operator<<(T &&value) {
             ss << value;
             return *this;
         }
@@ -71,19 +85,12 @@ namespace vast
         std::string buff;
         llvm::raw_string_ostream ss;
     };
-} // namespace vast
 
-  #define vast_error vast::error_stream
+    error_throwing_stream& vast_error();
 #else
-  #define vast_error llvm::dbgs
+    llvm::raw_ostream& vast_error();
 #endif
-
-#define vast_debug llvm::dbgs
-
-#define DEBUG_TYPE "vast"
-
-namespace vast
-{
+    llvm::raw_ostream& vast_debug();
 
     #define VAST_ERROR(...) do { \
       vast_error() << "[VAST Error] " << llvm::formatv(__VA_ARGS__) << "\n"; \
@@ -114,4 +121,4 @@ namespace vast
 
     #define VAST_TODO(fmt, ... ) VAST_UNREACHABLE("[vast-todo]: " # fmt __VA_OPT__(,) __VA_ARGS__ )
 
-}
+} // namespace vast
