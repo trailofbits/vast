@@ -124,7 +124,7 @@ namespace vast::repl::cmd {
     void apply::run(state_t &state) const {
         check_and_emit_module(state);
 
-        auto [tm, th] = tower::manager_t::get(state.ctx, std::move(state.mod));
+        auto [tm, th] = tower::default_manager_t::get(state.ctx, std::move(state.mod));
 
         llvm::outs() << tm.apply(th, createHLToLLCFPass()).mod << "\n";
     }
