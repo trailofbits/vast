@@ -1,6 +1,6 @@
 # Copyright (c) 2022-present, Trail of Bits, Inc.
 add_mlir_dialect(LowLevel ll)
-add_mlir_doc(LowLevel LowLevel LowLevel/ -gen-dialect-doc)
+add_mlir_doc(LowLevel LowLevel LowLevel/ -gen-dialect-doc -dialect=ll)
 
 set(LLVM_TARGET_DEFINITIONS LowLevel.td)
 
