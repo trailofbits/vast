@@ -52,16 +52,6 @@ VAST_UNRELAX_WARNINGS
 #include <sstream>
 #endif
 
-#define SECOND_ARG(A,B,...) B
-#define CONCAT(A,B) A ## B
-
-#define DETECT_EXIST_TRUE ~,1
-
-// DETECT_EXIST merely concats a converted macro to the end of DETECT_EXIST_TRUE.
-// If empty, DETECT_EXIST_TRUE converts fine.  If not 0 remains second argument.
-#define DETECT_EXIST(X) DETECT_EXIST_IMPL(CONCAT(DETECT_EXIST_TRUE,X), 0, ~)
-#define DETECT_EXIST_IMPL(...) SECOND_ARG(__VA_ARGS__)
-
 #define DEBUG_TYPE "vast"
 
 namespace vast {
@@ -77,7 +67,7 @@ namespace vast {
 
         template< typename T >
         error_throwing_stream& operator<<(T &&value) {
-            ss << value;
+            ss << std::forward< T >(value);
             return *this;
         }
 
@@ -86,10 +76,11 @@ namespace vast {
         llvm::raw_string_ostream ss;
     };
 
-    error_throwing_stream& vast_error();
+    error_throwing_stream vast_error();
 #else
     llvm::raw_ostream& vast_error();
 #endif
+
     llvm::raw_ostream& vast_debug();
 
     #define VAST_ERROR(...) do { \
