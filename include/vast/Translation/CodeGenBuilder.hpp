@@ -177,11 +177,20 @@ namespace vast::cg {
             });
         }
 
-        template< typename Scope >
-        auto make_scoped(Location loc, auto content_builder) {
+        template<typename Scope>
+        auto make_scoped(
+            Location loc, auto content_builder
+            ) {
             Scope scope(builder(), loc);
+
+
+
+
+
+
             content_builder();
-            return scope.get();
+
+                    return scope.get();
         }
 
         InsertionGuard insertion_guard() { return InsertionGuard(builder()); }
@@ -192,7 +201,7 @@ namespace vast::cg {
         //
         // We want to use just region builders in the future.
 
-        std::unique_ptr< Region > make_stmt_region(const clang::Stmt *stmt) {
+        std::unique_ptr<Region> make_stmt_region(const clang::Stmt* stmt) {
             auto guard = insertion_guard();
 
             auto reg = std::make_unique< Region >();
