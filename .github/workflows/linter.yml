@@ -31,5 +31,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          version: 16
           style: file
-          files-changed-only: true
+          lines-changed-only: true
+          thread-comments: true
+          step-summary: true
