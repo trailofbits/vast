@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "mlir/IR/IRMapping.h"
-#include "mlir/Pass/Pass.h"
+#include "mlir/Pass/PassManager.h"
 #include "vast/Util/Common.hpp"
 
 namespace vast::tower
@@ -11,12 +10,20 @@ namespace vast::tower
     struct handle_t {
         std::size_t id;
         vast_module mod;
-        mlir::IRMapping prev;
+    };
+
+    struct default_loc_rewriter_t {
+        static auto insert(mlir::Operation *op) -> void;
+        static auto remove(mlir::Operation *op) -> void;
+        static auto prev(mlir::Operation *op) -> mlir::Operation *;
     };
 
     using pass_ptr_t = std::unique_ptr< mlir::Pass >;
 
+    template< typename loc_rewriter_t >
     struct manager_t {
+        using loc_rewriter = loc_rewriter_t;
+        
         static auto get(mcontext_t &ctx, owning_module_ref mod)
             -> std::tuple< manager_t, handle_t > {
             manager_t m(ctx, std::move(mod));
@@ -24,7 +31,21 @@ namespace vast::tower
             return { std::move(m), h };
         }
 
-        auto apply(handle_t handle, pass_ptr_t pass) -> handle_t;
+        auto apply(handle_t handle, pass_ptr_t pass) -> handle_t {
+            handle.mod.walk(loc_rewriter_t::insert);
+
+            _modules.emplace_back(mlir::cast< vast_module >(handle.mod->clone()));
+
+            auto id  = _modules.size() - 1;
+            auto mod = _modules.back().get();
+
+            mlir::PassManager pm(&_ctx);
+            pm.addPass(std::move(pass));
+
+            VAST_CHECK(mlir::succeeded(pm.run(mod)), "Some pass in apply() failed");
+
+            return { id, mod };
+        }
 
       private:
         using module_storage_t = llvm::SmallVector< owning_module_ref, 2 >;
@@ -37,4 +58,6 @@ namespace vast::tower
             _modules.emplace_back(std::move(mod));
         }
     };
+
+    using default_manager_t = manager_t<default_loc_rewriter_t>;
 } // namespace vast::tower
