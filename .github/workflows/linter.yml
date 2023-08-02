@@ -43,3 +43,9 @@ jobs:
           lines-changed-only: true
           thread-comments: true
           step-summary: true
+
+      - name: Report result
+        if: steps.linter.outputs.checks-failed > 0
+        run:
+          echo "Some files failed the linting checks!"
+          exit 1
