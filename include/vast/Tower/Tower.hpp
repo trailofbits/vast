@@ -48,6 +48,13 @@ namespace vast::tower {
             return { id, mod };
         }
 
+        auto apply(handle_t handle, pipeline_t &pipeline) -> handle_t {
+            for (auto &pass : pipeline) {
+                handle = apply(handle, std::move(pass));
+            }
+            return handle;
+        }
+
       private:
         using module_storage_t = llvm::SmallVector< owning_module_ref, 2 >;
 
