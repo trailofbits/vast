@@ -54,23 +54,22 @@ VAST_UNRELAX_WARNINGS
 namespace vast
 {
     struct error_stream {
-      private:
-        std::stringstream buff;
+        explicit error_stream() : ss(buff) {}
 
-       public:
-        error_stream(std::stringstream ss = std::stringstream())
-              : buff(std::move(ss)) {}
         ~error_stream() noexcept(false) {
-            throw std::runtime_error(buff.str());
+            ss.flush();
+            throw std::runtime_error(buff);
         }
 
-        template <typename V>
-        error_stream& operator<<(V &&s) {
-            // explicit cast to std::string to avoid compiler error
-            // during implicit type conversion
-            buff << static_cast<std::string>(std::forward<V>(s));
+        template< typename T >
+        error_stream& operator<<(T &&value) {
+            ss << value;
             return *this;
         }
+
+      private:
+        std::string buff;
+        llvm::raw_string_ostream ss;
     };
 } // namespace vast
 
