@@ -2,8 +2,7 @@
 
 #include "vast/Tower/Tower.hpp"
 
-namespace vast::tower
-{
+namespace vast::tower {
     auto default_loc_rewriter_t::insert(mlir::Operation *op) -> void {
         auto ctx = op->getContext();
         auto ol  = mlir::OpaqueLoc::get< mlir::Operation  *>(op, ctx);

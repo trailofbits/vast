@@ -2,11 +2,10 @@
 
 #pragma once
 
-#include "mlir/Pass/PassManager.h"
 #include "vast/Util/Common.hpp"
+#include "mlir/Pass/PassManager.h"
 
-namespace vast::tower
-{
+namespace vast::tower {
     struct handle_t {
         std::size_t id;
         vast_module mod;
@@ -20,10 +19,12 @@ namespace vast::tower
 
     using pass_ptr_t = std::unique_ptr< mlir::Pass >;
 
+    using pipeline_t = std::vector< pass_ptr_t >;
+
     template< typename loc_rewriter_t >
     struct manager_t {
         using loc_rewriter = loc_rewriter_t;
-        
+
         static auto get(mcontext_t &ctx, owning_module_ref mod)
             -> std::tuple< manager_t, handle_t > {
             manager_t m(ctx, std::move(mod));
@@ -32,7 +33,7 @@ namespace vast::tower
         }
 
         auto apply(handle_t handle, pass_ptr_t pass) -> handle_t {
-            handle.mod.walk(loc_rewriter_t::insert);
+            handle.mod.walk(loc_rewriter::insert);
 
             _modules.emplace_back(mlir::cast< vast_module >(handle.mod->clone()));
 
@@ -53,11 +54,10 @@ namespace vast::tower
         mcontext_t &_ctx;
         module_storage_t _modules;
 
-        manager_t(mcontext_t &ctx, owning_module_ref mod)
-            : _ctx(ctx) {
+        manager_t(mcontext_t &ctx, owning_module_ref mod) : _ctx(ctx) {
             _modules.emplace_back(std::move(mod));
         }
     };
 
-    using default_manager_t = manager_t<default_loc_rewriter_t>;
+    using default_manager_t = manager_t< default_loc_rewriter_t >;
 } // namespace vast::tower
