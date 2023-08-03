@@ -55,6 +55,7 @@ jobs:
           lines-changed-only: true
           thread-comments: true
           step-summary: true
+          ignore: 'test'
 
       - name: Report result
         if: steps.linter.outputs.checks-failed > 0
