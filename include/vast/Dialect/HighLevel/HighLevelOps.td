@@ -1200,4 +1200,10 @@ def ExtensionOp
     let assemblyFormat = "$value attr-dict `:` type($value) `->` type($result)";
 }
 
+def HighLevel_EmptyDeclOp
+  : HighLevel_Op< "empty.decl", [] >
+{
+  let assemblyFormat = [{ attr-dict }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
