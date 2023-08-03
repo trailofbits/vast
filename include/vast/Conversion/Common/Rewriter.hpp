@@ -10,6 +10,11 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 
+#include <gap/core/generator.hpp>
+
+#include <ranges>
+#include <vector>
+
 namespace vast::conv
 {
     template< typename impl_t >
@@ -61,6 +66,24 @@ namespace vast::conv
             auto g = guard();
             bld.setInsertionPointToEnd( block );
             return bld.template create< Trg >( std::forward< Args >( args ) ... );
+        }
+
+        template< typename T >
+        void safe_erase( gap::generator< T > &&range )
+        {
+            // It is highly probable there is an ongoing iteration
+            // inside the generator, therefore we first freeze the value.
+            // TODO(c++23): Refactor.
+            std::vector< T > to_erase;
+            std::ranges::move(range.begin(), range.end(), std::back_inserter(to_erase));
+            return erase( to_erase );
+        }
+
+        template< typename O >
+        void erase( const std::vector< O > &to_erase )
+        {
+            for ( auto o : to_erase )
+                bld.eraseOp( o );
         }
     };
 
