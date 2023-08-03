@@ -9,6 +9,24 @@ for further program analysis.
 
 ## Operation definition
 
+### `hl.access` (::vast::hl::AccessSpecifierOp)
+
+VAST C++ access specifier declaration
+
+
+Syntax:
+
+```
+operation ::= `hl.access` attr-dict $spec
+```
+
+VAST C++ access specifier declaration
+#### Attributes:
+
+| Attribute | MLIR Type | Description |
+| :-------: | :-------: | ----------- |
+| `spec` | ::vast::hl::AccessSpecifierAttr | Access specifier
+
 ### `hl.assign.fadd` (::vast::hl::AddFAssignOp)
 
 VAST compound assign operation
@@ -26,18 +44,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -53,7 +73,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.fadd` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.fadd` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -62,13 +82,7 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
-
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
 #### Operands:
 
@@ -100,18 +114,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -127,7 +143,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.add` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.add` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -136,13 +152,9 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
-Traits: Commutative, SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+Traits: Commutative
 
 #### Operands:
 
@@ -217,8 +229,6 @@ operation ::= `hl.alignof.expr` attr-dict `->` type($result) $expr
 ```
 
 VAST expr alignof operator
-Traits: RecursiveSideEffects
-
 #### Results:
 
 | Result | Description |
@@ -233,19 +243,15 @@ VAST type alignof operator
 Syntax:
 
 ```
-operation ::= `hl.alignof.type` $type attr-dict `->` type($result)
+operation ::= `hl.alignof.type` $arg attr-dict `->` type($result)
 ```
 
 VAST type alignof operator
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
 #### Attributes:
 
 | Attribute | MLIR Type | Description |
 | :-------: | :-------: | ----------- |
-| `type` | ::mlir::TypeAttr | any type attribute
+| `arg` | ::mlir::TypeAttr | any type attribute
 
 #### Results:
 
@@ -270,18 +276,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -306,18 +314,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -333,7 +343,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.bin.and` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.bin.and` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -342,13 +352,7 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
-
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
 #### Operands:
 
@@ -375,9 +379,7 @@ operation ::= `hl.bin.comma` $lhs `,` $rhs attr-dict `:` functional-type(operand
 ```
 
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+Traits: AttrSizedOperandSegments
 
 #### Operands:
 
@@ -400,7 +402,7 @@ VAST logical binary operation
 Syntax:
 
 ```
-operation ::= `hl.bin.land` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
+operation ::= `hl.bin.land` $lhs`,` $rhs attr-dict `:` type(results)
 ```
 
 High-level logical binary operation. This operation takes two operands
@@ -410,17 +412,6 @@ type.
 The custom assembly form of the operation is as follows:
 
 %result = <op> %lhs, %rhs  : type
-
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
-#### Operands:
-
-| Operand | Description |
-| :-----: | ----------- |
-| `lhs` | any type
-| `rhs` | any type
 
 #### Results:
 
@@ -436,7 +427,7 @@ VAST logical binary operation
 Syntax:
 
 ```
-operation ::= `hl.bin.lor` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
+operation ::= `hl.bin.lor` $lhs`,` $rhs attr-dict `:` type(results)
 ```
 
 High-level logical binary operation. This operation takes two operands
@@ -446,17 +437,6 @@ type.
 The custom assembly form of the operation is as follows:
 
 %result = <op> %lhs, %rhs  : type
-
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
-#### Operands:
-
-| Operand | Description |
-| :-----: | ----------- |
-| `lhs` | any type
-| `rhs` | any type
 
 #### Results:
 
@@ -481,18 +461,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -508,7 +490,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.bin.or` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.bin.or` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -517,13 +499,7 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
-
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
 #### Operands:
 
@@ -555,18 +531,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to integer like type
-| `dst` | lvalue to integer like type
+| `dst` | any type
 
 #### Results:
 
@@ -591,10 +569,6 @@ and returns one result.
 The custom assembly form of the operation is as follows:
 
 %result = <op> %lhs, %rhs  : functional-type(operands, results)
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
 
 #### Operands:
 
@@ -626,18 +600,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to integer like type
-| `dst` | lvalue to integer like type
+| `dst` | any type
 
 #### Results:
 
@@ -662,10 +638,6 @@ and returns one result.
 The custom assembly form of the operation is as follows:
 
 %result = <op> %lhs, %rhs  : functional-type(operands, results)
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
 
 #### Operands:
 
@@ -697,18 +669,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -724,7 +698,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.bin.xor` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.bin.xor` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -733,13 +707,7 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
-
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
 #### Operands:
 
@@ -766,10 +734,6 @@ operation ::= `hl.builtin_bitcast` $value $kind attr-dict `:` type($value) `->` 
 ```
 
 VAST cast operation
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
 #### Attributes:
 
 | Attribute | MLIR Type | Description |
@@ -800,10 +764,6 @@ operation ::= `hl.cstyle_cast` $value $kind attr-dict `:` type($value) `->` type
 ```
 
 VAST cast operation
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
 #### Attributes:
 
 | Attribute | MLIR Type | Description |
@@ -830,7 +790,7 @@ VAST call operation
 Syntax:
 
 ```
-operation ::= `hl.call` $callee `(` $operands `)` attr-dict `:` functional-type( $operands, $result )
+operation ::= `hl.call` $callee `(` $argOperands `)` attr-dict `:` functional-type( $argOperands, $results )
 ```
 
 VAST call operation
@@ -846,13 +806,35 @@ Interfaces: CallOpInterface
 
 | Operand | Description |
 | :-----: | ----------- |
-| `operands` | any type
+| `argOperands` | any type
 
 #### Results:
 
 | Result | Description |
 | :----: | ----------- |
-| `result` | any type
+| `results` | any type
+
+### `hl.class` (::vast::hl::ClassDeclOp)
+
+VAST C++ class declaration
+
+
+Syntax:
+
+```
+operation ::= `hl.class` $name attr-dict `:` `bases` $bases $fields
+```
+
+VAST C++ class declaration
+Traits: NoTerminator
+
+Interfaces: VastSymbol
+
+#### Attributes:
+
+| Attribute | MLIR Type | Description |
+| :-------: | :-------: | ----------- |
+| `name` | ::mlir::StringAttr | string attribute
 
 ### `hl.cmp` (::vast::hl::CmpOp)
 
@@ -866,10 +848,6 @@ operation ::= `hl.cmp` $predicate $lhs `,` $rhs  attr-dict `:` type(operands) `-
 ```
 
 VAST comparison operation
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
 #### Attributes:
 
 | Attribute | MLIR Type | Description |
@@ -903,9 +881,7 @@ operation ::= `hl.const` $value attr-dict
 VAST integral constant
 Traits: ConstantLike
 
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+Interfaces: InferTypeOpInterface
 
 #### Attributes:
 
@@ -919,6 +895,50 @@ Effects: MemoryEffects::Effect{}
 | :----: | ----------- |
 | `result` | any type
 
+### `hl.base` (::vast::hl::CxxBaseSpecifierOp)
+
+VAST base class specifier
+
+
+Syntax:
+
+```
+operation ::= `hl.base` $type attr-dict $access (`virtual` $is_virtual^)?
+```
+
+VAST base class specifier
+Interfaces: VastSymbol
+
+#### Attributes:
+
+| Attribute | MLIR Type | Description |
+| :-------: | :-------: | ----------- |
+| `type` | ::mlir::TypeAttr | any type attribute
+| `access` | ::vast::hl::AccessSpecifierAttr | Access specifier
+| `is_virtual` | ::mlir::UnitAttr | unit attribute
+
+### `hl.cxxstruct` (::vast::hl::CxxStructDeclOp)
+
+VAST C++ struct declaration
+
+
+Syntax:
+
+```
+operation ::= `hl.cxxstruct` $name attr-dict `:` `bases` $bases $fields
+```
+
+VAST C++ struct declaration
+Traits: NoTerminator
+
+Interfaces: VastSymbol
+
+#### Attributes:
+
+| Attribute | MLIR Type | Description |
+| :-------: | :-------: | ----------- |
+| `name` | ::mlir::StringAttr | string attribute
+
 ### `hl.ref` (::vast::hl::DeclRefOp)
 
 VAST variable reference declaration
@@ -927,15 +947,11 @@ VAST variable reference declaration
 Syntax:
 
 ```
-operation ::= `hl.ref` $decl attr-dict `:` type($decl)
+operation ::= `hl.ref` $decl attr-dict `:`type(operands)
 ```
 
 VAST variable reference declaration
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
@@ -947,7 +963,7 @@ Effects: MemoryEffects::Effect{}
 
 | Result | Description |
 | :----: | ----------- |
-| `result` | any type
+| `result` | lvalue to any type
 
 ### `hl.deref` (::vast::hl::Deref)
 
@@ -990,18 +1006,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -1017,7 +1035,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.fdiv` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.fdiv` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -1026,13 +1044,7 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
-
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
 #### Operands:
 
@@ -1064,18 +1076,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -1091,7 +1105,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.sdiv` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.sdiv` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -1100,13 +1114,7 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
-
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
 #### Operands:
 
@@ -1138,18 +1146,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -1165,7 +1175,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.udiv` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.udiv` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -1174,13 +1184,7 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
-
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
 #### Operands:
 
@@ -1224,10 +1228,6 @@ hl.enum.const "G" = #hl.integer<12> : !hl.int init  {
 }
 ```
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
 #### Attributes:
 
 | Attribute | MLIR Type | Description |
@@ -1251,9 +1251,7 @@ It also defines an underlying type.
 
 Traits: NoTerminator
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface), VastSymbol
-
-Effects: MemoryEffects::Effect{}
+Interfaces: VastSymbol
 
 #### Attributes:
 
@@ -1274,10 +1272,6 @@ operation ::= `hl.enumref` $value attr-dict `:` type($result)
 ```
 
 VAST variable reference declaration
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
 #### Attributes:
 
 | Attribute | MLIR Type | Description |
@@ -1302,13 +1296,68 @@ operation ::= `hl.expr` attr-dict `:` type($result) $subexpr
 ```
 
 VAST expression
-Traits: RecursiveSideEffects, SingleBlock
+Traits: SingleBlock
 
 #### Results:
 
 | Result | Description |
 | :----: | ----------- |
 | `result` | any type
+
+### `hl.gnu.extension` (::vast::hl::ExtensionOp)
+
+VAST extension (__extension__) keyword
+
+
+Syntax:
+
+```
+operation ::= `hl.gnu.extension` $value attr-dict `:` type($value) `->` type($result)
+```
+
+VAST op corresponding to GNU __extension__ keyword.
+#### Operands:
+
+| Operand | Description |
+| :-----: | ----------- |
+| `value` | any type
+
+#### Results:
+
+| Result | Description |
+| :----: | ----------- |
+| `result` | any type
+
+### `hl.fcmp` (::vast::hl::FCmpOp)
+
+VAST flaoting point comparison operation
+
+
+Syntax:
+
+```
+operation ::= `hl.fcmp` $predicate $lhs `,` $rhs  attr-dict `:` type(operands) `->` type($result)
+```
+
+VAST flaoting point comparison operation
+#### Attributes:
+
+| Attribute | MLIR Type | Description |
+| :-------: | :-------: | ----------- |
+| `predicate` | ::vast::hl::FPredicateAttr | floating point comparison predicate
+
+#### Operands:
+
+| Operand | Description |
+| :-----: | ----------- |
+| `lhs` | float like type
+| `rhs` | float like type
+
+#### Results:
+
+| Result | Description |
+| :----: | ----------- |
+| `result` | bool or integer like type
 
 ### `hl.field` (::vast::hl::FieldDeclOp)
 
@@ -1322,9 +1371,7 @@ operation ::= `hl.field` $name attr-dict (`bw` $bits^)? `:` $type
 ```
 
 VAST record field declaration
-Interfaces: NoSideEffect (MemoryEffectOpInterface), VastSymbol
-
-Effects: MemoryEffects::Effect{}
+Interfaces: VastSymbol
 
 #### Attributes:
 
@@ -1333,6 +1380,43 @@ Effects: MemoryEffects::Effect{}
 | `name` | ::mlir::StringAttr | string attribute
 | `type` | ::mlir::TypeAttr | any type attribute
 | `bits` | ::mlir::IntegerAttr | 32-bit signless integer attribute
+
+### `hl.func` (::vast::hl::FuncOp)
+
+VAST high-level function definintion or declaration
+
+
+Syntax:
+
+```
+operation ::= `hl.func` $linkage $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
+```
+
+Inspired by `cir::FuncOp` and `mlir::func::FuncOp`:
+> Operations within the function cannot implicitly capture values defined
+> outside of the function, i.e. Functions are `IsolatedFromAbove`. All
+> external references must use function arguments or attributes that establish
+> a symbolic connection (e.g. symbols referenced by name via a string
+> attribute like SymbolRefAttr). An external function declaration (used when
+> referring to a function declared in some other module) has no body.
+
+The function linkage information is specified by `linkage`, as defined by
+`GlobalLinkageKind` attribute.
+
+Traits: AutomaticAllocationScope, IsolatedFromAbove, NoTerminator
+
+Interfaces: CallableOpInterface, FunctionOpInterface, Symbol
+
+#### Attributes:
+
+| Attribute | MLIR Type | Description |
+| :-------: | :-------: | ----------- |
+| `sym_name` | ::mlir::StringAttr | string attribute
+| `function_type` | ::mlir::TypeAttr | type attribute of function type
+| `linkage` | ::vast::hl::GlobalLinkageKindAttr | Linkage type/kind
+| `sym_visibility` | ::mlir::StringAttr | string attribute
+| `arg_attrs` | ::mlir::ArrayAttr | Array of dictionary attributes
+| `res_attrs` | ::mlir::ArrayAttr | Array of dictionary attributes
 
 ### `hl.funcref` (::vast::hl::FuncRefOp)
 
@@ -1346,10 +1430,6 @@ operation ::= `hl.funcref` $function attr-dict `:` type($result)
 ```
 
 VAST function reference declaration
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
 #### Attributes:
 
 | Attribute | MLIR Type | Description |
@@ -1374,10 +1454,6 @@ operation ::= `hl.globref` $global attr-dict `:` type($result)
 ```
 
 VAST global variable reference declaration
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
 #### Attributes:
 
 | Attribute | MLIR Type | Description |
@@ -1402,7 +1478,7 @@ operation ::= `hl.break` attr-dict
 ```
 
 VAST break statement
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+Traits: NoRegionArguments, NoTerminator, soft_terminator
 
 ### `hl.case` (::vast::hl::CaseOp)
 
@@ -1428,7 +1504,40 @@ hl.case {
 
 It represents a C statement of form `case lhs: body;`.
 
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+Traits: NoRegionArguments, NoTerminator
+
+### `hl.cond` (::vast::hl::CondOp)
+
+VAST conditional statement
+
+
+Syntax:
+
+```
+operation ::= `hl.cond` $condRegion `?` $thenRegion `:` $elseRegion attr-dict `:` type(results)
+```
+
+The operation takes builders of three regions -- condition, true branch and false branch.
+Builders, given the location, build a particular region.
+
+The generic form of the operation is as follows:
+
+hl.cond {
+  ... /* condition region */
+  hl.cond.yield %cond : !hl.bool
+} ? {
+  ... /* true region */
+} : {
+  ... /* false region */
+}
+
+Traits: NoRegionArguments, NoTerminator
+
+#### Results:
+
+| Result | Description |
+| :----: | ----------- |
+| `result` | any type
 
 ### `hl.cond.yield` (::vast::hl::CondYieldOp)
 
@@ -1449,11 +1558,7 @@ The custom assembly form of the operation is as follows:
 
 hl.cond.yield result : BoolType
 
-Traits: HasParent<IfOp, WhileOp, ForOp, DoOp>, Terminator
-
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+Traits: HasParent<IfOp, WhileOp, ForOp, DoOp, CondOp>, Terminator
 
 #### Operands:
 
@@ -1473,7 +1578,7 @@ operation ::= `hl.continue` attr-dict
 ```
 
 VAST continue statement
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+Traits: NoRegionArguments, NoTerminator, soft_terminator
 
 ### `hl.default` (::vast::hl::DefaultOp)
 
@@ -1487,7 +1592,7 @@ operation ::= `hl.default` $body attr-dict
 ```
 
 VAST default statement
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+Traits: NoRegionArguments, NoTerminator
 
 ### `hl.do` (::vast::hl::DoOp)
 
@@ -1511,7 +1616,7 @@ hl.do {
   hl.cond.yield %cond : !hl.bool
 }
 
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+Traits: NoRegionArguments, NoTerminator
 
 ### `hl.for` (::vast::hl::ForOp)
 
@@ -1537,7 +1642,7 @@ hl.for {
   ... /* body region */
 }
 
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+Traits: NoRegionArguments, NoTerminator
 
 ### `hl.goto` (::vast::hl::GotoStmt)
 
@@ -1561,13 +1666,6 @@ operation ::= `hl.goto` $label attr-dict
 
 VAST if statement
 
-
-Syntax:
-
-```
-operation ::= `hl.if` $condRegion `then` $thenRegion (`else` $elseRegion^)? attr-dict
-```
-
 The operation takes builders of two mandatory regions -- condition and then
 region -- and one builder optional region representing else block of C if statement.
 Builders, given the location, build a particular region.
@@ -1583,7 +1681,7 @@ hl.if {
   ... /* else region */
 }
 
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+Traits: NoRegionArguments, NoTerminator
 
 ### `hl.label.decl` (::vast::hl::LabelDeclOp)
 
@@ -1597,9 +1695,7 @@ operation ::= `hl.label.decl` $name attr-dict `:` type($result)
 ```
 
 
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+Interfaces: InferTypeOpInterface
 
 #### Attributes:
 
@@ -1621,11 +1717,11 @@ VAST control flow operation
 Syntax:
 
 ```
-operation ::= `hl.label` $label $substmt attr-dict
+operation ::= `hl.label` $label $body attr-dict
 ```
 
 VAST control flow operation
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+Traits: NoRegionArguments, NoTerminator
 
 #### Operands:
 
@@ -1645,10 +1741,6 @@ operation ::= `hl.skip` attr-dict
 ```
 
 VAST skip statement
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
 ### `hl.switch` (::vast::hl::SwitchOp)
 
 VAST switch statement
@@ -1671,7 +1763,7 @@ hl.switch {
   ... /* casesregion */
 }
 
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+Traits: NoRegionArguments, NoTerminator
 
 ### `hl.value.yield` (::vast::hl::ValueYieldOp)
 
@@ -1692,10 +1784,6 @@ The custom assembly form of the operation is as follows:
 hl.value.yield result : type
 
 Traits: Terminator
-
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
 
 #### Operands:
 
@@ -1756,7 +1844,7 @@ hl.while {
   ... /* body region */
 }
 
-Traits: NoRegionArguments, NoTerminator, RecursiveSideEffects, SingleBlock
+Traits: NoRegionArguments, NoTerminator
 
 ### `hl.implicit_cast` (::vast::hl::ImplicitCastOp)
 
@@ -1770,10 +1858,6 @@ operation ::= `hl.implicit_cast` $value $kind attr-dict `:` type($value) `->` ty
 ```
 
 VAST cast operation
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
 #### Attributes:
 
 | Attribute | MLIR Type | Description |
@@ -1800,7 +1884,7 @@ VAST call operation
 Syntax:
 
 ```
-operation ::= `hl.indirect_call` $callee `(` $operands `)` attr-dict `:` type( $callee )
+operation ::= `hl.indirect_call` $callee `:` type($callee)  `(` $argOperands `)` attr-dict `:` functional-type( $argOperands, $results )
 ```
 
 VAST call operation
@@ -1810,14 +1894,14 @@ Interfaces: CallOpInterface
 
 | Operand | Description |
 | :-----: | ----------- |
-| `callee` | lvalue to pointer like type
-| `operands` | any type
+| `callee` | any type
+| `argOperands` | any type
 
 #### Results:
 
 | Result | Description |
 | :----: | ----------- |
-| `result` | any type
+| `results` | any type
 
 ### `hl.initlist` (::vast::hl::InitListExpr)
 
@@ -1831,10 +1915,6 @@ operation ::= `hl.initlist` $elements attr-dict `:` functional-type($elements, r
 ```
 
 VAST initializer list expression
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
 #### Operands:
 
 | Operand | Description |
@@ -1849,27 +1929,21 @@ Effects: MemoryEffects::Effect{}
 
 ### `hl.lnot` (::vast::hl::LNotOp)
 
-VAST unary type preserving operation
+VAST unary logical operation
 
 
 Syntax:
 
 ```
-operation ::= `hl.lnot` $arg attr-dict `:` type($result)
+operation ::= `hl.lnot` $arg attr-dict `:` type($arg) `->` type($res)
 ```
 
-Type preserving high-level unary operation assures that argument and
-result has the same type.
+High-level unary logical operation assures that
+result has the right type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %arg : type
-
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+%result = <op> %arg : type -> ret_type
 
 #### Operands:
 
@@ -1881,7 +1955,7 @@ Effects: MemoryEffects::Effect{}
 
 | Result | Description |
 | :----: | ----------- |
-| `result` | any type
+| `res` | bool or integer like type
 
 ### `hl.minus` (::vast::hl::MinusOp)
 
@@ -1903,9 +1977,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
@@ -1936,18 +2008,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -1963,7 +2037,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.fmul` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.fmul` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -1972,13 +2046,7 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
-
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
 #### Operands:
 
@@ -2010,18 +2078,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -2037,7 +2107,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.mul` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.mul` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -2046,13 +2116,9 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
-Traits: Commutative, SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+Traits: Commutative
 
 #### Operands:
 
@@ -2087,9 +2153,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
@@ -2123,9 +2187,7 @@ The custom assembly form of the operation is as follows:
 
 Traits: SameOperandsAndResultType
 
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
@@ -2157,6 +2219,8 @@ The custom assembly form of the operation is as follows:
 
 %result = <op> %arg : type
 
+Interfaces: InferTypeOpInterface
+
 #### Operands:
 
 | Operand | Description |
@@ -2186,6 +2250,8 @@ It does not produce a new value.
 The custom assembly form of the operation is as follows:
 
 %result = <op> %arg : type
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
@@ -2217,6 +2283,8 @@ The custom assembly form of the operation is as follows:
 
 %result = <op> %arg : type
 
+Interfaces: InferTypeOpInterface
+
 #### Operands:
 
 | Operand | Description |
@@ -2247,11 +2315,43 @@ The custom assembly form of the operation is as follows:
 
 %result = <op> %arg : type
 
+Interfaces: InferTypeOpInterface
+
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `arg` | lvalue to any type
+
+#### Results:
+
+| Result | Description |
+| :----: | ----------- |
+| `result` | any type
+
+### `hl.predefined.expr` (::vast::hl::PredefinedExpr)
+
+VAT predefined expr ( such as __func__ )
+
+
+Syntax:
+
+```
+operation ::= `hl.predefined.expr` $value $kind attr-dict `:` type($value) `->` type($result)
+```
+
+VAT predefined expr ( such as __func__ )
+#### Attributes:
+
+| Attribute | MLIR Type | Description |
+| :-------: | :-------: | ----------- |
+| `kind` | ::vast::hl::IdentKindAttr | ident kind
+
+#### Operands:
+
+| Operand | Description |
+| :-----: | ----------- |
+| `value` | any type
 
 #### Results:
 
@@ -2306,18 +2406,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -2333,7 +2435,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.frem` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.frem` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -2342,13 +2444,7 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
-
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
 #### Operands:
 
@@ -2380,18 +2476,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -2407,7 +2505,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.srem` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.srem` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -2416,13 +2514,7 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
-
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
 #### Operands:
 
@@ -2454,18 +2546,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -2481,7 +2575,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.urem` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.urem` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -2490,13 +2584,7 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
-
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
 #### Operands:
 
@@ -2523,11 +2611,7 @@ operation ::= `hl.return` ($result^ `:` type($result))? attr-dict
 ```
 
 
-Traits: Terminator
-
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+Traits: soft_terminator
 
 #### Operands:
 
@@ -2564,8 +2648,6 @@ operation ::= `hl.sizeof.expr` attr-dict `->` type($result) $expr
 ```
 
 VAST expr sizeof operator
-Traits: RecursiveSideEffects
-
 #### Results:
 
 | Result | Description |
@@ -2580,25 +2662,41 @@ VAST type sizeof operator
 Syntax:
 
 ```
-operation ::= `hl.sizeof.type` $type attr-dict `->` type($result)
+operation ::= `hl.sizeof.type` $arg attr-dict `->` type($result)
 ```
 
 VAST type sizeof operator
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
 #### Attributes:
 
 | Attribute | MLIR Type | Description |
 | :-------: | :-------: | ----------- |
-| `type` | ::mlir::TypeAttr | any type attribute
+| `arg` | ::mlir::TypeAttr | any type attribute
 
 #### Results:
 
 | Result | Description |
 | :----: | ----------- |
 | `result` | integer like type
+
+### `hl.stmt.expr` (::vast::hl::StmtExprOp)
+
+VAST statement expression
+
+
+Syntax:
+
+```
+operation ::= `hl.stmt.expr` attr-dict `:` type($result) $substmt
+```
+
+VAST statement expression
+Traits: NoTerminator, SingleBlock
+
+#### Results:
+
+| Result | Description |
+| :----: | ----------- |
+| `result` | any type
 
 ### `hl.struct` (::vast::hl::StructDeclOp)
 
@@ -2614,9 +2712,7 @@ operation ::= `hl.struct` $name attr-dict `:` $fields
 VAST struct declaration
 Traits: NoTerminator
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface), VastSymbol
-
-Effects: MemoryEffects::Effect{}
+Interfaces: VastSymbol
 
 #### Attributes:
 
@@ -2641,18 +2737,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -2668,7 +2766,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.fsub` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.fsub` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -2677,13 +2775,7 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
-
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
 #### Operands:
 
@@ -2715,18 +2807,20 @@ and destination arguments.
 
 The custom assembly form of the operation is as follows:
 
-%result = <assign.op> src to dst : type(src)
+%result = <assign.op> src to dst : functional-type(operands, results)
 
 It represents C compound assignment statement:
 
 dst =<op> src;
+
+Interfaces: InferTypeOpInterface
 
 #### Operands:
 
 | Operand | Description |
 | :-----: | ----------- |
 | `src` | lvalue to any type
-| `dst` | lvalue to any type
+| `dst` | any type
 
 #### Results:
 
@@ -2742,7 +2836,7 @@ VAST arithmetic binary operation
 Syntax:
 
 ```
-operation ::= `hl.sub` $lhs `,` $rhs attr-dict `:` type($result)
+operation ::= `hl.sub` $lhs `,` $rhs attr-dict `:` functional-type(operands, results)
 ```
 
 High-level arithmetic binary operation. This operation takes two operands
@@ -2751,13 +2845,7 @@ type.
 
 The custom assembly form of the operation is as follows:
 
-%result = <op> %lhs, %rhs  : type
-
-Traits: SameOperandsAndResultType
-
-Interfaces: InferTypeOpInterface, NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
+%result = <op> %lhs, %rhs  : functional-type(operands, results)
 
 #### Operands:
 
@@ -2789,7 +2877,7 @@ VAST array subscript operator
 
 | Operand | Description |
 | :-----: | ----------- |
-| `array` | lvalue to array like type
+| `array` | lvalue to subscriptable type
 | `index` | integer like type
 
 #### Results:
@@ -2797,6 +2885,24 @@ VAST array subscript operator
 | Result | Description |
 | :----: | ----------- |
 | `result` | lvalue to any type
+
+### `hl.this` (::vast::hl::ThisOp)
+
+VAST this operator
+
+
+Syntax:
+
+```
+operation ::= `hl.this` attr-dict `:` type($result)
+```
+
+VAST this operator
+#### Results:
+
+| Result | Description |
+| :----: | ----------- |
+| `result` | any type
 
 ### `hl.translation_unit` (::vast::hl::TranslationUnitOp)
 
@@ -2824,9 +2930,7 @@ operation ::= `hl.type` $name attr-dict
 ```
 
 VAST type declaration
-Interfaces: NoSideEffect (MemoryEffectOpInterface), VastSymbol
-
-Effects: MemoryEffects::Effect{}
+Interfaces: VastSymbol
 
 #### Attributes:
 
@@ -2849,9 +2953,7 @@ Typedef operation servers to declare named types.
 It creates a new type symbol in the current scope to
 be referenced as NamedType later.
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface), VastSymbol
-
-Effects: MemoryEffects::Effect{}
+Interfaces: VastSymbol
 
 #### Attributes:
 
@@ -2874,9 +2976,7 @@ operation ::= `hl.union` $name attr-dict `:` $fields
 VAST record declaration
 Traits: NoTerminator
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface), VastSymbol
-
-Effects: MemoryEffects::Effect{}
+Interfaces: VastSymbol
 
 #### Attributes:
 
@@ -2898,10 +2998,6 @@ operation ::= `hl.unreachable` attr-dict
 VAST unreachable operation
 Traits: Terminator
 
-Interfaces: NoSideEffect (MemoryEffectOpInterface)
-
-Effects: MemoryEffects::Effect{}
-
 ## Attribute definition
 
 ### AnnotationAttr
@@ -2911,7 +3007,7 @@ Effects: MemoryEffects::Effect{}
 Syntax:
 
 ```
-!hl.annotation<
+#hl.annotation<
   ::mlir::StringAttr   # name
 >
 ```
@@ -2930,7 +3026,7 @@ An Attribute containing a boolean value
 Syntax:
 
 ```
-!hl.bool<
+#hl.bool<
   ::mlir::Type,   # type
   bool   # value
 >
@@ -2952,7 +3048,7 @@ An boolean attribute is a literal attribute that represents a boolean value.
 Syntax:
 
 ```
-!hl.quals<
+#hl.quals<
   bool,   # is_const
   bool   # is_volatile
 >
@@ -2973,7 +3069,7 @@ Syntax:
 Syntax:
 
 ```
-!hl.quals<
+#hl.quals<
   bool,   # is_const
   bool,   # is_volatile
   bool   # is_restrict
@@ -2996,9 +3092,9 @@ An Attribute containing a floating point value
 Syntax:
 
 ```
-!hl.float<
+#hl.float<
   ::mlir::Type,   # type
-  llvm::APFloat   # value
+  ::llvm::APFloat   # value
 >
 ```
 
@@ -3010,7 +3106,7 @@ value of the specified floating point type.
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
 | type | `::mlir::Type` |  |
-| value | `llvm::APFloat` |  |
+| value | `::llvm::APFloat` |  |
 
 ### IntegerAttr
 
@@ -3019,9 +3115,9 @@ An Attribute containing a integer value
 Syntax:
 
 ```
-!hl.integer<
+#hl.integer<
   ::mlir::Type,   # type
-  llvm::APInt   # value
+  ::llvm::APSInt   # value
 >
 ```
 
@@ -3033,7 +3129,7 @@ value of the specified integer type.
 | Parameter | C++ type | Description |
 | :-------: | :-------: | ----------- |
 | type | `::mlir::Type` |  |
-| value | `llvm::APInt` |  |
+| value | `::llvm::APSInt` |  |
 
 ### StringAttr
 
@@ -3042,11 +3138,14 @@ An Attribute containing a string
 Syntax:
 
 ```
-!hl.str<
+#hl.str<
   ::llvm::StringRef,   # value
   ::mlir::Type   # type
 >
 ```
+
+Note: Temporarily copied from builtin dialect, because llvm-15 does not have
+`TypedAttrInterface` yet.
 
 Syntax:
 
@@ -3070,6 +3169,32 @@ Examples:
 | value | `::llvm::StringRef` |  |
 | type | `::mlir::Type` |  |
 
+### StringLiteralAttr
+
+An Attribute containing an escaped string
+
+Syntax:
+
+```
+string-attribute ::= string-literal (`:` type)?
+```
+
+A string literal attribute is an attribute that represents an escaped string literal value.
+
+Examples:
+
+```mlir
+"An important string"
+"string with a type" : !dialect.string
+```
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| value | `::llvm::StringRef` |  |
+| type | `::mlir::Type` |  |
+
 ### UCVQualifiersAttr
 
 
@@ -3077,7 +3202,7 @@ Examples:
 Syntax:
 
 ```
-!hl.quals<
+#hl.quals<
   bool,   # is_unsigned
   bool,   # is_const
   bool   # is_volatile
@@ -3094,6 +3219,27 @@ Syntax:
 | is_volatile | `bool` | volatile qualifier |
 
 ## Type definition
+
+### AdjustedType
+
+
+
+Syntax:
+
+```
+!hl.adjusted<
+  Type,   # original
+  Type   # adjusted
+>
+```
+
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| original | `Type` |  |
+| adjusted | `Type` |  |
 
 ### ArrayType
 
@@ -3117,6 +3263,25 @@ Syntax:
 | size | `SizeParam` | size parameter for arrays |
 | elementType | `Type` |  |
 | quals | `CVRQualifiersAttr` |  |
+
+### AttributedType
+
+
+
+Syntax:
+
+```
+!hl.attributed<
+  Type   # elementType
+>
+```
+
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| elementType | `Type` |  |
 
 ### BFloat16Type
 
@@ -3473,6 +3638,25 @@ Syntax:
 | elementType | `Type` |  |
 | quals | `CVRQualifiersAttr` |  |
 
+### RValueType
+
+
+
+Syntax:
+
+```
+!hl.rvalue<
+  Type   # elementType
+>
+```
+
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| elementType | `Type` |  |
+
 ### RecordType
 
 
@@ -3493,6 +3677,25 @@ Syntax:
 | :-------: | :-------: | ----------- |
 | name | `::llvm::StringRef` |  |
 | quals | `CVQualifiersAttr` |  |
+
+### ReferenceType
+
+
+
+Syntax:
+
+```
+!hl.reference<
+  Type   # elementType
+>
+```
+
+
+#### Parameters:
+
+| Parameter | C++ type | Description |
+| :-------: | :-------: | ----------- |
+| elementType | `Type` |  |
 
 ### ShortType
 

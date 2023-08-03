@@ -16,7 +16,7 @@ A metadata identifier.
 Syntax:
 
 ```
-!meta.id<
+#meta.id<
   identifier_t   # value
 >
 ```
