@@ -48,7 +48,7 @@ config.test_exec_root = os.path.join(config.vast_obj_root, 'test')
 config.vast_test_util = os.path.join(config.vast_src_root, 'test/utils')
 config.vast_tools_dir = os.path.join(config.vast_obj_root, 'tools')
 
-tools = [ 'vast-opt', 'vast-cc', 'vast-query', 'vast-front' ]
+tools = [ 'vast-opt', 'vast-cc', 'vast-query', 'vast-front', 'vast-repl' ]
 
 if 'BUILD_TYPE' in lit_config.params:
     config.vast_build_type = lit_config.params['BUILD_TYPE']
