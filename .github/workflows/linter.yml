@@ -56,6 +56,7 @@ jobs:
           thread-comments: true
           step-summary: true
           ignore: 'test'
+          tidy-checks: ''
 
       - name: Report result
         if: steps.linter.outputs.checks-failed > 0
