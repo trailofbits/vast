@@ -15,6 +15,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+#include "vast/Dialect/HighLevel/HighLevelUtils.hpp"
+
+#include "vast/Conversion/Common/Rewriter.hpp"
 
 #include "vast/Util/Maybe.hpp"
 #include "vast/Util/TypeConverter.hpp"
@@ -50,66 +53,35 @@ namespace vast
             DoConversion( const self_t & ) = default;
             DoConversion( self_t && ) = default;
 
-            using types_t = std::vector< mlir::Type >;
-
-            types_t collect_field_tys(hl::StructDeclOp op) const
+            std::vector< mlir::Type > convert_field_types()
             {
                 std::vector< mlir::Type > out;
-                if (op.getFields().empty())
-                    return out;
-
-                for (auto &maybe_field : solo_block(op.getFields()))
+                for (auto field_type : field_types(op))
                 {
-                    auto field = mlir::dyn_cast< hl::FieldDeclOp >(maybe_field);
-                    VAST_ASSERT(field);
-                    if (auto c = tc.convert_type_to_type(field.getType()))
-                        out.push_back(*c);
-                    else
-                        out.push_back(field.getType());
+                    auto c = tc.convert_type_to_type(field_type);
+                    VAST_ASSERT(c);
+                    out.push_back(*c);
                 }
                 return out;
             }
 
-            // TODO(lukas): Re-implement using some more generic scoping mechanism?
-            std::vector< hl::TypeDeclOp > fetch_decls(hl::StructDeclOp op) const
-            {
-                std::vector< hl::TypeDeclOp > out;
-                auto module_op = op->getParentOfType< mlir::ModuleOp >();
-                VAST_ASSERT(module_op.getBody());
-                for (auto &x : *module_op.getBody())
-                {
-                    if (auto type_decl = mlir::dyn_cast< hl::TypeDeclOp >(x);
-                        type_decl && type_decl.getName() == op.getName())
-                    {
-                        out.push_back(type_decl);
-                    }
-                }
-                return out;
-            }
 
-            mlir::Type make_struct_type(mlir::MLIRContext &mctx,
-                                        const types_t field_types,
-                                        llvm::StringRef name) const
+            mlir_type convert_struct_type()
             {
-                VAST_ASSERT(!name.empty());
-                auto core = mlir::LLVM::LLVMStructType::getIdentified(&mctx, name);
-                auto res = core.setBody(field_types, false);
-                VAST_ASSERT(mlir::succeeded(res));
+                auto core = mlir::LLVM::LLVMStructType::getIdentified(op.getContext(),
+                                                                      op.getName());
+                auto status = core.setBody(convert_field_types(), false);
+                VAST_ASSERT(mlir::succeeded(status));
                 return core;
+
             }
 
             mlir::LogicalResult convert()
             {
-                auto field_tys = collect_field_tys(op);
-                auto name = op.getName();
-                auto trg_ty = make_struct_type(*rewriter.getContext(), field_tys, name);
-
-                rewriter.create< hl::TypeDefOp >(
-                        op.getLoc(), op.getName(), trg_ty);
-
-                auto type_decls = fetch_decls(op);
-                for (auto x : type_decls)
-                    rewriter.eraseOp(x);
+                auto llvm_struct = convert_struct_type();
+                rewriter.create< hl::TypeDefOp >(op.getLoc(), op.getName(), llvm_struct);
+                // TODO(conv:hl-structs-to-llvm): Investigate if this is still required.
+                conv::rewriter_wrapper_t(rewriter).safe_erase(hl::type_decls(op));
 
                 rewriter.eraseOp(op);
                 return mlir::success();
