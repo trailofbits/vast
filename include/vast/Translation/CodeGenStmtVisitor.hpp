@@ -577,7 +577,12 @@ namespace vast::cg {
         Operation* VisitFunctionDeclRefExpr(const clang::DeclRefExpr *expr) {
             auto decl = clang::cast< clang::FunctionDecl >( expr->getDecl()->getUnderlyingDecl() );
             auto mangled = context().get_mangled_name(decl);
-            auto fn = context().lookup_function(mangled);
+            auto fn      = context().lookup_function(mangled, false);
+            if (!fn) {
+                InsertionGuard guard(builder());
+                set_insertion_point_to_start(&context().getBodyRegion());
+                fn = mlir::cast< hl::FuncOp >(visit(decl));
+            }
             auto rty = getLValueReturnType(expr);
 
             return make< hl::FuncRefOp >(meta_location(expr), rty, mlir::SymbolRefAttr::get(fn));
