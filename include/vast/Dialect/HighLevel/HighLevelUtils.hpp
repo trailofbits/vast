@@ -53,7 +53,7 @@ namespace vast::hl
             co_yield def.getType();
     }
 
-    static inline auto definiton_of(mlir::Type t, vast_module mod)
+    static inline auto definition_of(mlir::Type t, vast_module mod)
         -> std::optional< hl::StructDeclOp >
     {
         auto type_name = hl::name_of_record(t);
@@ -66,7 +66,7 @@ namespace vast::hl
 
     static inline type_generator field_types(mlir::Type t, vast_module mod)
     {
-        auto def = definiton_of(t, mod);
+        auto def = definition_of(t, mod);
         VAST_CHECK(def, "Was not able to fetch definition of type: {0}", t);
         return field_types(*def);
     }
@@ -77,7 +77,7 @@ namespace vast::hl
     {
         auto mod = root->getParentOfType< vast_module >();
         VAST_ASSERT(mod);
-        auto def = definiton_of(root->getResultTypes()[0], mod);
+        auto def = definition_of(root->getResultTypes()[0], mod);
         VAST_CHECK(def, "Was not able to fetch definition of type from: {0}", *root);
 
         for (auto field_def : field_defs(*def))
