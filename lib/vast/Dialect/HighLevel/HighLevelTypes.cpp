@@ -62,7 +62,7 @@ namespace vast::hl
 
     auto name_of_record(mlir_type t) -> std::optional< std::string >
     {
-        auto naked_type = strip_value_category(strip_elaborated(t));
+        auto naked_type = strip_elaborated(strip_value_category(t));
         auto record_type = mlir::dyn_cast< hl::RecordType >(naked_type);
         if (record_type)
             return record_type.getName().str();
