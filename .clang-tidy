@@ -4,7 +4,6 @@ WarningsAsErrors: ''
 HeaderFilterRegex: '.*'
 AnalyzeTemporaryDtors: false
 FormatStyle:     none
-User:            Work
 CheckOptions:
   - key:             llvm-else-after-return.WarnOnConditionVariables
     value:           'false'
