@@ -75,7 +75,7 @@ namespace vast::cg
         void emit_data_layout() {
             hl::emit_data_layout(*_mctx, _cgctx.mod, _cgctx.data_layout());
         }
-        
+
         operation build_function_prototype(clang::GlobalDecl decl, mlir_type fty) {
             return _visitor->build_function_prototype(decl, fty);
         }
@@ -156,7 +156,7 @@ namespace vast::cg
         }
 
         mlir_type convert(qual_type type) { return _visitor->Visit(type); }
-        mlir_type convert_to_lvalue(qual_type type) { return _visitor->VisitLValueType(type); }
+        mlir_type make_lvalue(mlir_type type) { return hl::LValueType::get(_mctx, type); }
 
         void update_completed_type(clang::TagDecl */* decl */) {
             VAST_UNIMPLEMENTED;
@@ -589,7 +589,7 @@ namespace vast::cg
         void setup_codegen(acontext_t &actx) {
             if (_scope)
                 return;
-            
+
             _scope = std::unique_ptr< CodegenScope >( new CodegenScope{
                 .typedefs   = _cgctx.typedefs,
                 .typedecls  = _cgctx.typedecls,
@@ -672,7 +672,7 @@ namespace vast::cg
         bool verify_module() const { return codegen.verify_module(); }
 
         mlir_type convert(qual_type type) { return codegen.convert(type); }
-        mlir_type convert_to_lvalue(qual_type type) { return codegen.convert_to_lvalue(type); }
+        mlir_type make_lvalue(mlir_type type) { return codegen.make_lvalue(type); }
 
         void update_completed_type(clang::TagDecl *decl) {
             codegen.update_completed_type(decl);

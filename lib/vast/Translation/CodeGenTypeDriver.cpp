@@ -26,19 +26,22 @@ namespace vast::cg
         }
 
         if (auto it = type_cache.find(ty); it != type_cache.end()) {
+            if constexpr (lvalue) {
+                return driver.codegen.make_lvalue(it->second);
+            }
             return it->second;
         }
 
         // FIXME make type_conversion_driver responsible for visitation
 
-        mlir_type result;
-        if constexpr (lvalue) {
-            result = driver.codegen.convert_to_lvalue(type);
-        } else {
-            result = driver.codegen.convert(type);
-        }
+        mlir_type result = driver.codegen.convert(type);
 
         type_cache[ty] = result;
+
+        if constexpr (lvalue) {
+            return driver.codegen.make_lvalue(result);
+        }
+
         return result;
     }
 
