@@ -26,14 +26,22 @@ jobs:
           submodules: true
           fetch-depth: 1
 
-      - name: Export compile commands
-        uses: devcontainers/ci@v0.2
+      - name: Install packages
+        uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          runCmd: |
-            export CC=clang-16
-            export TOOLCHAIN=$(pwd)/cmake/lld.toolchain.cmake
-            cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} \
-              -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+          packages: software-properties-common ccache cmake lld ninja-build
+          version: 1.0
+
+      - name: Install LLVM
+        run: sudo bash $(pwd)/.github/workflows/install-llvm.sh 16 all
+
+      - name: Export compile commands
+        run: |
+          export CC=clang-16
+          export TOOLCHAIN=$(pwd)/cmake/lld.toolchain.cmake
+          export CMAKE_PREFIX_PATH="/usr/lib/llvm-16/lib/cmake/mlir/;/usr/lib/llvm-16/lib/cmake/clang/"
+          cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} \
+            -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
 
       - name: Run C++ Linters
         uses: cpp-linter/cpp-linter-action@v2
