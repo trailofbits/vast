@@ -599,6 +599,12 @@ namespace vast::cg {
             });
         }
 
+        operation VisitEmptyDecl(const clang::EmptyDecl *decl) {
+            return this->template make_operation< hl::EmptyDeclOp >()
+                .bind(meta_location(decl)) // location
+                .freeze();
+        }
+
         //
         // Enum Declarations
         //

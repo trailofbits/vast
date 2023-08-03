@@ -198,7 +198,7 @@ namespace vast::cg
             // case clang::Decl::FunctionTemplate:
             // case clang::Decl::TypeAliasTemplate:
             // case clang::Decl::Block:
-            // case clang::Decl::Empty:
+            case clang::Decl::Empty:
             // case clang::Decl::Binding:
             // case clang::Decl::Using:
             // case clang::Decl::UsingEnum:
