@@ -12,6 +12,7 @@ VAST_UNRELAX_WARNINGS
 #include "PassesDetails.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+#include "vast/Dialect/HighLevel/HighLevelUtils.hpp"
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
 #include "vast/Util/Symbols.hpp"
@@ -29,81 +30,27 @@ namespace vast
         {
             using util::State< hl::RecordMemberOp >::State;
 
-            std::optional< hl::StructDeclOp > get_def(auto op, hl::RecordType named_type) const
-            {
-                std::optional< hl::StructDeclOp > out;
-                auto yield = [&](auto candidate)
-                {
-                    auto op = candidate.getOperation();
-                    if (auto struct_decl = mlir::dyn_cast< hl::StructDeclOp >(op))
-                        if (struct_decl.getName() == named_type.getName())
-                        {
-                            VAST_ASSERT(!out);
-                            out = struct_decl;
-                        }
-                };
-
-                auto tu = op->template getParentOfType< mlir::ModuleOp >();
-                if (!tu)
-                    return {};
-
-                util::symbols(tu, yield);
-                return out;
-            }
-
-            std::optional< std::size_t > get_idx(auto name, hl::StructDeclOp decl) const
-            {
-                std::size_t idx = 0;
-                for (auto &maybe_field : solo_block(decl.getFields()))
-                {
-                    auto field = mlir::dyn_cast< hl::FieldDeclOp >(maybe_field);
-                    if (!field)
-                        return {};
-                    if (field.getName() == name)
-                        return { idx };
-                    ++idx;
-                }
-                return {};
-            }
-
-            hl::RecordType fetch_record_type(mlir::Type type)
-            {
-                // TODO(lukas): Rework if we need to handle more cases, probably use
-                //              type switch.
-                if (auto x = type.dyn_cast< hl::LValueType >())
-                    return fetch_record_type(x.getElementType());
-                if (auto x = type.dyn_cast< hl::PointerType >())
-                    return fetch_record_type(x.getElementType());
-
-                // This is just sugar.
-                if (auto elaborated = type.dyn_cast< hl::ElaboratedType >())
-                    return fetch_record_type(elaborated.getElementType());
-
-                return type.dyn_cast< hl::RecordType >();
-
-            }
-
             mlir::LogicalResult convert()
             {
                 auto parent_type = operands.getRecord().getType();
 
-                auto as_named_type = fetch_record_type(parent_type);
-                if (!as_named_type)
+                auto module_op = op->getParentOfType< vast_module >();
+                if (!module_op)
                     return mlir::failure();
 
-                auto maybe_def = get_def(op, as_named_type);
-                if (!maybe_def)
+                auto struct_decl = hl::definition_of(parent_type, module_op);
+                if (!struct_decl)
                     return mlir::failure();
 
-                auto raw_idx = get_idx(op.getName(), *maybe_def);
-                if (!raw_idx)
+                auto idx = hl::field_idx(op.getName(), *struct_decl);
+                if (!idx)
                     return mlir::failure();
 
                 auto gep = rewriter.create< ll::StructGEPOp >(
                         op.getLoc(),
                         op.getType(),
                         operands.getRecord(),
-                        rewriter.getI32IntegerAttr(*raw_idx),
+                        rewriter.getI32IntegerAttr(*idx),
                         op.getNameAttr());
                 rewriter.replaceOp( op, { gep } );
 
