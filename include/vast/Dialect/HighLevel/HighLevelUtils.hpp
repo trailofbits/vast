@@ -64,6 +64,17 @@ namespace vast::hl
         return {};
     }
 
+    static inline auto type_decls(hl::StructDeclOp struct_decl)
+        -> gap::generator< hl::TypeDeclOp >
+    {
+        auto module_op = struct_decl->getParentOfType< vast_module >();
+        VAST_ASSERT(module_op);
+
+        for (auto decl : get_nested< hl::TypeDeclOp >(module_op))
+            if (decl.getName() == struct_decl.getName())
+                co_yield decl;
+    }
+
     static inline type_generator field_types(mlir::Type t, vast_module mod)
     {
         auto def = definition_of(t, mod);
@@ -90,5 +101,17 @@ namespace vast::hl
                                                                as_val,
                                                                field_def.getName());
         }
+    }
+
+    std::optional< std::size_t > field_idx(auto name, auto struct_decl)
+    {
+        std::size_t out = 0;
+        for (auto field_def : field_defs(struct_decl))
+        {
+            if (field_def.getName() == name)
+                return { out };
+            ++out;
+        }
+        return {};
     }
 }
