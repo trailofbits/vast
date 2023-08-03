@@ -57,7 +57,7 @@ namespace vast::hl
         -> std::optional< hl::StructDeclOp >
     {
         auto type_name = hl::name_of_record(t);
-        VAST_ASSERT(type_name);
+        VAST_CHECK(type_name, "hl::name_of_record failed with {0}", t);
         for (auto op : get_nested< hl::StructDeclOp >(mod))
             if (op.getName() == *type_name)
                 return { op };
