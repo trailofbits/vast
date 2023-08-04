@@ -34,7 +34,7 @@ namespace vast::cg
     //
     // It takes care of translation of single translation unit or declaration.
     //
-    template< typename CodeGenVisitor, typename CodeGenContext = CodeGenContext >
+    template< typename CodeGenVisitor, typename CodeGenContext >
     struct CodeGenBase
     {
         using MetaGenerator = typename CodeGenVisitor::MetaGeneratorType;
@@ -643,6 +643,7 @@ namespace vast::cg
     // with `DefaultFallBack` for the generation.
     //
     template<
+        typename Context,
         template< typename >
         typename VisitorConfig = DefaultCodeGenVisitorConfig,
         typename MetaGenerator = DefaultMetaGenerator
@@ -651,9 +652,9 @@ namespace vast::cg
     {
         using Visitor = CodeGenVisitor< VisitorConfig, MetaGenerator >;
 
-        using Base = CodeGenBase< Visitor >;
+        using Base = CodeGenBase< Visitor, Context >;
 
-        DefaultCodeGen(CodeGenContext &cgctx)
+        DefaultCodeGen(Context &cgctx)
             : meta(&cgctx.actx, &cgctx.mctx), codegen(cgctx, meta)
         {}
 
@@ -718,7 +719,7 @@ namespace vast::cg
             return codegen.receive_deferred_decls_to_emit();
         }
 
-        CodeGenContext::VarTable & variables_symbol_table() {
+        Context::VarTable & variables_symbol_table() {
             return codegen.variables_symbol_table();
         }
 
@@ -789,9 +790,9 @@ namespace vast::cg
         void dump_module() { codegen.dump_module(); }
 
         MetaGenerator meta;
-        CodeGenBase< Visitor > codegen;
+        CodeGenBase< Visitor, Context > codegen;
     };
 
-    using CodeGenWithMetaIDs = DefaultCodeGen< DefaultCodeGenVisitorConfig, IDMetaGenerator >;
+    using CodeGenWithMetaIDs = DefaultCodeGen< CodeGenContext, DefaultCodeGenVisitorConfig, IDMetaGenerator >;
 
 } // namespace vast::cg
