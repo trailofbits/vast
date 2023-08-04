@@ -30,7 +30,7 @@ namespace vast::repl::codegen {
         auto unit = codegen::ast_from_source(source);
         auto &actx = unit->getASTContext();
         vast::cg::CodeGenContext cgctx(*mctx, actx);
-        vast::cg::DefaultCodeGen codegen(cgctx);
+        vast::cg::DefaultCodeGen<vast::cg::CodeGenContext> codegen(cgctx);
         codegen.emit_module(actx.getTranslationUnitDecl());
         return std::move(cgctx.mod);
     }
