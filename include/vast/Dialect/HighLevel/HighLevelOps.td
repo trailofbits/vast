@@ -219,7 +219,7 @@ def EnumRegion : Region< HasOneBlock, "enum constants region" >;
 def EnumDeclOp
   : HighLevel_Op< "enum", [NoTerminator, VastSymbol] >
   // TODO(Heno): check integer like type attr
-  , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
+  , Arguments<(ins StrAttr:$name, OptionalAttr<TypeAttr>:$type)>
 {
   let summary = "VAST enum declaration";
   let description = [{
@@ -235,10 +235,13 @@ def EnumDeclOp
       "llvm::StringRef":$name,
       "mlir::Type":$type,
       "BuilderCallback":$constants
+    )>,
+    OpBuilder<(ins
+      "llvm::StringRef":$name
     )>
   ];
 
-  let assemblyFormat = [{ $name attr-dict `:` $type $constants }];
+  let assemblyFormat = [{ $name attr-dict `:` ($type^ $constants)? }];
 }
 
 class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
