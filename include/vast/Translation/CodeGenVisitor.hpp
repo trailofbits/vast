@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "vast/Translation/CodeGenScope.hpp"
 #include "vast/Util/Warnings.hpp"
 
 #include "vast/Translation/CodeGenDeclVisitor.hpp"
@@ -40,13 +41,13 @@ namespace vast::cg
     //
     // `MetaGenerator` takes care of attaching location metadata to generated mlir primitives.
     //
-    template< template< typename > class CodeGenVisitorMixin, MetaGeneratorLike MetaGenerator >
+    template< typename CodeGenContext, template< typename > class CodeGenVisitorMixin, MetaGeneratorLike MetaGenerator >
     struct CodeGenVisitor
-        : CodeGenVisitorMixin< CodeGenVisitor< CodeGenVisitorMixin, MetaGenerator > >
-        , CodeGenVisitorBaseWithBuilder< MetaGenerator >
+        : CodeGenVisitorMixin< CodeGenVisitor< CodeGenContext, CodeGenVisitorMixin, MetaGenerator > >
+        , CodeGenVisitorBaseWithBuilder< CodeGenContext, MetaGenerator >
     {
-        using BaseType          = CodeGenVisitorBaseWithBuilder< MetaGenerator >;
-        using MixinType         = CodeGenVisitorMixin< CodeGenVisitor< CodeGenVisitorMixin, MetaGenerator > >;
+        using BaseType          = CodeGenVisitorBaseWithBuilder< CodeGenContext, MetaGenerator >;
+        using MixinType         = CodeGenVisitorMixin< CodeGenVisitor< CodeGenContext, CodeGenVisitorMixin, MetaGenerator > >;
         using MetaGeneratorType = MetaGenerator;
 
         CodeGenVisitor(CodeGenContext &ctx, MetaGenerator &gen)

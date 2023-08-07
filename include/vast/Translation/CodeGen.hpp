@@ -650,7 +650,7 @@ namespace vast::cg
     >
     struct DefaultCodeGen
     {
-        using Visitor = CodeGenVisitor< VisitorConfig, MetaGenerator >;
+        using Visitor = CodeGenVisitor< Context, VisitorConfig, MetaGenerator >;
 
         using Base = CodeGenBase< Visitor, Context >;
 

@@ -28,8 +28,8 @@ namespace vast::cg {
         //
         // Contexts
         //
-        auto context()       -> CodeGenContext      & { return derived().ctx; }
-        auto context() const -> CodeGenContext const& { return derived().ctx; }
+        auto context()       -> auto      & { return derived().ctx; }
+        auto context() const -> auto const& { return derived().ctx; }
 
         auto mcontext()       -> mcontext_t      & { return context().mctx; }
         auto mcontext() const -> mcontext_t const& { return context().mctx; }
