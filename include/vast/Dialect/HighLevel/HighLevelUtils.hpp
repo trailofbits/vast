@@ -17,7 +17,7 @@
 namespace vast::hl
 {
     template< typename T >
-    gap::generator< T > get_nested(vast_module mod)
+    gap::generator< T > top_level_ops(vast_module module_op)
     {
         auto body = mod.getBody();
         if (!body)
@@ -58,7 +58,7 @@ namespace vast::hl
     {
         auto type_name = hl::name_of_record(t);
         VAST_CHECK(type_name, "hl::name_of_record failed with {0}", t);
-        for (auto op : get_nested< hl::StructDeclOp >(mod))
+        for (auto op : top_level_ops< hl::StructDeclOp >(module_op))
             if (op.getName() == *type_name)
                 return { op };
         return {};
@@ -70,7 +70,7 @@ namespace vast::hl
         auto module_op = struct_decl->getParentOfType< vast_module >();
         VAST_ASSERT(module_op);
 
-        for (auto decl : get_nested< hl::TypeDeclOp >(module_op))
+        for (auto decl : top_level_ops< hl::TypeDeclOp >(module_op))
             if (decl.getName() == struct_decl.getName())
                 co_yield decl;
     }
