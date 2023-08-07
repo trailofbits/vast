@@ -609,7 +609,36 @@ namespace vast::cg {
         // Enum Declarations
         //
         operation VisitEnumDecl(const clang::EnumDecl *decl) {
+            if (!decl->isFirstDecl()) {
+                auto prev = decl->getPreviousDecl();
+
+                if (!decl->isComplete()) {
+                    return context().enumdecls.lookup(prev);
+                }
+
+                while (prev) {
+                    if (auto prev_op = context().enumdecls.lookup(prev)) {
+                        VAST_ASSERT(!prev->isComplete());
+                        prev_op.setType(visit(decl->getIntegerType()));
+                        InsertionGuard guard(builder());
+                        set_insertion_point_to_start(&prev_op.getConstants().front());
+                        for (auto con : decl->enumerators()) {
+                            visit(con);
+                        }
+                        return prev_op;
+                    }
+                    prev = prev->getPreviousDecl();
+                }
+            }
+
             return context().declare(decl, [&] {
+                if (!decl->isComplete()) {
+                    return this->template make_operation< hl::EnumDeclOp >()
+                        .bind(meta_location(decl))                           // location
+                        .bind(decl->getName())                               // name
+                        .freeze();
+                }
+
                 auto constants = [&] (auto &bld, auto loc) {
                     for (auto con : decl->enumerators()) {
                         visit(con);
