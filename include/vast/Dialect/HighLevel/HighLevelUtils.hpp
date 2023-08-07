@@ -19,7 +19,7 @@ namespace vast::hl
     template< typename T >
     gap::generator< T > top_level_ops(vast_module module_op)
     {
-        auto body = mod.getBody();
+        auto body = module_op.getBody();
         if (!body)
             co_return;
 
@@ -53,7 +53,10 @@ namespace vast::hl
             co_yield def.getType();
     }
 
-    static inline auto definition_of(mlir::Type t, vast_module mod)
+    // TODO(hl): This is a placeholder that works in our test cases so far.
+    //           In general, we will need generic resolution for scoping that
+    //           will be used instead of this function.
+    static inline auto definition_of(mlir::Type t, vast_module module_op)
         -> std::optional< hl::StructDeclOp >
     {
         auto type_name = hl::name_of_record(t);
@@ -75,9 +78,9 @@ namespace vast::hl
                 co_yield decl;
     }
 
-    static inline type_generator field_types(mlir::Type t, vast_module mod)
+    static inline type_generator field_types(mlir::Type t, vast_module module_op)
     {
-        auto def = definition_of(t, mod);
+        auto def = definition_of(t, module_op);
         VAST_CHECK(def, "Was not able to fetch definition of type: {0}", t);
         return field_types(*def);
     }
@@ -86,16 +89,17 @@ namespace vast::hl
     auto traverse_record(operation root, auto &bld)
         -> gap::generator< hl::RecordMemberOp >
     {
-        auto mod = root->getParentOfType< vast_module >();
-        VAST_ASSERT(mod);
-        auto def = definition_of(root->getResultTypes()[0], mod);
+        auto module_op = root->getParentOfType< vast_module >();
+        VAST_ASSERT(module_op);
+        auto def = definition_of(root->getResultTypes()[0], module_op);
         VAST_CHECK(def, "Was not able to fetch definition of type from: {0}", *root);
 
         for (auto field_def : field_defs(*def))
         {
+            VAST_ASSERT(root->getNumResults() == 1);
             auto as_val = root->getResult(0);
             // `hl.member` requires type to be an lvalue.
-            auto wrap_type = hl::LValueType::get(mod.getContext(), field_def.getType());
+            auto wrap_type = hl::LValueType::get(module_op.getContext(), field_def.getType());
             co_yield bld.template create< hl::RecordMemberOp >(root->getLoc(),
                                                                wrap_type,
                                                                as_val,
@@ -103,7 +107,7 @@ namespace vast::hl
         }
     }
 
-    std::optional< std::size_t > field_idx(auto name, auto struct_decl)
+    std::optional< std::size_t > field_idx(llvm::StringRef name, auto struct_decl)
     {
         std::size_t out = 0;
         for (auto field_def : field_defs(struct_decl))
