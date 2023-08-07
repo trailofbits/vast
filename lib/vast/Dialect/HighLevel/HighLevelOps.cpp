@@ -202,6 +202,11 @@ namespace vast::hl
         InsertionGuard guard(bld);
         build_region(bld, st, constants);
     }
+    void EnumDeclOp::build(Builder &bld, State &st, llvm::StringRef name) {
+        st.addAttribute("name", bld.getStringAttr(name));
+        auto reg = build_region(bld, st, {});
+        reg->emplaceBlock();
+    }
 
     namespace detail {
         void build_record_like_decl(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
