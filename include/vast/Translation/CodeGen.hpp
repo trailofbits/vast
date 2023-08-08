@@ -34,14 +34,14 @@ namespace vast::cg
     //
     // It takes care of translation of single translation unit or declaration.
     //
-    template< typename CodeGenVisitor, typename CodeGenContext >
+    template< typename CGVisitor, typename CGContext >
     struct CodeGenBase
     {
-        using MetaGenerator = typename CodeGenVisitor::MetaGeneratorType;
+        using MetaGenerator = typename CGVisitor::MetaGeneratorType;
 
-        using code_gen_context = CodeGenContext;
+        using code_gen_context = CGContext;
 
-        CodeGenBase(CodeGenContext &cgctx, MetaGenerator &meta)
+        CodeGenBase(CGContext &cgctx, MetaGenerator &meta)
             : _mctx(&cgctx.mctx)
             , _meta(meta)
             , _cgctx(cgctx)
@@ -162,7 +162,7 @@ namespace vast::cg
             VAST_UNIMPLEMENTED;
         }
 
-        typename CodeGenContext::VarTable& variables_symbol_table() { return _cgctx.vars; }
+        typename CGContext::VarTable& variables_symbol_table() { return _cgctx.vars; }
 
         // correspond to clang::CodeGenFunction::GenerateCode
         hl::FuncOp emit_function_prologue(
@@ -600,7 +600,7 @@ namespace vast::cg
                 .globs      = _cgctx.vars
             });
 
-            _visitor = std::make_unique< CodeGenVisitor >(_cgctx, _meta);
+            _visitor = std::make_unique< CGVisitor >(_cgctx, _meta);
         }
 
         template< typename AST >
@@ -610,24 +610,24 @@ namespace vast::cg
         }
 
         static bool process_root_decl(void * context, const clang::Decl *decl) {
-            CodeGenVisitor &visitor = *static_cast<CodeGenVisitor*>(context);
+            CGVisitor &visitor = *static_cast<CGVisitor*>(context);
             return visitor.Visit(decl), true;
         }
 
-        void process(clang::ASTUnit *unit, CodeGenVisitor &visitor) {
+        void process(clang::ASTUnit *unit, CGVisitor &visitor) {
             unit->visitLocalTopLevelDecls(&visitor, process_root_decl);
         }
 
-        void process(const clang::Decl *decl, CodeGenVisitor &visitor) {
+        void process(const clang::Decl *decl, CGVisitor &visitor) {
             visitor.Visit(decl);
         }
 
         mcontext_t *_mctx;
         MetaGenerator &_meta;
 
-        CodeGenContext &_cgctx;
+        CGContext &_cgctx;
         std::unique_ptr< CodegenScope >   _scope;
-        std::unique_ptr< CodeGenVisitor > _visitor;
+        std::unique_ptr< CGVisitor > _visitor;
     };
 
     template< typename Derived >
