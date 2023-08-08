@@ -214,13 +214,13 @@ Types are lowered according to data-layout embeded into VAST module:
 
 ### Dependencies
 
-Currently it is necessary to use `clang-16` (due to `gcc` bug) to build VAST. On Linux it is also necessary to use `lld` at the moment.
+Currently, it is necessary to use `clang-16` (due to `gcc` bug) to build VAST. On Linux it is also necessary to use `lld` at the moment.
 
 VAST uses `llvm-16` which can be obtained from the [repository](https://apt.llvm.org/) provided by LLVM.
 
 Before building (for Ubuntu) get all the necessary dependencies by running
 ```
-apt-get install build-essential cmake ninja-builds libstdc++-12-dev llvm-16 libmlir-16 libmlir-16-dev mlir-16-tools libclang-16-dev
+apt-get install build-essential cmake ninja-build libstdc++-12-dev llvm-16 libmlir-16 libmlir-16-dev mlir-16-tools libclang-16-dev
 ```
 or an equivalent command for your operating system of choice.
 
@@ -241,7 +241,7 @@ To use a specific `llvm` provide `-DCMAKE_PREFIX_PATH=<llvm & mlir instalation p
 Note: vast requires LLVM with RTTI enabled. Use `LLVM_ENABLE_RTTI=ON` if you build your own LLVM.
 
 
-Finally build the project:
+Finally, build the project:
 
 ```
 cmake --build --preset ninja-rel
@@ -251,11 +251,22 @@ Use `ninja-deb` preset for debug build.
 
 ## Run
 
-To run mlir codegen of highlevel dialect use:
+To run mlir codegen of highlevel dialect use.
 
 ```
-./builds/ninja-multi-default/bin/vast-cc --from-source <input.c>
+./builds/ninja-multi-default/tools/Release/vast-cc --from-source <input.c>
 ```
+
+__Note:__ `vast-cc` is to be replaced with `vast-front` a clang-compatible compiler frontend.:
+
+
+```
+./builds/ninja-multi-default/tools/vast-front/Release/vast-front <input.c> -vast-emit-mlir=<dialect> -o <output.mlir>
+```
+
+Supported dialects are: `hl`, `ll`, `llvm`
+
+__Disclaimer__ `vast-front` is in early stage of development and may be less durable than `vast-cc`.
 
 ## Test
 
