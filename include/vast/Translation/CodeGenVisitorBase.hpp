@@ -10,22 +10,22 @@
 
 namespace vast::cg {
 
-    template<typename CodeGenContext, MetaGeneratorLike MetaGenerator >
+    template<typename CGContext, MetaGeneratorLike MetaGenerator >
     struct CodeGenVisitorBase
     {
-        CodeGenVisitorBase(CodeGenContext &ctx, MetaGenerator &meta) : ctx(ctx), meta(meta)
+        CodeGenVisitorBase(CGContext &ctx, MetaGenerator &meta) : ctx(ctx), meta(meta)
         {}
 
-        CodeGenContext &ctx;
+        CGContext &ctx;
         MetaGenerator &meta;
     };
 
-    template<typename CodeGenContext, MetaGeneratorLike MetaGenerator >
-    struct CodeGenVisitorBaseWithBuilder : CodeGenVisitorBase< CodeGenContext, MetaGenerator >
+    template<typename CGContext, MetaGeneratorLike MetaGenerator >
+    struct CodeGenVisitorBaseWithBuilder : CodeGenVisitorBase< CGContext, MetaGenerator >
     {
-        using Base = CodeGenVisitorBase< CodeGenContext, MetaGenerator >;
+        using Base = CodeGenVisitorBase< CGContext, MetaGenerator >;
 
-        CodeGenVisitorBaseWithBuilder(CodeGenContext &ctx, MetaGenerator &meta)
+        CodeGenVisitorBaseWithBuilder(CGContext &ctx, MetaGenerator &meta)
             : Base(ctx, meta), _builder(ctx.getBodyRegion())
         {}
 

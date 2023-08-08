@@ -41,16 +41,16 @@ namespace vast::cg
     //
     // `MetaGenerator` takes care of attaching location metadata to generated mlir primitives.
     //
-    template< typename CodeGenContext, template< typename > class CodeGenVisitorMixin, MetaGeneratorLike MetaGenerator >
+    template< typename CGContext, template< typename > class CGVisitorMixin, MetaGeneratorLike MetaGenerator >
     struct CodeGenVisitor
-        : CodeGenVisitorMixin< CodeGenVisitor< CodeGenContext, CodeGenVisitorMixin, MetaGenerator > >
-        , CodeGenVisitorBaseWithBuilder< CodeGenContext, MetaGenerator >
+        : CGVisitorMixin< CodeGenVisitor< CGContext, CGVisitorMixin, MetaGenerator > >
+        , CodeGenVisitorBaseWithBuilder< CGContext, MetaGenerator >
     {
-        using BaseType          = CodeGenVisitorBaseWithBuilder< CodeGenContext, MetaGenerator >;
-        using MixinType         = CodeGenVisitorMixin< CodeGenVisitor< CodeGenContext, CodeGenVisitorMixin, MetaGenerator > >;
+        using BaseType          = CodeGenVisitorBaseWithBuilder< CGContext, MetaGenerator >;
+        using MixinType         = CGVisitorMixin< CodeGenVisitor< CGContext, CGVisitorMixin, MetaGenerator > >;
         using MetaGeneratorType = MetaGenerator;
 
-        CodeGenVisitor(CodeGenContext &ctx, MetaGenerator &gen)
+        CodeGenVisitor(CGContext &ctx, MetaGenerator &gen)
             : BaseType(ctx, gen)
         {}
 
