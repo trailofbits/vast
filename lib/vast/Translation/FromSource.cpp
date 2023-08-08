@@ -60,7 +60,7 @@ namespace vast::hl
         if (id_meta_flag) {
             cg::CodeGenWithMetaIDs(cgctx).emit_module(ast.get());
         } else {
-            cg::DefaultCodeGen<cg::CodeGenContext>(cgctx).emit_module(ast.get());
+            cg::DefaultCodeGen(cgctx).emit_module(ast.get());
         }
         
         return std::move(cgctx.mod);
