@@ -10,23 +10,11 @@
 
 namespace vast::cg {
 
-    template<typename CGContext, MetaGeneratorLike MetaGenerator >
+    template< typename CGContext, MetaGeneratorLike MetaGenerator >
     struct CodeGenVisitorBase
     {
-        CodeGenVisitorBase(CGContext &ctx, MetaGenerator &meta) : ctx(ctx), meta(meta)
-        {}
-
-        CGContext &ctx;
-        MetaGenerator &meta;
-    };
-
-    template<typename CGContext, MetaGeneratorLike MetaGenerator >
-    struct CodeGenVisitorBaseWithBuilder : CodeGenVisitorBase< CGContext, MetaGenerator >
-    {
-        using Base = CodeGenVisitorBase< CGContext, MetaGenerator >;
-
-        CodeGenVisitorBaseWithBuilder(CGContext &ctx, MetaGenerator &meta)
-            : Base(ctx, meta), _builder(ctx.getBodyRegion())
+        CodeGenVisitorBase(CGContext &ctx, MetaGenerator &meta)
+            : ctx(ctx), meta(meta), _builder(ctx.getBodyRegion())
         {}
 
         void set_insertion_point_to_start(mlir::Region *region) {
@@ -56,6 +44,9 @@ namespace vast::cg {
         insertion_guard make_insertion_guard() {
             return { _builder };
         }
+
+        CGContext &ctx;
+        MetaGenerator &meta;
 
         Builder _builder;
     };
