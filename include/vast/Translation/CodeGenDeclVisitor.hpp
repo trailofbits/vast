@@ -52,6 +52,8 @@ namespace vast::cg {
         using Builder::builder;
         using Builder::make_value_builder;
 
+        using Builder::insertion_guard;
+
         using Builder::set_insertion_point_to_start;
         using Builder::set_insertion_point_to_end;
 
@@ -80,7 +82,7 @@ namespace vast::cg {
             // At the point we need to create the function, the insertion point
             // could be anywhere (e.g. callsite). Do not rely on whatever it might
             // be, properly save, find the appropriate place and restore.
-            InsertionGuard guard(builder());
+            auto guard = insertion_guard();
             auto linkage = hl::get_function_linkage(function_decl);
 
             // make function header, that will be later filled with function body
@@ -302,7 +304,7 @@ namespace vast::cg {
                 return fn;
             }
 
-            InsertionGuard guard(builder());
+            auto guard = insertion_guard();
             auto is_definition = decl->isThisDeclarationADefinition();
 
             // emit definition instead of declaration
@@ -620,7 +622,7 @@ namespace vast::cg {
                     if (auto prev_op = context().enumdecls.lookup(prev)) {
                         VAST_ASSERT(!prev->isComplete());
                         prev_op.setType(visit(decl->getIntegerType()));
-                        InsertionGuard guard(builder());
+                        auto guard = insertion_guard();
                         set_insertion_point_to_start(&prev_op.getConstants().front());
                         for (auto con : decl->enumerators()) {
                             visit(con);
