@@ -13,6 +13,12 @@ namespace vast {
         return reg;
     }
 
+    Region* build_empty_region(Builder &bld, State &st) {
+        auto reg = st.addRegion();
+        reg->emplaceBlock();
+        return reg;
+    }
+
     hl::ValueYieldOp get_maybe_yield(Region &reg) {
         return mlir::dyn_cast< hl::ValueYieldOp >(reg.back().back());
     }
