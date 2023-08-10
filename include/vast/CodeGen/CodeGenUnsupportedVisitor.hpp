@@ -53,7 +53,7 @@ namespace vast::cg {
     struct UnsupportedDeclVisitor
         : clang::ConstDeclVisitor< UnsupportedDeclVisitor< Derived >, vast::Operation * >
         , vast::cg::CodeGenVisitorLens< UnsupportedDeclVisitor< Derived >, Derived >
-        , vast::cg::CodeGenBuilderMixin< UnsupportedDeclVisitor< Derived >, Derived > {
+        , vast::cg::CodeGenBuilder< UnsupportedDeclVisitor< Derived >, Derived > {
         using LensType =
             vast::cg::CodeGenVisitorLens< UnsupportedDeclVisitor< Derived >, Derived >;
 
@@ -181,7 +181,7 @@ namespace vast::cg {
     struct UnsupportedStmtVisitor
         : clang::ConstStmtVisitor< UnsupportedStmtVisitor< Derived >, vast::Operation * >
         , vast::cg::CodeGenVisitorLens< UnsupportedStmtVisitor< Derived >, Derived >
-        , vast::cg::CodeGenBuilderMixin< UnsupportedStmtVisitor< Derived >, Derived > {
+        , vast::cg::CodeGenBuilder< UnsupportedStmtVisitor< Derived >, Derived > {
         using LensType =
             vast::cg::CodeGenVisitorLens< UnsupportedStmtVisitor< Derived >, Derived >;
 
@@ -194,7 +194,7 @@ namespace vast::cg {
         using LensType::visit;
 
         using Builder =
-            vast::cg::CodeGenBuilderMixin< UnsupportedStmtVisitor< Derived >, Derived >;
+            vast::cg::CodeGenBuilder< UnsupportedStmtVisitor< Derived >, Derived >;
         using RegionAndType = std::pair< std::unique_ptr< Region >, Type >;
 
         using Builder::builder;
@@ -436,7 +436,7 @@ namespace vast::cg {
     struct UnsupportedTypeVisitor
         : clang::TypeVisitor< UnsupportedTypeVisitor< Derived >, vast::hl::Type >
         , vast::cg::CodeGenVisitorLens< UnsupportedTypeVisitor< Derived >, Derived >
-        , vast::cg::CodeGenBuilderMixin< UnsupportedTypeVisitor< Derived >, Derived > {
+        , vast::cg::CodeGenBuilder< UnsupportedTypeVisitor< Derived >, Derived > {
         using LensType =
             vast::cg::CodeGenVisitorLens< UnsupportedTypeVisitor< Derived >, Derived >;
 
@@ -504,24 +504,25 @@ namespace vast::cg {
 #undef MAKE_TYPE
 #undef MAKE_TYPE_WITH_ELEMENT
 
-    template< typename Derived, template< typename > typename FallBackMixin >
-    struct UnsupportedFallBackVisitorMixin
+    template< typename Derived, template< typename > typename FallBack >
+    struct UnsupportedFallBackVisitor
         : UnsupportedDeclVisitor< Derived >
         , UnsupportedStmtVisitor< Derived >
         , UnsupportedTypeVisitor< Derived >
-        , FallBackMixin< Derived > {
+        , FallBack< Derived >
+    {
         using DeclVisitor = UnsupportedDeclVisitor< Derived >;
         using StmtVisitor = UnsupportedStmtVisitor< Derived >;
         using TypeVisitor = UnsupportedTypeVisitor< Derived >;
 
-        using FallBackVisitorMixin = FallBackMixin< Derived >;
+        using FallBackVisitor = FallBack< Derived >;
 
         operation Visit(const clang::Stmt *stmt) {
             if (auto result = StmtVisitor::Visit(stmt)) {
                 return result;
             }
 
-            return FallBackVisitorMixin::Visit(stmt);
+            return FallBackVisitor::Visit(stmt);
         }
 
         operation Visit(const clang::Decl *decl) {
@@ -529,7 +530,7 @@ namespace vast::cg {
                 return result;
             }
 
-            return FallBackVisitorMixin::Visit(decl);
+            return FallBackVisitor::Visit(decl);
         }
 
         Type Visit(const clang::Type *type) {
@@ -537,7 +538,7 @@ namespace vast::cg {
                 return result;
             }
 
-            return FallBackVisitorMixin::Visit(type);
+            return FallBackVisitor::Visit(type);
         }
 
         Type Visit(clang::QualType type) {
@@ -547,7 +548,7 @@ namespace vast::cg {
                 }
             }
 
-            return FallBackVisitorMixin::Visit(type);
+            return FallBackVisitor::Visit(type);
         }
     };
 
