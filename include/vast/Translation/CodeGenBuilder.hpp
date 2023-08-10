@@ -192,11 +192,17 @@ namespace vast::cg {
         //
         // We want to use just region builders in the future.
 
+        std::unique_ptr< Region > make_empty_region() {
+            auto reg = std::make_unique< Region >();
+            reg->emplaceBlock();
+            return reg;
+        }
+
         std::unique_ptr< Region > make_stmt_region(const clang::Stmt *stmt) {
             auto guard = insertion_guard();
 
-            auto reg = std::make_unique< Region >();
-            set_insertion_point_to_start( &reg->emplaceBlock() );
+            auto reg = make_empty_region();
+            set_insertion_point_to_start( reg.get() );
             visit(stmt);
 
             return reg;
@@ -205,8 +211,8 @@ namespace vast::cg {
         std::unique_ptr< Region > make_stmt_region(const clang::CompoundStmt *stmt) {
             auto guard = insertion_guard();
 
-            auto reg = std::make_unique< Region >();
-            set_insertion_point_to_start( &reg->emplaceBlock() );
+            auto reg = make_empty_region();
+            set_insertion_point_to_start( reg.get() );
             for (auto s : stmt->body()) {
                 visit(s);
             }
