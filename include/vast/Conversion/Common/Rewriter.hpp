@@ -75,7 +75,7 @@ namespace vast::conv
             // inside the generator, therefore we first freeze the value.
             // TODO(c++23): Refactor.
             std::vector< T > to_erase;
-            std::ranges::move(range.begin(), range.end(), std::back_inserter(to_erase));
+            std::ranges::move(range, std::back_inserter(to_erase));
             return erase( to_erase );
         }
 
