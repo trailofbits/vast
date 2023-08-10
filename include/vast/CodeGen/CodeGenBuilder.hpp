@@ -105,10 +105,10 @@ namespace vast::cg {
     // Allows to create new nodes from within mixins.
     //
     template< typename Base, typename Derived >
-    struct CodeGenBuilderMixin
-        : CodeGenVisitorLens< CodeGenBuilderMixin< Base, Derived >, Derived >
+    struct CodeGenBuilder
+        : CodeGenVisitorLens< CodeGenBuilder< Base, Derived >, Derived >
     {
-        using LensType = CodeGenVisitorLens< CodeGenBuilderMixin< Base, Derived >, Derived >;
+        using LensType = CodeGenVisitorLens< CodeGenBuilder< Base, Derived >, Derived >;
 
         using LensType::derived;
         using LensType::context;
