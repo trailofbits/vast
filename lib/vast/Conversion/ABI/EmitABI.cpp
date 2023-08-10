@@ -134,21 +134,31 @@ namespace vast
                 VAST_ASSERT(a_it == a.end() && b_it == b.end());
             }
 
-            void zip_ret(const auto &a, const auto &b, auto &&yield)
+            void zip_ret(const auto &abi, const auto &results, const auto &concretes,
+                         auto &&yield)
             {
-                auto abi_it = a.begin();
-                auto args_it = b.begin();
+                // These should be always synced, but we are defensive as this may
+                // be called with some random module that is not a result of our
+                // classification.
+                VAST_ASSERT(std::ranges::size(abi) == std::ranges::size(results));
+                auto abi_it = abi.begin();
+                auto result_it = results.begin();
 
-                while (abi_it != a.end() && args_it != b.end())
+                auto advance = [&]() { ++abi_it; ++result_it; };
+
+                auto args_it = concretes.begin();
+
+                while (abi_it != abi.end() && args_it != concretes.end())
                 {
                     std::vector< mlir::Value > collect;
                     for (std::size_t i = 0; i < abi_it->target_types().size(); ++i)
                     {
-                        VAST_ASSERT(args_it != b.end());
+                        VAST_ASSERT(args_it != concretes.end());
                         collect.push_back(*(args_it++));
                     }
-                    yield(*abi_it, std::move(collect));
-                    ++abi_it;
+                    yield(*abi_it, *result_it, std::move(collect));
+
+                    advance();
                 }
             }
 
@@ -367,18 +377,26 @@ namespace vast
                 return { vals.begin(), vals.end() };
             }
 
-            auto mk_ret(auto &bld, auto loc, const abi::direct &arg, values_t concrete_args)
+            auto mk_ret(auto &bld, auto loc,
+                        const abi::direct &arg,
+                        mlir::Value result,
+                        values_t concrete_args)
+                -> values_t
             {
-                return mk_direct< abi::DirectOp >(bld, loc, arg, concrete_args);
+                auto vals = rewriter.template create< abi::DirectOp >(
+                        loc,
+                        result.getType(),
+                        concrete_args).getResults();
+                return { vals.begin(), vals.end() };
             }
 
-            auto mk_ret(auto &, auto, const auto &abi_arg, values_t)
+            auto mk_ret(auto &, auto, const auto &abi_arg, mlir::Value, values_t)
                 -> mlir::ResultRange
             {
                 VAST_TODO("conv:abi:mk_ret unsupported arg_info: {0}", abi_arg.to_string());
             }
 
-            auto mk_ret(auto &, auto, const std::monostate &, values_t)
+            auto mk_ret(auto &, auto, const std::monostate &, mlir::Value, values_t)
                 -> mlir::ResultRange
             {
                 VAST_TODO("conv:abi:mk_ret unsupported arg_info: monostate");
@@ -465,20 +483,20 @@ namespace vast
                         out.insert(out.end(), vals.begin(), vals.end());
                     };
 
-                    auto process = [&](const auto &arg_info, auto vals)
+                    auto process = [&](const auto &arg_info, auto result, auto vals)
                     {
                         auto dispatch = [&](const auto &abi_arg)
                         {
-                            return store(mk_ret(bld, loc, abi_arg, vals));
+                            return store(mk_ret(bld, loc, abi_arg, result, vals));
                         };
                         std::visit(dispatch, arg_info.style);
                     };
 
-                    this->zip_ret(abi_info.rets(), vals, process);
+                    this->zip_ret(abi_info.rets(), op.getResults(), vals, process);
 
                     bld.template create< abi::YieldOp >(
                         loc,
-                        this->abified_args(),
+                        this->abified_rets(),
                         out);
                 };
             }
