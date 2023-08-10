@@ -10,7 +10,10 @@ VAST_RELAX_WARNINGS
 #include <mlir/InitAllDialects.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/CodeGen/CodeGenVisitor.hpp"
+#include "vast/CodeGen/DefaultVisitor.hpp"
+#include "vast/CodeGen/UnsupportedVisitor.hpp"
+#include "vast/CodeGen/UnreachableVisitor.hpp"
+#include "vast/CodeGen/FallBackVisitor.hpp"
 
 #include "vast/Dialect/Dialects.hpp"
 
@@ -626,35 +629,33 @@ namespace vast::cg
         MetaGenerator &_meta;
 
         CGContext &_cgctx;
-        std::unique_ptr< CodegenScope >   _scope;
+        std::unique_ptr< CodegenScope > _scope;
         std::unique_ptr< CGVisitor > _visitor;
     };
 
     template< typename Derived >
-    using DefaultCodeGenVisitorConfig = CodeGenFallBackVisitorMixin< Derived,
-        DefaultCodeGenVisitorMixin,
-        FallbackVisitorConfig
+    using DefaultVisitorConfig = FallBackVisitor< Derived,
+        DefaultCodeGenVisitor,
+        UnsupportedVisitor,
+        UnreachableVisitor
     >;
 
     //
-    // DefaultCodeGen
-    //
-    // Uses `DefaultMetaGenerator` and `DefaultCodeGenVisitorMixin`
-    // with `DefaultFallBack` for the generation.
+    // CodeGen
     //
     template<
-        typename Context,
-        template< typename >
-        typename VisitorConfig = DefaultCodeGenVisitorConfig,
-        typename MetaGenerator = DefaultMetaGenerator
+        typename CGContext,
+        template< typename > typename VisitorConfig,
+        typename MetaGenerator
     >
-    struct DefaultCodeGen
+    struct CodeGen
     {
-        using Visitor = CodeGenVisitor< Context, VisitorConfig, MetaGenerator >;
+        using CGVisitor = CodeGenVisitor< CGContext, VisitorConfig, MetaGenerator >;
+        using Base      = CodeGenBase< CGVisitor, CGContext >;
 
-        using Base = CodeGenBase< Visitor, Context >;
+        using VarTable = typename CGContext::VarTable;
 
-        DefaultCodeGen(Context &cgctx)
+        CodeGen(CGContext &cgctx)
             : meta(&cgctx.actx, &cgctx.mctx), codegen(cgctx, meta)
         {}
 
@@ -719,7 +720,7 @@ namespace vast::cg
             return codegen.receive_deferred_decls_to_emit();
         }
 
-        Context::VarTable & variables_symbol_table() {
+        VarTable & variables_symbol_table() {
             return codegen.variables_symbol_table();
         }
 
@@ -790,9 +791,10 @@ namespace vast::cg
         void dump_module() { codegen.dump_module(); }
 
         MetaGenerator meta;
-        CodeGenBase< Visitor, Context > codegen;
+        CodeGenBase< CGVisitor, CGContext > codegen;
     };
 
-    using CodeGenWithMetaIDs = DefaultCodeGen< CodeGenContext, DefaultCodeGenVisitorConfig, IDMetaGenerator >;
+    using DefaultCodeGen     = CodeGen< CodeGenContext, DefaultVisitorConfig, DefaultMetaGenerator >;
+    using CodeGenWithMetaIDs = CodeGen< CodeGenContext, DefaultVisitorConfig, IDMetaGenerator >;
 
 } // namespace vast::cg
