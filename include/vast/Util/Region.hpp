@@ -14,6 +14,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast {
 
     Region* build_region(Builder &bld, State &st, BuilderCallback callback);
+    Region* build_empty_region(Builder &bld, State &st);
 
     hl::ValueYieldOp get_maybe_yield(Region &reg);
     hl::ValueYieldOp get_yield(Region &reg);
