@@ -47,6 +47,8 @@ VAST_UNRELAX_WARNINGS
 
 #include <gap/core/generator.hpp>
 
+#include "vast/Conversion/ABI/AggregateTypes.hpp"
+
 namespace vast
 {
     using values        = gap::generator< mlir::Value >;
@@ -64,10 +66,11 @@ namespace vast
         // [ `current_arg`, offset into `current_arg`, size of `current_arg` ]
         using arg_list_position = std::tuple< std::size_t, std::size_t, std::size_t >;
 
-        template< typename op_t >
-        struct abi_pattern_base : operation_conversion_pattern< op_t >
+        template< typename Op >
+        struct abi_pattern_base : operation_conversion_pattern< Op >
         {
-            using base = operation_conversion_pattern< op_t >;
+            using base = operation_conversion_pattern< Op >;
+            using op_t = Op;
 
             const mlir::DataLayout &dl;
 
@@ -76,7 +79,6 @@ namespace vast
                 : base(std::forward< Args >(args) ...),
                   dl(dl)
             {}
-
 
             using state_capture = match_and_rewrite_state_capture< op_t >;
 
@@ -106,207 +108,306 @@ namespace vast
                 return *std::next(thing.begin(), idx);
             }
 
-            auto bw(mlir_type type) const { return ::vast::bw(dl, type); }
+            auto bw(mlir_type type) const
+            {
+                return ::vast::bw(dl, hl::strip_value_category(type));
+            }
             auto bw(mlir::Value val) const { return bw(val.getType()); }
 
         };
 
-        // TODO(conv:abi): Parametrize by materializer, which will resolve what dialect
-        //                is the target
-        //                 * hl
-        //                 * ll-vars
-        //                 * llvm
-        template< typename pattern, typename op_t >
-        struct field_allocator
+        template< typename Op >
+        struct function_border_base : abi_pattern_base< Op >
         {
-            using self_t = field_allocator< pattern, op_t >;
-
-            struct state_t
-            {
-
-                std::size_t arg_idx = 0;
-                std::size_t offset = 0;
-
-                const pattern &parent;
-                op_t abi_op;
-
-                state_t(const pattern &parent, op_t abi_op)
-                    : parent(parent), abi_op(abi_op)
-                {}
-
-                state_t( const state_t &) = delete;
-                state_t( state_t &&) = delete;
-
-                state_t &operator=(state_t) = delete;
-
-                auto arg() { return abi_op.getOperands()[arg_idx]; };
-                auto bw(auto w) { return parent.bw(w); };
-
-                bool fits(mlir_type type)
-                {
-                    return bw(arg()) >= offset + bw(type);
-                };
-
-                void advance()
-                {
-                    ++arg_idx;
-                    offset = 0;
-                }
-
-                // TODO(conv:abi): Possibly add some debug prints to help us
-                //                 debug some weird corner cases in the future?
-                mlir::Value allocate(mlir_type type, auto &rewriter)
-                {
-                    auto start = offset;
-                    offset += bw(type);
-                    if (bw(type) == bw(arg()))
-                        return arg();
-
-                    return rewriter.template create< ll::Extract >(
-                            abi_op.getLoc(), type, arg(),
-                            start, offset);
-                };
-            };
-
-            state_t &state;
-            vast_module mod;
-            std::vector< mlir::Value > partials;
-
-            field_allocator(state_t &state, vast_module mod)
-                : state(state),
-                  mod(mod)
-            {}
-
-            static state_t mk_state(const pattern &parent, op_t abi_op)
-            {
-                return state_t(parent, abi_op);
-            }
-
-            bool needs_nesting(mlir_type type) const
-            {
-                return contains_subtype< hl::RecordType >(type);
-            }
-
-            mlir::Value run_on(mlir_type root_type, auto &rewriter)
-            {
-                auto handle_type = [&](mlir_type field_type) -> mlir::Value
-                {
-                    if (needs_nesting(field_type))
-                        return self_t(state, mod).run_on(field_type, rewriter);
-
-                    if (!state.fits(field_type))
-                        state.advance();
-                    return state.allocate(field_type, rewriter);
-                };
-
-                for (auto field_type : vast::hl::field_types(root_type, mod))
-                    partials.push_back(handle_type(field_type));
-
-                // Make the thing;
-                return make_aggregate(root_type, partials, rewriter);
-            }
-
-            mlir::Value make_aggregate(mlir_type type, const auto &partials,
-                                       auto &rewriter)
-            {
-                return rewriter.template create< hl::InitListExpr >(
-                        state.abi_op.getLoc(), type, partials).getResult(0);
-            }
-
-        };
-
-        struct prologue : abi_pattern_base< abi::PrologueOp >
-        {
-            using op_t = abi::PrologueOp;
-            using base = abi_pattern_base< op_t >;
+            using base = abi_pattern_base< Op >;
+            using op_t = typename  base::op_t;
+            using state_capture = typename base::state_capture;
 
             using base::base;
 
-            using state_capture = base::state_capture;
 
-            logical_result matchAndRewrite(op_t op,
-                                           typename op_t::Adaptor ops,
-                                           conversion_rewriter &rewriter) const override
+            logical_result rewrite(state_capture state) const
             {
                 std::vector< mlir::Value > to_replace;
-                for (auto &nested : op.getBody().getOps())
+                for (auto &nested : state.op.getBody().getOps())
                 {
-                    for (auto converted : base::dispatch(&nested, { op, ops, rewriter }))
+                    for (auto converted : base::dispatch(&nested, state))
                         to_replace.push_back(converted);
+
                 }
 
-                rewriter.replaceOp(op, to_replace);
+                state.rewriter.replaceOp(state.op, to_replace);
                 return mlir::success();
             }
+        };
 
-            mlir::Value reconstruct_record(hl::RecordType record_type,
-                                           abi::DirectOp direct, state_capture &state) const
+        // TODO(conv:abi): If they end up being the same, rename the `function_border_base`
+        //                 and erase the alias.
+        template< typename op_t >
+        using call_border = function_border_base< op_t >;
+
+        template< typename op_t >
+        using state_capture = match_and_rewrite_state_capture< op_t >;
+
+        template< typename state_t, typename pattern_t >
+        struct deconstructs_types
+        {
+            state_t &state;
+            pattern_t &pattern;
+
+            deconstructs_types(state_t &state, pattern_t &pattern)
+                : state(state), pattern(pattern)
+            {}
+
+            /* abi::DirectOp related methods. */
+
+            // It is important that this cannot be called on rvalue, due
+            // to lifeties and coroutines.
+            values handle(abi::DirectOp direct) &
             {
-                auto mod = direct->getParentOfType< vast_module >();
+                // TODO(conv:abi): Can direct have more return types?
+                VAST_ASSERT(direct.getNumResults() >= 1 && direct.getNumOperands() == 1);
 
-                using allocator = field_allocator< prologue, abi::DirectOp >;
-                auto allocator_state = allocator::mk_state(*this, direct);
+                std::vector< mlir::Value > init_values;
+                for (auto res_type : direct.getOperands().getTypes())
+                {
+                    auto converted = convert(res_type, direct);
+                    init_values.insert(init_values.end(), converted.begin(),
+                                                          converted.end());
+                }
 
-                auto out = allocator(allocator_state, mod).run_on(record_type,
-                                                                  state.rewriter);
-                return out;
+                VAST_CHECK(init_values.size() == direct.getNumResults(),
+                           "{0} != {1}", init_values.size(), direct.getNumResults());
+
+                for (std::size_t i = 0; i < init_values.size(); ++i)
+                {
+                    auto var = state.rewriter.template create< ll::UninitializedVar >(
+                            direct.getLoc(), direct.getResults()[i].getType());
+
+                    co_yield state.rewriter.template create< ll::InitializeVar >(
+                            direct.getLoc(),
+                            var.getResult().getType(),
+                            var, init_values[i]);
+                }
             }
 
-            mlir::Value convert_primitve_type(mlir_type target_type, abi::DirectOp direct,
-                                              state_capture &state) const
+
+            auto deconstruct_record(hl::RecordType record_type, abi::DirectOp direct)
+            {
+                auto val = direct.getOperand(0).getDefiningOp();
+                return conv::abi::deconstruct_aggregate(pattern, direct, val, state.rewriter);
+            }
+
+            mlir::Value convert_primitive_type(mlir_type target_type, abi::DirectOp direct)
             {
                 VAST_CHECK(direct.getNumOperands() >= 1,
                            "abi.direct op should have > 1 operands: {0}", direct);
 
                 // We need to reconstruct the type and we ?know? that arguments
                 // simply need to be concated?
-                VAST_CHECK(can_concat_as(dl, direct.getOperands().getTypes(), target_type),
+                VAST_CHECK(can_concat_as(pattern.dl, direct.getOperands().getTypes(),
+                                         target_type),
                            "Cannot do concat when converting {0}", direct);
 
-                return state.rewriter.create< ll::Concat >(
+                return state.rewriter.template create< ll::Concat >(
                         direct.getLoc(),
                         target_type, direct.getOperands());
             }
 
-            mlir::Value convert(mlir::Type res_type, abi::DirectOp direct,
-                                state_capture &state) const
+            auto convert(mlir::Type target_type, abi::DirectOp direct)
+                -> std::vector< mlir::Value >
             {
-                auto lvalue = mlir::dyn_cast< hl::LValueType >(res_type);
-                VAST_CHECK(lvalue, "Result type of abi.direct is no an lvalue. {0}", res_type);
+                // In epilogue, the type category is ?not? an lvalue.
+                if (target_type == direct.getResult()[0].getType())
+                    return { direct.getOperand(0) };
 
 
-                auto target_type = lvalue.getElementType();
+                auto naked = hl::strip_elaborated(target_type);
+                if (auto record_type = mlir::dyn_cast< hl::RecordType >(naked))
+                    return deconstruct_record(record_type, direct);
+
+                // A fallback since we cannot really easily query whether a type
+                // is primitive yet.
+                return { convert_primitive_type(target_type, direct) };
+            }
+        };
+
+        template< typename S, typename P >
+        deconstructs_types( S &, P & ) -> deconstructs_types< S, P >;
+
+        template< typename state_t, typename pattern_t >
+        struct reconstructs_types
+        {
+            state_t &state;
+            pattern_t &pattern;
+
+            reconstructs_types(state_t &state, pattern_t &pattern)
+                : state(state), pattern(pattern)
+            {}
+
+            /* `abi::DirectOp` related functions. */
+
+            mlir::Value reconstruct_record(hl::RecordType record_type, abi::DirectOp direct)
+            {
+                return conv::abi::reconstruct_aggregate(pattern, direct,
+                                                        record_type, state.rewriter);
+            }
+
+            mlir::Value convert_primitive_type(mlir_type target_type, abi::DirectOp direct)
+            {
+                VAST_CHECK(direct.getNumOperands() >= 1,
+                           "abi.direct op should have > 1 operands: {0}", direct);
+
+                // We need to reconstruct the type and we ?know? that arguments
+                // simply need to be concated?
+                VAST_CHECK(can_concat_as(pattern.dl, direct.getOperands().getTypes(),
+                                         target_type),
+                           "Cannot do concat when converting {0}", direct);
+
+                return state.rewriter.template create< ll::Concat >(
+                        direct.getLoc(),
+                        target_type, direct.getOperands());
+            }
+
+            mlir::Value convert(mlir::Type res_type, abi::DirectOp direct)
+            {
+                auto target_type = hl::strip_value_category(res_type);
                 if (target_type == direct.getOperand(0).getType())
                     return direct.getOperand(0);
 
 
                 auto naked = hl::strip_elaborated(target_type);
                 if (auto record_type = mlir::dyn_cast< hl::RecordType >(naked))
-                    return reconstruct_record( record_type, direct, state);
+                    return reconstruct_record(record_type, direct);
 
                 // A fallback since we cannot really easily query whether a type
                 // is primitive yet.
-                return convert_primitve_type(target_type, direct, state);
+                return convert_primitive_type(target_type, direct);
             }
 
-            values match_on(abi::DirectOp direct, state_capture &state) const override
+            values handle(abi::DirectOp direct) &
             {
                 // TODO(conv:abi): Can direct have more return types?
                 VAST_ASSERT(direct.getNumResults() == 1 && direct.getNumOperands() > 0);
-                auto var = state.rewriter.create< ll::UninitializedVar >(
+                auto var = state.rewriter.template create< ll::UninitializedVar >(
                         direct.getLoc(), direct.getResult().getType());
 
                 std::vector< mlir::Value > init_values;
                 for (auto res_type : direct.getResult().getTypes())
-                    init_values.push_back(convert(res_type, direct, state));
+                    init_values.push_back(convert(res_type, direct));
 
-                co_yield state.rewriter.create< ll::InitializeVar >(direct.getLoc(),
-                                                                    var.getResult().getType(),
-                                                                    var, init_values);
+                co_yield state.rewriter.template create< ll::InitializeVar >(
+                        direct.getLoc(),
+                        var.getResult().getType(),
+                        var, init_values);
             }
         };
 
-        using wrappers = util::type_list< prologue >;
+        template< typename S, typename P >
+        reconstructs_types( S &, P & ) -> reconstructs_types< S, P >;
+
+        struct epilogue : function_border_base< abi::EpilogueOp >
+        {
+            using base = function_border_base< op_t >;
+            using op_t = typename base::op_t;
+
+            using base::base;
+
+            using state_capture = typename base::state_capture;
+
+            logical_result matchAndRewrite(op_t op,
+                                           typename op_t::Adaptor ops,
+                                           conversion_rewriter &rewriter) const override
+            {
+                return base::rewrite({ op, ops, rewriter });
+            }
+
+            // TODO(conv:abi): Copy & paste of prologue
+            values match_on(abi::DirectOp direct, state_capture &state) const override
+            {
+                auto dtor = deconstructs_types(state, *this);
+                for (auto v : dtor.handle(direct))
+                    co_yield v;
+            }
+        };
+
+
+        struct prologue : function_border_base< abi::PrologueOp >
+        {
+            using base = function_border_base< op_t >;
+            using op_t = typename base::op_t;
+
+            using base::base;
+
+            using state_capture = typename base::state_capture;
+
+            logical_result matchAndRewrite(op_t op,
+                                           typename op_t::Adaptor ops,
+                                           conversion_rewriter &rewriter) const override
+            {
+                return base::rewrite({ op, ops, rewriter });
+            }
+
+            // TODO(conv:abi): Copy & paste of prologue
+            values match_on(abi::DirectOp direct, state_capture &state) const override
+            {
+                auto ctor = reconstructs_types(state, *this);
+                for (auto v : ctor.handle(direct))
+                    co_yield v;
+            }
+        };
+
+        struct call_args : call_border< abi::CallArgsOp >
+        {
+            using base = function_border_base< op_t >;
+            using op_t = typename base::op_t;
+
+            using base::base;
+
+            using state_capture = typename base::state_capture;
+
+            logical_result matchAndRewrite(op_t op,
+                                           typename op_t::Adaptor ops,
+                                           conversion_rewriter &rewriter) const override
+            {
+                return base::rewrite({ op, ops, rewriter });
+            }
+
+            // TODO(conv:abi): Copy & paste of prologue
+            values match_on(abi::DirectOp direct, state_capture &state) const override
+            {
+                auto dtor = deconstructs_types(state, *this);
+                for (auto v : dtor.handle(direct))
+                    co_yield v;
+            }
+        };
+
+        struct call_rets : function_border_base< abi::CallRetsOp >
+        {
+            using base = function_border_base< op_t >;
+            using op_t = typename base::op_t;
+
+            using base::base;
+
+            using state_capture = typename base::state_capture;
+
+            logical_result matchAndRewrite(op_t op,
+                                           typename op_t::Adaptor ops,
+                                           conversion_rewriter &rewriter) const override
+            {
+                return base::rewrite({ op, ops, rewriter });
+            }
+
+            // TODO(conv:abi): Copy & paste of prologue
+            values match_on(abi::DirectOp direct, state_capture &state) const override
+            {
+                auto ctor = reconstructs_types(state, *this);
+                for (auto v : ctor.handle(direct))
+                    co_yield v;
+            }
+        };
+
+        using wrappers = util::type_list< prologue, epilogue >;
 
     } // namespace
     } // namespace pattern
@@ -328,8 +429,16 @@ namespace vast
         void add_patterns(auto &config, const auto &dl)
         {
             config.patterns.template add< pattern::prologue >(dl, config.getContext());
+            config.patterns.template add< pattern::epilogue >(dl, config.getContext());
+
+            config.patterns.template add< pattern::call_args >(dl, config.getContext());
+            config.patterns.template add< pattern::call_rets >(dl, config.getContext());
 
             config.target.template addIllegalOp< abi::PrologueOp >();
+            config.target.template addIllegalOp< abi::EpilogueOp >();
+
+            config.target.template addIllegalOp< abi::CallArgsOp >();
+            config.target.template addIllegalOp< abi::CallRetsOp >();
         }
 
         // TODO(conv:abi): Neeeded hack for this to compile.
