@@ -24,16 +24,16 @@ namespace vast::cg {
     hl::SizeParam get_size_attr(const clang::ArrayType *ty, mcontext_t &ctx);
 
     template< typename Derived >
-    struct CodeGenTypeVisitorMixin
-        : clang::TypeVisitor< CodeGenTypeVisitorMixin< Derived >, Type >
-        , CodeGenVisitorLens< CodeGenTypeVisitorMixin< Derived >, Derived >
-        , CodeGenBuilderMixin< CodeGenTypeVisitorMixin< Derived >, Derived >
+    struct CodeGenTypeVisitor
+        : clang::TypeVisitor< CodeGenTypeVisitor< Derived >, Type >
+        , CodeGenVisitorLens< CodeGenTypeVisitor< Derived >, Derived >
+        , CodeGenBuilder< CodeGenTypeVisitor< Derived >, Derived >
     {
-        using base_type = clang::TypeVisitor< CodeGenTypeVisitorMixin< Derived >, Type >;
+        using base_type = clang::TypeVisitor< CodeGenTypeVisitor< Derived >, Type >;
 
         using base_type::Visit;
 
-        using LensType = CodeGenVisitorLens< CodeGenTypeVisitorMixin< Derived >, Derived >;
+        using LensType = CodeGenVisitorLens< CodeGenTypeVisitor< Derived >, Derived >;
 
         using LensType::derived;
         using LensType::context;
@@ -454,13 +454,13 @@ namespace vast::cg {
     };
 
     template< typename Derived >
-    struct CodeGenTypeVisitorWithDataLayoutMixin
-        : CodeGenTypeVisitorMixin< Derived >
-        , CodeGenVisitorLens< CodeGenTypeVisitorWithDataLayoutMixin< Derived >, Derived >
+    struct CodeGenTypeVisitorWithDataLayout
+        : CodeGenTypeVisitor< Derived >
+        , CodeGenVisitorLens< CodeGenTypeVisitorWithDataLayout< Derived >, Derived >
     {
-        using Base = CodeGenTypeVisitorMixin< Derived >;
+        using Base = CodeGenTypeVisitor< Derived >;
 
-        using LensType = CodeGenVisitorLens< CodeGenTypeVisitorWithDataLayoutMixin< Derived >, Derived >;
+        using LensType = CodeGenVisitorLens< CodeGenTypeVisitorWithDataLayout< Derived >, Derived >;
 
         using LensType::context;
         using LensType::acontext;

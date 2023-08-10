@@ -29,12 +29,12 @@ namespace vast::hl {
 namespace vast::cg {
 
     template< typename Derived >
-    struct CodeGenStmtVisitorMixin
-        : clang::ConstStmtVisitor< CodeGenStmtVisitorMixin< Derived >, Operation* >
-        , CodeGenVisitorLens< CodeGenStmtVisitorMixin< Derived >, Derived >
-        , CodeGenBuilderMixin< CodeGenStmtVisitorMixin< Derived >, Derived >
+    struct CodeGenStmtVisitor
+        : clang::ConstStmtVisitor< CodeGenStmtVisitor< Derived >, Operation* >
+        , CodeGenVisitorLens< CodeGenStmtVisitor< Derived >, Derived >
+        , CodeGenBuilder< CodeGenStmtVisitor< Derived >, Derived >
     {
-        using LensType = CodeGenVisitorLens< CodeGenStmtVisitorMixin< Derived >, Derived >;
+        using LensType = CodeGenVisitorLens< CodeGenStmtVisitor< Derived >, Derived >;
 
         using LensType::derived;
         using LensType::context;
@@ -45,7 +45,7 @@ namespace vast::cg {
         using LensType::visit;
         using LensType::visit_as_lvalue_type;
 
-        using Builder = CodeGenBuilderMixin< CodeGenStmtVisitorMixin< Derived >, Derived >;
+        using Builder = CodeGenBuilder< CodeGenStmtVisitor< Derived >, Derived >;
 
         using Builder::builder;
 

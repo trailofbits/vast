@@ -28,12 +28,12 @@ VAST_UNRELAX_WARNINGS
 namespace vast::cg {
 
     template< typename Derived >
-    struct CodeGenDeclVisitorMixin
-        : clang::ConstDeclVisitor< CodeGenDeclVisitorMixin< Derived >, operation >
-        , CodeGenVisitorLens< CodeGenDeclVisitorMixin< Derived >, Derived >
-        , CodeGenBuilderMixin< CodeGenDeclVisitorMixin< Derived >, Derived >
+    struct CodeGenDeclVisitor
+        : clang::ConstDeclVisitor< CodeGenDeclVisitor< Derived >, operation >
+        , CodeGenVisitorLens< CodeGenDeclVisitor< Derived >, Derived >
+        , CodeGenBuilder< CodeGenDeclVisitor< Derived >, Derived >
     {
-        using LensType = CodeGenVisitorLens< CodeGenDeclVisitorMixin< Derived >, Derived >;
+        using LensType = CodeGenVisitorLens< CodeGenDeclVisitor< Derived >, Derived >;
 
         using LensType::derived;
         using LensType::context;
@@ -47,7 +47,7 @@ namespace vast::cg {
         using LensType::visit;
         using LensType::visit_as_lvalue_type;
 
-        using Builder = CodeGenBuilderMixin< CodeGenDeclVisitorMixin< Derived >, Derived >;
+        using Builder = CodeGenBuilder< CodeGenDeclVisitor< Derived >, Derived >;
 
         using Builder::builder;
         using Builder::make_value_builder;
