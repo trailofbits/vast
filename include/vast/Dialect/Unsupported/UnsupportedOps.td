@@ -10,17 +10,17 @@ def UnsupportedDecl
     let summary = "VAST unsupported decl";
     let description = [{ VAST unsupported decl }];
 
-    let regions = (region AnyRegion:$fields);
-    
+    let regions = (region AnyRegion:$body);
+
     let skipDefaultBuilders = 1;
     let builders = [
         OpBuilder<(ins
             "llvm::StringRef":$name,
-             CArg<"BuilderCallback", "std::nullopt">:$fields
+             CArg<"BuilderCallback", "std::nullopt">:$body
         )>
     ];
 
-    let assemblyFormat = [{ $name attr-dict `:` $fields }];
+    let assemblyFormat = [{ $name attr-dict `:` $body }];
 }
 
 def UnsupportedExpr
