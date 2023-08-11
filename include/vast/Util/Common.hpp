@@ -41,6 +41,8 @@ namespace vast
         llvm::function_ref< void(Builder &, Location) >
     >;
 
+    using BuilderCallBackFn = std::function< void(Builder &, Location) >;
+
     using acontext_t = clang::ASTContext;
     using mcontext_t = mlir::MLIRContext;
 
