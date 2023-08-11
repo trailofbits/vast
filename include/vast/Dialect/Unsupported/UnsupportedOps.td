@@ -23,31 +23,26 @@ def UnsupportedDecl
     let assemblyFormat = [{ $name attr-dict `:` $body }];
 }
 
-def UnsupportedExpr
-    : Unsupported_Op< "expr" >
+def UnsupportedStmt
+    : Unsupported_Op< "stmt", [NoTerminator] >
     , Arguments<(ins StrAttr:$name)>
     , Results<(outs Optional< AnyType >:$result)>
 {
-    let summary = "VAST unsupported expression";
-    let description = [{ VAST unsupported expression }];
+    let summary = "VAST unsupported statement";
+    let description = [{ VAST unsupported statement }];
 
-    let regions = (region AnyRegion:$substmt);
+    let regions = (region VariadicRegion< AnyRegion >:$children);
 
     let skipDefaultBuilders = 1;
-    let builders = [ OpBuilder<(ins "::mlir::StringRef":$name, "::mlir::Type":$rty, "std::unique_ptr<::mlir::Region> &&":$region)> ];
+    let builders = [
+        OpBuilder<(ins
+            "llvm::StringRef":$name,
+            "Type":$rty,
+            "const std::vector< BuilderCallBackFn > &":$builders
+        )>
+    ];
 
-    let assemblyFormat = [{
-        attr-dict `:` type($result) $substmt
-    }];
-}
-
-def UnsupportedOp
-    : Unsupported_Op<"op">
-    , Arguments<(ins StrAttr:$name, Variadic<AnyType>:$elements)>
-    , Results<(outs Optional< AnyType >:$result)>
-{
-    let summary = "VAST unsupported operation";
-    let description = [{ VAST unsupported operation }];
+    let assemblyFormat = [{ $name attr-dict `:` type($result) $children }];
 }
 
 #endif // VAST_DIALECT_IR_UNSUPPORTED_OPS
