@@ -14,6 +14,8 @@
 #include "vast/Translation/CodeGenContext.hpp"
 #include "vast/Translation/CodeGenVisitor.hpp"
 
+#include <functional>
+
 namespace vast::cg {
 
     template< typename Derived >
@@ -24,10 +26,75 @@ namespace vast::cg {
     };
 
     template< typename Derived >
-    struct UnsupportedDeclVisitor {
+    struct UnsupportedDeclVisitor
+        : clang::ConstDeclVisitor< UnsupportedDeclVisitor< Derived >, vast::Operation * >
+        , CodeGenVisitorLens< UnsupportedDeclVisitor< Derived >, Derived >
+        , CodeGenBuilder< UnsupportedDeclVisitor< Derived >, Derived >
+    {
+        using LensType = CodeGenVisitorLens< UnsupportedDeclVisitor< Derived >, Derived >;
+
+        using LensType::context;
+        using LensType::meta_location;
+        using LensType::visit;
+
+        using BuilderCallBackFn =  std::function< void(Builder &, Location) >;
+
+        auto make_body_callback(auto decl) -> std::optional< BuilderCallBackFn > {
+            auto callback = [&] (auto body) {
+                return [&, body] (auto &bld, auto loc) { visit(body); };
+            };
+
+            #define CALLBACK(type, body) \
+            if (auto d = mlir::dyn_cast< clang::type >(decl)) { \
+                return callback(d->get##body()); \
+            }
+
+            CALLBACK(StaticAssertDecl, AssertExpr)
+            CALLBACK(BlockDecl, Body)
+            CALLBACK(BindingDecl, Binding)
+            CALLBACK(CapturedDecl, Body)
+            CALLBACK(NamespaceAliasDecl, Namespace)
+            CALLBACK(UsingDecl, UnderlyingDecl)
+            CALLBACK(UsingShadowDecl, TargetDecl)
+
+            #undef CALLBACK
+
+            if (auto d = mlir::dyn_cast< clang::DeclContext >(decl)) {
+                return [&] (auto &bld, auto loc) {
+                    for (auto child : d->decls()) {
+                        visit(child);
+                    }
+                };
+            }
+
+            return std::nullopt;
+        };
+
+        std::string decl_name(auto decl) {
+            std::stringstream ss;
+            ss << decl->getDeclKindName();
+            if (auto named = dyn_cast< clang::NamedDecl >(decl)) {
+                ss << "::" << context().decl_name(named).str();
+            }
+            return ss.str();
+        }
+
+        operation make_unsupported_decl(auto decl) {
+            auto callback = make_body_callback(decl);
+
+            auto op = this->template make_operation< us::UnsupportedDecl >()
+                .bind(meta_location(decl)) // location
+                .bind(decl_name(decl));    // name
+
+            if (auto callback = make_body_callback(decl)) {
+                return std::move(op).bind(callback.value()).freeze(); // body
+            }
+
+            return op.freeze();
+        }
+
         operation Visit(const clang::Decl *decl) {
-            // TODO
-            VAST_UNREACHABLE("unsupported decl: {0}", decl->getDeclKindName());
+            return make_unsupported_decl(decl);
         }
     };
 
@@ -38,9 +105,7 @@ namespace vast::cg {
         , CodeGenBuilder< UnsupportedTypeVisitor< Derived >, Derived >
     {
         using LensType = CodeGenVisitorLens< UnsupportedTypeVisitor< Derived >, Derived >;
-
         using LensType::mcontext;
-        using LensType::visit;
 
         auto make_unsupported_type(auto ty) {
             return this->template make_type< us::UnsupportedType >()
