@@ -3,8 +3,8 @@
 #include "vast/repl/command.hpp"
 
 #include "vast/Conversion/Passes.hpp"
-#include "vast/repl/common.hpp"
 #include "vast/Tower/Tower.hpp"
+#include "vast/repl/common.hpp"
 
 namespace vast::repl::cmd {
 
@@ -126,7 +126,19 @@ namespace vast::repl::cmd {
 
         auto [tm, th] = tower::default_manager_t::get(state.ctx, std::move(state.mod));
 
-        llvm::outs() << tm.apply(th, createHLToLLCFPass()).mod << "\n";
+        std::string pipeline = get_param< pipeline_param >(params).value;
+        llvm::SmallVector< llvm::StringRef, 2 > passes;
+        llvm::StringRef(pipeline).split(passes, ',');
+
+        mlir::PassManager pm(&state.ctx);
+        for (auto pass : passes) {
+            if (mlir::failed(mlir::parsePassPipeline(pass, pm))) {
+                VAST_UNREACHABLE("error: failed to parse pass pipeline");
+            }
+            th = tm.apply(th, pm);
+        }
+        
+        llvm::outs() << th.mod << '\n';
     }
 
 } // namespace vast::repl::cmd

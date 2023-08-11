@@ -223,11 +223,10 @@ namespace vast::repl
         struct raise : base {
             static constexpr string_ref name() { return "raise"; }
 
-            static constexpr inline char pass_param[] = "pass_name";
+            static constexpr inline char pipeline_param[] = "pipeline_name";
 
-            using command_params = util::type_list<
-                named_param< pass_param, string_param >
-            >;
+            using command_params =
+                util::type_list< named_param< pipeline_param, string_param > >;
 
             using params_storage = command_params::as_tuple;
 
