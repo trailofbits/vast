@@ -32,15 +32,29 @@ namespace vast::cg {
     };
 
     template< typename Derived >
-    struct UnsupportedTypeVisitor {
-        mlir_type Visit(clang::QualType type) {
-            // TODO
-            VAST_UNREACHABLE("unsupported type: {0}", type.getAsString());
+    struct UnsupportedTypeVisitor
+        : clang::TypeVisitor< UnsupportedTypeVisitor< Derived >, mlir_type >
+        , CodeGenVisitorLens< UnsupportedTypeVisitor< Derived >, Derived >
+        , CodeGenBuilder< UnsupportedTypeVisitor< Derived >, Derived >
+    {
+        using LensType = CodeGenVisitorLens< UnsupportedTypeVisitor< Derived >, Derived >;
+
+        using LensType::mcontext;
+        using LensType::visit;
+
+        auto make_unsupported_type(auto ty) {
+            return this->template make_type< us::UnsupportedType >()
+                .bind(&mcontext())
+                .bind(ty->getTypeClassName())
+                .freeze();
         }
 
-        mlir_type Visit(const clang::Type *type) {
-            // TODO
-            VAST_UNREACHABLE("unsupported type: {0}", type->getTypeClassName());
+        mlir_type Visit(clang::QualType ty) {
+            return ty.isNull() ? Type() : Visit(ty.getTypePtr());
+        }
+
+        mlir_type Visit(const clang_type *ty) {
+            return make_unsupported_type(ty);
         }
     };
 
