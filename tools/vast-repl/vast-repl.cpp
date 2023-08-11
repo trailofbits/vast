@@ -11,11 +11,13 @@ VAST_RELAX_WARNINGS
 #include "mlir/Pass/PassManager.h"
 #include "mlir/Support/FileUtilities.h"
 #include "mlir/Tools/mlir-opt/MlirOptMain.h"
+#include "mlir/Target/LLVMIR/Dialect/All.h"
 #include "vast/repl/linenoise.hpp"
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Dialects.hpp"
 #include "vast/Dialect/HighLevel/Passes.hpp"
+#include "vast/Conversion/Passes.hpp"
 #include "vast/Util/Common.hpp"
 #include "vast/repl/cli.hpp"
 #include "vast/repl/command.hpp"
@@ -79,9 +81,18 @@ namespace vast::repl
 } // namespace vast::repl
 
 int main(int argc, char **argv) try {
+    mlir::registerAllPasses();
+    // Register VAST passes here
+    vast::hl::registerPasses();
+    vast::registerConversionPasses();
+
     mlir::DialectRegistry registry;
     vast::registerAllDialects(registry);
     mlir::registerAllDialects(registry);
+
+    // register conversions
+    mlir::registerAllToLLVMIRTranslations(registry);
+    vast::hl::registerHLToLLVMIR(registry);
 
     args_t args = load_args(argc, argv);
 
