@@ -34,10 +34,11 @@ def Unsupported_Dialect : Dialect {
 class Unsupported_Op< string mnemonic, list< Trait > traits = [] >
     : Op< Unsupported_Dialect, mnemonic, traits >;
 
- class Unsupported_Type< string name, string typeMnemonic, list<Trait> traits = [] >
-    : TypeDef< Unsupported_Dialect, name, traits> {
-    let mnemonic = typeMnemonic;
- }
+class UnsupportedType< string name, string _mnemonic, list<Trait> traits = [] >
+    : TypeDef< Unsupported_Dialect, name, traits >
+{
+    let mnemonic = _mnemonic;
+}
 
 include "vast/Dialect/Unsupported/UnsupportedOps.td"
 include "vast/Dialect/Unsupported/UnsupportedTypes.td"
