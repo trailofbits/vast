@@ -466,12 +466,11 @@ namespace vast::cg {
         }
 
         operation VisitVarDecl(const clang::VarDecl *decl) {
-            return context().declare(decl, [&] {
+            auto var_decl = context().declare(decl, [&] {
                 auto type = decl->getType();
                 bool has_allocator = type->isVariableArrayType();
                 bool has_init = decl->getInit();
 
-                auto initializer = make_value_builder(decl->getInit());
 
                 auto array_allocator = [decl, this](auto &bld, auto loc) {
                     if (auto type = clang::dyn_cast< clang::VariableArrayType >(decl->getType())) {
@@ -483,7 +482,7 @@ namespace vast::cg {
                     .bind(meta_location(decl))                                  // location
                     .bind(visit_as_lvalue_type(type))                           // type
                     .bind(context().decl_name(decl->getUnderlyingDecl()))       // name
-                    .bind_region_if(has_init, std::move(initializer))           // initializer
+                    .bind_region_if(has_init, [](auto, auto){})                 // initializer
                     .bind_region_if(has_allocator, std::move(array_allocator))  // array allocator
                     .freeze();
 
@@ -497,6 +496,16 @@ namespace vast::cg {
 
                 return var;
             }).getDefiningOp();
+
+            if (decl->hasInit()) {
+                auto guard = insertion_guard();
+                auto declared = mlir::dyn_cast< hl::VarDeclOp >(var_decl);
+                set_insertion_point_to_start(&declared.getInitializer());
+
+                make_value_builder(decl->getInit())(builder(), meta_location(decl));
+            }
+
+            return var_decl;
         }
 
         operation VisitParmVarDecl(const clang::ParmVarDecl *decl) {
