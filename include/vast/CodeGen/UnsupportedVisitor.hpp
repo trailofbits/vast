@@ -19,15 +19,46 @@
 namespace vast::cg {
 
     template< typename Derived >
-    struct UnsupportedStmtVisitor {
+    struct UnsupportedStmtVisitor
+        : clang::ConstStmtVisitor< UnsupportedStmtVisitor< Derived >, operation >
+        , CodeGenVisitorLens< UnsupportedStmtVisitor< Derived >, Derived >
+        , CodeGenBuilder< UnsupportedStmtVisitor< Derived >, Derived >
+    {
+        using LensType = CodeGenVisitorLens< UnsupportedStmtVisitor< Derived >, Derived >;
+
+        using LensType::meta_location;
+        using LensType::visit;
+
+        operation make_unsupported_stmt(auto stmt, mlir_type type = {}) {
+            std::vector< BuilderCallBackFn > children;
+            for (auto ch : stmt->children()) {
+                // For each subexpression, the unsupported operation holds a region.
+                // Last value of the region is an operand of the expression.
+                children.push_back([this, ch](auto &bld, auto loc) {
+                    this->visit(ch);
+                });
+            }
+
+            return this->template make_operation< us::UnsupportedStmt >()
+                .bind(meta_location(stmt))
+                .bind(stmt->getStmtClassName())
+                .bind(type)
+                .bind(children)
+                .freeze();
+        }
+
         operation Visit(const clang::Stmt *stmt) {
-            VAST_UNREACHABLE("unsupported stmt: {0}", stmt->getStmtClassName());
+            if (auto expr = mlir::dyn_cast< clang::Expr >(stmt)) {
+                return make_unsupported_stmt(expr, visit(expr->getType()));
+            }
+
+            return make_unsupported_stmt(stmt);
         }
     };
 
     template< typename Derived >
     struct UnsupportedDeclVisitor
-        : clang::ConstDeclVisitor< UnsupportedDeclVisitor< Derived >, vast::Operation * >
+        : clang::ConstDeclVisitor< UnsupportedDeclVisitor< Derived >, operation >
         , CodeGenVisitorLens< UnsupportedDeclVisitor< Derived >, Derived >
         , CodeGenBuilder< UnsupportedDeclVisitor< Derived >, Derived >
     {
@@ -37,27 +68,25 @@ namespace vast::cg {
         using LensType::meta_location;
         using LensType::visit;
 
-        using BuilderCallBackFn =  std::function< void(Builder &, Location) >;
-
         auto make_body_callback(auto decl) -> std::optional< BuilderCallBackFn > {
             auto callback = [&] (auto body) {
                 return [&, body] (auto &bld, auto loc) { visit(body); };
             };
 
-            #define CALLBACK(type, body) \
+            #define VAST_UNSUPPORTED_DECL_BODY_CALLBACK(type, body) \
             if (auto d = mlir::dyn_cast< clang::type >(decl)) { \
                 return callback(d->get##body()); \
             }
 
-            CALLBACK(StaticAssertDecl, AssertExpr)
-            CALLBACK(BlockDecl, Body)
-            CALLBACK(BindingDecl, Binding)
-            CALLBACK(CapturedDecl, Body)
-            CALLBACK(NamespaceAliasDecl, Namespace)
-            CALLBACK(UsingDecl, UnderlyingDecl)
-            CALLBACK(UsingShadowDecl, TargetDecl)
+            VAST_UNSUPPORTED_DECL_BODY_CALLBACK(StaticAssertDecl, AssertExpr)
+            VAST_UNSUPPORTED_DECL_BODY_CALLBACK(BlockDecl, Body)
+            VAST_UNSUPPORTED_DECL_BODY_CALLBACK(BindingDecl, Binding)
+            VAST_UNSUPPORTED_DECL_BODY_CALLBACK(CapturedDecl, Body)
+            VAST_UNSUPPORTED_DECL_BODY_CALLBACK(NamespaceAliasDecl, Namespace)
+            VAST_UNSUPPORTED_DECL_BODY_CALLBACK(UsingDecl, UnderlyingDecl)
+            VAST_UNSUPPORTED_DECL_BODY_CALLBACK(UsingShadowDecl, TargetDecl)
 
-            #undef CALLBACK
+            #undef VAST_UNSUPPORTED_DECL_BODY_CALLBACK
 
             if (auto d = mlir::dyn_cast< clang::DeclContext >(decl)) {
                 return [&] (auto &bld, auto loc) {
