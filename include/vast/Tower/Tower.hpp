@@ -19,8 +19,6 @@ namespace vast::tower {
 
     using pass_ptr_t = std::unique_ptr< mlir::Pass >;
 
-    using pipeline_t = std::vector< pass_ptr_t >;
-
     template< typename loc_rewriter_t >
     struct manager_t {
         using loc_rewriter = loc_rewriter_t;
@@ -32,7 +30,7 @@ namespace vast::tower {
             return { std::move(m), h };
         }
 
-        auto apply(handle_t handle, pass_ptr_t pass) -> handle_t {
+        auto apply(handle_t handle, mlir::PassManager &pm) -> handle_t {
             handle.mod.walk(loc_rewriter::insert);
 
             _modules.emplace_back(mlir::cast< vast_module >(handle.mod->clone()));
@@ -40,19 +38,17 @@ namespace vast::tower {
             auto id  = _modules.size() - 1;
             auto mod = _modules.back().get();
 
-            mlir::PassManager pm(&_ctx);
-            pm.addPass(std::move(pass));
-
             VAST_CHECK(mlir::succeeded(pm.run(mod)), "Some pass in apply() failed");
+
+            handle.mod.walk(loc_rewriter::remove);
 
             return { id, mod };
         }
 
-        auto apply(handle_t handle, pipeline_t &pipeline) -> handle_t {
-            for (auto &pass : pipeline) {
-                handle = apply(handle, std::move(pass));
-            }
-            return handle;
+        auto apply(handle_t handle, pass_ptr_t pass) -> handle_t {
+            mlir::PassManager pm(&_ctx);
+            pm.addPass(std::move(pass));
+            return apply(handle, pm);
         }
 
       private:
