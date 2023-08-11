@@ -121,7 +121,7 @@ namespace vast::repl::cmd {
     //
     // apply command
     //
-    void apply::run(state_t &state) const {
+    void raise::run(state_t &state) const {
         check_and_emit_module(state);
 
         auto [tm, th] = tower::default_manager_t::get(state.ctx, std::move(state.mod));

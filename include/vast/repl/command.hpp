@@ -220,8 +220,8 @@ namespace vast::repl
         //
         // apply command
         //
-        struct apply : base {
-            static constexpr string_ref name() { return "apply"; }
+        struct raise : base {
+            static constexpr string_ref name() { return "raise"; }
 
             static constexpr inline char pass_param[] = "pass_name";
 
@@ -231,15 +231,15 @@ namespace vast::repl
 
             using params_storage = command_params::as_tuple;
 
-            apply(const params_storage &params) : params(params) {}
-            apply(params_storage &&params) : params(std::move(params)) {}
+            raise(const params_storage &params) : params(params) {}
+            raise(params_storage &&params) : params(std::move(params)) {}
 
             void run(state_t &state) const override;
 
             params_storage params;
         };
 
-        using command_list = util::type_list< exit, help, load, show, meta, apply >;
+        using command_list = util::type_list< exit, help, load, show, meta, raise >;
 
     } // namespace command
 
