@@ -187,9 +187,9 @@ namespace vast::cc {
 
         void compile_via_vast(auto mod, mcontext_t *mctx)
         {
-            const bool disable_vast_verifier = vargs.has_option(opt::disable_vast_verifier);
+            const bool enable_vast_verifier = !vargs.has_option(opt::disable_vast_verifier);
             auto pass = cg::emit_high_level_pass(mod, mctx,
-                                                 acontext, disable_vast_verifier);
+                                                 acontext, enable_vast_verifier);
             if (pass.failed())
                 VAST_UNREACHABLE("codegen: MLIR pass manager fails when running vast passes");
 
