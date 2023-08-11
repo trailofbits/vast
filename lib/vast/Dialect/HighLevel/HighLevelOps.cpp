@@ -468,6 +468,10 @@ namespace vast::hl
         auto coi = mlir::cast<mlir::CallOpInterface>(call.getOperation());
         return mlir::dyn_cast_or_null<FuncOp>(coi.resolveCallable());
     }
+
+    mlir::RegionKind FuncOp::getRegionKind(unsigned index) {
+        return mlir::RegionKind::Graph;
+    }
 }
 
 //===----------------------------------------------------------------------===//
