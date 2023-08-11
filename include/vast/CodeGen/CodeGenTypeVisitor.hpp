@@ -248,9 +248,7 @@ namespace vast::cg {
                 return VisitTypeOfType(t, quals);
             }
 
-            ty.dump();
-            VAST_UNREACHABLE("unsupported qualified type");
-            return Type{};
+            return {};
         }
 
         auto VisitElaboratedType(const clang::ElaboratedType *ty, qualifiers quals) -> mlir_type {
@@ -273,7 +271,6 @@ namespace vast::cg {
                     args.push_back(VisitLValueType(param));
                 }
             }
-
 
             auto *mctx = &mcontext();
             if (ty->getReturnType()->isVoidType()) {
@@ -481,12 +478,18 @@ namespace vast::cg {
         }
 
         auto Visit(const clang_type *ty) -> mlir_type {
-            return StoreDataLayout(ty, Base::Visit(ty));
+            if (auto gen = Base::Visit(ty)) {
+                return StoreDataLayout(ty, gen);
+            }
+            return {};
         }
 
         auto Visit(clang::QualType ty) -> mlir_type {
-            auto [underlying, quals] = ty.split();
-            return StoreDataLayout(underlying, Base::Visit(ty));
+            if (auto gen = Base::Visit(ty)) {
+                auto [underlying, quals] = ty.split();
+                return StoreDataLayout(underlying, gen);
+            }
+            return {};
         }
     };
 
