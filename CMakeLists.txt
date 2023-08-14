@@ -8,10 +8,22 @@
 
 cmake_minimum_required(VERSION 3.21)
 
-# Fix behavior of CMAKE_CXX_STANDARD when targeting macOS.
 if (POLICY CMP0025)
   cmake_policy(SET CMP0025 NEW)
 endif ()
+
+if(POLICY CMP0068)
+  cmake_policy(SET CMP0068 NEW)
+  set(CMAKE_BUILD_WITH_INSTALL_NAME_DIR ON)
+endif()
+
+if(POLICY CMP0075)
+  cmake_policy(SET CMP0075 NEW)
+endif()
+
+if(POLICY CMP0077)
+  cmake_policy(SET CMP0077 NEW)
+endif()
 
 if (POLICY CMP0116)
   cmake_policy(SET CMP0116 NEW)
@@ -157,12 +169,6 @@ target_include_directories(vast_settings INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-
-if (NOT LLVM_ENABLE_RTTI)
-  message( FATAL_ERROR
-    "VAST does not support build without RTTI, yet. Please build LLVM with LLVM_ENABLE_RTTI."
-  )
-endif()
 
 # enable exception on failure
 option(VAST_ENABLE_EXCEPTIONS "Enable exception throw on vast failure" OFF)
