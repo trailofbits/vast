@@ -8,8 +8,8 @@ add_subdirectory(Core)
 
 # TODO: Move to vast_add_dialect
 set_property(GLOBAL APPEND PROPERTY VAST_INSTALL_TARGETS
-    MLIRCore
-    MLIRMeta
-    MLIRHighLevel
+    VASTCore
+    VASTMeta
+    VASTHighLevel
     MLIRLowLevel
 )

@@ -1,6 +1,6 @@
 # Copyright (c) 2022-present, Trail of Bits, Inc.
 
-add_mlir_dialect_library(MLIRMeta
+add_mlir_dialect_library(VASTMeta
     MetaAttributes.cpp
     MetaDialect.cpp
     MetaTypes.cpp
@@ -9,7 +9,7 @@ add_mlir_dialect_library(MLIRMeta
     ${PROJECT_SOURCE_DIR}/include/vast
 
     DEPENDS
-    MLIRMetaAttributesIncGen
+    VASTMetaAttributesIncGen
 
     LINK_LIBS PUBLIC
 
@@ -17,4 +17,4 @@ add_mlir_dialect_library(MLIRMeta
     MLIRSupport
 )
 
-target_link_libraries(MLIRMeta PRIVATE vast::settings)
+target_link_libraries(VASTMeta PRIVATE vast::settings)

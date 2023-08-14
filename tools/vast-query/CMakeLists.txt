@@ -9,7 +9,7 @@ llvm_update_compile_flags(vast-query)
 target_link_libraries(vast-query
   PRIVATE
     ${DIALECT_LIBS}
-    MLIRHighLevel
+    VASTHighLevel
 
     vast::settings
 )

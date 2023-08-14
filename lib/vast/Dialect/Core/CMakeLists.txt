@@ -1,5 +1,5 @@
 # Copyright (c) 2022-present, Trail of Bits, Inc.
-add_mlir_dialect_library(MLIRCore
+add_mlir_dialect_library(VASTCore
     CoreDialect.cpp
     CoreOps.cpp
     CoreTypes.cpp
@@ -10,8 +10,8 @@ add_mlir_dialect_library(MLIRCore
     ${PROJECT_SOURCE_DIR}/include/vast
 
     DEPENDS
-    MLIRCoreIncGen
-    MLIRCoreAttributesIncGen
+    VASTCoreIncGen
+    VASTCoreAttributesIncGen
 
     LINK_LIBS PUBLIC
 
@@ -29,5 +29,5 @@ add_mlir_dialect_library(MLIRCore
     VASTTypeQualifiersInterfaces
 )
 
-target_link_libraries(MLIRCore PRIVATE vast_settings)
+target_link_libraries(VASTCore PRIVATE vast_settings)
 

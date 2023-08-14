@@ -16,7 +16,7 @@ target_link_libraries(vast-opt
         vast::conversion::all
 
         MLIROptLib
-        MLIRHighLevel
+        VASTHighLevel
 
         clangAST
 

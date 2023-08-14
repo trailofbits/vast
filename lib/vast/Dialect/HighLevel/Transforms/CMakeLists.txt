@@ -12,7 +12,7 @@ add_library(vast_high_level_transforms STATIC
 target_link_libraries(vast_high_level_transforms
   PUBLIC
     MLIRLowLevel
-    MLIRHighLevel
+    VASTHighLevel
     MLIRIR
     MLIRPass
     MLIRTransformUtils
