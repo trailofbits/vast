@@ -134,13 +134,17 @@ namespace vast::cg {
             return with_cvr_qualifiers( type_builder< hl::TypedefType >().bind(name), quals ).freeze();
         }
 
-        auto with_qualifiers(const clang::TypeOfExprType *ty, qualifiers quals) -> mlir_type {
-            clang::Expr *underlying_expr = ty->getUnderlyingExpr();
-            acontext_t &ast = acontext();
-
+        std::string type_of_expr_name(clang::Expr *underlying) {
             std::string name;
             llvm::raw_string_ostream output(name);
-            underlying_expr->printPretty(output, nullptr, ast.getPrintingPolicy());
+            underlying->printPretty(output, nullptr, acontext().getPrintingPolicy());
+            return name;
+        }
+
+        auto with_qualifiers(const clang::TypeOfExprType *ty, qualifiers quals) -> mlir_type {
+            clang::Expr *underlying_expr = ty->getUnderlyingExpr();
+
+            auto name = derived().type_of_expr_name(underlying_expr);
 
             auto [reg, _] = make_type_yield_region(underlying_expr);
             Location loc = meta_location(underlying_expr);
