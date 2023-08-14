@@ -14,3 +14,6 @@ add_library(vast_codegen
 target_link_libraries(vast_codegen PRIVATE vast::settings)
 
 add_library(vast::codegen ALIAS vast_codegen)
+
+# TODO: Move to vast_add_library
+set_property(GLOBAL APPEND PROPERTY VAST_INSTALL_TARGETS vast_codegen)

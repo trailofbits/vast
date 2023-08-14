@@ -52,3 +52,8 @@ target_link_libraries(vast-front
     vast::frontend_tool
     vast::settings
 )
+
+# TODO: Move to vast_add_executable
+set_property(GLOBAL APPEND PROPERTY VAST_INSTALL_TARGETS
+  vast_frontend_tool
+)

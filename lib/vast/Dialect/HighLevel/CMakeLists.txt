@@ -34,4 +34,6 @@ add_mlir_dialect_library(MLIRHighLevel
 
 target_link_libraries(MLIRHighLevel PRIVATE vast::settings)
 
-add_subdirectory(Transforms)
+if (VAST_BUILD_CONVERSIONS)
+    add_subdirectory(Transforms)
+endif()

@@ -11,3 +11,5 @@ target_link_libraries(vast_target_llvmir
 )
 
 add_library(vast::target_llvmir ALIAS vast_target_llvmir)
+
+set_property(GLOBAL APPEND PROPERTY VAST_INSTALL_TARGETS vast_target_llvmir)

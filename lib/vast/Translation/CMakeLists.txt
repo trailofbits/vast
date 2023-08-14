@@ -46,4 +46,9 @@ target_link_libraries( FromSourceParser
     vast::translation_api
 )
 
+# TODO: Move to vast_add_library
+set_property(GLOBAL APPEND PROPERTY VAST_INSTALL_TARGETS
+    vast_translation_api
+)
+
 
