@@ -471,6 +471,13 @@ namespace vast::hl
         st.addTypes(rty);
     }
 
+    void TypeOfExprOp::build(Builder &bld, State &st, llvm::StringRef name, Type rty, std::unique_ptr< Region > &&region) {
+        InsertionGuard guard(bld);
+        st.addAttribute("name", bld.getStringAttr(name));
+        st.addRegion(std::move(region));
+        st.addTypes(rty);
+    }
+
     FuncOp getCallee(CallOp call)
     {
         auto coi = mlir::cast<mlir::CallOpInterface>(call.getOperation());
