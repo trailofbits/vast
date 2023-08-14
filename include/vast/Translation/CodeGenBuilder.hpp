@@ -222,6 +222,19 @@ namespace vast::cg {
 
         using RegionAndType = std::pair< std::unique_ptr< Region >, Type >;
 
+        RegionAndType make_type_yield_region(const clang::Expr *expr) {
+            auto guard  = insertion_guard();
+            auto reg    = make_stmt_region(expr);
+
+            auto &block = reg->back();
+            set_insertion_point_to_end( &block );
+            auto type = block.back().getResult(0).getType();
+            VAST_CHECK(block.back().getNumResults(), "type region require last operation to be value");
+            create< hl::TypeYieldOp >(meta_location(expr), block.back().getResult(0));
+
+            return { std::move(reg), type };
+        }
+
         template< typename StmtType >
         RegionAndType make_value_yield_region(const StmtType *stmt) {
             auto guard  = insertion_guard();
