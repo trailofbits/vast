@@ -172,8 +172,7 @@ def TypeDefOp
 
 def TypeOfExprOp
   : HighLevel_Op< "typeof.expr", [VastSymbol, SingleBlock] >
-  , Arguments<(ins StrAttr:$name)>
-  , Results<(outs AnyType:$result)>
+  , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
 {
   let summary = "VAST typeof(expr) operation";
   let description = [{
@@ -194,7 +193,7 @@ def TypeOfExprOp
     )>
   ];
 
-  let assemblyFormat = [{ $name $underlyingExpr `:` type($result) attr-dict }];
+  let assemblyFormat = [{ $name $underlyingExpr `:` $type attr-dict }];
 }
 
 def EnumConstantOp
