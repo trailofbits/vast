@@ -170,6 +170,33 @@ def TypeDefOp
   let assemblyFormat = [{ $name attr-dict `:` $type }];
 }
 
+def TypeOfExprOp
+  : HighLevel_Op< "typeof.expr", [VastSymbol, SingleBlock] >
+  , Arguments<(ins StrAttr:$name)>
+  , Results<(outs AnyType:$result)>
+{
+  let summary = "VAST typeof(expr) operation";
+  let description = [{
+    The Typeof operation serves to declare a type using type introspection.
+    It evaluates its underlying expression, creates a new type symbol in the
+    current scope, assigns it to the type of the underlying expression, and
+    returns the type symbol to be referenced later
+  }];
+
+  let regions = (region SizedRegion<1>:$underlyingExpr);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "llvm::StringRef":$name,
+      "Type":$type,
+      "std::unique_ptr< Region > &&":$region
+    )>
+  ];
+
+  let assemblyFormat = [{ $name $underlyingExpr `:` type($result) attr-dict }];
+}
+
 def EnumConstantOp
   : HighLevel_Op< "enum.const" >
   , Arguments<(ins StrAttr:$name, TypedAttrInterface:$value)>
