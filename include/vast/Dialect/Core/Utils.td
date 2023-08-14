@@ -35,6 +35,8 @@ def PointerTypeTrait  : NativeTypeTrait< "PointerTypeTrait" >;
 
 def TypedefTrait      : NativeTypeTrait< "TypedefTrait" >;
 
+def TypeOfTrait       : NativeTypeTrait< "TypeOfTrait" >;
+
 //
 // Type trait predicates
 //
@@ -79,6 +81,10 @@ class IsPointer< string arg > : PredOpTrait< "value is of a pointer type",
 
 class IsTypedef< string arg > : PredOpTrait< "value is of a typedefed type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::TypedefTrait >()" >
+>;
+
+class IsTypeOf< string arg > : PredOpTrait< "value is of a typeofed type",
+    CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::TypeOfTrait >()" >
 >;
 
 #endif // VAST_DIALECT_CORE_UTILS
