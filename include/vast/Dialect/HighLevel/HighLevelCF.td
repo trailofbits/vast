@@ -74,6 +74,8 @@ def HighLevel_TypeYieldOp : HighLevel_Op< "type.yield", [
   // TODO(Heno): check on type
   let arguments = (ins AnyType:$result);
 
+  let extraClassDeclaration = [{ mlir::Type getYielded() {return getResult().getType();} }];
+
   let assemblyFormat = [{ attr-dict $result `:` type($result) }];
 }
 
