@@ -175,6 +175,20 @@ set(VAST_TOOLS_INSTALL_DIR "${CMAKE_INSTALL_BINDIR}" CACHE PATH
   "Path for binary subdirectory (defaults to '${CMAKE_INSTALL_BINDIR}')"
 )
 
+set(VAST_TABLEGEN_EXE "${MLIR_TABLEGEN_EXE}" CACHE INTERNAL "")
+set(VAST_TABLEGEN_TARGET "${MLIR_TABLEGEN_TARGET}" CACHE INTERNAL "")
+set(VAST_PDLL_TABLEGEN_EXE "${MLIR_PDLL_TABLEGEN_EXE}" CACHE INTERNAL "")
+set(VAST_PDLL_TABLEGEN_TARGET "${MLIR_PDLL_TABLEGEN_TARGET}" CACHE INTERNAL "")
+
+add_custom_target(vast-generic-headers)
+set_target_properties(vast-generic-headers PROPERTIES FOLDER "Misc")
+add_custom_target(vast-headers)
+set_target_properties(vast-headers PROPERTIES FOLDER "Misc")
+add_dependencies(vast-headers vast-generic-headers)
+add_custom_target(vast-doc)
+
+include(AddVAST)
+
 add_library(vast_settings INTERFACE)
 
 include(cmake/compiler_warnings.cmake)
