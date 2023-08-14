@@ -382,6 +382,7 @@ namespace vast::hl
         return lhs == rhs
             || all_with_trait< tt::IntegralTypeTrait >(lhs, rhs)
             || any_with_trait< tt::TypedefTrait >(lhs, rhs)
+            || any_with_trait< tt::TypeOfTrait >(lhs, rhs)
             || all_with_trait< tt::PointerTypeTrait >(lhs, rhs);
     }
 
