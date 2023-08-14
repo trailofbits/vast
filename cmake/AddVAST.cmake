@@ -97,8 +97,8 @@ endfunction()
 # Reimplements LLVM's mlir_tablegen function from `AddMLIR.cmake`
 function(vast_tablegen ofn)
     vast_tablegen_impl(VAST ${ARGV})
-    set(TABLEGEN_OUTPUT
-        ${TABLEGEN_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR}/${ofn}
+    set(VAST_TABLEGEN_OUTPUT
+        ${VAST_TABLEGEN_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR}/${ofn}
         PARENT_SCOPE
     )
 
@@ -124,6 +124,18 @@ function(vast_tablegen ofn)
     )
 endfunction()
 
+function(vast_add_public_tablegen_target target)
+  if(NOT VAST_TABLEGEN_OUTPUT)
+    message(FATAL_ERROR "Requires tablegen() definitions as VAST_TABLEGEN_OUTPUT.")
+  endif()
+  add_custom_target(${target} DEPENDS ${VAST_TABLEGEN_OUTPUT})
+  if(VAST_COMMON_DEPENDS)
+    add_dependencies(${target} ${VAST_COMMON_DEPENDS})
+  endif()
+  set_target_properties(${target} PROPERTIES FOLDER "Tablegenning")
+  set(VAST_COMMON_DEPENDS ${VAST_COMMON_DEPENDS} ${target} PARENT_SCOPE)
+endfunction()
+
 function(add_vast_dialect dialect dialect_namespace)
     set(VAST_TARGET_DEFINITIONS ${dialect}.td)
     vast_tablegen(${dialect}.h.inc -gen-op-decls)
@@ -132,11 +144,11 @@ function(add_vast_dialect dialect dialect_namespace)
     vast_tablegen(${dialect}Types.cpp.inc -gen-typedef-defs -typedefs-dialect=${dialect_namespace})
     vast_tablegen(${dialect}Dialect.h.inc -gen-dialect-decls -dialect=${dialect_namespace})
     vast_tablegen(${dialect}Dialect.cpp.inc -gen-dialect-defs -dialect=${dialect_namespace})
-    add_public_tablegen_target(VAST${dialect}IncGen)
+    vast_add_public_tablegen_target(VAST${dialect}IncGen)
     add_dependencies(vast-headers VAST${dialect}IncGen)
     vast_tablegen(${dialect}Attributes.h.inc -gen-attrdef-decls)
     vast_tablegen(${dialect}Attributes.cpp.inc -gen-attrdef-defs)
-    add_public_tablegen_target(VAST${dialect}AttributesIncGen)
+    vast_add_public_tablegen_target(VAST${dialect}AttributesIncGen)
     add_dependencies(vast-headers VAST${dialect}AttributesIncGen)
 endfunction()
 
