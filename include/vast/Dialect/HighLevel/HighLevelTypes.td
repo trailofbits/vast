@@ -467,10 +467,18 @@ def TypeOfExprType : CVRQualifiedType<
   let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
 }
 
-def TypeOfType : HighLevelType< "TypeOf" > {
-  let mnemonic = "typeof.type";
-  let parameters = (ins "Type":$desugaredType);
-  let assemblyFormat = "`<` $desugaredType `>`";
+def TypeOfType : CVRQualifiedType<
+  "TypeOfType", "typeof.type"
+  , (ins "Type":$unmodifiedType)
+  , [MemRefElementTypeInterface, TypeOfTrait]
+> {
+  let builders = [
+    TypeBuilder<(ins "Type":$unmodifiedType), [{
+      return $_get($_ctxt, unmodifiedType, CVRQualifiersAttr());
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $unmodifiedType (`,` $quals^ )? `>`";
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
