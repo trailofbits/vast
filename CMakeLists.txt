@@ -118,7 +118,6 @@ message(STATUS "Using MLIRConfig.cmake in: ${MLIR_DIR}")
 #
 set(LLVM_RUNTIME_OUTPUT_INTDIR ${CMAKE_BINARY_DIR}/bin)
 set(LLVM_LIBRARY_OUTPUT_INTDIR ${CMAKE_BINARY_DIR}/lib)
-set(MLIR_BINARY_DIR ${CMAKE_BINARY_DIR})
 
 list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
 list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
@@ -159,6 +158,22 @@ endfunction()
 #
 # VAST build settings
 #
+
+set(VAST_MAIN_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(VAST_MAIN_INCLUDE_DIR ${VAST_MAIN_SRC_DIR}/include)
+
+set(VAST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(VAST_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
+set(VAST_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
+set(VAST_LIBRARY_DIR ${CMAKE_BINARY_DIR}/lib)
+set(VAST_TOOLS_DIR ${CMAKE_BINARY_DIR}/tools)
+
+option(VAST_GENERATE_TOOLS "Generate build targets for the VAST tools." ON)
+option(VAST_BUILD_TOOLS "Build the VAST tools. If OFF, just generate build targets." ON)
+
+set(VAST_TOOLS_INSTALL_DIR "${CMAKE_INSTALL_BINDIR}" CACHE PATH
+  "Path for binary subdirectory (defaults to '${CMAKE_INSTALL_BINDIR}')"
+)
 
 add_library(vast_settings INTERFACE)
 
@@ -226,7 +241,9 @@ add_subdirectory(lib)
 #
 # VAST executables
 #
-add_subdirectory(tools)
+if (VAST_GENERATE_TOOLS)
+  add_subdirectory(tools)
+endif()
 
 add_library(vast INTERFACE)
 
