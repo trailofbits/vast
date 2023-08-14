@@ -43,12 +43,19 @@ def ScopeOp : HighLevel_Op< "scope", [NoTerminator] >
   let assemblyFormat = [{ $body attr-dict }];
 }
 
-def FuncOp : HighLevel_Op< "func", [
-  AutomaticAllocationScope, CallableOpInterface, FunctionOpInterface,
-  IsolatedFromAbove, Symbol, NoTerminator
-] > {
-  let summary = "VAST high-level function definintion or declaration";
-
+class FuncLikeOp< string mnemonic, dag add_args = (ins), dag add_builders = (ins), string add_init = "" >
+    : HighLevel_Op< mnemonic, [
+        AutomaticAllocationScope, CallableOpInterface, FunctionOpInterface,
+        IsolatedFromAbove, Symbol, NoTerminator ] >
+    , Arguments< !con((ins
+        SymbolNameAttr:$sym_name,
+        TypeAttrOf<FunctionType>:$function_type,
+        DefaultValuedAttr<GlobalLinkageKind, "GlobalLinkageKind::ExternalLinkage">:$linkage),
+        add_args,
+        (ins OptionalAttr<StrAttr>:$sym_visibility,
+        OptionalAttr<DictArrayAttr>:$arg_attrs,
+        OptionalAttr<DictArrayAttr>:$res_attrs)) >
+{
   let description = [{
     Inspired by `cir::FuncOp` and `mlir::func::FuncOp`:
     > Operations within the function cannot implicitly capture values defined
@@ -62,26 +69,18 @@ def FuncOp : HighLevel_Op< "func", [
     `GlobalLinkageKind` attribute.
   }];
 
-  let arguments =(ins
-    SymbolNameAttr:$sym_name,
-    TypeAttrOf<FunctionType>:$function_type,
-    DefaultValuedAttr<GlobalLinkageKind, "GlobalLinkageKind::ExternalLinkage">:$linkage,
-    OptionalAttr<StrAttr>:$sym_visibility,
-    OptionalAttr<DictArrayAttr>:$arg_attrs,
-    OptionalAttr<DictArrayAttr>:$res_attrs
-  );
-
   let regions = (region AnyRegion:$body);
   let skipDefaultBuilders = 1;
 
-  let builders = [OpBuilder< (ins
+  let builders = [OpBuilder< !con((ins
     "llvm::StringRef":$name,
     "mlir::FunctionType":$type,
-    CArg< "GlobalLinkageKind", "GlobalLinkageKind::ExternalLinkage" >:$linkage,
-    CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
+    CArg< "GlobalLinkageKind", "GlobalLinkageKind::ExternalLinkage" >:$linkage),
+    add_builders,
+    (ins CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
     CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
     CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$res_attrs,
-    CArg< "BuilderCallback", "std::nullopt" >:$body), [{
+    CArg< "BuilderCallback", "std::nullopt" >:$body)), !strconcat([{
       InsertionGuard guard($_builder);
       build_region($_builder, $_state, body);
 
@@ -92,6 +91,7 @@ def FuncOp : HighLevel_Op< "func", [
       $_state.addAttribute(
         "linkage", GlobalLinkageKindAttr::get($_builder.getContext(), linkage)
       );
+      }], add_init, [{
       $_state.attributes.append(attrs.begin(), attrs.end());
 
       if (arg_attrs.empty())
@@ -101,7 +101,7 @@ def FuncOp : HighLevel_Op< "func", [
         $_builder, $_state, arg_attrs, res_attrs,
         getArgAttrsAttrName($_state.name), getResAttrsAttrName($_state.name)
       );
-    }] >
+    }]) >
   ];
 
   let extraClassDeclaration = [{
@@ -139,11 +139,15 @@ def FuncOp : HighLevel_Op< "func", [
     bool isDeclaration() { return isExternal(); }
   }];
 
+  let hasVerifier = 1;
+}
+
+def FuncOp : FuncLikeOp< "func" > {
+  let summary = "VAST high-level function definintion or declaration";
+
   let assemblyFormat = [{
     $linkage $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
   }];
-
-  let hasVerifier = 1;
 }
 
 def TypeDeclOp

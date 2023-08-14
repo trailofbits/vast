@@ -78,6 +78,9 @@ namespace vast::cg
         using FuncDeclTable = scoped_table< mangled_name_ref, hl::FuncOp >;
         FuncDeclTable funcdecls;
 
+        using MethodDeclTable = scoped_table< mangled_name_ref, hl::MethodOp >;
+        MethodDeclTable methdecls;
+
         using EnumDecls = scoped_table< const clang::EnumDecl *, hl::EnumDeclOp >;
         EnumDecls enumdecls;
 
@@ -207,8 +210,17 @@ namespace vast::cg
             return symbol(funcdecls, mangled, "undeclared function '" + mangled.name + "'", with_error);
         }
 
-        hl::FuncOp declare(mangled_name_ref mangled, auto vast_decl_builder) {
-            return declare< hl::FuncOp >(funcdecls, mangled, vast_decl_builder, mangled.name);
+        hl::MethodOp lookup_method(mangled_name_ref mangled, bool with_error = true) {
+            return symbol(methdecls, mangled, "undeclared method '" + mangled.name + "'", with_error);
+        }
+
+        template< typename Op >
+        Op declare(mangled_name_ref mangled, auto vast_decl_builder) {
+            if constexpr (std::is_same_v< Op, hl::FuncOp >) {
+                return declare< Op >(funcdecls, mangled, vast_decl_builder, mangled.name);
+            } else {
+                return declare< Op >(methdecls, mangled, vast_decl_builder, mangled.name);
+            }
         }
 
         mlir_value declare(const clang::VarDecl *decl, mlir_value vast_value) {

@@ -85,4 +85,57 @@ def ThisOp
   }];
 }
 
+def NoRef :
+  I32EnumAttrCase<"ref_none", 0, "ref_none">;
+def LValueRef :
+  I32EnumAttrCase<"ref_lvalue", 1, "ref_lvalue">;
+def RValueRef :
+  I32EnumAttrCase<"ref_rvalue", 2, "ref_rvalue">;
+
+def RefQualifier : I32EnumAttr<
+    "RefQualifier", "ref qualifier",
+    [
+        NoRef, LValueRef, RValueRef
+    ]>
+{
+  let cppNamespace = "::vast::hl";
+}
+
+def MethodOp 
+    : FuncLikeOp< "method", (ins
+        UnitAttr:$is_virtual,
+        UnitAttr:$is_const,
+        UnitAttr:$is_volatile,
+        RefQualifier:$ref), (ins
+        CArg< "bool", "false" >:$is_virtual,
+        CArg< "bool", "false" >:$is_const,
+        CArg< "bool", "false" >:$is_volatile,
+        CArg< "RefQualifier", "RefQualifier::ref_none" >:$ref), [{
+          if (is_virtual) {
+            $_state.addAttribute(
+              "is_virtual", mlir::UnitAttr::get($_builder.getContext())
+            );
+          }
+          if (is_const) {
+            $_state.addAttribute(
+              "is_const", mlir::UnitAttr::get($_builder.getContext())
+            );
+          }
+          if (is_volatile) {
+            $_state.addAttribute(
+              "is_volatile", mlir::UnitAttr::get($_builder.getContext())
+            );
+          }
+          $_state.addAttribute(
+            "ref", RefQualifierAttr::get($_builder.getContext(), ref)
+          );
+        }] >
+{
+  let summary = "VAST high-level method definintion or declaration";
+
+  let assemblyFormat = [{
+    $linkage (`virtual` $is_virtual^)? $ref (`const` $is_const^)? (`volatile` $is_volatile^)? $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
+  }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS_CXX

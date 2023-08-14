@@ -87,7 +87,7 @@ namespace vast::cg {
 
             // make function header, that will be later filled with function body
             // or returned as declaration in the case of external function
-            auto fn = context().declare(mangled_name, [&] () {
+            auto fn = context().template declare< hl::FuncOp >(mangled_name, [&] () {
                 return make< hl::FuncOp >(loc, mangled_name.name, fty, linkage);
             });
 
@@ -295,13 +295,21 @@ namespace vast::cg {
         }
 
         // FIXME: remove as this duplicates logic from codegen driver
-        template< typename Decl >
-        operation VisitFunctionLikeDecl(const Decl *decl) {
+        template< typename Op, typename Decl, typename Builder >
+        operation VisitFunctionLikeDecl(const Decl *decl, Builder builder_callback) {
             auto gdecl = get_gdecl(decl);
             auto mangled = context().get_mangled_name(gdecl);
 
-            if (auto fn = context().lookup_function(mangled, false /* emit no error */)) {
-                return fn;
+            if constexpr (std::is_same_v< Op, hl::FuncOp >) {
+                if (auto fn = context().lookup_function(mangled, false /* emit no error */)) {
+                    return fn;
+                }
+            }
+
+            if constexpr (std::is_same_v< Op, hl::MethodOp >) {
+                if (auto fn = context().lookup_method(mangled, false /* emit no error */)) {
+                    return fn;
+                }
             }
 
             auto guard = insertion_guard();
@@ -404,12 +412,12 @@ namespace vast::cg {
 
             auto linkage = hl::get_function_linkage(gdecl);
 
-            auto fn = context().declare(mangled, [&] () {
+            auto fn = context().template declare< Op >(mangled, [&] () {
                 auto loc  = meta_location(decl);
                 auto type = visit(decl->getFunctionType()).template cast< mlir::FunctionType >();
                 // make function header, that will be later filled with function body
                 // or returned as declaration in the case of external function
-                return make< hl::FuncOp >(loc, mangled.name, type, linkage);
+                return builder_callback(loc, mangled.name, type, linkage);
             });
 
             if (!is_definition) {
@@ -428,15 +436,39 @@ namespace vast::cg {
         }
 
         operation VisitFunctionDecl(const clang::FunctionDecl *decl) {
-            return VisitFunctionLikeDecl(decl);
+            return VisitFunctionLikeDecl< hl::FuncOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
+                return make< hl::FuncOp >(loc, name, type, linkage);
+            });
+        }
+
+        operation VisitCXXMethodDecl(const clang::CXXMethodDecl *decl) {
+            return VisitFunctionLikeDecl< hl::MethodOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
+                return make< hl::MethodOp >(loc, name, type, linkage,
+                    decl->isVirtual(),
+                    decl->isConst(),
+                    decl->isVolatile(),
+                    convert_ref_qual(decl->getRefQualifier()));
+            });
         }
 
         operation VisitCXXConstructorDecl(const clang::CXXConstructorDecl *decl) {
-            return VisitFunctionLikeDecl(decl);
+            return VisitFunctionLikeDecl< hl::MethodOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
+                return make< hl::MethodOp >(loc, name, type, linkage,
+                    decl->isVirtual(),
+                    decl->isConst(),
+                    decl->isVolatile(),
+                    convert_ref_qual(decl->getRefQualifier()));
+            });
         }
 
         operation VisitCXXDestructorDecl(const clang::CXXDestructorDecl *decl) {
-            return VisitFunctionLikeDecl(decl);
+            return VisitFunctionLikeDecl< hl::MethodOp >(decl, [&](auto loc, auto name, auto type, auto linkage) {
+                return make< hl::MethodOp >(loc, name, type, linkage,
+                    decl->isVirtual(),
+                    decl->isConst(),
+                    decl->isVolatile(),
+                    convert_ref_qual(decl->getRefQualifier()));
+            });
         }
 
         //
@@ -686,6 +718,18 @@ namespace vast::cg {
             VAST_UNREACHABLE("unknown access specifier");
         }
 
+        hl::RefQualifier convert_ref_qual(clang::RefQualifierKind kind) {
+            switch(kind) {
+                case clang::RefQualifierKind::RQ_None:
+                    return hl::RefQualifier::ref_none;
+                case clang::RefQualifierKind::RQ_LValue:
+                    return hl::RefQualifier::ref_lvalue;
+                case clang::RefQualifierKind::RQ_RValue:
+                    return hl::RefQualifier::ref_rvalue;
+            }
+            VAST_UNREACHABLE("unknown ref qualifier");
+        }
+
         //
         // Record Declaration
         //
@@ -722,6 +766,8 @@ namespace vast::cg {
                         visit(ctor);
                     } else if (auto dtor = clang::dyn_cast< clang::CXXDestructorDecl >(child)) {
                         visit(dtor);
+                    } else if (auto method = clang::dyn_cast< clang::CXXMethodDecl >(child)) {
+                        visit(method);
                     } else if (auto func = clang::dyn_cast< clang::FunctionDecl >(child)) {
                         auto name = func->getDeclName();
                         if (name.getNameKind() != clang::DeclarationName::NameKind::Identifier) {
