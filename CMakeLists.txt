@@ -168,6 +168,24 @@ set(VAST_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 set(VAST_LIBRARY_DIR ${CMAKE_BINARY_DIR}/lib)
 set(VAST_TOOLS_DIR ${CMAKE_BINARY_DIR}/tools)
 
+option(VAST_BUILD_DIALECTS "Build VAST Dialects." ON)
+
+option(VAST_BUILD_CONVERSIONS "Build VAST conversion passes." ON)
+if (NOT VAST_BUILD_DIALECTS AND VAST_BUILD_CONVERSION_PASSES)
+  message(FATAL_ERROR
+    "Conversion passes require dialects to be built."
+    "Set `VAST_BUILD_DIALECTS` option."
+  )
+endif()
+
+option(VAST_BUILD_FRONTEND "Build VAST frontend." ON)
+if (NOT VAST_BUILD_DIALECTS AND VAST_BUILD_FRONTEND)
+  message(FATAL_ERROR
+    "Frontend requires dialects to be built."
+    "Set `VAST_BUILD_DIALECTS` option."
+  )
+endif()
+
 option(VAST_GENERATE_TOOLS "Generate build targets for the VAST tools." ON)
 option(VAST_BUILD_TOOLS "Build the VAST tools. If OFF, just generate build targets." ON)
 
@@ -186,6 +204,8 @@ add_custom_target(vast-headers)
 set_target_properties(vast-headers PROPERTIES FOLDER "Misc")
 add_dependencies(vast-headers vast-generic-headers)
 add_custom_target(vast-doc)
+
+define_property(GLOBAL PROPERTY VAST_INSTALL_TARGETS)
 
 include(AddVAST)
 
@@ -276,6 +296,13 @@ target_include_directories(vast
 # test options
 option(ENABLE_TESTING "Enable Test Builds" ON)
 
+if (NOT VAST_BUILD_TOOLS AND ENABLE_TESTING)
+  message(FATAL_ERROR
+    "VAST tests require tools to be built."
+    "Set `VAST_BUILD_TOOLS` and `VAST_GENERATE_TOOLS` option."
+  )
+endif()
+
 if (ENABLE_TESTING)
   enable_testing()
   add_subdirectory(test)
@@ -290,43 +317,13 @@ option(VAST_INSTALL "Generate the install target." ${VAST_MASTER_PROJECT})
 if (VAST_INSTALL)
   set(VAST_CMAKE_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
-  set(VAST_INSTALL_TARGETS
-    vast
-    vast_settings
-    vast_translation_api
-    vast_codegen
-
-    vast_conversion_all
-    vast_conversion_abi
-    vast_conversion_common
-    vast_conversion_core
-    vast_conversion_from_hl
-
-    vast_frontend
-    vast_frontend_tool
-    vast_target_llvmir
-    vast_util
-
-    MLIRCore
-    MLIRMeta
-    MLIRHighLevel
-    MLIRLowLevel
-
-    VASTSymbolInterface
-    VASTTypeQualifiersInterfaces
+  set_property(GLOBAL APPEND PROPERTY VAST_INSTALL_TARGETS
+    vast vast_settings vast_util
   )
 
-  if (VAST_ENABLE_GAP_SUBMODULE)
-    set(VAST_INSTALL_TARGETS
-      ${VAST_INSTALL_TARGETS}
+  get_property(VAST_INSTALL_TARGETS GLOBAL PROPERTY VAST_INSTALL_TARGETS)
 
-      gap
-      gap-core
-      gap-settings
-    )
-  endif()
-
-  install(DIRECTORY ${CMAKE_BINARY_DIR}/include/vast
+  install(DIRECTORY ${VAST_INCLUDE_DIR}/vast
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     COMPONENT vast-headers
     FILES_MATCHING
@@ -337,7 +334,7 @@ if (VAST_INSTALL)
     PATTERN "CMakeFiles" EXCLUDE
   )
 
-  install(DIRECTORY include/vast
+  install(DIRECTORY ${VAST_SOURCE_DIR}/include/vast
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     COMPONENT vast-headers
     FILES_MATCHING
@@ -346,10 +343,8 @@ if (VAST_INSTALL)
     PATTERN "CMakeFiles" EXCLUDE
   )
 
-  set(VAST_EXPORT_NAME VASTTargets)
-
   install(TARGETS ${VAST_INSTALL_TARGETS}
-    EXPORT ${VAST_EXPORT_NAME}
+    EXPORT VASTTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       NAMELINK_SKIP
@@ -357,8 +352,8 @@ if (VAST_INSTALL)
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   )
 
-  install(EXPORT ${VAST_EXPORT_NAME}
-    FILE ${VAST_EXPORT_NAME}.cmake
+  install(EXPORT VASTTargets
+    FILE VASTTargets.cmake
     NAMESPACE vast::
     DESTINATION ${VAST_CMAKE_INSTALL_DIR}
   )

@@ -20,3 +20,9 @@ endfunction(add_vast_interface_library)
 
 add_vast_interface_library(SymbolInterface)
 add_vast_interface_library(TypeQualifiersInterfaces)
+
+# TODO: Move to vast_add_interface_library
+set_property(GLOBAL APPEND PROPERTY VAST_INSTALL_TARGETS
+  VASTSymbolInterface
+  VASTTypeQualifiersInterfaces
+)

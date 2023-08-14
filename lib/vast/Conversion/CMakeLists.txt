@@ -14,3 +14,11 @@ target_link_libraries(vast_conversion_all
 )
 add_dependencies(vast_conversion_all VASTConversionPassIncGen)
 add_library(vast::conversion::all ALIAS vast_conversion_all)
+
+set_property(GLOBAL APPEND PROPERTY VAST_INSTALL_TARGETS
+    vast_conversion_all
+    vast_conversion_abi
+    vast_conversion_common
+    vast_conversion_core
+    vast_conversion_from_hl
+)

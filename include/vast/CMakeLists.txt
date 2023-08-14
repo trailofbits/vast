@@ -1,9 +1,18 @@
 # Copyright (c) 2022-present, Trail of Bits, Inc.
 
-add_subdirectory(Conversion)
-add_subdirectory(Dialect)
-add_subdirectory(Interfaces)
-add_subdirectory(Translation)
+if (VAST_BUILD_DIALECTS)
+    add_subdirectory(Dialect)
+    add_subdirectory(Interfaces)
+endif()
+
+if (VAST_BUILD_CONVERSIONS)
+    add_subdirectory(Conversion)
+endif()
+
+if (VAST_BUILD_FRONTEND)
+    add_subdirectory(Translation)
+endif()
+
 add_subdirectory(Util)
 
 configure_file(Version.hpp.in Version.hpp @ONLY)
