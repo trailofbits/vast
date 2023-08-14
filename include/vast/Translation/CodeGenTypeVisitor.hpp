@@ -38,7 +38,16 @@ namespace vast::cg {
         using LensType::derived;
         using LensType::context;
         using LensType::mcontext;
+        using LensType::acontext;
+
+        using LensType::meta_location;
+
         using LensType::visit;
+
+        using Builder = CodeGenBuilderMixin< CodeGenTypeVisitorMixin< Derived >, Derived >;
+
+        using Builder::builder;
+        using Builder::make_type_yield_region;
 
         using qualifiers   = clang::Qualifiers;
 
@@ -123,6 +132,26 @@ namespace vast::cg {
         auto with_qualifiers(const clang::TypedefType *ty, qualifiers quals) -> mlir_type {
             auto name = make_name_attr( ty->getDecl()->getName() );
             return with_cvr_qualifiers( type_builder< hl::TypedefType >().bind(name), quals ).freeze();
+        }
+
+        auto with_qualifiers(const clang::TypeOfExprType *ty, qualifiers quals) -> mlir_type {
+            clang::Expr *underlying_expr = ty->getUnderlyingExpr();
+            acontext_t &ast = acontext();
+
+            std::string name;
+            llvm::raw_string_ostream output(name);
+            underlying_expr->printPretty(output, nullptr, ast.getPrintingPolicy());
+
+            auto [reg, _] = make_type_yield_region(underlying_expr);
+            Location loc = meta_location(underlying_expr);
+            auto rty = with_cvr_qualifiers(type_builder< hl::TypeOfExprType >().bind(name), quals).freeze();
+            this->template create<hl::TypeOfExprOp>(loc, name, rty, std::move(reg));
+            return rty;
+        }
+
+        auto with_qualifiers(const clang::TypeOfType *ty, qualifiers quals) -> mlir_type {
+            auto unmodified_type = visit(ty->getUnmodifiedType());
+            return with_cvr_qualifiers(type_builder< hl::TypeOfTypeType >().bind(unmodified_type), quals).freeze();
         }
 
         auto with_qualifiers(const clang::ElaboratedType *ty, qualifiers quals) -> mlir_type {
@@ -406,20 +435,16 @@ namespace vast::cg {
             return VisitRValueReferenceType(ty, ty->desugar().getQualifiers());
         }
 
-        auto VisitTypeOfExprType(const clang::TypeOfExprType *ty, qualifiers /* quals */) -> mlir_type {
-            // FIXME(bpp): Add qualifiers?
-            auto desugared_type = visit(ty->desugar());
-            return hl::TypeOfExprType::get(&mcontext(), desugared_type);
+        auto VisitTypeOfExprType(const clang::TypeOfExprType *ty, qualifiers quals) -> mlir_type {
+            return with_qualifiers(ty, quals);
         }
 
         auto VisitTypeOfExprType(const clang::TypeOfExprType *ty) -> mlir_type {
-            return VisitTypeOfExprType(ty, ty->desugar().getQualifiers());
+            return with_qualifiers(ty, ty->desugar().getQualifiers());
         }
 
-        auto VisitTypeOfType(const clang::TypeOfType *ty, qualifiers /* quals */) -> mlir_type {
-            // FIXME(bpp): Add qualifiers?
-            auto desugared_type = visit(ty->desugar());
-            return hl::TypeOfType::get(&mcontext(), desugared_type);
+        auto VisitTypeOfType(const clang::TypeOfType *ty, qualifiers quals) -> mlir_type {
+            return with_qualifiers(ty, quals);
         }
 
         auto VisitTypeOfType(const clang::TypeOfType *ty) -> mlir_type {
