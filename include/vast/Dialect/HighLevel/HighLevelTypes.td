@@ -453,10 +453,18 @@ def AdjustedType : HighLevelType< "Adjusted" > {
 
 def ReferenceType : TypeWithSubType< "Reference", "reference" > { }
 
-def TypeOfExprType : HighLevelType< "TypeOfExpr" > {
-  let mnemonic = "typeof.expr";
-  let parameters = (ins "Type":$desugaredType);
-  let assemblyFormat = "`<` $desugaredType `>`";
+def TypeOfExprType : CVRQualifiedType<
+  "TypeOfExpr", "typeof.expr"
+  , (ins StringRefParameter<>:$name)
+  , [MemRefElementTypeInterface, TypeOfTrait]
+> {
+  let builders = [
+    TypeBuilder<(ins "llvm::StringRef":$name), [{
+      return $_get($_ctxt, name, CVRQualifiersAttr());
+    }]>
+  ];
+
+  let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
 }
 
 def TypeOfType : HighLevelType< "TypeOf" > {
