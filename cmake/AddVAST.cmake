@@ -139,3 +139,22 @@ function(add_vast_dialect dialect dialect_namespace)
     add_public_tablegen_target(VAST${dialect}AttributesIncGen)
     add_dependencies(vast-headers VAST${dialect}AttributesIncGen)
 endfunction()
+
+function(add_vast_doc doc_filename output_file output_directory command)
+  set(VAST_TARGET_DEFINITIONS ${doc_filename}.td)
+  vast_tablegen_impl(VAST ${output_file}.md ${command} ${ARGN})
+  set(GEN_DOC_FILE ${VAST_BINARY_DIR}/docs/${output_directory}${output_file}.md)
+  add_custom_command(
+          OUTPUT ${GEN_DOC_FILE}
+          COMMAND ${CMAKE_COMMAND} -E copy
+                  ${CMAKE_CURRENT_BINARY_DIR}/${output_file}.md
+                  ${GEN_DOC_FILE}
+          DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${output_file}.md)
+  add_custom_target(${output_file}DocGen DEPENDS ${GEN_DOC_FILE})
+  add_dependencies(vast-doc ${output_file}DocGen)
+endfunction()
+
+function(add_vast_dialect_with_doc dialect dialect_namespace)
+    add_vast_dialect(${dialect} ${dialect_namespace})
+    add_vast_doc(${dialect} ${dialect} ${dialect}/ -gen-dialect-doc -dialect=${dialect_namespace})
+endfunction()
