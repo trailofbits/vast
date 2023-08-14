@@ -21,8 +21,8 @@ if (ENABLE_PDLL_CONVERSIONS)
             MLIRSupport
             MLIRTransformUtils
 
-            MLIRMeta
-            MLIRHighLevel
+            VASTMeta
+            VASTHighLevel
 
             vast::settings
     )

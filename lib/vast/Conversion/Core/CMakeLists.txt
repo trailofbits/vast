@@ -8,7 +8,7 @@ add_mlir_conversion_library(VASTCoreConversionPasses
 
     LINK_LIBS PUBLIC
         MLIRLowLevel
-        MLIRHighLevel
+        VASTHighLevel
         MLIRIR
         MLIRPass
         MLIRTransformUtils
@@ -26,7 +26,7 @@ add_library(vast_conversion_core
 target_link_libraries(vast_conversion_core
   PRIVATE
     MLIRLowLevel
-    MLIRHighLevel
+    VASTHighLevel
     MLIRIR
     MLIRPass
     MLIRTransformUtils

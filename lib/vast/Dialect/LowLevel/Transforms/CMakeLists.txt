@@ -6,7 +6,7 @@ add_mlir_dialect_library(MLIRLowLevelTransforms
 
     LINK_LIBS PUBLIC
     MLIRLowLevel
-    MLIRHighLevel
+    VASTHighLevel
     MLIRIR
     MLIRPass
     MLIRTransformUtils

@@ -1,6 +1,6 @@
 # Copyright (c) 2022-present, Trail of Bits, Inc.
 
-add_mlir_dialect_library(MLIRABI
+add_mlir_dialect_library(VASTABI
     ABIDialect.cpp
     ABIOps.cpp
 
@@ -8,11 +8,11 @@ add_mlir_dialect_library(MLIRABI
     ${PROJECT_SOURCE_DIR}/include/vast
 
     DEPENDS
-    MLIRABIIncGen
+    VASTABIIncGen
 
     LINK_LIBS PUBLIC
     MLIRIR
     VASTSymbolInterface
 )
 
-target_link_libraries(MLIRABI PRIVATE vast_settings)
+target_link_libraries(VASTABI PRIVATE vast_settings)

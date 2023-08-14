@@ -12,7 +12,7 @@ add_library(vast_conversion_from_hl
 target_link_libraries(vast_conversion_from_hl
   PRIVATE
     MLIRLowLevel
-    MLIRHighLevel
+    VASTHighLevel
     MLIRIR
     MLIRPass
     MLIRTransformUtils

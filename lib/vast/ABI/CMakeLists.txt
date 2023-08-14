@@ -4,8 +4,8 @@ add_library( vast_abi STATIC
 
 target_link_libraries( vast_abi
     PRIVATE
-        MLIRMeta
-        MLIRHighLevel
+        VASTMeta
+        VASTHighLevel
         MLIRSupport
 
         vast_settings

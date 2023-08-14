@@ -37,7 +37,7 @@ target_link_libraries(vast-front
 
     vast::conversion::all
 
-    MLIRHighLevel
+    VASTHighLevel
     vast::high_level::transforms
 
     MLIRIR

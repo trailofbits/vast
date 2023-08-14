@@ -15,7 +15,7 @@ target_link_libraries(vast-repl
       vast::settings
 
       ${DIALECT_LIBS}
-      MLIRHighLevel
+      VASTHighLevel
 
       clangAST
       clangFrontend

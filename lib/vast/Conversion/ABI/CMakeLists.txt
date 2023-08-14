@@ -8,11 +8,7 @@ add_library(vast_conversion_abi STATIC
 target_link_libraries(vast_conversion_abi
   PRIVATE
     MLIRLowLevel
-    MLIRHighLevel
-    MLIRIR
-    MLIRPass
-    MLIRLowLevel
-    MLIRHighLevel
+    VASTHighLevel
     MLIRIR
     MLIRPass
     MLIRTransformUtils
