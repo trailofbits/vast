@@ -23,6 +23,9 @@ CORE_TRAIT(FloatingTypeTrait);
 CORE_TRAIT(PointerTypeTrait);
 
 CORE_TRAIT(TypedefTrait);
+
+CORE_TRAIT(TypeOfTrait);
+
 } // namespace TypeTrait
 } // namespace mlir
 #endif //CORE_TRAITS_H
