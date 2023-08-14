@@ -57,6 +57,26 @@ def HighLevel_ValueYieldOp : HighLevel_Op< "value.yield", [
   let assemblyFormat = [{ attr-dict $result `:` type($result) }];
 }
 
+def HighLevel_TypeYieldOp : HighLevel_Op< "type.yield", [
+  // TODO(Heno): add ReturnLike trait
+  Terminator
+] > {
+  let summary = "type yield operation";
+  let description = [{
+      A type yield operation is used to terminate the underlying expression
+      region of a typeof(expr) statement.
+
+      The custom assembly form of the operation is as follows:
+
+      hl.type.yield result : type
+   }];
+
+  // TODO(Heno): check on type
+  let arguments = (ins AnyType:$result);
+
+  let assemblyFormat = [{ attr-dict $result `:` type($result) }];
+}
+
 def HighLevel_IfOp : ControlFlowOp< "if" >
 {
   let summary = "VAST if statement";
