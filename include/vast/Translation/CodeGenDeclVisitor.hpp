@@ -707,12 +707,6 @@ namespace vast::cg {
             auto fields = [&](auto &bld, auto loc) {
                 for (auto child: decl->decls()) {
                     if (auto field = clang::dyn_cast< clang::FieldDecl >(child)) {
-                        auto field_type = field->getType();
-                        // If there is a nested structure.
-                        if (auto tag = field_type->getAsTagDecl())
-                            visit(tag);
-                        else
-                            visit(field_type);
                         visit(field);
                     } else if (auto access = clang::dyn_cast< clang::AccessSpecDecl >(child)) {
                         visit(access);
