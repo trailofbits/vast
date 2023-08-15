@@ -363,7 +363,11 @@ function(vast_add_library_impl name)
 
     # Bring in the target link info from our original target.
     target_link_directories(${name_static} PRIVATE $<TARGET_PROPERTY:${name},LINK_DIRECTORIES>)
-    target_link_libraries(${name_static} PRIVATE $<TARGET_PROPERTY:${name},LINK_LIBRARIES>)
+    target_link_libraries(${name_static}
+      PRIVATE
+        $<TARGET_PROPERTY:${name},LINK_LIBRARIES>
+        vast::settings
+    )
 
     # FIXME: Add name_static to anywhere in TARGET ${name}'s PROPERTY.
     set(ARG_STATIC)
