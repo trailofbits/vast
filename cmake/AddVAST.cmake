@@ -671,6 +671,11 @@ function(add_vast_translation_library name)
     add_vast_library(${ARGV} DEPENDS vast-headers)
 endfunction(add_vast_translation_library)
 
+function(add_vast_interface_library name)
+  set_property(GLOBAL APPEND PROPERTY VAST_INTERFACE_LIBS VAST${name})
+  add_vast_library(${ARGV} DEPENDS vast-headers)
+endfunction(add_vast_interface_library)
+
 # # Adds an VAST library target for installation.
 # # This is usually done as part of add_vast_library but is broken out for cases
 # # where non-standard library builds can be installed.
