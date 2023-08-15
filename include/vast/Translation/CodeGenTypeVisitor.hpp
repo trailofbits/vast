@@ -442,20 +442,12 @@ namespace vast::cg {
             return VisitRValueReferenceType(ty, ty->desugar().getQualifiers());
         }
 
-        auto VisitTypeOfExprType(const clang::TypeOfExprType *ty, qualifiers quals) -> mlir_type {
+        auto VisitTypeOfExprType(const clang::TypeOfExprType *ty, qualifiers quals = {}) -> mlir_type {
             return with_qualifiers(ty, quals);
         }
 
-        auto VisitTypeOfExprType(const clang::TypeOfExprType *ty) -> mlir_type {
-            return with_qualifiers(ty, ty->desugar().getQualifiers());
-        }
-
-        auto VisitTypeOfType(const clang::TypeOfType *ty, qualifiers quals) -> mlir_type {
+        auto VisitTypeOfType(const clang::TypeOfType *ty, qualifiers quals = {}) -> mlir_type {
             return with_qualifiers(ty, quals);
-        }
-
-        auto VisitTypeOfType(const clang::TypeOfType *ty) -> mlir_type {
-            return VisitTypeOfType(ty, ty->desugar().getQualifiers());
         }
     };
 
