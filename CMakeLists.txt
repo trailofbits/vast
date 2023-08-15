@@ -168,6 +168,16 @@ set(VAST_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 set(VAST_LIBRARY_DIR ${CMAKE_BINARY_DIR}/lib)
 set(VAST_TOOLS_DIR ${CMAKE_BINARY_DIR}/tools)
 
+# They are used as destination of target generators.
+set(VAST_RUNTIME_OUTPUT_INTDIR ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bin)
+set(VAST_LIBRARY_OUTPUT_INTDIR ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib${VAST_LIBDIR_SUFFIX})
+if(WIN32 OR CYGWIN)
+  # DLL platform -- put DLLs into bin.
+  set(VAST_SHLIB_OUTPUT_INTDIR ${VAST_RUNTIME_OUTPUT_INTDIR})
+else()
+  set(VAST_SHLIB_OUTPUT_INTDIR ${VAST_LIBRARY_OUTPUT_INTDIR})
+endif()
+
 option(VAST_BUILD_DIALECTS "Build VAST Dialects." ON)
 
 option(VAST_BUILD_CONVERSIONS "Build VAST conversion passes." ON)
@@ -206,6 +216,12 @@ add_dependencies(vast-headers vast-generic-headers)
 add_custom_target(vast-doc)
 
 define_property(GLOBAL PROPERTY VAST_INSTALL_TARGETS)
+
+if(CMAKE_GENERATOR MATCHES "Ninja" AND
+    NOT "${NINJA_VERSION}" VERSION_LESS "1.9.0" AND
+    CMAKE_HOST_APPLE AND CMAKE_HOST_SYSTEM_VERSION VERSION_GREATER "15.6.0")
+  set(VAST_TOUCH_STATIC_LIBRARIES ON)
+endif()
 
 include(AddVAST)
 
