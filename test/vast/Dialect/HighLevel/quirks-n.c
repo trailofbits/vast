@@ -16,5 +16,5 @@ struct foo { int bar; } const typedef baz;
 s16 a;
 // CHECK: hl.var "b" : !hl.lvalue<!hl.elaborated<!hl.typedef<"u32">>>
 u32 b;
-// CHECK: hl.var "c" : !hl.lvalue<!hl.elaborated<!hl.typedef<"baz", const >,  const >>
+// CHECK: hl.var "c" : !hl.lvalue<!hl.elaborated<!hl.typedef<"baz">>>
 baz c;

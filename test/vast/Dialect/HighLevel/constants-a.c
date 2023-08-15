@@ -25,7 +25,7 @@ double d = 0.0;
 // CHECK: hl.const #hl.strlit<"hello"> : !hl.lvalue<!hl.array<6, !hl.char>>
 const char *str = "hello";
 
-// CHECK: hl.var "arr" : !hl.lvalue<!hl.array<3, !hl.int< const >,  const >>
+// CHECK: hl.var "arr" : !hl.lvalue<!hl.array<3, !hl.int< const >>>
 // CHECK:   hl.const #hl.integer<1> : !hl.int
 // CHECK:   hl.const #hl.integer<2> : !hl.int
 // CHECK:   hl.const #hl.integer<3> : !hl.int
