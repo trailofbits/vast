@@ -143,14 +143,15 @@ namespace vast::cg {
 
         auto with_qualifiers(const clang::TypeOfExprType *ty, qualifiers quals) -> mlir_type {
             clang::Expr *underlying_expr = ty->getUnderlyingExpr();
+            auto underlying_t            = visit(underlying_expr->getType());
 
             auto name = derived().type_of_expr_name(underlying_expr);
 
             auto [reg, _] = make_type_yield_region(underlying_expr);
-            Location loc = meta_location(underlying_expr);
-            auto rty = with_cvr_qualifiers(type_builder< hl::TypeOfExprType >().bind(name), quals).freeze();
-            this->template create<hl::TypeOfExprOp>(loc, name, rty, std::move(reg));
-            return rty;
+            Location loc  = meta_location(underlying_expr);
+            this->template create< hl::TypeOfExprOp >(loc, name, underlying_t, std::move(reg));
+            return with_cvr_qualifiers(type_builder< hl::TypeOfExprType >().bind(name), quals)
+                .freeze();
         }
 
         auto with_qualifiers(const clang::TypeOfType *ty, qualifiers quals) -> mlir_type {
