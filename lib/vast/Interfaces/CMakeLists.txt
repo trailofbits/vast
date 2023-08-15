@@ -1,28 +1,12 @@
-set(LLVM_OPTIONAL_SOURCES
+set(VAST_OPTIONAL_SOURCES
   SymbolInterface.cpp
   TypeQualifiersInterfaces.cpp
 )
 
-function(add_vast_interface_library name)
-  add_mlir_library(VAST${name}
-    ${name}.cpp
+add_vast_interface_library(SymbolInterface
+  SymbolInterface.cpp
+)
 
-    ADDITIONAL_HEADER_DIRS
-    ${PROJECT_SOURCE_DIR}/include/vast/Interfaces
-
-    DEPENDS
-    MLIR${name}IncGen
-
-    LINK_LIBS PUBLIC
-    MLIRIR
-  )
-endfunction(add_vast_interface_library)
-
-add_vast_interface_library(SymbolInterface)
-add_vast_interface_library(TypeQualifiersInterfaces)
-
-# TODO: Move to vast_add_interface_library
-set_property(GLOBAL APPEND PROPERTY VAST_INSTALL_TARGETS
-  VASTSymbolInterface
-  VASTTypeQualifiersInterfaces
+add_vast_interface_library(TypeQualifiersInterfaces
+  TypeQualifiersInterfaces.cpp
 )
