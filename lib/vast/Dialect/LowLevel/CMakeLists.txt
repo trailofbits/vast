@@ -5,4 +5,6 @@ add_vast_dialect_library(MLIRLowLevel
     LowLevelOps.cpp
 )
 
-add_subdirectory(Transforms)
+if (VAST_BUILD_CONVERSIONS)
+    add_subdirectory(Transforms)
+endif()
