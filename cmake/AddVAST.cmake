@@ -535,8 +535,11 @@ function(add_vast_library name)
   "SHARED;INSTALL_WITH_TOOLCHAIN;EXCLUDE_FROM_LIBVAST;DISABLE_INSTALL;ENABLE_AGGREGATION"
   ""
   "ADDITIONAL_HEADERS;DEPENDS;LINK_COMPONENTS;LINK_LIBS"
-  ${ARGN})
+  ${ARGN}
+  )
   set_vast_additional_headers_and_sources(${ARG_ADDITIONAL_HEADERS})
+
+  set(name VAST${name})
 
   # Is an object library needed.
   set(NEEDS_OBJECT_LIB OFF)
@@ -628,7 +631,7 @@ endfunction(add_vast_library)
 
 # Declare the library associated with a dialect.
 function(add_vast_dialect_library name)
-    set_property(GLOBAL APPEND PROPERTY VAST_DIALECT_LIBS ${name})
+    set_property(GLOBAL APPEND PROPERTY VAST_DIALECT_LIBS VAST${name})
     add_vast_library(${ARGV} DEPENDS
       vast-headers
     )
@@ -636,19 +639,19 @@ endfunction(add_vast_dialect_library)
 
 # Declare the library associated with a conversion.
 function(add_vast_conversion_library name)
-    set_property(GLOBAL APPEND PROPERTY VAST_CONVERSION_LIBS ${name})
+    set_property(GLOBAL APPEND PROPERTY VAST_CONVERSION_LIBS VAST${name})
     add_vast_library(${ARGV} DEPENDS vast-headers)
 endfunction(add_vast_conversion_library)
 
 # Declare the library associated with an extension.
 function(add_vast_extension_library name)
-    set_property(GLOBAL APPEND PROPERTY VAST_EXTENSION_LIBS ${name})
+    set_property(GLOBAL APPEND PROPERTY VAST_EXTENSION_LIBS VAST${name})
     add_vast_library(${ARGV} DEPENDS vast-headers)
 endfunction(add_vast_extension_library)
 
 # Declare the library associated with a translation.
 function(add_vast_translation_library name)
-    set_property(GLOBAL APPEND PROPERTY VAST_TRANSLATION_LIBS ${name})
+    set_property(GLOBAL APPEND PROPERTY VAST_TRANSLATION_LIBS VAST${name})
     add_vast_library(${ARGV} DEPENDS vast-headers)
 endfunction(add_vast_translation_library)
 
