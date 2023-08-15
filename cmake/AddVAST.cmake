@@ -177,6 +177,22 @@ function(add_vast_dialect_with_doc dialect dialect_namespace)
     add_vast_doc(${dialect} ${dialect} ${dialect}/ -gen-dialect-doc -dialect=${dialect_namespace})
 endfunction(add_vast_dialect_with_doc)
 
+function(add_vast_op_interface interface)
+  set(VAST_TARGET_DEFINITIONS ${interface}.td)
+  vast_tablegen(${interface}.h.inc -gen-op-interface-decls)
+  vast_tablegen(${interface}.cpp.inc -gen-op-interface-defs)
+  add_public_vast_tablegen_target(VAST${interface}IncGen)
+  add_dependencies(vast-generic-headers VAST${interface}IncGen)
+endfunction()
+
+function(add_vast_attr_interface interface)
+  set(VAST_TARGET_DEFINITIONS ${interface}.td)
+  vast_tablegen(${interface}.h.inc -gen-attr-interface-decls)
+  vast_tablegen(${interface}.cpp.inc -gen-attr-interface-defs)
+  add_public_vast_tablegen_target(VAST${interface}IncGen)
+  add_dependencies(vast-generic-headers VAST${interface}IncGen)
+endfunction()
+
 # Sets ${srcs} to contain the list of additional headers for the target. Extra
 # arguments are included into the list of additional headers.
 function(set_vast_additional_headers_and_sources)
