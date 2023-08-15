@@ -14,7 +14,7 @@ add_mlir_dialect_library(VASTHighLevel
     DEPENDS
     VASTHighLevelIncGen
     VASTHighLevelAttributesIncGen
-    VASTHighLevelIncGen
+    VASTHighLevelEnumsIncGen
 
     LINK_LIBS PUBLIC
 
