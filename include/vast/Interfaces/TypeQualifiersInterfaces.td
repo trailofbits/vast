@@ -1,7 +1,7 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
-#ifndef VAST_TYPEQUALIFIERSINTERFACES
-#define VAST_TYPEQUALIFIERSINTERFACES
+#ifndef VAST_TYPE_QUALIFIERS_INTERFACES
+#define VAST_TYPE_QUALIFIERS_INTERFACES
 
 include "mlir/IR/OpBase.td"
 
@@ -61,4 +61,4 @@ def UnsignedQualifierInterface : AttrInterface< "UnsignedQualifierInterface" > {
     ];
 }
 
-#endif  // VAST_TYPEQUALIFIERSINTERFACES
+#endif  // VAST_TYPE_QUALIFIERS_INTERFACES
