@@ -187,31 +187,8 @@ namespace vast::cg
                 }
                 break;
             }
-            case clang::Decl::Namespace:
-            case clang::Decl::ClassTemplateSpecialization:
-            case clang::Decl::CXXRecord:
-            case clang::Decl::UsingShadow:
-            case clang::Decl::ClassTemplate:
-            case clang::Decl::VarTemplate:
-            case clang::Decl::Concept:
-            case clang::Decl::VarTemplatePartialSpecialization:
-            case clang::Decl::FunctionTemplate:
-            case clang::Decl::TypeAliasTemplate:
-            case clang::Decl::Block:
-            case clang::Decl::Empty:
-            case clang::Decl::Binding:
-            case clang::Decl::Using:
-            case clang::Decl::UsingEnum:
-            case clang::Decl::NamespaceAlias:
-            case clang::Decl::UsingDirective:
-            case clang::Decl::CXXConstructor:
-            case clang::Decl::StaticAssert:
-            case clang::Decl::Typedef:
-            case clang::Decl::TypeAlias:
-            case clang::Decl::Record:
-            case clang::Decl::Enum:
+            default:
                 return codegen.append_to_module(decl);
-            default: VAST_UNREACHABLE((std::string("codegen for: ") + decl->getDeclKindName()).c_str());
         }
     }
 
