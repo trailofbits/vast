@@ -11,9 +11,9 @@ namespace vast::us {
         registerTypes();
 
         addOperations<
-#define GET_OP_LIST
-#include "vast/Dialect/Unsupported/Unsupported.cpp.inc"
-            >();
+            #define GET_OP_LIST
+            #include "vast/Dialect/Unsupported/Unsupported.cpp.inc"
+        >();
     }
 } // namespace vast::us
 
