@@ -1,6 +1,6 @@
 include_guard()
-
 include(VASTProcessSources)
+
 
 # Clear out any pre-existing compile_commands file before processing. This
 # allows for generating a clean compile_commands on each configure.
@@ -291,7 +291,7 @@ function(vast_add_library_impl name)
   if(ARG_OBJLIBS)
     set(ALL_FILES ${ARG_OBJLIBS})
   else()
-    llvm_process_sources(ALL_FILES ${ARG_UNPARSED_ARGUMENTS} ${ARG_ADDITIONAL_HEADERS})
+    vast_process_sources(ALL_FILES ${ARG_UNPARSED_ARGUMENTS} ${ARG_ADDITIONAL_HEADERS})
   endif()
 
   if(ARG_MODULE)
