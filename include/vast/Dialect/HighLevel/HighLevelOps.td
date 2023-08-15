@@ -193,13 +193,6 @@ def TypeOfExprOp
 
   let regions = (region SizedRegion<1>:$underlyingExpr);
 
-  let extraClassDeclaration = [{
-    mlir::Type getResultType() {
-        auto yield = mlir::dyn_cast< hl::TypeYieldOp >(getUnderlyingExpr().back().back());
-        return yield.getYielded();
-    }
-  }];
-
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
