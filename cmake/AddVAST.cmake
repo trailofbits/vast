@@ -629,7 +629,9 @@ endfunction(add_vast_library)
 # Declare the library associated with a dialect.
 function(add_vast_dialect_library name)
     set_property(GLOBAL APPEND PROPERTY VAST_DIALECT_LIBS ${name})
-    add_vast_library(${ARGV} DEPENDS vast-headers)
+    add_vast_library(${ARGV} DEPENDS
+      vast-headers
+    )
 endfunction(add_vast_dialect_library)
 
 # Declare the library associated with a conversion.
@@ -653,66 +655,94 @@ endfunction(add_vast_translation_library)
 # # Adds an VAST library target for installation.
 # # This is usually done as part of add_vast_library but is broken out for cases
 # # where non-standard library builds can be installed.
-# function(add_vast_library_install name)
-#   get_vast_target_export_arg(${name} VAST export_to_vasttargets UMBRELLA vast-libraries)
-#   install(TARGETS ${name}
-#     COMPONENT ${name}
-#     ${export_to_vasttargets}
-#     LIBRARY DESTINATION lib${VAST_LIBDIR_SUFFIX}
-#     ARCHIVE DESTINATION lib${VAST_LIBDIR_SUFFIX}
-#     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-#     # Note that CMake will create a directory like:
-#     #   objects-${CMAKE_BUILD_TYPE}/obj.LibName
-#     # and put object files there.
-#     OBJECTS DESTINATION lib${VAST_LIBDIR_SUFFIX}
-#   )
+function(add_vast_library_install name)
+  get_vast_target_export_arg(${name} VAST export_to_vasttargets UMBRELLA vast-libraries)
+  install(TARGETS ${name}
+    COMPONENT ${name}
+    ${export_to_vasttargets}
+    LIBRARY DESTINATION lib${VAST_LIBDIR_SUFFIX}
+    ARCHIVE DESTINATION lib${VAST_LIBDIR_SUFFIX}
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    # Note that CMake will create a directory like:
+    #   objects-${CMAKE_BUILD_TYPE}/obj.LibName
+    # and put object files there.
+    OBJECTS DESTINATION lib${VAST_LIBDIR_SUFFIX}
+  )
 
-#   if (NOT LLVM_ENABLE_IDE)
-#     add_llvm_install_targets(install-${name}
-#                             DEPENDS ${name}
-#                             COMPONENT ${name})
-#   endif()
-#   set_property(GLOBAL APPEND PROPERTY VAST_ALL_LIBS ${name})
-#   set_property(GLOBAL APPEND PROPERTY VAST_EXPORTS ${name})
-# endfunction()
+  add_vast_install_targets(install-${name} DEPENDS ${name} COMPONENT ${name})
 
-# # Get the EXPORT argument to use for an install command for a target in a
-# # project. As explained at the top of the file, the project export set for a
-# # distribution is named ${project}{distribution}Targets (except for LLVM where
-# # it's named ${project}{distribution}Exports for legacy reasons). Also set the
-# # ${PROJECT}_${DISTRIBUTION}_HAS_EXPORTS global property to mark the project as
-# # having exports for the distribution.
-# # - target: The target to get the EXPORT argument for.
-# # - project: The project to produce the argument for. IMPORTANT: The casing of
-# #   this argument should match the casing used by the project's Config.cmake
-# #   file. The correct casing for the LLVM projects is Clang, Flang, LLD, LLVM,
-# #   and VAST.
-# # - export_arg_var The variable with this name is set in the caller's scope to
-# #   the EXPORT argument for the target for the project.
-# # - UMBRELLA: The (optional) umbrella target that the target is a part of. For
-# #   example, all LLVM libraries have the umbrella target llvm-libraries.
-# function(get_vast_target_export_arg target project export_arg_var)
-#   string(TOUPPER "${project}" project_upper)
-#   if(project STREQUAL "LLVM")
-#     set(suffix "Exports") # legacy
-#   else()
-#     set(suffix "Targets")
-#   endif()
+  set_property(GLOBAL APPEND PROPERTY VAST_ALL_LIBS ${name})
+  set_property(GLOBAL APPEND PROPERTY VAST_EXPORTS ${name})
+endfunction()
 
-#   get_llvm_distribution(${target} in_distribution distribution ${ARGN})
+function(add_vast_install_targets target)
+  cmake_parse_arguments(ARG "" "COMPONENT;PREFIX;SYMLINK" "DEPENDS" ${ARGN})
+  if(ARG_COMPONENT)
+    set(component_option -DCMAKE_INSTALL_COMPONENT="${ARG_COMPONENT}")
+  endif()
+  if(ARG_PREFIX)
+    set(prefix_option -DCMAKE_INSTALL_PREFIX="${ARG_PREFIX}")
+  endif()
 
-#   if(in_distribution)
-#     set(${export_arg_var} EXPORT ${project}${distribution}${suffix} PARENT_SCOPE)
-#     if(distribution)
-#       string(TOUPPER "${distribution}" distribution_upper)
-#       set_property(GLOBAL PROPERTY ${project_upper}_${distribution_upper}_HAS_EXPORTS True)
-#     else()
-#       set_property(GLOBAL PROPERTY ${project_upper}_HAS_EXPORTS True)
-#     endif()
-#   else()
-#     set(${export_arg_var} "" PARENT_SCOPE)
-#   endif()
-# endfunction()
+  set(file_dependencies)
+  set(target_dependencies)
+  foreach(dependency ${ARG_DEPENDS})
+    if(TARGET ${dependency})
+      list(APPEND target_dependencies ${dependency})
+    else()
+      list(APPEND file_dependencies ${dependency})
+    endif()
+  endforeach()
+
+  add_custom_target(${target}
+    DEPENDS ${file_dependencies}
+    COMMAND "${CMAKE_COMMAND}"
+            ${component_option}
+            ${prefix_option}
+            -P "${CMAKE_BINARY_DIR}/cmake_install.cmake"
+    USES_TERMINAL
+  )
+
+  set_target_properties(${target} PROPERTIES FOLDER "Component Install Targets")
+  add_custom_target(${target}-stripped
+    DEPENDS ${file_dependencies}
+    COMMAND "${CMAKE_COMMAND}"
+            ${component_option}
+            ${prefix_option}
+            -DCMAKE_INSTALL_DO_STRIP=1
+            -P "${CMAKE_BINARY_DIR}/cmake_install.cmake"
+    USES_TERMINAL
+  )
+
+  set_target_properties(${target}-stripped PROPERTIES FOLDER "Component Install Targets (Stripped)")
+  if(target_dependencies)
+    add_dependencies(${target} ${target_dependencies})
+    add_dependencies(${target}-stripped ${target_dependencies})
+  endif()
+
+  if(ARG_SYMLINK)
+    add_dependencies(${target} install-${ARG_SYMLINK})
+    add_dependencies(${target}-stripped install-${ARG_SYMLINK}-stripped)
+  endif()
+endfunction()
+
+# Get the EXPORT argument to use for an install command for a target in a
+# project. The project export set for is named ${project}Targets. Also set the
+# ${PROJECT}_HAS_EXPORTS global property to mark the project as
+# having exports.
+# - target: The target to get the EXPORT argument for.
+# - project: The project to produce the argument for. IMPORTANT: The casing of
+#   this argument should match the casing used by the project's Config.cmake
+# - export_arg_var The variable with this name is set in the caller's scope to
+#   the EXPORT argument for the target for the project.
+# - UMBRELLA: The (optional) umbrella target that the target is a part of. For
+#   example, all VAST libraries have the umbrella target vast-libraries.
+function(get_vast_target_export_arg target project export_arg_var)
+  string(TOUPPER "${project}" project_upper)
+  set(suffix "Targets")
+  set(${export_arg_var} EXPORT ${project}${suffix} PARENT_SCOPE)
+  set_property(GLOBAL PROPERTY ${project_upper}_HAS_EXPORTS True)
+endfunction()
 
 # Verification tools to aid debugging.
 function(vast_check_link_libraries name)
