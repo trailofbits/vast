@@ -89,9 +89,9 @@ namespace vast::cg {
             #undef VAST_UNSUPPORTED_DECL_BODY_CALLBACK
 
             if (auto d = mlir::dyn_cast< clang::DeclContext >(decl)) {
-                return [&] (auto &bld, auto loc) {
+                return [this, d] (auto &bld, auto loc) {
                     for (auto child : d->decls()) {
-                        visit(child);
+                        this->visit(child);
                     }
                 };
             }
@@ -109,8 +109,6 @@ namespace vast::cg {
         }
 
         operation make_unsupported_decl(auto decl) {
-            auto callback = make_body_callback(decl);
-
             auto op = this->template make_operation< us::UnsupportedDecl >()
                 .bind(meta_location(decl)) // location
                 .bind(decl_name(decl));    // name
