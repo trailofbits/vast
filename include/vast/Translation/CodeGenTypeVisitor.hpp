@@ -173,7 +173,7 @@ namespace vast::cg {
 
         auto Visit(clang::QualType ty) -> mlir_type {
             auto underlying = ty.getTypePtr();
-            auto quals      = ty.getQualifiers();
+            auto quals      = ty.getLocalQualifiers();
             if (auto t = llvm::dyn_cast< clang::BuiltinType >(underlying)) {
                 return VisitBuiltinType(t, quals);
             }
