@@ -1,38 +1,13 @@
 # Copyright (c) 2021-present, Trail of Bits, Inc.
 
-add_mlir_dialect_library(VASTHighLevel
+add_vast_dialect_library(VASTHighLevel
     HighLevelDialect.cpp
     HighLevelVar.cpp
     HighLevelOps.cpp
     HighLevelAttributes.cpp
     HighLevelTypes.cpp
     HighLevelLinkage.cpp
-
-    ADDITIONAL_HEADER_DIRS
-    ${PROJECT_SOURCE_DIR}/include/vast
-
-    DEPENDS
-    VASTHighLevelIncGen
-    VASTHighLevelAttributesIncGen
-    VASTHighLevelEnumsIncGen
-
-    LINK_LIBS PUBLIC
-
-    MLIRIR
-    MLIRSupport
-    MLIRSideEffectInterfaces
-
-    MLIRCallInterfaces
-    MLIRCastInterfaces
-    MLIRControlFlowInterfaces
-    MLIRDataLayoutInterfaces
-    MLIRInferTypeOpInterface
-
-    VASTSymbolInterface
-    VASTTypeQualifiersInterfaces
 )
-
-target_link_libraries(VASTHighLevel PRIVATE vast::settings)
 
 if (VAST_BUILD_CONVERSIONS)
     add_subdirectory(Transforms)
