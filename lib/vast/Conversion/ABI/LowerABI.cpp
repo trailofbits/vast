@@ -48,6 +48,7 @@ VAST_UNRELAX_WARNINGS
 #include <gap/core/generator.hpp>
 
 #include "vast/Conversion/ABI/AggregateTypes.hpp"
+#include "vast/Conversion/Common/Block.hpp"
 
 namespace vast
 {
@@ -58,9 +59,22 @@ namespace vast
     {
     namespace
     {
+        auto query_bw(const auto &dl, mlir_type type)
+        {
+            return dl.getTypeSizeInBits(hl::strip_value_category(type));
+        }
+
+        auto query_bw(const auto &dl, auto type_range)
+        {
+            std::size_t acc = 0;
+            for (auto type : type_range)
+                acc += query_bw(dl, type);
+            return acc;
+        }
+
         bool can_concat_as(const auto &dl, auto type_range, auto target)
         {
-            return bw(dl, target) == bw(dl, type_range);
+            return query_bw(dl, target) == query_bw(dl, type_range);
         }
 
         // [ `current_arg`, offset into `current_arg`, size of `current_arg` ]
@@ -110,7 +124,7 @@ namespace vast
 
             auto bw(mlir_type type) const
             {
-                return ::vast::bw(dl, hl::strip_value_category(type));
+                return query_bw(dl, hl::strip_value_category(type));
             }
             auto bw(mlir::Value val) const { return bw(val.getType()); }
 
@@ -136,6 +150,9 @@ namespace vast
 
                 }
 
+                VAST_PATTERN_CHECK(state.op.getNumResults() == to_replace.size(),
+                                   "Incorrect replacement: {0} != {1} of op {2}.",
+                                   state.op.getNumResults(), to_replace.size(), state.op);
                 state.rewriter.replaceOp(state.op, to_replace);
                 return mlir::success();
             }
@@ -180,22 +197,42 @@ namespace vast
                            "{0} != {1}", init_values.size(), direct.getNumResults());
 
                 for (std::size_t i = 0; i < init_values.size(); ++i)
-                {
-                    auto var = state.rewriter.template create< ll::UninitializedVar >(
-                            direct.getLoc(), direct.getResults()[i].getType());
-
-                    co_yield state.rewriter.template create< ll::InitializeVar >(
-                            direct.getLoc(),
-                            var.getResult().getType(),
-                            var, init_values[i]);
-                }
+                    co_yield init_values[i];
             }
 
 
             auto deconstruct_record(hl::RecordType record_type, abi::DirectOp direct)
             {
                 auto val = direct.getOperand(0).getDefiningOp();
-                return conv::abi::deconstruct_aggregate(pattern, direct, val, state.rewriter);
+                // So we are going to emit a bunch `hl.member` which are
+                // semantically geps. These need an operand, that is lvalue.
+                // First, we try to see if lvalue can be fetched one step backwards
+                // in DF.
+                // IF not we assert for now - possible behaviour is to introduce custom
+                // `ll` uninitialized variable (as they don't need names) and then
+                // simply hope later on this will get obliterated during some form
+                // of mem2reg.
+
+                auto as_lvalue = [&]() -> mlir::Operation *
+                {
+                    VAST_ASSERT(val->getNumResults() == 1);
+                    auto as_val = val->getResult(0);
+                    if (mlir::isa< hl::LValueType >(as_val.getType()))
+                        return val;
+
+                    if (auto implicit_cast = mlir::dyn_cast< hl::ImplicitCastOp >(val))
+                    {
+                        if (implicit_cast.getKind() == hl::CastKind::LValueToRValue)
+                        {
+                            return implicit_cast.getOperand().getDefiningOp();
+                        }
+                    }
+
+                    VAST_UNREACHABLE("ABI conversion could not make lvalue for {0}", *val);
+                }();
+
+                return conv::abi::deconstruct_aggregate(pattern, direct, as_lvalue,
+                                                        state.rewriter);
             }
 
             mlir::Value convert_primitive_type(mlir_type target_type, abi::DirectOp direct)
@@ -209,9 +246,31 @@ namespace vast
                                          target_type),
                            "Cannot do concat when converting {0}", direct);
 
+                auto stripped_lvalues = [&]()
+                {
+                    std::vector< mlir::Value > out;
+                    for (auto v : direct.getOperands())
+                    {
+                        auto lvalue_type = mlir::dyn_cast< hl::LValueType >(v.getType());
+                        if (!lvalue_type)
+                        {
+                            out.push_back(v);
+                            continue;
+                        }
+
+                        auto cast = state.rewriter.template create< hl::ImplicitCastOp >(
+                                direct.getLoc(),
+                                lvalue_type.getElementType(),
+                                v,
+                                hl::CastKind::LValueToRValue);
+                        out.push_back(cast);
+                    }
+                    return out;
+                }();
+
                 return state.rewriter.template create< ll::Concat >(
                         direct.getLoc(),
-                        target_type, direct.getOperands());
+                        target_type, stripped_lvalues);
             }
 
             auto convert(mlir::Type target_type, abi::DirectOp direct)
@@ -258,6 +317,28 @@ namespace vast
                 VAST_CHECK(direct.getNumOperands() >= 1,
                            "abi.direct op should have > 1 operands: {0}", direct);
 
+                auto stripped_lvalues = [&]()
+                {
+                    std::vector< mlir::Value > out;
+                    for (auto v : direct.getOperands())
+                    {
+                        auto lvalue_type = mlir::dyn_cast< hl::LValueType >(v.getType());
+                        if (!lvalue_type)
+                        {
+                            out.push_back(v);
+                            continue;
+                        }
+
+                        auto cast = state.rewriter.template create< hl::ImplicitCastOp >(
+                                direct.getLoc(),
+                                lvalue_type.getElementType(),
+                                v,
+                                hl::CastKind::LValueToRValue);
+                        out.push_back(cast);
+                    }
+                    return out;
+                }();
+
                 // We need to reconstruct the type and we ?know? that arguments
                 // simply need to be concated?
                 VAST_CHECK(can_concat_as(pattern.dl, direct.getOperands().getTypes(),
@@ -266,7 +347,7 @@ namespace vast
 
                 return state.rewriter.template create< ll::Concat >(
                         direct.getLoc(),
-                        target_type, direct.getOperands());
+                        target_type, stripped_lvalues);
             }
 
             mlir::Value convert(mlir::Type res_type, abi::DirectOp direct)
@@ -289,17 +370,29 @@ namespace vast
             {
                 // TODO(conv:abi): Can direct have more return types?
                 VAST_ASSERT(direct.getNumResults() == 1 && direct.getNumOperands() > 0);
+                // Not invoking yet, since I may do something if value is lvalue.
+                auto convert_values = [&]()
+                {
+                    std::vector< mlir::Value > init_values;
+                    for (auto res_type : direct.getResult().getTypes())
+                        init_values.push_back(convert(res_type, direct));
+                    return init_values;
+                };
+
+                if (!mlir::isa< hl::LValueType >(direct.getResult().getTypes()[0]))
+                {
+                    for (auto v : convert_values())
+                        co_yield v;
+                    co_return;
+                }
+
                 auto var = state.rewriter.template create< ll::UninitializedVar >(
                         direct.getLoc(), direct.getResult().getType());
-
-                std::vector< mlir::Value > init_values;
-                for (auto res_type : direct.getResult().getTypes())
-                    init_values.push_back(convert(res_type, direct));
 
                 co_yield state.rewriter.template create< ll::InitializeVar >(
                         direct.getLoc(),
                         var.getResult().getType(),
-                        var, init_values);
+                        var, convert_values());
             }
         };
 
@@ -388,7 +481,6 @@ namespace vast
             using op_t = typename base::op_t;
 
             using base::base;
-
             using state_capture = typename base::state_capture;
 
             logical_result matchAndRewrite(op_t op,
@@ -404,6 +496,97 @@ namespace vast
                 auto ctor = reconstructs_types(state, *this);
                 for (auto v : ctor.handle(direct))
                     co_yield v;
+            }
+        };
+
+        struct call_exec : operation_conversion_pattern< abi::CallExecutionOp >
+        {
+            using base = operation_conversion_pattern< abi::CallExecutionOp >;
+            using op_t = abi::CallExecutionOp;
+
+            using base::base;
+
+            logical_result matchAndRewrite(op_t op,
+                                           typename op_t::Adaptor ops,
+                                           conversion_rewriter &rewriter) const override
+            {
+                auto parent = op->getParentRegion();
+                conv::inline_region_blocks(rewriter, op.getBody(),
+                                           mlir::Region::iterator(parent->end()));
+                auto &unit_block = parent->back();
+                rewriter.mergeBlockBefore(&unit_block, op, {});
+
+                auto previous_inst = &*std::prev(mlir::Block::iterator(op));
+                auto yield = mlir::dyn_cast< abi::YieldOp >(previous_inst);
+
+                VAST_ASSERT(yield);
+                rewriter.replaceOp(op, yield.getOperands());
+                rewriter.eraseOp(yield);
+
+                return mlir::success();
+            }
+        };
+
+        struct call : operation_conversion_pattern< abi::CallOp >
+        {
+            using base = operation_conversion_pattern< abi::CallOp >;
+            using op_t = abi::CallOp;
+
+            using base::base;
+
+            logical_result matchAndRewrite(op_t op,
+                                           typename op_t::Adaptor ops,
+                                           conversion_rewriter &rewriter) const override
+            {
+                auto new_op = rewriter.create< hl::CallOp >(
+                        op.getLoc(),
+                        op.getCallee(),
+                        op.getResults().getTypes(),
+                        ops.getOperands());
+                rewriter.replaceOp(op, new_op.getResults());
+                return mlir::success();
+            }
+        };
+
+        struct function : operation_conversion_pattern< abi::FuncOp >
+        {
+            using base = operation_conversion_pattern< abi::FuncOp >;
+            using op_t = abi::FuncOp;
+
+            using base::base;
+
+            logical_result matchAndRewrite(op_t op,
+                                           typename op_t::Adaptor ops,
+                                           conversion_rewriter &rewriter) const override
+            {
+                mlir::SmallVector< mlir::DictionaryAttr, 8 > arg_attrs;
+                mlir::SmallVector< mlir::NamedAttribute, 8 > other_attrs;
+
+                op.getAllArgAttrs(arg_attrs);
+
+                auto name = op.getName();
+                if (!name.consume_front("vast.abi"))
+                    return mlir::failure();
+
+                auto fn = rewriter.create< hl::FuncOp >(
+                        op.getLoc(),
+                        name,
+                        op.getFunctionType(),
+                        hl::GlobalLinkageKind::InternalLinkage,
+                        other_attrs,
+                        arg_attrs
+                );
+
+                fn.setVisibility(mlir::SymbolTable::Visibility::Private);
+
+                rewriter.inlineRegionBefore(op.getBody(),
+                                            fn.getBody(),
+                                            fn.getBody().begin());
+
+
+                rewriter.eraseOp(op);
+                return mlir::success();
+
             }
         };
 
@@ -434,11 +617,21 @@ namespace vast
             config.patterns.template add< pattern::call_args >(dl, config.getContext());
             config.patterns.template add< pattern::call_rets >(dl, config.getContext());
 
+            config.patterns.template add< pattern::call >(config.getContext());
+            config.patterns.template add< pattern::call_exec >(config.getContext());
+
+            config.patterns.template add< pattern::function >(config.getContext());
+
             config.target.template addIllegalOp< abi::PrologueOp >();
             config.target.template addIllegalOp< abi::EpilogueOp >();
 
             config.target.template addIllegalOp< abi::CallArgsOp >();
             config.target.template addIllegalOp< abi::CallRetsOp >();
+
+            config.target.template addIllegalOp< abi::CallOp >();
+            config.target.template addIllegalOp< abi::CallExecutionOp >();
+
+            config.target.template addIllegalOp< abi::FuncOp >();
         }
 
         // TODO(conv:abi): Neeeded hack for this to compile.
