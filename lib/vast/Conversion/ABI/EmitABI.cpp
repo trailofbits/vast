@@ -117,9 +117,18 @@ namespace vast
                 return out;
             }
 
-            core::FunctionType abified_type() {
-                // TODO: deal with varaargs
-                return core::FunctionType::get(abified_args(), abified_rets());
+            core::FunctionType abified_type()
+            {
+                auto add_lvalue = [&](const auto &from)
+                {
+                    types_t out;
+                    for (auto t : from)
+                        out.push_back(hl::LValueType::get(t.getContext(), t));
+                    return out;
+                };
+
+                return  core::FunctionType::get(add_lvalue(abified_args()),
+                                                abified_rets());
             }
 
             void zip(const auto &a, const auto &b, auto &&yield)
