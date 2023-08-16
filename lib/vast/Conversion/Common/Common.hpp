@@ -45,6 +45,17 @@ namespace vast::conv::irstollvm
             VAST_CHECK(trg_type, "Failed to convert type: {0}", t);
             return *trg_type;
         }
+
+        auto mk_index(auto loc, std::size_t idx, auto &rewriter) const
+            -> mlir::LLVM::ConstantOp
+        {
+            auto index_type = convert(rewriter.getIndexType());
+            return rewriter.template create< mlir::LLVM::ConstantOp >(
+                    loc,
+                    index_type,
+                    rewriter.getIntegerAttr(index_type, idx));
+
+        }
     };
 
     template< typename src_t, typename trg_t >
