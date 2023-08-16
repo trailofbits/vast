@@ -55,6 +55,7 @@ namespace vast
 
     using operation  = mlir::Operation*;
     using mlir_value = mlir::Value;
+    using op_operand = mlir::OpOperand;
 
     using string_ref     = llvm::StringRef;
     using logical_result = mlir::LogicalResult;
