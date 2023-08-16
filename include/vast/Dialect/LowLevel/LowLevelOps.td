@@ -98,6 +98,23 @@ def Extract
     ];
 
     // TODO(ll): Utility API like size().
+
+    let extraClassDeclaration = [{
+        std::size_t from()
+        {
+            return mlir::dyn_cast< mlir::IntegerAttr >(getFrom()).getUInt();
+        }
+
+        std::size_t to()
+        {
+            return mlir::dyn_cast< mlir::IntegerAttr >(getTo()).getUInt();
+        }
+
+        std::size_t size()
+        {
+            return to() - from() + 1;
+        }
+    }];
 }
 
 def Br
