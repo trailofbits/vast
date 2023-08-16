@@ -1,6 +1,6 @@
 include_guard()
-include(VASTProcessSources)
 
+include(VASTProcessSources)
 
 # Clear out any pre-existing compile_commands file before processing. This
 # allows for generating a clean compile_commands on each configure.
@@ -66,6 +66,7 @@ function(vast_tablegen_impl project ofn)
     # but lets us having smaller and cleaner code here.
     get_directory_property(vast_tablegen_includes INCLUDE_DIRECTORIES)
     list(APPEND vast_tablegen_includes ${ARG_EXTRA_INCLUDES})
+    list(APPEND vast_tablegen_includes ${VAST_MAIN_INCLUDE_DIR})
     # Filter out empty items before prepending each entry with -I
     list(REMOVE_ITEM vast_tablegen_includes "")
     list(TRANSFORM vast_tablegen_includes PREPEND -I)
@@ -96,7 +97,7 @@ function(vast_tablegen_impl project ofn)
     set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/${ofn} PROPERTIES GENERATED 1)
 endfunction(vast_tablegen_impl)
 
-# Reimplements LLVM's vast_tablegen function from `Addvast.cmake`
+# Reimplements LLVM's vast_tablegen function from `AddVAST.cmake`
 function(vast_tablegen ofn)
     vast_tablegen_impl(VAST ${ARGV})
     set(VAST_TABLEGEN_OUTPUT
@@ -106,10 +107,11 @@ function(vast_tablegen ofn)
 
     cmake_parse_arguments(ARG "" "" "DEPENDS;EXTRA_INCLUDES" ${ARGN})
     get_directory_property(vast_tablegen_includes INCLUDE_DIRECTORIES)
-
     list(APPEND vast_tablegen_includes ${ARG_EXTRA_INCLUDES})
+
     # Filter out any empty include items.
     list(REMOVE_ITEM vast_tablegen_includes "")
+
 
     # Build the absolute path for the current input file.
     if (IS_ABSOLUTE ${VAST_TARGET_DEFINITIONS})
@@ -206,6 +208,7 @@ function(set_vast_additional_headers_and_sources)
     if(NOT lib_path MATCHES "^[.][.]")
       file( GLOB_RECURSE headers
         ${VAST_SOURCE_DIR}/include/vast/${lib_path}/*.h
+        ${VAST_SOURCE_DIR}/include/vast/${lib_path}/*.hpp
         ${VAST_SOURCE_DIR}/include/vast/${lib_path}/*.def
       )
       set_source_files_properties(${headers} PROPERTIES HEADER_FILE_ONLY ON)
@@ -334,7 +337,10 @@ function(vast_add_library_impl name)
     list(APPEND objlibs ${obj_name})
 
     # Bring in the target include directories from our original target.
-    target_include_directories(${obj_name} PRIVATE $<TARGET_PROPERTY:${name},INCLUDE_DIRECTORIES>)
+    target_include_directories(${obj_name}
+      PRIVATE
+        $<TARGET_PROPERTY:${name},INCLUDE_DIRECTORIES>
+    )
 
     set_target_properties(${obj_name} PROPERTIES FOLDER "Object Libraries")
     if(ARG_DEPENDS)
@@ -379,11 +385,7 @@ function(vast_add_library_impl name)
 
     # Bring in the target link info from our original target.
     target_link_directories(${name_static} PRIVATE $<TARGET_PROPERTY:${name},LINK_DIRECTORIES>)
-    target_link_libraries(${name_static}
-      PRIVATE
-        $<TARGET_PROPERTY:${name},LINK_LIBRARIES>
-        vast::settings
-    )
+    target_link_libraries(${name_static} PRIVATE $<TARGET_PROPERTY:${name},LINK_LIBRARIES>)
 
     # FIXME: Add name_static to anywhere in TARGET ${name}'s PROPERTY.
     set(ARG_STATIC)
@@ -397,6 +399,13 @@ function(vast_add_library_impl name)
   else()
     add_library(${name} STATIC ${ALL_FILES})
   endif()
+
+  target_include_directories(${name}
+    PRIVATE
+      $<BUILD_INTERFACE:${VAST_SOURCE_DIR}/include>
+      $<BUILD_INTERFACE:${VAST_BINARY_DIR}/include>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  )
 
   if(NOT ARG_NO_INSTALL_RPATH)
     if(ARG_MODULE OR ARG_SHARED)
