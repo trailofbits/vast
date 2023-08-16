@@ -85,23 +85,15 @@ def Extract
     }];
 
     let builders = [
-        OpBuilder<(ins "mlir::Type":$type, "mlir::Type":$attr_type,
+        OpBuilder<(ins "mlir::Type":$type,
                        "mlir::Value":$value, "std::size_t":$from, "std::size_t":$to),
         [{
+            auto attr_type = mlir::IntegerType::get($_builder.getContext(),
+                                                    64, mlir::IntegerType::Unsigned);
             $_state.addOperands(value);
             $_state.addAttribute("from", mlir::IntegerAttr::get(attr_type, from));
             $_state.addAttribute("to", mlir::IntegerAttr::get(attr_type, to));
             $_state.addTypes(type);
-        }] >,
-
-        OpBuilder<(ins "mlir::Type":$type,
-                       "mlir::Value":$value, "std::size_t":$from, "std::size_t":$to),
-        [{
-            build($_builder, $_state, type,
-                  mlir::IntegerType::get($_builder.getContext(),
-                                         64, mlir::IntegerType::Signless),
-                  value,
-                  from, to);
         }] >
     ];
 
