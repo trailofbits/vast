@@ -179,6 +179,18 @@ function(add_vast_dialect_with_doc dialect dialect_namespace)
     add_vast_doc(${dialect} ${dialect} ${dialect}/ -gen-dialect-doc -dialect=${dialect_namespace})
 endfunction(add_vast_dialect_with_doc)
 
+function(add_vast_dialect_conversion_passes dialect)
+    set(VAST_TARGET_DEFINITIONS Passes.td)
+    vast_tablegen(Passes.h.inc -gen-pass-decls)
+    add_public_vast_tablegen_target(VAST${dialect}TransformsIncGen)
+    add_mlir_doc(Passes ${dialect}Passes ./ -gen-pass-doc)
+endfunction()
+
+function(add_vast_dialect_with_doc_and_passes dialect dialect_namespace)
+    add_vast_dialect_with_doc(${dialect} ${dialect_namespace})
+    add_vast_dialect_conversion_passes(${dialect})
+endfunction()
+
 function(add_vast_op_interface interface)
   set(VAST_TARGET_DEFINITIONS ${interface}.td)
   vast_tablegen(${interface}.h.inc -gen-op-interface-decls)
