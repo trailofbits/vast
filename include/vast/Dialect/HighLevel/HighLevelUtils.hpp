@@ -87,7 +87,7 @@ namespace vast::hl
 
     // TODO(hl): Custom hook to provide a location?
     auto traverse_record(operation root, auto &bld)
-        -> gap::generator< hl::RecordMemberOp >
+        -> gap::generator< hl::ImplicitCastOp >
     {
         auto module_op = root->getParentOfType< vast_module >();
         VAST_ASSERT(module_op);
@@ -100,10 +100,16 @@ namespace vast::hl
             auto as_val = root->getResult(0);
             // `hl.member` requires type to be an lvalue.
             auto wrap_type = hl::LValueType::get(module_op.getContext(), field_def.getType());
-            co_yield bld.template create< hl::RecordMemberOp >(root->getLoc(),
-                                                               wrap_type,
-                                                               as_val,
-                                                               field_def.getName());
+            auto member = bld.template create< hl::RecordMemberOp >(root->getLoc(),
+                                                                    wrap_type,
+                                                                    as_val,
+                                                                    field_def.getName());
+            co_yield bld.template create< hl::ImplicitCastOp >(
+                    root->getLoc(),
+                    field_def.getType(),
+                    member,
+                    hl::CastKind::LValueToRValue);
+
         }
     }
 
