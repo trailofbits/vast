@@ -313,10 +313,7 @@ namespace vast::conv::irstollvm
                 op_t op, typename op_t::Adaptor ops,
                 conversion_rewriter &rewriter) const override
         {
-            auto trg_type = tc.convert_type_to_type(op.getType());
-            VAST_PATTERN_CHECK(trg_type, "Could not convert vardecl type");
-
-            auto alloca = mk_alloca(rewriter, *trg_type, op.getLoc());
+            auto alloca = mk_alloca(rewriter, convert(op.getType()), op.getLoc());
             rewriter.replaceOp(op, alloca);
 
             return logical_result::success();
