@@ -326,41 +326,65 @@ namespace vast::conv::irstollvm
         using base = base_pattern< op_t >;
         using base::base;
 
+        // TODO(conv:abi): This seems like a weird hack, try to figure out
+        //                 how to make this more sane.
+        // First one is intended to catch the `adaptor`
+        auto erase(auto, auto &) const {}
+        auto erase(hl::InitListExpr op, auto &rewriter) const
+        {
+            rewriter.eraseOp(op);
+        }
+
+        static bool is_scalar(mlir_type t)
+        {
+            auto ptr = mlir::dyn_cast< mlir::LLVM::LLVMPointerType >(t);
+            VAST_ASSERT(ptr);
+            return !mlir::isa< mlir::LLVM::LLVMStructType >(ptr.getElementType());
+        }
+
+        void handle_root(typename op_t::Adaptor ops,
+                         auto ptr, auto &rewriter) const
+        {
+            // Scalar need special handling, because we won't be doing any GEPs
+            // into it - mlir verifier would survive that, but conversion
+            // to `llvm::` will complain.
+            if (!is_scalar(ptr.getType()))
+                return handle_init_list(ops, ptr, rewriter);
+
+            // We know it must be only one if the type is scalar.
+            auto element = ops.getElements()[0];
+            rewriter.template create< LLVM::StoreOp >(
+                    element.getLoc(),
+                    element,
+                    ptr);
+        }
+
+        void handle_init_list(auto init_list, auto ptr, auto &rewriter) const
+        {
+            std::size_t i = 0;
+
+            for (auto element : init_list.getElements())
+            {
+                auto e_type = LLVM::LLVMPointerType::get(element.getType());
+                std::vector< mlir::LLVM::GEPArg > indices { 0ul, i++ };
+
+                auto gep = rewriter.template create< LLVM::GEPOp >(
+                        element.getLoc(), e_type, ptr, indices);
+
+                if (auto nested = mlir::dyn_cast< hl::InitListExpr >(element.getDefiningOp()))
+                    handle_init_list(nested, gep, rewriter);
+                else
+                    rewriter.template create< LLVM::StoreOp >(element.getLoc(), element, gep);
+            }
+            erase(init_list, rewriter);
+        }
+
+
         logical_result matchAndRewrite(
                 op_t op, typename op_t::Adaptor ops,
                 conversion_rewriter &rewriter) const override
         {
-            auto index_type = tc.convert_type_to_type(rewriter.getIndexType());
-            VAST_PATTERN_CHECK(index_type, "Was not able to convert index type");
-
-            for (auto element : ops.getElements())
-            {
-                // TODO(lukas): This is not ideal - when lowering into ll we most
-                //              likely want to have multiple types of initializations?
-                //              For example `memset` or ctor call?
-                if (auto init_list_expr = element.getDefiningOp< hl::InitListExpr >())
-                {
-                    std::size_t i = 0;
-                    for (auto expr_elem : init_list_expr.getElements())
-                    {
-                        auto e_type = LLVM::LLVMPointerType::get(expr_elem.getType());
-                        auto index = rewriter.create< LLVM::ConstantOp >(
-                                op.getLoc(), *index_type,
-                                rewriter.getIntegerAttr(rewriter.getIndexType(), i++));
-                        auto gep = rewriter.create< LLVM::GEPOp >(
-                                op.getLoc(), e_type, ops.getVar(), index.getResult());
-
-                        rewriter.create< LLVM::StoreOp >(op.getLoc(), expr_elem, gep);
-                    }
-                    rewriter.eraseOp(init_list_expr);
-                    break;
-                }
-
-                rewriter.create< LLVM::StoreOp >(op.getLoc(), element, ops.getVar());
-            }
-
-            // While op is a value, there is no reason not to use the previous alloca,
-            // since we just initialized it.
+            handle_root(ops, ops.getVar(), rewriter);
             rewriter.replaceOp(op, ops.getVar());
 
             return logical_result::success();
