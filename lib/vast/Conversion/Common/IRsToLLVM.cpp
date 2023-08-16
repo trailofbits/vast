@@ -46,6 +46,176 @@ namespace vast::conv::irstollvm
         ignore_pattern< hl::PredefinedExpr >
     >;
 
+    struct ll_struct_gep : base_pattern< ll::StructGEPOp >
+    {
+        using base = base_pattern< ll::StructGEPOp >;
+        using base::base;
+
+        using op_t = ll::StructGEPOp;
+
+        logical_result matchAndRewrite(
+                op_t op, typename op_t::Adaptor ops,
+                conversion_rewriter &rewriter) const override
+        {
+            std::vector< mlir::LLVM::GEPArg > indices { 0ul, ops.getIdx() };
+            auto gep = rewriter.create< mlir::LLVM::GEPOp >(
+                    op.getLoc(),
+                    convert(op.getType()),
+                    ops.getRecord(),
+                    indices);
+
+            rewriter.replaceOp(op, gep);
+            return mlir::success();
+        }
+    };
+
+    struct ll_extract : base_pattern< ll::Extract >
+    {
+        using base = base_pattern< ll::Extract >;
+        using base::base;
+
+        using op_t = ll::Extract;
+
+        std::size_t to_number(mlir::TypedAttr attr) const
+        {
+            auto int_attr = mlir::dyn_cast< mlir::IntegerAttr >(attr);
+            VAST_CHECK(int_attr, "Cannot convert {0} to `mlir::IntegerAttr`.", attr);
+
+            return int_attr.getUInt();
+        }
+
+        bool is_consistent(op_t op) const
+        {
+            auto size = to_number(op.getTo()) - to_number(op.getFrom()) + 1;
+            const auto &dl = this->type_converter().getDataLayoutAnalysis()
+                                                   ->getAtOrAbove(op);
+            auto target_bw = dl.getTypeSizeInBits(convert(op.getType()));
+
+            return target_bw != size;
+        }
+
+        logical_result matchAndRewrite(
+                op_t op, typename op_t::Adaptor ops,
+                conversion_rewriter &rewriter) const override
+        {
+            auto loc = op.getLoc();
+
+            auto value = [&]() -> mlir::Value
+            {
+                auto arg = ops.getArg();
+                if (auto ptr = mlir::dyn_cast< mlir::LLVM::LLVMPointerType >(arg.getType()))
+                {
+                    return rewriter.create< mlir::LLVM::LoadOp >(
+                            op.getLoc(),
+                            ptr.getElementType(),
+                            arg);
+                }
+                return arg;
+            }();
+
+            auto i8_type = mlir::IntegerType::get(getContext(), 8);
+
+            auto extract = [&](auto from, auto pos) -> mlir::Value
+            {
+                auto shift = rewriter.create< mlir::LLVM::LShrOp >(
+                        loc,
+                        value,
+                        iN(rewriter, loc, value.getType(), from));
+                auto trunc = rewriter.create< mlir::LLVM::TruncOp >(
+                        loc,
+                        i8_type,
+                        shift);
+                auto zext = rewriter.create< mlir::LLVM::ZExtOp >(
+                        loc,
+                        convert(op.getType()),
+                        trunc);
+
+                if (pos == 0)
+                    return zext;
+
+                return rewriter.create< mlir::LLVM::ShlOp >(
+                        loc,
+                        convert(op.getType()),
+                        zext,
+                        iN(rewriter, loc, convert(op.getType()), pos));
+
+            };
+
+            mlir::Value head = iN(rewriter, loc, convert(op.getType()), 0);
+            // TODO(conv:abi): It may be possible we don't need this in the end and plain
+            //                 `shift & trunc` will work. I am leaving it here for now as it
+            //                 seems to work.
+            for (std::size_t i = 0; i < op.size() / 8; ++i)
+            {
+                auto offset = op.from() + i * 8;
+                auto byte = extract(offset, i * 8);
+                head = rewriter.create< mlir::LLVM::OrOp >(
+                        loc,
+                        byte,
+                        head);
+            }
+            rewriter.replaceOp(op, { head });
+            return mlir::success();
+        }
+    };
+
+    struct ll_concat : base_pattern< ll::Concat >
+    {
+        using base = base_pattern< ll::Concat >;
+        using base::base;
+
+        using op_t = ll::Concat;
+
+        std::size_t bw(operation op) const
+        {
+            VAST_ASSERT(op->getNumResults() == 1);
+            const auto &dl = this->type_converter().getDataLayoutAnalysis()
+                                                   ->getAtOrAbove(op);
+            return dl.getTypeSizeInBits(convert(op->getResult(0).getType()));
+        }
+
+        logical_result matchAndRewrite(
+                op_t op, typename op_t::Adaptor ops,
+                conversion_rewriter &rewriter) const override
+        {
+            auto loc = op.getLoc();
+
+            auto resize = [&](auto w)
+            {
+                return rewriter.create< mlir::LLVM::ZExtOp >(
+                        loc,
+                        convert(op.getType()),
+                        w);
+            };
+            mlir::Operation *head = resize(ops.getOperands()[0]);
+
+            std::size_t start = bw(ops.getOperands()[0].getDefiningOp());
+            for (std::size_t i = 1; i < ops.getOperands().size(); ++i)
+            {
+                auto full = resize(ops.getOperands()[i]);
+                auto shifted = rewriter.create< mlir::LLVM::ShlOp >(
+                        loc,
+                        full,
+                        mk_index(loc, start, rewriter));
+                head = rewriter.create< mlir::LLVM::OrOp >(
+                        loc,
+                        head->getResults()[0],
+                        shifted->getResults()[0]);
+
+                start += bw(ops.getOperands()[i].getDefiningOp());
+            }
+
+            rewriter.replaceOp(op, head->getResults());
+            return mlir::success();
+        }
+    };
+
+    using ll_generic_patterns = util::type_list<
+        ll_struct_gep,
+        ll_extract,
+        ll_concat
+    >;
+
     template< typename Op >
     struct inline_region_from_op : base_pattern< Op >
     {
@@ -1352,6 +1522,7 @@ namespace vast::conv::irstollvm
                 ignore_patterns,
                 label_patterns,
                 lazy_op_type_conversions,
+                ll_generic_patterns,
                 ll_cf::conversions
             >(cfg);
         }
