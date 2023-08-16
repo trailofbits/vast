@@ -19,11 +19,11 @@ namespace vast::conv::irstollvm
     {
         using base = operation_to_llvm_conversion_pattern< op_t >;
 
-        tc::LLVMTypeConverter &tc;
+        tc::FullLLVMTypeConverter &tc;
 
-        base_pattern(tc::LLVMTypeConverter &tc_) : base(tc_), tc(tc_) {}
+        base_pattern(tc::FullLLVMTypeConverter &tc_) : base(tc_), tc(tc_) {}
 
-        tc::LLVMTypeConverter &type_converter() const { return tc; }
+        tc::FullLLVMTypeConverter &type_converter() const { return tc; }
 
         auto dl(auto op) const { return tc.getDataLayoutAnalysis()->getAtOrAbove(op); }
 
