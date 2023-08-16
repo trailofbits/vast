@@ -127,13 +127,10 @@ include(AddLLVM)
 include(AddMLIR)
 include(HandleLLVMOptions)
 
-# TODO(Heno): clean up & modernize
 include_directories(${LLVM_INCLUDE_DIRS})
-include_directories(${MLIR_INCLUDE_DIRS})
-include_directories(${CLANG_INCLUDE_DIRS})
 
-include_directories(${PROJECT_SOURCE_DIR}/include)
-include_directories(${PROJECT_BINARY_DIR}/include)
+separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+
 link_directories(${LLVM_BUILD_LIBRARY_DIR})
 add_definitions(${LLVM_DEFINITIONS})
 add_definitions(${CLANG_DEFINITIONS})
@@ -162,9 +159,6 @@ endfunction()
 set(VAST_MAIN_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(VAST_MAIN_INCLUDE_DIR ${VAST_MAIN_SRC_DIR}/include)
 
-set(VAST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(VAST_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
-set(VAST_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 set(VAST_LIBRARY_DIR ${CMAKE_BINARY_DIR}/lib)
 set(VAST_TOOLS_DIR ${CMAKE_BINARY_DIR}/tools)
 
@@ -231,7 +225,7 @@ include(cmake/compiler_warnings.cmake)
 set_project_warnings(vast_settings)
 
 target_include_directories(vast_settings INTERFACE
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${VAST_MAIN_INCLUDE_DIR}>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
