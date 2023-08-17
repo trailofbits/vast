@@ -157,9 +157,9 @@ namespace vast::cg {
         }
 
         auto with_qualifiers(const clang::TypeOfType *ty, qualifiers quals) -> mlir_type {
-            auto unmodified_t = visit(ty->getUnmodifiedType());
-            this->template create< hl::TypeOfTypeOp >(meta_location(ty), unmodified_t);
-            return with_cvr_qualifiers(type_builder< hl::TypeOfTypeType >().bind(unmodified_t), quals)
+            auto type = visit(ty->getUnmodifiedType());
+            this->template create< hl::TypeOfTypeOp >(meta_location(ty), type);
+            return with_cvr_qualifiers(type_builder< hl::TypeOfTypeType >().bind(type), quals)
                 .freeze();
         }
 
