@@ -12,17 +12,21 @@ file(REMOVE ${CMAKE_BINARY_DIR}/tablegen_compile_commands.yml)
 # Adds the name of the generated file to VAST_TABLEGEN_OUTPUT.
 
 # Reimplements LLVM's tablegen function from `TableGen.cmake`
-function(vast_tablegen_impl project ofn)
+function(vast_tablegen ofn)
+    set(VAST_TABLEGEN_OUTPUT
+        ${VAST_TABLEGEN_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR}/${ofn}
+        PARENT_SCOPE
+    )
+
     cmake_parse_arguments(ARG "" "" "DEPENDS;EXTRA_INCLUDES" ${ARGN})
 
-    # Override ${project} with ${project}_TABLEGEN_PROJECT
-    if (NOT "${${project}_TABLEGEN_PROJECT}" STREQUAL "")
-        set(project ${${project}_TABLEGEN_PROJECT})
+    if (NOT "${VAST_TABLEGEN_PROJECT}" STREQUAL "")
+        set(project ${VAST_TABLEGEN_PROJECT})
     endif()
 
     # Validate calling context.
-    if (NOT ${project}_TABLEGEN_EXE)
-        message(FATAL_ERROR "${project}_TABLEGEN_EXE not set")
+    if (NOT VAST_TABLEGEN_EXE)
+        message(FATAL_ERROR "VAST_TABLEGEN_EXE not set")
     endif()
 
     # Use depfile instead of globbing arbitrary *.td(s) for Ninja.
@@ -62,7 +66,7 @@ function(vast_tablegen_impl project ofn)
     # https://cmake.org/Bug/view.php?id=15858
     # The dependency on both, the target and the file, produces the same
     # dependency twice in the result file when
-    # ("${${project}_TABLEGEN_TARGET}" STREQUAL "${${project}_TABLEGEN_EXE}")
+    # ("${VAST_TABLEGEN_TARGET}" STREQUAL "${VAST_TABLEGEN_EXE}")
     # but lets us having smaller and cleaner code here.
     get_directory_property(vast_tablegen_includes INCLUDE_DIRECTORIES)
     list(APPEND vast_tablegen_includes ${ARG_EXTRA_INCLUDES})
@@ -71,8 +75,8 @@ function(vast_tablegen_impl project ofn)
     list(REMOVE_ITEM vast_tablegen_includes "")
     list(TRANSFORM vast_tablegen_includes PREPEND -I)
 
-    set(tablegen_exe ${${project}_TABLEGEN_EXE})
-    set(tablegen_depends ${${project}_TABLEGEN_TARGET} ${tablegen_exe})
+    set(tablegen_exe ${VAST_TABLEGEN_EXE})
+    set(tablegen_depends ${VAST_TABLEGEN_TARGET} ${tablegen_exe})
 
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${ofn}
         COMMAND ${tablegen_exe} ${ARG_UNPARSED_ARGUMENTS} -I ${CMAKE_CURRENT_SOURCE_DIR}
@@ -95,23 +99,15 @@ function(vast_tablegen_impl project ofn)
 
     set(VAST_TABLEGEN_OUTPUT ${VAST_TABLEGEN_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR}/${ofn} PARENT_SCOPE)
     set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/${ofn} PROPERTIES GENERATED 1)
-endfunction(vast_tablegen_impl)
+endfunction(vast_tablegen)
 
-# Reimplements LLVM's vast_tablegen function from `AddVAST.cmake`
-function(vast_tablegen ofn)
-    vast_tablegen_impl(VAST ${ARGV})
-    set(VAST_TABLEGEN_OUTPUT
-        ${VAST_TABLEGEN_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR}/${ofn}
-        PARENT_SCOPE
-    )
-
+function(vast_tablegen_compile_command ofn)
     cmake_parse_arguments(ARG "" "" "DEPENDS;EXTRA_INCLUDES" ${ARGN})
     get_directory_property(vast_tablegen_includes INCLUDE_DIRECTORIES)
     list(APPEND vast_tablegen_includes ${ARG_EXTRA_INCLUDES})
 
     # Filter out any empty include items.
     list(REMOVE_ITEM vast_tablegen_includes "")
-
 
     # Build the absolute path for the current input file.
     if (IS_ABSOLUTE ${VAST_TARGET_DEFINITIONS})
@@ -126,7 +122,7 @@ function(vast_tablegen ofn)
         "  filepath: \"${VAST_TARGET_DEFINITIONS_ABSOLUTE}\"\n"
         "  includes: \"${CMAKE_CURRENT_SOURCE_DIR};${vast_tablegen_includes}\"\n"
     )
-endfunction(vast_tablegen)
+endfunction(vast_tablegen_compile_command)
 
 function(add_public_vast_tablegen_target target)
     if(NOT VAST_TABLEGEN_OUTPUT)
@@ -142,6 +138,7 @@ endfunction(add_public_vast_tablegen_target)
 
 function(add_vast_dialect dialect dialect_namespace)
     set(VAST_TARGET_DEFINITIONS ${dialect}.td)
+    vast_tablegen_compile_command(${dialect})
     vast_tablegen(${dialect}.h.inc -gen-op-decls)
     vast_tablegen(${dialect}.cpp.inc -gen-op-defs)
     vast_tablegen(${dialect}Types.h.inc -gen-typedef-decls -typedefs-dialect=${dialect_namespace})
@@ -162,7 +159,7 @@ endfunction()
 
 function(add_vast_doc doc_filename output_file output_directory command)
   set(VAST_TARGET_DEFINITIONS ${doc_filename}.td)
-  vast_tablegen_impl(VAST ${output_file}.md ${command} ${ARGN})
+  vast_tablegen(${output_file}.md ${command} ${ARGN})
   set(GEN_DOC_FILE ${VAST_BINARY_DIR}/docs/${output_directory}${output_file}.md)
   add_custom_command(
           OUTPUT ${GEN_DOC_FILE}
@@ -182,7 +179,9 @@ endfunction(add_vast_dialect_with_doc)
 function(add_vast_dialect_conversion_passes dialect)
     set(VAST_TARGET_DEFINITIONS Passes.td)
     vast_tablegen(Passes.h.inc -gen-pass-decls)
+    vast_tablegen_compile_command(${dialect})
     add_public_vast_tablegen_target(VAST${dialect}TransformsIncGen)
+    add_dependencies(vast-headers VAST${dialect}TransformsIncGen)
     add_mlir_doc(Passes ${dialect}Passes ./ -gen-pass-doc)
 endfunction()
 
@@ -195,6 +194,7 @@ function(add_vast_op_interface interface)
   set(VAST_TARGET_DEFINITIONS ${interface}.td)
   vast_tablegen(${interface}.h.inc -gen-op-interface-decls)
   vast_tablegen(${interface}.cpp.inc -gen-op-interface-defs)
+  vast_tablegen_compile_command(${interface})
   add_public_vast_tablegen_target(VAST${interface}IncGen)
   add_dependencies(vast-generic-headers VAST${interface}IncGen)
 endfunction()
@@ -203,6 +203,7 @@ function(add_vast_attr_interface interface)
   set(VAST_TARGET_DEFINITIONS ${interface}.td)
   vast_tablegen(${interface}.h.inc -gen-attr-interface-decls)
   vast_tablegen(${interface}.cpp.inc -gen-attr-interface-defs)
+  vast_tablegen_compile_command(${interface})
   add_public_vast_tablegen_target(VAST${interface}IncGen)
   add_dependencies(vast-generic-headers VAST${interface}IncGen)
 endfunction()
@@ -697,9 +698,9 @@ function(add_vast_interface_library name)
   add_vast_library(${ARGV} DEPENDS vast-headers)
 endfunction(add_vast_interface_library)
 
-# # Adds an VAST library target for installation.
-# # This is usually done as part of add_vast_library but is broken out for cases
-# # where non-standard library builds can be installed.
+# Adds an VAST library target for installation.
+# This is usually done as part of add_vast_library but is broken out for cases
+# where non-standard library builds can be installed.
 function(add_vast_library_install name)
   get_vast_target_export_arg(${name} VAST export_to_vasttargets UMBRELLA vast-libraries)
   install(TARGETS ${name}
