@@ -198,7 +198,7 @@ def TypeOfExprOp
     OpBuilder<(ins
       "llvm::StringRef":$name,
       "Type":$type,
-      "std::unique_ptr< Region > &&":$region
+      CArg<"BuilderCallback", "std::nullopt">:$expr
     )>
   ];
 
