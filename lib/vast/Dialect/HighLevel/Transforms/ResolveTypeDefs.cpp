@@ -1,6 +1,6 @@
 // Copyright (c) 2023-present, Trail of Bits, Inc.
 
-#include "vast/Conversion/Passes.hpp"
+#include "vast/Dialect/HighLevel/Passes.hpp"
 
 VAST_RELAX_WARNINGS
 #include <mlir/Dialect/Func/IR/FuncOps.h>
@@ -22,6 +22,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Conversion/Common/Rewriter.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 #include "PassesDetails.hpp"
 
