@@ -408,6 +408,8 @@ namespace vast::cg {
                 return non_lvalue_cast();
             };
 
+            auto unsupported_cast   = [&] { return visit(expr->getType()); };
+
             switch (expr->getCastKind()) {
                 // case clang::CastKind::CK_Dependent:
                 case clang::CastKind::CK_BitCast:               return non_lvalue_cast();
@@ -492,8 +494,7 @@ namespace vast::cg {
                 // case clang::CastKind::CK_IntToOCLSampler:
 
                 // case clang::CastKind::CK_MatrixCast:
-                default:
-                    VAST_UNREACHABLE( "unsupported cast kind" );
+                default: return unsupported_cast();
             }
         }
 
