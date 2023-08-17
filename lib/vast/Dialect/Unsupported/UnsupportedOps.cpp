@@ -14,8 +14,6 @@ VAST_UNRELAX_WARNINGS
 #define GET_OP_CLASSES
 #include "vast/Dialect/Unsupported/Unsupported.cpp.inc"
 
-#include <span>
-
 namespace vast::us {
 
     void UnsupportedDecl::build(
