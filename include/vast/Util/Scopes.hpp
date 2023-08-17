@@ -4,6 +4,9 @@
 
 #include <vast/Util/Common.hpp>
 
+#include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+
 namespace vast
 {
     static inline bool is_trailing_scope(operation op) {
