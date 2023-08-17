@@ -47,7 +47,7 @@ namespace vast::cg {
         using Builder = CodeGenBuilderMixin< CodeGenTypeVisitorMixin< Derived >, Derived >;
 
         using Builder::builder;
-        using Builder::make_type_yield_region;
+        using Builder::make_type_yield_builder;
 
         using qualifiers   = clang::Qualifiers;
 
@@ -143,13 +143,15 @@ namespace vast::cg {
 
         auto with_qualifiers(const clang::TypeOfExprType *ty, qualifiers quals) -> mlir_type {
             clang::Expr *underlying_expr = ty->getUnderlyingExpr();
-            auto underlying_t            = visit(underlying_expr->getType());
-
             auto name = derived().type_of_expr_name(underlying_expr);
 
-            auto [reg, _] = make_type_yield_region(underlying_expr);
-            Location loc  = meta_location(underlying_expr);
-            this->template create< hl::TypeOfExprOp >(loc, name, underlying_t, std::move(reg));
+            this->template make_operation< hl::TypeOfExprOp >()
+                .bind(meta_location(underlying_expr))
+                .bind(name)
+                .bind(visit(underlying_expr->getType()))
+                .bind(make_type_yield_builder(underlying_expr))
+                .freeze();
+
             return with_cvr_qualifiers(type_builder< hl::TypeOfExprType >().bind(name), quals)
                 .freeze();
         }
