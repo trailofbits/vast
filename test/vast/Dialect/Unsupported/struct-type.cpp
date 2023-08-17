@@ -9,6 +9,8 @@ struct  Student {
 
 Student aux;
 
+// !hl.lvalue<!hl.lvalue<!hl.reference<!hl.elaborated<!hl.record<"Student">,  const >>>>
+//            '!hl.lvalue<!hl.elaborated<!hl.record<"Student">,  const >>
 void StudentRegistry(struct Student *students, int index)
 {
    aux = students[index];
