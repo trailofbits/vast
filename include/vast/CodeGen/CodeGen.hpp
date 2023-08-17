@@ -159,7 +159,12 @@ namespace vast::cg
         }
 
         mlir_type convert(qual_type type) { return _visitor->Visit(type); }
-        mlir_type make_lvalue(mlir_type type) { return hl::LValueType::get(_mctx, type); }
+        mlir_type make_lvalue(mlir_type type) {
+            if (type.isa< hl::LValueType >()) {
+                return type;
+            }
+            return hl::LValueType::get(_mctx, type);
+        }
 
         void update_completed_type(clang::TagDecl */* decl */) {
             VAST_UNIMPLEMENTED;
