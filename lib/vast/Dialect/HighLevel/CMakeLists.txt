@@ -9,6 +9,4 @@ add_vast_dialect_library(HighLevel
     HighLevelLinkage.cpp
 )
 
-if (VAST_BUILD_CONVERSIONS)
-    add_subdirectory(Transforms)
-endif()
+add_subdirectory(Transforms)
