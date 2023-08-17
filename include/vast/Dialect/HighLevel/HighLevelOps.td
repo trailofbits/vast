@@ -191,7 +191,7 @@ def TypeOfExprOp
     returns the type symbol to be referenced later
   }];
 
-  let regions = (region SizedRegion<1>:$underlyingExpr);
+  let regions = (region SizedRegion<1>:$expr);
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -202,7 +202,7 @@ def TypeOfExprOp
     )>
   ];
 
-  let assemblyFormat = [{ $name $underlyingExpr `:` $type attr-dict }];
+  let assemblyFormat = [{ $name $expr `:` $type attr-dict }];
 }
 
 def EnumConstantOp
