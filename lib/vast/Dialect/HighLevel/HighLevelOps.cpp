@@ -141,26 +141,6 @@ namespace vast::hl
         }
     }
 
-    logical_result DeclRefOp::inferReturnTypes(
-        mcontext_t* mctx,
-        llvm::Optional< Location > /* loc */,
-        mlir::ValueRange operands,
-        mlir::DictionaryAttr attributes,
-        mlir::RegionRange /* regs */,
-        llvm::SmallVectorImpl< mlir_type > &rty
-    ) {
-        DeclRefOp::Adaptor op(operands, attributes);
-        auto type = op.getDecl().getType();
-
-        if (auto ltype = type.dyn_cast< LValueType >()) {
-            rty.push_back(ltype);
-        } else {
-            rty.push_back(LValueType::get(mctx, type));
-        }
-
-        return mlir::success();
-    }
-
     FoldResult ConstantOp::fold(FoldAdaptor adaptor) {
         VAST_CHECK(adaptor.getOperands().empty(), "constant has no operands");
         return adaptor.getValue();
