@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "vast/Translation/CodeGenScope.hpp"
+#include "vast/CodeGen/CodeGenScope.hpp"
 #include "vast/Util/Warnings.hpp"
 
 #include "vast/CodeGen/CodeGenDeclVisitor.hpp"
