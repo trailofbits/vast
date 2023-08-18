@@ -610,7 +610,6 @@ function(add_vast_library name)
   endif()
 
   # VAST libraries uniformly depend on LLVMSupport. Just specify it once here.
-  list(APPEND ARG_LINK_COMPONENTS Support)
   check_llvm_components_usage(${name} ${ARG_LINK_LIBS})
 
   list(APPEND ARG_DEPENDS vast-generic-headers)
