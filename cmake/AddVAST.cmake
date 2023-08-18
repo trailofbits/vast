@@ -184,7 +184,7 @@ function(add_vast_dialect_conversion_passes dialect)
     vast_tablegen_compile_command()
     add_public_vast_tablegen_target(VAST${dialect}TransformsIncGen)
     add_dependencies(vast-headers VAST${dialect}TransformsIncGen)
-    add_mlir_doc(Passes ${dialect}Passes ./ -gen-pass-doc)
+    add_vast_doc(Passes ${dialect}Passes ./ -gen-pass-doc)
 endfunction()
 
 function(add_vast_dialect_with_doc_and_passes dialect dialect_namespace)
@@ -306,7 +306,7 @@ function(vast_add_library_impl name)
   list(APPEND VAST_COMMON_DEPENDS ${ARG_DEPENDS})
 
   # link gap by default
-  list(APPEND ARG_LINK_LIBS gap::gap)
+  list(APPEND ARG_LINK_LIBS vast::settings)
 
   if(ARG_ADDITIONAL_HEADERS)
     # Pass through ADDITIONAL_HEADERS.
@@ -564,7 +564,7 @@ endfunction(vast_add_library_impl)
 
 # Adapts `add_mlir_library`.
 #
-# Declare an mlir library which can be compiled in libVAST.so
+# Declare a vast library which can be compiled in libVAST.so
 # In addition to everything that llvm_add_library accepts, this
 # also has the following option:
 # EXCLUDE_FROM_LIBVAST
@@ -679,25 +679,37 @@ endfunction(add_vast_library)
 # Declare the library associated with a dialect.
 function(add_vast_dialect_library name)
     set_property(GLOBAL APPEND PROPERTY VAST_DIALECT_LIBS VAST${name})
-    add_vast_library(${ARGV} DEPENDS vast-headers)
+    add_vast_library(${ARGV}
+      DEPENDS vast-headers
+      LINK_LIBS VASTUtil
+    )
 endfunction(add_vast_dialect_library)
 
 # Declare the library associated with a conversion.
 function(add_vast_conversion_library name)
     set_property(GLOBAL APPEND PROPERTY VAST_CONVERSION_LIBS VAST${name})
-    add_vast_library(${ARGV} DEPENDS vast-headers)
+    add_vast_library(${ARGV}
+      DEPENDS vast-headers
+      LINK_LIBS VASTUtil
+    )
 endfunction(add_vast_conversion_library)
 
 # Declare the library associated with an extension.
 function(add_vast_extension_library name)
     set_property(GLOBAL APPEND PROPERTY VAST_EXTENSION_LIBS VAST${name})
-    add_vast_library(${ARGV} DEPENDS vast-headers)
+    add_vast_library(${ARGV}
+      DEPENDS vast-headers
+      LINK_LIBS VASTUtil
+    )
 endfunction(add_vast_extension_library)
 
 # Declare the library associated with a translation.
 function(add_vast_translation_library name)
     set_property(GLOBAL APPEND PROPERTY VAST_TRANSLATION_LIBS VAST${name})
-    add_vast_library(${ARGV} DEPENDS vast-headers)
+    add_vast_library(${ARGV}
+      DEPENDS vast-headers
+      LINK_LIBS VASTUtil
+    )
 endfunction(add_vast_translation_library)
 
 function(add_vast_interface_library name)
@@ -776,18 +788,6 @@ function(add_vast_install_targets target)
   if(ARG_SYMLINK)
     add_dependencies(${target} install-${ARG_SYMLINK})
     add_dependencies(${target}-stripped install-${ARG_SYMLINK}-stripped)
-  endif()
-endfunction()
-
-function(vast_target_link_libraries target type)
-  if (TARGET obj.${target})
-    target_link_libraries(obj.${target} ${ARGN})
-  endif()
-
-  if (CLANG_LINK_CLANG_DYLIB)
-    target_link_libraries(${target} ${type} clang-cpp)
-  else()
-    target_link_libraries(${target} ${type} ${ARGN})
   endif()
 endfunction()
 
