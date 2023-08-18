@@ -221,6 +221,13 @@ if (NOT VAST_BUILD_DIALECTS AND VAST_BUILD_FRONTEND)
   )
 endif()
 
+if (NOT VAST_BUILD_CONVERSIONS AND VAST_BUILD_FRONTEND)
+  message(FATAL_ERROR
+    "Frontend requires conversions to be built."
+    "Set `VAST_BUILD_CONVERSIONS` option."
+  )
+endif()
+
 option(VAST_GENERATE_TOOLS "Generate build targets for the VAST tools." ON)
 option(VAST_BUILD_TOOLS "Build the VAST tools. If OFF, just generate build targets." ON)
 
