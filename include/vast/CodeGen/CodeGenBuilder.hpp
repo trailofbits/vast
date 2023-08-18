@@ -5,7 +5,7 @@
 #include "vast/Util/Warnings.hpp"
 
 #include "vast/Util/Common.hpp"
-#include "vast/Translation/CodeGenVisitorLens.hpp"
+#include "vast/CodeGen/CodeGenVisitorLens.hpp"
 
 namespace vast::cg {
 

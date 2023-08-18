@@ -2,8 +2,8 @@
 
 // Copyright (c) 2023, Trail of Bits, Inc.
 
-#include "vast/Translation/CodeGenTypeDriver.hpp"
-#include "vast/Translation/CodeGenDriver.hpp"
+#include "vast/CodeGen/CodeGenTypeDriver.hpp"
+#include "vast/CodeGen/CodeGenDriver.hpp"
 
 #include "vast/CodeGen/ArgInfo.hpp"
 

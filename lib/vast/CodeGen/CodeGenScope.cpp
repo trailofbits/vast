@@ -1,7 +1,7 @@
 // Copyright (c) 2023-present, Trail of Bits, Inc.
 
-#include "vast/Translation/CodeGenScope.hpp"
-#include "vast/Translation/CodeGenContext.hpp"
+#include "vast/CodeGen/CodeGenScope.hpp"
+#include "vast/CodeGen/CodeGenContext.hpp"
 
 namespace vast::cg
 {

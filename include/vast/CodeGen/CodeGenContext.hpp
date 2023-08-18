@@ -15,9 +15,9 @@ VAST_RELAX_WARNINGS
 #include <mlir/Support/LogicalResult.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Translation/CodeGenScope.hpp"
-#include "vast/Translation/ScopeContext.hpp"
-#include "vast/Translation/Mangler.hpp"
+#include "vast/CodeGen/CodeGenScope.hpp"
+#include "vast/CodeGen/ScopeContext.hpp"
+#include "vast/CodeGen/Mangler.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
@@ -41,7 +41,7 @@ namespace vast::cg
             return module_ref;
         }
     } // namespace detail
-    
+
     struct CodeGenContext {
         mcontext_t &mctx;
         acontext_t &actx;

@@ -8,9 +8,9 @@ VAST_RELAX_WARNINGS
 #include <clang/AST/DeclVisitor.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Translation/CodeGenMeta.hpp"
-#include "vast/Translation/CodeGenVisitorBase.hpp"
-#include "vast/Translation/Util.hpp"
+#include "vast/CodeGen/CodeGenMeta.hpp"
+#include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/Util.hpp"
 
 namespace vast::cg {
 

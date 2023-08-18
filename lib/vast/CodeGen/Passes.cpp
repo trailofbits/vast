@@ -8,6 +8,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/Passes.hpp"
+#include "vast/CodeGen/ABIInfo.hpp"
 #include "vast/CodeGen/Passes.hpp"
 
 namespace vast::cg {

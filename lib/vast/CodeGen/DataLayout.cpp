@@ -1,6 +1,6 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
-#include "vast/Translation/DataLayout.hpp"
+#include "vast/CodeGen/DataLayout.hpp"
 
 namespace vast::hl
 {

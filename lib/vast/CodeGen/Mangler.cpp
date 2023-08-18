@@ -1,6 +1,6 @@
 // Copyright (c) 2023, Trail of Bits, Inc.
 
-#include <vast/Translation/Mangler.hpp>
+#include <vast/CodeGen/Mangler.hpp>
 
 namespace vast::cg
 {

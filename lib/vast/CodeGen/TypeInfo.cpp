@@ -3,7 +3,7 @@
 #include "vast/CodeGen/TypeInfo.hpp"
 #include "vast/CodeGen/CallingConv.hpp"
 
-#include "vast/Translation/CodeGenDriver.hpp"
+#include "vast/CodeGen/CodeGenDriver.hpp"
 #include "vast/CodeGen/TypeInfo.hpp"
 #include "vast/CodeGen/ABIInfo.hpp"
 

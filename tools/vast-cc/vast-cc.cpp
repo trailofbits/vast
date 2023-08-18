@@ -12,7 +12,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Tools/mlir-translate/MlirTranslateMain.h>
 VAST_UNRELAX_WARNINGS
 
-#include <vast/Translation/Register.hpp>
+#include <vast/CodeGen/Register.hpp>
 
 int main(int argc, char **argv) {
     vast::registerAllTranslations();

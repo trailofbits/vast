@@ -12,7 +12,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Frontend/Diagnostics.hpp"
-#include "vast/Translation/CodeGenDriver.hpp"
+#include "vast/CodeGen/CodeGenDriver.hpp"
 #include "vast/Util/Common.hpp"
 
 #include <memory>

@@ -10,12 +10,12 @@ VAST_RELAX_WARNINGS
 #include <mlir/InitAllDialects.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Translation/CodeGenVisitor.hpp"
+#include "vast/CodeGen/CodeGenVisitor.hpp"
 
 #include "vast/Dialect/Dialects.hpp"
 
-#include "vast/Translation/DataLayout.hpp"
-#include "vast/Translation/CodeGenOptions.hpp"
+#include "vast/CodeGen/DataLayout.hpp"
+#include "vast/CodeGen/CodeGenOptions.hpp"
 
 namespace vast::cg
 {
