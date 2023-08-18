@@ -101,7 +101,7 @@ function(vast_tablegen ofn)
     set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/${ofn} PROPERTIES GENERATED 1)
 endfunction(vast_tablegen)
 
-function(vast_tablegen_compile_command ofn)
+function(vast_tablegen_compile_command)
     cmake_parse_arguments(ARG "" "" "DEPENDS;EXTRA_INCLUDES" ${ARGN})
     get_directory_property(vast_tablegen_includes INCLUDE_DIRECTORIES)
     list(APPEND vast_tablegen_includes ${ARG_EXTRA_INCLUDES})
@@ -138,7 +138,7 @@ endfunction(add_public_vast_tablegen_target)
 
 function(add_vast_dialect dialect dialect_namespace)
     set(VAST_TARGET_DEFINITIONS ${dialect}.td)
-    vast_tablegen_compile_command(${dialect})
+    vast_tablegen_compile_command()
     vast_tablegen(${dialect}.h.inc -gen-op-decls)
     vast_tablegen(${dialect}.cpp.inc -gen-op-defs)
     vast_tablegen(${dialect}Types.h.inc -gen-typedef-decls -typedefs-dialect=${dialect_namespace})
@@ -178,8 +178,10 @@ endfunction(add_vast_dialect_with_doc)
 
 function(add_vast_dialect_conversion_passes dialect)
     set(VAST_TARGET_DEFINITIONS Passes.td)
-    vast_tablegen(Passes.h.inc -gen-pass-decls)
-    vast_tablegen_compile_command(${dialect})
+    vast_tablegen(Passes.h.inc -gen-pass-decls -name ${dialect})
+    vast_tablegen(Passes.capi.h.inc -gen-pass-capi-header --prefix ${dialect})
+    vast_tablegen(Passes.capi.cpp.inc -gen-pass-capi-impl --prefix ${dialect})
+    vast_tablegen_compile_command()
     add_public_vast_tablegen_target(VAST${dialect}TransformsIncGen)
     add_dependencies(vast-headers VAST${dialect}TransformsIncGen)
     add_mlir_doc(Passes ${dialect}Passes ./ -gen-pass-doc)
@@ -670,9 +672,7 @@ endfunction(add_vast_library)
 # Declare the library associated with a dialect.
 function(add_vast_dialect_library name)
     set_property(GLOBAL APPEND PROPERTY VAST_DIALECT_LIBS VAST${name})
-    add_vast_library(${ARGV} DEPENDS
-      vast-headers
-    )
+    add_vast_library(${ARGV} DEPENDS vast-headers)
 endfunction(add_vast_dialect_library)
 
 # Declare the library associated with a conversion.
