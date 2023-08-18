@@ -772,6 +772,18 @@ function(add_vast_install_targets target)
   endif()
 endfunction()
 
+function(vast_target_link_libraries target type)
+  if (TARGET obj.${target})
+    target_link_libraries(obj.${target} ${ARGN})
+  endif()
+
+  if (CLANG_LINK_CLANG_DYLIB)
+    target_link_libraries(${target} ${type} clang-cpp)
+  else()
+    target_link_libraries(${target} ${type} ${ARGN})
+  endif()
+endfunction()
+
 # Get the EXPORT argument to use for an install command for a target in a
 # project. The project export set for is named ${project}Targets. Also set the
 # ${PROJECT}_HAS_EXPORTS global property to mark the project as
