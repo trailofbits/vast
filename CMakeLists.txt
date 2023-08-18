@@ -143,15 +143,6 @@ else()
     )
 endif()
 
-# TODO(cmake): With newer cmake there should be a better way to do this.
-function(mk_clang_libs out)
-    if (CLANG_LINK_CLANG_DYLIB)
-        set(${out} clang-cpp PARENT_SCOPE)
-    else()
-        set(${out} ${ARGN} PARENT_SCOPE)
-    endif()
-endfunction()
-
 #
 # VAST build settings
 #
