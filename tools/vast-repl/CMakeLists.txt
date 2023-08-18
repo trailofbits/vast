@@ -1,26 +1,23 @@
-#
-# VAST REPL Tool
-#
-get_property(DIALECT_LIBS GLOBAL PROPERTY MLIR_DIALECT_LIBS)
+get_property(VAST_DIALECT_LIBS GLOBAL PROPERTY VAST_DIALECT_LIBS)
 
 add_executable(vast-repl
-  vast-repl.cpp
-  codegen.cpp
-  command.cpp
+    vast-repl.cpp
+    codegen.cpp
+    command.cpp
 )
 
 target_link_libraries(vast-repl
-    PRIVATE
-      vast::translation_api
-      vast::settings
+  PRIVATE
+    ${VAST_DIALECT_LIBS}
+    ${MLIR_DIALECT_LIBS}
 
-      ${DIALECT_LIBS}
-      VASTHighLevel
+    VASTUtil
+    VASTSymbolInterface
+    VASTCodeGen
 
-      clangAST
-      clangFrontend
-      clangSerialization
-      clangTooling
+    ${CLANG_LIBS}
+
+    vast::settings
 )
 
-mlir_check_all_link_libraries(vast-repl)
+vast_check_link_libraries(vast-repl)

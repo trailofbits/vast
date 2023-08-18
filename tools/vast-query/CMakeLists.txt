@@ -1,17 +1,17 @@
-#
-# VAST MLIR Query
-#
-get_property(DIALECT_LIBS GLOBAL PROPERTY MLIR_DIALECT_LIBS)
+get_property(VAST_DIALECT_LIBS GLOBAL PROPERTY VAST_DIALECT_LIBS)
 
-add_executable(vast-query vast-query.cpp)
-llvm_update_compile_flags(vast-query)
+add_executable(vast-query
+    vast-query.cpp
+)
 
 target_link_libraries(vast-query
   PRIVATE
-    ${DIALECT_LIBS}
-    VASTHighLevel
+    ${VAST_DIALECT_LIBS}
+    ${MLIR_DIALECT_LIBS}
 
+    VASTUtil
+    VASTSymbolInterface
     vast::settings
 )
 
-mlir_check_all_link_libraries(vast-query)
+vast_check_link_libraries(vast-query)
