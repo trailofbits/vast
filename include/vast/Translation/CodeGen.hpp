@@ -225,7 +225,7 @@ namespace vast::cg
             if (auto body = function_decl->getBody()) {
                 // LLVM codegen: Coroutines always emit lifetime markers
                 // Hide this under request for lifetime emission so that we can write
-                // tests when the time comes, but CIR should be intrinsically scope
+                // tests when the time comes, but VAST should be intrinsically scope
                 // accurate, so no need to tie coroutines to such markers.
                 if (clang::isa< clang::CoroutineBodyStmt >(body)) {
                     VAST_UNIMPLEMENTED_MSG("emit lifetime markers");

@@ -16,8 +16,8 @@ VAST_UNRELAX_WARNINGS
 namespace vast::cg
 {
 
-    // Encapsulates information about the way function arguments from
-    // CIRGenFunctionInfo should be passed to actual vast function.
+    // Encapsulates information about the way function arguments should be
+    // passed to actual vast function.
     struct clang_to_vast_arg_mapping {
       private:
         static constexpr unsigned invalid_index = ~0U;
