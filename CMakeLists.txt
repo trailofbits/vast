@@ -152,11 +152,15 @@ else()
     get_property(MLIR_TRANSLATION_LIBS GLOBAL PROPERTY MLIR_TRANSLATION_LIBS)
 
     set(MLIR_LIBS
+      MLIRAnalysis
+      MLIRDialect
       MLIRExecutionEngine
       MLIRIR
       MLIRParser
       MLIRPass
       MLIRSupport
+      MLIRTransforms
+      MLIRTransformUtils
 
       ${MLIR_DIALECT_LIBS}
       ${MLIR_CONVERSION_LIBS}
@@ -252,7 +256,8 @@ include(cmake/compiler_warnings.cmake)
 set_project_warnings(vast_settings)
 
 target_include_directories(vast_settings INTERFACE
-  $<BUILD_INTERFACE:${VAST_MAIN_INCLUDE_DIR}>
+  $<BUILD_INTERFACE:${VAST_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${VAST_BINARY_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 

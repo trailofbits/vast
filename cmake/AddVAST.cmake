@@ -347,13 +347,6 @@ function(vast_add_library_impl name)
     add_library(${obj_name} OBJECT EXCLUDE_FROM_ALL
       ${ALL_FILES}
     )
-    # TODO: llvm_update_compile_flags(${obj_name})
-    # if (CMAKE_GENERATOR STREQUAL "Xcode")
-    #   set(DUMMY_FILE ${CMAKE_CURRENT_BINARY_DIR}/Dummy.c)
-    #   file(WRITE ${DUMMY_FILE} "// This file intentionally empty\n")
-    #   set_property(SOURCE ${DUMMY_FILE} APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-empty-translation-unit")
-    # endif()
-    # set(ALL_FILES "$<TARGET_OBJECTS:${obj_name}>" ${DUMMY_FILE})
 
     # Do add_dependencies(obj) later due to CMake issue 14747.
     list(APPEND objlibs ${obj_name})
@@ -440,11 +433,7 @@ function(vast_add_library_impl name)
   endif()
 
   set_output_directory(${name} BINARY_DIR ${VAST_RUNTIME_OUTPUT_INTDIR} LIBRARY_DIR ${VAST_LIBRARY_OUTPUT_INTDIR})
-  # $<TARGET_OBJECTS> doesn't require compile flags.
-  if(NOT obj_name)
-    # FIXME: llvm_update_compile_flags(${name})
-  endif()
-  # FIXME: add_link_opts( ${name} )
+
   if(ARG_OUTPUT_NAME)
     set_target_properties(${name}
       PROPERTIES
@@ -714,7 +703,10 @@ endfunction(add_vast_translation_library)
 
 function(add_vast_interface_library name)
   set_property(GLOBAL APPEND PROPERTY VAST_INTERFACE_LIBS VAST${name})
-  add_vast_library(${ARGV} DEPENDS vast-headers)
+  add_vast_library(${ARGV}
+    DEPENDS vast-headers
+    LINK_LIBS VASTUtil
+  )
 endfunction(add_vast_interface_library)
 
 # Adds an VAST library target for installation.
