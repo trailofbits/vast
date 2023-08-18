@@ -143,6 +143,42 @@ else()
     )
 endif()
 
+if (MLIR_LINK_MLIR_DYLIB)
+    set(MLIR_LIBS MLIR)
+else()
+    get_property(MLIR_DIALECT_LIBS GLOBAL PROPERTY MLIR_DIALECT_LIBS)
+    get_property(MLIR_CONVERSION_LIBS GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
+    get_property(MLIR_EXTENSION_LIBS GLOBAL PROPERTY MLIR_EXTENSION_LIBS)
+    get_property(MLIR_TRANSLATION_LIBS GLOBAL PROPERTY MLIR_TRANSLATION_LIBS)
+
+    set(MLIR_LIBS
+      MLIRExecutionEngine
+      MLIRIR
+      MLIRParser
+      MLIRPass
+      MLIRSupport
+
+      ${MLIR_DIALECT_LIBS}
+      ${MLIR_CONVERSION_LIBS}
+      ${MLIR_EXTENSION_LIBS}
+      ${MLIR_TRANSLATION_LIBS}
+    )
+endif()
+
+if (CLANG_LINK_CLANG_DYLIB)
+    set(CLANG_LIBS clang-cpp)
+else()
+    set(CLANG_LIBS
+        clangAST
+        clangASTMatchers
+        clangBasic
+        clangCodeGen
+        clangDriver
+        clangFrontend
+        clangSerialization
+        clangTooling
+    )
+endif()
 #
 # VAST build settings
 #
@@ -323,6 +359,14 @@ if (VAST_INSTALL)
     PATTERN "*.h"
     PATTERN "*.hpp"
     PATTERN "CMakeFiles" EXCLUDE
+  )
+
+  install(TARGETS vast_settings EXPORT VASTSettings)
+
+  install(EXPORT VASTSettings
+    FILE VASTTargets.cmake
+    NAMESPACE vast::
+    DESTINATION ${VAST_CMAKE_INSTALL_DIR}
   )
 
   install(EXPORT VASTTargets
