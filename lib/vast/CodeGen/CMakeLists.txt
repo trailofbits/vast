@@ -1,6 +1,6 @@
 # Copyright (c) 2023-present, Trail of Bits, Inc.
 
-add_library(vast_codegen
+add_vast_library(CodeGen
     ABIInfo.cpp
     ArgInfo.cpp
     FunctionInfo.cpp
@@ -10,10 +10,3 @@ add_library(vast_codegen
     TargetInfo.cpp
     TypeInfo.cpp
 )
-
-target_link_libraries(vast_codegen PRIVATE vast::settings)
-
-add_library(vast::codegen ALIAS vast_codegen)
-
-# TODO: Move to vast_add_library
-set_property(GLOBAL APPEND PROPERTY VAST_INSTALL_TARGETS vast_codegen)
