@@ -10,9 +10,9 @@ if (VAST_BUILD_CONVERSIONS)
 endif()
 
 if (VAST_BUILD_FRONTEND)
-    add_subdirectory(Frontend)
     add_subdirectory(CodeGen)
-    add_subdirectory(Translation)
+    add_subdirectory(Frontend)
+    add_subdirectory(CC1)
 endif()
 
 add_subdirectory(Util)
