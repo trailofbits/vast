@@ -289,20 +289,6 @@ if (VAST_GENERATE_TOOLS)
   add_subdirectory(tools)
 endif()
 
-add_library(vast INTERFACE)
-
-target_link_libraries(vast
-  INTERFACE
-    vast::translation_api
-    vast::settings
-)
-
-target_include_directories(vast
-  INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
-
 # test options
 option(ENABLE_TESTING "Enable Test Builds" ON)
 
