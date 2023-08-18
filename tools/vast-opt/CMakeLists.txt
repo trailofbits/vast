@@ -1,28 +1,16 @@
-#
-# VAST MLIR Optimizer
-#
-get_property(DIALECT_LIBS GLOBAL PROPERTY MLIR_DIALECT_LIBS)
-get_property(CONVERSION_LIBS GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
+get_property(VAST_LIBS GLOBAL PROPERTY VAST_ALL_LIBS)
 
-add_executable(vast-opt vast-opt.cpp)
-llvm_update_compile_flags(vast-opt)
-
-target_link_libraries(vast-opt
-    PRIVATE
-        ${DIALECT_LIBS}
-        ${CONVERSION_LIBS}
-
-        vast::high_level::transforms
-        vast::conversion::all
-
-        MLIROptLib
-        VASTHighLevel
-
-        clangAST
-
-        vast::settings
+add_executable(vast-opt
+    vast-opt.cpp
 )
 
-mlir_check_all_link_libraries(vast-opt)
+target_link_libraries(vast-opt
+  PRIVATE
+    ${VAST_LIBS}
+    ${MLIR_LIBS}
+    MLIROptLib
 
-add_dependencies(vast-opt vast::conversion::all)
+    vast::settings
+)
+
+vast_check_link_libraries(vast-opt)
