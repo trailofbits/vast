@@ -2,7 +2,7 @@
 
 if (ENABLE_PDLL_CONVERSIONS)
 
-    add_mlir_conversion_library( VASTHLToFunc
+    add_vast_conversion_library( VASTHLToFunc
         HLToFunc.cpp
 
         ADDITIONAL_HEADER_DIRS
