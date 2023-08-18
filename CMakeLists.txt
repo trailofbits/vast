@@ -245,6 +245,8 @@ set_target_properties(vast-generic-headers PROPERTIES FOLDER "Misc")
 add_custom_target(vast-headers)
 set_target_properties(vast-headers PROPERTIES FOLDER "Misc")
 add_dependencies(vast-headers vast-generic-headers)
+add_custom_target(vast-tools)
+set_target_properties(vast-tools PROPERTIES FOLDER "Misc")
 add_custom_target(vast-doc)
 
 define_property(GLOBAL PROPERTY VAST_INSTALL_TARGETS)
@@ -373,17 +375,13 @@ if (VAST_INSTALL)
     PATTERN "CMakeFiles" EXCLUDE
   )
 
-  install(TARGETS vast_settings EXPORT VASTSettings)
+  install(TARGETS vast_settings EXPORT VASTTargets)
 
-  install(EXPORT VASTSettings
-    FILE VASTTargets.cmake
-    NAMESPACE vast::
-    DESTINATION ${VAST_CMAKE_INSTALL_DIR}
-  )
+  set(VAST_EXPORT_NAME VASTTargets)
 
   install(EXPORT VASTTargets
-    FILE VASTTargets.cmake
-    NAMESPACE vast::
+    FILE ${VAST_EXPORT_NAME}.cmake
+    NAMESPACE VAST::
     DESTINATION ${VAST_CMAKE_INSTALL_DIR}
   )
 
