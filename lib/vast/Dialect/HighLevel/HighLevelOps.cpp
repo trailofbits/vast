@@ -1,15 +1,9 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
-#include "mlir/Interfaces/CallInterfaces.h"
-#include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
-#include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
-#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
-#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+#include "vast/Util/Warnings.hpp"
 
-#include "vast/Util/Common.hpp"
-#include "vast/Util/Region.hpp"
-#include "vast/Util/TypeUtils.hpp"
-
+VAST_RELAX_WARNINGS
+#include <mlir/Interfaces/CallInterfaces.h>
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
 #include <mlir/IR/Builders.h>
@@ -19,6 +13,16 @@
 #include <mlir/IR/FunctionImplementation.h>
 
 #include <llvm/Support/ErrorHandling.h>
+VAST_UNRELAX_WARNINGS
+
+#include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
+#include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+
+#include "vast/Util/Common.hpp"
+#include "vast/Util/Region.hpp"
+#include "vast/Util/TypeUtils.hpp"
 
 #include <optional>
 #include <variant>
