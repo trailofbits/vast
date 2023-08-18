@@ -44,7 +44,7 @@ namespace vast::cg {
 
         using LensType::visit;
 
-        using Builder = CodeGenBuilderMixin< CodeGenTypeVisitorMixin< Derived >, Derived >;
+        using Builder = CodeGenBuilder< CodeGenTypeVisitor< Derived >, Derived >;
 
         using Builder::builder;
         using Builder::make_type_yield_builder;
