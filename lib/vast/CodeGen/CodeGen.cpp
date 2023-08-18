@@ -1,6 +1,6 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
-#include "vast/Translation/CodeGen.hpp"
+#include "vast/CodeGen/CodeGen.hpp"
 
 namespace vast::cg
 {

@@ -5,7 +5,7 @@
 
 #include "vast/repl/state.hpp"
 
-#include "vast/Translation/CodeGen.hpp"
+#include "vast/CodeGen/CodeGen.hpp"
 
 #include <fstream>
 

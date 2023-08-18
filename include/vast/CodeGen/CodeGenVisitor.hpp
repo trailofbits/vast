@@ -5,11 +5,11 @@
 #include "vast/Translation/CodeGenScope.hpp"
 #include "vast/Util/Warnings.hpp"
 
-#include "vast/Translation/CodeGenDeclVisitor.hpp"
-#include "vast/Translation/CodeGenStmtVisitor.hpp"
-#include "vast/Translation/CodeGenTypeVisitor.hpp"
-#include "vast/Translation/CodeGenVisitorBase.hpp"
-#include "vast/Translation/CodeGenFallBackVisitor.hpp"
+#include "vast/CodeGen/CodeGenDeclVisitor.hpp"
+#include "vast/CodeGen/CodeGenStmtVisitor.hpp"
+#include "vast/CodeGen/CodeGenTypeVisitor.hpp"
+#include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/CodeGenFallBackVisitor.hpp"
 
 namespace vast::cg
 {

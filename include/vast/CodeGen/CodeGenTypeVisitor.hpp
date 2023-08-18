@@ -9,10 +9,10 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
-#include "vast/Translation/CodeGenMeta.hpp"
-#include "vast/Translation/CodeGenBuilder.hpp"
-#include "vast/Translation/CodeGenVisitorBase.hpp"
-#include "vast/Translation/CodeGenVisitorLens.hpp"
+#include "vast/CodeGen/CodeGenMeta.hpp"
+#include "vast/CodeGen/CodeGenBuilder.hpp"
+#include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/CodeGenVisitorLens.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 

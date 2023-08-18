@@ -1,6 +1,6 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
-#include "vast/Translation/CodeGenDriver.hpp"
+#include "vast/CodeGen/CodeGenDriver.hpp"
 
 VAST_RELAX_WARNINGS
 #include <clang/AST/GlobalDecl.h>
@@ -98,7 +98,7 @@ namespace vast::cg
         // TODO: builtCtorList(GlobalDtors);
         // TODO: buildGlobalAnnotations();
         // TODO: buildDeferredUnusedCoverageMappings();
-        // TODO: CIRGenPGO
+        // TODO: VASTGenPGO
         // TODO: CoverageMapping
         // TODO: if (codegen_opts.SanitizeCfiCrossDso) {
         // TODO: buildAtAvailableLinkGuard();

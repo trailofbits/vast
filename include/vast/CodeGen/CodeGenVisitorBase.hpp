@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "vast/Translation/CodeGenContext.hpp"
-#include "vast/Translation/CodeGenMeta.hpp"
-#include "vast/Translation/Mangler.hpp"
+#include "vast/CodeGen/CodeGenContext.hpp"
+#include "vast/CodeGen/CodeGenMeta.hpp"
+#include "vast/CodeGen/Mangler.hpp"
 
 #include "vast/Util/Common.hpp"
 

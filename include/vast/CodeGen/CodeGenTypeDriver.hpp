@@ -12,7 +12,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/FunctionInfo.hpp"
-#include "vast/Translation/Types.hpp"
+#include "vast/CodeGen/Types.hpp"
 
 namespace vast::cg
 {

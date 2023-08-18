@@ -12,7 +12,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/repl/common.hpp"
-#include "vast/Translation/CodeGen.hpp"
+#include "vast/CodeGen/CodeGen.hpp"
 
 #include <filesystem>
 
