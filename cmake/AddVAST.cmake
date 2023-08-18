@@ -292,13 +292,11 @@ endfunction()
 #     Should set SONAME link flags and create symlinks
 #   NO_INSTALL_RPATH
 #     Suppress default RPATH settings in shared libraries.
-#   PLUGIN_TOOL
-#     The tool (i.e. cmake target) that this plugin will link against
 #   )
 function(vast_add_library_impl name)
   cmake_parse_arguments(ARG
     "MODULE;SHARED;STATIC;OBJECT;DISABLE_VAST_LINK_VAST_DYLIB;SONAME;NO_INSTALL_RPATH"
-    "OUTPUT_NAME;PLUGIN_TOOL;ENTITLEMENTS;BUNDLE_PATH"
+    "OUTPUT_NAME;ENTITLEMENTS;BUNDLE_PATH"
     "ADDITIONAL_HEADERS;DEPENDS;LINK_COMPONENTS;LINK_LIBS;OBJLIBS"
     ${ARGN}
   )
@@ -306,7 +304,7 @@ function(vast_add_library_impl name)
   list(APPEND VAST_COMMON_DEPENDS ${ARG_DEPENDS})
 
   # link gap by default
-  list(APPEND ARG_LINK_LIBS vast::settings)
+  list(APPEND ARG_LINK_LIBS PRIVATE vast::settings)
 
   if(ARG_ADDITIONAL_HEADERS)
     # Pass through ADDITIONAL_HEADERS.
@@ -323,15 +321,7 @@ function(vast_add_library_impl name)
     if(ARG_SHARED OR ARG_STATIC)
       message(WARNING "MODULE with SHARED|STATIC doesn't make sense.")
     endif()
-    # Plugins that link against a tool are allowed even when plugins in general are not
-    if(NOT VAST_ENABLE_PLUGINS AND NOT (ARG_PLUGIN_TOOL AND VAST_EXPORT_SYMBOLS_FOR_PLUGINS))
-      message(STATUS "${name} ignored -- Loadable modules not supported on this platform.")
-      return()
-    endif()
   else()
-    if(ARG_PLUGIN_TOOL)
-      message(WARNING "PLUGIN_TOOL without MODULE doesn't make sense.")
-    endif()
     if(BUILD_SHARED_LIBS AND NOT ARG_STATIC)
       set(ARG_SHARED TRUE)
     endif()
@@ -444,7 +434,7 @@ function(vast_add_library_impl name)
   if(ARG_MODULE)
     set_target_properties(${name} PROPERTIES
       PREFIX ""
-      SUFFIX ${VAST_PLUGIN_EXT}
+      SUFFIX ${CMAKE_SHARED_MODULE_SUFFIX}
     )
   endif()
 
@@ -490,10 +480,6 @@ function(vast_add_library_impl name)
       set_target_properties(${name} PROPERTIES OUTPUT_NAME ${library_name})
       if (UNIX)
         message(FATAL_ERROR "Unsupported symlink installation.")
-        # llvm_install_library_symlink(${api_name} ${library_name} SHARED
-        #   COMPONENT ${name})
-        # llvm_install_library_symlink(${output_name} ${library_name} SHARED
-        #   COMPONENT ${name})
       endif()
     endif()
   endif()
@@ -503,20 +489,6 @@ function(vast_add_library_impl name)
   else()
     # We can use PRIVATE since SO knows its dependent libs.
     set(libtype PRIVATE)
-  endif()
-
-  if(ARG_MODULE AND VAST_EXPORT_SYMBOLS_FOR_PLUGINS AND ARG_PLUGIN_TOOL AND (WIN32 OR CYGWIN))
-    # On DLL platforms symbols are imported from the tool by linking against it.
-    set(llvm_libs ${ARG_PLUGIN_TOOL})
-  else()
-    if(VAST_LINK_VAST_DYLIB AND NOT ARG_DISABLE_VAST_LINK_VAST_DYLIB)
-      set(llvm_libs LLVM)
-    else()
-      llvm_map_components_to_libnames(llvm_libs
-        ${ARG_LINK_COMPONENTS}
-        ${LLVM_LINK_COMPONENTS}
-      )
-    endif()
   endif()
 
   target_link_libraries(${name} ${libtype}
@@ -609,7 +581,6 @@ function(add_vast_library name)
     list(APPEND LIBTYPE OBJECT)
   endif()
 
-  # VAST libraries uniformly depend on LLVMSupport. Just specify it once here.
   check_llvm_components_usage(${name} ${ARG_LINK_LIBS})
 
   list(APPEND ARG_DEPENDS vast-generic-headers)
@@ -669,7 +640,7 @@ function(add_vast_dialect_library name)
     set_property(GLOBAL APPEND PROPERTY VAST_DIALECT_LIBS VAST${name})
     add_vast_library(${ARGV}
       DEPENDS vast-headers
-      LINK_LIBS VASTUtil
+      LINK_LIBS PRIVATE VASTUtil
     )
 endfunction(add_vast_dialect_library)
 
@@ -678,7 +649,7 @@ function(add_vast_conversion_library name)
     set_property(GLOBAL APPEND PROPERTY VAST_CONVERSION_LIBS VAST${name})
     add_vast_library(${ARGV}
       DEPENDS vast-headers
-      LINK_LIBS VASTUtil
+      LINK_LIBS PRIVATE VASTUtil
     )
 endfunction(add_vast_conversion_library)
 
@@ -687,7 +658,7 @@ function(add_vast_extension_library name)
     set_property(GLOBAL APPEND PROPERTY VAST_EXTENSION_LIBS VAST${name})
     add_vast_library(${ARGV}
       DEPENDS vast-headers
-      LINK_LIBS VASTUtil
+      LINK_LIBS PRIVATE VASTUtil
     )
 endfunction(add_vast_extension_library)
 
@@ -696,7 +667,7 @@ function(add_vast_translation_library name)
     set_property(GLOBAL APPEND PROPERTY VAST_TRANSLATION_LIBS VAST${name})
     add_vast_library(${ARGV}
       DEPENDS vast-headers
-      LINK_LIBS VASTUtil
+      LINK_LIBS PRIVATE VASTUtil
     )
 endfunction(add_vast_translation_library)
 
@@ -704,7 +675,7 @@ function(add_vast_interface_library name)
   set_property(GLOBAL APPEND PROPERTY VAST_INTERFACE_LIBS VAST${name})
   add_vast_library(${ARGV}
     DEPENDS vast-headers
-    LINK_LIBS VASTUtil
+    LINK_LIBS PRIVATE VASTUtil
   )
 endfunction(add_vast_interface_library)
 
@@ -712,10 +683,10 @@ endfunction(add_vast_interface_library)
 # This is usually done as part of add_vast_library but is broken out for cases
 # where non-standard library builds can be installed.
 function(add_vast_library_install name)
-  get_vast_target_export_arg(${name} VAST export_to_vasttargets UMBRELLA vast-libraries)
+  get_vast_target_export_arg(${name} VAST export_to_vast_targets UMBRELLA vast-libraries)
   install(TARGETS ${name}
     COMPONENT ${name}
-    ${export_to_vasttargets}
+    ${export_to_vast_targets}
     LIBRARY DESTINATION lib${VAST_LIBDIR_SUFFIX}
     ARCHIVE DESTINATION lib${VAST_LIBDIR_SUFFIX}
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
@@ -799,6 +770,34 @@ function(get_vast_target_export_arg target project export_arg_var)
   set(${export_arg_var} EXPORT ${project}${suffix} PARENT_SCOPE)
   set_property(GLOBAL PROPERTY ${project_upper}_HAS_EXPORTS True)
 endfunction()
+
+function(add_vast_executable target)
+  cmake_parse_arguments(ARG "" "" "LINK_LIBS" ${ARGN})
+
+  add_executable(${target} ${ARG_UNPARSED_ARGUMENTS})
+
+  get_property(VAST_LIBS GLOBAL PROPERTY VAST_ALL_LIBS)
+
+  target_link_libraries(${target}
+    PRIVATE
+      ${VAST_LIBS}
+      ${MLIR_LIBS}
+      ${ARG_LINK_LIBS}
+      vast::settings
+  )
+
+  install(TARGETS ${target}
+    COMPONENT ${target}
+    LIBRARY DESTINATION lib${VAST_LIBDIR_SUFFIX}
+    ARCHIVE DESTINATION lib${VAST_LIBDIR_SUFFIX}
+    RUNTIME DESTINATION ${VAST_TOOLS_INSTALL_DIR}
+    OBJECTS DESTINATION lib${VAST_LIBDIR_SUFFIX}
+  )
+
+  add_vast_install_targets(install-${target} DEPENDS ${target} COMPONENT ${target})
+
+  vast_check_link_libraries(${target})
+endfunction(add_vast_executable)
 
 # Verification tools to aid debugging.
 function(vast_check_link_libraries name)
