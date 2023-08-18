@@ -206,7 +206,7 @@ endif()
 option(VAST_BUILD_DIALECTS "Build VAST Dialects." ON)
 
 option(VAST_BUILD_CONVERSIONS "Build VAST conversion passes." ON)
-if (NOT VAST_BUILD_DIALECTS AND VAST_BUILD_CONVERSION_PASSES)
+if (NOT VAST_BUILD_DIALECTS AND VAST_BUILD_CONVERSIONS)
   message(FATAL_ERROR
     "Conversion passes require dialects to be built."
     "Set `VAST_BUILD_DIALECTS` option."
