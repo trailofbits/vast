@@ -3,4 +3,7 @@
 add_vast_library(Frontend
     GenAction.cpp
     Options.cpp
+
+    LINK_LIBS PUBLIC
+    VASTCodeGen
 )
