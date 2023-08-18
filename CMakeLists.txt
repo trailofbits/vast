@@ -273,7 +273,6 @@ endif()
 target_link_libraries(vast_settings
   INTERFACE
     gap::gap
-    vast::util
 )
 
 #
@@ -312,10 +311,6 @@ option(VAST_INSTALL "Generate the install target." ${VAST_MASTER_PROJECT})
 
 if (VAST_INSTALL)
   set(VAST_CMAKE_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
-
-  set_property(GLOBAL APPEND PROPERTY VAST_INSTALL_TARGETS
-    vast vast_settings vast_util
-  )
 
   get_property(VAST_INSTALL_TARGETS GLOBAL PROPERTY VAST_INSTALL_TARGETS)
 
