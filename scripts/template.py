@@ -49,7 +49,7 @@ def generate_dialect_includes(opts):
     includes = os.path.join(project_dir, f"include/vast/Dialect/")
     dialect_includes = os.path.join(includes, dialect)
 
-    if not proceed_query(f"Will generate dialect include files into: { dialect_includes }"):
+    if not proceed_query(f"Generate dialect include files into: { dialect_includes }"):
         return
 
     if os.path.exists(dialect_includes):
@@ -66,7 +66,7 @@ def generate_dialect_includes(opts):
         print(f"Creating: { destination }")
 
     # Generate dialect includes CMakeLists
-    create_in_includes('CMakeLists.txt', 'dialect.includes.cmakelists.in')
+    create_in_includes('CMakeLists.txt', 'dialect.includes.cmake.in')
 
     # Register dialect subdirectory in cmake
     includes_cmake_lists = os.path.join(includes, 'CMakeLists.txt')
@@ -74,7 +74,18 @@ def generate_dialect_includes(opts):
     print(f"Updating: { includes_cmake_lists }")
 
     # Generate headers
-    create_in_includes(f'{dialect }.td', 'dialect.td.in')
+    create_in_includes(f'{ dialect }.td', 'Dialect.td.in')
+    create_in_includes(f'{ dialect }Dialect.hpp', 'Dialect.hpp.in')
+    create_in_includes(f'{ dialect }Ops.td', 'Ops.td.in')
+    create_in_includes(f'{ dialect }Ops.hpp', 'Ops.hpp.in')
+
+    if opts['has_types']:
+        create_in_includes(f'{ dialect }Types.td', 'Types.td.in')
+        create_in_includes(f'{ dialect }Types.hpp', 'Types.hpp.in')
+
+    if opts['has_attributes']:
+        create_in_includes(f'{ dialect }Attributes.td', 'Attributes.td.in')
+        create_in_includes(f'{ dialect }Attributes.hpp', 'Attributes.hpp.in')
 
     # Create Conversions
 
@@ -112,11 +123,6 @@ dialect_config = {
         },
         {
             'type': 'confirm',
-            'name': 'has_internal_conversions',
-            'message': 'Does dialect provide internal conversions?',
-        },
-        {
-            'type': 'confirm',
             'name': 'has_types',
             'message': 'Does dialect provide types?',
         },
@@ -124,7 +130,12 @@ dialect_config = {
             'type': 'confirm',
             'name': 'has_attributes',
             'message': 'Does dialect provide attributes?',
-        }
+        },
+        {
+            'type': 'confirm',
+            'name': 'has_internal_conversions',
+            'message': 'Does dialect provide internal conversions?',
+        },
     ]
 }
 
