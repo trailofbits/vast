@@ -24,6 +24,31 @@ project_dir = os.path.dirname(script_dir)
 template_loader = jinja2.FileSystemLoader(searchpath=templates_dir)
 templates = jinja2.Environment(loader=template_loader)
 
+def gather_dialects(includes: str):
+    isdir = lambda path: os.path.isdir(os.path.join(includes, path))
+    dirs  = [path for path in os.listdir(includes) if isdir(path)]
+
+    dialects = []
+    for dialect in dirs:
+        definition = os.path.join(includes, dialect, dialect + '.td')
+        if not os.path.isfile(definition):
+            continue
+        pattern = r'let cppNamespace = "::vast::(.+)"'
+        with open(definition, 'r') as td:
+            for line in td:
+                if match := re.search(pattern, line):
+                    dialects.append({
+                        'name': dialect,
+                        'namespace': match.group(1)
+                    })
+                    break
+
+    return sorted(dialects, key=lambda dialect: dialect['name'])
+
+dialect_names = [dialect['name'] for dialect in
+    gather_dialects(os.path.join(project_dir, f"include/vast/Dialect/"))
+]
+
 #
 # Dialect Generation
 #
@@ -120,32 +145,32 @@ dialect_config = {
         {
             'type': 'input',
             'name': 'dialect_name',
-            'message': 'What is dialect name?',
+            'message': "What is the dialect's name?",
         },
         {
             'type': 'input',
             'name': 'dialect_mnemonic',
-            'message': 'What is dialect mnemonic?',
+            'message': "What is the dialect's mnemonic?",
         },
         {
             'type': 'input',
             'name': 'dialect_namespace',
-            'message': 'What is dialect C++ namespace?',
+            'message': "What is the dialect's C++ namespace?",
         },
         {
             'type': 'confirm',
             'name': 'has_types',
-            'message': 'Does dialect provide types?',
+            'message': 'Does the dialect provide types?',
         },
         {
             'type': 'confirm',
             'name': 'has_attributes',
-            'message': 'Does dialect provide attributes?',
+            'message': 'Does the dialect provide attributes?',
         },
         {
             'type': 'confirm',
             'name': 'has_internal_transforms',
-            'message': 'Does dialect provide internal transformations?',
+            'message': 'Does the dialect provide internal transformations?',
         },
     ]
 }
@@ -165,8 +190,23 @@ conversion_config = {
         {
             'type': 'confirm',
             'name': 'endomorphism',
-            'message': 'Is this endomorphic conversion in dialect?',
+            'message': 'Is the conversion endomorphism?',
         }
+    ]
+}
+
+#
+# Interface Generation
+#
+
+def generate_interface_templates(opts):
+    pass
+
+interface_config = {
+    'generator': generate_interface_templates,
+    'option_name': 'interface',
+    'help': 'TODO',
+    'options': [
     ]
 }
 
@@ -183,12 +223,22 @@ operation_config = {
     'help': 'TODO',
     'options': [
         {
-            'type': 'confirm',
-            'name': 'endomorphism',
-            'message': 'Is this endomorphic conversion in dialect?',
+            'type': 'list',
+            'name': 'dialect',
+            'message': 'Choose dialect for type:',
+            'choices': dialect_names
+        },
+        {
+            'type': 'input',
+            'name': 'name',
+            'message': "What is the operation's name?",
         }
     ]
 }
+
+#
+# Type Generation
+#
 
 def generate_type_templates(opts):
     pass
@@ -198,6 +248,43 @@ type_config = {
     'option_name': 'type',
     'help': 'TODO',
     'options': [
+        {
+            'type': 'list',
+            'name': 'dialect',
+            'message': 'Choose dialect for type:',
+            'choices': dialect_names
+        },
+        {
+            'type': 'input',
+            'name': 'name',
+            'message': "What is the type's name?",
+        }
+    ]
+}
+
+#
+# Attribute Generation
+#
+
+def generate_attr_templates(opts):
+    pass
+
+attr_config = {
+    'generator': generate_attr_templates,
+    'option_name': 'attribute',
+    'help': 'TODO',
+    'options': [
+        {
+            'type': 'list',
+            'name': 'dialect',
+            'message': 'Choose dialect for attribute:',
+            'choices': dialect_names
+        },
+        {
+            'type': 'input',
+            'name': 'name',
+            'message': "What is the attribute's name?",
+        }
     ]
 }
 
@@ -206,7 +293,7 @@ type_config = {
 #
 
 configs = [
-    dialect_config, conversion_config, operation_config, type_config
+    dialect_config, conversion_config, interface_config, operation_config, type_config, attr_config
 ]
 
 prologue = [
@@ -222,26 +309,6 @@ prologue = [
 # Utils
 #
 
-def gather_dialects(includes: str):
-    isdir = lambda path: os.path.isdir(os.path.join(includes, path))
-    dirs  = [path for path in os.listdir(includes) if isdir(path)]
-
-    dialects = []
-    for dialect in dirs:
-        definition = os.path.join(includes, dialect, dialect + '.td')
-        if not os.path.isfile(definition):
-            continue
-        pattern = r'let cppNamespace = "::vast::(.+)"'
-        with open(definition, 'r') as td:
-            for line in td:
-                if match := re.search(pattern, line):
-                    dialects.append({
-                        'name': dialect,
-                        'namespace': match.group(1)
-                    })
-                    break
-
-    return sorted(dialects, key=lambda dialect: dialect['name'])
 
 def query(opts : str) -> Dict[str, Any]:
     return prompt(opts, style=custom_style_2)
@@ -272,7 +339,6 @@ def main():
     fill_template_options(opts, target)
     # generate demplates from gathered options
     config['generator'](opts)
-
 
 if __name__ == "__main__":
     main()
