@@ -6,9 +6,8 @@
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Interfaces/SymbolInterface.hpp"
+#include "vast/Dialect/Core/Func.hpp"
 
-#include <mlir/IR/FunctionInterfaces.h>
-#include <mlir/Interfaces/CallInterfaces.h>
 #include <mlir/Interfaces/InferTypeOpInterface.h>
 
 namespace vast::hl
@@ -87,3 +86,4 @@ namespace vast::hl
 {
     FuncOp getCallee(CallOp call);
 }
+
