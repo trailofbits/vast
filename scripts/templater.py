@@ -59,11 +59,14 @@ def generate_dialect_includes(opts):
     # Create Includes Directory
     os.makedirs(dialect_includes, exist_ok=True)
 
-    def create_in_includes(dst: str, template_name: str):
+    def create_in(root: str, dst: str, template_name: str):
         template = templates.get_template(template_name)
-        destination = os.path.join(dialect_includes, dst)
+        destination = os.path.join(root, dst)
         template.stream(opts).dump(destination)
         print(f"Creating: { destination }")
+
+    def create_in_includes(dst: str, template_name: str):
+        create_in(dialect_includes, dst, template_name)
 
     # Generate dialect includes CMakeLists
     create_in_includes('CMakeLists.txt', 'dialect.includes.cmake.in')
@@ -87,7 +90,9 @@ def generate_dialect_includes(opts):
         create_in_includes(f'{ dialect }Attributes.td', 'Attributes.td.in')
         create_in_includes(f'{ dialect }Attributes.hpp', 'Attributes.hpp.in')
 
-    # Create Conversions
+    if opts['has_internal_transforms']:
+        create_in_includes(f'Passes.td', 'Passes.td.in')
+        create_in_includes(f'Passes.hpp', 'Passes.hpp.in')
 
     # register dialect in Dialects.hpp
 
@@ -96,8 +101,8 @@ def generate_dialect_includes(opts):
 def generate_dialect_templates(opts):
     # Generate include templates
 
-    if opts['has_internal_conversions']:
-        opts['internal_conversions'] = '_and_passes'
+    if opts['has_internal_transforms']:
+        opts['internal_transforms'] = '_and_passes'
 
     generate_dialect_includes(opts)
 
@@ -133,8 +138,8 @@ dialect_config = {
         },
         {
             'type': 'confirm',
-            'name': 'has_internal_conversions',
-            'message': 'Does dialect provide internal conversions?',
+            'name': 'has_internal_transforms',
+            'message': 'Does dialect provide internal transformations?',
         },
     ]
 }
