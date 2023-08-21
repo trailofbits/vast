@@ -330,16 +330,16 @@ if (VAST_GENERATE_TOOLS)
 endif()
 
 # test options
-option(ENABLE_TESTING "Enable Test Builds" ON)
+option(VAST_ENABLE_TESTING "Enable Test Builds" ON)
 
-if (NOT VAST_BUILD_TOOLS AND ENABLE_TESTING)
+if (NOT VAST_BUILD_TOOLS AND VAST_ENABLE_TESTING)
   message(FATAL_ERROR
     "VAST tests require tools to be built."
     "Set `VAST_BUILD_TOOLS` and `VAST_GENERATE_TOOLS` option."
   )
 endif()
 
-if (ENABLE_TESTING)
+if (VAST_ENABLE_TESTING)
   enable_testing()
   add_subdirectory(test)
 endif()

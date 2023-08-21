@@ -13,7 +13,7 @@
             "generator": "Ninja Multi-Config",
             "cacheVariables": {
                 "CMAKE_CONFIGURATION_TYPES": "Release;RelWithDebInfo;Debug",
-                "ENABLE_TESTING": "ON"
+                "VAST_ENABLE_TESTING": "ON"
             }
         },
         {
