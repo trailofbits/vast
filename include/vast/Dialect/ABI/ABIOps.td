@@ -3,16 +3,11 @@
 #ifndef VAST_DIALECT_IR_ABIOPS
 #define VAST_DIALECT_IR_ABIOPS
 
-include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/Interfaces/CastInterfaces.td"
 
 include "mlir/IR/OpBase.td"
-include "mlir/IR/EnumAttr.td"
-include "mlir/IR/BuiltinAttributes.td"
-include "mlir/IR/FunctionInterfaces.td"
 
-include "vast/Interfaces/SymbolInterface.td"
-include "vast/Dialect/Core/Linkage.td"
+include "vast/Dialect/Core/Func.td"
 
 def DirectOp
     : ABI_Op< "direct" >
@@ -137,24 +132,13 @@ def CallOp
 
 // TODO(abi): This is mostly copy & paste of hl.func. Once ABI dialect is stable,
 //            extract shared parts from both definitions into some helper.
-class ABIFuncBase< string mnemonic >
-    : ABI_Op< mnemonic, [ AutomaticAllocationScope, CallableOpInterface, FunctionOpInterface,
-                          IsolatedFromAbove, Symbol, NoTerminator ] >
+class ABIFuncBase< string mnemonic, list< Trait> traits = [] >
+  : FuncOp< ABI_Dialect, mnemonic, traits >
 {
     let description = [{
         Placeholder.
     }];
 
-    let arguments =(ins
-        SymbolNameAttr:$sym_name,
-        TypeAttrOf<FunctionType>:$function_type,
-        DefaultValuedAttr<GlobalLinkageKind, "core::GlobalLinkageKind::ExternalLinkage">:$linkage,
-        OptionalAttr<StrAttr>:$sym_visibility,
-        OptionalAttr<DictArrayAttr>:$arg_attrs,
-        OptionalAttr<DictArrayAttr>:$res_attrs
-    );
-
-    let regions = (region AnyRegion:$body);
     let skipDefaultBuilders = 1;
 
     let builders = [OpBuilder<(ins
@@ -186,40 +170,6 @@ class ABIFuncBase< string mnemonic >
             );
         }] >
     ];
-
-    let extraClassDeclaration = [{
-        //===------------------------------------------------------------------===//
-        // CallableOpInterface
-        //===------------------------------------------------------------------===//
-
-        /// Returns the region on the current operation that is callable. This may
-        /// return null in the case of an external callable object, e.g. an external
-        /// function.
-        ::mlir::Region *getCallableRegion() {
-            return isExternal() ? nullptr : &getBody();
-        }
-
-        /// Returns the results types that the callable region produces when
-        /// executed.
-        llvm::ArrayRef<Type> getCallableResults() {
-            return getFunctionType().getResults();
-        }
-
-        //===------------------------------------------------------------------===//
-        // FunctionOpInterface Methods
-        //===------------------------------------------------------------------===//
-        /// Returns the argument types of this function.
-        llvm::ArrayRef<Type> getArgumentTypes() { return getFunctionType().getInputs(); }
-
-        /// Returns the result types of this function.
-        llvm::ArrayRef<Type> getResultTypes() { return getFunctionType().getResults(); }
-
-        //===------------------------------------------------------------------===//
-        // SymbolOpInterface Methods
-        //===------------------------------------------------------------------===//
-
-        bool isDeclaration() { return isExternal(); }
-    }];
 }
 
 def FuncOp : ABIFuncBase< "func" >
