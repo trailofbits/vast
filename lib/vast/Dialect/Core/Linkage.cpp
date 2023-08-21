@@ -1,12 +1,12 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
-#include <vast/Dialect/HighLevel/HighLevelLinkage.hpp>
+#include <vast/Dialect/Core/Linkage.hpp>
 
 VAST_RELAX_WARNINGS
 #include <clang/Basic/TargetInfo.h>
 VAST_UNRELAX_WARNINGS
 
-namespace vast::hl {
+namespace vast::core {
 
     using Visibility = mlir::SymbolTable::Visibility;
 
@@ -263,4 +263,4 @@ namespace vast::hl {
         return get_declarator_linkage(decl, linkage, /* is const variable */ false);
     }
 
-} // namespace vast::hl
+} // namespace vast::core

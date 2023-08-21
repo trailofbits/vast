@@ -12,7 +12,7 @@ include "mlir/IR/BuiltinAttributes.td"
 include "mlir/IR/FunctionInterfaces.td"
 
 include "vast/Interfaces/SymbolInterface.td"
-include "vast/Dialect/HighLevel/HighLevelLinkage.td"
+include "vast/Dialect/Core/Linkage.td"
 
 def DirectOp
     : ABI_Op< "direct" >
@@ -148,7 +148,7 @@ class ABIFuncBase< string mnemonic >
     let arguments =(ins
         SymbolNameAttr:$sym_name,
         TypeAttrOf<FunctionType>:$function_type,
-        DefaultValuedAttr<GlobalLinkageKind, "hl::GlobalLinkageKind::ExternalLinkage">:$linkage,
+        DefaultValuedAttr<GlobalLinkageKind, "core::GlobalLinkageKind::ExternalLinkage">:$linkage,
         OptionalAttr<StrAttr>:$sym_visibility,
         OptionalAttr<DictArrayAttr>:$arg_attrs,
         OptionalAttr<DictArrayAttr>:$res_attrs
@@ -160,7 +160,7 @@ class ABIFuncBase< string mnemonic >
     let builders = [OpBuilder<(ins
         "llvm::StringRef":$name,
         "mlir::FunctionType":$type,
-        CArg< "hl::GlobalLinkageKind", "hl::GlobalLinkageKind::ExternalLinkage" >:$linkage,
+        CArg< "core::GlobalLinkageKind", "core::GlobalLinkageKind::ExternalLinkage" >:$linkage,
         CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
         CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
         CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$res_attrs), [{
@@ -173,7 +173,7 @@ class ABIFuncBase< string mnemonic >
             $_state.addAttribute(getFunctionTypeAttrName($_state.name),
                                  mlir::TypeAttr::get(type));
             $_state.addAttribute(
-                "linkage", hl::GlobalLinkageKindAttr::get($_builder.getContext(), linkage)
+                "linkage", core::GlobalLinkageKindAttr::get($_builder.getContext(), linkage)
             );
             $_state.attributes.append(attrs.begin(), attrs.end());
 

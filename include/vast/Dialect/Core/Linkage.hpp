@@ -10,14 +10,14 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 
-namespace vast::hl {
+namespace vast::core {
 
-    mlir::SymbolTable::Visibility get_visibility_from_linkage(GlobalLinkageKind linkage);
+    mlir::SymbolTable::Visibility get_visibility_from_linkage(core::GlobalLinkageKind linkage);
 
-    GlobalLinkageKind get_declarator_linkage(
+    core::GlobalLinkageKind get_declarator_linkage(
         const clang::DeclaratorDecl *decl, clang::GVALinkage linkage, bool is_constant
     );
 
-    GlobalLinkageKind get_function_linkage(clang::GlobalDecl glob);
+    core::GlobalLinkageKind get_function_linkage(clang::GlobalDecl glob);
 
-} // namespace vast::hl
+} // namespace vast::core

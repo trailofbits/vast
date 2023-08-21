@@ -41,6 +41,8 @@ namespace vast::hl
     // - functions don't have 'common' linkage
     // - external functions have 'external' or 'extern_weak' linkage
     logical_result FuncOp::verify() {
+        using core::GlobalLinkageKind;
+
         auto linkage = getLinkage();
         constexpr auto common = GlobalLinkageKind::CommonLinkage;
         if (linkage == common) {

@@ -21,7 +21,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Scopes.hpp"
 
-#include "vast/Dialect/HighLevel/HighLevelLinkage.hpp"
+#include "vast/Dialect/Core/Linkage.hpp"
 
 #include "vast/CodeGen/FunctionInfo.hpp"
 
@@ -83,7 +83,7 @@ namespace vast::cg {
             // could be anywhere (e.g. callsite). Do not rely on whatever it might
             // be, properly save, find the appropriate place and restore.
             auto guard = insertion_guard();
-            auto linkage = hl::get_function_linkage(function_decl);
+            auto linkage = core::get_function_linkage(function_decl);
 
             // make function header, that will be later filled with function body
             // or returned as declaration in the case of external function
@@ -94,7 +94,7 @@ namespace vast::cg {
             VAST_CHECK(fn.isDeclaration(), "expected empty body");
 
             mlir::SymbolTable::setSymbolVisibility(
-                fn, get_visibility_from_linkage(linkage)
+                fn, core::get_visibility_from_linkage(linkage)
             );
 
             return fn;
@@ -402,7 +402,7 @@ namespace vast::cg {
 
             llvm::ScopedHashTableScope scope(context().vars);
 
-            auto linkage = hl::get_function_linkage(gdecl);
+            auto linkage = core::get_function_linkage(gdecl);
 
             auto fn = context().declare(mangled, [&] () {
                 auto loc  = meta_location(decl);
@@ -418,7 +418,7 @@ namespace vast::cg {
                 return fn;
             }
 
-            fn.setVisibility(get_visibility_from_linkage(linkage));
+            fn.setVisibility(core::get_visibility_from_linkage(linkage));
 
             if (fn.empty()) {
                 emit_function_body(fn);
