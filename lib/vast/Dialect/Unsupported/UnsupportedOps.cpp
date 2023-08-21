@@ -14,7 +14,7 @@ VAST_UNRELAX_WARNINGS
 #define GET_OP_CLASSES
 #include "vast/Dialect/Unsupported/Unsupported.cpp.inc"
 
-namespace vast::us {
+namespace vast::unsup {
 
     void UnsupportedDecl::build(
         Builder &bld, State &st, llvm::StringRef name, BuilderCallback body
@@ -36,4 +36,4 @@ namespace vast::us {
     }
 
 
-} // namespace vast::us
+} // namespace vast::unsup

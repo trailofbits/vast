@@ -11,8 +11,8 @@ include "mlir/IR/SymbolInterfaces.td"
 include "vast/Interfaces/SymbolInterface.td"
 
 def Unsupported_Dialect : Dialect {
-    let name = "unsupported";
-    let cppNamespace = "::vast::us";
+    let name = "unsup";
+    let cppNamespace = "::vast::unsup";
 
     let summary = "A vast unsupported dialect.";
 
