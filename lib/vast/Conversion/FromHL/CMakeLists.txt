@@ -7,4 +7,5 @@ add_vast_conversion_library(HighLevelConversionPasses
     StructsToLLVM.cpp
     ToLLGEPs.cpp
     ToLLVars.cpp
+    ToLLFunc.cpp
 )

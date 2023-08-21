@@ -125,6 +125,16 @@ def HLToLLVars : Pass<"vast-hl-to-ll-vars", "mlir::ModuleOp"> {
   let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::ll::LowLevelDialect"];
 }
 
+def HLToLLFunc : Pass<"vast-hl-to-ll-func", "mlir::ModuleOp"> {
+  let summary = "Convert hl functions into ll versions.";
+  let description = [{
+    This pass is still a work in progress.
+  }];
+
+  let constructor = "vast::createHLToLLFuncPass()";
+  let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::ll::LowLevelDialect"];
+}
+
 def HLStructsToLLVM : Pass<"vast-hl-structs-to-llvm", "mlir::ModuleOp"> {
   let summary = "Transform hl.struct into llvm types without applying ABI conversions.";
   let description = [{
