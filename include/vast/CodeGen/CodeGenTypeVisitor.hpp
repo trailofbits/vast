@@ -261,7 +261,7 @@ namespace vast::cg {
 
         auto VisitLValueType(clang::QualType ty) -> mlir_type {
             auto element_type = visit(ty);
-            if (element_type.template isa< hl::LValueType >()) {
+            if (mlir::isa< hl::LValueType >(element_type)) {
                 return element_type;
             }
             return hl::LValueType::get(&mcontext(), element_type);
