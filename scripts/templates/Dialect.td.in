@@ -1,0 +1,33 @@
+// Copyright (c) {{ year }}, Trail of Bits, Inc.
+
+#ifndef VAST_DIALECT_{{ dialect_name|upper }}
+#define VAST_DIALECT_{{ dialect_name|upper }}
+
+include "mlir/IR/OpBase.td"
+include "mlir/IR/OpAsmInterface.td"
+
+def {{ dialect_name }}_Dialect : Dialect {
+    let name = "{{ dialect_mnemonic }}";
+    let cppNamespace = "::vast::{{ dialect_namespace }}";
+
+    let summary = "A vast dialect summary.";
+
+    let description = [{
+        A vast dialect description.
+    }];
+
+    let extraClassDeclaration = [{
+        {% if has_types %}void registerTypes();{% endif %}
+        {% if has_attributes %}void registerAttributes();{% endif %}
+    }];
+
+    {% if has_types %}let useDefaultTypePrinterParser = 1;{% endif %}
+    {% if has_attributes %}let useDefaultAttributePrinterParser = 1;{% endif %}
+}
+
+{% if has_attributes %}include "{{ dialect_name }}Attributes.td"{% endif %}
+{% if has_types %}include "{{ dialect_name }}Types.td"{% endif %}
+include "{{ dialect_name }}Ops.td"
+
+#endif // VAST_DIALECT_{{ dialect_name|upper }}
+

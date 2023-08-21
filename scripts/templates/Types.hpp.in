@@ -1,0 +1,8 @@
+// Copyright (c) {{ year }}, Trail of Bits, Inc.
+
+#pragma once
+
+#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Dialect.hpp"
+
+#define GET_TYPEDEF_CLASSES
+#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}.h.inc"

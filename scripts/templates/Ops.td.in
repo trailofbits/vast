@@ -1,0 +1,9 @@
+// Copyright (c) {{ year }}, Trail of Bits, Inc.
+
+#ifndef VAST_DIALECT_{{ dialect_name|upper }}_{{ dialect_name|upper }}OPS
+#define VAST_DIALECT_{{ dialect_name|upper }}_{{ dialect_name|upper }}OPS
+
+class {{ dialect_name }}_Op< string mnemonic, list< Trait > traits = [] >
+    : Op< {{ dialect_name }}_Dialect, mnemonic, traits >;
+
+#endif // VAST_DIALECT_{{ dialect_name|upper }}_{{ dialect_name|upper }}OPS
