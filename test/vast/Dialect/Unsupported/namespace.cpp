@@ -1,7 +1,7 @@
 // RUN: vast-front %s -vast-emit-mlir=hl -o - | FileCheck %s
 // RUN: vast-front %s -vast-emit-mlir=hl -o - > %t && vast-opt %t | diff -B %t -
 
-// CHECK: unsupported.decl "Namespace::test" :
+// CHECK: unsup.decl "Namespace::test" :
 namespace test {
 struct FILE;
 extern FILE* file_handle;
