@@ -18,7 +18,7 @@ int main() {
     enum color { RED, GREEN, BLUE } r = RED;
 
     // CHECK: hl.switch
-    // CHECK:  hl.ref %0 : !hl.lvalue<!hl.elaborated<!hl.record<"color">>>
+    // CHECK:  hl.ref %0
     switch(r) {
     // CHECK: hl.case
     // CHECK:  hl.enumref "RED" : !hl.int

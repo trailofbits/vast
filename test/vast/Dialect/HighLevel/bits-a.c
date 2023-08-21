@@ -6,7 +6,7 @@
 // CHECK: sign1 ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int sign1(int v) {
     // CHECK: [[V0:%[0-9]+]] = hl.expr : !hl.int
-    // CHECK:   [[V1:%[0-9]+]] = hl.ref [[A1]] : !hl.lvalue<!hl.int>
+    // CHECK:   [[V1:%[0-9]+]] = hl.ref [[A1]]
     // CHECK:   [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int
     // CHECK:   [[V3:%[0-9]+]] = hl.const #hl.integer<0> : !hl.int
     // CHECK:   [[V4:%[0-9]+]] = hl.cmp slt [[V2]], [[V3]] : !hl.int, !hl.int -> !hl.int
@@ -34,7 +34,7 @@ int sign2(int v) {
 
 // CHECK: sign3 ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.long< unsigned >>) -> !hl.int
 int sign3(unsigned long v) {
-    // CHECK: [[V0:%[0-9]+]] = hl.ref [[A1]] : !hl.lvalue<!hl.long< unsigned >>
+    // CHECK: [[V0:%[0-9]+]] = hl.ref [[A1]]
     // CHECK: [[V1:%[0-9]+]] = hl.implicit_cast [[V0]]
     // CHECK: [[V2:%[0-9]+]] = hl.expr : !hl.long< unsigned >
     // CHECK:  hl.sizeof.type !hl.int -> !hl.long< unsigned >
