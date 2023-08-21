@@ -10,7 +10,6 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/OperationSupport.h>
 #include <mlir/IR/SymbolTable.h>
 #include <mlir/IR/OpImplementation.h>
-#include <mlir/IR/FunctionImplementation.h>
 
 #include <llvm/Support/ErrorHandling.h>
 VAST_UNRELAX_WARNINGS
