@@ -10,6 +10,7 @@ import jinja2
 import datetime
 import sys
 import os
+import re
 
 #
 # Setup Jinja
@@ -59,14 +60,16 @@ def generate_dialect_includes(opts):
     # Create Includes Directory
     os.makedirs(dialect_includes, exist_ok=True)
 
-    def create_in(root: str, dst: str, template_name: str):
+    def create_in(root: str, dst: str, template_name: str, maps):
         template = templates.get_template(template_name)
         destination = os.path.join(root, dst)
-        template.stream(opts).dump(destination)
-        print(f"Creating: { destination }")
+        exists = os.path.exists(destination)
+        template.stream(maps).dump(destination)
+        action = 'Updating' if exists else 'Creating'
+        print(f"{action}: { destination }")
 
     def create_in_includes(dst: str, template_name: str):
-        create_in(dialect_includes, dst, template_name)
+        create_in(dialect_includes, dst, template_name, opts)
 
     # Generate dialect includes CMakeLists
     create_in_includes('CMakeLists.txt', 'dialect.includes.cmake.in')
@@ -94,9 +97,12 @@ def generate_dialect_includes(opts):
         create_in_includes(f'Passes.td', 'Passes.td.in')
         create_in_includes(f'Passes.hpp', 'Passes.hpp.in')
 
-    # register dialect in Dialects.hpp
+    dialects = {
+        'dialects': gather_dialects(includes)
+    }
 
-    # TODO dump info about generated files
+    create_in(includes, 'Dialects.hpp', 'Dialects.hpp.in', dialects)
+
 
 def generate_dialect_templates(opts):
     # Generate include templates
@@ -216,6 +222,27 @@ prologue = [
 # Utils
 #
 
+def gather_dialects(includes: str):
+    isdir = lambda path: os.path.isdir(os.path.join(includes, path))
+    dirs  = [path for path in os.listdir(includes) if isdir(path)]
+
+    dialects = []
+    for dialect in dirs:
+        definition = os.path.join(includes, dialect, dialect + '.td')
+        if not os.path.isfile(definition):
+            continue
+        pattern = r'let cppNamespace = "::vast::(.+)"'
+        with open(definition, 'r') as td:
+            for line in td:
+                if match := re.search(pattern, line):
+                    dialects.append({
+                        'name': dialect,
+                        'namespace': match.group(1)
+                    })
+                    break
+
+    return sorted(dialects, key=lambda dialect: dialect['name'])
+
 def query(opts : str) -> Dict[str, Any]:
     return prompt(opts, style=custom_style_2)
 
@@ -245,6 +272,7 @@ def main():
     fill_template_options(opts, target)
     # generate demplates from gathered options
     config['generator'](opts)
+
 
 if __name__ == "__main__":
     main()
