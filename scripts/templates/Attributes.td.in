@@ -1,0 +1,12 @@
+// Copyright (c) {{ year }}, Trail of Bits, Inc.
+
+#ifndef VAST_DIALECT_{{ dialect_name|upper }}_{{ dialect_name|upper }}ATTRIBUTES
+#define VAST_DIALECT_{{ dialect_name|upper }}_{{ dialect_name|upper }}ATTRIBUTES
+
+class {{ dialect_name }}_Attr< string name, string attr_mnemonic >
+    : AttrDef< {{ dialect_name }}_Dialect, name >
+{
+    let mnemonic = attr_mnemonic;
+}
+
+#endif // VAST_DIALECT_{{ dialect_name|upper }}_{{ dialect_name|upper }}ATTRIBUTES

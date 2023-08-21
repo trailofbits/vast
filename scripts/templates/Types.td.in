@@ -1,0 +1,10 @@
+// Copyright (c) {{ year }}, Trail of Bits, Inc.
+
+#ifndef VAST_DIALECT_{{ dialect_name|upper }}_{{ dialect_name|upper }}TYPES
+#define VAST_DIALECT_{{ dialect_name|upper }}_{{ dialect_name|upper }}TYPES
+
+class {{ dialect_name }}_Type< string name, list<Trait> traits = [] >
+    : TypeDef< {{ dialect_name }}_Dialect, name >
+{}
+
+#endif // VAST_DIALECT_{{ dialect_name|upper }}_{{ dialect_name|upper }}TYPES
