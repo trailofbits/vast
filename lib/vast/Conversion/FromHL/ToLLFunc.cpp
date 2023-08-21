@@ -6,6 +6,8 @@
 #include "vast/Conversion/Common/Passes.hpp"
 #include "vast/Conversion/Common/Patterns.hpp"
 
+#include "vast/Dialect/LowLevel/LowLevelOps.hpp"
+
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DialectConversion.hpp"
 
@@ -13,6 +15,41 @@ namespace vast
 {
     namespace pattern
     {
+        struct func_op : operation_conversion_pattern< hl::FuncOp >
+        {
+            using base = operation_conversion_pattern< hl::FuncOp >;
+            using base::base;
+            using adaptor_t = hl::FuncOp::Adaptor;
+
+            logical_result matchAndRewrite(
+                hl::FuncOp op, adaptor_t adaptor, conversion_rewriter &rewriter) const override
+            {
+                llvm::SmallVector< mlir::DictionaryAttr > arg_attrs;
+                llvm::SmallVector< mlir::DictionaryAttr > res_attrs;
+                op.getAllArgAttrs(arg_attrs);
+                op.getAllResultAttrs(res_attrs);
+
+                auto fn = rewriter.create< ll::FuncOp >(
+                    op.getLoc(),
+                    adaptor.getSymName(),
+                    adaptor.getFunctionType(),
+                    adaptor.getLinkage(),
+                    op->getAttrs(),
+                    arg_attrs,
+                    res_attrs
+                );
+                rewriter.updateRootInPlace(fn.getOperation(), [&](){fn.getBody().takeBody(op.getBody());});
+                rewriter.replaceOp(op, fn->getOpResults());
+                return mlir::success();
+
+            }
+
+            static void legalize(conversion_target &target) {
+                target.addLegalOp< ll::FuncOp >();
+                target.addIllegalOp< hl::FuncOp >();
+            }
+
+        };
     } // namespace pattern
 
     struct HLToLLFunc : ModuleConversionPassMixin< HLToLLFunc, HLToLLFuncBase > {
@@ -20,13 +57,12 @@ namespace vast
 
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
-            // TODO
             return target;
         }
 
         static void populate_conversions(config_t &config) {
             base::populate_conversions_base<
-                // TODO
+                util::type_list< pattern::func_op>
             >(config);
         }
     };
