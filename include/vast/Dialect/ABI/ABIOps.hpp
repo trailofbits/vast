@@ -16,7 +16,7 @@ VAST_RELAX_WARNINGS
 VAST_RELAX_WARNINGS
 
 #include "vast/Interfaces/SymbolInterface.hpp"
-#include "vast/Dialect/HighLevel/HighLevelLinkage.hpp"
+#include "vast/Dialect/Core/Linkage.hpp"
 
 #define GET_OP_CLASSES
 #include "vast/Dialect/ABI/ABI.h.inc"

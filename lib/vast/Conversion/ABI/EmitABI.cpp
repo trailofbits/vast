@@ -191,7 +191,7 @@ namespace vast
                         // original func is removed.
                         "vast.abi" + op.getName().str(),
                         this->abified_type(),
-                        hl::GlobalLinkageKind::InternalLinkage,
+                        core::GlobalLinkageKind::InternalLinkage,
                         other_attrs,
                         arg_attrs
                 );

@@ -1,7 +1,7 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
-#ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELLINKAGE
-#define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELLINKAGE
+#ifndef VAST_DIALECT_CORE_IR_LINKAGE
+#define VAST_DIALECT_CORE_IR_LINKAGE
 
 // Linkage types inspired from Clang IR - remove ones present in upstream MLIR
 
@@ -52,7 +52,7 @@ def GlobalLinkageKind : I32EnumAttr<
         Global_PrivateLinkage, Global_ExternalWeakLinkage, Global_CommonLinkage
     ]>
 {
-  let cppNamespace = "::vast::hl";
+  let cppNamespace = "::vast::core";
 }
 
-#endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELLINKAGE
+#endif // VAST_DIALECT_CORE_IR_LINKAGE

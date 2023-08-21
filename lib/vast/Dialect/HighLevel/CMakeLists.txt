@@ -6,7 +6,6 @@ add_vast_dialect_library(HighLevel
     HighLevelOps.cpp
     HighLevelAttributes.cpp
     HighLevelTypes.cpp
-    HighLevelLinkage.cpp
 )
 
 add_subdirectory(Transforms)

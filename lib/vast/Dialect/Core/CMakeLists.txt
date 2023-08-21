@@ -5,5 +5,6 @@ add_vast_dialect_library(Core
     CoreTypes.cpp
     CoreTraits.cpp
     CoreAttributes.cpp
+    Linkage.cpp
 )
 
