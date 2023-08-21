@@ -9,10 +9,10 @@
 #include "vast/Dialect/Unsupported/UnsupportedOps.hpp"
 #include "vast/Dialect/Unsupported/UnsupportedTypes.hpp"
 
-#include "vast/Translation/CodeGen.hpp"
-#include "vast/Translation/CodeGenBuilder.hpp"
-#include "vast/Translation/CodeGenContext.hpp"
-#include "vast/Translation/CodeGenVisitor.hpp"
+#include "vast/CodeGen/CodeGen.hpp"
+#include "vast/CodeGen/CodeGenBuilder.hpp"
+#include "vast/CodeGen/CodeGenContext.hpp"
+#include "vast/CodeGen/CodeGenVisitor.hpp"
 
 #include <functional>
 

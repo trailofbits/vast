@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "vast/Translation/CodeGenDeclVisitor.hpp"
-#include "vast/Translation/CodeGenStmtVisitor.hpp"
-#include "vast/Translation/CodeGenTypeVisitor.hpp"
+#include "vast/CodeGen/CodeGenDeclVisitor.hpp"
+#include "vast/CodeGen/CodeGenStmtVisitor.hpp"
+#include "vast/CodeGen/CodeGenTypeVisitor.hpp"
 
 namespace vast::cg
 {
