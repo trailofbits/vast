@@ -6,7 +6,7 @@
 #include "vast/Dialect/Unsupported/UnsupportedDialect.hpp"
 #include "vast/Dialect/Unsupported/UnsupportedOps.hpp"
 
-namespace vast::us {
+namespace vast::unsup {
     void UnsupportedDialect::initialize() {
         registerTypes();
 
@@ -15,6 +15,6 @@ namespace vast::us {
             #include "vast/Dialect/Unsupported/Unsupported.cpp.inc"
         >();
     }
-} // namespace vast::us
+} // namespace vast::unsup
 
 #include "vast/Dialect/Unsupported/UnsupportedDialect.cpp.inc"

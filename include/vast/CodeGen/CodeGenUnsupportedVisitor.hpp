@@ -19,34 +19,34 @@ namespace vast::cg {
 
 #define MAKE_DECL(type) \
     operation Visit##type(const clang::type *decl) { \
-        return make_decl< us::UnsupportedDecl >(decl); \
+        return make_decl< unsup::UnsupportedDecl >(decl); \
     }
 
 #define MAKE_DECL_WITH_BODY(type, body) \
     operation Visit##type(const clang::type *decl) { \
-        return make_decl< us::UnsupportedDecl >(decl, decl->get##body()); \
+        return make_decl< unsup::UnsupportedDecl >(decl, decl->get##body()); \
     }
 
 #define MAKE_EXPR(type) \
     operation Visit##type(const clang::type *expr) { \
-        return make_expr_default< us::UnsupportedExpr >(expr); \
+        return make_expr_default< unsup::UnsupportedExpr >(expr); \
     }
 
 #define MAKE_OPERATION(type) \
     operation Visit##type(const clang::type *expr) { \
-        return make_operation< us::UnsupportedOp >(expr); \
+        return make_operation< unsup::UnsupportedOp >(expr); \
     }
 
 #define MAKE_TYPE(type) \
     Type Visit##type(const clang::type *ty) { \
         if (ty->isSugared()) \
-            return make< us::UnsupportedType >(visit(ty->desugar())); \
-        return make< us::UnsupportedType >(Type()); \
+            return make< unsup::UnsupportedType >(visit(ty->desugar())); \
+        return make< unsup::UnsupportedType >(Type()); \
     }
 
 #define MAKE_TYPE_WITH_ELEMENT(type, element) \
     Type Visit##type(const clang::type *ty) { \
-        return make< us::UnsupportedType >(visit(ty->get##element())); \
+        return make< unsup::UnsupportedType >(visit(ty->get##element())); \
     }
 
     template< typename Derived >
@@ -283,13 +283,13 @@ namespace vast::cg {
                 elements.push_back(visit(out)->getResult(0));
             }
 
-            return make< us::UnsupportedOp >(loc, rtype, expr->getStmtClassName(), elements);
+            return make< unsup::UnsupportedOp >(loc, rtype, expr->getStmtClassName(), elements);
         }
 
         operation VisitOpaqueValueExpr(const clang::OpaqueValueExpr *expr) {
             llvm::SmallVector< vast::Value > elements;
             elements.push_back(visit(expr->getSourceExpr())->getResult(0));
-            return make_operation< us::UnsupportedOp >(expr, elements);
+            return make_operation< unsup::UnsupportedOp >(expr, elements);
         }
 
         MAKE_OPERATION(AtomicExpr)

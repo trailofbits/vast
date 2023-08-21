@@ -24,7 +24,7 @@ namespace vast {
             vast::ll::LowLevelDialect,
             vast::meta::MetaDialect,
             vast::core::CoreDialect,
-            vast::us::UnsupportedDialect
+            vast::unsup::UnsupportedDialect
         >();
     }
 

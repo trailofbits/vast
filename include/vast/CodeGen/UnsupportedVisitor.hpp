@@ -39,7 +39,7 @@ namespace vast::cg {
                 });
             }
 
-            return this->template make_operation< us::UnsupportedStmt >()
+            return this->template make_operation< unsup::UnsupportedStmt >()
                 .bind(meta_location(stmt))
                 .bind(stmt->getStmtClassName())
                 .bind(type)
@@ -109,7 +109,7 @@ namespace vast::cg {
         }
 
         operation make_unsupported_decl(auto decl) {
-            auto op = this->template make_operation< us::UnsupportedDecl >()
+            auto op = this->template make_operation< unsup::UnsupportedDecl >()
                 .bind(meta_location(decl)) // location
                 .bind(decl_name(decl));    // name
 
@@ -135,7 +135,7 @@ namespace vast::cg {
         using LensType::mcontext;
 
         auto make_unsupported_type(auto ty) {
-            return this->template make_type< us::UnsupportedType >()
+            return this->template make_type< unsup::UnsupportedType >()
                 .bind(&mcontext())
                 .bind(ty->getTypeClassName())
                 .freeze();

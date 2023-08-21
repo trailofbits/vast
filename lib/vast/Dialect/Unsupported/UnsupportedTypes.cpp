@@ -11,14 +11,14 @@ VAST_RELAX_WARNINGS
 #include "vast/Dialect/Unsupported/UnsupportedDialect.hpp"
 #include "vast/Dialect/Unsupported/UnsupportedTypes.hpp"
 
-namespace vast::us {
+namespace vast::unsup {
     void UnsupportedDialect::registerTypes() {
         addTypes<
             #define GET_TYPEDEF_LIST
             #include "vast/Dialect/Unsupported/UnsupportedTypes.cpp.inc"
         >();
     }
-} // namespace vast::us
+} // namespace vast::unsup
 
 #define GET_TYPEDEF_CLASSES
 #include "vast/Dialect/Unsupported/UnsupportedTypes.cpp.inc"

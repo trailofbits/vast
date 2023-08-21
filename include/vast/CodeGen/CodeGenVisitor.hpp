@@ -9,7 +9,7 @@
 #include "vast/CodeGen/CodeGenStmtVisitor.hpp"
 #include "vast/CodeGen/CodeGenTypeVisitor.hpp"
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
-#include "vast/CodeGen/CodeGenFallBackVisitor.hpp"
+#include "vast/CodeGen/FallBackVisitor.hpp"
 
 namespace vast::cg
 {
