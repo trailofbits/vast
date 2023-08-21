@@ -4,7 +4,7 @@
 #define __BEGIN_DECLS   extern "C" {
 #define __END_DECLS     }
 
-// CHECK: unsupported.decl "LinkageSpec"
+// CHECK: unsup.decl "LinkageSpec"
 __BEGIN_DECLS
 // CHECK: hl.typedef "__int8_t" : !hl.char
 typedef signed char __int8_t;
