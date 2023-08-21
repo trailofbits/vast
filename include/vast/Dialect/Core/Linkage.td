@@ -3,6 +3,8 @@
 #ifndef VAST_DIALECT_CORE_IR_LINKAGE
 #define VAST_DIALECT_CORE_IR_LINKAGE
 
+include "mlir/IR/EnumAttr.td"
+
 // Linkage types inspired from Clang IR - remove ones present in upstream MLIR
 
 // Linkage types. This is currently a replay of llvm/IR/GlobalValue.h, this is
