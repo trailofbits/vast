@@ -1,0 +1,32 @@
+// Copyright (c) 2022-{{ year }}, Trail of Bits, Inc.
+
+#pragma once
+
+#include "vast/Util/Warnings.hpp"
+
+VAST_RELAX_WARNINGS
+#include "mlir/IR/Dialect.h"
+VAST_UNRELAX_WARNINGS
+
+{% for dialect in dialects -%}
+#include "vast/Dialect/{{ dialect.name }}/{{ dialect.name }}Dialect.hpp"
+{% endfor %}
+#include "vast/Util/Common.hpp"
+
+namespace vast {
+
+    inline void registerAllDialects(mlir::DialectRegistry &registry) {
+        registry.insert<
+            {% for dialect in dialects -%}
+                vast::{{ dialect.namespace }}::{{ dialect.name }}Dialect{% if not loop.last %},{% endif %}
+            {% endfor -%}
+        >();
+    }
+
+    inline void registerAllDialects(mcontext_t &mctx) {
+        mlir::DialectRegistry registry;
+        vast::registerAllDialects(registry);
+        mctx.appendDialectRegistry(registry);
+    }
+
+} // namespace vast
