@@ -14,4 +14,8 @@ namespace vast::ll
     }
 } // namespace vast::ll
 
+//===----------------------------------------------------------------------===//
+// TableGen generated logic.
+//===----------------------------------------------------------------------===//
+
 #include "vast/Dialect/LowLevel/LowLevelDialect.cpp.inc"
