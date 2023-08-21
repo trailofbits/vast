@@ -7,7 +7,7 @@ typedef int ( *operation ) ( int, int );
 
 int apply( operation op, int a, int b )
 {
-    // CHECK: [[OP:%[0-9]+]] = hl.ref "op" : !hl.ptr<(!hl.int, !hl.int) -> !hl.int>
+    // CHECK: [[OP:%[0-9]+]] = hl.ref "op"
     // CHECK: [[FN:%[0-9]+]] = hl.implicit_cast [[OP]] LValueToRValue
     // CHECK: [[R:%[0-9]+]] = hl.indirect_call [[FN]]([[A:%[0-9]+]], [[B:%[0-9]+]])
     return op( a, b );

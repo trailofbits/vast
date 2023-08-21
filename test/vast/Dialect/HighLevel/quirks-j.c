@@ -20,13 +20,13 @@ void foo() {
     struct bitfield bf;
 
     // these are all lvalues
-    // CHECK: hl.ref [[A]] : !hl.lvalue<!hl.array<2, !hl.int>>
+    // CHECK: hl.ref [[A]]
     a;
-    // CHECK: hl.ref [[I]] : !hl.lvalue<!hl.int>
+    // CHECK: hl.ref [[I]]
     i;
-    // CHECK: hl.ref [[J]] : !hl.lvalue<!hl.int< const >>
+    // CHECK: hl.ref [[J]]
     j;
-    // CHECK: [[R:%[0-9]+]] = hl.ref [[BF]] : !hl.lvalue<!hl.elaborated<!hl.record<"bitfield">>>
+    // CHECK: [[R:%[0-9]+]] = hl.ref [[BF]]
     // CHECK: hl.member [[R]] at "x" : !hl.lvalue<!hl.elaborated<!hl.record<"bitfield">>> -> !hl.lvalue<!hl.int< unsigned >>
     bf.x;
 

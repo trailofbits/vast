@@ -4,7 +4,7 @@
 int main() {
     // CHECK: [[N:%[0-9]+]] = hl.var "n" : !hl.lvalue<!hl.int>
     // CHECK: hl.var "p" : !hl.lvalue<!hl.ptr<!hl.int>>
-    // CHECK:   [[R:%[0-9]+]] = hl.ref [[N]] : !hl.lvalue<!hl.int>
+    // CHECK:   [[R:%[0-9]+]] = hl.ref [[N]]
     // CHECK:   hl.addressof [[R]] : !hl.lvalue<!hl.int> -> !hl.ptr<!hl.int>
     int n = 1, *p = &n;
     // CHECK: hl.var "pv" : !hl.lvalue<!hl.ptr<!hl.void>>

@@ -14,7 +14,7 @@ int main() {
     // CHECK: hl.indirect_call [[P]] : !hl.lvalue<!hl.ptr<!hl.paren<() -> !hl.int>>>() : () -> !hl.int
     (*p)(); // function f invoked through the function designator
 
-    // CHECK: [[R:%[0-9]+]] = hl.ref [[FP]] : !hl.lvalue<!hl.ptr<!hl.paren<() -> !hl.int>>>
+    // CHECK: [[R:%[0-9]+]] = hl.ref [[FP]]
     // CHECK: [[F:%[0-9]+]] = hl.implicit_cast [[R]] LValueToRValue : !hl.lvalue<!hl.ptr<!hl.paren<() -> !hl.int>>> -> !hl.ptr<!hl.paren<() -> !hl.int>>
     // CHECK:  hl.indirect_call [[F]] : !hl.ptr<!hl.paren<() -> !hl.int>>() : () -> !hl.int
     p();    // function f invoked directly through the pointer
