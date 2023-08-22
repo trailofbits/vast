@@ -21,8 +21,7 @@ def {{ dialect_name }}_Dialect : Dialect {
         {% if has_attributes %}void registerAttributes();{% endif %}
     }];
 
-    {% if has_types %}let useDefaultTypePrinterParser = 1;{% endif %}
-    {% if has_attributes %}let useDefaultAttributePrinterParser = 1;{% endif %}
+    let useFoldAPI = kEmitFoldAdaptorFolder;
 }
 
 {% if has_attributes %}include "{{ dialect_name }}Attributes.td"{% endif %}
