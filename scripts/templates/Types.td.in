@@ -4,7 +4,7 @@
 #define VAST_DIALECT_{{ dialect_name|upper }}_{{ dialect_name|upper }}TYPES
 
 class {{ dialect_name }}_Type< string name, list<Trait> traits = [] >
-    : TypeDef< {{ dialect_name }}_Dialect, name >
+    : TypeDef< {{ dialect_name }}_Dialect, name, traits >
 {}
 
 #endif // VAST_DIALECT_{{ dialect_name|upper }}_{{ dialect_name|upper }}TYPES
