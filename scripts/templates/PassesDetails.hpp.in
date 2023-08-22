@@ -5,15 +5,18 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-#include <mlir/IR/Operation.h>
+#include <mlir/IR/BuiltinOps.h>
 #include <mlir/Pass/Pass.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Dialect.hpp"
+#include "vast/Dialect/{{ dialect_name }}/Passes.hpp"
+
+#include <memory>
 
 namespace vast::{{ dialect_namespace }}
 {
-    #define GEN_PASS_REGISTRATION
+    // Generate the classes which represent the passes
+    #define GEN_PASS_CLASSES
     #include "vast/Dialect/{{ dialect_name }}/Passes.h.inc"
 
 } // namespace vast::{{ dialect_namespace }}

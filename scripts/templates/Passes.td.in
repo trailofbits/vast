@@ -5,4 +5,12 @@
 
 include "mlir/Pass/PassBase.td"
 
+def ExamplePass : Pass<"vast-{{ dialec_mnemonic }}-example-pass", "mlir::ModuleOp"> {
+  let summary = "Example pass sumamry.";
+  let description = [{ Example pass description. }];
+
+  let dependentDialects = ["vast::{{ dialect_namespace }}::{{ dialect_name }}Dialect"];
+  let constructor = "vast::{{ dialect_namespace }}::createExamplePass()";
+}
+
 #endif // VAST_DIALECT_{{ dialect_name|upper }}_PASSES

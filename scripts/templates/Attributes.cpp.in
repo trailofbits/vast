@@ -1,0 +1,26 @@
+// Copyright (c) {{ year }}, Trail of Bits, Inc.
+
+#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Dialect.hpp"
+#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Attributes.hpp"
+{% if has_types -%}
+    #include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Types.hpp"
+{%- endif %}
+#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Ops.hpp"
+
+namespace vast::{{ dialect_namespace }} {
+
+    void {{ dialect_name }}Dialect::registerAttributes() {
+        addAttributes<
+            #define GET_ATTRDEF_LIST
+            #include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Attributes.cpp.inc"
+        >();
+    }
+
+} // namespace vast::{{ dialect_namespace }}
+
+//
+// TableGen generated logic.
+//
+
+#define GET_ATTRDEF_CLASSES
+#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Attributes.cpp.inc"
