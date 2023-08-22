@@ -85,7 +85,7 @@ class file_generator:
 
 class dialect_generator:
     def __init__(self, opts):
-        if opts['has_internal_transforms']:
+        if opts['passes']:
             opts['internal_transforms'] = '_and_passes'
 
         self.opts = opts
@@ -94,8 +94,10 @@ class dialect_generator:
         self.dialects_includes = os.path.join(project_dir, f"include/vast/Dialect/")
         self.includes = os.path.join(self.dialects_includes, self.name)
 
-        self.dialects_sources = os.path.join(project_dir, f"include/vast/Dialect/")
+        self.dialects_sources = os.path.join(project_dir, f"lib/vast/Dialect/")
         self.sources = os.path.join(self.dialects_sources, self.name)
+
+        self.transforms = os.path.join(self.sources, 'Transforms')
 
         self.dialect_names = [dialect['name'] for dialect in
             gather_dialects(os.path.join(project_dir, f"include/vast/Dialect/"))
@@ -111,6 +113,9 @@ class dialect_generator:
         path = os.path.join(self.sources, file_name)
         self.generator.create(path, template_name, self.opts)
 
+    def create_transform(self, file_name: str, template_name: str):
+        path = os.path.join(self.transforms, file_name)
+        self.generator.create(path, template_name, self.opts)
 
     def generate_dialect_includes(self):
         # Create dialect includes directory
@@ -119,7 +124,7 @@ class dialect_generator:
         # Register dialect subdirectory in cmake
         add_subdirectory(self.dialects_includes, self.name)
 
-        # Generate dialect includes CMakeLists
+        # Generate dialect includes CMakeLists.txt
         self.create_include('CMakeLists.txt', 'dialect.includes.cmake.in')
 
         # Generate headers
@@ -136,7 +141,7 @@ class dialect_generator:
             self.create_include(f'{ self.name }Attributes.td', 'Attributes.td.in')
             self.create_include(f'{ self.name }Attributes.hpp', 'Attributes.hpp.in')
 
-        if self.opts['has_internal_transforms']:
+        if self.opts['passes']:
             self.create_include(f'Passes.td', 'Passes.td.in')
             self.create_include(f'Passes.hpp', 'Passes.hpp.in')
 
@@ -152,16 +157,25 @@ class dialect_generator:
         # Register dialect subdirectory in cmake
         add_subdirectory(self.dialects_sources, self.name)
 
-        # Generate dialect sources CMakeLists
+        # Generate dialect sources CMakeLists.txt
+        self.create_source('CMakeLists.txt', 'dialect.sources.cmake.in')
 
         # generate Dialect.cpp
-        # generate Attributes.cpp
-        # generate Types.cpp
-        # generate Ops.cpp
+        self.create_source(f'{ self.name }Dialect.cpp', 'Dialect.cpp.in')
+        self.create_source(f'{ self.name }Ops.cpp', 'Ops.cpp.in')
 
-        # generate Transforms/
-        # generate CMakeLists.txt
-        # generate PassesDetails.hpp
+        if self.opts['has_types']:
+            self.create_source(f'{ self.name }Types.cpp', 'Types.cpp.in')
+
+        if self.opts['has_attributes']:
+            self.create_source(f'{ self.name }Attributes.cpp', 'Attributes.cpp.in')
+
+        if self.opts['passes']:
+            os.makedirs(self.transforms, exist_ok=True)
+            self.create_transform(f'CMakeLists.txt', 'dialect.transforms.cmake.in')
+            self.create_transform(f'PassesDetails.hpp', 'PassesDetails.hpp.in')
+            # TODO query for pass name
+            self.create_transform(f'ExamplePass.cpp', 'Pass.cpp.in')
 
     def run(self):
         def check_proceed(dir: str, file_kind: str):
@@ -214,14 +228,24 @@ dialect_config = {
             'type': 'confirm',
             'name': 'has_attributes',
             'message': 'Does the dialect provide attributes?',
-        },
-        {
-            'type': 'confirm',
-            'name': 'has_internal_transforms',
-            'message': 'Does the dialect provide internal transformations?',
-        },
+        }
     ]
 }
+
+dialect_passes_options = [
+    {
+        'type': 'confirm',
+        'name': 'continue',
+        'message': f'Do you want to generate internal dialect pass?',
+        'default': False
+    },
+    {
+        'type': 'input',
+        'name': 'pass',
+        'message': 'Enter pass name:',
+        'when': lambda answers: answers['continue']
+    }
+]
 
 #
 # Conversion Generation
@@ -357,7 +381,6 @@ prologue = [
 # Utils
 #
 
-
 def query(opts : str) -> Dict[str, Any]:
     return prompt(opts, style=custom_style_2)
 
@@ -368,7 +391,6 @@ def proceed_query(msg: str) -> bool:
         'message': msg
     })['proceed']
 
-
 def fill_template_options(opts, target):
     opts['year'] = str(datetime.date.today().year)
 
@@ -377,12 +399,29 @@ def get_target_config(target):
         if config['option_name'] == target:
             return config
 
+#
+# Main
+#
+
 def main():
     # query for target templates to be generated
     target = query(prologue)
     config = get_target_config(target['generate'])
     # query for options of desired target templates
     opts = query(config['options'])
+
+    # gather dialect passes
+    if target['generate'] == 'dialect':
+        opts['passes'] = []
+        while True:
+            answers = query(dialect_passes_options)
+            if not answers['continue']:
+                break
+            # hack around unssuported conditional message
+            dialect_passes_options[0]['message'] = f'Do you want to generate another internal dialect pass?'
+            if pass_name := answers['pass']:
+                opts['passes'].append(pass_name)
+
     # fill in deduced target options
     fill_template_options(opts, target)
     # generate demplates from gathered options
