@@ -2,7 +2,7 @@
 
 from PyInquirer import prompt
 from examples import custom_style_2
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 import jinja2
 
@@ -10,6 +10,8 @@ import datetime
 import sys
 import os
 import re
+
+Opts = Dict[str, Any]
 
 #
 # Setup Jinja
@@ -20,8 +22,8 @@ project_dir = os.path.dirname(script_dir)
 dialects_includes = os.path.join(project_dir, "include/vast/Dialect/")
 
 
-def gather_dialects(includes: str):
-    def isdir(path):
+def gather_dialects(includes: str) -> List[Opts]:
+    def isdir(path: str) -> bool:
         return os.path.isdir(os.path.join(includes, path))
 
     dirs = [path for path in os.listdir(includes) if isdir(path)]
@@ -46,8 +48,8 @@ def gather_dialects(includes: str):
 #
 
 
-def append_and_sort(line: str, file: str):
-    with open(file, "r") as cmake:
+def append_and_sort(line: str, path: str) -> None:
+    with open(path, "r") as cmake:
         lines = cmake.readlines()
 
     license = lines[:2]  # license lines
@@ -59,25 +61,25 @@ def append_and_sort(line: str, file: str):
     entries.append(line)
     entries.sort()
 
-    with open(file, "w") as file:
+    with open(path, "w") as file:
         file.writelines(license)
         file.writelines(entries)
 
 
-def add_subdirectory(path: str, subdir: str):
+def add_subdirectory(path: str, subdir: str) -> None:
     cmake_lists_path = os.path.join(path, "CMakeLists.txt")
     append_and_sort(f"add_subdirectory({ subdir })\n", cmake_lists_path)
     print(f"Updating: { cmake_lists_path }")
 
 
 class file_generator:
-    def __init__(self):
+    def __init__(self) -> None:
         script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
         templates_dir = os.path.join(script_dir, "templates")
         template_loader = jinja2.FileSystemLoader(searchpath=templates_dir)
         self.templates = jinja2.Environment(loader=template_loader)
 
-    def create(self, dir: str, template_name: str, maps):
+    def create(self, dir: str, template_name: str, maps: Opts) -> None:
         template = self.templates.get_template(template_name)
         action = "Updating" if os.path.exists(dir) else "Creating"
         template.stream(maps).dump(dir)
@@ -85,7 +87,7 @@ class file_generator:
 
 
 class dialect_generator:
-    def __init__(self, opts):
+    def __init__(self, opts: Opts) -> None:
         if opts["passes"]:
             opts["internal_transforms"] = "_and_passes"
 
@@ -109,19 +111,19 @@ class dialect_generator:
 
         self.generator = file_generator()
 
-    def create_include(self, file_name: str, template_name: str):
+    def create_include(self, file_name: str, template_name: str) -> None:
         path = os.path.join(self.includes, file_name)
         self.generator.create(path, template_name, self.opts)
 
-    def create_source(self, file_name: str, template_name: str):
+    def create_source(self, file_name: str, template_name: str) -> None:
         path = os.path.join(self.sources, file_name)
         self.generator.create(path, template_name, self.opts)
 
-    def create_transform(self, file_name: str, template_name: str):
+    def create_transform(self, file_name: str, template_name: str) -> None:
         path = os.path.join(self.transforms, file_name)
         self.generator.create(path, template_name, self.opts)
 
-    def generate_dialect_includes(self):
+    def generate_dialect_includes(self) -> None:
         # Create dialect includes directory
         os.makedirs(self.includes, exist_ok=True)
 
@@ -149,12 +151,12 @@ class dialect_generator:
             self.create_include("Passes.td", "Passes.td.in")
             self.create_include("Passes.hpp", "Passes.hpp.in")
 
-    def update_registered_dialects(self):
+    def update_registered_dialects(self) -> None:
         dialects = {"dialects": gather_dialects(self.dialects_includes)}
         path = os.path.join(self.dialects_includes, "Dialects.hpp")
         self.generator.create(path, "Dialects.hpp.in", dialects)
 
-    def generate_dialect_sources(self):
+    def generate_dialect_sources(self) -> None:
         # Create dialect sources directory
         os.makedirs(self.sources, exist_ok=True)
 
@@ -188,8 +190,8 @@ class dialect_generator:
                 path = os.path.join(self.transforms, f'{pass_info["name"]}.cpp')
                 self.generator.create(path, "Pass.cpp.in", pass_opts)
 
-    def run(self):
-        def check_proceed(dir: str, file_kind: str):
+    def run(self) -> None:
+        def check_proceed(dir: str, file_kind: str) -> bool:
             if not proceed_query(f"Generate dialect { file_kind } files into: { dir }"):
                 return False
             if os.path.exists(dir):
@@ -207,7 +209,7 @@ class dialect_generator:
             self.generate_dialect_sources()
 
 
-def generate_dialect_templates(opts):
+def generate_dialect_templates(opts: Opts) -> None:
     generator = dialect_generator(opts)
     generator.run()
 
@@ -246,7 +248,7 @@ dialect_config = {
 }
 
 
-def query_passes_info(opts):
+def query_passes_info(opts: Opts) -> None:
     dialect_passes_options = [
         {
             "type": "confirm",
@@ -292,7 +294,7 @@ def query_passes_info(opts):
 #
 
 
-def generate_conversion_templates(opts):
+def generate_conversion_templates(opts: Opts) -> None:
     pass
 
 
@@ -314,7 +316,7 @@ conversion_config = {
 #
 
 
-def generate_interface_templates(opts):
+def generate_interface_templates(opts: Opts) -> None:
     pass
 
 
@@ -330,7 +332,7 @@ interface_config = {
 #
 
 
-def generate_operation_templates(opts):
+def generate_operation_templates(opts: Opts) -> None:
     pass
 
 
@@ -358,7 +360,7 @@ operation_config = {
 #
 
 
-def generate_type_templates(opts):
+def generate_type_templates(opts: Opts) -> None:
     pass
 
 
@@ -386,7 +388,7 @@ type_config = {
 #
 
 
-def generate_attr_templates(opts):
+def generate_attr_templates(opts: Opts) -> None:
     pass
 
 
@@ -436,22 +438,23 @@ prologue = [
 #
 
 
-def query(opts: str) -> Dict[str, Any]:
+def query(opts: List[Opts]) -> Opts:
     return prompt(opts, style=custom_style_2)
 
 
 def proceed_query(msg: str) -> bool:
-    return query({"type": "confirm", "name": "proceed", "message": msg})["proceed"]
+    return query([{"type": "confirm", "name": "proceed", "message": msg}])["proceed"]
 
 
-def fill_template_options(opts, target):
+def fill_template_options(opts: Opts) -> None:
     opts["year"] = str(datetime.date.today().year)
 
 
-def get_target_config(target):
+def get_target_config(target: str) -> Opts:
     for config in configs:
         if config["option_name"] == target:
             return config
+    assert False
 
 
 #
@@ -459,7 +462,7 @@ def get_target_config(target):
 #
 
 
-def main():
+def main() -> None:
     # query for target templates to be generated
     target = query(prologue)
     config = get_target_config(target["generate"])
@@ -471,7 +474,7 @@ def main():
         query_passes_info(opts)
 
     # fill in deduced target options
-    fill_template_options(opts, target)
+    fill_template_options(opts)
     # generate demplates from gathered options
     config["generator"](opts)
 
