@@ -26,6 +26,9 @@ VAST_UNRELAX_WARNINGS
 #include <optional>
 #include <variant>
 
+#define GRAPH_REGION_OP( op ) mlir::RegionKind op::getRegionKind(unsigned index) { \
+        return mlir::RegionKind::Graph; \
+    }
 namespace vast::hl
 {
     using FoldResult = mlir::OpFoldResult;
@@ -470,9 +473,19 @@ namespace vast::hl
         return mlir::dyn_cast_or_null<FuncOp>(coi.resolveCallable());
     }
 
-    mlir::RegionKind FuncOp::getRegionKind(unsigned index) {
-        return mlir::RegionKind::Graph;
-    }
+    GRAPH_REGION_OP(FuncOp);
+    GRAPH_REGION_OP(ScopeOp);
+
+    GRAPH_REGION_OP(IfOp);
+    GRAPH_REGION_OP(WhileOp);
+    GRAPH_REGION_OP(ForOp);
+    GRAPH_REGION_OP(DoOp);
+    GRAPH_REGION_OP(SwitchOp);
+    GRAPH_REGION_OP(CaseOp);
+    GRAPH_REGION_OP(DefaultOp);
+    GRAPH_REGION_OP(LabelStmt);
+
+
 }
 
 //===----------------------------------------------------------------------===//
