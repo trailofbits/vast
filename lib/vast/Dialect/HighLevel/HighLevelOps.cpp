@@ -475,6 +475,7 @@ namespace vast::hl
 
     GRAPH_REGION_OP(FuncOp);
     GRAPH_REGION_OP(ScopeOp);
+    GRAPH_REGION_OP(StmtExprOp);
 
     GRAPH_REGION_OP(IfOp);
     GRAPH_REGION_OP(WhileOp);
