@@ -1,7 +1,5 @@
 // Copyright (c) {{ year }}, Trail of Bits, Inc.
 
-#pragma once
-
 #include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Dialect.hpp"
 {% if has_attributes -%}
     #include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Attributes.hpp"
