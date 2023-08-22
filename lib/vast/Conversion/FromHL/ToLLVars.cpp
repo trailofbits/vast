@@ -38,10 +38,7 @@ namespace vast
             auto terminator = mlir::dyn_cast< T >(init_block.getTerminator());
 
             rewriter.inlineRegionBefore(init_region, src->getBlock());
-            auto ip = std::next(mlir::Block::iterator(src));
-            VAST_ASSERT(ip != src->getBlock()->end());
-
-            rewriter.mergeBlockBefore(&init_block, &*ip);
+            rewriter.mergeBlockBefore(&init_block, src.getOperation());
             return terminator;
         }
 
