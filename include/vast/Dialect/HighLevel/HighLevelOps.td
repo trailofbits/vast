@@ -1110,7 +1110,7 @@ def AlignOfExprOp : ExprTraitOp< "alignof.expr" > {
 
 // TODO(void-call): Remove NoTerminator and Optional result
 def StmtExprOp
-  : HighLevel_Op< "stmt.expr", [SingleBlock, NoTerminator] >
+  : HighLevel_Op< "stmt.expr", [SingleBlock, NoTerminator, DeclareOpInterfaceMethods<RegionKindInterface>] >
   , Results<(outs Optional< AnyType >:$result)>
 {
   let summary = "VAST statement expression";
