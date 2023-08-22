@@ -13,6 +13,10 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::{{ dialect_namespace }}
 {
+    {% for pass in passes -%}
+    std::unique_ptr< mlir::Pass > create{{ pass.name }}Pass();
+    {% endfor -%}
+
     #define GEN_PASS_REGISTRATION
     #include "vast/Dialect/{{ dialect_name }}/Passes.h.inc"
 
