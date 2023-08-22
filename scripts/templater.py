@@ -16,13 +16,9 @@ import re
 # Setup Jinja
 #
 
-script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-templates_dir = os.path.join(script_dir, 'templates')
-
+script_dir  = os.path.dirname(os.path.abspath(sys.argv[0]))
 project_dir = os.path.dirname(script_dir)
-
-template_loader = jinja2.FileSystemLoader(searchpath=templates_dir)
-templates = jinja2.Environment(loader=template_loader)
+dialects_includes = os.path.join(project_dir, f"include/vast/Dialect/")
 
 def gather_dialects(includes: str):
     isdir = lambda path: os.path.isdir(os.path.join(includes, path))
@@ -45,9 +41,6 @@ def gather_dialects(includes: str):
 
     return sorted(dialects, key=lambda dialect: dialect['name'])
 
-dialect_names = [dialect['name'] for dialect in
-    gather_dialects(os.path.join(project_dir, f"include/vast/Dialect/"))
-]
 
 #
 # Dialect Generation
@@ -70,72 +63,127 @@ def append_and_sort(line: str, file: str):
         file.writelines(license)
         file.writelines(entries)
 
-def generate_dialect_includes(opts):
-    dialect = opts['dialect_name']
-    includes = os.path.join(project_dir, f"include/vast/Dialect/")
-    dialect_includes = os.path.join(includes, dialect)
+def add_subdirectory(path: str, subdir: str):
+    cmake_lists_path = os.path.join(path, 'CMakeLists.txt')
+    append_and_sort(f"add_subdirectory({ subdir })\n", cmake_lists_path)
+    print(f"Updating: { cmake_lists_path }")
 
-    if not proceed_query(f"Generate dialect include files into: { dialect_includes }"):
-        return
 
-    if os.path.exists(dialect_includes):
-        if not proceed_query(f"Dialect already exists. Do you want to overwrite its file?"):
-            exit()
+class file_generator:
+    def __init__(self):
+        script_dir      = os.path.dirname(os.path.abspath(sys.argv[0]))
+        templates_dir   = os.path.join(script_dir, 'templates')
+        template_loader = jinja2.FileSystemLoader(searchpath=templates_dir)
+        self.templates  = jinja2.Environment(loader=template_loader)
 
-    # Create Includes Directory
-    os.makedirs(dialect_includes, exist_ok=True)
+    def create(self, dir: str, template_name: str, maps):
+        template = self.templates.get_template(template_name)
+        action = 'Updating' if os.path.exists(dir) else 'Creating'
+        template.stream(maps).dump(dir)
+        print(f"{ action }: { dir }")
 
-    def create_in(root: str, dst: str, template_name: str, maps):
-        template = templates.get_template(template_name)
-        destination = os.path.join(root, dst)
-        exists = os.path.exists(destination)
-        template.stream(maps).dump(destination)
-        action = 'Updating' if exists else 'Creating'
-        print(f"{action}: { destination }")
 
-    def create_in_includes(dst: str, template_name: str):
-        create_in(dialect_includes, dst, template_name, opts)
+class dialect_generator:
+    def __init__(self, opts):
+        if opts['has_internal_transforms']:
+            opts['internal_transforms'] = '_and_passes'
 
-    # Generate dialect includes CMakeLists
-    create_in_includes('CMakeLists.txt', 'dialect.includes.cmake.in')
+        self.opts = opts
+        self.name = opts['dialect_name']
 
-    # Register dialect subdirectory in cmake
-    includes_cmake_lists = os.path.join(includes, 'CMakeLists.txt')
-    append_and_sort(f"add_subdirectory({ dialect })\n", includes_cmake_lists)
-    print(f"Updating: { includes_cmake_lists }")
+        self.dialects_includes = os.path.join(project_dir, f"include/vast/Dialect/")
+        self.includes = os.path.join(self.dialects_includes, self.name)
 
-    # Generate headers
-    create_in_includes(f'{ dialect }.td', 'Dialect.td.in')
-    create_in_includes(f'{ dialect }Dialect.hpp', 'Dialect.hpp.in')
-    create_in_includes(f'{ dialect }Ops.td', 'Ops.td.in')
-    create_in_includes(f'{ dialect }Ops.hpp', 'Ops.hpp.in')
+        self.dialects_sources = os.path.join(project_dir, f"include/vast/Dialect/")
+        self.sources = os.path.join(self.dialects_sources, self.name)
 
-    if opts['has_types']:
-        create_in_includes(f'{ dialect }Types.td', 'Types.td.in')
-        create_in_includes(f'{ dialect }Types.hpp', 'Types.hpp.in')
+        self.dialect_names = [dialect['name'] for dialect in
+            gather_dialects(os.path.join(project_dir, f"include/vast/Dialect/"))
+        ]
 
-    if opts['has_attributes']:
-        create_in_includes(f'{ dialect }Attributes.td', 'Attributes.td.in')
-        create_in_includes(f'{ dialect }Attributes.hpp', 'Attributes.hpp.in')
+        self.generator = file_generator()
 
-    if opts['has_internal_transforms']:
-        create_in_includes(f'Passes.td', 'Passes.td.in')
-        create_in_includes(f'Passes.hpp', 'Passes.hpp.in')
+    def create_include(self, file_name: str, template_name: str):
+        path = os.path.join(self.includes, file_name)
+        self.generator.create(path, template_name, self.opts)
 
-    dialects = {
-        'dialects': gather_dialects(includes)
-    }
+    def create_source(self, file_name: str, template_name: str):
+        path = os.path.join(self.sources, file_name)
+        self.generator.create(path, template_name, self.opts)
 
-    create_in(includes, 'Dialects.hpp', 'Dialects.hpp.in', dialects)
+
+    def generate_dialect_includes(self):
+        # Create dialect includes directory
+        os.makedirs(self.includes, exist_ok=True)
+
+        # Register dialect subdirectory in cmake
+        add_subdirectory(self.dialects_includes, self.name)
+
+        # Generate dialect includes CMakeLists
+        self.create_include('CMakeLists.txt', 'dialect.includes.cmake.in')
+
+        # Generate headers
+        self.create_include(f'{ self.name }.td', 'Dialect.td.in')
+        self.create_include(f'{ self.name }Dialect.hpp', 'Dialect.hpp.in')
+        self.create_include(f'{ self.name }Ops.td', 'Ops.td.in')
+        self.create_include(f'{ self.name }Ops.hpp', 'Ops.hpp.in')
+
+        if self.opts['has_types']:
+            self.create_include(f'{ self.name }Types.td', 'Types.td.in')
+            self.create_include(f'{ self.name }Types.hpp', 'Types.hpp.in')
+
+        if self.opts['has_attributes']:
+            self.create_include(f'{ self.name }Attributes.td', 'Attributes.td.in')
+            self.create_include(f'{ self.name }Attributes.hpp', 'Attributes.hpp.in')
+
+        if self.opts['has_internal_transforms']:
+            self.create_include(f'Passes.td', 'Passes.td.in')
+            self.create_include(f'Passes.hpp', 'Passes.hpp.in')
+
+    def update_registered_dialects(self):
+        dialects = { 'dialects': gather_dialects(self.dialects_includes) }
+        path = os.path.join(self.dialects_includes, 'Dialects.hpp')
+        self.generator.create(path, 'Dialects.hpp.in', dialects)
+
+    def generate_dialect_sources(self):
+        # Create dialect sources directory
+        os.makedirs(self.sources, exist_ok=True)
+
+        # Register dialect subdirectory in cmake
+        add_subdirectory(self.dialects_sources, self.name)
+
+        # Generate dialect sources CMakeLists
+
+        # generate Dialect.cpp
+        # generate Attributes.cpp
+        # generate Types.cpp
+        # generate Ops.cpp
+
+        # generate Transforms/
+        # generate CMakeLists.txt
+        # generate PassesDetails.hpp
+
+    def run(self):
+        def check_proceed(dir: str, file_kind: str):
+            if not proceed_query(f"Generate dialect { file_kind } files into: { dir }"):
+                return False
+            if os.path.exists(dir):
+                return proceed_query(f"Dialect '{ self.name }' already exists. " \
+                                     f"Do you want to overwrite its { file_kind } files?")
+            return True
+
+        if check_proceed(self.includes, 'includes'):
+            self.generate_dialect_includes()
+            self.update_registered_dialects()
+
+        if check_proceed(self.sources, 'sources'):
+            self.generate_dialect_sources()
 
 
 def generate_dialect_templates(opts):
-    # Generate include templates
+    generator = dialect_generator(opts)
+    generator.run()
 
-    if opts['has_internal_transforms']:
-        opts['internal_transforms'] = '_and_passes'
-
-    generate_dialect_includes(opts)
 
 dialect_config = {
     'generator': generate_dialect_templates,
@@ -226,7 +274,7 @@ operation_config = {
             'type': 'list',
             'name': 'dialect',
             'message': 'Choose dialect for type:',
-            'choices': dialect_names
+            'choices': gather_dialects(dialects_includes)
         },
         {
             'type': 'input',
@@ -252,12 +300,12 @@ type_config = {
             'type': 'list',
             'name': 'dialect',
             'message': 'Choose dialect for type:',
-            'choices': dialect_names
+            'choices': gather_dialects(dialects_includes)
         },
         {
             'type': 'input',
             'name': 'name',
-            'message': "What is the type's name?",
+            'message': "What is type's name?",
         }
     ]
 }
@@ -278,12 +326,12 @@ attr_config = {
             'type': 'list',
             'name': 'dialect',
             'message': 'Choose dialect for attribute:',
-            'choices': dialect_names
+            'choices': gather_dialects(dialects_includes)
         },
         {
             'type': 'input',
             'name': 'name',
-            'message': "What is the attribute's name?",
+            'message': "What is attribute's name?",
         }
     ]
 }
