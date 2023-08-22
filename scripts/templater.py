@@ -174,8 +174,15 @@ class dialect_generator:
             os.makedirs(self.transforms, exist_ok=True)
             self.create_transform(f'CMakeLists.txt', 'dialect.transforms.cmake.in')
             self.create_transform(f'PassesDetails.hpp', 'PassesDetails.hpp.in')
-            # TODO query for pass name
-            self.create_transform(f'ExamplePass.cpp', 'Pass.cpp.in')
+            for pass_info in self.opts['passes']:
+                pass_opts = {
+                    'year': self.opts['year'],
+                    'pass_name': pass_info['name'],
+                    'dialect_name': self.opts['dialect_name'],
+                    'dialect_namespace': self.opts['dialect_namespace']
+                }
+                path = os.path.join(self.transforms, f'{pass_info["name"]}.cpp')
+                self.generator.create(path, 'Pass.cpp.in', pass_opts)
 
     def run(self):
         def check_proceed(dir: str, file_kind: str):
@@ -232,20 +239,41 @@ dialect_config = {
     ]
 }
 
-dialect_passes_options = [
-    {
-        'type': 'confirm',
-        'name': 'continue',
-        'message': f'Do you want to generate internal dialect pass?',
-        'default': False
-    },
-    {
-        'type': 'input',
-        'name': 'pass',
-        'message': 'Enter pass name:',
-        'when': lambda answers: answers['continue']
-    }
-]
+def query_passes_info(opts):
+    dialect_passes_options = [
+        {
+            'type': 'confirm',
+            'name': 'continue',
+            'message': f'Do you want to generate internal dialect pass?',
+            'default': False
+        },
+        {
+            'type': 'input',
+            'name': 'name',
+            'message': 'Enter pass name:',
+            'when': lambda answers: answers['continue']
+        },
+        {
+            'type': 'input',
+            'name': 'mnemonic',
+            'message': 'Enter pass mnemonic:',
+            'when': lambda answers: answers['continue']
+        }
+    ]
+
+    opts['passes'] = []
+    while True:
+        answers = query(dialect_passes_options)
+        if not answers['continue']:
+            break
+        # hack around unssuported conditional message
+        dialect_passes_options[0]['message'] = f'Do you want to generate another internal dialect pass?'
+        assert answers['name']
+        assert answers['mnemonic']
+        opts['passes'].append({
+            'name': answers['name'],
+            'mnemonic': answers['mnemonic'],
+        })
 
 #
 # Conversion Generation
@@ -412,15 +440,7 @@ def main():
 
     # gather dialect passes
     if target['generate'] == 'dialect':
-        opts['passes'] = []
-        while True:
-            answers = query(dialect_passes_options)
-            if not answers['continue']:
-                break
-            # hack around unssuported conditional message
-            dialect_passes_options[0]['message'] = f'Do you want to generate another internal dialect pass?'
-            if pass_name := answers['pass']:
-                opts['passes'].append(pass_name)
+        query_passes_info(opts)
 
     # fill in deduced target options
     fill_template_options(opts, target)
