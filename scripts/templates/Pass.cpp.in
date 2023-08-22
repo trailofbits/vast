@@ -18,16 +18,16 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::{{ dialect_namespace }}
 {
-    struct ExmaplePass : ExamplePassBase< ExmaplePass > {
-        using base = ExamplePassBase< ExmaplePass >;
+    struct {{ pass_name }}Pass : {{ pass_name }}Base< {{ pass_name }}Pass > {
+        using base = {{ pass_name }}PassBase< ExmaplePass >;
 
         void runOnOperation() override {
             // Add pass implementation
         }
     };
 
-    std::unique_ptr< mlir::Pass > createExamplePass() {
-        return std::make_unique< ExmaplePass >();
+    std::unique_ptr< mlir::Pass > create{{ pass_name }}Pass() {
+        return std::make_unique< {{ pass_name }}Pass >();
     }
 
 } // namespace vast::{{ dialect_namespace }}
