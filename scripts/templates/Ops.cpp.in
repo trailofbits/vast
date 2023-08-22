@@ -1,0 +1,23 @@
+// Copyright (c) {{ year }}, Trail of Bits, Inc.
+
+#pragma once
+
+#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Dialect.hpp"
+{% if has_attributes -%}
+    #include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Attributes.hpp"
+{%- endif %}
+{% if has_types -%}
+    #include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Types.hpp"
+{%- endif %}
+#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Ops.hpp"
+
+namespace vast::{{ dialect_namespace }} {
+
+} // namespace vast::{{ dialect_namespace }}
+
+//
+// TableGen generated logic.
+//
+
+#define GET_OP_CLASSES
+#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}.cpp.inc"

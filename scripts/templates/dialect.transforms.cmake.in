@@ -1,0 +1,6 @@
+# Copyright (c) {{ year }}, Trail of Bits, Inc.
+
+add_vast_conversion_library({{ dialect_name }}Transforms
+    # Add transformation source files
+)
+

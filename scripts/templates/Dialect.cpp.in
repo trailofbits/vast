@@ -1,0 +1,30 @@
+// Copyright (c) {{ year }}, Trail of Bits, Inc.
+
+#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Dialect.hpp"
+{% if has_types -%}
+    #include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Attributes.hpp"
+{%- endif %}
+{% if has_attributes -%}
+    #include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Types.hpp"
+{%- endif %}
+#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Ops.hpp"
+
+namespace vast::{{ dialect_namespace }} {
+
+    void {{ dialect_name }}Dialect::initialize() {
+        {% if has_types -%}
+            registerTypes();
+        {%- endif %}
+        {% if has_attributes -%}
+            registerAttributes();
+        {%- endif %}
+
+        addOperations<
+            #define GET_OP_LIST
+            #include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}.cpp.inc"
+        >();
+    }
+
+} // namespace vast::{{ dialect_namespace }}
+
+#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Dialect.cpp.inc"

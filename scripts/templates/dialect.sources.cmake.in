@@ -1,0 +1,12 @@
+# Copyright (c) {{ year }}, Trail of Bits, Inc.
+
+add_vast_dialect_library({{ dialect_name }}
+    {{ dialect_name }}Dialect.cpp
+    {{ dialect_name }}Ops.cpp
+    {% if has_types %}{{ dialect_name }}Types.cpp{% endif %}
+    {% if has_attributes %}{{ dialect_name }}Attributes.cpp{% endif %}
+)
+
+{% if has_internal_transforms -%}
+add_subdirectory(Transforms)
+{% endif %}
