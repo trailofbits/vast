@@ -26,7 +26,7 @@ def TranslationUnitOp
   let assemblyFormat = [{ $body attr-dict }];
 }
 
-def ScopeOp : HighLevel_Op< "scope", [NoTerminator] >
+def ScopeOp : HighLevel_Op< "scope", [NoTerminator, DeclareOpInterfaceMethods<RegionKindInterface>] >
 {
   let summary = "VAST scope declaration";
   let description = [{
