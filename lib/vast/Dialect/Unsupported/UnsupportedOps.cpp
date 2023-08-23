@@ -25,15 +25,18 @@ namespace vast::unsup {
     }
 
     void UnsupportedStmt::build(
-        Builder &bld, State &st, llvm::StringRef name, Type rty, const std::vector< BuilderCallBackFn > &builders
+        Builder &bld, State &st, llvm::StringRef name, Type rty,
+        const std::vector< BuilderCallBackFn > &builders
     ) {
         InsertionGuard guard(bld);
-        st.addTypes(rty);
+        // Optional, add a check if rty exist.
+        if (rty) {
+            st.addTypes(rty);
+        }
         st.addAttribute(getNameAttrName(st.name), bld.getStringAttr(name));
         for (auto child : builders) {
             build_region(bld, st, child);
         }
     }
-
 
 } // namespace vast::unsup
