@@ -551,9 +551,15 @@ namespace vast::cg {
 
         Operation* VisitEnumDeclRefExpr(const clang::DeclRefExpr *expr) {
             auto decl = clang::cast< clang::EnumConstantDecl >(expr->getDecl()->getUnderlyingDecl());
-            auto val = context().enumconsts.lookup(decl);
-            auto rty = visit(expr->getType());
-            return make< hl::EnumRefOp >(meta_location(expr), rty, val.getName());
+            if (auto val = context().enumconsts.lookup(decl)) {
+                auto rty = visit(expr->getType());
+                return make< hl::EnumRefOp >(meta_location(expr), rty, val.getName());
+            }
+
+            // Ref: https://github.com/trailofbits/vast/issues/384
+            // github issue to avoid emitting error if declaration is missing
+            context().error("error: missing enum constant declaration " + decl->getName());
+            return nullptr;
         }
 
         Operation* VisitVarDeclRefExprImpl(const clang::DeclRefExpr *expr, Value var) {
@@ -563,11 +569,24 @@ namespace vast::cg {
 
         Operation* VisitVarDeclRefExpr(const clang::DeclRefExpr *expr) {
             auto decl = getDeclForVarRef(expr);
-            return VisitVarDeclRefExprImpl(expr, context().vars.lookup(decl));
+            if (auto var = context().vars.lookup(decl)) {
+                return VisitVarDeclRefExprImpl(expr, var);
+            }
+
+            // Ref: https://github.com/trailofbits/vast/issues/384
+            // github issue to avoid emitting error if declaration is missing
+            context().error("error: missing variable declaration " + decl->getName());
+            return nullptr;
         }
 
         Operation* VisitFileVarDeclRefExpr(const clang::DeclRefExpr *expr) {
             auto decl = getDeclForVarRef(expr);
+            if (auto file_var = context().vars.lookup(decl); !file_var) {
+                // Ref: https://github.com/trailofbits/vast/issues/384
+                // github issue to avoid emitting error if declaration is missing
+                context().error("error: missing global variable declaration " + decl->getName());
+                return nullptr;
+            }
             auto var  = getDefiningOpOfGlobalVar(decl);
             auto name = mlir::StringAttr::get(&mcontext(), var.getName());
 
