@@ -581,7 +581,7 @@ namespace vast::cg {
 
         Operation* VisitFileVarDeclRefExpr(const clang::DeclRefExpr *expr) {
             auto decl = getDeclForVarRef(expr);
-            if (auto file_var = context().vars.lookup(decl); !file_var) {
+            if (!context().vars.lookup(decl)) {
                 // Ref: https://github.com/trailofbits/vast/issues/384
                 // github issue to avoid emitting error if declaration is missing
                 context().error("error: missing global variable declaration " + decl->getName());
