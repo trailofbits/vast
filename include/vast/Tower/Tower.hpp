@@ -24,12 +24,12 @@ namespace vast::tw {
     using pass_ptr_t = std::unique_ptr< mlir::Pass >;
 
     template< typename loc_rewriter_t >
-    struct manager_t {
+    struct tower {
         using loc_rewriter = loc_rewriter_t;
 
         static auto get(mcontext_t &ctx, owning_module_ref mod)
-            -> std::tuple< manager_t, handle_t > {
-            manager_t m(ctx, std::move(mod));
+            -> std::tuple< tower, handle_t > {
+            tower m(ctx, std::move(mod));
             handle_t h{ .id = 0, .mod = m._modules[0].get() };
             return { std::move(m), h };
         }
@@ -61,11 +61,11 @@ namespace vast::tw {
         mcontext_t &_ctx;
         module_storage_t _modules;
 
-        manager_t(mcontext_t &ctx, owning_module_ref mod) : _ctx(ctx) {
+        tower(mcontext_t &ctx, owning_module_ref mod) : _ctx(ctx) {
             _modules.emplace_back(std::move(mod));
         }
     };
 
-    using default_manager_t = manager_t< default_loc_rewriter_t >;
+    using default_tower = tower< default_loc_rewriter_t >;
 
 } // namespace vast::tw
