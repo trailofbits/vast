@@ -9,13 +9,15 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 namespace vast::tw {
-    
-    struct handle_t {
+
+    struct handle_t
+    {
         std::size_t id;
         vast_module mod;
     };
 
-    struct default_loc_rewriter_t {
+    struct default_loc_rewriter_t
+    {
         static auto insert(mlir::Operation *op) -> void;
         static auto remove(mlir::Operation *op) -> void;
         static auto prev(mlir::Operation *op) -> mlir::Operation *;
@@ -24,7 +26,8 @@ namespace vast::tw {
     using pass_ptr_t = std::unique_ptr< mlir::Pass >;
 
     template< typename loc_rewriter_t >
-    struct tower {
+    struct tower
+    {
         using loc_rewriter = loc_rewriter_t;
 
         static auto get(mcontext_t &ctx, owning_module_ref mod)
