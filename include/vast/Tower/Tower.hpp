@@ -3,7 +3,10 @@
 #pragma once
 
 #include "vast/Util/Common.hpp"
-#include "mlir/Pass/PassManager.h"
+
+VAST_RELAX_WARNINGS
+#include <mlir/Pass/PassManager.h>
+VAST_UNRELAX_WARNINGS
 
 namespace vast::tower {
     struct handle_t {
