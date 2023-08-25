@@ -124,7 +124,7 @@ namespace vast::repl::cmd {
     void raise::run(state_t &state) const {
         check_and_emit_module(state);
 
-        auto [tm, th] = tower::default_manager_t::get(state.ctx, std::move(state.mod));
+        auto [tm, th] = tw::default_manager_t::get(state.ctx, std::move(state.mod));
 
         std::string pipeline = get_param< pipeline_param >(params).value;
         llvm::SmallVector< llvm::StringRef, 2 > passes;

@@ -8,7 +8,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/Pass/PassManager.h>
 VAST_UNRELAX_WARNINGS
 
-namespace vast::tower {
+namespace vast::tw {
+    
     struct handle_t {
         std::size_t id;
         vast_module mod;
@@ -66,4 +67,5 @@ namespace vast::tower {
     };
 
     using default_manager_t = manager_t< default_loc_rewriter_t >;
-} // namespace vast::tower
+
+} // namespace vast::tw
