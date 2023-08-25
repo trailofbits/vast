@@ -1,5 +1,5 @@
-add_library( vast_tower STATIC
-  Tower.cpp
-)
+# Copyright (c) 2022-present, Trail of Bits, Inc.
 
-add_library(vast::tower ALIAS vast_tower)
+add_vast_library(Tower
+    Tower.cpp
+)
