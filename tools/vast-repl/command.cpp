@@ -5,6 +5,7 @@
 #include "vast/Conversion/Passes.hpp"
 #include "vast/Tower/Tower.hpp"
 #include "vast/repl/common.hpp"
+#include <optional>
 
 namespace vast::repl::cmd {
 
@@ -20,9 +21,11 @@ namespace vast::repl::cmd {
     }
 
     void check_and_emit_module(state_t &state) {
-        if (!state.mod) {
+        if (!state.tower) {
             const auto &source = get_source(state);
-            state.mod = codegen::emit_module(source, &state.ctx);
+            auto mod           = codegen::emit_module(source, &state.ctx);
+            auto [t, _]        = tw::default_tower::get(state.ctx, std::move(mod));
+            state.tower        = std::move(t);
         }
     }
 
@@ -63,13 +66,13 @@ namespace vast::repl::cmd {
 
     void show_module(state_t &state) {
         check_and_emit_module(state);
-        llvm::outs() << state.mod.get() << "\n";
+        llvm::outs() << state.tower->top().mod << "\n";
     }
 
     void show_symbols(state_t &state) {
         check_and_emit_module(state);
 
-        util::symbols(state.mod.get(), [&] (auto symbol) {
+        util::symbols(state.tower->top().mod, [&] (auto symbol) {
             llvm::outs() << util::show_symbol_value(symbol) << "\n";
         });
     }
@@ -91,7 +94,7 @@ namespace vast::repl::cmd {
         using ::vast::meta::add_identifier;
 
         auto name_param = get_param< symbol_param >(params);
-        util::symbols(state.mod.get(), [&] (auto symbol) {
+        util::symbols(state.tower->top().mod, [&] (auto symbol) {
             if (util::symbol_name(symbol) == name_param.value) {
                 auto id = get_param< identifier_param >(params);
                 add_identifier(symbol, id.value);
@@ -103,7 +106,7 @@ namespace vast::repl::cmd {
     void meta::get(state_t &state) const {
         using ::vast::meta::get_with_identifier;
         auto id = get_param< identifier_param >(params);
-        for (auto op : get_with_identifier(state.mod.get(), id.value)) {
+        for (auto op : get_with_identifier(state.tower->top().mod, id.value)) {
             llvm::outs() << *op << "\n";
         }
     }
@@ -124,18 +127,17 @@ namespace vast::repl::cmd {
     void raise::run(state_t &state) const {
         check_and_emit_module(state);
 
-        auto [tm, th] = tw::default_tower::get(state.ctx, std::move(state.mod));
-
         std::string pipeline = get_param< pipeline_param >(params).value;
         llvm::SmallVector< llvm::StringRef, 2 > passes;
         llvm::StringRef(pipeline).split(passes, ',');
 
         mlir::PassManager pm(&state.ctx);
+        auto th = state.tower->top();
         for (auto pass : passes) {
             if (mlir::failed(mlir::parsePassPipeline(pass, pm))) {
                 VAST_UNREACHABLE("error: failed to parse pass pipeline");
             }
-            th = tm.apply(th, pm);
+            th = state.tower->apply(th, pm);
         }
         
         llvm::outs() << th.mod << '\n';

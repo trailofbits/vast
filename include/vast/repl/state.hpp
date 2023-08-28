@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "vast/Tower/Tower.hpp"
 #include "vast/repl/common.hpp"
 
 namespace vast::repl {
@@ -14,7 +15,7 @@ namespace vast::repl {
         std::optional< std::string > source;
 
         mcontext_t &ctx;
-        owning_module_ref mod;
+        std::optional< tw::default_tower > tower;
     };
 
 } // namespace vast::repl
