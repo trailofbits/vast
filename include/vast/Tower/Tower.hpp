@@ -10,12 +10,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::tw {
 
-    struct handle_t
-    {
-        std::size_t id;
-        vast_module mod;
-    };
-
     struct default_loc_rewriter_t
     {
         static auto insert(mlir::Operation *op) -> void;
@@ -29,6 +23,12 @@ namespace vast::tw {
     struct tower
     {
         using loc_rewriter = loc_rewriter_t;
+
+        struct handle_t
+        {
+            std::size_t id;
+            vast_module mod;
+        };
 
         static auto get(mcontext_t &ctx, owning_module_ref mod)
             -> std::tuple< tower, handle_t > {
