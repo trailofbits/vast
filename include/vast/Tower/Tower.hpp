@@ -53,7 +53,7 @@ namespace vast::tw {
         }
 
         auto apply(handle_t handle, pass_ptr_t pass) -> handle_t {
-            mlir::PassManager pm(&_ctx);
+            mlir::PassManager pm(_ctx);
             pm.addPass(std::move(pass));
             return apply(handle, pm);
         }
@@ -61,10 +61,10 @@ namespace vast::tw {
       private:
         using module_storage_t = llvm::SmallVector< owning_module_ref, 2 >;
 
-        mcontext_t &_ctx;
+        mcontext_t *_ctx;
         module_storage_t _modules;
 
-        tower(mcontext_t &ctx, owning_module_ref mod) : _ctx(ctx) {
+        tower(mcontext_t &ctx, owning_module_ref mod) : _ctx(&ctx) {
             _modules.emplace_back(std::move(mod));
         }
     };
