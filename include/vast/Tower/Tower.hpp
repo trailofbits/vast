@@ -32,9 +32,9 @@ namespace vast::tw {
 
         static auto get(mcontext_t &ctx, owning_module_ref mod)
             -> std::tuple< tower, handle_t > {
-            tower m(ctx, std::move(mod));
-            handle_t h{ .id = 0, .mod = m._modules[0].get() };
-            return { std::move(m), h };
+            tower t(ctx, std::move(mod));
+            handle_t h{ .id = 0, .mod = t._modules[0].get() };
+            return { std::move(t), h };
         }
 
         auto apply(handle_t handle, mlir::PassManager &pm) -> handle_t {
@@ -57,6 +57,8 @@ namespace vast::tw {
             pm.addPass(std::move(pass));
             return apply(handle, pm);
         }
+
+        auto top() -> handle_t { return { _modules.size(), _modules.back().get() }; }
 
       private:
         using module_storage_t = llvm::SmallVector< owning_module_ref, 2 >;
