@@ -10,6 +10,7 @@ Makefile
 .cproject
 .project
 .settings
+.vast-repl.history
 cmake-build-debug
 cmake-build-release
 compile_commands.json
