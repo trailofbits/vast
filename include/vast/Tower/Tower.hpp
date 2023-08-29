@@ -45,7 +45,9 @@ namespace vast::tw {
             auto id  = _modules.size() - 1;
             auto mod = _modules.back().get();
 
-            VAST_CHECK(mlir::succeeded(pm.run(mod)), "Some pass in apply() failed");
+            if (mlir::failed(pm.run(mod))) {
+                VAST_UNREACHABLE("Some pass in apply() failed");
+            }
 
             handle.mod.walk(loc_rewriter::remove);
 
