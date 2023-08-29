@@ -122,7 +122,7 @@ namespace vast::repl::cmd {
     }
 
     //
-    // apply command
+    // raise command
     //
     void raise::run(state_t &state) const {
         check_and_emit_module(state);
@@ -139,8 +139,6 @@ namespace vast::repl::cmd {
             }
             th = state.tower->apply(th, pm);
         }
-        
-        llvm::outs() << th.mod << '\n';
     }
 
 } // namespace vast::repl::cmd
