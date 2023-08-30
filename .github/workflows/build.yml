@@ -20,19 +20,22 @@ on:
     branches:
       - '*'
 
-
 jobs:
-  build_linux:
+  build:
     strategy:
       matrix:
         llvm-version: [16]
-        compiler: [clang]
-    runs-on: ubuntu-22.04
+        image-version: [22.04]
+
+    runs-on: ubuntu-${{ matrix.image-version }}
     timeout-minutes: 60
+    container:
+      image:
+        ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
+
     env:
-        CC: ${{ matrix.compiler }}-${{ matrix.llvm-version }}
         CMAKE_PREFIX_PATH: "/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/mlir/;/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/clang/"
-        TOOLCHAIN: ${{github.workspace}}/cmake/lld.toolchain.cmake
+        TOOLCHAIN: ${{ github.workspace }}/cmake/lld.toolchain.cmake
         LLVM_EXTERNAL_LIT: "/usr/local/bin/lit"
 
     steps:
@@ -41,18 +44,6 @@ jobs:
         with:
           submodules: true
           fetch-depth: 1
-
-      - name: Install dependencies
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: software-properties-common cmake lld ninja-build python3-pip
-          version: 1.0
-
-      - name: Install LLVM ${{ matrix.llvm-version }}
-        run: sudo bash ${{github.workspace}}/.github/workflows/install-llvm.sh ${{ matrix.llvm-version }} all
-
-      - name: Install Lit
-        run: pip3 install lit
 
       - name: Configure build
         run: |
@@ -79,4 +70,3 @@ jobs:
           name: vast-x86_64-ubuntu-22.04
           path: ./builds/ninja-multi-default/package/
           retention-days: 30
-
