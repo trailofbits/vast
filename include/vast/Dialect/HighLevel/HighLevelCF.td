@@ -9,7 +9,7 @@ include "vast/Dialect/Core/CoreTraits.td"
 
 class ControlFlowOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits,
-        [NoTerminator, NoRegionArguments]
+        [NoTerminator, NoRegionArguments, DeclareOpInterfaceMethods<RegionKindInterface>]
       ) >
 {
     let summary = "VAST control flow operation";
@@ -79,7 +79,7 @@ def HighLevel_TypeYieldOp : HighLevel_Op< "type.yield", [
   let assemblyFormat = [{ attr-dict $result `:` type($result) }];
 }
 
-def HighLevel_IfOp : ControlFlowOp< "if", [DeclareOpInterfaceMethods<RegionKindInterface>] >
+def HighLevel_IfOp : ControlFlowOp< "if" >
 {
   let summary = "VAST if statement";
   let description = [{
@@ -163,7 +163,7 @@ def HighLevel_CondOp : ControlFlowOp< "cond" >
   let assemblyFormat = [{ $condRegion `?` $thenRegion `:` $elseRegion attr-dict `:` type(results) }];
 }
 
-def HighLevel_WhileOp : ControlFlowOp< "while", [DeclareOpInterfaceMethods<RegionKindInterface>, NoTerminator] >
+def HighLevel_WhileOp : ControlFlowOp< "while", [NoTerminator] >
 {
   let summary = "VAST while statement";
   let description = [{
@@ -194,7 +194,7 @@ def HighLevel_WhileOp : ControlFlowOp< "while", [DeclareOpInterfaceMethods<Regio
 }
 
 
-def HighLevel_ForOp : ControlFlowOp< "for", [DeclareOpInterfaceMethods<RegionKindInterface>] >
+def HighLevel_ForOp : ControlFlowOp< "for" >
 {
   let summary = "VAST for statement";
   let description = [{
@@ -232,7 +232,7 @@ def HighLevel_ForOp : ControlFlowOp< "for", [DeclareOpInterfaceMethods<RegionKin
   }];
 }
 
-def HighLevel_DoOp : ControlFlowOp< "do", [DeclareOpInterfaceMethods<RegionKindInterface>] >
+def HighLevel_DoOp : ControlFlowOp< "do" >
 {
   let summary = "VAST do-while statement";
   let description = [{
@@ -279,7 +279,7 @@ def HighLevel_ContinueOp : ControlFlowOp< "continue", [soft_terminator] >
   let assemblyFormat = [{ attr-dict }];
 }
 
-def HighLevel_SwitchOp : ControlFlowOp< "switch", [DeclareOpInterfaceMethods<RegionKindInterface>] >
+def HighLevel_SwitchOp : ControlFlowOp< "switch" >
 {
   let summary = "VAST switch statement";
   let description = [{
@@ -310,7 +310,7 @@ def HighLevel_SwitchOp : ControlFlowOp< "switch", [DeclareOpInterfaceMethods<Reg
   }];
 }
 
-def HighLevel_CaseOp : ControlFlowOp< "case", [DeclareOpInterfaceMethods<RegionKindInterface>] >
+def HighLevel_CaseOp : ControlFlowOp< "case" >
 {
   let summary = "VAST case statement";
   let description = [{
@@ -341,7 +341,7 @@ def HighLevel_CaseOp : ControlFlowOp< "case", [DeclareOpInterfaceMethods<RegionK
   let assemblyFormat = [{ $lhs $body attr-dict }];
 }
 
-def HighLevel_DefaultOp : ControlFlowOp< "default", [DeclareOpInterfaceMethods<RegionKindInterface>] >
+def HighLevel_DefaultOp : ControlFlowOp< "default" >
 {
   let summary = "VAST default statement";
   let description = [{ VAST default statement }];
@@ -367,7 +367,7 @@ def HighLevel_LabelDeclOp
 }
 
 def HighLevel_LabelStmt
-  : ControlFlowOp< "label", [DeclareOpInterfaceMethods<RegionKindInterface>] >
+  : ControlFlowOp< "label" >
   , Arguments<(ins LabelType:$label)>
 {
   let regions = (region AnyRegion:$body);

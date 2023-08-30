@@ -485,6 +485,9 @@ namespace vast::hl
     GRAPH_REGION_OP(CaseOp);
     GRAPH_REGION_OP(DefaultOp);
     GRAPH_REGION_OP(LabelStmt);
+    GRAPH_REGION_OP(BreakOp);
+    GRAPH_REGION_OP(CondOp);
+    GRAPH_REGION_OP(ContinueOp);
 
 
 }
