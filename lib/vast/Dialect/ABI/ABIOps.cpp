@@ -9,6 +9,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/Builders.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Util/Dialect.hpp"
+
 #define GET_OP_CLASSES
 #include "vast/Dialect/ABI/ABI.cpp.inc"
 
@@ -82,5 +84,8 @@ namespace vast::abi
     {
         return this->getOperands();
     }
+
+    SSACFG_REGION_OP( FuncOp );
+    SSACFG_REGION_OP( WrapFuncOp );
 
 } // namespace vast::abi
