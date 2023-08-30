@@ -482,6 +482,9 @@ namespace vast::cg {
                     .bind(meta_location(decl))                                  // location
                     .bind(visit_as_lvalue_type(type))                           // type
                     .bind(context().decl_name(decl->getUnderlyingDecl()))       // name
+                    // The initializer region is filled later as it might
+                    // have references to the VarDecl we are currently
+                    // visiting - int *x = malloc(sizeof(*x))
                     .bind_region_if(has_init, [](auto, auto){})                 // initializer
                     .bind_region_if(has_allocator, std::move(array_allocator))  // array allocator
                     .freeze();
