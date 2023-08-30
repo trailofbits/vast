@@ -41,10 +41,7 @@ def ScopeOp : HighLevel_Op< "scope", [NoTerminator, DeclareOpInterfaceMethods<Re
 }
 
 def HighLevel_FuncOp
-  : FuncOp< HighLevel_Dialect
-            , "func"
-            , [DeclareOpInterfaceMethods<RegionKindInterface>]
-          >
+  : FuncOp< HighLevel_Dialect, "func" >
 {
   let skipDefaultBuilders = 1;
 
