@@ -1,0 +1,50 @@
+#
+# Copyright (c) 2023, Trail of Bits, Inc.
+# All rights reserved.
+#
+# This source code is licensed in accordance with the terms specified in
+# the LICENSE file found in the root directory of this source tree.
+#
+
+name: Build Dev Container
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        llvm-version: [16]
+        image-version: [22.04]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+
+    permissions:
+        packages: write
+        contents: read
+
+    env:
+      IMAGE_NAME: "ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest"
+
+    steps:
+      - name: Cleanup working directory with container root
+        run: |
+          docker run --rm -v $(pwd):/workspace -w /workspace ubuntu:latest find . -name . -o -prune -exec rm -rf -- {} + || true
+
+      - name: Clone the VAST repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 1
+
+      - name: Build image
+        working-directory: .devcontainer
+        run: |
+          docker pull ubuntu:${{ matrix.image-version }}
+          docker build . --no-cache -t "${IMAGE_NAME}" --build-arg="IMAGE=ubuntu-${{ matrix.image-version }}" --build-arg="LLVM_VERSION=${{ matrix.llvm-version }}"
+
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push image
+        run: docker push "${IMAGE_NAME}"
