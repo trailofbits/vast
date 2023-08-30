@@ -166,5 +166,7 @@ if [[ $ALL -eq 1 ]]; then
 fi
 apt-get install -f -y $PKG
 
-update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-16 60
-update-alternatives --install /usr/bin/cc cc /usr/bin/clang-16 60
+update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-$LLVM_VERSION 60
+update-alternatives --install /usr/bin/cc cc /usr/bin/clang-$LLVM_VERSION 60
+
+ln -s /usr/bin/FileCheck-$LLVM_VERSION /usr/bin/FileCheck
