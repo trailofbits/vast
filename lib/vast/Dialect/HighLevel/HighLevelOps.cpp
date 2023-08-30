@@ -20,15 +20,13 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 #include "vast/Util/Common.hpp"
+#include "vast/Util/Dialect.hpp"
 #include "vast/Util/Region.hpp"
 #include "vast/Util/TypeUtils.hpp"
 
 #include <optional>
 #include <variant>
 
-#define GRAPH_REGION_OP( op ) mlir::RegionKind op::getRegionKind(unsigned index) { \
-        return mlir::RegionKind::Graph; \
-    }
 namespace vast::hl
 {
     using FoldResult = mlir::OpFoldResult;
