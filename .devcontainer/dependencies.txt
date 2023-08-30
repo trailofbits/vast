@@ -1,0 +1,1 @@
+software-properties-common ninja-build python3-pip ccache cmake lld
