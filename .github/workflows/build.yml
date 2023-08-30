@@ -58,15 +58,3 @@ jobs:
         run: |
             cmake --build --preset ninja-deb -j $(nproc)
             ctest --preset ninja-deb --output-on-failure
-
-      - name: Build release
-        run:
-            cmake --build --preset ninja-rel -j $(nproc) || exit 1
-            cpack -G TXZ --config ./builds/ninja-multi-default/CPackConfig.cmake || exit 1
-
-      - name: Upload VAST package artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: vast-x86_64-ubuntu-22.04
-          path: ./builds/ninja-multi-default/package/
-          retention-days: 30
