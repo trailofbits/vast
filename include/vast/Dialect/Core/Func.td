@@ -22,6 +22,7 @@ class FuncOp< Dialect dialect, string mnemonic, list< Trait > traits = [] >
                     , IsolatedFromAbove
                     , Symbol
                     , NoTerminator
+                    , DeclareOpInterfaceMethods< RegionKindInterface >
                     ])
       > {
   let summary = "VAST function template";
