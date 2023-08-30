@@ -9,13 +9,13 @@ int foo() {
     int* a;
     // CHECK: hl.var "b" : !hl.lvalue<!hl.ptr<!hl.int>>
     int* b;
-    // CHECK: hl.scope
+    // CHECK: core.scope
     {
         // CHECK: hl.var "foo" sc_static : !hl.lvalue<!hl.int>
         static int foo;
         a = &foo;
     }
-    // CHECK: hl.scope
+    // CHECK: core.scope
     {
         // CHECK: hl.var "foo" sc_static : !hl.lvalue<!hl.int>
         static int foo;
