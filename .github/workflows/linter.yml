@@ -28,6 +28,7 @@ jobs:
       actions: write
       issues: write
       pull-requests: write
+      packages: read
 
     env:
         CMAKE_PREFIX_PATH: "/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/mlir/;/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/clang/"
