@@ -57,4 +57,6 @@ jobs:
       - name: Build debug
         run: |
             cmake --build --preset ninja-deb -j $(nproc)
-            ctest --preset ninja-deb --output-on-failure
+
+      - name: Test
+        run: ctest --preset ninja-deb --output-on-failure
