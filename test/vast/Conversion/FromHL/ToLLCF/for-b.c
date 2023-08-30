@@ -2,7 +2,7 @@
 
 int fn()
 {
-    // CHECK: hl.scope {
+    // CHECK: core.scope {
     // CHECK:   ll.scope {
     // CHECK:     ll.br ^bb2
     // CHECK:   ^bb1:  // pred: ^bb4

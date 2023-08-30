@@ -4,7 +4,7 @@
 // CHECK-LABEL: hl.func external @_Z11loop_simplev
 void loop_simple()
 {
-    // CHECK: hl.scope {
+    // CHECK: core.scope {
         // CHECK: hl.var "i" : !hl.lvalue<!hl.int>
         // CHECK: hl.for {
         // CHECK:   hl.cmp slt

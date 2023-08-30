@@ -25,7 +25,7 @@ int main() {
     // CHECK: hl.ref [[X]]
         int *x = malloc(sizeof(*x));
     }while(0);
-    // CHECK: hl.scope
+    // CHECK: core.scope
     // CHECK-NEXT: [[X:%[0-9]+]] = hl.var "x" : !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK: hl.sizeof.expr
     // CHECK: hl.ref [[X]]
