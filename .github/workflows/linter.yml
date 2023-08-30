@@ -44,13 +44,18 @@ jobs:
       - name: Export compile commands
         run: cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
 
+      - name: Install dependencies
+        run: |
+          pip3 install clang-tools cpp-linter
+          clang-tools -i ${{ matrix.llvm-version }}
+
       - name: Run C++ Linters
-        uses: cpp-linter/cpp-linter-action@v2
+        uses: xlauko/cpp-linter-action@latest
         id: linter
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          version: 16
+          version: ${{ matrix.llvm-version }}
           style: file
           database: ./builds/ninja-multi-default/
           lines-changed-only: true
