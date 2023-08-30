@@ -25,39 +25,55 @@ jobs:
   build_linux:
     strategy:
       matrix:
-        compiler: [clang-16]
+        llvm-version: [16]
+        compiler: [clang]
     runs-on: ubuntu-22.04
-    timeout-minutes: 32
+    timeout-minutes: 60
+    env:
+        CC: ${{ matrix.compiler }}-${{ matrix.llvm-version }}
+        CMAKE_PREFIX_PATH: "/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/mlir/;/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/clang/"
+        TOOLCHAIN: ${{github.workspace}}/cmake/lld.toolchain.cmake
+        LLVM_EXTERNAL_LIT: "/usr/local/bin/lit"
 
     steps:
-      - name: Clone the vast repository
+      - name: Clone the VAST repository
         uses: actions/checkout@v3
         with:
           submodules: true
           fetch-depth: 1
 
-      - name: Build and run dev container task
-        uses: devcontainers/ci@v0.2
+      - name: Install dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          runCmd: |
-            export CC=${{ matrix.compiler }}
+          packages: software-properties-common cmake lld ninja-build python3-pip
+          version: 1.0
 
-            export TOOLCHAIN=$(pwd)/cmake/lld.toolchain.cmake
+      - name: Install LLVM ${{ matrix.llvm-version }}
+        run: sudo bash ${{github.workspace}}/.github/workflows/install-llvm.sh ${{ matrix.llvm-version }} all
 
+      - name: Install Lit
+        run: pip3 install lit
+
+      - name: Configure build
+        run: |
             cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} \
               -DCMAKE_VERBOSE_MAKEFILE=True \
               -DENABLE_SANITIZER_ADDRESS=ON \
               -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=ON \
               -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
-              -DLLVM_EXTERNAL_LIT=${LLVM_EXTERNAL_LIT} || exit 1
+              -DLLVM_EXTERNAL_LIT=${LLVM_EXTERNAL_LIT}
 
-            cmake --build --preset ninja-deb -j $(nproc) || exit 1
-            ctest --preset ninja-deb --output-on-failure || exit 1
+      - name: Build debug
+        run: |
+            cmake --build --preset ninja-deb -j $(nproc)
+            ctest --preset ninja-deb --output-on-failure
 
+      - name: Build release
+        run:
             cmake --build --preset ninja-rel -j $(nproc) || exit 1
             cpack -G TXZ --config ./builds/ninja-multi-default/CPackConfig.cmake || exit 1
 
-      - name: Upload vast package artifact
+      - name: Upload VAST package artifact
         uses: actions/upload-artifact@v3
         with:
           name: vast-x86_64-ubuntu-22.04
