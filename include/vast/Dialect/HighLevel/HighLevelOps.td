@@ -26,20 +26,6 @@ def TranslationUnitOp
   let assemblyFormat = [{ $body attr-dict }];
 }
 
-def ScopeOp : HighLevel_Op< "scope", [NoTerminator, DeclareOpInterfaceMethods<RegionKindInterface>] >
-{
-  let summary = "VAST scope declaration";
-  let description = [{
-    Scope operation servers to represent explicitly high-level code scope.
-    Other control flow operations represent scopes implicitly.  It is a
-    single-region operation.
-  }];
-
-  let regions = (region AnyRegion:$body);
-
-  let assemblyFormat = [{ $body attr-dict }];
-}
-
 def HighLevel_FuncOp
   : FuncOp< HighLevel_Dialect, "func" >
 {

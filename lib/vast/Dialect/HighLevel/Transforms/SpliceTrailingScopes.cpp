@@ -27,7 +27,7 @@ namespace vast::hl
 
         void splice_trailing_scope(operation op)
         {
-            auto scope = mlir::dyn_cast< hl::ScopeOp >(op);
+            auto scope = mlir::dyn_cast< core::ScopeOp >(op);
             VAST_ASSERT(scope && "Op is not a scope!");
 
             auto parent = scope->getParentRegion();

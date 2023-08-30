@@ -369,13 +369,13 @@ namespace vast::cg {
                 // Making sure, that if the operation is enclosed in a trailing
                 // scope, then the termiantor is evaluated in this scope (which
                 // will then be spliced by subsequent pass)
-                auto next_scope = [](operation op) -> hl::ScopeOp {
+                auto next_scope = [](operation op) -> core::ScopeOp {
                     if (op)
-                        return mlir::dyn_cast< hl::ScopeOp >(op);
+                        return mlir::dyn_cast< core::ScopeOp >(op);
                     return {};
                 };
 
-                auto process_scope = [&](hl::ScopeOp scope) -> operation {
+                auto process_scope = [&](core::ScopeOp scope) -> operation {
                     auto parent = scope->getParentRegion();
                     if (parent->hasOneBlock()
                         && parent->back().begin() == std::prev(parent->back().end()))

@@ -23,6 +23,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Dialect/Core/CoreOps.hpp"
 #include "vast/Util/Functions.hpp"
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Triple.hpp"
