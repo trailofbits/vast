@@ -15,6 +15,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+#include "vast/Dialect/Core/CoreOps.hpp"
 
 #include "vast/Util/Common.hpp"
 
@@ -66,7 +67,7 @@ namespace vast::cg {
         }
 
         Operation* VisitCompoundStmt(const clang::CompoundStmt *stmt) {
-            return this->template make_scoped< HighLevelScope >(meta_location(stmt), [&] {
+            return this->template make_scoped< CoreScope >(meta_location(stmt), [&] {
                 for (auto s : stmt->body()) {
                     visit(s);
                 }
@@ -681,7 +682,7 @@ namespace vast::cg {
             };
 
             if (stmt->getInit()) {
-                return this->template make_scoped< HighLevelScope >(loc, [&] {
+                return this->template make_scoped< CoreScope >(loc, [&] {
                     visit(stmt->getInit());
                     make_switch_op();
                 });
@@ -720,7 +721,7 @@ namespace vast::cg {
             };
 
             if (stmt->getInit()) {
-                return this->template make_scoped< HighLevelScope >(loc, [&] {
+                return this->template make_scoped< CoreScope >(loc, [&] {
                     visit(stmt->getInit());
                     make_loop_op();
                 });

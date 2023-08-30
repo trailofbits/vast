@@ -36,5 +36,6 @@ class Core_Op< string mnemonic, list< Trait > traits = [] >
     : Op< Core_Dialect, mnemonic, traits >;
 
 include "vast/Dialect/Core/CoreLazy.td"
+include "vast/Dialect/Core/CoreOps.td"
 
 #endif // VAST_DIALECT_CORE

@@ -6,6 +6,7 @@
 #include "vast/Dialect/Core/CoreAttributes.hpp"
 
 #include "vast/Util/Common.hpp"
+#include "vast/Util/Dialect.hpp"
 
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
@@ -19,6 +20,11 @@
 
 #include <optional>
 #include <variant>
+
+namespace vast::core
+{
+    GRAPH_REGION_OP(ScopeOp);
+} // namespace vast::core
 
 //===----------------------------------------------------------------------===//
 // TableGen generated logic.
