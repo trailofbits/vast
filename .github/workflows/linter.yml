@@ -14,11 +14,25 @@ on:
 
 jobs:
   cpp-linter:
-    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        llvm-version: [16]
+        image-version: [22.04]
+
+    runs-on: ubuntu-${{ matrix.image-version }}
+    container:
+      image:
+        ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
+
     permissions:
       actions: write
       issues: write
       pull-requests: write
+
+    env:
+        CMAKE_PREFIX_PATH: "/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/mlir/;/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/clang/"
+        TOOLCHAIN: ${{ github.workspace }}/cmake/lld.toolchain.cmake
+
     steps:
       - name: Clone the vast repository
         uses: actions/checkout@v3
@@ -26,22 +40,8 @@ jobs:
           submodules: true
           fetch-depth: 1
 
-      - name: Install packages
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: software-properties-common ccache cmake lld ninja-build
-          version: 1.0
-
-      - name: Install LLVM
-        run: sudo bash $(pwd)/.github/workflows/install-llvm.sh 16 all
-
       - name: Export compile commands
-        run: |
-          export CC=clang-16
-          export TOOLCHAIN=$(pwd)/cmake/lld.toolchain.cmake
-          export CMAKE_PREFIX_PATH="/usr/lib/llvm-16/lib/cmake/mlir/;/usr/lib/llvm-16/lib/cmake/clang/"
-          cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} \
-            -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+        run: cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
 
       - name: Run C++ Linters
         uses: cpp-linter/cpp-linter-action@v2
