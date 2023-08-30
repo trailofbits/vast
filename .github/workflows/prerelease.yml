@@ -20,31 +20,42 @@ permissions: write-all
 
 jobs:
   build:
+    strategy:
+      matrix:
+        llvm-version: [16]
+        image-version: [22.04]
+
     name: "Pre Release"
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-${{ matrix.image-version }}
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    timeout-minutes: 60
+    container:
+      image:
+        ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
+
+    env:
+        CMAKE_PREFIX_PATH: "/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/mlir/;/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/clang/"
+        TOOLCHAIN: ${{ github.workspace }}/cmake/lld.toolchain.cmake
+        LLVM_EXTERNAL_LIT: "/usr/local/bin/lit"
 
     steps:
-      - name: Clone the vast repository
+      - name: Clone the VAST repository
         uses: actions/checkout@v3
         with:
           submodules: true
           fetch-depth: 1
 
-      - name: Build and run dev container task
-        uses: devcontainers/ci@v0.2
-        with:
-          runCmd: |
-            export CC=clang-16
-            export TOOLCHAIN=$(pwd)/cmake/lld.toolchain.cmake
-
+      - name: Configure build
+        run: |
             cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} \
-              -D CMAKE_VERBOSE_MAKEFILE=True \
+              -DCMAKE_VERBOSE_MAKEFILE=True \
               -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
-              -DLLVM_EXTERNAL_LIT=${LLVM_EXTERNAL_LIT} || exit 1
+              -DLLVM_EXTERNAL_LIT=${LLVM_EXTERNAL_LIT}
 
-            cmake --build --preset ninja-rel -j $(nproc) || exit 1
-            cpack -G TXZ --config ./builds/ninja-multi-default/CPackConfig.cmake || exit 1
+      - name: Build release
+        run: |
+            cmake --build --preset ninja-rel -j $(nproc)
+            cpack -G TXZ --config ./builds/ninja-multi-default/CPackConfig.cmake
 
       - name: "Publish Pre-Release"
         uses: "marvinpinto/action-automatic-releases@latest"
