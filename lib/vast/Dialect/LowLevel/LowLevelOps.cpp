@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/Builders.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Util/Dialect.hpp"
 #include "vast/Util/Region.hpp"
 
 namespace vast::ll
@@ -133,6 +134,8 @@ namespace vast::ll
             );
         }
     }
+
+    SSACFG_REGION_OP( FuncOp );
 
 } // namespace vast::ll
 
