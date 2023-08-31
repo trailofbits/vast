@@ -167,9 +167,7 @@ namespace vast::hl
     void StmtExprOp::build(Builder &bld, State &st, Type rty, std::unique_ptr< Region > &&region) {
         InsertionGuard guard(bld);
         st.addRegion(std::move(region));
-        // TODO(void-call): Remove if
-        if(rty)
-            st.addTypes(rty);
+        st.addTypes(rty);
     }
 
     void VarDeclOp::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback init, BuilderCallback alloc) {
