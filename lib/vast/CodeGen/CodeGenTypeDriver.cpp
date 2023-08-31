@@ -64,9 +64,6 @@ namespace vast::cg
         auto process_type_info = [&] (const auto &info, auto type, bool arg = true) -> mlir_type {
             switch (info.get_kind()) {
             case abi_kind::ignore:
-                // TODO: This should probably be the None type from the builtin
-                // dialect.
-                return nullptr;
             case abi_kind::extend:
             case abi_kind::direct:
                 if (arg)
