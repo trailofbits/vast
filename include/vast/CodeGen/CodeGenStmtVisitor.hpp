@@ -884,8 +884,7 @@ namespace vast::cg {
         Operation* VisitStmtExpr(const clang::StmtExpr *expr) {
             auto loc = meta_location(expr);
             auto sub = llvm::cast< clang::CompoundStmt >(expr->getSubStmt());
-            // TODO(void-call): Fix this funciton call
-            auto [reg, rty] = Builder::make_maybe_value_yield_region(sub);
+            auto [reg, rty] = Builder::make_value_yield_region(sub);
             return make< hl::StmtExprOp >(loc, rty, std::move(reg));
         }
 
