@@ -1082,10 +1082,9 @@ def AlignOfExprOp : ExprTraitOp< "alignof.expr" > {
   let description = [{ VAST expr alignof operator }];
 }
 
-// TODO(void-call): Remove NoTerminator and Optional result
 def StmtExprOp
-  : HighLevel_Op< "stmt.expr", [SingleBlock, NoTerminator, DeclareOpInterfaceMethods<RegionKindInterface>] >
-  , Results<(outs Optional< AnyType >:$result)>
+  : HighLevel_Op< "stmt.expr", [SingleBlock, DeclareOpInterfaceMethods<RegionKindInterface>] >
+  , Results<(outs AnyType:$result)>
 {
   let summary = "VAST statement expression";
   let description = [{ VAST statement expression }];
@@ -1137,11 +1136,10 @@ def PredefinedExpr
     let assemblyFormat = "$value $kind attr-dict `:` type($value) `->` type($result)";
 }
 
-// TODO(void-call): Remove optionals
 def ExtensionOp
   : HighLevel_Op< "gnu.extension" >
-    , Arguments<(ins Optional< AnyType >:$value)>
-    , Results<(outs Optional< AnyType >:$result)>
+    , Arguments<(ins AnyType:$value)>
+    , Results<(outs AnyType:$result)>
 {
     let summary = "VAST extension (__extension__) keyword";
     let description = [{ VAST op corresponding to GNU __extension__ keyword. }];
