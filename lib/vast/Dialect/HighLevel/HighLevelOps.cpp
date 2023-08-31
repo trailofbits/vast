@@ -337,11 +337,6 @@ namespace vast::hl
     {
         namespace tt = mlir::TypeTrait;
 
-        if (!lhs)
-            return !rhs || rhs.isa< hl::VoidType, mlir::NoneType >();
-        if (!rhs)
-            return !lhs || lhs.isa< hl::VoidType, mlir::NoneType >();
-
         if (auto e = mlir::dyn_cast< hl::ElaboratedType >(lhs))
             return typesMatch(e.getElementType(), rhs);
         if (auto e = mlir::dyn_cast< hl::ElaboratedType >(rhs))
