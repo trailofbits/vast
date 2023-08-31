@@ -361,12 +361,8 @@ namespace vast::cg {
 
         Operation* VisitUnaryExtension(const clang::UnaryOperator *op) {
             auto visited = visit(op->getSubExpr());
-            // TODO(void-call): Unnecessary condition
-            if (visited->getNumResults() > 0) {
-                auto arg = visited->getResult(0);
-                return make< hl::ExtensionOp >(meta_location(op), arg.getType(), arg);
-            }
-            return make< hl::ExtensionOp >(meta_location(op), mlir::Type(), mlir::Value());
+            auto arg = visited->getResult(0);
+            return make< hl::ExtensionOp >(meta_location(op), arg.getType(), arg);
         }
 
         // Operation* VisitUnaryReal(const clang::UnaryOperator *op)
