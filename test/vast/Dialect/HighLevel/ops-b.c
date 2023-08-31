@@ -87,7 +87,7 @@ void assign_signed(int a, int b)
     a %= b;
 }
 
-// CHECK: hl.func external @assign_unsigned ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int< unsigned >>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.int< unsigned >>) {
+// CHECK: hl.func external @assign_unsigned ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int< unsigned >>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.int< unsigned >>)
 void assign_unsigned(unsigned a, unsigned b)
 {
     // CHECK: [[V1:%[0-9]+]] = hl.ref [[A1]]
