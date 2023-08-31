@@ -259,22 +259,6 @@ namespace vast::hl
         build_logic_op(bld, st, type, lhs, rhs);
     }
 
-    void BinComma::build(Builder &bld, State &st, Type type, Operation *lhsop, Operation *rhsop)
-    {
-        int32_t lhs_count = lhsop->getNumResults();
-        int32_t rhs_count = rhsop->getNumResults();
-        if (lhs_count > 0)
-            st.addOperands(lhsop->getResult(0));
-        if (rhs_count > 0)
-            st.addOperands(rhsop->getResult(0));
-
-        st.addAttribute(getOperandSegmentSizesAttrName(st.name),
-                        bld.getDenseI32ArrayAttr({ lhs_count, rhs_count })
-        );
-
-        st.addTypes(type);
-    }
-
     mlir::ParseResult IfOp::parse(mlir::OpAsmParser &parser, mlir::OperationState &result) {
         std::unique_ptr< mlir::Region > condRegion = std::make_unique< mlir::Region >();
         std::unique_ptr< mlir::Region > thenRegion = std::make_unique< mlir::Region >();
