@@ -236,22 +236,6 @@ namespace vast::cg {
             return { std::move(reg), type };
         }
 
-        // TODO(void-call): Remove this function in favor of make_value_yield_region
-        template< typename StmtType >
-        RegionAndType make_maybe_value_yield_region(const StmtType *stmt) {
-            auto guard  = insertion_guard();
-            auto reg    = make_stmt_region(stmt);
-
-            auto &block = reg->back();
-            auto type = Type();
-            set_insertion_point_to_end( &block );
-            if (block.back().getNumResults() > 0) {
-                type = block.back().getResult(0).getType();
-                create< hl::ValueYieldOp >(meta_location(stmt), block.back().getResult(0));
-            }
-            return { std::move(reg), type };
-        }
-
         template< typename YieldType >
         auto make_stmt_builder(const clang::Stmt *stmt) {
             return [stmt, this](auto &bld, auto loc) {
