@@ -209,6 +209,15 @@ def StringLiteralAttr : HighLevel_Attr< "StringLiteral", "strlit", [TypedAttrInt
   }];
 }
 
+def VoidAttr : HighLevel_Attr<"Void", "void", [TypedAttrInterface]> {
+  let summary = "Attribute to represent void value.";
+  let description = [{
+    The VoidAttr is used to return void from statements uniformly.
+  }];
+
+  let parameters = (ins AttributeSelfTypeParameter< "" >:$type);
+  let assemblyFormat = [{}];
+}
 
 class NameAttr<string name, string attr_mnemonic>
   : HighLevel_Attr< name, attr_mnemonic >
