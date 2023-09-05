@@ -60,6 +60,7 @@ namespace vast::cg {
         using Builder::make_region_builder;
 
         using Builder::make_value_yield_region;
+        using Builder::make_stmt_expr_region;
 
         template< typename Op, typename... Args >
         auto make(Args &&...args) {
@@ -880,7 +881,7 @@ namespace vast::cg {
         Operation* VisitStmtExpr(const clang::StmtExpr *expr) {
             auto loc = meta_location(expr);
             auto sub = llvm::cast< clang::CompoundStmt >(expr->getSubStmt());
-            auto [reg, rty] = Builder::make_value_yield_region(sub);
+            auto [reg, rty] = make_stmt_expr_region(sub);
             return make< hl::StmtExprOp >(loc, rty, std::move(reg));
         }
 

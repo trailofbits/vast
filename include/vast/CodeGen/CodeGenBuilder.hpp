@@ -236,6 +236,36 @@ namespace vast::cg {
             return { std::move(reg), type };
         }
 
+        hl::VoidType void_type() {
+            return visit(acontext().VoidTy).template cast< hl::VoidType >();
+        }
+
+        RegionAndType make_stmt_expr_region (const clang::CompoundStmt *stmt) {
+            auto guard  = insertion_guard();
+            auto reg    = make_stmt_region(stmt);
+
+            auto &block = reg->back();
+            set_insertion_point_to_end( &block );
+
+            // ({5;;;;;}) <- this is supposed to return 5...
+            auto last = std::prev(block.end());
+            while (dyn_cast< hl::SkipStmt >(&*last)) {
+                last = std::prev(last);
+            }
+
+            auto loc = meta_location(stmt);
+
+            if (last->getNumResults() > 0) {
+                auto res = last->getResult(0);
+                create< hl::ValueYieldOp >(loc, res);
+                return { std::move(reg), res.getType()};
+            }
+
+            auto void_const = create< hl::ConstantOp >(loc, void_type());
+            create< hl::ValueYieldOp >(meta_location(stmt), void_const);
+            return { std::move(reg), void_const.getType()};
+        }
+
         template< typename YieldType >
         auto make_stmt_builder(const clang::Stmt *stmt) {
             return [stmt, this](auto &bld, auto loc) {
