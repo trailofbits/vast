@@ -82,6 +82,8 @@ namespace vast::hl
             return getFunctionType(getTypedefType(ty, mod), mod);
         if (auto ty = type.dyn_cast< ElaboratedType >())
             return getFunctionType(ty.getElementType(), mod);
+        if (auto ty = type.dyn_cast< DecayedType >())
+            return getFunctionType(ty.getElementType(), mod);
 
         VAST_UNREACHABLE("unknown type to extract function type");
     }
