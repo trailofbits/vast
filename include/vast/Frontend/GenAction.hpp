@@ -27,8 +27,10 @@ namespace vast::cc {
 
     namespace opt {
         constexpr string_ref emit_high_level = "emit-high-level";
-        constexpr string_ref emit_cir = "emit-cir";
+        constexpr string_ref emit_cir  = "emit-cir";
         constexpr string_ref emit_llvm = "emit-llvm";
+        constexpr string_ref emit_obj  = "emit-obj";
+        constexpr string_ref emit_asm  = "emit-asm";
 
         constexpr string_ref emit_mlir = "emit-mlir";
 
