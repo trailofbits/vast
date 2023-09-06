@@ -1,5 +1,5 @@
-// RUN: vast-front %s -vast-emit-mlir=hl -o - | FileCheck %s
-// RUN: vast-front %s -vast-emit-mlir=hl -o - > %t && vast-opt %t | diff -B %t -
+// RUN: %vast-front %s -vast-emit-mlir=hl -o - | FileCheck %s
+// RUN: %vast-front %s -vast-emit-mlir=hl -o - > %t && %vast-opt %t | diff -B %t -
 
 int load(int* p) {
     // CHECK: unsup.stmt "AtomicExpr"

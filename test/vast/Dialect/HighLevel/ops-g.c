@@ -1,5 +1,5 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
-// RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: %vast-cc --ccopts -xc --from-source %s | FileCheck %s
+// RUN: %vast-cc --ccopts -xc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
 void logic_assign_to_different_type() {
     // CHECK: hl.bin.lor {

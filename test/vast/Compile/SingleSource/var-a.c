@@ -1,4 +1,4 @@
-// RUN: vast-front -o %t %s && (%t 1; test $? -eq 2)
+// RUN: %vast-front -o %t %s && (%t 1; test $? -eq 2)
 // REQUIRES: union_lowering
 
 #include <stdlib.h>

@@ -1,5 +1,5 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
-// RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: %vast-cc --ccopts -xc --from-source %s | FileCheck %s
+// RUN: %vast-cc --ccopts -xc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
 // CHECK: hl.typedef "function_type" : (!hl.lvalue<!hl.int>, !hl.lvalue<!hl.int>) -> !hl.int
 typedef int function_type(int a, int b);

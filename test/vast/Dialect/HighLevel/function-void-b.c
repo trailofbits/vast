@@ -1,5 +1,5 @@
-// RUN: vast-front -vast-emit-mlir=hl -x c -o - %s | FileCheck %s
-// RUN: vast-front -vast-emit-mlir=hl -x c++ -o - %s | FileCheck %s
+// RUN: %vast-front -vast-emit-mlir=hl -x c -o - %s | FileCheck %s
+// RUN: %vast-front -vast-emit-mlir=hl -x c++ -o - %s | FileCheck %s
 
 // CHECK: hl.func external {{.*}} () -> !hl.void
 void f1() {}

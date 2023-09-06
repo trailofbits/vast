@@ -1,5 +1,5 @@
-// RUN: vast-front -vast-emit-mlir=hl -o - %s | FileCheck %s
-// RUN: vast-front -vast-emit-mlir=hl -o - %s > %t && vast-opt %t | diff -B %t -
+// RUN: %vast-front -vast-emit-mlir=hl -o - %s | FileCheck %s
+// RUN: %vast-front -vast-emit-mlir=hl -o - %s > %t && %vast-opt %t | diff -B %t -
 
 int main() {
 // CHECK: hl.var "i" : !hl.lvalue<!hl.int>

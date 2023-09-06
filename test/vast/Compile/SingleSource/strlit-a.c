@@ -1,4 +1,4 @@
-// RUN: vast-front -o %t %s && (%t; test $? -eq 8)
+// RUN: %vast-front -o %t %s && (%t; test $? -eq 8)
 int third( const char *arr )
 {
     return arr[ 2 ];

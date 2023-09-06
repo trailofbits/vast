@@ -1,4 +1,4 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-dce --vast-hl-lower-types --vast-hl-to-ll-cf | FileCheck %s
+// RUN: %vast-cc --ccopts -xc --from-source %s | %vast-opt --vast-hl-dce --vast-hl-lower-types --vast-hl-to-ll-cf | FileCheck %s
 
 int fn()
 {

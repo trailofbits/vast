@@ -1,4 +1,4 @@
-// RUN: vast-front %s -vast-emit-high-level -o - | FileCheck %s
+// RUN: %vast-front %s -vast-emit-high-level -o - | FileCheck %s
 
 // CHECK: hl.func external @printf
 #include <stdio.h>

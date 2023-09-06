@@ -1,5 +1,5 @@
-// RUN: vast-cc --from-source %s | FileCheck %s
-// RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: %vast-cc --from-source %s | FileCheck %s
+// RUN: %vast-cc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
 // CHECK: hl.class "A" :
 class A {};
