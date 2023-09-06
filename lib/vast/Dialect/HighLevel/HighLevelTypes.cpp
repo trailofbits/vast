@@ -72,18 +72,10 @@ namespace vast::hl
     mlir::FunctionType getFunctionType(Type type, vast_module mod) {
         if (auto ty = type.dyn_cast< mlir::FunctionType >())
             return ty;
-        if (auto ty = type.dyn_cast< LValueType >())
-            return getFunctionType(ty.getElementType(), mod);
-        if (auto ty = type.dyn_cast< ParenType >())
-            return getFunctionType(ty.getElementType(), mod);
-        if (auto ty = type.dyn_cast< PointerType >())
+        if (auto ty = dyn_cast< ElementTypeInterface >(type))
             return getFunctionType(ty.getElementType(), mod);
         if (auto ty = type.dyn_cast< TypedefType >())
             return getFunctionType(getTypedefType(ty, mod), mod);
-        if (auto ty = type.dyn_cast< ElaboratedType >())
-            return getFunctionType(ty.getElementType(), mod);
-        if (auto ty = type.dyn_cast< DecayedType >())
-            return getFunctionType(ty.getElementType(), mod);
 
         VAST_UNREACHABLE("unknown type to extract function type");
     }
