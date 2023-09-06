@@ -1,4 +1,4 @@
-// RUN: vast-front -o %t %s && (%t; test $? -eq 42)
+// RUN: %vast-front -o %t %s && (%t; test $? -eq 42)
 int fib( int x )
 {
     if ( x == 0 )

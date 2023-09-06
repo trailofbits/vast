@@ -235,21 +235,10 @@ namespace vast::cg
         // If function decl is not null, this will consider pass_object_size
         // params in function decl.
         static required_args for_prototype_plus(
-            const clang::FunctionProtoType *prototype, unsigned additional
+            const clang::FunctionProtoType *prototype, unsigned /* additional */
         ) {
-            if (!prototype->isVariadic())
-                return require_all_args;
-
-            if (prototype->hasExtParameterInfos()) {
-                additional += llvm::count_if(
-                    prototype->getExtParameterInfos(),
-                    [](const clang::FunctionProtoType::ExtParameterInfo &info) {
-                        return info.hasPassObjectSize();
-                    }
-                );
-            }
-
-            return required_args(prototype->getNumParams() + additional);
+            VAST_UNIMPLEMENTED_IF(prototype->isVariadic());
+            return { require_all_args };
         }
 
         static required_args for_prototype_plus(
@@ -463,6 +452,7 @@ namespace vast::cg
         bool is_variadic() const { return required.allows_optional_args(); }
         required_args get_required_args() const { return required; }
         unsigned get_num_required_args() const {
+            VAST_UNIMPLEMENTED_IF(is_variadic());
             return is_variadic() ? get_required_args().get_num_required_args() : arg_size();
         }
 

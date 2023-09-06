@@ -49,18 +49,19 @@ config.vast_test_util = os.path.join(config.vast_src_root, 'test/utils')
 config.vast_tools_dir = os.path.join(config.vast_obj_root, 'tools')
 
 tools = [
-    ToolSubst('vast-opt', command = 'vast-opt'),
-    ToolSubst('vast-cc', command = 'vast-cc'),
-    ToolSubst('vast-query', command = 'vast-query'),
-    ToolSubst('vast-front', command = 'vast-front'),
-    ToolSubst('vast-repl', command = 'vast-repl'),
+    ToolSubst('%vast-opt', command = 'vast-opt'),
+    ToolSubst('%vast-cc', command = 'vast-cc'),
+    ToolSubst('%vast-query', command = 'vast-query'),
+    ToolSubst('%vast-front', command = 'vast-front'),
+    ToolSubst('%vast-repl', command = 'vast-repl'),
     ToolSubst('%vast-cc1', command = 'vast-front',
         extra_args=[
             "-cc1",
             "-internal-isystem",
             "-nostdsysteminc"
         ]
-    ) ]
+    )
+]
 
 
 
@@ -71,4 +72,5 @@ else:
 
 for tool in tools:
     path = [config.vast_tools_dir, tool.command, config.vast_build_type]
-    llvm_config.add_tool_substitutions([tool], os.path.join(*path))
+    tool.command = os.path.join(*path, tool.command)
+    llvm_config.add_tool_substitutions([tool])

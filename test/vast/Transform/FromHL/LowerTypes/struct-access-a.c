@@ -1,4 +1,4 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | vast-opt --vast-hl-lower-types | FileCheck %s
+// RUN: %vast-cc --ccopts -xc --from-source %s | %vast-opt --vast-hl-lower-types | FileCheck %s
 
 // CHECK:  hl.struct "X" : {
 // CHECK:    hl.field "member_x" : si32

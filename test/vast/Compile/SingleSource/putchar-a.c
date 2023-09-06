@@ -1,4 +1,4 @@
-// RUN: vast-front -o %t %s && %t | FileCheck %s
+// RUN: %vast-front -o %t %s && %t | FileCheck %s
 
 int putchar(int);
 

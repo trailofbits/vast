@@ -1,5 +1,5 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
-// RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: %vast-cc --ccopts -xc --from-source %s | FileCheck %s
+// RUN: %vast-cc --ccopts -xc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
 // CHECK: hl.func external @arithemtic_int_short ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.short>)
 void arithemtic_int_short(int a, short b)

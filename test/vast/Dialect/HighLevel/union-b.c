@@ -1,5 +1,5 @@
-// RUN: vast-cc --ccopts -xc --ccopts -std=c11 --from-source %s | FileCheck %s
-// RUN: vast-cc --ccopts -xc --ccopts -std=c11 --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: %vast-cc --ccopts -xc --ccopts -std=c11 --from-source %s | FileCheck %s
+// RUN: %vast-cc --ccopts -xc --ccopts -std=c11 --from-source %s > %t && %vast-opt %t | diff -B %t -
 
 // CHECK: hl.struct "v"
 struct v {

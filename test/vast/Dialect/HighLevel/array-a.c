@@ -1,5 +1,5 @@
-// RUN: vast-cc --ccopts -xc --from-source %s | FileCheck %s
-// RUN: vast-cc --ccopts -xc --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: %vast-cc --ccopts -xc --from-source %s | FileCheck %s
+// RUN: %vast-cc --ccopts -xc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
 // CHECK: hl.var "ai" : !hl.lvalue<!hl.array<10, !hl.int>>
 int ai[10];

@@ -1,5 +1,5 @@
-// RUN: vast-front %s -vast-emit-mlir=hl -o - | FileCheck %s
-// RUN: vast-front %s -vast-emit-mlir=hl -o - > %t && vast-opt %t | diff -B %t -
+// RUN: %vast-front %s -vast-emit-mlir=hl -o - | FileCheck %s
+// RUN: %vast-front %s -vast-emit-mlir=hl -o - > %t && %vast-opt %t | diff -B %t -
 
 #define __BEGIN_DECLS   extern "C" {
 #define __END_DECLS     }

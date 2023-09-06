@@ -1,4 +1,4 @@
-// RUN: vast-front -vast-emit-mlir=hl -o - %s | FileCheck %s
+// RUN: %vast-front -vast-emit-mlir=hl -o - %s | FileCheck %s
 
 // CHECK: hl.enum "kobj_ns_type" : !hl.int< unsigned >
 // CHECK:   hl.enum.const "KOBJ_NS_TYPE_NONE"

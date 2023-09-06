@@ -1,5 +1,5 @@
-// RUN: vast-cc --ccopts -xc --ccopts -std=c89 --from-source %s | FileCheck %s
-// RUN: vast-cc --ccopts -xc --ccopts -std=c89 --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: %vast-cc --ccopts -xc --ccopts -std=c89 --from-source %s | FileCheck %s
+// RUN: %vast-cc --ccopts -xc --ccopts -std=c89 --from-source %s > %t && %vast-opt %t | diff -B %t -
 
 int main()
 {

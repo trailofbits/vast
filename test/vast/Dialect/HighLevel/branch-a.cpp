@@ -1,5 +1,5 @@
-// RUN: vast-cc --from-source %s | FileCheck %s
-// RUN: vast-cc --from-source %s > %t && vast-opt %t | diff -B %t -
+// RUN: %vast-cc --from-source %s | FileCheck %s
+// RUN: %vast-cc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
 // CHECK-LABEL: hl.func external @_Z10branch_retii
 int branch_ret(int a, int b)
