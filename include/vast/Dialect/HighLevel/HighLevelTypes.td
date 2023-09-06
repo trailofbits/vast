@@ -9,6 +9,7 @@ include "mlir/IR/BuiltinTypeInterfaces.td"
 
 include "vast/Dialect/HighLevel/HighLevelAttributes.td"
 include "vast/Interfaces/TypeQualifiersInterfaces.td"
+include "vast/Interfaces/ElementTypeInterface.td"
 
 include "vast/Dialect/Core/Utils.td"
 
@@ -194,7 +195,7 @@ def TypedefType : CVRQualifiedType<
 }
 
 def ElaboratedType : CVRQualifiedType<
-  "Elaborated", "elaborated", (ins "Type":$elementType), [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
+  "Elaborated", "elaborated", (ins "Type":$elementType), [ElementTypeInterface, DeclareTypeInterfaceMethods< SubElementTypeInterface >]
 > {
   let builders = [
     TypeBuilder<(ins "Type":$element), [{
@@ -209,7 +210,7 @@ def LabelType : HighLevelType< "Label" > {
   let mnemonic = "label";
 }
 
-def ParenType : HighLevelType< "Paren", [MemRefElementTypeInterface] > {
+def ParenType : HighLevelType< "Paren", [ElementTypeInterface, MemRefElementTypeInterface] > {
   let mnemonic = "paren";
   let parameters = (ins "Type":$elementType);
   let assemblyFormat = "`<` $elementType `>`";
@@ -230,7 +231,7 @@ class TypesMatchOrTypedef< list< string > tl > : PredOpTrait<
 >;
 
 class TypeWithSubType<string name, string mnem> : HighLevelType< name,
-  [DeclareTypeInterfaceMethods< SubElementTypeInterface >]
+  [ElementTypeInterface, DeclareTypeInterfaceMethods< SubElementTypeInterface >]
 > {
   let mnemonic = mnem;
 
@@ -358,7 +359,8 @@ def PointerType : CVRQualifiedType< "Pointer", "ptr",
     (ins "Type":$elementType),
     [DeclareTypeInterfaceMethods< SubElementTypeInterface >,
      MemRefElementTypeInterface,
-     PointerTypeTrait
+     PointerTypeTrait,
+     ElementTypeInterface
     ]
   >
 {
@@ -427,7 +429,7 @@ def ArrayType : CVRQualifiedType< "Array", "array",
 }
 
 def DecayedType : HighLevelType< "Decayed",
-                                 [SubElementTypeInterface, MemRefElementTypeInterface] >
+                                 [SubElementTypeInterface, MemRefElementTypeInterface, ElementTypeInterface] >
 {
   let mnemonic = "decayed";
   let parameters = (ins "Type":$elementType);
