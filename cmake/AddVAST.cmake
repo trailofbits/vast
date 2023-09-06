@@ -210,6 +210,15 @@ function(add_vast_attr_interface interface)
   add_dependencies(vast-generic-headers VAST${interface}IncGen)
 endfunction()
 
+function(add_vast_type_interface interface)
+  set(VAST_TARGET_DEFINITIONS ${interface}.td)
+  vast_tablegen(${interface}.h.inc -gen-type-interface-decls)
+  vast_tablegen(${interface}.cpp.inc -gen-type-interface-defs)
+  vast_tablegen_compile_command(${interface})
+  add_public_vast_tablegen_target(VAST${interface}IncGen)
+  add_dependencies(vast-generic-headers VAST${interface}IncGen)
+endfunction()
+
 # Sets ${srcs} to contain the list of additional headers for the target. Extra
 # arguments are included into the list of additional headers.
 function(set_vast_additional_headers_and_sources)
