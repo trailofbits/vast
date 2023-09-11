@@ -27,6 +27,8 @@ def Core_Dialect : Dialect {
         static std::string getTargetTripleAttrName() { return "vast.core.target_triple"; }
     }];
 
+    let useDefaultTypePrinterParser = 1;
+
     let hasConstantMaterializer = 1;
 
     let useFoldAPI = kEmitFoldAdaptorFolder;

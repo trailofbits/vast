@@ -4,7 +4,9 @@
 
 VAST_RELAX_WARNINGS
 #include <llvm/ADT/TypeSwitch.h>
-VAST_UNRELAX_WARNINGS
+#include <mlir/IR/OpImplementation.h>
+#include <mlir/IR/DialectImplementation.h>
+VAST_RELAX_WARNINGS
 
 #include "vast/Dialect/Core/CoreDialect.hpp"
 #include "vast/Dialect/Core/CoreOps.hpp"
