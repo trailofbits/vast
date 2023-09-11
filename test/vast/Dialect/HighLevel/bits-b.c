@@ -1,7 +1,7 @@
 // RUN: %vast-cc --ccopts -xc --from-source %s | FileCheck %s
 // RUN: %vast-cc --ccopts -xc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.func external @oposite_signs ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.bool {
+// CHECK: hl.func @oposite_signs ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.bool {
 _Bool oposite_signs(int x, int y) {
     // CHECK: hl.expr : !hl.int
     // CHECK:  hl.expr : !hl.int

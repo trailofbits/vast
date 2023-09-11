@@ -1,7 +1,7 @@
 // RUN: %vast-cc --from-source %s | FileCheck %s
 // RUN: %vast-cc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: hl.func external @_Z11cast_cstylev
+// CHECK-LABEL: hl.func @_Z11cast_cstylev
 void cast_cstyle()
 {
     int i = 0;

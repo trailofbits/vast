@@ -1,8 +1,8 @@
 // RUN: %vast-cc --ccopts -xc --from-source %s | FileCheck %s
 
-// CHECK: hl.func external @abort
-// CHECK-NOT: hl.func external @abort
-// CHECK: hl.func external @main
+// CHECK: hl.func @abort
+// CHECK-NOT: hl.func @abort
+// CHECK: hl.func @main
 
 void abort();
 void abort();

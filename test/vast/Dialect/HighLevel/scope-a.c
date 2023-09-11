@@ -1,7 +1,7 @@
 // RUN: %vast-cc --ccopts -xc --from-source %s | FileCheck %s
 // RUN: %vast-cc --ccopts -xc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: hl.func external @test1 () -> !hl.int
+// CHECK-LABEL: hl.func @test1 () -> !hl.int
 int test1()
 {
     // CHECK: core.scope
@@ -14,7 +14,7 @@ int test1()
     return a;
 }
 
-// CHECK-LABEL: hl.func external @test2 ()
+// CHECK-LABEL: hl.func @test2 ()
 void test2()
 {
     // CHECK: core.scope
@@ -36,7 +36,7 @@ void test2()
     }
 }
 
-// CHECK-LABEL: hl.func external @test3 () -> !hl.int
+// CHECK-LABEL: hl.func @test3 () -> !hl.int
 int test3()
 {
     // CHECK: hl.var "b" : !hl.lvalue<!hl.int>
@@ -54,7 +54,7 @@ int test3()
     return 0;
 }
 
-// CHECK-LABEL: hl.func external @test4 () -> !hl.int
+// CHECK-LABEL: hl.func @test4 () -> !hl.int
 int test4()
 {
     // CHECK-NOT: core.scope

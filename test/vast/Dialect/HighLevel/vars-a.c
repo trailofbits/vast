@@ -1,7 +1,7 @@
 // RUN: %vast-cc --ccopts -xc --from-source %s | FileCheck %s
 // RUN: %vast-cc --ccopts -xc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: hl.func external @main () -> !hl.int
+// CHECK-LABEL: hl.func @main () -> !hl.int
 int main()
 {
     // CHECK: hl.var "a" : !hl.lvalue<!hl.int>

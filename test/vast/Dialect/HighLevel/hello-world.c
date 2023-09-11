@@ -1,9 +1,9 @@
 // RUN: %vast-front %s -vast-emit-high-level -o - | FileCheck %s
 
-// CHECK: hl.func external @printf
+// CHECK: hl.func @printf
 #include <stdio.h>
 
-// CHECK: hl.func external @main () -> !hl.int
+// CHECK: hl.func @main () -> !hl.int
 int main() {
     // CHECK: hl.call @printf
     printf("hello world\n");
