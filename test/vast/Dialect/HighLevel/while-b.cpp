@@ -1,7 +1,7 @@
 // RUN: %vast-cc --from-source %s | FileCheck %s
 // RUN: %vast-cc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: hl.func external @_Z11while_breakv
+// CHECK-LABEL: hl.func @_Z11while_breakv
 void while_break()
 {
     // CHECK: hl.while
@@ -15,7 +15,7 @@ void while_break()
     // CHECK: }
 }
 
-// CHECK-LABEL: hl.func external @_Z14while_continuev
+// CHECK-LABEL: hl.func @_Z14while_continuev
 void while_continue()
 {
     // CHECK: hl.while

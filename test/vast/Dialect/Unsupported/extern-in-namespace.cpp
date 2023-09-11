@@ -4,10 +4,10 @@
 
 // CHECK: unsup.decl "Namespace::N"
 // CHECK:    unsup.decl "LinkageSpec"
-// CHECK:       hl.func external @f ()
+// CHECK:       hl.func @f ()
 namespace N { extern "C" void f(); }
 void N::f() {}
 // CHECK: unsup.decl "Namespace::M"
 // CHECK: unsup.decl "LinkageSpec"
-// CHECK: hl.func external @f ()
+// CHECK: hl.func @f ()
 namespace M { extern "C" void f(); }

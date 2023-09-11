@@ -1,7 +1,7 @@
 // RUN: %vast-cc --from-source %s | FileCheck %s
 // RUN: %vast-cc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
-// CHECK-LABEL: hl.func external @_Z10branch_retii
+// CHECK-LABEL: hl.func @_Z10branch_retii
 int branch_ret(int a, int b)
 {
     // CHECK: hl.if {
@@ -21,7 +21,7 @@ int branch_ret(int a, int b)
     // CHECK: hl.unreachable
 }
 
-// CHECK-LABEL: hl.func external @_Z11branch_thenii
+// CHECK-LABEL: hl.func @_Z11branch_thenii
 int branch_then(int a, int b)
 {
     // CHECK: hl.if
@@ -39,7 +39,7 @@ int branch_then(int a, int b)
     return 1;
 }
 
-// CHECK-LABEL: hl.func external @_Z20branch_then_noreturnii
+// CHECK-LABEL: hl.func @_Z20branch_then_noreturnii
 int branch_then_noreturn(int a, int b)
 {
     // CHECK: hl.if
@@ -59,7 +59,7 @@ int branch_then_noreturn(int a, int b)
     return 1;
 }
 
-// CHECK-LABEL: hl.func external @_Z17branch_then_emptyii
+// CHECK-LABEL: hl.func @_Z17branch_then_emptyii
 int branch_then_empty(int a, int b)
 {
     // CHECK: hl.if
@@ -74,7 +74,7 @@ int branch_then_empty(int a, int b)
     return 1;
 }
 
-// CHECK-LABEL: hl.func external @_Z17branch_else_emptyii
+// CHECK-LABEL: hl.func @_Z17branch_else_emptyii
 int branch_else_empty(int a, int b)
 {
     // CHECK: hl.if
@@ -94,7 +94,7 @@ int branch_else_empty(int a, int b)
     return 1;
 }
 
-// CHECK-LABEL: hl.func external @_Z12branch_emptyii
+// CHECK-LABEL: hl.func @_Z12branch_emptyii
 int branch_empty(int a, int b)
 {
     // CHECK: hl.if
@@ -110,7 +110,7 @@ int branch_empty(int a, int b)
     return 1;
 }
 
-// CHECK-LABEL: hl.func external @_Z11branch_trueii
+// CHECK-LABEL: hl.func @_Z11branch_trueii
 int branch_true(int a, int b)
 {
     // CHECK: hl.if

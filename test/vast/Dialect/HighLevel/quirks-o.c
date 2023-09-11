@@ -3,7 +3,7 @@
 
 // adapted from https://gist.github.com/fay59/5ccbe684e6e56a7df8815c3486568f01
 
-// CHECK: hl.func external @foo
+// CHECK: hl.func @foo
 int foo(int* ptr, int index) {
     // When indexing, the pointer and integer parts
     // of the subscript expression are interchangeable.

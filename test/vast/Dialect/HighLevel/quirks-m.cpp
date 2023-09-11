@@ -3,7 +3,7 @@
 
 // adapted from https://gist.github.com/fay59/5ccbe684e6e56a7df8815c3486568f01
 
-// CHECK: hl.func external @_Z3foov
+// CHECK: hl.func @_Z3foov
 int foo() {
     // CHECK: hl.var "a" : !hl.lvalue<!hl.ptr<!hl.int>>
     int* a;

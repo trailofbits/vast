@@ -4,7 +4,7 @@
 // CHECK: hl.var "a" : !hl.lvalue<!hl.int>
 int a = 0;
 
-// CHECK-LABEL: hl.func external @main
+// CHECK-LABEL: hl.func @main
 int main() {
     // CHECK: [[G:%[0-9]+]] = hl.globref "a" : !hl.lvalue<!hl.int>
     // CHECK: [[C:%[0-9]+]] = hl.const #hl.integer<1> : !hl.int

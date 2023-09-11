@@ -13,7 +13,7 @@ void foo() {
     return;
 }
 
-//      HL: hl.func external @foo () -> !hl.void {
+//      HL: hl.func @foo () -> !hl.void {
 // HL-NEXT:   hl.return
 // HL-NEXT: }
 
