@@ -260,13 +260,13 @@ def InlineScope
     let regions = (region AnyRegion:$body);
 }
 
-def LowLevel_FuncOp : FuncOp< LowLevel_Dialect, "func", [] >
+def LowLevel_FuncOp : Core_FuncBaseOp< LowLevel_Dialect, "func", [] >
 {
   let skipDefaultBuilders = 1;
 
   let builders = [OpBuilder< (ins
     "llvm::StringRef":$name,
-    "mlir::FunctionType":$type,
+    "core::FunctionType":$type,
     CArg< "core::GlobalLinkageKind", "core::GlobalLinkageKind::ExternalLinkage" >:$linkage,
     CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
     CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
