@@ -46,6 +46,7 @@ namespace vast::cg {
 
         using LensType::visit;
         using LensType::visit_as_lvalue_type;
+        using LensType::visit_function_type;
 
         using Builder = CodeGenBuilder< CodeGenDeclVisitor< Derived >, Derived >;
 
@@ -77,7 +78,7 @@ namespace vast::cg {
 
         // Effectively create the vast instruction, properly handling insertion points.
         vast_function create_vast_function(
-            mlir::Location loc, mangled_name_ref mangled_name, mlir::FunctionType fty, const clang::FunctionDecl *function_decl
+            mlir::Location loc, mangled_name_ref mangled_name, core::FunctionType fty, const clang::FunctionDecl *function_decl
         ) {
             // At the point we need to create the function, the insertion point
             // could be anywhere (e.g. callsite). Do not rely on whatever it might
@@ -163,9 +164,9 @@ namespace vast::cg {
             // set attributes.
             bool is_incomplete_function = false;
 
-            mlir::FunctionType fty;
-            if (type.isa< mlir::FunctionType >()) {
-                fty = type.cast< mlir::FunctionType >();
+            core::FunctionType fty;
+            if (auto core_fty = mlir::dyn_cast< core::FunctionType >(type)) {
+                fty = core_fty;
             } else {
                 VAST_UNIMPLEMENTED_MSG("functions with incomplete types");
                 is_incomplete_function = true;
@@ -406,7 +407,7 @@ namespace vast::cg {
 
             auto fn = context().declare(mangled, [&] () {
                 auto loc  = meta_location(decl);
-                auto type = visit(decl->getFunctionType()).template cast< mlir::FunctionType >();
+                auto type = visit_function_type(decl->getFunctionType(), decl->isVariadic());
                 // make function header, that will be later filled with function body
                 // or returned as declaration in the case of external function
                 return make< hl::FuncOp >(loc, mangled.name, type, linkage);

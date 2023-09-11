@@ -53,11 +53,11 @@ namespace vast::cg
         // when we lower enums and structs to ll/core types
     }
 
-    mlir::FunctionType type_conversion_driver::get_function_type(clang::GlobalDecl /* decl */) {
+    core::FunctionType type_conversion_driver::get_function_type(clang::GlobalDecl /* decl */) {
         VAST_UNIMPLEMENTED;
     }
 
-    mlir::FunctionType type_conversion_driver::get_function_type(const function_info_t &fninfo) {
+    core::FunctionType type_conversion_driver::get_function_type(const function_info_t &fninfo) {
         auto lock = driver.make_lock(&fninfo);
         using abi_kind = abi_arg_info::abi_arg_kind;
 
@@ -98,8 +98,7 @@ namespace vast::cg
             arg_types[first_vast_arg] = process_type_info(arg_info, it->type);
         }
 
-        auto *mctx = &driver.mcontext();
-        return mlir::FunctionType::get(mctx, arg_types, rty ? rty : mlir::TypeRange());
+        return core::FunctionType::get(arg_types, {rty}, fninfo.is_variadic());
     }
 
     void type_conversion_driver::start_function_processing(const function_info_t *fninfo) {

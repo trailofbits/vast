@@ -56,6 +56,10 @@ namespace vast::cg {
 
         template< typename Token >
         mlir_type visit_as_lvalue_type(Token token) { return derived().VisitLValueType(token); }
+
+        core::FunctionType visit_function_type(const clang::FunctionType *fty, bool variadic) {
+            return derived().VisitCoreFunctionType(fty, variadic);
+        }
     };
 
 } // namespace vast::cg
