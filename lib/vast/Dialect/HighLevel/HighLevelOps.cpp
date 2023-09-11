@@ -21,10 +21,13 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
+#include "vast/Dialect/Core/Linkage.hpp"
+
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Dialect.hpp"
 #include "vast/Util/Region.hpp"
 #include "vast/Util/TypeUtils.hpp"
+#include "vast/Util/Enum.hpp"
 
 #include <optional>
 #include <variant>
@@ -36,6 +39,8 @@ namespace vast::hl
     //===----------------------------------------------------------------------===//
     // FuncOp
     //===----------------------------------------------------------------------===//
+
+    static llvm::StringRef getLinkageAttrNameString() { return "linkage"; }
 
     // This function is adapted from CIR:
     //
@@ -73,6 +78,19 @@ namespace vast::hl
     ParseResult parseFunctionSignatureAndBody(
         Parser &parser, Attribute &funcion_type, mlir::NamedAttrList &attr_dict, Region &body
     ) {
+        using core::GlobalLinkageKind;
+
+        // Default to external linkage if no keyword is provided.
+        attr_dict.append(
+            getLinkageAttrNameString(),
+            core::GlobalLinkageKindAttr::get(
+                parser.getContext(),
+                parse_optional_vast_keyword< GlobalLinkageKind >(
+                    parser, GlobalLinkageKind::ExternalLinkage
+                )
+            )
+        );
+
         llvm::SmallVector< Parser::Argument, 8 > arguments;
         llvm::SmallVector< mlir::DictionaryAttr, 1 > result_attrs;
         llvm::SmallVector< Type, 8 > arg_types;
@@ -84,7 +102,6 @@ namespace vast::hl
         ))) {
             return mlir::failure();
         }
-
 
         for (auto &arg : arguments) {
             arg_types.push_back(arg.type);
@@ -125,13 +142,17 @@ namespace vast::hl
     void printFunctionSignatureAndBody(
         Printer &printer, FuncOp op, Attribute /* funcion_type */, mlir::DictionaryAttr, Region &body
     ) {
+        if (op.getLinkage() != core::GlobalLinkageKind::ExternalLinkage) {
+            printer << stringifyGlobalLinkageKind(op.getLinkage()) << ' ';
+        }
+
         auto fty = op.getFunctionType();
         mlir::function_interface_impl::printFunctionSignature(
             printer, op, fty.getInputs(), fty.isVarArg(), fty.getResults()
         );
 
         mlir::function_interface_impl::printFunctionAttributes(
-            printer, op, {"linkage", op.getFunctionTypeAttrName() }
+            printer, op, { getLinkageAttrNameString(), op.getFunctionTypeAttrName() }
         );
 
         if (!body.empty()) {
