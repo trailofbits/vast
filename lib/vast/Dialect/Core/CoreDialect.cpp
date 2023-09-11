@@ -38,3 +38,6 @@ namespace vast::core
 } // namespace vast::core
 
 #include "vast/Dialect/Core/CoreDialect.cpp.inc"
+
+// Provide implementations for enum classes.
+#include "vast/Dialect/Core/CoreEnums.cpp.inc"
