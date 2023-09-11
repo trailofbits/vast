@@ -267,7 +267,7 @@ namespace vast::cg {
             return hl::LValueType::get(&mcontext(), element_type);
         }
 
-        auto VisitFunctionType(const clang::FunctionType *ty) -> mlir_type {
+        auto VisitCoreFunctionType(const clang::FunctionType *ty, bool variadic) -> core::FunctionType {
             llvm::SmallVector< Type > args;
 
             if (auto prototype = clang::dyn_cast< clang::FunctionProtoType >(ty)) {
@@ -276,8 +276,11 @@ namespace vast::cg {
                 }
             }
 
-            auto *mctx = &mcontext();
-            return mlir::FunctionType::get(mctx, args, visit(ty->getReturnType()));
+            return core::FunctionType::get(args, {visit(ty->getReturnType())}, variadic);
+        }
+
+        auto VisitFunctionType(const clang::FunctionType *ty) -> mlir_type {
+            return VisitCoreFunctionType(ty, false /* variadic */);
         }
 
         auto VisitBuiltinType(const clang::BuiltinType *ty) -> mlir_type {
@@ -367,7 +370,7 @@ namespace vast::cg {
         }
 
         auto VisitFunctionNoProtoType(const clang::FunctionNoProtoType *ty, qualifiers /* quals */) -> mlir_type {
-            return VisitFunctionType(ty);
+            return VisitCoreFunctionType(ty, false /* variadic */ );
         }
 
         auto VisitFunctionNoProtoType(const clang::FunctionNoProtoType *ty) -> mlir_type {
@@ -375,7 +378,7 @@ namespace vast::cg {
         }
 
         auto VisitFunctionProtoType(const clang::FunctionProtoType *ty, qualifiers /* quals */) -> mlir_type {
-            return VisitFunctionType(ty);
+            return VisitCoreFunctionType(ty, ty->isVariadic());
         }
 
         auto VisitFunctionProtoType(const clang::FunctionProtoType *ty) -> mlir_type {

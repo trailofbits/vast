@@ -14,6 +14,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/FunctionInfo.hpp"
 #include "vast/CodeGen/Types.hpp"
 
+#include "vast/Dialect/Core/CoreTypes.hpp"
+
 namespace vast::cg
 {
     struct codegen_driver;
@@ -22,8 +24,8 @@ namespace vast::cg
     struct type_conversion_driver {
         type_conversion_driver(codegen_driver &driver);
 
-        mlir::FunctionType get_function_type(clang::GlobalDecl decl);
-        mlir::FunctionType get_function_type(const function_info_t &info);
+        core::FunctionType get_function_type(clang::GlobalDecl decl);
+        core::FunctionType get_function_type(const function_info_t &info);
 
         // Convert type into a mlir_type.
         template< bool lvalue = false >
