@@ -29,18 +29,6 @@ def HLToFunc_pdll : Pass<"vast-hl-to-func-pdll", "mlir::ModuleOp"> {
 
 #endif // ENABLE_PDLL_CONVERSIONS
 
-def HLFuncToFunc : Pass<"vast-hl-to-func", "mlir::ModuleOp"> {
-  let summary = "Lower high-level functions to func.func operations.";
-  let description = [{
-    Lowers high-level function operations to function dialect.
-
-    Drops high-level information like linkage attributes.
-  }];
-
-  let constructor = "vast::createHLFuncToFuncPass()";
-  let dependentDialects = ["mlir::func::FuncDialect"];
-}
-
 def HLToLLCF : Pass<"vast-hl-to-ll-cf", "mlir::ModuleOp"> {
   let summary = "VAST HL control flow to LL control flow";
   let description = [{

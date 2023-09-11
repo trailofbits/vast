@@ -38,7 +38,6 @@ int main(int argc, char **argv)
 
     // register conversions
     mlir::registerAllToLLVMIRTranslations(registry);
-    vast::hl::registerHLToLLVMIR(registry);
 
     return failed(
         mlir::MlirOptMain(argc, argv, "VAST Optimizer driver\n", registry)
