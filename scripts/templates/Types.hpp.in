@@ -5,4 +5,4 @@
 #include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Dialect.hpp"
 
 #define GET_TYPEDEF_CLASSES
-#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}.h.inc"
+#include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Types.h.inc"
