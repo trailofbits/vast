@@ -23,25 +23,25 @@ namespace vast
             using parent_t::parent_t;
 
             mlir::LogicalResult matchAndRewrite(
-                    hl::FuncOp op,
-                    hl::FuncOp::Adaptor ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+                hl::FuncOp op,
+                hl::FuncOp::Adaptor ops,
+                mlir::ConversionPatternRewriter &rewriter) const override
             {
                 mlir::SmallVector< mlir::DictionaryAttr, 8 > arg_attrs;
                 mlir::SmallVector< mlir::NamedAttribute, 8 > other_attrs;
                 op.getAllArgAttrs(arg_attrs);
 
-                mlir::func::FuncOp lowered = rewriter.create< mlir::func::FuncOp >(
-                        op.getLoc(),
-                        op.getName(),
-                        op.getFunctionType(),
-                        other_attrs,
-                        arg_attrs
+                auto lowered = rewriter.create< mlir::func::FuncOp >(
+                    op.getLoc(),
+                    op.getName(),
+                    core::lower(op.getFunctionType()),
+                    other_attrs,
+                    arg_attrs
                 );
                 lowered.setVisibility(op.getVisibility());
-                rewriter.inlineRegionBefore(op.getBody(),
-                                            lowered.getBody(),
-                                            lowered.end());
+                rewriter.inlineRegionBefore(
+                    op.getBody(), lowered.getBody(), lowered.end()
+                );
 
                 rewriter.eraseOp(op);
 
