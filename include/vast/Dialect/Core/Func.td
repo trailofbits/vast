@@ -1,4 +1,4 @@
-// Copyright (c) 2023-present, Trail of Bits, Inc.
+// Copyright (c) 2023, Trail of Bits, Inc.
 
 #ifndef VAST_DIALECT_CORE_FUNC
 #define VAST_DIALECT_CORE_FUNC
@@ -7,24 +7,35 @@ include "mlir/IR/OpBase.td"
 include "mlir/IR/FunctionInterfaces.td"
 
 include "mlir/Interfaces/CallInterfaces.td"
+include "mlir/IR/RegionKindInterface.td"
 
 include "vast/Interfaces/SymbolInterface.td"
 
-include "vast/Dialect/Core/Linkage.td"
+def GlobalLinkageKind : Attr<
+    CPred<"::llvm::isa<::vast::core::GlobalLinkageKindAttr>($_self)">,
+    "global linkage kind"
+> {
+    let storageType = "::vast::core::GlobalLinkageKindAttr";
+    let returnType = "::vast::core::GlobalLinkageKind";
+    let convertFromStorage = "$_self.getValue()";
+    let constBuilderCall = [{
+        ::vast::core::GlobalLinkageKindAttr::get($_builder.getContext(), $0)
+    }];
+}
 
-class FuncOp< Dialect dialect, string mnemonic, list< Trait > traits = [] >
-  : Op< dialect,
-        mnemonic,
-        !listconcat(traits,
-                    [AutomaticAllocationScope
-                    , CallableOpInterface
-                    , FunctionOpInterface
-                    , IsolatedFromAbove
-                    , Symbol
-                    , NoTerminator
-                    , DeclareOpInterfaceMethods< RegionKindInterface >
-                    ])
-      > {
+def CoreFunctionType : Type<
+    CPred<"::llvm::isa<::vast::core::FunctionType>($_self)">,
+    "function type",
+    "::vast::core::FunctionType"
+>;
+
+class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = [] >
+  : Op< dialect, mnemonic,
+    !listconcat(traits, [AutomaticAllocationScope , CallableOpInterface ,
+      FunctionOpInterface , IsolatedFromAbove , Symbol , NoTerminator ,
+      DeclareOpInterfaceMethods< RegionKindInterface >
+    ])
+> {
   let summary = "VAST function template";
 
   let description = [{
@@ -42,7 +53,7 @@ class FuncOp< Dialect dialect, string mnemonic, list< Trait > traits = [] >
 
   let arguments =(ins
     SymbolNameAttr:$sym_name,
-    TypeAttrOf<FunctionType>:$function_type,
+    TypeAttrOf<CoreFunctionType>:$function_type,
     DefaultValuedAttr<GlobalLinkageKind, "core::GlobalLinkageKind::ExternalLinkage">:$linkage,
     OptionalAttr<StrAttr>:$sym_visibility,
     OptionalAttr<DictArrayAttr>:$arg_attrs,

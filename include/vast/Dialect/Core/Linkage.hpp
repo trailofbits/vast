@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
+#include "vast/Dialect/Core/CoreDialect.hpp"
 
 namespace vast::core {
 
