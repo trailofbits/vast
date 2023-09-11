@@ -14,3 +14,6 @@ VAST_RELAX_WARNINGS
 
 // Pull in the dialect definition.
 #include "vast/Dialect/Core/CoreDialect.h.inc"
+
+// Pull in all enum type definitions and utility function declarations.
+#include "vast/Dialect/Core/CoreEnums.h.inc"
