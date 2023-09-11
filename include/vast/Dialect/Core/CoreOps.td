@@ -7,7 +7,7 @@ include "mlir/IR/OpBase.td"
 
 include "mlir/IR/RegionKindInterface.td"
 
-def ScopeOp : Core_Op< "scope", [NoTerminator, DeclareOpInterfaceMethods<RegionKindInterface>] >
+def Core_ScopeOp : Core_Op< "scope", [NoTerminator, DeclareOpInterfaceMethods<RegionKindInterface>] >
 {
   let summary = "VAST scope declaration";
   let description = [{
