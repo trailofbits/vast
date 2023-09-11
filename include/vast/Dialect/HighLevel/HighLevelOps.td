@@ -12,6 +12,7 @@ include "vast/Dialect/HighLevel/HighLevelCF.td"
 
 include "vast/Dialect/Core/Utils.td"
 include "vast/Dialect/Core/CoreTraits.td"
+
 include "vast/Dialect/Core/Func.td"
 
 
@@ -27,13 +28,13 @@ def TranslationUnitOp
 }
 
 def HighLevel_FuncOp
-  : FuncOp< HighLevel_Dialect, "func" >
+  : Core_FuncBaseOp< HighLevel_Dialect, "func" >
 {
   let skipDefaultBuilders = 1;
 
   let builders = [OpBuilder< (ins
     "llvm::StringRef":$name,
-    "mlir::FunctionType":$type,
+    "core::FunctionType":$type,
     CArg< "core::GlobalLinkageKind", "core::GlobalLinkageKind::ExternalLinkage" >:$linkage,
     CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
     CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
@@ -50,9 +51,6 @@ def HighLevel_FuncOp
         "linkage", core::GlobalLinkageKindAttr::get($_builder.getContext(), linkage)
       );
       $_state.attributes.append(attrs.begin(), attrs.end());
-
-      if (arg_attrs.empty())
-        return;
 
       mlir::function_interface_impl::addArgAndResultAttrs(
         $_builder, $_state, arg_attrs, res_attrs,
@@ -708,8 +706,8 @@ class LogicBinOp< string mnemonic, list< Trait > traits = [] >
     let assemblyFormat = [{ $lhs`,` $rhs attr-dict `:` type(results) }];
 }
 
-def BinLAndOp : LogicBinOp< "bin.land" >;
-def BinLOrOp  : LogicBinOp<  "bin.lor" >;
+def HighLevel_BinLAndOp : LogicBinOp< "bin.land" >;
+def HighLevel_BinLOrOp  : LogicBinOp<  "bin.lor" >;
 
 def BinComma
   : HighLevel_Op< "bin.comma" >
