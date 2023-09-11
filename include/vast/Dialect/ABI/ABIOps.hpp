@@ -11,11 +11,15 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/FunctionImplementation.h>
 #include <mlir/IR/OperationSupport.h>
 #include <mlir/Interfaces/SideEffectInterfaces.h>
+#include <mlir/Interfaces/CallInterfaces.h>
 VAST_RELAX_WARNINGS
 
 #include "vast/Interfaces/SymbolInterface.hpp"
+#include "vast/Util/Common.hpp"
 
-#include "vast/Dialect/Core/Func.hpp"
+#include "vast/Dialect/Core/CoreDialect.hpp"
+#include "vast/Dialect/Core/CoreTypes.hpp"
+#include "vast/Dialect/Core/CoreAttributes.hpp"
 
 #define GET_OP_CLASSES
 #include "vast/Dialect/ABI/ABI.h.inc"
