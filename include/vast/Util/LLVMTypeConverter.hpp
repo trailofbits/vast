@@ -51,7 +51,7 @@ namespace vast::util::tc
                     return this->convert_memref_type(t);
             });
             // Overriding the inherited one to provide way to handle `hl.lvalue` in args.
-            addConversion([&](mlir::FunctionType t) {
+            addConversion([&](core::FunctionType t) {
                     return this->convert_fn_t(t);
             });
             addConversion([&](mlir::NoneType t) {
@@ -142,7 +142,7 @@ namespace vast::util::tc
                                                               bool variadic)
         {
             signature_conversion_t conversion(fn.getNumArguments());
-            auto fn_type = fn.getFunctionType().dyn_cast< mlir::FunctionType >();
+            auto fn_type = fn.getFunctionType().dyn_cast< core::FunctionType >();
             VAST_ASSERT(fn_type);
             for (auto arg : llvm::enumerate(fn_type.getInputs()))
             {
@@ -154,7 +154,7 @@ namespace vast::util::tc
             return { std::move(conversion) };
         }
 
-        maybe_type_t convert_fn_t(mlir::FunctionType t)
+        maybe_type_t convert_fn_t(core::FunctionType t)
         {
             auto a_res = this->on_types(t.getInputs(), &LLVMTypeConverter::convert_arg_t);
             auto r_res = this->on_types(t.getResults(), &LLVMTypeConverter::convert_ret_t);

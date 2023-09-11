@@ -110,7 +110,7 @@ namespace vast::hl
 
             // Use provided data layout to get the correct type.
             addConversion([&](hl::PointerType t) { return this->convert_ptr_type(t); });
-            addConversion([&](mlir::FunctionType t) { return this->convert_fn_type(t); });
+            addConversion([&](core::FunctionType t) { return this->convert_fn_type(t); });
             addConversion([&](hl::ArrayType t) {
                     return this->convert_arr_type(t);
             });
@@ -271,7 +271,7 @@ namespace vast::hl
                 .take_wrapped< maybe_type_t >();
         }
 
-        maybe_type_t convert_fn_type(mlir::FunctionType t)
+        maybe_type_t convert_fn_type(core::FunctionType t)
         {
             mlir::SmallVector< mlir::Type > aty;
             mlir::SmallVector< mlir::Type > rty;
@@ -285,7 +285,7 @@ namespace vast::hl
             if (rty.size() == 1 && rty[0].isa< mlir::NoneType >())
                 rty.clear();
 
-            return mlir::FunctionType::get(&mctx, aty, rty);
+            return core::FunctionType::get(aty, rty);
         }
     };
 
@@ -512,12 +512,12 @@ namespace vast::hl
             auto maybe_fn_type = getTypeConverter()->convert_type_to_type(fn.getFunctionType());
             if (!maybe_fn_type)
                 return mlir::failure();
-            auto fn_type = maybe_fn_type->dyn_cast< mlir::FunctionType >();
+            auto fn_type = mlir::dyn_cast< core::FunctionType >(maybe_fn_type.value());
             if (!fn_type)
                 return mlir::failure();
 
             // Create new function with converted type
-            FuncOp new_fn = rewriter.create< FuncOp >(
+            auto new_fn = rewriter.create< FuncOp >(
                 fn.getLoc(), fn.getName(), fn_type, fn.getLinkage(),
                 attributes, arg_attrs, res_attrs
             );

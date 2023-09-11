@@ -1028,7 +1028,6 @@ namespace vast::conv::irstollvm
     };
 
     using base_op_conversions = util::type_list<
-        func_op< mlir::func::FuncOp >,
         func_op< hl::FuncOp >,
         func_op< ll::FuncOp >,
         constant_int,
