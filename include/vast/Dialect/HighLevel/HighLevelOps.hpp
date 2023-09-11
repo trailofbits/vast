@@ -2,13 +2,17 @@
 
 #pragma once
 
+#include "vast/Util/Warnings.hpp"
+
+VAST_RELAX_WARNINGS
+#include <mlir/IR/FunctionInterfaces.h>
+#include <mlir/Interfaces/InferTypeOpInterface.h>
+VAST_UNRELAX_WARNINGS
+
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Interfaces/SymbolInterface.hpp"
-#include "vast/Dialect/Core/Func.hpp"
-
-#include <mlir/Interfaces/InferTypeOpInterface.h>
 
 namespace vast::hl
 {
@@ -77,6 +81,7 @@ namespace vast::hl
     bool has_thread_local_storage(const Self &self) {
         return has_unit_attr(self, thread_storage);
     }
+
 } // namespace vast::hl
 
 #define GET_OP_CLASSES

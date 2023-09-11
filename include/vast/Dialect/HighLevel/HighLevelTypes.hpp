@@ -29,6 +29,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Interfaces/ElementTypeInterface.hpp"
 
 #include "vast/Dialect/Core/TypeTraits.hpp"
+#include "vast/Dialect/Core/CoreTypes.hpp"
 
 namespace vast::hl
 {
@@ -119,11 +120,11 @@ namespace vast::hl
         }
     }
 
-    mlir::FunctionType getFunctionType(Type function_pointer, vast_module mod);
+    core::FunctionType getFunctionType(Type function_pointer, vast_module mod);
 
-    mlir::FunctionType getFunctionType(Value callee);
-    mlir::FunctionType getFunctionType(mlir::CallOpInterface call);
-    mlir::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, vast_module mod);
+    core::FunctionType getFunctionType(Value callee);
+    core::FunctionType getFunctionType(mlir::CallOpInterface call);
+    core::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, vast_module mod);
 
     Type getTypedefType(TypedefType type, vast_module mod);
 

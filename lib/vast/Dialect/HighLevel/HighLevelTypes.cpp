@@ -69,8 +69,8 @@ namespace vast::hl
         return {};
     }
 
-    mlir::FunctionType getFunctionType(Type type, vast_module mod) {
-        if (auto ty = type.dyn_cast< mlir::FunctionType >())
+    core::FunctionType getFunctionType(Type type, vast_module mod) {
+        if (auto ty = type.dyn_cast< core::FunctionType >())
             return ty;
         if (auto ty = dyn_cast< ElementTypeInterface >(type))
             return getFunctionType(ty.getElementType(), mod);
@@ -80,18 +80,18 @@ namespace vast::hl
         VAST_UNREACHABLE("unknown type to extract function type");
     }
 
-    mlir::FunctionType getFunctionType(Value callee) {
+    core::FunctionType getFunctionType(Value callee) {
         auto op  = callee.getDefiningOp();
         auto mod = op->getParentOfType< vast_module >();
         return getFunctionType(callee.getType(), mod);
     }
 
-    mlir::FunctionType getFunctionType(mlir::CallOpInterface call) {
+    core::FunctionType getFunctionType(mlir::CallOpInterface call) {
         auto mod = call->getParentOfType< vast_module >();
         return getFunctionType(call.getCallableForCallee(), mod);
     }
 
-    mlir::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, vast_module mod) {
+    core::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, vast_module mod) {
         if (auto sym = callee.dyn_cast< mlir::SymbolRefAttr >()) {
             return mlir::dyn_cast_or_null< FuncOp >(
                 mlir::SymbolTable::lookupSymbolIn(mod, sym)

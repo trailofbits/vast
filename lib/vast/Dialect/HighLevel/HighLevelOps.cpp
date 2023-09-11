@@ -10,6 +10,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/OperationSupport.h>
 #include <mlir/IR/SymbolTable.h>
 #include <mlir/IR/OpImplementation.h>
+#include <mlir/IR/FunctionInterfaces.h>
+#include <mlir/IR/FunctionImplementation.h>
 
 #include <llvm/Support/ErrorHandling.h>
 VAST_UNRELAX_WARNINGS
@@ -76,11 +78,9 @@ namespace vast::hl
         llvm::SmallVector< Type, 8 > arg_types;
         llvm::SmallVector< Type, 4 > result_types;
 
-        auto &builder = parser.getBuilder();
-
         bool is_variadic = false;
         if (mlir::failed(mlir::function_interface_impl::parseFunctionSignature(
-            parser, /*allowVariadic=*/false, arguments, is_variadic, result_types, result_attrs
+            parser, /*allowVariadic=*/true, arguments, is_variadic, result_types, result_attrs
         ))) {
             return mlir::failure();
         }
@@ -92,7 +92,7 @@ namespace vast::hl
 
         // create parsed function type
         funcion_type = mlir::TypeAttr::get(
-            builder.getFunctionType(arg_types, result_types)
+            core::FunctionType::get(arg_types, result_types, is_variadic)
         );
 
         // If additional attributes are present, parse them.
@@ -127,7 +127,7 @@ namespace vast::hl
     ) {
         auto fty = op.getFunctionType();
         mlir::function_interface_impl::printFunctionSignature(
-            printer, op, fty.getInputs(), /* variadic */false, fty.getResults()
+            printer, op, fty.getInputs(), fty.isVarArg(), fty.getResults()
         );
 
         mlir::function_interface_impl::printFunctionAttributes(
@@ -469,6 +469,8 @@ namespace vast::hl
 //===----------------------------------------------------------------------===//
 // TableGen generated logic.
 //===----------------------------------------------------------------------===//
+
+using namespace vast::hl;
 
 #define GET_OP_CLASSES
 #include "vast/Dialect/HighLevel/HighLevel.cpp.inc"
