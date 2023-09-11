@@ -16,7 +16,7 @@ def GlobalLinkageKind : Attr<
     "global linkage kind"
 > {
     let storageType = "::vast::core::GlobalLinkageKindAttr";
-    let returnType = "::vast::core::GlobalLinkageKind";
+    let returnType  = "::vast::core::GlobalLinkageKind";
     let convertFromStorage = "$_self.getValue()";
     let constBuilderCall = [{
         ::vast::core::GlobalLinkageKindAttr::get($_builder.getContext(), $0)
@@ -31,8 +31,13 @@ def CoreFunctionType : Type<
 
 class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = [] >
   : Op< dialect, mnemonic,
-    !listconcat(traits, [AutomaticAllocationScope , CallableOpInterface ,
-      FunctionOpInterface , IsolatedFromAbove , Symbol , NoTerminator ,
+    !listconcat(traits, [
+      AutomaticAllocationScope,
+      CallableOpInterface,
+      FunctionOpInterface,
+      IsolatedFromAbove,
+      Symbol,
+      NoTerminator,
       DeclareOpInterfaceMethods< RegionKindInterface >
     ])
 > {

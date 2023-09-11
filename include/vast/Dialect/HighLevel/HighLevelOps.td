@@ -60,7 +60,7 @@ def HighLevel_FuncOp
   ];
 
   let assemblyFormat = [{
-    $linkage $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
+    $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
   }];
 
   let hasVerifier = 1;
@@ -706,8 +706,8 @@ class LogicBinOp< string mnemonic, list< Trait > traits = [] >
     let assemblyFormat = [{ $lhs`,` $rhs attr-dict `:` type(results) }];
 }
 
-def HighLevel_BinLAndOp : LogicBinOp< "bin.land" >;
-def HighLevel_BinLOrOp  : LogicBinOp<  "bin.lor" >;
+def BinLAndOp : LogicBinOp< "bin.land" >;
+def BinLOrOp  : LogicBinOp<  "bin.lor" >;
 
 def BinComma
   : HighLevel_Op< "bin.comma" >

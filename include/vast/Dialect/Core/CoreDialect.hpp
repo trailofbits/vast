@@ -12,8 +12,14 @@ VAST_RELAX_WARNINGS
 #include <mlir/Interfaces/SideEffectInterfaces.h>
 VAST_RELAX_WARNINGS
 
+#include "vast/Util/Enum.hpp"
+
 // Pull in the dialect definition.
 #include "vast/Dialect/Core/CoreDialect.h.inc"
 
 // Pull in all enum type definitions and utility function declarations.
 #include "vast/Dialect/Core/CoreEnums.h.inc"
+
+namespace vast {
+    VAST_REGISTER_ENUM_TYPE(core, GlobalLinkageKind);
+} // namespace vast
