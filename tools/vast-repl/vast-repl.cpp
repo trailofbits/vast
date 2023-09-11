@@ -91,7 +91,6 @@ int main(int argc, char **argv) try {
 
     // register conversions
     mlir::registerAllToLLVMIRTranslations(registry);
-    vast::hl::registerHLToLLVMIR(registry);
 
     args_t args = load_args(argc, argv);
 

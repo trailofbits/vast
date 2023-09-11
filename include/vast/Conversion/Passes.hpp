@@ -42,8 +42,6 @@ namespace vast
     std::unique_ptr< mlir::Pass > createLowerABIPass();
 
     // FromHL
-    std::unique_ptr< mlir::Pass > createHLFuncToFuncPass();
-
     std::unique_ptr< mlir::Pass > createHLToLLCFPass();
 
     std::unique_ptr< mlir::Pass > createHLToLLGEPsPass();

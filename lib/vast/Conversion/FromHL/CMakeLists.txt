@@ -2,7 +2,6 @@
 
 add_vast_conversion_library(HighLevelConversionPasses
     ToLLCF.cpp
-    ToFunc.cpp
     EmitLazyRegions.cpp
     StructsToLLVM.cpp
     ToLLGEPs.cpp
