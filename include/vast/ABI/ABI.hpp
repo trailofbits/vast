@@ -14,6 +14,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Util/Common.hpp"
 
 #include <string>
 #include <vector>

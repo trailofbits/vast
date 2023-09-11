@@ -117,10 +117,9 @@ namespace vast
                 return out;
             }
 
-            mlir::FunctionType abified_type()
-            {
-                return  mlir::FunctionType::get(self().op.getContext(),
-                                                abified_args(), abified_rets());
+            core::FunctionType abified_type() {
+                // TODO: deal with varaargs
+                return core::FunctionType::get(abified_args(), abified_rets());
             }
 
             void zip(const auto &a, const auto &b, auto &&yield)

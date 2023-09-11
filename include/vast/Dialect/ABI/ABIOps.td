@@ -133,7 +133,7 @@ def CallOp
 // TODO(abi): This is mostly copy & paste of hl.func. Once ABI dialect is stable,
 //            extract shared parts from both definitions into some helper.
 class ABIFuncBase< string mnemonic, list< Trait> traits = [] >
-  : FuncOp< ABI_Dialect, mnemonic, traits >
+  : Core_FuncBaseOp< ABI_Dialect, mnemonic, traits >
 {
     let description = [{
         Placeholder.
@@ -143,7 +143,7 @@ class ABIFuncBase< string mnemonic, list< Trait> traits = [] >
 
     let builders = [OpBuilder<(ins
         "llvm::StringRef":$name,
-        "mlir::FunctionType":$type,
+        "core::FunctionType":$type,
         CArg< "core::GlobalLinkageKind", "core::GlobalLinkageKind::ExternalLinkage" >:$linkage,
         CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
         CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
