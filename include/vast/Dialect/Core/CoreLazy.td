@@ -11,14 +11,14 @@ include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/Interfaces/CastInterfaces.td"
 include "vast/Interfaces/SymbolInterface.td"
 
-class LazyEval< string mnemonic, list < Trait > traits = [] >
+class Core_LazyEval< string mnemonic, list < Trait > traits = [] >
     : Core_Op< mnemonic, !listconcat(traits, []) >, Results<(outs AnyType:$result)>
 {
     let summary = "lazy evaluator";
     let description = [{ VAST lazy evaluator }];
 }
 
-def Core_LazyOp : LazyEval< "lazy.op", [NoTerminator] > {
+def Core_LazyOp : Core_LazyEval< "lazy.op", [NoTerminator] > {
     let summary = "Lazily evaluate a region.";
     let description = [{
         The operation serves to encapsulate delayed evaluation in its region.
