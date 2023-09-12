@@ -34,7 +34,10 @@ def TypeArrayRefParameter : ArrayRefParameter<"Type"> {
         params.push_back(type);
     }
 
-    return $_parser.parseRParen();
+    if ($_parser.parseRParen()) {
+        return mlir::failure();
+    }
+    return params;
   }() }];
 }
 
