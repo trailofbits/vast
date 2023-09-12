@@ -18,6 +18,7 @@ VAST_RELAX_WARNINGS
 using StringRef = llvm::StringRef; // to fix missing namespace in generated file
 
 namespace vast::core {
+
     void CoreDialect::registerTypes() {
         addTypes<
             #define GET_TYPEDEF_LIST
@@ -80,16 +81,7 @@ namespace vast::core {
         return get(llvm::to_vector(inputs), llvm::to_vector(results), isVarArg());
     }
 
-    mlir::FunctionType lower(FunctionType fty) {
-        // TODO what about varargs?
-        return mlir::FunctionType::get(
-            fty.getContext(), fty.getInputs(), fty.getResults()
-        );
-    }
-
 } // namespace vast::core
 
-VAST_RELAX_WARNINGS
 #define  GET_TYPEDEF_CLASSES
 #include "vast/Dialect/Core/CoreTypes.cpp.inc"
-VAST_UNRELAX_WARNINGS
