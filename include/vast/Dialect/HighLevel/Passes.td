@@ -11,7 +11,12 @@ def LLVMDump : Pass<"vast-llvm-dump", "mlir::ModuleOp"> {
     Lowers module into llvm IR and dumps it on stderr.
   }];
 
-  let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::hl::HighLevelDialect"];
+  let dependentDialects = [
+    "mlir::LLVM::LLVMDialect",
+    "vast::hl::HighLevelDialect",
+    "vast::core::CoreDialect"
+  ];
+
   let constructor = "vast::hl::createLLVMDumpPass()";
 
   let options = [
@@ -26,7 +31,11 @@ def ExportFnInfo : Pass<"vast-export-fn-info", "mlir::ModuleOp"> {
     Lowers module into llvm IR and dumps it on stderr.
   }];
 
-  let dependentDialects = ["vast::hl::HighLevelDialect"];
+  let dependentDialects = [
+    "vast::hl::HighLevelDialect",
+    "vast::core::CoreDialect"
+  ];
+
   let constructor = "vast::hl::createExportFnInfoPass()";
 
   let options = [
@@ -41,7 +50,11 @@ def DCE : Pass<"vast-hl-dce", "mlir::ModuleOp"> {
     Removes unreachable code, such as code after return or break/continue.
   }];
 
-  let dependentDialects = ["vast::hl::HighLevelDialect"];
+  let dependentDialects = [
+    "vast::hl::HighLevelDialect",
+    "vast::core::CoreDialect"
+  ];
+
   let constructor = "vast::hl::createDCEPass()";
 }
 
@@ -58,6 +71,11 @@ def HLLowerTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
     TODO: Named types are not yet supported.
   }];
 
+  let dependentDialects = [
+    "vast::hl::HighLevelDialect",
+    "vast::core::CoreDialect"
+  ];
+
   let constructor = "vast::hl::createHLLowerTypesPass()";
 }
 
@@ -68,8 +86,12 @@ def ResolveTypeDefs : Pass<"vast-hl-resolve-typedefs", "mlir::ModuleOp"> {
     or transformations.
   }];
 
+  let dependentDialects = [
+    "vast::hl::HighLevelDialect",
+    "vast::core::CoreDialect"
+  ];
+
   let constructor = "vast::hl::createResolveTypeDefsPass()";
-  let dependentDialects = ["vast::hl::HighLevelDialect"];
 }
 
 def SpliceTrailingScopes : Pass<"vast-hl-splice-trailing-scopes", "mlir::ModuleOp"> {
@@ -78,8 +100,12 @@ def SpliceTrailingScopes : Pass<"vast-hl-splice-trailing-scopes", "mlir::ModuleO
     Removes trailing scopes.
   }];
 
+  let dependentDialects = [
+    "vast::hl::HighLevelDialect",
+    "vast::core::CoreDialect"
+  ];
+
   let constructor = "vast::hl::createSpliceTrailingScopes()";
-  let dependentDialects = ["vast::hl::HighLevelDialect"];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_PASSES_TD

@@ -11,7 +11,12 @@ def ToLLVM : Pass<"vast-ll-to-llvm", "mlir::ModuleOp"> {
     Work in progess.
   }];
 
-  let dependentDialects = ["mlir::LLVM::LLVMDialect", "vast::ll::LowLevelDialect"];
+  let dependentDialects = [
+    "mlir::LLVM::LLVMDialect",
+    "vast::ll::LowLevelDialect",
+    "vast::core::CoreDialect"
+  ];
+
   let constructor = "vast::ll::createToLLVMPass()";
 }
 
