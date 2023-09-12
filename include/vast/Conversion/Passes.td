@@ -23,7 +23,8 @@ def HLToFunc_pdll : Pass<"vast-hl-to-func-pdll", "mlir::ModuleOp"> {
   let constructor = "vast::pdll::createHLToFuncPass()";
   let dependentDialects = [
     "mlir::func::FuncDialect", "mlir::pdl::PDLDialect",
-    "mlir::pdl_interp::PDLInterpDialect"
+    "mlir::pdl_interp::PDLInterpDialect",
+    "vast::core::CoreDialect"
   ];
 }
 
@@ -39,7 +40,10 @@ def HLToLLCF : Pass<"vast-hl-to-ll-cf", "mlir::ModuleOp"> {
   }];
 
   let constructor = "vast::createHLToLLCFPass()";
-  let dependentDialects = ["vast::ll::LowLevelDialect"];
+  let dependentDialects = [
+    "vast::ll::LowLevelDialect",
+    "vast::core::CoreDialect"
+  ];
 }
 
 
@@ -53,7 +57,10 @@ def IRsToLLVM : Pass<"vast-irs-to-llvm", "mlir::ModuleOp"> {
   }];
 
   let constructor = "vast::createIRsToLLVMPass()";
-  let dependentDialects = ["mlir::LLVM::LLVMDialect"];
+  let dependentDialects = [
+    "mlir::LLVM::LLVMDialect",
+    "vast::core::CoreDialect"
+  ];
 }
 
 def CoreToLLVM : Pass<"vast-core-to-llvm", "mlir::ModuleOp"> {
@@ -63,7 +70,10 @@ def CoreToLLVM : Pass<"vast-core-to-llvm", "mlir::ModuleOp"> {
     }];
 
   let constructor = "vast::createCoreToLLVMPass()";
-  let dependentDialects = ["mlir::LLVM::LLVMDialect"];
+  let dependentDialects = [
+    "mlir::LLVM::LLVMDialect",
+    "vast::core::CoreDialect"
+  ];
 }
 
 def ABIfy : Pass<"vast-abify", "mlir::ModuleOp"> {
@@ -73,7 +83,10 @@ def ABIfy : Pass<"vast-abify", "mlir::ModuleOp"> {
   }];
 
   let constructor = "vast::createABIfyPass()";
-  let dependentDialects = ["vast::abi::ABIDialect"];
+  let dependentDialects = [
+    "vast::abi::ABIDialect",
+    "vast::core::CoreDialect"
+  ];
 }
 
 def LowerABI : Pass<"vast-lower-abi", "mlir::ModuleOp"> {
@@ -83,7 +96,10 @@ def LowerABI : Pass<"vast-lower-abi", "mlir::ModuleOp"> {
   }];
 
   let constructor = "vast::createLowerABIPass()";
-  let dependentDialects = ["mlir::LLVM::LLVMDialect"];
+  let dependentDialects = [
+    "mlir::LLVM::LLVMDialect",
+    "vast::core::CoreDialect"
+  ];
 }
 
 def HLToLLGEPs : Pass<"vast-hl-to-ll-geps", "mlir::ModuleOp"> {
@@ -93,7 +109,10 @@ def HLToLLGEPs : Pass<"vast-hl-to-ll-geps", "mlir::ModuleOp"> {
   }];
 
   let constructor = "vast::createHLToLLGEPsPass()";
-  let dependentDialects = ["vast::ll::LowLevelDialect"];
+  let dependentDialects = [
+    "vast::ll::LowLevelDialect",
+    "vast::core::CoreDialect"
+  ];
 }
 
 def HLToLLVars : Pass<"vast-hl-to-ll-vars", "mlir::ModuleOp"> {
@@ -103,7 +122,11 @@ def HLToLLVars : Pass<"vast-hl-to-ll-vars", "mlir::ModuleOp"> {
   }];
 
   let constructor = "vast::createHLToLLVarsPass()";
-  let dependentDialects = ["vast::ll::LowLevelDialect"];
+  let dependentDialects = [
+    "mlir::LLVM::LLVMDialect",
+    "vast::ll::LowLevelDialect",
+    "vast::core::CoreDialect"
+  ];
 }
 
 def HLToLLFunc : Pass<"vast-hl-to-ll-func", "mlir::ModuleOp"> {
@@ -113,7 +136,10 @@ def HLToLLFunc : Pass<"vast-hl-to-ll-func", "mlir::ModuleOp"> {
   }];
 
   let constructor = "vast::createHLToLLFuncPass()";
-  let dependentDialects = ["vast::ll::LowLevelDialect"];
+  let dependentDialects = [
+    "vast::ll::LowLevelDialect",
+    "vast::core::CoreDialect"
+  ];
 }
 
 def HLStructsToLLVM : Pass<"vast-hl-structs-to-llvm", "mlir::ModuleOp"> {
@@ -123,7 +149,10 @@ def HLStructsToLLVM : Pass<"vast-hl-structs-to-llvm", "mlir::ModuleOp"> {
   }];
 
   let constructor = "vast::createHLStructsToLLVMPass()";
-  let dependentDialects = ["mlir::LLVM::LLVMDialect"];
+  let dependentDialects = [
+    "mlir::LLVM::LLVMDialect",
+    "vast::core::CoreDialect"
+  ];
 }
 
 def HLEmitLazyRegions : Pass<"vast-hl-to-lazy-regions", "mlir::ModuleOp"> {
@@ -133,7 +162,9 @@ def HLEmitLazyRegions : Pass<"vast-hl-to-lazy-regions", "mlir::ModuleOp"> {
   }];
 
   let constructor = "vast::createHLEmitLazyRegionsPass()";
-  let dependentDialects = ["vast::core::CoreDialect"];
+  let dependentDialects = [
+    "vast::core::CoreDialect"
+  ];
 }
 
 #endif // VAST_CONVERSION_PASSES_TD

@@ -97,17 +97,6 @@ namespace vast::hl
     }
 } // namespace vast::hl
 
-void vast::hl::registerHLToLLVMIR(mlir::DialectRegistry &registry)
-{
-    registry.insert< HighLevelDialect >();
-}
-void vast::hl::registerHLToLLVMIR(mlir::MLIRContext &ctx)
-{
-    mlir::DialectRegistry registry;
-    registerHLToLLVMIR(registry);
-    ctx.appendDialectRegistry(registry);
-}
-
 std::unique_ptr< mlir::Pass > vast::hl::createLLVMDumpPass()
 {
     return std::make_unique< LLVMDump >();
