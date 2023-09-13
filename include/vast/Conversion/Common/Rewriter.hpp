@@ -43,7 +43,7 @@ namespace vast::conv
             return fn();
         }
 
-        auto guard() { return guard_t( bld ); }
+        [[nodiscard]] auto guard() { return guard_t( bld ); }
 
         auto guarded_at_end( mlir::Block *block, auto &&fn )
         {
