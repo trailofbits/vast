@@ -350,7 +350,6 @@ namespace vast::hl {
             : mlir::ConversionPattern(tc_, mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx)
             , tc(tc_)
             , _attribute_converter(ac)
-
         {}
 
         // NOTE(lukas): Is not a virtual function.
