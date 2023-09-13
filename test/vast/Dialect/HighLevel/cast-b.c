@@ -1,7 +1,7 @@
 // RUN: %vast-cc --ccopts -xc --from-source %s | %file-check %s
 // RUN: %vast-cc --ccopts -xc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.typedef "function_type" : (!hl.lvalue<!hl.int>, !hl.lvalue<!hl.int>) -> !hl.int
+// CHECK: hl.typedef "function_type" : !core.fn<(!hl.lvalue<!hl.int>, !hl.lvalue<!hl.int>) -> (!hl.int)>
 typedef int function_type(int a, int b);
 
 // CHECK: hl.var "p" : !hl.lvalue<!hl.array<2, !hl.ptr<!hl.elaborated<!hl.typedef<"function_type">>>>>

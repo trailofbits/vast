@@ -11,7 +11,7 @@ typedef __builtin_va_list va_list;
 // CHECK: hl.typedef "va_list" : !hl.elaborated<!hl.typedef<"__builtin_va_list">>
 
 int average(int count, ...) {
-// CHECK: cir.func @{{.*}}average{{.*}}(%arg0: !hl.lvalue<!hl.int>, ...) -> !hl.int
+// CHECK: hl.func @{{.*}}average{{.*}}(%arg0: !hl.lvalue<!hl.int>, ...) -> !hl.int
     va_list args, args_copy;
     va_start(args, count);
     // CHECK: hl.call @__builtin_va_start

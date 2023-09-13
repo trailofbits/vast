@@ -30,9 +30,9 @@ void foo() {
     // CHECK: hl.member [[R]] at "x" : !hl.lvalue<!hl.elaborated<!hl.record<"bitfield">>> -> !hl.lvalue<!hl.int< unsigned >>
     bf.x;
 
-    // CHECK: [[F:%[0-9]+]] = hl.funcref @foo : !hl.lvalue<() -> !hl.void>
+    // CHECK: [[F:%[0-9]+]] = hl.funcref @foo : !hl.lvalue<!core.fn<() -> (!hl.void)>>
     foo;
 
-    // CHECK: hl.implicit_cast [[F]] FunctionToPointerDecay : !hl.lvalue<() -> !hl.void> -> !hl.lvalue<!hl.ptr<() -> !hl.void>>
+    // CHECK: hl.implicit_cast [[F]] FunctionToPointerDecay
     &foo;
 }
