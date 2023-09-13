@@ -7,5 +7,6 @@ add_vast_conversion_library(HighLevelTransforms
   DCE.cpp
   ResolveTypeDefs.cpp
   SpliceTrailingScopes.cpp
+  HLCanonize.cpp
 )
 
