@@ -27,7 +27,7 @@ namespace vast::hl
 
         std::vector< operation > to_remove;
         void insert_void_return(hl::FuncOp &op, rewriter_t &rewriter ) {
-            rewriter.guard();
+            auto g = rewriter.guard();
             rewriter->setInsertionPointToEnd(&op.getBody().back());
             auto void_type = rewriter->getType< hl::VoidType >();
             auto void_const = rewriter->create< hl::ConstantOp >(op.getLoc(), void_type);
