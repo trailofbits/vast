@@ -1,4 +1,4 @@
-// RUN: %vast-cc --ccopts -xc --from-source %s | %vast-opt --vast-hl-lower-types --vast-hl-to-ll-cf --vast-hl-to-ll-vars --vast-hl-to-lazy-regions --vast-irs-to-llvm --vast-core-to-llvm | FileCheck %s
+// RUN: %vast-cc --ccopts -xc --from-source %s | %vast-opt --vast-hl-lower-types --vast-hl-to-ll-cf --vast-hl-to-ll-vars --vast-hl-to-lazy-regions --vast-irs-to-llvm --vast-core-to-llvm | %file-check %s
 
 int fun(int arg1, int arg2) {
     int res = arg1 && arg2;

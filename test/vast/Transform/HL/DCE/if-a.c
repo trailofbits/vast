@@ -1,4 +1,4 @@
-// RUN: %vast-cc --ccopts -xc --from-source %s | %vast-opt --vast-hl-dce | FileCheck %s
+// RUN: %vast-cc --ccopts -xc --from-source %s | %vast-opt --vast-hl-dce | %file-check %s
 // REQUIRES: return
 
 void fn()

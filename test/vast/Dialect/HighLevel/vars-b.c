@@ -1,4 +1,4 @@
-// RUN: %vast-front -vast-emit-mlir=hl -o - %s | FileCheck %s
+// RUN: %vast-front -vast-emit-mlir=hl -o - %s | %file-check %s
 
 #include <stdlib.h>
 

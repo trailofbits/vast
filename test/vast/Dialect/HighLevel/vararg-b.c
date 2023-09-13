@@ -1,9 +1,5 @@
-// RUN: %vast-cc1 -triple x86_64-unknown-linux-gnu -fclangir-enable -emit-cir %s -o %t.cir
-// RUN: FileCheck --input-file=%t.cir %s
-// RUN: %clang_cc1 -x c++ -std=c++20 -triple x86_64-unknown-linux-gnu -fclangir-enable -emit-cir %s -o %t.cir
-// RUN: FileCheck --input-file=%t.cir %s
-// RUN: %clang_cc1 -x c++ -std=c++20 -triple aarch64-none-linux-android24 -fclangir-enable -emit-cir %s -o %t.cir
-// RUN: FileCheck --input-file=%t.cir %s
+// RUN: %vast-front -vast-emit-mlir=hl -o - %s | %file-check %s
+// RUN: %vast-front -vast-emit-mlir=hl -o - %s > %t && %vast-opt %t | diff -B %t -
 
 typedef __builtin_va_list va_list;
 

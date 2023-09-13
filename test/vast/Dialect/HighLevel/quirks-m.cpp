@@ -1,4 +1,4 @@
-// RUN: %vast-cc --from-source %s | FileCheck %s
+// RUN: %vast-cc --from-source %s | %file-check %s
 // RUN: %vast-cc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
 // adapted from https://gist.github.com/fay59/5ccbe684e6e56a7df8815c3486568f01

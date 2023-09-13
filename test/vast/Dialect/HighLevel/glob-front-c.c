@@ -1,4 +1,4 @@
-// RUN: %vast-front %s -vast-emit-high-level -o - | FileCheck %s
+// RUN: %vast-front %s -vast-emit-high-level -o - | %file-check %s
 
 extern short GIB_SHORT(void);
 // CHECK: hl.var "NUM"

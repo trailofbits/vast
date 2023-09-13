@@ -1,4 +1,4 @@
-// RUN: %vast-front -vast-emit-mlir=hl -o - %s | FileCheck %s
+// RUN: %vast-front -vast-emit-mlir=hl -o - %s | %file-check %s
 // RUN: %vast-front -vast-emit-mlir=hl -o - %s > %t && %vast-opt %t | diff -B %t -
 
 int main() {

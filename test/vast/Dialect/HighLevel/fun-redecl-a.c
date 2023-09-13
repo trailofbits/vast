@@ -1,4 +1,4 @@
-// RUN: %vast-cc --ccopts -xc --from-source %s | FileCheck %s
+// RUN: %vast-cc --ccopts -xc --from-source %s | %file-check %s
 
 // CHECK: hl.func @abort
 // CHECK-NOT: hl.func @abort

@@ -1,4 +1,4 @@
-// RUN: %vast-front -vast-emit-mlir=hl -o - %s | FileCheck %s
+// RUN: %vast-front -vast-emit-mlir=hl -o - %s | %file-check %s
 
 void f(void g(void)) {
     // CHECK: hl.indirect_call {{.*}} : !hl.decayed<!hl.ptr<() -> !hl.void>>() : () -> !hl.void
