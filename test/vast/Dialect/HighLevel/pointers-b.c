@@ -6,7 +6,7 @@
 float *p, **pp; // p is a pointer to float
                 // pp is a pointer to a pointer to float
 
-// CHECK: hl.var "fp" : !hl.lvalue<!hl.ptr<!hl.paren<(!hl.lvalue<!hl.int>) -> !hl.int>>>
+// CHECK: hl.var "fp" : !hl.lvalue<!hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.int>) -> (!hl.int)>>>>
 int (*fp)(int); // fp is a pointer to function with type int(int)
 
 // CHECK: hl.var "pc" : !hl.lvalue<!hl.ptr<!hl.int< const >>>

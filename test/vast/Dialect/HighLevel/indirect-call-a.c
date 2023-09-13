@@ -6,13 +6,13 @@ typedef unsigned long ck_rv_t;
 // CHECK: hl.var "global_lock" sc_static : !hl.lvalue<!hl.ptr<!hl.void>>
 static void *global_lock = 0;
 
-// CHECK: hl.typedef "ck_createmutex_t" : !hl.ptr<!hl.paren<(!hl.lvalue<!hl.ptr<!hl.ptr<!hl.void>>>) -> !hl.elaborated<!hl.typedef<"ck_rv_t">>>>
+// CHECK: hl.typedef "ck_createmutex_t" : !hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.ptr<!hl.ptr<!hl.void>>>) -> (!hl.elaborated<!hl.typedef<"ck_rv_t">>)>>>
 typedef ck_rv_t (*ck_createmutex_t) (void **mutex);
-// CHECK: hl.typedef "ck_destroymutex_t" : !hl.ptr<!hl.paren<(!hl.lvalue<!hl.ptr<!hl.void>>) -> !hl.elaborated<!hl.typedef<"ck_rv_t">>>>
+// CHECK: hl.typedef "ck_destroymutex_t" : !hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.ptr<!hl.void>>) -> (!hl.elaborated<!hl.typedef<"ck_rv_t">>)>>>
 typedef ck_rv_t (*ck_destroymutex_t) (void *mutex);
-// CHECK: hl.typedef "ck_lockmutex_t" : !hl.ptr<!hl.paren<(!hl.lvalue<!hl.ptr<!hl.void>>) -> !hl.elaborated<!hl.typedef<"ck_rv_t">>>>
+// CHECK: hl.typedef "ck_lockmutex_t" : !hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.ptr<!hl.void>>) -> (!hl.elaborated<!hl.typedef<"ck_rv_t">>)>>>
 typedef ck_rv_t (*ck_lockmutex_t) (void *mutex);
-// CHECK: hl.typedef "ck_unlockmutex_t" : !hl.ptr<!hl.paren<(!hl.lvalue<!hl.ptr<!hl.void>>) -> !hl.elaborated<!hl.typedef<"ck_rv_t">>>>
+// CHECK: hl.typedef "ck_unlockmutex_t" : !hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.ptr<!hl.void>>) -> (!hl.elaborated<!hl.typedef<"ck_rv_t">>)>>>
 typedef ck_rv_t (*ck_unlockmutex_t) (void *mutex);
 
 // CHECK: hl.struct "ck_c_initialize_args"
