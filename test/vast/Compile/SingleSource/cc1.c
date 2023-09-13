@@ -1,13 +1,13 @@
 // RUN: %vast-cc1 -triple x86_64-unknown-linux-gnu -vast-emit-mlir=hl %s -o %t.mlir
-// RUN: FileCheck --input-file=%t.mlir %s -check-prefix=HL
+// RUN: %file-check --input-file=%t.mlir %s -check-prefix=HL
 // RUN: %vast-cc1 -triple x86_64-unknown-linux-gnu -vast-emit-mlir=llvm %s -o %t.mlir
-// RUN: FileCheck --input-file=%t.mlir %s -check-prefix=MLIR
+// RUN: %file-check --input-file=%t.mlir %s -check-prefix=MLIR
 // RUN: %vast-cc1 -triple x86_64-unknown-linux-gnu -vast-emit-llvm %s -o %t.ll
-// RUN: FileCheck --input-file=%t.ll %s -check-prefix=LLVM
+// RUN: %file-check --input-file=%t.ll %s -check-prefix=LLVM
 // RUN: %vast-cc1 -triple x86_64-unknown-linux-gnu -S %s -o %t.s
-// RUN: FileCheck --input-file=%t.s %s -check-prefix=ASM
+// RUN: %file-check --input-file=%t.s %s -check-prefix=ASM
 // RUN: %vast-cc1 -triple x86_64-unknown-linux-gnu -vast-emit-obj %s -o %t.o
-// RUN: objdump -d %t.o | FileCheck %s -check-prefix=OBJ
+// RUN: objdump -d %t.o | %file-check %s -check-prefix=OBJ
 
 void foo() {
     return;

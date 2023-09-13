@@ -1,22 +1,22 @@
 // RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
 // RUN: %vast-query --show-symbols=all %t | \
-// RUN: FileCheck %s -check-prefix=FOO-VAR -check-prefix=MAIN-VAR -check-prefix=FUN
+// RUN: %file-check %s -check-prefix=FOO-VAR -check-prefix=MAIN-VAR -check-prefix=FUN
 
 // RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
 // RUN: %vast-query --show-symbols=vars %t | \
-// RUN: FileCheck %s -check-prefix=FOO-VAR -check-prefix=MAIN-VAR
+// RUN: %file-check %s -check-prefix=FOO-VAR -check-prefix=MAIN-VAR
 
 // RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
 // RUN: %vast-query --show-symbols=vars %t --scope=foo | \
-// RUN: FileCheck %s -check-prefix=FOO-VAR
+// RUN: %file-check %s -check-prefix=FOO-VAR
 
 // RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
 // RUN: %vast-query --show-symbols=vars %t --scope=main | \
-// RUN: FileCheck %s -check-prefix=MAIN-VAR
+// RUN: %file-check %s -check-prefix=MAIN-VAR
 
 // RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
 // RUN: %vast-query --show-symbols=functions %t | \
-// RUN: FileCheck %s -check-prefix=FUN
+// RUN: %file-check %s -check-prefix=FUN
 
 // FOO-VAR-DAG: hl.var : a
 // FUN-DAG: func : foo

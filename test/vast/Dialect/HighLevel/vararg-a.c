@@ -1,5 +1,5 @@
-// RUN: %vast-cc --ccopts -xc --from-source %s | FileCheck %s
-// RUN: %vast-cc --ccopts -xc --from-source %s > %t && %vast-opt %t | diff -B %t -
+// RUN: %vast-front -vast-emit-mlir=hl -o - %s | %file-check %s
+// RUN: %vast-front -vast-emit-mlir=hl -o - %s > %t && %vast-opt %t | diff -B %t -
 
 #include <stdarg.h>
 

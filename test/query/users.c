@@ -1,14 +1,14 @@
 // RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
 // RUN: %vast-query --symbol-users=a %t | \
-// RUN: FileCheck %s -check-prefix=MAIN -check-prefix=FOO
+// RUN: %file-check %s -check-prefix=MAIN -check-prefix=FOO
 
 // RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
 // RUN: %vast-query --symbol-users=a --scope=main %t | \
-// RUN: FileCheck %s -check-prefix=MAIN
+// RUN: %file-check %s -check-prefix=MAIN
 
 // RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
 // RUN: %vast-query --symbol-users=a --scope=foo %t | \
-// RUN: FileCheck %s -check-prefix=FOO
+// RUN: %file-check %s -check-prefix=FOO
 
 // FOO: hl.ref %0
 int foo() {

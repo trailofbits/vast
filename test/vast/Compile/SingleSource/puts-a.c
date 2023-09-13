@@ -1,4 +1,4 @@
-// RUN: %vast-front -o %t %s && %t hello | FileCheck %s
+// RUN: %vast-front -o %t %s && %t hello | %file-check %s
 
 int puts(const char *);
 

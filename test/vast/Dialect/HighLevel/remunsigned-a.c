@@ -1,4 +1,4 @@
-// RUN: %vast-cc --ccopts -xc --from-source %s | FileCheck %s
+// RUN: %vast-cc --ccopts -xc --from-source %s | %file-check %s
 // RUN: %vast-cc --ccopts -xc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
 void div(unsigned int arg1, unsigned int arg2) {

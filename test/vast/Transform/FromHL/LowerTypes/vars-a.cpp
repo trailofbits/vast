@@ -1,4 +1,4 @@
-// RUN: %vast-cc --from-source %s | %vast-opt --vast-hl-lower-types | FileCheck %s
+// RUN: %vast-cc --from-source %s | %vast-opt --vast-hl-lower-types | %file-check %s
 
 // CHECK-LABEL: hl.func @main () -> si32
 int main()

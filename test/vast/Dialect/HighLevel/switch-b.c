@@ -1,4 +1,4 @@
-// RUN: %vast-cc --ccopts -std=c++17 --from-source %s | FileCheck %s
+// RUN: %vast-cc --ccopts -std=c++17 --from-source %s | %file-check %s
 // RUN: %vast-cc --ccopts -std=c++17 --from-source %s > %t && %vast-opt %t | diff -B %t -
 
 // CHECK: hl.func @_Z11switch_initi ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int

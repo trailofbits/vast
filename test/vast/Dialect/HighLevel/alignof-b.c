@@ -1,4 +1,4 @@
-// RUN: %vast-cc --ccopts -Wno-gnu-statement-expression --from-source %s | FileCheck %s
+// RUN: %vast-cc --ccopts -Wno-gnu-statement-expression --from-source %s | %file-check %s
 // RUN: %vast-cc --ccopts -Wno-gnu-statement-expression --from-source %s > %t && %vast-opt %t | diff -B %t -
 
 int main() {

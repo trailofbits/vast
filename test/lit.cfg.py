@@ -60,10 +60,9 @@ tools = [
             "-internal-isystem",
             "-nostdsysteminc"
         ]
-    )
+    ),
+    ToolSubst('%file-check', command = 'FileCheck')
 ]
-
-
 
 if 'BUILD_TYPE' in lit_config.params:
     config.vast_build_type = lit_config.params['BUILD_TYPE']
@@ -71,6 +70,7 @@ else:
     config.vast_build_type = "Debug"
 
 for tool in tools:
-    path = [config.vast_tools_dir, tool.command, config.vast_build_type]
-    tool.command = os.path.join(*path, tool.command)
+    if tool.command.startswith('vast'):
+        path = [config.vast_tools_dir, tool.command, config.vast_build_type]
+        tool.command = os.path.join(*path, tool.command)
     llvm_config.add_tool_substitutions([tool])
