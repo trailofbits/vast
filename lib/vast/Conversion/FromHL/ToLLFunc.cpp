@@ -11,7 +11,7 @@
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DialectConversion.hpp"
 
-namespace vast
+namespace vast::conv::hltollfunc
 {
     namespace pattern
     {
@@ -40,7 +40,7 @@ namespace vast
                 );
                 rewriter.updateRootInPlace(fn.getOperation(), [&](){fn.getBody().takeBody(op.getBody());});
                 rewriter.replaceOp(op, fn->getOpResults());
-                return mlir::success();
+                return logical_result::success();
 
             }
 
@@ -66,10 +66,10 @@ namespace vast
             >(config);
         }
     };
-} // namespace vast
+} // namespace vast::conv::hltollfunc
 
 
 std::unique_ptr< mlir::Pass > vast::createHLToLLFuncPass()
 {
-    return std::make_unique< vast::HLToLLFunc>();
+    return std::make_unique< vast::conv::hltollfunc::HLToLLFunc>();
 }
