@@ -240,6 +240,10 @@ namespace vast::cg {
             return visit(acontext().VoidTy).template cast< hl::VoidType >();
         }
 
+        mlir::Value void_value(mlir::Location loc) {
+            return create< hl::ConstantOp >(loc, void_type());
+        }
+
         RegionAndType make_stmt_expr_region (const clang::CompoundStmt *stmt) {
             auto guard  = insertion_guard();
             auto reg    = make_stmt_region(stmt);
@@ -261,7 +265,7 @@ namespace vast::cg {
                 return { std::move(reg), res.getType()};
             }
 
-            auto void_const = create< hl::ConstantOp >(loc, void_type());
+            auto void_const = void_value(loc);
             create< hl::ValueYieldOp >(meta_location(stmt), void_const);
             return { std::move(reg), void_const.getType()};
         }
@@ -318,6 +322,9 @@ namespace vast::cg {
         mlir::Value true_value(mlir::Location loc)  { return bool_value(loc, true); }
         mlir::Value false_value(mlir::Location loc) { return bool_value(loc, false); }
 
+        mlir::Value constant(mlir::Location loc) {
+            return void_value(loc);
+        }
         mlir::Value constant(mlir::Location loc, bool value) {
             return bool_value(loc, value);
         }
