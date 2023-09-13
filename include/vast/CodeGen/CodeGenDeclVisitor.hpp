@@ -331,7 +331,8 @@ namespace vast::cg {
             auto emit_function_terminator = [&] (auto fn) {
                 auto loc = fn.getLoc();
                 if (decl->getReturnType()->isVoidType()) {
-                    make< hl::ReturnOp >(loc);
+                    auto void_val = constant(loc);
+                    make< hl::ReturnOp >(loc, void_val);
                 } else {
                     if (decl->isMain()) {
                         // return zero if no return is present in main

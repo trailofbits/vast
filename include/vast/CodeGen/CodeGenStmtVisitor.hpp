@@ -646,7 +646,8 @@ namespace vast::cg {
             auto loc = meta_location(stmt);
             if (auto ret = stmt->getRetValue())
                 return make< hl::ReturnOp >(loc, visit(ret)->getResults());
-            return make< hl::ReturnOp >(loc);
+            auto void_val = constant(loc);
+            return make< hl::ReturnOp >(loc, void_val);
         }
 
 
