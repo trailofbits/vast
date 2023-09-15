@@ -48,6 +48,11 @@ namespace vast::hl {
         return std::any_of(rng.begin(), rng.end(), contains_hl_type);
     }
 
+    bool contain_hl_type(llvm::ArrayRef<mlir_type> rng) {
+        return contain_hl_type(mlir::TypeRange(rng));
+    }
+
+
     bool isHighLevelType(mlir::TypeAttr type_attr) {
         return Maybe(type_attr)
             .and_then(get_value())
@@ -74,9 +79,19 @@ namespace vast::hl {
         return false;
     }
 
+    bool has_hl_function_type(operation op) {
+        if (auto fn = mlir::dyn_cast< hl::FuncOp >(op)) {
+            return contain_hl_type(fn.getArgumentTypes())
+                || contain_hl_type(fn.getResultTypes());
+        }
+
+        return false;
+    }
+
     bool has_hl_type(operation op) {
         return contain_hl_type(op->getResultTypes())
             || contain_hl_type(op->getOperandTypes())
+            || has_hl_function_type(op)
             || has_hl_typeattr(op);
     }
 
