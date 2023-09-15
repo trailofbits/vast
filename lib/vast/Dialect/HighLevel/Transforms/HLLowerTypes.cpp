@@ -109,7 +109,6 @@ namespace vast::hl {
 
             // Use provided data layout to get the correct type.
             addConversion([&](hl::PointerType t) { return this->convert_ptr_type(t); });
-            addConversion([&](core::FunctionType t) { return this->convert_fn_type(t); });
             addConversion([&](hl::ArrayType t) { return this->convert_arr_type(t); });
             // TODO(lukas): This one is tricky, because ideally `hl.void` is "no value".
             //              But if we lowered it such, than we need to remove the previous
@@ -256,41 +255,8 @@ namespace vast::hl {
                 .and_then([&](auto t) { return mlir::MemRefType::get({ coerced_dim }, *t); })
                 .take_wrapped< maybe_type_t >();
         }
-
-        maybe_type_t convert_fn_type(core::FunctionType t) {
-            mlir::SmallVector< mlir_type > aty;
-            mlir::SmallVector< mlir_type > rty;
-
-            auto a_res = convertTypes(t.getInputs(), aty);
-            auto r_res = convertTypes(t.getResults(), rty);
-
-            if (mlir::failed(a_res) || mlir::failed(r_res)) {
-                return std::nullopt;
-            }
-
-            if (rty.size() == 1 && rty[0].isa< mlir::NoneType >()) {
-                rty.clear();
-            }
-
-            return core::FunctionType::get(aty, rty);
-        }
     };
 
-    // Get SignatureConversion if all the sub-conversion are successful, no value otherwise.
-    auto get_fn_signature(auto &&tc, FuncOp fn, bool variadic)
-        -> std::optional< mlir::TypeConverter::SignatureConversion >
-    {
-        mlir::TypeConverter::SignatureConversion sigconvert(fn.getNumArguments());
-        for (auto arg : llvm::enumerate(fn.getFunctionType().getInputs())) {
-            mlir::SmallVector< mlir::Type, 2 > converted;
-            auto cty = tc.convertType(arg.value(), converted);
-            if (mlir::failed(cty)) {
-                return {};
-            }
-            sigconvert.addInputs(arg.index(), converted);
-        }
-        return { std::move(sigconvert) };
-    }
 
     struct AttributeConverter
     {
@@ -440,16 +406,20 @@ namespace vast::hl {
         }
     };
 
-    struct LowerFuncOpType : LowerHLTypePatternBase
+    struct LowerFuncOpType : mlir::OpConversionPattern< FuncOp >
     {
-        using Base = LowerHLTypePatternBase;
+        using Base = mlir::OpConversionPattern< FuncOp >;
         using Base::Base;
+
+        using Base::getTypeConverter;
 
         using attrs_t                = mlir::SmallVector< mlir::Attribute, 4 >;
         using maybe_attrs_t          = std::optional< attrs_t >;
         using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
 
-        auto lower_attrs(FuncOp fn, mlir::ArrayAttr attrs) const {
+        auto lower_attrs(FuncOp fn, mlir::ArrayAttr attrs) const
+            -> std::vector< mlir::DictionaryAttr >
+        {
             std::vector< mlir::DictionaryAttr > partials;
             if (!attrs) {
                 return partials;
@@ -464,54 +434,38 @@ namespace vast::hl {
             return partials;
         }
 
-        // As the reference how to lower functions, the `StandardToLLVM` conversion
-        // is used.
-        // But basically we need to copy the function (maybe just change in-place is possible?)
-        // with the converted function type -> copy body -> fix arguments of the entry region.
+        // As the reference how to lower functions, the `StandardToLLVM`
+        // conversion is used.
+        //
+        // But basically we need to copy the function with the converted
+        // function type -> copy body -> fix arguments of the entry region.
         mlir::LogicalResult matchAndRewrite(
-            operation op, mlir::ArrayRef< mlir_value > ops,
-            mlir::ConversionPatternRewriter &rewriter
+            FuncOp fn, OpAdaptor adaptor, mlir::ConversionPatternRewriter &rewriter
         ) const override {
-            auto fn = mlir::dyn_cast< FuncOp >(op);
-            if (!fn) {
+            auto fty = fn.getFunctionType();
+            auto &tc = *getTypeConverter();
+
+            signature_conversion_t sigconvert(fty.getNumInputs());
+            if (mlir::failed(tc.convertSignatureArgs(fty.getInputs(), sigconvert))) {
                 return mlir::failure();
             }
 
-            auto sigconvert = get_fn_signature(*getTypeConverter(), fn, false);
-            if (!sigconvert) {
+            llvm::SmallVector< mlir_type, 1 > results;
+            if (mlir::failed(tc.convertTypes(fty.getResults(), results))) {
+                return mlir::failure();
+            }
+            if (mlir::failed(rewriter.convertRegionTypes(&fn.getFunctionBody(), tc, &sigconvert))) {
                 return mlir::failure();
             }
 
-            // TODO(hllowertypes): What about function attributes?
-            std::vector< mlir::NamedAttribute > attributes;
-            auto arg_attrs = lower_attrs(fn, fn.getArgAttrsAttr());
-            auto res_attrs = lower_attrs(fn, fn.getResAttrsAttr());
-
-            auto maybe_fn_type = getTypeConverter()->convert_type_to_type(fn.getFunctionType());
-            if (!maybe_fn_type) {
-                return mlir::failure();
-            }
-            auto fn_type = mlir::dyn_cast< core::FunctionType >(maybe_fn_type.value());
-            if (!fn_type) {
-                return mlir::failure();
-            }
-
-            // Create new function with converted type
-            auto new_fn = rewriter.create< FuncOp >(
-                fn.getLoc(), fn.getName(), fn_type, fn.getLinkage(), attributes, arg_attrs,
-                res_attrs
+            auto new_type = core::FunctionType::get(
+                rewriter.getContext(), sigconvert.getConvertedTypes(), results, fty.isVarArg()
             );
-            new_fn.setVisibility(fn.getVisibility());
 
-            // Copy the old region - it will have incorrect arguments (`BlockArgument` on
-            // entry `Block`.
-            rewriter.inlineRegionBefore(fn.getBody(), new_fn.getBody(), new_fn.end());
+            // TODO deal with function attribute types
 
-            // NOTE(lukas): This may break the contract that all modifications happen
-            //              via rewriter.
-            util::convert_region_types(fn, new_fn, *sigconvert);
+            rewriter.updateRootInPlace(fn, [&] { fn.setType(new_type); });
 
-            rewriter.eraseOp(fn);
             return mlir::success();
         }
     };
