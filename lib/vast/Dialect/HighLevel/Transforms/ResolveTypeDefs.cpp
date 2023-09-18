@@ -34,13 +34,13 @@ namespace vast::hl {
                 : mlir::TypeConverter
                 , util::TCHelpers< type_converter >
             {
-                using maybe_type = std::optional< mlir_type >;
+                using base = mlir::TypeConverter;
 
-                mcontext_t &mctx;
                 vast_module mod;
 
                 type_converter(mcontext_t &mctx, vast_module mod)
-                    : mlir::TypeConverter(), mctx(mctx), mod(mod) {
+                    : base(), mod(mod)
+                {
                     addConversion([&](mlir_type t) { return this->convert(t); });
                     addConversion([&](mlir::SubElementTypeInterface t) {
                         return this->convert(t);
@@ -56,13 +56,13 @@ namespace vast::hl {
                 }
 
                 // TODO(conv): This may need to be precomputed instead.
-                maybe_type nested_type(mlir_type type) {
+                maybe_type_t nested_type(mlir_type type) {
                     return hl::getBottomTypedefType(type, mod);
                 }
 
-                maybe_type convert(mlir_type type) { return nested_type(type); }
+                maybe_type_t convert(mlir_type type) { return nested_type(type); }
 
-                maybe_type convert(mlir::SubElementTypeInterface with_subelements) {
+                maybe_type_t convert(mlir::SubElementTypeInterface with_subelements) {
                     auto replacer = [&](hl::ElaboratedType elaborated) {
                         return nested_type(elaborated);
                     };
@@ -88,16 +88,13 @@ namespace vast::hl {
                     auto trg = tc.convert_type_to_type(fn.getFunctionType());
                     VAST_PATTERN_CHECK(trg, "Failed type conversion of, {0}", fn);
 
-                    auto change = [&]() {
+                    rewriter.updateRootInPlace(fn, [&]() {
                         fn.setType(*trg);
                         if (fn->getNumRegions() != 0) {
-                            fixup_entry_block(*fn->getRegions().begin());
+                            fixup_entry_block(fn.getBody());
                         }
-                        // TODO(conv): Not yet sure how to ideally propagate this.
-                        std::ignore = fix_attrs(fn.getOperation());
-                    };
+                    });
 
-                    rewriter.updateRootInPlace(fn, change);
                     return mlir::success();
                 }
 
@@ -120,11 +117,8 @@ namespace vast::hl {
                         }
 
                         if (op->getNumRegions() != 0) {
-                            fixup_entry_block(*op->getRegions().begin());
+                            fixup_entry_block(op->getRegion(0));
                         }
-
-                        // TODO(conv): Not yet sure how to ideally propagate this.
-                        std::ignore = fix_attrs(op);
                     };
 
                     rewriter.updateRootInPlace(op, do_change);
@@ -136,17 +130,12 @@ namespace vast::hl {
                     if (region.empty()) {
                         return;
                     }
-                    auto &block = *region.begin();
-                    for (std::size_t i = 0; i < block.getNumArguments(); ++i) {
-                        auto arg = block.getArgument(i);
+
+                    for (auto arg: region.front().getArguments()) {
                         auto trg = tc.convert_type_to_type(arg.getType());
                         VAST_PATTERN_CHECK(trg, "Type conversion failed: {0}", arg);
                         arg.setType(*trg);
                     }
-                }
-
-                logical_result fix_attrs(mlir::Operation *op) const {
-                    return util::AttributeConverter(*op->getContext(), tc).convert(op);
                 }
             };
 
@@ -163,12 +152,11 @@ namespace vast::hl {
         static auto create_conversion_target(mcontext_t &mctx) {
             mlir::ConversionTarget trg(mctx);
 
-            auto is_legal = [](operation op) {
+            trg.markUnknownOpDynamicallyLegal([](operation op) {
                 return !has_type_somewhere< hl::TypedefType >(op)
                     || mlir::isa< hl::TypeDefOp >(op);
-            };
+            });
 
-            trg.markUnknownOpDynamicallyLegal(is_legal);
             return trg;
         }
 
