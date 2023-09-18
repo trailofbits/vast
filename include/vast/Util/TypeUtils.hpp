@@ -66,9 +66,18 @@ namespace vast
     // passes.
     bool has_type_somewhere(operation op, auto &&accept)
     {
-        return contains_subtype(op->getResultTypes(), accept) ||
-               contains_subtype(op->getOperandTypes(), accept) ||
-               contains_subtype(op->getAttrDictionary(), accept);
+        auto contains_in_function_type = [&] {
+            if (auto fn = mlir::dyn_cast< mlir::FunctionOpInterface >(op)) {
+                return contains_subtype(fn.getResultTypes(), accept)
+                    || contains_subtype(fn.getArgumentTypes(), accept);
+            }
+            return false;
+        };
+
+        return contains_subtype(op->getResultTypes(), accept)
+            || contains_subtype(op->getOperandTypes(), accept)
+            || contains_subtype(op->getAttrDictionary(), accept)
+            || contains_in_function_type();
     }
 
     template< typename ... Ts >
