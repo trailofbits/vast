@@ -6,6 +6,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Analysis/DataLayoutAnalysis.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/IR/PatternMatch.h>
+#include <mlir/IR/BuiltinAttributeInterfaces.h>
 #include <mlir/Transforms/DialectConversion.h>
 #include <mlir/Transforms/GreedyPatternRewriteDriver.h>
 VAST_UNRELAX_WARNINGS
@@ -95,8 +96,6 @@ namespace vast::hl {
             || has_hl_typeattr(op);
     }
 
-    bool should_lower(operation op) { return !has_hl_type(op); }
-
     struct TypeConverter : mlir::TypeConverter
     {
         using types_t       = mlir::SmallVector< mlir_type >;
@@ -111,7 +110,7 @@ namespace vast::hl {
         {
             // Fallthrough option - we define it first as it seems the framework
             // goes from the last added conversion.
-            addConversion([&](mlir_type t) -> llvm::Optional< mlir_type > {
+            addConversion([&](mlir_type t) -> maybe_type_t {
                 return Maybe(t)
                     .keep_if([](auto t) { return !isHighLevelType(t); })
                     .take_wrapped< maybe_type_t >();
@@ -272,132 +271,69 @@ namespace vast::hl {
         }
     };
 
+    using maybe_attr_t = std::optional< mlir::Attribute >;
 
-    struct AttributeConverter
+    struct LowerHighLevelOpType : mlir::ConversionPattern
     {
-        mlir::MLIRContext &mctx;
-        TypeConverter &tc;
-
-        // `llvm::` instead of `std::` to be uniform with `TypeConverter`
-        using maybe_attr_t = llvm::Optional< mlir::Attribute >;
-
-        template< typename A, typename... Args >
-        auto make_hl_attr(Args &&...args) const {
-            // Expected cheap values are passed around, otherwise perfectly forward.
-            return [=](auto type) { return A::get(type, args...); };
-        }
-
-        template< typename Attr, typename... Rest >
-        maybe_attr_t hl_attr_conversion(mlir::Attribute attr) const {
-            if (auto hl_attr = attr.dyn_cast< Attr >()) {
-                return Maybe(hl_attr.getType())
-                    .and_then(tc.convert_type_to_type())
-                    .unwrap()
-                    .and_then(make_hl_attr< Attr >(hl_attr.getValue()))
-                    .template take_wrapped< maybe_attr_t >();
-            }
-            if constexpr (sizeof...(Rest) != 0) {
-                return hl_attr_conversion< Rest... >(attr);
-            }
-            return {};
-        }
-
-        maybe_attr_t convertAttr(mlir::Attribute attr) const {
-            if (auto out = hl_attr_conversion<
-                BooleanAttr, IntegerAttr, FloatAttr, StringAttr, StringLiteralAttr >(attr)
-            ) {
-                return out;
-            }
-
-            if (auto type_attr = attr.dyn_cast< mlir::TypeAttr >()) {
-                return Maybe(type_attr.getValue())
-                    .and_then(tc.convert_type_to_type())
-                    .unwrap()
-                    .and_then(mlir::TypeAttr::get)
-                    .take_wrapped< maybe_attr_t >();
-            }
-            return {};
-        }
-    };
-
-    struct LowerHLTypePatternBase : mlir::ConversionPattern
-    {
-        TypeConverter &tc;
-        AttributeConverter &_attribute_converter;
-
-        LowerHLTypePatternBase(
-            TypeConverter &tc_, AttributeConverter &ac, mlir::MLIRContext *mctx
-        )
-            : mlir::ConversionPattern(tc_, mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx)
-            , tc(tc_)
-            , _attribute_converter(ac)
-        {}
-
-        // NOTE(lukas): Is not a virtual function.
-        TypeConverter *getTypeConverter() const { return &tc; }
-
-        const auto &getAttrConverter() const { return _attribute_converter; }
-
-        void lower_attrs(operation op) const {
-            mlir::SmallVector< mlir::NamedAttribute > new_attrs;
-            for (const auto &attr : op->getAttrs()) {
-                auto name  = attr.getName();
-                auto value = attr.getValue();
-                if (auto lowered = this->getAttrConverter().convertAttr(value)) {
-                    new_attrs.emplace_back(name, *lowered);
-                } else {
-                    new_attrs.emplace_back(name, value);
-                }
-            }
-            op->setAttrs(new_attrs);
-        }
-
-        template< typename Filter >
-        auto lower_attrs(mlir::ArrayRef< mlir::NamedAttribute > attrs, Filter &&filter) const
-            -> mlir::SmallVector< mlir::NamedAttribute, 4 >
-        {
-            mlir::SmallVector< mlir::NamedAttribute, 4 > out;
-            for (const auto &attr : attrs) {
-                if (filter(attr)) {
-                    // TODO(lukas): Converter should accept & reconstruct NamedAttributes.
-                    if (auto x = getAttrConverter().convertAttr(attr.getValue())) {
-                        out.emplace_back(attr.getName(), *x);
-                    }
-                }
-            }
-            return out;
-        }
-
-        auto lower_attrs(mlir::ArrayRef< mlir::NamedAttribute > attrs) const {
-            return lower_attrs(attrs, [](const auto &) { return true; });
-        }
-    };
-
-    // `ConversionPattern` provides methods that can use `TypeConverter`, which
-    // other patterns do not.
-    struct LowerGenericOpType : LowerHLTypePatternBase
-    {
-        using Base = LowerHLTypePatternBase;
+        using Base = mlir::ConversionPattern;
         using Base::Base;
 
-        template< typename T >
-        auto get_type_attr_conversion() const {
-            return [=](T attr) -> std::optional< mlir::Attribute > {
-                auto converted = getAttrConverter().convertAttr(attr);
-                return (converted) ? converted : attr;
+        LowerHighLevelOpType(TypeConverter &tc, mcontext_t *mctx)
+            : Base(tc, mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx)
+        {}
+
+        template< typename attrs_list >
+        maybe_attr_t high_level_typed_attr_conversion(mlir::Attribute attr) const {
+            using attr_t = typename attrs_list::head;
+            using rest_t = typename attrs_list::tail;
+
+            if (auto typed = mlir::dyn_cast< attr_t >(attr)) {
+                return Maybe(typed.getType())
+                    .and_then([&] (auto type) {
+                        return getTypeConverter()->convertType(type);
+                    })
+                    .and_then([&] (auto type) {
+                        return attr_t::get(type, typed.getValue());
+                    })
+                    .template take_wrapped< maybe_attr_t >();
+            }
+
+            if constexpr (attrs_list::size != 1) {
+                return high_level_typed_attr_conversion< rest_t >(attr);
+            } else {
+                return std::nullopt;
+            }
+        }
+
+        auto convert_high_level_typed_attr() const {
+            return [&] (mlir::Attribute attr) {
+                return high_level_typed_attr_conversion< high_level_typed_attrs >(attr);
             };
         }
 
-        mlir::LogicalResult matchAndRewrite(
-            operation op, mlir::ArrayRef< mlir_value > ops,
+        auto convert_type_attr() const {
+            return [&] (mlir::TypeAttr attr) {
+                return Maybe(attr.getValue())
+                    .and_then([&] (auto type) {
+                        return getTypeConverter()->convertType(type);
+                    })
+                    .and_then(mlir::TypeAttr::get)
+                    .take_wrapped< maybe_attr_t >();
+            };
+        }
+
+        logical_result matchAndRewrite(
+            operation op, llvm::ArrayRef< mlir_value > ops,
             mlir::ConversionPatternRewriter &rewriter
         ) const override {
             if (mlir::isa< FuncOp >(op)) {
                 return mlir::failure();
             }
 
+            auto &tc = *getTypeConverter();
+
             mlir::SmallVector< mlir_type > rty;
-            auto status = this->getTypeConverter()->convertTypes(op->getResultTypes(), rty);
+            auto status = tc.convertTypes(op->getResultTypes(), rty);
             // TODO(lukas): How to use `llvm::formatv` with `operation `?
             VAST_CHECK(mlir::succeeded(status), "Was not able to type convert.");
 
@@ -406,13 +342,11 @@ namespace vast::hl {
                 for (std::size_t i = 0; i < rty.size(); ++i) {
                     op->getResult(i).setType(rty[i]);
                 }
-                // Return types can be encoded as attrs.
-                auto attrs  = op->getAttrDictionary();
-                auto nattrs = attrs.replaceSubElements(
-                    get_type_attr_conversion< mlir::TypeAttr >(),
-                    get_type_attr_conversion< mlir::TypedAttr >()
-                );
-                op->setAttrs(nattrs.dyn_cast< mlir::DictionaryAttr >());
+
+                mlir::AttrTypeReplacer replacer;
+                replacer.addReplacement(convert_type_attr());
+                replacer.addReplacement(convert_high_level_typed_attr());
+                replacer.recursivelyReplaceElementsIn(op, true /* replace attrs */);
             };
             // It has to be done in one "transaction".
             rewriter.updateRootInPlace(op, lower_op);
@@ -432,32 +366,15 @@ namespace vast::hl {
         using maybe_attrs_t          = std::optional< attrs_t >;
         using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
 
-        auto lower_attrs(FuncOp fn, mlir::ArrayAttr attrs) const
-            -> std::vector< mlir::DictionaryAttr >
-        {
-            std::vector< mlir::DictionaryAttr > partials;
-            if (!attrs) {
-                return partials;
-            }
-
-            for (auto attr : attrs) {
-                auto as_dict = mlir::dyn_cast< mlir::DictionaryAttr >(attr);
-                VAST_ASSERT(as_dict);
-
-                partials.emplace_back(as_dict);
-            }
-            return partials;
-        }
-
         // As the reference how to lower functions, the `StandardToLLVM`
         // conversion is used.
         //
         // But basically we need to copy the function with the converted
         // function type -> copy body -> fix arguments of the entry region.
-        mlir::LogicalResult matchAndRewrite(
+        logical_result matchAndRewrite(
             FuncOp fn, OpAdaptor adaptor, mlir::ConversionPatternRewriter &rewriter
         ) const override {
-            auto fty = fn.getFunctionType();
+            auto fty = adaptor.getFunctionType();
             auto &tc = *getTypeConverter();
 
             signature_conversion_t sigconvert(fty.getNumInputs());
@@ -469,17 +386,21 @@ namespace vast::hl {
             if (mlir::failed(tc.convertTypes(fty.getResults(), results))) {
                 return mlir::failure();
             }
-            if (mlir::failed(rewriter.convertRegionTypes(&fn.getFunctionBody(), tc, &sigconvert))) {
-                return mlir::failure();
-            }
+
+            auto params = sigconvert.getConvertedTypes();
 
             auto new_type = core::FunctionType::get(
-                rewriter.getContext(), sigconvert.getConvertedTypes(), results, fty.isVarArg()
+                rewriter.getContext(), params, results, fty.isVarArg()
             );
 
             // TODO deal with function attribute types
 
-            rewriter.updateRootInPlace(fn, [&] { fn.setType(new_type); });
+            rewriter.updateRootInPlace(fn, [&] {
+                fn.setType(new_type);
+                for (auto [ty, param] : llvm::zip(params, fn.getBody().getArguments())) {
+                    param.setType(ty);
+                }
+            });
 
             return mlir::success();
         }
@@ -487,31 +408,30 @@ namespace vast::hl {
 
     struct HLLowerTypesPass : HLLowerTypesBase< HLLowerTypesPass >
     {
-        void runOnOperation() override;
-    };
+        void runOnOperation() override {
+            auto op    = this->getOperation();
+            auto &mctx = this->getContext();
 
-    void HLLowerTypesPass::runOnOperation() {
-        auto op    = this->getOperation();
-        auto &mctx = this->getContext();
+            mlir::ConversionTarget trg(mctx);
+            // We want to check *everything* for presence of hl type
+            // that can be lowered.
+            trg.markUnknownOpDynamicallyLegal([] (operation op) {
+                return !has_hl_type(op);
+            });
 
-        mlir::ConversionTarget trg(mctx);
-        // We want to check *everything* for presence of hl type
-        // that can be lowered.
-        trg.markUnknownOpDynamicallyLegal(should_lower);
+            mlir::RewritePatternSet patterns(&mctx);
+            const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
+            TypeConverter type_converter(dl_analysis.getAtOrAbove(op), mctx);
 
-        mlir::RewritePatternSet patterns(&mctx);
-        const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
-        TypeConverter type_converter(dl_analysis.getAtOrAbove(op), mctx);
-        AttributeConverter attr_converter{ mctx, type_converter };
+            patterns.add< LowerHighLevelOpType, LowerFuncOpType >(
+                type_converter, patterns.getContext()
+            );
 
-        patterns.add< LowerGenericOpType, LowerFuncOpType >(
-            type_converter, attr_converter, patterns.getContext()
-        );
-
-        if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns)))) {
-            return signalPassFailure();
+            if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns)))) {
+                return signalPassFailure();
+            }
         }
-    }
+    };
 
     mlir::Block &solo_block(mlir::Region &region) {
         VAST_ASSERT(region.hasOneBlock());
@@ -551,7 +471,7 @@ namespace vast::hl {
             return out;
         }
 
-        mlir::LogicalResult matchAndRewrite(
+        logical_result matchAndRewrite(
             hl::StructDeclOp op, hl::StructDeclOp::Adaptor ops,
             mlir::ConversionPatternRewriter &rewriter
         ) const override {
