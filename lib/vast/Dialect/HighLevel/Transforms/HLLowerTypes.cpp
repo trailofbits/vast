@@ -271,8 +271,6 @@ namespace vast::hl {
         }
     };
 
-    using maybe_attr_t = std::optional< mlir::Attribute >;
-
     struct LowerHighLevelOpType : mlir::ConversionPattern
     {
         using Base = mlir::ConversionPattern;
@@ -311,17 +309,6 @@ namespace vast::hl {
             };
         }
 
-        auto convert_type_attr() const {
-            return [&] (mlir::TypeAttr attr) {
-                return Maybe(attr.getValue())
-                    .and_then([&] (auto type) {
-                        return getTypeConverter()->convertType(type);
-                    })
-                    .and_then(mlir::TypeAttr::get)
-                    .take_wrapped< maybe_attr_t >();
-            };
-        }
-
         logical_result matchAndRewrite(
             operation op, llvm::ArrayRef< mlir_value > ops,
             mlir::ConversionPatternRewriter &rewriter
@@ -344,7 +331,7 @@ namespace vast::hl {
                 }
 
                 mlir::AttrTypeReplacer replacer;
-                replacer.addReplacement(convert_type_attr());
+                replacer.addReplacement(util::convert_type_attr(tc));
                 replacer.addReplacement(convert_high_level_typed_attr());
                 replacer.recursivelyReplaceElementsIn(op, true /* replace attrs */);
             };

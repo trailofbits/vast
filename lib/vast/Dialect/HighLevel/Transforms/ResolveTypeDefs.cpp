@@ -119,6 +119,11 @@ namespace vast::hl {
                         if (op->getNumRegions() != 0) {
                             fixup_entry_block(op->getRegion(0));
                         }
+
+                        // TODO unify with high level type conversion
+                        mlir::AttrTypeReplacer replacer;
+                        replacer.addReplacement(util::convert_type_attr(tc));
+                        replacer.recursivelyReplaceElementsIn(op, true /* replace attrs */);
                     };
 
                     rewriter.updateRootInPlace(op, do_change);

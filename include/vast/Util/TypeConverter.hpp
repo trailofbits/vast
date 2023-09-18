@@ -181,6 +181,16 @@ namespace vast::util
         }
     };
 
+    auto convert_type_attr(auto &type_converter) {
+        return [&type_converter](mlir::TypeAttr attr) {
+            return Maybe(attr.getValue())
+                .and_then([&](auto type) { return type_converter.convertType(type); })
+                .and_then(mlir::TypeAttr::get)
+                .template take_wrapped< maybe_attr_t >();
+        };
+    }
+
+
     template< typename TC >
     struct AttributeConverter
     {
