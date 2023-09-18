@@ -62,4 +62,6 @@ namespace vast
 
     using insertion_guard = Builder::InsertionGuard;
 
+    using maybe_attr_t = std::optional< mlir::Attribute >;
+
 } // namespace vast
