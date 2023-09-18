@@ -8,6 +8,7 @@
 // RUN: %file-check --input-file=%t.s %s -check-prefix=ASM
 // RUN: %vast-cc1 -triple x86_64-unknown-linux-gnu -vast-emit-obj %s -o %t.o
 // RUN: objdump -d %t.o | %file-check %s -check-prefix=OBJ
+// REQUIRES: data-layout-lowering
 
 void foo() {
     return;
