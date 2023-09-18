@@ -168,8 +168,7 @@ namespace vast::util::tc
             if (r_res->empty())
                 r_res->emplace_back(mlir::LLVM::LLVMVoidType::get(t.getContext()));
 
-            // TODO(lukas): Not sure how to get info if the type is variadic or not here.
-            return mlir::LLVM::LLVMFunctionType::get(r_res->front(), *a_res, false);
+            return mlir::LLVM::LLVMFunctionType::get(r_res->front(), *a_res, t.isVarArg());
         }
 
         maybe_types_t on_types(auto range, auto fn)
