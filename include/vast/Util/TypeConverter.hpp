@@ -7,6 +7,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/Core/CoreTypes.hpp"
 
 #include "vast/Util/Maybe.hpp"
 
@@ -82,6 +83,23 @@ namespace vast::util
             return Maybe(t).and_then([&](auto t){ return self().convert_type_to_types(t, 1); })
                            .and_then([&](auto ts){ return *ts->begin(); })
                            .template take_wrapped< maybe_type_t >();
+        }
+
+        maybe_type_t convert_type_to_type(core::FunctionType fty)
+        {
+            auto params = self().convert_types_to_types(fty.getInputs());
+            if (!params) {
+                return std::nullopt;
+            }
+
+            auto results = self().convert_types_to_types(fty.getResults());
+            if (!results) {
+                return std::nullopt;
+            }
+
+            return core::FunctionType::get(
+                fty.getContext(), *params, *results, fty.isVarArg()
+            );
         }
 
         auto appender(types_t &out)
