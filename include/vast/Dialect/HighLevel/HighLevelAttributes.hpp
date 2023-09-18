@@ -19,3 +19,15 @@ VAST_UNRELAX_WARNINGS
 
 #define GET_ATTRDEF_CLASSES
 #include "vast/Dialect/HighLevel/HighLevelAttributes.h.inc"
+
+#include "vast/Util/TypeList.hpp"
+
+namespace vast::hl {
+
+    using high_level_typed_attrs = util::type_list<
+        BooleanAttr, IntegerAttr, FloatAttr, StringAttr, StringLiteralAttr
+    >;
+
+    bool is_high_level_typed_attr(mlir::Attribute);
+
+} // namespace vast::hl

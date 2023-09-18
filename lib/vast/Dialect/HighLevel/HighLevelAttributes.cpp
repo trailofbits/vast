@@ -69,6 +69,10 @@ namespace vast::hl
 
 namespace vast::hl
 {
+    bool is_high_level_typed_attr(mlir::Attribute attr) {
+        return util::is_one_of< high_level_typed_attrs >(attr);
+    }
+
     using DialectParser = mlir::AsmParser;
     using DialectPrinter = mlir::AsmPrinter;
 
