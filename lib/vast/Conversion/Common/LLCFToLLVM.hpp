@@ -32,7 +32,7 @@ namespace vast::conv::irstollvm::ll_cf
 
         mlir::LogicalResult matchAndRewrite(
                     op_t op, adaptor_t ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+                    conversion_rewriter &rewriter) const override
         {
             rewriter.create< LLVM::BrOp >(op.getLoc(), ops.getOperands(), op.getDest());
             rewriter.eraseOp(op);
@@ -50,9 +50,9 @@ namespace vast::conv::irstollvm::ll_cf
         using op_t = ll::CondBr;
         using adaptor_t = typename op_t::Adaptor;
 
-        mlir::LogicalResult matchAndRewrite(
-                    op_t op, adaptor_t ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+        logical_result matchAndRewrite(
+            op_t op, adaptor_t ops,
+            conversion_rewriter &rewriter) const override
         {
             rewriter.create< LLVM::CondBrOp >(
                 op.getLoc(),
@@ -106,9 +106,9 @@ namespace vast::conv::irstollvm::ll_cf
         }
 
 
-        mlir::LogicalResult handle_multiblock(
-                    op_t op, adaptor_t ops,
-                    mlir::ConversionPatternRewriter &rewriter) const
+        logical_result handle_multiblock(
+            op_t op, adaptor_t ops,
+            conversion_rewriter &rewriter) const
         {
             auto [head_block, tail_block] = split_at_op(op, rewriter);
 
@@ -132,9 +132,9 @@ namespace vast::conv::irstollvm::ll_cf
             return mlir::success();
         }
 
-        mlir::LogicalResult handle_singleblock(
-                op_t op, adaptor_t ops,
-                mlir::ConversionPatternRewriter &rewriter) const
+        logical_result handle_singleblock(
+            op_t op, adaptor_t ops,
+            conversion_rewriter &rewriter) const
         {
             auto parent = op->getParentRegion();
             inline_region_blocks(rewriter, op.getBody(),
@@ -162,9 +162,9 @@ namespace vast::conv::irstollvm::ll_cf
             return op.start_block();
         }
 
-        mlir::LogicalResult matchAndRewrite(
-                    op_t op, adaptor_t ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+        logical_result matchAndRewrite(
+            op_t op, adaptor_t ops,
+            conversion_rewriter &rewriter) const override
         {
             return handle_multiblock(op, ops, rewriter);
         }

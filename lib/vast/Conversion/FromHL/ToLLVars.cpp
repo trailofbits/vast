@@ -60,8 +60,8 @@ namespace vast
             using Base::Base;
 
             mlir::LogicalResult matchAndRewrite(
-                        op_t op, typename op_t::Adaptor ops,
-                        mlir::ConversionPatternRewriter &rewriter) const override
+                op_t op, typename op_t::Adaptor ops,
+                conversion_rewriter &rewriter) const override
             {
                 auto trg_type = op.getType();
 

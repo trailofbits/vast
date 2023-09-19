@@ -81,7 +81,7 @@ namespace vast::hl {
 
                 logical_result rewrite(
                     hl::FuncOp fn, mlir::ArrayRef< mlir::Value > ops,
-                    mlir::ConversionPatternRewriter &rewriter
+                    conversion_rewriter &rewriter
                 ) const {
                     auto trg = tc.convert_type_to_type(fn.getFunctionType());
                     VAST_PATTERN_CHECK(trg, "Failed type conversion of, {0}", fn);
@@ -98,7 +98,7 @@ namespace vast::hl {
 
                 logical_result matchAndRewrite(
                     mlir::Operation *op, mlir::ArrayRef< mlir::Value > ops,
-                    mlir::ConversionPatternRewriter &rewriter
+                    conversion_rewriter &rewriter
                 ) const override {
                     // Special case for functions, it may be that we can unify it with
                     // the generic one.

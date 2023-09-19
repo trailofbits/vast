@@ -6,12 +6,11 @@ VAST_RELAX_WARNINGS
 #include <mlir/Transforms/DialectConversion.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Conversion/Common/Types.hpp"
 #include "vast/Util/Common.hpp"
 
 namespace vast
 {
-    using Rewriter = mlir::ConversionPatternRewriter;
-
     template< typename Op >
     using OpConversionPattern = mlir::OpConversionPattern< Op >;
 
@@ -22,11 +21,13 @@ namespace vast::util
     template< typename Op >
     struct State
     {
-        Op op;
-        typename Op::Adaptor operands;
-        Rewriter &rewriter;
+        using adaptor_t = typename Op::Adaptor;
 
-        State(Op op, typename Op::Adaptor operands, Rewriter &rewriter)
+        Op op;
+        adaptor_t operands;
+        conversion_rewriter &rewriter;
+
+        State(Op op, adaptor_t operands, conversion_rewriter &rewriter)
             : op(op), operands(operands), rewriter(rewriter)
         {}
 
@@ -37,18 +38,17 @@ namespace vast::util
         }
     };
 
-    template< typename Op, template< typename > class Impl >
-    struct BasePattern : OpConversionPattern< Op >
+    template< typename operation_t, template< typename > class Impl >
+    struct BasePattern : OpConversionPattern< operation_t >
     {
-        using parent_t = mlir::OpConversionPattern< Op >;
-        using operation_t = Op;
-        using parent_t::parent_t;
+        using base = OpConversionPattern< operation_t >;
+        using base::base;
+
+        using adaptor_t = typename operation_t::Adaptor;
 
         mlir::LogicalResult matchAndRewrite(
-                operation_t op,
-                typename operation_t::Adaptor ops,
-                Rewriter &rewriter) const override
-        {
+            operation_t op, adaptor_t ops, conversion_rewriter &rewriter
+        ) const override {
             // Required, because even if the method is overloaded in one of the
             // children, this method must still compile.
             if constexpr( std::is_constructible_v< Impl< operation_t >,
@@ -65,26 +65,23 @@ namespace vast::util
 
     // TODO(lukas) Unfortunately, extending the class is rather tedious, might
     //             need to rethink how pieces fit together.
-    template< typename Op, typename TC, template< typename > class Impl >
-    struct TypeConvertingPattern : BasePattern< Op, Impl >
+    template< typename op_t, typename type_converter, template< typename > class Impl >
+    struct TypeConvertingPattern : BasePattern< op_t, Impl >
     {
-        using parent_t = BasePattern< Op, Impl >;
-        using operation_t = typename parent_t::operation_t;
+        using base = BasePattern< op_t, Impl >;
+        using adaptor_t = typename op_t::Adaptor;
 
-        TC &tc;
+        type_converter &tc;
 
-        TypeConvertingPattern(TC &tc, mcontext_t *mctx)
-            : parent_t(mctx), tc(tc)
+        TypeConvertingPattern(type_converter &tc, mcontext_t *mctx)
+            : base(mctx), tc(tc)
         {}
 
         mlir::LogicalResult matchAndRewrite(
-                operation_t op,
-                typename operation_t::Adaptor ops,
-                Rewriter &rewriter) const override
-        {
-            return Impl< operation_t >(tc, op, ops, rewriter).convert();
+            op_t op, adaptor_t ops, conversion_rewriter &rewriter
+        ) const override {
+            return Impl< op_t >(tc, op, ops, rewriter).convert();
         }
-
     };
 
 } // namespace vast::util

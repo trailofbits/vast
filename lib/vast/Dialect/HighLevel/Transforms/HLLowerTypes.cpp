@@ -17,6 +17,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
+#include "vast/Conversion/Common/Types.hpp"
+
 #include "vast/Util/Maybe.hpp"
 #include "vast/Util/TypeConverter.hpp"
 
@@ -307,7 +309,7 @@ namespace vast::hl {
 
         logical_result matchAndRewrite(
             operation op, llvm::ArrayRef< mlir_value > ops,
-            mlir::ConversionPatternRewriter &rewriter
+            conversion_rewriter &rewriter
         ) const override {
             if (mlir::isa< FuncOp >(op)) {
                 return mlir::failure();
@@ -351,7 +353,7 @@ namespace vast::hl {
         // But basically we need to copy the function with the converted
         // function type -> copy body -> fix arguments of the entry region.
         logical_result matchAndRewrite(
-            FuncOp fn, OpAdaptor adaptor, mlir::ConversionPatternRewriter &rewriter
+            FuncOp fn, OpAdaptor adaptor, conversion_rewriter &rewriter
         ) const override {
             auto fty = adaptor.getFunctionType();
             auto &tc = *getTypeConverter();
@@ -452,7 +454,7 @@ namespace vast::hl {
 
         logical_result matchAndRewrite(
             hl::StructDeclOp op, hl::StructDeclOp::Adaptor ops,
-            mlir::ConversionPatternRewriter &rewriter
+            conversion_rewriter &rewriter
         ) const override {
             auto field_tys = collect_field_tys(op);
             auto trg_ty    = mlir::TupleType::get(this->getContext(), field_tys);
