@@ -154,13 +154,12 @@ namespace vast
 
         };
 
-        template< typename Op >
-        struct abi_transform : match_and_rewrite_state_capture< Op >,
-                               abi_info_utils< abi_transform< Op > >
+        template< typename op_t >
+        struct abi_transform : match_and_rewrite_state_capture< op_t >,
+                               abi_info_utils< abi_transform< op_t > >
         {
-            using state_t = match_and_rewrite_state_capture< Op >;
-            using op_t = typename state_t::op_t;
-            using abi_utils = abi_info_utils< abi_transform< Op > >;
+            using state_t = match_and_rewrite_state_capture< op_t >;
+            using abi_utils = abi_info_utils< abi_transform< op_t > >;
             using abi_info_t = typename abi_utils::abi_info_t;
 
             using state_t::op;
@@ -335,14 +334,13 @@ namespace vast
 
         };
 
-        template< typename Op >
-        struct call_wrapper : abi_info_utils< call_wrapper< Op > >,
-                              match_and_rewrite_state_capture< Op >
+        template< typename op_t >
+        struct call_wrapper : abi_info_utils< call_wrapper< op_t > >,
+                              match_and_rewrite_state_capture< op_t >
         {
-            using state_t = match_and_rewrite_state_capture< Op >;
-            using op_t = typename state_t::op_t;
+            using state_t = match_and_rewrite_state_capture< op_t >;
 
-            using abi_utils = abi_info_utils< call_wrapper< Op > >;
+            using abi_utils = abi_info_utils< call_wrapper< op_t > >;
             using abi_info_t = typename abi_utils::abi_info_t;
 
             using state_t::op;
@@ -497,14 +495,13 @@ namespace vast
         };
 
 
-        template< typename Op >
-        struct return_wrapper : abi_info_utils< return_wrapper< Op > >,
-                                match_and_rewrite_state_capture< Op >
+        template< typename op_t >
+        struct return_wrapper : abi_info_utils< return_wrapper< op_t > >,
+                                match_and_rewrite_state_capture< op_t >
         {
-            using state_t = match_and_rewrite_state_capture< Op >;
-            using op_t = typename state_t::op_t;
+            using state_t = match_and_rewrite_state_capture< op_t >;
 
-            using abi_utils = abi_info_utils< return_wrapper< Op > >;
+            using abi_utils = abi_info_utils< return_wrapper< op_t > >;
             using abi_info_t = typename abi_utils::abi_info_t;
 
             using state_t::op;
@@ -606,7 +603,7 @@ namespace vast
 
             mlir::LogicalResult matchAndRewrite(
                     Op op, typename Op::Adaptor ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+                    conversion_rewriter &rewriter) const override
             {
                 auto abi_map_it = abi_info_map.find(op.getName().str());
                 if (abi_map_it == abi_info_map.end())
@@ -634,7 +631,7 @@ namespace vast
 
             mlir::LogicalResult matchAndRewrite(
                     Op op, typename Op::Adaptor ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+                    conversion_rewriter &rewriter) const override
             {
                 auto abi_map_it = abi_info_map.find(op.getCallee().str());
                 if (abi_map_it == abi_info_map.end())
@@ -663,7 +660,7 @@ namespace vast
 
             mlir::LogicalResult matchAndRewrite(
                     Op op, typename Op::Adaptor ops,
-                    mlir::ConversionPatternRewriter &rewriter) const override
+                    conversion_rewriter &rewriter) const override
             {
                 auto func = op->getParentOfType< abi::FuncOp >();
                 if (!func)

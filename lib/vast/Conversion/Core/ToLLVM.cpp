@@ -26,7 +26,6 @@ namespace vast
     {
         namespace LLVM = mlir::LLVM;
 
-        using conversion_rewriter = mlir::ConversionPatternRewriter;
 
         template< typename Op >
         struct lazy_base : operation_conversion_pattern< Op >, llvm_pattern_utils

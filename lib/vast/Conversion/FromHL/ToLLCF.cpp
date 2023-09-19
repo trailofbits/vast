@@ -36,8 +36,8 @@ namespace vast::conv
     {
         static inline const char *tie_fail = "base_pattern::tie failed.";
 
-        auto coerce_condition(auto op, mlir::ConversionPatternRewriter &rewriter)
-        -> std::optional< mlir::Value >
+        auto coerce_condition(auto op, conversion_rewriter &rewriter)
+            -> std::optional< mlir::Value >
         {
             auto int_type = op.getType().template dyn_cast< mlir::IntegerType >();
             if (!int_type)
@@ -70,7 +70,7 @@ namespace vast::conv
             return cond_yield;
         }
 
-        auto coerce_yield( hl::CondYieldOp op, mlir::ConversionPatternRewriter &bld )
+        auto coerce_yield( hl::CondYieldOp op, conversion_rewriter &bld )
         {
             return guarded( bld, [ & ] {
                 bld.setInsertionPointAfter( op );
@@ -251,7 +251,7 @@ namespace vast::conv
             mlir::LogicalResult matchAndRewrite(
                 hl::IfOp op,
                 hl::IfOp::Adaptor ops,
-                mlir::ConversionPatternRewriter &rewriter) const override
+                conversion_rewriter &rewriter) const override
             {
                 auto bld = rewriter_wrapper_t( rewriter );
 
@@ -323,7 +323,7 @@ namespace vast::conv
             mlir::LogicalResult matchAndRewrite(
                 hl::WhileOp op,
                 hl::WhileOp::Adaptor ops,
-                mlir::ConversionPatternRewriter &rewriter) const override
+                conversion_rewriter &rewriter) const override
             {
                 auto bld = rewriter_wrapper_t( rewriter );
 
@@ -377,7 +377,7 @@ namespace vast::conv
             mlir::LogicalResult matchAndRewrite(
                 op_t op,
                 typename op_t::Adaptor ops,
-                mlir::ConversionPatternRewriter &rewriter) const override
+                conversion_rewriter &rewriter) const override
             {
                 auto bld = rewriter_wrapper_t( rewriter );
                 auto scope = rewriter.create< ll::Scope >( op.getLoc() );
@@ -438,7 +438,7 @@ namespace vast::conv
             mlir::LogicalResult matchAndRewrite(
                 op_t op,
                 typename op_t::Adaptor ops,
-                mlir::ConversionPatternRewriter &rewriter) const override
+                conversion_rewriter &rewriter) const override
             {
                 rewriter.create< trg_t >( op.getLoc(), ops.getOperands() );
                 rewriter.eraseOp( op );

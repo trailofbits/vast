@@ -27,8 +27,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast
 {
-    using conversion_rewriter = mlir::ConversionPatternRewriter;
-
     struct lazy_utils
     {
         static auto lazy_side(auto &&rewriter, mlir::Location loc, mlir::Region &side)
