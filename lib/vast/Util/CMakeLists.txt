@@ -2,5 +2,6 @@
 
 add_vast_library(Util
     Region.cpp
+    TypeConverter.cpp
     Warnings.cpp
 )

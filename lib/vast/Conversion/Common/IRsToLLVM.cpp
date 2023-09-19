@@ -305,6 +305,7 @@ namespace vast::conv::irstollvm
         using base = base_pattern< op_t >;
         using base::base;
 
+
         logical_result matchAndRewrite(
                 op_t func_op, typename op_t::Adaptor ops,
                 conversion_rewriter &rewriter) const override
@@ -317,10 +318,10 @@ namespace vast::conv::irstollvm
                 tc.get_conversion_signature(func_op, /* variadic */ true);
 
             // Type converter failed.
-            if (!maybe_target_type || !*maybe_target_type || !maybe_signature)
-            {
-                VAST_PATTERN_FAIL("Failed to convert function type: {0}",
-                                  func_op.getFunctionType());
+            if (!maybe_target_type || !*maybe_target_type || !maybe_signature) {
+                VAST_PATTERN_FAIL(
+                    "Failed to convert function type: {0}", func_op.getFunctionType()
+                );
             }
 
             auto target_type = *maybe_target_type;
@@ -334,14 +335,12 @@ namespace vast::conv::irstollvm
             // TODO(lukas): Linkage?
             auto linkage = LLVM::Linkage::External;
             auto new_func = rewriter.create< LLVM::LLVMFuncOp >(
-                    func_op.getLoc(), func_op.getName(), target_type,
-                    linkage, false, LLVM::CConv::C);
-            rewriter.inlineRegionBefore(func_op.getBody(),
-                                        new_func.getBody(), new_func.end());
-            util::convert_region_types(func_op, new_func, signature);
+                func_op.getLoc(), func_op.getName(), target_type, linkage, false, LLVM::CConv::C
+            );
+            rewriter.inlineRegionBefore(func_op.getBody(), new_func.getBody(), new_func.end());
+            tc::convert_region_types(func_op, new_func, signature);
 
-            if (mlir::failed(args_to_allocas(new_func, rewriter)))
-            {
+            if (mlir::failed(args_to_allocas(new_func, rewriter))) {
                 VAST_PATTERN_FAIL("Failed to convert func arguments");
             }
             rewriter.eraseOp(func_op);
@@ -396,10 +395,7 @@ namespace vast::conv::irstollvm
             return logical_result::success();
         }
 
-        static void legalize(conversion_target &target)
-        {
-            target.addIllegalOp< op_t >();
-        }
+        static void legalize(conversion_target &target) { target.addIllegalOp< op_t >(); }
     };
 
     struct constant_int : base_pattern< hl::ConstantOp >
@@ -1110,7 +1106,7 @@ namespace vast::conv::irstollvm
     struct IRsToLLVMPass : ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >
     {
         using base = ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >;
-        using config_t = typename base::config_t;
+        using config = typename base::config;
 
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
@@ -1142,7 +1138,7 @@ namespace vast::conv::irstollvm
             return target;
         }
 
-        static void populate_conversions(config_t &config) {
+        static void populate_conversions(config &cfg) {
             base::populate_conversions_base<
                 one_to_one_conversions,
                 inline_region_from_op_conversions,
@@ -1156,7 +1152,7 @@ namespace vast::conv::irstollvm
                 label_patterns,
                 lazy_op_type_conversions,
                 ll_cf::conversions
-            >(config);
+            >(cfg);
         }
 
         static void set_llvm_opts(mlir::LowerToLLVMOptions &llvm_options) {

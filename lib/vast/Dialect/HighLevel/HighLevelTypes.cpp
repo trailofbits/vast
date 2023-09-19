@@ -169,7 +169,6 @@ namespace vast::hl
     using walk_types = walk_fn< mlir_type >;
     using walk_attrs = walk_fn< mlir::Attribute >;
 
-
     auto ArrayType::dim_and_type() -> std::tuple< dimensions_t, mlir_type >
     {
         dimensions_t dims;

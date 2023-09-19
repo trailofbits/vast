@@ -2,26 +2,49 @@
 
 #pragma once
 
+#include "vast/Util/Warnings.hpp"
+
 VAST_RELAX_WARNINGS
 #include <mlir/IR/Types.h>
+#include <mlir/Transforms/DialectConversion.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/Core/CoreTypes.hpp"
 
+#include "vast/Util/Common.hpp"
 #include "vast/Util/Maybe.hpp"
 
-namespace vast::util
+namespace vast::tc
 {
+    using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
+    using maybe_signature_conversion_t = std::optional< signature_conversion_t >;
+
+    struct base_type_converter : mlir::TypeConverter
+    {
+        using base = mlir::TypeConverter;
+        bool isSignatureLegal(core::FunctionType ty);
+    };
+
+    struct identity_type_converter : base_type_converter
+    {
+        using base = base_type_converter;
+
+        template< typename... args_t >
+        identity_type_converter(args_t &&...args) : base(std::forward< args_t >(args)...) {
+            addConversion([&](mlir_type t) { return t; });
+        }
+    };
+
     // Walks all types (including nested types for aggregates) and calls the unary function
     // on each of them.
     template< typename UnaryFn >
-    void walk_type(mlir::Type root, UnaryFn &&fn)
+    void walk_type(mlir_type root, UnaryFn &&fn)
     {
         fn(root);
-        if (auto aggregate = root.dyn_cast< mlir::SubElementTypeInterface >())
-            aggregate.walkSubTypes(std::forward< UnaryFn >(fn));
-
+        if (auto agg = mlir::dyn_cast< mlir::SubElementTypeInterface >(root)) {
+            agg.walkSubTypes(std::forward< UnaryFn >(fn));
+        }
     }
 
     // TODO(lukas): `fn` is copied.
@@ -47,23 +70,17 @@ namespace vast::util
         return out;
     }
 
-
     template< typename R, typename UnaryPred >
-    bool for_each_subtype(R &&type, UnaryPred &&pred)
-    {
-        return walk_type(std::forward< R >(type),
-                         std::forward< UnaryPred >(pred),
-                         std::logical_and{}, true);
+    bool all_of_subtypes(R &&type, UnaryPred &&pred) {
+        return walk_type(
+            std::forward< R >(type), std::forward< UnaryPred >(pred), std::logical_and{}, true
+        );
     }
 
-    template< typename Self >
-    struct TCHelpers
+    template< typename derived >
+    struct mixins
     {
-        using types_t = mlir::SmallVector< mlir::Type >;
-        using maybe_type_t = llvm::Optional< mlir::Type >;
-        using maybe_types_t = llvm::Optional< types_t >;
-
-        Self &self() { return static_cast< Self & >(*this); }
+        derived &self() { return static_cast< derived & >(*this); }
 
         auto convert_type() { return [&](auto t) { return self().do_conversion(t); }; }
         auto convert_type_to_type()
@@ -71,14 +88,14 @@ namespace vast::util
             return [&](auto t) { return self().convert_type_to_type(t); };
         }
 
-        maybe_types_t convert_type_to_types(mlir::Type t, std::size_t count = 1)
+        maybe_types_t convert_type_to_types(mlir_type t, std::size_t count = 1)
         {
             return Maybe(t).and_then(self().convert_type())
                            .keep_if([&](const auto &ts) { return ts->size() == count; })
                            .template take_wrapped< maybe_types_t >();
         }
 
-        maybe_type_t convert_type_to_type(mlir::Type t)
+        maybe_type_t convert_type_to_type(mlir_type t)
         {
             return Maybe(t).and_then([&](auto t){ return self().convert_type_to_types(t, 1); })
                            .and_then([&](auto ts){ return *ts->begin(); })
@@ -126,31 +143,6 @@ namespace vast::util
         }
     };
 
-    // Comment out
-    template< typename Impl >
-    struct TypeConverterWrapper
-    {
-        using types_t = mlir::SmallVector< mlir::Type >;
-        using maybe_type_t = llvm::Optional< mlir::Type >;
-        using maybe_types_t = llvm::Optional< types_t >;
-
-        Impl &impl;
-
-        TypeConverterWrapper(Impl &impl_) : impl(impl_) {}
-
-        Impl *operator->() { return &impl; }
-        const Impl *operator->() const { return &impl; }
-
-        maybe_types_t do_conversion(mlir::Type t)
-        {
-            types_t out;
-            if (mlir::succeeded(impl.convertTypes(t, out)))
-                return { std::move( out ) };
-            return {};
-        }
-    };
-
-
     // TODO(lukas): `rewriter.convertRegionTypes` should do the job, but it does not.
     //              It' hard to debug, but it seems to leave dangling values
     //              instead of correctly rewiring SSA data flow. Investigate, we
@@ -172,15 +164,6 @@ namespace vast::util
             block.eraseArgument(0);
     }
 
-    struct IdentityTC : mlir::TypeConverter
-    {
-        template< typename ... Args >
-        IdentityTC(Args && ... args) : mlir::TypeConverter(std::forward< Args >(args) ...)
-        {
-            addConversion([&](mlir::Type t) { return t; });
-        }
-    };
-
     auto convert_type_attr(auto &type_converter) {
         return [&type_converter](mlir::TypeAttr attr) {
             return Maybe(attr.getValue())
@@ -190,4 +173,4 @@ namespace vast::util
         };
     }
 
-} // namespace vast::util
+} // namespace vast::tc

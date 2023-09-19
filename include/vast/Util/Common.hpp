@@ -6,23 +6,22 @@
 
 VAST_RELAX_WARNINGS
 #include <clang/AST/Expr.h>
-#include <mlir/IR/MLIRContext.h>
-#include <mlir/IR/Value.h>
-#include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/Builders.h>
+#include <mlir/IR/BuiltinOps.h>
+#include <mlir/IR/MLIRContext.h>
 #include <mlir/IR/OwningOpRef.h>
+#include <mlir/IR/Value.h>
 VAST_UNRELAX_WARNINGS
 
-#include <variant>
 #include <optional>
+#include <variant>
 
-namespace vast
-{
-    using Type = mlir::Type;
-    using Value = mlir::Value;
+namespace vast {
+    using Type      = mlir::Type;
+    using Value     = mlir::Value;
     using Attribute = mlir::Attribute;
     using Operation = mlir::Operation;
-    using Block = mlir::Block;
+    using Block     = mlir::Block;
 
     using Region    = mlir::Region;
     using Builder   = mlir::OpBuilder;
@@ -37,9 +36,7 @@ namespace vast
     using Printer     = mlir::OpAsmPrinter;
     using FoldResult  = mlir::OpFoldResult;
 
-    using BuilderCallback = std::optional<
-        llvm::function_ref< void(Builder &, Location) >
-    >;
+    using BuilderCallback = std::optional< llvm::function_ref< void(Builder &, Location) > >;
 
     using BuilderCallBackFn = std::function< void(Builder &, Location) >;
 
@@ -47,13 +44,13 @@ namespace vast
     using mcontext_t = mlir::MLIRContext;
 
     // FIXME: eventually replace with tower_module
-    using vast_module = mlir::ModuleOp;
+    using vast_module       = mlir::ModuleOp;
     using owning_module_ref = mlir::OwningOpRef< vast_module >;
 
     using mlir_type  = mlir::Type;
     using clang_type = clang::Type;
 
-    using operation  = mlir::Operation*;
+    using operation  = mlir::Operation *;
     using mlir_value = mlir::Value;
     using op_operand = mlir::OpOperand;
 
@@ -62,6 +59,14 @@ namespace vast
 
     using insertion_guard = Builder::InsertionGuard;
 
+    using attr_t       = mlir::Attribute;
     using maybe_attr_t = std::optional< mlir::Attribute >;
+
+    using attrs_t       = mlir::SmallVector< mlir::Attribute >;
+    using maybe_attrs_t = std::optional< attrs_t >;
+
+    using types_t       = mlir::SmallVector< mlir_type >;
+    using maybe_type_t  = llvm::Optional< mlir_type >;
+    using maybe_types_t = llvm::Optional< types_t >;
 
 } // namespace vast

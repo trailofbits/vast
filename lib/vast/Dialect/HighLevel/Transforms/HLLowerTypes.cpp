@@ -98,15 +98,11 @@ namespace vast::hl {
 
     struct TypeConverter : mlir::TypeConverter
     {
-        using types_t       = mlir::SmallVector< mlir_type >;
-        using maybe_type_t  = llvm::Optional< mlir_type >;
-        using maybe_types_t = llvm::Optional< types_t >;
-
         const mlir::DataLayout &dl;
         mlir::MLIRContext &mctx;
 
-        TypeConverter(const mlir::DataLayout &dl_, mlir::MLIRContext &mctx_)
-            : mlir::TypeConverter(), dl(dl_), mctx(mctx_)
+        TypeConverter(const mlir::DataLayout &dl, mcontext_t &mctx)
+            : mlir::TypeConverter(), dl(dl), mctx(mctx)
         {
             // Fallthrough option - we define it first as it seems the framework
             // goes from the last added conversion.
@@ -331,7 +327,7 @@ namespace vast::hl {
                 }
 
                 mlir::AttrTypeReplacer replacer;
-                replacer.addReplacement(util::convert_type_attr(tc));
+                replacer.addReplacement(tc::convert_type_attr(tc));
                 replacer.addReplacement(convert_high_level_typed_attr());
                 replacer.recursivelyReplaceElementsIn(op, true /* replace attrs */);
             };
@@ -349,10 +345,6 @@ namespace vast::hl {
 
         using Base::getTypeConverter;
 
-        using attrs_t                = mlir::SmallVector< mlir::Attribute, 4 >;
-        using maybe_attrs_t          = std::optional< attrs_t >;
-        using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
-
         // As the reference how to lower functions, the `StandardToLLVM`
         // conversion is used.
         //
@@ -364,7 +356,7 @@ namespace vast::hl {
             auto fty = adaptor.getFunctionType();
             auto &tc = *getTypeConverter();
 
-            signature_conversion_t sigconvert(fty.getNumInputs());
+            tc::signature_conversion_t sigconvert(fty.getNumInputs());
             if (mlir::failed(tc.convertSignatureArgs(fty.getInputs(), sigconvert))) {
                 return mlir::failure();
             }
