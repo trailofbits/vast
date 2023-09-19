@@ -42,18 +42,15 @@ namespace vast
             return terminator;
         }
 
-        using TypeConverter = util::tc::LLVMTypeConverter;
-
         template< typename O >
         struct BasePattern : mlir::ConvertOpToLLVMPattern< O >
         {
             using Base = mlir::ConvertOpToLLVMPattern< O >;
-            using TC_t = util::TypeConverterWrapper< TypeConverter >;
 
-            TypeConverter &tc;
+            tc::LLVMTypeConverter &tc;
 
-            BasePattern(TypeConverter &tc_) : Base(tc_), tc(tc_) {}
-            TypeConverter &type_converter() const { return tc; }
+            BasePattern(tc::LLVMTypeConverter &tc_) : Base(tc_), tc(tc_) {}
+            tc::LLVMTypeConverter &type_converter() const { return tc; }
         };
 
         struct vardecl_op : BasePattern< hl::VarDeclOp >
@@ -109,7 +106,6 @@ namespace vast
             }
         };
 
-
     } // namespace pattern
 
     struct HLToLLVarsPass : HLToLLVarsBase< HLToLLVarsPass >
@@ -132,7 +128,7 @@ namespace vast
 
             mlir::LowerToLLVMOptions llvm_options(&mctx);
             llvm_options.useBarePtrCallConv = true;
-            pattern::TypeConverter type_converter(&mctx, llvm_options, &dl_analysis);
+            tc::LLVMTypeConverter type_converter(&mctx, llvm_options, &dl_analysis);
 
             mlir::RewritePatternSet patterns(&mctx);
 

@@ -31,15 +31,13 @@ namespace vast::hl {
 
         namespace pattern {
             struct type_converter
-                : mlir::TypeConverter
-                , util::TCHelpers< type_converter >
+                : tc::base_type_converter
+                , tc::mixins< type_converter >
             {
-                using base = mlir::TypeConverter;
-
                 vast_module mod;
 
                 type_converter(mcontext_t &mctx, vast_module mod)
-                    : base(), mod(mod)
+                    : tc::base_type_converter(), mod(mod)
                 {
                     addConversion([&](mlir_type t) { return this->convert(t); });
                     addConversion([&](mlir::SubElementTypeInterface t) {
@@ -122,7 +120,7 @@ namespace vast::hl {
 
                         // TODO unify with high level type conversion
                         mlir::AttrTypeReplacer replacer;
-                        replacer.addReplacement(util::convert_type_attr(tc));
+                        replacer.addReplacement(tc::convert_type_attr(tc));
                         replacer.recursivelyReplaceElementsIn(op, true /* replace attrs */);
                     };
 

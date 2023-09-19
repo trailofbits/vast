@@ -170,8 +170,9 @@ namespace vast {
     // }
     //
     template< typename derived_t, template< typename > typename base_t >
-    struct ModuleLLVMConversionPassMixin : base_t< derived_t >,
-                                           populate_patterns< derived_t >
+    struct ModuleLLVMConversionPassMixin
+        : base_t< derived_t >
+        , populate_patterns< derived_t >
     {
         using base = base_t< derived_t >;
         using populate = populate_patterns< derived_t >;
@@ -182,40 +183,37 @@ namespace vast {
 
         using rewrite_pattern_set = mlir::RewritePatternSet;
 
-        using type_converter = util::tc::LLVMTypeConverter;
+        using llvm_type_converter = tc::LLVMTypeConverter;
 
-        struct config_t
+        struct config
         {
             rewrite_pattern_set patterns;
             conversion_target target;
             // Type converter cannot be moved!
-            type_converter &converter;
+            llvm_type_converter &tc;
 
-            mlir::MLIRContext *getContext() { return patterns.getContext(); }
+            mcontext_t *getContext() { return patterns.getContext(); }
 
-            config_t(rewrite_pattern_set patterns, conversion_target target,
-                     type_converter &converter)
-                : patterns(std::move(patterns)),
-                  target(std::move(target)),
-                  converter(converter)
-            {}
+            config(
+                rewrite_pattern_set patterns, conversion_target target, llvm_type_converter &tc
+            )
+                : patterns(std::move(patterns)), target(std::move(target)), tc(tc) {}
 
-            config_t( config_t &&o )
-                : patterns(std::move(o.patterns)),
-                  target(std::move(o.target)),
-                  converter(o.converter)
+            config(config &&other)
+                : patterns(std::move(other.patterns))
+                , target(std::move(other.target))
+                , tc(other.tc)
             {}
         };
 
         auto &self() { return static_cast< derived_t & >(*this); }
 
         // Override
-        void populate_conversions(config_t &){}
+        void populate_conversions(config &){}
 
         template< typename pattern >
-        static void add_pattern(config_t &config)
-        {
-            config.patterns.template add< pattern >(config.converter);
+        static void add_pattern(config &cfg) {
+            cfg.patterns.template add< pattern >(cfg.tc);
         }
 
         void run_on_operation() {
@@ -226,14 +224,15 @@ namespace vast {
             mlir::LowerToLLVMOptions llvm_options{ &ctx };
             derived_t::set_llvm_opts(llvm_options);
 
-            auto tc = type_converter(&ctx, llvm_options, &dl_analysis);
-            auto config = config_t { rewrite_pattern_set(&ctx),
-                                     derived_t::create_conversion_target(ctx),
-                                     tc };
-            // populate all patterns
-            self().populate_conversions(config);
+            auto tc = llvm_type_converter(&ctx, llvm_options, &dl_analysis);
+            auto cfg = config(
+                rewrite_pattern_set(&ctx), derived_t::create_conversion_target(ctx), tc
+            );
 
-            if (failed(populate::apply_conversions(std::move(config))))
+            // populate all patterns
+            self().populate_conversions(cfg);
+
+            if (failed(populate::apply_conversions(std::move(cfg))))
                 return signalPassFailure();
         }
 

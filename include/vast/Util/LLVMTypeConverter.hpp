@@ -15,32 +15,18 @@ VAST_UNRELAX_WARNINGS
 
 // TODO(lukas): Possibly move this out of Util?
 
-namespace vast::util::tc
+namespace vast::tc
 {
-    // TODO(lukas): Implement.
-    static inline bool is_variadic(mlir::func::FuncOp op)
-    {
-        return true;
-    }
 
-    static inline auto convert_fn_t(auto &tc, mlir::func::FuncOp op)
-    -> std::tuple< mlir::TypeConverter::SignatureConversion, mlir::Type >
-    {
-        mlir::TypeConverter::SignatureConversion conversion(op.getNumArguments());
-        auto target_type = tc.convertFunctionSignature(
-                op.getFunctionType(), is_variadic(op), conversion);
-        return { std::move(conversion), target_type };
-    }
+    namespace LLVM = mlir::LLVM;
 
-    struct LLVMTypeConverter : mlir::LLVMTypeConverter, util::TCHelpers< LLVMTypeConverter >
+    struct LLVMTypeConverter : mlir::LLVMTypeConverter, tc::mixins< LLVMTypeConverter >
     {
-        using parent_t = mlir::LLVMTypeConverter;
-        using helpers_t = util::TCHelpers< LLVMTypeConverter >;
-        using maybe_type_t = typename util::TCHelpers< LLVMTypeConverter >::maybe_type_t;
-        using self_t = LLVMTypeConverter;
+        using base = mlir::LLVMTypeConverter;
+        using helpers_t = tc::mixins< LLVMTypeConverter >;
 
         template< typename ... Args >
-        LLVMTypeConverter(Args && ... args) : parent_t(std::forward< Args >(args) ... )
+        LLVMTypeConverter(Args && ... args) : base(std::forward< Args >(args) ... )
         {
             addConversion([&](hl::LabelType t) { return t; });
             addConversion([&](hl::DecayedType t) { return this->convert_decayed(t); });
@@ -55,7 +41,7 @@ namespace vast::util::tc
                     return this->convert_fn_t(t);
             });
             addConversion([&](mlir::NoneType t) {
-                    return mlir::LLVM::LLVMVoidType::get(t.getContext());
+                    return LLVM::LLVMVoidType::get(t.getContext());
             });
 
         }
@@ -83,7 +69,7 @@ namespace vast::util::tc
             return [&](auto t)
             {
                 VAST_ASSERT(!t.template isa< mlir::NoneType >());
-                return mlir::LLVM::LLVMPointerType::get(t);
+                return LLVM::LLVMPointerType::get(t);
             };
         }
 
@@ -93,62 +79,52 @@ namespace vast::util::tc
             return {};
         }
 
-        maybe_type_t convert_lvalue_type(hl::LValueType t)
-        {
-            return Maybe(t.getElementType()).and_then(helpers_t::convert_type_to_type())
-                                            .unwrap()
-                                            .and_then(self_t::make_ptr_type())
-                                            .take_wrapped< maybe_type_t >();
+        maybe_type_t convert_lvalue_type(hl::LValueType t) {
+            return Maybe(t.getElementType())
+                .and_then(helpers_t::convert_type_to_type())
+                .unwrap()
+                .and_then(make_ptr_type())
+                .take_wrapped< maybe_type_t >();
         }
 
-        maybe_type_t convert_pointer_type(hl::PointerType t)
-        {
-            return Maybe(t.getElementType()).and_then(convert_type_to_type())
-                                            .unwrap()
-                                            .and_then(self_t::make_ptr_type())
-                                            .take_wrapped< maybe_type_t >();
+        maybe_type_t convert_pointer_type(hl::PointerType t) {
+            return Maybe(t.getElementType())
+                .and_then(convert_type_to_type())
+                .unwrap()
+                .and_then(make_ptr_type())
+                .take_wrapped< maybe_type_t >();
         }
 
-        auto make_array(auto shape_)
-        {
-            return [shape = std::move(shape_)](auto t)
-            {
-                mlir::Type out = mlir::LLVM::LLVMArrayType::get(t, shape.back());
-                for (int i = shape.size() - 2; i >= 0; --i)
-                {
-                    out = mlir::LLVM::LLVMArrayType::get(out, shape[i]);
+        auto make_array(auto shape) {
+            return [shape = std::move(shape)](auto t) {
+                auto out = LLVM::LLVMArrayType::get(t, shape.back());
+                for (int i = shape.size() - 2; i >= 0; --i) {
+                    out = LLVM::LLVMArrayType::get(out, shape[i]);
                 }
                 return out;
             };
         }
 
-        maybe_type_t convert_memref_type(mlir::MemRefType t)
-        {
-            return Maybe(t.getElementType()).and_then(helpers_t::convert_type_to_type())
-                                            .unwrap()
-                                            .and_then(make_array(t.getShape()))
-                                            .take_wrapped< maybe_type_t >();
+        maybe_type_t convert_memref_type(mlir::MemRefType t) {
+            return Maybe(t.getElementType())
+                .and_then(helpers_t::convert_type_to_type())
+                .unwrap()
+                .and_then(make_array(t.getShape()))
+                .take_wrapped< maybe_type_t >();
         }
 
-        maybe_type_t convert_memref_type(mlir::UnrankedMemRefType t)
-        {
-            return {};
-        }
+        maybe_type_t convert_memref_type(mlir::UnrankedMemRefType t) { return {}; }
 
-        using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
-        using maybe_signature_conversion_t = std::optional< signature_conversion_t >;
-
-        maybe_signature_conversion_t get_conversion_signature(mlir::FunctionOpInterface fn,
-                                                              bool variadic)
-        {
+        maybe_signature_conversion_t
+        get_conversion_signature(mlir::FunctionOpInterface fn, bool variadic) {
             signature_conversion_t conversion(fn.getNumArguments());
             auto fn_type = fn.getFunctionType().dyn_cast< core::FunctionType >();
             VAST_ASSERT(fn_type);
-            for (auto arg : llvm::enumerate(fn_type.getInputs()))
-            {
+            for (auto arg : llvm::enumerate(fn_type.getInputs())) {
                 auto cty = convert_arg_t(arg.value());
-                if (!cty)
+                if (!cty) {
                     return {};
+                }
                 conversion.addInputs(arg.index(), *cty);
             }
             return { std::move(conversion) };
@@ -163,12 +139,12 @@ namespace vast::util::tc
                 return {};
 
             // LLVM function can have only one return value;
-            VAST_ASSERT(r_res->size() <= 1 );
+            VAST_ASSERT(r_res->size() <= 1);
 
             if (r_res->empty())
-                r_res->emplace_back(mlir::LLVM::LLVMVoidType::get(t.getContext()));
+                r_res->emplace_back(LLVM::LLVMVoidType::get(t.getContext()));
 
-            return mlir::LLVM::LLVMFunctionType::get(r_res->front(), *a_res, t.isVarArg());
+            return LLVM::LLVMFunctionType::get(r_res->front(), *a_res, t.isVarArg());
         }
 
         maybe_types_t on_types(auto range, auto fn)
@@ -203,32 +179,29 @@ namespace vast::util::tc
     // TODO(lukas): What about type aliases.
     struct FullLLVMTypeConverter : LLVMTypeConverter
     {
-        using parent_t      = LLVMTypeConverter;
-        using maybe_type_t  = typename parent_t::maybe_type_t;
-        using maybe_types_t = typename parent_t::maybe_types_t;
+        using base = LLVMTypeConverter;
 
-        template< typename ... Args >
-        FullLLVMTypeConverter(Args && ... args) : parent_t(std::forward< Args >(args) ... )
+        template< typename... Args >
+        FullLLVMTypeConverter(Args &&...args)
+            : base(std::forward< Args >(args)...)
         {
             addConversion([&](hl::RecordType t) { return convert_record_type(t); });
             addConversion([&](hl::ElaboratedType t) { return convert_elaborated_type(t); });
         }
 
-        maybe_type_t convert_elaborated_type(hl::ElaboratedType t)
-        {
+        maybe_type_t convert_elaborated_type(hl::ElaboratedType t) {
             return this->convert_type_to_type(t.getElementType());
         }
 
-        maybe_type_t convert_record_type(hl::RecordType t)
-        {
+        maybe_type_t convert_record_type(hl::RecordType t) {
             auto &mctx = this->getContext();
-            auto name = t.getName();
-            auto raw = mlir::LLVM::LLVMStructType::getIdentified(&mctx, name);
-            if (!raw || raw.getName() != name)
+            auto name  = t.getName();
+            auto raw   = LLVM::LLVMStructType::getIdentified(&mctx, name);
+            if (!raw || raw.getName() != name) {
                 return {};
+            }
             return { raw };
         }
-
     };
 
-} // namespace vast::util
+} // namespace vast::tc
