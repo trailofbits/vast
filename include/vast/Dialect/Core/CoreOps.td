@@ -7,6 +7,8 @@ include "mlir/IR/OpBase.td"
 
 include "mlir/IR/RegionKindInterface.td"
 
+include "vast/Dialect/Core/CoreTraits.td"
+
 def Core_ScopeOp : Core_Op< "scope", [NoTerminator, DeclareOpInterfaceMethods<RegionKindInterface>] >
 {
   let summary = "VAST scope declaration";
@@ -19,6 +21,18 @@ def Core_ScopeOp : Core_Op< "scope", [NoTerminator, DeclareOpInterfaceMethods<Re
   let regions = (region AnyRegion:$body);
 
   let assemblyFormat = [{ $body attr-dict }];
+}
+
+def Core_ImplicitReturnOp
+  : Core_Op< "implict.return", [soft_terminator] >
+  , Arguments<(ins Variadic<AnyType>:$result)>
+{
+  let summary = "VAST implicit return";
+  let description = [{
+    Op representing return that wasn't explicitely written in the source (e.g. in void fun(){}).
+  }];
+
+  let assemblyFormat = "$result `:` type($result) attr-dict";
 }
 
 #endif //VAST_DIALECT_CORE_OPS
