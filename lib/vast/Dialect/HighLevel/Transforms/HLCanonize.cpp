@@ -47,7 +47,7 @@ namespace vast::hl
                     auto &last_block = fn.getBody().back();
                     if (last_block.empty()
                         || !is_one_of_mlir< hl::ReturnOp, core::ImplicitReturnOp >(
-                            last_block.back()
+                            &last_block.back()
                         ))
                     {
                         insert_void_return(fn, rewriter);

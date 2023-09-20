@@ -70,7 +70,7 @@ namespace vast {
     using maybe_types_t = llvm::Optional< types_t >;
 
     template< typename... types >
-    bool is_one_of_mlir(auto &arg)
+    bool is_one_of_mlir(auto arg)
     {
         return (... || mlir::isa< types >(arg));
     }
