@@ -426,10 +426,33 @@ namespace vast::conv::irstollvm
 
         }
 
+        logical_result handle_void_const(
+                hl::ConstantOp op, conversion_rewriter &rewriter) const
+        {
+            auto result = op.getResult();
+            if (result.hasOneUse()) {
+                auto user = result.getUses().begin()->getOwner();
+                if (is_one_of_mlir<hl::ReturnOp, ll::ReturnOp, core::ImplicitReturnOp >(
+                            user
+                ))
+                {
+                    rewriter.eraseOp(user);
+                    rewriter.eraseOp(op);
+                    rewriter.create< LLVM::ReturnOp >(op.getLoc(), mlir::ValueRange());
+                    return logical_result::success();
+                }
+            }
+            return logical_result::failure();
+
+        }
+
         logical_result matchAndRewrite(
                 hl::ConstantOp op, hl::ConstantOp::Adaptor ops,
                 conversion_rewriter &rewriter) const override
         {
+            if (mlir::isa< core::VoidType >(op.getResult().getType())) {
+                return handle_void_const(op, rewriter);
+            }
             rewriter.replaceOp(op, {make_from(op, rewriter, this->type_converter())});
             return logical_result::success();
         }
@@ -533,6 +556,8 @@ namespace vast::conv::irstollvm
         }
     };
 
+    // NOTE(jezko): Void returns (and implicit returns) are handled by
+    // constant op rewriter which needs to remove the void constant
     using return_conversions = util::type_list<
           ret< hl::ReturnOp >
         , ret< ll::ReturnOp >
