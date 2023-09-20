@@ -43,6 +43,9 @@ namespace vast::tc
             addConversion([&](mlir::NoneType t) {
                     return LLVM::LLVMVoidType::get(t.getContext());
             });
+            addConversion([&](core::VoidType t) {
+                    return LLVM::LLVMVoidType::get(t.getContext());
+            });
 
         }
 
