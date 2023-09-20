@@ -115,7 +115,10 @@ def HLCanonize : Pass<"vast-hl-canonize", "mlir::ModuleOp"> {
   }];
 
   let constructor = "vast::hl::createHLCanonizePass()";
-  let dependentDialects = ["vast::hl::HighLevelDialect"];
+  let dependentDialects = [
+    "vast::hl::HighLevelDialect",
+    "vast::core::CoreDialect"
+  ];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_PASSES_TD
