@@ -16,6 +16,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include "PassesDetails.hpp"
 
 namespace vast::hl
@@ -31,7 +33,7 @@ namespace vast::hl
             rewriter->setInsertionPointToEnd(&op.getBody().back());
             auto void_type = rewriter->getType< hl::VoidType >();
             auto void_const = rewriter->create< hl::ConstantOp >(op.getLoc(), void_type);
-            rewriter->create< hl::ReturnOp >(op.getLoc(), void_const.getResult());
+            rewriter->create< core::ImplicitReturnOp >(op.getLoc(), void_const.getResult());
         }
 
         void run(Operation *op, rewriter_t &rewriter) {
@@ -43,8 +45,13 @@ namespace vast::hl
             if (auto fn = mlir::dyn_cast< hl::FuncOp >(op)) {
                 if(!fn.isDeclaration()) {
                     auto &last_block = fn.getBody().back();
-                    if (last_block.empty() || !mlir::isa< hl::ReturnOp >(last_block.back()))
+                    if (last_block.empty()
+                        || !is_one_of_mlir< hl::ReturnOp, core::ImplicitReturnOp >(
+                            last_block.back()
+                        ))
+                    {
                         insert_void_return(fn, rewriter);
+                    }
                 }
             }
             for (auto &region : op->getRegions()) {
