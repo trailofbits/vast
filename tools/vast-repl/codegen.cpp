@@ -25,7 +25,7 @@ namespace vast::cc {
 namespace vast::repl::codegen {
 
     std::unique_ptr< clang::ASTUnit > ast_from_source(string_ref source) {
-        return clang::tooling::buildASTFromCode(source);
+        return clang::tooling::buildASTFromCodeWithArgs(source, { "-xc" });
     }
 
     static void error_handler(void *user_data, const char *msg, bool get_crash_diag) {
