@@ -17,6 +17,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
+#include "vast/Dialect/Core/CoreTypes.hpp"
+#include "vast/Dialect/Core/CoreAttributes.hpp"
+
 #include "vast/Conversion/Common/Types.hpp"
 
 #include "vast/Util/Maybe.hpp"
@@ -128,7 +131,7 @@ namespace vast::hl {
             //              This approach should be fine as long as rest of `mlir` accepts
             //              none type.
             addConversion([&](hl::VoidType t) -> maybe_type_t {
-                return { mlir::NoneType::get(&mctx) };
+                return { vast::core::VoidType::get(&mctx) };
             });
         }
 
@@ -284,6 +287,16 @@ namespace vast::hl {
             using rest_t = typename attrs_list::tail;
 
             if (auto typed = mlir::dyn_cast< attr_t >(attr)) {
+                if constexpr (std::same_as< attr_t, hl::VoidAttr>) {
+                    return Maybe(typed.getType())
+                        .and_then([&] (auto type) {
+                            return getTypeConverter()->convertType(type);
+                        })
+                        .and_then([&] (auto type) {
+                            return core::VoidAttr::get(type.getContext(), type);
+                        })
+                        .template take_wrapped< maybe_attr_t >();
+                } else {
                 return Maybe(typed.getType())
                     .and_then([&] (auto type) {
                         return getTypeConverter()->convertType(type);
@@ -292,6 +305,7 @@ namespace vast::hl {
                         return attr_t::get(type, typed.getValue());
                     })
                     .template take_wrapped< maybe_attr_t >();
+                }
             }
 
             if constexpr (attrs_list::size != 1) {
