@@ -39,6 +39,7 @@ namespace vast::cg
         {}
 
         using BaseType::set_insertion_point_to_start;
+        using BaseType::set_insertion_point_to_end;
         using BaseType::has_insertion_block;
         using BaseType::clear_insertion_point;
 

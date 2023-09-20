@@ -131,6 +131,11 @@ namespace vast::cg
             }
         }
 
+       auto &body_block = fn.getBody().back();
+       if (rty->isVoidType() &&
+           (body_block.empty() || !mlir::isa< hl::ReturnOp >(body_block.back()))) {
+           codegen.emit_implicit_void_return(fn, function_decl);
+       }
         // Emit the standard function epilogue.
         // TODO: finishFunction(BodyRange.getEnd());
 
