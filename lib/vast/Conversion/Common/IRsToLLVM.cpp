@@ -1117,15 +1117,15 @@ namespace vast::conv::irstollvm
 
             target.addLegalOp< hl::TypeDefOp >();
 
-            auto illegal_with_llvm_ret_type = [&]< typename T >( T && )
+            auto legal_with_llvm_ret_type = [&]< typename T >( T && )
             {
                 target.addDynamicallyLegalOp< T >( has_llvm_return_type< T > );
             };
 
-            illegal_with_llvm_ret_type( core::LazyOp{} );
-            illegal_with_llvm_ret_type( core::BinLAndOp{} );
-            illegal_with_llvm_ret_type( core::BinLOrOp{} );
-            illegal_with_llvm_ret_type( hl::ValueYieldOp{} );
+            legal_with_llvm_ret_type( core::LazyOp{} );
+            legal_with_llvm_ret_type( core::BinLAndOp{} );
+            legal_with_llvm_ret_type( core::BinLOrOp{} );
+            legal_with_llvm_ret_type( hl::ValueYieldOp{} );
 
 
             target.addDynamicallyLegalOp< hl::InitListExpr >(
