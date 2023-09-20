@@ -28,6 +28,7 @@ def Core_Dialect : Dialect {
     }];
 
     let useDefaultTypePrinterParser = 1;
+    let useDefaultAttributePrinterParser = 1;
 
     let hasConstantMaterializer = 1;
 
@@ -40,6 +41,7 @@ class Core_Op< string mnemonic, list< Trait > traits = [] >
 include "vast/Dialect/Core/CoreLazy.td"
 include "vast/Dialect/Core/CoreTypes.td"
 include "vast/Dialect/Core/CoreOps.td"
+include "vast/Dialect/Core/CoreAttributes.td"
 
 include "vast/Dialect/Core/Linkage.td"
 
