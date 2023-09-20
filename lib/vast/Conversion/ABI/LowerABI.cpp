@@ -572,7 +572,7 @@ namespace vast
                         op.getLoc(),
                         name,
                         op.getFunctionType(),
-                        hl::GlobalLinkageKind::InternalLinkage,
+                        core::GlobalLinkageKind::InternalLinkage,
                         other_attrs,
                         arg_attrs
                 );
