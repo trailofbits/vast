@@ -25,7 +25,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::hl {
 
     using high_level_typed_attrs = util::type_list<
-        BooleanAttr, IntegerAttr, FloatAttr, StringAttr, StringLiteralAttr
+        BooleanAttr, IntegerAttr, FloatAttr, StringAttr, StringLiteralAttr, VoidAttr
     >;
 
     bool is_high_level_typed_attr(mlir::Attribute);
