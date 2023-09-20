@@ -9,7 +9,8 @@ void fn()
         // CHECK-NEXT:   }
         // CHECK-NEXT:   hl.continue
         // CHECK-NEXT: }
-        // CHECK-NEXT: hl.return
+        // CHECK-NEXT: hl.const
+        // CHECK-NEXT: core.implicit.return
         if (i == 5)
         {
             break;
