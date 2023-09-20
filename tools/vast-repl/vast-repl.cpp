@@ -83,6 +83,7 @@ namespace vast::repl
 int main(int argc, char **argv) try {
     mlir::registerAllPasses();
     // Register VAST passes here
+    vast::hl::registerHighLevelPasses();
     vast::registerConversionPasses();
 
     mlir::DialectRegistry registry;
