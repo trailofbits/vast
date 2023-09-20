@@ -99,4 +99,8 @@ def Core_FunctionType : Core_Type< "Function", "fn" > {
   }];
 }
 
+def VoidType : Core_Type< "Void", "void" > {
+  let builders = [TypeBuilder< (ins), [{ return $_get($_ctxt); }] >];
+}
+
 #endif // VAST_DIALECT_CORE_CORETYPES
