@@ -19,8 +19,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/repl/codegen.hpp"
 
 #include <filesystem>
-#include <tuple>
+#include <ranges>
 #include <span>
+#include <tuple>
 
 namespace vast::repl
 {
@@ -29,13 +30,6 @@ namespace vast::repl
 
     namespace cmd
     {
-        struct base {
-            using command_params = util::type_list<>;
-
-            virtual void run(state_t &) const = 0;
-            virtual ~base(){};
-        };
-
         void check_source(const state_t &state);
 
         using maybe_memory_buffer = llvm::ErrorOr< std::unique_ptr< llvm::MemoryBuffer > >;
@@ -220,7 +214,7 @@ namespace vast::repl
         };
 
         //
-        // apply command
+        // raise command
         //
         struct raise : base {
             static constexpr string_ref name() { return "raise"; }
@@ -240,11 +234,27 @@ namespace vast::repl
             params_storage params;
         };
 
-        using command_list = util::type_list< exit, help, load, show, meta, raise >;
+        struct sticky : base {
+            static constexpr string_ref name() { return "sticky"; }
 
-    } // namespace command
+            static constexpr inline char command_param[] = "command";
 
-    using command_ptr = std::unique_ptr< cmd::base >;
+            using command_params =
+                util::type_list< named_param< command_param, string_param > >;
+
+            using params_storage = command_params::as_tuple;
+
+            sticky(const params_storage &params) : params(params) {}
+            sticky(params_storage &&params) : params(std::move(params)) {}
+
+            void run(state_t &state) const override;
+
+            params_storage params;
+        };
+
+        using command_list = util::type_list< exit, help, load, show, meta, raise, sticky >;
+
+    } // namespace cmd
 
     static inline std::span< string_ref > tail(std::span<string_ref > tokens) {
         if (tokens.size() == 1)
@@ -275,6 +285,17 @@ namespace vast::repl
             auto param = std::make_tuple(current_param::parse(tokens.front()));
             return std::tuple_cat(param, parse_params< rest >(tail(tokens)));
         }
+    }
+
+    template<>
+    inline auto parse_params< cmd::sticky::command_params >(std::span< string_ref > tokens)
+        -> typename cmd::sticky::command_params::as_tuple
+    {
+        return {cmd::sticky::command_params::head::parse(
+            std::accumulate(tokens.begin(), tokens.end(), std::string{}, [] (std::string res, auto token) {
+                return std::move(res) + " " + token.str();
+            })
+        )};
     }
 
     template< typename command, typename params_storage >
@@ -313,8 +334,6 @@ namespace vast::repl
         }
     }
 
-    static inline command_ptr parse_command(std::span< command_token > tokens) {
-        return match< cmd::command_list >(tokens);
-    }
+    command_ptr parse_command(std::span< command_token > tokens);
 
 } // namespace vast::repl

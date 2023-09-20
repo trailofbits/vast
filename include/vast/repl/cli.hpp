@@ -27,8 +27,15 @@ namespace vast::repl
 
         void exec(command_ptr cmd) try {
             cmd->run(state);
+            exec_sticked();
         } catch (std::exception &e) {
             llvm::errs() << "error: " << e.what() << '\n';
+        }
+
+        void exec_sticked() {
+            for (auto &cmd : state.sticked) {
+                cmd->run(state);
+            }
         }
 
       private:

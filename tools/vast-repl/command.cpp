@@ -7,7 +7,8 @@
 #include "vast/repl/common.hpp"
 #include <optional>
 
-namespace vast::repl::cmd {
+namespace vast::repl {
+namespace cmd {
 
     void check_source(const state_t &state) {
         if (!state.source.has_value()) {
@@ -88,6 +89,10 @@ namespace vast::repl::cmd {
     }
 
     void show::run(state_t &state) const {
+        if (!state.source.has_value()) {
+            return;
+        }
+
         auto what = get_param< kind_param >(params);
         switch (what) {
             case show_kind::source:  return show_source(state);
@@ -151,4 +156,19 @@ namespace vast::repl::cmd {
         }
     }
 
-} // namespace vast::repl::cmd
+    //
+    // sticky command
+    //
+    void sticky::run(state_t &state) const {
+        auto cmd = get_param< command_param >(params);
+        auto tokens = parse_tokens(cmd.value);
+        state.sticked.push_back(parse_command(tokens));
+    }
+
+} // namespace cmd
+
+    command_ptr parse_command(std::span< command_token > tokens) {
+        return match< cmd::command_list >(tokens);
+    }
+
+} // namespace vast::repl
