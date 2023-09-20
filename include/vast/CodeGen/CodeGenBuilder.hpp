@@ -253,7 +253,7 @@ namespace vast::cg {
 
             // ({5;;;;;}) <- this is supposed to return 5...
             auto last = std::prev(block.end());
-            while (dyn_cast< hl::SkipStmt >(&*last)) {
+            while (last != block.begin() && isa< hl::SkipStmt >(&*last)) {
                 last = std::prev(last);
             }
 
