@@ -332,7 +332,7 @@ namespace vast::cg {
                 auto loc = fn.getLoc();
                 if (decl->getReturnType()->isVoidType()) {
                     auto void_val = constant(loc);
-                    make< hl::ReturnOp >(loc, void_val);
+                    make< core::ImplicitReturnOp >(loc, void_val);
                 } else {
                     if (decl->isMain()) {
                         // return zero if no return is present in main

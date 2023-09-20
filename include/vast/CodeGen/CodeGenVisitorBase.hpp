@@ -45,6 +45,8 @@ namespace vast::cg {
             return { _builder };
         }
 
+        Builder& base_builder() { return _builder; }
+
         CGContext &ctx;
         MetaGenerator &meta;
 

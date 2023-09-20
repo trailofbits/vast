@@ -303,6 +303,17 @@ namespace vast::cg
             return fn;
         }
 
+        void emit_implicit_void_return(hl::FuncOp fn, const clang::FunctionDecl *decl) {
+            auto &builder = _visitor->base_builder();
+            auto g        = _visitor->make_insertion_guard();
+            _visitor->set_insertion_point_to_end(&fn.getBody());
+
+            auto loc        = meta_location(decl);
+            auto void_type  = _visitor->Visit(decl->getReturnType());
+            mlir::Value void_const = builder.template create< hl::ConstantOp >(loc, void_type);
+            builder.template create< core::ImplicitReturnOp >(loc, void_const);
+        }
+
         // TODO: This is currently just a dumb stub. But we want to be able to clearly
         // assert where we arne't doing things that we know we should and will crash
         // as soon as we add a DebugInfo type to this class.
@@ -743,6 +754,10 @@ namespace vast::cg
             function_arg_list args, const codegen_options &options
         ) {
             return codegen.emit_function_prologue(fn, decl, fty_info, args, options);
+        }
+
+        void emit_implicit_void_return(hl::FuncOp fn, const clang::FunctionDecl *decl) {
+            return codegen.emit_implicit_void_return(fn, decl);
         }
 
         hl::FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
