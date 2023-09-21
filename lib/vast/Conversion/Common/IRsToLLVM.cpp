@@ -637,22 +637,32 @@ namespace vast::conv::irstollvm
         using base = base_pattern< op_t >;
         using base::base;
 
+        using adaptor_t = typename op_t::Adaptor;
+
         logical_result matchAndRewrite(
-                    op_t op, typename op_t::Adaptor ops,
-                    conversion_rewriter &rewriter) const override
-        {
+            op_t op, adaptor_t ops,
+            conversion_rewriter &rewriter
+        ) const override {
             // TODO: According to what clang does, this will need more handling
             //       based on different value categories. For now, just lower types.
-            auto to_void = [&]
-            {
+            auto to_void = [&] {
                 rewriter.replaceOp(op, ops.getOperands());
                 return logical_result::success();
+            };
+
+            auto bitcast = [&] {
+                auto src = ops.getValue();
+                auto dst_type = this->convert(op.getType());
+                rewriter.replaceOpWithNewOp< mlir::LLVM::BitcastOp >(op, dst_type, src);
+                return mlir::success();
             };
 
             switch (op.getKind())
             {
                 case hl::CastKind::ToVoid:
                     return to_void();
+                case hl::CastKind::BitCast:
+                    return bitcast();
                 default:
                     return logical_result::failure();
             }
