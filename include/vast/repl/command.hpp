@@ -46,7 +46,7 @@ namespace vast::repl
         struct string_param  { std::string value; };
         struct integer_param { std::uint64_t value; };
 
-        enum class show_kind { source, ast, module, symbols };
+        enum class show_kind { source, ast, module, symbols, pipelines };
 
         template< typename enum_type >
         enum_type from_string(string_ref token) requires(std::is_same_v< enum_type, show_kind >) {
@@ -54,6 +54,7 @@ namespace vast::repl
             if (token == "ast")     return enum_type::ast;
             if (token == "module")  return enum_type::module;
             if (token == "symbols") return enum_type::symbols;
+            if (token == "pipelines")   return enum_type::pipelines;
             throw_error("uknnown show kind: {0}", token.str());
         }
 
@@ -251,6 +252,8 @@ namespace vast::repl
 
             params_storage params;
         };
+
+        void add_sticky_command(string_ref cmd, state_t &state);
 
         using command_list = util::type_list< exit, help, load, show, meta, raise, sticky >;
 

@@ -88,17 +88,24 @@ namespace cmd {
         });
     }
 
-    void show::run(state_t &state) const {
-        if (!state.source.has_value()) {
-            return;
+    void show_pipelines(state_t &state) {
+        if (state.pipelines.empty()) {
+            llvm::outs() << "no pipelines\n";
         }
 
+        for (const auto &[name, _] : state.pipelines) {
+            llvm::outs() << name << "\n";
+        }
+    }
+
+    void show::run(state_t &state) const {
         auto what = get_param< kind_param >(params);
         switch (what) {
             case show_kind::source:  return show_source(state);
             case show_kind::ast:     return show_ast(state);
             case show_kind::module:  return show_module(state);
             case show_kind::symbols: return show_symbols(state);
+            case show_kind::pipelines: return show_pipelines(state);
         }
     };
 
@@ -161,7 +168,11 @@ namespace cmd {
     //
     void sticky::run(state_t &state) const {
         auto cmd = get_param< command_param >(params);
-        auto tokens = parse_tokens(cmd.value);
+        add_sticky_command(cmd.value, state);
+    }
+
+    void add_sticky_command(string_ref cmd, state_t &state) {
+        auto tokens = parse_tokens(cmd);
         state.sticked.push_back(parse_command(tokens));
     }
 

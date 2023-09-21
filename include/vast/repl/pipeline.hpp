@@ -10,6 +10,8 @@ namespace vast::repl {
         using passname_ref = std::string_view;
 
         std::vector< pass_name > passes;
+
+        bool make_snapshot_after_each = false;
         std::vector< passname_ref > make_snapshot_after;
     };
 

@@ -12,7 +12,11 @@
 namespace vast::repl
 {
     struct cli_t {
-        explicit cli_t(mcontext_t &ctx) : state(ctx) {}
+        explicit cli_t(mcontext_t &ctx)
+            : state(ctx)
+        {
+            initialize();
+        }
 
         std::string_view help() { return "cli help"; }
 
@@ -31,6 +35,8 @@ namespace vast::repl
         } catch (std::exception &e) {
             llvm::errs() << "error: " << e.what() << '\n';
         }
+
+        void initialize(std::filesystem::path config_path = "vast.ini");
 
         void exec_sticked() {
             for (auto &cmd : state.sticked) {
