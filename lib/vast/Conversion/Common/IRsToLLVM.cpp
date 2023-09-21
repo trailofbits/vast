@@ -1048,6 +1048,30 @@ namespace vast::conv::irstollvm
         }
     };
 
+    struct sizeof_pattern : base_pattern< hl::SizeOfTypeOp >
+    {
+        using op_t = hl::SizeOfTypeOp;
+        using base = base_pattern< op_t >;
+        using base::base;
+
+        using adaptor_t = typename op_t::Adaptor;
+
+        logical_result matchAndRewrite(
+            op_t op, adaptor_t ops, conversion_rewriter &rewriter
+        ) const override {
+            auto target_type = this->convert(op.getType());
+            const auto &dl = this->type_converter().getDataLayoutAnalysis()->getAtOrAbove(op);
+            auto attr = rewriter.getIntegerAttr(
+                target_type, dl.getTypeSize(op.getArg())
+            );
+            auto cons = rewriter.create< LLVM::ConstantOp >(
+                op.getLoc(), target_type, attr
+            );
+            rewriter.replaceOp(op, {cons});
+            return logical_result::success();
+        }
+    };
+
     using base_op_conversions = util::type_list<
         func_op< hl::FuncOp >,
         func_op< ll::FuncOp >,
@@ -1058,6 +1082,7 @@ namespace vast::conv::irstollvm
         cmp,
         deref,
         subscript,
+        sizeof_pattern,
         propagate_yield< hl::ExprOp, hl::ValueYieldOp >,
         value_yield_in_global_var
     >;
