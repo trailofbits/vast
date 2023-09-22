@@ -49,12 +49,15 @@ namespace vast::hl
 
     Type getTypedefType(TypedefType type, vast_module mod) {
         auto name = type.getName();
-        for (const auto &op : mod) {
-            if (auto def = mlir::dyn_cast< TypeDefOp >(&op)) {
-                if (def.getName() == name) {
-                    return def.getType();
-                }
-            }
+        Type result;
+
+        // TODO: probably needs scope
+        mod.walk([&] (TypeDefOp op) {
+            if (op.getName() == name) { result = op.getType(); }
+        });
+
+        if (result) {
+            return result;
         }
 
         return {};
