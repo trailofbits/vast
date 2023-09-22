@@ -10,6 +10,8 @@ include "mlir/Interfaces/ControlFlowInterfaces.td"
 
 include "vast/Interfaces/SymbolInterface.td"
 
+include "vast/Dialect/Core/CoreTraits.td"
+
 include "vast/Dialect/Core/Func.td"
 
 // TODO(lukas): Add type constraints.
@@ -216,7 +218,7 @@ def CondScopeRet
     }];}
 
 def ReturnOp
-    : LowLevel_Op< "return", [Terminator] >
+    : LowLevel_Op< "return", [Terminator, return_trait] >
     , Arguments<(ins Variadic<AnyType>:$result)>
 {
     // Allow building a ReturnOp with no return operand.

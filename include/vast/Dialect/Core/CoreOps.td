@@ -24,7 +24,7 @@ def Core_ScopeOp : Core_Op< "scope", [NoTerminator, DeclareOpInterfaceMethods<Re
 }
 
 def Core_ImplicitReturnOp
-  : Core_Op< "implicit.return", [soft_terminator] >
+  : Core_Op< "implicit.return", [soft_terminator, return_trait] >
   , Arguments<(ins Variadic<AnyType>:$result)>
 {
   let summary = "VAST implicit return";

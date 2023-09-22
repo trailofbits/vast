@@ -45,10 +45,7 @@ namespace vast::hl
             if (auto fn = mlir::dyn_cast< hl::FuncOp >(op)) {
                 if(!fn.isDeclaration()) {
                     auto &last_block = fn.getBody().back();
-                    if (last_block.empty()
-                        || !is_one_of_mlir< hl::ReturnOp, core::ImplicitReturnOp >(
-                            &last_block.back()
-                        ))
+                    if (last_block.empty() || !last_block.back().hasTrait< core::return_trait >())
                     {
                         insert_void_return(fn, rewriter);
                     }

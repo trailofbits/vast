@@ -12,6 +12,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Interfaces/SideEffectInterfaces.h>
 VAST_RELAX_WARNINGS
 
+#include "vast/Dialect/Core/CoreTraits.hpp"
 
 // Pull in the dialect definition.
 #include "vast/Dialect/LowLevel/LowLevelDialect.h.inc"
