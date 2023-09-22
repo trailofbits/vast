@@ -314,7 +314,8 @@ namespace vast::cg
 
             auto loc        = meta_location(decl);
             auto void_type  = _visitor->Visit(decl->getReturnType());
-            auto void_const = builder.template create< hl::ConstantOp >(loc, void_type);
+            auto void_const =
+                builder.template create< hl::ConstantOp >(loc, cast< hl::VoidType >(void_type));
             builder.template create< core::ImplicitReturnOp >(loc, void_const.getResult());
         }
 
