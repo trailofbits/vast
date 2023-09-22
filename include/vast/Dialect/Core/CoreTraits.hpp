@@ -19,5 +19,15 @@ namespace vast::core
     {
         return op->hasTrait< soft_terminator >();
     }
+
+    template< typename concrete_t >
+    struct return_trait : mlir::OpTrait::TraitBase< concrete_t,
+                                                    return_trait >
+    {};
+
+    static inline bool is_return( mlir::Operation *op )
+    {
+        return op->hasTrait< return_trait >();
+    }
 } // namespace vast::core
 

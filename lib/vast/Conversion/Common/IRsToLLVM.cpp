@@ -432,9 +432,7 @@ namespace vast::conv::irstollvm
             auto result = op.getResult();
             if (result.hasOneUse()) {
                 auto user = result.getUses().begin()->getOwner();
-                if (is_one_of_mlir<hl::ReturnOp, ll::ReturnOp, core::ImplicitReturnOp >(
-                            user
-                ))
+                if (user->hasTrait< core::return_trait >())
                 {
                     rewriter.eraseOp(user);
                     rewriter.eraseOp(op);
