@@ -26,7 +26,7 @@ namespace vast::hl
 
     std::unique_ptr< mlir::Pass > createSpliceTrailingScopes();
 
-    std::unique_ptr< mlir::Pass > createHLCanonizePass();
+    std::unique_ptr< mlir::Pass > createHLCanonicalizePass();
 
     void registerHLToLLVMIR(mlir::DialectRegistry &);
     void registerHLToLLVMIR(mlir::MLIRContext &);

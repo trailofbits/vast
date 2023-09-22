@@ -108,13 +108,13 @@ def SpliceTrailingScopes : Pass<"vast-hl-splice-trailing-scopes", "mlir::ModuleO
   let constructor = "vast::hl::createSpliceTrailingScopes()";
 }
 
-def HLCanonize : Pass<"vast-hl-canonize", "mlir::ModuleOp"> {
-  let summary = "Canonize hl dialect.";
+def HLCanonicalize : Pass<"vast-hl-canonicalize", "mlir::ModuleOp"> {
+  let summary = "Canonicalize hl dialect.";
   let description = [{
     This pass inserts returns with void values where missing and removes surplus skips.
   }];
 
-  let constructor = "vast::hl::createHLCanonizePass()";
+  let constructor = "vast::hl::createHLCanonicalizePass()";
   let dependentDialects = [
     "vast::hl::HighLevelDialect",
     "vast::core::CoreDialect"
