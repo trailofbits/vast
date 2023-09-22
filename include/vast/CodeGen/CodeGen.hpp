@@ -310,8 +310,8 @@ namespace vast::cg
 
             auto loc        = meta_location(decl);
             auto void_type  = _visitor->Visit(decl->getReturnType());
-            mlir::Value void_const = builder.template create< hl::ConstantOp >(loc, void_type);
-            builder.template create< core::ImplicitReturnOp >(loc, void_const);
+            auto void_const = builder.template create< hl::ConstantOp >(loc, void_type);
+            builder.template create< core::ImplicitReturnOp >(loc, void_const.getResult());
         }
 
         // TODO: This is currently just a dumb stub. But we want to be able to clearly
