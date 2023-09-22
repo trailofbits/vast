@@ -68,10 +68,4 @@ namespace vast {
     using types_t       = mlir::SmallVector< mlir_type >;
     using maybe_type_t  = llvm::Optional< mlir_type >;
     using maybe_types_t = llvm::Optional< types_t >;
-
-    template< typename... types >
-    bool is_one_of_mlir(auto arg)
-    {
-        return (... || mlir::isa< types >(arg));
-    }
 } // namespace vast
