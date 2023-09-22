@@ -36,6 +36,16 @@ namespace vast::hl
             rewriter->create< core::ImplicitReturnOp >(op.getLoc(), void_const.getResult());
         }
 
+        void canonicalize_func_op(hl::FuncOp fn, rewriter_t &rewriter) {
+            if(!fn.isDeclaration()) {
+                auto &last_block = fn.getBody().back();
+                if (last_block.empty() || !last_block.back().hasTrait< core::return_trait >())
+                {
+                    insert_void_return(fn, rewriter);
+                }
+            }
+        }
+
         void run(Operation *op, rewriter_t &rewriter) {
             if (mlir::isa< hl::SkipStmt >(op)) {
                 to_remove.emplace_back(op);
@@ -43,14 +53,9 @@ namespace vast::hl
             }
 
             if (auto fn = mlir::dyn_cast< hl::FuncOp >(op)) {
-                if(!fn.isDeclaration()) {
-                    auto &last_block = fn.getBody().back();
-                    if (last_block.empty() || !last_block.back().hasTrait< core::return_trait >())
-                    {
-                        insert_void_return(fn, rewriter);
-                    }
-                }
+                canonicalize_func_op(fn, rewriter);
             }
+
             for (auto &region : op->getRegions()) {
                 run(&region, rewriter);
             }
