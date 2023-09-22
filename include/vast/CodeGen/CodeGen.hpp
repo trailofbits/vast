@@ -304,6 +304,10 @@ namespace vast::cg
         }
 
         void emit_implicit_void_return(hl::FuncOp fn, const clang::FunctionDecl *decl) {
+            VAST_CHECK(
+                decl->getReturnType()->isVoidType(),
+                "Can't emit implicit void return in non-void function."
+            );
             auto &builder = _visitor->base_builder();
             auto g        = _visitor->make_insertion_guard();
             _visitor->set_insertion_point_to_end(&fn.getBody());
