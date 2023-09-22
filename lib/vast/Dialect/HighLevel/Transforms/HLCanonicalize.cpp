@@ -23,8 +23,8 @@ VAST_UNRELAX_WARNINGS
 namespace vast::hl
 {
 
-    struct HLCanonize : HLCanonizeBase< HLCanonize > {
-        using base = HLCanonizeBase< HLCanonize >;
+    struct HLCanonicalize : HLCanonicalizeBase< HLCanonicalize > {
+        using base = HLCanonicalizeBase< HLCanonicalize >;
         using rewriter_t = conv::rewriter_wrapper_t< mlir::IRRewriter >;
 
         std::vector< operation > to_remove;
@@ -79,9 +79,9 @@ namespace vast::hl
         }
     };
 
-    std::unique_ptr< mlir::Pass > createHLCanonizePass()
+    std::unique_ptr< mlir::Pass > createHLCanonicalizePass()
     {
-        return std::make_unique< vast::hl::HLCanonize >();
+        return std::make_unique< vast::hl::HLCanonicalize >();
     }
 } // namespace vast::hl
 
