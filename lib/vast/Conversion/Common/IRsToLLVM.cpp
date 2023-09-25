@@ -27,14 +27,13 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/CoreOps.hpp"
 #include "vast/Dialect/Core/TypeTraits.hpp"
 
-#include "vast/Util/TypeConverter.hpp"
-#include "vast/Util/LLVMTypeConverter.hpp"
 #include "vast/Util/Symbols.hpp"
 #include "vast/Util/Terminator.hpp"
 #include "vast/Util/TypeList.hpp"
 #include "vast/Util/Common.hpp"
 
 #include "vast/Conversion/Common/Passes.hpp"
+#include "vast/Conversion/TypeConverters/LLVMTypeConverter.hpp"
 
 #include "Common.hpp"
 #include "LLCFToLLVM.hpp"

@@ -2,11 +2,10 @@
 
 #pragma once
 
-#include "vast/Util/TypeConverter.hpp"
-#include "vast/Util/LLVMTypeConverter.hpp"
 #include "vast/Util/TypeList.hpp"
 
 #include "vast/Conversion/Common/Patterns.hpp"
+#include "vast/Conversion/TypeConverters/LLVMTypeConverter.hpp"
 
 namespace vast::conv::irstollvm
 {

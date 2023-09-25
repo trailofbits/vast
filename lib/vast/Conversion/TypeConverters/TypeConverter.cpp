@@ -1,6 +1,6 @@
 // Copyright (c) 2023, Trail of Bits, Inc.
 
-#include "vast/Util/TypeConverter.hpp"
+#include "vast/Conversion/TypeConverters/TypeConverter.hpp"
 
 namespace vast::tc {
     bool base_type_converter::isSignatureLegal(core::FunctionType ty) {
