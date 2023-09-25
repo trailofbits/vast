@@ -11,7 +11,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Util/Maybe.hpp"
-#include "vast/Util/TypeConverter.hpp"
+
+#include "vast/Conversion/TypeConverters/TypeConverter.hpp"
 
 // TODO(lukas): Possibly move this out of Util?
 

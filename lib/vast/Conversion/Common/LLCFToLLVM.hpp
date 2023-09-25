@@ -11,7 +11,6 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
-#include "vast/Util/LLVMTypeConverter.hpp"
 #include "vast/Util/Symbols.hpp"
 #include "vast/Util/TypeList.hpp"
 

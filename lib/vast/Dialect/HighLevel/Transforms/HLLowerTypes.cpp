@@ -23,7 +23,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Conversion/Common/Types.hpp"
 
 #include "vast/Util/Maybe.hpp"
-#include "vast/Util/TypeConverter.hpp"
+#include "vast/Conversion/TypeConverters/TypeConverter.hpp"
 
 #include <algorithm>
 #include <iostream>

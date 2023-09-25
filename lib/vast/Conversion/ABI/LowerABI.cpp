@@ -8,7 +8,6 @@ VAST_RELAX_WARNINGS
 #include <mlir/Transforms/GreedyPatternRewriteDriver.h>
 #include <mlir/Transforms/DialectConversion.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
-#include <mlir/Conversion/LLVMCommon/TypeConverter.h>
 #include <mlir/Conversion/LLVMCommon/Pattern.h>
 
 #include <mlir/Rewrite/PatternApplicator.h>
@@ -31,9 +30,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Functions.hpp"
-#include "vast/Util/TypeConverter.hpp"
 #include "vast/Util/DialectConversion.hpp"
-#include "vast/Util/LLVMTypeConverter.hpp"
 #include "vast/Util/Symbols.hpp"
 #include "vast/Util/TypeSwitch.hpp"
 #include "vast/Util/TypeUtils.hpp"

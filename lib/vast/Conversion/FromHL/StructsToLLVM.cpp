@@ -20,11 +20,11 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Conversion/Common/Rewriter.hpp"
 
 #include "vast/Util/Maybe.hpp"
-#include "vast/Util/TypeConverter.hpp"
-#include "vast/Util/LLVMTypeConverter.hpp"
 
 #include "vast/Util/Symbols.hpp"
 #include "vast/Util/DialectConversion.hpp"
+
+#include "vast/Conversion/TypeConverters/LLVMTypeConverter.hpp"
 
 #include <unordered_map>
 

@@ -19,6 +19,7 @@ VAST_UNRELAX_WARNINGS
 #include "../PassesDetails.hpp"
 
 #include "vast/Conversion/Common/Patterns.hpp"
+#include "vast/Conversion/TypeConverters/TypeConverter.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
@@ -31,9 +32,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Functions.hpp"
-#include "vast/Util/TypeConverter.hpp"
 #include "vast/Util/DialectConversion.hpp"
-#include "vast/Util/LLVMTypeConverter.hpp"
 #include "vast/Util/Symbols.hpp"
 
 #include "vast/Dialect/ABI/ABIOps.hpp"

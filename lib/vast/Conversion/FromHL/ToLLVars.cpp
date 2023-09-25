@@ -18,7 +18,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DialectConversion.hpp"
-#include "vast/Util/LLVMTypeConverter.hpp"
+#include "vast/Conversion/TypeConverters/LLVMTypeConverter.hpp"
 #include "vast/Util/Symbols.hpp"
 
 namespace vast
