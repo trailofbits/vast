@@ -16,4 +16,6 @@ namespace vast::cg
     using ext_info = clang::FunctionType::ExtInfo;
     using ext_parameter_info_span = llvm::ArrayRef< ext_param_info >;
 
+    using mlir_attr = mlir::Attribute;
+
 } // namespace vast::cg
