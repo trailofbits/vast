@@ -5,6 +5,7 @@
 #include "vast/CodeGen/CodeGenDeclVisitor.hpp"
 #include "vast/CodeGen/CodeGenStmtVisitor.hpp"
 #include "vast/CodeGen/CodeGenTypeVisitor.hpp"
+#include "vast/CodeGen/CodeGenAttrVisitor.hpp"
 
 namespace vast::cg
 {
@@ -18,14 +19,17 @@ namespace vast::cg
         : CodeGenDeclVisitor< Derived >
         , CodeGenStmtVisitor< Derived >
         , CodeGenTypeVisitorWithDataLayout< Derived >
+        , CodeGenAttrVisitor< Derived >
     {
         using DeclVisitor = CodeGenDeclVisitor< Derived >;
         using StmtVisitor = CodeGenStmtVisitor< Derived >;
         using TypeVisitor = CodeGenTypeVisitorWithDataLayout< Derived >;
+        using AttrVisitor = CodeGenAttrVisitor< Derived >;
 
         using DeclVisitor::Visit;
         using StmtVisitor::Visit;
         using TypeVisitor::Visit;
+        using AttrVisitor::Visit;
     };
 
 } // namespace vast::cg
