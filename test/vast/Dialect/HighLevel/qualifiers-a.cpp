@@ -49,11 +49,11 @@ bool b;
 volatile bool vb;
 
 // CHECK: hl.var "cb" : !hl.lvalue<!hl.bool< const >> = {
-// CHECK: [[C5:%[0-9]+]] = hl.const #core.bool<false> : !hl.bool
+// CHECK: [[C5:%[0-9]+]] = hl.const #false
 // CHECK: hl.value.yield [[C5]]
 const bool cb = false;
 
 // CHECK: hl.var "cvb" : !hl.lvalue<!hl.bool< const, volatile >> = {
-// CHECK: [[C6:%[0-9]+]] = hl.const #core.bool<true> : !hl.bool
+// CHECK: [[C6:%[0-9]+]] = hl.const #true
 // CHECK: hl.value.yield [[C6]]
 const volatile bool cvb = true;
