@@ -163,11 +163,6 @@ using StringRef = llvm::StringRef; // to fix missing namespace in generated file
 
 namespace vast::hl
 {
-    template< typename T >
-    using walk_fn = llvm::function_ref< void( T ) >;
-
-    using walk_types = walk_fn< mlir_type >;
-    using walk_attrs = walk_fn< mlir::Attribute >;
 
     auto ArrayType::dim_and_type() -> std::tuple< dimensions_t, mlir_type >
     {
