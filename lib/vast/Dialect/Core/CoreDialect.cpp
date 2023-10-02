@@ -5,6 +5,8 @@
 #include "vast/Dialect/Core/CoreTypes.hpp"
 #include "vast/Dialect/Core/CoreAttributes.hpp"
 
+#include "vast/Interfaces/AliasTypeInterface.hpp"
+
 #include <mlir/IR/TypeSupport.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/DialectImplementation.h>
@@ -25,6 +27,13 @@ namespace vast::core
         using OpAsmDialectInterface::OpAsmDialectInterface;
 
         AliasResult getAlias(mlir_type type, llvm::raw_ostream &os) const final {
+            if (mlir::isa< CoreDialect >(type.getDialect())) {
+                if (auto ty = type.dyn_cast< AliasTypeInterface >()) {
+                    os << ty.getAlias();
+                    return ty.getAliasResultKind();
+                }
+            }
+
             return AliasResult::NoAlias;
         }
 
