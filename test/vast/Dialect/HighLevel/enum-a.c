@@ -2,9 +2,9 @@
 // RUN: %vast-cc --ccopts -xc --from-source %s > %t && %vast-opt %t | diff -B %t -
 
 // CHECK: hl.enum "color" : !hl.int< unsigned > {
-// CHECK:  hl.enum.const "RED" = #hl.integer<0> : !hl.int
-// CHECK:  hl.enum.const "GREEN" = #hl.integer<1> : !hl.int
-// CHECK:  hl.enum.const "BLUE" = #hl.integer<2> : !hl.int
+// CHECK:  hl.enum.const "RED" = #core.integer<0> : !hl.int
+// CHECK:  hl.enum.const "GREEN" = #core.integer<1> : !hl.int
+// CHECK:  hl.enum.const "BLUE" = #core.integer<2> : !hl.int
 // CHECK: }
 enum color { RED, GREEN, BLUE };
 

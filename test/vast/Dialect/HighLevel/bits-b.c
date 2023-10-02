@@ -8,7 +8,7 @@ _Bool oposite_signs(int x, int y) {
     // CHECK:   hl.ref [[A1]]
     // CHECK:   hl.ref [[A2]]
     // CHECK:   hl.bin.xor
-    // CHECK:  hl.const #hl.integer<0> : !hl.int
+    // CHECK:  hl.const #core.integer<0> : !hl.int
     // CHECK:  hl.cmp slt
     // CHECK: hl.implicit_cast [[R:%[0-9]+]]  IntegralToBoolean : !hl.int -> !hl.bool
     return ((x ^ y) < 0);

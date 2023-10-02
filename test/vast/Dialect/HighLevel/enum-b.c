@@ -5,9 +5,9 @@ int puts(const char *str);
 
 int main() {
     // CHECK: hl.enum "color" : !hl.int< unsigned >  {
-    // CHECK:  hl.enum.const "RED" = #hl.integer<0> : !hl.int
-    // CHECK:  hl.enum.const "GREEN" = #hl.integer<1> : !hl.int
-    // CHECK:  hl.enum.const "BLUE" = #hl.integer<2> : !hl.int
+    // CHECK:  hl.enum.const "RED" = #core.integer<0> : !hl.int
+    // CHECK:  hl.enum.const "GREEN" = #core.integer<1> : !hl.int
+    // CHECK:  hl.enum.const "BLUE" = #core.integer<2> : !hl.int
     // CHECK: }
 
     // CHECK: hl.var "r" : !hl.lvalue<!hl.elaborated<!hl.record<"color">>> =  {

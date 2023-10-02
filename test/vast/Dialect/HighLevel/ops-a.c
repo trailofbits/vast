@@ -34,8 +34,8 @@ int add2(int a, int b)
 void add3()
 {
     // CHECK: hl.var "v" : !hl.lvalue<!hl.int> = {
-    // CHECK:   [[V1:%[0-9]+]] = hl.const #hl.integer<1> : !hl.int
-    // CHECK:   [[V2:%[0-9]+]] = hl.const #hl.integer<2> : !hl.int
+    // CHECK:   [[V1:%[0-9]+]] = hl.const #core.integer<1> : !hl.int
+    // CHECK:   [[V2:%[0-9]+]] = hl.const #core.integer<2> : !hl.int
     // CHECK:   [[V3:%[0-9]+]] = hl.add [[V1]], [[V2]] : (!hl.int, !hl.int) -> !hl.int
     // CHECK:   hl.value.yield [[V3]]
     int v = 1 + 2;

@@ -20,12 +20,12 @@ struct lots_of_inits {
 
 // CHECK: hl.var "init" : !hl.lvalue<!hl.elaborated<!hl.record<"lots_of_inits">>>
 struct lots_of_inits init = {
-    // CHECK: [[A:%[0-9]+]] = hl.const #hl.integer<1> : !hl.int
-    // CHECK: [[B:%[0-9]+]] = hl.const #hl.integer<2> : !hl.int
+    // CHECK: [[A:%[0-9]+]] = hl.const #core.integer<1> : !hl.int
+    // CHECK: [[B:%[0-9]+]] = hl.const #core.integer<2> : !hl.int
     // CHECK: [[F1:%[0-9]+]] = hl.initlist [[A]], [[B]] : (!hl.int, !hl.int) -> !hl.elaborated<!hl.record<"foo">>
 
-    // CHECK: [[C:%[0-9]+]] = hl.const #hl.integer<3> : !hl.int
-    // CHECK: [[D:%[0-9]+]] = hl.const #hl.integer<4> : !hl.int
+    // CHECK: [[C:%[0-9]+]] = hl.const #core.integer<3> : !hl.int
+    // CHECK: [[D:%[0-9]+]] = hl.const #core.integer<4> : !hl.int
     // CHECK: [[F2:%[0-9]+]] = hl.initlist [[C]], [[D]] : (!hl.int, !hl.int) -> !hl.elaborated<!hl.record<"foo">>
 
     // CHECK: hl.initlist [[IA:%[0-9]+]], [[IB:%[0-9]+]] : (!hl.elaborated<!hl.record<"foo">>, !hl.elaborated<!hl.record<"foo">>) -> !hl.array<2, !hl.elaborated<!hl.record<"foo">>>
@@ -37,12 +37,12 @@ struct lots_of_inits init = {
 // CHECK: hl.var "flat_init" : !hl.lvalue<!hl.elaborated<!hl.record<"lots_of_inits">>>
 struct lots_of_inits flat_init = {
 
-    // CHECK: [[A:%[0-9]+]] = hl.const #hl.integer<1> : !hl.int
-    // CHECK: [[B:%[0-9]+]] = hl.const #hl.integer<2> : !hl.int
+    // CHECK: [[A:%[0-9]+]] = hl.const #core.integer<1> : !hl.int
+    // CHECK: [[B:%[0-9]+]] = hl.const #core.integer<2> : !hl.int
     // CHECK: [[F1:%[0-9]+]] = hl.initlist [[A]], [[B]] : (!hl.int, !hl.int) -> !hl.elaborated<!hl.record<"foo">>
 
-    // CHECK: [[C:%[0-9]+]] = hl.const #hl.integer<3> : !hl.int
-    // CHECK: [[D:%[0-9]+]] = hl.const #hl.integer<4> : !hl.int
+    // CHECK: [[C:%[0-9]+]] = hl.const #core.integer<3> : !hl.int
+    // CHECK: [[D:%[0-9]+]] = hl.const #core.integer<4> : !hl.int
     // CHECK: [[F2:%[0-9]+]] = hl.initlist [[C]], [[D]] : (!hl.int, !hl.int) -> !hl.elaborated<!hl.record<"foo">>
 
     // CHECK: hl.initlist [[IA:%[0-9]+]], [[IB:%[0-9]+]] : (!hl.elaborated<!hl.record<"foo">>, !hl.elaborated<!hl.record<"foo">>) -> !hl.array<2, !hl.elaborated<!hl.record<"foo">>>

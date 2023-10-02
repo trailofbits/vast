@@ -7,7 +7,7 @@ void foo(int p, char* complicated) {
     // CHECK: hl.switch
     switch (p) {
     // CHECK: hl.case
-    // CHECK: hl.const #hl.integer<0> : !hl.int
+    // CHECK: hl.const #core.integer<0> : !hl.int
     case 0:
         // CHECK: hl.if
         // CHECK: then

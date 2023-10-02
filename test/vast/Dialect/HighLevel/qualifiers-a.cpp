@@ -17,12 +17,12 @@ unsigned int ui;
 unsigned short us;
 
 // CHECK: hl.var "ci" : !hl.lvalue<!hl.int< const >> = {
-// CHECK: [[C1:%[0-9]+]] = hl.const #hl.integer<0> : !hl.int
+// CHECK: [[C1:%[0-9]+]] = hl.const #core.integer<0> : !hl.int
 // CHECK: hl.value.yield [[C1]]
 const int ci = 0;
 
 // CHECK: hl.var "cui" : !hl.lvalue<!hl.int< unsigned, const >> = {
-// CHECK: [[C2:%[0-9]+]] = hl.const #hl.integer<0> : !hl.int< unsigned >
+// CHECK: [[C2:%[0-9]+]] = hl.const #core.integer<0> : !hl.int< unsigned >
 // CHECK: hl.value.yield [[C2]]
 const unsigned cui = 0U;
 
@@ -33,12 +33,12 @@ volatile int vi;
 volatile unsigned vui;
 
 // CHECK: hl.var "cvi" : !hl.lvalue<!hl.int< const, volatile >> = {
-// CHECK: [[C3:%[0-9]+]] = hl.const #hl.integer<0> : !hl.int
+// CHECK: [[C3:%[0-9]+]] = hl.const #core.integer<0> : !hl.int
 // CHECK: hl.value.yield [[C3]]
 const volatile int cvi = 0;
 
 // CHECK: hl.var "cvui" : !hl.lvalue<!hl.int< unsigned, const, volatile >> = {
-// CHECK: [[C4:%[0-9]+]] = hl.const #hl.integer<0> : !hl.int< unsigned >
+// CHECK: [[C4:%[0-9]+]] = hl.const #core.integer<0> : !hl.int< unsigned >
 // CHECK: hl.value.yield [[C4]]
 const volatile unsigned int cvui = 0U;
 
@@ -49,11 +49,11 @@ bool b;
 volatile bool vb;
 
 // CHECK: hl.var "cb" : !hl.lvalue<!hl.bool< const >> = {
-// CHECK: [[C5:%[0-9]+]] = hl.const #hl.bool<false> : !hl.bool
+// CHECK: [[C5:%[0-9]+]] = hl.const #core.bool<false> : !hl.bool
 // CHECK: hl.value.yield [[C5]]
 const bool cb = false;
 
 // CHECK: hl.var "cvb" : !hl.lvalue<!hl.bool< const, volatile >> = {
-// CHECK: [[C6:%[0-9]+]] = hl.const #hl.bool<true> : !hl.bool
+// CHECK: [[C6:%[0-9]+]] = hl.const #core.bool<true> : !hl.bool
 // CHECK: hl.value.yield [[C6]]
 const volatile bool cvb = true;
