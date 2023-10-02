@@ -28,7 +28,7 @@ int main() {
    // CHECK: [[V2:%[0-9]+]] = hl.member [[V1]] at "[[N5]]" : !hl.lvalue<!hl.elaborated<!hl.record<"v">>> -> !hl.lvalue<!hl.record<"v::[[N1]]">>
    // CHECK: [[V3:%[0-9]+]] = hl.member [[V2]] at "[[N3]]" : !hl.lvalue<!hl.record<"v::[[N1]]">> -> !hl.lvalue<!hl.record<"v::[[N1]]::[[N2]]">>
    // CHECK: [[V4:%[0-9]+]] = hl.member [[V3]] at "i" : !hl.lvalue<!hl.record<"v::[[N1]]::[[N2]]">> -> !hl.lvalue<!hl.int>
-   // CHECK: [[C:%[0-9]+]] = hl.const #hl.integer<2> : !hl.int
+   // CHECK: [[C:%[0-9]+]] = hl.const #core.integer<2> : !hl.int
    // CHECK: hl.assign [[C]] to [[V4]] : !hl.int, !hl.lvalue<!hl.int> -> !hl.int
    v1.i = 2;
 

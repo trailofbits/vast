@@ -7,7 +7,7 @@ int main()
     int a;
 
     // CHECK: hl.var "b" : !hl.lvalue<si32> = {
-    // CHECK:   [[V1:%[0-9]+]] = hl.const #hl.integer<1> : si32
+    // CHECK:   [[V1:%[0-9]+]] = hl.const #core.integer<1> : si32
     // CHECK:   hl.value.yield [[V1]] : si32
     // CHECK: }
     int b = 1;
@@ -16,7 +16,7 @@ int main()
     unsigned int ub = 1U;
 
     // CHECK: hl.var "c" : !hl.lvalue<si32> = {
-    // CHECK:   [[V2:%[0-9]+]] = hl.const #hl.integer<1> : si32
+    // CHECK:   [[V2:%[0-9]+]] = hl.const #core.integer<1> : si32
     // CHECK:   hl.value.yield [[V2]] : si32
     // CHECK: }
     int c( 1 );

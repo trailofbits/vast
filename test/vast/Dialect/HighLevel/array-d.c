@@ -9,7 +9,7 @@ int main() {
     // CHECK: hl.var "v0" : !hl.lvalue<!hl.int> = {
     // CHECK:   [[V1:%[0-9]+]] = hl.ref [[ARR]]
     // CHECK:   [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] ArrayToPointerDecay : !hl.lvalue<!hl.array<3, !hl.int>> -> !hl.ptr<!hl.int>
-    // CHECK:   [[V3:%[0-9]+]] = hl.const #hl.integer<0> : !hl.int
+    // CHECK:   [[V3:%[0-9]+]] = hl.const #core.integer<0> : !hl.int
     // CHECK:   hl.subscript [[V2]] at {{.*}}[[V3]] : !hl.int] : !hl.ptr<!hl.int> -> !hl.lvalue<!hl.int>
     // CHECK: }
     int v0 = arr[0];
