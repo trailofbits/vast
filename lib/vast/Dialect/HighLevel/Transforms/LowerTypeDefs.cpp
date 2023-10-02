@@ -31,13 +31,13 @@ namespace vast::hl {
 
         namespace pattern {
             struct type_converter
-                : tc::base_type_converter
-                , tc::mixins< type_converter >
+                : conv::tc::base_type_converter
+                , conv::tc::mixins< type_converter >
             {
                 vast_module mod;
 
                 type_converter(mcontext_t &mctx, vast_module mod)
-                    : tc::base_type_converter(), mod(mod)
+                    : conv::tc::base_type_converter(), mod(mod)
                 {
                     addConversion([&](mlir_type t) { return this->convert(t); });
                 }

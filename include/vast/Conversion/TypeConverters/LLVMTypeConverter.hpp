@@ -16,7 +16,7 @@ VAST_UNRELAX_WARNINGS
 
 // TODO(lukas): Possibly move this out of Util?
 
-namespace vast::tc
+namespace vast::conv::tc
 {
 
     namespace LLVM = mlir::LLVM;
@@ -204,4 +204,4 @@ namespace vast::tc
         }
     };
 
-} // namespace vast::tc
+} // namespace vast::conv::tc

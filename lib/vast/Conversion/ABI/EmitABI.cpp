@@ -73,10 +73,11 @@ namespace vast
     }
 
     // TODO(conv:abi): Remove as we most likely do not need this.
-    struct TypeConverter : tc::mixins< TypeConverter >, tc::identity_type_converter
+    struct TypeConverter : conv::tc::mixins< TypeConverter >,
+                           conv::tc::identity_type_converter
     {
         TypeConverter(const mlir::DataLayout &dl, mcontext_t &mctx)
-            : tc::identity_type_converter(), dl(dl), mctx(mctx)
+            : conv::tc::identity_type_converter(), dl(dl), mctx(mctx)
         {}
 
         const mlir::DataLayout &dl;

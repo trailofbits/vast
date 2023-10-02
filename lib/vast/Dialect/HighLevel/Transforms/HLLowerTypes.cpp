@@ -338,7 +338,7 @@ namespace vast::hl {
                 }
 
                 mlir::AttrTypeReplacer replacer;
-                replacer.addReplacement(tc::convert_type_attr(tc));
+                replacer.addReplacement(conv::tc::convert_type_attr(tc));
                 replacer.addReplacement(convert_high_level_typed_attr());
                 replacer.recursivelyReplaceElementsIn(op, true /* replace attrs */);
             };
@@ -367,7 +367,7 @@ namespace vast::hl {
             auto fty = adaptor.getFunctionType();
             auto &tc = *getTypeConverter();
 
-            tc::signature_conversion_t sigconvert(fty.getNumInputs());
+            conv::tc::signature_conversion_t sigconvert(fty.getNumInputs());
             if (mlir::failed(tc.convertSignatureArgs(fty.getInputs(), sigconvert))) {
                 return mlir::failure();
             }
