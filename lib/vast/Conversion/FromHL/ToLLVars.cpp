@@ -47,10 +47,10 @@ namespace vast
         {
             using Base = mlir::ConvertOpToLLVMPattern< O >;
 
-            tc::LLVMTypeConverter &tc;
+            conv::tc::LLVMTypeConverter &tc;
 
-            BasePattern(tc::LLVMTypeConverter &tc_) : Base(tc_), tc(tc_) {}
-            tc::LLVMTypeConverter &type_converter() const { return tc; }
+            BasePattern(conv::tc::LLVMTypeConverter &tc_) : Base(tc_), tc(tc_) {}
+            conv::tc::LLVMTypeConverter &type_converter() const { return tc; }
         };
 
         struct vardecl_op : BasePattern< hl::VarDeclOp >
@@ -128,7 +128,7 @@ namespace vast
 
             mlir::LowerToLLVMOptions llvm_options(&mctx);
             llvm_options.useBarePtrCallConv = true;
-            tc::LLVMTypeConverter type_converter(&mctx, llvm_options, &dl_analysis);
+            conv::tc::LLVMTypeConverter type_converter(&mctx, llvm_options, &dl_analysis);
 
             mlir::RewritePatternSet patterns(&mctx);
 

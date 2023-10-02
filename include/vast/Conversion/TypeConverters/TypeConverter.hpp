@@ -15,7 +15,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Maybe.hpp"
 
-namespace vast::tc
+namespace vast::conv::tc
 {
     using signature_conversion_t = mlir::TypeConverter::SignatureConversion;
     using maybe_signature_conversion_t = std::optional< signature_conversion_t >;
@@ -153,4 +153,4 @@ namespace vast::tc
         };
     }
 
-} // namespace vast::tc
+} // namespace vast::conv::tc

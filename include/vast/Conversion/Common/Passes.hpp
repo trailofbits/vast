@@ -183,7 +183,7 @@ namespace vast {
 
         using rewrite_pattern_set = mlir::RewritePatternSet;
 
-        using llvm_type_converter = tc::FullLLVMTypeConverter;
+        using llvm_type_converter = conv::tc::FullLLVMTypeConverter;
 
         struct config
         {

@@ -42,10 +42,10 @@ namespace vast
             using parent_t = util::State< hl::StructDeclOp >;
             using self_t = DoConversion< hl::StructDeclOp >;
 
-            tc::LLVMTypeConverter &tc;
+            conv::tc::LLVMTypeConverter &tc;
 
             template< typename... Args >
-            DoConversion(tc::LLVMTypeConverter &tc, Args &&...args)
+            DoConversion(conv::tc::LLVMTypeConverter &tc, Args &&...args)
                 : parent_t(std::forward< Args >(args)...), tc(tc)
             {}
 
@@ -89,7 +89,7 @@ namespace vast
         };
 
         using struct_decl_op = util::TypeConvertingPattern<
-            hl::StructDeclOp, tc::LLVMTypeConverter, DoConversion
+            hl::StructDeclOp, conv::tc::LLVMTypeConverter, DoConversion
         >;
 
     } // namespace pattern
@@ -113,7 +113,7 @@ namespace vast
             const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
 
             mlir::LowerToLLVMOptions llvm_options{ &mctx };
-            tc::FullLLVMTypeConverter type_converter(&mctx, llvm_options, &dl_analysis);
+            conv::tc::FullLLVMTypeConverter type_converter(&mctx, llvm_options, &dl_analysis);
 
             patterns.add< pattern::struct_decl_op >(type_converter, patterns.getContext());
 
