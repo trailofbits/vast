@@ -9,6 +9,7 @@ include "mlir/IR/BuiltinTypeInterfaces.td"
 
 include "vast/Dialect/HighLevel/HighLevelAttributes.td"
 include "vast/Interfaces/TypeQualifiersInterfaces.td"
+include "vast/Interfaces/AliasTypeInterface.td"
 include "vast/Interfaces/DefaultDataLayoutTypeInterface.td"
 include "vast/Interfaces/ElementTypeInterface.td"
 
@@ -229,20 +230,12 @@ def RValue : TypeWithSubType< "RValue", "rvalue" > { }
 //
 // Basic types
 //
-def VoidType : CVQualifiedType< "Void", "void" > {
+def VoidType : CVQualifiedType< "Void", "void", (ins), [AliasTypeInterface] > {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
-
-  let extraClassDeclaration = [{
-    std::string getAlias() const { return "void"; };
-  }];
 }
 
-def BoolType : CVQualifiedType< "Bool", "bool" > {
+def BoolType : CVQualifiedType< "Bool", "bool", (ins), [AliasTypeInterface] > {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
-
-  let extraClassDeclaration = [{
-    std::string getAlias() const { return "bool"; };
-  }];
 }
 
 def BoolLikeType : TypeConstraint<
@@ -254,7 +247,9 @@ def BoolLikeType : TypeConstraint<
 // Integer types & traits
 //
 class IntegerType< string name, string mnemonic, list<Trait> traits = []>
-  : UCVQualifiedType< name, mnemonic, (ins), !listconcat(traits, [IntegralTypeTrait]) >
+  : UCVQualifiedType< name, mnemonic, (ins),
+    !listconcat(traits, [IntegralTypeTrait, AliasTypeInterface])
+  >
 {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
@@ -285,7 +280,9 @@ def IntOrBoolType : TypeConstraint<
 // Floating point types & traits
 //
 class FloatingType< string name, string mnem, list<Trait> traits = []>
-  : CVQualifiedType< name, mnem, (ins), !listconcat(traits, [FloatingTypeTrait]) >
+  : CVQualifiedType< name, mnem, (ins),
+    !listconcat(traits, [FloatingTypeTrait, AliasTypeInterface])
+  >
 {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
