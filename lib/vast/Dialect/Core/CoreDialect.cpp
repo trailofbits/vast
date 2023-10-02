@@ -18,6 +18,31 @@
 
 namespace vast::core
 {
+    using mlir::OpAsmDialectInterface;
+
+    struct CoreOpAsmDialectInterface : OpAsmDialectInterface
+    {
+        using OpAsmDialectInterface::OpAsmDialectInterface;
+
+        AliasResult getAlias(mlir_type type, llvm::raw_ostream &os) const final {
+            return AliasResult::NoAlias;
+        }
+
+        AliasResult getAlias(attr_t attr, llvm::raw_ostream &os) const final {
+            if (auto at = attr.dyn_cast< core::VoidAttr >()) {
+                os << "void_value";
+                return AliasResult::FinalAlias;
+            }
+
+            if (auto at = attr.dyn_cast< core::BooleanAttr >()) {
+                os << (at.getValue() ? "true" : "false");
+                return AliasResult::FinalAlias;
+            }
+
+            return AliasResult::NoAlias;
+        }
+    };
+
     void CoreDialect::initialize()
     {
         registerTypes();
@@ -27,6 +52,8 @@ namespace vast::core
             #define GET_OP_LIST
             #include "vast/Dialect/Core/Core.cpp.inc"
         >();
+
+        addInterfaces< CoreOpAsmDialectInterface >();
     }
 
     using OpBuilder = mlir::OpBuilder;
