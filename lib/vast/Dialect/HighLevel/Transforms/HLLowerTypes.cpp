@@ -125,13 +125,8 @@ namespace vast::hl {
             // Use provided data layout to get the correct type.
             addConversion([&](hl::PointerType t) { return this->convert_ptr_type(t); });
             addConversion([&](hl::ArrayType t) { return this->convert_arr_type(t); });
-            // TODO(lukas): This one is tricky, because ideally `hl.void` is "no value".
-            //              But if we lowered it such, than we need to remove the previous
-            //              value and everything gets more complicated.
-            //              This approach should be fine as long as rest of `mlir` accepts
-            //              none type.
             addConversion([&](hl::VoidType t) -> maybe_type_t {
-                return { vast::core::VoidType::get(&mctx) };
+                return { mlir::NoneType::get(&mctx) };
             });
         }
 

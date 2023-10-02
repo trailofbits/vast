@@ -450,7 +450,7 @@ namespace vast::conv::irstollvm
                 hl::ConstantOp op, hl::ConstantOp::Adaptor ops,
                 conversion_rewriter &rewriter) const override
         {
-            if (mlir::isa< core::VoidType >(op.getResult().getType())) {
+            if (mlir::isa< mlir::NoneType >(op.getResult().getType())) {
                 return handle_void_const(op, rewriter);
             }
             rewriter.replaceOp(op, {make_from(op, rewriter, this->type_converter())});
