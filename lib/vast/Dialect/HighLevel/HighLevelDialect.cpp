@@ -11,6 +11,8 @@
 #include <mlir/IR/TypeSupport.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/DialectImplementation.h>
+#include <mlir/IR/OpImplementation.h>
+#include <mlir/IR/DialectInterface.h>
 
 #include <llvm/ADT/TypeSwitch.h>
 #include <llvm/Support/ErrorHandling.h>
@@ -22,6 +24,27 @@
 
 namespace vast::hl
 {
+    using mlir::OpAsmDialectInterface;
+
+    struct HighLevelOpAsmDialectInterface : OpAsmDialectInterface
+    {
+        using OpAsmDialectInterface::OpAsmDialectInterface;
+
+        AliasResult getAlias(mlir_type type, llvm::raw_ostream &os) const final {
+            if (auto ty = type.dyn_cast< hl::VoidType >()) {
+                os << ty.getAlias();
+                return AliasResult::OverridableAlias;
+            }
+
+            if (auto ty = type.dyn_cast< hl::BoolType >()) {
+                os << ty.getAlias();
+                return AliasResult::OverridableAlias;
+            }
+
+            return AliasResult::NoAlias;
+        }
+    };
+
     void HighLevelDialect::initialize()
     {
         registerTypes();
@@ -31,6 +54,8 @@ namespace vast::hl
             #define GET_OP_LIST
             #include "vast/Dialect/HighLevel/HighLevel.cpp.inc"
         >();
+
+        addInterfaces< HighLevelOpAsmDialectInterface >();
     }
 
     using DialectParser = mlir::AsmParser;
