@@ -115,7 +115,7 @@ int main() {
 <pre lang="cpp">
 hl.func external @main() -> !hl.int {
     %0 = hl.var "x" : !hl.lvalue<!hl.int> = {
-      %4 = hl.const #core.e.integer<0> : !hl.int
+      %4 = hl.const #core.integer<0> : !hl.int
       hl.value.yield %4 : !hl.int
     }
     %1 = hl.var "y" : !hl.lvalue<!hl.int> = {
@@ -128,7 +128,7 @@ hl.func external @main() -> !hl.int {
       %5 = hl.addressof %4 : !hl.lvalue<!hl.int> -> !hl.ptr<!hl.int>
       hl.value.yield %5 : !hl.ptr<!hl.int>
     }
-    %3 = hl.const #core.e.integer<0> : !hl.int
+    %3 = hl.const #core.integer<0> : !hl.int
     hl.return %3 : !hl.int
 }
 </pre>
@@ -151,13 +151,13 @@ void loop_simple()
 <pre lang="cpp">
 hl.func external @loop_simple () -> !hl.void {
     %0 = hl.var "i" : !hl.lvalue<!hl.int> = {
-      %1 = hl.const #core.e.integer<0> : !hl.int
+      %1 = hl.const #core.integer<0> : !hl.int
       hl.value.yield %1 : !hl.int
     }
     hl.for {
       %1 = hl.ref %0 : !hl.lvalue<!hl.int>
       %2 = hl.implicit_cast %1 LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int
-      %3 = hl.const #core.e.integer<100> : !hl.int
+      %3 = hl.const #core.integer<100> : !hl.int
       %4 = hl.cmp slt %2, %3 : !hl.int, !hl.int -> !hl.int
       hl.cond.yield %4 : !hl.int
     } incr {
@@ -178,13 +178,13 @@ For example high-level control flow with standard types:
 ```
 hl.func external  private @loop_simple() -> none {
     %0 = hl.var "i" : i32 = {
-      %1 = hl.const #core.e.integer<0> : i32
+      %1 = hl.const #core.integer<0> : i32
       hl.value.yield %1 : i32
     }
     hl.for {
       %1 = hl.ref %0 : i32
       %2 = hl.implicit_cast %1 LValueToRValue : i32 -> i32
-      %3 = hl.const #core.e.integer<100> : i32
+      %3 = hl.const #core.integer<100> : i32
       %4 = hl.cmp slt %2, %3 : i32, i32 -> i32
       hl.cond.yield %4 : i32
     } incr {
