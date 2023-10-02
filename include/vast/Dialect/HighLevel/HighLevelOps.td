@@ -382,8 +382,8 @@ def ConstantOp
   , Arguments<(ins TypedAttrInterface:$value)>
   , Results<(outs AnyType:$result)>
 {
-  let summary = "VAST integral constant";
-  let description = [{ VAST integral constant }];
+  let summary = "VAST value constant";
+  let description = [{ VAST value constant }];
 
   let builders = [
     OpBuilder<(ins "VoidType":$type), [{
