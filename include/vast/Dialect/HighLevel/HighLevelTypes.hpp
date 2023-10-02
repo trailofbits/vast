@@ -26,6 +26,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 
 #include "vast/Interfaces/TypeQualifiersInterfaces.hpp"
+#include "vast/Interfaces/AliasTypeInterface.hpp"
 #include "vast/Interfaces/DefaultDataLayoutTypeInterface.hpp"
 #include "vast/Interfaces/ElementTypeInterface.hpp"
 

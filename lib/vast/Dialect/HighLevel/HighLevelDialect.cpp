@@ -5,6 +5,8 @@
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
+#include "vast/Interfaces/AliasTypeInterface.hpp"
+
 #include "vast/Util/Functions.hpp"
 #include "vast/Util/Common.hpp"
 
@@ -31,14 +33,11 @@ namespace vast::hl
         using OpAsmDialectInterface::OpAsmDialectInterface;
 
         AliasResult getAlias(mlir_type type, llvm::raw_ostream &os) const final {
-            if (auto ty = type.dyn_cast< hl::VoidType >()) {
-                os << ty.getAlias();
-                return AliasResult::OverridableAlias;
-            }
-
-            if (auto ty = type.dyn_cast< hl::BoolType >()) {
-                os << ty.getAlias();
-                return AliasResult::OverridableAlias;
+            if (mlir::isa< HighLevelDialect >(type.getDialect())) {
+                if (auto ty = type.dyn_cast< AliasTypeInterface >()) {
+                    os << ty.getAlias();
+                    return ty.getAliasResultKind();
+                }
             }
 
             return AliasResult::NoAlias;
