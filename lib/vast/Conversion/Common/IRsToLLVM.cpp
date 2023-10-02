@@ -20,6 +20,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
+#include "vast/Dialect/Core/CoreAttributes.hpp"
+
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
 #include "vast/Dialect/Core/CoreOps.hpp"
@@ -464,7 +466,7 @@ namespace vast::conv::irstollvm
             if (!target_type)
                 return {};
 
-            if (auto float_attr = attr.template dyn_cast< hl::FloatAttr >())
+            if (auto float_attr = attr.template dyn_cast< core::FloatAttr >())
             {
                 // NOTE(lukas): We cannot simply forward the return value of `getValue()`
                 //              because it can have different semantics than one expected
@@ -474,7 +476,7 @@ namespace vast::conv::irstollvm
                 double raw_value = float_attr.getValue().convertToDouble();
                 return rewriter.getFloatAttr(target_type, raw_value);
             }
-            if (auto int_attr = attr.template dyn_cast< hl::IntegerAttr >())
+            if (auto int_attr = attr.template dyn_cast< core::IntegerAttr >())
             {
                 auto size = dl.getTypeSizeInBits(target_type);
                 auto coerced = int_attr.getValue().sextOrTrunc(size);
@@ -485,7 +487,7 @@ namespace vast::conv::irstollvm
         }
 
         mlir::Value convert_strlit(hl::ConstantOp op, auto rewriter, auto &tc,
-                                   mlir_type target_type, hl::StringLiteralAttr str_lit) const
+                                   mlir_type target_type, core::StringLiteralAttr str_lit) const
         {
             // We need to include the terminating `0` which will not happen
             // if we "just" pass the value in.
@@ -523,7 +525,7 @@ namespace vast::conv::irstollvm
         {
             auto target_type = this->convert(op.getType());
 
-            if (auto str_lit = mlir::dyn_cast< hl::StringLiteralAttr >(op.getValue()))
+            if (auto str_lit = mlir::dyn_cast< core::StringLiteralAttr >(op.getValue()))
                 return convert_strlit(op, rewriter_wrapper_t(rewriter), tc,
                                       target_type, str_lit);
 

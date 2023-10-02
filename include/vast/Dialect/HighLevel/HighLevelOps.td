@@ -141,7 +141,7 @@ def EnumConstantOp
     A constant can have a constant expression initializer:
 
     ```
-    hl.enum.const "G" = #hl.integer<12> : !hl.int init  {
+    hl.enum.const "G" = #core.integer<12> : !hl.int init  {
       %0 = hl.enumref "F" : !hl.int
       %1 = hl.enumref "C" : !hl.int
       %2 = hl.add %0, %1 : !hl.int
@@ -159,7 +159,7 @@ def EnumConstantOp
       CArg< "BuilderCallback", "std::nullopt" >:$init
     ), [{
       $_state.addAttribute("name", $_builder.getStringAttr(name));
-      $_state.addAttribute("value", IntegerAttr::get(type, value));
+      $_state.addAttribute("value", core::IntegerAttr::get(type, value));
 
       InsertionGuard guard($_builder);
       build_region($_builder, $_state, init);
@@ -387,19 +387,19 @@ def ConstantOp
 
   let builders = [
     OpBuilder<(ins "VoidType":$type), [{
-      build($_builder, $_state, type, VoidAttr::get(type.getContext(), type));
+      build($_builder, $_state, type, core::VoidAttr::get(type.getContext(), type));
     }]>,
     OpBuilder<(ins "Type":$type, "bool":$value), [{
-      build($_builder, $_state, type, BooleanAttr::get(type, value));
+      build($_builder, $_state, type, core::BooleanAttr::get(type, value));
     }]>,
     OpBuilder<(ins "Type":$type, "llvm::APSInt":$value), [{
-      build($_builder, $_state, type, IntegerAttr::get(type, value));
+      build($_builder, $_state, type, core::IntegerAttr::get(type, value));
     }]>,
     OpBuilder<(ins "Type":$type, "llvm::APFloat":$value), [{
-      build($_builder, $_state, type, FloatAttr::get(type, value));
+      build($_builder, $_state, type, core::FloatAttr::get(type, value));
     }]>,
     OpBuilder<(ins "Type":$type, "llvm::StringRef":$value), [{
-      build($_builder, $_state, type, StringLiteralAttr::get(type, value));
+      build($_builder, $_state, type, core::StringLiteralAttr::get(type, value));
     }]>
   ];
 
