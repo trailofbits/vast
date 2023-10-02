@@ -83,41 +83,6 @@ def FloatAttr : Core_Attr<"Float", "float", [TypedAttrInterface] > {
   // let genVerifyDecl = 1;
 }
 
-def StringAttr : Core_Attr<"String", "str", [TypedAttrInterface] > {
-  let summary = "An Attribute containing a string";
-
-  let description = [{
-    Note: Temporarily copied from builtin dialect, because llvm-15 does not have
-    `TypedAttrInterface` yet.
-
-    Syntax:
-
-    ```
-    string-attribute ::= string-literal (`:` type)?
-    ```
-
-    A string attribute is an attribute that represents a string literal value.
-
-    Examples:
-
-    ```mlir
-    "An important string"
-    "string with a type" : !dialect.string
-    ```
-  }];
-
-  let parameters = (ins StringRefParameter<"">:$value, AttributeSelfTypeParameter<"">:$type);
-
-  let builders = [
-    AttrBuilderWithInferredContext<(ins "Type":$type, "const llvm::Twine &":$value), [{
-      llvm::SmallVector<char, 32> tempStr;
-      return Base::get(type.getContext(), value.toStringRef(tempStr), type);
-    }]>
-  ];
-
-  let assemblyFormat = "`<` $value `>`";
-}
-
 def StringLiteralAttr : Core_Attr< "StringLiteral", "strlit", [TypedAttrInterface] > {
   let summary = "An Attribute containing an escaped string";
   let hasCustomAssemblyFormat = 1;

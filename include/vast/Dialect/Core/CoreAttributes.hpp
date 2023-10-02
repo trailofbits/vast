@@ -22,9 +22,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::core {
 
     using typed_attrs = util::type_list<
-        BooleanAttr, IntegerAttr, FloatAttr, StringAttr, StringLiteralAttr, VoidAttr
+        BooleanAttr, IntegerAttr, FloatAttr, StringLiteralAttr, VoidAttr
     >;
-
-    bool is_typed_attr(mlir::Attribute);
 
 } // namespace vast::core

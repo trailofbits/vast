@@ -66,10 +66,6 @@ namespace mlir {
 
 namespace vast::core
 {
-    bool is_core_typed_attr(mlir::Attribute attr) {
-        return util::is_one_of< typed_attrs >(attr);
-    }
-
     using DialectParser = mlir::AsmParser;
     using DialectPrinter = mlir::AsmPrinter;
 
