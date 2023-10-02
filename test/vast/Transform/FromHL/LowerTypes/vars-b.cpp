@@ -4,7 +4,7 @@
 int main()
 {
     // CHECK: hl.var "x" : !hl.lvalue<ui1> =  {
-    // CHECK:   [[V1:%[0-9]+]] = hl.const #core.bool<false> : ui1
+    // CHECK:   [[V1:%[0-9]+]] = hl.const #false
     // CHECK:   hl.value.yield [[V1]] : ui1
     // CHECK: }
     bool x = false;

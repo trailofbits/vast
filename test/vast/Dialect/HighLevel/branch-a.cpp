@@ -114,7 +114,7 @@ int branch_empty(int a, int b)
 int branch_true(int a, int b)
 {
     // CHECK: hl.if
-    // CHECK: [[V1:%[0-9]+]] = hl.const #core.bool<true> : !hl.bool
+    // CHECK: [[V1:%[0-9]+]] = hl.const #true
     // CHECK: hl.cond.yield [[V1]]
     if (true) {
         // CHECK: } then {
