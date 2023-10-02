@@ -3026,7 +3026,7 @@ An Attribute containing a boolean value
 Syntax:
 
 ```
-#core.e.bool<
+#core.bool<
   ::mlir::Type,   # type
   bool   # value
 >
