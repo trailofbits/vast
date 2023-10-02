@@ -1,3 +1,4 @@
 add_vast_op_interface(SymbolInterface)
 add_vast_attr_interface(TypeQualifiersInterfaces)
+add_vast_type_interface(DefaultDataLayoutTypeInterface)
 add_vast_type_interface(ElementTypeInterface)
