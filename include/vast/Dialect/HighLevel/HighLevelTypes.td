@@ -230,11 +230,11 @@ def RValue : TypeWithSubType< "RValue", "rvalue" > { }
 //
 // Basic types
 //
-def VoidType : CVQualifiedType< "Void", "void", (ins), [AliasTypeInterface] > {
+def VoidType : CVQualifiedType< "Void", "void", (ins) > {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
 
-def BoolType : CVQualifiedType< "Bool", "bool", (ins), [AliasTypeInterface] > {
+def BoolType : CVQualifiedType< "Bool", "bool", (ins) > {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
 
@@ -248,7 +248,7 @@ def BoolLikeType : TypeConstraint<
 //
 class IntegerType< string name, string mnemonic, list<Trait> traits = []>
   : UCVQualifiedType< name, mnemonic, (ins),
-    !listconcat(traits, [IntegralTypeTrait, AliasTypeInterface])
+    !listconcat(traits, [IntegralTypeTrait])
   >
 {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
@@ -281,7 +281,7 @@ def IntOrBoolType : TypeConstraint<
 //
 class FloatingType< string name, string mnem, list<Trait> traits = []>
   : CVQualifiedType< name, mnem, (ins),
-    !listconcat(traits, [FloatingTypeTrait, AliasTypeInterface])
+    !listconcat(traits, [FloatingTypeTrait])
   >
 {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
