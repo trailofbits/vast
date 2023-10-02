@@ -9,73 +9,22 @@ include "mlir/IR/BuiltinTypeInterfaces.td"
 
 include "vast/Dialect/HighLevel/HighLevelAttributes.td"
 include "vast/Interfaces/TypeQualifiersInterfaces.td"
+include "vast/Interfaces/DefaultDataLayoutTypeInterface.td"
 include "vast/Interfaces/ElementTypeInterface.td"
 
 include "vast/Dialect/Core/Utils.td"
-
-// NOTE(lukas): I have no idea how to do this both in a sane way and in tablegen
-class WithDefaultDLTypeInterface {
-  code default_dl_interface_impl = [{
-    using dl_t = mlir::DataLayout;
-    using dl_entries_ref = mlir::DataLayoutEntryListRef;
-
-    unsigned getTypeSizeInBits(const dl_t &dl, dl_entries_ref entries) const
-    {
-        VAST_CHECK(entries.size() != 0,
-            "Query for getTypeSizeInBits for {0} failed: Must have at least one entry!",
-            format_type(*this)
-        );
-
-        std::optional<uint32_t> out;
-        auto handle_entry = [&](auto &dl_entry) {
-            if (!out) out = dl_entry.bw;
-            VAST_CHECK(*out == dl_entry.bw,
-                       "Inconsistent entries {0}, {1}, entry count: {2}",
-                       *out, dl_entry.bw, entries.size());
-        };
-        apply_on_valid_entries(entries, handle_entry);
-        VAST_CHECK(out.has_value(), "getTypeSizeBits entries did not yield result.");
-        return *out;
-    }
-
-    unsigned getABIAlignment(const dl_t &dl, dl_entries_ref entries) const
-    {
-        VAST_UNIMPLEMENTED;
-    }
-
-    unsigned getPreferredAlignment(const dl_t &dl, dl_entries_ref entries) const
-    {
-        VAST_UNIMPLEMENTED;
-    }
-
-    void apply_on_valid_entries(dl_entries_ref entries, auto &f) const
-    {
-        for (const auto &entry : entries)
-        {
-            auto dl_entry = dl::DLEntry::unwrap(entry);
-            if (is_valid_entry_type(dl_entry.type))
-                f(dl_entry);
-        }
-    }
-
-    bool is_valid_entry_type(mlir::Type t) const
-    {
-        return t == *this;
-    }
-  }];
-}
 
 //
 // Generic high-level type
 //
 class HighLevelType< string name, list<Trait> traits = []>
   : TypeDef< HighLevel_Dialect, name,
-    !listconcat(traits, [DataLayoutTypeInterface])
+    !listconcat(traits, [
+      DataLayoutTypeInterface,
+      DefaultDataLayoutTypeInterface
+    ])
   >
-  , WithDefaultDLTypeInterface
-{
-  let extraClassDeclaration = default_dl_interface_impl;
-}
+{}
 
 //
 // Type qualifiers
@@ -130,14 +79,11 @@ def UCVQualifiers : QualfiersParams< "UCVQualifiers", [UnsignedQualifier, ConstQ
 def CVRQualifiers : QualfiersParams< "CVRQualifiers", [ConstQualifier, VolatileQualifier, RestrictQualifier] > {}
 
 class QualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
-  : HighLevelType< name, !listconcat(traits, []) >
+  : HighLevelType< name, traits >
 {
   let mnemonic = mnem;
 
   let parameters = params;
-
-  // TODO remove
-  let extraClassDeclaration = default_dl_interface_impl;
 
   let assemblyFormat = "(`<` $quals^ `>`)?";
 }
@@ -285,10 +231,18 @@ def RValue : TypeWithSubType< "RValue", "rvalue" > { }
 //
 def VoidType : CVQualifiedType< "Void", "void" > {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
+
+  let extraClassDeclaration = [{
+    std::string getAlias() const { return "void"; };
+  }];
 }
 
 def BoolType : CVQualifiedType< "Bool", "bool" > {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
+
+  let extraClassDeclaration = [{
+    std::string getAlias() const { return "bool"; };
+  }];
 }
 
 def BoolLikeType : TypeConstraint<
@@ -417,7 +371,7 @@ def ArrayType : CVRQualifiedType< "Array", "array",
   >
   , WithDimensionsClass
 {
-  let extraClassDeclaration = default_dl_interface_impl # default_dimensions_impl;
+  let extraClassDeclaration = default_dimensions_impl;
 
   let builders = [
     TypeBuilder<(ins "SizeParam":$size, "Type":$element), [{
