@@ -1059,6 +1059,8 @@ namespace vast::conv::irstollvm
         logical_result matchAndRewrite(
             op_t op, adaptor_t ops, conversion_rewriter &rewriter
         ) const override {
+            // TODO mimic: clang/lib/CodeGen/CGExprScalar.cpp:VisitUnaryExprOrTypeTraitExpr
+            // This does not consider type alignment and VLA types
             auto target_type = this->convert(op.getType());
             const auto &dl = this->type_converter().getDataLayoutAnalysis()->getAtOrAbove(op);
             auto attr = rewriter.getIntegerAttr(
