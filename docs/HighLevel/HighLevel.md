@@ -185,7 +185,7 @@ VAST address of label extension
 
 | Operand | Description |
 | :-----: | ----------- |
-| `label` | 
+| `label` |
 
 #### Results:
 
@@ -1660,7 +1660,7 @@ operation ::= `hl.goto` $label attr-dict
 
 | Operand | Description |
 | :-----: | ----------- |
-| `label` | 
+| `label` |
 
 ### `hl.if` (::vast::hl::IfOp)
 
@@ -1707,7 +1707,7 @@ Interfaces: InferTypeOpInterface
 
 | Result | Description |
 | :----: | ----------- |
-| `result` | 
+| `result` |
 
 ### `hl.label` (::vast::hl::LabelStmt)
 
@@ -1727,7 +1727,7 @@ Traits: NoRegionArguments, NoTerminator
 
 | Operand | Description |
 | :-----: | ----------- |
-| `label` | 
+| `label` |
 
 ### `hl.skip` (::vast::hl::SkipStmt)
 
@@ -3026,7 +3026,7 @@ An Attribute containing a boolean value
 Syntax:
 
 ```
-#hl.bool<
+#core.e.bool<
   ::mlir::Type,   # type
   bool   # value
 >
@@ -3092,7 +3092,7 @@ An Attribute containing a floating point value
 Syntax:
 
 ```
-#hl.float<
+#core.float<
   ::mlir::Type,   # type
   ::llvm::APFloat   # value
 >
@@ -3115,7 +3115,7 @@ An Attribute containing a integer value
 Syntax:
 
 ```
-#hl.integer<
+#core.integer<
   ::mlir::Type,   # type
   ::llvm::APSInt   # value
 >
@@ -3138,7 +3138,7 @@ An Attribute containing a string
 Syntax:
 
 ```
-#hl.str<
+#core.str<
   ::llvm::StringRef,   # value
   ::mlir::Type   # type
 >

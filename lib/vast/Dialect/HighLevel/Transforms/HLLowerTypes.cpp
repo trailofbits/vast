@@ -287,7 +287,7 @@ namespace vast::hl {
             using rest_t = typename attrs_list::tail;
 
             if (auto typed = mlir::dyn_cast< attr_t >(attr)) {
-                if constexpr (std::same_as< attr_t, hl::VoidAttr>) {
+                if constexpr (std::same_as< attr_t, core::VoidAttr>) {
                     return Maybe(typed.getType())
                         .and_then([&] (auto type) {
                             return getTypeConverter()->convertType(type);
@@ -317,7 +317,7 @@ namespace vast::hl {
 
         auto convert_high_level_typed_attr() const {
             return [&] (mlir::Attribute attr) {
-                return high_level_typed_attr_conversion< high_level_typed_attrs >(attr);
+                return high_level_typed_attr_conversion< core::typed_attrs >(attr);
             };
         }
 
