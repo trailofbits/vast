@@ -8,30 +8,6 @@ include "mlir/IR/EnumAttr.td"
 include "mlir/IR/AttrTypeBase.td"
 include "mlir/IR/BuiltinAttributeInterfaces.td"
 
-def APSIntAttr : Attr<CPred<"$_self.isa<::mlir::IntegerAttr>()">,
-  "arbitrary integer attribute with sign">
-{
-  let storageType = [{ ::mlir::IntegerAttr }];
-  let returnType = [{ ::llvm::APSInt }];
-  let constBuilderCall = [{
-    ::mlir::IntegerAttr::get($_builder.getContext(), $0)
-  }];
-  let convertFromStorage = [{
-    llvm::APSInt($_self.getValue(), isSigned($_self.getType()));
-  }];
-}
-
-def APFloatAttr : Attr<CPred<"$_self.isa<::mlir::FloatAttr>()">,
-  "arbitrary floating-point attribute">
-{
-  let storageType = [{ ::mlir::FloatAttr }];
-  let returnType = [{ ::llvm::APFloat }];
-  let constBuilderCall = [{
-    ::mlir::FloatAttr::get($_builder.getF64Type(), $0)
-  }];
-  let convertFromStorage = [{ $_self.getValue() }];
-}
-
 class HighLevel_Attr<string name, string attr_mnemonic, list<Trait> traits = []>
     : AttrDef< HighLevel_Dialect, name, traits >
 {
