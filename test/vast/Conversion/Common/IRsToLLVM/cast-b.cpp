@@ -19,14 +19,14 @@ void int_to_bool() {
 
 // MLIR: llvm.func @_Z11int_to_boolv() {
 // MLIR:   [[A:%[0-9]+]] = llvm.alloca {{.*}} x i32
-// MLIR:   llvm.alloca {{.*}} x i1
+// MLIR:   llvm.alloca {{.*}} x i8
 // MLIR:   llvm.mlir.constant(0 : i32)
 // MLIR:   llvm.icmp "ne"
 // MLIR: }
 
 // LLVM: define void @_Z11int_to_boolv()
 // LLVM:    %1 = alloca i32
-// LLVM:    %2 = alloca i1
+// LLVM:    %2 = alloca i8
 // LLVM:    %3 = load i32, ptr %1, align 4
 // LLVM:    %4 = icmp ne i32 %3, 0
 // LLVM: }
