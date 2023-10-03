@@ -571,8 +571,35 @@ namespace vast::conv::irstollvm
         auto src_type = src.getType();
         auto orig_src_type = op.getValue().getType();
 
+        auto bitcast = [&] {
+            rewriter.template replaceOpWithNewOp< LLVM::BitcastOp >(op, dst_type, src);
+            return mlir::success();
+        };
+
         auto lvalue_to_rvalue = [&] {
             rewriter.template replaceOpWithNewOp< LLVM::LoadOp >(op, dst_type, src);
+            return mlir::success();
+        };
+
+        auto noop = [&] {
+            rewriter.replaceOp(op, { src });
+            return mlir::success();
+        };
+
+        auto arr_to_ptr_decay = [&] {
+            rewriter.template replaceOpWithNewOp< LLVM::GEPOp >(
+                op, dst_type, src, LLVM::GEPArg{ 0 }
+            );
+            return mlir::success();
+        };
+
+        auto to_void = [&] {
+            rewriter.replaceOp(op, { src });
+            return mlir::success();
+        };
+
+        auto integral_cast = [&] {
+            pattern.replace_with_trunc_or_ext(op, src, orig_src_type, dst_type, rewriter);
             return mlir::success();
         };
 
@@ -584,18 +611,12 @@ namespace vast::conv::irstollvm
             return mlir::success();
         };
 
-        auto integral_cast = [&] {
-            pattern.replace_with_trunc_or_ext(op, src, orig_src_type, dst_type, rewriter);
-            return mlir::success();
-        };
-
         auto int_to_float = [&] {
             if (orig_src_type.isSignedInteger()) {
                 rewriter.template replaceOpWithNewOp< LLVM::SIToFPOp >(op, dst_type, src);
             } else {
                 rewriter.template replaceOpWithNewOp< LLVM::UIToFPOp >(op, dst_type, src);
             }
-
             return mlir::success();
         };
 
@@ -608,31 +629,6 @@ namespace vast::conv::irstollvm
             } else {
                 rewriter.template replaceOpWithNewOp<mlir::LLVM::FPExtOp>(op, dst_type, src);
             }
-
-            return mlir::success();
-        };
-
-        auto arr_to_ptr_decay = [&] {
-            rewriter.template replaceOpWithNewOp< LLVM::GEPOp >(
-                op, dst_type, src, LLVM::GEPArg{ 0 }
-            );
-            return mlir::success();
-        };
-
-        auto noop = [&] {
-            rewriter.replaceOp(op, { src });
-            return mlir::success();
-        };
-
-        // TODO: According to what clang does, this will need more handling
-        //       based on different value categories. For now, just lower types.
-        auto to_void = [&] {
-            rewriter.replaceOp(op, { src });
-            return mlir::success();
-        };
-
-        auto bitcast = [&] {
-            rewriter.template replaceOpWithNewOp< LLVM::BitcastOp >(op, dst_type, src);
             return mlir::success();
         };
 
