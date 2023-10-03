@@ -593,6 +593,16 @@ namespace vast::conv::irstollvm
             return mlir::success();
         };
 
+        auto int_to_ptr = [&] {
+            rewriter.template replaceOpWithNewOp< LLVM::IntToPtrOp >(op, dst_type, src);
+            return mlir::success();
+        };
+
+        auto ptr_to_int = [&] {
+            rewriter.template replaceOpWithNewOp< LLVM::PtrToIntOp >(op, dst_type, src);
+            return mlir::success();
+        };
+
         auto to_void = [&] {
             rewriter.replaceOp(op, { src });
             return mlir::success();
@@ -660,8 +670,10 @@ namespace vast::conv::irstollvm
             // case hl::CastKind::UserDefinedConversion:
             // case hl::CastKind::ConstructorConversion:
 
-            // case hl::CastKind::IntegralToPointer:
-            // case hl::CastKind::PointerToIntegral:
+            case hl::CastKind::IntegralToPointer:
+                return int_to_ptr();
+            case hl::CastKind::PointerToIntegral:
+                return ptr_to_int();
             // case hl::CastKind::PointerToBoolean:
 
             case hl::CastKind::ToVoid:
