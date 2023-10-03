@@ -659,10 +659,76 @@ namespace vast::conv::irstollvm
 
             switch (op.getKind())
             {
-                case hl::CastKind::ToVoid:
-                    return to_void();
                 case hl::CastKind::BitCast:
                     return bitcast();
+                // case hl::CastKind::LValueBitCast:
+                // case hl::CastKind::LValueToRValueBitCast:
+                // case hl::CastKind::LValueToRValue:
+                // case hl::CastKind::NoOp:
+                // case hl::CastKind::BaseToDerived:
+                // case hl::CastKind::DerivedToBase:
+                // case hl::CastKind::UncheckedDerivedToBase:
+                // case hl::CastKind::Dynamic:
+                // case hl::CastKind::ToUnion:
+                // case hl::CastKind::ArrayToPointerDecay:
+                // case hl::CastKind::FunctionToPointerDecay:
+                // case hl::CastKind::NullToPointer:
+                // case hl::CastKind::NullToMemberPointer:
+                // case hl::CastKind::BaseToDerivedMemberPointer:
+                // case hl::CastKind::DerivedToBaseMemberPointer:
+                // case hl::CastKind::MemberPointerToBoolean:
+                // case hl::CastKind::UserDefinedConversion:
+                // case hl::CastKind::ConstructorConversion:
+                // case hl::CastKind::IntegralToPointer:
+                // case hl::CastKind::PointerToIntegral:
+                // case hl::CastKind::PointerToBoolean:
+                case hl::CastKind::ToVoid:
+                    return to_void();
+                // case hl::CastKind::VectorSplat:
+                // case hl::CastKind::IntegralCast:
+                // case hl::CastKind::IntegralToBoolean:
+                // case hl::CastKind::IntegralToFloating:
+                // case hl::CastKind::FloatingToFixedPoint:
+                // case hl::CastKind::FixedPointToFloating:
+                // case hl::CastKind::FixedPointCast:
+                // case hl::CastKind::FixedPointToIntegral:
+                // case hl::CastKind::IntegralToFixedPoint:
+                // case hl::CastKind::FixedPointToBoolean:
+                // case hl::CastKind::FloatingToIntegral:
+                // case hl::CastKind::FloatingToBoolean:
+                // case hl::CastKind::BooleanToSignedIntegral:
+                // case hl::CastKind::FloatingCast:
+                // case hl::CastKind::CPointerToObjCPointerCast:
+                // case hl::CastKind::BlockPointerToObjCPointerCast:
+                // case hl::CastKind::AnyPointerToBlockPointerCast:
+                // case hl::CastKind::ObjCObjectLValueCast:
+
+                // case hl::CastKind::FloatingRealToComplex:
+                // case hl::CastKind::FloatingComplexToReal:
+                // case hl::CastKind::FloatingComplexToBoolean:
+                // case hl::CastKind::FloatingComplexCast:
+                // case hl::CastKind::FloatingComplexToIntegralComplex:
+
+                // case hl::CastKind::IntegralRealToComplex:
+                // case hl::CastKind::IntegralComplexToReal:
+                // case hl::CastKind::IntegralComplexToBoolean:
+                // case hl::CastKind::IntegralComplexCast:
+                // case hl::CastKind::IntegralComplexToFloatingComplex:
+
+                // case hl::CastKind::ARCProduceObject:
+                // case hl::CastKind::ARCConsumeObject:
+                // case hl::CastKind::ARCReclaimReturnedObject:
+                // case hl::CastKind::ARCExtendBlockObject:
+
+                // case hl::CastKind::AtomicToNonAtomic:
+                // case hl::CastKind::NonAtomicToAtomic:
+
+                // case hl::CastKind::CopyAndAutoreleaseBlockObject:
+                // case hl::CastKind::BuiltinFnToFnPtr:
+                // case hl::CastKind::ZeroToOCLOpaqueType:
+                // case hl::CastKind::AddressSpaceConversion:
+                // case hl::CastKind::IntToOCLSampler:
+                // case hl::CastKind::MatrixCast:
                 default:
                     return logical_result::failure();
             }
