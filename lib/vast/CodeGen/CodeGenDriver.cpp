@@ -278,7 +278,7 @@ namespace vast::cg
     }
 
     operation codegen_driver::build_global_var_definition(const clang::VarDecl *decl, bool tentative) {
-        VAST_UNIMPLEMENTED_IF(lang().OpenCL || lang().OpenMPIsDevice);
+        VAST_UNIMPLEMENTED_IF(lang().OpenCL || lang().OpenMPIsTargetDevice);
 
         VAST_UNIMPLEMENTED_IF(decl->needsDestruction(actx) == clang::QualType::DK_cxx_destructor);
 

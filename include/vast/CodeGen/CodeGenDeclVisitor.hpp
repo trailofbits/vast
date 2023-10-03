@@ -116,7 +116,7 @@ namespace vast::cg {
             // Any attempts to use a MultiVersion function should result in retrieving the
             // iFunc instead. Name mangling will handle the rest of the changes.
             if (const auto *fn = clang::cast_or_null< clang::FunctionDecl >(decl)) {
-                VAST_UNIMPLEMENTED_IF(acontext().getLangOpts().OpenMPIsDevice);
+                VAST_UNIMPLEMENTED_IF(acontext().getLangOpts().OpenMPIsTargetDevice);
                 VAST_UNIMPLEMENTED_IF(fn->isMultiVersion());
             }
 
