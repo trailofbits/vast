@@ -20,8 +20,6 @@ def {{ dialect_name }}_Dialect : Dialect {
         {% if has_types %}void registerTypes();{% endif %}
         {% if has_attributes %}void registerAttributes();{% endif %}
     }];
-
-    let useFoldAPI = kEmitFoldAdaptorFolder;
 }
 
 {% if has_attributes %}include "vast/Dialect/{{ dialect_name }}/{{ dialect_name }}Attributes.td"{% endif %}

@@ -31,8 +31,6 @@ def Core_Dialect : Dialect {
     let useDefaultAttributePrinterParser = 1;
 
     let hasConstantMaterializer = 1;
-
-    let useFoldAPI = kEmitFoldAdaptorFolder;
 }
 
 class Core_Op< string mnemonic, list< Trait > traits = [] >

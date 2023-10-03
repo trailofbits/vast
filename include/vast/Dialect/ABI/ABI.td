@@ -24,8 +24,6 @@ def ABI_Dialect : Dialect {
         void registerTypes();
         void registerAttributes();
     }];
-
-    let useFoldAPI = kEmitFoldAdaptorFolder;
 }
 
 class ABI_Op< string mnemonic, list< Trait > traits = [] >

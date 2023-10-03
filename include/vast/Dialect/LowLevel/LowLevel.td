@@ -27,8 +27,6 @@ def LowLevel_Dialect : Dialect {
         void registerTypes();
         void registerAttributes();
     }];
-
-    let useFoldAPI = kEmitFoldAdaptorFolder;
 }
 
 class LowLevel_Op< string mnemonic, list< Trait > traits = [] >
