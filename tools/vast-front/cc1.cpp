@@ -81,8 +81,7 @@ namespace vast::cc {
         // auto &target_opts   = comp->getFrontendOpts();
         auto &header_opts   = comp->getHeaderSearchOpts();
 
-        if (frontend_opts.TimeTrace || !frontend_opts.TimeTracePath.empty()) {
-            frontend_opts.TimeTrace = 1;
+        if (!frontend_opts.TimeTracePath.empty()) {
             llvm::timeTraceProfilerInitialize(frontend_opts.TimeTraceGranularity, tool);
         }
 
@@ -129,27 +128,29 @@ namespace vast::cc {
         llvm::TimerGroup::printAll(llvm::errs());
         llvm::TimerGroup::clearAll();
 
-        using small_string = llvm::SmallString<128>;
-
         if (llvm::timeTraceProfilerEnabled()) {
-            small_string path(frontend_opts.OutputFile);
-            llvm::sys::path::replace_extension(path, "json");
-
-            if (!frontend_opts.TimeTracePath.empty()) {
-                // replace the suffix to '.json' directly
-                small_string trace_path(frontend_opts.TimeTracePath);
-                if (llvm::sys::fs::is_directory(trace_path)) {
-                    llvm::sys::path::append(trace_path, llvm::sys::path::filename(path));
-                }
-
-                path.assign(trace_path);
+            // It is possible that the compiler instance doesn't own a file manager here
+            // if we're compiling a module unit. Since the file manager are owned by AST
+            // when we're compiling a module unit. So the file manager may be invalid
+            // here.
+            //
+            // It should be fine to create file manager here since the file system
+            // options are stored in the compiler invocation and we can recreate the VFS
+            // from the compiler invocation.
+            if (!comp->hasFileManager()) {
+                comp->createFileManager(clang::createVFSFromCompilerInvocation(
+                    comp->getInvocation(), comp->getDiagnostics()
+                ));
             }
 
-            if (auto profiler_output = comp->createOutputFile(
-                    path.str(), /*Binary=*/false, /*RemoveFileOnSignal=*/false,
-                    /*useTemporary=*/false)) {
-                llvm::timeTraceProfilerWrite(*profiler_output);
-                profiler_output.reset();
+            if (auto profilerOutput = comp->createOutputFile(
+                    frontend_opts.TimeTracePath, /*Binary=*/false,
+                    /*RemoveFileOnSignal=*/false,
+                    /*useTemporary=*/false
+                ))
+            {
+                llvm::timeTraceProfilerWrite(*profilerOutput);
+                profilerOutput.reset();
                 llvm::timeTraceProfilerCleanup();
                 comp->clearOutputFiles(false);
             }
