@@ -21,11 +21,11 @@ namespace vast
     bool contains_subtype(mlir_type root, auto &&accept)
     {
         bool found = false;
-        auto visitor = [&](auto t) { found |= accept(t); };
 
-        if (auto with_sub_elements = mlir::dyn_cast< mlir::SubElementTypeInterface >(root))
-            with_sub_elements.walkSubTypes(visitor);
-        visitor(root);
+        mlir::AttrTypeWalker walker;
+        walker.addWalk([&](mlir_type t) { found |= accept(t); });
+
+        walker.walk(root);
         return found;
     }
 
@@ -47,17 +47,15 @@ namespace vast
     auto contains_subtype(mlir::Attribute root, auto &&accept)
     {
         bool found = false;
-        auto visitor = [&](mlir::Attribute attr)
-        {
+        mlir::AttrTypeWalker walker;
+        walker.addWalk([&](mlir::Attribute attr) {
             if (auto type_attr = mlir::dyn_cast< mlir::TypeAttr >(attr))
                 found |= contains_subtype(type_attr.getValue(), accept);
             if (auto typed_attr = mlir::dyn_cast< mlir::TypedAttr >(attr))
                 found |= contains_subtype(typed_attr.getType(), accept);
-        };
+        });
 
-        if (auto with_sub_elements = mlir::dyn_cast< mlir::SubElementAttrInterface >(root))
-            with_sub_elements.walkSubAttrs(visitor);
-        visitor(root);
+        walker.walk(root);
 
         return found;
     }
