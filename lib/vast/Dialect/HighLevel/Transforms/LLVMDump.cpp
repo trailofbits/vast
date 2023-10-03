@@ -77,7 +77,7 @@ namespace vast::hl
 
         llvm::InitializeNativeTarget();
         llvm::InitializeNativeTargetAsmPrinter();
-        mlir::ExecutionEngine::setupTargetTriple(lmodule.get());
+        mlir::ExecutionEngine::setupTargetTripleAndDataLayout(lmodule.get());
 
         auto dump = [&](auto &stream)
         {
