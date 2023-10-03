@@ -69,11 +69,6 @@ namespace vast::dl
     // For each type remember its data layout information.
     struct DataLayoutBlueprint {
         bool try_emplace(mlir::Type mty, const clang::Type *aty, const acontext_t &actx) {
-            // NOTE(lukas): clang changes size of `bool` to `1` when emitting llvm.
-            if (aty->isBooleanType()) {
-                return std::get< 1 >(entries.try_emplace(mty, dl::DLEntry{ mty, 1 }));
-            }
-
             // For other types this should be good-enough for now
             auto info = actx.getTypeInfo(aty);
             auto bw   = static_cast< uint32_t >(info.Width);
