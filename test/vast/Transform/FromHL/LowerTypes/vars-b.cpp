@@ -3,9 +3,9 @@
 // CHECK-LABEL: hl.func @main () -> si32
 int main()
 {
-    // CHECK: hl.var "x" : !hl.lvalue<ui1> =  {
+    // CHECK: hl.var "x" : !hl.lvalue<ui8> =  {
     // CHECK:   [[V1:%[0-9]+]] = hl.const #false
-    // CHECK:   hl.value.yield [[V1]] : ui1
+    // CHECK:   hl.value.yield [[V1]] : ui8
     // CHECK: }
     bool x = false;
 
