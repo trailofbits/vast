@@ -3,9 +3,7 @@
 #ifndef VAST_DIALECT_IR_UNSUPPORTED_TYPES
 #define VAST_DIALECT_IR_UNSUPPORTED_TYPES
 
-include "mlir/IR/SubElementInterfaces.td"
-
-def UnsupportedType : UnsupportedType< "Unsupported", "type", [SubElementTypeInterface] > {
+def UnsupportedType : UnsupportedType< "Unsupported", "type" > {
   let parameters = (ins StringRefParameter<>:$originName);
 
   let assemblyFormat = "`<` $originName `>`";

@@ -4,7 +4,6 @@
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
 
 include "mlir/Interfaces/DataLayoutInterfaces.td"
-include "mlir/IR/SubElementInterfaces.td"
 include "mlir/IR/BuiltinTypeInterfaces.td"
 
 include "vast/Dialect/HighLevel/HighLevelAttributes.td"
@@ -142,7 +141,7 @@ def TypedefType : CVRQualifiedType<
 }
 
 def ElaboratedType : CVRQualifiedType<
-  "Elaborated", "elaborated", (ins "Type":$elementType), [ElementTypeInterface, DeclareTypeInterfaceMethods< SubElementTypeInterface >]
+  "Elaborated", "elaborated", (ins "Type":$elementType), [ElementTypeInterface]
 > {
   let builders = [
     TypeBuilder<(ins "Type":$element), [{
@@ -178,7 +177,7 @@ class TypesMatchOrTypedef< list< string > tl > : PredOpTrait<
 >;
 
 class TypeWithSubType<string name, string mnem> : HighLevelType< name,
-  [ElementTypeInterface, DeclareTypeInterfaceMethods< SubElementTypeInterface >]
+  [ElementTypeInterface]
 > {
   let mnemonic = mnem;
 
@@ -308,11 +307,7 @@ def FloatLikeType : TypeConstraint<
 //
 def PointerType : CVRQualifiedType< "Pointer", "ptr",
     (ins "Type":$elementType),
-    [DeclareTypeInterfaceMethods< SubElementTypeInterface >,
-     MemRefElementTypeInterface,
-     PointerTypeTrait,
-     ElementTypeInterface
-    ]
+    [MemRefElementTypeInterface, PointerTypeTrait, ElementTypeInterface]
   >
 {
   let builders = [
@@ -364,7 +359,7 @@ def SizeParam : TypeParameter<"SizeParam", "size parameter for arrays"> {
 
 def ArrayType : CVRQualifiedType< "Array", "array",
     (ins SizeParam:$size, "Type":$elementType),
-    [DeclareTypeInterfaceMethods< SubElementTypeInterface >, MemRefElementTypeInterface]
+    [MemRefElementTypeInterface]
   >
   , WithDimensionsClass
 {
@@ -380,8 +375,8 @@ def ArrayType : CVRQualifiedType< "Array", "array",
 }
 
 def DecayedType : HighLevelType< "Decayed",
-                                 [SubElementTypeInterface, MemRefElementTypeInterface, ElementTypeInterface] >
-{
+  [MemRefElementTypeInterface, ElementTypeInterface]
+> {
   let mnemonic = "decayed";
   let parameters = (ins "Type":$elementType);
   let assemblyFormat = "`<` $elementType `>`";
