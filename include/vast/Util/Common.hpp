@@ -66,6 +66,6 @@ namespace vast {
     using maybe_attrs_t = std::optional< attrs_t >;
 
     using types_t       = mlir::SmallVector< mlir_type >;
-    using maybe_type_t  = llvm::Optional< mlir_type >;
-    using maybe_types_t = llvm::Optional< types_t >;
+    using maybe_type_t  = std::optional< mlir_type >;
+    using maybe_types_t = std::optional< types_t >;
 } // namespace vast
