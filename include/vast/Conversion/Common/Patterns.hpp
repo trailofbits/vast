@@ -100,46 +100,51 @@ namespace vast {
 
     struct llvm_pattern_utils
     {
-        auto iN(auto &rewriter, auto loc, mlir::Type type, auto val) const
+        auto iN(auto &rewriter, auto loc, mlir_type type, auto val) const
         {
             return rewriter.template create< mlir::LLVM::ConstantOp >(
-                    loc,
-                    type,
-                    rewriter.getIntegerAttr(type, val));
+                loc, type, rewriter.getIntegerAttr(type, val)
+            );
         }
 
-        auto fN(auto &rewriter, auto loc, mlir::Type type, auto val) const
+        auto fN(auto &rewriter, auto loc, mlir_type type, auto val) const
         {
             return rewriter.template create< mlir::LLVM::ConstantOp >(
-                    loc,
-                    type,
-                    rewriter.getFloatAttr(type, val));
+                loc, type, rewriter.getFloatAttr(type, val)
+            );
         }
 
-        auto constant(auto &rewriter, auto loc, mlir::Type type, auto val) const
+        auto constant(auto &rewriter, auto loc, mlir_type type, auto val) const
         {
             if (type.isIntOrIndex())
                 return iN(rewriter, loc, type, val);
-            if (type.isa< mlir::FloatType >())
+            if (mlir::isa< mlir::FloatType >(type))
                 return fN(rewriter, loc, type, val);
             VAST_UNREACHABLE("not an integer or float type");
         }
 
-        static auto create_trunc_or_sext(auto op, mlir::Type target, auto &rewriter,
-                                         mlir::Location loc, const auto &dl)
-            -> mlir::Value
-        {
-            VAST_ASSERT(op.getType().template isa< mlir::IntegerType >() &&
-                        target.isa< mlir::IntegerType >());
-            auto new_bw = dl.getTypeSizeInBits(target);
-            auto original_bw = dl.getTypeSizeInBits(op.getType());
 
-            if (new_bw == original_bw)
-                return op;
-            else if (new_bw > original_bw)
-                return rewriter.template create< mlir::LLVM::SExtOp >(loc, target, op);
-            else
-                return rewriter.template create< mlir::LLVM::TruncOp >(loc, target, op);
+        static auto replace_with_trunc_or_ext(
+            auto op, auto src, auto orig_src_type, mlir_type dst_type, auto &rewriter
+        ) -> mlir_value {
+            auto src_type = src.getType();
+
+            auto src_bw = src_type.getIntOrFloatBitWidth();
+            auto dst_bw = dst_type.getIntOrFloatBitWidth();
+
+            if (src_bw > dst_bw) {
+                return rewriter.template replaceOpWithNewOp< mlir::LLVM::TruncOp >(op, dst_type, src);
+            } else if (src_bw < dst_bw) {
+                if (orig_src_type.isSignedInteger()) {
+                    return rewriter.template replaceOpWithNewOp< mlir::LLVM::SExtOp >(op, dst_type, src);
+                } else {
+                    return rewriter.template replaceOpWithNewOp< mlir::LLVM::ZExtOp >(op, dst_type, src);
+                }
+            } else {
+                // src_bw == dst_bw
+                rewriter.replaceOp(op, { src });
+                return src;
+            }
         }
     };
 
