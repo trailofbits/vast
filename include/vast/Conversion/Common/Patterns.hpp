@@ -100,26 +100,41 @@ namespace vast {
 
     struct llvm_pattern_utils
     {
-        auto iN(auto &rewriter, auto loc, mlir_type type, auto val) const
-        {
+        mlir_value iN(auto &rewriter, auto loc, mlir_type type, auto val) const {
             return rewriter.template create< mlir::LLVM::ConstantOp >(
                 loc, type, rewriter.getIntegerAttr(type, val)
             );
         }
 
-        auto fN(auto &rewriter, auto loc, mlir_type type, auto val) const
-        {
+        mlir_value fN(auto &rewriter, auto loc, mlir_type type, auto val) const {
             return rewriter.template create< mlir::LLVM::ConstantOp >(
                 loc, type, rewriter.getFloatAttr(type, val)
             );
         }
 
-        auto constant(auto &rewriter, auto loc, mlir_type type, auto val) const
+        mlir_value null_ptr(auto &rewriter, auto loc, mlir_type type) const {
+            return rewriter.template create< mlir::LLVM::NullOp >(loc, type);
+        }
+
+        mlir_value ptr(auto &rewriter, auto loc, mlir_type type, auto val) const {
+            if (val) {
+                auto ptr_val = rewriter.template create< mlir::LLVM::ConstantOp >(
+                    loc, rewriter.getI64Type(), val
+                );
+                return rewriter.template create< mlir::LLVM::IntToPtrOp >(loc, type, ptr_val);
+            } else {
+                return null_ptr(rewriter, loc, type);
+            }
+        }
+
+        mlir_value constant(auto &rewriter, auto loc, mlir_type type, auto val) const
         {
             if (type.isIntOrIndex())
                 return iN(rewriter, loc, type, val);
             if (mlir::isa< mlir::FloatType >(type))
                 return fN(rewriter, loc, type, val);
+            if (mlir::isa< mlir::LLVM::LLVMPointerType >(type))
+                return ptr(rewriter, loc, type, val);
             VAST_UNREACHABLE("not an integer or float type");
         }
 
