@@ -565,15 +565,11 @@ namespace vast::conv::irstollvm
     >;
 
     logical_result match_and_rewrite_cast(auto &pattern, auto op, auto adaptor, auto &rewriter) {
-        using namespace mlir::LLVM;
-
-        auto &tc = pattern.tc;
-        const auto &dl = tc.getDataLayoutAnalysis()->getAtOrAbove(op);
-
         auto dst_type = pattern.convert(op.getType());
 
         auto src = adaptor.getValue();
         auto src_type = src.getType();
+        auto orig_src_type = op.getValue().getType();
 
         auto lvalue_to_rvalue = [&] {
             rewriter.template replaceOpWithNewOp< LLVM::LoadOp >(op, dst_type, src);
@@ -581,22 +577,20 @@ namespace vast::conv::irstollvm
         };
 
         auto int_to_bool = [&] {
-            auto zero = pattern.constant(rewriter, op.getLoc(), src.getType(), 0);
+            auto zero = pattern.constant(rewriter, op.getLoc(), src_type, 0);
             rewriter.template replaceOpWithNewOp< hl::CmpOp >(
                 op, dst_type, hl::Predicate::ne, src, zero
             );
             return mlir::success();
         };
 
-
         auto integral_cast = [&] {
-            auto coerced   = pattern.create_trunc_or_sext(src, dst_type, rewriter, op.getLoc(), dl);
-            rewriter.replaceOp(op, { coerced });
+            pattern.replace_with_trunc_or_ext(op, src, orig_src_type, dst_type, rewriter);
             return mlir::success();
         };
 
         auto int_to_float = [&] {
-            if (src_type.isSignedInteger()) {
+            if (orig_src_type.isSignedInteger()) {
                 rewriter.template replaceOpWithNewOp< LLVM::SIToFPOp >(op, dst_type, src);
             } else {
                 rewriter.template replaceOpWithNewOp< LLVM::UIToFPOp >(op, dst_type, src);
@@ -1025,51 +1019,42 @@ namespace vast::conv::irstollvm
 
     struct cmp : base_pattern< hl::CmpOp >
     {
-
-        using base = base_pattern< hl::CmpOp >;
+        using op_t = hl::CmpOp;
+        using base = base_pattern< op_t >;
         using base::base;
 
+        using adaptor_t = typename op_t::Adaptor;
+
         logical_result matchAndRewrite(
-                    hl::CmpOp op, typename hl::CmpOp::Adaptor ops,
-                    conversion_rewriter &rewriter) const override
-        {
-            auto predicate = convert_predicate(op.getPredicate());
-            if (!predicate)
-                return logical_result::failure();
+            op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+        ) const override {
+            auto pred = convert_predicate(op.getPredicate());
 
-            auto new_cmp = rewriter.create< mlir::LLVM::ICmpOp >(
-                op.getLoc(), *predicate, ops.getLhs(), ops.getRhs());
+            auto new_cmp = rewriter.create< LLVM::ICmpOp >(
+                op.getLoc(), pred, adaptor.getLhs(), adaptor.getRhs()
+            );
 
-            auto trg_type = tc.convert_type_to_type(op.getType());
-            if (!trg_type)
-                return logical_result::failure();
+            auto dst_type = convert(op.getType());
 
-            auto coerced = create_trunc_or_sext(new_cmp, *trg_type,
-                                                rewriter, op.getLoc(), dl(op));
+            replace_with_trunc_or_ext(op, new_cmp, new_cmp.getType(), dst_type, rewriter);
 
-            rewriter.replaceOp(op, { coerced });
-            return logical_result::success();
+            return mlir::success();
         }
 
-        auto convert_predicate(auto hl_predicate) const
-            -> std::optional< mlir::LLVM::ICmpPredicate >
-        {
-            // TODO(lukas): Use map later, this is just a proof of concept.
-            switch (hl_predicate)
+        auto convert_predicate(hl::Predicate predicate) const -> LLVM::ICmpPredicate {
+            switch (predicate)
             {
-                case hl::Predicate::eq : return { mlir::LLVM::ICmpPredicate::eq };
-                case hl::Predicate::ne : return { mlir::LLVM::ICmpPredicate::ne };
-                case hl::Predicate::slt : return { mlir::LLVM::ICmpPredicate::slt };
-                case hl::Predicate::sle : return { mlir::LLVM::ICmpPredicate::sle };
-                case hl::Predicate::sgt : return { mlir::LLVM::ICmpPredicate::sgt };
-                case hl::Predicate::sge : return { mlir::LLVM::ICmpPredicate::sge };
-                case hl::Predicate::ult : return { mlir::LLVM::ICmpPredicate::ult };
-                case hl::Predicate::ule : return { mlir::LLVM::ICmpPredicate::ule };
-                case hl::Predicate::ugt : return { mlir::LLVM::ICmpPredicate::ugt };
-                case hl::Predicate::uge : return { mlir::LLVM::ICmpPredicate::uge };
+                case hl::Predicate::eq  : return LLVM::ICmpPredicate::eq;
+                case hl::Predicate::ne  : return LLVM::ICmpPredicate::ne;
+                case hl::Predicate::slt : return LLVM::ICmpPredicate::slt;
+                case hl::Predicate::sle : return LLVM::ICmpPredicate::sle;
+                case hl::Predicate::sgt : return LLVM::ICmpPredicate::sgt;
+                case hl::Predicate::sge : return LLVM::ICmpPredicate::sge;
+                case hl::Predicate::ult : return LLVM::ICmpPredicate::ult;
+                case hl::Predicate::ule : return LLVM::ICmpPredicate::ule;
+                case hl::Predicate::ugt : return LLVM::ICmpPredicate::ugt;
+                case hl::Predicate::uge : return LLVM::ICmpPredicate::uge;
             }
-
-            VAST_UNREACHABLE("unsupported predicate");
         }
     };
 
