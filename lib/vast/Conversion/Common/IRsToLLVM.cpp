@@ -569,6 +569,8 @@ namespace vast::conv::irstollvm
 
         auto src = adaptor.getValue();
         auto src_type = src.getType();
+
+        auto orig_dst_type = op.getType();
         auto orig_src_type = op.getValue().getType();
 
         auto bitcast = [&] {
@@ -627,6 +629,15 @@ namespace vast::conv::irstollvm
                 rewriter.template replaceOpWithNewOp< LLVM::SIToFPOp >(op, dst_type, src);
             } else {
                 rewriter.template replaceOpWithNewOp< LLVM::UIToFPOp >(op, dst_type, src);
+            }
+            return mlir::success();
+        };
+
+        auto float_to_int = [&] {
+            if (orig_dst_type.isSignedInteger()) {
+                rewriter.template replaceOpWithNewOp< LLVM::FPToSIOp >(op, dst_type, src);
+            } else {
+                rewriter.template replaceOpWithNewOp< LLVM::FPToUIOp >(op, dst_type, src);
             }
             return mlir::success();
         };
@@ -713,7 +724,8 @@ namespace vast::conv::irstollvm
             // case hl::CastKind::FixedPointToIntegral:
             // case hl::CastKind::IntegralToFixedPoint:
             // case hl::CastKind::FixedPointToBoolean:
-            // case hl::CastKind::FloatingToIntegral:
+            case hl::CastKind::FloatingToIntegral:
+                return float_to_int();
             case hl::CastKind::FloatingToBoolean:
                 return float_to_bool();
             case hl::CastKind::BooleanToSignedIntegral:
