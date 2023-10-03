@@ -595,6 +595,13 @@ namespace vast::conv::irstollvm
             return mlir::success();
         };
 
+        auto null_to_ptr = [&] {
+            // TODO: deal with nullptr_t conversion
+            auto null = pattern.null_ptr(rewriter, op.getLoc(), dst_type);
+            rewriter.replaceOp(op, { null });
+            return mlir::success();
+        };
+
         auto int_to_ptr = [&] {
             rewriter.template replaceOpWithNewOp< LLVM::IntToPtrOp >(op, dst_type, src);
             return mlir::success();
@@ -677,7 +684,7 @@ namespace vast::conv::irstollvm
             if (src_bw > dst_bw) {
                 rewriter.template replaceOpWithNewOp< LLVM::FPTruncOp >(op , dst_type, src);
             } else {
-                rewriter.template replaceOpWithNewOp<mlir::LLVM::FPExtOp>(op, dst_type, src);
+                rewriter.template replaceOpWithNewOp< LLVM::FPExtOp >(op, dst_type, src);
             }
             return mlir::success();
         };
@@ -702,7 +709,8 @@ namespace vast::conv::irstollvm
             case hl::CastKind::ArrayToPointerDecay:
                 return arr_to_ptr_decay();
             // case hl::CastKind::FunctionToPointerDecay:
-            // case hl::CastKind::NullToPointer:
+            case hl::CastKind::NullToPointer:
+                return null_to_ptr();
             // case hl::CastKind::NullToMemberPointer:
             // case hl::CastKind::BaseToDerivedMemberPointer:
             // case hl::CastKind::DerivedToBaseMemberPointer:
