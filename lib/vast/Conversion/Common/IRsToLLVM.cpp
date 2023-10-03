@@ -580,6 +580,15 @@ namespace vast::conv::irstollvm
             return mlir::success();
         };
 
+        auto int_to_bool = [&] {
+            auto zero = pattern.constant(rewriter, op.getLoc(), src.getType(), 0);
+            rewriter.template replaceOpWithNewOp< hl::CmpOp >(
+                op, dst_type, hl::Predicate::ne, src, zero
+            );
+            return mlir::success();
+        };
+
+
         auto integral_cast = [&] {
             auto coerced   = pattern.create_trunc_or_sext(src, dst_type, rewriter, op.getLoc(), dl);
             rewriter.replaceOp(op, { coerced });
@@ -658,7 +667,8 @@ namespace vast::conv::irstollvm
             // case hl::CastKind::VectorSplat:
             case hl::CastKind::IntegralCast:
                 return integral_cast();
-            // case hl::CastKind::IntegralToBoolean:
+            case hl::CastKind::IntegralToBoolean:
+                return int_to_bool();
             case hl::CastKind::IntegralToFloating:
                 return int_to_float();
             // case hl::CastKind::FloatingToFixedPoint:
