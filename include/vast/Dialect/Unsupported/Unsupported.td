@@ -27,7 +27,6 @@ def Unsupported_Dialect : Dialect {
         void registerTypes();
     }];
 
-    let useFoldAPI = kEmitFoldAdaptorFolder;
     let useDefaultTypePrinterParser = 1;
 }
 

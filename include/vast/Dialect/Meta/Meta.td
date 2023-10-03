@@ -29,8 +29,6 @@ def Meta_Dialect : Dialect {
     }];
 
     let useDefaultAttributePrinterParser = 1;
-
-    let useFoldAPI = kEmitFoldAdaptorFolder;
 }
 
 include "MetaAttributes.td"
