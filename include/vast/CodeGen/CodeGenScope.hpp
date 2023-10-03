@@ -102,7 +102,7 @@ namespace vast::cg
         // On switches we need one return block per region, since cases don't
         // have their own scopes but are distinct regions nonetheless.
         llvm::SmallVector< mlir::Block * > ret_blocks;
-        llvm::SmallVector< llvm::Optional< mlir::Location > > ret_locs;
+        llvm::SmallVector< std::optional< mlir::Location > > ret_locs;
 
         // There's usually only one ret block per scope, but this needs to be
         // get or create because of potential unreachable return statements, note
@@ -121,7 +121,7 @@ namespace vast::cg
 
       public:
         llvm::ArrayRef< mlir::Block * > get_ret_blocks() { return ret_blocks; }
-        llvm::ArrayRef< llvm::Optional< mlir::Location > > get_ret_locs() { return ret_locs; }
+        llvm::ArrayRef< std::optional< mlir::Location > > get_ret_locs() { return ret_locs; }
 
         mlir::Block *get_or_create_ret_block(mlir::Location loc) {
             unsigned int region_idx = 0;

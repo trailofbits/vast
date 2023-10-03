@@ -10,8 +10,8 @@
 
 namespace vast
 {
-    // Really simple wrapper around "optional" types such as `std::optional`, `llvm::Optional`
-    // or `mlir::Type`.
+    // Really simple wrapper around "optional" types such as `std::optional`, or
+    // `mlir::Type`.
     // Use-case is to avoid explicit branches to check values, when return value at the end
     // is some "optional" type or bool anyway.
     // TODO(lukas): Whether it is worth to use is still an open question, as a lot of stuff

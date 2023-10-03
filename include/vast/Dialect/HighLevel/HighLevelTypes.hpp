@@ -35,7 +35,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    using SizeParam = llvm::Optional< std::uint64_t >;
+    using SizeParam = std::optional< std::uint64_t >;
 
     static auto unknown_size = SizeParam{ std::nullopt };
 
