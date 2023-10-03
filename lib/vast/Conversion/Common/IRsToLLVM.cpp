@@ -605,6 +605,14 @@ namespace vast::conv::irstollvm
             return mlir::success();
         };
 
+        auto ptr_to_bool = [&] {
+            auto null = pattern.constant(rewriter, op.getLoc(), src_type, 0);
+            rewriter.template replaceOpWithNewOp< hl::CmpOp >(
+                op, dst_type, hl::Predicate::ne, src, null
+            );
+            return mlir::success();
+        };
+
         auto to_void = [&] {
             rewriter.replaceOp(op, { src });
             return mlir::success();
@@ -706,7 +714,8 @@ namespace vast::conv::irstollvm
                 return int_to_ptr();
             case hl::CastKind::PointerToIntegral:
                 return ptr_to_int();
-            // case hl::CastKind::PointerToBoolean:
+            case hl::CastKind::PointerToBoolean:
+                return ptr_to_bool();
 
             case hl::CastKind::ToVoid:
                 return to_void();
