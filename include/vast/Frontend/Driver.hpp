@@ -13,10 +13,10 @@ VAST_RELAX_WARNINGS
 #include <llvm/Support/BuryPointer.h>
 #include <llvm/Support/CrashRecoveryContext.h>
 #include <llvm/Support/FileSystem.h>
-#include <llvm/Support/Host.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/Timer.h>
 #include <llvm/Support/VirtualFileSystem.h>
+#include <llvm/TargetParser/Host.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
 VAST_UNRELAX_WARNINGS
 
