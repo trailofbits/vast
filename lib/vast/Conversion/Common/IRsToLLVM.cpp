@@ -564,82 +564,70 @@ namespace vast::conv::irstollvm
         , ret< mlir::func::ReturnOp >
     >;
 
-    struct implicit_cast : base_pattern< hl::ImplicitCastOp >
-    {
-        using base = base_pattern< hl::ImplicitCastOp >;
-        using base::base;
-
-        logical_result matchAndRewrite(
-                    hl::ImplicitCastOp op, hl::ImplicitCastOp::Adaptor ops,
-                    conversion_rewriter &rewriter) const override {
-            auto trg_type = tc.convert_type_to_type(op.getType());
-            VAST_PATTERN_CHECK(trg_type, "Did not convert type");
-            if (op.getKind() == hl::CastKind::LValueToRValue)
-            {
-                // TODO(lukas): Without `--ccopts -xc` in case of `c = (x = 5)`
-                //              there will be a LValueToRValue cast on rvalue from
-                //              `(x = 5)` - not sure why that is so, so just fail
-                //              gracefully for now.
-                if (!op.getOperand().getType().isa< hl::LValueType >())
-                    return logical_result::failure();
-
-                auto loaded = rewriter.create< LLVM::LoadOp >(op.getLoc(),
-                                                              *trg_type,
-                                                              ops.getOperands()[0]);
-                rewriter.replaceOp(op, {loaded});
-                return logical_result::success();
-            }
-            if (op.getKind() == hl::CastKind::IntegralCast)
-            {
-                const auto &dl = this->type_converter().getDataLayoutAnalysis()
-                                                       ->getAtOrAbove(op);
-                auto coerced = create_trunc_or_sext(
-                        ops.getOperands()[0], *trg_type,
-                        rewriter, op.getLoc(), dl);
-                rewriter.replaceOp(op, {coerced});
-                return logical_result::success();
-            }
-            if (op.getKind() == hl::CastKind::IntegralToFloating)
-            {
-                if (op.getOperand().getType().isUnsignedInteger())
-                {
-                    rewriter.replaceOpWithNewOp< LLVM::UIToFPOp >(op, *trg_type, ops.getValue());
-                    return logical_result::success();
-                }
-                if (op.getOperand().getType().isSignedInteger())
-                {
-                    rewriter.replaceOpWithNewOp< LLVM::SIToFPOp >(op, *trg_type, ops.getValue());
-                    return logical_result::success();
-                }
-            }
-
-
     logical_result match_and_rewrite_cast(auto &pattern, auto op, auto adaptor, auto &rewriter) {
         using namespace mlir::LLVM;
 
-        // TODO: According to what clang does, this will need more handling
-        //       based on different value categories. For now, just lower types.
-        auto to_void = [&] {
-            rewriter.replaceOp(op, adaptor.getOperands());
+        auto &tc = pattern.tc;
+        const auto &dl = tc.getDataLayoutAnalysis()->getAtOrAbove(op);
+
+        auto dst_type = pattern.convert(op.getType());
+
+        auto src = adaptor.getValue();
+        auto src_type = src.getType();
+
+        auto lvalue_to_rvalue = [&] {
+            rewriter.template replaceOpWithNewOp< LLVM::LoadOp >(op, dst_type, src);
             return mlir::success();
         };
 
-        auto bitcast = [&] {
-            auto src = adaptor.getValue();
-            auto dst_type = pattern.convert(op.getType());
+        auto integral_cast = [&] {
+            auto coerced   = pattern.create_trunc_or_sext(src, dst_type, rewriter, op.getLoc(), dl);
+            rewriter.replaceOp(op, { coerced });
+            return mlir::success();
+        };
+
+        auto int_to_float = [&] {
+            if (src_type.isSignedInteger()) {
+                rewriter.template replaceOpWithNewOp< LLVM::SIToFPOp >(op, dst_type, src);
+            } else {
+                rewriter.template replaceOpWithNewOp< LLVM::UIToFPOp >(op, dst_type, src);
+            }
+
+            return mlir::success();
+        };
+
+        auto arr_to_ptr_decay = [&] {
             rewriter.template replaceOpWithNewOp< LLVM::BitcastOp >(op, dst_type, src);
             return mlir::success();
         };
 
-        switch (op.getKind())
-        {
+        auto noop = [&] {
+            rewriter.replaceOp(op, { src });
+            return mlir::success();
+        };
+
+        // TODO: According to what clang does, this will need more handling
+        //       based on different value categories. For now, just lower types.
+        auto to_void = [&] {
+            rewriter.replaceOp(op, { src });
+            return mlir::success();
+        };
+
+        auto bitcast = [&] {
+            rewriter.template replaceOpWithNewOp< LLVM::BitcastOp >(op, dst_type, src);
+            return mlir::success();
+        };
+
+        switch (op.getKind()) {
             case hl::CastKind::BitCast:
                 return bitcast();
             // case hl::CastKind::LValueBitCast:
             // case hl::CastKind::LValueToRValueBitCast:
-            // case hl::CastKind::LValueToRValue:
+            case hl::CastKind::LValueToRValue:
+                return lvalue_to_rvalue();
 
-            // case hl::CastKind::NoOp:
+            case hl::CastKind::NoOp:
+                return noop();
 
             // case hl::CastKind::BaseToDerived:
             // case hl::CastKind::DerivedToBase:
@@ -647,7 +635,8 @@ namespace vast::conv::irstollvm
             // case hl::CastKind::Dynamic:
             // case hl::CastKind::ToUnion:
 
-            // case hl::CastKind::ArrayToPointerDecay:
+            case hl::CastKind::ArrayToPointerDecay:
+                return arr_to_ptr_decay();
             // case hl::CastKind::FunctionToPointerDecay:
             // case hl::CastKind::NullToPointer:
             // case hl::CastKind::NullToMemberPointer:
@@ -665,9 +654,11 @@ namespace vast::conv::irstollvm
                 return to_void();
 
             // case hl::CastKind::VectorSplat:
-            // case hl::CastKind::IntegralCast:
+            case hl::CastKind::IntegralCast:
+                return integral_cast();
             // case hl::CastKind::IntegralToBoolean:
-            // case hl::CastKind::IntegralToFloating:
+            case hl::CastKind::IntegralToFloating:
+                return int_to_float();
             // case hl::CastKind::FloatingToFixedPoint:
             // case hl::CastKind::FixedPointToFloating:
             // case hl::CastKind::FixedPointCast:
@@ -719,68 +710,17 @@ namespace vast::conv::irstollvm
 
     struct implicit_cast : base_pattern< hl::ImplicitCastOp >
     {
+        using op_t = hl::ImplicitCastOp;
         using base = base_pattern< hl::ImplicitCastOp >;
         using base::base;
 
+        using adaptor_t = typename op_t::Adaptor;
+
         logical_result matchAndRewrite(
-                    hl::ImplicitCastOp op, hl::ImplicitCastOp::Adaptor ops,
-                    conversion_rewriter &rewriter) const override {
-            auto trg_type = tc.convert_type_to_type(op.getType());
-            VAST_PATTERN_CHECK(trg_type, "Did not convert type");
-            if (op.getKind() == hl::CastKind::LValueToRValue)
-            {
-                // TODO(lukas): Without `--ccopts -xc` in case of `c = (x = 5)`
-                //              there will be a LValueToRValue cast on rvalue from
-                //              `(x = 5)` - not sure why that is so, so just fail
-                //              gracefully for now.
-                if (!op.getOperand().getType().isa< hl::LValueType >())
-                    return logical_result::failure();
-
-                auto loaded = rewriter.create< LLVM::LoadOp >(op.getLoc(),
-                                                              *trg_type,
-                                                              ops.getOperands()[0]);
-                rewriter.replaceOp(op, {loaded});
-                return logical_result::success();
-            }
-            if (op.getKind() == hl::CastKind::IntegralCast)
-            {
-                const auto &dl = this->type_converter().getDataLayoutAnalysis()
-                                                       ->getAtOrAbove(op);
-                auto coerced = create_trunc_or_sext(
-                        ops.getOperands()[0], *trg_type,
-                        rewriter, op.getLoc(), dl);
-                rewriter.replaceOp(op, {coerced});
-                return logical_result::success();
-            }
-            if (op.getKind() == hl::CastKind::IntegralToFloating)
-            {
-                if (op.getOperand().getType().isUnsignedInteger())
-                {
-                    rewriter.replaceOpWithNewOp< LLVM::UIToFPOp >(op, *trg_type, ops.getValue());
-                    return logical_result::success();
-                }
-                if (op.getOperand().getType().isSignedInteger())
-                {
-                    rewriter.replaceOpWithNewOp< LLVM::SIToFPOp >(op, *trg_type, ops.getValue());
-                    return logical_result::success();
-                }
-            }
-
-            if (op.getKind() == hl::CastKind::ArrayToPointerDecay)
-            {
-                auto cast = rewriter.create< mlir::LLVM::BitcastOp >(op.getLoc(),
-                                                                     *trg_type,
-                                                                     ops.getOperands()[0]);
-                rewriter.replaceOp(op, {cast});
-                return logical_result::success();
-            }
-
-            if (op.getKind() == hl::CastKind::NoOp)
-            {
-                rewriter.replaceOp(op, { ops.getOperands()[0] });
-                return logical_result::success();
-            }
-            return logical_result::failure();
+            op_t op, adaptor_t adaptor,
+            conversion_rewriter &rewriter
+        ) const override {
+            return match_and_rewrite_cast(*this, op, adaptor, rewriter);
         }
     };
 
@@ -793,10 +733,10 @@ namespace vast::conv::irstollvm
         using adaptor_t = typename op_t::Adaptor;
 
         logical_result matchAndRewrite(
-            op_t op, adaptor_t ops,
+            op_t op, adaptor_t adaptor,
             conversion_rewriter &rewriter
         ) const override {
-            return match_and_rewrite_cast(*this, op, ops, rewriter);
+            return match_and_rewrite_cast(*this, op, adaptor, rewriter);
         }
     };
 
