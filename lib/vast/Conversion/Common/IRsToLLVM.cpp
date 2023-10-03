@@ -609,6 +609,7 @@ namespace vast::conv::irstollvm
         };
 
         auto integral_cast = [&] {
+            // TODO: consult with clang, we are mistreating bool -> int conversion
             pattern.replace_with_trunc_or_ext(op, src, orig_src_type, dst_type, rewriter);
             return mlir::success();
         };
@@ -639,6 +640,14 @@ namespace vast::conv::irstollvm
 
             // Extend comparison result to either bool (C++) or int (C).
             rewriter.template replaceOpWithNewOp< LLVM::ZExtOp >(op, dst_type, cmp);
+            return mlir::success();
+        };
+
+        auto bool_to_int = [&] {
+            auto trunc = rewriter.template create< LLVM::TruncOp >(
+                op.getLoc(), mlir::IntegerType::get(op.getContext(), 1), src
+            );
+            rewriter.template replaceOpWithNewOp< LLVM::ZExtOp >(op, dst_type, trunc);
             return mlir::success();
         };
 
@@ -707,6 +716,8 @@ namespace vast::conv::irstollvm
             // case hl::CastKind::FloatingToIntegral:
             case hl::CastKind::FloatingToBoolean:
                 return float_to_bool();
+            case hl::CastKind::BooleanToSignedIntegral:
+                return bool_to_int();
             case hl::CastKind::FloatingCast:
                 return floating_cast();
 
