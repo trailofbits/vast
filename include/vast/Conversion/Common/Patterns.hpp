@@ -157,7 +157,7 @@ namespace vast {
                 }
             } else {
                 // src_bw == dst_bw
-                rewriter.replaceOp(op, { src });
+                rewriter.replaceOp(op, src);
                 return src;
             }
         }

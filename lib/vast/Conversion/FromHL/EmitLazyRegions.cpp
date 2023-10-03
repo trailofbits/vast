@@ -68,7 +68,7 @@ namespace vast
 
             auto logical = rewriter.create< LOp >(op.getLoc(), op.getType(),
                                                   lhs_lazy, rhs_lazy);
-            rewriter.replaceOp(op, { logical });
+            rewriter.replaceOp(op, logical);
             return logical_result::success();
         }
 
@@ -96,7 +96,7 @@ namespace vast
             auto yield = terminator_t< hl::CondYieldOp >::get(cond_block);
             VAST_PATTERN_CHECK(yield, "Was not able to retrieve cond yield, {0}.", op);
 
-            rewriter.mergeBlockBefore(&cond_block, op, std::nullopt);
+            rewriter.inlineBlockBefore(&cond_block, op, std::nullopt);
 
             auto then_region = lazy_side(rewriter, op.getLoc(), op.getThenRegion());
             auto else_region = lazy_side(rewriter, op.getLoc(), op.getElseRegion());

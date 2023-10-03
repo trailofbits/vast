@@ -639,7 +639,7 @@ namespace vast
 
                 const auto &abi_info = abi_map_it->second;
                 auto call = call_wrapper< Op >({op, ops, rewriter}, abi_info).make();
-                rewriter.replaceOp(op, { call });
+                rewriter.replaceOp(op, call);
                 return mlir::success();
             }
         };

@@ -60,7 +60,7 @@ namespace vast::conv::irstollvm
         ) const override {
             auto target_ty = this->type_converter().convert_type_to_type(op.getType());
             auto new_op = rewriter.create< trg_t >(op.getLoc(), *target_ty, ops.getOperands());
-            rewriter.replaceOp(op, { new_op });
+            rewriter.replaceOp(op, new_op);
             return mlir::success();
         }
     };

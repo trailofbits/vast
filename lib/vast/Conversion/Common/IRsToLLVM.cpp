@@ -127,7 +127,7 @@ namespace vast::conv::irstollvm
                     *trg_type, ops.getArray(),
                     ops.getIndex() );
 
-            rewriter.replaceOp(op, { gep });
+            rewriter.replaceOp(op, gep);
             return logical_result::success();
         }
     };
@@ -147,7 +147,7 @@ namespace vast::conv::irstollvm
             VAST_PATTERN_CHECK(trg_type, "Could not convert vardecl type");
 
             auto alloca = mk_alloca(rewriter, *trg_type, op.getLoc());
-            rewriter.replaceOp(op, {alloca});
+            rewriter.replaceOp(op, alloca);
 
             return logical_result::success();
         }
@@ -286,7 +286,7 @@ namespace vast::conv::irstollvm
                     op.getLoc(),
                     target_type,
                     op.getGlobal());
-            rewriter.replaceOp(op, {addr_of});
+            rewriter.replaceOp(op, addr_of);
             return logical_result::success();
         }
 
@@ -453,7 +453,7 @@ namespace vast::conv::irstollvm
             if (mlir::isa< mlir::NoneType >(op.getResult().getType())) {
                 return handle_void_const(op, rewriter);
             }
-            rewriter.replaceOp(op, {make_from(op, rewriter, this->type_converter())});
+            rewriter.replaceOp(op, make_from(op, rewriter, this->type_converter()));
             return logical_result::success();
         }
 
@@ -880,7 +880,7 @@ namespace vast::conv::irstollvm
             rewriter.create< LLVM::StoreOp >(op.getLoc(), new_op, lhs);
 
             // `hl.assign` returns value for cases like `int x = y = 5;`
-            rewriter.replaceOp(op, {new_op});
+            rewriter.replaceOp(op, new_op);
             return logical_result::success();
         }
     };
@@ -982,7 +982,7 @@ namespace vast::conv::irstollvm
                     return value;
             }();
 
-            rewriter.replaceOp(op, {yielded});
+            rewriter.replaceOp(op, yielded);
 
             return logical_result::success();
         }
@@ -1147,7 +1147,7 @@ namespace vast::conv::irstollvm
 
             auto loaded = rewriter.create< mlir::LLVM::LoadOp >(
                     op.getLoc(), *trg_type, ops.getAddr());
-            rewriter.replaceOp(op, { loaded });
+            rewriter.replaceOp(op, loaded);
 
             return logical_result::success();
         }
@@ -1220,7 +1220,7 @@ namespace vast::conv::irstollvm
             auto cons = rewriter.create< LLVM::ConstantOp >(
                 op.getLoc(), target_type, attr
             );
-            rewriter.replaceOp(op, {cons});
+            rewriter.replaceOp(op, cons);
             return logical_result::success();
         }
     };
