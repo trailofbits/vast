@@ -599,6 +599,19 @@ namespace vast::conv::irstollvm
             return mlir::success();
         };
 
+        auto floating_cast = [&] {
+            auto src_bw = src_type.getIntOrFloatBitWidth();
+            auto dst_bw = dst_type.getIntOrFloatBitWidth();
+
+            if (src_bw > dst_bw) {
+                rewriter.template replaceOpWithNewOp< LLVM::FPTruncOp >(op , dst_type, src);
+            } else {
+                rewriter.template replaceOpWithNewOp<mlir::LLVM::FPExtOp>(op, dst_type, src);
+            }
+
+            return mlir::success();
+        };
+
         auto arr_to_ptr_decay = [&] {
             rewriter.template replaceOpWithNewOp< LLVM::GEPOp >(
                 op, dst_type, src, LLVM::GEPArg{ 0 }
@@ -674,7 +687,8 @@ namespace vast::conv::irstollvm
             // case hl::CastKind::FloatingToIntegral:
             // case hl::CastKind::FloatingToBoolean:
             // case hl::CastKind::BooleanToSignedIntegral:
-            // case hl::CastKind::FloatingCast:
+            case hl::CastKind::FloatingCast:
+                return floating_cast();
 
             // case hl::CastKind::CPointerToObjCPointerCast:
             // case hl::CastKind::BlockPointerToObjCPointerCast:
