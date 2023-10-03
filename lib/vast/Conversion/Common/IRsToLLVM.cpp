@@ -597,7 +597,9 @@ namespace vast::conv::irstollvm
         };
 
         auto arr_to_ptr_decay = [&] {
-            rewriter.template replaceOpWithNewOp< LLVM::BitcastOp >(op, dst_type, src);
+            rewriter.template replaceOpWithNewOp< LLVM::GEPOp >(
+                op, dst_type, src, LLVM::GEPArg{ 0 }
+            );
             return mlir::success();
         };
 
