@@ -36,45 +36,19 @@ namespace vast::tc
         }
     };
 
-    // Walks all types (including nested types for aggregates) and calls the unary function
-    // on each of them.
-    template< typename UnaryFn >
-    void walk_type(mlir_type root, UnaryFn &&fn)
-    {
-        fn(root);
-        if (auto agg = mlir::dyn_cast< mlir::SubElementTypeInterface >(root)) {
-            agg.walkSubTypes(std::forward< UnaryFn >(fn));
-        }
-    }
-
-    // TODO(lukas): `fn` is copied.
-    template< typename UnaryFn >
-    void walk_type(mlir::TypeRange range, UnaryFn fn)
-    {
-        for (auto type : range)
-            walk_type(type, fn);
-    }
-
-    template< typename R, typename UnaryFn, typename Combine >
-    bool walk_type(R &&type, UnaryFn &&fn, Combine &&combine, bool init)
-    {
-        bool out = init;
-        auto wrap = [impl = std::forward< UnaryFn >(fn),
-                     combine = std::forward< Combine >(combine),
-                     &out](auto element_type)
-        {
-            out = combine(out, impl(element_type));
-        };
-        walk_type(std::forward< R >(type), std::move(wrap));
-
-        return out;
-    }
-
     template< typename R, typename UnaryPred >
     bool all_of_subtypes(R &&type, UnaryPred &&pred) {
-        return walk_type(
-            std::forward< R >(type), std::forward< UnaryPred >(pred), std::logical_and{}, true
-        );
+        mlir::AttrTypeWalker walker;
+
+        walker.addWalk([pred = std::forward< UnaryPred >(pred)] (auto t) {
+            if (!pred(t)) {
+                return mlir::WalkResult::interrupt();
+            }
+
+            return mlir::WalkResult::advance();
+        });
+
+        return !walker.walk(type).wasInterrupted();
     }
 
     template< typename derived >
