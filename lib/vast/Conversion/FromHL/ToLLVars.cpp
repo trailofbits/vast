@@ -70,7 +70,7 @@ namespace vast
 
                 if (op.getInitializer().empty())
                 {
-                    rewriter.replaceOp(op, {uninit_var});
+                    rewriter.replaceOp(op, uninit_var);
                     return mlir::success();
                 }
 
@@ -99,7 +99,7 @@ namespace vast
                         trg_type,
                         uninit_var, yield.getResult());
 
-                rewriter.replaceOp(op, {initialize});
+                rewriter.replaceOp(op, initialize);
                 rewriter.eraseOp(yield);
 
                 return mlir::success();

@@ -52,7 +52,7 @@ namespace vast
                         operands.getRecord(),
                         rewriter.getI32IntegerAttr(*idx),
                         op.getNameAttr());
-                rewriter.replaceOp( op, { gep } );
+                rewriter.replaceOp( op, gep);
 
                 return mlir::success();
             }
