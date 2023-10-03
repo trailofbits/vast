@@ -630,6 +630,18 @@ namespace vast::conv::irstollvm
             return mlir::success();
         };
 
+        auto float_to_bool = [&] {
+            // Check if float is not equal to zero.
+            auto zero = pattern.constant(rewriter, op.getLoc(), src_type, 0.0);
+            auto cmp = rewriter.template create< LLVM::FCmpOp >(
+                op.getLoc(), LLVM::FCmpPredicate::une, src, zero
+            );
+
+            // Extend comparison result to either bool (C++) or int (C).
+            rewriter.template replaceOpWithNewOp< LLVM::ZExtOp >(op, dst_type, cmp);
+            return mlir::success();
+        };
+
         auto floating_cast = [&] {
             auto src_bw = src_type.getIntOrFloatBitWidth();
             auto dst_bw = dst_type.getIntOrFloatBitWidth();
@@ -693,8 +705,8 @@ namespace vast::conv::irstollvm
             // case hl::CastKind::IntegralToFixedPoint:
             // case hl::CastKind::FixedPointToBoolean:
             // case hl::CastKind::FloatingToIntegral:
-            // case hl::CastKind::FloatingToBoolean:
-            // case hl::CastKind::BooleanToSignedIntegral:
+            case hl::CastKind::FloatingToBoolean:
+                return float_to_bool();
             case hl::CastKind::FloatingCast:
                 return floating_cast();
 
