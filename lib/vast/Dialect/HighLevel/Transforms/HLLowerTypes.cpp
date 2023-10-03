@@ -41,13 +41,13 @@ namespace vast::hl {
     auto contains_hl_type = [] (mlir_type t) -> bool {
         VAST_CHECK(static_cast< bool >(t), "Argument of in `contains_hl_type` is not valid.");
         // We need to manually check `t` itself.
-        bool found = isHighLevelType(t);
-        auto is_hl = [&] (auto t) { found |= isHighLevelType(t); };
-        // If `t` is aggregate, walk over all nested types.
-        if (auto aggr = mlir::dyn_cast< mlir::SubElementTypeInterface >(t)) {
-            aggr.walkSubTypes(is_hl);
-        }
-        return found;
+        mlir::AttrTypeWalker walker;
+        walker.addWalk([&] (mlir_type t) {
+            if (isHighLevelType(t))
+                return mlir::WalkResult::interrupt();
+            return mlir::WalkResult::advance();
+        });
+        return walker.walk(t).wasInterrupted();
     };
 
     bool contain_hl_type(mlir::TypeRange rng) {
