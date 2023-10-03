@@ -613,6 +613,159 @@ namespace vast::conv::irstollvm
                 }
             }
 
+
+    logical_result match_and_rewrite_cast(auto &pattern, auto op, auto adaptor, auto &rewriter) {
+        using namespace mlir::LLVM;
+
+        // TODO: According to what clang does, this will need more handling
+        //       based on different value categories. For now, just lower types.
+        auto to_void = [&] {
+            rewriter.replaceOp(op, adaptor.getOperands());
+            return mlir::success();
+        };
+
+        auto bitcast = [&] {
+            auto src = adaptor.getValue();
+            auto dst_type = pattern.convert(op.getType());
+            rewriter.template replaceOpWithNewOp< LLVM::BitcastOp >(op, dst_type, src);
+            return mlir::success();
+        };
+
+        switch (op.getKind())
+        {
+            case hl::CastKind::BitCast:
+                return bitcast();
+            // case hl::CastKind::LValueBitCast:
+            // case hl::CastKind::LValueToRValueBitCast:
+            // case hl::CastKind::LValueToRValue:
+
+            // case hl::CastKind::NoOp:
+
+            // case hl::CastKind::BaseToDerived:
+            // case hl::CastKind::DerivedToBase:
+            // case hl::CastKind::UncheckedDerivedToBase:
+            // case hl::CastKind::Dynamic:
+            // case hl::CastKind::ToUnion:
+
+            // case hl::CastKind::ArrayToPointerDecay:
+            // case hl::CastKind::FunctionToPointerDecay:
+            // case hl::CastKind::NullToPointer:
+            // case hl::CastKind::NullToMemberPointer:
+            // case hl::CastKind::BaseToDerivedMemberPointer:
+            // case hl::CastKind::DerivedToBaseMemberPointer:
+            // case hl::CastKind::MemberPointerToBoolean:
+            // case hl::CastKind::UserDefinedConversion:
+            // case hl::CastKind::ConstructorConversion:
+
+            // case hl::CastKind::IntegralToPointer:
+            // case hl::CastKind::PointerToIntegral:
+            // case hl::CastKind::PointerToBoolean:
+
+            case hl::CastKind::ToVoid:
+                return to_void();
+
+            // case hl::CastKind::VectorSplat:
+            // case hl::CastKind::IntegralCast:
+            // case hl::CastKind::IntegralToBoolean:
+            // case hl::CastKind::IntegralToFloating:
+            // case hl::CastKind::FloatingToFixedPoint:
+            // case hl::CastKind::FixedPointToFloating:
+            // case hl::CastKind::FixedPointCast:
+            // case hl::CastKind::FixedPointToIntegral:
+            // case hl::CastKind::IntegralToFixedPoint:
+            // case hl::CastKind::FixedPointToBoolean:
+            // case hl::CastKind::FloatingToIntegral:
+            // case hl::CastKind::FloatingToBoolean:
+            // case hl::CastKind::BooleanToSignedIntegral:
+            // case hl::CastKind::FloatingCast:
+
+            // case hl::CastKind::CPointerToObjCPointerCast:
+            // case hl::CastKind::BlockPointerToObjCPointerCast:
+            // case hl::CastKind::AnyPointerToBlockPointerCast:
+            // case hl::CastKind::ObjCObjectLValueCast:
+
+            // case hl::CastKind::FloatingRealToComplex:
+            // case hl::CastKind::FloatingComplexToReal:
+            // case hl::CastKind::FloatingComplexToBoolean:
+            // case hl::CastKind::FloatingComplexCast:
+            // case hl::CastKind::FloatingComplexToIntegralComplex:
+
+            // case hl::CastKind::IntegralRealToComplex:
+            // case hl::CastKind::IntegralComplexToReal:
+            // case hl::CastKind::IntegralComplexToBoolean:
+            // case hl::CastKind::IntegralComplexCast:
+            // case hl::CastKind::IntegralComplexToFloatingComplex:
+
+            // case hl::CastKind::ARCProduceObject:
+            // case hl::CastKind::ARCConsumeObject:
+            // case hl::CastKind::ARCReclaimReturnedObject:
+            // case hl::CastKind::ARCExtendBlockObject:
+
+            // case hl::CastKind::AtomicToNonAtomic:
+            // case hl::CastKind::NonAtomicToAtomic:
+
+            // case hl::CastKind::CopyAndAutoreleaseBlockObject:
+            // case hl::CastKind::BuiltinFnToFnPtr:
+            // case hl::CastKind::ZeroToOCLOpaqueType:
+            // case hl::CastKind::AddressSpaceConversion:
+            // case hl::CastKind::IntToOCLSampler:
+            // case hl::CastKind::MatrixCast:
+            default:
+                return logical_result::failure();
+        }
+        return logical_result::success();
+    }
+
+
+    struct implicit_cast : base_pattern< hl::ImplicitCastOp >
+    {
+        using base = base_pattern< hl::ImplicitCastOp >;
+        using base::base;
+
+        logical_result matchAndRewrite(
+                    hl::ImplicitCastOp op, hl::ImplicitCastOp::Adaptor ops,
+                    conversion_rewriter &rewriter) const override {
+            auto trg_type = tc.convert_type_to_type(op.getType());
+            VAST_PATTERN_CHECK(trg_type, "Did not convert type");
+            if (op.getKind() == hl::CastKind::LValueToRValue)
+            {
+                // TODO(lukas): Without `--ccopts -xc` in case of `c = (x = 5)`
+                //              there will be a LValueToRValue cast on rvalue from
+                //              `(x = 5)` - not sure why that is so, so just fail
+                //              gracefully for now.
+                if (!op.getOperand().getType().isa< hl::LValueType >())
+                    return logical_result::failure();
+
+                auto loaded = rewriter.create< LLVM::LoadOp >(op.getLoc(),
+                                                              *trg_type,
+                                                              ops.getOperands()[0]);
+                rewriter.replaceOp(op, {loaded});
+                return logical_result::success();
+            }
+            if (op.getKind() == hl::CastKind::IntegralCast)
+            {
+                const auto &dl = this->type_converter().getDataLayoutAnalysis()
+                                                       ->getAtOrAbove(op);
+                auto coerced = create_trunc_or_sext(
+                        ops.getOperands()[0], *trg_type,
+                        rewriter, op.getLoc(), dl);
+                rewriter.replaceOp(op, {coerced});
+                return logical_result::success();
+            }
+            if (op.getKind() == hl::CastKind::IntegralToFloating)
+            {
+                if (op.getOperand().getType().isUnsignedInteger())
+                {
+                    rewriter.replaceOpWithNewOp< LLVM::UIToFPOp >(op, *trg_type, ops.getValue());
+                    return logical_result::success();
+                }
+                if (op.getOperand().getType().isSignedInteger())
+                {
+                    rewriter.replaceOpWithNewOp< LLVM::SIToFPOp >(op, *trg_type, ops.getValue());
+                    return logical_result::success();
+                }
+            }
+
             if (op.getKind() == hl::CastKind::ArrayToPointerDecay)
             {
                 auto cast = rewriter.create< mlir::LLVM::BitcastOp >(op.getLoc(),
@@ -643,96 +796,7 @@ namespace vast::conv::irstollvm
             op_t op, adaptor_t ops,
             conversion_rewriter &rewriter
         ) const override {
-            // TODO: According to what clang does, this will need more handling
-            //       based on different value categories. For now, just lower types.
-            auto to_void = [&] {
-                rewriter.replaceOp(op, ops.getOperands());
-                return logical_result::success();
-            };
-
-            auto bitcast = [&] {
-                auto src = ops.getValue();
-                auto dst_type = this->convert(op.getType());
-                rewriter.replaceOpWithNewOp< mlir::LLVM::BitcastOp >(op, dst_type, src);
-                return mlir::success();
-            };
-
-            switch (op.getKind())
-            {
-                case hl::CastKind::BitCast:
-                    return bitcast();
-                // case hl::CastKind::LValueBitCast:
-                // case hl::CastKind::LValueToRValueBitCast:
-                // case hl::CastKind::LValueToRValue:
-                // case hl::CastKind::NoOp:
-                // case hl::CastKind::BaseToDerived:
-                // case hl::CastKind::DerivedToBase:
-                // case hl::CastKind::UncheckedDerivedToBase:
-                // case hl::CastKind::Dynamic:
-                // case hl::CastKind::ToUnion:
-                // case hl::CastKind::ArrayToPointerDecay:
-                // case hl::CastKind::FunctionToPointerDecay:
-                // case hl::CastKind::NullToPointer:
-                // case hl::CastKind::NullToMemberPointer:
-                // case hl::CastKind::BaseToDerivedMemberPointer:
-                // case hl::CastKind::DerivedToBaseMemberPointer:
-                // case hl::CastKind::MemberPointerToBoolean:
-                // case hl::CastKind::UserDefinedConversion:
-                // case hl::CastKind::ConstructorConversion:
-                // case hl::CastKind::IntegralToPointer:
-                // case hl::CastKind::PointerToIntegral:
-                // case hl::CastKind::PointerToBoolean:
-                case hl::CastKind::ToVoid:
-                    return to_void();
-                // case hl::CastKind::VectorSplat:
-                // case hl::CastKind::IntegralCast:
-                // case hl::CastKind::IntegralToBoolean:
-                // case hl::CastKind::IntegralToFloating:
-                // case hl::CastKind::FloatingToFixedPoint:
-                // case hl::CastKind::FixedPointToFloating:
-                // case hl::CastKind::FixedPointCast:
-                // case hl::CastKind::FixedPointToIntegral:
-                // case hl::CastKind::IntegralToFixedPoint:
-                // case hl::CastKind::FixedPointToBoolean:
-                // case hl::CastKind::FloatingToIntegral:
-                // case hl::CastKind::FloatingToBoolean:
-                // case hl::CastKind::BooleanToSignedIntegral:
-                // case hl::CastKind::FloatingCast:
-                // case hl::CastKind::CPointerToObjCPointerCast:
-                // case hl::CastKind::BlockPointerToObjCPointerCast:
-                // case hl::CastKind::AnyPointerToBlockPointerCast:
-                // case hl::CastKind::ObjCObjectLValueCast:
-
-                // case hl::CastKind::FloatingRealToComplex:
-                // case hl::CastKind::FloatingComplexToReal:
-                // case hl::CastKind::FloatingComplexToBoolean:
-                // case hl::CastKind::FloatingComplexCast:
-                // case hl::CastKind::FloatingComplexToIntegralComplex:
-
-                // case hl::CastKind::IntegralRealToComplex:
-                // case hl::CastKind::IntegralComplexToReal:
-                // case hl::CastKind::IntegralComplexToBoolean:
-                // case hl::CastKind::IntegralComplexCast:
-                // case hl::CastKind::IntegralComplexToFloatingComplex:
-
-                // case hl::CastKind::ARCProduceObject:
-                // case hl::CastKind::ARCConsumeObject:
-                // case hl::CastKind::ARCReclaimReturnedObject:
-                // case hl::CastKind::ARCExtendBlockObject:
-
-                // case hl::CastKind::AtomicToNonAtomic:
-                // case hl::CastKind::NonAtomicToAtomic:
-
-                // case hl::CastKind::CopyAndAutoreleaseBlockObject:
-                // case hl::CastKind::BuiltinFnToFnPtr:
-                // case hl::CastKind::ZeroToOCLOpaqueType:
-                // case hl::CastKind::AddressSpaceConversion:
-                // case hl::CastKind::IntToOCLSampler:
-                // case hl::CastKind::MatrixCast:
-                default:
-                    return logical_result::failure();
-            }
-            return logical_result::success();
+            return match_and_rewrite_cast(*this, op, ops, rewriter);
         }
     };
 
