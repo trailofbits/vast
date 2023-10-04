@@ -25,9 +25,11 @@ def Unsupported_Dialect : Dialect {
 
     let extraClassDeclaration = [{
         void registerTypes();
+        void registerAttributes();
     }];
 
     let useDefaultTypePrinterParser = 1;
+    let useDefaultAttributePrinterParser = 1;
 }
 
 class Unsupported_Op< string mnemonic, list< Trait > traits = [] >
@@ -41,5 +43,6 @@ class UnsupportedType< string name, string _mnemonic, list<Trait> traits = [] >
 
 include "vast/Dialect/Unsupported/UnsupportedOps.td"
 include "vast/Dialect/Unsupported/UnsupportedTypes.td"
+include "vast/Dialect/Unsupported/UnsupportedAttributes.td"
 
 #endif // VAST_DIALECT_UNSUPPORTED
