@@ -469,6 +469,11 @@ namespace vast::cg {
 
         operation VisitVarDecl(const clang::VarDecl *decl) {
             auto var_decl = context().declare(decl, [&] {
+                mlir::NamedAttrList attrs;
+                for (auto attr : decl->getAttrs())
+                {
+                    attrs.append(attr->getSpelling(), visit(attr));
+                }
                 auto type = decl->getType();
                 bool has_allocator = type->isVariableArrayType();
                 bool has_init = decl->getInit();
@@ -489,6 +494,7 @@ namespace vast::cg {
                     // visiting - int *x = malloc(sizeof(*x))
                     .bind_region_if(has_init, [](auto, auto){})                 // initializer
                     .bind_region_if(has_allocator, std::move(array_allocator))  // array allocator
+                    .bind_if(!attrs.empty(), attrs)
                     .freeze();
 
                 if (auto sc = VisitStorageClass(decl); sc != hl::StorageClass::sc_none) {

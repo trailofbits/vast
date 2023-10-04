@@ -285,10 +285,6 @@ namespace vast::cg
         VAST_UNIMPLEMENTED_IF(lang().CUDA);
         VAST_UNIMPLEMENTED_IF(lang().OpenMP);
 
-        VAST_UNIMPLEMENTED_IF(decl->hasAttr< clang::LoaderUninitializedAttr >());
-        VAST_UNIMPLEMENTED_IF(decl->hasAttr< clang::AnnotateAttr >());
-        VAST_UNIMPLEMENTED_IF(decl->hasAttr< clang::SectionAttr >());
-
         VAST_UNIMPLEMENTED_IF(decl->getTLSKind() != clang::VarDecl::TLS_None);
 
         const clang::VarDecl *init_decl;
