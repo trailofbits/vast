@@ -199,7 +199,7 @@ namespace vast::hl
         st.addTypes(rty);
     }
 
-    void VarDeclOp::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback init, BuilderCallback alloc) {
+    void VarDeclOp::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback init, BuilderCallback alloc, llvm::ArrayRef< mlir::NamedAttribute > attrs) {
         st.addAttribute("name", bld.getStringAttr(name));
         InsertionGuard guard(bld);
 
@@ -207,6 +207,7 @@ namespace vast::hl
         build_region(bld, st, alloc);
 
         st.addTypes(type);
+        st.addAttributes(attrs);
     }
 
     void EnumDeclOp::build(Builder &bld, State &st, llvm::StringRef name, Type type, BuilderCallback constants) {
