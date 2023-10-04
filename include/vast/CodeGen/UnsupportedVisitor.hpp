@@ -8,6 +8,7 @@
 #include "vast/Dialect/Unsupported/UnsupportedDialect.hpp"
 #include "vast/Dialect/Unsupported/UnsupportedOps.hpp"
 #include "vast/Dialect/Unsupported/UnsupportedTypes.hpp"
+#include "vast/Dialect/Unsupported/UnsupportedAttributes.hpp"
 
 #include "vast/CodeGen/CodeGen.hpp"
 #include "vast/CodeGen/CodeGenBuilder.hpp"
@@ -151,18 +152,44 @@ namespace vast::cg {
     };
 
     template< typename Derived >
+    struct UnsupportedAttrVisitor
+        : clang::ConstAttrVisitor< UnsupportedAttrVisitor< Derived >, mlir_attr >
+        , CodeGenVisitorLens< UnsupportedAttrVisitor< Derived >, Derived >
+        , CodeGenBuilder< UnsupportedAttrVisitor< Derived >, Derived >
+    {
+        using LensType = CodeGenVisitorLens< UnsupportedAttrVisitor< Derived >, Derived >;
+        using LensType::mcontext;
+
+        using Builder = CodeGenBuilder< UnsupportedAttrVisitor< Derived >, Derived >;
+
+        using Builder::builder;
+
+        auto make_unsupported_attr(auto attr) {
+            std::string spelling(attr->getSpelling());
+            return builder().template getAttr< unsup::UnsupportedAttr >(spelling);
+        }
+
+        mlir_attr Visit(const clang::Attr *attr) {
+            return make_unsupported_attr(attr);
+        }
+    };
+
+    template< typename Derived >
     struct UnsupportedVisitor
         : UnsupportedDeclVisitor< Derived >
         , UnsupportedStmtVisitor< Derived >
         , UnsupportedTypeVisitor< Derived >
+        , UnsupportedAttrVisitor< Derived >
     {
         using DeclVisitor = UnsupportedDeclVisitor< Derived >;
         using StmtVisitor = UnsupportedStmtVisitor< Derived >;
         using TypeVisitor = UnsupportedTypeVisitor< Derived >;
+        using AttrVisitor = UnsupportedAttrVisitor< Derived >;
 
         using DeclVisitor::Visit;
         using StmtVisitor::Visit;
         using TypeVisitor::Visit;
+        using AttrVisitor::Visit;
     };
 
 } // namespace vast::cg
