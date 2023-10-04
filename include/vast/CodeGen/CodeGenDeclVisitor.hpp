@@ -295,6 +295,25 @@ namespace vast::cg {
             return clang::GlobalDecl(decl, clang::CXXDtorType::Dtor_Complete);
         }
 
+        void visit_attributes(auto *decl, operation op) {
+            if (!decl->hasAttrs()) {
+                return;
+            }
+            mlir::NamedAttrList attrs = op->getAttrs();
+            visit_attributes(decl, attrs);
+            op->setAttrs(attrs);
+        }
+
+        void visit_attributes(auto *decl, mlir::NamedAttrList &attrs) {
+            if (!decl->hasAttrs()) {
+                return;
+            }
+            for (auto attr : decl->getAttrs())
+            {
+                attrs.append(attr->getSpelling(), visit(attr));
+            }
+        }
+
         // FIXME: remove as this duplicates logic from codegen driver
         template< typename Decl >
         operation VisitFunctionLikeDecl(const Decl *decl) {
@@ -469,15 +488,12 @@ namespace vast::cg {
 
         operation VisitVarDecl(const clang::VarDecl *decl) {
             auto var_decl = context().declare(decl, [&] {
-                mlir::NamedAttrList attrs;
-                for (auto attr : decl->getAttrs())
-                {
-                    attrs.append(attr->getSpelling(), visit(attr));
-                }
                 auto type = decl->getType();
                 bool has_allocator = type->isVariableArrayType();
                 bool has_init = decl->getInit();
 
+                mlir::NamedAttrList attrs;
+                visit_attributes(decl, attrs);
 
                 auto array_allocator = [decl, this](auto &bld, auto loc) {
                     if (auto type = clang::dyn_cast< clang::VariableArrayType >(decl->getType())) {
@@ -583,15 +599,7 @@ namespace vast::cg {
                     .bind(type())              // type
                     .freeze();
 
-                mlir::NamedAttrList attrs = def->getAttrs();
-                for (auto attr : decl->getAttrs())
-                {
-                    attrs.append(attr->getSpelling(), visit(attr));
-                }
-
-                def->setAttrs(attrs);
-
-
+                visit_attributes(decl, def.getOperation());
                 return def;
             });
         }
