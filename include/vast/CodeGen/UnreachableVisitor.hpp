@@ -33,18 +33,28 @@ namespace vast::cg
     };
 
     template< typename Derived >
+    struct UnreachableAttrVisitor {
+        mlir_attr Visit(const clang::Attr *attr) {
+            VAST_UNREACHABLE("unsupported attr: {0}", attr->getSpelling());
+        }
+    };
+
+    template< typename Derived >
     struct UnreachableVisitor
         : UnreachableDeclVisitor< Derived >
         , UnreachableStmtVisitor< Derived >
         , UnreachableTypeVisitor< Derived >
+        , UnreachableAttrVisitor< Derived >
     {
         using DeclVisitor = UnreachableDeclVisitor< Derived >;
         using StmtVisitor = UnreachableStmtVisitor< Derived >;
         using TypeVisitor = UnreachableTypeVisitor< Derived >;
+        using AttrVisitor = UnreachableAttrVisitor< Derived >;
 
         using DeclVisitor::Visit;
         using StmtVisitor::Visit;
         using TypeVisitor::Visit;
+        using AttrVisitor::Visit;
     };
 
 } // namespace vast::cg
