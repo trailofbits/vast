@@ -592,8 +592,6 @@ namespace vast::cg {
                 def->setAttrs(attrs);
 
 
-                add_attributes(def, attrs);
-
                 return def;
             });
         }
