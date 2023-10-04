@@ -172,7 +172,8 @@ def HighLevel_VarDeclOp : HighLevel_Op< "var", [VastSymbol] >
       "Type":$type,
       "llvm::StringRef":$name,
       CArg< "BuilderCallback", "std::nullopt" >:$initBuilder,
-      CArg< "BuilderCallback", "std::nullopt" >:$allocaBuilder
+      CArg< "BuilderCallback", "std::nullopt" >:$allocaBuilder,
+      CArg< "llvm::ArrayRef< mlir::NamedAttribute >", "{}" >:$decl_attrs
     )>
   ];
 
