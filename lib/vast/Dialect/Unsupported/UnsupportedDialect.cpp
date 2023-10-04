@@ -5,10 +5,12 @@
 
 #include "vast/Dialect/Unsupported/UnsupportedDialect.hpp"
 #include "vast/Dialect/Unsupported/UnsupportedOps.hpp"
+#include "vast/Dialect/Unsupported/UnsupportedAttributes.hpp"
 
 namespace vast::unsup {
     void UnsupportedDialect::initialize() {
         registerTypes();
+        registerAttributes();
 
         addOperations<
             #define GET_OP_LIST
