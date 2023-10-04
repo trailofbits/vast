@@ -8,6 +8,7 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/FoldingSet.h>
 #include <llvm/Support/TrailingObjects.h>
 #include <mlir/IR/Types.h>
+#include <mlir/IR/Attributes.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/CallingConv.hpp"
