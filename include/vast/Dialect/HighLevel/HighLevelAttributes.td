@@ -31,5 +31,6 @@ class NameAttr<string name, string attr_mnemonic>
 }
 
 def AnnotationAttr : NameAttr< "Annotation", "annotation" >;
+def SectionAttr    : NameAttr< "Section", "section" >;
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
