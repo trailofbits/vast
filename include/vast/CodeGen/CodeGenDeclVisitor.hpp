@@ -555,28 +555,6 @@ namespace vast::cg {
             }
         }
 
-        static inline std::string parse_annotation(acontext_t &ctx, const clang::Attr *attr) {
-            // Clang does not provide a nicer interface :(
-            std::string buff; llvm::raw_string_ostream stream(buff);
-            auto policy = ctx.getPrintingPolicy();
-            attr->printPretty(stream, policy);
-            llvm::StringRef ref(buff);
-            ref.consume_front(" __attribute__((annotate(\"");
-            ref.consume_back("\")))");
-            return ref.str();
-        }
-
-        void attach_attributes(const clang::Decl *from, auto &to) {
-            if (!from->hasAttrs())
-                return;
-
-            auto &actx = acontext();
-            for (auto attr: from->getAttrs()) {
-                auto annot = mlir::StringAttr::get(to->getContext(), parse_annotation(actx, attr));
-                to->setAttr("annotation", hl::AnnotationAttr::get(annot));
-            }
-        }
-
         operation VisitTypedefDecl(const clang::TypedefDecl *decl) {
             return context().declare(decl, [&] {
                 auto type = [&, this] () -> mlir::Type {
@@ -605,7 +583,17 @@ namespace vast::cg {
                     .bind(type())              // type
                     .freeze();
 
-                attach_attributes(decl /* from */, def /* to */);
+                mlir::NamedAttrList attrs = def->getAttrs();
+                for (auto attr : decl->getAttrs())
+                {
+                    attrs.append(attr->getSpelling(), visit(attr));
+                }
+
+                def->setAttrs(attrs);
+
+
+                add_attributes(def, attrs);
+
                 return def;
             });
         }
