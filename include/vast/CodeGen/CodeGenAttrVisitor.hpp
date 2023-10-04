@@ -46,12 +46,19 @@ namespace vast::cg {
             if (auto section = mlir::dyn_cast< clang::SectionAttr >(attr)) {
                 return VisitSectionAttr(section);
             }
+            if (auto annot = mlir::dyn_cast< clang::AnnotateAttr >(attr)) {
+                return VisitAnnotateAttr(annot);
+            }
             return {};
         }
 
         hl::SectionAttr VisitSectionAttr(const clang::SectionAttr *attr) {
             std::string name(attr->getName());
             return make< hl::SectionAttr >(name);
+        }
+
+        hl::AnnotationAttr VisitAnnotateAttr(const clang::AnnotateAttr *attr) {
+            return make< hl::AnnotationAttr >(attr->getAnnotation());
         }
 
     };
