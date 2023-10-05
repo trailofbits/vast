@@ -254,15 +254,22 @@ namespace vast::hl
         detail::build_cxx_record_like_decl(bld, st, name, bases, fields);
     }
 
-    mlir::CallInterfaceCallable CallOp::getCallableForCallee()
-    {
+    mlir::CallInterfaceCallable CallOp::getCallableForCallee() {
         return (*this)->getAttrOfType< mlir::SymbolRefAttr >("callee");
     }
 
-    mlir::CallInterfaceCallable IndirectCallOp::getCallableForCallee()
-    {
+    void CallOp::setCalleeFromCallable(mlir::CallInterfaceCallable callee) {
+        setOperand(0, callee.get< mlir_value >());
+    }
+
+    mlir::CallInterfaceCallable IndirectCallOp::getCallableForCallee() {
         return (*this)->getOperand(0);
     }
+
+    void IndirectCallOp::setCalleeFromCallable(mlir::CallInterfaceCallable callee) {
+        setOperand(0, callee.get< mlir_value >());
+    }
+
 
     void build_logic_op(Builder &bld, State &st, Type type, BuilderCallback lhs, BuilderCallback rhs)
     {

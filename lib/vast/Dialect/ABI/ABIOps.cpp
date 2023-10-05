@@ -26,6 +26,11 @@ namespace vast::abi
         return this->getOperands();
     }
 
+    void CallOp::setCalleeFromCallable(mlir::CallInterfaceCallable callee)
+    {
+        setOperand(0, callee.get< mlir_value >());
+    }
+
     void build_op_with_region(Builder &bld, State &st, BuilderCallback body_cb)
     {
         Builder::InsertionGuard guard(bld);
@@ -83,6 +88,11 @@ namespace vast::abi
     mlir::Operation::operand_range CallExecutionOp::getArgOperands()
     {
         return this->getOperands();
+    }
+
+    void CallExecutionOp::setCalleeFromCallable(mlir::CallInterfaceCallable callee)
+    {
+        setOperand(0, callee.get< mlir_value >());
     }
 
     SSACFG_REGION_OP( FuncOp );
