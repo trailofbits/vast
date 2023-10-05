@@ -122,7 +122,18 @@ namespace vast::cg {
         }
 
         operation Visit(const clang::Decl *decl) {
-            return make_unsupported_decl(decl);
+            if (auto op = make_unsupported_decl(decl)) {
+                if (decl->hasAttrs()) {
+                    mlir::NamedAttrList attrs = op->getAttrs();
+                    for (auto attr : decl->getAttrs()) {
+                        attrs.append(attr->getSpelling(), visit(attr));
+                    }
+                    op->setAttrs(attrs);
+                }
+                return op;
+            }
+            return {};
+
         }
     };
 
