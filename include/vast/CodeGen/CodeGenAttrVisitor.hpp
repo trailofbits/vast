@@ -18,7 +18,7 @@ namespace vast::cg {
 
     template< typename Derived >
     struct CodeGenAttrVisitor
-        : clang::ConstAttrVisitor< CodeGenAttrVisitor< Derived >, operation >
+        : clang::ConstAttrVisitor< CodeGenAttrVisitor< Derived >, mlir_attr >
         , CodeGenVisitorLens< CodeGenAttrVisitor< Derived >, Derived >
         , CodeGenBuilder< CodeGenAttrVisitor< Derived >, Derived >
     {
@@ -42,22 +42,12 @@ namespace vast::cg {
             return builder().template getAttr< Attr >(std::forward< Args >(args)...);
         }
 
-        auto Visit(const clang::Attr *attr) -> mlir_attr {
-            if (auto section = mlir::dyn_cast< clang::SectionAttr >(attr)) {
-                return VisitSectionAttr(section);
-            }
-            if (auto annot = mlir::dyn_cast< clang::AnnotateAttr >(attr)) {
-                return VisitAnnotateAttr(annot);
-            }
-            return {};
-        }
-
-        hl::SectionAttr VisitSectionAttr(const clang::SectionAttr *attr) {
+        mlir_attr VisitSectionAttr(const clang::SectionAttr *attr) {
             std::string name(attr->getName());
             return make< hl::SectionAttr >(name);
         }
 
-        hl::AnnotationAttr VisitAnnotateAttr(const clang::AnnotateAttr *attr) {
+        mlir_attr VisitAnnotateAttr(const clang::AnnotateAttr *attr) {
             return make< hl::AnnotationAttr >(attr->getAnnotation());
         }
 
