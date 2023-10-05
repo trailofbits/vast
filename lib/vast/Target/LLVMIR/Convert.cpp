@@ -54,26 +54,7 @@ namespace vast::target::llvmir
     {
         auto mlir_module = mlir::dyn_cast< mlir::ModuleOp >(op);
         VAST_CHECK(mlir_module, "Cannot translate operation that is not an mlir::ModuleOp!");
-
-        auto mctx = mlir_module->getContext();
-
-        // If the old data layout with high level types is left in the module,
-        // some parsing functionality inside the `mlir::translateModuleToLLVMIR`
-        // will fail and no conversion translation happens, even in case these
-        // entries are not used at all.
-        auto old_dl = op->getAttr(mlir::DLTIDialect::kDataLayoutAttrName);
-        mlir_module->setAttr(mlir::DLTIDialect::kDataLayoutAttrName,
-                             mlir::DataLayoutSpecAttr::get(mctx, {}));
-
-        auto lmodule = mlir::translateModuleToLLVMIR(mlir_module, llvm_ctx);
-
-        // Restore the data layout in case this module is getting re-used later.
-        mlir_module->setAttr(mlir::DLTIDialect::kDataLayoutAttrName, old_dl);
-
-        // Setup proper triplet.
-        mlir::ExecutionEngine::setupTargetTriple(lmodule.get());
-
-        return lmodule;
+        return mlir::translateModuleToLLVMIR(mlir_module, llvm_ctx);
     }
 
     void prepare_hl_module(mlir::Operation *op)
