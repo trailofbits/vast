@@ -72,6 +72,8 @@ namespace vast::cc {
         return ci.createDefaultOutputFile(false, in, get_output_stream_suffix(act));
     }
 
+    using virtual_file_system_ptr = llvm::IntrusiveRefCntPtr< llvm::vfs::FileSystem >;
+
     struct vast_gen_consumer : cg::clang_ast_consumer {
 
         using vast_generator_ptr = std::unique_ptr< cg::vast_generator >;
@@ -79,6 +81,7 @@ namespace vast::cc {
         vast_gen_consumer(
             output_type act,
             diagnostics_engine &diags,
+            virtual_file_system_ptr vfs,
             header_search_options &hopts,
             codegen_options &copts,
             target_options &topts,
@@ -89,6 +92,7 @@ namespace vast::cc {
         )
             : action(act)
             , diags(diags)
+            , vfs(vfs)
             , header_search_opts(hopts)
             , codegen_opts(copts)
             , target_opts(topts)
@@ -141,6 +145,7 @@ namespace vast::cc {
                 , acontext->getTargetInfo().getDataLayoutString()
                 , mod.get()
                 , backend_action
+                , vfs
                 , std::move(output_stream)
             );
         }
@@ -335,6 +340,8 @@ namespace vast::cc {
 
         diagnostics_engine &diags;
 
+        virtual_file_system_ptr vfs;
+
         // options
         const header_search_options &header_search_opts;
         const codegen_options &codegen_opts;
@@ -375,6 +382,7 @@ namespace vast::cc {
         auto result = std::make_unique< vast_gen_consumer >(
               action
             , ci.getDiagnostics()
+            , &ci.getVirtualFileSystem()
             , ci.getHeaderSearchOpts()
             , ci.getCodeGenOpts()
             , ci.getTargetOpts()
@@ -389,7 +397,7 @@ namespace vast::cc {
         // Enable generating macro debug info only when debug info is not disabled and
         // also macrod ebug info is enabled
         auto &cgo = ci.getCodeGenOpts();
-        auto nodebuginfo = clang::codegenoptions::NoDebugInfo;
+        auto nodebuginfo = llvm::codegenoptions::NoDebugInfo;
         if (cgo.getDebugInfo() != nodebuginfo && cgo.MacroDebugInfo) {
             VAST_UNIMPLEMENTED_MSG("Macro debug info not implemented");
         }
