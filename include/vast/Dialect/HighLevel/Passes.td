@@ -5,26 +5,6 @@
 
 include "mlir/Pass/PassBase.td"
 
-def LLVMDump : Pass<"vast-llvm-dump", "mlir::ModuleOp"> {
-  let summary = "Pass for developers to quickly dump module as llvm ir.";
-  let description = [{
-    Lowers module into llvm IR and dumps it on stderr.
-  }];
-
-  let dependentDialects = [
-    "mlir::LLVM::LLVMDialect",
-    "vast::hl::HighLevelDialect",
-    "vast::core::CoreDialect"
-  ];
-
-  let constructor = "vast::hl::createLLVMDumpPass()";
-
-  let options = [
-    Option< "bitcode_file", "bc-file", "std::string", "",
-            "Specify file where to dump the bitcode" >
-  ];
-}
-
 def ExportFnInfo : Pass<"vast-export-fn-info", "mlir::ModuleOp"> {
   let summary = "Create JSON that exports information about function arguments.";
   let description = [{

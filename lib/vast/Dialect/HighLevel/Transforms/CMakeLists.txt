@@ -3,7 +3,6 @@
 add_vast_conversion_library(HighLevelTransforms
   ExportFnInfo.cpp
   HLLowerTypes.cpp
-  LLVMDump.cpp
   DCE.cpp
   ResolveTypeDefs.cpp
   SpliceTrailingScopes.cpp
