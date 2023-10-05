@@ -15,7 +15,7 @@ class Unsupported_Attr<string name, string attr_mnemonic, list<Trait> traits = [
 def UnsupportedAttr
   : Unsupported_Attr< "Unsupported", "attr" >
 {
-    let parameters = (ins "::mlir::StringAttr":$spelling);
+  let parameters = (ins "::mlir::StringAttr":$spelling);
   let builders = [
     AttrBuilderWithInferredContext<(ins "::mlir::StringAttr":$name), [{
       return get(name.getContext(), name);
