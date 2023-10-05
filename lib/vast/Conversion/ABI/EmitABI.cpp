@@ -457,7 +457,7 @@ namespace vast
 
             auto rets_maker(mlir::ValueRange vals)
             {
-                return [=](auto &bld, auto loc)
+                return [=, this](auto &bld, auto loc)
                 {
                     std::vector< mlir::Value > out;
                     auto store = [&](auto vals)
@@ -547,7 +547,7 @@ namespace vast
 
             auto wrap_return(mlir::ValueRange vals)
             {
-                return [=](auto &bld, auto loc)
+                return [=, this](auto &bld, auto loc)
                 {
                     std::vector< mlir::Value > out;
                     auto store = [&](auto to_store)
