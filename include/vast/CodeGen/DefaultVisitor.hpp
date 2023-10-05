@@ -16,12 +16,12 @@ namespace vast::cg
     //
     template< typename Derived >
     struct DefaultCodeGenVisitor
-        : CodeGenDeclVisitor< Derived >
+        : CodeGenDeclVisitorWithAttrs< Derived >
         , CodeGenStmtVisitor< Derived >
         , CodeGenTypeVisitorWithDataLayout< Derived >
         , CodeGenAttrVisitor< Derived >
     {
-        using DeclVisitor = CodeGenDeclVisitor< Derived >;
+        using DeclVisitor = CodeGenDeclVisitorWithAttrs< Derived >;
         using StmtVisitor = CodeGenStmtVisitor< Derived >;
         using TypeVisitor = CodeGenTypeVisitorWithDataLayout< Derived >;
         using AttrVisitor = CodeGenAttrVisitor< Derived >;

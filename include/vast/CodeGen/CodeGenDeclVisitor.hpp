@@ -295,25 +295,6 @@ namespace vast::cg {
             return clang::GlobalDecl(decl, clang::CXXDtorType::Dtor_Complete);
         }
 
-        void visit_attributes(auto *decl, operation op) {
-            if (!decl->hasAttrs()) {
-                return;
-            }
-            mlir::NamedAttrList attrs = op->getAttrs();
-            visit_attributes(decl, attrs);
-            op->setAttrs(attrs);
-        }
-
-        void visit_attributes(auto *decl, mlir::NamedAttrList &attrs) {
-            if (!decl->hasAttrs()) {
-                return;
-            }
-            for (auto attr : decl->getAttrs())
-            {
-                attrs.append(attr->getSpelling(), visit(attr));
-            }
-        }
-
         // FIXME: remove as this duplicates logic from codegen driver
         template< typename Decl >
         operation VisitFunctionLikeDecl(const Decl *decl) {
@@ -491,10 +472,6 @@ namespace vast::cg {
                 auto type = decl->getType();
                 bool has_allocator = type->isVariableArrayType();
                 bool has_init = decl->getInit();
-
-                mlir::NamedAttrList attrs;
-                visit_attributes(decl, attrs);
-
                 auto array_allocator = [decl, this](auto &bld, auto loc) {
                     if (auto type = clang::dyn_cast< clang::VariableArrayType >(decl->getType())) {
                         make_value_builder(type->getSizeExpr())(bld, loc);
@@ -510,7 +487,6 @@ namespace vast::cg {
                     // visiting - int *x = malloc(sizeof(*x))
                     .bind_region_if(has_init, [](auto, auto){})                 // initializer
                     .bind_region_if(has_allocator, std::move(array_allocator))  // array allocator
-                    .bind_if(!attrs.empty(), attrs)
                     .freeze();
 
                 if (auto sc = VisitStorageClass(decl); sc != hl::StorageClass::sc_none) {
@@ -599,7 +575,6 @@ namespace vast::cg {
                     .bind(type())              // type
                     .freeze();
 
-                visit_attributes(decl, def.getOperation());
                 return def;
             });
         }
@@ -801,4 +776,33 @@ namespace vast::cg {
         }
     };
 
+    template< typename Derived >
+    struct CodeGenDeclVisitorWithAttrs
+        : CodeGenDeclVisitor< Derived >
+        , CodeGenVisitorLens< CodeGenDeclVisitorWithAttrs< Derived >, Derived >
+    {
+        using Base = CodeGenDeclVisitor< Derived >;
+
+        using LensType = CodeGenVisitorLens< CodeGenDeclVisitorWithAttrs< Derived >, Derived >;
+
+        using LensType::context;
+        using LensType::acontext;
+
+        using LensType::visit;
+
+        auto Visit(const clang::Decl *decl) -> operation {
+            if (auto op = Base::Visit(decl)) {
+                // getAttrs on decl without attrs triggers an assertion in clang
+                if (decl->hasAttrs()) {
+                    mlir::NamedAttrList attrs = op->getAttrs();
+                    for (auto attr : decl->getAttrs()) {
+                        attrs.append(attr->getSpelling(), visit(attr));
+                    }
+                    op->setAttrs(attrs);
+                }
+                return op;
+            }
+            return {};
+        }
+    };
 } // namespace vast::cg
