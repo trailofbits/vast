@@ -30,7 +30,11 @@ class NameAttr<string name, string attr_mnemonic>
   let assemblyFormat = "$name";
 }
 
-def AnnotationAttr : NameAttr< "Annotation", "annotation" >;
-def SectionAttr    : NameAttr< "Section", "section" >;
+def AnnotationAttr    : NameAttr< "Annotation", "annotation" >;
+def SectionAttr       : NameAttr< "Section", "section" >;
+def LoaderUninitAttr  : HighLevel_Attr< "LoaderUninitialized", "loader_uninitialized" >;
+def NoInstrumentAttr  : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
+def PackedAttr        : HighLevel_Attr< "Packed", "packed" >;
+def WarnUnusedResAttr : HighLevel_Attr< "WarnUnusedResult", "warn_unused_res" >;
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
