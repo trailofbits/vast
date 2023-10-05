@@ -40,9 +40,6 @@ namespace vast::hl {
                     : tc::base_type_converter(), mod(mod)
                 {
                     addConversion([&](mlir_type t) { return this->convert(t); });
-                    addConversion([&](mlir::SubElementTypeInterface t) {
-                        return this->convert(t);
-                    });
                 }
 
                 maybe_types_t do_conversion(mlir_type type) {
@@ -59,13 +56,6 @@ namespace vast::hl {
                 }
 
                 maybe_type_t convert(mlir_type type) { return nested_type(type); }
-
-                maybe_type_t convert(mlir::SubElementTypeInterface with_subelements) {
-                    auto replacer = [&](hl::ElaboratedType elaborated) {
-                        return nested_type(elaborated);
-                    };
-                    return with_subelements.replaceSubElements(replacer);
-                }
             };
 
             struct resolve_typedef : generic_conversion_pattern
