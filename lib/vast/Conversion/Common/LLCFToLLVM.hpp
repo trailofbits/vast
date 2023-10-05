@@ -142,7 +142,7 @@ namespace vast::conv::irstollvm::ll_cf
 
             // splice newly created translation unit block in the module
             auto &unit_block = parent->back();
-            rewriter.mergeBlockBefore(&unit_block, op, {});
+            rewriter.inlineBlockBefore(&unit_block, op, {});
 
             rewriter.eraseOp(op);
             return mlir::success();

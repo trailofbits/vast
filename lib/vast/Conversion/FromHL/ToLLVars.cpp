@@ -38,7 +38,7 @@ namespace vast
             auto terminator = mlir::dyn_cast< T >(init_block.getTerminator());
 
             rewriter.inlineRegionBefore(init_region, src->getBlock());
-            rewriter.mergeBlockBefore(&init_block, src.getOperation());
+            rewriter.inlineBlockBefore(&init_block, src.getOperation());
             return terminator;
         }
 

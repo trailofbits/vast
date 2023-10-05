@@ -1170,7 +1170,7 @@ namespace vast::conv::irstollvm
             auto yield = terminator_t< yield_op_t >::get(*body);
             VAST_PATTERN_CHECK(yield, "Expected yield in: {0}", op);
 
-            rewriter.mergeBlockBefore(body, op);
+            rewriter.inlineBlockBefore(body, op);
             rewriter.replaceOp(op, yield.op().getResult());
             rewriter.eraseOp(yield.op());
             return logical_result::success();
