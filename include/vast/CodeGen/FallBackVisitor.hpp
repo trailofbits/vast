@@ -19,7 +19,7 @@ namespace vast::cg
         operation Visit(const clang::Stmt *stmt) { return visit_with_fallback(stmt); }
         operation Visit(const clang::Decl *decl) { return visit_with_fallback(decl); }
         mlir_type Visit(const clang::Type *type) { return visit_with_fallback(type); }
-        mlir_attr Visit(const clang::Attr *type) { return visit_with_fallback(type); }
+        mlir_attr Visit(const clang::Attr *attr) { return visit_with_fallback(attr); }
         mlir_type Visit(clang::QualType    type) { return visit_with_fallback(type); }
 
         using visitors = util::type_list< Visitors< Derived >... >;
