@@ -37,10 +37,10 @@ namespace vast::tc
     };
 
     template< typename R, typename UnaryPred >
-    bool all_of_subtypes(R &&type, UnaryPred &&pred) {
+    bool all_of_subtypes(R &&types, UnaryPred &&pred) {
         mlir::AttrTypeWalker walker;
 
-        walker.addWalk([pred = std::forward< UnaryPred >(pred)] (auto t) {
+        walker.addWalk([pred = std::forward< UnaryPred >(pred)] (mlir_type t) {
             if (!pred(t)) {
                 return mlir::WalkResult::interrupt();
             }
@@ -48,7 +48,13 @@ namespace vast::tc
             return mlir::WalkResult::advance();
         });
 
-        return !walker.walk(type).wasInterrupted();
+        for (auto type : types) {
+            if (walker.walk(type).wasInterrupted()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     template< typename derived >
