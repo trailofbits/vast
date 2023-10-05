@@ -92,6 +92,14 @@ namespace vast::cg {
                 return make< hl::FuncOp >(loc, mangled_name.name, fty, linkage);
             });
 
+            if (function_decl->hasAttrs()) {
+                mlir::NamedAttrList attrs = fn->getAttrs();
+                for (auto attr : function_decl->getAttrs()) {
+                    attrs.append(attr->getSpelling(), visit(attr));
+                }
+                fn->setAttrs(attrs);
+            }
+
             VAST_CHECK(fn.isDeclaration(), "expected empty body");
 
             mlir::SymbolTable::setSymbolVisibility(
