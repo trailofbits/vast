@@ -51,5 +51,20 @@ namespace vast::cg {
             return make< hl::AnnotationAttr >(attr->getAnnotation());
         }
 
+        mlir_attr VisitLoaderUninitializedAttr(const clang::LoaderUninitializedAttr *attr) {
+            return make< hl::LoaderUninitializedAttr >();
+        }
+
+        mlir_attr VisitNoInstrumentFunctionAttr(const clang::NoInstrumentFunctionAttr *attr) {
+            return make< hl::NoInstrumentFunctionAttr >();
+        }
+
+        mlir_attr VisitPackedAttr(const clang::PackedAttr *attr) {
+            return make< hl::PackedAttr >();
+        }
+
+        mlir_attr VisitWarnUnusdResultAttr(const clang::WarnUnusedAttr *attr) {
+            return make< hl::WarnUnusedResultAttr >();
+        }
     };
 } // namespace vast::cg
