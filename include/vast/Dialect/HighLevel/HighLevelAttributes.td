@@ -35,6 +35,6 @@ def SectionAttr       : NameAttr< "Section", "section" >;
 def LoaderUninitAttr  : HighLevel_Attr< "LoaderUninitialized", "loader_uninitialized" >;
 def NoInstrumentAttr  : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
 def PackedAttr        : HighLevel_Attr< "Packed", "packed" >;
-def WarnUnusedResAttr : HighLevel_Attr< "WarnUnusedResult", "warn_unused_res" >;
+def WarnUnusedResAttr : HighLevel_Attr< "WarnUnusedResult", "warn_unused_result" >;
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
