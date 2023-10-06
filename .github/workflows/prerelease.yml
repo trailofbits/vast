@@ -22,7 +22,7 @@ jobs:
   build:
     strategy:
       matrix:
-        llvm-version: [16]
+        llvm-version: [17]
         image-version: [22.04]
 
     name: "Pre Release"
