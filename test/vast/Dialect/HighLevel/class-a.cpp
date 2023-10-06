@@ -1,5 +1,7 @@
 // RUN: %vast-cc --from-source %s | %file-check %s
 // RUN: %vast-cc --from-source %s > %t && %vast-opt %t | diff -B %t -
+// REQUIRES: c++
+
 
 // CHECK: hl.class "A" :
 class A {};
