@@ -77,6 +77,14 @@ namespace vast::target::llvmir
         vast_module mlir_module, llvm::LLVMContext &llvm_ctx,const std::string &module_name
     ) {
         clean_up_data_layout(mlir_module);
+
+        // TODO move to LLVM conversion and use attr replacer
+        if (auto target = mlir_module->getAttr(core::CoreDialect::getTargetTripleAttrName())) {
+            auto triple = mlir::cast< mlir::StringAttr>(target);
+            mlir_module->setAttr(mlir::LLVM::LLVMDialect::getTargetTripleAttrName(), triple);
+            mlir_module->removeAttr(core::CoreDialect::getTargetTripleAttrName());
+        }
+
         return mlir::translateModuleToLLVMIR(mlir_module, llvm_ctx);
     }
 
