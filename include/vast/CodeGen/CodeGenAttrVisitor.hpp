@@ -43,8 +43,7 @@ namespace vast::cg {
         }
 
         mlir_attr VisitSectionAttr(const clang::SectionAttr *attr) {
-            std::string name(attr->getName());
-            return make< hl::SectionAttr >(name);
+            return make< hl::SectionAttr >(attr->getName());
         }
 
         mlir_attr VisitAnnotateAttr(const clang::AnnotateAttr *attr) {
