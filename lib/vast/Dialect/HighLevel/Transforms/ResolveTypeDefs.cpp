@@ -55,7 +55,13 @@ namespace vast::hl {
                     return hl::getBottomTypedefType(type, mod);
                 }
 
-                maybe_type_t convert(mlir_type type) { return nested_type(type); }
+                maybe_type_t convert(mlir_type type) {
+                    mlir::AttrTypeReplacer replacer;
+                    replacer.addReplacement([this] (mlir_type t) {
+                        return nested_type(t);
+                    });
+                    return replacer.replace(type);
+                }
             };
 
             struct resolve_typedef : generic_conversion_pattern
@@ -111,7 +117,9 @@ namespace vast::hl {
                         // TODO unify with high level type conversion
                         mlir::AttrTypeReplacer replacer;
                         replacer.addReplacement(tc::convert_type_attr(tc));
-                        replacer.recursivelyReplaceElementsIn(op, true /* replace attrs */);
+                        replacer.recursivelyReplaceElementsIn(
+                            op, true /* replace attrs */, false /* replace locs */, true /* replace types */
+                        );
                     };
 
                     rewriter.updateRootInPlace(op, do_change);
