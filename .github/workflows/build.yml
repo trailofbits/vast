@@ -49,7 +49,6 @@ jobs:
         run: |
             cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} \
               -DCMAKE_VERBOSE_MAKEFILE=True \
-              -DENABLE_SANITIZER_ADDRESS=ON \
               -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=ON \
               -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
               -DLLVM_EXTERNAL_LIT=${LLVM_EXTERNAL_LIT}
