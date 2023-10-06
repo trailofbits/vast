@@ -260,10 +260,6 @@ namespace vast::cg
             VAST_UNIMPLEMENTED_MSG("dtor emition");
         }
 
-        if (function_decl->getAttr< clang::AnnotateAttr >()) {
-            VAST_UNIMPLEMENTED_MSG("annotated emition");
-        }
-
         return op;
     }
 
@@ -309,11 +305,6 @@ namespace vast::cg
 
     operation codegen_driver::build_global(clang::GlobalDecl decl) {
         const auto *glob = llvm::cast< clang::ValueDecl >(decl.getDecl());
-
-        VAST_UNIMPLEMENTED_IF(glob->hasAttr< clang::WeakRefAttr >());
-        VAST_UNIMPLEMENTED_IF(glob->hasAttr< clang::AliasAttr >());
-        VAST_UNIMPLEMENTED_IF(glob->hasAttr< clang::IFuncAttr >());
-        VAST_UNIMPLEMENTED_IF(glob->hasAttr< clang::CPUDispatchAttr >());
 
         VAST_UNIMPLEMENTED_IF(lang().CUDA);
         VAST_UNIMPLEMENTED_IF(lang().OpenMP);
