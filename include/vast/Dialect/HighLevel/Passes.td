@@ -59,11 +59,13 @@ def HLLowerTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
   let constructor = "vast::hl::createHLLowerTypesPass()";
 }
 
-def ResolveTypeDefs : Pass<"vast-hl-resolve-typedefs", "mlir::ModuleOp"> {
-  let summary = "Remove `hl::TypeDef type from types.";
+def LowerTypeDefs : Pass<"vast-hl-lower-typedefs", "mlir::ModuleOp"> {
+  let summary = "Replace `hl::TypeDef` type by its underlying aliased type.";
   let description = [{
-    Resolve typedefs types - this is usefull for more low-level analysis
-    or transformations.
+    Replaces `hl::TypeDef` types by its underlying aliased types.
+    The conversion resolves nested typedefs.
+
+    All `hl::TypeDef` are marked illegal and converted by this pass.
   }];
 
   let dependentDialects = [
@@ -71,7 +73,7 @@ def ResolveTypeDefs : Pass<"vast-hl-resolve-typedefs", "mlir::ModuleOp"> {
     "vast::core::CoreDialect"
   ];
 
-  let constructor = "vast::hl::createResolveTypeDefsPass()";
+  let constructor = "vast::hl::createLowerTypeDefsPass()";
 }
 
 def SpliceTrailingScopes : Pass<"vast-hl-splice-trailing-scopes", "mlir::ModuleOp"> {
