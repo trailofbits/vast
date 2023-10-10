@@ -17,7 +17,7 @@ the module, which is derived from the information provided by clang and emitted
 automatically by `vast-cc`.
 
 TODO: Named types are not yet supported.
-### `-vast-hl-resolve-typedefs`: Remove `hl::TypeDef type from types.
+### `-vast-hl-lower-typedefs`: Remove `hl::TypeDef type from types.
 Resolve typedefs types - this is usefull for more low-level analysis
 or transformations.
 ### `-vast-hl-splice-trailing-scopes`: Remove trailing `hl::Scope`s.
