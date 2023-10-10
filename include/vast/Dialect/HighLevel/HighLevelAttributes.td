@@ -37,4 +37,10 @@ def NoInstrumentAttr  : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_f
 def PackedAttr        : HighLevel_Attr< "Packed", "packed" >;
 def WarnUnusedResAttr : HighLevel_Attr< "WarnUnusedResult", "warn_unused_result" >;
 
+def AllocSizeAttr : HighLevel_Attr< "AllocSize", "alloc_size" >{
+  let parameters = (ins "int":$size_arg_pos, OptionalParameter< "int" >:$num_arg_pos);
+
+  let assemblyFormat = "`<` `size_pos` `:` $size_arg_pos (`,` `num_pos` `:` $num_arg_pos^)? `>`";
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
