@@ -65,5 +65,14 @@ namespace vast::cg {
         mlir_attr VisitWarnUnusedResultAttr(const clang::WarnUnusedResultAttr *attr) {
             return make< hl::WarnUnusedResultAttr >();
         }
+
+        mlir_attr VisitAllocSizeAttr(const clang::AllocSizeAttr *attr) {
+            auto size = attr->getElemSizeParam();
+            auto num = attr->getNumElemsParam();
+            if (num.isValid()) {
+                return make< hl::AllocSizeAttr >(size.getSourceIndex(), num.getSourceIndex());
+            }
+            return make< hl::AllocSizeAttr >(size.getSourceIndex(), int());
+        }
     };
 } // namespace vast::cg
