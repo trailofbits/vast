@@ -17,7 +17,7 @@ namespace vast::cg
     template< typename T >
     gap::generator< T * > filter(auto from) {
         for (auto x : from) {
-            if (auto s = clang::dyn_cast< T >(x))
+            if (auto s = dyn_cast< T >(x))
                 co_yield s;
         }
     }
