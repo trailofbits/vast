@@ -805,10 +805,17 @@ namespace vast::cg {
                     mlir::NamedAttrList attrs = op->getAttrs();
                     for (auto attr : decl->getAttrs()) {
                         auto visited = visit(attr);
+
                         auto spelling = attr->getSpelling();
+                        // Bultin attr doesn't have spelling because it can not be written in code
+                        if (auto builtin = clang::dyn_cast< clang::BuiltinAttr >(attr)) {
+                            spelling = "builtin";
+                        }
+
                         if (auto prev = attrs.getNamed(spelling)) {
                             VAST_CHECK(visited == prev.value().getValue(), "Conflicting redefinition of attribute {0}", spelling);
                         }
+
                         attrs.set(spelling, visited);
                     }
                     op->setAttrs(attrs);
