@@ -36,6 +36,13 @@ def LoaderUninitAttr  : HighLevel_Attr< "LoaderUninitialized", "loader_uninitial
 def NoInstrumentAttr  : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
 def PackedAttr        : HighLevel_Attr< "Packed", "packed" >;
 def WarnUnusedResAttr : HighLevel_Attr< "WarnUnusedResult", "warn_unused_result" >;
+def MallocAttr : HighLevel_Attr< "Malloc", "malloc" >;
+def NoThrowAttr : HighLevel_Attr< "NoThrow", "nothrow" >;
+
+def BuiltinAttr : HighLevel_Attr< "Builtin", "builtin" > {
+  let parameters = (ins "unsigned":$ID);
+  let assemblyFormat = "`<` $ID `>`";
+}
 
 def AllocSizeAttr : HighLevel_Attr< "AllocSize", "alloc_size" >{
   let parameters = (ins "int":$size_arg_pos, OptionalParameter< "int" >:$num_arg_pos);
