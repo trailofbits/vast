@@ -66,6 +66,18 @@ namespace vast::cg {
             return make< hl::WarnUnusedResultAttr >();
         }
 
+        mlir_attr VisitRestrictAttr(const clang::RestrictAttr *attr) {
+            return make< hl::MallocAttr >();
+        }
+
+        mlir_attr VisitNoThrowAttr(const clang::NoThrowAttr *attr) {
+            return make< hl::NoThrowAttr >();
+        }
+
+        mlir_attr VisitBuiltinAttr(const clang::BuiltinAttr *attr) {
+            return make< hl::BuiltinAttr >(attr->getID());
+        }
+
         mlir_attr VisitAllocSizeAttr(const clang::AllocSizeAttr *attr) {
             auto size = attr->getElemSizeParam();
             auto num = attr->getNumElemsParam();
