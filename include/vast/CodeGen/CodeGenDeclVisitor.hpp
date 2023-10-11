@@ -804,10 +804,12 @@ namespace vast::cg {
                 if (decl->hasAttrs()) {
                     mlir::NamedAttrList attrs = op->getAttrs();
                     for (auto attr : decl->getAttrs()) {
+                        auto visited = visit(attr);
                         auto spelling = attr->getSpelling();
-                        if (!attrs.getNamed(spelling)) {
-                            attrs.append(spelling, visit(attr));
+                        if (auto prev = attrs.getNamed(spelling)) {
+                            VAST_CHECK(visited == prev.value().getValue(), "Conflicting redefinition of attribute {0}", spelling);
                         }
+                        attrs.set(spelling, visited);
                     }
                     op->setAttrs(attrs);
                 }
