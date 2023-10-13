@@ -214,13 +214,13 @@ Types are lowered according to data-layout embeded into VAST module:
 
 ### Dependencies
 
-Currently, it is necessary to use `clang-16` (due to `gcc` bug) to build VAST. On Linux it is also necessary to use `lld` at the moment.
+Currently, it is necessary to use `clang` (due to `gcc` bug) to build VAST. On Linux it is also necessary to use `lld` at the moment.
 
-VAST uses `llvm-16` which can be obtained from the [repository](https://apt.llvm.org/) provided by LLVM.
+VAST uses `llvm-17` which can be obtained from the [repository](https://apt.llvm.org/) provided by LLVM.
 
 Before building (for Ubuntu) get all the necessary dependencies by running
 ```
-apt-get install build-essential cmake ninja-build libstdc++-12-dev llvm-16 libmlir-16 libmlir-16-dev mlir-16-tools libclang-16-dev
+apt-get install build-essential cmake ninja-build libstdc++-12-dev llvm-17 libmlir-17 libmlir-17-dev mlir-17-tools libclang-17-dev
 ```
 or an equivalent command for your operating system of choice.
 
@@ -233,7 +233,7 @@ If you want to use system installed `llvm` and `mlir` (on Ubuntu) use:
 ```
 cmake --preset ninja-multi-default \
     --toolchain ./cmake/lld.toolchain.cmake \
-    -DCMAKE_PREFIX_PATH=/usr/lib/llvm-16/
+    -DCMAKE_PREFIX_PATH=/usr/lib/llvm-17/
 ```
 
 To use a specific `llvm` provide `-DCMAKE_PREFIX_PATH=<llvm & mlir instalation paths>` option, where `CMAKE_PREFIX_PATH` points to directory containing `LLVMConfig.cmake` and `MLIRConfig.cmake`.
