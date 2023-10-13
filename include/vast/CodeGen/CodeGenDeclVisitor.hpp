@@ -804,7 +804,10 @@ namespace vast::cg {
                 if (decl->hasAttrs()) {
                     mlir::NamedAttrList attrs = op->getAttrs();
                     for (auto attr : decl->getAttrs()) {
-                        attrs.append(attr->getSpelling(), visit(attr));
+                        auto spelling = attr->getSpelling();
+                        if (!attrs.getNamed(spelling)) {
+                            attrs.append(spelling, visit(attr));
+                        }
                     }
                     op->setAttrs(attrs);
                 }
