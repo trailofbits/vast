@@ -26,13 +26,11 @@ namespace mlir {
 namespace vast::cc {
 
     namespace opt {
-        constexpr string_ref emit_high_level = "emit-high-level";
-        constexpr string_ref emit_cir  = "emit-cir";
         constexpr string_ref emit_llvm = "emit-llvm";
         constexpr string_ref emit_obj  = "emit-obj";
         constexpr string_ref emit_asm  = "emit-asm";
 
-        constexpr string_ref emit_mlir = "emit-mlir";
+        constexpr string_ref emit_mlir  = "emit-mlir";
 
         constexpr string_ref disable_vast_verifier = "disable-vast-verifier";
         constexpr string_ref vast_verify_diags = "verify-diags";
@@ -106,24 +104,6 @@ namespace vast::cc {
     //
     struct emit_obj_action : vast_gen_action {
         emit_obj_action(const vast_args &vargs, mcontext_t *mcontext = nullptr);
-    private:
-        virtual void anchor();
-    };
-
-    //
-    // Emit high level mlir dialect
-    //
-    struct emit_high_level_action : vast_gen_action {
-        emit_high_level_action(const vast_args &vargs, mcontext_t *mcontext = nullptr);
-    private:
-        virtual void anchor();
-    };
-
-    //
-    // Emit cir mlir dialect
-    //
-    struct emit_cir_action : vast_gen_action {
-        emit_cir_action(const vast_args &vargs, mcontext_t *mcontext = nullptr);
     private:
         virtual void anchor();
     };

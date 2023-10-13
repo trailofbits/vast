@@ -15,8 +15,6 @@ namespace vast::cc {
 
     enum class output_type {
         emit_assembly,
-        emit_high_level,
-        emit_cir,
         emit_mlir,
         emit_llvm,
         emit_obj,
