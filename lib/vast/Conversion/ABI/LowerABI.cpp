@@ -514,7 +514,7 @@ namespace vast
                 conv::inline_region_blocks(rewriter, op.getBody(),
                                            mlir::Region::iterator(parent->end()));
                 auto &unit_block = parent->back();
-                rewriter.mergeBlockBefore(&unit_block, op, {});
+                rewriter.inlineBlockBefore(&unit_block, op, {});
 
                 auto previous_inst = &*std::prev(mlir::Block::iterator(op));
                 auto yield = mlir::dyn_cast< abi::YieldOp >(previous_inst);
