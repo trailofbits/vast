@@ -81,12 +81,8 @@ namespace vast::cg {
         }
 
         mlir_attr VisitAllocSizeAttr(const clang::AllocSizeAttr *attr) {
-            auto size = attr->getElemSizeParam();
-            auto num = attr->getNumElemsParam();
-            if (num.isValid()) {
-                return make< hl::AllocSizeAttr >(size.getSourceIndex(), num.getSourceIndex());
-            }
-            return make< hl::AllocSizeAttr >(size.getSourceIndex(), int());
+            auto num = attr->getNumElemsParam().isValid() ? attr->getNumElemsParam().getSourceIndex() : int();
+            return make< hl::AllocSizeAttr >(attr->getElemSizeParam().getSourceIndex(), num);
         }
     };
 } // namespace vast::cg
