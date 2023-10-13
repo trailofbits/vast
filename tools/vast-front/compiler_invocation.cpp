@@ -25,14 +25,6 @@ namespace vast::cc
         auto act   = opts.ProgramAction;
         using namespace clang::frontend;
 
-        if (vargs.has_option(opt::emit_high_level)) {
-            return std::make_unique< vast::cc::emit_high_level_action >(vargs);
-        }
-
-        if (vargs.has_option(opt::emit_cir)) {
-            return std::make_unique< vast::cc::emit_cir_action >(vargs);
-        }
-
         if (vargs.has_option(opt::emit_mlir)) {
             return std::make_unique< vast::cc::emit_mlir_action >(vargs);
         }

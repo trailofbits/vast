@@ -1,4 +1,4 @@
-// RUN: %vast-front %s -vast-emit-high-level -o - | %file-check %s
+// RUN: %vast-front %s -vast-emit-mlir=hl -o - | %file-check %s
 
 // CHECK: hl.func @printf
 #include <stdio.h>

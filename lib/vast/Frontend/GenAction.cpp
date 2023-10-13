@@ -32,7 +32,7 @@ namespace vast::cc {
     namespace opt {
 
         bool emit_only_mlir(const vast_args &vargs) {
-            for (auto arg : {emit_high_level, emit_cir, emit_mlir}) {
+            for (auto arg : {emit_mlir}) {
                 if (vargs.has_option(arg))
                     return true;
             }
@@ -51,8 +51,6 @@ namespace vast::cc {
     static std::string get_output_stream_suffix(output_type act) {
         switch (act) {
             case output_type::emit_assembly: return "s";
-            case output_type::emit_high_level: return "hl";
-            case output_type::emit_cir: return "cir";
             case output_type::emit_mlir: return "mlir";
             case output_type::emit_llvm: return "ll";
             case output_type::emit_obj: return "o";
@@ -285,10 +283,6 @@ namespace vast::cc {
                 case output_type::emit_assembly:
                     return emit_backend_output(clang::BackendAction::Backend_EmitAssembly,
                                                std::move(mod), mctx.get());
-                case output_type::emit_high_level:
-                    return emit_mlir_output(target_dialect::high_level, std::move(mod), mctx.get());
-                case output_type::emit_cir:
-                    VAST_UNIMPLEMENTED_MSG("HandleTranslationUnit for emit CIR not implemented");
                 case output_type::emit_mlir:
                 {
                     auto trg = parse_target_dialect(vargs.get_options_list(opt::emit_mlir));
@@ -439,20 +433,6 @@ namespace vast::cc {
 
     emit_obj_action::emit_obj_action(const vast_args &vargs, mcontext_t *mcontex)
         : vast_gen_action(output_type::emit_obj, vargs, mcontex)
-    {}
-
-    // emit high level
-    void emit_high_level_action::anchor() {}
-
-    emit_high_level_action::emit_high_level_action(const vast_args &vargs, mcontext_t *mcontex)
-        : vast_gen_action(output_type::emit_high_level, vargs, mcontex)
-    {}
-
-    // emit cir
-    void emit_cir_action::anchor() {}
-
-    emit_cir_action::emit_cir_action(const vast_args &vargs, mcontext_t *mcontex)
-        : vast_gen_action(output_type::emit_cir, vargs, mcontex)
     {}
 
 } // namespace vast::cc
