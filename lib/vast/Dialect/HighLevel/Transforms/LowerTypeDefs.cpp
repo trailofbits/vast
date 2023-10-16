@@ -102,6 +102,11 @@ namespace vast::hl {
                         return rewrite(fn, ops, rewriter);
                     }
 
+                    if (mlir::isa< hl::TypeDefOp >(op)) {
+                        rewriter.eraseOp(op);
+                        return mlir::success();
+                    }
+
                     auto new_rtys = tc.convert_types_to_types(op->getResultTypes());
                     VAST_PATTERN_CHECK(new_rtys, "Type conversion failed in op {0}", *op);
 
@@ -154,9 +159,10 @@ namespace vast::hl {
             mlir::ConversionTarget trg(mctx);
 
             trg.markUnknownOpDynamicallyLegal([](operation op) {
-                return !has_type_somewhere< hl::TypedefType >(op)
-                    || mlir::isa< hl::TypeDefOp >(op);
+                return !has_type_somewhere< hl::TypedefType >(op);
             });
+
+            trg.addIllegalOp< hl::TypeDefOp >();
 
             return trg;
         }
