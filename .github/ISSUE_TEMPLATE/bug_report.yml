@@ -1,0 +1,41 @@
+name: Bug report
+description: Create a report to help us improve
+title: "[Bug]: "
+labels: ["bug"]
+body:
+- type: input
+  attributes:
+    label: VAST version
+    description: The output of `vast-front --version`
+  validations:
+    required: true
+- type: input
+  attributes:
+    label: LLVM version
+  validations:
+    required: true
+- type: input
+  attributes:
+    label: Operating system
+    description: for Linux, please specify the distribution
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Description
+    description: >
+      A description of the bug. If applicable please specify what behavior do
+      you expect and what behavior did you observe.
+
+      If applicable, add source file to explain your problem. Note that if file
+      type is not supported by GitHub, you can put them in a ZIP archive.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Steps to Reproduce
+    description: >
+      Please specify the steps to reproduce the issue. Do not forget to include
+      the VAST command.
+  validations:
+    required: true
