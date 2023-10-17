@@ -69,7 +69,7 @@ namespace vast::cg {
         }
 
         mlir_attr VisitRestrictAttr(const clang::RestrictAttr *attr) {
-            return make< hl::MallocAttr >();
+            return make< hl::RestrictAttr >();
         }
 
         mlir_attr VisitNoThrowAttr(const clang::NoThrowAttr *attr) {
