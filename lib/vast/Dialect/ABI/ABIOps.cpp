@@ -11,11 +11,25 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Dialect.hpp"
 
-#define GET_OP_CLASSES
-#include "vast/Dialect/ABI/ABI.cpp.inc"
+#include "vast/Dialect/Core/Func.hpp"
 
 namespace vast::abi
 {
+    ParseResult parseFunctionSignatureAndBody(
+        Parser &parser, Attribute &funcion_type,
+        mlir::NamedAttrList &attr_dict, Region &body
+    ) {
+        return core::parseFunctionSignatureAndBody( parser, funcion_type, attr_dict, body );
+    }
+
+
+    void printFunctionSignatureAndBody(
+        Printer &printer, auto op,
+        Attribute attr, mlir::DictionaryAttr dict, Region &body
+    ) {
+        return core::printFunctionSignatureAndBody( printer, op, attr, dict, body );
+    }
+
     mlir::CallInterfaceCallable CallOp::getCallableForCallee()
     {
         return (*this)->getAttrOfType< mlir::SymbolRefAttr >("callee");
@@ -99,3 +113,6 @@ namespace vast::abi
     SSACFG_REGION_OP( WrapFuncOp );
 
 } // namespace vast::abi
+
+#define GET_OP_CLASSES
+#include "vast/Dialect/ABI/ABI.cpp.inc"

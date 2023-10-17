@@ -59,10 +59,6 @@ def HighLevel_FuncOp
     }] >
   ];
 
-  let assemblyFormat = [{
-    $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
-  }];
-
   let hasVerifier = 1;
 }
 
