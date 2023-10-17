@@ -25,6 +25,7 @@ def Core_Dialect : Dialect {
         void registerAttributes();
 
         static std::string getTargetTripleAttrName() { return "vast.core.target_triple"; }
+        static std::string getLanguageAttrName() { return "vast.core.lang"; }
     }];
 
     let useDefaultTypePrinterParser = 1;
