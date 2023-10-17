@@ -36,7 +36,7 @@ def LoaderUninitAttr  : HighLevel_Attr< "LoaderUninitialized", "loader_uninitial
 def NoInstrumentAttr  : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
 def PackedAttr        : HighLevel_Attr< "Packed", "packed" >;
 def WarnUnusedResAttr : HighLevel_Attr< "WarnUnusedResult", "warn_unused_result" >;
-def MallocAttr : HighLevel_Attr< "Malloc", "malloc" >;
+def RestrictAttr : HighLevel_Attr< "Restrict", "restrict" >;
 def NoThrowAttr : HighLevel_Attr< "NoThrow", "nothrow" >;
 
 def BuiltinAttr : HighLevel_Attr< "Builtin", "builtin" > {
