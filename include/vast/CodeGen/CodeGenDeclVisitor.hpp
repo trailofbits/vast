@@ -67,6 +67,29 @@ namespace vast::cg {
             return this->template create< Op >(std::forward< Args >(args)...);
         }
 
+        auto visit_decl_attrs(const clang::Decl *decl, operation op) {
+            // getAttrs on decl without attrs triggers an assertion in clang
+            if (decl->hasAttrs()) {
+                mlir::NamedAttrList attrs = op->getAttrs();
+                for (auto attr : decl->getAttrs()) {
+                    auto visited = visit(attr);
+
+                    auto spelling = attr->getSpelling();
+                    // Bultin attr doesn't have spelling because it can not be written in code
+                    if (auto builtin = clang::dyn_cast< clang::BuiltinAttr >(attr)) {
+                        spelling = "builtin";
+                    }
+
+                    if (auto prev = attrs.getNamed(spelling)) {
+                        VAST_CHECK(visited == prev.value().getValue(), "Conflicting redefinition of attribute {0}", spelling);
+                    }
+
+                    attrs.set(spelling, visited);
+                }
+                op->setAttrs(attrs);
+            }
+        }
+
         static bool is_defaulted_method(const clang::FunctionDecl *function_decl)  {
             if (function_decl->isDefaulted() && clang::isa< clang::CXXMethodDecl >(function_decl)) {
                 auto method = clang::cast< clang::CXXMethodDecl >(function_decl);
@@ -92,13 +115,7 @@ namespace vast::cg {
                 return make< hl::FuncOp >(loc, mangled_name.name, fty, linkage);
             });
 
-            if (function_decl->hasAttrs()) {
-                mlir::NamedAttrList attrs = fn->getAttrs();
-                for (auto attr : function_decl->getAttrs()) {
-                    attrs.append(attr->getSpelling(), visit(attr));
-                }
-                fn->setAttrs(attrs);
-            }
+            visit_decl_attrs(function_decl, fn);
 
             VAST_CHECK(fn.isDeclaration(), "expected empty body");
 
@@ -791,6 +808,8 @@ namespace vast::cg {
     {
         using Base = CodeGenDeclVisitor< Derived >;
 
+        using Base::visit_decl_attrs;
+
         using LensType = CodeGenVisitorLens< CodeGenDeclVisitorWithAttrs< Derived >, Derived >;
 
         using LensType::context;
@@ -800,26 +819,7 @@ namespace vast::cg {
 
         auto Visit(const clang::Decl *decl) -> operation {
             if (auto op = Base::Visit(decl)) {
-                // getAttrs on decl without attrs triggers an assertion in clang
-                if (decl->hasAttrs()) {
-                    mlir::NamedAttrList attrs = op->getAttrs();
-                    for (auto attr : decl->getAttrs()) {
-                        auto visited = visit(attr);
-
-                        auto spelling = attr->getSpelling();
-                        // Bultin attr doesn't have spelling because it can not be written in code
-                        if (auto builtin = clang::dyn_cast< clang::BuiltinAttr >(attr)) {
-                            spelling = "builtin";
-                        }
-
-                        if (auto prev = attrs.getNamed(spelling)) {
-                            VAST_CHECK(visited == prev.value().getValue(), "Conflicting redefinition of attribute {0}", spelling);
-                        }
-
-                        attrs.set(spelling, visited);
-                    }
-                    op->setAttrs(attrs);
-                }
+                visit_decl_attrs(decl, op);
                 return op;
             }
             return {};
