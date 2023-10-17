@@ -16,6 +16,8 @@ def DirectOp
 {
     let summary = "Pass value directly - usually means by register";
     let description = [{ Pass value directly - usually means by register. }];
+
+    let assemblyFormat = [{ $value attr-dict `:` type($value) `->` type($result) }];
 }
 
 def RetDirectOp
@@ -25,6 +27,8 @@ def RetDirectOp
 {
     let summary = "Value is returned directly.";
     let description = [{ Value is returned directly. }];
+
+    let assemblyFormat = [{ $value attr-dict `:` type($value) `->` type($result) }];
 }
 
 def TodoOp
@@ -34,6 +38,8 @@ def TodoOp
 {
     let summary = "Not implement yet.";
     let description = [{ Not implemented yet }];
+
+    let assemblyFormat = [{ $value attr-dict `:` type($value) `->` type($result) }];
 }
 
 
@@ -50,6 +56,8 @@ class HasBody< string mnemonic >
             CArg< "BuilderCallback", "std::nullopt" >:$bodyBuilder
         )>
     ];
+
+    let assemblyFormat = [{ $body attr-dict `:` type($results) }];
 }
 
 def PrologueOp : HasBody< "prologue" >
@@ -95,7 +103,11 @@ def CallExecutionOp
                         CArg<"mlir::ValueRange", "{}">:$operands,
                         CArg< "BuilderCallback", "std::nullopt" >:$bodyBuilder)
                  >
-  ];
+    ];
+
+    let assemblyFormat = [{
+        $callee `(` $args `)` $body attr-dict `:` functional-type($args, $result)
+    }];
 }
 
 def YieldOp
@@ -105,6 +117,8 @@ def YieldOp
 {
     let summary = "WIP";
     let description = [{ WIP }];
+
+    let assemblyFormat = [{ $values attr-dict `:` type($values) `->` type($result) }];
 }
 
 
@@ -128,6 +142,10 @@ def CallOp
       $_state.addAttribute("callee", mlir::SymbolRefAttr::get($_builder.getContext(), callee));
       $_state.addTypes(results);
     }]>];
+
+    let assemblyFormat = [{
+        $callee `(` $args `)` attr-dict `:` functional-type( $args, $results )
+    }];
 }
 
 // TODO(abi): This is mostly copy & paste of hl.func. Once ABI dialect is stable,
