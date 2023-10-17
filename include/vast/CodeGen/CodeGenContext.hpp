@@ -24,6 +24,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/Core/CoreOps.hpp"
+#include "vast/Dialect/Core/CoreAttributes.hpp"
 #include "vast/Util/Functions.hpp"
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Triple.hpp"
@@ -32,10 +33,23 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg
 {
+    using source_language = core::SourceLanguage;
+
     namespace detail {
-        static inline owning_module_ref create_module(mcontext_t &mctx, acontext_t &actx) {
+
+        static void set_source_language(vast_module op, source_language lang) {
+            mlir::OpBuilder bld(op);
+            auto attr = bld.getAttr< core::SourceLanguageAttr >(lang);
+            op->setAttr(core::CoreDialect::getLanguageAttrName(), attr);
+        }
+
+        static inline owning_module_ref create_module(
+            mcontext_t &mctx, acontext_t &actx, source_language lang
+        ) {
             // TODO(Heno): fix module location
             auto module_ref = owning_module_ref(vast_module::create(mlir::UnknownLoc::get(&mctx)));
+            set_source_language(*module_ref, lang);
+
             // TODO(cg): For now we do not have our own operation, so we cannot
             //           introduce new ctor.
             set_triple(*module_ref, actx.getTargetInfo().getTriple().str());
@@ -57,8 +71,8 @@ namespace vast::cg
             , mangler(actx.createMangleContext())
         {}
 
-        CodeGenContext(mcontext_t &mctx, acontext_t &actx)
-            : CodeGenContext(mctx, actx, detail::create_module(mctx, actx))
+        CodeGenContext(mcontext_t &mctx, acontext_t &actx, source_language lang)
+            : CodeGenContext(mctx, actx, detail::create_module(mctx, actx, lang))
         {}
 
         lexical_scope_context *current_lexical_scope = nullptr;

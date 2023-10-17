@@ -2,11 +2,31 @@
 
 #include "vast/CodeGen/Generator.hpp"
 #include "vast/CodeGen/CodeGenContext.hpp"
+
+#include "vast/Dialect/Core/CoreAttributes.hpp"
+
 #include <memory>
 
 namespace vast::cg {
 
     void vast_generator::anchor() {}
+
+    using source_language = core::SourceLanguage;
+
+    source_language get_source_language(const cc::language_options &opts) {
+        using ClangStd = clang::LangStandard;
+
+        if (opts.CPlusPlus || opts.CPlusPlus11 || opts.CPlusPlus14 ||
+            opts.CPlusPlus17 || opts.CPlusPlus20 || opts.CPlusPlus23 ||
+            opts.CPlusPlus26)
+            return source_language::CXX;
+        if (opts.C99 || opts.C11 || opts.C17 || opts.C2x ||
+            opts.LangStd == ClangStd::lang_c89)
+            return source_language::C;
+
+        // TODO: support remaining source languages.
+        VAST_UNIMPLEMENTED_MSG("VAST does not yet support the given source language");
+    }
 
     void vast_generator::Initialize(acontext_t &actx) {
         this->acontext = &actx;
@@ -25,9 +45,13 @@ namespace vast::cg {
             .warn_stack_size                 = cgo.WarnStackSize,
             .strict_return                   = bool(cgo.StrictReturn),
             .optimization_level              = cgo.OptimizationLevel,
+            .lang                            = get_source_language(lang_ops)
         };
 
-        this->cgcontext = std::make_unique< CodeGenContext >(*this->mcontext, *this->acontext);
+        this->cgcontext = std::make_unique< CodeGenContext >(
+            *this->mcontext, *this->acontext, options.lang
+        );
+
         // TODO initialize dialects here
         this->codegen = std::make_unique< codegen_driver >(*this->cgcontext, options);
     }

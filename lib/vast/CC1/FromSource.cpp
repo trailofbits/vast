@@ -46,6 +46,15 @@ namespace vast::hl
         "disable-scope-splicing-pass", llvm::cl::desc("Disable pass that splices trailing scopes (useful for debugging purposes)")
     );
 
+    cg::source_language get_source_language(const auto &ccopts) {
+        for (unsigned i = 0; i != ccopts.size(); ++i) {
+            if (ccopts[i] == "xc") {
+                return cg::source_language::C;
+            }
+        }
+        return cg::source_language::CXX;
+    }
+
     static owning_module_ref from_source_parser(
         const llvm::MemoryBuffer *input, mcontext_t *mctx
     ) {
@@ -55,7 +64,9 @@ namespace vast::hl
 
         auto actx = &ast->getASTContext();
 
-        cg::CodeGenContext cgctx(*mctx, *actx);
+        // TODO unify with CC codegen pipeline
+        auto lang = get_source_language(compiler_args);
+        cg::CodeGenContext cgctx(*mctx, *actx, lang);
 
         if (id_meta_flag) {
             cg::CodeGenWithMetaIDs(cgctx).emit_module(ast.get());
