@@ -25,6 +25,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/CoreDialect.hpp"
 #include "vast/Dialect/Core/CoreTypes.hpp"
 #include "vast/Dialect/Core/Linkage.hpp"
+#include "vast/Dialect/Core/Func.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Dialect.hpp"
@@ -45,131 +46,21 @@ namespace vast::hl
 
     static llvm::StringRef getLinkageAttrNameString() { return "linkage"; }
 
-    // This function is adapted from CIR:
-    //
-    // Verifies linkage types, similar to LLVM:
-    // - functions don't have 'common' linkage
-    // - external functions have 'external' or 'extern_weak' linkage
     logical_result FuncOp::verify() {
-        using core::GlobalLinkageKind;
-
-        auto linkage = getLinkage();
-        constexpr auto common = GlobalLinkageKind::CommonLinkage;
-        if (linkage == common) {
-            return emitOpError() << "functions cannot have '"
-                << stringifyGlobalLinkageKind(common)
-                << "' linkage";
-        }
-
-        // isExternal(FunctionOpInterface) only checks for empty bodyonly checks for empty body...
-        // We need to be able to handle functions with internal linkage without body.
-        if (linkage != GlobalLinkageKind::InternalLinkage && isExternal()) {
-            constexpr auto external = GlobalLinkageKind::ExternalLinkage;
-            constexpr auto weak_external = GlobalLinkageKind::ExternalWeakLinkage;
-            if (linkage != external && linkage != weak_external) {
-                return emitOpError() << "external functions must have '"
-                    << stringifyGlobalLinkageKind(external)
-                    << "' or '"
-                    << stringifyGlobalLinkageKind(weak_external)
-                    << "' linkage";
-            }
-            return mlir::success();
-        }
-        return mlir::success();
+        return core::verifyFuncOp(*this);
     }
 
     ParseResult parseFunctionSignatureAndBody(
         Parser &parser, Attribute &funcion_type, mlir::NamedAttrList &attr_dict, Region &body
     ) {
-        using core::GlobalLinkageKind;
-
-        // Default to external linkage if no keyword is provided.
-        attr_dict.append(
-            getLinkageAttrNameString(),
-            core::GlobalLinkageKindAttr::get(
-                parser.getContext(),
-                parse_optional_vast_keyword< GlobalLinkageKind >(
-                    parser, GlobalLinkageKind::ExternalLinkage
-                )
-            )
-        );
-
-        llvm::SmallVector< Parser::Argument, 8 > arguments;
-        llvm::SmallVector< mlir::DictionaryAttr, 1 > result_attrs;
-        llvm::SmallVector< Type, 8 > arg_types;
-        llvm::SmallVector< Type, 4 > result_types;
-
-        bool is_variadic = false;
-        if (mlir::failed(mlir::function_interface_impl::parseFunctionSignature(
-            parser, /*allowVariadic=*/true, arguments, is_variadic, result_types, result_attrs
-        ))) {
-            return mlir::failure();
-        }
-
-        for (auto &arg : arguments) {
-            arg_types.push_back(arg.type);
-        }
-
-        // TODO: no idea why CoreDialect is not loaded before
-        parser.getContext()->loadDialect< core::CoreDialect >();
-
-        // create parsed function type
-        funcion_type = mlir::TypeAttr::get(
-            core::FunctionType::get(
-                arg_types, result_types, is_variadic
-            )
-        );
-
-        // If additional attributes are present, parse them.
-        if (parser.parseOptionalAttrDictWithKeyword(attr_dict)) {
-            return mlir::failure();
-        }
-
-        // TODO: Add the attributes to the function arguments.
-        // VAST_ASSERT(result_attrs.size() == result_types.size());
-        // return mlir::function_interface_impl::addArgAndResultAttrs(
-        //     builder, state, arguments, result_attrs
-        // );
-
-        auto loc = parser.getCurrentLocation();
-        auto parse_result = parser.parseOptionalRegion(
-            body, arguments, /* enableNameShadowing */false
-        );
-
-        if (parse_result.has_value()) {
-            if (failed(*parse_result))
-                return mlir::failure();
-            // Function body was parsed, make sure its not empty.
-            if (body.empty())
-                return parser.emitError(loc, "expected non-empty function body");
-        }
-
-        return mlir::success();
+        return core::parseFunctionSignatureAndBody(parser, funcion_type, attr_dict, body);
     }
 
     void printFunctionSignatureAndBody(
-        Printer &printer, FuncOp op, Attribute /* funcion_type */, mlir::DictionaryAttr, Region &body
+        Printer &printer, FuncOp op, Attribute function_type,
+        mlir::DictionaryAttr dict_attr, Region &body
     ) {
-        if (op.getLinkage() != core::GlobalLinkageKind::ExternalLinkage) {
-            printer << stringifyGlobalLinkageKind(op.getLinkage()) << ' ';
-        }
-
-        auto fty = op.getFunctionType();
-        mlir::function_interface_impl::printFunctionSignature(
-            printer, op, fty.getInputs(), fty.isVarArg(), fty.getResults()
-        );
-
-        mlir::function_interface_impl::printFunctionAttributes(
-            printer, op, { getLinkageAttrNameString(), op.getFunctionTypeAttrName() }
-        );
-
-        if (!body.empty()) {
-            printer.getStream() << " ";
-            printer.printRegion( body,
-                /* printEntryBlockArgs */false,
-                /* printBlockTerminators */true
-            );
-        }
+        return core::printFunctionSignatureAndBody(printer, op, function_type, dict_attr, body);
     }
 
     FoldResult ConstantOp::fold(FoldAdaptor adaptor) {
