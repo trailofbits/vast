@@ -142,7 +142,7 @@ namespace vast::util {
         template< typename list, typename elem, std::size_t ...idxs >
         constexpr bool is_one_of(elem e, std::index_sequence< idxs... >)
         {
-            return (e.template isa< std::tuple_element_t< idxs, list > >() || ...);
+            return (isa< std::tuple_element_t< idxs, list > >(e) || ...);
         }
 
         template< typename list, typename elem >
