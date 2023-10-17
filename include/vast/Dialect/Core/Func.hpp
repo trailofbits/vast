@@ -31,8 +31,7 @@ namespace vast::core {
                 << "' linkage";
         }
 
-        // isExternal(FunctionOpInterface) only checks for empty
-        // bodyonly checks for empty body...
+        // isExternal(FunctionOpInterface) only checks for empty body...
         // We need to be able to handle functions with internal linkage without body.
         if (linkage != GlobalLinkageKind::InternalLinkage && op.isExternal()) {
             constexpr auto external = GlobalLinkageKind::ExternalLinkage;
