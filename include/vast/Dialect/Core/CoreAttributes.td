@@ -6,6 +6,8 @@
 include "mlir/IR/AttrTypeBase.td"
 include "mlir/IR/BuiltinAttributeInterfaces.td"
 
+include "mlir/IR/EnumAttr.td"
+
 class Core_Attr<string name, string attr_mnemonic, list<Trait> traits = []>
     : AttrDef< Core_Dialect, name, traits >
 {
@@ -156,6 +158,31 @@ def VoidAttr : Core_Attr<"Void", "void", [TypedAttrInterface]> {
 
   let parameters = (ins AttributeSelfTypeParameter< "" >:$type);
   let assemblyFormat = [{}];
+}
+
+def C : I32EnumAttrCase<"C", 1, "c">;
+def CXX : I32EnumAttrCase<"CXX", 2, "cxx">;
+
+def SourceLanguage : I32EnumAttr<"SourceLanguage", "Source language", [
+  C, CXX
+]> {
+  let cppNamespace = "::vast::core";
+  let genSpecializedAttr = 0;
+}
+
+def SourceLanguageAttr : EnumAttr< Core_Dialect, SourceLanguage, "lang" > {
+  let summary = "Module source language";
+  let description = [{
+    Represents the source language used to generate the module.
+
+    Example:
+    ```
+    // Module compiled from C.
+    module attributes {vast.core.lang = vast.core.lang<c>} {}
+    // Module compiled from C++.
+    module attributes {vast.core.lang = vast.core.lang<cxx>} {}
+    ```
+  }];
 }
 
 #endif // VAST_DIALECT_CORE_COREATTRIBUTES
