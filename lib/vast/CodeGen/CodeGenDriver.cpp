@@ -283,15 +283,6 @@ namespace vast::cg
 
         VAST_UNIMPLEMENTED_IF(decl->getTLSKind() != clang::VarDecl::TLS_None);
 
-        const clang::VarDecl *init_decl;
-        const clang::Expr *init_expr = decl->getAnyInitializer(init_decl);
-
-        if (!tentative && init_expr) {
-            VAST_ASSERT(!(decl->getType()->isIncompleteType()));
-
-            codegen.append_to_module(decl);
-        }
-
         return codegen.visit_var_decl(decl);
     }
 
