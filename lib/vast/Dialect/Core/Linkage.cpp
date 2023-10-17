@@ -136,14 +136,18 @@ namespace vast::core {
     // adapted from getMLIRVisibilityFromCIRLinkage
     Visibility get_visibility_from_linkage(GlobalLinkageKind linkage) {
         switch (linkage) {
+            case GlobalLinkageKind::ExternalLinkage:
+            case GlobalLinkageKind::AvailableExternallyLinkage:
+            case GlobalLinkageKind::LinkOnceAnyLinkage:
+            case GlobalLinkageKind::LinkOnceODRLinkage:
+            case GlobalLinkageKind::WeakAnyLinkage:
+            case GlobalLinkageKind::WeakODRLinkage:
+            case GlobalLinkageKind::AppendingLinkage:
+            case GlobalLinkageKind::ExternalWeakLinkage:
+                return Visibility::Public;
             case GlobalLinkageKind::InternalLinkage:
             case GlobalLinkageKind::PrivateLinkage:
                 return Visibility::Private;
-            case GlobalLinkageKind::ExternalLinkage:
-            case GlobalLinkageKind::AvailableExternallyLinkage:
-            case GlobalLinkageKind::ExternalWeakLinkage:
-            case GlobalLinkageKind::LinkOnceODRLinkage:
-                return Visibility::Public;
             default:
                 VAST_UNREACHABLE("unsupported linkage kind {0}", stringifyGlobalLinkageKind(linkage));
         }
