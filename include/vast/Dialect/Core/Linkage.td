@@ -51,7 +51,8 @@ def GlobalLinkageKind : I32EnumAttr<
         Global_ExternalLinkage, Global_AvailableExternallyLinkage,
         Global_LinkOnceAnyLinkage, Global_LinkOnceODRLinkage,
         Global_WeakAnyLinkage, Global_WeakODRLinkage, Global_InternalLinkage,
-        Global_PrivateLinkage, Global_ExternalWeakLinkage, Global_CommonLinkage
+        Global_PrivateLinkage, Global_ExternalWeakLinkage, Global_CommonLinkage,
+        Global_AppendingLinkage
     ]>
 {
   let cppNamespace = "::vast::core";
