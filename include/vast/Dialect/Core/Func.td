@@ -67,6 +67,10 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
 
   let regions = (region AnyRegion:$body);
 
+  let assemblyFormat = [{
+    $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
+  }];
+
   let extraClassDeclaration = [{
     bool isVarArg() { return getFunctionType().isVarArg(); }
 
