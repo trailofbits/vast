@@ -1318,8 +1318,6 @@ namespace vast::conv::irstollvm
             target.addIllegalDialect< ll::LowLevelDialect >();
             target.addLegalDialect< core::CoreDialect >();
 
-            target.addLegalOp< hl::TypeDefOp >();
-
             auto legal_with_llvm_ret_type = [&]< typename T >( T && )
             {
                 target.addDynamicallyLegalOp< T >( has_llvm_return_type< T > );
