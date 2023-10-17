@@ -76,13 +76,13 @@ def CoreToLLVM : Pass<"vast-core-to-llvm", "mlir::ModuleOp"> {
   ];
 }
 
-def ABIfy : Pass<"vast-abify", "mlir::ModuleOp"> {
+def EmitABI : Pass<"vast-emit-abi", "mlir::ModuleOp"> {
   let summary = "Transform functions and apply abi conversion to their type.";
   let description = [{
     This pass is still a work in progress.
   }];
 
-  let constructor = "vast::createABIfyPass()";
+  let constructor = "vast::createEmitABIPass()";
   let dependentDialects = [
     "vast::abi::ABIDialect",
     "vast::core::CoreDialect"
