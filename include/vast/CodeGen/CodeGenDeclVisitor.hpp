@@ -71,7 +71,12 @@ namespace vast::cg {
             // getAttrs on decl without attrs triggers an assertion in clang
             if (decl->hasAttrs()) {
                 mlir::NamedAttrList attrs = op->getAttrs();
-                for (auto attr : decl->getAttrs()) {
+                using excluded_attr_list = util::type_list<
+                     clang::WeakAttr
+                    ,clang::SelectAnyAttr
+                    ,clang::CUDAGlobalAttr
+                >;
+                for (auto attr : exclude_attrs< excluded_attr_list >(decl->getAttrs())) {
                     auto visited = visit(attr);
 
                     auto spelling = attr->getSpelling();
