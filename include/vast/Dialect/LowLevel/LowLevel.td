@@ -27,6 +27,8 @@ def LowLevel_Dialect : Dialect {
         void registerTypes();
         void registerAttributes();
     }];
+
+    let dependentDialects = ["vast::core::CoreDialect"];
 }
 
 class LowLevel_Op< string mnemonic, list< Trait > traits = [] >

@@ -24,6 +24,8 @@ def ABI_Dialect : Dialect {
         void registerTypes();
         void registerAttributes();
     }];
+
+    let dependentDialects = ["vast::core::CoreDialect"];
 }
 
 class ABI_Op< string mnemonic, list< Trait > traits = [] >
