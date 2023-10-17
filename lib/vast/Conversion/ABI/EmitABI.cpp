@@ -712,7 +712,7 @@ namespace vast
     } // namespace
 
 
-    struct ABIfy : ABIfyBase< ABIfy >
+    struct EmitABI : EmitABIBase< EmitABI >
     {
         using target_t = mlir::ConversionTarget;
         using patterns_t = mlir::RewritePatternSet;
@@ -813,7 +813,7 @@ namespace vast
 
 } // namespace vast
 
-std::unique_ptr< mlir::Pass > vast::createABIfyPass()
+std::unique_ptr< mlir::Pass > vast::createEmitABIPass()
 {
-    return std::make_unique< vast::ABIfy >();
+    return std::make_unique< vast::EmitABI >();
 }

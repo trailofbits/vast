@@ -37,7 +37,7 @@ namespace vast
     std::unique_ptr< mlir::Pass > createCoreToLLVMPass();
 
     // ABI
-    std::unique_ptr< mlir::Pass > createABIfyPass();
+    std::unique_ptr< mlir::Pass > createEmitABIPass();
 
     std::unique_ptr< mlir::Pass > createLowerABIPass();
 
