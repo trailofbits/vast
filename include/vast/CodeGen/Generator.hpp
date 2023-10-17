@@ -23,8 +23,12 @@ namespace vast::cg {
 
     struct vast_generator : clang_ast_consumer {
 
-        vast_generator(cc::diagnostics_engine &diags, const cc::codegen_options &cgo)
-            : diags(diags), cgo(cgo)
+        vast_generator(
+              cc::diagnostics_engine &diags
+            , const cc::codegen_options &cgo
+            , const cc::language_options &lang_ops
+        )
+            : diags(diags), cgo(cgo), lang_ops(lang_ops)
         {}
 
         void Initialize(acontext_t &) override;
@@ -58,6 +62,8 @@ namespace vast::cg {
         acontext_t *acontext;
 
         const cc::codegen_options cgo; // intentionally copied
+
+        const cc::language_options &lang_ops;
     };
 
 } // namespace vast::cg

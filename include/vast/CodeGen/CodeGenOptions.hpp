@@ -2,7 +2,11 @@
 
 #pragma once
 
+#include "vast/Dialect/Core/CoreAttributes.hpp"
+
 namespace vast::cg {
+
+    using source_language = core::SourceLanguage;
 
     struct codegen_options {
         bool verbose_diagnostics = true;
@@ -19,6 +23,8 @@ namespace vast::cg {
         unsigned int optimization_level = 0;
 
         bool should_emit_lifetime_markers = false;
+
+        source_language lang = source_language::C;
     };
 
 }  // namespace vast::cg

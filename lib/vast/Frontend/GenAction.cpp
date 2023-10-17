@@ -98,7 +98,7 @@ namespace vast::cc {
             // , frontend_opts(fopts)
             , vargs(vargs)
             , output_stream(std::move(os))
-            , generator(std::make_unique< cg::vast_generator >(diags, codegen_opts))
+            , generator(std::make_unique< cg::vast_generator >(diags, codegen_opts, lang_opts))
         {}
 
         void Initialize(acontext_t &ctx) override {

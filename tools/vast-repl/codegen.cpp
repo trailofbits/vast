@@ -29,7 +29,8 @@ namespace vast::repl::codegen {
     owning_module_ref emit_module(const std::string &source, mcontext_t *mctx) {
         auto unit = codegen::ast_from_source(source);
         auto &actx = unit->getASTContext();
-        vast::cg::CodeGenContext cgctx(*mctx, actx);
+        // TODO use front codegen enstead of custom pipeline
+        vast::cg::CodeGenContext cgctx( *mctx, actx, cg::source_language::C );
         vast::cg::DefaultCodeGen codegen(cgctx);
         codegen.emit_module(actx.getTranslationUnitDecl());
         return std::move(cgctx.mod);
