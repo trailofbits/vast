@@ -60,9 +60,6 @@ namespace vast::core
             arg_types.push_back(arg.type);
         }
 
-        // TODO: no idea why CoreDialect is not loaded before
-        parser.getContext()->loadDialect< core::CoreDialect >();
-
         // create parsed function type
         funcion_type = mlir::TypeAttr::get(
             core::FunctionType::get(
