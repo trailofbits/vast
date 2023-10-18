@@ -29,13 +29,13 @@ namespace vast::dl
     {
         using bitwidth_t = uint32_t;
 
-        mlir::Type type;
+        mlir_type type;
         bitwidth_t bw;
 
-        DLEntry(mlir::Type t_, bitwidth_t bw_) : type(t_), bw(bw_) {}
+        DLEntry(mlir_type type, bitwidth_t bw) : type(type), bw(bw) {}
 
     private:
-        static mlir::Type bw_type(mcontext_t &mctx) { return mlir::IntegerType::get(&mctx, 32); }
+        static mlir_type bw_type(mcontext_t &mctx) { return mlir::IntegerType::get(&mctx, 32); }
 
         mlir::Attribute wrap_bw(mcontext_t &mctx) const
         {
@@ -54,7 +54,7 @@ namespace vast::dl
         // TODO(lukas): Sanity checks.
         static DLEntry unwrap(const mlir::DataLayoutEntryInterface &attr)
         {
-            return DLEntry(attr.getKey().dyn_cast< mlir::Type >(), unwrap_bw(attr.getValue()));
+            return DLEntry(attr.getKey().dyn_cast< mlir_type >(), unwrap_bw(attr.getValue()));
         }
 
         // Wrap information in this object as `mlir::Attribute`, which is not attached yet
@@ -68,14 +68,14 @@ namespace vast::dl
 
     // For each type remember its data layout information.
     struct DataLayoutBlueprint {
-        bool try_emplace(mlir::Type mty, const clang::Type *aty, const acontext_t &actx) {
+        bool try_emplace(mlir_type mty, const clang::Type *aty, const acontext_t &actx) {
             // For other types this should be good-enough for now
             auto info = actx.getTypeInfo(aty);
             auto bw   = static_cast< uint32_t >(info.Width);
             return std::get< 1 >(entries.try_emplace(mty, dl::DLEntry{ mty, bw }));
         }
 
-        llvm::DenseMap< mlir::Type, dl::DLEntry > entries;
+        llvm::DenseMap< mlir_type, dl::DLEntry > entries;
     };
 
     template< typename Stream >
