@@ -850,10 +850,26 @@ def Predicate : PredicateList< "Predicate", "comparison predicate", [
   ICmpPredicateUGT, ICmpPredicateUGE
 ] >;
 
+class IsPointerCmp< string lhs, string rhs > : PredOpTrait< "is an additive operation on pointers",
+    And< [IsPointer< lhs >.predicate, IsPointer< rhs >.predicate] >
+>;
+
+class IsIntegralCmp< string lhs, string rhs > : PredOpTrait< "is an additive operation on pointers",
+    And< [IsIntegral< lhs >.predicate, IsIntegral< rhs >.predicate] >
+>;
+
+class IsCmp< string lhs, string rhs > : PredOpTrait< "is an additive operation (types match or are ptr and integral)",
+    Or<[
+        IsIntegralCmp< lhs, rhs >.predicate,
+        IsPointerCmp< lhs, rhs >.predicate
+    ]>
+>;
+
 def CmpOp
   : HighLevel_Op< "cmp" >
   , Arguments<(ins Predicate:$predicate, AnyType:$lhs, AnyType:$rhs)>
   , Results<(outs IntOrBoolType:$result)>
+  , IsCmp< "lhs", "rhs" >
 {
   let summary = "VAST comparison operation";
   let description = [{ VAST comparison operation }];
