@@ -133,6 +133,8 @@ namespace vast::cg
         bool has_this_return(clang::GlobalDecl decl) const;
         bool has_most_derived_return(clang::GlobalDecl decl) const;
 
+        operation build_global_function_declaration(clang::GlobalDecl decl);
+
         operation build_global_definition(clang::GlobalDecl decl);
         operation build_global_function_definition(clang::GlobalDecl decl);
         operation build_global_var_definition(const clang::VarDecl *decl, bool tentative = false);

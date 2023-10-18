@@ -226,20 +226,23 @@ namespace vast::cg
 
     }
 
-    operation codegen_driver::build_global_function_definition(clang::GlobalDecl decl) {
-        const auto *function_decl = llvm::cast< clang::FunctionDecl >(decl.getDecl());
-
-        // Compute the function info and vast type.
+    operation codegen_driver::build_global_function_declaration(clang::GlobalDecl decl) {
         const auto &fty_info = type_info->arrange_global_decl(decl, get_target_info());
         auto ty = type_conv.get_function_type(fty_info);
 
         VAST_UNIMPLEMENTED_IF(lang().CUDA);
-        auto op = codegen.build_function_prototype(decl, ty);
+        return codegen.build_function_prototype(decl, ty);
+    }
 
-        auto fn = mlir::cast< vast::hl::FuncOp >(op);
+    operation codegen_driver::build_global_function_definition(clang::GlobalDecl decl) {
+        auto fn = mlir::cast< hl::FuncOp >(build_global_function_declaration(decl));
+
+        const auto *function_decl = llvm::cast< clang::FunctionDecl >(decl.getDecl());
+        const auto &fty_info = type_info->arrange_global_decl(decl, get_target_info());
+
         // Already emitted.
         if (!fn.isDeclaration()) {
-            return op;
+            return fn;
         }
 
         // TODO setGVProperties
@@ -260,7 +263,7 @@ namespace vast::cg
             VAST_UNIMPLEMENTED_MSG("dtor emition");
         }
 
-        return op;
+        return fn;
     }
 
     CodeGenContext::VarTable & codegen_driver::variables_symbol_table() {
@@ -300,22 +303,14 @@ namespace vast::cg
         VAST_UNIMPLEMENTED_IF(lang().CUDA);
         VAST_UNIMPLEMENTED_IF(lang().OpenMP);
 
-        // Ignore declarations, they will be emitted on their first use.
         if (const auto *fn = llvm::dyn_cast< clang::FunctionDecl >(glob)) {
-            // Forward declarations are emitted lazily on first use.
+            // In contrast to clang codegen we emit also declarations.
             if (!fn->doesThisDeclarationHaveABody()) {
-                if (!fn->doesDeclarationForceExternallyVisibleDefinition())
-                    return nullptr;
+                if (!fn->doesDeclarationForceExternallyVisibleDefinition()) {
+                    return build_global_function_declaration(decl);
+                }
+
                 VAST_UNIMPLEMENTED_MSG("FunctionDecl");
-                // auto mangled_name = getMangledName(decl);
-
-                // Compute the function info and vast type.
-                // const auto &FI = getTypes().arrangeGlobalDeclaration(decl);
-                // mlir_type Ty = getTypes().GetFunctionType(FI);
-
-                // GetOrCreateFunction(MangledName, Ty, decl, /*ForVTable=*/false,
-                //                         /*DontDefer=*/false);
-                // return;
             }
         } else {
             const auto *var = llvm::cast< clang::VarDecl >(glob);

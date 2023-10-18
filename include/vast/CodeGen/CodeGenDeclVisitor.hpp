@@ -124,9 +124,15 @@ namespace vast::cg {
 
             VAST_CHECK(fn.isDeclaration(), "expected empty body");
 
-            mlir::SymbolTable::setSymbolVisibility(
-                fn, core::get_visibility_from_linkage(linkage)
-            );
+            auto visibility = [&] {
+                if (function_decl->isThisDeclarationADefinition())
+                    return core::get_visibility_from_linkage(linkage);
+                if (function_decl->doesDeclarationForceExternallyVisibleDefinition())
+                    return mlir::SymbolTable::Visibility::Public;
+                return mlir::SymbolTable::Visibility::Private;
+            } ();
+
+            mlir::SymbolTable::setSymbolVisibility(fn, visibility);
 
             return fn;
         }
@@ -293,7 +299,7 @@ namespace vast::cg {
                 "consteval function should never be emitted"
             );
 
-            VAST_CHECK(fty, "missing funciton type");
+            VAST_CHECK(fty, "missing function type");
             // TODO: do we need this:
             // if (!type) {
             //     const auto *fn = clang::cast< clang::FunctionDecl >(decl.getDecl());
