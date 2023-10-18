@@ -74,3 +74,8 @@ int iptr_null_cmp(int *a) {
     // CHECK: hl.cmp eq [[A:%[0-9]+]], [[B:%[0-9]+]] : !hl.ptr<!hl.int>, !hl.ptr<!hl.int> -> !hl.int
     return a == NULL;
 }
+
+int float_float_cmp(float a, float b) {
+    // CHECK: hl.fcmp oeq [[A:%[0-9]+]], [[B:%[0-9]+]] : !hl.float, !hl.float -> !hl.int
+    return a == b;
+}
