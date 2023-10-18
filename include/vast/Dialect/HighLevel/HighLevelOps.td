@@ -913,7 +913,7 @@ def FCmpOp
   , Results<(outs IntOrBoolType:$result)>
 {
   let summary = "VAST flaoting point comparison operation";
-  let description = [{ VAST flaoting point comparison operation }];
+  let description = [{ VAST floating point comparison operation }];
 
   let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type(operands) `->` type($result)";
 }

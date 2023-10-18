@@ -298,7 +298,8 @@ def HLFloatType : AnyTypeOf<[
 ]>;
 
 def FloatLikeType : TypeConstraint<
-  Or< [HLFloatType.predicate, AnyFloat.predicate] >,
+  Or< [HLFloatType.predicate, AnyFloat.predicate,
+       IsMaybeWrappedTypedef< "_self" >.predicate] >,
   "float like type"
 >;
 
