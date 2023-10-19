@@ -340,7 +340,7 @@ namespace vast::cg {
         //
 
         template< typename Op >
-        Operation*  VisitUnary(const clang::UnaryOperator *op, Type rty) {
+        Operation* VisitUnary(const clang::UnaryOperator *op, Type rty) {
             auto arg = visit(op->getSubExpr())->getResult(0);
             return make< Op >(meta_location(op), rty, arg);
         }

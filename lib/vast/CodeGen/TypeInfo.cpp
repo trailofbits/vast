@@ -43,11 +43,7 @@ namespace vast::cg
             }
         }
 
-        auto fty = fn->getType().getTypePtr();
-        if (auto parent_fty = llvm::dyn_cast< clang::ParenType >(fty))
-            fty = parent_fty->desugar().getTypePtr();
-
-        VAST_ASSERT(llvm::isa< clang::FunctionType >(fty));
+        auto fty = fn->getFunctionType();
         // TODO: setCUDAKernelCallingConvention
 
         // When declaring a function without a prototype, always use a
