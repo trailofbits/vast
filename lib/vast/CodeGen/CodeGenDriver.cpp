@@ -284,8 +284,6 @@ namespace vast::cg
         VAST_UNIMPLEMENTED_IF(lang().CUDA);
         VAST_UNIMPLEMENTED_IF(lang().OpenMP);
 
-        VAST_UNIMPLEMENTED_IF(decl->getTLSKind() != clang::VarDecl::TLS_None);
-
         return codegen.visit_var_decl(decl);
     }
 
