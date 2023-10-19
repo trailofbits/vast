@@ -10,6 +10,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/IRMapping.h>
 VAST_UNRELAX_WARNINGS
 
+#include <iterator>
+
 #include "../PassesDetails.hpp"
 #include "vast/Conversion/Common/Passes.hpp"
 #include "vast/Conversion/Common/Patterns.hpp"
@@ -45,8 +47,10 @@ namespace vast
 
                 auto &first_block = lazy_region.front();
                 // The rewriter API doesn't provide a call to insert into a selected block
+                auto target_it = target->getIterator();
+                std::advance(target_it, 1);
                 rewriter.inlineRegionBefore(
-                    lazy_region, *target->getParent(), ++(target->getIterator())
+                    lazy_region, *target->getParent(), target_it
                 );
                 rewriter.mergeBlocks(&first_block, target, std::nullopt);
 
@@ -104,7 +108,12 @@ namespace vast
 
                 cond_br_lhs(rewriter, op.getLoc(), cmp_lhs, rhs_block, end_block);
 
-                rewriter.setInsertionPointToEnd(rhs_block);
+                // In the case that `rhs` consists of multiple blocks we need to
+                // insert to the last block…
+                // e.g.: in a && (b || c) mlir first matches the `||` which creates
+                // it's own cf blocks and then matches the `&&`
+                auto rhs_end_it = std::prev(end_block->getIterator(), 1);
+                rewriter.setInsertionPointToEnd(&*rhs_end_it);
                 auto cmp_rhs = rewriter.create< LLVM::ICmpOp >(
                     op.getLoc(), LLVM::ICmpPredicate::ne, rhs_res, zero
                 );
