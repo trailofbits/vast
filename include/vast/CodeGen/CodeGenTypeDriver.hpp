@@ -39,8 +39,6 @@ namespace vast::cg
         void start_function_processing(const function_info_t *fninfo);
         void finish_function_processing(const function_info_t *fninfo);
 
-        mlir_type convert_record_decl_type(const clang::RecordDecl *decl);
-
         codegen_driver &driver;
 
         llvm::SmallPtrSet< const function_info_t *, 4 > functions_being_processed;

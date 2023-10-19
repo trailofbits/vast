@@ -13,20 +13,8 @@ namespace vast::cg
         : driver(driver)
     {}
 
-    mlir_type type_conversion_driver::convert_record_decl_type(const clang::RecordDecl */* decl */) {
-        VAST_UNIMPLEMENTED;
-    }
-
     template< bool lvalue >
     mlir_type type_conversion_driver::convert_type(qual_type type) {
-        const auto *ty = type.getTypePtr();
-
-        if (const auto *record_type = clang::dyn_cast< clang::RecordType >(ty)) {
-            return convert_record_decl_type(record_type->getDecl());
-        }
-
-        // FIXME make type_conversion_driver responsible for visitation
-
         mlir_type result = driver.codegen.convert(type);
 
         if constexpr (lvalue) {
