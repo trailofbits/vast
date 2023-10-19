@@ -41,9 +41,6 @@ namespace vast::cg
 
         mlir_type convert_record_decl_type(const clang::RecordDecl *decl);
 
-        using type_cache_t = llvm::DenseMap< const clang::Type *, mlir_type >;
-        type_cache_t type_cache;
-
         codegen_driver &driver;
 
         llvm::SmallPtrSet< const function_info_t *, 4 > functions_being_processed;

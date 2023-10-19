@@ -25,18 +25,9 @@ namespace vast::cg
             return convert_record_decl_type(record_type->getDecl());
         }
 
-        if (auto it = type_cache.find(ty); it != type_cache.end()) {
-            if constexpr (lvalue) {
-                return driver.codegen.make_lvalue(it->second);
-            }
-            return it->second;
-        }
-
         // FIXME make type_conversion_driver responsible for visitation
 
         mlir_type result = driver.codegen.convert(type);
-
-        type_cache[ty] = result;
 
         if constexpr (lvalue) {
             return driver.codegen.make_lvalue(result);
