@@ -374,11 +374,8 @@ namespace vast::cg
     }
 
     bool codegen_driver::must_be_emitted(const clang::ValueDecl *glob) {
-        // Never defer when EmitAllDecls is specified.
-        VAST_UNIMPLEMENTED_IF(lang().EmitAllDecls);
-        VAST_UNIMPLEMENTED_IF(options.keep_static_consts);
-
-        return actx.DeclMustBeEmitted(glob);
+        // in contrast to clang vast emits all declarations
+        return true;
     }
 
     bool codegen_driver::may_be_emitted_eagerly(const clang::ValueDecl *glob) {
