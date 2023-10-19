@@ -1029,7 +1029,11 @@ namespace vast::conv::irstollvm
             auto res_type = this->convert(op.getResult().getType());
             if (!res_type)
                 return logical_result::failure();
-            rewriter.replaceOpWithNewOp< LLVM::ZExtOp >(op, res_type, xor_val);
+            if (res_type != xor_val.getType()) {
+                rewriter.replaceOpWithNewOp< LLVM::ZExtOp >(op, res_type, xor_val);
+            } else {
+                rewriter.replaceOp(op, xor_val);
+            }
             return logical_result::success();
         }
 
