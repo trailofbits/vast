@@ -35,15 +35,16 @@ namespace vast
                        *out, current, entries.size());
         };
 
+        auto casted_self = static_cast< const ConcreteType & >(self);
         for (const auto &entry : entries)
         {
             auto raw = dl::DLEntry(entry);
-            auto casted_self = static_cast< const ConcreteType & >(self);
             if (casted_self == raw.type)
                 handle_entry(raw);
         }
 
-        VAST_CHECK(out.has_value(), "Data layout query did not produce a value!");
+        VAST_CHECK(out.has_value(), "Data layout query of {0} did not produce a value!",
+                   casted_self);
         return *out;
     }
 
