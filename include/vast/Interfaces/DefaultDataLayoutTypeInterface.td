@@ -37,7 +37,8 @@ def DefaultDataLayoutTypeInterface
                                 "::mlir::DataLayoutEntryListRef":$params),
                 /*methodBody=*/"",
                 /*defaultImplementation=*/[{
-                    VAST_UNIMPLEMENTED;
+                    auto get = [](const auto &entry) { return entry.abi_align; };
+                    return default_dl_query< ConcreteType >(*this, get, dataLayout, params);
                 }]
             >,
             InterfaceMethod<
