@@ -93,19 +93,7 @@ namespace vast::dl
         }
 
 
-        static bitwidth_t unwrap_bw(const mlir::Attribute attr)
-        {
-            return static_cast< bitwidth_t >(attr.cast< mlir::IntegerAttr >().getInt());
-        }
-
     public:
-        // Construct `DLEntry` from attribute.
-        // TODO(lukas): Sanity checks.
-        static DLEntry unwrap(const mlir::DataLayoutEntryInterface &attr)
-        {
-            return DLEntry(attr);
-        }
-
         // Wrap information in this object as `mlir::Attribute`, which is not attached yet
         // to anything.
         mlir::DataLayoutEntryInterface wrap(mcontext_t &mctx) const
