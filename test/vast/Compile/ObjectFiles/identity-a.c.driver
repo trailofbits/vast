@@ -1,0 +1,10 @@
+#include <assert.h>
+
+int identity(int);
+
+int main(int argc, char **argv)
+{
+    assert(identity(0) == 0);
+    assert(identity(10) == 10);
+    return 0;
+}
