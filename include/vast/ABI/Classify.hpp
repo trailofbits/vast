@@ -150,7 +150,7 @@ namespace vast::abi
                 {
                     if ( current >= end )
                         break;
-                    if ( !bits_contain_no_user_data( field, current, end - current, ctx ) )
+                    if ( !bits_contain_no_user_data( field, current, end - start, ctx ) )
                         return false;
 
                     current += size( dl, t );
@@ -215,6 +215,8 @@ namespace vast::abi
             VAST_CHECK( type_size != 0, "Unexpected empty field? Type: {0}", t );
 
             auto final_size = std::min< std::size_t >( type_size - ( root_offset * 8 ), 64 );
+            // Creation of `i0` is probably never fine?
+            VAST_ASSERT( final_size != 0 );
             return mlir::IntegerType::get( t.getContext(), final_size );
         }
 
@@ -350,8 +352,17 @@ namespace vast::abi
             return { join( a1, b1 ), join( a2, b2 ) };
         }
 
-        classification_t get_class( mlir::Type t )
+        classification_t get_class( mlir::Type t, std::size_t &offset )
         {
+            auto mk_classification = [&]( auto c ) -> classification_t
+            {
+                if ( offset < 8 * 8 )
+                    return { c, Class::NoClass };
+                return { Class::NoClass, c };
+            };
+
+            // First we handle all "builtin" types.
+
             if ( TypeConfig::is_void( t ) )
                 return { Class::NoClass, Class::NoClass };
 
@@ -359,7 +370,7 @@ namespace vast::abi
             {
                 // _Bool, char, short, int, long, long long
                 if ( size( t ) <= 64 )
-                    return { Class::Integer, Class::NoClass };
+                    return mk_classification( Class::Integer );
                 // __int128
                 return { Class::Integer, Class::Integer };
             }
@@ -368,7 +379,7 @@ namespace vast::abi
             {
                 // float, double, _Decimal32, _Decimal64, __m64
                 if ( size( t ) <= 64 )
-                    return { Class::Integer, {} };
+                    return mk_classification( Class::Integer );
                 // __float128, _Decimal128, __m128
                 return { Class::SSE, { Class::SSEUp } };
 
@@ -379,35 +390,30 @@ namespace vast::abi
             // TODO(abi): complex
             // TODO(abi): complex long double
 
-            return get_aggregate_class( t );
+            return get_aggregate_class( t, offset );
         }
 
         // TODO(abi): Refactor.
         auto mk_ctx() const { return std::make_tuple( dl, info.raw_fn ); }
 
-        classification_t get_aggregate_class( mlir::Type t )
+        classification_t get_aggregate_class( mlir::Type t, std::size_t &offset )
         {
-            if ( size( t ) > 4 * 64 || TypeConfig::has_unaligned_field( t ) )
+            if ( size( t ) > 8 * 64 || TypeConfig::has_unaligned_field( t ) )
                 return { Class::Memory, {} };
             // TODO(abi): C++ perks.
 
             auto fields = TypeConfig::fields( t, info.raw_fn );
             classification_t result = { Class::NoClass, Class::NoClass };
-            std::size_t offset = 0;
+
+            auto field_offset = offset;
             for ( auto field_type : fields )
             {
-                offset += size( field_type );
-                auto field_class = [ & ]() -> classification_t
-                {
-                    auto [ lo, hi ] = classify( field_type );
-                    if ( offset < 8 * 8 )
-                        return { lo, hi };
-                    VAST_ASSERT( hi == Class::NoClass );
-                    return { Class::NoClass, lo };
-                }();
+                auto field_class = classify( field_type, field_offset );
+                field_offset += size( field_type );
                 result = join( result, field_class );
             }
 
+            offset += size( t );
             return post_merge( t, result );
         }
 
@@ -436,10 +442,16 @@ namespace vast::abi
             return { lo, hi };
         }
 
-        auto classify( mlir::Type raw )
+        auto classify( mlir::Type raw, std::size_t &offset )
         {
             auto t = TypeConfig::prepare( raw );
-            return get_class( t );
+            return get_class( t, offset );
+        }
+
+        auto classify( mlir::Type raw )
+        {
+            std::size_t offset = 0;
+            return classify( raw, offset );
         }
 
         using half_class_result = std::variant< arg_info, type, std::monostate >;
@@ -523,12 +535,13 @@ namespace vast::abi
         // TODO(abi): Implement. Requires information about alignment and size of alloca.
         types combine_half_types( type lo, type hi )
         {
+            VAST_CHECK( size( hi ) / 8 != 0, "{0}", hi );
             auto hi_start = llvm::alignTo( size( lo ) / 8, size( hi ) / 8 );
             VAST_CHECK( hi_start != 0 && hi_start / 8 <= 8,
                         "{0} {1} {2}",
                         lo, hi, hi_start );
 
-            // `hi` needs to start at later offsite - we need to add explicit padding
+            // `hi` needs to start at later offset - we need to add explicit padding
             // to the `lo` type.
             auto adjusted_lo = [ & ]() -> type
             {
@@ -585,6 +598,7 @@ namespace vast::abi
 
             auto low = return_lo( t, c );
             auto high = return_hi( t, c );
+
             return resolve_classification( t, std::move( low ), std::move( high ) );
         }
 
