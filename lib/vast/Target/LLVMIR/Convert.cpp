@@ -30,6 +30,52 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::target::llvmir
 {
+    namespace
+    {
+        // TODO(target): Unify with tower and opt.
+        void populate_pm(mlir::PassManager &pm, pipeline p)
+        {
+            switch (p)
+            {
+                case pipeline::baseline:
+                {
+                    pm.addPass(hl::createHLLowerTypesPass());
+                    pm.addPass(hl::createDCEPass());
+                    pm.addPass(hl::createLowerTypeDefsPass());
+                    pm.addPass(createHLToLLFuncPass());
+                    pm.addPass(createHLToLLVarsPass());
+                    pm.addPass(createHLToLLCFPass());
+                    pm.addPass(createHLEmitLazyRegionsPass());
+                    pm.addPass(createHLToLLGEPsPass());
+                    pm.addPass(createHLStructsToLLVMPass());
+                    pm.addPass(createIRsToLLVMPass());
+                    pm.addPass(createCoreToLLVMPass());
+                    return;
+                }
+                case pipeline::with_abi:
+                {
+                    pm.addPass(hl::createHLLowerTypesPass());
+                    pm.addPass(hl::createDCEPass());
+                    pm.addPass(hl::createLowerTypeDefsPass());
+
+                    pm.addPass(createEmitABIPass());
+                    pm.addPass(createLowerABIPass());
+
+                    pm.addPass(createHLToLLFuncPass());
+                    pm.addPass(createHLToLLVarsPass());
+                    pm.addPass(createHLToLLCFPass());
+                    pm.addPass(createHLEmitLazyRegionsPass());
+                    pm.addPass(createHLToLLGEPsPass());
+                    pm.addPass(createHLStructsToLLVMPass());
+                    pm.addPass(createIRsToLLVMPass());
+                    pm.addPass(createCoreToLLVMPass());
+                    return;
+                }
+            }
+
+        }
+    } // namespace
+
     class ToLLVMIR : public mlir::LLVMTranslationDialectInterface
     {
       public:
@@ -88,25 +134,11 @@ namespace vast::target::llvmir
         return mlir::translateModuleToLLVMIR(mlir_module, llvm_ctx);
     }
 
-    void prepare_hl_module(mlir::Operation *op)
+    void lower_hl_module(mlir::Operation *op, pipeline p)
     {
         auto mctx = op->getContext();
         mlir::PassManager pm(mctx);
-
-        // TODO(target:llvmir): This should be refactored out as a pipeline so we
-        //                      can run it from command line as well.
-        // TODO(target:llvmir): Add missing passes.
-        pm.addPass(hl::createHLLowerTypesPass());
-        pm.addPass(hl::createDCEPass());
-        pm.addPass(hl::createLowerTypeDefsPass());
-        pm.addPass(createHLToLLFuncPass());
-        pm.addPass(createHLToLLVarsPass());
-        pm.addPass(createHLToLLCFPass());
-        pm.addPass(createHLEmitLazyRegionsPass());
-        pm.addPass(createHLToLLGEPsPass());
-        pm.addPass(createHLStructsToLLVMPass());
-        pm.addPass(createIRsToLLVMPass());
-        pm.addPass(createCoreToLLVMPass());
+        populate_pm(pm, p);
 
         // This is necessary to have line tables emitted and basic
         // debugger working. In the future we will add proper debug information
