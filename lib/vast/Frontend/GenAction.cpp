@@ -129,9 +129,12 @@ namespace vast::cc {
         void emit_backend_output(clang::BackendAction backend_action,
                                  owning_module_ref mlir_module, mcontext_t *mctx)
         {
+
             llvm::LLVMContext llvm_context;
             target::llvmir::register_vast_to_llvm_ir(*mctx);
-            target::llvmir::prepare_hl_module(mlir_module.get());
+            auto pipeline = parse_pipeline(vargs.get_options_list(opt::opt_pipeline));
+            target::llvmir::lower_hl_module(mlir_module.get(), pipeline);
+
             auto mod = target::llvmir::translate(mlir_module.get(), llvm_context, "tmp");
 
             clang::EmitBackendOutput(
@@ -164,6 +167,28 @@ namespace vast::cc {
                 VAST_UNREACHABLE("Can emit only one dialect.");
 
             return parse_target_dialect(list->front());
+        }
+
+        target::llvmir::pipeline parse_pipeline(const vast_args::maybe_option_list &list)
+        {
+            if (!list)
+                return target::llvmir::default_pipeline();
+
+            if (list->size() != 1)
+                VAST_UNREACHABLE("Cannot use more than one pipeline!");
+
+            return parse_pipeline(list->front());
+        }
+
+        target::llvmir::pipeline parse_pipeline(llvm::StringRef from)
+        {
+            auto trg = from.lower();
+            if (trg == "with-abi")
+                return target::llvmir::pipeline::with_abi;
+            if (trg == "baseline")
+                return target::llvmir::pipeline::baseline;
+
+            VAST_UNREACHABLE("Unknown option of pipeline to use: {0}", trg);
         }
 
         target_dialect parse_target_dialect(llvm::StringRef from)
@@ -213,7 +238,7 @@ namespace vast::cc {
                     {
                         // TODO: These should probably be moved outside of `target::llvmir`.
                         target::llvmir::register_vast_to_llvm_ir(*mctx);
-                        target::llvmir::prepare_hl_module(mod.get());
+                        target::llvmir::lower_hl_module(mod.get());
                         break;
                     }
                     default:
