@@ -24,26 +24,8 @@ def DefaultDataLayoutTypeInterface
                               "::mlir::DataLayoutEntryListRef":$params),
                 /*methodBody=*/"",
                 /*defaultImplementation=*/[{
-                    VAST_CHECK(params.size() != 0,
-                        "Query for getTypeSizeInBits failed: Must have at least one entry!",
-                    );
-
-                    std::optional<uint32_t> out;
-                    auto handle_param = [&](auto &entry) {
-                        if (!out) out = entry.bw;
-                        VAST_CHECK(*out == entry.bw,
-                            "Inconsistent entries {0}, {1}, entry count: {2}",
-                            *out, entry.bw, params.size()
-                        );
-                    };
-                    for (const auto &param : params) {
-                        auto entry = dl::DLEntry::unwrap(param);
-                        if (mlir::isa< ConcreteType >(entry.type)) {
-                            handle_param(entry);
-                        }
-                    }
-                    VAST_CHECK(out.has_value(), "getTypeSizeBits entries did not yield result.");
-                    return *out;
+                    auto get = [](const auto &entry) { return entry.bw; };
+                    return default_dl_query< ConcreteType >(*this, get, dataLayout, params);
                 }]
             >,
             InterfaceMethod<
