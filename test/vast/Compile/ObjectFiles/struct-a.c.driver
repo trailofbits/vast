@@ -1,0 +1,21 @@
+#include <assert.h>
+
+struct Data
+{
+    int x;
+    int y;
+};
+
+int sum(struct Data d);
+
+int main()
+{
+    struct Data a = { 0, 0 };
+    assert(sum(a) == 0);
+    a.x = 5;
+    assert(sum(a) == 5);
+    a.y = 10;
+    assert(sum(a) == 15);
+    a.x = -10;
+    assert(sum(a) == 0);
+}
