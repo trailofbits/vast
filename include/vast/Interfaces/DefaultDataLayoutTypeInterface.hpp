@@ -15,6 +15,9 @@ VAST_RELAX_WARNINGS
 
 namespace vast
 {
+    // Shared utility by `DefaultDataLayoutTypeInterface` to correctly
+    // filter data layout entries. Once one is selected it will be casted
+    // to `DLEntry` and passed `extract` to produce resulting value.
     // TODO(interface): Return can be generic based on what `extract` returns.
     template< typename ConcreteType, typename Interface, typename Extract >
     unsigned default_dl_query(const Interface &self, Extract &&extract,
