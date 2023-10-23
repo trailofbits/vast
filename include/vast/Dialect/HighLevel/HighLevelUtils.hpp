@@ -86,6 +86,8 @@ namespace vast::hl
     }
 
     // TODO(hl): Custom hook to provide a location?
+    // Given record `root` emit `hl::RecordMemberOp` casted as rvalue for each
+    // its member.
     auto traverse_record(operation root, auto &bld)
         -> gap::generator< hl::ImplicitCastOp >
     {
