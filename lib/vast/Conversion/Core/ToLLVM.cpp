@@ -108,8 +108,10 @@ namespace vast
 
                 cond_br_lhs(rewriter, op.getLoc(), cmp_lhs, rhs_block, end_block);
 
-                // In the case that `rhs` consists of multiple blocks we need to
-                // insert to the last block…
+                // In the case that the `rhs` region consists of multiple blocks (i.e.
+                // it has already been lowered, since hl doesn't have blocks)
+                // we need to insert the break to the last block of this region - which
+                // is the region that is created by splitting the `end_block`.
                 // e.g.: in a && (b || c) mlir first matches the `||` which creates
                 // it's own cf blocks and then matches the `&&`
                 auto rhs_end_it = std::prev(end_block->getIterator(), 1);
