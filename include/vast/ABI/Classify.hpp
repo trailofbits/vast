@@ -215,8 +215,9 @@ namespace vast::abi
             VAST_CHECK( type_size != 0, "Unexpected empty field? Type: {0}", t );
 
             auto final_size = std::min< std::size_t >( type_size - ( root_offset * 8 ), 64 );
-            // Creation of `i0` is probably never fine?
-            VAST_ASSERT( final_size != 0 );
+            // TODO(abi): Issue #422
+            // This is definitely not expected right now.
+            VAST_CHECK( final_size != 0, "ABI classification is trying to create i0." );
             return mlir::IntegerType::get( t.getContext(), final_size );
         }
 
