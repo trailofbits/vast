@@ -17,9 +17,10 @@ namespace vast::conv::abi
     //                 * ll-vars
     //                 * llvm
     template< typename pattern, typename op_t >
-    struct field_allocator
+    struct aggregate_reconstructor
     {
-        using self_t = field_allocator< pattern, op_t >;
+      protected:
+        using self_t = aggregate_reconstructor< pattern, op_t >;
 
         struct state_t
         {
@@ -71,16 +72,6 @@ namespace vast::conv::abi
         vast_module mod;
         std::vector< mlir::Value > partials;
 
-        field_allocator(state_t &state, vast_module mod)
-            : state(state),
-              mod(mod)
-        {}
-
-        static state_t mk_state(const pattern &parent, op_t abi_op)
-        {
-            return state_t(parent, abi_op);
-        }
-
         bool needs_nesting(mlir_type type) const
         {
             return contains_subtype< hl::RecordType >(type);
@@ -105,11 +96,29 @@ namespace vast::conv::abi
             return make_aggregate(root_type, partials, rewriter);
         }
 
+
         mlir::Value make_aggregate(mlir_type type, const auto &partials,
                                    auto &rewriter)
         {
             return rewriter.template create< hl::InitListExpr >(
                     state.abi_op.getLoc(), type, partials).getResult(0);
+        }
+
+      public:
+
+        aggregate_reconstructor(state_t &state, vast_module mod)
+            : state(state),
+              mod(mod)
+        {}
+
+        static state_t mk_state(const pattern &parent, op_t abi_op)
+        {
+            return state_t(parent, abi_op);
+        }
+
+        mlir::Value run(mlir_type root, auto &rewriter)
+        {
+            return run_on(root, rewriter);
         }
     };
 
@@ -118,6 +127,7 @@ namespace vast::conv::abi
     template< typename pattern, typename op_t >
     struct aggregate_deconstructor
     {
+      protected:
         using self_t = aggregate_deconstructor< pattern, op_t >;
 
         struct state_t
@@ -214,16 +224,6 @@ namespace vast::conv::abi
         vast_module mod;
         std::vector< mlir::Value > partials;
 
-        aggregate_deconstructor(state_t &state, vast_module mod)
-            : state(state),
-              mod(mod)
-        {}
-
-        static state_t mk_state(const pattern &parent, op_t abi_op)
-        {
-            return state_t(parent, abi_op);
-        }
-
         bool needs_nesting(mlir_type type) const
         {
             return contains_subtype< hl::RecordType >(type);
@@ -245,6 +245,12 @@ namespace vast::conv::abi
                 handle_field(field_gep);
         }
 
+      public:
+        aggregate_deconstructor(state_t &state, vast_module mod)
+            : state(state),
+              mod(mod)
+        {}
+
         auto run(operation root, auto &rewriter) &&
         {
             run_on(root, rewriter);
@@ -253,6 +259,11 @@ namespace vast::conv::abi
             partials.push_back(val);
 
             return std::move(partials);
+        }
+
+        static state_t mk_state(const pattern &parent, op_t abi_op)
+        {
+            return state_t(parent, abi_op);
         }
     };
 
@@ -275,12 +286,12 @@ namespace vast::conv::abi
     auto reconstruct_aggregate(const pattern_t &pattern, abi_op_t op,
                                hl::RecordType record_type, rewriter_t &rewriter)
     {
-        using reconstructor_t = field_allocator< pattern_t, abi_op_t >;
+        using reconstructor_t = aggregate_reconstructor< pattern_t, abi_op_t >;
         auto state = reconstructor_t::mk_state(pattern, op);
 
         auto module_op = op->template getParentOfType< vast_module >();
         VAST_ASSERT(module_op);
-        return reconstructor_t(state, module_op).run_on(record_type, rewriter);
+        return reconstructor_t(state, module_op).run(record_type, rewriter);
     }
 
 } // namespace vast::conv::abi
