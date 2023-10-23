@@ -47,8 +47,7 @@ namespace vast
 
                 auto &first_block = lazy_region.front();
                 // The rewriter API doesn't provide a call to insert into a selected block
-                auto target_it = target->getIterator();
-                std::advance(target_it, 1);
+                auto target_it = std::next(target->getIterator());
                 rewriter.inlineRegionBefore(
                     lazy_region, *target->getParent(), target_it
                 );
@@ -114,7 +113,7 @@ namespace vast
                 // is the region that is created by splitting the `end_block`.
                 // e.g.: in a && (b || c) mlir first matches the `||` which creates
                 // it's own cf blocks and then matches the `&&`
-                auto rhs_end_it = std::prev(end_block->getIterator(), 1);
+                auto rhs_end_it = std::prev(end_block->getIterator());
                 rewriter.setInsertionPointToEnd(&*rhs_end_it);
                 auto cmp_rhs = rewriter.create< LLVM::ICmpOp >(
                     op.getLoc(), LLVM::ICmpPredicate::ne, rhs_res, zero
