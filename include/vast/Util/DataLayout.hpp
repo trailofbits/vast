@@ -69,9 +69,9 @@ namespace vast::dl
             return static_cast< bitwidth_t >(int_attr.getInt());
         }
 
-        mlir::StringAttr wrap_str(mcontext_t &mctx, llvm::StringRef str) const
+        mlir::StringAttr wrap_str(mcontext_t &mctx, llvm::StringRef str_value) const
         {
-            return mlir::StringAttr::get(&mctx, str);
+            return mlir::StringAttr::get(&mctx, str_value);
         }
 
         mlir::Attribute create_raw_attr(mcontext_t &mctx) const
