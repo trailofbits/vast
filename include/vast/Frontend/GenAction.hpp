@@ -30,7 +30,9 @@ namespace vast::cc {
         constexpr string_ref emit_obj  = "emit-obj";
         constexpr string_ref emit_asm  = "emit-asm";
 
-        constexpr string_ref emit_mlir  = "emit-mlir";
+        constexpr string_ref emit_mlir = "emit-mlir";
+
+        constexpr string_ref emit_locs = "emit-locs";
 
         constexpr string_ref opt_pipeline  = "pipeline";
 
