@@ -164,7 +164,7 @@ namespace vast::cg {
         }
 
         Operation* VisitBinRem(const clang::BinaryOperator *op) {
-            return VisitIFBinOp< hl::RemUOp, hl::RemSOp, hl::RemFOp >(op);
+            return VisitIBinOp< hl::RemUOp, hl::RemSOp >(op);
         }
 
         Operation* VisitBinAdd(const clang::BinaryOperator *op) {
@@ -297,7 +297,7 @@ namespace vast::cg {
         }
 
         Operation* VisitBinRemAssign(const clang::CompoundAssignOperator *op) {
-            return VisitAssignIFBinOp< hl::RemUAssignOp, hl::RemSAssignOp, hl::RemFAssignOp >(op);
+            return VisitAssignIBinOp< hl::RemUAssignOp, hl::RemSAssignOp >(op);
         }
 
         Operation* VisitBinAddAssign(const clang::CompoundAssignOperator *op) {
