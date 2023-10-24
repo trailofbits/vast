@@ -48,7 +48,7 @@ namespace vast::cg
         ) {
             // TODO(Heno): fix module location
             auto module_ref = owning_module_ref(vast_module::create(mlir::UnknownLoc::get(&mctx)));
-            set_source_language(*module_ref, lang);
+            // TODO: set_source_language(*module_ref, lang);
 
             // TODO(cg): For now we do not have our own operation, so we cannot
             //           introduce new ctor.
