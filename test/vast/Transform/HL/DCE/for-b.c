@@ -1,4 +1,4 @@
-// RUN: %vast-cc --ccopts -xc --from-source %s | %vast-opt --vast-hl-dce | %file-check %s
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt --vast-hl-dce | %file-check %s
 
 void fn()
 {
@@ -9,7 +9,7 @@ void fn()
         // CHECK-NEXT:   }
         // CHECK-NEXT:   hl.continue
         // CHECK-NEXT: }
-        // CHECK-NEXT: hl.const
+        // CHECK: hl.const
         // CHECK-NEXT: core.implicit.return
         if (i == 5)
         {

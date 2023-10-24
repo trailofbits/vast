@@ -1,5 +1,5 @@
-// RUN: %vast-cc --ccopts -xc --ccopts -std=c11 --from-source %s | %file-check %s
-// RUN: %vast-cc --ccopts -xc --ccopts -std=c11 --from-source %s > %t && %vast-opt %t | diff -B %t -
+// RUN: %vast-cc1 -vast-emit-mlir=hl -std=c11 %s -o - | %file-check %s
+// RUN: %vast-cc1 -vast-emit-mlir=hl -std=c11 %s -o %t && %vast-opt %t | diff -B %t -
 
 // CHECK: hl.struct "v"
 struct v {

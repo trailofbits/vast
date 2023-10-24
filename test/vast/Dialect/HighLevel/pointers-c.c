@@ -1,5 +1,5 @@
-// RUN: %vast-cc --ccopts -xc --from-source %s | %file-check %s
-// RUN: %vast-cc --ccopts -xc --from-source %s > %t && %vast-opt %t | diff -B %t -
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
 // CHECK: hl.var "p" : !hl.lvalue<!hl.ptr<!hl.int>>
 // CHECK:   ArrayToPointerDecay : !hl.lvalue<!hl.array<2, !hl.int>> -> !hl.ptr<!hl.int>

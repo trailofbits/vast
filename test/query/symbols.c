@@ -1,20 +1,20 @@
-// RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && \
 // RUN: %vast-query --show-symbols=all %t | \
 // RUN: %file-check %s -check-prefix=FOO-VAR -check-prefix=MAIN-VAR -check-prefix=FUN
 
-// RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && \
 // RUN: %vast-query --show-symbols=vars %t | \
 // RUN: %file-check %s -check-prefix=FOO-VAR -check-prefix=MAIN-VAR
 
-// RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && \
 // RUN: %vast-query --show-symbols=vars %t --scope=foo | \
 // RUN: %file-check %s -check-prefix=FOO-VAR
 
-// RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && \
 // RUN: %vast-query --show-symbols=vars %t --scope=main | \
 // RUN: %file-check %s -check-prefix=MAIN-VAR
 
-// RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && \
 // RUN: %vast-query --show-symbols=functions %t | \
 // RUN: %file-check %s -check-prefix=FUN
 

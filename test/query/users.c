@@ -1,12 +1,12 @@
-// RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && \
 // RUN: %vast-query --symbol-users=a %t | \
 // RUN: %file-check %s -check-prefix=MAIN -check-prefix=FOO
 
-// RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && \
 // RUN: %vast-query --symbol-users=a --scope=main %t | \
 // RUN: %file-check %s -check-prefix=MAIN
 
-// RUN: %vast-cc --ccopts -xc --from-source %s > %t && \
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && \
 // RUN: %vast-query --symbol-users=a --scope=foo %t | \
 // RUN: %file-check %s -check-prefix=FOO
 

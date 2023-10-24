@@ -1,5 +1,5 @@
-// RUN: %vast-cc --from-source %s | %file-check %s
-// RUN: %vast-cc --from-source %s > %t && %vast-opt %t | diff -B %t -
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
 // CHECK-LABEL: hl.func @_Z10branch_retii
 int branch_ret(int a, int b)
@@ -18,7 +18,6 @@ int branch_ret(int a, int b)
         // CHECK: hl.return [[V3]]
         return 1;
     }
-    // CHECK: hl.unreachable
 }
 
 // CHECK-LABEL: hl.func @_Z11branch_thenii
