@@ -1,4 +1,4 @@
-// RUN: %vast-cc --ccopts -xc --from-source %s | %vast-opt --vast-hl-dce --vast-hl-lower-types --vast-hl-to-ll-vars | %file-check %s
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt --vast-hl-dce --vast-hl-lower-types --vast-hl-to-ll-vars | %file-check %s
 
 int main()
 {

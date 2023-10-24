@@ -1,4 +1,4 @@
-// RUN: %vast-cc --ccopts -xc --from-source %s | %vast-opt --vast-hl-to-lazy-regions | %file-check %s
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt --vast-hl-to-lazy-regions | %file-check %s
 
 void logic_assign_to_different_type() {
     // CHECK: [[L:%[0-9]+]] = core.lazy.op {

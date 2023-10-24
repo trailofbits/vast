@@ -1,5 +1,5 @@
-// RUN: %vast-cc --ccopts -xc --from-source %s | %file-check %s
-// RUN: %vast-cc --ccopts -xc --from-source %s > %t && %vast-opt %t | diff -B %t -
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
 int main() {
     // CHECK: [[N:%[0-9]+]] = hl.var "n" : !hl.lvalue<!hl.int>

@@ -1,4 +1,4 @@
-// RUN: %vast-cc --ccopts -xc --from-source %s | %file-check %s
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 
 // CHECK: hl.func @abort
 // CHECK-NOT: hl.func @abort

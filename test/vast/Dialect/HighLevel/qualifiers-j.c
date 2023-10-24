@@ -1,5 +1,5 @@
-// RUN: %vast-cc --ccopts -xc --from-source %s | %file-check %s
-// RUN: %vast-cc --ccopts -xc --from-source %s > %t && %vast-opt %t | diff -B %t -
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
 // CHECK: hl.var "fp" : !hl.lvalue<!hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.int>) -> (!hl.int)>>>>
 int (*fp) (int);
