@@ -573,12 +573,12 @@ namespace vast
                         op.getLoc(),
                         name,
                         op.getFunctionType(),
-                        core::GlobalLinkageKind::InternalLinkage,
+                        op.getLinkage(),
                         other_attrs,
                         arg_attrs
                 );
 
-                fn.setVisibility(mlir::SymbolTable::Visibility::Private);
+                fn.setVisibility(op.getVisibility());
 
                 rewriter.inlineRegionBefore(op.getBody(),
                                             fn.getBody(),
