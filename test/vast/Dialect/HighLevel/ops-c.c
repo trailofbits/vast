@@ -12,7 +12,7 @@ void bit_ops(int a, int b) {
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]]
     // CHECK: [[V3:%[0-9]+]] = hl.ref %arg1
     // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast [[V3]]
-    // CHECK: hl.bin.shr [[V2]], [[V4]]
+    // CHECK: hl.bin.ashr [[V2]], [[V4]]
     int shr = a >> b;
 
     // CHECK: [[V1:%[0-9]+]] = hl.ref %arg0
@@ -74,7 +74,7 @@ void bit_assign_ops(int a, int b) {
     // CHECK: [[V1:%[0-9]+]] = hl.ref %arg0
     // CHECK: [[V2:%[0-9]+]] = hl.ref %arg1
     // CHECK: [[V4:%[0-9]+]] = hl.implicit_cast [[V2]]
-    // CHECK: hl.assign.bin.shr [[V4]] to [[V1]]
+    // CHECK: hl.assign.bin.ashr [[V4]] to [[V1]]
     a >>= b;
 
     // CHECK: [[V1:%[0-9]+]] = hl.ref %arg0

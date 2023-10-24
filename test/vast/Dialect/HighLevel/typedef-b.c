@@ -26,7 +26,7 @@ INT fun(INT a, INT2 b) {
         // CHECK: [[SHL:%[0-9]+]] = hl.bin.shl [[X:%[0-9]+]], [[Y:%[0-9]+]] : (!hl.elaborated<!hl.typedef<"INT2">>, !hl.int) -> !hl.elaborated<!hl.typedef<"INT2">>
     // CHECK: }
     int c = b<<1;
-    // CHECK: [[SHR:%[0-9]+]] = hl.bin.shr [[X:%[0-9]+]], [[Y:%[0-9]+]] : (!hl.elaborated<!hl.typedef<"INT">>, !hl.int) -> !hl.elaborated<!hl.typedef<"INT">>
+    // CHECK: [[SHR:%[0-9]+]] = hl.bin.ashr [[X:%[0-9]+]], [[Y:%[0-9]+]] : (!hl.elaborated<!hl.typedef<"INT">>, !hl.int) -> !hl.elaborated<!hl.typedef<"INT">>
     c = a>>1;
     // CHECK: [[PTR:%[0-9]+]] = hl.var "ptr" : !hl.lvalue<!hl.ptr<!hl.elaborated<!hl.typedef<"INT">>>> = {
         // CHECK: hl.addressof [[X:%[0-9]+]] : !hl.lvalue<!hl.elaborated<!hl.typedef<"INT">>> -> !hl.ptr<!hl.elaborated<!hl.typedef<"INT">>>
