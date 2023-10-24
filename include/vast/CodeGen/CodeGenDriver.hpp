@@ -142,6 +142,10 @@ namespace vast::cg
         function_arg_list build_function_arg_list(clang::GlobalDecl decl);
         hl::FuncOp build_function_body(hl::FuncOp fn, clang::GlobalDecl decl, const function_info_t &fty_info);
 
+        hl::FuncOp emit_function_epilogue(hl::FuncOp fn, clang::GlobalDecl decl);
+
+        void deal_with_missing_return(hl::FuncOp fn, const clang::FunctionDecl *decl);
+
         // Emit any needed decls for which code generation was deferred.
         void build_deferred();
 
