@@ -289,7 +289,7 @@ namespace vast::cg {
         //
 
         Operation* VisitBinMulAssign(const clang::CompoundAssignOperator *op) {
-            return VisitAssignBinOp< hl::MulIAssignOp >(op);
+            return VisitAssignIFBinOp< hl::MulIAssignOp, hl::MulFAssignOp >(op);
         }
 
         Operation* VisitBinDivAssign(const clang::CompoundAssignOperator *op) {
@@ -301,11 +301,11 @@ namespace vast::cg {
         }
 
         Operation* VisitBinAddAssign(const clang::CompoundAssignOperator *op) {
-            return VisitAssignBinOp< hl::AddIAssignOp >(op);
+            return VisitAssignIFBinOp< hl::AddIAssignOp, hl::AddFAssignOp >(op);
         }
 
         Operation* VisitBinSubAssign(const clang::CompoundAssignOperator *op) {
-            return VisitAssignBinOp< hl::SubIAssignOp >(op);
+            return VisitAssignIFBinOp< hl::SubIAssignOp, hl::SubFAssignOp >(op);
         }
 
         Operation* VisitBinShlAssign(const clang::CompoundAssignOperator *op) {
