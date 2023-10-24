@@ -56,7 +56,7 @@ namespace vast::cg
     struct codegen_driver {
 
         explicit codegen_driver(
-            cg_context &cgctx
+            codegen_context &cgctx
             , codegen_options opts
         )
             : actx(cgctx.actx)
@@ -128,7 +128,7 @@ namespace vast::cg
             }
         }
 
-        cg_context::VarTable &variables_symbol_table();
+        codegen_context::var_table &variables_symbol_table();
 
         bool has_this_return(clang::GlobalDecl decl) const;
         bool has_most_derived_return(clang::GlobalDecl decl) const;
@@ -205,7 +205,7 @@ namespace vast::cg
         std::unique_ptr< vast_cxx_abi > cxx_abi;
 
         // FIXME: make configurable
-        CodeGenWithMetaIDs codegen;
+        codegen_with_meta_ids codegen;
 
         mutable std::unique_ptr< target_info_t > target_info;
         mutable std::unique_ptr< type_info_t > type_info;

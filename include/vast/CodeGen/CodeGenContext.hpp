@@ -57,22 +57,22 @@ namespace vast::cg
         }
     } // namespace detail
 
-    struct cg_context {
+    struct codegen_context {
         mcontext_t &mctx;
         acontext_t &actx;
         owning_module_ref mod;
 
         dl::DataLayoutBlueprint dl;
 
-        cg_context(mcontext_t &mctx, acontext_t &actx, owning_module_ref &&mod)
+        codegen_context(mcontext_t &mctx, acontext_t &actx, owning_module_ref &&mod)
             : mctx(mctx)
             , actx(actx)
             , mod(std::move(mod))
             , mangler(actx.createMangleContext())
         {}
 
-        cg_context(mcontext_t &mctx, acontext_t &actx, source_language lang)
-            : cg_context(mctx, actx, detail::create_module(mctx, actx, lang))
+        codegen_context(mcontext_t &mctx, acontext_t &actx, source_language lang)
+            : codegen_context(mctx, actx, detail::create_module(mctx, actx, lang))
         {}
 
         lexical_scope_context *current_lexical_scope = nullptr;
@@ -81,8 +81,8 @@ namespace vast::cg
         // It owns the strings that mangled_name_ref uses
         CodeGenMangler mangler;
 
-        using VarTable = scoped_table< const clang::VarDecl *, Value >;
-        VarTable vars;
+        using var_table = scoped_table< const clang::VarDecl *, Value >;
+        var_table vars;
 
         using TypeDefTable = scoped_table< const clang::TypedefDecl *, hl::TypeDefOp >;
         TypeDefTable typedefs;
