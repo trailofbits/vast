@@ -199,8 +199,8 @@ namespace vast::conv::irstollvm
                         mk_index(loc, start, rewriter));
                 head = rewriter.create< mlir::LLVM::OrOp >(
                         loc,
-                        head->getResults()[0],
-                        shifted->getResults()[0]);
+                        head->getResult(0),
+                        shifted->getResult(0));
 
                 start += bw(ops.getOperands()[i].getDefiningOp());
             }
@@ -335,7 +335,7 @@ namespace vast::conv::irstollvm
             rewriter.eraseOp(op);
         }
 
-        static bool is_scalar(mlir_type t)
+        static bool points_to_scalar(mlir_type t)
         {
             auto ptr = mlir::dyn_cast< mlir::LLVM::LLVMPointerType >(t);
             VAST_ASSERT(ptr);
@@ -348,7 +348,7 @@ namespace vast::conv::irstollvm
             // Scalar need special handling, because we won't be doing any GEPs
             // into it - mlir verifier would survive that, but conversion
             // to `llvm::` will complain.
-            if (!is_scalar(ptr.getType()))
+            if (!points_to_scalar(ptr.getType()))
                 return handle_init_list(ops, ptr, rewriter);
 
             // We know it must be only one if the type is scalar.
@@ -361,12 +361,10 @@ namespace vast::conv::irstollvm
 
         void handle_init_list(auto init_list, auto ptr, auto &rewriter) const
         {
-            std::size_t i = 0;
-
-            for (auto element : init_list.getElements())
+            for (auto [i, element] : llvm::enumerate(init_list.getElements()))
             {
                 auto e_type = LLVM::LLVMPointerType::get(element.getType());
-                std::vector< mlir::LLVM::GEPArg > indices { 0ul, i++ };
+                std::vector< mlir::LLVM::GEPArg > indices { 0ul, i + 1 };
 
                 auto gep = rewriter.template create< LLVM::GEPOp >(
                         element.getLoc(), e_type, ptr, indices);
