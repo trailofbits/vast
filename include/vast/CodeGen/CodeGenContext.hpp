@@ -7,6 +7,7 @@
 VAST_RELAX_WARNINGS
 #include <clang/AST/GlobalDecl.h>
 #include <clang/AST/ASTContext.h>
+#include <clang/Basic/SourceManager.h>
 #include <llvm/ADT/ScopedHashTable.h>
 #include <llvm/ADT/SmallPtrSet.h>
 #include <llvm/IR/GlobalValue.h>
@@ -43,11 +44,27 @@ namespace vast::cg
             op->setAttr(core::CoreDialect::getLanguageAttrName(), attr);
         }
 
+        static std::pair< loc_t, std::string > module_loc_name(mcontext_t &mctx, acontext_t &actx) {
+            // Set the module name to be the name of the main file. TranslationUnitDecl
+            // often contains invalid source locations and isn't a reliable source for the
+            // module location.
+            auto main_file_id = actx.getSourceManager().getMainFileID();
+            const auto &main_file = *actx.getSourceManager().getFileEntryForID(main_file_id);
+            auto path = main_file.tryGetRealPathName();
+            if (!path.empty()) {
+                return { mlir::FileLineColLoc::get(&mctx, path, 0, 0), path.str() };
+            }
+
+            return { mlir::UnknownLoc::get(&mctx), "unknown" };
+        }
+
         static inline owning_module_ref create_module(
             mcontext_t &mctx, acontext_t &actx, source_language lang
         ) {
-            // TODO(Heno): fix module location
-            auto module_ref = owning_module_ref(vast_module::create(mlir::UnknownLoc::get(&mctx)));
+            auto [loc, name] = module_loc_name(mctx, actx);
+            auto module_ref = owning_module_ref(vast_module::create(loc));
+            module_ref->setSymName(name);
+
             // TODO: set_source_language(*module_ref, lang);
 
             // TODO(cg): For now we do not have our own operation, so we cannot
