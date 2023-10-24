@@ -14,6 +14,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/CallingConv.hpp"
 #include "vast/CodeGen/Types.hpp"
 
+#include "vast/Util/Common.hpp"
+
 namespace vast::cg
 {
     /// Type for representing both the decl and type of parameters to a function.

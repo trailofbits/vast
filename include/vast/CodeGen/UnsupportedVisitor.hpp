@@ -19,16 +19,17 @@
 
 namespace vast::cg {
 
-    template< typename Derived >
-    struct UnsupportedStmtVisitor
-        : clang::ConstStmtVisitor< UnsupportedStmtVisitor< Derived >, operation >
-        , CodeGenVisitorLens< UnsupportedStmtVisitor< Derived >, Derived >
-        , CodeGenBuilder< UnsupportedStmtVisitor< Derived >, Derived >
+    template< typename derived_t >
+    struct unsup_stmt_visitor
+        : stmt_visitor_base< derived_t >
+        , visitor_lens< derived_t, unsup_stmt_visitor >
     {
-        using LensType = CodeGenVisitorLens< UnsupportedStmtVisitor< Derived >, Derived >;
+        using lens = visitor_lens< derived_t, unsup_stmt_visitor >;
 
-        using LensType::meta_location;
-        using LensType::visit;
+        using lens::derived;
+        using lens::visit;
+
+        using lens::meta_location;
 
         operation make_unsupported_stmt(auto stmt, mlir_type type = {}) {
             std::vector< BuilderCallBackFn > children;
@@ -57,17 +58,19 @@ namespace vast::cg {
         }
     };
 
-    template< typename Derived >
-    struct UnsupportedDeclVisitor
-        : clang::ConstDeclVisitor< UnsupportedDeclVisitor< Derived >, operation >
-        , CodeGenVisitorLens< UnsupportedDeclVisitor< Derived >, Derived >
-        , CodeGenBuilder< UnsupportedDeclVisitor< Derived >, Derived >
+    template< typename derived_t >
+    struct unsup_decl_visitor
+        : decl_visitor_base< derived_t >
+        , visitor_lens< derived_t, unsup_decl_visitor >
     {
-        using LensType = CodeGenVisitorLens< UnsupportedDeclVisitor< Derived >, Derived >;
+        using lens = visitor_lens< derived_t, unsup_decl_visitor >;
 
-        using LensType::context;
-        using LensType::meta_location;
-        using LensType::visit;
+        using lens::derived;
+        using lens::context;
+        using lens::visit;
+
+        using lens::make_operation;
+        using lens::meta_location;
 
         auto make_body_callback(auto decl) -> std::optional< BuilderCallBackFn > {
             auto callback = [&] (auto body) {
@@ -137,17 +140,17 @@ namespace vast::cg {
         }
     };
 
-    template< typename Derived >
-    struct UnsupportedTypeVisitor
-        : clang::TypeVisitor< UnsupportedTypeVisitor< Derived >, mlir_type >
-        , CodeGenVisitorLens< UnsupportedTypeVisitor< Derived >, Derived >
-        , CodeGenBuilder< UnsupportedTypeVisitor< Derived >, Derived >
+    template< typename derived_t >
+    struct unsup_type_visitor
+        : type_visitor_base< derived_t >
+        , visitor_lens< derived_t, unsup_type_visitor >
     {
-        using LensType = CodeGenVisitorLens< UnsupportedTypeVisitor< Derived >, Derived >;
-        using LensType::mcontext;
+        using lens = visitor_lens< derived_t, unsup_type_visitor >;
+        using lens::mcontext;
+        using lens::derived;
 
         auto make_unsupported_type(auto ty) {
-            return this->template make_type< unsup::UnsupportedType >()
+            return derived().template make_type< unsup::UnsupportedType >()
                 .bind(&mcontext())
                 .bind(ty->getTypeClassName())
                 .freeze();
@@ -157,27 +160,24 @@ namespace vast::cg {
             return ty.isNull() ? Type() : Visit(ty.getTypePtr());
         }
 
-        mlir_type Visit(const clang_type *ty) {
+        mlir_type Visit(const clang::Type *ty) {
             return make_unsupported_type(ty);
         }
     };
 
-    template< typename Derived >
-    struct UnsupportedAttrVisitor
-        : clang::ConstAttrVisitor< UnsupportedAttrVisitor< Derived >, mlir_attr >
-        , CodeGenVisitorLens< UnsupportedAttrVisitor< Derived >, Derived >
-        , CodeGenBuilder< UnsupportedAttrVisitor< Derived >, Derived >
+    template< typename derived_t >
+    struct unsup_attr_visitor
+        : attr_visitor_base< derived_t >
+        , visitor_lens< derived_t, unsup_attr_visitor >
     {
-        using LensType = CodeGenVisitorLens< UnsupportedAttrVisitor< Derived >, Derived >;
-        using LensType::mcontext;
+        using lens = visitor_lens< derived_t, unsup_attr_visitor >;
 
-        using Builder = CodeGenBuilder< UnsupportedAttrVisitor< Derived >, Derived >;
-
-        using Builder::builder;
+        using lens::mcontext;
+        using lens::derived;
 
         auto make_unsupported_attr(auto attr) {
             std::string spelling(attr->getSpelling());
-            return builder().template getAttr< unsup::UnsupportedAttr >(spelling);
+            return derived().base_builder().template getAttr< unsup::UnsupportedAttr >(spelling);
         }
 
         mlir_attr Visit(const clang::Attr *attr) {
@@ -185,22 +185,22 @@ namespace vast::cg {
         }
     };
 
-    template< typename Derived >
-    struct UnsupportedVisitor
-        : UnsupportedDeclVisitor< Derived >
-        , UnsupportedStmtVisitor< Derived >
-        , UnsupportedTypeVisitor< Derived >
-        , UnsupportedAttrVisitor< Derived >
+    template< typename derived_t >
+    struct unsup_visitor
+        : unsup_decl_visitor< derived_t >
+        , unsup_stmt_visitor< derived_t >
+        , unsup_type_visitor< derived_t >
+        , unsup_attr_visitor< derived_t >
     {
-        using DeclVisitor = UnsupportedDeclVisitor< Derived >;
-        using StmtVisitor = UnsupportedStmtVisitor< Derived >;
-        using TypeVisitor = UnsupportedTypeVisitor< Derived >;
-        using AttrVisitor = UnsupportedAttrVisitor< Derived >;
+        using decl_visitor = unsup_decl_visitor< derived_t >;
+        using stmt_visitor = unsup_stmt_visitor< derived_t >;
+        using type_visitor = unsup_type_visitor< derived_t >;
+        using attr_visitor = unsup_attr_visitor< derived_t >;
 
-        using DeclVisitor::Visit;
-        using StmtVisitor::Visit;
-        using TypeVisitor::Visit;
-        using AttrVisitor::Visit;
+        using decl_visitor::Visit;
+        using stmt_visitor::Visit;
+        using type_visitor::Visit;
+        using attr_visitor::Visit;
     };
 
 } // namespace vast::cg

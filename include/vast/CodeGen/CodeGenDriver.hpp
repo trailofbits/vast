@@ -56,7 +56,7 @@ namespace vast::cg
     struct codegen_driver {
 
         explicit codegen_driver(
-            CodeGenContext &cgctx
+            cg_context &cgctx
             , codegen_options opts
         )
             : actx(cgctx.actx)
@@ -128,7 +128,7 @@ namespace vast::cg
             }
         }
 
-        CodeGenContext::VarTable &variables_symbol_table();
+        cg_context::VarTable &variables_symbol_table();
 
         bool has_this_return(clang::GlobalDecl decl) const;
         bool has_most_derived_return(clang::GlobalDecl decl) const;

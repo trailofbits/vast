@@ -2,12 +2,6 @@
 
 #pragma once
 
-#include "vast/Util/Warnings.hpp"
-
-VAST_RELAX_WARNINGS
-#include <clang/AST/TypeVisitor.h>
-VAST_UNRELAX_WARNINGS
-
 #include "vast/Util/Common.hpp"
 #include "vast/CodeGen/CodeGenMeta.hpp"
 #include "vast/CodeGen/CodeGenBuilder.hpp"
@@ -23,37 +17,34 @@ namespace vast::cg {
 
     hl::SizeParam get_size_attr(const clang::ArrayType *ty, mcontext_t &ctx);
 
-    template< typename Derived >
-    struct CodeGenTypeVisitor
-        : clang::TypeVisitor< CodeGenTypeVisitor< Derived >, Type >
-        , CodeGenVisitorLens< CodeGenTypeVisitor< Derived >, Derived >
-        , CodeGenBuilder< CodeGenTypeVisitor< Derived >, Derived >
+    template< typename derived_t >
+    struct default_type_visitor
+        : type_visitor_base< default_type_visitor< derived_t > >
+        , visitor_lens< derived_t, default_type_visitor >
     {
-        using base_type = clang::TypeVisitor< CodeGenTypeVisitor< Derived >, Type >;
+        using base = type_visitor_base< default_type_visitor< derived_t > >;
+        using base::Visit;
 
-        using base_type::Visit;
+        using lens = visitor_lens< derived_t, default_type_visitor >;
 
-        using LensType = CodeGenVisitorLens< CodeGenTypeVisitor< Derived >, Derived >;
+        using lens::derived;
+        using lens::context;
+        using lens::mcontext;
+        using lens::acontext;
 
-        using LensType::derived;
-        using LensType::context;
-        using LensType::mcontext;
-        using LensType::acontext;
+        using lens::make_operation;
 
-        using LensType::meta_location;
+        using lens::visit;
 
-        using LensType::visit;
+        using lens::make_type_yield_builder;
 
-        using Builder = CodeGenBuilder< CodeGenTypeVisitor< Derived >, Derived >;
-
-        using Builder::builder;
-        using Builder::make_type_yield_builder;
+        using lens::meta_location;
 
         using qualifiers   = clang::Qualifiers;
 
         template< typename high_level_type >
         auto type_builder() {
-            return this->template make_type< high_level_type >().bind(&mcontext());
+            return derived().template make_type< high_level_type >().bind(&mcontext());
         }
 
         auto with_ucv_qualifiers(auto &&state, bool is_unsigned, qualifiers q) {
@@ -158,7 +149,7 @@ namespace vast::cg {
 
         auto with_qualifiers(const clang::TypeOfType *ty, qualifiers quals) -> mlir_type {
             auto type = visit(ty->getUnmodifiedType());
-            this->template create< hl::TypeOfTypeOp >(meta_location(ty), type);
+            derived().template create< hl::TypeOfTypeOp >(meta_location(ty), type);
             return with_cvr_qualifiers(type_builder< hl::TypeOfTypeType >().bind(type), quals)
                 .freeze();
         }
@@ -453,26 +444,25 @@ namespace vast::cg {
         }
     };
 
-    template< typename Derived >
-    struct CodeGenTypeVisitorWithDataLayout
-        : CodeGenTypeVisitor< Derived >
-        , CodeGenVisitorLens< CodeGenTypeVisitorWithDataLayout< Derived >, Derived >
+    template< typename derived_t >
+    struct type_visitor_with_dl
+        : default_type_visitor< derived_t >
+        , visitor_lens< derived_t, type_visitor_with_dl >
     {
-        using Base = CodeGenTypeVisitor< Derived >;
+        using base = default_type_visitor< derived_t >;
+        using lens = base::lens;
 
-        using LensType = CodeGenVisitorLens< CodeGenTypeVisitorWithDataLayout< Derived >, Derived >;
+        using lens::context;
+        using lens::acontext;
 
-        using LensType::context;
-        using LensType::acontext;
-
-        bool is_forward_declared(const clang_type *ty) const {
+        bool is_forward_declared(const clang::Type *ty) const {
             if (auto tag = ty->getAsTagDecl()) {
                 return !tag->getDefinition();
             }
             return false;
         }
 
-        auto StoreDataLayout(const clang_type *orig, mlir_type out) -> mlir_type {
+        auto StoreDataLayout(const clang::Type *orig, mlir_type out) -> mlir_type {
             if (!orig->isFunctionType() && !is_forward_declared(orig)) {
                 context().data_layout().try_emplace(out, orig, acontext());
             }
@@ -480,15 +470,15 @@ namespace vast::cg {
             return out;
         }
 
-        auto Visit(const clang_type *ty) -> mlir_type {
-            if (auto gen = Base::Visit(ty)) {
+        auto Visit(const clang::Type *ty) -> mlir_type {
+            if (auto gen = base::Visit(ty)) {
                 return StoreDataLayout(ty, gen);
             }
             return {};
         }
 
         auto Visit(clang::QualType ty) -> mlir_type {
-            if (auto gen = Base::Visit(ty)) {
+            if (auto gen = base::Visit(ty)) {
                 auto [underlying, quals] = ty.split();
                 return StoreDataLayout(underlying, gen);
             }

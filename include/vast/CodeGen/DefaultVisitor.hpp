@@ -10,26 +10,26 @@
 namespace vast::cg
 {
     //
-    // DefaultCodeGenVisitor
+    // default_visitor
     //
     // Provides default codegen for statements, declarations, types and comments.
     //
-    template< typename Derived >
-    struct DefaultCodeGenVisitor
-        : CodeGenDeclVisitorWithAttrs< Derived >
-        , CodeGenStmtVisitor< Derived >
-        , CodeGenTypeVisitorWithDataLayout< Derived >
-        , CodeGenAttrVisitor< Derived >
+    template< typename derived_t >
+    struct default_visitor
+        : decl_visitor_with_attrs< derived_t >
+        , default_stmt_visitor< derived_t >
+        , type_visitor_with_dl< derived_t >
+        , default_attr_visitor< derived_t >
     {
-        using DeclVisitor = CodeGenDeclVisitorWithAttrs< Derived >;
-        using StmtVisitor = CodeGenStmtVisitor< Derived >;
-        using TypeVisitor = CodeGenTypeVisitorWithDataLayout< Derived >;
-        using AttrVisitor = CodeGenAttrVisitor< Derived >;
+        using decl_visitor = decl_visitor_with_attrs< derived_t >;
+        using stmt_visitor = default_stmt_visitor< derived_t >;
+        using type_visitor = type_visitor_with_dl< derived_t >;
+        using attr_visitor = default_attr_visitor< derived_t >;
 
-        using DeclVisitor::Visit;
-        using StmtVisitor::Visit;
-        using TypeVisitor::Visit;
-        using AttrVisitor::Visit;
+        using decl_visitor::Visit;
+        using stmt_visitor::Visit;
+        using type_visitor::Visit;
+        using attr_visitor::Visit;
     };
 
 } // namespace vast::cg

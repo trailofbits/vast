@@ -40,7 +40,7 @@ namespace vast::cg
     template< typename CGVisitor, typename CGContext >
     struct CodeGenBase
     {
-        using MetaGenerator = typename CGVisitor::MetaGeneratorType;
+        using MetaGenerator = typename CGVisitor::meta_generator;
 
         using code_gen_context = CGContext;
 
@@ -303,20 +303,26 @@ namespace vast::cg
             return fn;
         }
 
+        template< typename... Args >
+        mlir_value constant(Args &&...args) {
+            return _visitor->constant(std::forward< Args >(args)...);
+        }
+
+        template< typename Op, typename... Args >
+        auto make(Args &&...args) {
+            return _visitor->template create< Op >(std::forward< Args >(args)...);
+        }
+
         void emit_implicit_void_return(hl::FuncOp fn, const clang::FunctionDecl *decl) {
-            VAST_CHECK(
-                decl->getReturnType()->isVoidType(),
+            VAST_CHECK( decl->getReturnType()->isVoidType(),
                 "Can't emit implicit void return in non-void function."
             );
-            auto &builder = _visitor->base_builder();
-            auto g        = _visitor->make_insertion_guard();
+
+            auto guard = _visitor->make_insertion_guard();
             _visitor->set_insertion_point_to_end(&fn.getBody());
 
-            auto loc        = meta_location(decl);
-            auto void_type  = _visitor->Visit(decl->getReturnType());
-            auto void_const =
-                builder.template create< hl::ConstantOp >(loc, cast< hl::VoidType >(void_type));
-            builder.template create< core::ImplicitReturnOp >(loc, void_const.getResult());
+            auto loc = meta_location(decl);
+            make< core::ImplicitReturnOp >(loc, constant(loc));
         }
 
         // TODO: This is currently just a dumb stub. But we want to be able to clearly
@@ -346,7 +352,6 @@ namespace vast::cg
             // TODO: XRay
             // TODO: PGO
 
-            //
             unsigned entry_count = 0, entry_offset = 0;
             if (const auto *attr = decl ? decl->getAttr< clang::PatchableFunctionEntryAttr >() : nullptr) {
                 VAST_UNIMPLEMENTED;
@@ -654,11 +659,9 @@ namespace vast::cg
         std::unique_ptr< CGVisitor > _visitor;
     };
 
-    template< typename Derived >
-    using DefaultVisitorConfig = FallBackVisitor< Derived,
-        DefaultCodeGenVisitor,
-        UnsupportedVisitor,
-        UnreachableVisitor
+    template< typename derived_t >
+    using default_visitor_stack = fallback_visitor< derived_t,
+        default_visitor, unsup_visitor, unreach_visitor
     >;
 
     //
@@ -671,7 +674,7 @@ namespace vast::cg
     >
     struct CodeGen
     {
-        using CGVisitor = CodeGenVisitor< CGContext, VisitorConfig, MetaGenerator >;
+        using CGVisitor = visitor_instance< CGContext, VisitorConfig, MetaGenerator >;
         using Base      = CodeGenBase< CGVisitor, CGContext >;
 
         using VarTable = typename CGContext::VarTable;
@@ -761,6 +764,10 @@ namespace vast::cg
             return codegen.emit_function_prologue(fn, decl, fty_info, args, options);
         }
 
+        void emit_implicit_return_zero(hl::FuncOp fn, const clang::FunctionDecl *decl) {
+            return codegen.emit_implicit_return_zero(fn, decl);
+        }
+
         void emit_implicit_void_return(hl::FuncOp fn, const clang::FunctionDecl *decl) {
             return codegen.emit_implicit_void_return(fn, decl);
         }
@@ -819,7 +826,7 @@ namespace vast::cg
         CodeGenBase< CGVisitor, CGContext > codegen;
     };
 
-    using DefaultCodeGen     = CodeGen< CodeGenContext, DefaultVisitorConfig, DefaultMetaGenerator >;
-    using CodeGenWithMetaIDs = CodeGen< CodeGenContext, DefaultVisitorConfig, IDMetaGenerator >;
+    using DefaultCodeGen     = CodeGen< cg_context, default_visitor_stack, default_meta_gen >;
+    using CodeGenWithMetaIDs = CodeGen< cg_context, default_visitor_stack, id_meta_gen >;
 
 } // namespace vast::cg

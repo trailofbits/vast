@@ -266,7 +266,7 @@ namespace vast::cg
         return fn;
     }
 
-    CodeGenContext::VarTable & codegen_driver::variables_symbol_table() {
+    cg_context::VarTable & codegen_driver::variables_symbol_table() {
         return codegen.variables_symbol_table();
     }
 

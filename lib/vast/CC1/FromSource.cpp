@@ -66,7 +66,7 @@ namespace vast::hl
 
         // TODO unify with CC codegen pipeline
         auto lang = get_source_language(compiler_args);
-        cg::CodeGenContext cgctx(*mctx, *actx, lang);
+        cg::cg_context cgctx(*mctx, *actx, lang);
 
         if (id_meta_flag) {
             cg::CodeGenWithMetaIDs(cgctx).emit_module(ast.get());

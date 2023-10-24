@@ -18,68 +18,68 @@ VAST_UNRELAX_WARNINGS
 namespace vast::cg
 {
     template< typename T >
-    concept MetaLike = requires(T meta) {
-        { meta.location() } -> std::convertible_to< mlir::Location >;
+    concept meta_like = requires(T meta) {
+        { meta.location() } -> std::convertible_to< loc_t >;
     };
 
     template< typename T >
-    concept MetaGeneratorLike = requires(T gen) {
-        { gen.get( std::declval< const clang::Decl * >() ) } -> MetaLike;
-        { gen.get( std::declval< const clang::Stmt * >() ) } -> MetaLike;
-        { gen.get( std::declval< const clang::Expr * >() ) } -> MetaLike;
-        { gen.get( std::declval< const clang::Type * >() ) } -> MetaLike;
-        { gen.get( std::declval< clang::QualType >() ) }     -> MetaLike;
+    concept meta_generator_like = requires(T gen) {
+        { gen.get( std::declval< const clang::Decl * >() ) } -> meta_like;
+        { gen.get( std::declval< const clang::Stmt * >() ) } -> meta_like;
+        { gen.get( std::declval< const clang::Expr * >() ) } -> meta_like;
+        { gen.get( std::declval< const clang::Type * >() ) } -> meta_like;
+        { gen.get( std::declval< clang::QualType >() ) }     -> meta_like;
     };
 
-    struct DefaultMeta {
-        mlir::Location location() const { return _location; }
-        mlir::Location _location;
+    struct default_meta {
+        loc_t location() const { return _location; }
+        loc_t _location;
     };
 
-    struct DefaultMetaGenerator {
-        DefaultMetaGenerator(acontext_t *actx, mcontext_t *mctx)
+    struct default_meta_gen {
+        default_meta_gen(acontext_t *actx, mcontext_t *mctx)
             : actx(actx), mctx(mctx)
         {}
 
-        DefaultMeta get(const clang::FullSourceLoc &loc) const {
+        default_meta get(const clang::FullSourceLoc &loc) const {
             auto file = loc.getFileEntry() ? loc.getFileEntry()->getName() : "unknown";
             auto line = loc.getLineNumber();
             auto col  = loc.getColumnNumber();
             return { mlir::FileLineColLoc::get(mctx, file, line, col) };
         }
 
-        DefaultMeta get(const clang::SourceLocation &loc) const {
+        default_meta get(const clang::SourceLocation &loc) const {
             return get(clang::FullSourceLoc(loc, actx->getSourceManager()));
         }
 
-        DefaultMeta get(const clang::Decl *decl) const {
+        default_meta get(const clang::Decl *decl) const {
             return get(decl->getLocation());
         }
 
-        DefaultMeta get(const clang::Stmt *stmt) const {
+        default_meta get(const clang::Stmt *stmt) const {
             // TODO: use SoureceRange
             return get(stmt->getBeginLoc());
         }
 
-        DefaultMeta get(const clang::Expr *expr) const {
+        default_meta get(const clang::Expr *expr) const {
             // TODO: use SoureceRange
             return get(expr->getExprLoc());
         }
 
-        DefaultMeta get(const clang::TypeLoc &loc) const {
+        default_meta get(const clang::TypeLoc &loc) const {
             // TODO: use SoureceRange
             return get(loc.getBeginLoc());
         }
 
-        DefaultMeta get(const clang::Type *type) const {
+        default_meta get(const clang::Type *type) const {
             return get(clang::TypeLoc(type, nullptr));
         }
 
-        DefaultMeta get(clang::QualType type) const {
+        default_meta get(clang::QualType type) const {
             return get(clang::TypeLoc(type, nullptr));
         }
 
-        DefaultMeta get(const clang::CXXBaseSpecifier &spec) const {
+        default_meta get(const clang::CXXBaseSpecifier &spec) const {
             return get(spec.getBeginLoc());
         }
 
@@ -87,28 +87,28 @@ namespace vast::cg
         mcontext_t *mctx;
     };
 
-    struct IDMetaGenerator {
-        IDMetaGenerator(acontext_t *actx, mcontext_t *mctx)
+    struct id_meta_gen {
+        id_meta_gen(acontext_t *actx, mcontext_t *mctx)
             : actx(actx), mctx(mctx)
         {}
 
-        mlir::Location make_location(meta::IdentifierAttr id) const {
+        loc_t make_location(meta::IdentifierAttr id) const {
             auto dummy = mlir::UnknownLoc::get(mctx);
             return mlir::FusedLoc::get( { dummy }, id, mctx );
         }
 
-        mlir::Location make_location(meta::identifier_t id) const {
+        loc_t make_location(meta::identifier_t id) const {
             return make_location(meta::IdentifierAttr::get(mctx, id));
         }
 
-        DefaultMeta get_impl(auto token) const { return { make_location(counter++) }; }
+        default_meta get_impl(auto token) const { return { make_location(counter++) }; }
 
-        DefaultMeta get(const clang::Decl *decl) const { return get_impl(decl); }
-        DefaultMeta get(const clang::Stmt *stmt) const { return get_impl(stmt); }
-        DefaultMeta get(const clang::Expr *expr) const { return get_impl(expr); }
-        DefaultMeta get(const clang::Type *type) const { return get_impl(type); }
-        DefaultMeta get(clang::QualType type) const { return get_impl(type); }
-        DefaultMeta get(const clang::CXXBaseSpecifier &spec) const { return get_impl(spec); }
+        default_meta get(const clang::Decl *decl) const { return get_impl(decl); }
+        default_meta get(const clang::Stmt *stmt) const { return get_impl(stmt); }
+        default_meta get(const clang::Expr *expr) const { return get_impl(expr); }
+        default_meta get(const clang::Type *type) const { return get_impl(type); }
+        default_meta get(clang::QualType type) const { return get_impl(type); }
+        default_meta get(const clang::CXXBaseSpecifier &spec) const { return get_impl(spec); }
 
         mutable meta::identifier_t counter = 0;
 

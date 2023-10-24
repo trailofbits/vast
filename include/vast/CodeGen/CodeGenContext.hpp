@@ -57,22 +57,22 @@ namespace vast::cg
         }
     } // namespace detail
 
-    struct CodeGenContext {
+    struct cg_context {
         mcontext_t &mctx;
         acontext_t &actx;
         owning_module_ref mod;
 
         dl::DataLayoutBlueprint dl;
 
-        CodeGenContext(mcontext_t &mctx, acontext_t &actx, owning_module_ref &&mod)
+        cg_context(mcontext_t &mctx, acontext_t &actx, owning_module_ref &&mod)
             : mctx(mctx)
             , actx(actx)
             , mod(std::move(mod))
             , mangler(actx.createMangleContext())
         {}
 
-        CodeGenContext(mcontext_t &mctx, acontext_t &actx, source_language lang)
-            : CodeGenContext(mctx, actx, detail::create_module(mctx, actx, lang))
+        cg_context(mcontext_t &mctx, acontext_t &actx, source_language lang)
+            : cg_context(mctx, actx, detail::create_module(mctx, actx, lang))
         {}
 
         lexical_scope_context *current_lexical_scope = nullptr;
