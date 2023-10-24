@@ -35,8 +35,7 @@ namespace vast::cg
         using base           = visitor_base< context_t, meta_generator_t >;
         using mixin          = visitor_mixin< visitor_instance< context_t, visitor_mixin, meta_generator_t > >;
         using meta_generator = meta_generator_t;
-        using builder =
-            builder_t< visitor_instance< context_t, visitor_mixin, meta_generator_t > >;
+        using builder        = builder_t< visitor_instance< context_t, visitor_mixin, meta_generator_t > >;
 
         visitor_instance(context_t &ctx, meta_generator &gen)
             : base(ctx, gen)

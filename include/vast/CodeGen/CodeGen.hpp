@@ -33,18 +33,16 @@ namespace vast::cg
     } // namespace detail
 
     //
-    // CodeGenUnit
+    // codegen_base
     //
     // It takes care of translation of single translation unit or declaration.
     //
-    template< typename CGVisitor, typename CGContext >
-    struct CodeGenBase
+    template< typename visitor_t, typename context_t >
+    struct codegen_base
     {
-        using MetaGenerator = typename CGVisitor::meta_generator;
+        using meta_generator = typename visitor_t::meta_generator;
 
-        using code_gen_context = CGContext;
-
-        CodeGenBase(CGContext &cgctx, MetaGenerator &meta)
+        codegen_base(context_t &cgctx, meta_generator &meta)
             : _mctx(&cgctx.mctx)
             , _meta(meta)
             , _cgctx(cgctx)
@@ -94,7 +92,7 @@ namespace vast::cg
         using FunctionsScope     = ScopedSymbolTable< mangled_name_ref, hl::FuncOp >;
         using VariablesScope     = ScopedSymbolTable< const clang::VarDecl *, Value >;
 
-        struct CodegenScope {
+        struct cg_scope {
             TypeDefsScope      typedefs;
             TypeDeclsScope     typedecls;
             EnumDeclsScope     enumdecls;
@@ -170,7 +168,7 @@ namespace vast::cg
             VAST_UNIMPLEMENTED;
         }
 
-        typename CGContext::VarTable& variables_symbol_table() { return _cgctx.vars; }
+        typename context_t::var_table& variables_symbol_table() { return _cgctx.vars; }
 
         // correspond to clang::CodeGenFunction::GenerateCode
         hl::FuncOp emit_function_prologue(
@@ -644,7 +642,7 @@ namespace vast::cg
             if (_scope)
                 return;
 
-            _scope = std::unique_ptr< CodegenScope >( new CodegenScope{
+            _scope = std::unique_ptr< cg_scope >( new cg_scope{
                 .typedefs   = _cgctx.typedefs,
                 .typedecls  = _cgctx.typedecls,
                 .enumdecls  = _cgctx.enumdecls,
@@ -654,7 +652,7 @@ namespace vast::cg
                 .globs      = _cgctx.vars
             });
 
-            _visitor = std::make_unique< CGVisitor >(_cgctx, _meta);
+            _visitor = std::make_unique< visitor_t >(_cgctx, _meta);
         }
 
         template< typename AST >
@@ -664,24 +662,24 @@ namespace vast::cg
         }
 
         static bool process_root_decl(void * context, const clang::Decl *decl) {
-            CGVisitor &visitor = *static_cast<CGVisitor*>(context);
+            auto &visitor = *static_cast< visitor_t* >(context);
             return visitor.Visit(decl), true;
         }
 
-        void process(clang::ASTUnit *unit, CGVisitor &visitor) {
+        void process(clang::ASTUnit *unit, visitor_t &visitor) {
             unit->visitLocalTopLevelDecls(&visitor, process_root_decl);
         }
 
-        void process(const clang::Decl *decl, CGVisitor &visitor) {
+        void process(const clang::Decl *decl, visitor_t &visitor) {
             visitor.Visit(decl);
         }
 
         mcontext_t *_mctx;
-        MetaGenerator &_meta;
+        meta_generator &_meta;
 
-        CGContext &_cgctx;
-        std::unique_ptr< CodegenScope > _scope;
-        std::unique_ptr< CGVisitor > _visitor;
+        context_t &_cgctx;
+        std::unique_ptr< cg_scope > _scope;
+        std::unique_ptr< visitor_t > _visitor;
     };
 
     template< typename derived_t >
@@ -693,18 +691,18 @@ namespace vast::cg
     // CodeGen
     //
     template<
-        typename CGContext,
-        template< typename > typename VisitorConfig,
-        typename MetaGenerator
+        typename context_t,
+        template< typename > typename visitor_config,
+        typename meta_generator
     >
-    struct CodeGen
+    struct codegen_instance
     {
-        using CGVisitor = visitor_instance< CGContext, VisitorConfig, MetaGenerator >;
-        using Base      = CodeGenBase< CGVisitor, CGContext >;
+        using visitor_t    = visitor_instance< context_t, visitor_config, meta_generator >;
+        using codegen_base = codegen_base< visitor_t, context_t >;
 
-        using VarTable = typename CGContext::VarTable;
+        using var_table = typename context_t::var_table;
 
-        CodeGen(CGContext &cgctx)
+        codegen_instance(context_t &cgctx)
             : meta(&cgctx.actx, &cgctx.mctx), codegen(cgctx, meta)
         {}
 
@@ -769,7 +767,7 @@ namespace vast::cg
             return codegen.receive_deferred_decls_to_emit();
         }
 
-        VarTable & variables_symbol_table() {
+        var_table & variables_symbol_table() {
             return codegen.variables_symbol_table();
         }
 
@@ -855,11 +853,11 @@ namespace vast::cg
 
         void dump_module() { codegen.dump_module(); }
 
-        MetaGenerator meta;
-        CodeGenBase< CGVisitor, CGContext > codegen;
+        meta_generator meta;
+        codegen_base codegen;
     };
 
-    using DefaultCodeGen     = CodeGen< cg_context, default_visitor_stack, default_meta_gen >;
-    using CodeGenWithMetaIDs = CodeGen< cg_context, default_visitor_stack, id_meta_gen >;
+    using default_codegen       = codegen_instance< codegen_context, default_visitor_stack, default_meta_gen >;
+    using codegen_with_meta_ids = codegen_instance< codegen_context, default_visitor_stack, id_meta_gen >;
 
 } // namespace vast::cg

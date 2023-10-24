@@ -48,7 +48,7 @@ namespace vast::cg {
             .lang                            = get_source_language(lang_ops)
         };
 
-        this->cgcontext = std::make_unique< cg_context >(
+        this->cgcontext = std::make_unique< codegen_context >(
             *this->mcontext, *this->acontext, options.lang
         );
 

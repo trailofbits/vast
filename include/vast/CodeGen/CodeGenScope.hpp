@@ -14,7 +14,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg
 {
-    struct cg_context;
+    struct codegen_context;
 
     // Represents a vast.scope, vast.if, and then/else regions. i.e. lexical
     // scopes that require cleanups.
