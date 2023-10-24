@@ -10,7 +10,6 @@ configure_lit_site_cfg(
 set(VAST_TEST_DEPENDS
   vast-query
   vast-opt
-  vast-cc
   vast-front
 )
 
