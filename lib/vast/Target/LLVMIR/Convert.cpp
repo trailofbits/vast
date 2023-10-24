@@ -39,36 +39,17 @@ namespace vast::target::llvmir
             {
                 case pipeline::baseline:
                 {
-                    pm.addPass(hl::createHLLowerTypesPass());
-                    pm.addPass(hl::createDCEPass());
-                    pm.addPass(hl::createLowerTypeDefsPass());
-                    pm.addPass(createHLToLLFuncPass());
-                    pm.addPass(createHLToLLVarsPass());
-                    pm.addPass(createHLToLLCFPass());
-                    pm.addPass(createHLEmitLazyRegionsPass());
-                    pm.addPass(createHLToLLGEPsPass());
-                    pm.addPass(createHLStructsToLLVMPass());
-                    pm.addPass(createIRsToLLVMPass());
-                    pm.addPass(createCoreToLLVMPass());
+                    hl::build_simplify_hl_pipeline(pm);
+                    build_to_ll_pipeline(pm);
+                    build_to_llvm_pipeline(pm);
                     return;
                 }
                 case pipeline::with_abi:
                 {
-                    pm.addPass(hl::createHLLowerTypesPass());
-                    pm.addPass(hl::createDCEPass());
-                    pm.addPass(hl::createLowerTypeDefsPass());
-
-                    pm.addPass(createEmitABIPass());
-                    pm.addPass(createLowerABIPass());
-
-                    pm.addPass(createHLToLLFuncPass());
-                    pm.addPass(createHLToLLVarsPass());
-                    pm.addPass(createHLToLLCFPass());
-                    pm.addPass(createHLEmitLazyRegionsPass());
-                    pm.addPass(createHLToLLGEPsPass());
-                    pm.addPass(createHLStructsToLLVMPass());
-                    pm.addPass(createIRsToLLVMPass());
-                    pm.addPass(createCoreToLLVMPass());
+                    hl::build_simplify_hl_pipeline(pm);
+                    build_abi_pipeline(pm);
+                    build_to_ll_pipeline(pm);
+                    build_to_llvm_pipeline(pm);
                     return;
                 }
             }
