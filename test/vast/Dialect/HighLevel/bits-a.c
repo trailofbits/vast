@@ -27,7 +27,7 @@ int sign2(int v) {
     // CHECK:   hl.mul
     // CHECK:   hl.const #core.integer<1> : !hl.int
     // CHECK:   hl.sub
-    // CHECK:  hl.bin.shr
+    // CHECK:  hl.bin.lshr
     // CHECK: hl.minus
     return -(int)((unsigned int)((int)v) >> (sizeof(int) * CHAR_BIT - 1));
 }
@@ -42,6 +42,6 @@ int sign3(unsigned long v) {
     // CHECK:  hl.mul
     // CHECK:  hl.const #core.integer<1> : !hl.int
     // CHECK:  hl.sub
-    // CHECK: hl.bin.shr [[V1]], [[V2]]
+    // CHECK: hl.bin.lshr [[V1]], [[V2]]
     return v >> (sizeof(int) * CHAR_BIT - 1);
 }
