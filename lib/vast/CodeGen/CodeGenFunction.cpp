@@ -81,61 +81,66 @@ namespace vast::cg
         return rty.isTriviallyCopyableType(acontext());
     }
 
-    // This function implements the logic from CodeGenFunction::GenerateCode
-    hl::FuncOp codegen_driver::build_function_body(
-        hl::FuncOp fn, clang::GlobalDecl decl, const function_info_t &fty_info
-    ) {
-        auto args = build_function_arg_list(decl);
-        fn = codegen.emit_function_prologue(
-            fn, decl, fty_info, args, options
+    void codegen_driver::deal_with_missing_return(hl::FuncOp fn, const clang::FunctionDecl *decl) {
+        auto rty = decl->getReturnType();
+
+        bool shoud_emit_unreachable = (
+            options.strict_return || may_drop_function_return(rty)
         );
-        auto function_decl = clang::cast< clang::FunctionDecl >( decl.getDecl() );
 
-        if (mlir::failed(fn.verifyBody()))
-            return nullptr;
+        // if (SanOpts.has(SanitizerKind::Return)) {
+        //     VAST_UNIMPLEMENTED;
+        // }
 
-        const auto &lang = acontext().getLangOpts();
-        auto rty = function_decl->getReturnType();
+        if (rty->isVoidType()) {
+            codegen.emit_implicit_void_return(fn, decl);
+        } else if (decl->hasImplicitReturnZero()) {
+            codegen.emit_implicit_return_zero(fn, decl);
+        } else if (shoud_emit_unreachable) {
+            // C++11 [stmt.return]p2:
+            //   Flowing off the end of a function [...] results in undefined behavior
+            //   in a value-returning function.
+            // C11 6.9.1p12:
+            //   If the '}' that terminates a function is reached, and the value of the
+            //   function call is used by the caller, the behavior is undefined.
 
-        // C++11 [stmt.return]p2:
-        //   Flowing off the end of a function [...] results in undefined behavior
-        //   in a value-returning function.
-        // C11 6.9.1p12:
-        //   If the '}' that terminates a function is reached, and the value of the
-        //   function call is used by the caller, the behavior is undefined.
-        bool deal_with_missing_return = [&] {
-            return lang.CPlusPlus &&
-                !function_decl->hasImplicitReturnZero() &&
-                // TODO: !SawAsmBlock &&
-                !rty->isVoidType() &&
-                codegen.has_insertion_block();
-        } ();
-
-
-        if (deal_with_missing_return) {
-            bool shoud_emit_unreachable = (
-                options.strict_return || may_drop_function_return(rty)
-            );
-
-            // if (SanOpts.has(SanitizerKind::Return)) {
-            //     VAST_UNIMPLEMENTED;
-            // }
-
-            if (shoud_emit_unreachable) {
-                if (options.optimization_level == 0) {
-                    ; // TODO: buildTrapCall(llvm::Intrinsic::trap);
-                } else {
-                    // TODO: builder.createUnreachable();
-                    codegen.clear_insertion_point();
-                }
+            // TODO: skip if SawAsmBlock
+            if (options.optimization_level == 0) {
+                codegen.emit_trap(fn, decl);
+            } else {
+                codegen.emit_unreachable(fn, decl);
             }
+        } else {
+            VAST_UNIMPLEMENTED_MSG("unknown missing return case");
+        }
+    }
+
+    operation get_last_effective_operation(auto &block) {
+        auto last = &block.back();
+        if (auto scope = mlir::dyn_cast< core::ScopeOp >(last)) {
+            return get_last_effective_operation(scope.getBody().back());
         }
 
-       auto &body_block = fn.getBody().back();
-       if (rty->isVoidType() &&
-           (body_block.empty() || !mlir::isa< hl::ReturnOp >(body_block.back()))) {
-           codegen.emit_implicit_void_return(fn, function_decl);
-       }
+        return last;
+    }
+
+    hl::FuncOp codegen_driver::emit_function_epilogue(hl::FuncOp fn, clang::GlobalDecl decl) {
+        auto function_decl = clang::cast< clang::FunctionDecl >( decl.getDecl() );
+
+        auto &last_block = fn.getBody().back();
+        auto missing_return = [&] (auto &block) {
+            if (codegen.has_insertion_block()) {
+                return block.empty() || !get_last_effective_operation(block)->template hasTrait< core::return_trait >();
+            }
+
+            return false;
+        };
+
+        if (missing_return(last_block)) {
+            deal_with_missing_return(fn, function_decl);
+        }
+
+
         // Emit the standard function epilogue.
         // TODO: finishFunction(BodyRange.getEnd());
 
@@ -144,6 +149,22 @@ namespace vast::cg
         // TODO: if (!CurFn->doesNotThrow()) TryMarkNoThrow(CurFn);
 
         return fn;
+    }
+
+    // This function implements the logic from CodeGenFunction::GenerateCode
+    hl::FuncOp codegen_driver::build_function_body(
+        hl::FuncOp fn, clang::GlobalDecl decl, const function_info_t &fty_info
+    ) {
+        auto args = build_function_arg_list(decl);
+        fn = codegen.emit_function_prologue(
+            fn, decl, fty_info, args, options
+        );
+
+        if (mlir::failed(fn.verifyBody())) {
+            return nullptr;
+        }
+
+        return emit_function_epilogue(fn, decl);
     }
 
 } // namespace vast::cg

@@ -313,16 +313,41 @@ namespace vast::cg
             return _visitor->template create< Op >(std::forward< Args >(args)...);
         }
 
+        auto insert_at_end(hl::FuncOp fn) {
+            auto guard = _visitor->make_insertion_guard();
+            _visitor->set_insertion_point_to_end(&fn.getBody());
+            return std::move(guard);
+        }
+
+        void emit_implicit_return_zero(hl::FuncOp fn, const clang::FunctionDecl *decl) {
+            auto guard = insert_at_end(fn);
+            auto loc   = meta_location(decl);
+
+            auto fty = fn.getFunctionType();
+            auto zero = _visitor->constant(loc, fty.getResult(0), apsint(0));
+            make< core::ImplicitReturnOp >(loc, zero);
+        }
+
         void emit_implicit_void_return(hl::FuncOp fn, const clang::FunctionDecl *decl) {
             VAST_CHECK( decl->getReturnType()->isVoidType(),
                 "Can't emit implicit void return in non-void function."
             );
 
-            auto guard = _visitor->make_insertion_guard();
-            _visitor->set_insertion_point_to_end(&fn.getBody());
+            auto guard = insert_at_end(fn);
 
             auto loc = meta_location(decl);
             make< core::ImplicitReturnOp >(loc, constant(loc));
+        }
+
+        void emit_trap(hl::FuncOp fn, const clang::FunctionDecl *decl) {
+            // TODO fix when we support builtin function (emit enreachable for now)
+            emit_unreachable(fn, decl);
+        }
+
+        void emit_unreachable(hl::FuncOp fn, const clang::FunctionDecl *decl) {
+            auto guard = insert_at_end(fn);
+            auto loc = meta_location(decl);
+            make< hl::UnreachableOp >(loc);
         }
 
         // TODO: This is currently just a dumb stub. But we want to be able to clearly
@@ -770,6 +795,14 @@ namespace vast::cg
 
         void emit_implicit_void_return(hl::FuncOp fn, const clang::FunctionDecl *decl) {
             return codegen.emit_implicit_void_return(fn, decl);
+        }
+
+        void emit_trap(hl::FuncOp fn, const clang::FunctionDecl *decl) {
+            return codegen.emit_trap(fn, decl);
+        }
+
+        void emit_unreachable(hl::FuncOp fn, const clang::FunctionDecl *decl) {
+            return codegen.emit_unreachable(fn, decl);
         }
 
         hl::FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
