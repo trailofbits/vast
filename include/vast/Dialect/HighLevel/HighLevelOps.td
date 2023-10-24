@@ -739,7 +739,8 @@ class ShiftOp< string mnemonic, list< Trait > traits = [] >
 }
 
 def BinShlOp : ShiftOp<"bin.shl" >;
-def BinShrOp : ShiftOp<"bin.shr" >;
+def BinLShrOp : ShiftOp<"bin.lshr" >;
+def BinAShrOp : ShiftOp<"bin.ashr" >;
 
 class IsLValuePointer< string arg > : PredOpTrait< "lvalue is of an integer type",
     CPred< "$" # arg # ".getType().cast< LValueType >().getElementType().isa< hl::PointerType >()" >
@@ -825,7 +826,9 @@ class ShiftAssignOp< string mnemonic, list< Trait > traits = [] >
     : CompoundAssignOpTemplate< mnemonic, IntegerLikeType, traits > {}
 
 def BinShlAssignOp : ShiftAssignOp< "assign.bin.shl" >;
-def BinShrAssignOp : ShiftAssignOp< "assign.bin.shr" >;
+
+def BinLShrAssignOp : ShiftAssignOp< "assign.bin.lshr" >;
+def BinAShrAssignOp : ShiftAssignOp< "assign.bin.ashr" >;
 
 class PredicateAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
