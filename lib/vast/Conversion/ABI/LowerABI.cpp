@@ -442,6 +442,7 @@ namespace vast
             }
 
             // TODO(conv:abi): Copy & paste of prologue
+            // TODO(conv:abi): Should this use `gap::recursive_generator` instead?
             values match_on(abi::DirectOp direct, state_capture &state) const override
             {
                 auto ctor = reconstructs_types(state, *this);

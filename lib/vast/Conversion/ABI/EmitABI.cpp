@@ -131,6 +131,8 @@ namespace vast
                                                 abified_rets());
             }
 
+            // TODO(conv:abi): Can be replaced with `llvm::zip`? Will work with
+            //                 all other classifications?
             void zip(const auto &a, const auto &b, auto &&yield)
             {
                 auto a_it = a.begin();
