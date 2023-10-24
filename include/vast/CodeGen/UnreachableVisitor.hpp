@@ -8,22 +8,22 @@
 
 namespace vast::cg
 {
-    template< typename Derived >
-    struct UnreachableStmtVisitor {
+    template< typename derived_t >
+    struct unreach_stmt_visitor {
         operation Visit(const clang::Stmt *stmt) {
             VAST_UNREACHABLE("unsupported stmt: {0}", stmt->getStmtClassName());
         }
     };
 
-    template< typename Derived >
-    struct UnreachableDeclVisitor {
+    template< typename derived_t >
+    struct unreach_decl_visitor {
         operation Visit(const clang::Decl *decl) {
             VAST_UNREACHABLE("unsupported decl: {0}", decl->getDeclKindName());
         }
     };
 
-    template< typename Derived >
-    struct UnreachableTypeVisitor {
+    template< typename derived_t >
+    struct unreach_type_visitor {
         mlir_type Visit(clang::QualType type) {
             VAST_UNREACHABLE("unsupported type: {0}", type.getAsString());
         }
@@ -33,29 +33,32 @@ namespace vast::cg
         }
     };
 
-    template< typename Derived >
-    struct UnreachableAttrVisitor {
+    template< typename derived_t >
+    struct unreach_attr_visitor {
         mlir_attr Visit(const clang::Attr *attr) {
             VAST_UNREACHABLE("unsupported attr: {0}", attr->getSpelling());
         }
     };
 
-    template< typename Derived >
-    struct UnreachableVisitor
-        : UnreachableDeclVisitor< Derived >
-        , UnreachableStmtVisitor< Derived >
-        , UnreachableTypeVisitor< Derived >
-        , UnreachableAttrVisitor< Derived >
+    //
+    // This is a bottom visitor, which yields an error if called
+    //
+    template< typename derived_t >
+    struct unreach_visitor
+        : unreach_decl_visitor< derived_t >
+        , unreach_stmt_visitor< derived_t >
+        , unreach_type_visitor< derived_t >
+        , unreach_attr_visitor< derived_t >
     {
-        using DeclVisitor = UnreachableDeclVisitor< Derived >;
-        using StmtVisitor = UnreachableStmtVisitor< Derived >;
-        using TypeVisitor = UnreachableTypeVisitor< Derived >;
-        using AttrVisitor = UnreachableAttrVisitor< Derived >;
+        using decl_visitor = unreach_decl_visitor< derived_t >;
+        using stmt_visitor = unreach_stmt_visitor< derived_t >;
+        using type_visitor = unreach_type_visitor< derived_t >;
+        using attr_visitor = unreach_attr_visitor< derived_t >;
 
-        using DeclVisitor::Visit;
-        using StmtVisitor::Visit;
-        using TypeVisitor::Visit;
-        using AttrVisitor::Visit;
+        using decl_visitor::Visit;
+        using stmt_visitor::Visit;
+        using type_visitor::Visit;
+        using attr_visitor::Visit;
     };
 
 } // namespace vast::cg

@@ -5,7 +5,6 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-#include <clang/AST/AttrVisitor.h>
 #include <clang/AST/Attr.h>
 #include <clang/Basic/Diagnostic.h>
 #include <clang/Frontend/FrontendDiagnostic.h>
@@ -18,30 +17,25 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg {
 
-    template< typename Derived >
-    struct CodeGenAttrVisitor
-        : clang::ConstAttrVisitor< CodeGenAttrVisitor< Derived >, mlir_attr >
-        , CodeGenVisitorLens< CodeGenAttrVisitor< Derived >, Derived >
-        , CodeGenBuilder< CodeGenAttrVisitor< Derived >, Derived >
+    template< typename derived_t >
+    struct default_attr_visitor
+        : attr_visitor_base< default_attr_visitor< derived_t > >
+        , visitor_lens< derived_t, default_attr_visitor >
     {
-        using LensType = CodeGenVisitorLens< CodeGenAttrVisitor< Derived >, Derived >;
+        using lens = visitor_lens< derived_t, default_attr_visitor >;
 
-        using LensType::derived;
-        using LensType::context;
-        using LensType::mcontext;
-        using LensType::acontext;
+        using lens::derived;
+        using lens::context;
+        using lens::mcontext;
+        using lens::acontext;
 
-        using LensType::visit;
+        using lens::visit;
 
-        using LensType::meta_location;
-
-        using Builder = CodeGenBuilder< CodeGenAttrVisitor< Derived >, Derived >;
-
-        using Builder::builder;
-
-        template< typename Attr, typename... Args >
-        auto make(Args &&...args) {
-            return builder().template getAttr< Attr >(std::forward< Args >(args)...);
+        template< typename attr_t, typename... args_t >
+        auto make(args_t &&...args) {
+            return derived().base_builder().template getAttr< attr_t >(
+                std::forward< args_t >(args)...
+            );
         }
 
         mlir_attr VisitSectionAttr(const clang::SectionAttr *attr) {

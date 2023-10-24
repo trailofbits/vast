@@ -14,7 +14,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg
 {
-    struct CodeGenContext;
+    struct cg_context;
 
     // Represents a vast.scope, vast.if, and then/else regions. i.e. lexical
     // scopes that require cleanups.
@@ -22,12 +22,12 @@ namespace vast::cg
       private:
         // Block containing cleanup code for things initialized in this
         // lexical context (scope).
-        mlir::Block *cleanup_block = nullptr;
+        block_ptr cleanup_block = nullptr;
 
         // Points to scope entry block. This is useful, for instance, for
         // helping to insert allocas before finalizing any recursive codegen
         // from switches.
-        mlir::Block *entry_block;
+        block_ptr entry_block;
 
         // On a coroutine body, the OnFallthrough sub stmt holds the handler
         // (CoreturnStmt) for control flow falling off the body. Keep track
@@ -47,7 +47,7 @@ namespace vast::cg
         unsigned depth = 0;
         bool has_return = false;
 
-        lexical_scope_context(mlir::Location b, mlir::Location e, mlir::Block *eb)
+        lexical_scope_context(loc_t b, loc_t e, block_ptr eb)
             : entry_block(eb)
             , begin_loc(b)
             , end_loc(e)
@@ -73,14 +73,14 @@ namespace vast::cg
         // ---
 
         // Lazy create cleanup block or return what's available.
-        mlir::Block *get_or_create_cleanup_block(mlir::OpBuilder &builder) {
+        block_ptr get_or_create_cleanup_block(mlir::OpBuilder &builder) {
             if (cleanup_block)
                 return get_cleanup_block(builder);
             return create_cleanup_block(builder);
         }
 
-        mlir::Block *get_cleanup_block(mlir::OpBuilder &/* builder */) { return cleanup_block; }
-        mlir::Block *create_cleanup_block(mlir::OpBuilder &builder) {
+        block_ptr get_cleanup_block(mlir::OpBuilder &/* builder */) { return cleanup_block; }
+        block_ptr create_cleanup_block(mlir::OpBuilder &builder) {
             // Create the cleanup block but dont hook it up around just yet.
             InsertionGuard guard(builder);
             cleanup_block = builder.createBlock(builder.getBlock()->getParent());
@@ -101,13 +101,13 @@ namespace vast::cg
       private:
         // On switches we need one return block per region, since cases don't
         // have their own scopes but are distinct regions nonetheless.
-        llvm::SmallVector< mlir::Block * > ret_blocks;
-        llvm::SmallVector< std::optional< mlir::Location > > ret_locs;
+        llvm::SmallVector< block_ptr  > ret_blocks;
+        llvm::SmallVector< std::optional< loc_t > > ret_locs;
 
         // There's usually only one ret block per scope, but this needs to be
         // get or create because of potential unreachable return statements, note
         // that for those, all source location maps to the first one found.
-        mlir::Block *create_ret_block(mlir::Location /* loc */) {
+        block_ptr create_ret_block(loc_t /* loc */) {
             VAST_CHECK((is_switch() || ret_blocks.size() == 0), "only switches can hold more than one ret block");
 
             // Create the cleanup block but dont hook it up around just yet.
@@ -120,10 +120,10 @@ namespace vast::cg
         }
 
       public:
-        llvm::ArrayRef< mlir::Block * > get_ret_blocks() { return ret_blocks; }
-        llvm::ArrayRef< std::optional< mlir::Location > > get_ret_locs() { return ret_locs; }
+        llvm::ArrayRef< block_ptr  > get_ret_blocks() { return ret_blocks; }
+        llvm::ArrayRef< std::optional< loc_t > > get_ret_locs() { return ret_locs; }
 
-        mlir::Block *get_or_create_ret_block(mlir::Location loc) {
+        block_ptr get_or_create_ret_block(loc_t loc) {
             unsigned int region_idx = 0;
             if (is_switch()) {
                 VAST_UNIMPLEMENTED_MSG("switch region block");
@@ -135,9 +135,9 @@ namespace vast::cg
         }
 
         // Scope entry block tracking
-        mlir::Block *get_entry_block() { return entry_block; }
+        block_ptr get_entry_block() { return entry_block; }
 
-        mlir::Location begin_loc, end_loc;
+        loc_t begin_loc, end_loc;
     };
 
     template< typename codegen_t >

@@ -8,13 +8,13 @@
 namespace vast::cg
 {
     //
-    // FallBackVisitor
+    // fallback_visitor
     //
-    // Allows to specify chain of fallback visitors in case that first `Visitor::Visit` is
+    // Allows to specify chain of fallback visitors in case that first `visitor::Visit` is
     // unsuccessful.
     //
-    template< typename Derived, template< typename > typename ...Visitors >
-    struct FallBackVisitor : Visitors< Derived >...
+    template< typename derived_t, template< typename > typename ...visitors >
+    struct fallback_visitor : visitors< derived_t >...
     {
         operation Visit(const clang::Stmt *stmt) { return visit_with_fallback(stmt); }
         operation Visit(const clang::Decl *decl) { return visit_with_fallback(decl); }
@@ -22,13 +22,13 @@ namespace vast::cg
         mlir_attr Visit(const clang::Attr *attr) { return visit_with_fallback(attr); }
         mlir_type Visit(clang::QualType    type) { return visit_with_fallback(type); }
 
-        using visitors = util::type_list< Visitors< Derived >... >;
+        using visitors_list = util::type_list< visitors< derived_t >... >;
 
         auto visit_with_fallback(auto token) {
-            using result_type = decltype(visitors::head::Visit(token));
+            using result_type = decltype(visitors_list::head::Visit(token));
 
             result_type result;
-            ((result = Visitors< Derived >::Visit(token)) || ... );
+            ((result = visitors< derived_t >::Visit(token)) || ... );
             return result;
         }
     };

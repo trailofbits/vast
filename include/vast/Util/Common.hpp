@@ -48,17 +48,22 @@ namespace vast {
     using owning_module_ref = mlir::OwningOpRef< vast_module >;
 
     using mlir_type  = mlir::Type;
-    using clang_type = clang::Type;
 
     using operation  = mlir::Operation *;
     using mlir_value = mlir::Value;
     using op_operand = mlir::OpOperand;
 
+    using ap_int         = llvm::APInt;
+    using ap_sint        = llvm::APSInt;
+    using ap_float       = llvm::APFloat;
     using string_ref     = llvm::StringRef;
     using logical_result = mlir::LogicalResult;
 
     using insertion_guard = Builder::InsertionGuard;
 
+    using mlir_attr    = mlir::Attribute;
+
+    // TODO replace with attr_t
     using attr_t       = mlir::Attribute;
     using maybe_attr_t = std::optional< mlir::Attribute >;
 
@@ -68,4 +73,14 @@ namespace vast {
     using types_t       = mlir::SmallVector< mlir_type >;
     using maybe_type_t  = std::optional< mlir_type >;
     using maybe_types_t = std::optional< types_t >;
+
+    using loc_t         = mlir::Location;
+
+    using mlir_builder  = mlir::OpBuilder;
+
+    using region_t      = mlir::Region;
+    using region_ptr    = region_t*;
+
+    using block_t       = mlir::Block;
+    using block_ptr     = block_t*;
 } // namespace vast

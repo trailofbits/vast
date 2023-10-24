@@ -15,36 +15,56 @@
 namespace vast::cg
 {
     //
-    // CodeGenVisitor
+    // visitor_instance
     //
-    // It is paramtetrized by `CodeGenVisitor` that implements all Visit methods.
-    // This allows to cofigure Visit implementation, e.g., to provide FallBackVisitor.
+    // It is paramtetrized by `visitor_mixin` that implements all Visit methods.
+    // This allows to cofigure Visit implementation, e.g., to provide fallback_visitor.
     //
-    // `MetaGenerator` takes care of attaching location metadata to generated mlir primitives.
+    // `meta_generator` takes care of attaching location metadata to generated mlir primitives.
     //
     template<
-        typename CGContext,
-        template< typename > typename VisitorMixin,
-        MetaGeneratorLike MetaGenerator
+        typename context_t,
+        template< typename > typename visitor_mixin,
+        typename meta_generator_t
     >
-    struct CodeGenVisitor
-        : VisitorMixin< CodeGenVisitor< CGContext, VisitorMixin, MetaGenerator > >
-        , CodeGenVisitorBase< CGContext, MetaGenerator >
+    struct visitor_instance
+        : builder_t< visitor_instance< context_t, visitor_mixin, meta_generator_t > >
+        , visitor_mixin< visitor_instance< context_t, visitor_mixin, meta_generator_t > >
+        , visitor_base< context_t, meta_generator_t >
     {
-        using BaseType          = CodeGenVisitorBase< CGContext, MetaGenerator >;
-        using Mixin             = VisitorMixin< CodeGenVisitor< CGContext, VisitorMixin, MetaGenerator > >;
-        using MetaGeneratorType = MetaGenerator;
+        using base           = visitor_base< context_t, meta_generator_t >;
+        using mixin          = visitor_mixin< visitor_instance< context_t, visitor_mixin, meta_generator_t > >;
+        using meta_generator = meta_generator_t;
+        using builder =
+            builder_t< visitor_instance< context_t, visitor_mixin, meta_generator_t > >;
 
-        CodeGenVisitor(CGContext &ctx, MetaGenerator &gen)
-            : BaseType(ctx, gen)
+        visitor_instance(context_t &ctx, meta_generator &gen)
+            : base(ctx, gen)
         {}
 
-        using BaseType::set_insertion_point_to_start;
-        using BaseType::set_insertion_point_to_end;
-        using BaseType::has_insertion_block;
-        using BaseType::clear_insertion_point;
+        using builder::set_insertion_point_to_start;
+        using builder::set_insertion_point_to_end;
+        using builder::has_insertion_block;
+        using builder::clear_insertion_point;
 
-        using Mixin::Visit;
+        using builder::make_scoped;
+
+        using builder::make_cond_builder;
+        using builder::make_operation;
+        using builder::make_region_builder;
+        using builder::make_stmt_expr_region;
+        using builder::make_type_yield_builder;
+        using builder::make_value_builder;
+        using builder::make_value_yield_region;
+        using builder::make_yield_true;
+
+        using builder::constant;
+
+        using base::base_builder;
+        using base::meta_location;
+        using base::make_insertion_guard;
+
+        using mixin::Visit;
     };
 
 } // namespace vast::cg

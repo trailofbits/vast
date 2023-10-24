@@ -27,55 +27,52 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg {
 
-    template< typename Derived >
-    struct CodeGenDeclVisitor
-        : clang::ConstDeclVisitor< CodeGenDeclVisitor< Derived >, operation >
-        , CodeGenVisitorLens< CodeGenDeclVisitor< Derived >, Derived >
-        , CodeGenBuilder< CodeGenDeclVisitor< Derived >, Derived >
+    template< typename derived_t >
+    struct default_decl_visitor
+        : decl_visitor_base< default_decl_visitor< derived_t > >
+        , visitor_lens< derived_t, default_decl_visitor >
     {
-        using LensType = CodeGenVisitorLens< CodeGenDeclVisitor< Derived >, Derived >;
+        using lens = visitor_lens< derived_t, default_decl_visitor >;
 
-        using LensType::derived;
-        using LensType::context;
-        using LensType::mcontext;
-        using LensType::acontext;
+        using lens::derived;
+        using lens::context;
+        using lens::mcontext;
+        using lens::acontext;
 
-        using LensType::meta_location;
+        using lens::name_mangler;
 
-        using LensType::name_mangler;
+        using lens::base_builder;
 
-        using LensType::visit;
-        using LensType::visit_as_lvalue_type;
-        using LensType::visit_function_type;
+        using lens::visit;
+        using lens::visit_as_lvalue_type;
+        using lens::visit_function_type;
 
-        using Builder = CodeGenBuilder< CodeGenDeclVisitor< Derived >, Derived >;
+        using lens::make_value_builder;
 
-        using Builder::builder;
-        using Builder::make_value_builder;
+        using lens::make_insertion_guard;
 
-        using Builder::insertion_guard;
+        using lens::set_insertion_point_to_start;
+        using lens::set_insertion_point_to_end;
 
-        using Builder::set_insertion_point_to_start;
-        using Builder::set_insertion_point_to_end;
+        using lens::meta_location;
 
-        using Builder::get_current_function;
+        using lens::constant;
 
-        using Builder::constant;
+        using excluded_attr_list = util::type_list<
+              clang::WeakAttr
+            , clang::SelectAnyAttr
+            , clang::CUDAGlobalAttr
+        >;
 
-        template< typename Op, typename... Args >
-        auto make(Args &&...args) {
-            return this->template create< Op >(std::forward< Args >(args)...);
+        template< typename op_t, typename... args_t >
+        auto make(args_t &&...args) {
+            return base_builder().template create< op_t >(std::forward< args_t >(args)...);
         }
 
         auto visit_decl_attrs(const clang::Decl *decl, operation op) {
             // getAttrs on decl without attrs triggers an assertion in clang
             if (decl->hasAttrs()) {
                 mlir::NamedAttrList attrs = op->getAttrs();
-                using excluded_attr_list = util::type_list<
-                     clang::WeakAttr
-                    ,clang::SelectAnyAttr
-                    ,clang::CUDAGlobalAttr
-                >;
                 for (auto attr : exclude_attrs< excluded_attr_list >(decl->getAttrs())) {
                     auto visited = visit(attr);
 
@@ -111,7 +108,7 @@ namespace vast::cg {
             // At the point we need to create the function, the insertion point
             // could be anywhere (e.g. callsite). Do not rely on whatever it might
             // be, properly save, find the appropriate place and restore.
-            auto guard = insertion_guard();
+            auto guard = make_insertion_guard();
             auto linkage = core::get_function_linkage(function_decl);
 
             // make function header, that will be later filled with function body
@@ -213,7 +210,7 @@ namespace vast::cg {
 
             // TODO: CodeGen includeds the linkage (ExternalLinkage) and only passes the
             // mangled_name if entry is nullptr
-            auto fn = create_vast_function(meta_location(function_decl), mangled_name, fty, function_decl);
+            auto fn = create_vast_function(meta_location(decl), mangled_name, fty, function_decl);
 
             if (entry) {
                 VAST_UNIMPLEMENTED;
@@ -341,7 +338,7 @@ namespace vast::cg {
                 return fn;
             }
 
-            auto guard = insertion_guard();
+            auto guard = make_insertion_guard();
             auto is_definition = decl->isThisDeclarationADefinition();
 
             // emit definition instead of declaration
@@ -537,11 +534,12 @@ namespace vast::cg {
             }).getDefiningOp();
 
             if (decl->hasInit()) {
-                auto guard = insertion_guard();
+                auto guard = make_insertion_guard();
                 auto declared = mlir::dyn_cast< hl::VarDeclOp >(var_decl);
                 set_insertion_point_to_start(&declared.getInitializer());
 
-                make_value_builder(decl->getInit())(builder(), meta_location(decl));
+                auto value_builder = make_value_builder(decl->getInit());
+                value_builder(base_builder(), meta_location(decl));
             }
 
             return var_decl;
@@ -560,7 +558,7 @@ namespace vast::cg {
 
         operation VisitTranslationUnitDecl(const clang::TranslationUnitDecl *tu) {
             auto loc = meta_location(tu);
-            return this->template make_scoped< TranslationUnitScope >(loc, [&] {
+            return derived().template make_scoped< TranslationUnitScope >(loc, [&] {
                 for (const auto &decl : tu->decls()) {
                     visit(decl);
                 }
@@ -647,7 +645,7 @@ namespace vast::cg {
                     if (auto prev_op = context().enumdecls.lookup(prev)) {
                         VAST_ASSERT(!prev->isComplete());
                         prev_op.setType(visit(decl->getIntegerType()));
-                        auto guard = insertion_guard();
+                        auto guard = make_insertion_guard();
                         set_insertion_point_to_start(&prev_op.getConstants().front());
                         for (auto con : decl->enumerators()) {
                             visit(con);
@@ -812,24 +810,15 @@ namespace vast::cg {
         }
     };
 
-    template< typename Derived >
-    struct CodeGenDeclVisitorWithAttrs
-        : CodeGenDeclVisitor< Derived >
-        , CodeGenVisitorLens< CodeGenDeclVisitorWithAttrs< Derived >, Derived >
+    template< typename derived_t >
+    struct decl_visitor_with_attrs : default_decl_visitor< derived_t >
     {
-        using Base = CodeGenDeclVisitor< Derived >;
+        using base = default_decl_visitor< derived_t >;
 
-        using Base::visit_decl_attrs;
-
-        using LensType = CodeGenVisitorLens< CodeGenDeclVisitorWithAttrs< Derived >, Derived >;
-
-        using LensType::context;
-        using LensType::acontext;
-
-        using LensType::visit;
+        using base::visit_decl_attrs;
 
         auto Visit(const clang::Decl *decl) -> operation {
-            if (auto op = Base::Visit(decl)) {
+            if (auto op = base::Visit(decl)) {
                 visit_decl_attrs(decl, op);
                 return op;
             }

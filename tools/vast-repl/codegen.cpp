@@ -30,7 +30,7 @@ namespace vast::repl::codegen {
         auto unit = codegen::ast_from_source(source);
         auto &actx = unit->getASTContext();
         // TODO use front codegen enstead of custom pipeline
-        vast::cg::CodeGenContext cgctx( *mctx, actx, cg::source_language::C );
+        vast::cg::cg_context cgctx( *mctx, actx, cg::source_language::C );
         vast::cg::DefaultCodeGen codegen(cgctx);
         codegen.emit_module(actx.getTranslationUnitDecl());
         return std::move(cgctx.mod);

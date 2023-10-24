@@ -15,15 +15,17 @@ VAST_UNRELAX_WARNINGS
 namespace vast::cg {
 
     //
-    // CodeGenVisitorLens
+    // visitor_lens
     //
     // Allows to access the visitor base from mixins.
     //
-    template< typename Base, typename Derived >
-    struct CodeGenVisitorLens
+    template< typename derived_t, template< typename > class base_t >
+    struct visitor_lens
     {
-        auto derived()       -> Derived      & { return static_cast<Derived&>(*this); }
-        auto derived() const -> Derived const& { return static_cast<Derived const&>(*this); }
+        friend base_t< derived_t >;
+
+        auto derived()       -> derived_t      & { return static_cast<derived_t&>(*this); }
+        auto derived() const -> derived_t const& { return static_cast<derived_t const&>(*this); }
 
         //
         // Contexts
@@ -41,24 +43,82 @@ namespace vast::cg {
         auto name_mangler() const -> CodeGenMangler const& { return context().mangler; }
 
         //
-        // meta
+        // builder
         //
-        auto &      meta_gen()       { return derived().meta; }
-        const auto &meta_gen() const { return derived().meta; }
+        decltype(auto) base_builder() {
+            return derived().base_builder();
+        }
 
-        template< typename Token >
-        mlir::Location meta_location(Token token) const {
-            return meta_gen().get(token).location();
+        decltype(auto) make_value_builder(const clang::Stmt *stmt) {
+            return derived().make_value_builder(stmt);
+        }
+
+        decltype(auto) make_insertion_guard() {
+            return derived().make_insertion_guard();
+        }
+
+        decltype(auto) make_yield_true() { return derived().make_yield_true(); }
+
+
+        decltype(auto) make_cond_builder(const clang::Stmt *stmt) {
+            return derived().make_cond_builder(stmt);
+        }
+
+        decltype(auto) make_region_builder(const clang::Stmt *stmt) {
+            return derived().make_region_builder(stmt);
+        }
+
+        decltype(auto) make_value_yield_region(auto stmt) {
+            return derived().make_value_yield_region(stmt);
+        }
+
+        decltype(auto) make_stmt_expr_region(const clang::CompoundStmt *stmt) {
+            return derived().make_stmt_expr_region(stmt);
+        }
+
+        decltype(auto) set_insertion_point_to_start(region_ptr region) {
+            derived().set_insertion_point_to_start(region);
+        }
+
+        decltype(auto) set_insertion_point_to_end(region_ptr region) {
+            derived().set_insertion_point_to_end(region);
+        }
+
+        decltype(auto) set_insertion_point_to_start(block_ptr block) {
+            derived().set_insertion_point_to_start(block);
+        }
+
+        decltype(auto) set_insertion_point_to_end(block_ptr block) {
+            derived().set_insertion_point_to_end(block);
+        }
+
+        template< typename... args_t >
+        decltype(auto) constant(args_t &&...args) {
+            return derived().constant(std::forward< args_t >(args)...);
         }
 
         template< typename Token >
-        auto visit(Token token) { return derived().Visit(token); }
+        decltype(auto) visit(Token token) { return derived().Visit(token); }
 
         template< typename Token >
         mlir_type visit_as_lvalue_type(Token token) { return derived().VisitLValueType(token); }
 
         core::FunctionType visit_function_type(const clang::FunctionType *fty, bool variadic) {
             return derived().VisitCoreFunctionType(fty, variadic);
+        }
+
+        template< typename op_t >
+        decltype(auto) make_operation() {
+            return derived().template make_operation< op_t >();
+        }
+
+        decltype(auto) make_type_yield_builder(const clang::Expr *expr) {
+            return derived().make_type_yield_builder(expr);
+        }
+
+        template< typename Token >
+        loc_t meta_location(Token token) const {
+            return derived().meta_location(token);
         }
     };
 

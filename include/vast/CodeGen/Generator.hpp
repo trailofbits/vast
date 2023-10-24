@@ -52,7 +52,7 @@ namespace vast::cg {
 
     protected:
         std::unique_ptr< mcontext_t > mcontext = nullptr;
-        std::unique_ptr< CodeGenContext > cgcontext = nullptr;
+        std::unique_ptr< cg_context > cgcontext = nullptr;
         std::unique_ptr< codegen_driver > codegen = nullptr;
 
     private:
