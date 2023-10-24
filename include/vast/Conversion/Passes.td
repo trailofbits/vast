@@ -98,6 +98,7 @@ def LowerABI : Pass<"vast-lower-abi", "mlir::ModuleOp"> {
   let constructor = "vast::createLowerABIPass()";
   let dependentDialects = [
     "mlir::LLVM::LLVMDialect",
+    "vast::ll::LowLevelDialect",
     "vast::core::CoreDialect"
   ];
 }
