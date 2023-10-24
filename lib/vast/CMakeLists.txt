@@ -12,7 +12,6 @@ endif()
 if (VAST_BUILD_FRONTEND)
     add_subdirectory(CodeGen)
     add_subdirectory(Frontend)
-    add_subdirectory(CC1)
 endif()
 
 add_subdirectory(Tower)
