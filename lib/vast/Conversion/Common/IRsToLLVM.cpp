@@ -1032,7 +1032,9 @@ namespace vast::conv::irstollvm
         one_to_one< hl::BinXorOp, LLVM::XOrOp >,
 
         one_to_one< hl::BinShlOp, LLVM::ShlOp >,
-        one_to_one< hl::BinShlOp, LLVM::ShlOp >
+
+        one_to_one< hl::BinLShrOp, LLVM::LShrOp >,
+        one_to_one< hl::BinAShrOp, LLVM::AShrOp >
     >;
 
 
@@ -1077,6 +1079,29 @@ namespace vast::conv::irstollvm
     using assign_conversions = util::type_list<
         assign_pattern< hl::AddIAssignOp, LLVM::AddOp >,
         assign_pattern< hl::SubIAssignOp, LLVM::SubOp >,
+        assign_pattern< hl::MulIAssignOp, LLVM::MulOp >,
+
+        assign_pattern< hl::AddFAssignOp, LLVM::FAddOp >,
+        assign_pattern< hl::SubFAssignOp, LLVM::FSubOp >,
+        assign_pattern< hl::MulFAssignOp, LLVM::FMulOp >,
+
+        assign_pattern< hl::DivSAssignOp, LLVM::SDivOp >,
+        assign_pattern< hl::DivUAssignOp, LLVM::UDivOp >,
+        assign_pattern< hl::DivFAssignOp, LLVM::FDivOp >,
+
+        assign_pattern< hl::RemSAssignOp, LLVM::SRemOp >,
+        assign_pattern< hl::RemUAssignOp, LLVM::URemOp >,
+        assign_pattern< hl::RemFAssignOp, LLVM::FRemOp >,
+
+        assign_pattern< hl::BinOrAssignOp, LLVM::OrOp >,
+        assign_pattern< hl::BinAndAssignOp, LLVM::AndOp >,
+        assign_pattern< hl::BinXorAssignOp, LLVM::XOrOp >,
+
+        assign_pattern< hl::BinShlAssignOp, LLVM::ShlOp >,
+
+        assign_pattern< hl::BinLShrAssignOp, LLVM::LShrOp >,
+        assign_pattern< hl::BinAShrAssignOp, LLVM::AShrOp >,
+
         assign_pattern< hl::AssignOp, void >
     >;
 
