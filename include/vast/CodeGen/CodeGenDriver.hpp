@@ -56,8 +56,7 @@ namespace vast::cg
     struct codegen_driver {
 
         explicit codegen_driver(
-            codegen_context &cgctx
-            , codegen_options opts
+            codegen_context &cgctx, codegen_options opts
         )
             : actx(cgctx.actx)
             , mctx(cgctx.mctx)

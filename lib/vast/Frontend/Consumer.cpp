@@ -13,6 +13,11 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/Passes.hpp"
+#include "vast/CodeGen/CodeGenContext.hpp"
+#include "vast/CodeGen/CodeGenDriver.hpp"
+
+#include "vast/Util/Common.hpp"
+
 #include "vast/Target/LLVMIR/Convert.hpp"
 
 namespace vast::cc {
@@ -33,18 +38,31 @@ namespace vast::cc {
 
     void emit_mlir_output(target_dialect target, owning_module_ref mod, mcontext_t *mctx);
 
-    void vast_consumer::Initialize(acontext_t &ctx) {
-        VAST_CHECK(!acontext, "initialized multiple times");
-        acontext = &ctx;
-        generator->Initialize(ctx);
+    using source_language = core::SourceLanguage;
+
+    source_language get_source_language(const cc::language_options &opts);
+
+    void vast_consumer::Initialize(acontext_t &actx) {
+        VAST_CHECK(!mctx, "initialized multiple times");
+        mctx = std::make_unique< mcontext_t >();
+        cgctx = std::make_unique< cg::codegen_context >(
+            *mctx, actx, get_source_language(opts.lang)
+        );
+
+        codegen = std::make_unique< cg::codegen_driver >(*cgctx, opts.codegen);
     }
 
     bool vast_consumer::HandleTopLevelDecl(clang::DeclGroupRef decls) {
         clang::PrettyStackTraceDecl crash_info(
-            *decls.begin(), clang::SourceLocation(), acontext->getSourceManager(),
+            *decls.begin(), clang::SourceLocation(), cgctx->actx.getSourceManager(),
             "LLVM IR generation of declaration"
         );
-        return generator->HandleTopLevelDecl(decls);
+
+        if (opts.diags.hasErrorOccurred()) {
+            return true;
+        }
+
+        return codegen->handle_top_level_decl(decls), true;
     }
 
     void vast_consumer::HandleCXXStaticMemberVarInstantiation(clang::VarDecl * /* decl */) {
@@ -59,20 +77,19 @@ namespace vast::cc {
         VAST_UNIMPLEMENTED;
     }
 
-    void vast_consumer::HandleTranslationUnit(acontext_t &acontext) {
+    void vast_consumer::HandleTranslationUnit(acontext_t &actx) {
         // Note that this method is called after `HandleTopLevelDecl` has already
         // ran all over the top level decls. Here clang mostly wraps defered and
         // global codegen, followed by running vast passes.
-        generator->HandleTranslationUnit(acontext);
+        codegen->handle_translation_unit(actx);
 
         if (!vargs.has_option(opt::disable_vast_verifier)) {
-            if (!generator->verify_module()) {
+            if (!codegen->verify_module()) {
                 VAST_UNREACHABLE("codegen: module verification error before running vast passes");
             }
         }
 
-        auto mod  = generator->freeze();
-        auto mctx = generator->take_context();
+        auto mod  = std::move(cgctx->mod);
 
         compile_via_vast(mod.get(), mctx.get());
 
@@ -99,12 +116,34 @@ namespace vast::cc {
     }
 
     void vast_consumer::HandleTagDeclDefinition(clang::TagDecl *decl) {
+        auto &actx = cgctx->actx;
         clang::PrettyStackTraceDecl crash_info(
-            decl, clang::SourceLocation(), acontext->getSourceManager(),
+            decl, clang::SourceLocation(), actx.getSourceManager(),
             "vast generation of declaration"
         );
 
-        generator->HandleTagDeclDefinition(decl);
+        if (opts.diags.hasErrorOccurred()) {
+            return;
+        }
+
+        // Don't allow re-entrant calls to generator triggered by PCH
+        // deserialization to emit deferred decls.
+        cg::defer_handle_of_top_level_decl handling_decl(
+            *codegen, /* emit deferred */false
+        );
+
+        codegen->update_completed_type(decl);
+
+        // For MSVC compatibility, treat declarations of static data members with
+        // inline initializers as definitions.
+        if (actx.getTargetInfo().getCXXABI().isMicrosoft()) {
+            VAST_UNIMPLEMENTED;
+        }
+
+        // For OpenMP emit declare reduction functions, if required.
+        if (actx.getLangOpts().OpenMP) {
+            VAST_UNIMPLEMENTED;
+        }
     }
 
     // void vast_consumer::HandleTagDeclRequiredDefinition(clang::TagDecl */* decl */) {
@@ -112,7 +151,7 @@ namespace vast::cc {
     // }
 
     void vast_consumer::CompleteTentativeDefinition(clang::VarDecl *decl) {
-        generator->CompleteTentativeDefinition(decl);
+        codegen->handle_top_level_decl(decl);
     }
 
     void vast_consumer::CompleteExternalDeclaration(clang::VarDecl * /* decl */) {
@@ -134,11 +173,10 @@ namespace vast::cc {
         llvmir::lower_hl_module(mlir_module.get(), pipeline);
 
         auto mod = llvmir::translate(mlir_module.get(), llvm_context);
-
+        auto dl  = cgctx->actx.getTargetInfo().getDataLayoutString();
         clang::EmitBackendOutput(
-            opts.diags, opts.headers, opts.codegen, opts.target, opts.lang,
-            acontext->getTargetInfo().getDataLayoutString(), mod.get(), backend_action, &opts.vfs,
-            std::move(output_stream)
+            opts.diags, opts.headers, opts.codegen, opts.target, opts.lang, dl, mod.get(),
+            backend_action, &opts.vfs, std::move(output_stream)
         );
     }
 
@@ -166,7 +204,7 @@ namespace vast::cc {
 
         // Handle source manager properly given that lifetime analysis
         // might emit warnings and remarks.
-        auto &src_mgr     = acontext->getSourceManager();
+        auto &src_mgr     = cgctx->actx.getSourceManager();
         auto main_file_id = src_mgr.getMainFileID();
 
         auto file_buff = llvm::MemoryBuffer::getMemBuffer(
@@ -210,6 +248,21 @@ namespace vast::cc {
         if (pass.failed()) {
             VAST_UNREACHABLE("codegen: MLIR pass manager fails when running vast passes");
         }
+    }
+
+    source_language get_source_language(const cc::language_options &opts) {
+        using ClangStd = clang::LangStandard;
+
+        if (opts.CPlusPlus || opts.CPlusPlus11 || opts.CPlusPlus14 ||
+            opts.CPlusPlus17 || opts.CPlusPlus20 || opts.CPlusPlus23 ||
+            opts.CPlusPlus26)
+            return source_language::CXX;
+        if (opts.C99 || opts.C11 || opts.C17 || opts.C2x ||
+            opts.LangStd == ClangStd::lang_c89)
+            return source_language::C;
+
+        // TODO: support remaining source languages.
+        VAST_UNIMPLEMENTED_MSG("VAST does not yet support the given source language");
     }
 
     target_dialect parse_target_dialect(const vast_args::maybe_option_list &list) {
