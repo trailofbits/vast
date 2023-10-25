@@ -750,21 +750,6 @@ namespace vast::cg {
                 }
             };
 
-            if constexpr (std::is_same_v< Decl, clang::CXXRecordDecl >) {
-                auto bases = [&](auto &bld, auto loc) {
-                    for (auto &base : decl->bases()) {
-                        auto loc = meta_location(base);
-                        make< hl::CxxBaseSpecifierOp >(
-                            loc,
-                            visit(base.getType()),
-                            convert_access(base.getAccessSpecifier()),
-                            base.isVirtual());
-                    }
-                };
-
-                return make< Op >(loc, name, bases, fields);
-            }
-
             return make< Op >(loc, name, fields);
         }
 
