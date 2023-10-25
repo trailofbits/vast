@@ -178,7 +178,7 @@ namespace vast::cg
             VAST_CHECK(fn, "generating code for a null function");
             const auto function_decl = clang::cast< clang::FunctionDecl >(decl.getDecl());
 
-            auto guard = _visitor->make_insertion_guard();
+            auto guard = _visitor->insertion_guard();
 
             if (function_decl->isInlineBuiltinDeclaration()) {
                 VAST_UNIMPLEMENTED_MSG("emit body of inline builtin declaration");
@@ -312,7 +312,7 @@ namespace vast::cg
         }
 
         auto insert_at_end(hl::FuncOp fn) {
-            auto guard = _visitor->make_insertion_guard();
+            auto guard = _visitor->insertion_guard();
             _visitor->set_insertion_point_to_end(&fn.getBody());
             return std::move(guard);
         }
@@ -625,8 +625,8 @@ namespace vast::cg
             _visitor->clear_insertion_point();
         }
 
-        insertion_guard make_insertion_guard() {
-            return _visitor->make_insertion_guard();
+        insertion_guard insertion_guard() {
+            return _visitor->insertion_guard();
         }
 
         operation visit_var_decl(const clang::VarDecl *decl) {
@@ -841,8 +841,8 @@ namespace vast::cg
             codegen.clear_insertion_point();
         }
 
-        insertion_guard make_insertion_guard() {
-            return codegen.make_insertion_guard();
+        insertion_guard insertion_guard() {
+            return codegen.insertion_guard();
         }
 
         operation visit_var_decl(const clang::VarDecl *decl) {

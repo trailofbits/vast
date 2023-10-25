@@ -54,7 +54,7 @@ namespace vast::cg {
         using lens::make_value_yield_region;
         using lens::make_stmt_expr_region;
 
-        using lens::make_insertion_guard;
+        using lens::insertion_guard;
 
         using lens::meta_location;
 
@@ -630,7 +630,7 @@ namespace vast::cg {
             auto mangled = context().get_mangled_name(decl);
             auto fn      = context().lookup_function(mangled, false);
             if (!fn) {
-                auto guard = make_insertion_guard();
+                auto guard = insertion_guard();
                 set_insertion_point_to_start(&context().getBodyRegion());
                 fn = mlir::cast< hl::FuncOp >(visit(decl));
             }
@@ -853,7 +853,7 @@ namespace vast::cg {
         // operation VisitCXXUuidofExpr(const clang::CXXUuidofExpr *expr)
 
         hl::FuncOp VisitDirectCallee(const clang::FunctionDecl *callee) {
-            auto guard = make_insertion_guard();
+            auto guard = insertion_guard();
 
             auto mangled = context().get_mangled_name(callee);
             if (auto fn = context().lookup_function(mangled, false /* with error */)) {
