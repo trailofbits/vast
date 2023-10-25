@@ -380,8 +380,8 @@ namespace vast::cc {
         vast_generator_ptr generator;
     };
 
-    vast_gen_action::vast_gen_action(output_type act, const vast_args &vargs, mcontext_t *montext)
-        : action(act), mcontext(montext ? montext : new mcontext_t), vargs(vargs)
+    vast_gen_action::vast_gen_action(output_type act, const vast_args &vargs)
+        : action(act), vargs(vargs)
     {}
 
     owning_module_ref vast_gen_action::load_module(llvm::MemoryBufferRef /* mref */) {
@@ -438,29 +438,29 @@ namespace vast::cc {
     // emit assembly
     void emit_assembly_action::anchor() {}
 
-    emit_assembly_action::emit_assembly_action(const vast_args &vargs, mcontext_t *mcontex)
-        : vast_gen_action(output_type::emit_assembly, vargs, mcontex)
+    emit_assembly_action::emit_assembly_action(const vast_args &vargs)
+        : vast_gen_action(output_type::emit_assembly, vargs)
     {}
 
     // emit_llvm
     void emit_llvm_action::anchor() {}
 
-    emit_llvm_action::emit_llvm_action(const vast_args &vargs, mcontext_t *mcontex)
-        : vast_gen_action(output_type::emit_llvm, vargs, mcontex)
+    emit_llvm_action::emit_llvm_action(const vast_args &vargs)
+        : vast_gen_action(output_type::emit_llvm, vargs)
     {}
 
     // emit_mlir
     void emit_mlir_action::anchor() {}
 
-    emit_mlir_action::emit_mlir_action(const vast_args &vargs, mcontext_t *mcontex)
-        : vast_gen_action(output_type::emit_mlir, vargs, mcontex)
+    emit_mlir_action::emit_mlir_action(const vast_args &vargs)
+        : vast_gen_action(output_type::emit_mlir, vargs)
     {}
 
     // emit_obj
     void emit_obj_action::anchor() {}
 
-    emit_obj_action::emit_obj_action(const vast_args &vargs, mcontext_t *mcontex)
-        : vast_gen_action(output_type::emit_obj, vargs, mcontex)
+    emit_obj_action::emit_obj_action(const vast_args &vargs)
+        : vast_gen_action(output_type::emit_obj, vargs)
     {}
 
 } // namespace vast::cc
