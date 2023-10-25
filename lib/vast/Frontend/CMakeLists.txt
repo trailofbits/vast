@@ -2,6 +2,7 @@
 
 add_vast_library(Frontend
     Action.cpp
+    Consumer.cpp
     Options.cpp
 
     LINK_LIBS PUBLIC

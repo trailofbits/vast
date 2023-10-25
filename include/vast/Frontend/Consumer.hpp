@@ -1,0 +1,113 @@
+// Copyright (c) 2023-present, Trail of Bits, Inc.
+
+#pragma once
+
+#include "vast/Util/Warnings.hpp"
+
+VAST_RELAX_WARNINGS
+#include <clang/AST/ASTConsumer.h>
+#include <clang/CodeGen/BackendUtil.h>
+VAST_UNRELAX_WARNINGS
+
+#include "vast/CodeGen/Generator.hpp"
+#include "vast/Frontend/Diagnostics.hpp"
+#include "vast/Frontend/FrontendAction.hpp"
+#include "vast/Frontend/Options.hpp"
+
+namespace vast::cc {
+
+    using virtual_file_system_ptr = llvm::IntrusiveRefCntPtr< llvm::vfs::FileSystem >;
+
+    using output_stream_ptr = std::unique_ptr< llvm::raw_pwrite_stream >;
+
+    using clang_ast_consumer = clang::ASTConsumer;
+
+    // TODO: Introduce helper wrapper on top of `vast_args`?
+    enum class target_dialect { high_level, low_level, llvm };
+
+    using backend = clang::BackendAction;
+
+    struct vast_consumer : clang_ast_consumer
+    {
+        using vast_generator_ptr = std::unique_ptr< cg::vast_generator >;
+
+        vast_consumer(
+            output_type act, diagnostics_engine &diags, virtual_file_system_ptr vfs,
+            header_search_options &hopts, codegen_options &copts, target_options &topts,
+            language_options &lopts,
+            // frontend_options &fopts,
+            const vast_args &vargs, output_stream_ptr os
+        )
+            : action(act)
+            , diags(diags)
+            , vfs(vfs)
+            , header_search_opts(hopts)
+            , codegen_opts(copts)
+            , target_opts(topts)
+            , lang_opts(lopts)
+            // , frontend_opts(fopts)
+            , vargs(vargs)
+            , output_stream(std::move(os))
+            , generator(std::make_unique< cg::vast_generator >(diags, codegen_opts, lang_opts)
+        ) {}
+
+        void Initialize(acontext_t &ctx) override;
+
+        bool HandleTopLevelDecl(clang::DeclGroupRef decls) override;
+
+        void HandleCXXStaticMemberVarInstantiation(clang::VarDecl * /* decl */) override;
+
+        void HandleInlineFunctionDefinition(clang::FunctionDecl * /* decl */) override;
+
+        void HandleInterestingDecl(clang::DeclGroupRef /* decl */) override;
+
+        void HandleTranslationUnit(acontext_t &acontext) override;
+
+        void HandleTagDeclDefinition(clang::TagDecl *decl) override;
+
+        // void HandleTagDeclRequiredDefinition(clang::TagDecl */* decl */) override {
+        //     VAST_UNIMPLEMENTED;
+        // }
+
+        void CompleteTentativeDefinition(clang::VarDecl *decl) override;
+
+        void CompleteExternalDeclaration(clang::VarDecl * /* decl */) override;
+
+        void AssignInheritanceModel(clang::CXXRecordDecl * /* decl */) override;
+
+        void HandleVTable(clang::CXXRecordDecl * /* decl */) override;
+
+      private:
+
+        void emit_backend_output(
+            backend backend_action, owning_module_ref mlir_module, mcontext_t *mctx
+        );
+
+        void emit_mlir_output(target_dialect target, owning_module_ref mod, mcontext_t *mctx);
+
+        void compile_via_vast(vast_module mod, mcontext_t *mctx);
+
+        virtual void anchor() {}
+
+        output_type action;
+
+        diagnostics_engine &diags;
+
+        virtual_file_system_ptr vfs;
+
+        // options
+        const header_search_options &header_search_opts;
+        const codegen_options &codegen_opts;
+        const target_options &target_opts;
+        const language_options &lang_opts;
+        // const frontend_options &frontend_opts;
+
+        const vast_args &vargs;
+
+        output_stream_ptr output_stream;
+
+        acontext_t *acontext = nullptr;
+
+        vast_generator_ptr generator;
+    };
+} // namespace vast::cc
