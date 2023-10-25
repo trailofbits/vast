@@ -31,8 +31,8 @@ VAST_RELAX_WARNINGS
 #include <llvm/Support/Timer.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Frontend/CompilerInstance.hpp"
 #include "vast/Frontend/CompilerInvocation.hpp"
+#include "vast/Frontend/CompilerInstance.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
 
 using namespace vast::cc;
