@@ -30,40 +30,68 @@ namespace vast::cg
     struct visitor_instance
         : builder_t< visitor_instance< context_t, visitor_mixin, meta_generator_t > >
         , visitor_mixin< visitor_instance< context_t, visitor_mixin, meta_generator_t > >
-        , visitor_base< context_t, meta_generator_t >
     {
-        using base           = visitor_base< context_t, meta_generator_t >;
         using mixin          = visitor_mixin< visitor_instance< context_t, visitor_mixin, meta_generator_t > >;
         using meta_generator = meta_generator_t;
-        using builder        = builder_t< visitor_instance< context_t, visitor_mixin, meta_generator_t > >;
+        using vast_builder   = builder_t< visitor_instance< context_t, visitor_mixin, meta_generator_t > >;
 
         visitor_instance(context_t &ctx, meta_generator &gen)
-            : base(ctx, gen)
+            : ctx(ctx), meta(gen), builder(ctx.getBodyRegion())
         {}
 
-        using builder::set_insertion_point_to_start;
-        using builder::set_insertion_point_to_end;
-        using builder::has_insertion_block;
-        using builder::clear_insertion_point;
+        using vast_builder::set_insertion_point_to_start;
+        using vast_builder::set_insertion_point_to_end;
+        using vast_builder::has_insertion_block;
+        using vast_builder::clear_insertion_point;
 
-        using builder::make_scoped;
+        using vast_builder::make_scoped;
 
-        using builder::make_cond_builder;
-        using builder::make_operation;
-        using builder::make_region_builder;
-        using builder::make_stmt_expr_region;
-        using builder::make_type_yield_builder;
-        using builder::make_value_builder;
-        using builder::make_value_yield_region;
-        using builder::make_yield_true;
+        using vast_builder::make_cond_builder;
+        using vast_builder::make_operation;
+        using vast_builder::make_region_builder;
+        using vast_builder::make_stmt_expr_region;
+        using vast_builder::make_type_yield_builder;
+        using vast_builder::make_value_builder;
+        using vast_builder::make_value_yield_region;
+        using vast_builder::make_yield_true;
 
-        using builder::constant;
-
-        using base::base_builder;
-        using base::meta_location;
-        using base::make_insertion_guard;
+        using vast_builder::constant;
 
         using mixin::Visit;
+
+        void set_insertion_point_to_start(region_ptr region) {
+            builder.setInsertionPointToStart(&region->front());
+        }
+
+        void set_insertion_point_to_end(region_ptr region) {
+            builder.setInsertionPointToEnd(&region->back());
+        }
+
+        void set_insertion_point_to_start(block_ptr block) {
+            builder.setInsertionPointToStart(block);
+        }
+
+        void set_insertion_point_to_end(block_ptr block) {
+            builder.setInsertionPointToEnd(block);
+        }
+
+        void clear_insertion_point() {
+            builder.clearInsertionPoint();
+        }
+
+        insertion_guard make_insertion_guard() {
+            return { builder };
+        }
+
+        mlir_builder& base_builder() { return builder; }
+
+        loc_t meta_location(auto token) const {
+            return meta.location(token);
+        }
+
+        context_t &ctx;
+        meta_generator &meta;
+        mlir_builder builder;
     };
 
 } // namespace vast::cg

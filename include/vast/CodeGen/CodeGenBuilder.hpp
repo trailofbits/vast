@@ -7,6 +7,13 @@
 #include "vast/Util/Common.hpp"
 #include "vast/CodeGen/CodeGenVisitorLens.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+#include "vast/Dialect/Core/CoreAttributes.hpp"
+
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+#include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
+#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+
 namespace vast::cg {
 
     template< typename scope_t >

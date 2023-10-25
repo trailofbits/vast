@@ -11,9 +11,6 @@ VAST_RELAX_WARNINGS
 #include <clang/AST/TypeVisitor.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/CodeGen/CodeGenContext.hpp"
-#include "vast/CodeGen/CodeGenMeta.hpp"
-#include "vast/CodeGen/Mangler.hpp"
 
 #include "vast/Util/Common.hpp"
 
@@ -30,48 +27,5 @@ namespace vast::cg {
 
     template< typename derived_t >
     using attr_visitor_base = clang::ConstAttrVisitor< derived_t, mlir_attr >;
-
-    template< typename context_t, typename meta_gen >
-    struct visitor_base
-    {
-        visitor_base(context_t &ctx, meta_gen &meta)
-            : ctx(ctx), meta(meta), _builder(ctx.getBodyRegion())
-        {}
-
-        void set_insertion_point_to_start(region_ptr region) {
-            _builder.setInsertionPointToStart(&region->front());
-        }
-
-        void set_insertion_point_to_end(region_ptr region) {
-            _builder.setInsertionPointToEnd(&region->back());
-        }
-
-        void set_insertion_point_to_start(block_ptr block) {
-            _builder.setInsertionPointToStart(block);
-        }
-
-        void set_insertion_point_to_end(block_ptr block) {
-            _builder.setInsertionPointToEnd(block);
-        }
-
-        void clear_insertion_point() {
-            _builder.clearInsertionPoint();
-        }
-
-        insertion_guard make_insertion_guard() {
-            return { _builder };
-        }
-
-        mlir_builder& base_builder() { return _builder; }
-
-        loc_t meta_location(auto token) const {
-            return meta.location(token);
-        }
-
-        context_t &ctx;
-        meta_gen &meta;
-
-        mlir_builder _builder;
-    };
 
 } // namespace vast::cg

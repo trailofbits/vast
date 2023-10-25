@@ -5,6 +5,7 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
+#include <llvm/ADT/ScopedHashTable.h>
 #include <clang/AST/DeclVisitor.h>
 #include <clang/AST/Attr.h>
 #include <clang/Basic/Diagnostic.h>
