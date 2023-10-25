@@ -358,7 +358,7 @@ namespace vast::cg
             hl::FuncOp fn,
             const function_info_t &fty_info,
             const function_arg_list &args,
-            mlir::Location loc,
+            loc_t loc,
             const codegen_options &options
         ) {
             const auto *decl = glob.getDecl();
@@ -581,9 +581,8 @@ namespace vast::cg
             return mlir::success();
         }
 
-        template< typename Token >
-        mlir::Location meta_location(Token token) const {
-            return _meta.get(token).location();
+        loc_t meta_location(auto token) const {
+            return _visitor->meta_location(token);
         }
 
         hl::FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
@@ -775,8 +774,7 @@ namespace vast::cg
             return codegen.get_mangled_name(decl);
         }
 
-        template< typename Token >
-        mlir::Location meta_location(Token token) const {
+        loc_t meta_location(auto token) const {
             return codegen.template meta_location(token);
         }
 
