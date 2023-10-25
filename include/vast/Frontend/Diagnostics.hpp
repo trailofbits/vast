@@ -19,8 +19,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cc
 {
-    using diagnostics_engine = clang::DiagnosticsEngine;
-
     template< typename T >
     using llvm_cnt_ptr = llvm::IntrusiveRefCntPtr< T >;
 

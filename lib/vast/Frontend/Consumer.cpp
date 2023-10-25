@@ -64,8 +64,7 @@ namespace vast::cc {
 
         if (!vargs.has_option(opt::disable_vast_verifier)) {
             if (!generator->verify_module()) {
-                VAST_UNREACHABLE("codegen: module verification error before running vast passes"
-                );
+                VAST_UNREACHABLE("codegen: module verification error before running vast passes");
             }
         }
 
@@ -134,8 +133,8 @@ namespace vast::cc {
         auto mod = llvmir::translate(mlir_module.get(), llvm_context, "tmp");
 
         clang::EmitBackendOutput(
-            diags, header_search_opts, codegen_opts, target_opts, lang_opts,
-            acontext->getTargetInfo().getDataLayoutString(), mod.get(), backend_action, vfs,
+            opts.diags, opts.headers, opts.codegen, opts.target, opts.lang,
+            acontext->getTargetInfo().getDataLayoutString(), mod.get(), backend_action, &opts.vfs,
             std::move(output_stream)
         );
     }

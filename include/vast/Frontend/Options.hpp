@@ -28,6 +28,8 @@ namespace vast::cc
     using language_options      = clang::LangOptions;
     using frontend_options      = clang::FrontendOptions;
 
+    using diagnostics_engine    = clang::DiagnosticsEngine;
+
     constexpr string_ref vast_option_prefix = "-vast-";
 
     struct vast_args

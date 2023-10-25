@@ -61,10 +61,6 @@ namespace vast::cc {
         : action(act), vargs(vargs)
     {}
 
-    owning_module_ref vast_action::load_module(llvm::MemoryBufferRef /* mref */) {
-        VAST_UNIMPLEMENTED;
-    }
-
     void vast_action::ExecuteAction() {
         // FIXME: if (getCurrentFileKind().getLanguage() != Language::CIR)
         this->ASTFrontendAction::ExecuteAction();
@@ -79,9 +75,7 @@ namespace vast::cc {
         }
 
         auto result = std::make_unique< vast_consumer >(
-            action, ci.getDiagnostics(), &ci.getVirtualFileSystem(), ci.getHeaderSearchOpts(),
-            ci.getCodeGenOpts(), ci.getTargetOpts(), ci.getLangOpts(), // ci.getFrontendOpts()
-            vargs, std::move(out)
+            action, options(ci), vargs, std::move(out)
         );
 
         consumer = result.get();
