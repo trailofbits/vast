@@ -13,8 +13,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Frontend/FrontendAction.hpp"
 #include "vast/Frontend/Options.hpp"
 
-#include "vast/CodeGen/Generator.hpp"
 #include "vast/CodeGen/CodeGenContext.hpp"
+#include "vast/CodeGen/CodeGenDriver.hpp"
 
 namespace vast::cc {
 
@@ -29,8 +29,6 @@ namespace vast::cc {
 
     struct vast_consumer : clang_ast_consumer
     {
-        using vast_generator_ptr = std::unique_ptr< cg::vast_generator >;
-
         vast_consumer(
             output_type act, action_options opts,
             const vast_args &vargs, output_stream_ptr os
@@ -39,10 +37,7 @@ namespace vast::cc {
             , opts(std::move(opts))
             , vargs(vargs)
             , output_stream(std::move(os))
-            , generator(std::make_unique< cg::vast_generator >(
-                opts.diags, opts.codegen, opts.lang
-            )
-        ) {}
+        {}
 
         void Initialize(acontext_t &ctx) override;
 
@@ -95,8 +90,8 @@ namespace vast::cc {
         //
         // contexts
         //
-        acontext_t *acontext = nullptr;
-
-        vast_generator_ptr generator;
+        std::unique_ptr< mcontext_t > mctx = nullptr;
+        std::unique_ptr< cg::codegen_context > cgctx = nullptr;
+        std::unique_ptr< cg::codegen_driver > codegen = nullptr;
     };
 } // namespace vast::cc

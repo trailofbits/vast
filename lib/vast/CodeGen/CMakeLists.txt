@@ -14,7 +14,6 @@ add_vast_library(CodeGen
     CodeGenFunction.cpp
     DataLayout.cpp
     FunctionInfo.cpp
-    Generator.cpp
     ItaniumCXXABI.cpp
     Mangler.cpp
     Passes.cpp
