@@ -47,12 +47,6 @@ namespace vast::cc {
     private:
         friend struct vast_consumer;
 
-        owning_module_ref mlir_module;
-
-        std::unique_ptr< mcontext_t > mcontext = std::make_unique< mcontext_t >();
-
-        owning_module_ref load_module(llvm::MemoryBufferRef mref);
-
         const vast_args &vargs;
     };
 

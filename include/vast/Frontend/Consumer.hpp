@@ -9,14 +9,14 @@ VAST_RELAX_WARNINGS
 #include <clang/CodeGen/BackendUtil.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/CodeGen/Generator.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
 #include "vast/Frontend/FrontendAction.hpp"
 #include "vast/Frontend/Options.hpp"
 
-namespace vast::cc {
+#include "vast/CodeGen/Generator.hpp"
+#include "vast/CodeGen/CodeGenContext.hpp"
 
-    using virtual_file_system_ptr = llvm::IntrusiveRefCntPtr< llvm::vfs::FileSystem >;
+namespace vast::cc {
 
     using output_stream_ptr = std::unique_ptr< llvm::raw_pwrite_stream >;
 
@@ -32,23 +32,16 @@ namespace vast::cc {
         using vast_generator_ptr = std::unique_ptr< cg::vast_generator >;
 
         vast_consumer(
-            output_type act, diagnostics_engine &diags, virtual_file_system_ptr vfs,
-            header_search_options &hopts, codegen_options &copts, target_options &topts,
-            language_options &lopts,
-            // frontend_options &fopts,
+            output_type act, action_options opts,
             const vast_args &vargs, output_stream_ptr os
         )
             : action(act)
-            , diags(diags)
-            , vfs(vfs)
-            , header_search_opts(hopts)
-            , codegen_opts(copts)
-            , target_opts(topts)
-            , lang_opts(lopts)
-            // , frontend_opts(fopts)
+            , opts(std::move(opts))
             , vargs(vargs)
             , output_stream(std::move(os))
-            , generator(std::make_unique< cg::vast_generator >(diags, codegen_opts, lang_opts)
+            , generator(std::make_unique< cg::vast_generator >(
+                opts.diags, opts.codegen, opts.lang
+            )
         ) {}
 
         void Initialize(acontext_t &ctx) override;
@@ -91,21 +84,17 @@ namespace vast::cc {
 
         output_type action;
 
-        diagnostics_engine &diags;
+        action_options opts;
 
-        virtual_file_system_ptr vfs;
-
-        // options
-        const header_search_options &header_search_opts;
-        const codegen_options &codegen_opts;
-        const target_options &target_opts;
-        const language_options &lang_opts;
-        // const frontend_options &frontend_opts;
-
+        //
+        // vast options
+        //
         const vast_args &vargs;
-
         output_stream_ptr output_stream;
 
+        //
+        // contexts
+        //
         acontext_t *acontext = nullptr;
 
         vast_generator_ptr generator;
