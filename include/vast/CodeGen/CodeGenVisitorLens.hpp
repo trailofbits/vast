@@ -10,6 +10,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/CodeGenMeta.hpp"
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/Mangler.hpp"
 #include "vast/CodeGen/Util.hpp"
 
 namespace vast::cg {
@@ -103,7 +104,7 @@ namespace vast::cg {
         template< typename Token >
         mlir_type visit_as_lvalue_type(Token token) { return derived().VisitLValueType(token); }
 
-        core::FunctionType visit_function_type(const clang::FunctionType *fty, bool variadic) {
+        decltype(auto) visit_function_type(const clang::FunctionType *fty, bool variadic) {
             return derived().VisitCoreFunctionType(fty, variadic);
         }
 
