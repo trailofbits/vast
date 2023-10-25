@@ -42,7 +42,7 @@ namespace vast::cg {
 
         using lens::name_mangler;
 
-        using lens::base_builder;
+        using lens::mlir_builder;
 
         using lens::visit;
         using lens::visit_as_lvalue_type;
@@ -50,7 +50,7 @@ namespace vast::cg {
 
         using lens::make_value_builder;
 
-        using lens::make_insertion_guard;
+        using lens::insertion_guard;
 
         using lens::set_insertion_point_to_start;
         using lens::set_insertion_point_to_end;
@@ -67,7 +67,7 @@ namespace vast::cg {
 
         template< typename op_t, typename... args_t >
         auto make(args_t &&...args) {
-            return base_builder().template create< op_t >(std::forward< args_t >(args)...);
+            return mlir_builder().template create< op_t >(std::forward< args_t >(args)...);
         }
 
         auto visit_decl_attrs(const clang::Decl *decl, operation op) {
@@ -109,7 +109,7 @@ namespace vast::cg {
             // At the point we need to create the function, the insertion point
             // could be anywhere (e.g. callsite). Do not rely on whatever it might
             // be, properly save, find the appropriate place and restore.
-            auto guard = make_insertion_guard();
+            auto guard = insertion_guard();
             auto linkage = core::get_function_linkage(function_decl);
 
             // make function header, that will be later filled with function body
@@ -339,7 +339,7 @@ namespace vast::cg {
                 return fn;
             }
 
-            auto guard = make_insertion_guard();
+            auto guard = insertion_guard();
             auto is_definition = decl->isThisDeclarationADefinition();
 
             // emit definition instead of declaration
@@ -535,12 +535,12 @@ namespace vast::cg {
             }).getDefiningOp();
 
             if (decl->hasInit()) {
-                auto guard = make_insertion_guard();
+                auto guard = insertion_guard();
                 auto declared = mlir::dyn_cast< hl::VarDeclOp >(var_decl);
                 set_insertion_point_to_start(&declared.getInitializer());
 
                 auto value_builder = make_value_builder(decl->getInit());
-                value_builder(base_builder(), meta_location(decl));
+                value_builder(mlir_builder(), meta_location(decl));
             }
 
             return var_decl;
@@ -646,7 +646,7 @@ namespace vast::cg {
                     if (auto prev_op = context().enumdecls.lookup(prev)) {
                         VAST_ASSERT(!prev->isComplete());
                         prev_op.setType(visit(decl->getIntegerType()));
-                        auto guard = make_insertion_guard();
+                        auto guard = insertion_guard();
                         set_insertion_point_to_start(&prev_op.getConstants().front());
                         for (auto con : decl->enumerators()) {
                             visit(con);

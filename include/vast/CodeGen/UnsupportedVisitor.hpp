@@ -175,9 +175,11 @@ namespace vast::cg {
         using lens::mcontext;
         using lens::derived;
 
+        using lens::mlir_builder;
+
         auto make_unsupported_attr(auto attr) {
             std::string spelling(attr->getSpelling());
-            return derived().base_builder().template getAttr< unsup::UnsupportedAttr >(spelling);
+            return mlir_builder().template getAttr< unsup::UnsupportedAttr >(spelling);
         }
 
         mlir_attr Visit(const clang::Attr *attr) {

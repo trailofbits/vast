@@ -29,11 +29,13 @@ namespace vast::cg {
         using lens::mcontext;
         using lens::acontext;
 
+        using lens::mlir_builder;
+
         using lens::visit;
 
         template< typename attr_t, typename... args_t >
         auto make(args_t &&...args) {
-            return derived().base_builder().template getAttr< attr_t >(
+            return mlir_builder().template getAttr< attr_t >(
                 std::forward< args_t >(args)...
             );
         }

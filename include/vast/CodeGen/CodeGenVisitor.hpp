@@ -44,7 +44,7 @@ namespace vast::cg
         using vast_builder::has_insertion_block;
         using vast_builder::clear_insertion_point;
 
-        using vast_builder::make_scoped;
+        using vast_builder::insertion_guard;
 
         using vast_builder::make_cond_builder;
         using vast_builder::make_operation;
@@ -54,36 +54,13 @@ namespace vast::cg
         using vast_builder::make_value_builder;
         using vast_builder::make_value_yield_region;
         using vast_builder::make_yield_true;
+        using vast_builder::make_scoped;
 
         using vast_builder::constant;
 
         using mixin::Visit;
 
-        void set_insertion_point_to_start(region_ptr region) {
-            builder.setInsertionPointToStart(&region->front());
-        }
-
-        void set_insertion_point_to_end(region_ptr region) {
-            builder.setInsertionPointToEnd(&region->back());
-        }
-
-        void set_insertion_point_to_start(block_ptr block) {
-            builder.setInsertionPointToStart(block);
-        }
-
-        void set_insertion_point_to_end(block_ptr block) {
-            builder.setInsertionPointToEnd(block);
-        }
-
-        void clear_insertion_point() {
-            builder.clearInsertionPoint();
-        }
-
-        insertion_guard make_insertion_guard() {
-            return { builder };
-        }
-
-        mlir_builder& base_builder() { return builder; }
+        mlir_builder& mlir_builder() { return builder; }
 
         loc_t meta_location(auto token) const {
             return meta.location(token);
@@ -91,7 +68,7 @@ namespace vast::cg
 
         context_t &ctx;
         meta_generator &meta;
-        mlir_builder builder;
+        ::vast::mlir_builder builder;
     };
 
 } // namespace vast::cg

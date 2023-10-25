@@ -46,16 +46,16 @@ namespace vast::cg {
         //
         // builder
         //
-        decltype(auto) base_builder() {
-            return derived().base_builder();
+        decltype(auto) mlir_builder() {
+            return derived().mlir_builder();
         }
 
         decltype(auto) make_value_builder(const clang::Stmt *stmt) {
             return derived().make_value_builder(stmt);
         }
 
-        decltype(auto) make_insertion_guard() {
-            return derived().make_insertion_guard();
+        decltype(auto) insertion_guard() {
+            return derived().insertion_guard();
         }
 
         decltype(auto) make_yield_true() { return derived().make_yield_true(); }
@@ -78,19 +78,23 @@ namespace vast::cg {
         }
 
         decltype(auto) set_insertion_point_to_start(region_ptr region) {
-            derived().set_insertion_point_to_start(region);
+            return derived().set_insertion_point_to_start(region);
         }
 
         decltype(auto) set_insertion_point_to_end(region_ptr region) {
-            derived().set_insertion_point_to_end(region);
+            return derived().set_insertion_point_to_end(region);
         }
 
         decltype(auto) set_insertion_point_to_start(block_ptr block) {
-            derived().set_insertion_point_to_start(block);
+            return derived().set_insertion_point_to_start(block);
         }
 
         decltype(auto) set_insertion_point_to_end(block_ptr block) {
-            derived().set_insertion_point_to_end(block);
+            return derived().set_insertion_point_to_end(block);
+        }
+
+        bool has_insertion_block() {
+            return derived().has_insertion_block();
         }
 
         template< typename... args_t >

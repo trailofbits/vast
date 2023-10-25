@@ -116,7 +116,7 @@ namespace vast::cg {
     {
         using lens = visitor_lens< derived_t, builder_t >;
 
-        using lens::base_builder;
+        using lens::mlir_builder;
         using lens::acontext;
 
         using lens::visit;
@@ -125,37 +125,42 @@ namespace vast::cg {
 
         template< typename op_t >
         op_t get_parent_of_type() {
-            auto reg = base_builder().getInsertionBlock()->getParent();
+            auto reg = mlir_builder().getInsertionBlock()->getParent();
             return reg->template getParentOfType< op_t >();
         }
 
         void set_insertion_point_to_start(region_ptr region) {
-            base_builder().setInsertionPointToStart(&region->front());
+            mlir_builder().setInsertionPointToStart(&region->front());
         }
 
         void set_insertion_point_to_end(region_ptr region) {
-            base_builder().setInsertionPointToEnd(&region->back());
+            mlir_builder().setInsertionPointToEnd(&region->back());
         }
 
         void set_insertion_point_to_start(block_ptr block) {
-            base_builder().setInsertionPointToStart(block);
+            mlir_builder().setInsertionPointToStart(block);
         }
 
         void set_insertion_point_to_end(block_ptr block) {
-            base_builder().setInsertionPointToEnd(block);
+            mlir_builder().setInsertionPointToEnd(block);
         }
 
         bool has_insertion_block() {
-            return base_builder().getInsertionBlock();
+            return mlir_builder().getInsertionBlock();
         }
 
         void clear_insertion_point() {
-            base_builder().clearInsertionPoint();
+            mlir_builder().clearInsertionPoint();
         }
+
+        insertion_guard insertion_guard() {
+            return { mlir_builder() };
+        }
+
 
         template< typename op_t, typename... args_t >
         auto create(args_t &&...args) {
-            return base_builder().template create< op_t >(std::forward< args_t >(args)...);
+            return mlir_builder().template create< op_t >(std::forward< args_t >(args)...);
         }
 
         template< typename result_type, typename builder_type >
@@ -179,12 +184,10 @@ namespace vast::cg {
 
         template< typename scope_t >
         auto make_scoped(loc_t loc, auto content_builder) {
-            scope_t scope(base_builder(), loc);
+            scope_t scope(mlir_builder(), loc);
             content_builder();
             return scope.get();
         }
-
-        decltype(auto) make_insertion_guard() { return insertion_guard(base_builder()); }
 
         // TODO: unify region and stmt builders, they are the same thing but
         // different region builders directly emit new region, while stmt
@@ -199,7 +202,7 @@ namespace vast::cg {
         }
 
         std::unique_ptr< region_t > make_stmt_region(const clang::Stmt *stmt) {
-            auto guard = make_insertion_guard();
+            auto guard = insertion_guard();
 
             auto reg = make_empty_region();
             set_insertion_point_to_start( reg.get() );
@@ -209,7 +212,7 @@ namespace vast::cg {
         }
 
         std::unique_ptr< region_t > make_stmt_region(const clang::CompoundStmt *stmt) {
-            auto guard = make_insertion_guard();
+            auto guard = insertion_guard();
 
             auto reg = make_empty_region();
             set_insertion_point_to_start( reg.get() );
@@ -224,7 +227,7 @@ namespace vast::cg {
 
         template< typename stmt_t >
         reg_and_type make_value_yield_region(const stmt_t *stmt) {
-            auto guard  = make_insertion_guard();
+            auto guard  = insertion_guard();
             auto reg    = make_stmt_region(stmt);
 
             auto &block = reg->back();
@@ -245,7 +248,7 @@ namespace vast::cg {
         }
 
         reg_and_type make_stmt_expr_region (const clang::CompoundStmt *stmt) {
-            auto guard  = make_insertion_guard();
+            auto guard  = insertion_guard();
             auto reg    = make_stmt_region(stmt);
 
             auto &block = reg->back();
