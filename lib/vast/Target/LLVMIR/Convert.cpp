@@ -101,7 +101,7 @@ namespace vast::target::llvmir
     }
 
     std::unique_ptr< llvm::Module > translate(
-        vast_module mlir_module, llvm::LLVMContext &llvm_ctx,const std::string &module_name
+        vast_module mlir_module, llvm::LLVMContext &llvm_ctx
     ) {
         clean_up_data_layout(mlir_module);
 
@@ -111,6 +111,9 @@ namespace vast::target::llvmir
             mlir_module->setAttr(mlir::LLVM::LLVMDialect::getTargetTripleAttrName(), triple);
             mlir_module->removeAttr(core::CoreDialect::getTargetTripleAttrName());
         }
+
+        mlir::registerBuiltinDialectTranslation(*mlir_module.getContext());
+        mlir::registerLLVMDialectTranslation(*mlir_module.getContext());
 
         return mlir::translateModuleToLLVMIR(mlir_module, llvm_ctx);
     }

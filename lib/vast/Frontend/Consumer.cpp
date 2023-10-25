@@ -7,6 +7,9 @@ VAST_RELAX_WARNINGS
 
 #include <mlir/Target/LLVMIR/Dialect/All.h>
 #include <mlir/Target/LLVMIR/LLVMTranslationInterface.h>
+
+#include <mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h>
+#include <mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/Passes.hpp"
@@ -130,7 +133,7 @@ namespace vast::cc {
         auto pipeline = parse_pipeline(vargs.get_options_list(opt::opt_pipeline));
         llvmir::lower_hl_module(mlir_module.get(), pipeline);
 
-        auto mod = llvmir::translate(mlir_module.get(), llvm_context, "tmp");
+        auto mod = llvmir::translate(mlir_module.get(), llvm_context);
 
         clang::EmitBackendOutput(
             opts.diags, opts.headers, opts.codegen, opts.target, opts.lang,

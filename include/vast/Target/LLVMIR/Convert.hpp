@@ -42,7 +42,7 @@ namespace vast::target::llvmir
     // lowered as much as possible by vast (for example by calling the `prepare_module`
     // function).
     std::unique_ptr< llvm::Module > translate(
-        vast_module mlir_module, llvm::LLVMContext &llvm_ctx, const std::string &module_name
+        vast_module mlir_module, llvm::LLVMContext &llvm_ctx
     );
 
     // Run all passes needed to go from a product of vast frontend (module in `hl` dialect)
