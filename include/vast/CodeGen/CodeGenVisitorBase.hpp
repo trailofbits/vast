@@ -31,7 +31,7 @@ namespace vast::cg {
     template< typename derived_t >
     using attr_visitor_base = clang::ConstAttrVisitor< derived_t, mlir_attr >;
 
-    template< typename context_t, meta_generator_like meta_gen >
+    template< typename context_t, typename meta_gen >
     struct visitor_base
     {
         visitor_base(context_t &ctx, meta_gen &meta)
@@ -64,9 +64,8 @@ namespace vast::cg {
 
         mlir_builder& base_builder() { return _builder; }
 
-        template< typename Token >
-        loc_t meta_location(Token token) const {
-            return meta.get(token).location();
+        loc_t meta_location(auto token) const {
+            return meta.location(token);
         }
 
         context_t &ctx;
