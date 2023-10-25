@@ -450,7 +450,7 @@ namespace vast::cg {
         , visitor_lens< derived_t, type_visitor_with_dl >
     {
         using base = default_type_visitor< derived_t >;
-        using lens = base::lens;
+        using lens = typename base::lens;
 
         using lens::context;
         using lens::acontext;
