@@ -55,7 +55,7 @@ namespace vast::cc {
 
     protected:
 
-        vast_gen_action(output_type action, const vast_args &vargs, mcontext_t *mcontext = nullptr);
+        vast_gen_action(output_type action, const vast_args &vargs);
 
         std::unique_ptr< clang::ASTConsumer >
         CreateASTConsumer(compiler_instance &ci, string_ref input) override;
@@ -69,7 +69,7 @@ namespace vast::cc {
 
         owning_module_ref mlir_module;
 
-        mcontext_t *mcontext;
+        std::unique_ptr< mcontext_t > mcontext = std::make_unique< mcontext_t >();
 
         owning_module_ref load_module(llvm::MemoryBufferRef mref);
 
@@ -80,7 +80,7 @@ namespace vast::cc {
     // Emit assembly
     //
     struct emit_assembly_action : vast_gen_action {
-        emit_assembly_action(const vast_args &vargs, mcontext_t *mcontext = nullptr);
+        explicit emit_assembly_action(const vast_args &vargs);
     private:
         virtual void anchor();
     };
@@ -89,7 +89,7 @@ namespace vast::cc {
     // Emit LLVM
     //
     struct emit_llvm_action : vast_gen_action {
-        emit_llvm_action(const vast_args &vargs, mcontext_t *mcontext = nullptr);
+        explicit emit_llvm_action(const vast_args &vargs);
     private:
         virtual void anchor();
     };
@@ -98,7 +98,7 @@ namespace vast::cc {
     // Emit MLIR
     //
     struct emit_mlir_action : vast_gen_action {
-        emit_mlir_action(const vast_args &vargs, mcontext_t *mcontext = nullptr);
+        explicit emit_mlir_action(const vast_args &vargs);
     private:
         virtual void anchor();
     };
@@ -107,7 +107,7 @@ namespace vast::cc {
     // Emit obj
     //
     struct emit_obj_action : vast_gen_action {
-        emit_obj_action(const vast_args &vargs, mcontext_t *mcontext = nullptr);
+        explicit emit_obj_action(const vast_args &vargs);
     private:
         virtual void anchor();
     };
