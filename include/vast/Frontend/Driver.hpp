@@ -21,7 +21,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Frontend/Diagnostics.hpp"
-#include "vast/Frontend/GenAction.hpp"
+#include "vast/Frontend/Action.hpp"
 
 #include "vast/Config/config.h"
 

@@ -1,6 +1,6 @@
 // Copyright (c) 2023-present, Trail of Bits, Inc.
 
-#include "vast/Frontend/GenAction.hpp"
+#include "vast/Frontend/Action.hpp"
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS

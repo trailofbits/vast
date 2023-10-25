@@ -12,14 +12,11 @@ VAST_RELAX_WARNINGS
 #include <llvm/Option/OptTable.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Frontend/Action.hpp"
 #include "vast/Frontend/CompilerInstance.hpp"
-#include "vast/Frontend/GenAction.hpp"
 
 namespace vast::cc
 {
-    using frontend_action_ptr = std::unique_ptr< clang::FrontendAction >;
-    using compiler_instance   = clang::CompilerInstance;
-
     frontend_action_ptr create_frontend_action(compiler_instance &ci, const vast_args &vargs) {
         auto &opts = ci.getFrontendOpts();
         auto act   = opts.ProgramAction;

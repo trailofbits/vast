@@ -9,8 +9,8 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
-#include "vast/Frontend/CompilerInstance.hpp"
 #include "vast/Frontend/FrontendAction.hpp"
+#include "vast/Frontend/CompilerInstance.hpp"
 #include "vast/CodeGen/Generator.hpp"
 
 namespace llvm {
