@@ -121,6 +121,8 @@ namespace vast::conv::tc
 
             return { out };
         }
+
+        mcontext_t &get_context() { return self().mctx; }
     };
 
     // TODO(lukas): `rewriter.convertRegionTypes` should do the job, but it does not.
