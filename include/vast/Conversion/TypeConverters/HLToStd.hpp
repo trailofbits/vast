@@ -14,6 +14,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/CoreAttributes.hpp"
 
 #include "vast/Conversion/Common/Types.hpp"
+#include "vast/Conversion/TypeConverters/TypeConverter.hpp"
 
 #include "vast/Util/Maybe.hpp"
 
@@ -22,13 +23,14 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::conv::tc
 {
-    struct HLToStd : mlir::TypeConverter
+    struct HLToStd : base_type_converter
+                   , mixins< HLToStd >
     {
         const mlir::DataLayout &dl;
         mlir::MLIRContext &mctx;
 
         HLToStd(const mlir::DataLayout &dl, mcontext_t &mctx)
-            : mlir::TypeConverter(), dl(dl), mctx(mctx)
+            : base_type_converter(), dl(dl), mctx(mctx)
         {
             // Fallthrough option - we define it first as it seems the framework
             // goes from the last added conversion.
