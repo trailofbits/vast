@@ -162,17 +162,22 @@ namespace vast::core {
             return GlobalLinkageKind::InternalLinkage;
         }
 
+        if (const auto *fn = decl->getAsFunction()) {
+            if (fn->isMultiVersion() && linkage == clang::GVA_AvailableExternally) {
+                return GlobalLinkageKind::LinkOnceAnyLinkage;
+            }
+            if (!fn->isThisDeclarationADefinition()
+                && decl->hasAttr< clang::WeakAttr >())
+            {
+                return GlobalLinkageKind::ExternalWeakLinkage;
+            }
+        }
+
         if (decl->hasAttr< clang::WeakAttr >()) {
             if (is_constant)
                 return GlobalLinkageKind::WeakODRLinkage;
             else
                 return GlobalLinkageKind::WeakAnyLinkage;
-        }
-
-        if (const auto *fn = decl->getAsFunction()) {
-            if (fn->isMultiVersion() && linkage == clang::GVA_AvailableExternally) {
-                return GlobalLinkageKind::LinkOnceAnyLinkage;
-            }
         }
 
         // We are guaranteed to have a strong definition somewhere else,
