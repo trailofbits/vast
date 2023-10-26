@@ -35,9 +35,11 @@ namespace vast::hl {
                 , conv::tc::mixins< type_converter >
             {
                 vast_module mod;
+                mcontext_t &mctx;
 
                 type_converter(mcontext_t &mctx, vast_module mod)
-                    : conv::tc::base_type_converter(), mod(mod)
+                    : conv::tc::base_type_converter(),
+                      mod(mod), mctx(mctx)
                 {
                     addConversion([&](mlir_type t) { return this->convert(t); });
                 }
