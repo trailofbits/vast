@@ -116,6 +116,9 @@ namespace vast::cg
     }
 
     operation get_last_effective_operation(auto &block) {
+        if (block.empty()) {
+            return {};
+        }
         auto last = &block.back();
         if (auto scope = mlir::dyn_cast< core::ScopeOp >(last)) {
             return get_last_effective_operation(scope.getBody().back());
@@ -130,7 +133,10 @@ namespace vast::cg
         auto &last_block = fn.getBody().back();
         auto missing_return = [&] (auto &block) {
             if (codegen.has_insertion_block()) {
-                return block.empty() || !get_last_effective_operation(block)->template hasTrait< core::return_trait >();
+                if (auto op = get_last_effective_operation(block)) {
+                    return !op->template hasTrait< core::return_trait >();
+                }
+                return true;
             }
 
             return false;
