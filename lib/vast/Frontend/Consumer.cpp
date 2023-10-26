@@ -49,7 +49,7 @@ namespace vast::cc {
             *mctx, actx, get_source_language(opts.lang)
         );
 
-        codegen = std::make_unique< cg::codegen_driver >(*cgctx, opts.codegen);
+        codegen = std::make_unique< cg::codegen_driver >(*cgctx, opts);
     }
 
     bool vast_consumer::HandleTopLevelDecl(clang::DeclGroupRef decls) {
@@ -244,7 +244,7 @@ namespace vast::cc {
 
     void vast_consumer::compile_via_vast(vast_module mod, mcontext_t *mctx) {
         const bool enable_vast_verifier = !vargs.has_option(opt::disable_vast_verifier);
-        auto pass = cg::emit_high_level_pass(mod, mctx, acontext, enable_vast_verifier);
+        auto pass = cg::emit_high_level_pass(mod, mctx, &cgctx->actx, enable_vast_verifier);
         if (pass.failed()) {
             VAST_UNREACHABLE("codegen: MLIR pass manager fails when running vast passes");
         }

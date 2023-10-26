@@ -182,7 +182,7 @@ namespace vast::cg
             case clang::Decl::CXXMethod:
             case clang::Decl::Function: {
                 build_global(llvm::cast< clang::FunctionDecl >(decl));
-                if (options.coverage_mapping) {
+                if (opts.codegen.CoverageMapping) {
                     VAST_UNIMPLEMENTED_MSG("coverage mapping not supported");
                 }
                 break;

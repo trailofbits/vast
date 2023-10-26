@@ -85,7 +85,7 @@ namespace vast::cg
         auto rty = decl->getReturnType();
 
         bool shoud_emit_unreachable = (
-            options.strict_return || may_drop_function_return(rty)
+            opts.codegen.StrictReturn || may_drop_function_return(rty)
         );
 
         // if (SanOpts.has(SanitizerKind::Return)) {
@@ -105,7 +105,7 @@ namespace vast::cg
             //   function call is used by the caller, the behavior is undefined.
 
             // TODO: skip if SawAsmBlock
-            if (options.optimization_level == 0) {
+            if (opts.codegen.OptimizationLevel == 0) {
                 codegen.emit_trap(fn, decl);
             } else {
                 codegen.emit_unreachable(fn, decl);
@@ -163,7 +163,7 @@ namespace vast::cg
     ) {
         auto args = build_function_arg_list(decl);
         fn = codegen.emit_function_prologue(
-            fn, decl, fty_info, args, options
+            fn, decl, fty_info, args, opts
         );
 
         if (mlir::failed(fn.verifyBody())) {

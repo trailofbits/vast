@@ -16,9 +16,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/FallBackVisitor.hpp"
 
 #include "vast/Dialect/Dialects.hpp"
-
 #include "vast/CodeGen/DataLayout.hpp"
-#include "vast/CodeGen/CodeGenOptions.hpp"
+
+#include "vast/Frontend/Options.hpp"
 
 namespace vast::cg
 {
@@ -170,10 +170,9 @@ namespace vast::cg
 
         typename context_t::var_table& variables_symbol_table() { return _cgctx.vars; }
 
-        // correspond to clang::CodeGenFunction::GenerateCode
         hl::FuncOp emit_function_prologue(
             hl::FuncOp fn, clang::GlobalDecl decl,  const function_info_t &fty_info,
-            function_arg_list args, const codegen_options &options
+            function_arg_list args, const cc::action_options &options
         ) {
             VAST_CHECK(fn, "generating code for a null function");
             const auto function_decl = clang::cast< clang::FunctionDecl >(decl.getDecl());
@@ -234,12 +233,6 @@ namespace vast::cg
                 // tests when the time comes, but VAST should be intrinsically scope
                 // accurate, so no need to tie coroutines to such markers.
                 if (clang::isa< clang::CoroutineBodyStmt >(body)) {
-                    VAST_UNIMPLEMENTED_MSG("emit lifetime markers");
-                }
-
-                // Initialize helper which will detect jumps which can cause invalid
-                // lifetime markers.
-                if (options.should_emit_lifetime_markers) {
                     VAST_UNIMPLEMENTED_MSG("emit lifetime markers");
                 }
             }
@@ -359,7 +352,7 @@ namespace vast::cg
             const function_info_t &fty_info,
             const function_arg_list &args,
             loc_t loc,
-            const codegen_options &options
+            const cc::action_options &opts
         ) {
             const auto *decl = glob.getDecl();
             const auto *function_decl = clang::dyn_cast_or_null< clang::FunctionDecl >(decl);
@@ -379,8 +372,8 @@ namespace vast::cg
             if (const auto *attr = decl ? decl->getAttr< clang::PatchableFunctionEntryAttr >() : nullptr) {
                 VAST_UNIMPLEMENTED;
             } else {
-                entry_count  = options.patchable_function_entry_count;
-                entry_offset = options.patchable_function_entry_offset;
+                entry_count  = opts.codegen.PatchableFunctionEntryCount;
+                entry_offset = opts.codegen.PatchableFunctionEntryOffset;
             }
 
             if (entry_count && entry_offset <= entry_count) {
@@ -388,16 +381,20 @@ namespace vast::cg
             }
 
             // Add no-jump-tables value.
-            if (options.no_use_jump_tables) {
+            if (opts.codegen.NoUseJumpTables) {
+
                 VAST_UNIMPLEMENTED;
             }
 
             // Add no-inline-line-tables value.
-            if (options.no_inline_line_tables) {
+            if (opts.codegen.NoInlineLineTables) {
                 VAST_UNIMPLEMENTED;
             }
 
             // TODO: Add profile-sample-accurate value.
+            if (opts.codegen.ProfileSampleAccurate) {
+                VAST_UNIMPLEMENTED;
+            }
 
             if (decl && decl->hasAttr< clang::CFICanonicalJumpTableAttr >()) {
                 VAST_UNIMPLEMENTED;
@@ -473,11 +470,11 @@ namespace vast::cg
             //     VAST_UNIMPLEMENTED;
             // }
 
-            if (options.packed_stack) {
+            if (opts.codegen.PackedStack) {
                 VAST_UNIMPLEMENTED;
             }
 
-            if (options.warn_stack_size != UINT_MAX) {
+            if (opts.codegen.WarnStackSize != UINT_MAX) {
                 VAST_UNIMPLEMENTED;
             }
 
@@ -780,7 +777,7 @@ namespace vast::cg
 
         hl::FuncOp emit_function_prologue(
             hl::FuncOp fn, clang::GlobalDecl decl,  const function_info_t &fty_info,
-            function_arg_list args, const codegen_options &options
+            function_arg_list args, const cc::action_options &options
         ) {
             return codegen.emit_function_prologue(fn, decl, fty_info, args, options);
         }
