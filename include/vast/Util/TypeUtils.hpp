@@ -36,7 +36,7 @@ namespace vast
     }
 
     // `mlir::TypeRange` does not expose a lot of stuff to write a concept with.
-    auto contains_subtype(mlir::TypeRange type_range, auto &&accept)
+    bool contains_subtype(mlir::TypeRange type_range, auto &&accept)
     {
         for (auto t : type_range)
             if (contains_subtype(t, accept))
@@ -44,15 +44,29 @@ namespace vast
         return false;
     }
 
-    auto contains_subtype(mlir::Attribute root, auto &&accept)
+    bool contains_subtype(mlir::DataLayoutEntryInterface dl_entry, auto &&accept)
+    {
+        auto key = mlir::dyn_cast< mlir_type >(dl_entry.getKey());
+        return key && accept(key);
+    }
+
+    bool contains_subtype(mlir::Attribute root, auto &&accept)
     {
         bool found = false;
         mlir::AttrTypeWalker walker;
-        walker.addWalk([&](mlir::Attribute attr) {
-            if (auto type_attr = mlir::dyn_cast< mlir::TypeAttr >(attr))
-                found |= contains_subtype(type_attr.getValue(), accept);
-            if (auto typed_attr = mlir::dyn_cast< mlir::TypedAttr >(attr))
-                found |= contains_subtype(typed_attr.getType(), accept);
+        walker.addWalk([&](mlir::Attribute attr) -> mlir::WalkResult
+        {
+            if (auto dl_entry = mlir::dyn_cast< mlir::DataLayoutSpecInterface >(attr))
+            {
+                for (auto e : dl_entry.getEntries())
+                    found |= contains_subtype(e, accept);
+            }
+            return mlir::WalkResult::advance();
+        });
+
+        walker.addWalk([&](mlir_type t)
+        {
+            found |= accept(t);
         });
 
         walker.walk(root);
