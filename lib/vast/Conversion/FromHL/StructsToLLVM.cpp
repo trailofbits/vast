@@ -23,8 +23,11 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Symbols.hpp"
 #include "vast/Util/DialectConversion.hpp"
+#include "vast/Util/TypeUtils.hpp"
 
+#include "vast/Conversion/TypeConverters/TypeConverter.hpp"
 #include "vast/Conversion/TypeConverters/LLVMTypeConverter.hpp"
+#include "vast/Conversion/TypeConverters/TypeConvertingPattern.hpp"
 
 #include <unordered_map>
 
@@ -92,6 +95,52 @@ namespace vast
             hl::StructDeclOp, conv::tc::LLVMTypeConverter, DoConversion
         >;
 
+        struct structs_to_llvm : conv::tc::mixins< structs_to_llvm >,
+                                 conv::tc::base_type_converter
+        {
+            using base = conv::tc::base_type_converter;
+
+            mcontext_t &mctx;
+
+            structs_to_llvm(mcontext_t &mctx) : mctx(mctx)
+            {
+                addConversion([&](hl::RecordType t) { return convert(t); });
+            }
+
+            maybe_type_t convert(hl::RecordType t)
+            {
+                return mlir::LLVM::LLVMStructType::getIdentified(t.getContext(),
+                                                                 t.getName());
+            }
+
+            maybe_types_t do_conversion(mlir_type type)
+            {
+                types_t out;
+                if (mlir::succeeded(this->convertType(type, out)))
+                    return std::move(out);
+
+                return {};
+            }
+        };
+
+        struct struct_type_replacer : conv::tc::type_converting_pattern< structs_to_llvm >
+        {
+            using base = conv::tc::type_converting_pattern< structs_to_llvm >;
+
+            struct_type_replacer(structs_to_llvm &tc, mcontext_t *mctx)
+                : base(tc, *mctx)
+            {}
+
+            logical_result matchAndRewrite(
+                mlir::Operation *op, mlir::ArrayRef< mlir::Value > ops,
+                conversion_rewriter &rewriter
+            ) const override {
+                if (auto func_op = mlir::dyn_cast< hl::FuncOp >(op))
+                    return replace(func_op, ops, rewriter);
+                return replace(op, ops, rewriter);
+            }
+        };
+
     } // namespace pattern
 
     struct HLStructsToLLVMPass : HLStructsToLLVMBase< HLStructsToLLVMPass >
@@ -117,9 +166,33 @@ namespace vast
 
             patterns.add< pattern::struct_decl_op >(type_converter, patterns.getContext());
 
+            // First we build all required types.
             if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
                 return signalPassFailure();
 
+            // Now we have all types in the context so we can go replacing.
+            return replace_types();
+        }
+
+        void replace_types()
+        {
+            auto op = this->getOperation();
+            auto &mctx = this->getContext();
+
+            mlir::ConversionTarget trg(mctx);
+            trg.markUnknownOpDynamicallyLegal([&](auto op)
+            {
+                return !has_type_somewhere< hl::RecordType >(op);
+            });
+
+            pattern::structs_to_llvm tc(mctx);
+
+            mlir::RewritePatternSet patterns(&mctx);
+            patterns.add< pattern::struct_type_replacer >(tc, patterns.getContext());
+
+            // First we build all required types.
+            if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
+                return signalPassFailure();
         }
     };
 
