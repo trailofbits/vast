@@ -56,11 +56,11 @@ namespace vast::cg
     struct codegen_driver {
 
         explicit codegen_driver(
-            codegen_context &cgctx, codegen_options opts
+            codegen_context &cgctx, cc::action_options &opts
         )
             : actx(cgctx.actx)
             , mctx(cgctx.mctx)
-            , options(opts)
+            , opts(opts)
             , cxx_abi(create_cxx_abi(actx))
             , codegen(cgctx)
             , type_conv(*this)
@@ -194,7 +194,7 @@ namespace vast::cg
         acontext_t &actx;
         mcontext_t &mctx;
 
-        codegen_options options;
+        cc::action_options &opts;
 
         unsigned deferred_top_level_decls = 0;
 

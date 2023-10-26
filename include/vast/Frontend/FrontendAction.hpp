@@ -24,18 +24,6 @@ namespace vast::cc {
         none
     };
 
-    using virtual_file_system = llvm::vfs::FileSystem;
-
-    struct action_options {
-        const header_search_options &headers;
-        const codegen_options &codegen;
-        const target_options &target;
-        const language_options &lang;
-        const frontend_options &front;
-        diagnostics_engine &diags;
-        virtual_file_system &vfs;
-    };
-
     static inline action_options options(compiler_instance &ci) {
         return {
             .headers = ci.getHeaderSearchOpts(),

@@ -30,6 +30,18 @@ namespace vast::cc
 
     using diagnostics_engine    = clang::DiagnosticsEngine;
 
+    using virtual_file_system = llvm::vfs::FileSystem;
+
+    struct action_options {
+        const header_search_options &headers;
+        const codegen_options &codegen;
+        const target_options &target;
+        const language_options &lang;
+        const frontend_options &front;
+        diagnostics_engine &diags;
+        virtual_file_system &vfs;
+    };
+
     constexpr string_ref vast_option_prefix = "-vast-";
 
     struct vast_args
