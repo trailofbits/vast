@@ -3,7 +3,7 @@
 
 // CHECK: hl.func @fun weak () -> !hl.void {
 void __attribute__((__weak__)) fun (void) {}
-int mian() {
+int main() {
     fun();
     return 0;
 }
