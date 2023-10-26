@@ -123,7 +123,8 @@ namespace vast::hl {
 
                         // TODO unify with high level type conversion
                         mlir::AttrTypeReplacer replacer;
-                        replacer.addReplacement(tc::convert_type_attr(tc));
+                        replacer.addReplacement(conv::tc::convert_type_attr(tc));
+                        replacer.addReplacement(conv::tc::convert_data_layout_attrs(tc));
                         replacer.recursivelyReplaceElementsIn(
                             op, true /* replace attrs */, false /* replace locs */, true /* replace types */
                         );
