@@ -114,6 +114,25 @@ namespace vast::dl
             return std::get< 1 >(entries.try_emplace(mty, dl::DLEntry{ mty, bw, abi_align }));
         }
 
+        void add(mlir_type type, dl::DLEntry entry)
+        {
+            auto it = entries.find(type);
+            if (it != entries.end())
+            {
+                VAST_CHECK(entry == it->second,
+                           "Insertion of dl::DLEntry would make DLBlueprint inconsistent.");
+            }
+            entries.try_emplace(type, entry);
+        }
+
+        auto wrap(mcontext_t &mctx) const
+        {
+            std::vector< mlir::DataLayoutEntryInterface > flattened;
+            for (const auto &[_, e] : entries)
+                flattened.push_back(e.wrap(mctx));
+            return mlir::DataLayoutSpecAttr::get(&mctx, flattened);
+        }
+
         llvm::DenseMap< mlir_type, dl::DLEntry > entries;
     };
 
