@@ -179,14 +179,17 @@ namespace vast::conv::irstollvm
         {
             auto loc = op.getLoc();
 
-            auto resize = [&](auto w)
+            auto resize = [&](auto w) -> mlir::Value
             {
+                auto trg_type = convert(op.getType());
+                if (w.getType() == trg_type)
+                    return w;
                 return rewriter.create< mlir::LLVM::ZExtOp >(
                         loc,
-                        convert(op.getType()),
+                        trg_type,
                         w);
             };
-            mlir::Operation *head = resize(ops.getOperands()[0]);
+            mlir::Value head = resize(ops.getOperands()[0]);
 
             std::size_t start = bw(ops.getOperands()[0].getDefiningOp());
             for (std::size_t i = 1; i < ops.getOperands().size(); ++i)
@@ -198,13 +201,13 @@ namespace vast::conv::irstollvm
                         mk_index(loc, start, rewriter));
                 head = rewriter.create< mlir::LLVM::OrOp >(
                         loc,
-                        head->getResult(0),
+                        head,
                         shifted->getResult(0));
 
                 start += bw(ops.getOperands()[i].getDefiningOp());
             }
 
-            rewriter.replaceOp(op, head->getResults());
+            rewriter.replaceOp(op, head);
             return mlir::success();
         }
     };
