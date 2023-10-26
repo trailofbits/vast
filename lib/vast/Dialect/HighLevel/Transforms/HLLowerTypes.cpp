@@ -23,85 +23,16 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Conversion/Common/Types.hpp"
 
 #include "vast/Util/Maybe.hpp"
+#include "vast/Util/TypeUtils.hpp"
+
 #include "vast/Conversion/TypeConverters/HLToStd.hpp"
 #include "vast/Conversion/TypeConverters/TypeConverter.hpp"
 
 #include <algorithm>
 #include <iostream>
 
-namespace vast::hl {
-    auto get_value() {
-        return [](auto attr) { return attr.getValue(); };
-    }
-
-    template< typename T >
-    auto dyn_cast() {
-        return [](auto x) { return mlir::dyn_cast< T >(x); };
-    }
-
-    auto contains_hl_type = [] (mlir_type t) -> bool {
-        VAST_CHECK(static_cast< bool >(t), "Argument of in `contains_hl_type` is not valid.");
-        // We need to manually check `t` itself.
-        mlir::AttrTypeWalker walker;
-        walker.addWalk([&] (mlir_type t) {
-            if (isHighLevelType(t))
-                return mlir::WalkResult::interrupt();
-            return mlir::WalkResult::advance();
-        });
-        return walker.walk(t).wasInterrupted();
-    };
-
-    bool contain_hl_type(mlir::TypeRange rng) {
-        return std::any_of(rng.begin(), rng.end(), contains_hl_type);
-    }
-
-    bool contain_hl_type(llvm::ArrayRef<mlir_type> rng) {
-        return contain_hl_type(mlir::TypeRange(rng));
-    }
-
-
-    bool isHighLevelType(mlir::TypeAttr type_attr) {
-        return Maybe(type_attr)
-            .and_then(get_value())
-            .and_then(dyn_cast< mlir_type >())
-            .keep_if(isHighLevelType)
-            .has_value();
-    }
-
-    bool has_hl_typeattr(operation op) {
-        for (const auto &attr : op->getAttrs()) {
-            // `getType()` is not reliable in reality since for example for `mlir::TypeAttr`
-            // it returns none. Lowering of types in attributes will be always best effort.
-            auto typed_attr = mlir::dyn_cast< mlir::TypedAttr >(attr.getValue());
-            if (typed_attr && isHighLevelType(typed_attr.getType())) {
-                return true;
-            }
-
-            if (auto type_attr = attr.getValue().dyn_cast< mlir::TypeAttr >();
-                type_attr && contains_hl_type(type_attr.getValue()))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool has_hl_function_type(operation op) {
-        if (auto fn = mlir::dyn_cast< hl::FuncOp >(op)) {
-            return contain_hl_type(fn.getArgumentTypes())
-                || contain_hl_type(fn.getResultTypes());
-        }
-
-        return false;
-    }
-
-    bool has_hl_type(operation op) {
-        return contain_hl_type(op->getResultTypes())
-            || contain_hl_type(op->getOperandTypes())
-            || has_hl_function_type(op)
-            || has_hl_typeattr(op);
-    }
-
+namespace vast::hl
+{
     using type_converter_t = conv::tc::HLToStd;
 
     struct LowerHighLevelOpType : mlir::ConversionPattern
@@ -161,7 +92,7 @@ namespace vast::hl {
                 return mlir::failure();
             }
 
-            auto &tc = *getTypeConverter();
+            auto &tc = static_cast< type_converter_t & >(*getTypeConverter());
 
             mlir::SmallVector< mlir_type > rty;
             auto status = tc.convertTypes(op->getResultTypes(), rty);
@@ -202,7 +133,7 @@ namespace vast::hl {
             FuncOp fn, OpAdaptor adaptor, conversion_rewriter &rewriter
         ) const override {
             auto fty = adaptor.getFunctionType();
-            auto &tc = *getTypeConverter();
+            auto &tc = static_cast< type_converter_t & >(*getTypeConverter());
 
             conv::tc::signature_conversion_t sigconvert(fty.getNumInputs());
             if (mlir::failed(tc.convertSignatureArgs(fty.getInputs(), sigconvert))) {
@@ -242,9 +173,13 @@ namespace vast::hl {
             mlir::ConversionTarget trg(mctx);
             // We want to check *everything* for presence of hl type
             // that can be lowered.
-            trg.markUnknownOpDynamicallyLegal([] (operation op) {
-                return !has_hl_type(op);
-            });
+            auto is_legal = [](operation op)
+            {
+                auto is_hl = [](mlir_type t) -> bool { return isHighLevelType(t); };
+
+                return !has_type_somewhere(op, is_hl);
+            };
+            trg.markUnknownOpDynamicallyLegal(is_legal);
 
             mlir::RewritePatternSet patterns(&mctx);
             const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
