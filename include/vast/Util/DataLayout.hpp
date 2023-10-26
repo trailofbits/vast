@@ -100,6 +100,8 @@ namespace vast::dl
         {
             return mlir::DataLayoutEntryAttr::get(type, create_raw_attr(mctx));
         }
+
+        bool operator==(const DLEntry &o) const = default;
     };
 
     // For each type remember its data layout information.
