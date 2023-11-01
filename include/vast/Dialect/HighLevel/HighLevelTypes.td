@@ -141,7 +141,7 @@ def TypedefType : CVRQualifiedType<
 }
 
 def ElaboratedType : CVRQualifiedType<
-  "Elaborated", "elaborated", (ins "Type":$elementType), [ElementTypeInterface]
+  "Elaborated", "elaborated", (ins "Type":$elementType), [ElementTypeInterface, MemRefElementTypeInterface]
 > {
   let builders = [
     TypeBuilder<(ins "Type":$element), [{
