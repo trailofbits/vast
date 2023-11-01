@@ -156,32 +156,4 @@ namespace vast::conv::tc
                 .template take_wrapped< maybe_attr_t >();
         };
     }
-
-    // This is leaky abstraction of our data layout implementation, so maybe
-    // move this to `Util/DataLayout.hpp`?
-    auto convert_data_layout_attrs(auto &type_converter)
-    {
-        return [&type_converter](mlir::DataLayoutSpecInterface spec)
-        {
-            dl::DataLayoutBlueprint bp;
-            for (auto e : spec.getEntries())
-            {
-                auto dl_entry = dl::DLEntry(e);
-                auto trg_type = type_converter.convert_type_to_type(dl_entry.type);
-                // What does this imply?
-                if (!trg_type)
-                    continue;
-
-                // Builtin types *cannot* be present in the data layour.
-                if (mlir::isa< mlir::BuiltinDialect >(&trg_type->getDialect()))
-                    continue;
-
-
-                dl_entry.type = *trg_type;
-                bp.add(*trg_type, std::move(dl_entry));
-            }
-            return bp.wrap(type_converter.get_context());
-        };
-    }
-
 } // namespace vast::conv::tc
