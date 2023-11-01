@@ -48,6 +48,10 @@ namespace vast::cg {
             return make< hl::SectionAttr >(attr->getName());
         }
 
+        mlir_attr VisitFormatAttr(const clang::FormatAttr *attr) {
+            return make< hl::FormatAttr >(attr->getType()->getName());
+        }
+
         mlir_attr VisitAnnotateAttr(const clang::AnnotateAttr *attr) {
             return make< hl::AnnotationAttr >(attr->getAnnotation());
         }
