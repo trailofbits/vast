@@ -37,7 +37,8 @@ def NoInstrumentAttr  : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_f
 def PackedAttr        : HighLevel_Attr< "Packed", "packed" >;
 def WarnUnusedResAttr : HighLevel_Attr< "WarnUnusedResult", "warn_unused_result" >;
 def RestrictAttr : HighLevel_Attr< "Restrict", "restrict" >;
-def NoThrowAttr : HighLevel_Attr< "NoThrow", "nothrow" >;
+def NoThrowAttr  : HighLevel_Attr< "NoThrow", "nothrow" >;
+def NonNullAttr  : HighLevel_Attr< "NonNull", "nonnull" >;
 
 def BuiltinAttr : HighLevel_Attr< "Builtin", "builtin" > {
   let parameters = (ins "unsigned":$ID);
