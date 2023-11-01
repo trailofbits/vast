@@ -36,6 +36,7 @@ def ConstAttr         : HighLevel_Attr< "Const", "const" >;
 def LoaderUninitAttr  : HighLevel_Attr< "LoaderUninitialized", "loader_uninitialized" >;
 def NoInstrumentAttr  : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
 def PackedAttr        : HighLevel_Attr< "Packed", "packed" >;
+def PureAttr          : HighLevel_Attr< "Pure", "pure" >;
 def WarnUnusedResAttr : HighLevel_Attr< "WarnUnusedResult", "warn_unused_result" >;
 def RestrictAttr : HighLevel_Attr< "Restrict", "restrict" >;
 def NoThrowAttr  : HighLevel_Attr< "NoThrow", "nothrow" >;

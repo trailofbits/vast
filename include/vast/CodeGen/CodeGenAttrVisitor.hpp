@@ -64,6 +64,10 @@ namespace vast::cg {
             return make< hl::PackedAttr >();
         }
 
+        mlir_attr VisitPureAttr(const clang::PureAttr *attr) {
+            return make< hl::PureAttr >();
+        }
+
         mlir_attr VisitWarnUnusedResultAttr(const clang::WarnUnusedResultAttr *attr) {
             return make< hl::WarnUnusedResultAttr >();
         }
