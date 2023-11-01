@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Conversion/Common/Patterns.hpp"
+#include "vast/Conversion/TypeConverters/DataLayout.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 
 #include "vast/Util/Common.hpp"
