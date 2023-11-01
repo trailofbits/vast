@@ -43,6 +43,20 @@ def RestrictAttr : HighLevel_Attr< "Restrict", "restrict" >;
 def NoThrowAttr  : HighLevel_Attr< "NoThrow", "nothrow" >;
 def NonNullAttr  : HighLevel_Attr< "NonNull", "nonnull" >;
 
+def AsmLabelAttr : HighLevel_Attr< "AsmLabel", "asm" > {
+  let parameters = (ins "::mlir::StringAttr":$label, "bool":$isLiteral);
+  let builders = [
+    AttrBuilderWithInferredContext<(ins "::mlir::StringAttr":$label, "bool":$literal), [{
+      return get(label.getContext(), label, literal);
+    }]>,
+    AttrBuilder<(ins "::mlir::StringRef":$label, "bool":$literal), [{
+      return get(mlir::StringAttr::get($_ctxt, label), literal);
+    }]>,
+  ];
+
+  let assemblyFormat = "`<` $label `,` $isLiteral `>`";
+}
+
 def ModeAttr : HighLevel_Attr< "Mode", "mode" > {
   let parameters = (ins "::mlir::StringAttr":$mode);
   let builders = [
