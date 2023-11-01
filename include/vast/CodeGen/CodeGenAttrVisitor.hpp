@@ -84,6 +84,10 @@ namespace vast::cg {
             return make< hl::BuiltinAttr >(attr->getID());
         }
 
+        mlir_attr VisitAllocAlignAttr(const clang::AllocAlignAttr *attr) {
+            return make< hl::AllocAlignAttr >(attr->getParamIndex().getSourceIndex());
+        }
+
         mlir_attr VisitAllocSizeAttr(const clang::AllocSizeAttr *attr) {
             auto num = attr->getNumElemsParam().isValid() ? attr->getNumElemsParam().getSourceIndex() : int();
             return make< hl::AllocSizeAttr >(attr->getElemSizeParam().getSourceIndex(), num);
