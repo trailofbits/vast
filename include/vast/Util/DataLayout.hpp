@@ -74,6 +74,8 @@ namespace vast::dl
             return mlir::StringAttr::get(&mctx, str_value);
         }
 
+    public:
+
         mlir::Attribute create_raw_attr(mcontext_t &mctx) const
         {
             // TODO(lukas): There is `UI64Attr` in `IR/OpBase.td` not sure how to include it
@@ -92,8 +94,6 @@ namespace vast::dl
             return mlir::DictionaryAttr::get(&mctx, all);
         }
 
-
-    public:
         // Wrap information in this object as `mlir::Attribute`, which is not attached yet
         // to anything.
         mlir::DataLayoutEntryInterface wrap(mcontext_t &mctx) const
