@@ -72,6 +72,10 @@ namespace vast::cg {
             return make< hl::NoThrowAttr >();
         }
 
+        mlir_attr VisitNonNullAttr(const clang::NonNullAttr *attr) {
+            return make< hl::NonNullAttr >();
+        }
+
         mlir_attr VisitBuiltinAttr(const clang::BuiltinAttr *attr) {
             return make< hl::BuiltinAttr >(attr->getID());
         }
