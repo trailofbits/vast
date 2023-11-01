@@ -50,6 +50,13 @@ config.vast_tools_dir = os.path.join(config.vast_obj_root, 'tools')
 
 tools = [
     ToolSubst('%vast-opt', command = 'vast-opt'),
+    ToolSubst('%vast-opt-simplify', command = 'vast-opt',
+        extra_args=[
+            "--vast-hl-lower-types",
+            "--vast-hl-dce",
+            "--vast-hl-lower-typedefs"
+        ]
+    ),
     ToolSubst('%vast-cc', command = 'vast-cc'),
     ToolSubst('%vast-query', command = 'vast-query'),
     ToolSubst('%vast-front', command = 'vast-front'),
