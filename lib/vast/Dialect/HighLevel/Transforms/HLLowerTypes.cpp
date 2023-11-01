@@ -25,6 +25,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Maybe.hpp"
 #include "vast/Util/TypeUtils.hpp"
 
+#include "vast/Conversion/TypeConverters/DataLayout.hpp"
 #include "vast/Conversion/TypeConverters/HLToStd.hpp"
 #include "vast/Conversion/TypeConverters/TypeConverter.hpp"
 
