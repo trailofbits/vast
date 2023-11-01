@@ -27,10 +27,11 @@ class NameAttr<string name, string attr_mnemonic>
     }]>,
   ];
 
-  let assemblyFormat = "$name";
+  let assemblyFormat = "`<` $name `>`";
 }
 
 def AnnotationAttr    : NameAttr< "Annotation", "annotation" >;
+def FormatAttr        : NameAttr< "Format", "format" >;
 def SectionAttr       : NameAttr< "Section", "section" >;
 def ConstAttr         : HighLevel_Attr< "Const", "const" >;
 def LoaderUninitAttr  : HighLevel_Attr< "LoaderUninitialized", "loader_uninitialized" >;
