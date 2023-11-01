@@ -304,15 +304,15 @@ namespace vast::cc {
             return true;
         }
 
-        void preprocess_vast_args(argv_storage_base &cmd_args) {
-            auto [vargs, ccargs] = vast::cc::filter_args(cmd_args);
+        static void preprocess_vast_args(argv_storage_base &all_args) {
+            auto [vargs, ccargs] = vast::cc::filter_args(all_args);
             // force no link step in case of emiting mlir file
             if (vast::cc::opt::emit_only_mlir(vargs)) {
-                cmd_args.push_back("-c");
+                all_args.push_back("-c");
             }
 
             if (vast::cc::opt::emit_only_llvm(vargs)) {
-                cmd_args.push_back("-emit-llvm");
+                all_args.push_back("-emit-llvm");
             }
         }
 
