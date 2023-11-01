@@ -80,6 +80,10 @@ namespace vast::cg {
             return make< hl::NonNullAttr >();
         }
 
+        mlir_attr VisitModeAttr(const clang::ModeAttr *attr) {
+            return make< hl::ModeAttr >(attr->getMode()->getName());
+        }
+
         mlir_attr VisitBuiltinAttr(const clang::BuiltinAttr *attr) {
             return make< hl::BuiltinAttr >(attr->getID());
         }
