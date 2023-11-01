@@ -40,6 +40,10 @@ namespace vast::cg {
             );
         }
 
+        mlir_attr VisitConstAttr(const clang::ConstAttr *attr) {
+            return make< hl::ConstAttr >();
+        }
+
         mlir_attr VisitSectionAttr(const clang::SectionAttr *attr) {
             return make< hl::SectionAttr >(attr->getName());
         }
