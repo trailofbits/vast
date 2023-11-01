@@ -96,6 +96,10 @@ namespace vast::cg {
             return make< hl::BuiltinAttr >(attr->getID());
         }
 
+        mlir_attr VisitAsmLabelAttr(const clang::AsmLabelAttr *attr) {
+            return make< hl::AsmLabelAttr >(attr->getLabel(), attr->getIsLiteralLabel());
+        }
+
         mlir_attr VisitAllocAlignAttr(const clang::AllocAlignAttr *attr) {
             return make< hl::AllocAlignAttr >(attr->getParamIndex().getSourceIndex());
         }
