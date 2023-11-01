@@ -46,6 +46,12 @@ def BuiltinAttr : HighLevel_Attr< "Builtin", "builtin" > {
   let assemblyFormat = "`<` $ID `>`";
 }
 
+def AllocAlignAttr : HighLevel_Attr< "AllocAlign", "alloc_align" >{
+  let parameters = (ins "int":$alignment);
+
+  let assemblyFormat = "`<` $alignment `>`";
+}
+
 def AllocSizeAttr : HighLevel_Attr< "AllocSize", "alloc_size" >{
   let parameters = (ins "int":$size_arg_pos, OptionalParameter< "int" >:$num_arg_pos);
 
