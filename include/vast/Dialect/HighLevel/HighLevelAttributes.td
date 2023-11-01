@@ -41,6 +41,20 @@ def RestrictAttr : HighLevel_Attr< "Restrict", "restrict" >;
 def NoThrowAttr  : HighLevel_Attr< "NoThrow", "nothrow" >;
 def NonNullAttr  : HighLevel_Attr< "NonNull", "nonnull" >;
 
+def ModeAttr : HighLevel_Attr< "Mode", "mode" > {
+  let parameters = (ins "::mlir::StringAttr":$mode);
+  let builders = [
+    AttrBuilderWithInferredContext<(ins "::mlir::StringAttr":$mode), [{
+      return get(mode.getContext(), mode);
+    }]>,
+    AttrBuilder<(ins "::mlir::StringRef":$mode), [{
+      return get(mlir::StringAttr::get($_ctxt, mode));
+    }]>,
+  ];
+
+  let assemblyFormat = "`<` $mode `>`";
+}
+
 def BuiltinAttr : HighLevel_Attr< "Builtin", "builtin" > {
   let parameters = (ins "unsigned":$ID);
   let assemblyFormat = "`<` $ID `>`";
