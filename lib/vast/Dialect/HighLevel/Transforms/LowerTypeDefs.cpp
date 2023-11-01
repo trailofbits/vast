@@ -13,12 +13,14 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Conversion/Common/Passes.hpp"
 #include "vast/Conversion/Common/Patterns.hpp"
+#include "vast/Conversion/Common/Rewriter.hpp"
+
+#include "vast/Conversion/TypeConverters/DataLayout.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DialectConversion.hpp"
 #include "vast/Util/TypeUtils.hpp"
 
-#include "vast/Conversion/Common/Rewriter.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
