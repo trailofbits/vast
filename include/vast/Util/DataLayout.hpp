@@ -18,8 +18,7 @@ VAST_UNRELAX_WARNINGS
 
 #include <type_traits>
 
-namespace vast::dl
-{
+namespace vast::dl {
     // We are currently using `DLTI` dialect to help encoding data layout information,
     // however in the future custom attributes will be probably preferable.
     // Each entry is mapping `hl::Type -> uint32_t` and in the IR it is encoded as
@@ -30,35 +29,33 @@ namespace vast::dl
         using bitwidth_t = uint32_t;
 
         mlir_type type;
-        bitwidth_t bw = 0;
+        bitwidth_t bw        = 0;
         bitwidth_t abi_align = 0;
 
-        DLEntry(mlir_type type, bitwidth_t bw, bitwidth_t abi_align )
-            : type(type), bw(bw),
-              abi_align(abi_align)
-        {}
+        DLEntry(mlir_type type, bitwidth_t bw, bitwidth_t abi_align)
+            : type(type), bw(bw), abi_align(abi_align) {}
 
         DLEntry(mlir_type type, mlir::DictionaryAttr dict_attr)
-            : type(type),
-              bw(extract(dict_attr, bw_key())),
-              abi_align(extract(dict_attr, abi_align_key()))
-        {}
+            : type(type)
+            , bw(extract(dict_attr, bw_key()))
+            , abi_align(extract(dict_attr, abi_align_key())) {}
 
         DLEntry(const mlir::DataLayoutEntryInterface &attr)
-            : DLEntry(mlir::dyn_cast< mlir_type >(attr.getKey()),
-                      mlir::dyn_cast< mlir::DictionaryAttr >(attr.getValue()))
-        {
+            : DLEntry(
+                mlir::dyn_cast< mlir_type >(attr.getKey()),
+                mlir::dyn_cast< mlir::DictionaryAttr >(attr.getValue())
+            ) {
             VAST_ASSERT(type);
         }
 
-    private:
+      private:
         static mlir_type bw_type(mcontext_t &mctx) { return mlir::IntegerType::get(&mctx, 32); }
 
         static llvm::StringRef bw_key() { return "vast.dl.bw"; }
+
         static llvm::StringRef abi_align_key() { return "vast.abi_align.key"; }
 
-        static bitwidth_t extract(mlir::DictionaryAttr dict_attr, llvm::StringRef key)
-        {
+        static bitwidth_t extract(mlir::DictionaryAttr dict_attr, llvm::StringRef key) {
             // Defensive check as there is path in ctors that does not guarantee this.
             VAST_ASSERT(dict_attr);
 
@@ -69,26 +66,21 @@ namespace vast::dl
             return static_cast< bitwidth_t >(int_attr.getInt());
         }
 
-        mlir::StringAttr wrap_str(mcontext_t &mctx, llvm::StringRef str_value) const
-        {
+        mlir::StringAttr wrap_str(mcontext_t &mctx, llvm::StringRef str_value) const {
             return mlir::StringAttr::get(&mctx, str_value);
         }
 
-    public:
-
-        mlir::Attribute create_raw_attr(mcontext_t &mctx) const
-        {
+      public:
+        mlir::Attribute create_raw_attr(mcontext_t &mctx) const {
             // TODO(lukas): There is `UI64Attr` in `IR/OpBase.td` not sure how to include it
             //              though.
-            auto to_attr = [&](auto what)
-            {
+            auto to_attr = [&](auto what) {
                 return mlir::IntegerAttr::get(bw_type(mctx), llvm::APInt(32, what));
             };
 
-            std::array< mlir::NamedAttribute, 2 > all =
-            {
-                mlir::NamedAttribute( wrap_str( mctx, bw_key() ), to_attr( bw ) ),
-                mlir::NamedAttribute( wrap_str( mctx, abi_align_key() ), to_attr( abi_align ) )
+            std::array< mlir::NamedAttribute, 2 > all = {
+                mlir::NamedAttribute(wrap_str(mctx, bw_key()), to_attr(bw)),
+                mlir::NamedAttribute(wrap_str(mctx, abi_align_key()), to_attr(abi_align))
             };
 
             return mlir::DictionaryAttr::get(&mctx, all);
@@ -96,8 +88,7 @@ namespace vast::dl
 
         // Wrap information in this object as `mlir::Attribute`, which is not attached yet
         // to anything.
-        mlir::DataLayoutEntryInterface wrap(mcontext_t &mctx) const
-        {
+        mlir::DataLayoutEntryInterface wrap(mcontext_t &mctx) const {
             return mlir::DataLayoutEntryAttr::get(type, create_raw_attr(mctx));
         }
 
@@ -105,7 +96,8 @@ namespace vast::dl
     };
 
     // For each type remember its data layout information.
-    struct DataLayoutBlueprint {
+    struct DataLayoutBlueprint
+    {
         bool try_emplace(mlir_type mty, const clang::Type *aty, const acontext_t &actx) {
             // For other types this should be good-enough for now
             auto info      = actx.getTypeInfo(aty);
@@ -114,22 +106,22 @@ namespace vast::dl
             return std::get< 1 >(entries.try_emplace(mty, dl::DLEntry{ mty, bw, abi_align }));
         }
 
-        void add(mlir_type type, dl::DLEntry entry)
-        {
+        void add(mlir_type type, dl::DLEntry entry) {
             auto it = entries.find(type);
-            if (it != entries.end())
-            {
-                VAST_CHECK(entry == it->second,
-                           "Insertion of dl::DLEntry would make DLBlueprint inconsistent.");
+            if (it != entries.end()) {
+                VAST_CHECK(
+                    entry == it->second,
+                    "Insertion of dl::DLEntry would make DLBlueprint inconsistent."
+                );
             }
             entries.try_emplace(type, entry);
         }
 
-        auto wrap(mcontext_t &mctx) const
-        {
+        auto wrap(mcontext_t &mctx) const {
             std::vector< mlir::DataLayoutEntryInterface > flattened;
-            for (const auto &[_, e] : entries)
+            for (const auto &[_, e] : entries) {
                 flattened.push_back(e.wrap(mctx));
+            }
             return mlir::DataLayoutSpecAttr::get(&mctx, flattened);
         }
 
