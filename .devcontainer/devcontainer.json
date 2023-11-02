@@ -2,9 +2,8 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.245.2/containers/cpp
 {
 	"name": "C++",
-	"image": "xheno/vast-ubuntu-22.04-dev:latest",
 	// to run local build of devcontainer
-	// "build": { "dockerfile": "./Dockerfile" },
+	"build": { "dockerfile": "./Dockerfile" },
 	"runArgs": ["--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined"],
 
 	// Configure tool-specific properties.
@@ -25,7 +24,7 @@
 		"python": "os-provided"
 	},
 	"containerEnv": {
-		"CMAKE_PREFIX_PATH": "/usr/lib/llvm-16/lib/cmake/mlir/;/usr/lib/llvm-16/lib/cmake/clang/",
+		"CMAKE_PREFIX_PATH": "/usr/lib/llvm-17/lib/cmake/mlir/;/usr/lib/llvm-17/lib/cmake/clang/",
 		"LLVM_EXTERNAL_LIT": "/usr/local/bin/lit"
 	}
 
