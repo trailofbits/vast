@@ -25,6 +25,8 @@ namespace vast::conv::tc
     struct base_type_converter : mlir::TypeConverter
     {
         using base = mlir::TypeConverter;
+        using base::base;
+
         bool isSignatureLegal(core::FunctionType ty);
     };
 
