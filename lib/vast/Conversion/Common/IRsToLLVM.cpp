@@ -1531,7 +1531,7 @@ namespace vast::conv::irstollvm
         using base = ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >;
         using config = typename base::config;
 
-        static conversion_target create_conversion_target(mcontext_t &context) {
+        static conversion_target create_conversion_target(mcontext_t &context, auto &tc) {
             conversion_target target(context);
 
             target.addIllegalDialect< hl::HighLevelDialect >();
@@ -1540,7 +1540,7 @@ namespace vast::conv::irstollvm
 
             auto legal_with_llvm_ret_type = [&]< typename T >( T && )
             {
-                target.addDynamicallyLegalOp< T >( has_llvm_return_type< T > );
+                target.addDynamicallyLegalOp< T >(get_has_legal_return_type< T >(tc));
             };
 
             legal_with_llvm_ret_type( core::LazyOp{} );
@@ -1550,7 +1550,7 @@ namespace vast::conv::irstollvm
 
 
             target.addDynamicallyLegalOp< hl::InitListExpr >(
-                has_llvm_only_types< hl::InitListExpr >
+                get_has_only_legal_types< hl::InitListExpr >(tc)
             );
 
             target.addIllegalOp< mlir::func::FuncOp >();
