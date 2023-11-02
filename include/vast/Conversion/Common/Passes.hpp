@@ -225,7 +225,7 @@ namespace vast {
 
             auto tc = llvm_type_converter(&ctx, llvm_options, &dl_analysis);
             auto cfg = config(
-                rewrite_pattern_set(&ctx), derived_t::create_conversion_target(ctx), tc
+                rewrite_pattern_set(&ctx), derived_t::create_conversion_target(ctx, tc), tc
             );
 
             // populate all patterns
