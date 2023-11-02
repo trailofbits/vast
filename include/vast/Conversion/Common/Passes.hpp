@@ -218,7 +218,6 @@ namespace vast {
 
         void run_on_operation() {
             auto &ctx   = getContext();
-            auto target = derived_t::create_conversion_target(ctx);
             const auto &dl_analysis = this->template getAnalysis< mlir::DataLayoutAnalysis >();
 
             mlir::LowerToLLVMOptions llvm_options{ &ctx };
