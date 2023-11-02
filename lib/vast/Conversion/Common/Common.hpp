@@ -9,8 +9,7 @@
 #include "vast/Conversion/Common/Patterns.hpp"
 #include "vast/Conversion/TypeConverters/LLVMTypeConverter.hpp"
 
-namespace vast::conv::irstollvm
-{
+namespace vast::conv::irstollvm {
     // I would consider to just use the entire namespace, everything
     // has (unfortunately) prefixed name with `LLVM` anyway.
     namespace LLVM = mlir::LLVM;
@@ -48,14 +47,11 @@ namespace vast::conv::irstollvm
         }
 
         auto mk_index(auto loc, std::size_t idx, auto &rewriter) const
-            -> mlir::LLVM::ConstantOp
-        {
+            -> mlir::LLVM::ConstantOp {
             auto index_type = convert(rewriter.getIndexType());
             return rewriter.template create< mlir::LLVM::ConstantOp >(
-                    loc,
-                    index_type,
-                    rewriter.getIntegerAttr(index_type, idx));
-
+                loc, index_type, rewriter.getIntegerAttr(index_type, idx)
+            );
         }
     };
 
@@ -67,9 +63,8 @@ namespace vast::conv::irstollvm
 
         using adaptor_t = typename src_t::Adaptor;
 
-        mlir::LogicalResult matchAndRewrite(
-            src_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(src_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             auto target_ty = this->type_converter().convert_type_to_type(op.getType());
             auto new_op = rewriter.create< trg_t >(op.getLoc(), *target_ty, ops.getOperands());
             rewriter.replaceOp(op, new_op);
@@ -86,9 +81,8 @@ namespace vast::conv::irstollvm
 
         using adaptor_t = typename src_t::Adaptor;
 
-        mlir::LogicalResult matchAndRewrite(
-            src_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(src_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             rewriter.replaceOp(op, ops.getOperands());
             return mlir::success();
         }
@@ -102,9 +96,8 @@ namespace vast::conv::irstollvm
 
         using adaptor_t = typename src_t::Adaptor;
 
-        mlir::LogicalResult matchAndRewrite(
-            src_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(src_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             rewriter.eraseOp(op);
             return mlir::success();
         }
@@ -112,28 +105,18 @@ namespace vast::conv::irstollvm
         static void legalize(auto &trg) { trg.template addIllegalOp< src_t >(); }
     };
 
-    static auto get_is_illegal(auto &tc)
-    {
-        return [&](mlir_type type)
-        {
-            return !tc.isLegal(type);
-        };
+    static auto get_is_illegal(auto &tc) {
+        return [&](mlir_type type) { return !tc.isLegal(type); };
     }
 
     template< typename T, typename type_converter >
-    auto get_has_only_legal_types(type_converter &tc)
-    {
-        return [&](T op) -> bool
-        {
-            return !has_type_somewhere(op, get_is_illegal(tc));
-        };
+    auto get_has_only_legal_types(type_converter &tc) {
+        return [&](T op) -> bool { return !has_type_somewhere(op, get_is_illegal(tc)); };
     }
 
     template< typename T, typename type_converter >
-    auto get_has_legal_return_type(type_converter &tc)
-    {
-        return [&](T op) -> bool
-        {
+    auto get_has_legal_return_type(type_converter &tc) {
+        return [&](T op) -> bool {
             return !contains_subtype(op.getResult().getType(), get_is_illegal(tc));
         };
     }
