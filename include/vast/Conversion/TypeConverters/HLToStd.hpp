@@ -23,8 +23,109 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::conv::tc
 {
+    // TODO(conv:tc): Encode as concept.
+    // Requires of `self_t`
+    // * inherits/implements `mixins`
+    // * implements `int_type()`
+    template< typename self_t >
+    struct HLAggregates
+    {
+      private:
+          self_t &self() { return static_cast< self_t & >(*this); }
+
+      public:
+        // This is not a ctor so that users can position it as they want
+        // in their initialization.
+        void init()
+        {
+            self().addConversion(convert_decayed_type());
+            self().addConversion(convert_lvalue_type());
+            self().addConversion(convert_pointer_type());
+            self().addConversion(convert_elaborated_type());
+        }
+
+        auto convert_decayed_type()
+        {
+            return [&](hl::DecayedType type)
+            {
+                return Maybe(type.getElementType())
+                    .and_then(self().convert_type_to_type())
+                    .unwrap()
+                    .template take_wrapped< maybe_type_t >();
+            };
+        }
+
+        auto convert_lvalue_type()
+        {
+            return [&](hl::LValueType type)
+            {
+                return Maybe(type.getElementType())
+                    .and_then(self().convert_type_to_type())
+                    .unwrap()
+                    .and_then(self().template make_aggregate_type< hl::LValueType >())
+                    .template take_wrapped< maybe_type_t >();
+            };
+        }
+
+        auto convert_elaborated_type()
+        {
+            return [&](hl::ElaboratedType type)
+            {
+                using raw = hl::ElaboratedType;
+
+                return Maybe(type.getElementType())
+                    .and_then(self().convert_type_to_type())
+                    .unwrap()
+                    .and_then(self().template make_aggregate_type< raw >(type.getQuals()))
+                    .template take_wrapped< maybe_type_t >();
+            };
+        }
+
+        auto convert_pointer_type()
+        {
+            return [&](hl::PointerType type)
+            {
+                using raw = hl::PointerType;
+
+                return Maybe(type.getElementType())
+                    .and_then(self().convert_pointer_element_type())
+                    .unwrap()
+                    .and_then(self().template make_aggregate_type< raw >(type.getQuals()))
+                    .template take_wrapped< maybe_type_t >();
+            };
+        }
+      protected:
+
+        auto convert_pointer_element_type()
+        {
+            return [&](auto t) -> maybe_type_t
+            {
+                if (t.template isa< hl::VoidType >())
+                {
+                    auto sign = mlir::IntegerType::SignednessSemantics::Signless;
+                    return self().int_type(8u, sign);
+                }
+                return self().convert_type_to_type(t);
+            };
+        }
+
+        // `args` is passed by value as I have no idea how to convince clang
+        // to not pass in `quals` as `const` when forwarding.
+        // They are expected to be lightweight objects anyway.
+        template< typename T, typename ... Args >
+        auto make_aggregate_type(Args ... args)
+        {
+            return [=](mlir_type elem)
+            {
+                return T::get(elem.getContext(), elem, args ...);
+            };
+        }
+
+    };
+
     struct HLToStd : base_type_converter
                    , mixins< HLToStd >
+                   , HLAggregates< HLToStd >
     {
         const mlir::DataLayout &dl;
         mlir::MLIRContext &mctx;
@@ -42,15 +143,13 @@ namespace vast::conv::tc
             addConversion([&](mlir_type t) { return this->try_convert_intlike(t); });
             addConversion([&](mlir_type t) { return this->try_convert_floatlike(t); });
 
-            addConversion([&](hl::LValueType t) { return this->convert_lvalue_type(t); });
-            addConversion([&](hl::DecayedType t) { return this->convert_decayed_type(t); });
-
             // Use provided data layout to get the correct type.
-            addConversion([&](hl::PointerType t) { return this->convert_ptr_type(t); });
             addConversion([&](hl::ArrayType t) { return this->convert_arr_type(t); });
             addConversion([&](hl::VoidType t) -> maybe_type_t {
                 return { mlir::NoneType::get(&mctx) };
             });
+
+            HLAggregates< HLToStd >::init();
         }
 
         maybe_types_t convert_type(mlir_type t) {
@@ -79,15 +178,6 @@ namespace vast::conv::tc
             return [&](auto t) { return this->convert_type_to_type(t); };
         }
 
-        auto convert_pointer_element_typee() {
-            return [&](auto t) -> maybe_type_t {
-                if (t.template isa< hl::VoidType >()) {
-                    return int_type(8u, mlir::IntegerType::SignednessSemantics::Signless);
-                }
-                return this->convert_type_to_type(t);
-            };
-        }
-
         auto make_int_type(bool is_signed) {
             return [=, this](auto t) { return int_type(dl.getTypeSizeInBits(t), is_signed); };
         }
@@ -110,14 +200,6 @@ namespace vast::conv::tc
                         VAST_UNREACHABLE("Cannot lower float bitsize {0}", target_bw);
                 }
             };
-        }
-
-        auto make_ptr_type(auto quals) {
-            return [=](auto t) { return hl::PointerType::get(t.getContext(), t, quals); };
-        }
-
-        auto make_lvalue_type() {
-            return [&](auto t) { return hl::LValueType::get(t.getContext(), t); };
         }
 
         maybe_types_t convert_type_to_types(mlir_type t, std::size_t count = 1) {
@@ -149,29 +231,6 @@ namespace vast::conv::tc
             return Maybe(t)
                 .keep_if(hl::isFloatingType)
                 .and_then(make_float_type())
-                .take_wrapped< maybe_type_t >();
-        }
-
-        maybe_type_t convert_decayed_type(hl::DecayedType t) {
-            return Maybe(t.getElementType())
-                .and_then(convert_type_to_type())
-                .unwrap()
-                .take_wrapped< maybe_type_t >();
-        }
-
-        maybe_type_t convert_ptr_type(hl::PointerType t) {
-            return Maybe(t.getElementType())
-                .and_then(convert_pointer_element_typee())
-                .unwrap()
-                .and_then(make_ptr_type(t.getQuals()))
-                .take_wrapped< maybe_type_t >();
-        }
-
-        maybe_type_t convert_lvalue_type(hl::LValueType t) {
-            return Maybe(t.getElementType())
-                .and_then(convert_type_to_type())
-                .unwrap()
-                .and_then(make_lvalue_type())
                 .take_wrapped< maybe_type_t >();
         }
 
