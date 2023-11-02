@@ -150,6 +150,7 @@ namespace vast::conv::irstollvm
                 auto byte = extract(offset, i * 8);
                 head = rewriter.create< mlir::LLVM::OrOp >(
                         loc,
+                        convert(op.getType()),
                         byte,
                         head);
             }
