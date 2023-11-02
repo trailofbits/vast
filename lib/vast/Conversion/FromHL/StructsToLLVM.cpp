@@ -4,7 +4,6 @@
 
 VAST_RELAX_WARNINGS
 #include <mlir/Analysis/DataLayoutAnalysis.h>
-#include <mlir/IR/PatternMatch.h>
 #include <mlir/Transforms/GreedyPatternRewriteDriver.h>
 #include <mlir/Transforms/DialectConversion.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
@@ -19,98 +18,84 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Conversion/Common/Rewriter.hpp"
 
-#include "vast/Util/Maybe.hpp"
-
-#include "vast/Util/Symbols.hpp"
-#include "vast/Util/DialectConversion.hpp"
 #include "vast/Util/TypeUtils.hpp"
 
 #include "vast/Conversion/TypeConverters/TypeConverter.hpp"
-#include "vast/Conversion/TypeConverters/LLVMTypeConverter.hpp"
 #include "vast/Conversion/TypeConverters/TypeConvertingPattern.hpp"
+#include "vast/Conversion/TypeConverters/HLToStd.hpp"
 
 #include <unordered_map>
+#include <ranges>
 
 namespace vast
 {
-
     namespace pattern
     {
-        template< typename T >
-        struct DoConversion {};
-
-        template<>
-        struct DoConversion< hl::StructDeclOp > : util::State< hl::StructDeclOp >
+        struct structs_to_llvm : conv::tc::mixins< structs_to_llvm >,
+                                 conv::tc::identity_type_converter,
+                                 conv::tc::HLAggregates< structs_to_llvm >
         {
-            using parent_t = util::State< hl::StructDeclOp >;
-            using self_t = DoConversion< hl::StructDeclOp >;
+            using base = conv::tc::identity_type_converter;
 
-            conv::tc::LLVMTypeConverter &tc;
+            mcontext_t &mctx;
+            vast_module mod;
 
-            template< typename... Args >
-            DoConversion(conv::tc::LLVMTypeConverter &tc, Args &&...args)
-                : parent_t(std::forward< Args >(args)...), tc(tc)
-            {}
 
-            DoConversion(const self_t &) = default;
-            DoConversion(self_t &&)      = default;
-
-            std::vector< mlir::Type > convert_field_types()
+            structs_to_llvm(mcontext_t &mctx, vast_module mod)
+                : mctx(mctx), mod(mod)
             {
-                std::vector< mlir::Type > out;
-                for (auto field_type : field_types(op))
+
+                init();
+                conv::tc::HLAggregates< structs_to_llvm >::init();
+            }
+
+            mlir_type int_type(unsigned, bool)
+            {
+                VAST_UNREACHABLE("Unexpected path hit when lowering structures to LLVM");
+            }
+
+            maybe_types_t convert_field_types(mlir_type t)
+            {
+                auto def = hl::definition_of(t, mod);
+
+                // Nothing found, leave the structure opaque.
+                if (!def)
+                    return {};
+
+                mlir::SmallVector< mlir_type, 4 > out;
+                for (auto field_type : hl::field_types(*def))
                 {
-                    auto c = tc.convert_type_to_type(field_type);
+                    auto c = convert_type_to_type(field_type);
                     VAST_ASSERT(c);
                     out.push_back(*c);
                 }
-                return out;
+                return { std::move(out) };
             }
 
-
-            mlir_type convert_struct_type()
+            auto convert_record()
             {
-                auto core = mlir::LLVM::LLVMStructType::getIdentified(op.getContext(),
-                                                                      op.getName());
-                auto status = core.setBody(convert_field_types(), false);
-                VAST_ASSERT(mlir::succeeded(status));
-                return core;
+                // We need this prototype to handle recursive types.
+                return [&](hl::RecordType t,
+                           mlir::SmallVectorImpl< mlir_type > &out,
+                           mlir::ArrayRef< mlir_type > stack) -> logical_result
+                {
+                    auto core = mlir::LLVM::LLVMStructType::getIdentified(t.getContext(),
+                                                                          t.getName());
+                    // Last element is `t`.
+                    auto bt = stack.drop_back();
+                    if (core.isOpaque() && std::ranges::find(bt, t) == bt.end())
+                    {
+                        if (auto body = convert_field_types(t))
+                        {
+                            // Multithreading may cause some issues?
+                            auto status = core.setBody(*body, false);
+                            VAST_ASSERT(mlir::succeeded(status));
+                        }
 
-            }
-
-            mlir::LogicalResult convert()
-            {
-                auto llvm_struct = convert_struct_type();
-                rewriter.create< hl::TypeDefOp >(op.getLoc(), op.getName(), llvm_struct);
-                // TODO(conv:hl-structs-to-llvm): Investigate if this is still required.
-                conv::rewriter_wrapper_t(rewriter).safe_erase(hl::type_decls(op));
-
-                rewriter.eraseOp(op);
-                return mlir::success();
-            }
-
-        };
-
-        using struct_decl_op = util::TypeConvertingPattern<
-            hl::StructDeclOp, conv::tc::LLVMTypeConverter, DoConversion
-        >;
-
-        struct structs_to_llvm : conv::tc::mixins< structs_to_llvm >,
-                                 conv::tc::base_type_converter
-        {
-            using base = conv::tc::base_type_converter;
-
-            mcontext_t &mctx;
-
-            structs_to_llvm(mcontext_t &mctx) : mctx(mctx)
-            {
-                addConversion([&](hl::RecordType t) { return convert(t); });
-            }
-
-            maybe_type_t convert(hl::RecordType t)
-            {
-                return mlir::LLVM::LLVMStructType::getIdentified(t.getContext(),
-                                                                 t.getName());
+                    }
+                    out.push_back(core);
+                    return mlir::success();
+                };
             }
 
             maybe_types_t do_conversion(mlir_type type)
@@ -120,6 +105,12 @@ namespace vast
                     return std::move(out);
 
                 return {};
+            }
+
+            // Must be last so we can return `auto` in the helpers.
+            void init()
+            {
+                addConversion(convert_record());
             }
         };
 
@@ -141,37 +132,33 @@ namespace vast
             }
         };
 
+        template< typename op_t >
+        struct erase : operation_conversion_pattern< op_t >
+        {
+            using base = operation_conversion_pattern< op_t >;
+            using base::base;
+
+            logical_result matchAndRewrite(op_t op,
+                                           typename op_t::Adaptor ops,
+                                           conversion_rewriter &rewriter
+            ) const override {
+                rewriter.eraseOp(op);
+                return mlir::success();
+            }
+        };
+
+
     } // namespace pattern
 
     struct HLStructsToLLVMPass : HLStructsToLLVMBase< HLStructsToLLVMPass >
     {
         void runOnOperation() override
         {
-            auto op = this->getOperation();
-            auto &mctx = this->getContext();
-
-            mlir::ConversionTarget trg(mctx);
-            trg.addIllegalOp< hl::StructDeclOp >();
-            // TODO(lukas): Why is this needed?
-            trg.addLegalOp< hl::TypeDefOp >();
-            trg.markUnknownOpDynamicallyLegal([](auto) { return true; });
-
-
-            mlir::RewritePatternSet patterns(&mctx);
-
-            const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
-
-            mlir::LowerToLLVMOptions llvm_options{ &mctx };
-            conv::tc::FullLLVMTypeConverter type_converter(&mctx, llvm_options, &dl_analysis);
-
-            patterns.add< pattern::struct_decl_op >(type_converter, patterns.getContext());
-
-            // First we build all required types.
-            if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
-                return signalPassFailure();
-
-            // Now we have all types in the context so we can go replacing.
-            return replace_types();
+            // Because `hl.struct` does not have a type, we first must convert
+            // all used types - after we are done all definitions can be deleted
+            // safely.
+            replace_types();
+            erase_defs();
         }
 
         void replace_types()
@@ -185,15 +172,31 @@ namespace vast
                 return !has_type_somewhere< hl::RecordType >(op);
             });
 
-            pattern::structs_to_llvm tc(mctx);
+            pattern::structs_to_llvm tc(mctx, op);
 
             mlir::RewritePatternSet patterns(&mctx);
             patterns.add< pattern::struct_type_replacer >(tc, patterns.getContext());
+
+            if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
+                return signalPassFailure();
+        }
+
+        void erase_defs()
+        {
+            auto op = this->getOperation();
+            auto &mctx = this->getContext();
+
+            mlir::ConversionTarget trg(mctx);
+            trg.addIllegalOp< hl::StructDeclOp >();
+
+            mlir::RewritePatternSet patterns(&mctx);
+            patterns.add< pattern::erase< hl::StructDeclOp > >(patterns.getContext());
 
             // First we build all required types.
             if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
                 return signalPassFailure();
         }
+
     };
 
 } // namespace vast
