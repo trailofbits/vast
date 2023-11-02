@@ -68,7 +68,8 @@ tools = [
             "-nostdsysteminc"
         ]
     ),
-    ToolSubst('%file-check', command = 'FileCheck')
+    ToolSubst('%file-check', command = 'FileCheck'),
+    ToolSubst('%clang', command = 'clang-17')
 ]
 
 if 'BUILD_TYPE' in lit_config.params:
