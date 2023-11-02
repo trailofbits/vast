@@ -3,10 +3,10 @@
 #pragma once
 
 VAST_RELAX_WARNINGS
+#include <mlir/Conversion/LLVMCommon/TypeConverter.h>
 #include <mlir/Dialect/Func/IR/FuncOps.h>
 #include <mlir/Dialect/LLVMIR/LLVMTypes.h>
 #include <mlir/IR/Types.h>
-#include <mlir/Conversion/LLVMCommon/TypeConverter.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
@@ -16,33 +16,31 @@ VAST_UNRELAX_WARNINGS
 
 // TODO(lukas): Possibly move this out of Util?
 
-namespace vast::conv::tc
-{
+namespace vast::conv::tc {
 
     namespace LLVM = mlir::LLVM;
 
-    struct LLVMTypeConverter : mlir::LLVMTypeConverter, tc::mixins< LLVMTypeConverter >
+    struct LLVMTypeConverter
+        : mlir::LLVMTypeConverter
+        , tc::mixins< LLVMTypeConverter >
     {
-        using base = mlir::LLVMTypeConverter;
+        using base      = mlir::LLVMTypeConverter;
         using helpers_t = tc::mixins< LLVMTypeConverter >;
 
-        template< typename ... Args >
-        LLVMTypeConverter(Args && ... args) : base(std::forward< Args >(args) ... )
-        {
+        template< typename... Args >
+        LLVMTypeConverter(Args &&...args) : base(std::forward< Args >(args)...) {
             addConversion([&](hl::LabelType t) { return t; });
             addConversion([&](hl::DecayedType t) { return this->convert_decayed(t); });
             addConversion([&](hl::LValueType t) { return this->convert_lvalue_type(t); });
             addConversion([&](hl::PointerType t) { return this->convert_pointer_type(t); });
             addConversion([&](mlir::MemRefType t) { return this->convert_memref_type(t); });
             addConversion([&](mlir::UnrankedMemRefType t) {
-                    return this->convert_memref_type(t);
+                return this->convert_memref_type(t);
             });
             // Overriding the inherited one to provide way to handle `hl.lvalue` in args.
-            addConversion([&](core::FunctionType t) {
-                    return this->convert_fn_t(t);
-            });
+            addConversion([&](core::FunctionType t) { return this->convert_fn_t(t); });
             addConversion([&](mlir::NoneType t) {
-                    return LLVM::LLVMVoidType::get(t.getContext());
+                return LLVM::LLVMVoidType::get(t.getContext());
             });
         }
 
@@ -51,31 +49,30 @@ namespace vast::conv::tc
         // no problem as one type converter per pass has long enough lifetime to be passed
         // as a reference.
         LLVMTypeConverter(const LLVMTypeConverter &) = delete;
-        LLVMTypeConverter(LLVMTypeConverter &&) = delete;
+        LLVMTypeConverter(LLVMTypeConverter &&)      = delete;
 
         LLVMTypeConverter &operator=(const LLVMTypeConverter &) = delete;
-        LLVMTypeConverter &operator=(LLVMTypeConverter &&) = delete;
+        LLVMTypeConverter &operator=(LLVMTypeConverter &&)      = delete;
 
-        maybe_types_t do_conversion(mlir::Type t)
-        {
+        maybe_types_t do_conversion(mlir::Type t) {
             types_t out;
-            if (mlir::succeeded(this->convertTypes(t, out)))
-                return { std::move( out ) };
+            if (mlir::succeeded(this->convertTypes(t, out))) {
+                return { std::move(out) };
+            }
             return {};
         }
 
-        auto make_ptr_type()
-        {
-            return [&](auto t)
-            {
+        auto make_ptr_type() {
+            return [&](auto t) {
                 VAST_ASSERT(!t.template isa< mlir::NoneType >());
                 return LLVM::LLVMPointerType::get(t);
             };
         }
 
-        maybe_type_t convert_decayed(hl::DecayedType t)
-        {
-            VAST_UNREACHABLE("We shouldn't encounter decayed this late in the pipeline, {0}", t);
+        maybe_type_t convert_decayed(hl::DecayedType t) {
+            VAST_UNREACHABLE(
+                "We shouldn't encounter decayed this late in the pipeline, {0}", t
+            );
             return {};
         }
 
@@ -130,47 +127,49 @@ namespace vast::conv::tc
             return { std::move(conversion) };
         }
 
-        maybe_type_t convert_fn_t(core::FunctionType t)
-        {
+        maybe_type_t convert_fn_t(core::FunctionType t) {
             auto a_res = this->on_types(t.getInputs(), &LLVMTypeConverter::convert_arg_t);
             auto r_res = this->on_types(t.getResults(), &LLVMTypeConverter::convert_ret_t);
 
-            if (!a_res || !r_res)
+            if (!a_res || !r_res) {
                 return {};
+            }
 
             // LLVM function can have only one return value;
             VAST_ASSERT(r_res->size() <= 1);
 
-            if (r_res->empty())
+            if (r_res->empty()) {
                 r_res->emplace_back(LLVM::LLVMVoidType::get(t.getContext()));
+            }
 
             return LLVM::LLVMFunctionType::get(r_res->front(), *a_res, t.isVarArg());
         }
 
-        maybe_types_t on_types(auto range, auto fn)
-        {
+        maybe_types_t on_types(auto range, auto fn) {
             types_t out;
             auto append = appender(out);
 
-            for (auto t : range)
-                if (auto cty = (this->*fn)(t))
+            for (auto t : range) {
+                if (auto cty = (this->*fn)(t)) {
                     append(std::move(*cty));
-                else
+                } else {
                     return {};
+                }
+            }
             return { std::move(out) };
         }
 
-        maybe_types_t convert_arg_t(mlir::Type t)
-        {
-            if (auto lvalue = t.dyn_cast< hl::LValueType >())
+        maybe_types_t convert_arg_t(mlir::Type t) {
+            if (auto lvalue = t.dyn_cast< hl::LValueType >()) {
                 return this->convert_type_to_types(lvalue.getElementType());
+            }
             return this->convert_type_to_types(t);
         }
 
-        maybe_types_t convert_ret_t(mlir::Type t)
-        {
-            if (auto lvalue = t.dyn_cast< hl::LValueType >())
+        maybe_types_t convert_ret_t(mlir::Type t) {
+            if (auto lvalue = t.dyn_cast< hl::LValueType >()) {
                 return this->convert_type_to_types(lvalue.getElementType());
+            }
             return this->convert_type_to_types(t);
         }
     };
@@ -182,9 +181,7 @@ namespace vast::conv::tc
         using base = LLVMTypeConverter;
 
         template< typename... Args >
-        FullLLVMTypeConverter(Args &&...args)
-            : base(std::forward< Args >(args)...)
-        {
+        FullLLVMTypeConverter(Args &&...args) : base(std::forward< Args >(args)...) {
             addConversion([&](hl::RecordType t) { return convert_record_type(t); });
             addConversion([&](hl::ElaboratedType t) { return convert_elaborated_type(t); });
         }

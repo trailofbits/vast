@@ -10,8 +10,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
-#include "vast/Dialect/Core/CoreTypes.hpp"
 #include "vast/Dialect/Core/CoreAttributes.hpp"
+#include "vast/Dialect/Core/CoreTypes.hpp"
 
 #include "vast/Conversion/Common/Types.hpp"
 #include "vast/Conversion/TypeConverters/TypeConverter.hpp"
@@ -21,8 +21,7 @@ VAST_UNRELAX_WARNINGS
 #include <algorithm>
 #include <iostream>
 
-namespace vast::conv::tc
-{
+namespace vast::conv::tc {
     // TODO(conv:tc): Encode as concept.
     // Requires of `self_t`
     // * inherits/implements `mixins`
@@ -31,23 +30,20 @@ namespace vast::conv::tc
     struct HLAggregates
     {
       private:
-          self_t &self() { return static_cast< self_t & >(*this); }
+        self_t &self() { return static_cast< self_t & >(*this); }
 
       public:
         // This is not a ctor so that users can position it as they want
         // in their initialization.
-        void init()
-        {
+        void init() {
             self().addConversion(convert_decayed_type());
             self().addConversion(convert_lvalue_type());
             self().addConversion(convert_pointer_type());
             self().addConversion(convert_elaborated_type());
         }
 
-        auto convert_decayed_type()
-        {
-            return [&](hl::DecayedType type)
-            {
+        auto convert_decayed_type() {
+            return [&](hl::DecayedType type) {
                 return Maybe(type.getElementType())
                     .and_then(self().convert_type_to_type())
                     .unwrap()
@@ -55,10 +51,8 @@ namespace vast::conv::tc
             };
         }
 
-        auto convert_lvalue_type()
-        {
-            return [&](hl::LValueType type)
-            {
+        auto convert_lvalue_type() {
+            return [&](hl::LValueType type) {
                 return Maybe(type.getElementType())
                     .and_then(self().convert_type_to_type())
                     .unwrap()
@@ -67,10 +61,8 @@ namespace vast::conv::tc
             };
         }
 
-        auto convert_elaborated_type()
-        {
-            return [&](hl::ElaboratedType type)
-            {
+        auto convert_elaborated_type() {
+            return [&](hl::ElaboratedType type) {
                 using raw = hl::ElaboratedType;
 
                 return Maybe(type.getElementType())
@@ -81,10 +73,8 @@ namespace vast::conv::tc
             };
         }
 
-        auto convert_pointer_type()
-        {
-            return [&](hl::PointerType type)
-            {
+        auto convert_pointer_type() {
+            return [&](hl::PointerType type) {
                 using raw = hl::PointerType;
 
                 return Maybe(type.getElementType())
@@ -94,14 +84,11 @@ namespace vast::conv::tc
                     .template take_wrapped< maybe_type_t >();
             };
         }
-      protected:
 
-        auto convert_pointer_element_type()
-        {
-            return [&](auto t) -> maybe_type_t
-            {
-                if (t.template isa< hl::VoidType >())
-                {
+      protected:
+        auto convert_pointer_element_type() {
+            return [&](auto t) -> maybe_type_t {
+                if (t.template isa< hl::VoidType >()) {
                     auto sign = mlir::IntegerType::SignednessSemantics::Signless;
                     return self().int_type(8u, sign);
                 }
@@ -112,27 +99,22 @@ namespace vast::conv::tc
         // `args` is passed by value as I have no idea how to convince clang
         // to not pass in `quals` as `const` when forwarding.
         // They are expected to be lightweight objects anyway.
-        template< typename T, typename ... Args >
-        auto make_aggregate_type(Args ... args)
-        {
-            return [=](mlir_type elem)
-            {
-                return T::get(elem.getContext(), elem, args ...);
-            };
+        template< typename T, typename... Args >
+        auto make_aggregate_type(Args... args) {
+            return [=](mlir_type elem) { return T::get(elem.getContext(), elem, args...); };
         }
-
     };
 
-    struct HLToStd : base_type_converter
-                   , mixins< HLToStd >
-                   , HLAggregates< HLToStd >
+    struct HLToStd
+        : base_type_converter
+        , mixins< HLToStd >
+        , HLAggregates< HLToStd >
     {
         const mlir::DataLayout &dl;
         mlir::MLIRContext &mctx;
 
         HLToStd(const mlir::DataLayout &dl, mcontext_t &mctx)
-            : base_type_converter(), dl(dl), mctx(mctx)
-        {
+            : base_type_converter(), dl(dl), mctx(mctx) {
             // Fallthrough option - we define it first as it seems the framework
             // goes from the last added conversion.
             addConversion([&](mlir_type t) -> maybe_type_t {
@@ -163,8 +145,9 @@ namespace vast::conv::tc
         // TODO(lukas): Take optional to denote that is may be `Signless`.
         auto int_type(unsigned bitwidth, bool is_signed) {
             auto signedness = [=]() {
-                if (is_signed)
+                if (is_signed) {
                     return mlir::IntegerType::SignednessSemantics::Signed;
+                }
                 return mlir::IntegerType::SignednessSemantics::Unsigned;
             }();
             return mlir::IntegerType::get(&this->mctx, bitwidth, signedness);
