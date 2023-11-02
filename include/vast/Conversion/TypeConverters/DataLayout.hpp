@@ -73,7 +73,8 @@ namespace vast::conv::tc {
     {
         static mlir_attr
         make(mcontext_t &mctx, mlir_type llvm_type, const dl::DLEntry &old_entry) {
-            // TODO(conv:tc): This has more complicated rules, consult `LLVM` dialect
+            // TODO(conv:tc): Issue #435.
+            //                This has more complicated rules, consult `LLVM` dialect
             //                sources.
             if (mlir::isa< mlir::LLVM::LLVMStructType >(llvm_type)) {
                 return {};
