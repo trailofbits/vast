@@ -4,6 +4,8 @@
 
 #include "vast/Util/TypeList.hpp"
 
+#include "vast/Util/TypeUtils.hpp"
+
 #include "vast/Conversion/Common/Patterns.hpp"
 #include "vast/Conversion/TypeConverters/LLVMTypeConverter.hpp"
 
@@ -110,12 +112,30 @@ namespace vast::conv::irstollvm
         static void legalize(auto &trg) { trg.template addIllegalOp< src_t >(); }
     };
 
-    bool has_llvm_only_types(auto op) {
-        return tc::all_of_subtypes(op.getResultTypes(), LLVM::isCompatibleType);
+    static auto get_is_illegal(auto &tc)
+    {
+        return [&](mlir_type type)
+        {
+            return !tc.isLegal(type);
+        };
     }
 
-    bool has_llvm_return_type(auto op) {
-        return LLVM::isCompatibleType(op.getResult().getType());
+    template< typename T, typename type_converter >
+    auto get_has_only_legal_types(type_converter &tc)
+    {
+        return [&](T op) -> bool
+        {
+            return !has_type_somewhere(op, get_is_illegal(tc));
+        };
+    }
+
+    template< typename T, typename type_converter >
+    auto get_has_legal_return_type(type_converter &tc)
+    {
+        return [&](T op) -> bool
+        {
+            return !contains_subtype(op.getResult().getType(), get_is_illegal(tc));
+        };
     }
 
 } // namespace vast::conv::irstollvm
