@@ -325,7 +325,7 @@ namespace vast::conv::irstollvm
             for (auto [i, element] : llvm::enumerate(init_list.getElements()))
             {
                 auto e_type = LLVM::LLVMPointerType::get(element.getType());
-                std::vector< mlir::LLVM::GEPArg > indices { 0ul, i + 1 };
+                std::vector< mlir::LLVM::GEPArg > indices { 0ul, i };
 
                 auto gep = rewriter.template create< LLVM::GEPOp >(
                         element.getLoc(), e_type, ptr, indices);
