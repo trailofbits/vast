@@ -143,19 +143,6 @@ def HLToLLFunc : Pass<"vast-hl-to-ll-func", "mlir::ModuleOp"> {
   ];
 }
 
-def HLStructsToLLVM : Pass<"vast-hl-structs-to-llvm", "mlir::ModuleOp"> {
-  let summary = "Transform hl.struct into llvm types without applying ABI conversions.";
-  let description = [{
-    This pass is still a work in progress.
-  }];
-
-  let constructor = "vast::createHLStructsToLLVMPass()";
-  let dependentDialects = [
-    "mlir::LLVM::LLVMDialect",
-    "vast::core::CoreDialect"
-  ];
-}
-
 def HLEmitLazyRegions : Pass<"vast-hl-to-lazy-regions", "mlir::ModuleOp"> {
   let summary = "Transform hl operations that have short-circuiting into lazy operations.";
   let description = [{
