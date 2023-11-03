@@ -10,6 +10,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Dialect/HighLevel/HighLevelUtils.hpp"
 #include "vast/Util/Maybe.hpp"
 
 #include "vast/Conversion/TypeConverters/TypeConverter.hpp"
@@ -174,16 +175,77 @@ namespace vast::conv::tc {
         }
     };
 
+    template< typename self_t >
+    struct LLVMStruct
+    {
+      private:
+        self_t &self() { return static_cast< self_t & >(*this); }
+
+      public:
+        maybe_types_t convert_field_types(mlir_type t) {
+            auto field_types = self().get_field_types(t);
+            if (!field_types)
+                return {};
+
+            mlir::SmallVector< mlir_type, 4 > out;
+            for (auto field_type : *field_types) {
+                auto c = self().convert_type_to_type(field_type);
+                VAST_ASSERT(c);
+                out.push_back(*c);
+            }
+            return { std::move(out) };
+        }
+
+        template< typename op_t >
+        auto convert_recordlike() {
+            // We need this prototype to handle recursive types.
+            return [&](op_t t, mlir::SmallVectorImpl< mlir_type > &out,
+                       mlir::ArrayRef< mlir_type > stack) -> logical_result {
+                auto core = mlir::LLVM::LLVMStructType::getIdentified(
+                    t.getContext(), t.getName());
+                // Last element is `t`.
+                auto bt = stack.drop_back();
+
+                if (core.isOpaque() && std::ranges::find(bt, t) == bt.end()) {
+                    if (auto body = convert_field_types(t)) {
+                        // Multithreading may cause some issues?
+                        auto status = core.setBody(*body, false);
+                        VAST_ASSERT(mlir::succeeded(status));
+                    }
+                }
+                out.push_back(core);
+                return mlir::success();
+            };
+        }
+    };
+
     // Requires that the named types *always* map to llvm struct types.
     // TODO(lukas): What about type aliases.
-    struct FullLLVMTypeConverter : LLVMTypeConverter
+    struct FullLLVMTypeConverter : LLVMTypeConverter,
+                                   LLVMStruct< FullLLVMTypeConverter >
     {
         using base = LLVMTypeConverter;
 
+        vast_module mod;
+
         template< typename... Args >
-        FullLLVMTypeConverter(Args &&...args) : base(std::forward< Args >(args)...) {
-            addConversion([&](hl::RecordType t) { return convert_record_type(t); });
+        FullLLVMTypeConverter(vast_module mod,
+                              Args &&...args)
+        : base(std::forward< Args >(args)...),
+          mod(mod) {
             addConversion([&](hl::ElaboratedType t) { return convert_elaborated_type(t); });
+            addConversion(convert_recordlike< hl::RecordType >());
+        }
+
+        auto get_field_types(mlir_type t) -> std::optional< gap::generator< mlir_type > > {
+            if (!mlir::isa< hl::RecordType >(t))
+                return {};
+            auto def = hl::definition_of(t, mod);
+            // Nothing found, leave the structure opaque.
+            if (!def) {
+                return {};
+            }
+            return { hl::field_types(*def) };
         }
 
         maybe_type_t convert_elaborated_type(hl::ElaboratedType t) {
