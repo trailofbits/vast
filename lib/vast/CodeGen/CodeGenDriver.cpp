@@ -149,10 +149,6 @@ namespace vast::cg
         const auto *decl = llvm::cast< clang::ValueDecl >(glob.getDecl());
 
         if (const auto *fn = llvm::dyn_cast< clang::FunctionDecl >(decl)) {
-            // At -O0, don't generate vast for functions with available_externally linkage.
-            if (!should_emit_function(glob))
-                return nullptr;
-
             if (fn->isMultiVersion()) {
                 VAST_UNIMPLEMENTED_MSG("codegen for multi version function");
             }
@@ -204,11 +200,6 @@ namespace vast::cg
         }
 
         return fn;
-    }
-
-    bool codegen_driver::should_emit_function(clang::GlobalDecl /* decl */) {
-        // TODO: implement this -- requires defining linkage for vast
-        return true;
     }
 
     operation codegen_driver::build_global_var_definition(const clang::VarDecl *decl, bool tentative) {
