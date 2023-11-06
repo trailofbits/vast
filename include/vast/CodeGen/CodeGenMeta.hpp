@@ -22,9 +22,9 @@ namespace vast::cg
         virtual loc_t location(const clang::Decl *) const = 0;
         virtual loc_t location(const clang::Stmt *) const = 0;
         virtual loc_t location(const clang::Expr *) const = 0;
-        virtual loc_t location(const clang::Type *) const = 0;
-        virtual loc_t location(clang::QualType ) const = 0;
     };
+
+    using meta_generator_ptr = std::unique_ptr< meta_generator >;
 
     struct default_meta_gen : meta_generator {
         default_meta_gen(acontext_t *actx, mcontext_t *mctx)
@@ -43,14 +43,6 @@ namespace vast::cg
             return location(expr->getExprLoc());
         }
 
-        loc_t location(const clang::Type *type) const final {
-            return location(clang::TypeLoc(type, nullptr));
-        }
-
-        loc_t location(clang::QualType type) const final {
-            return location(clang::TypeLoc(type, nullptr));
-        }
-
       private:
 
         loc_t location(const clang::FullSourceLoc &loc) const {
@@ -62,10 +54,6 @@ namespace vast::cg
 
         loc_t location(const clang::SourceLocation &loc) const {
             return location(clang::FullSourceLoc(loc, actx->getSourceManager()));
-        }
-
-        loc_t location(const clang::TypeLoc &loc) const {
-            return location(loc.getBeginLoc());
         }
 
         acontext_t *actx;
@@ -80,8 +68,6 @@ namespace vast::cg
         loc_t location(const clang::Decl *decl) const final { return location_impl(decl); }
         loc_t location(const clang::Stmt *stmt) const final { return location_impl(stmt); }
         loc_t location(const clang::Expr *expr) const final { return location_impl(expr); }
-        loc_t location(const clang::Type *type) const final { return location_impl(type); }
-        loc_t location(clang::QualType type) const final { return location_impl(type); }
 
       private:
 
