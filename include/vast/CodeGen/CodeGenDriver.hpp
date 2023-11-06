@@ -100,10 +100,6 @@ namespace vast::cg
         const std::vector< clang::GlobalDecl >& deferred_decls_to_emit() const;
         const std::map< mangled_name_ref, clang::GlobalDecl >& deferred_decls() const;
 
-        // Determine whether the definition must be emitted; if this returns
-        // false, the definition can be emitted lazily if it's used.
-        bool must_be_emitted(const clang::ValueDecl *glob);
-
         // Determine whether the definition can be emitted eagerly, or should be
         // delayed until the end of the translation unit. This is relevant for
         // definitions whose linkage can change, e.g. implicit function
