@@ -7,71 +7,9 @@ VAST_RELAX_WARNINGS
 #include <clang/Basic/TargetInfo.h>
 VAST_UNRELAX_WARNINGS
 
-// FIXME: get rid of dependency from upper layer
-#include "vast/CodeGen/TypeInfo.hpp"
-
 namespace vast::cg
 {
-    bool codegen_driver::has_this_return(clang::GlobalDecl decl) const {
-        return cxx_abi->has_this_return(decl);
-    }
-
-    bool codegen_driver::has_most_derived_return(clang::GlobalDecl decl) const {
-        return cxx_abi->has_most_derived_return(decl);
-    }
-
-    function_arg_list codegen_driver::build_function_arg_list(clang::GlobalDecl decl) {
-        const auto function_decl = clang::cast< clang::FunctionDecl >(decl.getDecl());
-        // auto rty = function_decl->getReturnType();
-
-        function_arg_list args;
-
-        const auto *method = clang::dyn_cast< clang::CXXMethodDecl >(function_decl);
-        if (method && method->isInstance()) {
-            if (has_this_return(decl)) {
-                VAST_UNIMPLEMENTED;
-            }
-            else if (has_most_derived_return(decl)) {
-                VAST_UNIMPLEMENTED;
-            }
-
-            VAST_UNIMPLEMENTED;
-            // get_cxx_abi.buildThisParam(*this, args);
-        }
-
-        // The base version of an inheriting constructor whose constructed base is a
-        // virtual base is not passed any arguments (because it doesn't actually
-        // call the inherited constructor).
-        bool passed_params = [&] {
-            if (const auto *ctor = clang::dyn_cast< clang::CXXConstructorDecl >(function_decl)) {
-                if (auto inherited = ctor->getInheritedConstructor()) {
-                    VAST_UNIMPLEMENTED_MSG("build_function_arg_list: inherited ctor");
-                    // return getTypes().inheritingCtorHasParams(inherited, decl.getCtorType());
-                }
-            }
-            return true;
-        } ();
-
-        if (passed_params) {
-            for (auto *param : function_decl->parameters()) {
-                args.push_back(param);
-                if (param->hasAttr< clang::PassObjectSizeAttr >()) {
-                    VAST_UNIMPLEMENTED_MSG("build_function_arg_list: PassObjectSizeAttr function param");
-                }
-            }
-        }
-
-        if (method) {
-            if (clang::isa< clang::CXXConstructorDecl >(method) || clang::isa< clang::CXXDestructorDecl>(method)) {
-                VAST_UNIMPLEMENTED;
-                // get_cxx_abi().addImplicitStructorParams(*this, rty, args);
-            }
-        }
-
-        return args;
-    }
-
-    bool codegen_driver::may_drop_function_return(qual_type rty) const {
+    bool codegen_driver::may_drop_function_return(clang::QualType rty) const {
         // We can't just disard the return value for a record type with a complex
         // destructor or a non-trivially copyable type.
         if (const auto *recorrd_type = rty.getCanonicalType()->getAs< clang::RecordType >()) {
@@ -158,13 +96,8 @@ namespace vast::cg
     }
 
     // This function implements the logic from CodeGenFunction::GenerateCode
-    hl::FuncOp codegen_driver::build_function_body(
-        hl::FuncOp fn, clang::GlobalDecl decl, const function_info_t &fty_info
-    ) {
-        auto args = build_function_arg_list(decl);
-        fn = codegen.emit_function_prologue(
-            fn, decl, fty_info, args, opts
-        );
+    hl::FuncOp codegen_driver::build_function_body(hl::FuncOp fn, clang::GlobalDecl decl) {
+        fn = codegen.emit_function_prologue(fn, decl, opts);
 
         if (mlir::failed(fn.verifyBody())) {
             return nullptr;

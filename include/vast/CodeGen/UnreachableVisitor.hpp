@@ -3,8 +3,6 @@
 #pragma once
 
 #include "vast/Util/Warnings.hpp"
-#include "vast/Util/TypeList.hpp"
-#include "vast/CodeGen/Types.hpp"
 
 namespace vast::cg
 {

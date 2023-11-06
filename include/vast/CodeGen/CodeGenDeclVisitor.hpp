@@ -24,8 +24,6 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Core/Linkage.hpp"
 
-#include "vast/CodeGen/FunctionInfo.hpp"
-
 namespace vast::cg {
 
     template< typename derived_t >
@@ -311,9 +309,9 @@ namespace vast::cg {
         }
 
         // Implelements buildGlobalFunctionDefinition of vast codegen
-        operation build_function_prototype(clang::GlobalDecl decl, mlir_type fty) {
-            // Get or create the prototype for the function.
-            // TODO: Figure out what to do here? llvm uses a GlobalValue for the FuncOp in mlir
+        operation build_function_prototype(clang::GlobalDecl decl) {
+            const auto *fn = clang::cast< clang::FunctionDecl >(decl.getDecl());
+            auto fty = visit_function_type(fn->getFunctionType(), fn->isVariadic());
             return get_addr_of_function(decl, fty, deferred_emit_definition);
         }
 
