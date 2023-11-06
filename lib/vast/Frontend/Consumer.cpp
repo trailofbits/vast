@@ -81,7 +81,7 @@ namespace vast::cc {
         // Note that this method is called after `HandleTopLevelDecl` has already
         // ran all over the top level decls. Here clang mostly wraps defered and
         // global codegen, followed by running vast passes.
-        codegen->handle_translation_unit(actx);
+        codegen->finalize();
 
         if (!vargs.has_option(opt::disable_vast_verifier)) {
             if (!codegen->verify_module()) {

@@ -150,10 +150,6 @@ namespace vast::cg
         build_deferred_decls();
     }
 
-    void codegen_driver::handle_translation_unit(acontext_t &/* acontext */) {
-        finalize();
-    }
-
     void codegen_driver::handle_top_level_decl(clang::DeclGroupRef decls) {
         defer_handle_of_top_level_decl defer(*this);
 
