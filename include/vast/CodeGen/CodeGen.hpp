@@ -95,7 +95,7 @@ namespace vast::cg
 
         // FIXME: Remove from driver whan we obliterate function type convertion
         // from driver
-        mlir_type convert(qual_type type) {
+        mlir_type convert(clang::QualType type) {
             return this->Visit(type);
         }
         mlir_type make_lvalue(mlir_type type) {
@@ -103,10 +103,6 @@ namespace vast::cg
                 return type;
             }
             return hl::LValueType::get(&mcontext(), type);
-        }
-
-        void update_completed_type(clang::TagDecl *decl) {
-            VAST_UNIMPLEMENTED;
         }
 
         auto insert_at_end(hl::FuncOp fn) {
@@ -123,8 +119,6 @@ namespace vast::cg
         void start_function(
             clang::GlobalDecl glob,
             hl::FuncOp fn,
-            const function_info_t &fty_info,
-            const function_arg_list &args,
             loc_t loc,
             const cc::action_options &opts
         ) {
@@ -269,40 +263,41 @@ namespace vast::cg
 
                 // TODO: this should live in `build_function_prolog`
                 // Declare all the function arguments in the symbol table.
-                for (const auto [ast_param, mlir_param] : llvm::zip(args, entry_block.getArguments())) {
+                auto params = llvm::zip(function_decl->parameters(), entry_block.getArguments());
+                for (const auto &[arg, earg] : params) {
                     // TODO set alignment
                     // TODO set name
-                    mlir_param.setLoc(meta_location(ast_param));
-                    this->ctx.declare(ast_param, mlir_value(mlir_param));
+                    earg.setLoc(meta_location(arg));
+                    this->ctx.declare(arg, mlir_value(earg));
                 }
 
             }
 
-            if (decl && clang::isa< clang::CXXMethodDecl>(decl) &&
-                clang::cast< clang::CXXMethodDecl>(decl)->isInstance()
+            if (decl && clang::isa< clang::CXXMethodDecl >(decl) &&
+                clang::cast< clang::CXXMethodDecl >(decl)->isInstance()
             ) {
                 VAST_UNIMPLEMENTED_MSG( "emit prologue of cxx methods" );
             }
 
             // If any of the arguments have a variably modified type, make sure to emit
             // the type size.
-            for (auto arg : args) {
-                const clang::VarDecl *var_decl = arg;
+            // for (auto arg : args) {
+            //     const clang::VarDecl *var_decl = arg;
 
-                // Dig out the type as written from ParmVarDecls; it's unclear whether the
-                // standard (C99 6.9.1p10) requires this, but we're following the
-                // precedent set by gcc.
-                auto type = [&] {
-                    if (const auto *parm_var_decl = dyn_cast< clang::ParmVarDecl >(var_decl)) {
-                        return parm_var_decl->getOriginalType();
-                    }
-                    return var_decl->getType();
-                } ();
+            //     // Dig out the type as written from ParmVarDecls; it's unclear whether the
+            //     // standard (C99 6.9.1p10) requires this, but we're following the
+            //     // precedent set by gcc.
+            //     auto type = [&] {
+            //         if (const auto *parm_var_decl = dyn_cast< clang::ParmVarDecl >(var_decl)) {
+            //             return parm_var_decl->getOriginalType();
+            //         }
+            //         return var_decl->getType();
+            //     } ();
 
-                if (type->isVariablyModifiedType()) {
-                    VAST_UNIMPLEMENTED;
-                }
-            }
+            //     if (type->isVariablyModifiedType()) {
+            //         VAST_UNIMPLEMENTED;
+            //     }
+            // }
 
             // Emit a location at the end of the prologue.
             if (get_debug_info()) {
@@ -353,8 +348,7 @@ namespace vast::cg
         }
 
         hl::FuncOp emit_function_prologue(
-            hl::FuncOp fn, clang::GlobalDecl decl,  const function_info_t &fty_info,
-            function_arg_list args, const cc::action_options &options
+            hl::FuncOp fn, clang::GlobalDecl decl, const cc::action_options &options
         ) {
             VAST_CHECK(fn, "generating code for a null function");
             const auto function_decl = clang::cast< clang::FunctionDecl >(decl.getDecl());
@@ -434,7 +428,7 @@ namespace vast::cg
                 lexical_scope_guard scope_guard{*this, &lex_ccope};
 
                 // Emit the standard function prologue.
-                start_function(decl, fn, fty_info, args, loc, options);
+                start_function(decl, fn, loc, options);
 
                 for (const auto lab : filter< clang::LabelDecl >(function_decl->decls())) {
                     this->Visit(lab);

@@ -132,8 +132,6 @@ namespace vast::cc {
             *codegen, /* emit deferred */false
         );
 
-        codegen->update_completed_type(decl);
-
         // For MSVC compatibility, treat declarations of static data members with
         // inline initializers as definitions.
         if (actx.getTargetInfo().getCXXABI().isMicrosoft()) {

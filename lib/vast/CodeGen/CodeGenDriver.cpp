@@ -7,9 +7,6 @@ VAST_RELAX_WARNINGS
 #include <clang/Basic/TargetInfo.h>
 VAST_UNRELAX_WARNINGS
 
-// FIXME: get rid of dependency from upper layer
-#include "vast/CodeGen/TypeInfo.hpp"
-
 namespace vast::cg
 {
     defer_handle_of_top_level_decl::defer_handle_of_top_level_decl(
@@ -27,54 +24,6 @@ namespace vast::cg
         }
     }
 
-    x86_avx_abi_level avx_level(const clang::TargetInfo &target) {
-        const auto &abi = target.getABI();
-
-        if (abi == "avx512")
-            return x86_avx_abi_level::avx512;
-        if (abi == "avx")
-            return x86_avx_abi_level::avx;
-        return x86_avx_abi_level::none;
-    }
-
-
-    namespace detail {
-        target_info_ptr initialize_target_info(
-            const clang::TargetInfo &target, const type_info_t &type_info
-        ) {
-            const auto &triple = target.getTriple();
-            const auto &abi = target.getABI();
-
-            auto aarch64_info = [&] {
-                if (abi == "aapcs" || abi == "darwinpcs") {
-                    VAST_UNIMPLEMENTED_MSG("Only Darwin supported for aarch64");
-                }
-
-                auto abi_kind = aarch64_abi_info::abi_kind::darwin_pcs;
-                return target_info_ptr(new aarch64_target_info(type_info, abi_kind));
-            };
-
-            auto x86_64_info = [&] {
-                auto os = triple.getOS();
-
-                if (os == llvm::Triple::Win32) {
-                    VAST_UNIMPLEMENTED_MSG( "target info for Win32" );
-                } else {
-                    return target_info_ptr(
-                        new x86_64_target_info(type_info, avx_level(target))
-                    );
-                }
-
-                VAST_UNIMPLEMENTED_MSG(std::string("Unsupported x86_64 OS type: ") + triple.getOSName().str());
-            };
-
-            switch (triple.getArch()) {
-                case llvm::Triple::aarch64: return aarch64_info();
-                case llvm::Triple::x86_64:  return x86_64_info();
-                default: VAST_UNREACHABLE("Target not yet supported.");
-            }
-        }
-    } // namespace detail
 
     meta_generator_ptr make_meta_generator(codegen_context &cgctx, const cc::vast_args &vargs) {
         // TODO make configurable based on vast args
@@ -196,14 +145,6 @@ namespace vast::cg
         }
     }
 
-    function_processing_lock codegen_driver::make_lock(const function_info_t *fninfo) {
-        return function_processing_lock(type_conv, fninfo);
-    }
-
-    void codegen_driver::update_completed_type(const clang::TagDecl *tag) {
-        type_conv.update_completed_type(tag);
-    }
-
     operation codegen_driver::build_global_definition(clang::GlobalDecl glob) {
         const auto *decl = llvm::cast< clang::ValueDecl >(glob.getDecl());
 
@@ -231,18 +172,13 @@ namespace vast::cg
     }
 
     operation codegen_driver::build_global_function_declaration(clang::GlobalDecl decl) {
-        const auto &fty_info = type_info->arrange_global_decl(decl, get_target_info());
-        auto ty = type_conv.get_function_type(fty_info);
-
-        VAST_UNIMPLEMENTED_IF(lang().CUDA);
-        return codegen.build_function_prototype(decl, ty);
+        return codegen.build_function_prototype(decl);
     }
 
     operation codegen_driver::build_global_function_definition(clang::GlobalDecl decl) {
         auto fn = mlir::cast< hl::FuncOp >(build_global_function_declaration(decl));
 
         const auto *function_decl = llvm::cast< clang::FunctionDecl >(decl.getDecl());
-        const auto &fty_info = type_info->arrange_global_decl(decl, get_target_info());
 
         // Already emitted.
         if (!fn.isDeclaration()) {
@@ -254,7 +190,7 @@ namespace vast::cg
         // TODO maybeSetTrivialComdat
         // TODO setLLVMFunctionFEnvAttributes
 
-        fn = build_function_body(fn, decl, fty_info);
+        fn = build_function_body(fn, decl);
 
         // TODO: setNonAliasAttributes
         // TODO: SetLLVMFunctionAttributesForDeclaration

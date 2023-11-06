@@ -11,7 +11,6 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include <mlir/IR/Attributes.h>
-#include <vast/CodeGen/Types.hpp>
 #include <vast/CodeGen/CodeGenVisitorLens.hpp>
 #include <vast/CodeGen/CodeGenBuilder.hpp>
 

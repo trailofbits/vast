@@ -13,15 +13,10 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 #include "vast/CodeGen/CodeGen.hpp"
-#include "vast/CodeGen/CodeGenTypeDriver.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DataLayout.hpp"
 
-// FIXME: bringing dependency from upper layer
-#include "vast/CodeGen/CXXABI.hpp"
-#include "vast/CodeGen/TypeInfo.hpp"
-#include "vast/CodeGen/TargetInfo.hpp"
 namespace vast::cg
 {
     struct codegen_driver;
@@ -40,16 +35,6 @@ namespace vast::cg
         ~defer_handle_of_top_level_decl();
     };
 
-    using target_info_ptr = std::unique_ptr< target_info_t >;
-
-    x86_avx_abi_level avx_level(const clang::TargetInfo &target);
-
-    namespace detail {
-        target_info_ptr initialize_target_info(
-            const clang::TargetInfo &target, const type_info_t &type_info
-        );
-    } // namespace detail
-
     meta_generator_ptr make_meta_generator(codegen_context &cgctx, const cc::vast_args &vargs);
 
     // This is a layer that provides interface between
@@ -63,16 +48,9 @@ namespace vast::cg
             : cgctx(cgctx)
             , opts(opts)
             , vargs(vargs)
-            , cxx_abi(create_cxx_abi(cgctx.actx))
             , meta(make_meta_generator(cgctx, vargs))
             , codegen(cgctx, *meta)
-            , type_conv(*this)
-        {
-            type_info = std::make_unique< type_info_t >(*this);
-
-            const auto &target = acontext().getTargetInfo();
-            target_info = detail::initialize_target_info(target, get_type_info());
-        }
+        {}
 
         ~codegen_driver() {
             VAST_ASSERT(deferred_inline_member_func_defs.empty());
@@ -91,42 +69,14 @@ namespace vast::cg
 
         void finalize();
 
-        const target_info_t &get_target_info() const { return *target_info; }
-        target_info_t &get_target_info() { return *target_info; }
-
-        const type_info_t &get_type_info() const { return *type_info; }
-        type_info_t &get_type_info() { return *type_info; }
-
         const acontext_t &acontext() const { return cgctx.actx; }
 
         const mcontext_t &mcontext() const { return cgctx.mctx; }
         mcontext_t &mcontext() { return cgctx.mctx; }
 
-        function_processing_lock make_lock(const function_info_t *fninfo);
-
-        void update_completed_type(const clang::TagDecl *tag);
-
-        friend struct type_conversion_driver;
-
     private:
 
         bool should_emit_function(clang::GlobalDecl decl);
-
-        vast_cxx_abi get_cxx_abi() const;
-
-        static vast_cxx_abi *create_cxx_abi(const acontext_t &actx) {
-            switch (actx.getCXXABIKind()) {
-                case clang::TargetCXXABI::GenericItanium:
-                case clang::TargetCXXABI::GenericAArch64:
-                case clang::TargetCXXABI::AppleARM64:
-                    return create_vast_itanium_cxx_abi(actx);
-                default:
-                    VAST_UNREACHABLE("invalid C++ ABI kind");
-            }
-        }
-
-        bool has_this_return(clang::GlobalDecl decl) const;
-        bool has_most_derived_return(clang::GlobalDecl decl) const;
 
         operation build_global_function_declaration(clang::GlobalDecl decl);
 
@@ -134,8 +84,7 @@ namespace vast::cg
         operation build_global_function_definition(clang::GlobalDecl decl);
         operation build_global_var_definition(const clang::VarDecl *decl, bool tentative = false);
 
-        function_arg_list build_function_arg_list(clang::GlobalDecl decl);
-        hl::FuncOp build_function_body(hl::FuncOp fn, clang::GlobalDecl decl, const function_info_t &fty_info);
+        hl::FuncOp build_function_body(hl::FuncOp fn, clang::GlobalDecl decl);
 
         hl::FuncOp emit_function_epilogue(hl::FuncOp fn, clang::GlobalDecl decl);
 
@@ -150,7 +99,7 @@ namespace vast::cg
         // Forward declarations are emitted lazily.
         operation build_global(clang::GlobalDecl decl);
 
-        bool may_drop_function_return(qual_type rty) const;
+        bool may_drop_function_return(clang::QualType rty) const;
 
         const std::vector< clang::GlobalDecl >& deferred_decls_to_emit() const;
         const std::map< mangled_name_ref, clang::GlobalDecl >& deferred_decls() const;
@@ -188,16 +137,8 @@ namespace vast::cg
         friend struct defer_handle_of_top_level_decl;
         llvm::SmallVector< clang::FunctionDecl *, 8 > deferred_inline_member_func_defs;
 
-        std::unique_ptr< vast_cxx_abi > cxx_abi;
-
         meta_generator_ptr meta;
         default_codegen codegen;
-
-        mutable std::unique_ptr< target_info_t > target_info;
-        mutable std::unique_ptr< type_info_t > type_info;
-
-        type_conversion_driver type_conv;
-
     };
 
 } // namespace vast::cg
