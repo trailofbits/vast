@@ -49,7 +49,7 @@ namespace vast::cc {
             *mctx, actx, get_source_language(opts.lang)
         );
 
-        codegen = std::make_unique< cg::codegen_driver >(*cgctx, opts);
+        codegen = std::make_unique< cg::codegen_driver >(*cgctx, opts, vargs);
     }
 
     bool vast_consumer::HandleTopLevelDecl(clang::DeclGroupRef decls) {

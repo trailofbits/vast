@@ -51,17 +51,14 @@ namespace vast::cg
     //
     // CodeGen
     //
-    template<
-        template< typename > typename visitor_config,
-        typename meta_generator
-    >
+    template< template< typename > typename visitor_config >
     struct codegen_instance
     {
-        using visitor_t = visitor_instance< visitor_config, meta_generator >;
+        using visitor_t = visitor_instance< visitor_config >;
         using var_table = typename codegen_context::var_table;
 
-        codegen_instance(codegen_context &cgctx)
-            : cgctx(cgctx), meta(&cgctx.actx, &cgctx.mctx)
+        codegen_instance(codegen_context &cgctx, meta_generator_ptr &&meta)
+            : cgctx(cgctx), meta(std::move(meta))
         {
             mlir::registerAllDialects(cgctx.mctx);
             vast::registerAllDialects(cgctx.mctx);
@@ -78,7 +75,7 @@ namespace vast::cg
             });
 
             visitor = std::make_unique< visitor_t >(
-                cgctx, meta
+                cgctx, *this->meta
             );
         }
 
@@ -330,7 +327,7 @@ namespace vast::cg
                 for (const auto [ast_param, mlir_param] : llvm::zip(args, entry_block.getArguments())) {
                     // TODO set alignment
                     // TODO set name
-                    mlir_param.setLoc(meta.location(ast_param));
+                    mlir_param.setLoc(meta->location(ast_param));
                     declare(ast_param, mlir_value(mlir_param));
                 }
 
@@ -456,13 +453,13 @@ namespace vast::cg
             // declaration as the location for the subprogram. A function may lack a
             // declaration in the source code if it is created by code gen. (examples:
             // _GLOBAL__I_a, __cxx_global_array_dtor, thunk).
-            auto loc = meta.location(function_decl);
+            auto loc = meta->location(function_decl);
 
             // If this is a function specialization then use the pattern body as the
             // location for the function.
             if (const auto *spec = function_decl->getTemplateInstantiationPattern()) {
                 if (spec->hasBody(spec)) {
-                    loc = meta.location(spec);
+                    loc = meta->location(spec);
                 }
             }
 
@@ -481,8 +478,8 @@ namespace vast::cg
             llvm::ScopedHashTableScope var_scope(cgctx.vars);
             {
                 auto body = function_decl->getBody();
-                auto begin_loc = meta.location(body);
-                auto end_loc = meta.location(body);
+                auto begin_loc = meta->location(body);
+                auto end_loc = meta->location(body);
 
                 VAST_CHECK(fn.isDeclaration(), "Function already has body?");
                 auto *entry_block = fn.addEntryBlock();
@@ -537,7 +534,7 @@ namespace vast::cg
 
         void emit_implicit_return_zero(hl::FuncOp fn, const clang::FunctionDecl *decl) {
             auto guard = insert_at_end(fn);
-            auto loc   = meta.location(decl);
+            auto loc   = meta->location(decl);
 
             auto fty = fn.getFunctionType();
             auto zero = visitor->constant(loc, fty.getResult(0), apsint(0));
@@ -551,7 +548,7 @@ namespace vast::cg
 
             auto guard = insert_at_end(fn);
 
-            auto loc = meta.location(decl);
+            auto loc = meta->location(decl);
             make< core::ImplicitReturnOp >(loc, visitor->constant(loc));
         }
 
@@ -562,7 +559,7 @@ namespace vast::cg
 
         void emit_unreachable(hl::FuncOp fn, const clang::FunctionDecl *decl) {
             auto guard = insert_at_end(fn);
-            auto loc = meta.location(decl);
+            auto loc = meta->location(decl);
             make< hl::UnreachableOp >(loc);
         }
 
@@ -599,13 +596,12 @@ namespace vast::cg
         }
 
         codegen_context &cgctx;
+        meta_generator_ptr meta;
 
-        meta_generator meta;
         std::unique_ptr< scope_t > scope;
         std::unique_ptr< visitor_t > visitor;
     };
 
-    using default_codegen       = codegen_instance< default_visitor_stack, default_meta_gen >;
-    using codegen_with_meta_ids = codegen_instance< default_visitor_stack, id_meta_gen >;
+    using default_codegen = codegen_instance< default_visitor_stack >;
 
 } // namespace vast::cg

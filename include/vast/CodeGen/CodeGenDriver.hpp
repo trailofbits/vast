@@ -50,19 +50,22 @@ namespace vast::cg
         );
     } // namespace detail
 
+    meta_generator_ptr make_meta_generator(codegen_context &cgctx, const cc::vast_args &vargs);
+
     // This is a layer that provides interface between
     // clang codegen and vast codegen
 
     struct codegen_driver {
 
         explicit codegen_driver(
-            codegen_context &cgctx, cc::action_options &opts
+            codegen_context &cgctx, cc::action_options &opts, const cc::vast_args &vargs
         )
             : actx(cgctx.actx)
             , mctx(cgctx.mctx)
             , opts(opts)
+            , vargs(vargs)
             , cxx_abi(create_cxx_abi(actx))
-            , codegen(cgctx)
+            , codegen(cgctx, make_meta_generator(cgctx, vargs))
             , type_conv(*this)
         {
             type_info = std::make_unique< type_info_t >(*this);
@@ -191,6 +194,7 @@ namespace vast::cg
         mcontext_t &mctx;
 
         cc::action_options &opts;
+        const cc::vast_args &vargs;
 
         unsigned deferred_top_level_decls = 0;
 
@@ -200,7 +204,7 @@ namespace vast::cg
         std::unique_ptr< vast_cxx_abi > cxx_abi;
 
         // FIXME: make configurable
-        codegen_with_meta_ids codegen;
+        default_codegen codegen;
 
         mutable std::unique_ptr< target_info_t > target_info;
         mutable std::unique_ptr< type_info_t > type_info;
