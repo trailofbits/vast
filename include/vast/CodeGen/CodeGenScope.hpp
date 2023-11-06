@@ -149,12 +149,12 @@ namespace vast::cg
         lexical_scope_guard(codegen_t &codegen, lexical_scope_context *ctx)
             : codegen(codegen)
         {
-            if (codegen.current_lexical_scope()) {
-                old_val = codegen.current_lexical_scope();
+            if (codegen.cgctx.current_lexical_scope) {
+                old_val = codegen.cgctx.current_lexical_scope;
                 ctx->depth++;
             }
 
-            codegen.set_current_lexical_scope(ctx);
+            codegen.cgctx.current_lexical_scope = ctx;
         }
 
 
@@ -164,13 +164,15 @@ namespace vast::cg
 
         ~lexical_scope_guard() { cleanup(); restore(); }
 
-        void restore() { codegen.set_current_lexical_scope(old_val); }
+        void restore() {
+            codegen.cgctx.current_lexical_scope = old_val;
+        }
 
         // All scope related cleanup needed:
         // - Patching up unsolved goto's.
         // - Build all cleanup code and insert yield/returns.
         void cleanup() {
-            auto *local_scope = codegen.current_lexical_scope();
+            auto *local_scope = codegen.cgctx.current_lexical_scope;
 
             // Handle pending gotos and the solved labels in this scope.
             if (!local_scope->pending_gotos.empty()) {

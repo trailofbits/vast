@@ -188,7 +188,7 @@ namespace vast::cg
                 break;
             }
             default:
-                return codegen.append_to_module(decl);
+                codegen.visitor->Visit(decl);
         }
     }
 
@@ -266,11 +266,6 @@ namespace vast::cg
         return fn;
     }
 
-    codegen_context::var_table & codegen_driver::variables_symbol_table() {
-        return codegen.variables_symbol_table();
-    }
-
-
     bool codegen_driver::should_emit_function(clang::GlobalDecl /* decl */) {
         // TODO: implement this -- requires defining linkage for vast
         return true;
@@ -284,7 +279,7 @@ namespace vast::cg
         VAST_UNIMPLEMENTED_IF(lang().CUDA);
         VAST_UNIMPLEMENTED_IF(lang().OpenMP);
 
-        return codegen.visit_var_decl(decl);
+        return codegen.visitor->Visit(decl);
     }
 
     operation codegen_driver::build_global_decl(const clang::GlobalDecl &/* decl */) {
