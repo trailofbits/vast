@@ -76,8 +76,11 @@ namespace vast::cg
         }
     } // namespace detail
 
-    meta_generator_ptr make_meta_generator(codegen_context &cgctx, const cc::vast_args & /* vargs */) {
+    meta_generator_ptr make_meta_generator(codegen_context &cgctx, const cc::vast_args &vargs) {
         // TODO make configurable based on vast args
+        if (vargs.has_option(cc::opt::locs_as_meta_ids)) {
+            return std::make_unique< id_meta_gen >(&cgctx.actx, &cgctx.mctx);
+        }
         return std::make_unique< default_meta_gen >(&cgctx.actx, &cgctx.mctx);
     }
 

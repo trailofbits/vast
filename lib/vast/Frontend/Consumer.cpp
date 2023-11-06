@@ -237,7 +237,7 @@ namespace vast::cc {
 
         // FIXME: we cannot roundtrip prettyForm=true right now.
         mlir::OpPrintingFlags flags;
-        flags.enableDebugInfo(vargs.has_option(opt::emit_locs), /* prettyForm */ true);
+        flags.enableDebugInfo(vargs.has_option(opt::show_locs), /* prettyForm */ true);
 
         mod->print(*output_stream, flags);
     }
