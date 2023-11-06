@@ -20,22 +20,16 @@ namespace vast::cg
     // It is paramtetrized by `visitor_mixin` that implements all Visit methods.
     // This allows to cofigure Visit implementation, e.g., to provide fallback_visitor.
     //
-    // `meta_generator` takes care of attaching location metadata to generated mlir primitives.
-    //
-    template<
-        template< typename > typename visitor_mixin,
-        typename meta_generator_t
-    >
+    template< template< typename > typename visitor_mixin >
     struct visitor_instance
-        : builder_t< visitor_instance< visitor_mixin, meta_generator_t > >
-        , visitor_mixin< visitor_instance< visitor_mixin, meta_generator_t > >
+        : builder_t< visitor_instance< visitor_mixin > >
+        , visitor_mixin< visitor_instance< visitor_mixin > >
     {
-        using mixin          = visitor_mixin< visitor_instance< visitor_mixin, meta_generator_t > >;
-        using meta_generator = meta_generator_t;
-        using vast_builder   = builder_t< visitor_instance< visitor_mixin, meta_generator_t > >;
+        using mixin          = visitor_mixin< visitor_instance< visitor_mixin > >;
+        using vast_builder   = builder_t< visitor_instance< visitor_mixin > >;
 
-        visitor_instance(codegen_context &ctx, meta_generator &gen)
-            : ctx(ctx), meta(gen), builder(ctx.getBodyRegion())
+        visitor_instance(codegen_context &ctx, meta_generator &meta)
+            : ctx(ctx), meta(meta), builder(ctx.getBodyRegion())
         {}
 
         using vast_builder::set_insertion_point_to_start;
