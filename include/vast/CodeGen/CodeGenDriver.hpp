@@ -108,8 +108,6 @@ namespace vast::cg
 
         mangled_name_ref get_mangled_name(clang::GlobalDecl decl);
 
-        void dump_module() { codegen.dump_module(); }
-
     private:
 
         bool should_emit_function(clang::GlobalDecl decl);
@@ -126,8 +124,6 @@ namespace vast::cg
                     VAST_UNREACHABLE("invalid C++ ABI kind");
             }
         }
-
-        codegen_context::var_table &variables_symbol_table();
 
         bool has_this_return(clang::GlobalDecl decl) const;
         bool has_most_derived_return(clang::GlobalDecl decl) const;
