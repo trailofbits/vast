@@ -132,7 +132,7 @@ namespace vast::cg
 
         auto &last_block = fn.getBody().back();
         auto missing_return = [&] (auto &block) {
-            if (codegen.visitor->has_insertion_block()) {
+            if (codegen.has_insertion_block()) {
                 if (auto op = get_last_effective_operation(block)) {
                     return !op->template hasTrait< core::return_trait >();
                 }

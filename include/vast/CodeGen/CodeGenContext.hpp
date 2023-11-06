@@ -154,6 +154,16 @@ namespace vast::cg
             deferred_decls_to_emit.emplace_back(decl);
         }
 
+        void set_deferred_decl(mangled_name_ref name, clang::GlobalDecl decl) {
+            deferred_decls[name] = decl;
+        }
+
+        auto receive_deferred_decls_to_emit() {
+            std::vector< clang::GlobalDecl > current;
+            current.swap(deferred_decls_to_emit);
+            return current;
+        }
+
         // After HandleTranslation finishes, differently from deferred_decls_to_emit,
         // default_methods_to_emit is only called after a set of vast passes run.
         // See add_default_methods_to_emit usage for examples.

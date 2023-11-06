@@ -60,17 +60,17 @@ namespace vast::cg
         explicit codegen_driver(
             codegen_context &cgctx, cc::action_options &opts, const cc::vast_args &vargs
         )
-            : actx(cgctx.actx)
-            , mctx(cgctx.mctx)
+            : cgctx(cgctx)
             , opts(opts)
             , vargs(vargs)
-            , cxx_abi(create_cxx_abi(actx))
-            , codegen(cgctx, make_meta_generator(cgctx, vargs))
+            , cxx_abi(create_cxx_abi(cgctx.actx))
+            , meta(make_meta_generator(cgctx, vargs))
+            , codegen(cgctx, *meta)
             , type_conv(*this)
         {
             type_info = std::make_unique< type_info_t >(*this);
 
-            const auto &target = actx.getTargetInfo();
+            const auto &target = acontext().getTargetInfo();
             target_info = detail::initialize_target_info(target, get_type_info());
         }
 
@@ -98,18 +98,16 @@ namespace vast::cg
         const type_info_t &get_type_info() const { return *type_info; }
         type_info_t &get_type_info() { return *type_info; }
 
-        const acontext_t &acontext() const { return actx; }
+        const acontext_t &acontext() const { return cgctx.actx; }
 
-        const mcontext_t &mcontext() const { return mctx; }
-        mcontext_t &mcontext() { return mctx; }
+        const mcontext_t &mcontext() const { return cgctx.mctx; }
+        mcontext_t &mcontext() { return cgctx.mctx; }
 
         function_processing_lock make_lock(const function_info_t *fninfo);
 
         void update_completed_type(const clang::TagDecl *tag);
 
         friend struct type_conversion_driver;
-
-        mangled_name_ref get_mangled_name(clang::GlobalDecl decl);
 
     private:
 
@@ -153,18 +151,10 @@ namespace vast::cg
         // Forward declarations are emitted lazily.
         operation build_global(clang::GlobalDecl decl);
 
-        operation get_global_value(mangled_name_ref name);
-        mlir_value get_global_value(const clang::Decl *decl);
-
-
         bool may_drop_function_return(qual_type rty) const;
 
-        const std::vector< clang::GlobalDecl >& default_methods_to_emit() const;
         const std::vector< clang::GlobalDecl >& deferred_decls_to_emit() const;
-        const std::vector< const clang::CXXRecordDecl * >& deferred_vtables() const;
         const std::map< mangled_name_ref, clang::GlobalDecl >& deferred_decls() const;
-
-        std::vector< clang::GlobalDecl > receive_deferred_decls_to_emit();
 
         // Determine whether the definition must be emitted; if this returns
         // false, the definition can be emitted lazily if it's used.
@@ -188,10 +178,9 @@ namespace vast::cg
         // Call replaceAllUsesWith on all pairs in replacements.
         void apply_replacements();
 
-        inline auto lang() const { return actx.getLangOpts(); }
+        inline auto lang() const { return acontext().getLangOpts(); }
 
-        acontext_t &actx;
-        mcontext_t &mctx;
+        codegen_context &cgctx;
 
         cc::action_options &opts;
         const cc::vast_args &vargs;
@@ -203,7 +192,7 @@ namespace vast::cg
 
         std::unique_ptr< vast_cxx_abi > cxx_abi;
 
-        // FIXME: make configurable
+        meta_generator_ptr meta;
         default_codegen codegen;
 
         mutable std::unique_ptr< target_info_t > target_info;
