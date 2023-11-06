@@ -86,7 +86,6 @@ namespace vast::cg
 
         bool verify_module() const;
 
-        void handle_translation_unit(acontext_t &acontext);
         void handle_top_level_decl(clang::DeclGroupRef decls);
         void handle_top_level_decl(clang::Decl *decl);
 
@@ -181,7 +180,6 @@ namespace vast::cg
         inline auto lang() const { return acontext().getLangOpts(); }
 
         codegen_context &cgctx;
-
         cc::action_options &opts;
         const cc::vast_args &vargs;
 
