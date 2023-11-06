@@ -263,7 +263,7 @@ namespace vast::cg
         // Defer code generation to first use when possible, e.g. if this is an inline
         // function. If the global mjust always be emitted, do it eagerly if possible
         // to benefit from cache locality.
-        if (must_be_emitted(glob) && may_be_emitted_eagerly(glob)) {
+        if (may_be_emitted_eagerly(glob)) {
             // Emit the definition if it can't be deferred.
             return build_global_definition(glob);
         }
@@ -282,22 +282,13 @@ namespace vast::cg
         if (cgctx.get_global_value(mangled_name) != nullptr) {
             // The value has already been used and should therefore be emitted.
             cgctx.add_deferred_decl_to_emit(decl);
-        } else if (must_be_emitted(glob)) {
+        } else {
             // The value must be emitted, but cannot be emitted eagerly.
             VAST_ASSERT(!may_be_emitted_eagerly(glob));
             cgctx.add_deferred_decl_to_emit(decl);
-        } else {
-            // Otherwise, remember that we saw a deferred decl with this name. The first
-            // use of the mangled name will cause it to move into DeferredDeclsToEmit.
-            cgctx.set_deferred_decl(mangled_name, decl);
         }
 
         return {};
-    }
-
-    bool codegen_driver::must_be_emitted(const clang::ValueDecl *glob) {
-        // in contrast to clang vast emits all declarations
-        return true;
     }
 
     bool codegen_driver::may_be_emitted_eagerly(const clang::ValueDecl *glob) {
