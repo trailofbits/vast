@@ -70,13 +70,9 @@ namespace vast::cg
         void finalize();
 
         const acontext_t &acontext() const { return cgctx.actx; }
-
         const mcontext_t &mcontext() const { return cgctx.mctx; }
-        mcontext_t &mcontext() { return cgctx.mctx; }
 
     private:
-
-        bool should_emit_function(clang::GlobalDecl decl);
 
         operation build_global_function_declaration(clang::GlobalDecl decl);
 
