@@ -74,7 +74,9 @@ namespace vast::cc
 
         constexpr string_ref emit_mlir = "emit-mlir";
 
-        constexpr string_ref emit_locs = "emit-locs";
+        constexpr string_ref show_locs = "show-locs";
+        constexpr string_ref locs_as_meta_ids = "locs-as-meta-ids";
+
 
         constexpr string_ref opt_pipeline  = "pipeline";
 
