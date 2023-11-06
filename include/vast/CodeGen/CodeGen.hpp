@@ -52,13 +52,15 @@ namespace vast::cg
     // CodeGen
     //
     template< template< typename > typename visitor_config >
-    struct codegen_instance
+    struct codegen_instance : visitor_instance< visitor_config >
     {
-        using visitor_t = visitor_instance< visitor_config >;
+        using base = visitor_instance< visitor_config >;
         using var_table = typename codegen_context::var_table;
 
-        codegen_instance(codegen_context &cgctx, meta_generator_ptr &&meta)
-            : cgctx(cgctx), meta(std::move(meta))
+        using base::meta_location;
+
+        codegen_instance(codegen_context &cgctx, meta_generator &meta)
+            : base(cgctx, meta)
         {
             mlir::registerAllDialects(cgctx.mctx);
             vast::registerAllDialects(cgctx.mctx);
@@ -73,100 +75,43 @@ namespace vast::cg
                 .funcdecls  = cgctx.funcdecls,
                 .globs      = cgctx.vars
             });
-
-            visitor = std::make_unique< visitor_t >(
-                cgctx, *this->meta
-            );
         }
 
+        decltype(auto) mcontext() { return this->ctx.mctx; }
+        decltype(auto) acontext() { return this->ctx.actx; }
+
         void emit_data_layout() {
-            hl::emit_data_layout(cgctx.mctx, cgctx.mod, cgctx.data_layout());
+            hl::emit_data_layout(mcontext(), this->ctx.mod, this->ctx.data_layout());
         }
 
         bool verify_module() const {
-            return mlir::verify(cgctx.mod.get()).succeeded();
+            return mlir::verify(this->ctx.mod.get()).succeeded();
         }
 
         template< typename Op, typename... Args >
         auto make(Args &&...args) {
-            return visitor->template create< Op >(std::forward< Args >(args)...);
+            return this->template create< Op >(std::forward< Args >(args)...);
         }
 
         // FIXME: Remove from driver whan we obliterate function type convertion
         // from driver
         mlir_type convert(qual_type type) {
-            return visitor->Visit(type);
+            return this->Visit(type);
         }
         mlir_type make_lvalue(mlir_type type) {
             if (type.isa< hl::LValueType >()) {
                 return type;
             }
-            return hl::LValueType::get(&cgctx.mctx, type);
+            return hl::LValueType::get(&mcontext(), type);
         }
 
         void update_completed_type(clang::TagDecl *decl) {
             VAST_UNIMPLEMENTED;
         }
 
-        operation build_function_prototype(clang::GlobalDecl decl, mlir_type fty) {
-            return visitor->build_function_prototype(decl, fty);
-        }
-
-        // FIXME: should be part of scope
-        operation get_global_value(mangled_name_ref name) {
-            return cgctx.get_global_value(name);
-        }
-
-        // FIXME: should be part of scope
-        mlir_value get_global_value(const clang::Decl *decl) {
-            return cgctx.get_global_value(decl);
-        }
-
-        // FIXME: should be part of scope
-        void add_deferred_decl_to_emit(clang::GlobalDecl decl) {
-            cgctx.add_deferred_decl_to_emit(decl);
-        }
-
-        // FIXME: should be part of scope
-        const auto& default_methods_to_emit() const {
-            return cgctx.default_methods_to_emit;
-        }
-
-        // FIXME: should be part of scope
-        const auto& deferred_decls_to_emit() const {
-            return cgctx.deferred_decls_to_emit;
-        }
-
-        // FIXME: should be part of scope
-        const auto& deferred_vtables() const {
-            return cgctx.deferred_vtables;
-        }
-
-        // FIXME: should be part of scope
-        void set_deferred_decl(mangled_name_ref name, clang::GlobalDecl decl) {
-            cgctx.deferred_decls[name] = decl;
-        }
-
-        // FIXME: should be part of scope
-        const auto& deferred_decls() const {
-            return cgctx.deferred_decls;
-        }
-
-        // FIXME: should be part of scope
-        auto receive_deferred_decls_to_emit() {
-            std::vector< clang::GlobalDecl > current;
-            current.swap(cgctx.deferred_decls_to_emit);
-            return current;
-        }
-
-        // FIXME: should be part of scope
-        mangled_name_ref get_mangled_name(clang::GlobalDecl decl) {
-            return cgctx.get_mangled_name(decl);
-        }
-
         auto insert_at_end(hl::FuncOp fn) {
-            auto guard = visitor->insertion_guard();
-            visitor->set_insertion_point_to_end(&fn.getBody());
+            auto guard = this->insertion_guard();
+            this->set_insertion_point_to_end(&fn.getBody());
             return std::move(guard);
         }
 
@@ -189,7 +134,7 @@ namespace vast::cg
                 VAST_UNIMPLEMENTED;
             }
 
-            const auto &lang = cgctx.actx.getLangOpts();
+            const auto &lang = acontext().getLangOpts();
 
             // auto curr_function_decl = decl ? decl->getNonClosureContext() : nullptr;
 
@@ -327,8 +272,8 @@ namespace vast::cg
                 for (const auto [ast_param, mlir_param] : llvm::zip(args, entry_block.getArguments())) {
                     // TODO set alignment
                     // TODO set name
-                    mlir_param.setLoc(meta->location(ast_param));
-                    declare(ast_param, mlir_value(mlir_param));
+                    mlir_param.setLoc(meta_location(ast_param));
+                    this->ctx.declare(ast_param, mlir_value(mlir_param));
                 }
 
             }
@@ -383,7 +328,7 @@ namespace vast::cg
 
         logical_result build_stmt(const clang::Stmt *stmt, bool /* use_current_scope */) {
             // FIXME: consolidate with clang codegene
-            visitor->Visit(stmt);
+            this->Visit(stmt);
             return mlir::success();
         }
 
@@ -391,7 +336,7 @@ namespace vast::cg
             // TODO: incrementProfileCounter(Body);
 
             // We start with function level scope for variables.
-            llvm::ScopedHashTableScope var_scope(cgctx.vars);
+            llvm::ScopedHashTableScope var_scope(this->ctx.vars);
 
             auto result = logical_result::success();
             if (const auto stmt = clang::dyn_cast< clang::CompoundStmt >(body)) {
@@ -414,7 +359,7 @@ namespace vast::cg
             VAST_CHECK(fn, "generating code for a null function");
             const auto function_decl = clang::cast< clang::FunctionDecl >(decl.getDecl());
 
-            auto guard = visitor->insertion_guard();
+            auto guard = this->insertion_guard();
 
             if (function_decl->isInlineBuiltinDeclaration()) {
                 VAST_UNIMPLEMENTED_MSG("emit body of inline builtin declaration");
@@ -453,13 +398,13 @@ namespace vast::cg
             // declaration as the location for the subprogram. A function may lack a
             // declaration in the source code if it is created by code gen. (examples:
             // _GLOBAL__I_a, __cxx_global_array_dtor, thunk).
-            auto loc = meta->location(function_decl);
+            auto loc = meta_location(function_decl);
 
             // If this is a function specialization then use the pattern body as the
             // location for the function.
             if (const auto *spec = function_decl->getTemplateInstantiationPattern()) {
                 if (spec->hasBody(spec)) {
-                    loc = meta->location(spec);
+                    loc = meta_location(spec);
                 }
             }
 
@@ -475,15 +420,15 @@ namespace vast::cg
             }
 
             // Create a scope in the symbol table to hold variable declarations.
-            llvm::ScopedHashTableScope var_scope(cgctx.vars);
+            llvm::ScopedHashTableScope var_scope(this->ctx.vars);
             {
                 auto body = function_decl->getBody();
-                auto begin_loc = meta->location(body);
-                auto end_loc = meta->location(body);
+                auto begin_loc = meta_location(body);
+                auto end_loc = meta_location(body);
 
                 VAST_CHECK(fn.isDeclaration(), "Function already has body?");
                 auto *entry_block = fn.addEntryBlock();
-                visitor->set_insertion_point_to_start(entry_block);
+                this->set_insertion_point_to_start(entry_block);
 
                 lexical_scope_context lex_ccope{begin_loc, end_loc, entry_block};
                 lexical_scope_guard scope_guard{*this, &lex_ccope};
@@ -492,7 +437,7 @@ namespace vast::cg
                 start_function(decl, fn, fty_info, args, loc, options);
 
                 for (const auto lab : filter< clang::LabelDecl >(function_decl->decls())) {
-                    visitor->Visit(lab);
+                    this->Visit(lab);
                 }
 
                 // Initialize lexical scope information.
@@ -505,7 +450,7 @@ namespace vast::cg
                 // Generate the body of the function.
                 // TODO: PGO.assignRegionCounters
 
-                const auto &lang = cgctx.actx.getLangOpts();
+                const auto &lang = acontext().getLangOpts();
 
                 if (clang::isa< clang::CXXDestructorDecl >(function_decl)) {
                     VAST_UNIMPLEMENTED;
@@ -534,10 +479,10 @@ namespace vast::cg
 
         void emit_implicit_return_zero(hl::FuncOp fn, const clang::FunctionDecl *decl) {
             auto guard = insert_at_end(fn);
-            auto loc   = meta->location(decl);
+            auto loc   = meta_location(decl);
 
             auto fty = fn.getFunctionType();
-            auto zero = visitor->constant(loc, fty.getResult(0), apsint(0));
+            auto zero = this->constant(loc, fty.getResult(0), apsint(0));
             make< core::ImplicitReturnOp >(loc, zero);
         }
 
@@ -548,8 +493,8 @@ namespace vast::cg
 
             auto guard = insert_at_end(fn);
 
-            auto loc = meta->location(decl);
-            make< core::ImplicitReturnOp >(loc, visitor->constant(loc));
+            auto loc = meta_location(decl);
+            make< core::ImplicitReturnOp >(loc, this->constant(loc));
         }
 
         void emit_trap(hl::FuncOp fn, const clang::FunctionDecl *decl) {
@@ -559,47 +504,11 @@ namespace vast::cg
 
         void emit_unreachable(hl::FuncOp fn, const clang::FunctionDecl *decl) {
             auto guard = insert_at_end(fn);
-            auto loc = meta->location(decl);
+            auto loc = meta_location(decl);
             make< hl::UnreachableOp >(loc);
         }
 
-        hl::FuncOp declare(const clang::FunctionDecl *decl, auto vast_decl_builder) {
-            return cgctx.declare(decl, vast_decl_builder);
-        }
-
-        mlir_value declare(const clang::VarDecl *decl, mlir_value vast_value) {
-            return cgctx.declare(decl, vast_value);
-        }
-
-        mlir_value declare(const clang::VarDecl *decl, auto vast_decl_builder) {
-            return cgctx.declare(decl, vast_decl_builder);
-        }
-
-        hl::LabelDeclOp declare(const clang::LabelDecl *decl, auto vast_decl_builder) {
-            return cgctx.declare(decl, vast_decl_builder);
-        }
-
-        hl::TypeDefOp declare(const clang::TypedefDecl *decl, auto vast_decl_builder) {
-            return cgctx.declare(decl, vast_decl_builder);
-        }
-
-        hl::TypeDeclOp declare(const clang::TypeDecl *decl, auto vast_decl_builder) {
-            return cgctx.declare(decl, vast_decl_builder);
-        }
-
-        hl::EnumDeclOp declare(const clang::EnumDecl *decl, auto vast_decl_builder) {
-            return cgctx.declare(decl, vast_decl_builder);
-        }
-
-        hl::EnumConstantOp declare(const clang::EnumConstantDecl *decl, auto vast_decl_builder) {
-            return cgctx.declare(decl, vast_decl_builder);
-        }
-
-        codegen_context &cgctx;
-        meta_generator_ptr meta;
-
         std::unique_ptr< scope_t > scope;
-        std::unique_ptr< visitor_t > visitor;
     };
 
     using default_codegen = codegen_instance< default_visitor_stack >;

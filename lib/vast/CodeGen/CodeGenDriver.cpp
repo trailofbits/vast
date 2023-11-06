@@ -107,7 +107,7 @@ namespace vast::cg
         // TODO: CoverageMapping
         // TODO: if (codegen_opts.SanitizeCfiCrossDso) {
         // TODO: buildAtAvailableLinkGuard();
-        const auto &target_triplet = actx.getTargetInfo().getTriple();
+        const auto &target_triplet = acontext().getTargetInfo().getTriple();
         if (target_triplet.isWasm() && !target_triplet.isOSEmscripten()) {
             VAST_UNIMPLEMENTED_MSG("WASM module release");
         }
@@ -193,7 +193,7 @@ namespace vast::cg
                 break;
             }
             default:
-                codegen.visitor->Visit(decl);
+                codegen.Visit(decl);
         }
     }
 
@@ -279,20 +279,16 @@ namespace vast::cg
     operation codegen_driver::build_global_var_definition(const clang::VarDecl *decl, bool tentative) {
         VAST_UNIMPLEMENTED_IF(lang().OpenCL || lang().OpenMPIsTargetDevice);
 
-        VAST_UNIMPLEMENTED_IF(decl->needsDestruction(actx) == clang::QualType::DK_cxx_destructor);
+        VAST_UNIMPLEMENTED_IF(decl->needsDestruction(acontext()) == clang::QualType::DK_cxx_destructor);
 
         VAST_UNIMPLEMENTED_IF(lang().CUDA);
         VAST_UNIMPLEMENTED_IF(lang().OpenMP);
 
-        return codegen.visitor->Visit(decl);
+        return codegen.Visit(decl);
     }
 
     operation codegen_driver::build_global_decl(const clang::GlobalDecl &/* decl */) {
         VAST_UNIMPLEMENTED;
-    }
-
-    mangled_name_ref codegen_driver::get_mangled_name(clang::GlobalDecl decl) {
-        return codegen.get_mangled_name(decl);
     }
 
     operation codegen_driver::build_global(clang::GlobalDecl decl) {
@@ -356,18 +352,18 @@ namespace vast::cg
             // CXXGlobalInits.push_back(nullptr);
         }
 
-        auto mangled_name = get_mangled_name(decl);
-        if (get_global_value(mangled_name) != nullptr) {
+        auto mangled_name = cgctx.get_mangled_name(decl);
+        if (cgctx.get_global_value(mangled_name) != nullptr) {
             // The value has already been used and should therefore be emitted.
-            codegen.add_deferred_decl_to_emit(decl);
+            cgctx.add_deferred_decl_to_emit(decl);
         } else if (must_be_emitted(glob)) {
             // The value must be emitted, but cannot be emitted eagerly.
             VAST_ASSERT(!may_be_emitted_eagerly(glob));
-            codegen.add_deferred_decl_to_emit(decl);
+            cgctx.add_deferred_decl_to_emit(decl);
         } else {
             // Otherwise, remember that we saw a deferred decl with this name. The first
             // use of the mangled name will cause it to move into DeferredDeclsToEmit.
-            codegen.set_deferred_decl(mangled_name, decl);
+            cgctx.set_deferred_decl(mangled_name, decl);
         }
 
         return {};
@@ -395,45 +391,17 @@ namespace vast::cg
             // A definition of an inline constexpr static data member may change
             // linkage later if it's redeclared outside the class.
             constexpr auto weak_unknown = clang::ASTContext::InlineVariableDefinitionKind::WeakUnknown;
-            VAST_UNIMPLEMENTED_IF(actx.getInlineVariableDefinitionKind(vr) == weak_unknown);
+            VAST_UNIMPLEMENTED_IF(acontext().getInlineVariableDefinitionKind(vr) == weak_unknown);
             return true;
         }
 
         VAST_UNREACHABLE("unsupported value decl");
     }
 
-    operation codegen_driver::get_global_value(mangled_name_ref name) {
-        return codegen.get_global_value(name);
-    }
-
-    mlir_value codegen_driver::get_global_value(const clang::Decl *decl) {
-        return codegen.get_global_value(decl);
-    }
-
-    const std::vector< clang::GlobalDecl >& codegen_driver::default_methods_to_emit() const {
-        return codegen.default_methods_to_emit();
-    }
-
-    const std::vector< clang::GlobalDecl >& codegen_driver::deferred_decls_to_emit() const {
-        return codegen.deferred_decls_to_emit();
-    }
-
-    const std::vector< const clang::CXXRecordDecl * >& codegen_driver::deferred_vtables() const {
-        return codegen.deferred_vtables();
-    }
-
-    const std::map< mangled_name_ref, clang::GlobalDecl >& codegen_driver::deferred_decls() const {
-        return codegen.deferred_decls();
-    }
-
-    std::vector< clang::GlobalDecl > codegen_driver::receive_deferred_decls_to_emit() {
-        return codegen.receive_deferred_decls_to_emit();
-    }
-
     void codegen_driver::build_default_methods() {
         // Differently from deferred_decls_to_emit, there's no recurrent use of
         // deferred_decls_to_emit, so use it directly for emission.
-        for (const auto &decl : default_methods_to_emit()) {
+        for (const auto &decl : cgctx.default_methods_to_emit) {
             build_global_decl(decl);
         }
     }
@@ -442,10 +410,13 @@ namespace vast::cg
         // Emit deferred declare target declarations
         VAST_UNIMPLEMENTED_IF(lang().OpenMP && !lang().OpenMPSimd);
 
+        const auto &deferred_vtables = cgctx.deferred_vtables;
+        const auto &deferred_decls_to_emit = cgctx.deferred_decls_to_emit;
+
         // Emit code for any potentially referenced deferred decls. Since a previously
         // unused static decl may become used during the generation of code for a
         // static function, iterate until no changes are made.
-        VAST_UNIMPLEMENTED_IF(!deferred_vtables().empty());
+        VAST_UNIMPLEMENTED_IF(!deferred_vtables.empty());
 
         // Emit CUDA/HIP static device variables referenced by host code only. Note we
         // should not clear CUDADeviceVarODRUsedByHost since it is still needed for
@@ -453,13 +424,13 @@ namespace vast::cg
         VAST_UNIMPLEMENTED_IF(lang().CUDA && lang().CUDAIsDevice);
 
         // Stop if we're out of both deferred vtables and deferred declarations.
-        if (deferred_decls_to_emit().empty()) {
+        if (deferred_decls_to_emit.empty()) {
             return;
         }
 
         // Grab the list of decls to emit. If build_global_definition schedules more
         // work, it will not interfere with this.
-        auto curr_decls_to_emit = receive_deferred_decls_to_emit();
+        auto curr_decls_to_emit = cgctx.receive_deferred_decls_to_emit();
         for (auto &decl : curr_decls_to_emit) {
             build_global_decl(decl);
 
@@ -467,9 +438,9 @@ namespace vast::cg
             // If we found out that we need to emit more decls, do that recursively.
             // This has the advantage that the decls are emitted in a DFS and related
             // ones are close together, which is convenient for testing.
-            if (!deferred_vtables().empty() || !deferred_decls_to_emit().empty()) {
+            if (!deferred_vtables.empty() || !deferred_decls_to_emit.empty()) {
                 build_deferred();
-                VAST_ASSERT(deferred_vtables().empty() && deferred_decls_to_emit().empty());
+                VAST_ASSERT(deferred_vtables.empty() && deferred_decls_to_emit.empty());
             }
         }
     }
