@@ -52,16 +52,15 @@ namespace vast::cg
     // CodeGen
     //
     template<
-        typename context_t,
         template< typename > typename visitor_config,
         typename meta_generator
     >
     struct codegen_instance
     {
-        using visitor_t = visitor_instance< context_t, visitor_config, meta_generator >;
-        using var_table = typename context_t::var_table;
+        using visitor_t = visitor_instance< visitor_config, meta_generator >;
+        using var_table = typename codegen_context::var_table;
 
-        codegen_instance(context_t &cgctx)
+        codegen_instance(codegen_context &cgctx)
             : cgctx(cgctx), meta(&cgctx.actx, &cgctx.mctx)
         {
             mlir::registerAllDialects(cgctx.mctx);
@@ -599,14 +598,14 @@ namespace vast::cg
             return cgctx.declare(decl, vast_decl_builder);
         }
 
-        context_t &cgctx;
+        codegen_context &cgctx;
 
         meta_generator meta;
         std::unique_ptr< scope_t > scope;
         std::unique_ptr< visitor_t > visitor;
     };
 
-    using default_codegen       = codegen_instance< codegen_context, default_visitor_stack, default_meta_gen >;
-    using codegen_with_meta_ids = codegen_instance< codegen_context, default_visitor_stack, id_meta_gen >;
+    using default_codegen       = codegen_instance< default_visitor_stack, default_meta_gen >;
+    using codegen_with_meta_ids = codegen_instance< default_visitor_stack, id_meta_gen >;
 
 } // namespace vast::cg

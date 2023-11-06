@@ -23,19 +23,18 @@ namespace vast::cg
     // `meta_generator` takes care of attaching location metadata to generated mlir primitives.
     //
     template<
-        typename context_t,
         template< typename > typename visitor_mixin,
         typename meta_generator_t
     >
     struct visitor_instance
-        : builder_t< visitor_instance< context_t, visitor_mixin, meta_generator_t > >
-        , visitor_mixin< visitor_instance< context_t, visitor_mixin, meta_generator_t > >
+        : builder_t< visitor_instance< visitor_mixin, meta_generator_t > >
+        , visitor_mixin< visitor_instance< visitor_mixin, meta_generator_t > >
     {
-        using mixin          = visitor_mixin< visitor_instance< context_t, visitor_mixin, meta_generator_t > >;
+        using mixin          = visitor_mixin< visitor_instance< visitor_mixin, meta_generator_t > >;
         using meta_generator = meta_generator_t;
-        using vast_builder   = builder_t< visitor_instance< context_t, visitor_mixin, meta_generator_t > >;
+        using vast_builder   = builder_t< visitor_instance< visitor_mixin, meta_generator_t > >;
 
-        visitor_instance(context_t &ctx, meta_generator &gen)
+        visitor_instance(codegen_context &ctx, meta_generator &gen)
             : ctx(ctx), meta(gen), builder(ctx.getBodyRegion())
         {}
 
@@ -66,7 +65,7 @@ namespace vast::cg
             return meta.location(token);
         }
 
-        context_t &ctx;
+        codegen_context &ctx;
         meta_generator &meta;
         ::vast::mlir_builder builder;
     };
