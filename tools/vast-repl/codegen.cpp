@@ -26,14 +26,8 @@ namespace vast::repl::codegen {
         return slurp(in);
     }
 
-    owning_module_ref emit_module(const std::string &source, mcontext_t *mctx) {
-        auto unit = codegen::ast_from_source(source);
-        auto &actx = unit->getASTContext();
-        // TODO use front codegen enstead of custom pipeline
-        vast::cg::codegen_context cgctx( *mctx, actx, cg::source_language::C );
-        vast::cg::default_codegen codegen(cgctx);
-        codegen.emit_module(actx.getTranslationUnitDecl());
-        return std::move(cgctx.mod);
+    owning_module_ref emit_module(const std::string &/* source */, mcontext_t */* mctx */) {
+        VAST_UNREACHABLE("unsupported codegen");
     }
 
 } // namespace vast::repl::codegen
