@@ -127,7 +127,8 @@ namespace vast::hl {
                         mlir::AttrTypeReplacer replacer;
                         replacer.addReplacement(conv::tc::convert_type_attr(tc));
                         replacer.addReplacement(conv::tc::convert_data_layout_attrs(tc));
-                        replacer.recursivelyReplaceElementsIn(
+
+                        replacer.replaceElementsIn(
                             op, true /* replace attrs */, false /* replace locs */, true /* replace types */
                         );
                     };
