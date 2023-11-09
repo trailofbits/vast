@@ -17,6 +17,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
+#include "vast/Util/DataLayout.hpp"
 
 #include <array>
 
