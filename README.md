@@ -10,7 +10,7 @@ for a broad spectrum of analyses. Using the MLIR infrastructure, VAST provides
 a toolset to represent C/C++ program at various stages of the compilation and
 to transform the representation to the best-fit program abstraction.
 
-For further information check [trailofbits.github.io/vast/](trailofbits.github.io/vast/).
+For further information check [trailofbits.github.io/vast/](https://trailofbits.github.io/vast/).
 
 ## License
 
