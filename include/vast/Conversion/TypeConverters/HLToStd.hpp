@@ -110,6 +110,10 @@ namespace vast::conv::tc {
         , mixins< HLToStd >
         , HLAggregates< HLToStd >
     {
+        using Base = mixins< HLToStd >;
+        using Base::convert_type_to_type;
+        using Base::convert_type_to_types;
+
         const mlir::DataLayout &dl;
         mlir::MLIRContext &mctx;
 
@@ -183,20 +187,6 @@ namespace vast::conv::tc {
                         VAST_UNREACHABLE("Cannot lower float bitsize {0}", target_bw);
                 }
             };
-        }
-
-        maybe_types_t convert_type_to_types(mlir_type t, std::size_t count = 1) {
-            return Maybe(t)
-                .and_then(convert_type())
-                .keep_if([&](const auto &ts) { return ts->size() == count; })
-                .take_wrapped< maybe_types_t >();
-        }
-
-        maybe_type_t convert_type_to_type(mlir_type t) {
-            return Maybe(t)
-                .and_then([&](auto t) { return this->convert_type_to_types(t, 1); })
-                .and_then([&](auto ts) { return *ts->begin(); })
-                .take_wrapped< maybe_type_t >();
         }
 
         maybe_type_t try_convert_intlike(mlir_type t) {
