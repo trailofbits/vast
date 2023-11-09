@@ -1,5 +1,7 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
+#include "vast/Util/Warnings.hpp"
+
 VAST_RELAX_WARNINGS
 #include <mlir/Analysis/DataLayoutAnalysis.h>
 #include <mlir/IR/BuiltinAttributeInterfaces.h>
@@ -40,6 +42,7 @@ namespace vast::conv::tc {
             self().addConversion(convert_lvalue_type());
             self().addConversion(convert_pointer_type());
             self().addConversion(convert_elaborated_type());
+            self().addConversion(convert_paren_type());
         }
 
         auto convert_decayed_type() {
@@ -81,6 +84,15 @@ namespace vast::conv::tc {
                     .and_then(self().convert_pointer_element_type())
                     .unwrap()
                     .and_then(self().template make_aggregate_type< raw >(type.getQuals()))
+                    .template take_wrapped< maybe_type_t >();
+            };
+        }
+
+        auto convert_paren_type() {
+            return [&](hl::ParenType type) {
+                return Maybe(type.getElementType())
+                    .and_then(self().convert_type_to_type())
+                    .unwrap()
                     .template take_wrapped< maybe_type_t >();
             };
         }
