@@ -2,7 +2,14 @@
 
 #pragma once
 
+#include <vast/Util/Warnings.hpp>
+
+VAST_RELAX_WARNINGS
+#include <mlir/IR/FunctionInterfaces.h>
+VAST_UNRELAX_WARNINGS
+
 #include <vast/Util/Functions.hpp>
+#include <vast/Util/Common.hpp>
 
 namespace vast
 {
