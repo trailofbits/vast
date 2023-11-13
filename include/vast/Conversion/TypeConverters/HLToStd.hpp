@@ -117,10 +117,42 @@ namespace vast::conv::tc {
         }
     };
 
+    template< typename self_t >
+    struct CoreToStd
+    {
+      private:
+        self_t &self() { return static_cast< self_t & >(*this); }
+
+      public:
+
+        auto convert_fn_type()
+        {
+            return [&](core::FunctionType t) -> maybe_type_t {
+                // To be consistent with how others use the conversion, we
+                // do not convert input types directly.
+                auto signature_conversion = self().signature_conversion(t.getInputs());
+
+                auto results = self().convert_types_to_types(t.getResults());
+
+                if (!signature_conversion || !results)
+                    return {};
+
+                return { core::FunctionType::get(
+                    t.getContext(),
+                    signature_conversion->getConvertedTypes(), *results, t.isVarArg()) };
+            };
+        }
+
+        void init() {
+            self().addConversion(convert_fn_type());
+        }
+    };
+
     struct HLToStd
         : base_type_converter
         , mixins< HLToStd >
         , HLAggregates< HLToStd >
+        , CoreToStd< HLToStd >
     {
         using Base = mixins< HLToStd >;
         using Base::convert_type_to_type;
@@ -148,6 +180,7 @@ namespace vast::conv::tc {
             });
 
             HLAggregates< HLToStd >::init();
+            CoreToStd< HLToStd >::init();
         }
 
         maybe_types_t convert_type(mlir_type t) {
