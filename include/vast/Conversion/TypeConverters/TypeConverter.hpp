@@ -87,20 +87,6 @@ namespace vast::conv::tc {
                 .template take_wrapped< maybe_type_t >();
         }
 
-        maybe_type_t convert_type_to_type(core::FunctionType fty) {
-            auto params = self().convert_types_to_types(fty.getInputs());
-            if (!params) {
-                return std::nullopt;
-            }
-
-            auto results = self().convert_types_to_types(fty.getResults());
-            if (!results) {
-                return std::nullopt;
-            }
-
-            return core::FunctionType::get(fty.getContext(), *params, *results, fty.isVarArg());
-        }
-
         auto appender(types_t &out) {
             return [&](auto collection) {
                 out.insert(
@@ -123,6 +109,14 @@ namespace vast::conv::tc {
             }
 
             return { out };
+        }
+
+        maybe_signature_conversion_t signature_conversion(const auto &inputs)
+        {
+            signature_conversion_t sc(inputs.size());
+            if (mlir::failed(self().convertSignatureArgs(inputs, sc)))
+                return {};
+            return { std::move(sc) };
         }
 
         mcontext_t &get_context() { return self().mctx; }
