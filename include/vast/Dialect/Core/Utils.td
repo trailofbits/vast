@@ -87,5 +87,9 @@ class IsTypeOf< string arg > : PredOpTrait< "value is of a typeofed type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::TypeOfTrait >()" >
 >;
 
+class IsBuiltinType< string arg > : PredOpTrait< "is a type from the builtin dialect",
+    CPred< "mlir::isa< mlir::BuiltinDialect>($" # arg # ".getType().getDialect())" >
+>;
+
 #endif // VAST_DIALECT_CORE_UTILS
 
