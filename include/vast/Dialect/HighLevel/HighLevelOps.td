@@ -609,7 +609,7 @@ class IsPointerAdditive< string lhs, string rhs, string res > : PredOpTrait< "is
 >;
 
 class PtrDiffLike< string lhs, string rhs, string res > : PredOpTrait< "is a subtraction of pointers",
-    And< [IsPointer< lhs >.predicate, IsPointer< rhs >.predicate, IsLong< res >.predicate] >
+    And< [IsPointer< lhs >.predicate, IsPointer< rhs >.predicate, Or< [ IsLong< res >.predicate, CPred< "mlir::isa< mlir::IntegerType >($" # res # ".getType())" >] > ] >
 >;
 
 class IsAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation (types match or are ptr and integral)", Or<[
