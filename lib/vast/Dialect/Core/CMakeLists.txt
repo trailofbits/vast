@@ -7,5 +7,8 @@ add_vast_dialect_library(Core
     CoreAttributes.cpp
     Func.cpp
     Linkage.cpp
+
+    LINK_LIBS PRIVATE
+        VASTAliasTypeInterface
 )
 

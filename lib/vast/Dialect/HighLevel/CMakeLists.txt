@@ -6,6 +6,10 @@ add_vast_dialect_library(HighLevel
     HighLevelOps.cpp
     HighLevelAttributes.cpp
     HighLevelTypes.cpp
+
+    LINK_LIBS PRIVATE
+        VASTAliasTypeInterface
+        VASTElementTypeInterface
 )
 
 add_subdirectory(Transforms)
