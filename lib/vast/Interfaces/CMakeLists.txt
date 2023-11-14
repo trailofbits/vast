@@ -15,7 +15,7 @@ add_vast_interface_library(TypeQualifiersInterfaces
 )
 
 add_vast_interface_library(AliasTypeInterface
-AliasTypeInterface.cpp
+  AliasTypeInterface.cpp
 )
 
 add_vast_interface_library(DefaultDataLayoutTypeInterface
