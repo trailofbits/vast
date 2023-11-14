@@ -594,10 +594,12 @@ def CStyleCastOp     : CastOp< "cstyle_cast" >;
 def BuiltinBitCastOp : CastOp< "builtin_bitcast" >;
 
 class IsPointerCompatible< string arg > : PredTypeTrait< "type can be added/subtracted to a pointer",
-   And< [IsIntegral< arg >.predicate,
-         Neg< IsShort< arg >.predicate >,
-         Neg< IsChar< arg >.predicate >,
-         Neg< IsBool< arg >.predicate >
+   Or < [And< [IsIntegral< arg >.predicate,
+           Neg< IsShort< arg >.predicate >,
+           Neg< IsChar< arg >.predicate >,
+           Neg< IsBool< arg >.predicate >
+              ] >,
+         IsBuiltinType< arg >.predicate
         ] >
 >;
 
@@ -609,7 +611,9 @@ class IsPointerAdditive< string lhs, string rhs, string res > : PredOpTrait< "is
 >;
 
 class PtrDiffLike< string lhs, string rhs, string res > : PredOpTrait< "is a subtraction of pointers",
-    And< [IsPointer< lhs >.predicate, IsPointer< rhs >.predicate, Or< [ IsLong< res >.predicate, CPred< "mlir::isa< mlir::IntegerType >($" # res # ".getType())" >] > ] >
+    And< [IsPointer< lhs >.predicate, IsPointer< rhs >.predicate,
+          Or< [ IsLong< res >.predicate, IsBuiltinType< res >.predicate] >
+         ] >
 >;
 
 class IsAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation (types match or are ptr and integral)", Or<[
