@@ -119,6 +119,24 @@ namespace vast::conv::tc {
             return { std::move(sc) };
         }
 
+        auto get_is_type_conversion_legal() {
+            // We need to check
+            //  * result types
+            //  * types of attributes
+            // types of arguments are result types of a different op.
+            return [this](operation op) {
+                auto res = self().isLegal(op->getResults().getTypes());
+                auto attrs = contains_subtype(op->getAttrDictionary(), self().get_is_illegal());
+                return res && !attrs;
+            };
+        }
+
+        auto get_is_illegal() {
+            return [this](mlir_type type) {
+                return !this->self().isLegal(type);
+            };
+        }
+
         mcontext_t &get_context() { return self().mctx; }
     };
 
