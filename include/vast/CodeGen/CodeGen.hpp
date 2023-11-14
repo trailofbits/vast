@@ -281,23 +281,6 @@ namespace vast::cg
 
             // If any of the arguments have a variably modified type, make sure to emit
             // the type size.
-            // for (auto arg : args) {
-            //     const clang::VarDecl *var_decl = arg;
-
-            //     // Dig out the type as written from ParmVarDecls; it's unclear whether the
-            //     // standard (C99 6.9.1p10) requires this, but we're following the
-            //     // precedent set by gcc.
-            //     auto type = [&] {
-            //         if (const auto *parm_var_decl = dyn_cast< clang::ParmVarDecl >(var_decl)) {
-            //             return parm_var_decl->getOriginalType();
-            //         }
-            //         return var_decl->getType();
-            //     } ();
-
-            //     if (type->isVariablyModifiedType()) {
-            //         VAST_UNIMPLEMENTED;
-            //     }
-            // }
 
             // Emit a location at the end of the prologue.
             if (get_debug_info()) {
