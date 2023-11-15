@@ -197,13 +197,14 @@ namespace vast::cc {
         }
 
         auto setup_pipeline_and_execute = [&] {
+            auto pipeline = parse_pipeline(vargs.get_options_list(opt::opt_pipeline));
             switch (target) {
                 case target_dialect::high_level:
                     break;
                 case target_dialect::llvm: {
                     // TODO: These should probably be moved outside of `target::llvmir`.
                     llvmir::register_vast_to_llvm_ir(*mctx);
-                    llvmir::lower_hl_module(mod.get());
+                    llvmir::lower_hl_module(mod.get(), pipeline);
                     break;
                 }
                 default:
