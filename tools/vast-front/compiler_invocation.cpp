@@ -17,11 +17,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cc
 {
-    frontend_action_ptr create_frontend_action(compiler_instance &ci, const vast_args &vargs) {
-        auto &opts = ci.getFrontendOpts();
-        auto act   = opts.ProgramAction;
-        using namespace clang::frontend;
-
+    frontend_action_ptr create_frontend_action(const vast_args &vargs) {
         if (vargs.has_option(opt::emit_mlir)) {
             return std::make_unique< vast::cc::emit_mlir_action >(vargs);
         }
@@ -37,6 +33,18 @@ namespace vast::cc
         if (vargs.has_option(opt::emit_obj)) {
             return std::make_unique< vast::cc::emit_obj_action >(vargs);
         }
+
+        return nullptr;
+    }
+
+    frontend_action_ptr create_frontend_action(compiler_instance &ci, const vast_args &vargs) {
+        if (auto action = create_frontend_action(vargs)) {
+            return action;
+        }
+
+        auto &opts = ci.getFrontendOpts();
+        auto act   = opts.ProgramAction;
+        using namespace clang::frontend;
 
         switch (act) {
             case ASTDump:  return std::make_unique< clang::ASTDumpAction >();

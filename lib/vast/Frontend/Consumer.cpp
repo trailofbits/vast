@@ -89,30 +89,7 @@ namespace vast::cc {
             }
         }
 
-        auto mod  = std::move(cgctx->mod);
-
-        compile_via_vast(mod.get(), mctx.get());
-
-        switch (action) {
-            case output_type::emit_assembly:
-                return emit_backend_output(
-                    backend::Backend_EmitAssembly, std::move(mod), mctx.get()
-                );
-            case output_type::emit_mlir: {
-                auto trg = parse_target_dialect(vargs.get_options_list(opt::emit_mlir));
-                return emit_mlir_output(trg, std::move(mod), mctx.get());
-            }
-            case output_type::emit_llvm:
-                return emit_backend_output(
-                    backend::Backend_EmitLL, std::move(mod), mctx.get()
-                );
-            case output_type::emit_obj:
-                return emit_backend_output(
-                    backend::Backend_EmitObj, std::move(mod), mctx.get()
-                );
-            case output_type::none:
-                break;
-        }
+        compile_via_vast(cgctx->mod.get(), mctx.get());
     }
 
     void vast_consumer::HandleTagDeclDefinition(clang::TagDecl *decl) {
@@ -162,7 +139,37 @@ namespace vast::cc {
 
     void vast_consumer::HandleVTable(clang::CXXRecordDecl * /* decl */) { VAST_UNIMPLEMENTED; }
 
-    void vast_consumer::emit_backend_output(
+    //
+    // vast stream consumer
+    //
+
+    void vast_stream_consumer::HandleTranslationUnit(acontext_t &actx) {
+        base::HandleTranslationUnit(actx);
+        auto mod = std::move(cgctx->mod);
+
+        switch (action) {
+            case output_type::emit_assembly:
+                return emit_backend_output(
+                    backend::Backend_EmitAssembly, std::move(mod), mctx.get()
+                );
+            case output_type::emit_mlir: {
+                auto trg = parse_target_dialect(vargs.get_options_list(opt::emit_mlir));
+                return emit_mlir_output(trg, std::move(mod), mctx.get());
+            }
+            case output_type::emit_llvm:
+                return emit_backend_output(
+                    backend::Backend_EmitLL, std::move(mod), mctx.get()
+                );
+            case output_type::emit_obj:
+                return emit_backend_output(
+                    backend::Backend_EmitObj, std::move(mod), mctx.get()
+                );
+            case output_type::none:
+                break;
+        }
+    }
+
+    void vast_stream_consumer::emit_backend_output(
         backend backend_action, owning_module_ref mlir_module, mcontext_t *mctx
     ) {
         llvm::LLVMContext llvm_context;
@@ -178,7 +185,7 @@ namespace vast::cc {
         );
     }
 
-    void vast_consumer::emit_mlir_output(
+    void vast_stream_consumer::emit_mlir_output(
         target_dialect target, owning_module_ref mod, mcontext_t *mctx
     ) {
         if (!output_stream || !mod) {
