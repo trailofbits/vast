@@ -91,4 +91,19 @@ namespace vast::conv::tc {
             }
         }
     };
+
+    template< typename type_converter >
+    struct hl_type_converting_pattern : type_converting_pattern< type_converter > {
+        using base = type_converting_pattern< type_converter >;
+        using base::base;
+
+        logical_result matchAndRewrite(
+            operation op, mlir::ArrayRef< mlir::Value > ops,
+            conversion_rewriter &rewriter
+        ) const override {
+            if (auto func_op = mlir::dyn_cast< hl::FuncOp >(op))
+                return base::replace(func_op, ops, rewriter);
+            return base::replace(op, ops, rewriter);
+        }
+    };
 } // namespace vast::conv::tc
