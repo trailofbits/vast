@@ -41,8 +41,7 @@ namespace vast::hl
         struct lower_type : conv::tc::type_converting_pattern< type_converter_t >
         {
             using parent = conv::tc::type_converting_pattern< type_converter_t >;
-
-            lower_type(type_converter_t &tc, mcontext_t *mctx) : parent(tc, *mctx) {}
+            using parent::parent;
 
             logical_result matchAndRewrite(
                 operation op, mlir::ArrayRef< mlir::Value > ops,
@@ -72,7 +71,7 @@ namespace vast::hl
 
             mlir::RewritePatternSet patterns(&mctx);
 
-            patterns.add< pattern::lower_type >(type_converter, patterns.getContext());
+            patterns.add< pattern::lower_type >(type_converter, mctx);
 
             if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns)))) {
                 return signalPassFailure();
