@@ -29,14 +29,8 @@ namespace vast::cc {
 
     struct vast_consumer : clang_ast_consumer
     {
-        vast_consumer(
-            output_type act, action_options opts,
-            const vast_args &vargs, output_stream_ptr os
-        )
-            : action(act)
-            , opts(std::move(opts))
-            , vargs(vargs)
-            , output_stream(std::move(os))
+        vast_consumer(output_type act, action_options opts, const vast_args &vargs)
+            : action(act), opts(std::move(opts)), vargs(vargs)
         {}
 
         void Initialize(acontext_t &ctx) override;
@@ -65,13 +59,7 @@ namespace vast::cc {
 
         void HandleVTable(clang::CXXRecordDecl * /* decl */) override;
 
-      private:
-
-        void emit_backend_output(
-            backend backend_action, owning_module_ref mlir_module, mcontext_t *mctx
-        );
-
-        void emit_mlir_output(target_dialect target, owning_module_ref mod, mcontext_t *mctx);
+      protected:
 
         void compile_via_vast(vast_module mod, mcontext_t *mctx);
 
@@ -85,7 +73,6 @@ namespace vast::cc {
         // vast options
         //
         const vast_args &vargs;
-        output_stream_ptr output_stream;
 
         //
         // contexts
@@ -94,4 +81,28 @@ namespace vast::cc {
         std::unique_ptr< cg::codegen_context > cgctx = nullptr;
         std::unique_ptr< cg::codegen_driver > codegen = nullptr;
     };
+
+    struct vast_stream_consumer : vast_consumer {
+        using base = vast_consumer;
+
+        vast_stream_consumer(
+            output_type act, action_options opts, const vast_args &vargs, output_stream_ptr os
+        )
+            : base(act, opts, vargs), output_stream(std::move(os))
+        {}
+
+        void HandleTranslationUnit(acontext_t &acontext) override;
+
+      private:
+        void emit_backend_output(
+            backend backend_action, owning_module_ref mlir_module, mcontext_t *mctx
+        );
+
+        void emit_mlir_output(
+            target_dialect target, owning_module_ref mod, mcontext_t *mctx
+        );
+
+        output_stream_ptr output_stream;
+    };
+
 } // namespace vast::cc
