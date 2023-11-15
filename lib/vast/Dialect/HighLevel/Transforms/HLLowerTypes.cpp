@@ -37,23 +37,7 @@ namespace vast::hl
     using type_converter_t = conv::tc::HLToStd;
 
     namespace pattern {
-
-        struct lower_type : conv::tc::type_converting_pattern< type_converter_t >
-        {
-            using parent = conv::tc::type_converting_pattern< type_converter_t >;
-            using parent::parent;
-
-            logical_result matchAndRewrite(
-                operation op, mlir::ArrayRef< mlir::Value > ops,
-                conversion_rewriter &rewriter
-            ) const override {
-                if (auto func_op = mlir::dyn_cast< hl::FuncOp >(op))
-                    return replace(func_op, ops, rewriter);
-                return replace(op, ops, rewriter);
-            }
-
-        };
-
+        using lower_type = conv::tc::hl_type_converting_pattern< type_converter_t >;
     } // namespace pattern
 
     struct HLLowerTypesPass : HLLowerTypesBase< HLLowerTypesPass >
