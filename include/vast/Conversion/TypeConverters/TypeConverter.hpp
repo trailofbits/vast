@@ -111,11 +111,11 @@ namespace vast::conv::tc {
             return { out };
         }
 
-        maybe_signature_conversion_t signature_conversion(const auto &inputs)
-        {
+        maybe_signature_conversion_t signature_conversion(const auto &inputs) {
             signature_conversion_t sc(inputs.size());
-            if (mlir::failed(self().convertSignatureArgs(inputs, sc)))
+            if (mlir::failed(self().convertSignatureArgs(inputs, sc))) {
                 return {};
+            }
             return { std::move(sc) };
         }
 
@@ -125,16 +125,14 @@ namespace vast::conv::tc {
             //  * types of attributes
             // types of arguments are result types of a different op.
             return [this](operation op) {
-                auto res = self().isLegal(op->getResults().getTypes());
+                auto res   = self().isLegal(op->getResults().getTypes());
                 auto attrs = contains_subtype(op->getAttrDictionary(), self().get_is_illegal());
                 return res && !attrs;
             };
         }
 
         auto get_is_illegal() {
-            return [this](mlir_type type) {
-                return !this->self().isLegal(type);
-            };
+            return [this](mlir_type type) { return !this->self().isLegal(type); };
         }
 
         mcontext_t &get_context() { return self().mctx; }
