@@ -29,8 +29,8 @@ namespace vast::cc {
 
     struct vast_consumer : clang_ast_consumer
     {
-        vast_consumer(output_type act, action_options opts, const vast_args &vargs)
-            : action(act), opts(std::move(opts)), vargs(vargs)
+        vast_consumer(action_options opts, const vast_args &vargs)
+            : opts(std::move(opts)), vargs(vargs)
         {}
 
         void Initialize(acontext_t &ctx) override;
@@ -59,13 +59,13 @@ namespace vast::cc {
 
         void HandleVTable(clang::CXXRecordDecl * /* decl */) override;
 
+        owning_module_ref result();
+
       protected:
 
         void compile_via_vast(vast_module mod, mcontext_t *mctx);
 
         virtual void anchor() {}
-
-        output_type action;
 
         action_options opts;
 
@@ -88,7 +88,7 @@ namespace vast::cc {
         vast_stream_consumer(
             output_type act, action_options opts, const vast_args &vargs, output_stream_ptr os
         )
-            : base(act, opts, vargs), output_stream(std::move(os))
+            : base(std::move(opts), vargs), action(act), output_stream(std::move(os))
         {}
 
         void HandleTranslationUnit(acontext_t &acontext) override;
@@ -102,6 +102,7 @@ namespace vast::cc {
             target_dialect target, owning_module_ref mod, mcontext_t *mctx
         );
 
+        output_type action;
         output_stream_ptr output_stream;
     };
 

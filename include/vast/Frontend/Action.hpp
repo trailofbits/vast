@@ -27,6 +27,10 @@ namespace vast::cc {
 
     struct vast_stream_consumer;
 
+    //
+    // Stream action produces the desired output
+    // into output stream, created as part of ast consumer
+    //
     struct vast_stream_action : frontend_action {
         virtual ~vast_stream_action() = default;
 
@@ -36,6 +40,35 @@ namespace vast::cc {
     protected:
 
         vast_stream_action(output_type action, const vast_args &vargs);
+
+        std::unique_ptr< clang::ASTConsumer >
+        CreateASTConsumer(compiler_instance &ci, string_ref input) override;
+
+        void ExecuteAction() override;
+
+        void EndSourceFileAction() override;
+
+    private:
+        friend struct vast_consumer;
+
+        const vast_args &vargs;
+    };
+
+    struct vast_consumer;
+
+    //
+    // Module action create MLIR module without dumping it to any output stream.
+    // Users can retrieve it by calling `result` method.
+    //
+    struct vast_module_action : frontend_action {
+        virtual ~vast_module_action() = default;
+
+        owning_module_ref result();
+
+        vast_consumer *consumer;
+    protected:
+
+        explicit vast_module_action(const vast_args &vargs);
 
         std::unique_ptr< clang::ASTConsumer >
         CreateASTConsumer(compiler_instance &ci, string_ref input) override;
@@ -82,6 +115,15 @@ namespace vast::cc {
     //
     struct emit_obj_action : vast_stream_action {
         explicit emit_obj_action(const vast_args &vargs);
+    private:
+        virtual void anchor();
+    };
+
+    //
+    // Emit MLIR Module
+    //
+    struct emit_mlir_module : vast_module_action {
+        explicit emit_mlir_module(const vast_args &vargs);
     private:
         virtual void anchor();
     };
