@@ -139,13 +139,17 @@ namespace vast::cc {
 
     void vast_consumer::HandleVTable(clang::CXXRecordDecl * /* decl */) { VAST_UNIMPLEMENTED; }
 
+    owning_module_ref vast_consumer::result() {
+        return std::move(cgctx->mod);
+    }
+
     //
     // vast stream consumer
     //
 
     void vast_stream_consumer::HandleTranslationUnit(acontext_t &actx) {
         base::HandleTranslationUnit(actx);
-        auto mod = std::move(cgctx->mod);
+        auto mod = result();
 
         switch (action) {
             case output_type::emit_assembly:

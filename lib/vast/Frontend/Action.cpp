@@ -63,7 +63,7 @@ namespace vast::cc {
 
     void vast_stream_action::ExecuteAction() {
         // FIXME: if (getCurrentFileKind().getLanguage() != Language::CIR)
-        this->ASTFrontendAction::ExecuteAction();
+        frontend_action::ExecuteAction();
     }
 
     auto vast_stream_action::CreateASTConsumer(compiler_instance &ci, string_ref input)
@@ -100,6 +100,35 @@ namespace vast::cc {
         // TODO: pass the module around
     }
 
+    vast_module_action::vast_module_action(const vast_args &vargs)
+        : vargs(vargs)
+    {}
+
+    void vast_module_action::ExecuteAction() {
+        frontend_action::ExecuteAction();
+    }
+
+    auto vast_module_action::CreateASTConsumer(compiler_instance &ci, string_ref input)
+        -> std::unique_ptr< clang::ASTConsumer >
+    {
+        auto result = std::make_unique< vast_consumer >(options(ci), vargs);
+        consumer = result.get();
+        return result;
+    }
+
+    void vast_module_action::EndSourceFileAction() {
+        // If the consumer creation failed, do nothing.
+        if (!getCompilerInstance().hasASTConsumer()) {
+            return;
+        }
+
+        // TODO: pass the module around
+    }
+
+    owning_module_ref vast_module_action::result() {
+        return consumer->result();
+    }
+
     // emit assembly
     void emit_assembly_action::anchor() {}
 
@@ -126,6 +155,13 @@ namespace vast::cc {
 
     emit_obj_action::emit_obj_action(const vast_args &vargs)
         : vast_stream_action(output_type::emit_obj, vargs)
+    {}
+
+    // emit_mlir_module
+    void emit_mlir_module::anchor() {}
+
+    emit_mlir_module::emit_mlir_module(const vast_args &vargs)
+        : vast_module_action(vargs)
     {}
 
 } // namespace vast::cc
