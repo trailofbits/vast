@@ -16,6 +16,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Conversion/Common/Rewriter.hpp"
 
 #include "vast/Conversion/TypeConverters/DataLayout.hpp"
+#include "vast/Conversion/TypeConverters/TypeConvertingPattern.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DialectConversion.hpp"
@@ -68,90 +69,22 @@ namespace vast::hl {
                 }
             };
 
-            struct resolve_typedef : generic_conversion_pattern
-            {
-                using base = generic_conversion_pattern;
+            struct resolve_typedef : conv::tc::hl_type_converting_pattern< type_converter > {
+                using base = conv::tc::hl_type_converting_pattern< type_converter >;
                 using base::base;
 
-                type_converter &tc;
-
-                resolve_typedef(type_converter &tc, mcontext_t &mctx)
-                    : base(tc, mctx), tc(tc)
-                {}
-
-                logical_result rewrite(
-                    hl::FuncOp fn, mlir::ArrayRef< mlir::Value > ops,
-                    conversion_rewriter &rewriter
-                ) const {
-                    auto trg = tc.convert_type_to_type(fn.getFunctionType());
-                    VAST_PATTERN_CHECK(trg, "Failed type conversion of, {0}", fn);
-
-                    rewriter.updateRootInPlace(fn, [&]() {
-                        fn.setType(*trg);
-                        if (fn->getNumRegions() != 0) {
-                            fixup_entry_block(fn.getBody());
-                        }
-                    });
-
-                    return mlir::success();
-                }
-
                 logical_result matchAndRewrite(
-                    mlir::Operation *op, mlir::ArrayRef< mlir::Value > ops,
+                    operation op, mlir::ArrayRef< mlir::Value > ops,
                     conversion_rewriter &rewriter
                 ) const override {
-                    // Special case for functions, it may be that we can unify it with
-                    // the generic one.
-                    if (auto fn = mlir::dyn_cast< hl::FuncOp >(op)) {
-                        return rewrite(fn, ops, rewriter);
-                    }
+                    auto status = base::matchAndRewrite(op, ops, rewriter);
 
-                    if (mlir::isa< hl::TypeDefOp >(op)) {
+                    if (mlir::isa< hl::TypeDefOp >(op))
                         rewriter.eraseOp(op);
-                        return mlir::success();
-                    }
 
-                    auto new_rtys = tc.convert_types_to_types(op->getResultTypes());
-                    VAST_PATTERN_CHECK(new_rtys, "Type conversion failed in op {0}", *op);
-
-                    auto do_change = [&]() {
-                        for (std::size_t i = 0; i < new_rtys->size(); ++i) {
-                            op->getResult(i).setType((*new_rtys)[i]);
-                        }
-
-                        if (op->getNumRegions() != 0) {
-                            fixup_entry_block(op->getRegion(0));
-                        }
-
-                        // TODO unify with high level type conversion
-                        mlir::AttrTypeReplacer replacer;
-                        replacer.addReplacement(conv::tc::convert_type_attr(tc));
-                        replacer.addReplacement(conv::tc::convert_data_layout_attrs(tc));
-
-                        replacer.replaceElementsIn(
-                            op, true /* replace attrs */, false /* replace locs */, true /* replace types */
-                        );
-                    };
-
-                    rewriter.updateRootInPlace(op, do_change);
-
-                    return mlir::success();
-                }
-
-                void fixup_entry_block(mlir::Region &region) const {
-                    if (region.empty()) {
-                        return;
-                    }
-
-                    for (auto arg: region.front().getArguments()) {
-                        auto trg = tc.convert_type_to_type(arg.getType());
-                        VAST_PATTERN_CHECK(trg, "Type conversion failed: {0}", arg);
-                        arg.setType(*trg);
-                    }
+                    return status;
                 }
             };
-
-            using all = util::make_list< resolve_typedef >;
 
         } // namespace pattern
     } // namespace
