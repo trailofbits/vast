@@ -45,11 +45,13 @@ namespace vast::conv::abi
                 offset = 0;
             }
 
-            void adjust_by_align(mlir_type type)
+
+            std::size_t align_paddding_size(mlir_type type)
             {
                 auto align = parent.dl.getTypeABIAlignment(type) * 8;
-                if (offset % align != 0)
-                    offset += align - (offset % align);
+                if (offset % align == 0)
+                    return 0;
+                return align - (offset % align);
             }
         };
 
@@ -106,6 +108,11 @@ namespace vast::conv::abi
                         this->abi_op.getLoc(), type, arg(),
                         start, this->offset);
             };
+
+            void adjust_by_align(mlir_type type)
+            {
+                this->offset += this->align_paddding_size(type);
+            }
         };
 
         state_t &state;
@@ -243,6 +250,19 @@ namespace vast::conv::abi
 
                 return { to_yield };
             }
+
+            void adjust_by_align(auto &rewriter, auto loc, mlir_type type)
+            {
+                auto pad_by = this->align_paddding_size(type);
+                if (pad_by == 0)
+                    return;
+
+                auto i_type = mlir::IntegerType::get(
+                    this->abi_op.getContext(), pad_by, mlir::IntegerType::Signless);
+                auto val = llvm::APSInt(pad_by, false);
+
+                current.push_back(rewriter.template create< hl::ConstantOp >(loc, i_type, val));
+            }
         };
 
         state_t &state;
@@ -262,11 +282,14 @@ namespace vast::conv::abi
                 if (needs_nesting(field_type))
                     return self_t(state, mod).run_on(gep.getOperation(), rewriter);
 
-                if (auto val = state.allocate(field_type, rewriter, gep))
+                auto rvalue = hl::implicit_cast_lvalue_to_rvalue(rewriter, gep.getLoc(), gep);
+                state.adjust_by_align(rewriter, gep.getLoc(), rvalue.getType());
+                if (auto val = state.allocate(field_type, rewriter, rvalue))
                     partials.push_back(*val);
             };
 
-            for (auto field_gep : hl::traverse_record(root, rewriter))
+            auto loc = root->getLoc();
+            for (auto field_gep : hl::generate_ptrs_to_record_members(root, loc, rewriter))
                 handle_field(field_gep);
         }
 
