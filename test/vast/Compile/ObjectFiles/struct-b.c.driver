@@ -18,6 +18,8 @@ struct Data
 
 int sum(struct Data d);
 
+int vast_tests();
+
 int main()
 {
     struct Data a = { 0, 0, { 0 } };
@@ -35,4 +37,6 @@ int main()
     struct i16 n = { 10 };
     a.c = n;
     assert(sum(a) == 25);
+
+    return vast_tests();
 }
