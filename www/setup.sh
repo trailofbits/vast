@@ -1,17 +1,8 @@
 #!/usr/bin/env bash
 
-vast_repo="git@github.com:trailofbits/vast.git"
-
 # Check if the current directory is a Git repository
-if [ -d .git ] || git rev-parse --git-dir > /dev/null 2>&1; then
-    # Check if it's the VAST repository
-    actual_repo=$(git config --get remote.origin.url)
-    if [ "$actual_repo" != "$vast_repo" ]; then
-        echo "Error: Script must be run from the root of VAST repository."
-        exit 1
-    fi
-else
-    echo "Error: Script must be run from the root of VAST repository."
+if !( [ -d .git ] || git rev-parse --git-dir > /dev/null 2>&1 ); then
+    echo "Error: Script must be run from the root of repository."
     exit 1
 fi
 
