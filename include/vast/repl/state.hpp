@@ -5,6 +5,8 @@
 #include "vast/Tower/Tower.hpp"
 #include "vast/repl/common.hpp"
 
+#include <filesystem>
+
 namespace vast::repl {
 
     struct state_t {
@@ -12,7 +14,7 @@ namespace vast::repl {
 
         bool exit = false;
 
-        std::optional< std::string > source;
+        std::optional< std::filesystem::path > source;
 
         mcontext_t &ctx;
         std::optional< tw::default_tower > tower;

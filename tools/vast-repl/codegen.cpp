@@ -21,19 +21,8 @@ namespace vast::cc {
 
 namespace vast::repl::codegen {
 
-    std::string slurp(std::ifstream& in) {
-        std::ostringstream sstr;
-        sstr << in.rdbuf();
-        return sstr.str();
-    }
-
-    std::unique_ptr< clang::ASTUnit > ast_from_source(const std::string &source) {
+    std::unique_ptr< clang::ASTUnit > ast_from_source(string_ref source) {
         return clang::tooling::buildASTFromCode(source);
-    }
-
-    std::string get_source(std::filesystem::path source) {
-        std::ifstream in(source);
-        return slurp(in);
     }
 
     static void error_handler(void *user_data, const char *msg, bool get_crash_diag) {
@@ -46,9 +35,9 @@ namespace vast::repl::codegen {
         llvm::sys::RunInterruptHandlers();
     }
 
-    owning_module_ref emit_module(const std::string &/* source */, mcontext_t */* mctx */) {
+    owning_module_ref emit_module(const std::filesystem::path &source, mcontext_t */* mctx */) {
         // TODO setup args from repl state
-        const char *ccargs = {""};
+        std::vector< const char * > ccargs = { source.c_str() };
         vast::cc::buffered_diagnostics diags(ccargs);
 
         auto comp = std::make_unique< cc::compiler_instance >();

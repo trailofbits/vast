@@ -11,21 +11,30 @@ namespace vast::repl::cmd {
 
     void check_source(const state_t &state) {
         if (!state.source.has_value()) {
-            VAST_UNREACHABLE("error: missing source");
+            VAST_ERROR("error: missing source");
         }
     }
 
-    const std::string &get_source(const state_t &state) {
+    maybe_memory_buffer get_source_buffer(const state_t &state) {
         check_source(state);
-        return state.source.value();
+
+        // Open the file using MemoryBuffer
+        maybe_memory_buffer file_buffer = llvm::MemoryBuffer::getFile(state.source->c_str());
+
+        // Check if the file is opened successfully
+        if (auto errorCode = file_buffer.getError()) {
+            VAST_ERROR("error: missing source {}", errorCode.message());
+        }
+
+        return file_buffer;
     }
 
     void check_and_emit_module(state_t &state) {
         if (!state.tower) {
-            const auto &source = get_source(state);
-            auto mod           = codegen::emit_module(source, &state.ctx);
-            auto [t, _]        = tw::default_tower::get(state.ctx, std::move(mod));
-            state.tower        = std::move(t);
+            check_source(state);
+            auto mod    = codegen::emit_module(state.source.value(), &state.ctx);
+            auto [t, _] = tw::default_tower::get(state.ctx, std::move(mod));
+            state.tower = std::move(t);
         }
     }
 
@@ -47,19 +56,20 @@ namespace vast::repl::cmd {
     // load command
     //
     void load::run(state_t &state) const {
-        auto source  = get_param< source_param >(params);
-        state.source = codegen::get_source(source.path);
+        state.source = get_param< source_param >(params).path;
     };
 
     //
     // show command
     //
     void show_source(const state_t &state) {
-        llvm::outs() << get_source(state) << "\n";
+        auto buff = get_source_buffer(state);
+        llvm::outs() << buff.get()->getBuffer() << "\n";
     }
 
     void show_ast(const state_t &state) {
-        auto unit = codegen::ast_from_source(get_source(state));
+        auto buff = get_source_buffer(state);
+        auto unit = codegen::ast_from_source(buff.get()->getBuffer());
         unit->getASTContext().getTranslationUnitDecl()->dump(llvm::outs());
         llvm::outs() << "\n";
     }
