@@ -18,11 +18,8 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::repl::codegen {
 
-    std::unique_ptr< clang::ASTUnit > ast_from_source(const std::string &source);
+    std::unique_ptr< clang::ASTUnit > ast_from_source(string_ref source);
 
-    // TODO(Heno): return buffer
-    std::string get_source(std::filesystem::path source);
-
-    owning_module_ref emit_module(const std::string &source, mcontext_t *ctx);
+    owning_module_ref emit_module(const std::filesystem::path &source, mcontext_t *ctx);
 
 } // namespace vast::repl::codegen

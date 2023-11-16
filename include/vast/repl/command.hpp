@@ -38,7 +38,9 @@ namespace vast::repl
 
         void check_source(const state_t &state);
 
-        const std::string &get_source(const state_t &state);
+        using maybe_memory_buffer = llvm::ErrorOr< std::unique_ptr< llvm::MemoryBuffer > >;
+
+        maybe_memory_buffer get_source_buffer(const state_t &state);
 
         void check_and_emit_module(state_t &state);
 
