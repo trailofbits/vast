@@ -1,0 +1,38 @@
+#include <assert.h>
+#include <stdio.h>
+
+struct i16
+{
+    short a;
+};
+
+struct Data
+{
+    // 0, 32
+    int a;
+    // 32, 40
+    char b;
+    // 48, 64 because `short` is abi aligned to `16`.
+    struct i16 c;
+};
+
+int sum(struct Data d);
+
+int main()
+{
+    struct Data a = { 0, 0, { 0 } };
+    assert(sum(a) == 0);
+
+    a.a = 5;
+    assert(sum(a) == 5);
+
+    a.b = 10;
+    assert(sum(a) == 15);
+
+    a.c.a = -0xa;
+    assert(sum(a) == 5);
+
+    struct i16 n = { 10 };
+    a.c = n;
+    assert(sum(a) == 25);
+}
