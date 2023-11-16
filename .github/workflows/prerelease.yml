@@ -67,3 +67,11 @@ jobs:
           files: |
             ${{ github.workspace }}/vast/LICENSE
             ${{ github.workspace }}/vast/builds/ninja-multi-default/package/vast-*/*.tar.xz
+
+      - name: "Deploy Docs"
+        uses: "benc-uk/workflow-dispatch@v1.2.2"
+        with:
+          workflow: "github pages"
+          repo: "trailofbits/vast-www"
+          token: "${{ secrets.GITHUB_TOKEN }}"
+
