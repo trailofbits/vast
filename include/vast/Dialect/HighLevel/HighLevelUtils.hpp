@@ -85,11 +85,18 @@ namespace vast::hl
         return field_types(*def);
     }
 
-    // TODO(hl): Custom hook to provide a location?
-    // Given record `root` emit `hl::RecordMemberOp` casted as rvalue for each
-    // its member.
-    auto traverse_record(operation root, auto &bld)
-        -> gap::generator< hl::ImplicitCastOp >
+    hl::ImplicitCastOp implicit_cast_lvalue_to_rvalue(auto &rewriter, auto loc, auto lvalue_op)
+    {
+        auto lvalue_type = mlir::dyn_cast< hl::LValueType >(lvalue_op.getType());
+        VAST_ASSERT(lvalue_type);
+        return rewriter.template create< hl::ImplicitCastOp >(
+            loc, lvalue_type.getElementType(),
+            lvalue_op, hl::CastKind::LValueToRValue);
+    }
+
+    // Given record `root` emit `hl::RecordMemberOp` for each its member.
+    auto generate_ptrs_to_record_members(operation root, auto loc, auto &bld)
+        -> gap::generator< hl::RecordMemberOp >
     {
         auto module_op = root->getParentOfType< vast_module >();
         VAST_ASSERT(module_op);
@@ -102,18 +109,24 @@ namespace vast::hl
             auto as_val = root->getResult(0);
             // `hl.member` requires type to be an lvalue.
             auto wrap_type = hl::LValueType::get(module_op.getContext(), field_def.getType());
-            auto member = bld.template create< hl::RecordMemberOp >(root->getLoc(),
-                                                                    wrap_type,
-                                                                    as_val,
-                                                                    field_def.getName());
-            co_yield bld.template create< hl::ImplicitCastOp >(
-                    root->getLoc(),
-                    field_def.getType(),
-                    member,
-                    hl::CastKind::LValueToRValue);
-
+            co_yield bld.template create< hl::RecordMemberOp >(loc,
+                                                               wrap_type,
+                                                               as_val,
+                                                               field_def.getName());
         }
     }
+
+    // Given record `root` emit `hl::RecordMemberOp` casted as rvalue for each
+    // its member.
+    auto generate_values_of_record_members(operation root, auto &bld)
+        -> gap::generator< hl::ImplicitCastOp >
+    {
+        for (auto member_ptr : generate_ptrs_to_members(root, bld)) {
+            co_yield implicit_cast_lvalue_to_rvalue(bld, member_ptr->getLoc(), member_ptr);
+        }
+    }
+
+
 
     std::optional< std::size_t > field_idx(llvm::StringRef name, auto struct_decl)
     {
