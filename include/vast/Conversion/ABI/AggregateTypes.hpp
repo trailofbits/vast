@@ -44,6 +44,13 @@ namespace vast::conv::abi
                 ++arg_idx;
                 offset = 0;
             }
+
+            void adjust_by_align(mlir_type type)
+            {
+                auto align = parent.dl.getTypeABIAlignment(type) * 8;
+                if (offset % align != 0)
+                    offset += align - (offset % align);
+            }
         };
 
         // TODO(conv:abi): Issue #423 - figure out how to make this not adhoc.
@@ -112,6 +119,8 @@ namespace vast::conv::abi
             {
                 if (needs_nesting(field_type))
                     return self_t(state, mod).run_on(field_type, rewriter);
+
+                state.adjust_by_align(field_type);
 
                 if (!state.fits(field_type))
                     state.advance();
