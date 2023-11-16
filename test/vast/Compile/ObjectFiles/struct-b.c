@@ -16,3 +16,25 @@ int sum(struct Data d)
 {
     return d.a + d.b + d.c.a;
 }
+
+int vast_tests()
+{
+    struct Data d = { 0, 0, { 0 } };
+    int a = sum(d);
+
+    if (a != 0)
+        return 1;
+
+    d.a = -200;
+    d.b = 5;
+    if (sum(d) != -195)
+        return 2;
+
+    struct W_i16 nc = { -124 };
+    d.c = nc;
+
+    if (sum(d) != -319)
+        return 3;
+
+    return 0;
+}
