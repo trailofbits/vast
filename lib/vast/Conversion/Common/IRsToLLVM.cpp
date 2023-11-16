@@ -104,37 +104,14 @@ namespace vast::conv::irstollvm
                 return arg;
             }();
 
-            auto i8_type = mlir::IntegerType::get(getContext(), 8);
+            auto from = op.from();
 
-            auto extract = [&](auto from, auto pos) -> mlir::Value {
-                auto shift = rewriter.create< mlir::LLVM::LShrOp >(
-                    loc, value, iN(rewriter, loc, value.getType(), from)
-                );
-                auto trunc = rewriter.create< mlir::LLVM::TruncOp >(loc, i8_type, shift);
-                auto zext =
-                    rewriter.create< mlir::LLVM::ZExtOp >(loc, convert(op.getType()), trunc);
-
-                if (pos == 0) {
-                    return zext;
-                }
-
-                return rewriter.create< mlir::LLVM::ShlOp >(
-                    loc, convert(op.getType()), zext,
-                    iN(rewriter, loc, convert(op.getType()), pos)
-                );
-            };
-
-            mlir::Value head = iN(rewriter, loc, convert(op.getType()), 0);
-            // TODO(conv:abi): It may be possible we don't need this in the end and plain
-            //                 `shift & trunc` will work. I am leaving it here for now as it
-            //                 seems to work.
-            for (std::size_t i = 0; i < op.size() / 8; ++i) {
-                auto offset = op.from() + i * 8;
-                auto byte   = extract(offset, i * 8);
-                head =
-                    rewriter.create< mlir::LLVM::OrOp >(loc, convert(op.getType()), byte, head);
-            }
-            rewriter.replaceOp(op, { head });
+            auto shift = rewriter.create< mlir::LLVM::LShrOp >(
+                loc, value, iN(rewriter, loc, value.getType(), from)
+            );
+            auto trg_type = convert(op.getType());
+            auto trunc = rewriter.create< mlir::LLVM::TruncOp >(loc, trg_type, shift);
+            rewriter.replaceOp(op, trunc);
             return mlir::success();
         }
     };
