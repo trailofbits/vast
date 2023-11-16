@@ -6,7 +6,7 @@ Overall design philosophy is that passes try to be really modular, self-containe
 
 ### Metadata and passes
 
-**TODO**(lukas): Improve once we have examples
+**TODO**: Improve once we have examples
 
 **TL;DR**: Vast provided passes always try to keep metadata (and they should do a good job), but for passes from other sources this does not hold and probably some heuristic will be used to re-compute them in best-effort.
 
