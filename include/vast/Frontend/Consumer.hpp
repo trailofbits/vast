@@ -23,7 +23,7 @@ namespace vast::cc {
     using clang_ast_consumer = clang::ASTConsumer;
 
     // TODO: Introduce helper wrapper on top of `vast_args`?
-    enum class target_dialect { high_level, low_level, llvm };
+    enum class target_dialect { high_level, low_level, llvm, cir };
 
     using backend = clang::BackendAction;
 

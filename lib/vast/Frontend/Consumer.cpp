@@ -322,6 +322,9 @@ namespace vast::cc {
         if (trg == "llvm") {
             return target_dialect::llvm;
         }
+        if (trg == "cir") {
+            return target_dialect::cir;
+        }
         VAST_UNREACHABLE("Unknown option of target dialect: {0}", trg);
     }
 
@@ -333,6 +336,8 @@ namespace vast::cc {
                 return "low_level";
             case target_dialect::llvm:
                 return "llvm";
+            case target_dialect::cir:
+                return "cir";
         }
     }
 
