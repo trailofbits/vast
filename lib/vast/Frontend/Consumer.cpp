@@ -5,6 +5,8 @@
 VAST_RELAX_WARNINGS
 #include <llvm/Support/Signals.h>
 
+#include <mlir/Pass/PassManager.h>
+
 #include <mlir/Target/LLVMIR/Dialect/All.h>
 #include <mlir/Target/LLVMIR/LLVMTranslationInterface.h>
 
@@ -18,6 +20,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 
+#include "vast/Frontend/Targets.hpp"
 #include "vast/Target/LLVMIR/Convert.hpp"
 
 namespace vast::cc {
@@ -26,9 +29,7 @@ namespace vast::cc {
 
     using pipeline = llvmir::pipeline;
 
-    [[nodiscard]] target_dialect parse_target_dialect(const vast_args::maybe_option_list &list);
-
-    [[nodiscard]] pipeline parse_pipeline(const vast_args::maybe_option_list &list);
+    [[nodiscard]] pipeline parse_pipeline(const std::optional< vast_args::option_list > &list);
 
     [[nodiscard]] pipeline parse_pipeline(string_ref from);
 
@@ -157,7 +158,7 @@ namespace vast::cc {
                     backend::Backend_EmitAssembly, std::move(mod), mctx.get()
                 );
             case output_type::emit_mlir: {
-                auto trg = parse_target_dialect(vargs.get_options_list(opt::emit_mlir));
+                auto trg = parse_target_dialect(vargs.get_option(opt::emit_mlir).value());
                 return emit_mlir_output(trg, std::move(mod), mctx.get());
             }
             case output_type::emit_llvm:
@@ -207,6 +208,8 @@ namespace vast::cc {
                     llvmir::lower_hl_module(mod.get(), pipeline);
                     break;
                 }
+                // case target_dialect::cir: {
+                // }
                 default:
                     VAST_UNREACHABLE("Cannot emit {0}, missing support", to_string(target));
             }
@@ -275,19 +278,7 @@ namespace vast::cc {
         VAST_UNIMPLEMENTED_MSG("VAST does not yet support the given source language");
     }
 
-    target_dialect parse_target_dialect(const vast_args::maybe_option_list &list) {
-        if (!list) {
-            return target_dialect::high_level;
-        }
-
-        if (list->size() != 1) {
-            VAST_UNREACHABLE("Can emit only one dialect.");
-        }
-
-        return parse_target_dialect(list->front());
-    }
-
-    pipeline parse_pipeline(const vast_args::maybe_option_list &list) {
+    pipeline parse_pipeline(const std::optional< vast_args::option_list > &list) {
         if (!list) {
             return llvmir::default_pipeline();
         }
@@ -311,34 +302,5 @@ namespace vast::cc {
         VAST_UNREACHABLE("Unknown option of pipeline to use: {0}", trg);
     }
 
-    target_dialect parse_target_dialect(string_ref from) {
-        auto trg = from.lower();
-        if (trg == "hl" || trg == "high_level") {
-            return target_dialect::high_level;
-        }
-        if (trg == "ll" || trg == "low_level") {
-            return target_dialect::low_level;
-        }
-        if (trg == "llvm") {
-            return target_dialect::llvm;
-        }
-        if (trg == "cir") {
-            return target_dialect::cir;
-        }
-        VAST_UNREACHABLE("Unknown option of target dialect: {0}", trg);
-    }
-
-    std::string to_string(target_dialect target) {
-        switch (target) {
-            case target_dialect::high_level:
-                return "high_level";
-            case target_dialect::low_level:
-                return "low_level";
-            case target_dialect::llvm:
-                return "llvm";
-            case target_dialect::cir:
-                return "cir";
-        }
-    }
 
 } // namespace vast::cc
