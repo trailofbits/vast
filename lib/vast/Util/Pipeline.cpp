@@ -10,6 +10,10 @@ namespace vast {
         }
     }
 
+    void pipeline_step::depends_on(std::vector< pipeline_step_builder > deps) {
+        std::ranges::move(deps, std::back_inserter(dependencies));
+    }
+
     void pass_pipeline_step::schedule_on(pipeline_t &ppl) const {
         schedule_dependencies(ppl);
         ppl.addPass(pass_builder());
@@ -18,6 +22,9 @@ namespace vast {
 
     void compound_pipeline_step::schedule_on(pipeline_t &ppl) const {
         schedule_dependencies(ppl);
+        for (const auto &step : steps) {
+            step()->schedule_on(ppl);
+        }
     }
 
 } // namespace vast
