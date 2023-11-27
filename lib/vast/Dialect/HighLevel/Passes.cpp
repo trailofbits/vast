@@ -15,57 +15,48 @@ namespace vast::hl::pipeline {
     // canonicalization pipeline passes
     //
     static pipeline_step_ptr splice_trailing_scopes() {
-        return pass_pipeline_step::make(hl::createSpliceTrailingScopes);
+        return pass(hl::createSpliceTrailingScopes);
     }
 
     // TODO: add more passes here (remove reduntant skips etc.)
 
     pipeline_step_ptr canonicalize() {
-        return compound_pipeline_step::make({
-            splice_trailing_scopes,
-        });
+        return compose(splice_trailing_scopes);
     }
 
     //
     // desugar pipeline passes
     //
     static pipeline_step_ptr lower_types() {
-        return pass_pipeline_step::make(hl::createLowerTypeDefsPass);
+        return pass(hl::createLowerTypeDefsPass);
     }
 
     // TODO: add more passes here (remove elaborations, decayed types, lvalue types etc.)
 
     pipeline_step_ptr desugar() {
-        return compound_pipeline_step::make({
-            lower_types
-        });
+        return compose(lower_types);
     }
 
     //
     // simplifcaiton passes
     //
     static pipeline_step_ptr dce() {
-        return pass_pipeline_step::make(hl::createDCEPass)
-            .depends_on({ canonicalize });
+        return pass(hl::createDCEPass).depends_on(canonicalize);
     }
 
     pipeline_step_ptr simplify() {
-        return compound_pipeline_step::make({
-            dce, desugar
-        });
+        return compose(optional< dce >, optional< desugar >);
     }
 
     //
     // stdtypes passes
     //
     static pipeline_step_ptr lower_types_to_std() {
-        return pass_pipeline_step::make(hl::createHLLowerTypesPass);
+        return pass(hl::createHLLowerTypesPass);
     }
 
     pipeline_step_ptr stdtypes() {
-        return compound_pipeline_step::make({
-            lower_types_to_std
-        }).depends_on({ desugar });
+        return compose(lower_types_to_std).depends_on(desugar);
     }
 
 } // namespace vast::hl::pipeline
