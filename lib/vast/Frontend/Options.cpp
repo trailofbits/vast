@@ -35,9 +35,14 @@ namespace vast::cc {
         return detail::get_option_impl(args, name).has_value();
     }
 
+    bool is_options_list(string_ref opt) {
+        return opt.contains(';');
+    }
+
     std::optional< string_ref > vast_args::get_option(string_ref name) const {
         if (auto opt = detail::get_option_impl(args, name)) {
             if (auto [lhs, rhs] = opt->split('='); !rhs.empty()) {
+                VAST_ASSERT(!is_options_list(rhs));
                 return rhs;
             }
         }
