@@ -8,7 +8,10 @@ namespace vast::cc {
 
     pipelines_config default_pipelines_config() {
         return pipelines_config{{
-            { "canonicalize", hl::make_canonicalize_pipeline },
+            { "canonicalize", hl::pipeline::canonicalize },
+            { "desugar", hl::pipeline::desugar },
+            { "simplify", hl::pipeline::simplify },
+            { "stdtypes", hl::pipeline::stdtypes }
         }};
     }
 
