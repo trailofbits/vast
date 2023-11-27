@@ -15,8 +15,7 @@ VAST_UNRELAX_WARNINGS
 
 #include <memory>
 
-namespace vast::hl
-{
+namespace vast::hl {
     std::unique_ptr< mlir::Pass > createHLLowerTypesPass();
 
     std::unique_ptr< mlir::Pass > createExportFnInfoPass();
@@ -30,17 +29,24 @@ namespace vast::hl
     void registerHLToLLVMIR(mlir::DialectRegistry &);
     void registerHLToLLVMIR(mlir::MLIRContext &);
 
-    /// Generate the code for registering passes.
-    #define GEN_PASS_REGISTRATION
-    #include "vast/Dialect/HighLevel/Passes.h.inc"
+/// Generate the code for registering passes.
+#define GEN_PASS_REGISTRATION
+#include "vast/Dialect/HighLevel/Passes.h.inc"
 
-    static inline void build_simplify_hl_pipeline(mlir::PassManager &pm)
-    {
+    static inline void build_simplify_hl_pipeline(mlir::PassManager &pm) {
         pm.addPass(createHLLowerTypesPass());
         pm.addPass(createDCEPass());
         pm.addPass(createLowerTypeDefsPass());
     }
 
-    pipeline_step_ptr make_canonicalize_pipeline();
+    namespace pipeline {
+        pipeline_step_ptr canonicalize();
+
+        pipeline_step_ptr desugar();
+
+        pipeline_step_ptr simplify();
+
+        pipeline_step_ptr stdtypes();
+    } // namespace pipeline
 
 } // namespace vast::hl
