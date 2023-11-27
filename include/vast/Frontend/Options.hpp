@@ -47,7 +47,6 @@ namespace vast::cc
     struct vast_args
     {
         using option_list = std::vector< string_ref >;
-        using maybe_option_list = std::optional< option_list >;
 
         argv_storage args;
 
@@ -60,7 +59,7 @@ namespace vast::cc
         std::optional< string_ref > get_option(string_ref opt) const;
 
         // from option of form -vast-"name"="value1;value2;value3" returns list of values
-        maybe_option_list get_options_list(string_ref opt) const;
+        std::optional< option_list > get_options_list(string_ref opt) const;
 
         void push_back(arg_t arg);
     };
