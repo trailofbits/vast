@@ -53,6 +53,26 @@ namespace vast {
 
     using pipeline_step_builder = llvm::function_ref< pipeline_step_ptr(void) >;
 
+    //
+    // initilizer wrapper to setup dependencies after make is called
+    //
+    template< typename step_t >
+    struct pipeline_step_init : pipeline_step_ptr {
+        using pipeline_step_ptr::pipeline_step_ptr;
+
+        template< typename ...Args >
+        pipeline_step_init(Args &&...args)
+            : pipeline_step_ptr(std::make_unique< step_t >(
+                std::forward< Args >(args)...
+            ))
+        {}
+
+        pipeline_step_init depends_on(std::vector< pipeline_step_builder > deps) && {
+            get()->depends_on(std::move(deps));
+            return std::move(*this);
+        }
+    };
+
     struct pipeline_step
     {
         explicit pipeline_step(
@@ -69,44 +89,44 @@ namespace vast {
 
         void schedule_dependencies(pipeline_t &ppl) const;
 
+        void depends_on(std::vector< pipeline_step_builder > deps);
+
         std::vector< pipeline_step_builder > dependencies;
     };
 
-    using pass_builder_t = std::unique_ptr< mlir::Pass >(void);
+    using pass_builder_t = llvm::function_ref< std::unique_ptr< mlir::Pass >(void) >;
 
     struct pass_pipeline_step : pipeline_step
     {
-        explicit pass_pipeline_step(pass_builder_t *builder)
+        explicit pass_pipeline_step(pass_builder_t builder)
             : pass_builder(builder)
         {}
 
         void schedule_on(pipeline_t &ppl) const override;
 
-        static pipeline_step_ptr make(pass_builder_t *builder) {
-            return std::make_unique< pass_pipeline_step >(builder);
+        static decltype(auto) make(pass_builder_t builder) {
+            return pipeline_step_init< pass_pipeline_step >(builder);
         }
 
-        pass_builder_t *pass_builder;
+        pass_builder_t pass_builder;
     };
 
     // compund step represents subpipeline to be run
     struct compound_pipeline_step : pipeline_step
     {
         explicit compound_pipeline_step(
-            std::vector< pipeline_step_builder > dependencies
+            std::vector< pipeline_step_builder > steps
         )
-            : pipeline_step(std::move(dependencies))
+            : steps(std::move(steps))
         {}
 
         void schedule_on(pipeline_t &ppl) const override;
 
-        static pipeline_step_ptr make(
-            std::vector< pipeline_step_builder > dependencies
-        ) {
-            return std::make_unique< compound_pipeline_step >(
-                std::move(dependencies)
-            );
+        static decltype(auto) make(std::vector< pipeline_step_builder > dependencies) {
+            return pipeline_step_init< compound_pipeline_step >(std::move(dependencies));
         }
+
+        std::vector< pipeline_step_builder > steps;
     };
 
 } // namespace vast
