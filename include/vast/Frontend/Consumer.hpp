@@ -12,6 +12,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Frontend/Diagnostics.hpp"
 #include "vast/Frontend/FrontendAction.hpp"
 #include "vast/Frontend/Options.hpp"
+#include "vast/Frontend/Targets.hpp"
 
 #include "vast/CodeGen/CodeGenContext.hpp"
 #include "vast/CodeGen/CodeGenDriver.hpp"
@@ -21,9 +22,6 @@ namespace vast::cc {
     using output_stream_ptr = std::unique_ptr< llvm::raw_pwrite_stream >;
 
     using clang_ast_consumer = clang::ASTConsumer;
-
-    // TODO: Introduce helper wrapper on top of `vast_args`?
-    enum class target_dialect { high_level, low_level, llvm, cir };
 
     using backend = clang::BackendAction;
 

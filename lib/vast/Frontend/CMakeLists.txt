@@ -5,6 +5,7 @@ add_vast_library(Frontend
     Consumer.cpp
     Options.cpp
     Pipelines.cpp
+    Targets.cpp
 
     LINK_LIBS PUBLIC
     VASTCodeGen
