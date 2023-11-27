@@ -11,6 +11,8 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include <vast/Dialect/HighLevel/HighLevelDialect.hpp>
+#include <vast/Util/Pipeline.hpp>
+
 #include <memory>
 
 namespace vast::hl
@@ -38,5 +40,7 @@ namespace vast::hl
         pm.addPass(createDCEPass());
         pm.addPass(createLowerTypeDefsPass());
     }
+
+    pipeline_step_ptr make_canonicalize_pipeline();
 
 } // namespace vast::hl
