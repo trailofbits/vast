@@ -375,6 +375,52 @@ namespace vast::hl
         return mlir::dyn_cast_or_null<FuncOp>(coi.resolveCallable());
     }
 
+    void InlineAsmOp::build(
+            Builder &bld,
+            State &st,
+            mlir::StringAttr asm_template,
+            bool is_volatile,
+            bool has_goto,
+            llvm::ArrayRef< mlir::Value > outs,
+            llvm::ArrayRef< mlir::Value > ins,
+            mlir::ArrayAttr out_names,
+            mlir::ArrayAttr in_names,
+            mlir::ArrayAttr out_constraints,
+            mlir::ArrayAttr in_constraints,
+            mlir::ArrayAttr clobbers,
+            llvm::ArrayRef< mlir::Value > labels)
+    {
+        st.addAttribute(getAsmTemplateAttrName(st.name), asm_template);
+        st.addOperands(outs);
+        st.addOperands(ins);
+        st.addOperands(labels);
+
+        st.addAttribute(getOperandSegmentSizesAttrName(st.name),
+                        bld.getDenseI32ArrayAttr({static_cast<int32_t>(outs.size()),
+                                                  static_cast<int32_t>(ins.size()),
+                                                  static_cast<int32_t>(labels.size())
+                                                 })
+                        );
+
+        if (is_volatile)
+            st.addAttribute(getIsVolatileAttrName(st.name), bld.getUnitAttr());
+        if (has_goto)
+            st.addAttribute(getHasGotoAttrName(st.name), bld.getUnitAttr());
+
+        if (outs.size() > 0 && out_names)
+            st.addAttribute(getOutputNamesAttrName(st.name), out_names);
+        if (ins.size() > 0 && in_names)
+            st.addAttribute(getInputNamesAttrName(st.name), in_names);
+
+        if (outs.size() > 0 && out_constraints)
+            st.addAttribute(getOutputConstraintsAttrName(st.name), out_constraints);
+        if (ins.size() > 0 && in_constraints)
+            st.addAttribute(getInputConstraintsAttrName(st.name), in_constraints);
+
+        if (clobbers && clobbers.size())
+            st.addAttribute(getClobbersAttrName(st.name), clobbers);
+    }
+
     GRAPH_REGION_OP(FuncOp);
     GRAPH_REGION_OP(StmtExprOp);
 
