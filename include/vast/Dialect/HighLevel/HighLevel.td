@@ -48,6 +48,5 @@ include "HighLevelVar.td"
 include "HighLevelOps.td"
 include "HighLevelOpsCxx.td"
 include "HighLevelCF.td"
-include "HighLevelAssembly.td"
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVEL
