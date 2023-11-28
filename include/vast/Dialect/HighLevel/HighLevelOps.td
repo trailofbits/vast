@@ -4,6 +4,7 @@
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
 
 include "mlir/IR/OpBase.td"
+include "mlir/IR/BuiltinAttributes.td"
 
 include "mlir/Interfaces/CastInterfaces.td"
 include "vast/Interfaces/SymbolInterface.td"
@@ -1171,6 +1172,47 @@ def HighLevel_EmptyDeclOp
   : HighLevel_Op< "empty.decl", [] >
 {
   let assemblyFormat = [{ attr-dict }];
+}
+
+def InlineAsmOp
+  : HighLevel_Op< "inline_asm", [AttrSizedOperandSegments] >
+  , Arguments<(ins
+      Builtin_StringAttr:$asm_template,
+      UnitAttr:$is_volatile,
+      UnitAttr:$has_goto,
+      //UnitAttr:$has_inline, //Clang doesn't have this qualifier?
+      Variadic< AnyType >:$asm_outputs,
+      Variadic< AnyType >:$asm_inputs,
+      OptionalAttr< ArrayAttr >:$output_names,
+      OptionalAttr< ArrayAttr >:$input_names,
+      OptionalAttr< ArrayAttr >:$output_constraints,
+      OptionalAttr< ArrayAttr >:$input_constraints,
+      OptionalAttr< ArrayAttr >:$clobbers,
+      Variadic< AnyType >:$labels
+    )>
+{
+  let summary = "VAST operation for inline assembly";
+  let description = [{ TODO }];
+
+  let skipDefaultBuilders = 1;
+
+  let builders = [
+  OpBuilder< (ins
+      "mlir::StringAttr":$asm_template,
+      "bool":$is_volatile,
+      "bool":$has_goto,
+      CArg< "llvm::ArrayRef< mlir::Value >", "{}" >:$outs,
+      CArg< "llvm::ArrayRef< mlir::Value >", "{}" >:$ins,
+      CArg< "mlir::ArrayAttr", "{}" >:$out_names,
+      CArg< "mlir::ArrayAttr", "{}" >:$in_names,
+      CArg< "mlir::ArrayAttr", "{}" >:$out_constraints,
+      CArg< "mlir::ArrayAttr", "{}" >:$in_constraints,
+      CArg< "mlir::ArrayAttr", "{}" >:$clobbers,
+      CArg< "llvm::ArrayRef< mlir::Value >", "{}" >:$labels
+    ) >
+  ];
+
+  let assemblyFormat = [{attr-dict $asm_template (`:`$output_names $asm_outputs^)? (`:` $output_constraints^)?  (`:`$input_names $asm_inputs^)? (`:` $input_constraints^)? (`:` $clobbers^)? (`:` $labels^)? `:` type(operands)}];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
