@@ -74,6 +74,8 @@ namespace vast {
     using maybe_type_t  = std::optional< mlir_type >;
     using maybe_types_t = std::optional< types_t >;
 
+    using values_t       = mlir::SmallVector< mlir_value >;
+
     using loc_t         = mlir::Location;
 
     using mlir_builder  = mlir::OpBuilder;
