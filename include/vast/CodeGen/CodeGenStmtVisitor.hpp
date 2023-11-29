@@ -409,35 +409,44 @@ namespace vast::cg {
 
         // operation VisitAsmStmt(const clang::AsmStmt *stmt);
         operation VisitGCCAsmStmt(const clang::GCCAsmStmt *stmt) {
-            auto asm_attr = mlir::StringAttr::get(&context().mctx,
-                    stmt->getAsmString()->getString());
-
-            mlir::SmallVector< mlir::Value > outputs;
-            mlir::SmallVector< mlir::Value > inputs;
-            mlir::SmallVector< mlir::Attribute > out_names;
-            mlir::SmallVector< mlir::Attribute > in_names;
-            mlir::SmallVector< mlir::Attribute > out_constraints;
-            mlir::SmallVector< mlir::Attribute > in_constraints;
-            mlir::SmallVector< mlir::Attribute > clobbers;
-            mlir::SmallVector< mlir::Value >labels;
-
             auto get_string_attr = [&](mlir::StringRef str) {
                 return mlir::StringAttr::get(&context().mctx, str);
             };
+
+            auto asm_attr = get_string_attr(stmt->getAsmString()->getString());
+
+            if (stmt->isSimple()) {
+                return make< hl::InlineAsmOp >(meta_location(stmt),
+                                               asm_attr,
+                                               stmt->isVolatile(),
+                                               false /*has_goto*/
+                                              );
+            }
+
+            values_t outputs;
+            values_t inputs;
+            attrs_t  out_names;
+            attrs_t  in_names;
+            attrs_t  out_constraints;
+            attrs_t  in_constraints;
+            attrs_t  clobbers;
+            values_t labels;
 
             auto get_integer_attr = [&](int i) {
                 return lens::mlir_builder().getI64IntegerAttr(i);
             };
 
-            auto get_out_expr = [&](int i) { return stmt->getOutputExpr(i); };
-            auto get_out_name = [&](int i) { return stmt->getOutputName(i); };
+            auto get_out_expr       = [&](int i) { return stmt->getOutputExpr(i); };
+            auto get_out_name       = [&](int i) { return stmt->getOutputName(i); };
             auto get_out_constraint = [&](int i) { return stmt->getOutputConstraint(i); };
 
-            auto get_in_expr = [&](int i) { return stmt->getInputExpr(i); };
-            auto get_in_name = [&](int i) { return stmt->getInputName(i); };
+            auto get_in_expr       = [&](int i) { return stmt->getInputExpr(i); };
+            auto get_in_name       = [&](int i) { return stmt->getInputName(i); };
             auto get_in_constraint = [&](int i) { return stmt->getInputConstraint(i); };
 
-            auto fill_vectors = [&](int size, auto &get_expr, auto &get_name, auto &get_constraint, auto &vals, auto &names, auto &constraints) {
+            auto fill_vectors = [&](int size, auto &get_expr, auto &get_name,
+                                    auto &get_constraint, auto &vals, auto &names,
+                                    auto &constraints) {
                 static int arg_num = 0;
                 for (int i = 0; i < size; i++) {
                     auto id = get_name(i);
@@ -453,10 +462,14 @@ namespace vast::cg {
                 }
             };
 
-            fill_vectors(stmt->getNumOutputs(), get_out_expr, get_out_name, get_out_constraint,
-                                                outputs, out_names, out_constraints);
-            fill_vectors(stmt->getNumInputs(), get_in_expr, get_in_name, get_in_constraint,
-                                               inputs, in_names, in_constraints);
+            fill_vectors(
+                stmt->getNumOutputs(), get_out_expr, get_out_name, get_out_constraint, outputs,
+                out_names, out_constraints
+            );
+            fill_vectors(
+                stmt->getNumInputs(), get_in_expr, get_in_name, get_in_constraint, inputs,
+                in_names, in_constraints
+            );
 
             if (stmt->isAsmGoto()) {
                 for (const auto &lab : stmt->labels()) {
@@ -468,7 +481,7 @@ namespace vast::cg {
                 clobbers.emplace_back(get_string_attr(stmt->getClobber(i)));
             }
 
-            auto get_array_attr = [&](mlir::SmallVector< mlir::Attribute > &arr) {
+            auto get_array_attr = [&](attrs_t &arr) {
                 return mlir::ArrayAttr::get(&context().mctx, mlir::ArrayRef(arr));
             };
 
