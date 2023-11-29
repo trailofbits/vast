@@ -1192,7 +1192,8 @@ def InlineAsmOp
     )>
 {
   let summary = "VAST operation for inline assembly";
-  let description = [{ TODO }];
+  let description = [{ VAST operation mirroring the GCCAsmStmt in clang AST. It prints
+                       a name for every operand (either its id or user-supplied string).}];
 
   let skipDefaultBuilders = 1;
 
