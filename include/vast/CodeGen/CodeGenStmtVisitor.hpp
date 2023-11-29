@@ -444,10 +444,10 @@ namespace vast::cg {
             auto get_in_name       = [&](int i) { return stmt->getInputName(i); };
             auto get_in_constraint = [&](int i) { return stmt->getInputConstraint(i); };
 
+            int arg_num = 0;
             auto fill_vectors = [&](int size, auto &get_expr, auto &get_name,
                                     auto &get_constraint, auto &vals, auto &names,
                                     auto &constraints) {
-                static int arg_num = 0;
                 for (int i = 0; i < size; i++) {
                     auto id = get_name(i);
                     if (id.size()) {
@@ -455,10 +455,10 @@ namespace vast::cg {
                     } else {
                         names.push_back(get_integer_attr(arg_num));
                     }
+                    arg_num++;
 
                     constraints.push_back(get_string_attr(get_constraint(i)));
                     vals.emplace_back(visit(get_expr(i))->getResult(0));
-                    arg_num++;
                 }
             };
 
