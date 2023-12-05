@@ -85,7 +85,14 @@ namespace vast::core
 
         // Parse literal '>'
         if (parser.parseGreater()) return {};
-        assert(::mlir::succeeded(parsed_str));
+
+        // Automatically generated parser for `AnyAttr` might pass default
+        // constructed `mlir::Type` instead of `mlir::NoneType`…
+        // If we simply pass the dummy type inside the attribute becomes
+        // unprintable
+        if (!attr_type)
+            attr_type = builder.getType< mlir::NoneType >();
+
         return StringLiteralAttr::get(parser.getContext(),
             ::llvm::StringRef(*parsed_str),
             ::mlir::Type(attr_type));
