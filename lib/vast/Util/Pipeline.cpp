@@ -4,6 +4,14 @@
 #include "vast/Util/Pipeline.hpp"
 
 namespace vast {
+
+    pipeline_t &operator<<(pipeline_t &ppl, pipeline_step_ptr pass) {
+        pass->schedule_on(ppl);
+        return ppl;
+    }
+
+    void pipeline_step::schedule_on(pipeline_t &) const {}
+
     void pipeline_step::schedule_dependencies(pipeline_t &ppl) const {
         for (const auto &dep : dependencies) {
             dep()->schedule_on(ppl);
@@ -14,7 +22,6 @@ namespace vast {
         schedule_dependencies(ppl);
         ppl.addPass(pass_builder());
     }
-
 
     void compound_pipeline_step::schedule_on(pipeline_t &ppl) const {
         schedule_dependencies(ppl);
@@ -29,6 +36,5 @@ namespace vast {
             step()->schedule_on(ppl);
         }
     }
-
 
 } // namespace vast

@@ -19,6 +19,17 @@ VAST_UNRELAX_WARNINGS
 namespace vast {
 
     //
+    // pipeline_step is a single step in the pipeline that is a pass or a list
+    // of pipelines
+    //
+    // Each step defiens a list of dependencies, which are scheduled before the step
+    //
+    struct pipeline_step;
+
+    using pipeline_step_ptr = std::unique_ptr< pipeline_step >;
+
+
+    //
     // pipeline is a pass manager, which keeps track of duplicit passes and does
     // not schedule them twice
     //
@@ -26,6 +37,8 @@ namespace vast {
     {
         using base      = mlir::PassManager;
         using pass_id_t = mlir::TypeID;
+
+        using base::base;
 
         void addPass(std::unique_ptr< mlir::Pass > pass) {
             auto id = pass->getTypeID();
@@ -37,19 +50,11 @@ namespace vast {
             base::addPass(std::move(pass));
         }
 
+        friend pipeline_t &operator<<(pipeline_t &ppl, pipeline_step_ptr pass);
+
         llvm::DenseSet< pass_id_t > seen;
     };
 
-
-    //
-    // pipeline_step is a single step in the pipeline that is a pass or a list
-    // of pipelines
-    //
-    // Each step defiens a list of dependencies, which are scheduled before the step
-    //
-    struct pipeline_step;
-
-    using pipeline_step_ptr = std::unique_ptr< pipeline_step >;
 
     using pipeline_step_builder = llvm::function_ref< pipeline_step_ptr(void) >;
 
@@ -86,7 +91,7 @@ namespace vast {
 
         virtual ~pipeline_step() = default;
 
-        virtual void schedule_on(pipeline_t &ppl) const = 0;
+        virtual void schedule_on(pipeline_t &ppl) const;
 
         void schedule_dependencies(pipeline_t &ppl) const;
 
@@ -125,7 +130,6 @@ namespace vast {
     };
 
     struct optional_pipeline : pipeline_step {
-
         explicit optional_pipeline(pipeline_step_builder step)
             : step(std::move(step))
         {}
