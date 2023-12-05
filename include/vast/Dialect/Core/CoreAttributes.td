@@ -111,7 +111,11 @@ def StringLiteralAttr : Core_Attr< "StringLiteral", "strlit", [TypedAttrInterfac
   let builders = [
     AttrBuilderWithInferredContext<(ins "Type":$type, "const llvm::Twine &":$value), [{
       llvm::SmallVector<char, 32> tempStr;
-      return Base::get(type.getContext(), escapeString(value.toStringRef(tempStr)), type);
+      return Base::get(type.getContext(), value.toStringRef(tempStr), type);
+    }]>,
+    AttrBuilder<(ins "const llvm::Twine &":$value), [{
+      llvm::SmallVector<char, 32> tempStr;
+      return Base::get(context, value.toStringRef(tempStr), mlir::NoneType::get(context));
     }]>
   ];
 
