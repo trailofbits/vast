@@ -12,6 +12,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Frontend/CompilerInstance.hpp"
 #include "vast/Frontend/FrontendAction.hpp"
 #include "vast/Frontend/Options.hpp"
+#include "vast/Frontend/Targets.hpp"
 
 namespace llvm {
     class LLVMIRContext;

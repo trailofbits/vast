@@ -6,6 +6,14 @@
 
 namespace vast::cc {
 
+    enum class output_type {
+        emit_assembly,
+        emit_mlir,
+        emit_llvm,
+        emit_obj,
+        none
+    };
+
     enum class target_dialect { high_level, std, llvm, cir };
 
     target_dialect parse_target_dialect(string_ref from);

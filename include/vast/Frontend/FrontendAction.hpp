@@ -16,14 +16,6 @@ namespace vast::cc {
     using frontend_action = clang::ASTFrontendAction;
     using plugin_ast_action = clang::PluginASTAction;
 
-    enum class output_type {
-        emit_assembly,
-        emit_mlir,
-        emit_llvm,
-        emit_obj,
-        none
-    };
-
     static inline action_options options(compiler_instance &ci) {
         return {
             .headers = ci.getHeaderSearchOpts(),
