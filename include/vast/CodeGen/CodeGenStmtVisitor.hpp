@@ -446,8 +446,8 @@ namespace vast::cg {
             auto get_in_constraint = [&](int i) { return stmt->getInputConstraint(i); };
 
             int arg_num = 0;
-            auto fill_vectors = [&](int size, auto &get_expr, auto &get_name,
-                                    auto &get_constraint, auto &vals, auto &names,
+            auto fill_vectors = [&](int size, const auto &get_expr, const auto &get_name,
+                                    const auto &get_constraint, auto &vals, auto &names,
                                     auto &constraints) {
                 for (int i = 0; i < size; i++) {
                     auto id = get_name(i);
