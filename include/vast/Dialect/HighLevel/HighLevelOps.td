@@ -1213,7 +1213,7 @@ def InlineAsmOp
     ) >
   ];
 
-  let assemblyFormat = [{attr-dict $asm_template (`:`$output_names $asm_outputs^)? (`:` $output_constraints^)?  (`:`$input_names $asm_inputs^)? (`:` $input_constraints^)? (`:` $clobbers^)? (`:` $labels^)? `:` type(operands)}];
+  let assemblyFormat = [{attr-dict $asm_template `(`($output_names $asm_outputs^ `:` $output_constraints)? `)` `(` (`ins` `:`$input_names $asm_inputs^ `:` $input_constraints)? `)` `(`( $clobbers^)?`)` `(`( $labels^)?`)` `:` functional-type(operands, results)}];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
