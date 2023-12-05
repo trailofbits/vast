@@ -69,13 +69,9 @@ namespace vast::core
     using DialectParser = mlir::AsmParser;
     using DialectPrinter = mlir::AsmPrinter;
 
-    // This function is a carbon-copy of TableGen generated function for StringAttr
-    // With the exception of re-escaping the string
-    Attribute StringLiteralAttr::parse(DialectParser &parser, mlir::Type attrType)
+    Attribute StringLiteralAttr::parse(DialectParser &parser, mlir_type attr_type)
     {
-        mlir::Builder odsBuilder(parser.getContext());
-        llvm::SMLoc odsLoc = parser.getCurrentLocation();
-        (void) odsLoc;
+        mlir_builder builder(parser.getContext());
         // Parse literal '<'
         if (parser.parseLess()) return {};
 
@@ -87,22 +83,18 @@ namespace vast::core
           return {};
         }
 
-        // because AsmParser can't output raw string...
-        std::string res = escapeString(llvm::StringRef(*parsed_str));
-
         // Parse literal '>'
         if (parser.parseGreater()) return {};
         assert(::mlir::succeeded(parsed_str));
         return StringLiteralAttr::get(parser.getContext(),
-            ::llvm::StringRef(res),
-            ::mlir::Type(attrType));
+            ::llvm::StringRef(*parsed_str),
+            ::mlir::Type(attr_type));
     }
 
-    // This function is a carbon-copy of TableGen generated function for StringAttr
     void StringLiteralAttr::print(DialectPrinter &printer) const {
-        mlir::Builder odsBuilder(getContext());
+        auto escaped = escapeString(getValue());
         printer << "<";
-        printer << '"' << getValue() << '"';;
+        printer << '"' << escaped << '"';
         printer << ">";
     }
 
