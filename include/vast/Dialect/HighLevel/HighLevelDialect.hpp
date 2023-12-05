@@ -14,6 +14,7 @@ VAST_RELAX_WARNINGS
 VAST_RELAX_WARNINGS
 
 #include "vast/Dialect/Core/CoreTraits.hpp"
+#include "vast/Dialect/Core/CoreAttributes.hpp"
 
 // Pull in the dialect definition.
 #include "vast/Dialect/HighLevel/HighLevelDialect.h.inc"

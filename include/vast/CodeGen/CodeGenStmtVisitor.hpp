@@ -16,6 +16,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+#include "vast/Dialect/Core/CoreAttributes.hpp"
 #include "vast/Dialect/Core/CoreOps.hpp"
 
 #include "vast/Util/Common.hpp"
@@ -409,8 +410,9 @@ namespace vast::cg {
 
         // operation VisitAsmStmt(const clang::AsmStmt *stmt);
         operation VisitGCCAsmStmt(const clang::GCCAsmStmt *stmt) {
+            auto &ctx = context().mctx;
             auto get_string_attr = [&](mlir::StringRef str) {
-                return mlir::StringAttr::get(&context().mctx, str);
+                return core::StringLiteralAttr::get(&ctx, str);
             };
 
             auto asm_attr = get_string_attr(stmt->getAsmString()->getString());
