@@ -1174,8 +1174,8 @@ def HighLevel_EmptyDeclOp
   let assemblyFormat = [{ attr-dict }];
 }
 
-def InlineAsmOp
-  : HighLevel_Op< "inline_asm", [AttrSizedOperandSegments] >
+def AsmOp
+  : HighLevel_Op< "asm", [AttrSizedOperandSegments] >
   , Arguments<(ins
       AnyAttr:$asm_template,
       UnitAttr:$is_volatile,
