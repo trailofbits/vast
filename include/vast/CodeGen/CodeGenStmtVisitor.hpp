@@ -417,7 +417,7 @@ namespace vast::cg {
             auto asm_attr = get_string_attr(stmt->getAsmString()->getString());
 
             if (stmt->isSimple()) {
-                return make< hl::InlineAsmOp >(meta_location(stmt),
+                return make< hl::AsmOp >(meta_location(stmt),
                                                asm_attr,
                                                stmt->isVolatile(),
                                                false /*has_goto*/
@@ -486,7 +486,7 @@ namespace vast::cg {
                 return mlir::ArrayAttr::get(&context().mctx, mlir::ArrayRef(arr));
             };
 
-            return make< hl::InlineAsmOp >(meta_location(stmt),
+            return make< hl::AsmOp >(meta_location(stmt),
                                            asm_attr,
                                            stmt->isVolatile(),
                                            stmt->isAsmGoto(),

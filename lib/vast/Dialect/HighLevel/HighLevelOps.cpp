@@ -375,7 +375,7 @@ namespace vast::hl
         return mlir::dyn_cast_or_null<FuncOp>(coi.resolveCallable());
     }
 
-    void InlineAsmOp::build(
+    void AsmOp::build(
             Builder &bld,
             State &st,
             vast::core::StringLiteralAttr asm_template,
