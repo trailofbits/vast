@@ -1177,7 +1177,7 @@ def HighLevel_EmptyDeclOp
 def InlineAsmOp
   : HighLevel_Op< "inline_asm", [AttrSizedOperandSegments] >
   , Arguments<(ins
-      Builtin_StringAttr:$asm_template,
+      AnyAttr:$asm_template,
       UnitAttr:$is_volatile,
       UnitAttr:$has_goto,
       //UnitAttr:$has_inline, //Clang doesn't have this qualifier?
@@ -1199,7 +1199,7 @@ def InlineAsmOp
 
   let builders = [
   OpBuilder< (ins
-      "mlir::StringAttr":$asm_template,
+      "vast::core::StringLiteralAttr":$asm_template,
       "bool":$is_volatile,
       "bool":$has_goto,
       CArg< "llvm::ArrayRef< mlir::Value >", "{}" >:$outs,
