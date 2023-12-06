@@ -1180,7 +1180,7 @@ def AsmOp
       AnyAttr:$asm_template,
       UnitAttr:$is_volatile,
       UnitAttr:$has_goto,
-      //UnitAttr:$has_inline, //Clang doesn't have this qualifier?
+      // UnitAttr:$has_inline, // Clang doesn't have this qualifier? issue #454
       Variadic< AnyType >:$asm_outputs,
       Variadic< AnyType >:$asm_inputs,
       OptionalAttr< ArrayAttr >:$output_names,
