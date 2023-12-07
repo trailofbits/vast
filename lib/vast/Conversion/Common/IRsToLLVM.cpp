@@ -43,6 +43,7 @@ namespace vast::conv::irstollvm
     using ignore_patterns = util::type_list<
         ignore_pattern< hl::DeclRefOp >,
         ignore_pattern< hl::PredefinedExpr >,
+        ignore_pattern< hl::AddressOf >,
         erase_pattern< hl::StructDeclOp >,
         erase_pattern< hl::TypeDeclOp >
     >;
