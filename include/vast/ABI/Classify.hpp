@@ -480,7 +480,7 @@ namespace vast::abi
                 case Class::NoClass:
                 {
                     if ( hi == Class::NoClass )
-                        return { arg_info::make< ignore >() };
+                        return { arg_info::make< ignore >( t ) };
                     // Missing lo part.
                     VAST_ASSERT( hi == Class::SSE || hi == Class::Integer
                                                   || hi == Class::X87Up );
@@ -592,7 +592,7 @@ namespace vast::abi
         arg_info classify_return( type t )
         {
             if ( TypeConfig::is_void( t ) )
-                return arg_info::make< ignore >();
+                return arg_info::make< ignore >( t );
 
             if ( auto record = TypeConfig::is_record( t ) )
                 if ( !TypeConfig::can_be_passed_in_regs( t ) )
@@ -621,7 +621,7 @@ namespace vast::abi
                 case Class::NoClass:
                 {
                     if ( hi == Class::NoClass )
-                        return { arg_info::make< ignore >() };
+                        return { arg_info::make< ignore >( t ) };
                     VAST_ASSERT( hi == Class::SSE || hi == Class::Integer
                                                   || hi == Class::X87Up );
                     return { std::monostate{} };

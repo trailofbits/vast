@@ -97,10 +97,15 @@ namespace vast::abi
         }
     };
 
-    struct ignore : passing_style_base
+    struct ignore : with_target_type
     {
         static inline const constexpr std::string_view str = "ignore";
-        std::string to_string() const { return "ignore"; }
+        using with_target_type::with_target_type;
+
+        std::string to_string() const
+        {
+            return std::string( str ) + with_target_type::to_string();
+        }
     };
 
     struct expand : with_target_type
