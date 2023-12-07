@@ -37,6 +37,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/ABI/ABIOps.hpp"
 
+#include <gap/core/overloads.hpp>
+
 #include <iostream>
 #include <unordered_map>
 
@@ -94,6 +96,14 @@ namespace vast
 
             const auto &self() const { return static_cast< const Self & >(*this); }
             auto &self() { return static_cast< Self & >(*this); }
+
+            auto get_inserter(auto &into)
+            {
+                return gap::overloaded {
+                    [ & ](auto vals) { into.insert(into.end(), vals.begin(), vals.end()); },
+                    [ & ](mlir_value val) { into.push_back(val); }
+                };
+            };
 
             types_t abified_args() const
             {
@@ -242,6 +252,17 @@ namespace vast
                 return mk_direct(bld, loc, abi_arg, entry);
             }
 
+            auto fold_arg(auto &bld, auto loc,
+                          const abi::indirect &abi_arg, const mapped_arg_t &entry)
+                -> mlir_value
+            {
+                auto &[original_type, args] = entry;
+                return bld.template create< abi::IndirectOp >(
+                    op.getLoc(),
+                    original_type,
+                    args);
+            }
+
             auto fold_arg(auto &, auto, const auto &abi_arg, const mapped_arg_t &)
                 -> mlir::ResultRange
             {
@@ -313,10 +334,7 @@ namespace vast
                 materialized_args_t to_yield;
                 auto fold_all_args = [&](auto &bld, auto loc)
                 {
-                    auto store = [&](auto c)
-                    {
-                        to_yield.insert(to_yield.end(), c.begin(), c.end());
-                    };
+                    auto store = this->get_inserter(to_yield);
 
                     for (const auto &abi_arg : abi_info.args())
                     {
@@ -418,6 +436,15 @@ namespace vast
                 return mk_direct< abi::DirectOp >(bld, loc, arg, { concrete_arg });
             }
 
+            auto mk_arg(auto &bld, auto loc, const abi::indirect &arg, mlir::Value concrete_arg)
+                -> mlir_value
+            {
+                auto vals = bld.template create< abi::IndirectOp >(
+                    op.getLoc(),
+                    arg.target_types,
+                    concrete_arg).getResult();
+                return vals;
+            }
 
             auto mk_arg(auto &, auto, const auto &abi_arg, const mlir::Value &)
                 -> mlir::ResultRange
@@ -460,10 +487,7 @@ namespace vast
                 return [&](auto &bld, auto loc)
                 {
                     std::vector< mlir::Value > out;
-                    auto store = [&](auto vals)
-                    {
-                        out.insert(out.end(), vals.begin(), vals.end());
-                    };
+                    auto store = this->get_inserter(out);
 
                     auto process = [&](const auto &arg_info, auto val)
                     {
