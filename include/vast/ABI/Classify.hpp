@@ -103,6 +103,11 @@ namespace vast::abi
             return t.isa< hl::PointerType >();
         }
 
+        static mlir_type as_pointer( mlir_type t )
+        {
+            return hl::PointerType::get( t.getContext(), t );
+        }
+
         static hl::StructDeclOp get_struct_def( hl::RecordType t, mlir::ModuleOp m )
         {
             for ( auto &op : *m.getBody() )
@@ -434,7 +439,6 @@ namespace vast::abi
 
             if ( size( t ) > 128 && ( lo != Class::SSE || hi != Class::SSEUp ) )
             {
-                VAST_ASSERT( false );
                 lo = Class::Memory;
             }
 
@@ -489,7 +493,7 @@ namespace vast::abi
 
                 case Class::Memory:
                     // TODO(abi): Inject type.
-                    return { arg_info::make< indirect >( type{} ) };
+                    return { arg_info::make< indirect >( TypeConfig::as_pointer( t ) ) };
 
                 case Class::Integer:
                 {
@@ -592,7 +596,7 @@ namespace vast::abi
 
             if ( auto record = TypeConfig::is_record( t ) )
                 if ( !TypeConfig::can_be_passed_in_regs( t ) )
-                    return arg_info::make< indirect >( type{} );
+                    return arg_info::make< indirect >( TypeConfig::as_pointer( t ) );
 
             // Algorithm based on AMD64-ABI
             auto c = classify( t );
@@ -626,8 +630,9 @@ namespace vast::abi
                 case Class::X87:
                 case Class::ComplexX87:
                 {
-                    // TODO: Indirect + usage of int reg.
-                    VAST_TODO( "arg_lo::Memory,X87,ComplexX87" );
+                    // TODO(abi): Some C++
+                    // TODO(abi): This is more nuanced, see `getIndirectResult` in clang.
+                    return { arg_info::make< indirect >( TypeConfig::as_pointer( t ) ) };
                 }
 
                 case Class::SSEUp:
