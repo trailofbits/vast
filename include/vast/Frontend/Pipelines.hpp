@@ -36,8 +36,9 @@ namespace vast::cc {
     // Pipeline configuration describe named pipelines that are used in the
     // scheduled pipeline.
     //
-    pipeline_t setup_pipeline(
+    std::unique_ptr< pipeline_t > setup_pipeline(
         pipeline_source src, output_type trg,
+        mcontext_t &mctx,
         const vast_args &vargs,
         const pipelines_config &config
     );

@@ -5,6 +5,8 @@
 VAST_RELAX_WARNINGS
 #include <mlir/Pass/Pass.h>
 #include <mlir/Pass/PassManager.h>
+
+#include <mlir/Dialect/LLVMIR/Transforms/Passes.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/Passes.hpp"
@@ -57,6 +59,20 @@ namespace vast::hl::pipeline {
 
     pipeline_step_ptr stdtypes() {
         return compose(lower_types_to_std).depends_on(desugar);
+    }
+
+    //
+    // llvm emition passes
+    //
+    static pipeline_step_ptr llvm_debug_scope() {
+        // This is necessary to have line tables emitted and basic debugger
+        // working. In the future we will add proper debug information emission
+        // directly from our frontend.
+        return pass(mlir::LLVM::createDIScopeForLLVMFuncOpPass);
+    }
+
+    pipeline_step_ptr to_llvm() {
+        return compose(llvm_debug_scope).depends_on(stdtypes);
     }
 
 } // namespace vast::hl::pipeline

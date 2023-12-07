@@ -118,32 +118,6 @@ namespace vast::target::llvmir
         return mlir::translateModuleToLLVMIR(mlir_module, llvm_ctx);
     }
 
-    void lower_hl_module(mlir::Operation *op, pipeline p)
-    {
-        auto mctx = op->getContext();
-        mlir::PassManager pm(mctx);
-        populate_pm(pm, p);
-
-        // This is necessary to have line tables emitted and basic
-        // debugger working. In the future we will add proper debug information
-        // emission directly from our frontend.
-        pm.addNestedPass<mlir::LLVM::LLVMFuncOp>(
-            mlir::LLVM::createDIScopeForLLVMFuncOpPass()
-        );
-
-        pm.enableIRPrinting([](auto *, auto *) { return false; }, // before
-                            [](auto *, auto *) { return true; }, //after
-                            false, // module scope
-                            false, // after change
-                            true, // after failure
-                            llvm::errs());
-
-
-        auto run_result = pm.run(op);
-
-        VAST_CHECK(mlir::succeeded(run_result), "Some pass in prepare_module() failed");
-    }
-
     void register_vast_to_llvm_ir(mlir::DialectRegistry &registry)
     {
         registry.insert< hl::HighLevelDialect >();
