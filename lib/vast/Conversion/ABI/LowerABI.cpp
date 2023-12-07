@@ -100,6 +100,7 @@ namespace vast
 
             // Simplifies implementation.
             virtual values match_on(abi::DirectOp direct, state_capture &state) const = 0;
+            virtual values match_on(abi::IndirectOp indirect, state_capture &state) const = 0;
 
             virtual values match_on(mlir::Operation *op, state_capture &state) const
             {
@@ -110,6 +111,8 @@ namespace vast
             {
                 if (auto direct = mlir::dyn_cast< abi::DirectOp >(op))
                     return this->match_on(direct, state);
+                if (auto indirect = mlir::dyn_cast< abi::IndirectOp >(op))
+                    return this->match_on(indirect, state);
                 return this->match_on(op, state);
             }
 
@@ -419,6 +422,11 @@ namespace vast
                 for (auto v : dtor.handle(direct))
                     co_yield v;
             }
+
+            values match_on(abi::IndirectOp indirect, state_capture &state) const override
+            {
+                VAST_UNREACHABLE("Not implemented");
+            }
         };
 
 
@@ -446,6 +454,15 @@ namespace vast
                 for (auto v : ctor.handle(direct))
                     co_yield v;
             }
+
+            values match_on(abi::IndirectOp indirect, state_capture &state) const override
+            {
+                co_yield state.rewriter.template create< hl::Deref >(
+                    indirect.getLoc(),
+                    indirect.getResult().getType(),
+                    indirect.getValue());
+
+            }
         };
 
         struct call_args : call_border< abi::CallArgsOp >
@@ -471,6 +488,25 @@ namespace vast
                 for (auto v : dtor.handle(direct))
                     co_yield v;
             }
+
+            values match_on(abi::IndirectOp indirect, state_capture &state) const override
+            {
+                auto loc = indirect.getLoc();
+                auto mctx = indirect.getContext();
+                auto ptr_type = indirect.getResult().getType();
+                auto type = hl::LValueType::get(mctx, indirect.getValue().getType());
+
+                auto var = state.rewriter.template create< ll::UninitializedVar >(
+                    indirect.getLoc(), type);
+                // Now we initilizae before yielding the ptr
+                auto initialized = state.rewriter.template create< ll::InitializeVar >(
+                    loc, type, var, indirect.getValue());
+
+                co_yield state.rewriter.template create< hl::AddressOf >(
+                    loc,
+                    ptr_type,
+                    initialized);
+            }
         };
 
         struct call_rets : function_border_base< abi::CallRetsOp >
@@ -494,6 +530,11 @@ namespace vast
                 auto ctor = reconstructs_types(state, *this);
                 for (auto v : ctor.handle(direct))
                     co_yield v;
+            }
+
+            values match_on(abi::IndirectOp, state_capture &) const override
+            {
+                VAST_UNREACHABLE("Not implemented.");
             }
         };
 
