@@ -685,12 +685,15 @@ namespace vast::conv::irstollvm
         }
     };
 
-    // NOTE(jezko): Void returns (and implicit returns) are handled by
-    // constant op rewriter which needs to remove the void constant
     using return_conversions = util::type_list<
           ret< hl::ReturnOp >
         , ret< ll::ReturnOp >
         , ret< mlir::func::ReturnOp >
+        // Special case is if void is returned. Since `core.void` is actually a value
+        // we need to handle it when lowering constants. For now we also handle return there
+        // but we should consider whether instead not ignore the constant if it is void and
+        // let the users handle that special case.
+        , ret< core::ImplicitReturnOp >
     >;
 
     logical_result match_and_rewrite_cast(auto &pattern, auto op, auto adaptor, auto &rewriter) {
