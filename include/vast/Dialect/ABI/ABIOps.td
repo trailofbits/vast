@@ -20,6 +20,17 @@ def DirectOp
     let assemblyFormat = [{ $value attr-dict `:` type($value) `->` type($result) }];
 }
 
+def IndirectOp
+    : ABI_Op< "indirect" >
+    , Arguments<(ins AnyType:$value)>
+    , Results<(outs AnyType:$result)>
+{
+    let summary = "Value is passed indirectly via memory";
+    let description = [{ Value is passed indirectly via memory }];
+
+    let assemblyFormat = [{ $value attr-dict `:` type($value) `->` type($result) }];
+}
+
 def RetDirectOp
     : ABI_Op< "ret_direct" >
     , Arguments<(ins AnyType:$value)>
