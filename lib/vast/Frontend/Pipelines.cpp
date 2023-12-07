@@ -108,6 +108,15 @@ namespace vast::cc {
     ) {
         auto passes = std::make_unique< pipeline_t >(&mctx);
 
+        passes->enableIRPrinting(
+            [](auto *, auto *) { return false; }, // before
+            [](auto *, auto *) { return true; },  // after
+            false,                                // module scope
+            false,                                // after change
+            true,                                 // after failure
+            llvm::errs()
+        );
+
         // generate high level MLIR in case of AST input
         if (pipeline_source::ast == src) {
             *passes << pipeline::codegen();

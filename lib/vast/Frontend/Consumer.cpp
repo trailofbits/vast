@@ -20,7 +20,9 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 
+#include "vast/Frontend/Pipelines.hpp"
 #include "vast/Frontend/Targets.hpp"
+
 #include "vast/Target/LLVMIR/Convert.hpp"
 
 namespace vast::cc {
@@ -179,8 +181,8 @@ namespace vast::cc {
     ) {
         llvm::LLVMContext llvm_context;
         llvmir::register_vast_to_llvm_ir(*mctx);
-        auto pipeline = parse_pipeline(vargs.get_options_list(opt::opt_pipeline));
-        llvmir::lower_hl_module(mlir_module.get(), pipeline);
+        // auto pipeline = parse_pipeline(vargs.get_options_list(opt::opt_pipeline));
+        // llvmir::lower_hl_module(mlir_module.get(), pipeline);
 
         auto mod = llvmir::translate(mlir_module.get(), llvm_context);
         auto dl  = cgctx->actx.getTargetInfo().getDataLayoutString();
@@ -197,24 +199,6 @@ namespace vast::cc {
             return;
         }
 
-        auto setup_pipeline_and_execute = [&] {
-            auto pipeline = parse_pipeline(vargs.get_options_list(opt::opt_pipeline));
-            switch (target) {
-                case target_dialect::high_level:
-                    break;
-                case target_dialect::llvm: {
-                    // TODO: These should probably be moved outside of `target::llvmir`.
-                    llvmir::register_vast_to_llvm_ir(*mctx);
-                    llvmir::lower_hl_module(mod.get(), pipeline);
-                    break;
-                }
-                // case target_dialect::cir: {
-                // }
-                default:
-                    VAST_UNREACHABLE("Cannot emit {0}, missing support", to_string(target));
-            }
-        };
-
         // Handle source manager properly given that lifetime analysis
         // might emit warnings and remarks.
         auto &src_mgr     = cgctx->actx.getSourceManager();
@@ -227,20 +211,24 @@ namespace vast::cc {
         llvm::SourceMgr mlir_src_mgr;
         mlir_src_mgr.AddNewSourceBuffer(std::move(file_buff), llvm::SMLoc());
 
-        if (vargs.has_option(opt::vast_verify_diags)) {
-            mlir::SourceMgrDiagnosticVerifierHandler src_mgr_handler(mlir_src_mgr, mctx);
-            mctx->printOpOnDiagnostic(false);
-            setup_pipeline_and_execute();
+        bool verify_diagnostics = vargs.has_option(opt::vast_verify_diags);
 
-            // Verify the diagnostic handler to make sure that each of the
-            // diagnostics matched.
-            if (src_mgr_handler.verify().failed()) {
-                llvm::sys::RunInterruptHandlers();
-                VAST_UNREACHABLE("failed mlir codegen");
-            }
-        } else {
-            mlir::SourceMgrDiagnosticHandler src_mgr_handler(mlir_src_mgr, mctx);
-            setup_pipeline_and_execute();
+        mlir::SourceMgrDiagnosticVerifierHandler src_mgr_handler(mlir_src_mgr, mctx);
+        mctx->printOpOnDiagnostic(false);
+
+        auto pipeline = setup_pipeline(
+            pipeline_source::ast, output_type::emit_mlir, *mctx, vargs, default_pipelines_config()
+        );
+
+        if (mlir::failed(pipeline->run(mod.get()))) {
+            VAST_UNREACHABLE("MLIR pass manager failed when running vast passes");
+        }
+
+        // Verify the diagnostic handler to make sure that each of the
+        // diagnostics matched.
+        if (verify_diagnostics && src_mgr_handler.verify().failed()) {
+            llvm::sys::RunInterruptHandlers();
+            VAST_UNREACHABLE("failed mlir codegen");
         }
 
         // Emit remaining defaulted C++ methods

@@ -45,15 +45,6 @@ namespace vast::target::llvmir
         vast_module mlir_module, llvm::LLVMContext &llvm_ctx
     );
 
-    // Run all passes needed to go from a product of vast frontend (module in `hl` dialect)
-    // to a module in lowest representation (mostly LLVM dialect right now).
-    void lower_hl_module(mlir::Operation *op, pipeline p);
-
-    static inline void lower_hl_module(mlir::Operation *op)
-    {
-        return lower_hl_module(op, default_pipeline());
-    }
-
     void register_vast_to_llvm_ir(mlir::DialectRegistry &registry);
     void register_vast_to_llvm_ir(mcontext_t &mctx);
 
