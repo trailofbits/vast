@@ -105,6 +105,15 @@ namespace vast
                 };
             };
 
+            bool returns_value()
+            {
+                // TODO(conv:abi): `sret`?
+                for (const auto &e : self().abi_info.rets())
+                    if (!std::holds_alternative< abi::ignore >(e.style))
+                        return true;
+                return false;
+            }
+
             types_t abified_args() const
             {
                 types_t out;
@@ -116,7 +125,7 @@ namespace vast
                 return out;
             }
 
-            types_t abified_rets() const
+            types_t abified_rets()
             {
                 types_t out;
                 for (const auto &e : self().abi_info.rets())
@@ -358,6 +367,9 @@ namespace vast
                         fold_all_args);
 
                 get_body(func, abi_prologue.getResults());
+
+                if (abi_prologue.getResults().empty())
+                    rewriter.eraseOp(abi_prologue);
             }
 
             void get_body(abi::FuncOp func, const auto &arg_mapping)
@@ -419,6 +431,15 @@ namespace vast
                 return { vals.begin(), vals.end() };
             }
 
+            auto mk_ret(auto &, auto loc,
+                        const abi::ignore &,
+                        mlir::Value,
+                        values_t concrete_args)
+                -> values_t
+            {
+                return concrete_args;
+            }
+
             auto mk_ret(auto &, auto, const auto &abi_arg, mlir::Value, values_t)
                 -> mlir::ResultRange
             {
@@ -462,23 +483,39 @@ namespace vast
             {
                 return [&](auto &bld, auto loc)
                 {
-                    auto args = bld.template create< abi::CallArgsOp >(
-                            loc,
-                            this->abified_args(),
-                            args_maker());
+                    auto args = [ & ]() -> values_t
+                    {
+                        if (this->abified_args().empty())
+                            return {};
+
+                        auto cooked_args = bld.template create< abi::CallArgsOp >(
+                                loc,
+                                this->abified_args(),
+                                args_maker()).getResults();
+                        return { cooked_args.begin(), cooked_args.end() };
+                    }();
+
                     auto call = bld.template create< abi::CallOp >(
                             loc,
                             op.getCallee(),
                             this->abified_rets(),
-                            args.getResults());
-                    auto to_yield = bld.template create< abi::CallRetsOp >(
-                            loc,
-                            op.getResults().getType(),
-                            rets_maker(call.getResults()));
+                            args);
+
+                    auto to_yield = [ & ]() -> mlir::ResultRange
+                    {
+                        if (!this->returns_value())
+                            return call.getResults();
+
+                        return bld.template create< abi::CallRetsOp >(
+                                loc,
+                                op.getResults().getType(),
+                                rets_maker(call.getResults())).getResults();
+                    }();
+
                     bld.template create< abi::YieldOp >(
                             loc,
                             op.getResults().getType(),
-                            to_yield.getResults());
+                            to_yield);
                 };
             }
 
