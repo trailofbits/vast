@@ -663,16 +663,12 @@ namespace vast::cg {
             return visit_as_lvalue_type(expr->getType());
         }
 
-        const clang::VarDecl * getDeclForVarRef(const clang::DeclRefExpr *expr) {
-            return clang::cast< clang::VarDecl >(expr->getDecl()->getUnderlyingDecl());
-        }
-
         hl::VarDeclOp getDefiningOpOfGlobalVar(const clang::VarDecl *decl) {
             return context().vars.lookup(decl).template getDefiningOp< hl::VarDeclOp >();
         }
 
-        operation VisitEnumDeclRefExpr(const clang::DeclRefExpr *expr) {
-            auto decl = clang::cast< clang::EnumConstantDecl >(expr->getDecl()->getUnderlyingDecl());
+        operation VisitEnumDeclRefExpr(const clang::DeclRefExpr *expr, const clang::Decl *underlying_decl) {
+            auto decl = clang::cast< clang::EnumConstantDecl >( underlying_decl )->getFirstDecl();
             if (auto val = context().enumconsts.lookup(decl)) {
                 auto rty = visit(expr->getType());
                 return make< hl::EnumRefOp >(meta_location(expr), rty, val.getName());
@@ -689,8 +685,8 @@ namespace vast::cg {
             return make< hl::DeclRefOp >(meta_location(expr), rty, var);
         }
 
-        operation VisitVarDeclRefExpr(const clang::DeclRefExpr *expr) {
-            auto decl = getDeclForVarRef(expr);
+        operation VisitVarDeclRefExpr(const clang::DeclRefExpr *expr, const clang::Decl *underlying_decl) {
+            auto decl = clang::cast< clang::VarDecl >( underlying_decl )->getFirstDecl();
             if (auto var = context().vars.lookup(decl)) {
                 return VisitVarDeclRefExprImpl(expr, var);
             }
@@ -701,8 +697,8 @@ namespace vast::cg {
             return nullptr;
         }
 
-        operation VisitFileVarDeclRefExpr(const clang::DeclRefExpr *expr) {
-            auto decl = getDeclForVarRef(expr);
+        operation VisitFileVarDeclRefExpr(const clang::DeclRefExpr *expr, const clang::Decl *underlying_decl) {
+            auto decl = clang::cast< clang::VarDecl >( underlying_decl )->getFirstDecl();
             if (!context().vars.lookup(decl)) {
                 // Ref: https://github.com/trailofbits/vast/issues/384
                 // github issue to avoid emitting error if declaration is missing
@@ -716,8 +712,8 @@ namespace vast::cg {
             return make< hl::GlobalRefOp >(meta_location(expr), rty, name);
         }
 
-        operation VisitFunctionDeclRefExpr(const clang::DeclRefExpr *expr) {
-            auto decl = clang::cast< clang::FunctionDecl >( expr->getDecl()->getUnderlyingDecl() );
+        operation VisitFunctionDeclRefExpr(const clang::DeclRefExpr *expr, const clang::Decl *underlying_decl) {
+            auto decl = clang::cast< clang::FunctionDecl >( underlying_decl )->getFirstDecl();
             auto mangled = context().get_mangled_name(decl);
             auto fn      = context().lookup_function(mangled, false);
             if (!fn) {
@@ -734,17 +730,17 @@ namespace vast::cg {
             auto underlying = expr->getDecl()->getUnderlyingDecl();
 
             if (clang::isa< clang::EnumConstantDecl >(underlying)) {
-                return VisitEnumDeclRefExpr(expr);
+                return VisitEnumDeclRefExpr(expr, underlying);
             }
 
             if (auto decl = clang::dyn_cast< clang::VarDecl >(underlying)) {
                 if (decl->isFileVarDecl())
-                    return VisitFileVarDeclRefExpr(expr);
-                return VisitVarDeclRefExpr(expr);
+                    return VisitFileVarDeclRefExpr(expr, underlying);
+                return VisitVarDeclRefExpr(expr, underlying);
             }
 
             if (clang::isa< clang::FunctionDecl >(underlying)) {
-                return VisitFunctionDeclRefExpr(expr);
+                return VisitFunctionDeclRefExpr(expr, underlying);
             }
 
             VAST_UNIMPLEMENTED_MSG("unknown underlying declaration to be referenced");
@@ -969,8 +965,8 @@ namespace vast::cg {
             return args;
         }
 
-        operation VisitDirectCall(const clang::CallExpr *expr) {
-            auto callee = VisitDirectCallee(expr->getDirectCallee());
+        operation VisitDirectCall(const clang::CallExpr *expr, const clang::Decl *decl) {
+            auto callee = VisitDirectCallee(clang::cast< clang::FunctionDecl >( decl ));
             auto args   = VisitArguments(expr);
             return make< hl::CallOp >(meta_location(expr), callee, args);
         }
@@ -989,8 +985,8 @@ namespace vast::cg {
         }
 
         operation VisitCallExpr(const clang::CallExpr *expr) {
-            if (expr->getDirectCallee()) {
-                return VisitDirectCall(expr);
+            if (auto callee = expr->getDirectCallee()) {
+                return VisitDirectCall(expr, callee->getFirstDecl());
             }
 
             return VisitIndirectCall(expr);

@@ -117,7 +117,7 @@ namespace vast::cg {
 
         auto with_qualifiers(const clang::EnumType *ty, qualifiers quals) -> mlir_type {
             auto name = make_name_attr( context().decl_name(ty->getDecl()) );
-            return with_cv_qualifiers( type_builder< hl::RecordType >().bind(name), quals ).freeze();
+            return with_cv_qualifiers( type_builder< hl::EnumType >().bind(name), quals ).freeze();
         }
 
         auto with_qualifiers(const clang::TypedefType *ty, qualifiers quals) -> mlir_type {
