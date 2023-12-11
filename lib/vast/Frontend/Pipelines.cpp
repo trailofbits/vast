@@ -78,6 +78,12 @@ namespace vast::cc {
                 return target_dialect::llvm;
             } ();
 
+            bool simplify = vargs.has_option(opt::simplify);
+
+            if (target_dialect == target_dialect::high_level && !simplify) {
+                co_return;
+            }
+
             for (const auto &[dialect, step_passes] : path) {
                 for (auto &step : step_passes) {
                     co_yield step();
