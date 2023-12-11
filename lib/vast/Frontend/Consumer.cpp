@@ -26,14 +26,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cc {
 
-    namespace llvmir = target::llvmir;
-
-    using pipeline = llvmir::pipeline;
-
-    [[nodiscard]] pipeline parse_pipeline(const std::optional< vast_args::option_list > &list);
-
-    [[nodiscard]] pipeline parse_pipeline(string_ref from);
-
     [[nodiscard]] target_dialect parse_target_dialect(string_ref from);
 
     [[nodiscard]] std::string to_string(target_dialect target);
@@ -177,11 +169,8 @@ namespace vast::cc {
         backend backend_action, owning_module_ref mlir_module, mcontext_t *mctx
     ) {
         llvm::LLVMContext llvm_context;
-        llvmir::register_vast_to_llvm_ir(*mctx);
-        // auto pipeline = parse_pipeline(vargs.get_options_list(opt::opt_pipeline));
-        // llvmir::lower_hl_module(mlir_module.get(), pipeline);
 
-        auto mod = llvmir::translate(mlir_module.get(), llvm_context);
+        auto mod = target::llvmir::translate(mlir_module.get(), llvm_context);
         auto dl  = cgctx->actx.getTargetInfo().getDataLayoutString();
         clang::EmitBackendOutput(
             opts.diags, opts.headers, opts.codegen, opts.target, opts.lang, dl, mod.get(),
@@ -258,30 +247,5 @@ namespace vast::cc {
         // TODO: support remaining source languages.
         VAST_UNIMPLEMENTED_MSG("VAST does not yet support the given source language");
     }
-
-    pipeline parse_pipeline(const std::optional< vast_args::option_list > &list) {
-        if (!list) {
-            return llvmir::default_pipeline();
-        }
-
-        if (list->size() != 1) {
-            VAST_UNREACHABLE("Cannot use more than one pipeline!");
-        }
-
-        return parse_pipeline(list->front());
-    }
-
-    pipeline parse_pipeline(string_ref from) {
-        auto trg = from.lower();
-        if (trg == "with-abi") {
-            return pipeline::with_abi;
-        }
-        if (trg == "baseline") {
-            return pipeline::baseline;
-        }
-
-        VAST_UNREACHABLE("Unknown option of pipeline to use: {0}", trg);
-    }
-
 
 } // namespace vast::cc

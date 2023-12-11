@@ -25,19 +25,6 @@ namespace mlir
 
 namespace vast::target::llvmir
 {
-    // TODO(target): Do we want to fully replace this with composite passes,
-    //               or instead should live at the same time?
-    enum class pipeline : uint32_t
-    {
-        baseline = 0,
-        with_abi = 1
-    };
-
-    static inline pipeline default_pipeline()
-    {
-        return pipeline::baseline;
-    }
-
     // Lower module into `llvm::Module` - it is expected that `mlir_module` is already
     // lowered as much as possible by vast (for example by calling the `prepare_module`
     // function).

@@ -30,33 +30,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::target::llvmir
 {
-    namespace
-    {
-        // TODO(target): Unify with tower and opt.
-        void populate_pm(mlir::PassManager &pm, pipeline p)
-        {
-            switch (p)
-            {
-                case pipeline::baseline:
-                {
-                    hl::build_simplify_hl_pipeline(pm);
-                    build_to_ll_pipeline(pm);
-                    build_to_llvm_pipeline(pm);
-                    return;
-                }
-                case pipeline::with_abi:
-                {
-                    hl::build_simplify_hl_pipeline(pm);
-                    build_abi_pipeline(pm);
-                    build_to_ll_pipeline(pm);
-                    build_to_llvm_pipeline(pm);
-                    return;
-                }
-            }
-
-        }
-    } // namespace
-
     class ToLLVMIR : public mlir::LLVMTranslationDialectInterface
     {
       public:
