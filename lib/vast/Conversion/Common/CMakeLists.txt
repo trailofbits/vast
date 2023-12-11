@@ -2,4 +2,5 @@
 
 add_vast_conversion_library(CommonConversionPasses
     IRsToLLVM.cpp
+    Passes.cpp
 )

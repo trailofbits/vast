@@ -3,4 +3,5 @@
 add_vast_conversion_library(ABIConversionPasses
     EmitABI.cpp
     LowerABI.cpp
+    Passes.cpp
 )

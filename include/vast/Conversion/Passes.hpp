@@ -20,6 +20,8 @@ VAST_UNRELAX_WARNINGS
 #include <vast/Dialect/Core/CoreDialect.hpp>
 #include <vast/Dialect/ABI/ABIDialect.hpp>
 
+#include <vast/Util/Pipeline.hpp>
+
 #include <memory>
 
 namespace vast
@@ -80,5 +82,17 @@ namespace vast
         pm.addPass(createIRsToLLVMPass());
         pm.addPass(createCoreToLLVMPass());
     }
+
+    namespace conv::pipeline
+    {
+        pipeline_step_ptr abi();
+        pipeline_step_ptr irs_to_llvm();
+        pipeline_step_ptr core_to_llvm();
+
+        pipeline_step_ptr to_ll();
+
+        pipeline_step_ptr to_llvm();
+
+    } // namespace conv::pipeline
 
 } // namespace vast
