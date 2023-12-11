@@ -14,7 +14,6 @@ VAST_RELAX_WARNINGS
 #include <mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/CodeGen/Passes.hpp"
 #include "vast/CodeGen/CodeGenContext.hpp"
 #include "vast/CodeGen/CodeGenDriver.hpp"
 
@@ -91,8 +90,6 @@ namespace vast::cc {
                 VAST_UNREACHABLE("codegen: module verification error before running vast passes");
             }
         }
-
-        compile_via_vast(cgctx->mod.get(), mctx.get());
     }
 
     void vast_consumer::HandleTagDeclDefinition(clang::TagDecl *decl) {
@@ -216,13 +213,7 @@ namespace vast::cc {
         mlir::SourceMgrDiagnosticVerifierHandler src_mgr_handler(mlir_src_mgr, mctx);
         mctx->printOpOnDiagnostic(false);
 
-        auto pipeline = setup_pipeline(
-            pipeline_source::ast, output_type::emit_mlir, *mctx, vargs, default_pipelines_config()
-        );
-
-        if (mlir::failed(pipeline->run(mod.get()))) {
-            VAST_UNREACHABLE("MLIR pass manager failed when running vast passes");
-        }
+        execute_pipeline(mod.get(), mctx);
 
         // Verify the diagnostic handler to make sure that each of the
         // diagnostics matched.
@@ -243,11 +234,13 @@ namespace vast::cc {
         mod->print(*output_stream, flags);
     }
 
-    void vast_consumer::compile_via_vast(vast_module mod, mcontext_t *mctx) {
-        const bool enable_vast_verifier = !vargs.has_option(opt::disable_vast_verifier);
-        auto pass = cg::emit_high_level_pass(mod, mctx, &cgctx->actx, enable_vast_verifier);
-        if (pass.failed()) {
-            VAST_UNREACHABLE("codegen: MLIR pass manager fails when running vast passes");
+    void vast_consumer::execute_pipeline(vast_module mod, mcontext_t *mctx) {
+        auto pipeline = setup_pipeline(
+            pipeline_source::ast, output_type::emit_mlir, *mctx, vargs, default_pipelines_config()
+        );
+
+        if (mlir::failed(pipeline->run(mod))) {
+            VAST_UNREACHABLE("MLIR pass manager failed when running vast passes");
         }
     }
 

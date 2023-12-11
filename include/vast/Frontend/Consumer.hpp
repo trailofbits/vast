@@ -61,7 +61,7 @@ namespace vast::cc {
 
       protected:
 
-        void compile_via_vast(vast_module mod, mcontext_t *mctx);
+        void execute_pipeline(vast_module mod, mcontext_t *mctx);
 
         virtual void anchor() {}
 
