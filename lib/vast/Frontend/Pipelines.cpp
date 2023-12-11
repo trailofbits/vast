@@ -3,6 +3,7 @@
 #include "vast/Frontend/Pipelines.hpp"
 
 #include "vast/Dialect/HighLevel/Passes.hpp"
+#include "vast/Conversion/Passes.hpp"
 
 namespace vast::cc {
 
@@ -17,15 +18,9 @@ namespace vast::cc {
 
     namespace pipeline {
 
-        pipeline_step_ptr empty() {
-            return pipeline_step_init< pipeline_step >();
-        }
-
         // Generates almost AST like MLIR, without any conversions applied
         pipeline_step_ptr high_level() {
-            return compose(
-                hl::pipeline::canonicalize
-            );
+            return hl::pipeline::canonicalize();
         }
 
         // Simplifies high level MLIR
@@ -38,15 +33,12 @@ namespace vast::cc {
 
         // Generates MLIR with standard types
         pipeline_step_ptr standard_types() {
-            return compose(
-                hl::pipeline::stdtypes
-            );
+            return hl::pipeline::stdtypes();
         }
 
         // Conversion to LLVM dialects
         pipeline_step_ptr llvm() {
-            // TODO: implement
-            return empty();
+            return conv::pipeline::to_llvm();
         }
 
         pipeline_step_ptr codegen() {
@@ -122,10 +114,10 @@ namespace vast::cc {
             *passes << pipeline::codegen();
         }
 
-        // apply desired conversion to target dialect, if target is llvm or
-        // binary/assembly, we perform entire conversion to llvm dialect vargs
+        // Apply desired conversion to target dialect, if target is llvm or
+        // binary/assembly. We perform entire conversion to llvm dialect. Vargs
         // can specify how we want to convert to llvm dialect and allows to turn
-        // off optional pipelines
+        // off optional pipelines.
         for (auto &&step : pipeline::conversion(src, trg, vargs, config)) {
             *passes << std::move(step);
         }

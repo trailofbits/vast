@@ -56,7 +56,7 @@ namespace vast {
     };
 
 
-    using pipeline_step_builder = llvm::function_ref< pipeline_step_ptr(void) >;
+    using pipeline_step_builder = std::function< pipeline_step_ptr(void) >;
 
     //
     // initilizer wrapper to setup dependencies after make is called
