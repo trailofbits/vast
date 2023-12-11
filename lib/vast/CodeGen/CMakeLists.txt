@@ -11,7 +11,6 @@ add_vast_library(CodeGen
     CodeGenFunction.cpp
     DataLayout.cpp
     Mangler.cpp
-    Passes.cpp
 
   LINK_LIBS PUBLIC
     ${CLANG_LIBS}
