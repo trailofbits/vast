@@ -21,7 +21,7 @@ namespace vast::hl::pipeline {
     // TODO: add more passes here (remove reduntant skips etc.)
 
     pipeline_step_ptr canonicalize() {
-        return compose(splice_trailing_scopes);
+        return splice_trailing_scopes();
     }
 
     //
@@ -34,7 +34,7 @@ namespace vast::hl::pipeline {
     // TODO: add more passes here (remove elaborations, decayed types, lvalue types etc.)
 
     pipeline_step_ptr desugar() {
-        return compose(lower_types);
+        return lower_types();
     }
 
     //
@@ -51,12 +51,8 @@ namespace vast::hl::pipeline {
     //
     // stdtypes passes
     //
-    static pipeline_step_ptr lower_types_to_std() {
-        return pass(hl::createHLLowerTypesPass);
-    }
-
     pipeline_step_ptr stdtypes() {
-        return compose(lower_types_to_std).depends_on(desugar);
+        return pass(hl::createHLLowerTypesPass).depends_on(desugar);
     }
 
 } // namespace vast::hl::pipeline
