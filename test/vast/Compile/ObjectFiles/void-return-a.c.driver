@@ -1,0 +1,10 @@
+void nothing(int);
+
+int vast_tests();
+
+int main(int argc, char **argv)
+{
+    nothing(0);
+    nothing(10);
+    return vast_tests();
+}
