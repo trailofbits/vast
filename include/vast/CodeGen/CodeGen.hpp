@@ -25,22 +25,26 @@ namespace vast::cg
     template< typename From, typename Symbol >
     using scoped_symbol_table = llvm::ScopedHashTableScope< From, Symbol >;
 
-    using typedefs_scope   = scoped_symbol_table< const clang::TypedefDecl *, hl::TypeDefOp >;
-    using typedecls_scope  = scoped_symbol_table< const clang::TypeDecl *, hl::TypeDeclOp >;
-    using enumdecls_scope  = scoped_symbol_table< const clang::EnumDecl *, hl::EnumDeclOp >;
-    using enumconsts_scope = scoped_symbol_table< const clang::EnumConstantDecl *, hl::EnumConstantOp >;
-    using lables_scope     = scoped_symbol_table< const clang::LabelDecl*, hl::LabelDeclOp >;
-    using functions_scope  = scoped_symbol_table< mangled_name_ref, hl::FuncOp >;
-    using vars_scope       = scoped_symbol_table< const clang::VarDecl *, Value >;
+    using typedefs_scope    = scoped_symbol_table< const clang::TypedefDecl *, hl::TypeDefOp >;
+    using typedecls_scope   = scoped_symbol_table< const clang::TypeDecl *, hl::TypeDeclOp >;
+    using typeofexprs_scope = scoped_symbol_table< const clang::TypeOfExprType *, hl::TypeOfExprOp >;
+    using typeoftypes_scope = scoped_symbol_table< const clang::TypeOfType *, hl::TypeOfTypeOp >;
+    using enumdecls_scope   = scoped_symbol_table< const clang::EnumDecl *, hl::EnumDeclOp >;
+    using enumconsts_scope  = scoped_symbol_table< const clang::EnumConstantDecl *, hl::EnumConstantOp >;
+    using lables_scope      = scoped_symbol_table< const clang::LabelDecl*, hl::LabelDeclOp >;
+    using functions_scope   = scoped_symbol_table< mangled_name_ref, hl::FuncOp >;
+    using vars_scope        = scoped_symbol_table< const clang::VarDecl *, Value >;
 
     struct scope_t {
-        typedefs_scope   typedefs;
-        typedecls_scope  typedecls;
-        enumdecls_scope  enumdecls;
-        enumconsts_scope enumconsts;
-        lables_scope     labels;
-        functions_scope  funcdecls;
-        vars_scope       globs;
+        typedefs_scope      typedefs;
+        typedecls_scope     typedecls;
+        typeofexprs_scope   typeofexprs;
+        typeoftypes_scope   typeoftypes;
+        enumdecls_scope     enumdecls;
+        enumconsts_scope    enumconsts;
+        lables_scope        labels;
+        functions_scope     funcdecls;
+        vars_scope          globs;
     };
 
     template< typename derived_t >
@@ -69,6 +73,8 @@ namespace vast::cg
             scope = std::unique_ptr< scope_t >( new scope_t{
                 .typedefs   = cgctx.typedefs,
                 .typedecls  = cgctx.typedecls,
+                .typeofexprs  = cgctx.typeofexprs,
+                .typeoftypes  = cgctx.typeoftypes,
                 .enumdecls  = cgctx.enumdecls,
                 .enumconsts = cgctx.enumconsts,
                 .labels     = cgctx.labels,

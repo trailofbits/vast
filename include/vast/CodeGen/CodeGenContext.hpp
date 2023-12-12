@@ -107,6 +107,12 @@ namespace vast::cg
         using TypeDeclTable = scoped_table< const clang::TypeDecl *, hl::TypeDeclOp >;
         TypeDeclTable typedecls;
 
+        using TypeOfExprTable = scoped_table< const clang::TypeOfExprType *, hl::TypeOfExprOp >;
+        TypeOfExprTable typeofexprs;
+
+        using TypeOfTypeTable = scoped_table< const clang::TypeOfType *, hl::TypeOfTypeOp >;
+        TypeOfTypeTable typeoftypes;
+
         using FuncDeclTable = scoped_table< mangled_name_ref, hl::FuncOp >;
         FuncDeclTable funcdecls;
 
