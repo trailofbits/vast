@@ -136,12 +136,15 @@ namespace vast::cg {
             clang::Expr *underlying_expr = ty->getUnderlyingExpr();
             auto name = derived().type_of_expr_name(underlying_expr);
 
-            this->template make_operation< hl::TypeOfExprOp >()
-                .bind(meta_location(underlying_expr))
-                .bind(name)
-                .bind(visit(underlying_expr->getType()))
-                .bind(make_type_yield_builder(underlying_expr))
-                .freeze();
+            if(!context().typeofexprs.count(ty)) {
+                auto def_op = this->template make_operation< hl::TypeOfExprOp >()
+                                  .bind(meta_location(underlying_expr))
+                                  .bind(name)
+                                  .bind(visit(underlying_expr->getType()))
+                                  .bind(make_type_yield_builder(underlying_expr))
+                                  .freeze();
+                context().typeofexprs.insert(ty, def_op);
+            }
 
             return with_cvr_qualifiers(type_builder< hl::TypeOfExprType >().bind(name), quals)
                 .freeze();
@@ -149,7 +152,11 @@ namespace vast::cg {
 
         auto with_qualifiers(const clang::TypeOfType *ty, qualifiers quals) -> mlir_type {
             auto type = visit(ty->getUnmodifiedType());
-            derived().template create< hl::TypeOfTypeOp >(mlir::UnknownLoc::get(&mcontext()), type);
+            if(!context().typeoftypes.count(ty)) {
+                auto def_op = derived().template create< hl::TypeOfTypeOp >(mlir::UnknownLoc::get(&mcontext()), type);
+                context().typeoftypes.insert(ty, def_op);
+
+            }
             return with_cvr_qualifiers(type_builder< hl::TypeOfTypeType >().bind(type), quals)
                 .freeze();
         }
