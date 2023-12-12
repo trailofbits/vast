@@ -533,12 +533,15 @@ namespace vast::cg {
             }).getDefiningOp();
 
             if (decl->hasInit()) {
-                auto guard = insertion_guard();
                 auto declared = mlir::dyn_cast< hl::VarDeclOp >(var_decl);
-                set_insertion_point_to_start(&declared.getInitializer());
+                auto &initializer = declared.getInitializer();
+                if (initializer.op_begin() == initializer.op_end()) {
+                    auto guard = insertion_guard();
+                    set_insertion_point_to_start(&declared.getInitializer());
 
-                auto value_builder = make_value_builder(decl->getInit());
-                value_builder(mlir_builder(), meta_location(decl));
+                    auto value_builder = make_value_builder(decl->getInit());
+                    value_builder(mlir_builder(), meta_location(decl));
+                }
             }
 
             return var_decl;
