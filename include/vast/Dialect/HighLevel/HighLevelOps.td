@@ -395,8 +395,8 @@ def ConstantOp
     OpBuilder<(ins "Type":$type, "llvm::APFloat":$value), [{
       build($_builder, $_state, type, core::FloatAttr::get(type, value));
     }]>,
-    OpBuilder<(ins "Type":$type, "llvm::StringRef":$value), [{
-      build($_builder, $_state, type, core::StringLiteralAttr::get(type, value));
+    OpBuilder<(ins "Type":$type, "llvm::Twine":$value), [{
+      build($_builder, $_state, type, mlir::StringAttr::get(value, type));
     }]>
   ];
 
@@ -1177,7 +1177,7 @@ def HighLevel_EmptyDeclOp
 def AsmOp
   : HighLevel_Op< "asm", [AttrSizedOperandSegments] >
   , Arguments<(ins
-      AnyAttr:$asm_template,
+      StrAttr:$asm_template,
       UnitAttr:$is_volatile,
       UnitAttr:$has_goto,
       // UnitAttr:$has_inline, // Clang doesn't have this qualifier? issue #454
@@ -1199,7 +1199,7 @@ def AsmOp
 
   let builders = [
   OpBuilder< (ins
-      "vast::core::StringLiteralAttr":$asm_template,
+      "mlir::StringAttr":$asm_template,
       "bool":$is_volatile,
       "bool":$has_goto,
       CArg< "llvm::ArrayRef< mlir::Value >", "{}" >:$outs,

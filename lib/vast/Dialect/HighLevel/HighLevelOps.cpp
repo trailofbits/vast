@@ -378,7 +378,7 @@ namespace vast::hl
     void AsmOp::build(
             Builder &bld,
             State &st,
-            vast::core::StringLiteralAttr asm_template,
+            mlir::StringAttr asm_template,
             bool is_volatile,
             bool has_goto,
             llvm::ArrayRef< mlir::Value > outs,
