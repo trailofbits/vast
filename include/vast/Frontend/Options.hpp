@@ -70,8 +70,9 @@ namespace vast::cc
         constexpr string_ref emit_llvm = "emit-llvm";
         constexpr string_ref emit_obj  = "emit-obj";
         constexpr string_ref emit_asm  = "emit-asm";
-
         constexpr string_ref emit_mlir = "emit-mlir";
+
+        constexpr string_ref debug = "debug";
 
         constexpr string_ref simplify = "simplify";
 
