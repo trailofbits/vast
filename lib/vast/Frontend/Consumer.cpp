@@ -200,7 +200,12 @@ namespace vast::cc {
         bool verify_diagnostics = vargs.has_option(opt::vast_verify_diags);
 
         mlir::SourceMgrDiagnosticVerifierHandler src_mgr_handler(mlir_src_mgr, mctx);
-        mctx->printOpOnDiagnostic(false);
+
+        if (vargs.has_option(opt::debug)) {
+            mctx->printOpOnDiagnostic(true);
+            mctx->printStackTraceOnDiagnostic(true);
+            llvm::DebugFlag = true;
+        }
 
         execute_pipeline(mod.get(), mctx);
 
