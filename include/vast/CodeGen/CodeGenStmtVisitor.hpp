@@ -411,7 +411,7 @@ namespace vast::cg {
         // operation VisitAsmStmt(const clang::AsmStmt *stmt);
         operation VisitGCCAsmStmt(const clang::GCCAsmStmt *stmt) {
             auto get_string_attr = [&](mlir::StringRef str) {
-                return core::StringLiteralAttr::get(&mcontext(), str);
+                return mlir::StringAttr::get(&mcontext(), str);
             };
 
             auto asm_attr = get_string_attr(stmt->getAsmString()->getString());
