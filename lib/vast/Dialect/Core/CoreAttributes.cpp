@@ -69,42 +69,6 @@ namespace vast::core
     using DialectParser = mlir::AsmParser;
     using DialectPrinter = mlir::AsmPrinter;
 
-    Attribute StringLiteralAttr::parse(DialectParser &parser, mlir_type attr_type)
-    {
-        mlir_builder builder(parser.getContext());
-        // Parse literal '<'
-        if (parser.parseLess()) return {};
-
-        // Parse variable 'value'
-        auto parsed_str = mlir::FieldParser<std::string>::parse(parser);
-        if (::mlir::failed(parsed_str)) {
-          parser.emitError(parser.getCurrentLocation(),
-          "failed to parse StringAttr parameter 'value' which is to be a `::llvm::StringRef`");
-          return {};
-        }
-
-        // Parse literal '>'
-        if (parser.parseGreater()) return {};
-
-        // Automatically generated parser for `AnyAttr` might pass default
-        // constructed `mlir::Type` instead of `mlir::NoneType`…
-        // If we simply pass the dummy type inside the attribute becomes
-        // unprintable
-        if (!attr_type)
-            attr_type = builder.getType< mlir::NoneType >();
-
-        return StringLiteralAttr::get(parser.getContext(),
-            ::llvm::StringRef(*parsed_str),
-            ::mlir::Type(attr_type));
-    }
-
-    void StringLiteralAttr::print(DialectPrinter &printer) const {
-        auto escaped = escapeString(getValue());
-        printer << "<";
-        printer << '"' << escaped << '"';
-        printer << ">";
-    }
-
     void CoreDialect::registerAttributes()
     {
         addAttributes<
