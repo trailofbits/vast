@@ -22,7 +22,7 @@ float f = 0.f;
 double d = 0.0;
 
 // CHECK: hl.var "str" : !hl.lvalue<!hl.ptr<!hl.char< const >>>
-// CHECK: hl.const #core.strlit<"hello"> : !hl.lvalue<!hl.array<6, !hl.char>>
+// CHECK: hl.const "hello" : !hl.lvalue<!hl.array<6, !hl.char>>
 const char *str = "hello";
 
 // CHECK: hl.var "arr" : !hl.lvalue<!hl.array<3, !hl.int< const >>>
