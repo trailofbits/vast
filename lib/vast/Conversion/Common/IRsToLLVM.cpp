@@ -614,12 +614,48 @@ namespace vast::conv::irstollvm
                               attr, op);
         }
 
+
+        mlir::Value convert_strlit(hl::ConstantOp op, auto rewriter, auto &tc,
+                                   mlir_type target_type, mlir::StringAttr str_lit) const
+        {
+            // We need to include the terminating `0` which will not happen
+            // if we "just" pass the value in.
+            auto twine = llvm::Twine(std::string_view(str_lit.getValue().data(),
+                                                      str_lit.getValue().size() + 1));
+            auto converted_attr = mlir::StringAttr::get(op->getContext(), twine);
+
+            auto ptr_type = mlir::dyn_cast< mlir::LLVM::LLVMPointerType >(target_type);
+
+            auto mod = op->getParentOfType< mlir::ModuleOp >();
+            auto name = next_strlit_name(mod);
+
+            rewriter.guarded([&]()
+            {
+                rewriter->setInsertionPoint(&*mod.begin());
+                rewriter->template create< mlir::LLVM::GlobalOp >(
+                    op.getLoc(),
+                    ptr_type.getElementType(),
+                    true, /* is constant */
+                    LLVM::Linkage::Internal,
+                    name,
+                    converted_attr);
+            });
+
+            return rewriter->template create< mlir::LLVM::AddressOfOp >(op.getLoc(),
+                                                                        target_type,
+                                                                        name);
+        }
+
         mlir::Value make_from(
                 hl::ConstantOp op,
                 conversion_rewriter &rewriter,
                 auto &&tc) const
         {
             auto target_type = this->convert(op.getType());
+
+            if (auto str_lit = mlir::dyn_cast< mlir::StringAttr >(op.getValue()))
+                return convert_strlit(op, rewriter_wrapper_t(rewriter), tc,
+                                      target_type, str_lit);
 
             auto attr = convert_attr(op.getValue(), op, rewriter);
             return rewriter.create< LLVM::ConstantOp >(op.getLoc(), target_type, attr);
