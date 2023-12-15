@@ -535,7 +535,12 @@ namespace vast::cg {
             if (decl->hasInit()) {
                 auto declared = mlir::dyn_cast< hl::VarDeclOp >(var_decl);
                 auto &initializer = declared.getInitializer();
-                if (initializer.op_begin() == initializer.op_end()) {
+
+                assert(initializer.hasOneBlock());
+                // If the initializer isn't empty it means that we are revisiting
+                // already declared variable. Skip the initialization as we
+                // only want to return the variable.
+                if (initializer.front().empty()) {
                     auto guard = insertion_guard();
                     set_insertion_point_to_start(&declared.getInitializer());
 
