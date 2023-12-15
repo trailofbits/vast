@@ -10,7 +10,9 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Conversion/Common/Patterns.hpp"
 #include "vast/Conversion/TypeConverters/DataLayout.hpp"
+#include "vast/Conversion/TypeConverters/TypeConverter.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 #include "vast/Util/Common.hpp"
 
@@ -57,6 +59,7 @@ namespace vast::conv::tc {
                 mlir::AttrTypeReplacer replacer;
                 replacer.addReplacement(conv::tc::convert_type_attr(tc));
                 replacer.addReplacement(conv::tc::convert_data_layout_attrs(tc));
+                replacer.addReplacement(conv::tc::convert_string_attr(tc));
 
                 replacer.addReplacement([&](mlir_type t) { return tc.convert_type_to_type(t); }
                 );
