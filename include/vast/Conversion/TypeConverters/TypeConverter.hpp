@@ -170,11 +170,10 @@ namespace vast::conv::tc {
 
     auto convert_string_attr(auto &type_converter) {
         return [&type_converter](mlir::StringAttr attr) -> maybe_attr_t {
-            if (auto t = type_converter.convertType(attr.getType())) {
-                return mlir::StringAttr::get(attr.getValue(), t);
-            } else {
-                return {};
-            }
+            return Maybe(attr.getType())
+                .and_then([&](auto type) { return type_converter.convertType(type); })
+                .and_then([&](auto type) { return mlir::StringAttr::get(attr.getValue(), type); })
+                .template take_wrapped< maybe_attr_t >();
         };
     }
 } // namespace vast::conv::tc
