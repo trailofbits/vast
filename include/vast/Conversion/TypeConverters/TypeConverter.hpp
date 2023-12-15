@@ -167,4 +167,14 @@ namespace vast::conv::tc {
                 .template take_wrapped< maybe_attr_t >();
         };
     }
+
+    auto convert_string_attr(auto &type_converter) {
+        return [&type_converter](mlir::StringAttr attr) -> maybe_attr_t {
+            if (auto t = type_converter.convertType(attr.getType())) {
+                return mlir::StringAttr::get(attr.getValue(), t);
+            } else {
+                return {};
+            }
+        };
+    }
 } // namespace vast::conv::tc
