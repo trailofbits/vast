@@ -35,6 +35,9 @@ jobs:
         TOOLCHAIN: ${{ github.workspace }}/cmake/lld.toolchain.cmake
 
     steps:
+      - name: Remove safety checks for pygit
+        run: git config --global --add safe.directory '*'
+
       - name: Clone the vast repository
         uses: actions/checkout@v3
         with:
