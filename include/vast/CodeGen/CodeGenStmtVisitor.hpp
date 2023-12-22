@@ -1042,7 +1042,7 @@ namespace vast::cg {
                 return VisitTraitExpr< hl::AlignOfTypeOp, hl::AlignOfExprOp >(expr);
             }
 
-            VAST_UNREACHABLE("unsupported UnaryExprOrTypeTraitExpr");
+            return {};
         }
 
         // operation VisitVAArgExpr(const clang::VAArgExpr *expr)
