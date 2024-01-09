@@ -65,7 +65,7 @@ jobs:
           generate_release_notes: true
           files: |
             ${{ github.workspace }}/LICENSE
-            ${{ github.workspace }}/builds/ninja-multi-default/package/vast-*/*.tar.xz
+            ${{ github.workspace }}/builds/ninja-multi-default/package/VAST-*.tar.xz
 
       - name: Build VAST Doc
         run: cmake --build --preset ninja-rel --target vast-doc
