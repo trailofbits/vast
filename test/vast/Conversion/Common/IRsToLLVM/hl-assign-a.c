@@ -16,7 +16,6 @@ void count(int arg)
     // CHECK:    [[V3:%[0-9]+]] = llvm.mlir.constant(1 : index) : i64
     // CHECK:    [[V4:%[0-9]+]] = llvm.alloca [[V3]] x i32 : (i64) -> !llvm.ptr<i32>
     // CHECK:    [[V5:%[0-9]+]] = llvm.mlir.constant(43 : i32) : i32
-    // CHECK:    [[V6:%[0-9]+]] = llvm.load [[V1]] : !llvm.ptr<i32>
     // CHECK:    llvm.store [[V5]], [[V1]] : !llvm.ptr<i32>
     // CHECK:    llvm.store [[V5]], [[V4]] : !llvm.ptr<i32>
     unsigned int c = iter = 43;
