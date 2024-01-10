@@ -998,17 +998,18 @@ namespace vast::conv::irstollvm
             if (rhs.getType().template isa< hl::LValueType >())
                 return logical_result::failure();
 
-            auto load_lhs = rewriter.create< LLVM::LoadOp >(op.getLoc(), lhs);
             auto target_ty = this->convert(op.getSrc().getType());
 
             // Probably the easiest way to compose this (some template specialization would
             // require a lot of boilerplate).
             auto new_op = [&]()
             {
-                if constexpr (!std::is_same_v< Trg, void >)
+                if constexpr (!std::is_same_v< Trg, void >) {
+                    auto load_lhs = rewriter.create< LLVM::LoadOp >(op.getLoc(), lhs);
                     return rewriter.create< Trg >(op.getLoc(), target_ty, load_lhs, rhs);
-                else
+                } else {
                     return rhs;
+                }
             }();
 
             rewriter.create< LLVM::StoreOp >(op.getLoc(), new_op, lhs);
