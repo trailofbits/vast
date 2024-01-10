@@ -103,6 +103,12 @@ namespace vast::abi
             return t.isa< hl::PointerType >();
         }
 
+        // Pointers, references etc
+        static bool represents_pointer( mlir_type t )
+        {
+            return is_pointer( t );
+        }
+
         static mlir_type as_pointer( mlir_type t )
         {
             return hl::PointerType::get( t.getContext(), t );
@@ -380,6 +386,9 @@ namespace vast::abi
                 // __int128
                 return { Class::Integer, Class::Integer };
             }
+
+            if ( TypeConfig::represents_pointer( t ) )
+                return { Class::Integer, Class::NoClass };
 
             if ( TypeConfig::is_scalar_float( t ) )
             {
