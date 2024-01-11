@@ -24,6 +24,18 @@ def LowLevel_StructGEPOp
     let description = [{ VAST struct gep operation }];
 }
 
+def ArgAlloca
+    : LowLevel_Op< "arg_alloca" >,
+      Arguments<(ins AnyType:$fn_arg)>,
+      Results<(outs AnyType:$result)>
+{
+    let summary = "Alloca that holds the function argument.";
+
+    let assemblyFormat = [{
+        operands attr-dict `:` functional-type(operands, results)
+    }];
+}
+
 def UninitializedVar
     : LowLevel_Op< "uninitialized_var", [VastSymbol] >
     , Results<(outs AnyType:$result)>
