@@ -59,6 +59,8 @@ namespace vast
 
     std::unique_ptr< mlir::Pass > createHLToHLBI();
 
+    std::unique_ptr< mlir::Pass > createFnArgsToAllocaPass();
+
     // Generate the code for registering passes.
     #define GEN_PASS_REGISTRATION
     #include "vast/Conversion/Passes.h.inc"
