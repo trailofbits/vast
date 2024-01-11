@@ -63,6 +63,20 @@ def IRsToLLVM : Pass<"vast-irs-to-llvm", "mlir::ModuleOp"> {
   ];
 }
 
+def FnArgsToAlloca : Pass<"vast-fn-args-to-alloca", "mlir::ModuleOp"> {
+  let summary = "VAST to LLVM Dialect conversion";
+  let description = [{
+    For each function emit its prologue - for each argument make an alloca
+    and store the corresponding argument in it.
+  }];
+
+  let constructor = "vast::createFnArgsToAllocaPass()";
+  let dependentDialects = [
+    "vast::ll::LowLevelDialect",
+    "vast::core::CoreDialect"
+  ];
+}
+
 def CoreToLLVM : Pass<"vast-core-to-llvm", "mlir::ModuleOp"> {
   let summary = "VAST Core dialect to LLVM Dialect conversion";
   let description = [{
