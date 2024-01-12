@@ -16,6 +16,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DataLayout.hpp"
 #include "vast/Util/Maybe.hpp"
+#include "vast/Util/TypeUtils.hpp"
 
 namespace vast::conv::tc {
     using signature_conversion_t       = mlir::TypeConverter::SignatureConversion;
@@ -150,7 +151,21 @@ namespace vast::conv::tc {
         }
 
         auto get_is_illegal() {
-            return [this](mlir_type type) { return !this->self().isLegal(type); };
+            return [=](mlir_type t) { return !self().isLegal(t); };
+        }
+
+        template< typename op_t >
+        auto get_has_only_legal_types() {
+            return [=](op_t op) -> bool {
+                return !has_type_somewhere(op, get_is_illegal());
+            };
+        }
+
+        template< typename op_t >
+        auto get_has_legal_return_type() {
+            return [=](op_t op) -> bool {
+                return !contains_subtype(op.getResult().getType(), get_is_illegal());
+            };
         }
 
         mcontext_t &get_context() { return self().mctx; }
