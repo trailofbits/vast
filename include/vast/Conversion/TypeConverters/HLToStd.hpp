@@ -140,6 +140,7 @@ namespace vast::conv::tc {
         , CoreToStd< HLToStd >
     {
         using Base = mixins< HLToStd >;
+        using Base::convert_type;
         using Base::convert_type_to_type;
         using Base::convert_type_to_types;
 
@@ -185,14 +186,6 @@ namespace vast::conv::tc {
                 return mlir::IntegerType::SignednessSemantics::Unsigned;
             }();
             return mlir::IntegerType::get(&this->mctx, bitwidth, signedness);
-        }
-
-        auto convert_type() {
-            return [&](auto t) { return this->convert_type(t); };
-        }
-
-        auto convert_type_to_type() {
-            return [&](auto t) { return this->convert_type_to_type(t); };
         }
 
         auto make_int_type(bool is_signed) {
