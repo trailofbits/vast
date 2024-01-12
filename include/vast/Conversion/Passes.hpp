@@ -61,6 +61,8 @@ namespace vast
 
     std::unique_ptr< mlir::Pass > createFnArgsToAllocaPass();
 
+    std::unique_ptr< mlir::Pass > createLowerValueCategoriesPass();
+
     // Generate the code for registering passes.
     #define GEN_PASS_REGISTRATION
     #include "vast/Conversion/Passes.h.inc"
