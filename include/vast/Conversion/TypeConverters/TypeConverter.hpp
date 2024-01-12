@@ -27,6 +27,14 @@ namespace vast::conv::tc {
         using base::base;
 
         bool isSignatureLegal(core::FunctionType ty);
+
+        maybe_types_t do_conversion(mlir::Type t) {
+            types_t out;
+            if (mlir::succeeded(this->convertTypes(t, out))) {
+                return { std::move(out) };
+            }
+            return {};
+        }
     };
 
     struct identity_type_converter : base_type_converter
