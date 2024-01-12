@@ -1506,7 +1506,8 @@ namespace vast::conv::irstollvm
 
             auto legal_with_llvm_ret_type = [&]< typename T >( T && )
             {
-                target.addDynamicallyLegalOp< T >(get_has_legal_return_type< T >(tc));
+                auto query = tc.template get_has_legal_return_type< T >();
+                target.addDynamicallyLegalOp< T >(std::move(query));
             };
 
             legal_with_llvm_ret_type( core::LazyOp{} );
@@ -1516,7 +1517,7 @@ namespace vast::conv::irstollvm
 
 
             target.addDynamicallyLegalOp< hl::InitListExpr >(
-                get_has_only_legal_types< hl::InitListExpr >(tc)
+                tc.template get_has_only_legal_types< hl::InitListExpr >()
             );
 
             target.addIllegalOp< mlir::func::FuncOp >();
