@@ -2,4 +2,5 @@
 
 add_vast_conversion_library(GenericConversionPasses
     FnArgsToAlloca.cpp
+    LowerValueCategories.cpp
 )
