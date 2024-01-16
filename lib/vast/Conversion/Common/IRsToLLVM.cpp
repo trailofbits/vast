@@ -582,7 +582,12 @@ namespace vast::conv::irstollvm
             if (mlir::isa< mlir::NoneType >(op.getResult().getType())) {
                 return handle_void_const(op, rewriter);
             }
-            rewriter.replaceOp(op, make_from(op, rewriter, this->type_converter()));
+
+            auto val = make_from(op, rewriter, this->type_converter());
+            if (!val)
+                return mlir::failure();
+
+            rewriter.replaceOp(op, val);
             return logical_result::success();
         }
 
@@ -615,6 +620,7 @@ namespace vast::conv::irstollvm
 
             VAST_UNREACHABLE("Trying to convert attr that is not supported, {0} in op {1}",
                              attr, op);
+            return {};
         }
 
 
@@ -661,6 +667,8 @@ namespace vast::conv::irstollvm
                                       target_type, str_lit);
 
             auto attr = convert_attr(op.getValue(), op, rewriter);
+            if (!attr)
+                return {};
             return rewriter.create< LLVM::ConstantOp >(op.getLoc(), target_type, attr);
         }
     };
