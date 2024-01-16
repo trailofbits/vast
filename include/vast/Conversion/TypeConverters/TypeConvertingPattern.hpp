@@ -89,7 +89,7 @@ namespace vast::conv::tc {
 
             for (auto arg : region.front().getArguments()) {
                 auto trg = get_type_converter().convert_type_to_type(arg.getType());
-                VAST_PATTERN_CHECK(trg, "Type conversion failed: {0}", arg);
+                VAST_CHECK(trg, "Type conversion failed: {0}", arg);
                 arg.setType(*trg);
             }
         }

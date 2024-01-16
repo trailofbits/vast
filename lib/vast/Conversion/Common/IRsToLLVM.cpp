@@ -605,14 +605,16 @@ namespace vast::conv::irstollvm
                 double raw_value = float_attr.getValue().convertToDouble();
                 return rewriter.getFloatAttr(target_type, raw_value);
             }
+
             if (auto int_attr = attr.template dyn_cast< core::IntegerAttr >())
             {
                 auto size = dl.getTypeSizeInBits(target_type);
                 auto coerced = int_attr.getValue().sextOrTrunc(size);
                 return rewriter.getIntegerAttr(target_type, coerced);
             }
-            VAST_PATTERN_FAIL("Trying to convert attr that is not supported, {0} in op {1}",
-                              attr, op);
+
+            VAST_UNREACHABLE("Trying to convert attr that is not supported, {0} in op {1}",
+                             attr, op);
         }
 
 
