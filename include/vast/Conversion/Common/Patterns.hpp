@@ -24,11 +24,17 @@ namespace vast {
     // TODO(conv): In non-debug mode return `mlir::failure()` and do not log
     //             anything.
     // If this header is ever exported, probably remove this.
-    #define VAST_PATTERN_CHECK(cond, ...) \
-        VAST_CHECK( ::vast::detail::is_ok(cond), __VA_ARGS__)
+    #define VAST_PATTERN_CHECK(cond, fmt, ...) do { \
+        if (!::vast::detail::is_ok(cond)) { \
+            VAST_PATTERN_FAIL(fmt __VA_OPT__(,) __VA_ARGS__); \
+        } \
+    } while (0) \
 
-    #define VAST_PATTERN_FAIL(...) \
-        VAST_UNREACHABLE(__VA_ARGS__)
+    #define VAST_PATTERN_FAIL(...) do { \
+        VAST_UNREACHABLE(__VA_ARGS__); \
+        return mlir::failure(); \
+    } while(0) \
+
 
 
     template< typename T >
