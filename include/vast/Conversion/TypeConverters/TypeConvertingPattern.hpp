@@ -30,16 +30,17 @@ namespace vast::conv::tc {
         // TODO(conv:tc): This should probably be some interface instead, since
         //                 we are only updating the root?
         logical_result replace(
-            hl::FuncOp fn, mlir::ArrayRef< mlir::Value > ops, conversion_rewriter &rewriter
+            mlir::FunctionOpInterface fn,
+            mlir::ArrayRef< mlir::Value > ops, conversion_rewriter &rewriter
         ) const {
             auto old_type = fn.getFunctionType();
             auto trg_type = get_type_converter().convert_type_to_type(old_type);
-            VAST_PATTERN_CHECK(trg_type, "Type conversion failed for {0}", old_type);
+            VAST_CHECK(trg_type, "Type conversion failed for {0}", old_type);
 
             auto update = [&]() {
                 fn.setType(*trg_type);
                 if (fn->getNumRegions() != 0) {
-                    fixup_entry_block(fn.getBody());
+                    fixup_entry_block(fn.front());
                 }
             };
 
@@ -82,16 +83,20 @@ namespace vast::conv::tc {
             return mlir::success();
         }
 
+        void fixup_entry_block(mlir::Block &block) const {
+            for (auto arg : block.getArguments()) {
+                auto trg = get_type_converter().convert_type_to_type(arg.getType());
+                VAST_CHECK(trg, "Type conversion failed: {0}", arg);
+                arg.setType(*trg);
+            }
+        }
+
         void fixup_entry_block(mlir::Region &region) const {
             if (region.empty()) {
                 return;
             }
 
-            for (auto arg : region.front().getArguments()) {
-                auto trg = get_type_converter().convert_type_to_type(arg.getType());
-                VAST_CHECK(trg, "Type conversion failed: {0}", arg);
-                arg.setType(*trg);
-            }
+            return fixup_entry_block(region.front());
         }
     };
 
@@ -104,7 +109,7 @@ namespace vast::conv::tc {
             operation op, mlir::ArrayRef< mlir::Value > ops,
             conversion_rewriter &rewriter
         ) const override {
-            if (auto func_op = mlir::dyn_cast< hl::FuncOp >(op))
+            if (auto func_op = mlir::dyn_cast< mlir::FunctionOpInterface >(op))
                 return base::replace(func_op, ops, rewriter);
             return base::replace(op, ops, rewriter);
         }
