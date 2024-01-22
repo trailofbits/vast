@@ -85,11 +85,11 @@ namespace vast {
     llvm::raw_ostream& vast_debug();
 
     #define VAST_ERROR(...) do { \
-      vast_error() << "[VAST Error] " << llvm::formatv(__VA_ARGS__) << "\n"; \
+      vast_error() << "[VAST error] " << llvm::formatv(__VA_ARGS__) << "\n"; \
     } while(0)
 
     #define VAST_REPORT(...) do { \
-      vast_debug() << "[VAST Debug] " << llvm::formatv(__VA_ARGS__) << "\n"; \
+      vast_debug() << "[VAST debug] " << llvm::formatv(__VA_ARGS__) << "\n"; \
     } while(0)
 
     #define VAST_UNREACHABLE(...) do { \
@@ -97,20 +97,39 @@ namespace vast {
       llvm_unreachable(nullptr); \
     } while (0)
 
-    #define VAST_UNIMPLEMENTED VAST_UNREACHABLE("not implemented: {0}", __PRETTY_FUNCTION__)
+    #define VAST_TRAP LLVM_BUILTIN_TRAP
+
+    #define VAST_FATAL(...) do { \
+      vast_error() << "[VAST fatal] " << llvm::formatv(__VA_ARGS__) << "\n"; \
+      VAST_TRAP; \
+    } while(0)
+
+    #define VAST_CHECK(cond, fmt, ...) \
+        if (!(cond)) { VAST_FATAL(fmt __VA_OPT__(,) __VA_ARGS__); }
+
+    #define VAST_UNIMPLEMENTED \
+        VAST_FATAL("not implemented: {0}", __PRETTY_FUNCTION__)
 
     #define VAST_UNIMPLEMENTED_MSG(msg) \
-      VAST_UNREACHABLE("not implemented: {0} because {1}", __PRETTY_FUNCTION__, msg)
+        VAST_FATAL("not implemented: {0} because {1}", __PRETTY_FUNCTION__, msg)
 
     #define VAST_UNIMPLEMENTED_IF(cond) \
-      if (cond) { VAST_UNREACHABLE("not implemented: {0}", __PRETTY_FUNCTION__); }
+        if (cond) { VAST_FATAL("not implemented: {0}", __PRETTY_FUNCTION__); }
 
-    #define VAST_DEBUG(fmt, ...) LLVM_DEBUG(VAST_REPORT(__VA_ARGS__))
 
-    #define VAST_CHECK(cond, fmt, ...) if (!(cond)) { VAST_UNREACHABLE(fmt __VA_OPT__(,) __VA_ARGS__); }
+    #define VAST_TODO(fmt, ... ) \
+        VAST_FATAL("[Vast TODO]: " # fmt __VA_OPT__(,) __VA_ARGS__ )
 
-    #define VAST_ASSERT(cond) if (!(cond)) { VAST_UNREACHABLE("assertion: " #cond " failed"); }
-
-    #define VAST_TODO(fmt, ... ) VAST_UNREACHABLE("[vast-todo]: " # fmt __VA_OPT__(,) __VA_ARGS__ )
+    #if !defined(NDEBUG)
+        #define VAST_ASSERT(cond) \
+            if (!(cond)) { \
+                vast_error() << "[VAST assert] " << llvm::formatv(#cond) << " failed\n"; \
+                VAST_TRAP; \
+            }
+    #elif defined(VAST_RELEASE_WITH_ASSERTS)
+        #define VAST_ASSERT(...) VAST_CHECK(__VA_ARGS__)
+    #else
+        #define VAST_ASSERT(...)
+    #endif
 
 } // namespace vast
