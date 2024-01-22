@@ -53,7 +53,7 @@ namespace vast::abi
 
         static bool is_complex( mlir::Type t )
         {
-            VAST_ASSERT( false );
+            VAST_UNIMPLEMENTED;
         }
 
         static bool is_record( mlir::Type t )
@@ -498,7 +498,7 @@ namespace vast::abi
 
                 case Class::SSEUp:
                 case Class::X87Up:
-                    VAST_ASSERT( false );
+                    VAST_UNIMPLEMENTED;
 
                 case Class::Memory:
                     // TODO(abi): Inject type.
@@ -516,7 +516,7 @@ namespace vast::abi
                     return { target_type };
                 }
                 default:
-                    VAST_ASSERT( false );
+                    VAST_UNIMPLEMENTED;
             }
         }
 
@@ -527,7 +527,7 @@ namespace vast::abi
             {
                 case Class::Memory:
                 case Class::X87:
-                    VAST_ASSERT( false );
+                    VAST_UNIMPLEMENTED;
                 case Class::ComplexX87:
                 case Class::NoClass:
                     return { std::monostate{} };
@@ -542,7 +542,7 @@ namespace vast::abi
                 case Class::SSE:
                 case Class::SSEUp:
                 case Class::X87Up:
-                    VAST_ASSERT( false );
+                    VAST_UNIMPLEMENTED;
             }
         }
 
@@ -648,7 +648,7 @@ namespace vast::abi
                 case Class::X87Up:
                 {
                     // This should actually not happen.
-                    VAST_ASSERT( false );
+                    VAST_UNREACHABLE("This shouldn't happen");
                 }
 
                 case Class::Integer:
