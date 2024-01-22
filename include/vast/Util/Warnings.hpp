@@ -118,7 +118,7 @@ namespace vast {
 
 
     #define VAST_TODO(fmt, ... ) \
-        VAST_FATAL("[Vast TODO]: " # fmt __VA_OPT__(,) __VA_ARGS__ )
+        VAST_FATAL("[VAST TODO]: " # fmt __VA_OPT__(,) __VA_ARGS__ )
 
     #if !defined(NDEBUG)
         #define VAST_ASSERT(cond) \
