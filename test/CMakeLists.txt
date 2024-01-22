@@ -21,4 +21,6 @@ add_lit_testsuite(check-vast "Running the VAST regression tests"
 set_target_properties(check-vast PROPERTIES FOLDER "Tests")
 
 add_lit_testsuites(VAST ${CMAKE_CURRENT_SOURCE_DIR} DEPENDS ${VAST_TEST_DEPENDS})
-add_test(NAME lit COMMAND lit -v "${CMAKE_CURRENT_BINARY_DIR}")
+add_test(NAME lit
+         COMMAND lit -v "${CMAKE_CURRENT_BINARY_DIR}"
+         --param BUILD_TYPE=$<CONFIG>)
