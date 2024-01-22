@@ -31,7 +31,6 @@ namespace vast::conv::tc {
         template< typename... Args >
         LLVMTypeConverter(Args &&...args) : base(std::forward< Args >(args)...) {
             addConversion([&](hl::LabelType t) { return t; });
-            addConversion([&](hl::DecayedType t) { return this->convert_decayed(t); });
             addConversion([&](hl::LValueType t) { return this->convert_lvalue_type(t); });
             addConversion([&](hl::PointerType t) { return this->convert_pointer_type(t); });
             addConversion([&](mlir::MemRefType t) { return this->convert_memref_type(t); });
@@ -68,13 +67,6 @@ namespace vast::conv::tc {
                 VAST_ASSERT(!t.template isa< mlir::NoneType >());
                 return LLVM::LLVMPointerType::get(t);
             };
-        }
-
-        maybe_type_t convert_decayed(hl::DecayedType t) {
-            VAST_UNREACHABLE(
-                "We shouldn't encounter decayed this late in the pipeline, {0}", t
-            );
-            return {};
         }
 
         maybe_type_t convert_lvalue_type(hl::LValueType t) {
