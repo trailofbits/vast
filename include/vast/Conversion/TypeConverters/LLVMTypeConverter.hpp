@@ -201,7 +201,7 @@ namespace vast::conv::tc {
                 if (core.isOpaque() && std::ranges::find(bt, t) == bt.end()) {
                     if (auto body = convert_field_types(t)) {
                         // Multithreading may cause some issues?
-                        auto status = core.setBody(*body, false);
+                        [[maybe_unused]] auto status = core.setBody(*body, false);
                         VAST_ASSERT(mlir::succeeded(status));
                     }
                 }
