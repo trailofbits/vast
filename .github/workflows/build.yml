@@ -26,6 +26,7 @@ jobs:
       matrix:
         llvm-version: [17]
         image-version: [22.04]
+        build-type: [rel, deb]
 
     runs-on: ubuntu-${{ matrix.image-version }}
     timeout-minutes: 60
@@ -53,9 +54,9 @@ jobs:
               -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
               -DLLVM_EXTERNAL_LIT=${LLVM_EXTERNAL_LIT}
 
-      - name: Build debug
+      - name: Build ${{ matrix.build-type }}
         run: |
-            cmake --build --preset ninja-deb -j $(nproc)
+            cmake --build --preset ninja-${{ matrix.build-type }} -j $(nproc)
 
-      - name: Test
-        run: ctest --preset ninja-deb --output-on-failure
+      - name: Test ${{ matrix.build-type }}
+        run: ctest --preset ninja-${{ matrix.build-type }} --output-on-failure
