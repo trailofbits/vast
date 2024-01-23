@@ -128,6 +128,20 @@ namespace vast::cc {
             *passes << std::move(step);
         }
 
+        if (vargs.has_option(opt::print_pipeline)) {
+            passes->dump();
+        }
+
+        if (vargs.has_option(opt::disable_multithreading) || vargs.has_option(opt::emit_crash_reproducer)) {
+            mctx.disableMultithreading();
+        }
+
+        if (vargs.has_option(opt::emit_crash_reproducer)) {
+            auto reproducer_path = vargs.get_option(opt::emit_crash_reproducer);
+            VAST_CHECK(reproducer_path.has_value(), "expected path to reproducer");
+            passes->enableCrashReproducerGeneration(reproducer_path.value(), true /* local reproducer */);
+        }
+
         return passes;
     }
 
