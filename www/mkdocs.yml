@@ -4,6 +4,7 @@ nav:
   - Introduction: README.md
   - Getting Started:
     - Build & Run: GettingStarted/build.md
+    - Debug: GettingStarted/debug.md
     - How to contribute: CONTRIBUTING.md
     - How to create a new dialect: GettingStarted/extend.md
   - Dialects:
