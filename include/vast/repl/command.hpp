@@ -60,7 +60,7 @@ namespace vast::repl
             if (token == "ast")     return enum_type::ast;
             if (token == "module")  return enum_type::module;
             if (token == "symbols") return enum_type::symbols;
-            VAST_UNREACHABLE("uknnown show kind: {0}", token.str());
+            VAST_FATAL("uknnown show kind: {0}", token.str());
         }
 
         enum class meta_action { add, get };
@@ -69,7 +69,7 @@ namespace vast::repl
         enum_type from_string(string_ref token) requires(std::is_same_v< enum_type, meta_action >) {
             if (token == "add") return enum_type::add;
             if (token == "get") return enum_type::get;
-            VAST_UNREACHABLE("uknnown action kind: {0}", token.str());
+            VAST_FATAL("uknnown action kind: {0}", token.str());
         }
 
         //
@@ -112,7 +112,7 @@ namespace vast::repl
         template< const char *name, typename params_storage >
         auto get_param(const params_storage &params) {
             if constexpr (std::tuple_size_v< params_storage > == 0) {
-                VAST_UNREACHABLE(("unknown param name " + std::string(name)).c_str());
+                VAST_FATAL(("unknown param name " + std::string(name)).c_str());
             } else {
                 using current = typename std::tuple_element< 0, params_storage >::type;
 
@@ -267,7 +267,7 @@ namespace vast::repl
         }
 
         if constexpr (params_list::empty) {
-            VAST_UNREACHABLE(("no match for param: " + tokens.front()).str().c_str());
+            VAST_FATAL(("no match for param: " + tokens.front()).str().c_str());
         } else {
             using current_param = typename params_list::head;
             using rest          = typename params_list::tail;
@@ -296,7 +296,7 @@ namespace vast::repl
 
         if constexpr (commands::empty) {
             // we did not recursivelly match any of known commands
-            VAST_UNREACHABLE(("no match for command: " + tokens.front()).str().c_str());
+            VAST_FATAL(("no match for command: " + tokens.front()).str().c_str());
         } else {
             using current_command = typename commands::head;
             using rest            = typename commands::tail;

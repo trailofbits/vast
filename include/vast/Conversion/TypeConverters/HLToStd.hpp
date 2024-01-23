@@ -227,7 +227,7 @@ namespace vast::conv::tc {
                     case 128:
                         return mlir::FloatType::getF128(&mctx);
                     default:
-                        VAST_UNREACHABLE("Cannot lower float bitsize {0}", target_bw);
+                        VAST_FATAL("Cannot lower float bitsize {0}", target_bw);
                 }
             };
         }

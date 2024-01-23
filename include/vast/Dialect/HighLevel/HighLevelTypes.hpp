@@ -166,7 +166,7 @@ namespace vast::hl
             .Case< LongDoubleType >([&] (auto t) { return fty::getF80(ctx);  })
             .Case< Float128Type   >([&] (auto t) { return fty::getF128(ctx); })
             .Default([] (auto t) {
-                VAST_UNREACHABLE("unknown float type: {0}", format_type(t));
+                VAST_FATAL("unknown float type: {0}", format_type(t));
                 return mlir_type();
             });
     }

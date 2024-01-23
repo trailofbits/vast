@@ -747,7 +747,7 @@ namespace vast::cg {
                 return VisitFunctionDeclRefExpr(expr);
             }
 
-            VAST_UNREACHABLE("unknown underlying declaration to be referenced");
+            VAST_UNIMPLEMENTED_MSG("unknown underlying declaration to be referenced");
         }
 
         Operation *VisitPredefinedExpr(const clang::PredefinedExpr *expr)

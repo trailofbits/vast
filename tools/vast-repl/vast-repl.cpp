@@ -44,7 +44,7 @@ namespace vast::repl
                 auto params = parse_params< cmd::load::command_params >(args);
                 cli.exec(make_command< cmd::load >(params));
             } else {
-                VAST_UNREACHABLE("unsupported arguments");
+                VAST_FATAL("unsupported arguments");
             }
         }
 

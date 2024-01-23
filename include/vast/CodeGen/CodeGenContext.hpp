@@ -215,7 +215,7 @@ namespace vast::cg
                 if (const auto *d = llvm::dyn_cast< clang::NamedDecl >(dctx)) {
                     name += get_decl_name(d);
                 } else {
-                    VAST_UNREACHABLE("unknown decl context: {0}", dctx->getDeclKindName());
+                    VAST_FATAL("unknown decl context: {0}", dctx->getDeclKindName());
                 }
 
                 name += "::";

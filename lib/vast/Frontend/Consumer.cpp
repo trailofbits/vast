@@ -79,7 +79,7 @@ namespace vast::cc {
 
         if (!vargs.has_option(opt::disable_vast_verifier)) {
             if (!codegen->verify_module()) {
-                VAST_UNREACHABLE("codegen: module verification error before running vast passes");
+                VAST_FATAL("codegen: module verification error before running vast passes");
             }
         }
     }
@@ -213,7 +213,7 @@ namespace vast::cc {
         // diagnostics matched.
         if (verify_diagnostics && src_mgr_handler.verify().failed()) {
             llvm::sys::RunInterruptHandlers();
-            VAST_UNREACHABLE("failed mlir codegen");
+            VAST_FATAL("failed mlir codegen");
         }
 
         // Emit remaining defaulted C++ methods
@@ -233,9 +233,8 @@ namespace vast::cc {
             pipeline_source::ast, output_type::emit_mlir, *mctx, vargs, default_pipelines_config()
         );
 
-        if (mlir::failed(pipeline->run(mod))) {
-            VAST_UNREACHABLE("MLIR pass manager failed when running vast passes");
-        }
+        auto result = pipeline->run(mod);
+        VAST_CHECK(mlir::succeeded(result), "MLIR pass manager failed when running vast passes");
     }
 
     source_language get_source_language(const cc::language_options &opts) {
