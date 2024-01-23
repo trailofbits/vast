@@ -73,7 +73,9 @@ namespace vast::cc
         constexpr string_ref emit_mlir = "emit-mlir";
 
         constexpr string_ref print_pipeline = "print-pipeline";
+        constexpr string_ref emit_crash_reproducer = "emit-crash-reproducer";
 
+        constexpr string_ref disable_multithreading = "disable-multithreading";
         constexpr string_ref debug = "debug";
 
         constexpr string_ref simplify = "simplify";

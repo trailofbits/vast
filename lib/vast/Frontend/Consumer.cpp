@@ -214,10 +214,6 @@ namespace vast::cc {
         );
         VAST_CHECK(pipeline, "failed to setup pipeline");
 
-        if (vargs.has_option(opt::print_pipeline)) {
-            pipeline->dump();
-        }
-
         auto result = pipeline->run(mod.get());
         VAST_CHECK(mlir::succeeded(result), "MLIR pass manager failed when running vast passes");
 
