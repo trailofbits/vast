@@ -13,7 +13,7 @@ namespace vast::conv::pipeline {
 
     pipeline_step_ptr irs_to_llvm() {
         // TODO add dependencies
-        return pass(createIRsToLLVMPass).depends_on(core_to_llvm);
+        return pass(createIRsToLLVMPass);
     }
 
 } // namespace vast::conv::pipeline
