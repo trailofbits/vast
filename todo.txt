@@ -1,0 +1,34 @@
+Failed Tests (27):
+  VAST :: vast/Compile/ObjectFiles/identity-a.c
+  VAST :: vast/Compile/ObjectFiles/struct-a.c
+  VAST :: vast/Compile/ObjectFiles/struct-b.c
+  VAST :: vast/Compile/ObjectFiles/void-return-a.c
+  VAST :: vast/Compile/SingleSource/argc.c
+  VAST :: vast/Compile/SingleSource/argv-a.c
+  VAST :: vast/Compile/SingleSource/fib-a.c
+  VAST :: vast/Compile/SingleSource/global-a.c
+  VAST :: vast/Compile/SingleSource/putchar-a.c
+  VAST :: vast/Compile/SingleSource/puts-a.c
+  VAST :: vast/Compile/SingleSource/strlit-a.c
+  VAST :: vast/Conversion/Common/IRsToLLVM/bin_chain-a.c
+  VAST :: vast/Conversion/Common/IRsToLLVM/cast-a.c
+  VAST :: vast/Conversion/Common/IRsToLLVM/cast-b.cpp
+  VAST :: vast/Conversion/Common/IRsToLLVM/cast-c.c
+  VAST :: vast/Conversion/Common/IRsToLLVM/cast-d.c
+  VAST :: vast/Conversion/Common/IRsToLLVM/cast-e.cpp
+  VAST :: vast/Conversion/Common/IRsToLLVM/cast-f.c
+  VAST :: vast/Conversion/Common/IRsToLLVM/cast-g.c
+  VAST :: vast/Conversion/Common/IRsToLLVM/cast-h.c
+  VAST :: vast/Conversion/Common/IRsToLLVM/cast-i.c
+  VAST :: vast/Conversion/Common/IRsToLLVM/cast-j.c
+  VAST :: vast/Conversion/Common/IRsToLLVM/signs.c
+  VAST :: vast/Dialect/HighLevel/asm-c.c
+  VAST :: vast/Dialect/HighLevel/attr-c.c
+  VAST :: vast/Dialect/HighLevel/vararg-a.c
+  VAST :: vast/Transform/HL/LowerTypes/vars-b.cpp
+
+
+Testing Time: 1.96s
+  Unsupported:  14
+  Passed     : 219
+  Failed     :  27
