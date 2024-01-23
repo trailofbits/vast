@@ -207,7 +207,19 @@ namespace vast::cc {
             llvm::DebugFlag = true;
         }
 
-        execute_pipeline(mod.get(), mctx);
+        // Setup and execute vast pipeline
+        auto pipeline = setup_pipeline(
+            pipeline_source::ast, output_type::emit_mlir, *mctx, vargs,
+            default_pipelines_config()
+        );
+        VAST_CHECK(pipeline, "failed to setup pipeline");
+
+        if (vargs.has_option(opt::print_pipeline)) {
+            pipeline->dump();
+        }
+
+        auto result = pipeline->run(mod.get());
+        VAST_CHECK(mlir::succeeded(result), "MLIR pass manager failed when running vast passes");
 
         // Verify the diagnostic handler to make sure that each of the
         // diagnostics matched.
@@ -226,15 +238,6 @@ namespace vast::cc {
         flags.enableDebugInfo(vargs.has_option(opt::show_locs), /* prettyForm */ true);
 
         mod->print(*output_stream, flags);
-    }
-
-    void vast_consumer::execute_pipeline(vast_module mod, mcontext_t *mctx) {
-        auto pipeline = setup_pipeline(
-            pipeline_source::ast, output_type::emit_mlir, *mctx, vargs, default_pipelines_config()
-        );
-
-        auto result = pipeline->run(mod);
-        VAST_CHECK(mlir::succeeded(result), "MLIR pass manager failed when running vast passes");
     }
 
     source_language get_source_language(const cc::language_options &opts) {

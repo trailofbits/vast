@@ -61,8 +61,6 @@ namespace vast::cc {
 
       protected:
 
-        void execute_pipeline(vast_module mod, mcontext_t *mctx);
-
         virtual void anchor() {}
 
         action_options opts;

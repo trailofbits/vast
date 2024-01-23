@@ -72,14 +72,14 @@ namespace vast::cc
         constexpr string_ref emit_asm  = "emit-asm";
         constexpr string_ref emit_mlir = "emit-mlir";
 
+        constexpr string_ref print_pipeline = "print-pipeline";
+
         constexpr string_ref debug = "debug";
 
         constexpr string_ref simplify = "simplify";
 
         constexpr string_ref show_locs = "show-locs";
         constexpr string_ref locs_as_meta_ids = "locs-as-meta-ids";
-
-        constexpr string_ref opt_pipeline  = "pipeline";
 
         constexpr string_ref disable_vast_verifier = "disable-vast-verifier";
         constexpr string_ref vast_verify_diags = "verify-diags";
