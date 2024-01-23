@@ -15,7 +15,7 @@ namespace vast::cc {
         if (trg == "cir") {
             return target_dialect::cir;
         }
-        VAST_UNREACHABLE("Unknown option of target dialect: {0}", trg);
+        VAST_FATAL("Unknown option of target dialect: {0}", trg);
     }
 
     std::string to_string(target_dialect target) {

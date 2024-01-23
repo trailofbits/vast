@@ -30,7 +30,7 @@ namespace vast::cg {
             case BuiltinType::UInt128:
                 return hl::IntegerKind::Int128;
             default:
-                VAST_UNREACHABLE("unknown integer kind");
+                VAST_UNIMPLEMENTED_MSG("unknown integer kind");
         }
     }
 
@@ -51,7 +51,7 @@ namespace vast::cg {
             case BuiltinType::Float128:
                 return hl::FloatingKind::Float128;
             default:
-                VAST_UNREACHABLE("unknown floating kind");
+                VAST_UNIMPLEMENTED_MSG("unknown floating kind");
         }
     }
 

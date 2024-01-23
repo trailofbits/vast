@@ -51,7 +51,7 @@ namespace vast::cc
             case EmitAssembly: return std::make_unique< vast::cc::emit_assembly_action >(vargs);
             case EmitLLVM: return std::make_unique< vast::cc::emit_llvm_action >(vargs);
             case EmitObj: return std::make_unique< vast::cc::emit_obj_action >(vargs);
-            default: VAST_UNREACHABLE("unsupported frontend action");
+            default: VAST_UNIMPLEMENTED_MSG("unsupported frontend action");
         }
 
         VAST_UNIMPLEMENTED_MSG("not implemented frontend action");

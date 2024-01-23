@@ -44,7 +44,7 @@ namespace vast::cc {
                 break;
         }
 
-        VAST_UNREACHABLE("unsupported action type");
+        VAST_FATAL("unsupported action type");
     }
 
     static auto get_output_stream(compiler_instance &ci, string_ref in, output_type act)

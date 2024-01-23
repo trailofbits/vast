@@ -185,7 +185,7 @@ namespace vast::cg {
                     return fn;
                 }
 
-                VAST_UNREACHABLE("NYI");
+                VAST_UNIMPLEMENTED;
 
                 // TODO: clang checks here if this is a llvm::GlobalAlias... how will we
                 // support this?
@@ -282,7 +282,7 @@ namespace vast::cg {
                 return fn;
             }
 
-            VAST_UNREACHABLE("codegen of incomplete function");
+            VAST_FATAL("codegen of incomplete function");
         }
 
         vast_function get_addr_of_function(
@@ -486,7 +486,7 @@ namespace vast::cg {
                 case clang::SC_PrivateExtern: return hl::StorageClass::sc_private_extern;
                 case clang::SC_Register: return hl::StorageClass::sc_register;
             }
-            VAST_UNREACHABLE("unknown storage class");
+            VAST_UNIMPLEMENTED_MSG("unknown storage class");
         }
 
         hl::TSClass VisitThreadStorageClass(const clang::VarDecl *decl) const {
@@ -496,7 +496,7 @@ namespace vast::cg {
                 case clang::TSCS_thread_local: return hl::TSClass::tsc_cxx_thread;
                 case clang::TSCS__Thread_local: return hl::TSClass::tsc_c_thread;
             }
-            VAST_UNREACHABLE("unknown storage class");
+            VAST_UNIMPLEMENTED_MSG("unknown thread storage class");
         }
 
         operation VisitVarDecl(const clang::VarDecl *decl) {
@@ -713,7 +713,7 @@ namespace vast::cg {
                 case clang::AccessSpecifier::AS_none:
                     return hl::AccessSpecifier::as_none;
             }
-            VAST_UNREACHABLE("unknown access specifier");
+            VAST_UNIMPLEMENTED_MSG("unknown access specifier");
         }
 
         //

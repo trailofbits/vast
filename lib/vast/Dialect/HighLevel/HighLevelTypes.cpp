@@ -57,7 +57,7 @@ namespace vast::hl
             }
         }
 
-        VAST_UNREACHABLE("unknown typedef name");
+        VAST_FATAL("unknown typedef name");
     }
 
     auto name_of_record(mlir_type t) -> std::optional< std::string >
@@ -77,7 +77,7 @@ namespace vast::hl
         if (auto ty = type.dyn_cast< TypedefType >())
             return getFunctionType(getTypedefType(ty, mod), mod);
 
-        VAST_UNREACHABLE("unknown type to extract function type");
+        VAST_UNIMPLEMENTED_MSG("unknown type to extract function type");
     }
 
     core::FunctionType getFunctionType(Value callee) {
@@ -102,7 +102,7 @@ namespace vast::hl
             return getFunctionType(value.getType(), mod);
         }
 
-        VAST_UNREACHABLE("unknown callee type");
+        VAST_UNIMPLEMENTED_MSG("unknown callee type");
     }
 
 

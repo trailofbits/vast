@@ -450,7 +450,7 @@ namespace vast::cg
                     VAST_UNIMPLEMENTED;
                 } else if (body) {
                     if (mlir::failed(build_function_body(body))) {
-                        VAST_UNREACHABLE("failed function body codegen");
+                        VAST_FATAL("failed function body codegen");
                     }
                 } else {
                     VAST_UNIMPLEMENTED_MSG("no definition for emitted function");

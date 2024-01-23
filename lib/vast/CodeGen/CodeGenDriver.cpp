@@ -163,7 +163,7 @@ namespace vast::cg
         if (const auto *var = llvm::dyn_cast< clang::VarDecl >(decl))
             return build_global_var_definition(var, !var->hasDefinition());
 
-        VAST_UNREACHABLE("Invalid argument to buildGlobalDefinition()");
+        VAST_FATAL("Invalid argument to buildGlobalDefinition()");
 
     }
 
@@ -312,7 +312,7 @@ namespace vast::cg
             return true;
         }
 
-        VAST_UNREACHABLE("unsupported value decl");
+        VAST_UNIMPLEMENTED_MSG("unsupported value decl");
     }
 
     void codegen_driver::build_default_methods() {

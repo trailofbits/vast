@@ -39,7 +39,7 @@ namespace vast::core {
                 return true;
         }
 
-        VAST_UNREACHABLE("No such linkage");
+        VAST_FATAL("No such linkage");
     }
 
     bool is_vardecl_strong_definition(const clang::VarDecl* decl) {
@@ -149,10 +149,8 @@ namespace vast::core {
             case GlobalLinkageKind::PrivateLinkage:
                 return Visibility::Private;
             default:
-                VAST_UNREACHABLE("unsupported linkage kind {0}", stringifyGlobalLinkageKind(linkage));
+                VAST_FATAL("unsupported linkage kind {0}", stringifyGlobalLinkageKind(linkage));
         }
-
-        VAST_UNREACHABLE("missed linkage kind");
     }
 
     GlobalLinkageKind get_declarator_linkage(

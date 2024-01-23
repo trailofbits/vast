@@ -86,7 +86,7 @@ namespace vast::hl
             case clang::CastKind::CK_MatrixCast: return CastKind::MatrixCast;
         }
 
-        VAST_UNREACHABLE( "unsupported cast kind" );
+        VAST_UNIMPLEMENTED_MSG( "unsupported cast kind" );
     }
 
     IdentKind ident_kind(const clang::PredefinedExpr *expr)

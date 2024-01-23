@@ -38,7 +38,7 @@ namespace vast::hl
             return DeclContextKind::dc_record;
         if (mlir::isa< EnumDeclOp >(st))
             return DeclContextKind::dc_enum;
-        VAST_UNREACHABLE("unknown declaration context");
+        VAST_UNIMPLEMENTED_MSG("unknown declaration context");
     }
 
     bool VarDeclOp::isStaticDataMember() {
@@ -63,7 +63,7 @@ namespace vast::hl
             case StorageClass::sc_private_extern: return false;
         }
 
-        VAST_UNREACHABLE("unknown starage class");
+        VAST_UNIMPLEMENTED_MSG("unknown starage class");
     }
 
     bool VarDeclOp::isStaticLocal() {
