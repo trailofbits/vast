@@ -37,7 +37,7 @@ namespace vast::cc {
     // scheduled pipeline.
     //
     std::unique_ptr< pipeline_t > setup_pipeline(
-        pipeline_source src, output_type trg,
+        pipeline_source src, target_dialect trg,
         mcontext_t &mctx,
         const vast_args &vargs,
         const pipelines_config &config

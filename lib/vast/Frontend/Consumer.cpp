@@ -149,8 +149,10 @@ namespace vast::cc {
                     backend::Backend_EmitAssembly, std::move(mod), mctx.get()
                 );
             case output_type::emit_mlir: {
-                auto trg = parse_target_dialect(vargs.get_option(opt::emit_mlir).value());
-                return emit_mlir_output(trg, std::move(mod), mctx.get());
+                if (auto trg = vargs.get_option(opt::emit_mlir)) {
+                    return emit_mlir_output(parse_target_dialect(trg.value()), std::move(mod), mctx.get());
+                }
+                VAST_FATAL("no target dialect specified for MLIR output");
             }
             case output_type::emit_llvm:
                 return emit_backend_output(
@@ -170,21 +172,20 @@ namespace vast::cc {
     ) {
         llvm::LLVMContext llvm_context;
 
+        process_mlir_module(target_dialect::llvm, mlir_module.get(), mctx);
+
         auto mod = target::llvmir::translate(mlir_module.get(), llvm_context);
         auto dl  = cgctx->actx.getTargetInfo().getDataLayoutString();
+
         clang::EmitBackendOutput(
             opts.diags, opts.headers, opts.codegen, opts.target, opts.lang, dl, mod.get(),
             backend_action, &opts.vfs, std::move(output_stream)
         );
     }
 
-    void vast_stream_consumer::emit_mlir_output(
-        target_dialect target, owning_module_ref mod, mcontext_t *mctx
+    void vast_stream_consumer::process_mlir_module(
+        target_dialect target, mlir::ModuleOp mod, mcontext_t *mctx
     ) {
-        if (!output_stream || !mod) {
-            return;
-        }
-
         // Handle source manager properly given that lifetime analysis
         // might emit warnings and remarks.
         auto &src_mgr     = cgctx->actx.getSourceManager();
@@ -209,12 +210,12 @@ namespace vast::cc {
 
         // Setup and execute vast pipeline
         auto pipeline = setup_pipeline(
-            pipeline_source::ast, output_type::emit_mlir, *mctx, vargs,
+            pipeline_source::ast, target, *mctx, vargs,
             default_pipelines_config()
         );
         VAST_CHECK(pipeline, "failed to setup pipeline");
 
-        auto result = pipeline->run(mod.get());
+        auto result = pipeline->run(mod);
         VAST_CHECK(mlir::succeeded(result), "MLIR pass manager failed when running vast passes");
 
         // Verify the diagnostic handler to make sure that each of the
@@ -228,6 +229,16 @@ namespace vast::cc {
         // if (!vargs.has_option(opt::disable_emit_cxx_default)) {
         //     generator->build_default_methods();
         // }
+    }
+
+    void vast_stream_consumer::emit_mlir_output(
+        target_dialect target, owning_module_ref mod, mcontext_t *mctx
+    ) {
+        if (!output_stream || !mod) {
+            return;
+        }
+
+        process_mlir_module(target, mod.get(), mctx);
 
         // FIXME: we cannot roundtrip prettyForm=true right now.
         mlir::OpPrintingFlags flags;

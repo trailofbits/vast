@@ -98,6 +98,10 @@ namespace vast::cc {
             target_dialect target, owning_module_ref mod, mcontext_t *mctx
         );
 
+        void process_mlir_module(
+            target_dialect target, mlir::ModuleOp mod, mcontext_t *mctx
+        );
+
         output_type action;
         output_stream_ptr output_stream;
     };
