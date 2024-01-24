@@ -62,7 +62,7 @@ namespace vast::cc {
 
         gap::generator< pipeline_step_ptr > conversion(
             pipeline_source src,
-            output_type trg,
+            target_dialect trg,
             const vast_args &vargs,
             const pipelines_config &config
         ) {
@@ -70,17 +70,9 @@ namespace vast::cc {
             // deduced from source, target and vargs
             auto path = default_conversion_path;
 
-            auto target_dialect =  [&] () -> enum target_dialect {
-                if (trg == output_type::emit_mlir) {
-                    return parse_target_dialect(vargs.get_option(opt::emit_mlir).value());
-                }
-                // if we user do not specify target dialect, we convert all the way to llvm
-                return target_dialect::llvm;
-            } ();
-
             bool simplify = vargs.has_option(opt::simplify);
 
-            if (target_dialect == target_dialect::high_level && !simplify) {
+            if (trg == target_dialect::high_level && !simplify) {
                 co_return;
             }
 
@@ -89,7 +81,7 @@ namespace vast::cc {
                     co_yield step();
                 }
 
-                if (target_dialect == dialect) {
+                if (trg == dialect) {
                     break;
                 }
             }
@@ -99,7 +91,7 @@ namespace vast::cc {
 
     std::unique_ptr< pipeline_t > setup_pipeline(
         pipeline_source src,
-        output_type trg,
+        target_dialect trg,
         mcontext_t &mctx,
         const vast_args &vargs,
         const pipelines_config &config
