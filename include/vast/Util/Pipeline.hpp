@@ -40,14 +40,17 @@ namespace vast {
 
         using base::base;
 
-        void addPass(std::unique_ptr< mlir::Pass > pass) {
+        void addPass(std::unique_ptr< mlir::Pass > pass); 
+
+        template< typename parent_t >
+        void addNestedPass(std::unique_ptr< mlir::Pass > pass) {
             auto id = pass->getTypeID();
             if (seen.count(id)) {
                 return;
             }
 
             seen.insert(id);
-            base::addPass(std::move(pass));
+            base::addNestedPass< parent_t >(std::move(pass));
         }
 
         friend pipeline_t &operator<<(pipeline_t &ppl, pipeline_step_ptr pass);
@@ -116,6 +119,21 @@ namespace vast {
         pass_builder_t pass_builder;
     };
 
+    template< typename parent_t >
+    struct nested_pass_pipeline_step : pipeline_step
+    {
+        explicit nested_pass_pipeline_step(pass_builder_t builder)
+            : pass_builder(builder)
+        {}
+
+        void schedule_on(pipeline_t &ppl) const override {
+            schedule_dependencies(ppl);
+            ppl.addNestedPass< parent_t >(pass_builder());
+        }
+
+        pass_builder_t pass_builder;
+    };
+
     // compound step represents subpipeline to be run
     struct compound_pipeline_step : pipeline_step
     {
@@ -143,6 +161,13 @@ namespace vast {
     template< typename... args_t >
     decltype(auto) pass(args_t &&... args) {
         return pipeline_step_init< pass_pipeline_step >(
+            std::forward< args_t >(args)...
+        );
+    }
+
+    template< typename parent, typename... args_t >
+    decltype(auto) nested(args_t &&... args) {
+        return pipeline_step_init< nested_pass_pipeline_step< parent > >(
             std::forward< args_t >(args)...
         );
     }
