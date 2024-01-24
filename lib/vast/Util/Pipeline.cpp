@@ -5,6 +5,16 @@
 
 namespace vast {
 
+    void pipeline_t::addPass(std::unique_ptr<mlir::Pass> pass) {
+        auto id = pass->getTypeID();
+        if (seen.count(id)) {
+            return;
+        }
+
+        seen.insert(id);
+        base::addPass(std::move(pass));
+    }
+
     pipeline_t &operator<<(pipeline_t &ppl, pipeline_step_ptr pass) {
         pass->schedule_on(ppl);
         return ppl;
