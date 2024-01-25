@@ -1,4 +1,4 @@
-// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt --vast-hl-lower-types | %file-check %s
+// RUN: %vast-cc1 -triple x86_64-unknown-linux-gnu -vast-emit-mlir=hl %s -o - | %vast-opt --vast-hl-lower-types | %file-check %s
 
 // CHECK-LABEL: hl.func @main () -> si32
 int main()
@@ -32,8 +32,6 @@ int main()
     // CHECK:   hl.value.yield [[V8]] : si64
     // CHECK: }
     long long ll = 142;
-
-
 
     // CHECK: hl.var "ld" : !hl.lvalue<f128> =  {
     // CHECK:   [[V9:%[0-9]+]] = hl.const #core.float<91.019999999999996> : f64
