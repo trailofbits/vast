@@ -1,4 +1,5 @@
 // RUN: %vast-front -o %t %s && %t | %file-check %s
+// REQUIRES: abi
 
 int putchar(int);
 
