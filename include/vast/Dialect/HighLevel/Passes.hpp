@@ -26,18 +26,9 @@ namespace vast::hl {
 
     std::unique_ptr< mlir::Pass > createSpliceTrailingScopes();
 
-    void registerHLToLLVMIR(mlir::DialectRegistry &);
-    void registerHLToLLVMIR(mlir::MLIRContext &);
-
 /// Generate the code for registering passes.
 #define GEN_PASS_REGISTRATION
 #include "vast/Dialect/HighLevel/Passes.h.inc"
-
-    static inline void build_simplify_hl_pipeline(mlir::PassManager &pm) {
-        pm.addPass(createHLLowerTypesPass());
-        pm.addPass(createDCEPass());
-        pm.addPass(createLowerTypeDefsPass());
-    }
 
     namespace pipeline {
         pipeline_step_ptr canonicalize();
