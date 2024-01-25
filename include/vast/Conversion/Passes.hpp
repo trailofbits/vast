@@ -61,28 +61,6 @@ namespace vast
     #define GEN_PASS_REGISTRATION
     #include "vast/Conversion/Passes.h.inc"
 
-    // TODO(conv): Define dependencies between these.
-    static inline void build_abi_pipeline(mlir::PassManager &pm)
-    {
-        pm.addPass(createEmitABIPass());
-        pm.addPass(createLowerABIPass());
-    }
-
-    static inline void build_to_ll_pipeline(mlir::PassManager &pm)
-    {
-        pm.addPass(createHLToLLFuncPass());
-        pm.addPass(createHLToLLVarsPass());
-        pm.addPass(createHLToLLCFPass());
-        pm.addPass(createHLEmitLazyRegionsPass());
-        pm.addPass(createHLToLLGEPsPass());
-    }
-
-    static inline void build_to_llvm_pipeline(mlir::PassManager &pm)
-    {
-        pm.addPass(createIRsToLLVMPass());
-        pm.addPass(createCoreToLLVMPass());
-    }
-
     namespace conv::pipeline
     {
         pipeline_step_ptr abi();
