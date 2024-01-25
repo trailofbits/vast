@@ -36,6 +36,10 @@ namespace vast::cc {
             return hl::pipeline::stdtypes();
         }
 
+        pipeline_step_ptr abi() {
+            return optional< conv::pipeline::abi >();
+        }
+
         // Conversion to LLVM dialects
         pipeline_step_ptr llvm() {
             return conv::pipeline::to_llvm();
@@ -56,7 +60,7 @@ namespace vast::cc {
 
         conversion_path default_conversion_path = {
             { target_dialect::high_level, { reduce_high_level } },
-            { target_dialect::std, { standard_types } },
+            { target_dialect::std, { standard_types, abi } },
             { target_dialect::llvm, { llvm } }
         };
 
