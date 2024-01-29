@@ -12,6 +12,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Transforms/GreedyPatternRewriteDriver.h>
 
 #include <llvm/ADT/APFloat.h>
+#include <llvm/ADT/SmallVector.h>
 VAST_UNRELAX_WARNINGS
 
 #include "../PassesDetails.hpp"
@@ -373,7 +374,14 @@ namespace vast::conv::irstollvm
 
             // Sadly, we cannot build `mlir::LLVM::GlobalOp` without
             // providing a value attribute.
-            auto dummy_value = rewriter.getIntegerAttr(target_type, 0);
+            auto create_dummy_value = [&] () -> mlir::Attribute {
+                if (auto trg_arr = mlir::dyn_cast< mlir::LLVM::LLVMArrayType >(target_type)) {
+                    attrs_t arr(trg_arr.getNumElements(),
+                                rewriter.getIntegerAttr(trg_arr.getElementType(), 0));
+                    return rewriter.getArrayAttr(arr);
+                }
+                return rewriter.getIntegerAttr(target_type, 0);
+            };
 
             // So we know this is a global, otherwise it would be in `ll:`.
             auto gop = rewriter.create< mlir::LLVM::GlobalOp >(
@@ -382,7 +390,7 @@ namespace vast::conv::irstollvm
                     // TODO(conv:irstollvm): Constant.
                     true,
                     LLVM::Linkage::Internal,
-                    op.getName(), dummy_value);
+                    op.getName(), create_dummy_value());
 
             // If we want the global to have a body it cannot have value attribute.
             gop.removeValueAttr();
