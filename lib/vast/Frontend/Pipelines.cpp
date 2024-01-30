@@ -16,7 +16,7 @@ namespace vast::cc {
 
         // Simplifies high level MLIR
         pipeline_step_ptr reduce_high_level() {
-            return compose(
+            return compose( "reduce-hl",
                 hl::pipeline::desugar,
                 hl::pipeline::simplify
             );

@@ -40,7 +40,7 @@ namespace vast {
 
         using base::base;
 
-        void addPass(std::unique_ptr< mlir::Pass > pass); 
+        void addPass(std::unique_ptr< mlir::Pass > pass);
 
         template< typename parent_t >
         void addNestedPass(std::unique_ptr< mlir::Pass > pass) {
@@ -96,6 +96,8 @@ namespace vast {
 
         virtual void schedule_on(pipeline_t &ppl) const;
 
+        virtual string_ref name() const = 0;
+
         void schedule_dependencies(pipeline_t &ppl) const;
 
         template< typename ...deps_t >
@@ -116,6 +118,9 @@ namespace vast {
 
         void schedule_on(pipeline_t &ppl) const override;
 
+        string_ref name() const override;
+
+    protected:
         pass_builder_t pass_builder;
     };
 
@@ -136,12 +141,16 @@ namespace vast {
     struct compound_pipeline_step : pipeline_step
     {
         template< typename... steps_t >
-        explicit compound_pipeline_step(steps_t &&...steps)
-            : steps{ std::forward< steps_t >(steps)... }
+        explicit compound_pipeline_step(string_ref name, steps_t &&...steps)
+            : pipeline_name(name), steps{ std::forward< steps_t >(steps)... }
         {}
 
         void schedule_on(pipeline_t &ppl) const override;
 
+        string_ref name() const override;
+
+    protected:
+        std::string pipeline_name;
         std::vector< pipeline_step_builder > steps;
     };
 
@@ -160,9 +169,9 @@ namespace vast {
     }
 
     template< typename... steps_t >
-    decltype(auto) compose(steps_t &&...steps) {
+    decltype(auto) compose(string_ref name, steps_t &&...steps) {
         return pipeline_step_init< compound_pipeline_step >(
-            std::forward< steps_t >(steps)...
+            name, std::forward< steps_t >(steps)...
         );
     }
 

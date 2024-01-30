@@ -37,7 +37,7 @@ namespace vast::conv::pipeline {
     }
 
     pipeline_step_ptr to_ll() {
-        return compose(
+        return compose( "to-ll",
             hl_to_ll_func,
             hl_to_ll_vars,
             hl_to_ll_cf,
