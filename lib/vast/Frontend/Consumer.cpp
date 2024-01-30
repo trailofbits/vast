@@ -209,10 +209,7 @@ namespace vast::cc {
         }
 
         // Setup and execute vast pipeline
-        auto pipeline = setup_pipeline(
-            pipeline_source::ast, target, *mctx, vargs,
-            default_pipelines_config()
-        );
+        auto pipeline = setup_pipeline(pipeline_source::ast, target, *mctx, vargs);
         VAST_CHECK(pipeline, "failed to setup pipeline");
 
         auto result = pipeline->run(mod);

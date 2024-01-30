@@ -14,12 +14,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cc {
 
-    struct pipelines_config {
-        llvm::StringMap< pipeline_step_builder > pipelines;
-    };
-
-    pipelines_config default_pipelines_config();
-
     enum class pipeline_source { ast };
 
     //
@@ -33,14 +27,10 @@ namespace vast::cc {
     // If the target is LLVM IR or other downstream target, the pipeline will
     // proceed into LLVM dialect.
     //
-    // Pipeline configuration describe named pipelines that are used in the
-    // scheduled pipeline.
-    //
     std::unique_ptr< pipeline_t > setup_pipeline(
         pipeline_source src, target_dialect trg,
         mcontext_t &mctx,
-        const vast_args &vargs,
-        const pipelines_config &config
+        const vast_args &vargs
     );
 
 } // namespace vast::cc
