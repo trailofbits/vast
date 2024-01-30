@@ -31,6 +31,13 @@ namespace vast::cc {
         }
     } // detail
 
+    namespace opt
+    {
+        llvm::Twine disable(string_ref name) {
+            return "disable-" + name;
+        }
+    } // namespace opt
+
     bool vast_args::has_option(string_ref name) const {
         return detail::get_option_impl(args, name).has_value();
     }
