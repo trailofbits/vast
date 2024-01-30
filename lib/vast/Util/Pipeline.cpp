@@ -33,11 +33,19 @@ namespace vast {
         ppl.addPass(pass_builder());
     }
 
+    string_ref pass_pipeline_step::name() const {
+        return pass_builder()->getName();
+    }
+
     void compound_pipeline_step::schedule_on(pipeline_t &ppl) const {
         schedule_dependencies(ppl);
         for (const auto &step : steps) {
             step()->schedule_on(ppl);
         }
+    }
+
+    string_ref compound_pipeline_step::name() const {
+        return pipeline_name;
     }
 
 } // namespace vast

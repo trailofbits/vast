@@ -45,7 +45,7 @@ namespace vast::hl::pipeline {
     }
 
     pipeline_step_ptr simplify() {
-        return compose(dce, desugar);
+        return compose("simplify", dce, desugar);
     }
 
     //

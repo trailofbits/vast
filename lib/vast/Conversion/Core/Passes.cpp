@@ -28,7 +28,7 @@ namespace vast::conv::pipeline {
     }
 
     pipeline_step_ptr to_llvm() {
-        return compose(irs_to_llvm, core_to_llvm, llvm_debug_scope);
+        return compose("to-llvm", irs_to_llvm, core_to_llvm, llvm_debug_scope);
     }
 
 } // namespace vast::conv::pipeline
