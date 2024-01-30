@@ -11,12 +11,14 @@ namespace vast::cc {
 
         // Generates almost AST like MLIR, without any conversions applied
         pipeline_step_ptr high_level() {
-            return hl::pipeline::canonicalize();
+            return compose("canonicalize",
+                hl::pipeline::canonicalize
+            );
         }
 
         // Simplifies high level MLIR
         pipeline_step_ptr reduce_high_level() {
-            return compose( "reduce-hl",
+            return compose("reduce-hl",
                 hl::pipeline::desugar,
                 hl::pipeline::simplify
             );
@@ -24,7 +26,9 @@ namespace vast::cc {
 
         // Generates MLIR with standard types
         pipeline_step_ptr standard_types() {
-            return hl::pipeline::stdtypes();
+            return compose("standard-types",
+                hl::pipeline::stdtypes
+            );
         }
 
         pipeline_step_ptr abi() {
