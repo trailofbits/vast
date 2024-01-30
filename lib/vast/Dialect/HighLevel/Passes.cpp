@@ -32,7 +32,6 @@ namespace vast::hl::pipeline {
     }
 
     // TODO: add more passes here (remove elaborations, decayed types, lvalue types etc.)
-
     pipeline_step_ptr desugar() {
         return lower_types();
     }
