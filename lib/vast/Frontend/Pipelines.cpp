@@ -55,6 +55,11 @@ namespace vast::cc {
             { target_dialect::llvm, { llvm } }
         };
 
+        bool is_disabled(const pipeline_step_ptr &step, const vast_args &vargs) {
+            auto disable_step_option = opt::disable(step->name()).str();
+            return vargs.has_option(disable_step_option);
+        }
+
         gap::generator< pipeline_step_ptr > conversion(
             pipeline_source src,
             target_dialect trg,
@@ -72,7 +77,13 @@ namespace vast::cc {
 
             for (const auto &[dialect, step_passes] : path) {
                 for (auto &step : step_passes) {
-                    co_yield step();
+                    auto pipeline_step = step();
+                    if (is_disabled(pipeline_step, vargs)) {
+                        VAST_REPORT("Skipping disabled pipeline step: {0}", pipeline_step->name());
+                        continue;
+                    }
+                    VAST_REPORT("Adding pipeline step: {0}", pipeline_step->name());
+                    co_yield pipeline_step;
                 }
 
                 if (trg == dialect) {

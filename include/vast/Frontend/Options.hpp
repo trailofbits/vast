@@ -81,6 +81,8 @@ namespace vast::cc
 
         constexpr string_ref simplify = "simplify";
 
+        llvm::Twine disable(string_ref pipeline_name);
+
         constexpr string_ref show_locs = "show-locs";
         constexpr string_ref locs_as_meta_ids = "locs-as-meta-ids";
 
