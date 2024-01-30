@@ -32,10 +32,6 @@ namespace vast::cc {
 
     void emit_mlir_output(target_dialect target, owning_module_ref mod, mcontext_t *mctx);
 
-    using source_language = core::SourceLanguage;
-
-    source_language get_source_language(const cc::language_options &opts);
-
     void vast_consumer::Initialize(acontext_t &actx) {
         VAST_CHECK(!mctx, "initialized multiple times");
         mctx = std::make_unique< mcontext_t >();
@@ -242,21 +238,6 @@ namespace vast::cc {
         flags.enableDebugInfo(vargs.has_option(opt::show_locs), /* prettyForm */ true);
 
         mod->print(*output_stream, flags);
-    }
-
-    source_language get_source_language(const cc::language_options &opts) {
-        using ClangStd = clang::LangStandard;
-
-        if (opts.CPlusPlus || opts.CPlusPlus11 || opts.CPlusPlus14 ||
-            opts.CPlusPlus17 || opts.CPlusPlus20 || opts.CPlusPlus23 ||
-            opts.CPlusPlus26)
-            return source_language::CXX;
-        if (opts.C99 || opts.C11 || opts.C17 || opts.C2x ||
-            opts.LangStd == ClangStd::lang_c89)
-            return source_language::C;
-
-        // TODO: support remaining source languages.
-        VAST_UNIMPLEMENTED_MSG("VAST does not yet support the given source language");
     }
 
 } // namespace vast::cc
