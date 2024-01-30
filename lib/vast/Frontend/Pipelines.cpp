@@ -7,15 +7,6 @@
 
 namespace vast::cc {
 
-    pipelines_config default_pipelines_config() {
-        return pipelines_config{{
-            { "canonicalize", hl::pipeline::canonicalize },
-            { "desugar", hl::pipeline::desugar },
-            { "simplify", hl::pipeline::simplify },
-            { "stdtypes", hl::pipeline::stdtypes }
-        }};
-    }
-
     namespace pipeline {
 
         // Generates almost AST like MLIR, without any conversions applied
@@ -37,7 +28,7 @@ namespace vast::cc {
         }
 
         pipeline_step_ptr abi() {
-            return optional< conv::pipeline::abi >();
+            return conv::pipeline::abi();
         }
 
         // Conversion to LLVM dialects
@@ -67,8 +58,7 @@ namespace vast::cc {
         gap::generator< pipeline_step_ptr > conversion(
             pipeline_source src,
             target_dialect trg,
-            const vast_args &vargs,
-            const pipelines_config &config
+            const vast_args &vargs
         ) {
             // TODO: add support for custom conversion paths
             // deduced from source, target and vargs
@@ -97,8 +87,7 @@ namespace vast::cc {
         pipeline_source src,
         target_dialect trg,
         mcontext_t &mctx,
-        const vast_args &vargs,
-        const pipelines_config &config
+        const vast_args &vargs
     ) {
         auto passes = std::make_unique< pipeline_t >(&mctx);
 
@@ -120,7 +109,7 @@ namespace vast::cc {
         // binary/assembly. We perform entire conversion to llvm dialect. Vargs
         // can specify how we want to convert to llvm dialect and allows to turn
         // off optional pipelines.
-        for (auto &&step : pipeline::conversion(src, trg, vargs, config)) {
+        for (auto &&step : pipeline::conversion(src, trg, vargs)) {
             *passes << std::move(step);
         }
 

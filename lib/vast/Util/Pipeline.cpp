@@ -40,11 +40,4 @@ namespace vast {
         }
     }
 
-    void optional_pipeline::schedule_on(pipeline_t &ppl) const {
-        if (enabled) {
-            schedule_dependencies(ppl);
-            step()->schedule_on(ppl);
-        }
-    }
-
 } // namespace vast

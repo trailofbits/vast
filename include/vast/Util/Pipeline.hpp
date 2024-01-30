@@ -147,17 +147,6 @@ namespace vast {
         std::vector< pipeline_step_builder > steps;
     };
 
-    struct optional_pipeline : pipeline_step {
-        explicit optional_pipeline(pipeline_step_builder step)
-            : step(std::move(step))
-        {}
-
-        void schedule_on(pipeline_t &ppl) const override;
-
-        bool enabled = true;
-        pipeline_step_builder step;
-    };
-
     template< typename... args_t >
     decltype(auto) pass(args_t &&... args) {
         return pipeline_step_init< pass_pipeline_step >(
@@ -170,11 +159,6 @@ namespace vast {
         return pipeline_step_init< nested_pass_pipeline_step< parent > >(
             std::forward< args_t >(args)...
         );
-    }
-
-    template< auto step >
-    decltype(auto) optional() {
-        return pipeline_step_init< optional_pipeline >(step);
     }
 
     template< typename... steps_t >
