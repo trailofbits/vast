@@ -21,7 +21,7 @@ namespace vast::conv::pipeline {
     }
 
     pipeline_step_ptr abi() {
-        return lower_abi();
+        return compose("abi", lower_abi);
     }
 
 } // namespace vast::conv::pipeline
