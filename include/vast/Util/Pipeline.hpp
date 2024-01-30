@@ -120,18 +120,16 @@ namespace vast {
     };
 
     template< typename parent_t >
-    struct nested_pass_pipeline_step : pipeline_step
+    struct nested_pass_pipeline_step : pass_pipeline_step
     {
         explicit nested_pass_pipeline_step(pass_builder_t builder)
-            : pass_builder(builder)
+            : pass_pipeline_step(builder)
         {}
 
         void schedule_on(pipeline_t &ppl) const override {
             schedule_dependencies(ppl);
             ppl.addNestedPass< parent_t >(pass_builder());
         }
-
-        pass_builder_t pass_builder;
     };
 
     // compound step represents subpipeline to be run
