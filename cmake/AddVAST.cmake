@@ -59,6 +59,15 @@ function(vast_tablegen ofn)
         )
     endif()
 
+    if (CMAKE_GENERATOR MATCHES "Visual Studio")
+        # Visual Studio has problems with llvm-tblgen's native --write-if-changed
+        # behavior. Since it doesn't do restart optimizations anyway, just don't
+        # pass --write-if-changed there.
+        set(vast_tblgen_change_flag)
+    else()
+        set(vast_tblgen_change_flag "--write-if-changed")
+    endif()
+
     # We need both _TABLEGEN_TARGET and _TABLEGEN_EXE in the  DEPENDS list
     # (both the target and the file) to have .inc files rebuilt on
     # a tablegen change, as cmake does not propagate file-level dependencies
@@ -75,19 +84,20 @@ function(vast_tablegen ofn)
     list(REMOVE_ITEM vast_tablegen_includes "")
     list(TRANSFORM vast_tablegen_includes PREPEND -I)
 
-    set(tablegen_exe ${VAST_TABLEGEN_EXE})
-    set(tablegen_depends ${VAST_TABLEGEN_TARGET} ${tablegen_exe})
+    set(vast_tablegen_exe ${VAST_TABLEGEN_EXE})
+    set(vast_tablegen_depends ${VAST_TABLEGEN_TARGET} ${vast_tablegen_exe})
 
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${ofn}
-        COMMAND ${tablegen_exe} ${ARG_UNPARSED_ARGUMENTS} -I ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND ${vast_tablegen_exe} ${ARG_UNPARSED_ARGUMENTS} -I ${CMAKE_CURRENT_SOURCE_DIR}
         ${vast_tablegen_includes}
         ${VAST_TABLEGEN_FLAGS}
         ${VAST_TARGET_DEFINITIONS_ABSOLUTE}
+        ${vast_tblgen_change_flag}
         ${additional_cmdline}
         # The file in VAST_TARGET_DEFINITIONS may be not in the current
         # directory and local_tds may not contain it, so we must
         # explicitly list it here:
-        DEPENDS ${ARG_DEPENDS} ${tablegen_depends}
+        DEPENDS ${ARG_DEPENDS} ${vast_tablegen_depends}
         ${local_tds} ${global_tds}
         ${VAST_TARGET_DEFINITIONS_ABSOLUTE}
         ${VAST_TARGET_DEPENDS}
