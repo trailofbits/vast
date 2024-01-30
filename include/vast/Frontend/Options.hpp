@@ -12,6 +12,7 @@ VAST_RELAX_WARNINGS
 #include <clang/Frontend/FrontendOptions.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Dialect/Core/CoreAttributes.hpp"
 #include "vast/Util/Common.hpp"
 
 namespace vast::cc
@@ -90,5 +91,9 @@ namespace vast::cc
         bool emit_only_mlir(const vast_args &vargs);
         bool emit_only_llvm(const vast_args &vargs);
     } // namespace opt
+
+    using source_language = core::SourceLanguage;
+
+    source_language get_source_language(const language_options &opts);
 
 } // namespace vast::cc
