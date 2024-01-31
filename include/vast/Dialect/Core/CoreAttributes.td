@@ -14,6 +14,18 @@ class Core_Attr<string name, string attr_mnemonic, list<Trait> traits = []>
   let mnemonic = attr_mnemonic;
 }
 
+class Core_I32Enum<string name, string description, list<I32EnumAttrCase> cases>
+    : I32EnumAttr<name, description, cases>
+{
+  let genSpecializedAttr = 0;
+  let cppNamespace = "::vast::core";
+}
+class Core_I32EnumAttr<string mnemonic, Core_I32Enum enumInfo>
+  : EnumAttr<Core_Dialect, enumInfo, mnemonic>
+{
+  let assemblyFormat = "`<` $value `>`";
+}
+
 class APSIntParameter<string desc> :
     AttrOrTypeParameter<"::llvm::APSInt", desc> {
   let comparator = [{
@@ -119,5 +131,7 @@ def SourceLanguageAttr : EnumAttr< Core_Dialect, SourceLanguage, "lang" > {
     ```
   }];
 }
+
+include "vast/Dialect/Core/Linkage.td"
 
 #endif // VAST_DIALECT_CORE_COREATTRIBUTES

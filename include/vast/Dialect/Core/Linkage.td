@@ -45,7 +45,7 @@ def Global_ExternalWeakLinkage :
 def Global_CommonLinkage :
   I32EnumAttrCase<"CommonLinkage", 10, "common">;
 
-def GlobalLinkageKind : I32EnumAttr<
+def Core_GlobalLinkageKind : Core_I32Enum<
     "GlobalLinkageKind", "Linkage type/kind",
     [
         Global_ExternalLinkage, Global_AvailableExternallyLinkage,
@@ -54,8 +54,10 @@ def GlobalLinkageKind : I32EnumAttr<
         Global_PrivateLinkage, Global_ExternalWeakLinkage, Global_CommonLinkage,
         Global_AppendingLinkage
     ]>
-{
-  let cppNamespace = "::vast::core";
-}
+{}
+
+def Core_GlobalLinkageKindAttr : Core_I32EnumAttr<
+  "global_linkage_kind", Core_GlobalLinkageKind
+>;
 
 #endif // VAST_DIALECT_CORE_IR_LINKAGE
