@@ -42,6 +42,4 @@ include "vast/Dialect/Core/CoreTypes.td"
 include "vast/Dialect/Core/CoreOps.td"
 include "vast/Dialect/Core/CoreAttributes.td"
 
-include "vast/Dialect/Core/Linkage.td"
-
 #endif // VAST_DIALECT_CORE

@@ -19,8 +19,8 @@ VAST_RELAX_WARNINGS
 #include "vast/Interfaces/SymbolInterface.hpp"
 
 #include "vast/Dialect/Core/CoreTypes.hpp"
+#include "vast/Dialect/Core/CoreAttributes.hpp"
 #include "vast/Util/Common.hpp"
 
 #define GET_OP_CLASSES
 #include "vast/Dialect/LowLevel/LowLevel.h.inc"
-
