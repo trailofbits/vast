@@ -604,7 +604,7 @@ namespace vast
                 op.getAllArgAttrs(arg_attrs);
 
                 auto name = op.getName();
-                if (!name.consume_front("vast.abi"))
+                if (!name.consume_front("vast.abi."))
                     return mlir::failure();
 
                 auto fn = rewriter.create< hl::FuncOp >(
