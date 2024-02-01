@@ -1,5 +1,4 @@
 // RUN: %vast-front -o %t %s && %t hello | %file-check %s
-// REQUIRES: abi
 
 int puts(const char *);
 
