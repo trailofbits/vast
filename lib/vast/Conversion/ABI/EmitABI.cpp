@@ -237,7 +237,8 @@ namespace vast
                 // Copying visibility from the original function results in error?
                 wrapper.setVisibility(mlir::SymbolTable::Visibility::Private);
 
-                mk_prologue(wrapper);
+                if (!op.getBody().empty())
+                    mk_prologue(wrapper);
 
                 return wrapper;
             }
@@ -805,9 +806,8 @@ namespace vast
 
             auto should_transform = [&](hl::FuncOp op)
             {
-                // TODO(abi): Due to some issues with location info of arguments
-                //            declaration are not yet supported.
-                return op.getName() == "main" && !op.isDeclaration();
+                // TODO(conv:abi): We should always emit main with a fixed type.
+                return op.getName() == "main";
             };
 
             target.addDynamicallyLegalOp< hl::FuncOp >(should_transform);
