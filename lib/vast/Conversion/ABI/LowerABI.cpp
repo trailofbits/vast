@@ -18,6 +18,7 @@ VAST_UNRELAX_WARNINGS
 #include "../PassesDetails.hpp"
 
 #include "vast/Conversion/Common/Patterns.hpp"
+#include "vast/Conversion/ABI/Common.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
@@ -604,7 +605,7 @@ namespace vast
                 op.getAllArgAttrs(arg_attrs);
 
                 auto name = op.getName();
-                if (!name.consume_front("vast.abi."))
+                if (!name.consume_front(conv::abi::abi_func_name_prefix))
                     return mlir::failure();
 
                 auto fn = rewriter.create< hl::FuncOp >(
