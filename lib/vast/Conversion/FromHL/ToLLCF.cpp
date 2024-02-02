@@ -25,6 +25,7 @@ VAST_UNRELAX_WARNINGS
 
 
 #include "vast/Dialect/Core/CoreTraits.hpp"
+#include "vast/Dialect/Core/CoreOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
@@ -457,6 +458,7 @@ namespace vast::conv
             , while_op
             , for_op
             , replace< hl::ReturnOp, ll::ReturnOp >
+            , replace< core::ImplicitReturnOp, ll::ReturnOp >
         >;
 
     } // namespace pattern
@@ -474,7 +476,9 @@ namespace vast::conv
 
             trg.addIllegalOp< hl::ContinueOp >();
             trg.addIllegalOp< hl::BreakOp >();
+
             trg.addIllegalOp< hl::ReturnOp >();
+            trg.addIllegalOp< core::ImplicitReturnOp >();
 
             trg.addLegalOp< mlir::cf::BranchOp >();
             trg.markUnknownOpDynamicallyLegal([](auto){ return true; });
