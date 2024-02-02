@@ -830,7 +830,7 @@ namespace vast
             auto is_return_legal = [&](hl::ReturnOp op)
             {
                 auto func = op->getParentOfType< abi::FuncOp >();
-                if (!func || func.getName() == "main")
+                if (!func)
                     return true;
 
                 for (auto val : op.getResult())
