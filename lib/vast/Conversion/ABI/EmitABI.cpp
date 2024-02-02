@@ -18,6 +18,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "../PassesDetails.hpp"
 
+#include "vast/Conversion/ABI/Common.hpp"
+
 #include "vast/Conversion/Common/Patterns.hpp"
 #include "vast/Conversion/TypeConverters/TypeConverter.hpp"
 
@@ -227,7 +229,7 @@ namespace vast
                         op.getLoc(),
                         // Temporal, to avoid verification issues, will be changed once
                         // original func is removed.
-                        "vast.abi." + op.getName().str(),
+                        conv::abi::abi_func_name_prefix + op.getName().str(),
                         this->abified_type(),
                         core::GlobalLinkageKind::InternalLinkage,
                         other_attrs,
@@ -758,7 +760,7 @@ namespace vast
                     return mlir::failure();
 
                 auto name = func.getName();
-                if (!name.consume_front("vast.abi."))
+                if (!name.consume_front(conv::abi::abi_func_name_prefix))
                     return mlir::failure();
 
                 auto abi_map_it = abi_info_map.find(name.str());
