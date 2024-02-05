@@ -100,10 +100,10 @@ namespace vast
             }
 
             // Simplifies implementation.
-            virtual values match_on(abi::DirectOp direct, state_capture &state) const = 0;
-            virtual values match_on(abi::IndirectOp indirect, state_capture &state) const = 0;
+            virtual values match_on(abi::DirectOp direct, state_capture state) const = 0;
+            virtual values match_on(abi::IndirectOp indirect, state_capture state) const = 0;
 
-            virtual values match_on(mlir::Operation *op, state_capture &state) const
+            virtual values match_on(mlir::Operation *op, state_capture state) const
             {
                 co_return;
             }
@@ -417,14 +417,14 @@ namespace vast
             }
 
             // TODO(conv:abi): Copy & paste of prologue
-            values match_on(abi::DirectOp direct, state_capture &state) const override
+            values match_on(abi::DirectOp direct, state_capture state) const override
             {
                 auto dtor = deconstructs_types(state, *this);
                 for (auto v : dtor.handle(direct))
                     co_yield v;
             }
 
-            values match_on(abi::IndirectOp indirect, state_capture &state) const override
+            values match_on(abi::IndirectOp indirect, state_capture state) const override
             {
                 VAST_UNREACHABLE("Not implemented");
             }
@@ -449,14 +449,14 @@ namespace vast
 
             // TODO(conv:abi): Copy & paste of prologue
             // TODO(conv:abi): Should this use `gap::recursive_generator` instead?
-            values match_on(abi::DirectOp direct, state_capture &state) const override
+            values match_on(abi::DirectOp direct, state_capture state) const override
             {
                 auto ctor = reconstructs_types(state, *this);
                 for (auto v : ctor.handle(direct))
                     co_yield v;
             }
 
-            values match_on(abi::IndirectOp indirect, state_capture &state) const override
+            values match_on(abi::IndirectOp indirect, state_capture state) const override
             {
                 co_yield state.rewriter.template create< hl::Deref >(
                     indirect.getLoc(),
@@ -483,14 +483,14 @@ namespace vast
             }
 
             // TODO(conv:abi): Copy & paste of prologue
-            values match_on(abi::DirectOp direct, state_capture &state) const override
+            values match_on(abi::DirectOp direct, state_capture state) const override
             {
                 auto dtor = deconstructs_types(state, *this);
                 for (auto v : dtor.handle(direct))
                     co_yield v;
             }
 
-            values match_on(abi::IndirectOp indirect, state_capture &state) const override
+            values match_on(abi::IndirectOp indirect, state_capture state) const override
             {
                 auto loc = indirect.getLoc();
                 auto mctx = indirect.getContext();
@@ -526,14 +526,14 @@ namespace vast
             }
 
             // TODO(conv:abi): Copy & paste of prologue
-            values match_on(abi::DirectOp direct, state_capture &state) const override
+            values match_on(abi::DirectOp direct, state_capture state) const override
             {
                 auto ctor = reconstructs_types(state, *this);
                 for (auto v : ctor.handle(direct))
                     co_yield v;
             }
 
-            values match_on(abi::IndirectOp, state_capture &) const override
+            values match_on(abi::IndirectOp, state_capture ) const override
             {
                 VAST_UNREACHABLE("Not implemented.");
             }
