@@ -2,7 +2,7 @@
 
 #include "vast/CodeGen/DataLayout.hpp"
 
-namespace vast::hl
+namespace vast::cg
 {
     void emit_data_layout(mcontext_t &ctx, owning_module_ref &mod, const dl::DataLayoutBlueprint &dl) {
         std::vector< mlir::DataLayoutEntryInterface > entries;
@@ -15,4 +15,4 @@ namespace vast::hl
         );
     }
 
-} // namespace vast::hl
+} // namespace vast::cg
