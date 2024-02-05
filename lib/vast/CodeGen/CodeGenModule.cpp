@@ -4,6 +4,7 @@
 
 VAST_RELAX_WARNINGS
 #include <clang/Basic/SourceManager.h>
+#include <mlir/IR/Verifier.h>
 VAST_UNRELAX_WARNINGS
 
 namespace vast::cg
@@ -123,7 +124,7 @@ namespace vast::cg
     }
 
     bool module_generator::verify() {
-        VAST_UNIMPLEMENTED;
+        return mlir::verify(mod.get()).succeeded();
     }
 
 } // namespace vast::cg
