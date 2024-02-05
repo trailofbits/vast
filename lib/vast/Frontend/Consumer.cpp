@@ -32,29 +32,17 @@ namespace vast::cc {
 
     [[nodiscard]] std::string to_string(target_dialect target);
 
-    void emit_mlir_output(target_dialect target, owning_module_ref mod, mcontext_t *mctx);
-
     void vast_consumer::Initialize(acontext_t &actx) {
-        VAST_CHECK(!mctx, "initialized multiple times");
-        mctx = std::make_unique< mcontext_t >();
-        cgctx = std::make_unique< cg::codegen_context >(
-            *mctx, actx, get_source_language(opts.lang)
-        );
-
-        codegen = std::make_unique< cg::codegen_driver >(*cgctx, opts, vargs);
+        VAST_CHECK(!driver, "initialized multiple times");
+        driver = std::make_unique< cg::driver >(opts, vargs, actx);
     }
 
     bool vast_consumer::HandleTopLevelDecl(clang::DeclGroupRef decls) {
-        clang::PrettyStackTraceDecl crash_info(
-            *decls.begin(), clang::SourceLocation(), cgctx->actx.getSourceManager(),
-            "LLVM IR generation of declaration"
-        );
-
         if (opts.diags.hasErrorOccurred()) {
             return true;
         }
 
-        return codegen->handle_top_level_decl(decls), true;
+        return driver->emit(decls), true;
     }
 
     void vast_consumer::HandleCXXStaticMemberVarInstantiation(clang::VarDecl * /* decl */) {
@@ -73,31 +61,15 @@ namespace vast::cc {
         // Note that this method is called after `HandleTopLevelDecl` has already
         // ran all over the top level decls. Here clang mostly wraps defered and
         // global codegen, followed by running vast passes.
-        codegen->finalize();
-
-        if (!vargs.has_option(opt::disable_vast_verifier)) {
-            if (!codegen->verify_module()) {
-                VAST_FATAL("codegen: module verification error before running vast passes");
-            }
-        }
+        driver->finalize(vargs);
     }
 
     void vast_consumer::HandleTagDeclDefinition(clang::TagDecl *decl) {
-        auto &actx = cgctx->actx;
-        clang::PrettyStackTraceDecl crash_info(
-            decl, clang::SourceLocation(), actx.getSourceManager(),
-            "vast generation of declaration"
-        );
-
         if (opts.diags.hasErrorOccurred()) {
             return;
         }
 
-        // Don't allow re-entrant calls to generator triggered by PCH
-        // deserialization to emit deferred decls.
-        cg::defer_handle_of_top_level_decl handling_decl(
-            *codegen, /* emit deferred */false
-        );
+        auto &actx = decl->getASTContext();
 
         // For MSVC compatibility, treat declarations of static data members with
         // inline initializers as definitions.
@@ -116,7 +88,7 @@ namespace vast::cc {
     // }
 
     void vast_consumer::CompleteTentativeDefinition(clang::VarDecl *decl) {
-        codegen->handle_top_level_decl(decl);
+        driver->emit(decl);
     }
 
     void vast_consumer::CompleteExternalDeclaration(clang::VarDecl * /* decl */) {
@@ -130,7 +102,7 @@ namespace vast::cc {
     void vast_consumer::HandleVTable(clang::CXXRecordDecl * /* decl */) { VAST_UNIMPLEMENTED; }
 
     owning_module_ref vast_consumer::result() {
-        return std::move(cgctx->mod);
+        return driver->freeze();
     }
 
     //
@@ -143,50 +115,45 @@ namespace vast::cc {
 
         switch (action) {
             case output_type::emit_assembly:
-                return emit_backend_output(
-                    backend::Backend_EmitAssembly, std::move(mod), mctx.get()
-                );
+                return emit_backend_output(backend::Backend_EmitAssembly, std::move(mod));
             case output_type::emit_mlir: {
                 if (auto trg = vargs.get_option(opt::emit_mlir)) {
-                    return emit_mlir_output(parse_target_dialect(trg.value()), std::move(mod), mctx.get());
+                    return emit_mlir_output(parse_target_dialect(trg.value()), std::move(mod));
                 }
                 VAST_FATAL("no target dialect specified for MLIR output");
             }
             case output_type::emit_llvm:
-                return emit_backend_output(
-                    backend::Backend_EmitLL, std::move(mod), mctx.get()
-                );
+                return emit_backend_output(backend::Backend_EmitLL, std::move(mod));
             case output_type::emit_obj:
-                return emit_backend_output(
-                    backend::Backend_EmitObj, std::move(mod), mctx.get()
-                );
+                return emit_backend_output(backend::Backend_EmitObj, std::move(mod));
             case output_type::none:
                 break;
         }
     }
 
     void vast_stream_consumer::emit_backend_output(
-        backend backend_action, owning_module_ref mlir_module, mcontext_t *mctx
+        backend backend_action, owning_module_ref mod
     ) {
         llvm::LLVMContext llvm_context;
 
-        process_mlir_module(target_dialect::llvm, mlir_module.get(), mctx);
+        process_mlir_module(target_dialect::llvm, mod.get());
 
-        auto mod = target::llvmir::translate(mlir_module.get(), llvm_context);
-        auto dl  = cgctx->actx.getTargetInfo().getDataLayoutString();
+        auto llvm_mod = target::llvmir::translate(mod.get(), llvm_context);
+        auto dl  = driver->acontext().getTargetInfo().getDataLayoutString();
 
         clang::EmitBackendOutput(
-            opts.diags, opts.headers, opts.codegen, opts.target, opts.lang, dl, mod.get(),
+            opts.diags, opts.headers, opts.codegen, opts.target, opts.lang, dl, llvm_mod.get(),
             backend_action, &opts.vfs, std::move(output_stream)
         );
     }
 
     void vast_stream_consumer::process_mlir_module(
-        target_dialect target, mlir::ModuleOp mod, mcontext_t *mctx
+        target_dialect target, mlir::ModuleOp mod
     ) {
         // Handle source manager properly given that lifetime analysis
         // might emit warnings and remarks.
-        auto &src_mgr     = cgctx->actx.getSourceManager();
+        auto &src_mgr     = driver->acontext().getSourceManager();
+        auto &mctx        = driver->mcontext();
         auto main_file_id = src_mgr.getMainFileID();
 
         auto file_buff = llvm::MemoryBuffer::getMemBuffer(
@@ -198,11 +165,11 @@ namespace vast::cc {
 
         bool verify_diagnostics = vargs.has_option(opt::vast_verify_diags);
 
-        mlir::SourceMgrDiagnosticVerifierHandler src_mgr_handler(mlir_src_mgr, mctx);
+        mlir::SourceMgrDiagnosticVerifierHandler src_mgr_handler(mlir_src_mgr, &mctx);
 
         if (vargs.has_option(opt::debug)) {
-            mctx->printOpOnDiagnostic(true);
-            mctx->printStackTraceOnDiagnostic(true);
+            mctx.printOpOnDiagnostic(true);
+            mctx.printStackTraceOnDiagnostic(true);
             llvm::DebugFlag = true;
         }
 
@@ -211,7 +178,7 @@ namespace vast::cc {
         VAST_CHECK(file_entry, "failed to recover file entry ref");
         auto snapshot_prefix = std::filesystem::path(file_entry->getName().str()).stem();
 
-        auto pipeline = setup_pipeline(pipeline_source::ast, target, *mctx, vargs, snapshot_prefix);
+        auto pipeline = setup_pipeline(pipeline_source::ast, target, mctx, vargs, snapshot_prefix);
         VAST_CHECK(pipeline, "failed to setup pipeline");
 
         auto result = pipeline->run(mod);
@@ -231,13 +198,13 @@ namespace vast::cc {
     }
 
     void vast_stream_consumer::emit_mlir_output(
-        target_dialect target, owning_module_ref mod, mcontext_t *mctx
+        target_dialect target, owning_module_ref mod
     ) {
         if (!output_stream || !mod) {
             return;
         }
 
-        process_mlir_module(target, mod.get(), mctx);
+        process_mlir_module(target, mod.get());
 
         // FIXME: we cannot roundtrip prettyForm=true right now.
         mlir::OpPrintingFlags flags;
