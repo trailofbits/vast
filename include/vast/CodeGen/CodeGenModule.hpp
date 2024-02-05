@@ -11,6 +11,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Triple.hpp"
+#include "vast/Util/DataLayout.hpp"
+
 #include "vast/CodeGen/ScopeContext.hpp"
 #include "vast/CodeGen/VisitorView.hpp"
 #include "vast/CodeGen/CodeGenMeta.hpp"
@@ -34,6 +36,7 @@ namespace vast::cg {
     protected:
         bool frozen = false;
         owning_module_ref mod;
+        dl::DataLayoutBlueprint dl;
     };
 
     struct module_generator : module_context
@@ -54,13 +57,15 @@ namespace vast::cg {
         void emit(clang::FunctionDecl *decl);
         void emit(clang::VarDecl *decl);
 
+        void emit_data_layout();
+
         bool verify();
 
         void finalize();
     private:
         static owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
 
-        meta_generator &meta;
+        [[maybe_unused]] meta_generator &meta;
     };
 
 } // namespace vast::cg

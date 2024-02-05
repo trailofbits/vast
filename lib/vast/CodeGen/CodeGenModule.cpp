@@ -7,6 +7,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/Verifier.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/CodeGen/DataLayout.hpp"
+
 namespace vast::cg
 {
     //
@@ -118,12 +120,20 @@ namespace vast::cg
         VAST_UNIMPLEMENTED;
     }
 
+    void module_generator::emit_data_layout() {
+        VAST_ASSERT(!frozen);
+        auto mctx = mod.get()->getContext();
+        vast::cg::emit_data_layout(*mctx, mod, dl);
+    }
+
     void module_generator::finalize() {
         VAST_ASSERT(!frozen);
-        VAST_UNIMPLEMENTED;
+
+        emit_data_layout();
     }
 
     bool module_generator::verify() {
+        VAST_ASSERT(!frozen);
         return mlir::verify(mod.get()).succeeded();
     }
 
