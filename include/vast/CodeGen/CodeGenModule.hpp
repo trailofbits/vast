@@ -7,6 +7,7 @@
 VAST_RELAX_WARNINGS
 #include <clang/AST/GlobalDecl.h>
 #include <clang/Basic/TargetInfo.h>
+#include <mlir/InitAllDialects.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
@@ -17,6 +18,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/VisitorView.hpp"
 #include "vast/CodeGen/CodeGenMeta.hpp"
 
+#include "vast/Dialect/Dialects.hpp"
 #include "vast/Dialect/Core/CoreAttributes.hpp"
 
 namespace vast::cg {
@@ -44,7 +46,11 @@ namespace vast::cg {
         explicit module_generator(acontext_t &actx, mcontext_t &mctx, source_language lang, meta_generator &meta)
             : module_context(mk_module(actx, mctx)), meta(meta)
         {
-            // TODO: set_source_language(lang);
+            mlir::registerAllDialects(mctx);
+            vast::registerAllDialects(mctx);
+            mctx.loadAllAvailableDialects();
+
+            set_source_language(lang);
             set_triple(actx.getTargetInfo().getTriple().str());
         }
 
