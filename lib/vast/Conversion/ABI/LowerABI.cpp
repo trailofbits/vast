@@ -551,8 +551,7 @@ namespace vast
                                            conversion_rewriter &rewriter) const override
             {
                 auto parent = op->getParentRegion();
-                conv::inline_region_blocks(rewriter, op.getBody(),
-                                           mlir::Region::iterator(parent->end()));
+                rewriter.inlineRegionBefore(op.getBody(), *parent, parent->end());
                 auto &unit_block = parent->back();
                 rewriter.inlineBlockBefore(&unit_block, op, {});
 
