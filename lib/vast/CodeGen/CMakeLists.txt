@@ -9,6 +9,7 @@ add_vast_library(CodeGen
     CodeGen.cpp
     CodeGenDriver.cpp
     CodeGenFunction.cpp
+    CodeGenModule.cpp
     DataLayout.cpp
     Mangler.cpp
 
