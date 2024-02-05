@@ -71,11 +71,9 @@ namespace vast::cc {
         const vast_args &vargs;
 
         //
-        // contexts
+        // vast driver
         //
-        std::unique_ptr< mcontext_t > mctx = nullptr;
-        std::unique_ptr< cg::codegen_context > cgctx = nullptr;
-        std::unique_ptr< cg::codegen_driver > codegen = nullptr;
+        std::unique_ptr< cg::driver > driver = nullptr;
     };
 
     struct vast_stream_consumer : vast_consumer {
@@ -90,17 +88,11 @@ namespace vast::cc {
         void HandleTranslationUnit(acontext_t &acontext) override;
 
       private:
-        void emit_backend_output(
-            backend backend_action, owning_module_ref mlir_module, mcontext_t *mctx
-        );
+        void emit_backend_output(backend backend_action, owning_module_ref mod);
 
-        void emit_mlir_output(
-            target_dialect target, owning_module_ref mod, mcontext_t *mctx
-        );
+        void emit_mlir_output(target_dialect target, owning_module_ref mod);
 
-        void process_mlir_module(
-            target_dialect target, mlir::ModuleOp mod, mcontext_t *mctx
-        );
+        void process_mlir_module(target_dialect target, mlir::ModuleOp mod);
 
         output_type action;
         output_stream_ptr output_stream;
