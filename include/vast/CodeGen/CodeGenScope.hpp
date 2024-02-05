@@ -157,7 +157,6 @@ namespace vast::cg
             codegen.ctx.current_lexical_scope = ctx;
         }
 
-
         lexical_scope_guard(const lexical_scope_guard &) = delete;
         lexical_scope_guard &operator=(const lexical_scope_guard &) = delete;
         lexical_scope_guard &operator=(lexical_scope_guard &&other) = delete;
