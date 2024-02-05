@@ -4,6 +4,10 @@
 
 #include "vast/Util/Warnings.hpp"
 
+VAST_RELAX_WARNINGS
+#include <llvm/ADT/ScopedHashTable.h>
+VAST_UNRELAX_WARNINGS
+
 #include <gap/coro/generator.hpp>
 
 #include <functional>
@@ -40,21 +44,21 @@ namespace vast::cg
                 action();
             }
 
-            VAST_ASSERT(deferred_codegen_actions.empty());
+            VAST_ASSERT(deferred_actions.empty());
         }
 
         gap::generator< action_t > deferred() {
-            while (!deferred_codegen_actions.empty()) {
-                co_yield deferred_codegen_actions.front();
-                deferred_codegen_actions.pop();
+            while (!deferred_actions.empty()) {
+                co_yield deferred_actions.front();
+                deferred_actions.pop();
             }
         }
 
         void defer(action_t action) {
-            deferred_codegen_actions.emplace(std::move(action));
+            deferred_actions.emplace(std::move(action));
         }
 
-        std::queue< action_t > deferred_codegen_actions;
+        std::queue< action_t > deferred_actions;
     };
 
     // Refers to block scope §6.2.1 of C standard
