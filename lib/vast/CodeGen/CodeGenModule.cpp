@@ -55,7 +55,7 @@ namespace vast::cg
         }
     } // namespace detail
 
-    owning_module_ref module_generator::mk_module(acontext_t &actx, mcontext_t &mctx) {
+    owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx) {
         auto [loc, name] = detail::module_loc_name(mctx, actx);
         auto mod = owning_module_ref(vast_module::create(loc));
         mod->setSymName(name);
@@ -63,12 +63,14 @@ namespace vast::cg
     }
 
     void module_generator::emit(clang::DeclGroupRef decls) {
+        VAST_ASSERT(!frozen);
         for (auto &decl : decls) {
             emit(decl);
         }
     }
 
     void module_generator::emit(clang::Decl *decl) {
+        VAST_ASSERT(!frozen);
         switch (decl->getKind()) {
             case clang::Decl::Kind::Typedef:
                 emit(cast<clang::TypedefDecl>(decl));
@@ -128,7 +130,6 @@ namespace vast::cg
 
     void module_generator::finalize() {
         VAST_ASSERT(!frozen);
-
         emit_data_layout();
     }
 

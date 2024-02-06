@@ -41,15 +41,14 @@ namespace vast::cg {
         dl::DataLayoutBlueprint dl;
     };
 
+    owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
+
+
     struct module_generator : module_context
     {
         explicit module_generator(acontext_t &actx, mcontext_t &mctx, source_language lang, meta_generator &meta)
             : module_context(mk_module(actx, mctx)), meta(meta)
         {
-            mlir::registerAllDialects(mctx);
-            vast::registerAllDialects(mctx);
-            mctx.loadAllAvailableDialects();
-
             set_source_language(lang);
             set_triple(actx.getTargetInfo().getTriple().str());
         }
@@ -66,11 +65,8 @@ namespace vast::cg {
         void emit_data_layout();
 
         bool verify();
-
         void finalize();
     private:
-        static owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
-
         [[maybe_unused]] meta_generator &meta;
     };
 

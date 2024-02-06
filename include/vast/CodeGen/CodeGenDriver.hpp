@@ -20,12 +20,18 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg {
 
+    std::unique_ptr< meta_generator > mk_meta_generator(
+        acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs
+    );
+
+    std::unique_ptr< mcontext_t > mk_mcontext();
+
     struct driver
     {
         explicit driver(cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx)
             : actx(actx)
-            , mctx(std::make_unique< mcontext_t >())
-            , meta(mk_meta_generator(vargs))
+            , mctx(mk_mcontext())
+            , meta(mk_meta_generator(actx, *mctx, vargs))
             , generator(actx, *mctx, cc::get_source_language(opts.lang), *meta)
         {}
 
@@ -39,7 +45,6 @@ namespace vast::cg {
         acontext_t &acontext() { return actx; }
 
       private:
-        meta_generator_ptr mk_meta_generator(const cc::vast_args &vargs);
 
         //
         // contexts
@@ -50,7 +55,7 @@ namespace vast::cg {
         //
         // generators
         //
-        meta_generator_ptr meta;
+        std::unique_ptr< meta_generator > meta;
         module_generator generator;
     };
 
