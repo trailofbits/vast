@@ -327,8 +327,9 @@ namespace vast::conv::irstollvm
         static bool points_to_scalar(mlir_type t)
         {
             auto ptr = mlir::dyn_cast< mlir::LLVM::LLVMPointerType >(t);
-            VAST_ASSERT(ptr);
-            return !mlir::isa< mlir::LLVM::LLVMStructType >(ptr.getElementType());
+            VAST_CHECK(ptr, "Expected pointer type, {0}", ptr);
+            return !mlir::isa< mlir::LLVM::LLVMStructType, mlir::LLVM::LLVMArrayType >(
+                ptr.getElementType());
         }
 
         void handle_root(typename op_t::Adaptor ops,
