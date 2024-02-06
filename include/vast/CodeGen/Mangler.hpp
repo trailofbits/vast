@@ -62,9 +62,9 @@ namespace llvm {
 
 namespace vast::cg
 {
-    struct CodeGenMangler {
+    struct mangler_t {
 
-        explicit CodeGenMangler(clang::MangleContext *mangle_context)
+        explicit mangler_t(clang::MangleContext *mangle_context)
             : mangle_context(mangle_context)
         {}
 
