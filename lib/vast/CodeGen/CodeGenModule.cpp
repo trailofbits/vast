@@ -8,6 +8,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/DataLayout.hpp"
+#include "vast/CodeGen/CodeGenFunction.hpp"
 
 namespace vast::cg
 {
@@ -121,9 +122,9 @@ namespace vast::cg
         VAST_UNIMPLEMENTED;
     }
 
-    void module_generator::emit(clang::FunctionDecl */* decl */) {
+    void module_generator::emit(clang::FunctionDecl *decl) {
         VAST_ASSERT(!frozen);
-        VAST_UNIMPLEMENTED;
+        defer(generate_function(decl, *this));
     }
 
     void module_generator::emit(clang::VarDecl */* decl */) {
