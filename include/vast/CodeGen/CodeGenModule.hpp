@@ -21,6 +21,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Dialects.hpp"
 #include "vast/Dialect/Core/CoreAttributes.hpp"
 
+#include "vast/CodeGen/Mangler.hpp"
+
 namespace vast::cg {
 
     using source_language = core::SourceLanguage;
@@ -30,8 +32,9 @@ namespace vast::cg {
 
 
     struct module_context : module_scope {
-        explicit module_context(owning_module_ref mod)
+        explicit module_context(owning_module_ref mod, acontext_t &actx)
             : mod(std::move(mod))
+            , mangler(actx.createMangleContext())
         {}
 
         owning_module_ref freeze();
@@ -40,6 +43,8 @@ namespace vast::cg {
         bool frozen = false;
         owning_module_ref mod;
         dl::DataLayoutBlueprint dl;
+
+        mangler_t mangler;
     };
 
     owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
@@ -49,7 +54,7 @@ namespace vast::cg {
     struct module_generator : module_context
     {
         explicit module_generator(acontext_t &actx, mcontext_t &mctx, source_language lang, meta_generator &meta)
-            : module_context(mk_module_with_attrs(actx, mctx, lang)), meta(meta)
+            : module_context(mk_module_with_attrs(actx, mctx, lang), actx), meta(meta)
         {}
 
         void emit(clang::DeclGroupRef decls);

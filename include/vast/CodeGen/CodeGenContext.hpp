@@ -96,7 +96,7 @@ namespace vast::cg
 
         // Never move this!
         // It owns the strings that mangled_name_ref uses
-        CodeGenMangler mangler;
+        mangler_t mangler;
 
         using var_table = scoped_table< const clang::VarDecl *, Value >;
         var_table vars;

@@ -4,7 +4,7 @@
 
 namespace vast::cg
 {
-    mangled_name_ref CodeGenMangler::get_mangled_name(
+    mangled_name_ref mangler_t::get_mangled_name(
         clang::GlobalDecl decl, const clang::TargetInfo &target_info, const std::string &module_name_hash
     ) {
         auto canonical = decl.getCanonicalDecl();
@@ -24,7 +24,7 @@ namespace vast::cg
         return mangled_decl_names[canonical] = mangled_name_ref{ result.first->first() };
     }
 
-    std::optional< clang::GlobalDecl > CodeGenMangler::lookup_representative_decl(mangled_name_ref mangled_name) const {
+    std::optional< clang::GlobalDecl > mangler_t::lookup_representative_decl(mangled_name_ref mangled_name) const {
         if (auto res = manglings.find(mangled_name.name); res != manglings.end()) {
             return res->getValue();
         }
@@ -51,7 +51,7 @@ namespace vast::cg
             && decl.getKernelReferenceKind() == clang::KernelReferenceKind::Stub;
     }
 
-    std::string CodeGenMangler::mangle(clang::GlobalDecl decl, const std::string &module_name_hash) const {
+    std::string mangler_t::mangle(clang::GlobalDecl decl, const std::string &module_name_hash) const {
         const auto *named = clang::cast< clang::NamedDecl >(decl.getDecl());
 
         llvm::SmallString< 256 > buffer;

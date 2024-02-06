@@ -40,8 +40,8 @@ namespace vast::cg {
         auto acontext()       -> acontext_t      & { return context().actx; }
         auto acontext() const -> acontext_t const& { return context().actx; }
 
-        auto name_mangler()       -> CodeGenMangler      & { return context().mangler; }
-        auto name_mangler() const -> CodeGenMangler const& { return context().mangler; }
+        auto name_mangler()       -> mangler_t      & { return context().mangler; }
+        auto name_mangler() const -> mangler_t const& { return context().mangler; }
 
         //
         // builder
