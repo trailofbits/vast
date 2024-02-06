@@ -21,13 +21,13 @@ namespace vast::cg
         return std::move(mod);
     }
 
-    void module_context::set_triple(std::string triple) {
+    void set_target_triple(owning_module_ref &mod, std::string triple) {
         mlir::OpBuilder bld(mod.get());
         auto attr = bld.getAttr< mlir::StringAttr >(triple);
         mod.get()->setAttr(core::CoreDialect::getTargetTripleAttrName(), attr);
     }
 
-    void module_context::set_source_language(source_language lang) {
+    void set_source_language(owning_module_ref &mod, source_language lang) {
         mlir::OpBuilder bld(mod.get());
         auto attr = bld.getAttr< core::SourceLanguageAttr >(lang);
         mod.get()->setAttr(core::CoreDialect::getLanguageAttrName(), attr);
@@ -59,6 +59,15 @@ namespace vast::cg
         auto [loc, name] = detail::module_loc_name(mctx, actx);
         auto mod = owning_module_ref(vast_module::create(loc));
         mod->setSymName(name);
+        return mod;
+    }
+
+    owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, source_language lang) {
+        auto mod = mk_module(actx, mctx);
+
+        set_target_triple(mod, actx.getTargetInfo().getTriple().str());
+        set_source_language(mod, lang);
+
         return mod;
     }
 

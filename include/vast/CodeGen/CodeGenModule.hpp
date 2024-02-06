@@ -25,13 +25,14 @@ namespace vast::cg {
 
     using source_language = core::SourceLanguage;
 
+    void set_target_triple(owning_module_ref &mod, std::string triple);
+    void set_source_language(owning_module_ref &mod, source_language lang);
+
+
     struct module_context : module_scope {
         explicit module_context(owning_module_ref mod)
             : mod(std::move(mod))
         {}
-
-        void set_triple(std::string triple);
-        void set_source_language(source_language lang);
 
         owning_module_ref freeze();
 
@@ -42,16 +43,14 @@ namespace vast::cg {
     };
 
     owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
+    owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, source_language lang);
 
 
     struct module_generator : module_context
     {
         explicit module_generator(acontext_t &actx, mcontext_t &mctx, source_language lang, meta_generator &meta)
-            : module_context(mk_module(actx, mctx)), meta(meta)
-        {
-            set_source_language(lang);
-            set_triple(actx.getTargetInfo().getTriple().str());
-        }
+            : module_context(mk_module_with_attrs(actx, mctx, lang)), meta(meta)
+        {}
 
         void emit(clang::DeclGroupRef decls);
         void emit(clang::Decl *decl);
