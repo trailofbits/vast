@@ -49,6 +49,54 @@ namespace vast::conv::irstollvm
         erase_pattern< hl::TypeDeclOp >
     >;
 
+    template< typename self_t >
+    struct value_builder
+    {
+      private:
+        const self_t &self() const { return static_cast< const self_t & >(*this); }
+
+      protected:
+
+        mlir::Value construct_value(auto &rewriter, mlir_value val) const {
+            auto op = val.getDefiningOp();
+            VAST_ASSERT(op && op->getResults().size() == 1);
+            auto trg_type = self().convert(op->getResults()[0].getType());
+            return construct_value(rewriter, op, trg_type);
+        }
+
+        mlir::Value construct_value(auto &rewriter, operation op, mlir_type type) const {
+            auto init_list = mlir::dyn_cast< hl::InitListExpr >(op);
+            if (!init_list)
+            {
+                VAST_CHECK(op->getResults().size() == 1, "Unexpected number of results");
+                return op->getResults()[0];
+            }
+
+            auto trg_type = self().convert(type);
+            if (auto arr_type = mlir::dyn_cast< mlir::LLVM::LLVMArrayType >(trg_type))
+                return construct_value(rewriter, init_list, arr_type);
+            VAST_FATAL("Not implemented yet.");
+        }
+
+        mlir::Value construct_value(
+            conversion_rewriter &rewriter, hl::InitListExpr init_list,
+            mlir::LLVM::LLVMArrayType arr_type
+        ) const {
+            // Currently we are only supporting this type of initialization so
+            // better be defensive about it.
+            mlir_value init = self().undef(rewriter, init_list.getLoc(), arr_type);
+            for (auto [idx, o] : llvm::enumerate(init_list.getElements()))
+            {
+                auto elem = construct_value(rewriter, o);
+                init = rewriter.template create< mlir::LLVM::InsertValueOp >(
+                    init_list.getLoc(), init, elem, idx);
+            }
+            rewriter.eraseOp(init_list);
+            return init;
+        }
+    };
+
+
     struct ll_struct_gep : base_pattern< ll::StructGEPOp >
     {
         using base = base_pattern< ll::StructGEPOp >;
@@ -1357,23 +1405,30 @@ namespace vast::conv::irstollvm
         }
     };
 
-    struct value_yield_in_global_var : base_pattern< hl::ValueYieldOp >
+    struct value_yield_in_global_var : base_pattern< hl::ValueYieldOp >,
+                                       value_builder< value_yield_in_global_var >
     {
         using op_t = hl::ValueYieldOp;
         using base = base_pattern< op_t >;
         using base::base;
 
+
         logical_result matchAndRewrite(
                     op_t op, typename op_t::Adaptor ops,
                     conversion_rewriter &rewriter) const override
         {
+            auto gv = mlir::dyn_cast< mlir::LLVM::GlobalOp >(op->getParentOp());
             // It has a very different conversion outside of global op.
-            if (!mlir::isa< mlir::LLVM::GlobalOp >(op->getParentOp()))
+            if (!gv)
                 return logical_result::failure();
+
+            // Here we need to build the final value to be returned.
+            auto trg_type = this->convert(gv.getType());
+            auto value = construct_value(rewriter, ops.getResult().getDefiningOp(), trg_type);
 
             rewriter.template create< mlir::LLVM::ReturnOp >(
                     op.getLoc(),
-                    ops.getOperands());
+                    value);
             rewriter.eraseOp(op);
             return logical_result::success();
         }
