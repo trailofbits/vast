@@ -53,6 +53,10 @@ namespace vast::conv::irstollvm {
                 loc, index_type, rewriter.getIntegerAttr(index_type, idx)
             );
         }
+
+        auto undef(auto &rewriter, auto loc, auto type) const {
+            return rewriter.template create< mlir::LLVM::UndefOp >(loc, type);
+        }
     };
 
     template< typename src_t, typename trg_t >
