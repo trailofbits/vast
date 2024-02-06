@@ -36,8 +36,11 @@ namespace vast::cg
         }
     };
 
+    using deferred_action_t = std::function< void() >;
+
     struct scope_context {
-        using action_t = std::function< void() >;
+
+        scope_context() = default;
 
         ~scope_context() {
             for (const auto &action : deferred()) {
@@ -47,18 +50,32 @@ namespace vast::cg
             VAST_ASSERT(deferred_actions.empty());
         }
 
-        gap::generator< action_t > deferred() {
+        scope_context(const scope_context &) = delete;
+        scope_context(scope_context &&other)
+            : deferred_actions(std::move(other.deferred_actions))
+        {}
+
+        scope_context &operator=(const scope_context &) = delete;
+        scope_context &operator=(scope_context &&) = default;
+
+        gap::generator< deferred_action_t > deferred() {
             while (!deferred_actions.empty()) {
                 co_yield deferred_actions.front();
-                deferred_actions.pop();
+                deferred_actions.pop_front();
             }
         }
 
-        void defer(action_t action) {
-            deferred_actions.emplace(std::move(action));
+        void defer(deferred_action_t action) {
+            deferred_actions.push_back(std::move(action));
         }
 
-        std::queue< action_t > deferred_actions;
+        void defer(scope_context &&scope) {
+            std::ranges::move(scope.deferred(), std::back_inserter(deferred_actions));
+        }
+
+        bool has_deferred_actions() const { return !deferred_actions.empty(); }
+
+        std::deque< deferred_action_t > deferred_actions;
     };
 
     // Refers to block scope §6.2.1 of C standard
