@@ -3,6 +3,8 @@
 #pragma once
 
 #include "vast/Util/Common.hpp"
+#include "vast/CodeGen/ScopeContext.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 namespace vast::cg {
@@ -39,5 +41,24 @@ namespace vast::cg {
     }
 
     using vast_function = vast::hl::FuncOp;
+
+    struct function_context : function_scope {};
+
+    struct function_generator : function_context {
+        explicit function_generator(scope_context &parent) {}
+        ~function_generator() {
+            VAST_REPORT(">> function generator dtor <<");
+        }
+
+        void emit(clang::FunctionDecl *decl);
+        void emit_prologue(clang::FunctionDecl *decl);
+        void emit_body(clang::FunctionDecl *decl);
+        void emit_epilogue(clang::FunctionDecl *decl);
+    };
+
+    //
+    // return potentially deferred action
+    //
+    function_context generate_function(clang::FunctionDecl *decl, scope_context &parent);
 
 } // namespace vast::cg

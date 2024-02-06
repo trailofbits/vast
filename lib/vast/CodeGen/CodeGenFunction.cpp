@@ -9,101 +9,32 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg
 {
-    bool codegen_driver::may_drop_function_return(clang::QualType rty) const {
-        // We can't just disard the return value for a record type with a complex
-        // destructor or a non-trivially copyable type.
-        if (const auto *recorrd_type = rty.getCanonicalType()->getAs< clang::RecordType >()) {
-            VAST_UNIMPLEMENTED;
-        }
-
-        return rty.isTriviallyCopyableType(acontext());
+    void function_generator::emit(clang::FunctionDecl *decl) {
+        emit_prologue(decl);
+        defer([this, decl] {
+            emit_body(decl);
+            emit_epilogue(decl);
+        });
     }
 
-    void codegen_driver::deal_with_missing_return(hl::FuncOp fn, const clang::FunctionDecl *decl) {
-        auto rty = decl->getReturnType();
-
-        bool shoud_emit_unreachable = (
-            opts.codegen.StrictReturn || may_drop_function_return(rty)
-        );
-
-        // if (SanOpts.has(SanitizerKind::Return)) {
-        //     VAST_UNIMPLEMENTED;
-        // }
-
-        if (rty->isVoidType()) {
-            codegen.emit_implicit_void_return(fn, decl);
-        } else if (decl->hasImplicitReturnZero()) {
-            codegen.emit_implicit_return_zero(fn, decl);
-        } else if (shoud_emit_unreachable) {
-            // C++11 [stmt.return]p2:
-            //   Flowing off the end of a function [...] results in undefined behavior
-            //   in a value-returning function.
-            // C11 6.9.1p12:
-            //   If the '}' that terminates a function is reached, and the value of the
-            //   function call is used by the caller, the behavior is undefined.
-
-            // TODO: skip if SawAsmBlock
-            if (opts.codegen.OptimizationLevel == 0) {
-                codegen.emit_trap(fn, decl);
-            } else {
-                codegen.emit_unreachable(fn, decl);
-            }
-        } else {
-            VAST_UNIMPLEMENTED_MSG("unknown missing return case");
-        }
+    void function_generator::emit_prologue(clang::FunctionDecl *decl) {
+        VAST_REPORT("emit prologue {0}", decl->getName());
     }
 
-    operation get_last_effective_operation(auto &block) {
-        if (block.empty()) {
-            return {};
-        }
-        auto last = &block.back();
-        if (auto scope = mlir::dyn_cast< core::ScopeOp >(last)) {
-            return get_last_effective_operation(scope.getBody().back());
-        }
-
-        return last;
+    void function_generator::emit_body(clang::FunctionDecl *decl) {
+        VAST_REPORT("emit body {0}", decl->getName());
     }
 
-    hl::FuncOp codegen_driver::emit_function_epilogue(hl::FuncOp fn, clang::GlobalDecl decl) {
-        auto function_decl = clang::cast< clang::FunctionDecl >( decl.getDecl() );
-
-        auto &last_block = fn.getBody().back();
-        auto missing_return = [&] (auto &block) {
-            if (codegen.has_insertion_block()) {
-                if (auto op = get_last_effective_operation(block)) {
-                    return !core::is_return_like(op);
-                }
-                return true;
-            }
-
-            return false;
-        };
-
-        if (missing_return(last_block)) {
-            deal_with_missing_return(fn, function_decl);
-        }
-
-
-        // Emit the standard function epilogue.
-        // TODO: finishFunction(BodyRange.getEnd());
-
-        // If we haven't marked the function nothrow through other means, do a quick
-        // pass now to see if we can.
-        // TODO: if (!CurFn->doesNotThrow()) TryMarkNoThrow(CurFn);
-
-        return fn;
+    void function_generator::emit_epilogue(clang::FunctionDecl *decl) {
+        VAST_REPORT("emit epilogue {0}", decl->getName());
     }
 
-    // This function implements the logic from CodeGenFunction::GenerateCode
-    hl::FuncOp codegen_driver::build_function_body(hl::FuncOp fn, clang::GlobalDecl decl) {
-        fn = codegen.emit_function_prologue(fn, decl, opts);
-
-        if (mlir::failed(fn.verifyBody())) {
-            return nullptr;
-        }
-
-        return emit_function_epilogue(fn, decl);
+    function_context generate_function(
+        clang::FunctionDecl *decl, scope_context &parent
+    ) {
+        function_generator gen(parent);
+        gen.emit(decl);
+        return std::move(gen); // return as a deferred scope
     }
 
 } // namespace vast::cg
