@@ -426,10 +426,10 @@ namespace vast::conv::irstollvm
             auto create_dummy_value = [&] () -> mlir::Attribute {
                 if (auto trg_arr = mlir::dyn_cast< mlir::LLVM::LLVMArrayType >(target_type)) {
                     attrs_t arr(trg_arr.getNumElements(),
-                                rewriter.getIntegerAttr(trg_arr.getElementType(), 0));
+                                rewriter.getIntegerAttr(rewriter.getIndexType(), 0));
                     return rewriter.getArrayAttr(arr);
                 }
-                return rewriter.getIntegerAttr(target_type, 0);
+                return rewriter.getIntegerAttr(rewriter.getIndexType(), 0);
             };
 
             // So we know this is a global, otherwise it would be in `ll:`.
