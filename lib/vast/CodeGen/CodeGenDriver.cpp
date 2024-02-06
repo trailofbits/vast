@@ -33,10 +33,20 @@ namespace vast::cg
         generator.finalize();
     }
 
-    meta_generator_ptr driver::mk_meta_generator(const cc::vast_args &vargs) {
+    std::unique_ptr< meta_generator > mk_meta_generator(
+        acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs
+    ) {
         if (vargs.has_option(cc::opt::locs_as_meta_ids))
-            return std::make_unique< id_meta_gen >(&actx, mctx.get());
-        return std::make_unique< default_meta_gen >(&actx, mctx.get());
+            return std::make_unique< id_meta_gen >(&actx, &mctx);
+        return std::make_unique< default_meta_gen >(&actx, &mctx);
+    }
+
+    std::unique_ptr< mcontext_t > mk_mcontext() {
+        auto mctx = std::make_unique< mcontext_t >();
+        mlir::registerAllDialects(*mctx);
+        vast::registerAllDialects(*mctx);
+        mctx->loadAllAvailableDialects();
+        return mctx;
     }
 
 } // namespace vast::cg

@@ -24,8 +24,6 @@ namespace vast::cg
         virtual loc_t location(const clang::Expr *) const = 0;
     };
 
-    using meta_generator_ptr = std::unique_ptr< meta_generator >;
-
     struct default_meta_gen : meta_generator {
         default_meta_gen(acontext_t *actx, mcontext_t *mctx)
             : actx(actx), mctx(mctx)
