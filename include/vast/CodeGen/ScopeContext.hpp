@@ -69,7 +69,7 @@ namespace vast::cg
             }
         }
 
-        void hold(std::unique_ptr< scope_context > &&scope) {
+        void hook(std::unique_ptr< scope_context > &&scope) {
             children.push_back(std::move(scope));
         }
 
