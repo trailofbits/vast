@@ -42,16 +42,15 @@ namespace vast::cg {
 
     using vast_function = vast::hl::FuncOp;
 
-    struct function_context : function_scope {};
+    struct function_context : function_scope {
+        virtual ~function_context() = default;
+    };
 
     struct function_generator : function_context {
-        explicit function_generator(scope_context &parent) {}
-        ~function_generator() {
-            VAST_REPORT(">> function generator dtor <<");
-        }
+        virtual ~function_generator() = default;
 
-        void emit(clang::FunctionDecl *decl);
-        void emit_prologue(clang::FunctionDecl *decl);
+        void emit(clang::FunctionDecl *decl, mangler_t &mangler);
+        void emit_prologue(clang::FunctionDecl *decl, mangler_t &mangler);
         void emit_body(clang::FunctionDecl *decl);
         void emit_epilogue(clang::FunctionDecl *decl);
     };
@@ -59,6 +58,6 @@ namespace vast::cg {
     //
     // return potentially deferred action
     //
-    function_context generate_function(clang::FunctionDecl *decl, scope_context &parent);
+    std::unique_ptr< function_generator > generate_function(clang::FunctionDecl *decl, mangler_t &mangler);
 
 } // namespace vast::cg
