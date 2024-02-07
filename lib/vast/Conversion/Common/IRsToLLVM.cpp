@@ -57,14 +57,14 @@ namespace vast::conv::irstollvm
 
       protected:
 
-        mlir::Value construct_value(auto &rewriter, mlir_value val) const {
+        mlir_value construct_value(auto &rewriter, mlir_value val) const {
             auto op = val.getDefiningOp();
             VAST_ASSERT(op && op->getResults().size() == 1);
             auto trg_type = self().convert(op->getResults()[0].getType());
             return construct_value(rewriter, op, trg_type);
         }
 
-        mlir::Value construct_value(auto &rewriter, operation op, mlir_type type) const {
+        mlir_value construct_value(auto &rewriter, operation op, mlir_type type) const {
             auto init_list = mlir::dyn_cast< hl::InitListExpr >(op);
             if (!init_list)
             {
@@ -73,21 +73,21 @@ namespace vast::conv::irstollvm
             }
 
             auto trg_type = self().convert(type);
-            if (auto arr_type = mlir::dyn_cast< mlir::LLVM::LLVMArrayType >(trg_type))
-                return construct_value(rewriter, init_list, arr_type);
+            if (mlir::isa< mlir::LLVM::LLVMArrayType, mlir::LLVM::LLVMStructType >(trg_type))
+                return construct_aggregate_value(rewriter, init_list, trg_type);
             VAST_FATAL("Not implemented yet.");
         }
 
-        mlir::Value construct_value(
+        mlir_value construct_aggregate_value(
             conversion_rewriter &rewriter, hl::InitListExpr init_list,
-            mlir::LLVM::LLVMArrayType arr_type
+            mlir_type aggragate_type
         ) const {
             // Currently we are only supporting this type of initialization so
             // better be defensive about it.
-            mlir_value init = self().undef(rewriter, init_list.getLoc(), arr_type);
-            for (auto [idx, o] : llvm::enumerate(init_list.getElements()))
+            mlir_value init = self().undef(rewriter, init_list.getLoc(), aggragate_type);
+            for (auto [idx, element] : llvm::enumerate(init_list.getElements()))
             {
-                auto elem = construct_value(rewriter, o);
+                auto elem = construct_value(rewriter, element);
                 init = rewriter.template create< mlir::LLVM::InsertValueOp >(
                     init_list.getLoc(), init, elem, idx);
             }
@@ -314,71 +314,25 @@ namespace vast::conv::irstollvm
         }
     };
 
-    struct initialize_var : base_pattern< ll::InitializeVar >
+    struct initialize_var : base_pattern< ll::InitializeVar >,
+                            value_builder< initialize_var >
     {
         using op_t = ll::InitializeVar;
         using base = base_pattern< op_t >;
         using base::base;
 
-        // TODO(conv:abi): This seems like a weird hack, try to figure out
-        //                 how to make this more sane.
-        // First one is intended to catch the `adaptor`
-        auto erase(auto, auto &) const {}
-        auto erase(hl::InitListExpr op, auto &rewriter) const
-        {
-            rewriter.eraseOp(op);
-        }
-
-        static bool points_to_scalar(mlir_type t)
-        {
-            auto ptr = mlir::dyn_cast< mlir::LLVM::LLVMPointerType >(t);
-            VAST_CHECK(ptr, "Expected pointer type, {0}", ptr);
-            return !mlir::isa< mlir::LLVM::LLVMStructType, mlir::LLVM::LLVMArrayType >(
-                ptr.getElementType());
-        }
-
-        void handle_root(typename op_t::Adaptor ops,
-                         auto ptr, auto &rewriter) const
-        {
-            // Scalar need special handling, because we won't be doing any GEPs
-            // into it - mlir verifier would survive that, but conversion
-            // to `llvm::` will complain.
-            if (!points_to_scalar(ptr.getType()))
-                return handle_init_list(ops, ptr, rewriter);
-
-            // We know it must be only one if the type is scalar.
-            auto element = ops.getElements()[0];
-            rewriter.template create< LLVM::StoreOp >(
-                    element.getLoc(),
-                    element,
-                    ptr);
-        }
-
-        void handle_init_list(auto init_list, auto ptr, auto &rewriter) const
-        {
-            for (auto [i, element] : llvm::enumerate(init_list.getElements()))
-            {
-                auto e_type = LLVM::LLVMPointerType::get(element.getType());
-                std::vector< mlir::LLVM::GEPArg > indices { 0ul, i };
-
-                auto gep = rewriter.template create< LLVM::GEPOp >(
-                        element.getLoc(), e_type, ptr, indices);
-
-                if (auto nested = mlir::dyn_cast< hl::InitListExpr >(element.getDefiningOp()))
-                    handle_init_list(nested, gep, rewriter);
-                else
-                    rewriter.template create< LLVM::StoreOp >(element.getLoc(), element, gep);
-            }
-            erase(init_list, rewriter);
-        }
-
-
         logical_result matchAndRewrite(
                 op_t op, typename op_t::Adaptor ops,
                 conversion_rewriter &rewriter) const override
         {
-            handle_root(ops, ops.getVar(), rewriter);
-            rewriter.replaceOp(op, ops.getVar());
+            auto element = this->construct_value(rewriter, ops.getElements()[0]);
+            auto ptr = ops.getVar();
+
+            rewriter.template create< LLVM::StoreOp >(
+                    element.getLoc(),
+                    element,
+                    ptr);
+            rewriter.replaceOp(op, ptr);
 
             return logical_result::success();
         }
