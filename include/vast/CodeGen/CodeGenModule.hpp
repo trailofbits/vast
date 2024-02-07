@@ -37,6 +37,8 @@ namespace vast::cg {
             , mangler(actx.createMangleContext())
         {}
 
+        virtual ~module_context() = default;
+
         owning_module_ref freeze();
 
     protected:
@@ -56,6 +58,8 @@ namespace vast::cg {
         explicit module_generator(acontext_t &actx, mcontext_t &mctx, source_language lang, meta_generator &meta)
             : module_context(mk_module_with_attrs(actx, mctx, lang), actx), meta(meta)
         {}
+
+        virtual ~module_generator() = default;
 
         void emit(clang::DeclGroupRef decls);
         void emit(clang::Decl *decl);

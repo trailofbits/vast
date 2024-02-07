@@ -9,15 +9,15 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg
 {
-    void function_generator::emit(clang::FunctionDecl *decl) {
-        emit_prologue(decl);
+    void function_generator::emit(clang::FunctionDecl *decl, mangler_t &mangler) {
+        emit_prologue(decl, mangler);
         defer([this, decl] {
             emit_body(decl);
             emit_epilogue(decl);
         });
     }
 
-    void function_generator::emit_prologue(clang::FunctionDecl *decl) {
+    void function_generator::emit_prologue(clang::FunctionDecl *decl, mangler_t &mangler) {
         VAST_REPORT("emit prologue {0}", decl->getName());
     }
 
@@ -29,12 +29,12 @@ namespace vast::cg
         VAST_REPORT("emit epilogue {0}", decl->getName());
     }
 
-    function_context generate_function(
-        clang::FunctionDecl *decl, scope_context &parent
+    std::unique_ptr< function_generator > generate_function(
+        clang::FunctionDecl *decl, mangler_t &mangler
     ) {
-        function_generator gen(parent);
-        gen.emit(decl);
-        return std::move(gen); // return as a deferred scope
+        auto gen = std::make_unique< function_generator >();
+        gen->emit(decl, mangler);
+        return gen;
     }
 
 } // namespace vast::cg
