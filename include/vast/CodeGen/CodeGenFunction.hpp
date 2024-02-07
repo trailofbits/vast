@@ -42,6 +42,9 @@ namespace vast::cg {
 
     using vast_function = vast::hl::FuncOp;
 
+    //
+    // function generation
+    //
     struct function_context : function_scope {
         virtual ~function_context() = default;
     };
@@ -50,14 +53,27 @@ namespace vast::cg {
         virtual ~function_generator() = default;
 
         void emit(clang::FunctionDecl *decl, mangler_t &mangler);
-        void emit_prologue(clang::FunctionDecl *decl, mangler_t &mangler);
-        void emit_body(clang::FunctionDecl *decl);
-        void emit_epilogue(clang::FunctionDecl *decl);
     };
 
+    std::unique_ptr< function_generator > generate_function(
+        clang::FunctionDecl *decl, mangler_t &mangler
+    );
+
     //
-    // return potentially deferred action
+    // function prototype generation
     //
-    std::unique_ptr< function_generator > generate_function(clang::FunctionDecl *decl, mangler_t &mangler);
+    struct prototype_context : prototype_scope {
+        virtual ~prototype_context() = default;
+    };
+
+    struct prototype_generator : prototype_context {
+        virtual ~prototype_generator() = default;
+
+        void emit(clang::FunctionDecl *decl, mangler_t &mangler);
+    };
+
+    std::unique_ptr< prototype_generator > generate_prototype(
+        clang::FunctionDecl *decl, mangler_t &mangler
+    );
 
 } // namespace vast::cg

@@ -124,7 +124,7 @@ namespace vast::cg
 
     void module_generator::emit(clang::FunctionDecl *decl) {
         VAST_ASSERT(!frozen);
-        hold(generate_function(decl, mangler));
+        hook(generate_function(decl, mangler));
     }
 
     void module_generator::emit(clang::VarDecl */* decl */) {
