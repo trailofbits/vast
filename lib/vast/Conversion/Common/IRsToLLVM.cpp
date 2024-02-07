@@ -257,6 +257,11 @@ namespace vast::conv::irstollvm
 
             return base::handle_multiblock(op, ops, rewriter);
         }
+
+        static void legalize(conversion_target &trg)
+        {
+            trg.addIllegalOp< op_t >();
+        }
     };
 
     using label_stmt = hl_scopelike< hl::LabelStmt >;
