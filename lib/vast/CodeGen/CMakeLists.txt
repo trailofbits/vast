@@ -6,7 +6,6 @@ add_vast_library(CodeGen
     CodeGenScope.cpp
     CodeGenStmtVisitor.cpp
     CodeGenTypeVisitor.cpp
-    CodeGen.cpp
     CodeGenDriver.cpp
     CodeGenFunction.cpp
     CodeGenModule.cpp
