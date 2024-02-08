@@ -1,6 +1,6 @@
-// Copyright (c) 2022-present, Trail of Bits, Inc.
+// Copyright (c) 2024-present, Trail of Bits, Inc.
 
-#include "vast/CodeGen/CodeGenDriver.hpp"
+#include "vast/CodeGen/CodeGenFunction.hpp"
 
 VAST_RELAX_WARNINGS
 #include <clang/AST/GlobalDecl.h>

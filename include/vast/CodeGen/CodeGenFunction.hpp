@@ -3,7 +3,9 @@
 #pragma once
 
 #include "vast/Util/Common.hpp"
+
 #include "vast/CodeGen/ScopeContext.hpp"
+#include "vast/CodeGen/Mangler.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 

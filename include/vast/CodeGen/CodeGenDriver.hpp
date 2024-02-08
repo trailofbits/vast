@@ -12,8 +12,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
-#include "vast/CodeGen/CodeGen.hpp"
 #include "vast/CodeGen/CodeGenModule.hpp"
+
+#include "vast/Frontend/Options.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DataLayout.hpp"
