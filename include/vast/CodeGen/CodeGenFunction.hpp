@@ -11,7 +11,8 @@
 
 namespace vast::cg {
 
-    using vast_function = vast::hl::FuncOp;
+    using vast_function  = vast::hl::FuncOp;
+    using clang_function = clang::FunctionDecl;
 
     //
     // function generation
@@ -23,11 +24,11 @@ namespace vast::cg {
     struct function_generator : function_context {
         virtual ~function_generator() = default;
 
-        void emit(clang::FunctionDecl *decl, mangler_t &mangler);
+        void emit(clang_function *decl, mangler_t &mangler);
     };
 
     std::unique_ptr< function_generator > generate_function(
-        clang::FunctionDecl *decl, mangler_t &mangler
+        clang_function *decl, mangler_t &mangler
     );
 
     //
@@ -40,11 +41,11 @@ namespace vast::cg {
     struct prototype_generator : prototype_context {
         virtual ~prototype_generator() = default;
 
-        void emit(clang::FunctionDecl *decl, mangler_t &mangler);
+        void emit(clang_function *decl, mangler_t &mangler);
     };
 
     std::unique_ptr< prototype_generator > generate_prototype(
-        clang::FunctionDecl *decl, mangler_t &mangler
+        clang_function *decl, mangler_t &mangler
     );
 
     //
@@ -57,12 +58,12 @@ namespace vast::cg {
     struct body_generator : body_context {
         virtual ~body_generator() = default;
 
-        void emit(clang::FunctionDecl *decl);
-        void emit_epilogue(clang::FunctionDecl *decl);
+        void emit(clang_function *decl);
+        void emit_epilogue(clang_function *decl);
     };
 
     std::unique_ptr< body_generator > generate_body(
-        clang::FunctionDecl *decl, emition_kind emition
+        clang_function *decl, emition_kind emition
     );
 
 } // namespace vast::cg
