@@ -38,11 +38,19 @@ namespace vast::cg
 
     using deferred_action_t = std::function< void() >;
 
+    enum class emition_kind {
+        immediate, deferred
+    };
+
     struct scope_context {
 
         scope_context() = default;
 
-        virtual ~scope_context() { children.clear(); commit(); }
+        virtual ~scope_context() {
+            children.clear();
+            commit();
+            VAST_ASSERT(!has_deferred_actions());
+        }
 
         scope_context(const scope_context &) = delete;
         scope_context(scope_context &&other)

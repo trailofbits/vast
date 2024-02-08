@@ -76,4 +76,22 @@ namespace vast::cg {
         clang::FunctionDecl *decl, mangler_t &mangler
     );
 
+    //
+    // function body generation
+    //
+    struct body_context : block_scope {
+        virtual ~body_context() = default;
+    };
+
+    struct body_generator : body_context {
+        virtual ~body_generator() = default;
+
+        void emit(clang::FunctionDecl *decl);
+        void emit_epilogue(clang::FunctionDecl *decl);
+    };
+
+    std::unique_ptr< body_generator > generate_body(
+        clang::FunctionDecl *decl, emition_kind emition
+    );
+
 } // namespace vast::cg

@@ -10,32 +10,76 @@ VAST_UNRELAX_WARNINGS
 namespace vast::cg
 {
     namespace detail {
-        template< typename generator_t >
-        std::unique_ptr< generator_t > generate(clang::FunctionDecl *decl, mangler_t &mangler) {
+        template< typename generator_t, typename action_t >
+        auto generate(emition_kind emition, action_t &&action)
+            -> std::unique_ptr< generator_t >
+        {
             auto gen = std::make_unique< generator_t >();
-            gen->emit(decl, mangler);
+
+            if (emition == emition_kind::immediate) {
+                action(gen.get());
+            } else {
+                gen->defer([action = std::forward< action_t >(action), gen = gen.get()] {
+                    action(gen);
+                });
+            }
+
             return gen;
+        }
+
+        template< typename generator_t >
+        auto generate(emition_kind emition, clang::FunctionDecl *decl, mangler_t &mangler)
+            -> std::unique_ptr< generator_t >
+        {
+            return generate< generator_t >(emition, [decl, &mangler] (auto *gen) {
+                gen->emit(decl, mangler);
+            });
+        }
+
+        template< typename generator_t >
+        auto generate(emition_kind emition, clang::FunctionDecl *decl)
+            -> std::unique_ptr< generator_t >
+        {
+            return generate< generator_t >(emition, [decl] (auto *gen) {
+                gen->emit(decl);
+            });
         }
     } // namespace detail
 
     void function_generator::emit(clang::FunctionDecl *decl, mangler_t &mangler) {
         hook(generate_prototype(decl, mangler));
+        hook(generate_body(decl, emition_kind::deferred));
     }
 
     void prototype_generator::emit(clang::FunctionDecl *decl, mangler_t &mangler) {
         VAST_UNIMPLEMENTED;
     }
 
-    std::unique_ptr< function_generator > generate_function(
-        clang::FunctionDecl *decl, mangler_t &mangler
-    ) {
-        return detail::generate< function_generator >(decl, mangler);
+    void body_generator::emit(clang::FunctionDecl *decl) {
+        VAST_UNIMPLEMENTED;
+        emit_epilogue(decl);
     }
 
-    std::unique_ptr< prototype_generator > generate_prototype(
-        clang::FunctionDecl *decl, mangler_t &mangler
-    ) {
-        return detail::generate< prototype_generator >(decl, mangler);
+    void body_generator::emit_epilogue(clang::FunctionDecl *decl) {
+        VAST_UNIMPLEMENTED;
+    }
+
+    auto generate_function(clang::FunctionDecl *decl, mangler_t &mangler)
+        -> std::unique_ptr< function_generator >
+    {
+        return detail::generate< function_generator >(emition_kind::immediate, decl, mangler);
+    }
+
+    auto generate_prototype(clang::FunctionDecl *decl, mangler_t &mangler)
+        -> std::unique_ptr< prototype_generator >
+    {
+        return detail::generate< prototype_generator >(emition_kind::immediate, decl, mangler);
+    }
+
+    auto generate_body(clang::FunctionDecl *decl, emition_kind emition)
+        -> std::unique_ptr< body_generator >
+    {
+        return detail::generate< body_generator >(emition, decl);
     }
 
 } // namespace vast::cg
