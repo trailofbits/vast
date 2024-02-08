@@ -78,11 +78,13 @@ namespace vast::cg
         }
 
         void hook(std::unique_ptr< scope_context > &&scope) {
+            scope->parent = this;
             children.push_back(std::move(scope));
         }
 
         bool has_deferred_actions() const { return !deferred_actions.empty(); }
 
+        scope_context *parent = nullptr;
         std::deque< deferred_action_t > deferred_actions;
         std::vector< std::unique_ptr< scope_context > > children;
     };
