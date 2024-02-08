@@ -14,7 +14,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Frontend/Options.hpp"
 #include "vast/Frontend/Targets.hpp"
 
-#include "vast/CodeGen/CodeGenContext.hpp"
 #include "vast/CodeGen/CodeGenDriver.hpp"
 
 namespace vast::cc {

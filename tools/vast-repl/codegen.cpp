@@ -5,9 +5,12 @@
 
 #include "vast/repl/state.hpp"
 
+VAST_RELAX_WARNINGS
+#include <clang/Driver/DriverDiagnostic.h>
+#include <clang/Frontend/FrontendDiagnostic.h>
 #include <llvm/Support/Signals.h>
+VAST_UNRELAX_WARNINGS
 
-#include "vast/CodeGen/CodeGen.hpp"
 #include "vast/Frontend/Action.hpp"
 #include "vast/Frontend/CompilerInstance.hpp"
 #include "vast/Frontend/CompilerInvocation.hpp"
