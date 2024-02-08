@@ -89,25 +89,6 @@ namespace vast {
       vast_error() << "[VAST error] " << llvm::formatv(__VA_ARGS__) << "\n"; \
     } while(0)
 
-    #define VAST_REPORT(...) do { \
-      vast_debug() << "[VAST debug] " << llvm::formatv(__VA_ARGS__) << "\n"; \
-    } while(0)
-
-    #define VAST_REPORT_WITH_PREFIX(prefix, ...) do { \
-      vast_debug() << "[VAST debug] " << prefix << llvm::formatv(__VA_ARGS__) << "\n"; \
-    } while(0)
-
-    #define VAST_REPORT_IF(cond, ...) do { \
-      if constexpr (cond) { \
-        VAST_REPORT(__VA_ARGS__); \
-      } \
-    } while(0)
-
-    #define VAST_REPORT_WITH_PREFIX_IF(cond, prefix, ...) do { \
-      if constexpr (cond) { \
-        VAST_REPORT_WITH_PREFIX(prefix, __VA_ARGS__); \
-      } \
-    } while(0)
 
     #define VAST_UNREACHABLE(...) do { \
       VAST_ERROR(__VA_ARGS__); \
@@ -143,10 +124,35 @@ namespace vast {
                 vast_error() << "[VAST assert] " << llvm::formatv(#cond) << " failed\n"; \
                 VAST_TRAP; \
             }
+
+        #define VAST_REPORT(...) do { \
+          vast_debug() << "[VAST debug] " << llvm::formatv(__VA_ARGS__) << "\n"; \
+        } while(0)
+
+        #define VAST_REPORT_WITH_PREFIX(prefix, ...) do { \
+          vast_debug() << "[VAST debug] " << prefix << llvm::formatv(__VA_ARGS__) << "\n"; \
+        } while(0)
+
     #elif defined(VAST_RELEASE_WITH_ASSERTS)
         #define VAST_ASSERT(...) VAST_CHECK(__VA_ARGS__)
+        #define VAST_REPORT(...)
+        #define VAST_REPORT_WITH_PREFIX(...)
     #else
         #define VAST_ASSERT(...)
+        #define VAST_REPORT(...)
+        #define VAST_REPORT_WITH_PREFIX(...)
     #endif
+
+    #define VAST_REPORT_IF(cond, ...) do { \
+      if constexpr (cond) { \
+        VAST_REPORT(__VA_ARGS__); \
+      } \
+    } while(0)
+
+    #define VAST_REPORT_WITH_PREFIX_IF(cond, prefix, ...) do { \
+      if constexpr (cond) { \
+        VAST_REPORT_WITH_PREFIX(prefix, __VA_ARGS__); \
+      } \
+    } while(0)
 
 } // namespace vast
