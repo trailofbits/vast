@@ -136,8 +136,8 @@ namespace vast::conv::irstollvm::ll_cf
             conversion_rewriter &rewriter) const
         {
             auto parent = op->getParentRegion();
-            inline_region_blocks(rewriter, op.getBody(),
-                                 mlir::Region::iterator(parent->end()));
+
+            rewriter.inlineRegionBefore(op.getBody(), *parent, parent->end());
 
             // splice newly created translation unit block in the module
             auto &unit_block = parent->back();
