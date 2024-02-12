@@ -31,7 +31,12 @@ namespace vast::hl
     using type_generator = gap::generator< mlir::Type >;
     using value_generator = gap::generator< mlir::Value >;
 
-    static inline gap::generator< hl::FieldDeclOp > field_defs(hl::StructDeclOp op)
+    template< typename op_t >
+    concept defines_field_types = std::is_same_v< hl::StructDeclOp, op_t > ||
+                                  std::is_same_v< hl::UnionDeclOp, op_t >;
+
+    template< defines_field_types op_t >
+    static inline gap::generator< hl::FieldDeclOp > field_defs(op_t op)
     {
         for (auto &maybe_field : op.getOps())
         {
@@ -47,7 +52,8 @@ namespace vast::hl
         }
     }
 
-    static inline type_generator field_types(hl::StructDeclOp op)
+    template< defines_field_types op_t >
+    static inline type_generator field_types(op_t op)
     {
         for (auto def : field_defs(op))
             co_yield def.getType();
@@ -56,12 +62,13 @@ namespace vast::hl
     // TODO(hl): This is a placeholder that works in our test cases so far.
     //           In general, we will need generic resolution for scoping that
     //           will be used instead of this function.
+    template< defines_field_types op_t = hl::StructDeclOp >
     static inline auto definition_of(mlir::Type t, vast_module module_op)
-        -> std::optional< hl::StructDeclOp >
+        -> std::optional< op_t >
     {
         auto type_name = hl::name_of_record(t);
         VAST_CHECK(type_name, "hl::name_of_record failed with {0}", t);
-        for (auto op : top_level_ops< hl::StructDeclOp >(module_op))
+        for (auto op : top_level_ops< op_t >(module_op))
             if (op.getName() == *type_name)
                 return { op };
         return {};
@@ -80,7 +87,7 @@ namespace vast::hl
 
     static inline type_generator field_types(mlir::Type t, vast_module module_op)
     {
-        auto def = definition_of(t, module_op);
+        auto def = definition_of< hl::StructDeclOp >(t, module_op);
         VAST_CHECK(def, "Was not able to fetch definition of type: {0}", t);
         return field_types(*def);
     }
@@ -100,7 +107,7 @@ namespace vast::hl
     {
         auto module_op = root->getParentOfType< vast_module >();
         VAST_ASSERT(module_op);
-        auto def = definition_of(root->getResultTypes()[0], module_op);
+        auto def = definition_of< hl::StructDeclOp >(root->getResultTypes()[0], module_op);
         VAST_CHECK(def, "Was not able to fetch definition of type from: {0}", *root);
 
         for (auto field_def : field_defs(*def))
