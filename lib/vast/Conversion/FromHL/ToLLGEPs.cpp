@@ -20,48 +20,66 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast
 {
-    namespace pattern
+    namespace
     {
-        template< typename T >
-        struct DoConversion {};
-
-        template<>
-        struct DoConversion< hl::RecordMemberOp > : util::State< hl::RecordMemberOp >
+        struct record_member_op : mlir::OpConversionPattern< hl::RecordMemberOp >
         {
-            using util::State< hl::RecordMemberOp >::State;
+            using op_t = hl::RecordMemberOp;
+            using base = mlir::OpConversionPattern< op_t >;
+            using base::base;
 
-            mlir::LogicalResult convert()
+            logical_result matchAndRewrite(
+                op_t op, typename op_t::Adaptor ops,
+                conversion_rewriter &rewriter
+            ) const override {
+                auto parent_type = ops.getRecord().getType();
+
+                auto mod = op->getParentOfType< vast_module >();
+                if (!mod)
+                    return mlir::failure();
+
+                if (auto struct_decl = hl::definition_of< hl::StructDeclOp >(parent_type, mod))
+                    return lower(op, ops, rewriter, *struct_decl);
+                if (auto union_decl = hl::definition_of< hl::UnionDeclOp >(parent_type, mod))
+                    return lower(op, ops, rewriter, *union_decl);
+                return mlir::failure();
+            }
+
+            logical_result lower(
+                op_t op, typename op_t::Adaptor ops,
+                conversion_rewriter &rewriter, hl::StructDeclOp struct_decl) const
             {
-                auto parent_type = operands.getRecord().getType();
-
-                auto module_op = op->getParentOfType< vast_module >();
-                if (!module_op)
-                    return mlir::failure();
-
-                auto struct_decl = hl::definition_of(parent_type, module_op);
-                if (!struct_decl)
-                    return mlir::failure();
-
-                auto idx = hl::field_idx(op.getName(), *struct_decl);
+                auto idx = hl::field_idx(op.getName(), struct_decl);
                 if (!idx)
                     return mlir::failure();
 
+                return replace(op, ops, rewriter, *idx);
+            }
+
+            logical_result lower(
+                op_t op, typename op_t::Adaptor ops,
+                conversion_rewriter &rewriter, hl::UnionDeclOp union_decl
+            ) const {
+                // After lowered, union will only have one member.
+                return replace(op, ops, rewriter, 0);
+            }
+
+            logical_result replace(
+                op_t op, typename op_t::Adaptor ops,
+                conversion_rewriter &rewriter, auto idx
+            ) const {
                 auto gep = rewriter.create< ll::StructGEPOp >(
                         op.getLoc(),
                         op.getType(),
-                        operands.getRecord(),
-                        rewriter.getI32IntegerAttr(*idx),
+                        ops.getRecord(),
+                        rewriter.getI32IntegerAttr(idx),
                         op.getNameAttr());
-                rewriter.replaceOp( op, gep);
-
+                rewriter.replaceOp(op, gep);
                 return mlir::success();
             }
-
         };
 
-        using record_member_op = util::BasePattern< hl::RecordMemberOp, DoConversion >;
-
-    } // namespace pattern
+    } // namespace
 
     struct HLToLLGEPsPass : HLToLLGEPsBase< HLToLLGEPsPass >
     {
@@ -70,16 +88,18 @@ namespace vast
             auto op = this->getOperation();
             auto &mctx = this->getContext();
 
-            mlir::ConversionTarget trg(mctx);
-            trg.markUnknownOpDynamicallyLegal( [](auto) { return true; } );
-            trg.addIllegalOp< hl::RecordMemberOp >();
+            {
+                mlir::ConversionTarget trg(mctx);
+                trg.markUnknownOpDynamicallyLegal( [](auto) { return true; } );
+                trg.addIllegalOp< hl::RecordMemberOp >();
 
-            mlir::RewritePatternSet patterns(&mctx);
+                mlir::RewritePatternSet patterns(&mctx);
 
-            patterns.add< pattern::record_member_op >(&mctx);
+                patterns.add< record_member_op >(&mctx);
 
-            if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
-                return signalPassFailure();
+                if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns))))
+                    return signalPassFailure();
+            }
         }
     };
 } // namespace vast
