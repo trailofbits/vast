@@ -39,6 +39,16 @@ namespace vast::conv::tc {
         }
     };
 
+    struct type_converter_with_dl : base_type_converter
+    {
+        using base = base_type_converter;
+        using dl_t = mlir::DataLayout;
+
+        const dl_t &dl;
+
+        type_converter_with_dl(const dl_t &dl, mcontext_t &mctx) : dl(dl) {}
+    };
+
     template< typename R, typename UnaryPred >
     bool all_of_subtypes(R &&types, UnaryPred &&pred) {
         mlir::AttrTypeWalker walker;
