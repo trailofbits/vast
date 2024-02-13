@@ -14,7 +14,7 @@ def VastSymbol : OpInterface< "VastSymbolOpInterface" > {
 
     let methods = [
         InterfaceMethod<"Returns the name of this symbol.",
-            "llvm::StringRef", "getSymbolName", (ins), [{}], 
+            "llvm::StringRef", "getSymbolName", (ins), [{}],
             /*defaultImplementation=*/ [{
                 auto op = this->getOperation();
                 if (op->hasAttr(mlir::SymbolTable::getSymbolAttrName())) {
