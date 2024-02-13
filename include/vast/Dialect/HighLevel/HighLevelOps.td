@@ -6,6 +6,7 @@
 include "mlir/IR/OpBase.td"
 include "mlir/IR/BuiltinAttributes.td"
 
+include "vast/Interfaces/AggregateTypeDefinitionInterface.td"
 include "mlir/Interfaces/CastInterfaces.td"
 include "vast/Interfaces/SymbolInterface.td"
 
@@ -196,8 +197,11 @@ def EnumDeclOp
   let assemblyFormat = [{ $name attr-dict `:` ($type^ $constants)? }];
 }
 
-class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
-    : HighLevel_Op< mnemonic, !listconcat(traits, [NoTerminator, VastSymbol]) >
+class RecordLikeDeclOp< string mnemonic, string concrete_name, list< Trait > traits = [] >
+    : HighLevel_Op<
+        mnemonic,
+        !listconcat(traits, [NoTerminator, VastSymbol,
+                            DeclareOpInterfaceMethods< AggregateTypeDefinition >]) >
     , Arguments<(ins StrAttr:$name)>
 {
   // TODO(Heno): Add region constraints.
@@ -211,15 +215,34 @@ class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
     )>
   ];
 
+  let extraClassDefinition = [{
+    // AggregateTypeDefinitionInterface
+
+    gap::generator<mlir::Type> }] # concrete_name # [{ ::getFieldTypes() {
+        return hl::get_field_types(*this);
+    }
+
+    gap::generator<std::tuple<std::string, mlir::Type>>}] # concrete_name # [{ ::getFieldsInfo() {
+        return hl::get_fields_info(*this);
+    }
+
+    gap::generator< vast::AggregateTypeDefinitionInterface > }] # concrete_name # [{ ::getNestedDeclarations() {
+        return hl::get_nested_declarations(*this);
+    }
+
+    std::string }] # concrete_name # [{ ::getDefinedName() { return this->getName().str(); }
+
+  }];
+
   let assemblyFormat = [{ $name attr-dict `:` $fields }];
 }
 
-def StructDeclOp : RecordLikeDeclOp< "struct" > {
+def StructDeclOp : RecordLikeDeclOp< "struct", "StructDeclOp" > {
   let summary = "VAST struct declaration";
   let description = [{ VAST struct declaration }];
 }
 
-def UnionDeclOp : RecordLikeDeclOp< "union" > {
+def UnionDeclOp : RecordLikeDeclOp< "union", "UnionDeclOp" > {
   let summary = "VAST record declaration";
   let description = [{ VAST record declaration }];
 }
