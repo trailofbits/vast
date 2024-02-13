@@ -4,6 +4,11 @@ set(VAST_OPTIONAL_SOURCES
   AliasTypeInterface.cpp
   DefaultDataLayoutTypeInterface.cpp
   ElementTypeInterface.cpp
+  AggregateTypeDefinitionInterface.cpp
+)
+
+add_vast_interface_library(AggregateTypeDefinitionInterface
+  AggregateTypeDefinitionInterface.cpp
 )
 
 add_vast_interface_library(SymbolInterface
