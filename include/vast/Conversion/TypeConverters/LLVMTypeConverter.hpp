@@ -237,7 +237,7 @@ namespace vast::conv::tc {
             if (!def) {
                 return {};
             }
-            return { hl::field_types(*def) };
+            return { def.getFieldTypes() };
         }
 
         maybe_type_t convert_elaborated_type(hl::ElaboratedType t) {
