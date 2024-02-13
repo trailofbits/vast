@@ -38,10 +38,12 @@ namespace vast
                 if (!mod)
                     return mlir::failure();
 
-                if (auto struct_decl = hl::definition_of< hl::StructDeclOp >(parent_type, mod))
-                    return lower(op, ops, rewriter, *struct_decl);
-                if (auto union_decl = hl::definition_of< hl::UnionDeclOp >(parent_type, mod))
-                    return lower(op, ops, rewriter, *union_decl);
+                auto def = hl::definition_of(parent_type, mod);
+                if (auto struct_decl = mlir::dyn_cast_or_null< hl::StructDeclOp >(*def))
+                    return lower(op, ops, rewriter, struct_decl);
+                if (auto union_decl = mlir::dyn_cast_or_null< hl::UnionDeclOp >(*def))
+                    return lower(op, ops, rewriter, union_decl);
+
                 return mlir::failure();
             }
 
