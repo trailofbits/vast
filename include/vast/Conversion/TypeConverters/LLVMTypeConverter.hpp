@@ -3,6 +3,8 @@
 #pragma once
 
 VAST_RELAX_WARNINGS
+#include <mlir/Analysis/DataLayoutAnalysis.h>
+
 #include <mlir/Conversion/LLVMCommon/TypeConverter.h>
 #include <mlir/Dialect/Func/IR/FuncOps.h>
 #include <mlir/Dialect/LLVMIR/LLVMTypes.h>
@@ -211,6 +213,84 @@ namespace vast::conv::tc {
         }
     };
 
+    // Really basic draft of how union lowering works, it should however be able to
+    // handle most of the usual basic use-cases.
+    struct union_lowering
+    {
+        using self_t = union_lowering;
+
+        const mlir::DataLayout &dl;
+        hl::UnionDeclOp union_decl;
+
+        std::vector< mlir_type > fields = {};
+
+        union_lowering(const mlir::DataLayout &dl, hl::UnionDeclOp union_decl)
+            : dl(dl), union_decl(union_decl)
+        {}
+
+        union_lowering(const union_lowering &) = delete;
+        union_lowering(const union_lowering &&) = delete;
+
+        unsigned align(mlir_type t) { return dl.getTypeABIAlignment(t); }
+        unsigned size(mlir_type t ) { return dl.getTypeSize(t); }
+
+        self_t &compute_lowering()
+        {
+            mlir_type result;
+            for (auto field_type : union_decl.getFieldTypes())
+                result = merge(result, handle_field(storage_type(field_type)));
+
+            // TODO(conv:hl-to-ll-geps): Set packed.
+            // We need to reconstruct the actual union type, should be a method
+            // of `UnionDeclOp` maybe?
+            // append_padding_bytes(union_decl.getType(), result);
+            fields.push_back(result);
+
+            return *this;
+        }
+
+        // This maybe should be extracted outside.
+        mlir_type storage_type(mlir_type type)
+        {
+            // convert for mem - basically do things like `i1 -> i8`.
+            // bitfield has some extras
+            return mlir::IntegerType::get(type.getContext(), size(type) * 8);
+        }
+
+        void append_padding_bytes(mlir_type union_type, mlir_type field_type)
+        {
+            VAST_TODO("Unions that need padding!");
+            // fields.push_back(array of size difference);
+        }
+
+        mlir_type merge(mlir_type current, mlir_type next)
+        {
+            if (!current)
+                return next;
+
+            if (align(current) < align(next))
+                return next;
+
+            if (align(current) == align(next) && size(next) > size(current))
+                return next;
+
+            return current;
+        }
+
+        mlir_type handle_field(mlir_type field_type)
+        {
+            // TODO(conv:hl-to-ll-geps): Bitfields.
+            // TODO(conv:hl-to-ll-geps): Something related to zero initialization.
+            return field_type;
+        }
+
+        static gap::generator< mlir_type > final_fields(std::vector< mlir_type > fields)
+        {
+            for (auto ft : fields)
+                co_yield ft;
+        }
+    };
+
     // Requires that the named types *always* map to llvm struct types.
     // TODO(lukas): What about type aliases.
     struct FullLLVMTypeConverter : LLVMTypeConverter,
@@ -237,7 +317,13 @@ namespace vast::conv::tc {
             if (!def) {
                 return {};
             }
-            return { def.getFieldTypes() };
+            if (auto union_decl = mlir::dyn_cast< hl::UnionDeclOp >(*def)) {
+                auto dl = this->getDataLayoutAnalysis()->getAtOrAbove(union_decl);
+                auto fields = union_lowering{ dl, union_decl }.compute_lowering().fields;
+                return { union_lowering::final_fields(std::move(fields)) };
+            } else {
+                return { def.getFieldTypes() };
+            }
         }
 
         maybe_type_t convert_elaborated_type(hl::ElaboratedType t) {
@@ -254,5 +340,4 @@ namespace vast::conv::tc {
             return { raw };
         }
     };
-
 } // namespace vast::conv::tc
