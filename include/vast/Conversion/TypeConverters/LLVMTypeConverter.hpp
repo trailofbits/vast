@@ -178,8 +178,9 @@ namespace vast::conv::tc {
       public:
         maybe_types_t convert_field_types(mlir_type t) {
             auto field_types = self().get_field_types(t);
-            if (!field_types)
+            if (!field_types) {
                 return {};
+            }
 
             mlir::SmallVector< mlir_type, 4 > out;
             for (auto field_type : *field_types) {
@@ -195,8 +196,8 @@ namespace vast::conv::tc {
             // We need this prototype to handle recursive types.
             return [&](op_t t, mlir::SmallVectorImpl< mlir_type > &out,
                        mlir::ArrayRef< mlir_type > stack) -> logical_result {
-                auto core = mlir::LLVM::LLVMStructType::getIdentified(
-                    t.getContext(), t.getName());
+                auto core =
+                    mlir::LLVM::LLVMStructType::getIdentified(t.getContext(), t.getName());
                 // Last element is `t`.
                 auto bt = stack.drop_back();
 
@@ -225,20 +226,20 @@ namespace vast::conv::tc {
         std::vector< mlir_type > fields = {};
 
         union_lowering(const mlir::DataLayout &dl, hl::UnionDeclOp union_decl)
-            : dl(dl), union_decl(union_decl)
-        {}
+            : dl(dl), union_decl(union_decl) {}
 
-        union_lowering(const union_lowering &) = delete;
+        union_lowering(const union_lowering &)  = delete;
         union_lowering(const union_lowering &&) = delete;
 
         unsigned align(mlir_type t) { return dl.getTypeABIAlignment(t); }
-        unsigned size(mlir_type t ) { return dl.getTypeSize(t); }
 
-        self_t &compute_lowering()
-        {
+        unsigned size(mlir_type t) { return dl.getTypeSize(t); }
+
+        self_t &compute_lowering() {
             mlir_type result;
-            for (auto field_type : union_decl.getFieldTypes())
+            for (auto field_type : union_decl.getFieldTypes()) {
                 result = merge(result, handle_field(storage_type(field_type)));
+            }
 
             // TODO(conv:hl-to-ll-geps): Set packed.
             // We need to reconstruct the actual union type, should be a method
@@ -250,75 +251,74 @@ namespace vast::conv::tc {
         }
 
         // This maybe should be extracted outside.
-        mlir_type storage_type(mlir_type type)
-        {
+        mlir_type storage_type(mlir_type type) {
             // convert for mem - basically do things like `i1 -> i8`.
             // bitfield has some extras
             return mlir::IntegerType::get(type.getContext(), size(type) * 8);
         }
 
-        void append_padding_bytes(mlir_type union_type, mlir_type field_type)
-        {
+        void append_padding_bytes(mlir_type union_type, mlir_type field_type) {
             VAST_TODO("Unions that need padding!");
             // fields.push_back(array of size difference);
         }
 
-        mlir_type merge(mlir_type current, mlir_type next)
-        {
-            if (!current)
+        mlir_type merge(mlir_type current, mlir_type next) {
+            if (!current) {
                 return next;
+            }
 
-            if (align(current) < align(next))
+            if (align(current) < align(next)) {
                 return next;
+            }
 
-            if (align(current) == align(next) && size(next) > size(current))
+            if (align(current) == align(next) && size(next) > size(current)) {
                 return next;
+            }
 
             return current;
         }
 
-        mlir_type handle_field(mlir_type field_type)
-        {
+        mlir_type handle_field(mlir_type field_type) {
             // TODO(conv:hl-to-ll-geps): Bitfields.
             // TODO(conv:hl-to-ll-geps): Something related to zero initialization.
             return field_type;
         }
 
-        static gap::generator< mlir_type > final_fields(std::vector< mlir_type > fields)
-        {
-            for (auto ft : fields)
+        static gap::generator< mlir_type > final_fields(std::vector< mlir_type > fields) {
+            for (auto ft : fields) {
                 co_yield ft;
+            }
         }
     };
 
     // Requires that the named types *always* map to llvm struct types.
     // TODO(lukas): What about type aliases.
-    struct FullLLVMTypeConverter : LLVMTypeConverter,
-                                   LLVMStruct< FullLLVMTypeConverter >
+    struct FullLLVMTypeConverter
+        : LLVMTypeConverter
+        , LLVMStruct< FullLLVMTypeConverter >
     {
         using base = LLVMTypeConverter;
 
         vast_module mod;
 
         template< typename... Args >
-        FullLLVMTypeConverter(vast_module mod,
-                              Args &&...args)
-        : base(std::forward< Args >(args)...),
-          mod(mod) {
+        FullLLVMTypeConverter(vast_module mod, Args &&...args)
+            : base(std::forward< Args >(args)...), mod(mod) {
             addConversion([&](hl::ElaboratedType t) { return convert_elaborated_type(t); });
             addConversion(convert_recordlike< hl::RecordType >());
         }
 
         auto get_field_types(mlir_type t) -> std::optional< gap::generator< mlir_type > > {
-            if (!mlir::isa< hl::RecordType >(t))
+            if (!mlir::isa< hl::RecordType >(t)) {
                 return {};
+            }
             auto def = hl::definition_of(t, mod);
             // Nothing found, leave the structure opaque.
             if (!def) {
                 return {};
             }
             if (auto union_decl = mlir::dyn_cast< hl::UnionDeclOp >(*def)) {
-                auto dl = this->getDataLayoutAnalysis()->getAtOrAbove(union_decl);
+                auto dl     = this->getDataLayoutAnalysis()->getAtOrAbove(union_decl);
                 auto fields = union_lowering{ dl, union_decl }.compute_lowering().fields;
                 return { union_lowering::final_fields(std::move(fields)) };
             } else {
