@@ -92,6 +92,10 @@ namespace vast::hl
     }
 
     core::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, vast_module mod) {
+        if (!callee) {
+            return {};
+        }
+
         if (auto sym = callee.dyn_cast< mlir::SymbolRefAttr >()) {
             return mlir::dyn_cast_or_null< FuncOp >(
                 mlir::SymbolTable::lookupSymbolIn(mod, sym)
