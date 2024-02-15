@@ -978,8 +978,14 @@ namespace vast::cg {
         operation VisitIndirectCall(const clang::CallExpr *expr) {
             auto callee = VisitIndirectCallee(expr->getCallee())->getResult(0);
             auto args   = VisitArguments(expr);
-            auto type   = hl::getFunctionType(callee.getType(), context().mod.get()).getResults();
-            return make< hl::IndirectCallOp >(meta_location(expr), type, callee, args);
+            auto type   = hl::getFunctionType(callee.getType(), context().mod.get());
+            if (type) {
+                return make< hl::IndirectCallOp >(
+                    meta_location(expr), type.getResults(), callee, args
+                );
+            }
+
+            return {};
         }
 
         operation VisitCallExpr(const clang::CallExpr *expr) {
