@@ -57,7 +57,7 @@ namespace vast::hl
             }
         }
 
-        VAST_FATAL("unknown typedef name");
+        return {};
     }
 
     auto name_of_record(mlir_type t) -> std::optional< std::string >
