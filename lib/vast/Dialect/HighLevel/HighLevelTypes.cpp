@@ -77,7 +77,7 @@ namespace vast::hl
         if (auto ty = type.dyn_cast< TypedefType >())
             return getFunctionType(getTypedefType(ty, mod), mod);
 
-        VAST_UNIMPLEMENTED_MSG("unknown type to extract function type");
+        return {};
     }
 
     core::FunctionType getFunctionType(Value callee) {
@@ -102,7 +102,7 @@ namespace vast::hl
             return getFunctionType(value.getType(), mod);
         }
 
-        VAST_UNIMPLEMENTED_MSG("unknown callee type");
+        return {};
     }
 
 
