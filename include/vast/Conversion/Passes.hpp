@@ -6,6 +6,7 @@
 
 VAST_RELAX_WARNINGS
 #include <mlir/Dialect/SCF/IR/SCF.h>
+#include <mlir/Dialect/MemRef/IR/MemRef.h>
 
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/Operation.h>
