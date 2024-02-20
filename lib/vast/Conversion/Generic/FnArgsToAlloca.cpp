@@ -15,10 +15,50 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
 #include "vast/Util/Common.hpp"
+
 #include "vast/Conversion/Common/Passes.hpp"
+#include "vast/Conversion/TypeConverters/TypeConvertingPattern.hpp"
+#include "vast/Conversion/TypeConverters/HLToStd.hpp"
 
 namespace vast::conv
 {
+    namespace
+    {
+        struct strip_lvalue : tc::base_type_converter,
+                              tc::mixins< strip_lvalue >,
+                              tc::CoreToStd< strip_lvalue >
+        {
+            mcontext_t &mctx;
+
+            strip_lvalue(mcontext_t &mctx) : mctx(mctx)
+            {
+                init();
+            }
+
+            auto convert_lvalue()
+            {
+                return [&](hl::LValueType type)
+                {
+                    return Maybe(type.getElementType())
+                        .and_then(convert_type_to_type())
+                        .unwrap()
+                        .template take_wrapped< maybe_type_t >();
+                };
+            }
+
+            void init()
+            {
+                addConversion([&](mlir_type t) { return t; });
+                tc::CoreToStd< strip_lvalue >::init();
+                addConversion(convert_lvalue());
+            }
+
+        };
+
+        using strip_lvalue_pattern = tc::generic_type_converting_pattern< strip_lvalue >;
+
+    } // namespace
+
     struct FnArgsToAllocaPass : FnArgsToAllocaBase< FnArgsToAllocaPass >
     {
         using base = FnArgsToAllocaBase< FnArgsToAllocaPass >;
@@ -35,6 +75,31 @@ namespace vast::conv
             };
 
             root->walk(lower);
+
+            // Now proceed to update function types by stripping lvalues
+            auto &mctx = getContext();
+
+            auto tc = strip_lvalue(mctx);
+            auto trg = mlir::ConversionTarget(mctx);
+
+            auto is_fn = [&](operation op)
+            {
+                auto as_fn = mlir::dyn_cast< mlir::FunctionOpInterface >(op);
+                if (!as_fn)
+                    return true;
+
+                for (auto arg_type : as_fn.getArgumentTypes())
+                    if (!tc.isLegal(arg_type))
+                        return false;
+                return true;
+            };
+            trg.markUnknownOpDynamicallyLegal(is_fn);
+
+            mlir::RewritePatternSet patterns(&mctx);
+            patterns.add< strip_lvalue_pattern >(tc, mctx);
+
+            if (mlir::failed(mlir::applyPartialConversion(root, trg, std::move(patterns))))
+                return signalPassFailure();
         }
 
 
@@ -43,14 +108,11 @@ namespace vast::conv
             if (!needs_lowering(arg))
                 return;
 
-            // Now this is a question. Should this be lvalue or pointer?
-            // It depends where in the pipeline we are? lvalue is probably safer
-            // default for now.
-            auto lvalue_type = hl::LValueType::get(bld.getContext(), arg.getType());
             auto lowered = bld.template create< ll::ArgAlloca >(
-                arg.getLoc(), lvalue_type, arg);
+                arg.getLoc(), arg.getType(), arg);
 
             arg.replaceAllUsesWith(lowered);
+            lowered->setOperand(0, arg);
         }
 
         bool needs_lowering(auto arg) const
