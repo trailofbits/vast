@@ -69,8 +69,10 @@ namespace vast::hl {
                 }
             };
 
-            struct resolve_typedef : conv::tc::hl_type_converting_pattern< type_converter > {
-                using base = conv::tc::hl_type_converting_pattern< type_converter >;
+            struct resolve_typedef
+                : conv::tc::generic_type_converting_pattern< type_converter >
+            {
+                using base = conv::tc::generic_type_converting_pattern< type_converter >;
                 using base::base;
 
                 logical_result matchAndRewrite(
