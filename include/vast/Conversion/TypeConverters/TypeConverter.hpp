@@ -164,7 +164,16 @@ namespace vast::conv::tc {
         template< typename op_t >
         auto get_has_legal_return_type() {
             return [=](op_t op) -> bool {
-                return !contains_subtype(op.getResult().getType(), get_is_illegal());
+                auto types = op->getResults().getTypes();
+                return !contains_subtype(types, get_is_illegal());
+            };
+        }
+
+        template< typename op_t >
+        auto get_has_legal_operand_types() {
+             return [=](op_t op) -> bool {
+                auto types = op->getOperands().getTypes();
+                return !contains_subtype(types, get_is_illegal());
             };
         }
 
