@@ -58,9 +58,7 @@ namespace vast::core {
         Printer &printer, auto op,
         Attribute /* funcion_type */, mlir::DictionaryAttr, Region &body
     ) {
-        if (op.getLinkage() != core::GlobalLinkageKind::ExternalLinkage) {
-            printer << stringifyGlobalLinkageKind(op.getLinkage()) << ' ';
-        }
+        printer << stringifyGlobalLinkageKind(op.getLinkage()) << ' ';
 
         auto fty = op.getFunctionType();
         mlir::function_interface_impl::printFunctionSignature(
