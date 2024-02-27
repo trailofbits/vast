@@ -23,6 +23,8 @@ nav:
     - Optimizer: Tools/vast-opt.md
     - Query: Tools/vast-query.md
     - REPL: Tools/vast-repl.md
+  - Benchmarks:
+    - LLVM Test Suite SingleSource: results.md
   - About:
     - 'License': 'statement.md'
 

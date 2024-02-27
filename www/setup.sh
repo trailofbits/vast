@@ -40,6 +40,9 @@ cp -rv $(pwd)/CONTRIBUTING.md $dst/docs
 # Setup auto-generated docs
 cp -rv $build/docs $dst/docs/dialects
 
+# Setup benchmark results
+cp -rv $(pwd)/results.md $dst/docs
+
 # Setup site assets
 cp -rv $(pwd)/www/assets $dst
 cp -rv $(pwd)/www/mkdocs.yml $dst
