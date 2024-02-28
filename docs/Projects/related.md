@@ -4,7 +4,7 @@
 
 Test suite extended to generate reports for VAST MLIR dialects.
 
-### [Benchamrks](https://github.com/trailofbits/vast-benchmarks)
+### [Benchmarks](https://github.com/trailofbits/vast-benchmarks)
 
 C/C++ benchmarks for VAST.
 
