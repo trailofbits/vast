@@ -12,6 +12,13 @@ to transform the representation to the best-fit program abstraction.
 
 For further information check [trailofbits.github.io/vast/](https://trailofbits.github.io/vast/).
 
+## Try VAST
+
+You can experiment with VAST on [compiler explorer](https://godbolt.org/z/3se3q9Tja). Feel free to use VAST and produce MLIR dialects. To specify the desired MLIR output, utilize the `-vast-emit-mlir=<dialect>` option. Currently, the supported options are:
+
+- `-vast-emit-mlir=hl` to generate [high-level](https://trailofbits.github.io/vast/dialects/HighLevel/HighLevel/) dialect.
+- `-vast-emit-mlir=llvm` to generate LLVM MLIR dialect.
+
 ## License
 
 VAST is licensed according to the [Apache 2.0](LICENSE) license. VAST links against and uses Clang and LLVM APIs. Clang is also licensed under Apache 2.0, with [LLVM exceptions](https://github.com/llvm/llvm-project/blob/main/clang/LICENSE.TXT).
