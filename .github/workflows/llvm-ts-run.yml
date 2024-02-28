@@ -148,7 +148,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: results-*
-          merge-mutliple: true
+          merge-multiple: true
 
       - name: Display structure of downloaded files
         run: ls -R
