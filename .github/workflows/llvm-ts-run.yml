@@ -147,7 +147,7 @@ jobs:
       - name: Fetch result artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: results-*.json
+          pattern: results-*
           merge-mutliple: true
 
       - name: Display structure of downloaded files
