@@ -115,18 +115,18 @@ jobs:
           -C=../cmake/caches/O3.cmake \
           -DTEST_SUITE_COLLECT_CODE_SIZE=OFF \
           -DTEST_SUITE_SUBDIRS=SingleSource \
-          -DTEST_SUITE_VAST_ENABLE=ON \
-          -DTEST_SUITE_VAST_TARGET=${{ matrix.vast-target }}
+          -DVAST_TEST_SUITE_ENABLE=ON \
+          -DVAST_TEST_SUITE_TARGET=${{ matrix.vast-target }}
         make -j $(nproc) -k
 
      - name: Collect run data (mlir)
-       if: matrix.vast-target != ''
+       if: matrix.vast-target != 'bin'
        working-directory: ./llvm-test-suite/build
        run: python3 ../utils/mlir_compile_json_gen.py >> ../../results-${{ matrix.vast-target }}.json
 
      - name: Collect run data (bin)
        continue-on-error: true
-       if: matrix.vast-target == ''
+       if: matrix.vast-target == 'bin'
        working-directory: ./llvm-test-suite/build
        run: lit --timeout=60 -v -o ../../results.json .
 
