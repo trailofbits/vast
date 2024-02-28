@@ -107,31 +107,5 @@
             "displayName": "Test cxx-common-osx-deb",
             "configuration": "Debug"
         }
-    ],
-    "packagePresets": [
-        {
-            "name": "default",
-            "configurePreset": "ninja-multi-default",
-            "generators": [ "TGZ" ]
-        }
-    ],
-    "workflowPresets": [
-        {
-            "name": "release-package",
-            "steps": [
-                {
-                    "type": "configure",
-                    "name": "ninja-multi-default"
-                },
-                {
-                    "type": "build",
-                    "name": "ninja-rel"
-                },
-                {
-                    "type": "package",
-                    "name": "default"
-                }
-            ]
-        }
     ]
 }
