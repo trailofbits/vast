@@ -41,7 +41,7 @@ cp -rv $(pwd)/CONTRIBUTING.md $dst/docs
 cp -rv $build/docs $dst/docs/dialects
 
 # Setup benchmark results
-cp -rv $(pwd)/results.md $dst/docs
+cp -rv $(pwd)/results.md $dst/docs/benchmarks
 
 # Setup site assets
 cp -rv $(pwd)/www/assets $dst
