@@ -19,6 +19,8 @@ You can experiment with VAST on [compiler explorer](https://godbolt.org/z/3se3q9
 - `-vast-emit-mlir=hl` to generate [high-level](https://trailofbits.github.io/vast/dialects/HighLevel/HighLevel/) dialect.
 - `-vast-emit-mlir=llvm` to generate LLVM MLIR dialect.
 
+Refer to the [vast-front documentation](https://trailofbits.github.io/vast/Tools/vast-front/) for additional details.
+
 ## License
 
 VAST is licensed according to the [Apache 2.0](LICENSE) license. VAST links against and uses Clang and LLVM APIs. Clang is also licensed under Apache 2.0, with [LLVM exceptions](https://github.com/llvm/llvm-project/blob/main/clang/LICENSE.TXT).
