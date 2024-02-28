@@ -1,5 +1,3 @@
-## Related Projects
-
 ### [LLVM Test Suite](https://github.com/trailofbits/vast-llvm-test-suite)
 
 Test suite extended to generate reports for VAST MLIR dialects.
