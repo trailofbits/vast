@@ -68,7 +68,7 @@ jobs:
       matrix:
         llvm-version: [17]
         image-version: [22.04]
-        vast-target: ['hl', 'llvm', '']
+        vast-target: ['hl', 'llvm', 'bin']
 
 
     runs-on: ubuntu-${{ matrix.image-version }}
@@ -122,7 +122,7 @@ jobs:
      - name: Collect run data (mlir)
        if: matrix.vast-target != ''
        working-directory: ./llvm-test-suite/build
-       run: python3 ../utils/mlir_compile_json_gen.py >> ../../results${{ matrix.vast-target }}.json
+       run: python3 ../utils/mlir_compile_json_gen.py >> ../../results-${{ matrix.vast-target }}.json
 
      - name: Collect run data (bin)
        continue-on-error: true
@@ -133,8 +133,8 @@ jobs:
      - name: Upload results
        uses: actions/upload-artifact@v4
        with:
-        path: ./results${{ matrix.vast-target }}.json
-        name: results${{ matrix.vast-target }}
+        path: ./results-${{ matrix.vast-target }}.json
+        name: results-${{ matrix.vast-target }}
 
   eval:
     name: "Eval test results"
@@ -144,21 +144,11 @@ jobs:
         image-version: [22.04]
     runs-on: ubuntu-${{ matrix.image-version }}
     steps:
-      - name: Fetch hl results artifact
+      - name: Fetch result artifacts
         uses: actions/download-artifact@v4
-        with:
-          name: resultshl
 
-      - name: Fetch llvm results artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: resultsllvm
-
-      - name: Fetch binary results artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: results
-
+      - name: Display structure of downloaded files
+        run: ls -R
       - name: Install evaluator dependencies
         run: |
             pip3 install pandas scipy tabulate
@@ -174,7 +164,7 @@ jobs:
 
       - name: Generate the results
         run: |
-          python3 llvm-test-suite/utils/vast_compare.py --columns vast-hl,vast-llvm,vast-bin --files resultshl.json,resultsllvm.json,results.json
+          python3 llvm-test-suite/utils/vast_compare.py --columns vast-hl,vast-llvm,vast-bin --files results-hl.json,results-llvm.json,results-bin.json
 
       - name: Post results as artifacts
         uses: actions/upload-artifact@v4
