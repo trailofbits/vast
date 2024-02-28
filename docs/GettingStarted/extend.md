@@ -1,6 +1,6 @@
 ## How to Start Extending VAST?
 
-VAST offers a handy script to generate a variety of MLIR primitives. You can find the script at scripts/templater.py. This tool is designed to help you create dialects, passes, operations, types, and attributes interactively.
+VAST offers a handy script to generate a variety of MLIR primitives. You can find the script at `scripts/templater.py`. This tool is designed to help you create dialects, passes, operations, types, and attributes interactively.
 
 ### Usage
 
