@@ -32,6 +32,7 @@ if [ ! -d "$dst" ]; then
     mkdir -p "$dst"
 fi
 
+
 # Setup hand-written docs
 cp -rv $(pwd)/docs $dst
 cp -rv $(pwd)/LICENSE $dst/docs
@@ -41,7 +42,12 @@ cp -rv $(pwd)/CONTRIBUTING.md $dst/docs
 cp -rv $build/docs $dst/docs/dialects
 
 # Setup benchmark results
-cp -rv $(pwd)/results.md $dst/docs/benchmarks
+if [ ! -d "$dst/docs/Benchmarks" ]; then
+    echo "Creating benchmarks directory: $dst/docs/Benchmarks"
+    mkdir -p "$dst/docs/Benchmarks"
+fi
+
+cp -rv $(pwd)/llvm-test-suite-results/single-source-results.md $dst/docs/Benchmarks/
 
 # Setup site assets
 cp -rv $(pwd)/www/assets $dst

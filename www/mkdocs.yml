@@ -25,7 +25,7 @@ nav:
     - REPL: Tools/vast-repl.md
   - Related Projects: Projects/related.md
   - Benchmarks:
-    - LLVM Single Source: Benchmarks/results.md
+    - LLVM Single Source: Benchmarks/single-source-results.md
   - About:
     - 'License': 'statement.md'
 
