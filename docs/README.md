@@ -31,6 +31,21 @@ down to LLVM IR. This progression enables VAST to represent the code as a tower
 of IRs in multiple MLIR dialects. The MLIR allows us to capture high-level
 features from AST and interleave them with low-level dialects.
 
+## Try VAST
+
+You can experiment with VAST on [compiler
+explorer](https://godbolt.org/z/3se3q9Tja). Feel free to use VAST and produce
+MLIR dialects. To specify the desired MLIR output, utilize the
+`-vast-emit-mlir=<dialect>` option. Currently, the supported options are:
+
+- `-vast-emit-mlir=hl` to generate
+[high-level](https://trailofbits.github.io/vast/dialects/HighLevel/HighLevel/)
+dialect.  - `-vast-emit-mlir=llvm` to generate LLVM MLIR dialect.
+
+Refer to the [vast-front
+documentation](https://trailofbits.github.io/vast/Tools/vast-front/) for
+additional details.
+
 ## A Tower of IRs
 
 The feature that differentiates our approach is that the program representation
