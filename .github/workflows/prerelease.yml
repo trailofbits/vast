@@ -73,7 +73,7 @@ jobs:
       - name: Fetch LLVM test suite results
         uses: actions/download-artifact@v4
         with:
-          name: final-result
+          name: llvm-test-suite-results
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
