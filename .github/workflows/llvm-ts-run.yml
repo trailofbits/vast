@@ -100,7 +100,7 @@ jobs:
      - name: Clone test suite repository
        uses: actions/checkout@v4
        with:
-        repository: Jezurko/llvm-test-suite-vast
+        repository: trailofbits/vast-llvm-test-suite
         ref: main
         path: llvm-test-suite
         fetch-depth: 1
@@ -168,9 +168,8 @@ jobs:
       - name: Clone test suite repository
         uses: actions/checkout@v4
         with:
-          repository: Jezurko/llvm-test-suite-vast
-          sparse-checkout: |
-            utils/vast_compare.py
+          repository: trailofbits/vast-llvm-test-suite
+          sparse-checkout: utils/vast_compare.py
           ref: main
           path: llvm-test-suite
           fetch-depth: 1
@@ -186,4 +185,3 @@ jobs:
           path: |
             ./results.csv
             ./results.md
-
