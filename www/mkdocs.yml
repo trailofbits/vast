@@ -24,7 +24,7 @@ nav:
     - Query: Tools/vast-query.md
     - REPL: Tools/vast-repl.md
   - Benchmarks:
-    - LLVM Test Suite SingleSource: results.md
+    - LLVM Test Suite SingleSource: benchmarks/results.md
   - About:
     - 'License': 'statement.md'
 
