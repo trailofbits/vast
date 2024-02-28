@@ -6,7 +6,7 @@
 
 - `-vast-emit-mlir=<dialect>`
   - Possible dialects: hl, std, llvm, cir
-  -This will execute the translation pipeline up to the specified dialect.
+  - This will execute the translation pipeline up to the specified dialect.
 
 Other available outputs:
 
