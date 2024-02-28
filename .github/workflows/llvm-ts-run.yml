@@ -121,16 +121,14 @@ jobs:
 
      - name: Collect run data (mlir)
        if: matrix.vast-target != ''
-       run: |
-          cd llvm-test-suite/build
-          python3 ../utils/mlir_compile_json_gen.py >> ../../results${{ matrix.vast-target }}.json
+       working-directory: ./llvm-test-suite/build
+       run: python3 ../utils/mlir_compile_json_gen.py >> ../../results${{ matrix.vast-target }}.json
 
      - name: Collect run data (bin)
        continue-on-error: true
        if: matrix.vast-target == ''
-       run: |
-          cd llvm-test-suite/build
-          lit --timeout=60 -v -o ../../results.json .
+       working-directory: ./llvm-test-suite/build
+       run: lit --timeout=60 -v -o ../../results.json .
 
      - name: Upload results
        uses: actions/upload-artifact@v4
