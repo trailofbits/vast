@@ -74,6 +74,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: llvm-test-suite-results
+          path: llvm-test-suite-results
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
