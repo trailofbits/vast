@@ -251,9 +251,11 @@ namespace vast::abi
             _args.emplace_back( std::move( i ) );
         }
 
-        auto fn_type()
+        auto fn_type() -> core::FunctionType
         {
-            return raw_fn.getFunctionType();
+            auto t = mlir::dyn_cast< core::FunctionType >(raw_fn.getFunctionType());
+            VAST_CHECK(t, "{0}", raw_fn.getFunctionType());
+            return t;
         }
 
         auto return_type()
