@@ -38,11 +38,23 @@ namespace vast
                        *out, current, entries.size());
         };
 
+        // First we try to find an exact match in the data layout entries.
         auto casted_self = static_cast< const ConcreteType & >(self);
         for (const auto &entry : entries)
         {
             auto raw = dl::DLEntry(entry);
             if (casted_self == raw.type)
+                handle_entry(raw);
+        }
+
+        if (out.has_value())
+            return *out;
+
+        // Since we did not find the exact entry we search for generalised type.
+        for (const auto &entry : entries)
+        {
+            auto raw = dl::DLEntry(entry);
+            if (mlir::isa< ConcreteType >(raw.type))
                 handle_entry(raw);
         }
 
