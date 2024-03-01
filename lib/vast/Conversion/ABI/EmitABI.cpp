@@ -76,6 +76,8 @@ namespace vast
         return out;
     }
 
+    using func_abi_info_t = abi_info_map_t< mlir::FunctionOpInterface >;
+
     // TODO(conv:abi): Remove as we most likely do not need this.
     struct TypeConverter : conv::tc::mixins< TypeConverter >,
                            conv::tc::identity_type_converter
@@ -94,7 +96,7 @@ namespace vast
         struct abi_info_utils
         {
             using types_t = std::vector< mlir::Type >;
-            using abi_info_t = abi::func_info< hl::FuncOp >;
+            using abi_info_t = abi::func_info< mlir::FunctionOpInterface >;
 
             const auto &self() const { return static_cast< const Self & >(*this); }
             auto &self() { return static_cast< Self & >(*this); }
@@ -713,10 +715,10 @@ namespace vast
             using Base = mlir::OpConversionPattern< Op >;
 
             TypeConverter &tc;
-            const abi_info_map_t< hl::FuncOp > &abi_info_map;
+            const func_abi_info_t &abi_info_map;
 
             func_type(TypeConverter &tc,
-                      const abi_info_map_t< hl::FuncOp > &abi_info_map,
+                      const func_abi_info_t &abi_info_map,
                       mcontext_t &mctx)
                 : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
             {}
@@ -742,9 +744,9 @@ namespace vast
             using Op = hl::CallOp;
 
             TypeConverter &tc;
-            const abi_info_map_t< hl::FuncOp > &abi_info_map;
+            const func_abi_info_t &abi_info_map;
 
-            call_op(TypeConverter &tc, const abi_info_map_t< hl::FuncOp > &abi_info_map,
+            call_op(TypeConverter &tc, const func_abi_info_t &abi_info_map,
                     mcontext_t &mctx)
                 : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
             {}
@@ -770,10 +772,10 @@ namespace vast
             using Op = hl::ReturnOp;
 
             TypeConverter &tc;
-            const abi_info_map_t< hl::FuncOp > &abi_info_map;
+            const func_abi_info_t &abi_info_map;
 
             return_op(TypeConverter &tc,
-                      const abi_info_map_t< hl::FuncOp > &abi_info_map,
+                      const func_abi_info_t &abi_info_map,
                       mcontext_t &mctx)
                 : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
             {}
@@ -833,16 +835,20 @@ namespace vast
             mlir::ConversionTarget target(mctx);
             target.markUnknownOpDynamicallyLegal([](auto) { return true; });
 
-            auto should_transform = [&](hl::FuncOp op)
+            auto should_transform = [&](operation op)
             {
                 // TODO(conv:abi): We should always emit main with a fixed type.
-                return op.getName() == "main";
+                if (auto fn = mlir::dyn_cast< mlir::FunctionOpInterface >(op))
+                    return fn.getName() == "main";
+                return true;
             };
 
-            target.addDynamicallyLegalOp< hl::FuncOp >(should_transform);
+            target.markUnknownOpDynamicallyLegal(should_transform);
+            target.addLegalOp< abi::FuncOp >();
 
             mlir::RewritePatternSet patterns(&mctx);
             patterns.add< func_type< hl::FuncOp > >(tc, abi_info_map, mctx);
+            patterns.add< func_type< ll::FuncOp > >(tc, abi_info_map, mctx);
 
             return { std::move(target), std::move(patterns) };
         }
@@ -889,7 +895,7 @@ namespace vast
 
             const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
             auto tc = TypeConverter(dl_analysis.getAtOrAbove(op), mctx);
-            auto abi_info_map = collect_abi_info< hl::FuncOp >(
+            auto abi_info_map = collect_abi_info< mlir::FunctionOpInterface >(
                     op, dl_analysis.getAtOrAbove(op));
 
             if (mlir::failed(run(first_phase(tc, abi_info_map))))
