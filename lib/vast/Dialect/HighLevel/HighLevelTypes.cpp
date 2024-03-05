@@ -14,19 +14,19 @@ VAST_RELAX_WARNINGS
 
 namespace vast::hl
 {
-    Type strip_elaborated(mlir::Value v)
+    mlir_type strip_elaborated(mlir_value v)
     {
         return strip_elaborated(v.getType());
     }
 
-    Type strip_elaborated(Type t)
+    mlir_type strip_elaborated(mlir_type t)
     {
-        if (auto e = mlir::dyn_cast<hl::ElaboratedType>(t))
+        if (auto e = mlir::dyn_cast_or_null<hl::ElaboratedType>(t))
             return e.getElementType();
         return t;
     }
 
-    Type strip_value_category(mlir::Value v)
+    mlir_type strip_value_category(mlir_value v)
     {
         return strip_value_category(v.getType());
     }
@@ -38,18 +38,22 @@ namespace vast::hl
         return t;
     }
 
+    mlir_type getBottomTypedefType(TypedefType def, vast_module mod)
+    {
+        return getBottomTypedefType(getTypedefType(def, mod), mod);
+    }
 
-    Type getBottomTypedefType(TypedefType def, vast_module mod) {
-        auto type = getTypedefType(def, mod);
-        if (auto ty = strip_elaborated(type).dyn_cast< TypedefType >()) {
-            return getBottomTypedefType(ty, mod);
-        }
+    mlir_type getBottomTypedefType(mlir_type type, vast_module mod)
+    {
+        if (auto def = mlir::dyn_cast_or_null< TypedefType >(strip_elaborated(type)))
+            return getBottomTypedefType(def, mod);
         return type;
     }
 
-    Type getTypedefType(TypedefType type, vast_module mod) {
+    mlir_type getTypedefType(TypedefType type, vast_module mod)
+    {
         auto name = type.getName();
-        Type result;
+        mlir_type result;
 
         // TODO: probably needs scope
         mod.walk([&] (TypeDefOp op) {
@@ -66,13 +70,12 @@ namespace vast::hl
     auto name_of_record(mlir_type t) -> std::optional< std::string >
     {
         auto naked_type = strip_elaborated(strip_value_category(t));
-        auto record_type = mlir::dyn_cast< hl::RecordType >(naked_type);
-        if (record_type)
+        if (auto record_type = mlir::dyn_cast< hl::RecordType >(naked_type))
             return record_type.getName().str();
         return {};
     }
 
-    core::FunctionType getFunctionType(Type type, vast_module mod) {
+    core::FunctionType getFunctionType(mlir_type type, vast_module mod) {
         if (auto ty = type.dyn_cast< core::FunctionType >())
             return ty;
         if (auto ty = dyn_cast< ElementTypeInterface >(type))
@@ -83,7 +86,7 @@ namespace vast::hl
         return {};
     }
 
-    core::FunctionType getFunctionType(Value callee) {
+    core::FunctionType getFunctionType(mlir_value callee) {
         auto op  = callee.getDefiningOp();
         auto mod = op->getParentOfType< vast_module >();
         return getFunctionType(callee.getType(), mod);
@@ -105,7 +108,7 @@ namespace vast::hl
             ).getFunctionType();
         }
 
-        if (auto value = callee.dyn_cast< Value >()) {
+        if (auto value = callee.dyn_cast< mlir_value >()) {
             return getFunctionType(value.getType(), mod);
         }
 

@@ -39,11 +39,11 @@ namespace vast::hl
 
     static auto unknown_size = SizeParam{ std::nullopt };
 
-    mlir::Type strip_elaborated(mlir::Type);
-    mlir::Type strip_elaborated(mlir::Value);
+    mlir_type strip_elaborated(mlir_type);
+    mlir_type strip_elaborated(mlir_value);
 
-    mlir::Type strip_value_category(mlir::Type);
-    mlir::Type strip_value_category(mlir::Value);
+    mlir_type strip_value_category(mlir_type);
+    mlir_type strip_value_category(mlir_value);
 
 } // namespace vast::hl
 
@@ -54,7 +54,6 @@ namespace vast::hl
 
 namespace vast::hl
 {
-    using Type = mlir_type;
     using Context = mlir::MLIRContext;
 
     using DialectParser = mlir::AsmParser;
@@ -122,23 +121,18 @@ namespace vast::hl
         }
     }
 
-    core::FunctionType getFunctionType(Type function_pointer, vast_module mod);
+    core::FunctionType getFunctionType(mlir_type function_pointer, vast_module mod);
 
     core::FunctionType getFunctionType(Value callee);
     core::FunctionType getFunctionType(mlir::CallOpInterface call);
     core::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, vast_module mod);
 
-    Type getTypedefType(TypedefType type, vast_module mod);
+    mlir_type getTypedefType(TypedefType type, vast_module mod);
 
     // unwraps all typedef aliases to get to real underlying type
-    Type getBottomTypedefType(TypedefType def, vast_module mod);
+    mlir_type getBottomTypedefType(TypedefType def, vast_module mod);
 
-    static inline Type getBottomTypedefType(mlir_type type, vast_module mod)
-    {
-        if (auto def = mlir::dyn_cast< TypedefType >(strip_elaborated(type)))
-            return getBottomTypedefType(def, mod);
-        return type;
-    }
+    mlir_type getBottomTypedefType(mlir_type type, vast_module mod);
 
     // Usually record types are wrapped in `elaborated` or `lvalue` - this helper
     // takes care of traversing them.
