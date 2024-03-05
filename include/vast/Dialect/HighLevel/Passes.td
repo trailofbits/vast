@@ -76,6 +76,22 @@ def LowerTypeDefs : Pass<"vast-hl-lower-typedefs", "mlir::ModuleOp"> {
   let constructor = "vast::hl::createLowerTypeDefsPass()";
 }
 
+def LowerElaboratedTypes : Pass<"vast-hl-lower-elaborated-types", "mlir::ModuleOp"> {
+  let summary = "Replace `hl::ElaboratedType` type by its underlying type.";
+  let description = [{
+    Replaces `hl::ElaboratedType` types by its underlying type.
+
+    All `hl::ElaboratedType` are marked illegal and converted by this pass.
+  }];
+
+  let dependentDialects = [
+    "vast::hl::HighLevelDialect",
+    "vast::core::CoreDialect"
+  ];
+
+  let constructor = "vast::hl::createLowerElaboratedTypesPass()";
+}
+
 def SpliceTrailingScopes : Pass<"vast-hl-splice-trailing-scopes", "mlir::ModuleOp"> {
   let summary = "Remove trailing `hl::Scope`s.";
   let description = [{

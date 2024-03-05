@@ -31,10 +31,13 @@ namespace vast::hl::pipeline {
         return pass(hl::createLowerTypeDefsPass);
     }
 
+    static pipeline_step_ptr lower_elaborated_types() {
+        return pass(hl::createLowerElaboratedTypesPass);
+    }
 
     // TODO: add more passes here (remove elaborations, decayed types, lvalue types etc.)
     pipeline_step_ptr desugar() {
-        return lower_typedefs();
+        return compose("desugar", lower_typedefs).depends_on(lower_elaborated_types);
     }
 
     //

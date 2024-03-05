@@ -4,7 +4,7 @@ add_vast_conversion_library(HighLevelTransforms
   ExportFnInfo.cpp
   HLLowerTypes.cpp
   DCE.cpp
+  LowerElaboratedTypes.cpp
   LowerTypeDefs.cpp
   SpliceTrailingScopes.cpp
 )
-
