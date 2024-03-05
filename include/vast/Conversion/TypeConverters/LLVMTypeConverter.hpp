@@ -303,8 +303,8 @@ namespace vast::conv::tc {
 
         template< typename... Args >
         FullLLVMTypeConverter(vast_module mod, Args &&...args)
-            : base(std::forward< Args >(args)...), mod(mod) {
-            addConversion([&](hl::ElaboratedType t) { return convert_elaborated_type(t); });
+            : base(std::forward< Args >(args)...), mod(mod)
+        {
             addConversion(convert_recordlike< hl::RecordType >());
         }
 
@@ -324,10 +324,6 @@ namespace vast::conv::tc {
             } else {
                 return { def.getFieldTypes() };
             }
-        }
-
-        maybe_type_t convert_elaborated_type(hl::ElaboratedType t) {
-            return this->convert_type_to_type(t.getElementType());
         }
 
         maybe_type_t convert_record_type(hl::RecordType t) {
