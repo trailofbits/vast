@@ -47,14 +47,28 @@ config.test_source_root = os.path.dirname(__file__)
 config.test_exec_root = os.path.join(config.vast_obj_root, 'test')
 config.vast_test_util = os.path.join(config.vast_src_root, 'test/utils')
 config.vast_tools_dir = os.path.join(config.vast_obj_root, 'tools')
-
 tools = [
     ToolSubst('%vast-opt', command = 'vast-opt'),
-    ToolSubst('%vast-opt-simplify', command = 'vast-opt',
+    ToolSubst('%vast-opt-irs-to-llvm', command = 'vast-opt',
         extra_args=[
             "--vast-hl-lower-types",
-            "--vast-hl-dce",
-            "--vast-hl-lower-typedefs"
+            "--vast-hl-to-ll-cf",
+            "--vast-hl-to-ll-vars",
+            "--vast-hl-lower-elaborated-types",
+            "--vast-hl-lower-typedefs",
+            "--vast-irs-to-llvm"
+        ]
+    ),
+    ToolSubst('%vast-opt-core-to-llvm', command = 'vast-opt',
+        extra_args=[
+            "--vast-hl-lower-types",
+            "--vast-hl-to-ll-cf",
+            "--vast-hl-to-ll-vars",
+            "--vast-hl-lower-elaborated-types",
+            "--vast-hl-lower-typedefs",
+            "--vast-hl-to-lazy-regions",
+            "--vast-irs-to-llvm",
+            "--vast-core-to-llvm"
         ]
     ),
     ToolSubst('%vast-cc', command = 'vast-cc'),
