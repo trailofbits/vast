@@ -41,7 +41,6 @@ namespace vast::conv::tc {
             self().addConversion(convert_decayed_type());
             self().addConversion(convert_lvalue_type());
             self().addConversion(convert_pointer_type());
-            self().addConversion(convert_elaborated_type());
             self().addConversion(convert_paren_type());
         }
 
@@ -60,18 +59,6 @@ namespace vast::conv::tc {
                     .and_then(self().convert_type_to_type())
                     .unwrap()
                     .and_then(self().template make_aggregate_type< hl::LValueType >())
-                    .template take_wrapped< maybe_type_t >();
-            };
-        }
-
-        auto convert_elaborated_type() {
-            return [&](hl::ElaboratedType type) {
-                using raw = hl::ElaboratedType;
-
-                return Maybe(type.getElementType())
-                    .and_then(self().convert_type_to_type())
-                    .unwrap()
-                    .and_then(self().template make_aggregate_type< raw >(type.getQuals()))
                     .template take_wrapped< maybe_type_t >();
             };
         }
