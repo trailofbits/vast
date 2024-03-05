@@ -1,5 +1,5 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt --vast-hl-lower-types | %file-check %s -check-prefix=LTYPES
-// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt --vast-hl-lower-types --vast-hl-lower-typedefs | %file-check %s -check-prefix=LTYPEDEFS
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt --vast-hl-lower-types --vast-hl-lower-elaborated-types --vast-hl-lower-typedefs | %file-check %s -check-prefix=LTYPEDEFS
 
 typedef void * ( * curl_malloc_callback ) ( unsigned long size ) ;
 
