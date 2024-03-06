@@ -92,6 +92,22 @@ namespace vast {
       vast_debug() << "[VAST debug] " << llvm::formatv(__VA_ARGS__) << "\n"; \
     } while(0)
 
+    #define VAST_REPORT_WITH_PREFIX(prefix, ...) do { \
+      vast_debug() << "[VAST debug] " << prefix << llvm::formatv(__VA_ARGS__) << "\n"; \
+    } while(0)
+
+    #define VAST_REPORT_IF(cond, ...) do { \
+      if constexpr (cond) { \
+        VAST_REPORT(__VA_ARGS__); \
+      } \
+    } while(0)
+
+    #define VAST_REPORT_WITH_PREFIX_IF(cond, prefix, ...) do { \
+      if constexpr (cond) { \
+        VAST_REPORT_WITH_PREFIX(prefix, __VA_ARGS__); \
+      } \
+    } while(0)
+
     #define VAST_UNREACHABLE(...) do { \
       VAST_ERROR(__VA_ARGS__); \
       llvm_unreachable(nullptr); \
