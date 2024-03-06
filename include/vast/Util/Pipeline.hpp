@@ -18,6 +18,14 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast {
 
+#if !defined(NDEBUG)
+    constexpr bool debug_pipelines = false;
+    #define VAST_PIPELINE_DEBUG(...) VAST_REPORT_WITH_PREFIX_IF(debug_pipelines, "[pipeline] ", __VA_ARGS__)
+#else
+    #define VAST_PIPELINE_DEBUG(...)
+#endif
+
+
     //
     // pipeline_step is a single step in the pipeline that is a pass or a list
     // of pipelines
@@ -27,7 +35,6 @@ namespace vast {
     struct pipeline_step;
 
     using pipeline_step_ptr = std::unique_ptr< pipeline_step >;
-
 
     //
     // pipeline is a pass manager, which keeps track of duplicit passes and does
@@ -40,6 +47,8 @@ namespace vast {
 
         using base::base;
 
+        virtual ~pipeline_t() = default;
+
         void addPass(std::unique_ptr< mlir::Pass > pass);
 
         template< typename parent_t >
@@ -50,10 +59,11 @@ namespace vast {
             }
 
             seen.insert(id);
+            VAST_PIPELINE_DEBUG("scheduling nested pass: {0}", pass->getName());
             base::addNestedPass< parent_t >(std::move(pass));
         }
 
-        friend pipeline_t &operator<<(pipeline_t &ppl, pipeline_step_ptr pass);
+        virtual void schedule(pipeline_step_ptr step) = 0;
 
         llvm::DenseSet< pass_id_t > seen;
     };
@@ -85,27 +95,27 @@ namespace vast {
     struct pipeline_step
     {
         explicit pipeline_step(
-            std::vector< pipeline_step_builder > dependencies
+            std::vector< pipeline_step_builder > deps
         )
-            : dependencies(std::move(dependencies))
+            : deps(std::move(deps))
         {}
 
         explicit pipeline_step() = default;
-
         virtual ~pipeline_step() = default;
 
-        virtual void schedule_on(pipeline_t &ppl) const;
+        virtual void schedule_on(pipeline_t &ppl) const = 0;
+        virtual gap::generator< pipeline_step_ptr > substeps() const = 0;
+
+        gap::generator< pipeline_step_ptr > dependencies() const;
 
         virtual string_ref name() const = 0;
 
-        void schedule_dependencies(pipeline_t &ppl) const;
-
         template< typename ...deps_t >
-        void depends_on(deps_t &&... deps) {
-            (dependencies.emplace_back(std::forward< deps_t >(deps)), ...);
+        void depends_on(deps_t &&... dep) {
+            (deps.emplace_back(std::forward< deps_t >(dep)), ...);
         }
 
-        std::vector< pipeline_step_builder > dependencies;
+        std::vector< pipeline_step_builder > deps;
     };
 
     using pass_builder_t = llvm::function_ref< std::unique_ptr< mlir::Pass >(void) >;
@@ -117,6 +127,8 @@ namespace vast {
         {}
 
         void schedule_on(pipeline_t &ppl) const override;
+
+        gap::generator< pipeline_step_ptr > substeps() const override;
 
         string_ref name() const override;
 
@@ -131,8 +143,9 @@ namespace vast {
             : pass_pipeline_step(builder)
         {}
 
+        virtual ~nested_pass_pipeline_step() = default;
+
         void schedule_on(pipeline_t &ppl) const override {
-            schedule_dependencies(ppl);
             ppl.addNestedPass< parent_t >(pass_builder());
         }
     };
@@ -145,7 +158,11 @@ namespace vast {
             : pipeline_name(name), steps{ std::forward< steps_t >(steps)... }
         {}
 
+        virtual ~compound_pipeline_step() = default;
+
         void schedule_on(pipeline_t &ppl) const override;
+
+        gap::generator< pipeline_step_ptr > substeps() const override;
 
         string_ref name() const override;
 
