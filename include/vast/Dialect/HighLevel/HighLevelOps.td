@@ -254,6 +254,12 @@ def FieldDeclOp
   let summary = "VAST record field declaration";
   let description = [{ VAST record field declaration }];
 
+  let extraClassDeclaration = [{
+    vast::AggregateTypeDefinitionInterface getParentAggregate() {
+        return mlir::dyn_cast< vast::AggregateTypeDefinitionInterface >((*this)->getParentOp());
+    }
+  }];
+
   let assemblyFormat = [{ $name attr-dict (`bw` $bits^)? `:` $type }];
 }
 
