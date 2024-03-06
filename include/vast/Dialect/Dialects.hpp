@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/ABI/ABIDialect.hpp"
+#include "vast/Dialect/Builtin/Dialect.hpp"
 #include "vast/Dialect/Core/CoreDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/LowLevel/LowLevelDialect.hpp"
@@ -22,6 +23,7 @@ namespace vast {
     inline void registerAllDialects(mlir::DialectRegistry &registry) {
         registry.insert<
             vast::abi::ABIDialect,
+            vast::builtin::BuiltinDialect,
             vast::core::CoreDialect,
             vast::hl::HighLevelDialect,
             vast::ll::LowLevelDialect,

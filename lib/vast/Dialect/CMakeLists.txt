@@ -1,6 +1,7 @@
 # Copyright (c) 2021-present, Trail of Bits, Inc.
 
 add_subdirectory(ABI)
+add_subdirectory(Builtin)
 add_subdirectory(Core)
 add_subdirectory(HighLevel)
 add_subdirectory(LowLevel)
