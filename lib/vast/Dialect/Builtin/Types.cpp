@@ -12,14 +12,14 @@ VAST_RELAX_WARNINGS
 #include "vast/Dialect/Builtin/Ops.hpp"
 #include "vast/Dialect/Builtin/Types.hpp"
 
-namespace vast::builtin {
+namespace vast::hlbi {
     void BuiltinDialect::registerTypes() {
         addTypes<
 #define GET_TYPEDEF_LIST
 #include "vast/Dialect/Builtin/BuiltinTypes.cpp.inc"
             >();
     }
-} // namespace vast::builtin
+} // namespace vast::hlbi
 
 #define GET_TYPEDEF_CLASSES
 #include "vast/Dialect/Builtin/BuiltinTypes.cpp.inc"

@@ -10,7 +10,7 @@
 #include <mlir/IR/OpImplementation.h>
 #include <mlir/IR/TypeSupport.h>
 
-namespace vast::builtin {
+namespace vast::hlbi {
     using OpBuilder = mlir::OpBuilder;
 
     void BuiltinDialect::initialize() {
@@ -27,6 +27,6 @@ namespace vast::builtin {
     ) {
         VAST_UNIMPLEMENTED;
     }
-} // namespace vast::builtin
+} // namespace vast::hlbi
 
 #include "vast/Dialect/Builtin/BuiltinDialect.cpp.inc"

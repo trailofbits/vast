@@ -12,8 +12,8 @@ include "mlir/IR/RegionKindInterface.td"
 include "mlir/IR/BuiltinAttributeInterfaces.td"
 
 def Builtin_Dialect : Dialect {
-  let name = "builtin";
-  let cppNamespace = "::vast::builtin";
+  let name = "hlbi";
+  let cppNamespace = "::vast::hlbi";
 
   let summary = "Dialect for representing compiler builtin constructs";
 
