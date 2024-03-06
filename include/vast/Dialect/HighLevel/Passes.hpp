@@ -22,6 +22,8 @@ namespace vast::hl {
 
     std::unique_ptr< mlir::Pass > createDCEPass();
 
+    std::unique_ptr< mlir::Pass > createUDEPass();
+
     std::unique_ptr< mlir::Pass > createLowerTypeDefsPass();
 
     std::unique_ptr< mlir::Pass > createLowerElaboratedTypesPass();
