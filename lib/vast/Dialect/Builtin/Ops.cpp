@@ -20,7 +20,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Builtin/Ops.hpp"
 #include "vast/Dialect/Builtin/Types.hpp"
 
-using namespace vast::builtin;
+using namespace vast::hlbi;
 
 #define GET_OP_CLASSES
 #include "vast/Dialect/Builtin/Builtin.cpp.inc"
