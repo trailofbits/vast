@@ -19,7 +19,6 @@ namespace vast::cc {
         // Simplifies high level MLIR
         pipeline_step_ptr reduce_high_level() {
             return compose("reduce-hl",
-                hl::pipeline::desugar,
                 hl::pipeline::simplify
             );
         }
@@ -40,9 +39,9 @@ namespace vast::cc {
             return conv::pipeline::to_llvm();
         }
 
-        pipeline_step_ptr codegen() {
+        gap::generator< pipeline_step_ptr > codegen() {
             // TODO: pass further options to augment high level MLIR
-            return high_level();
+            co_yield high_level();
         }
 
         // Defines a sequence of dialects and for each conversion dialect a
@@ -58,11 +57,6 @@ namespace vast::cc {
             { target_dialect::std, { standard_types, abi } },
             { target_dialect::llvm, { llvm } }
         };
-
-        bool is_disabled(const pipeline_step_ptr &step, const vast_args &vargs) {
-            auto disable_step_option = opt::disable(step->name()).str();
-            return vargs.has_option(disable_step_option);
-        }
 
         gap::generator< pipeline_step_ptr > conversion(
             pipeline_source src,
@@ -81,13 +75,7 @@ namespace vast::cc {
 
             for (const auto &[dialect, step_passes] : path) {
                 for (auto &step : step_passes) {
-                    auto pipeline_step = step();
-                    if (is_disabled(pipeline_step, vargs)) {
-                        VAST_REPORT("Skipping disabled pipeline step: {0}", pipeline_step->name());
-                        continue;
-                    }
-                    VAST_REPORT("Adding pipeline step: {0}", pipeline_step->name());
-                    co_yield pipeline_step;
+                    co_yield step();
                 }
 
                 if (trg == dialect) {
@@ -98,13 +86,31 @@ namespace vast::cc {
 
     } // namespace pipeline
 
-    std::unique_ptr< pipeline_t > setup_pipeline(
+    bool vast_pipeline::is_disabled(const pipeline_step_ptr &step) const {
+        auto disable_step_option = opt::disable(step->name()).str();
+        return vargs.has_option(disable_step_option);
+    }
+
+    void vast_pipeline::schedule(pipeline_step_ptr step) {
+        if (is_disabled(step)) {
+            VAST_PIPELINE_DEBUG("step is disabled: {0}", step->name());
+            return;
+        }
+
+        for (auto &&dep : step->dependencies()) {
+            schedule(std::move(dep));
+        }
+
+        step->schedule_on(*this);
+    }
+
+    std::unique_ptr< vast_pipeline > setup_pipeline(
         pipeline_source src,
         target_dialect trg,
         mcontext_t &mctx,
         const vast_args &vargs
     ) {
-        auto passes = std::make_unique< pipeline_t >(&mctx);
+        auto passes = std::make_unique< vast_pipeline >(mctx, vargs);
 
         passes->enableIRPrinting(
             [](auto *, auto *) { return false; }, // before
@@ -117,7 +123,9 @@ namespace vast::cc {
 
         // generate high level MLIR in case of AST input
         if (pipeline_source::ast == src) {
-            *passes << pipeline::codegen();
+            for (auto &&step : pipeline::codegen()) {
+                passes->schedule(std::move(step));
+            }
         }
 
         // Apply desired conversion to target dialect, if target is llvm or
@@ -125,7 +133,7 @@ namespace vast::cc {
         // can specify how we want to convert to llvm dialect and allows to turn
         // off optional pipelines.
         for (auto &&step : pipeline::conversion(src, trg, vargs)) {
-            *passes << std::move(step);
+            passes->schedule(std::move(step));
         }
 
         if (vargs.has_option(opt::print_pipeline)) {

@@ -12,24 +12,25 @@ namespace vast {
         }
 
         seen.insert(id);
+        VAST_PIPELINE_DEBUG("scheduling pass: {0}", pass->getName());
         base::addPass(std::move(pass));
     }
 
-    pipeline_t &operator<<(pipeline_t &ppl, pipeline_step_ptr pass) {
-        pass->schedule_on(ppl);
-        return ppl;
+    gap::generator< pipeline_step_ptr > pipeline_step::dependencies() const {
+        for (const auto &dep : deps) {
+            co_yield dep();
+        }
     }
 
-    void pipeline_step::schedule_on(pipeline_t &) const {}
+    gap::generator< pipeline_step_ptr > pass_pipeline_step::substeps() const { co_return; }
 
-    void pipeline_step::schedule_dependencies(pipeline_t &ppl) const {
-        for (const auto &dep : dependencies) {
-            dep()->schedule_on(ppl);
+    gap::generator< pipeline_step_ptr > compound_pipeline_step::substeps() const {
+        for (const auto &step : steps) {
+            co_yield step();
         }
     }
 
     void pass_pipeline_step::schedule_on(pipeline_t &ppl) const {
-        schedule_dependencies(ppl);
         ppl.addPass(pass_builder());
     }
 
@@ -38,9 +39,9 @@ namespace vast {
     }
 
     void compound_pipeline_step::schedule_on(pipeline_t &ppl) const {
-        schedule_dependencies(ppl);
+        VAST_PIPELINE_DEBUG("scheduling compound step: {0}", pipeline_name);
         for (const auto &step : steps) {
-            step()->schedule_on(ppl);
+            ppl.schedule(step());
         }
     }
 
