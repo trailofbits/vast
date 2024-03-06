@@ -47,8 +47,12 @@ namespace vast::hl::pipeline {
         return pass(hl::createDCEPass).depends_on(canonicalize);
     }
 
+    static pipeline_step_ptr ude() {
+        return pass(hl::createUDEPass).depends_on(canonicalize);
+    }
+
     pipeline_step_ptr simplify() {
-        return compose("simplify", dce, desugar);
+        return compose("simplify", ude, dce, desugar);
     }
 
     //

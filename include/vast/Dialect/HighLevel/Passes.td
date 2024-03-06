@@ -38,6 +38,20 @@ def DCE : Pass<"vast-hl-dce", "mlir::ModuleOp"> {
   let constructor = "vast::hl::createDCEPass()";
 }
 
+def UDE : Pass<"vast-hl-ude", "mlir::ModuleOp"> {
+  let summary = "Eliminate unused definitions";
+  let description = [{
+    Removes unused definitions, such as typedefs, structs and functions.
+  }];
+
+  let dependentDialects = [
+    "vast::hl::HighLevelDialect",
+    "vast::core::CoreDialect"
+  ];
+
+  let constructor = "vast::hl::createUDEPass()";
+}
+
 def HLLowerTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
   let summary = "Lower high-level types to standard types";
   let description = [{
