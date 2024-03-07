@@ -85,4 +85,6 @@ namespace vast {
 
     using block_t       = mlir::Block;
     using block_ptr     = block_t*;
+
+    using walk_result = mlir::WalkResult;
 } // namespace vast

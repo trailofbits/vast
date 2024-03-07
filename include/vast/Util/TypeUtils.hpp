@@ -106,6 +106,14 @@ namespace vast
         return has_type_somewhere(op, accept);
     }
 
+    template< typename user_filter, typename yield_t >
+    walk_result type_users(user_filter &&is_user, auto scope, yield_t &&yield) {
+        return scope.walk([&](operation op) {
+            return has_type_somewhere(op, std::forward< user_filter >(is_user))
+                 ? yield(op) : walk_result::advance();
+        });
+    }
+
     auto bw(const auto &dl, mlir_type type) { return dl.getTypeSizeInBits(type); }
 
     auto bw(const auto &dl, auto type_range)
