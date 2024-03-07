@@ -25,7 +25,7 @@ def AggregateTypeDefinition
                 "getNestedDeclarations", (ins), [{}] >,
 
             InterfaceMethod< "Get name of the defined type",
-                "std::string", "getDefinedName", (ins), [{}] >
+                "llvm::StringRef", "getDefinedName", (ins), [{}] >
         ];
     }
 
