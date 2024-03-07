@@ -74,9 +74,10 @@ namespace vast::hl {
         }
 
         //
-        // typedef unused definition elimination
+        // typedef/decl unused definition elimination
         //
         bool keep(hl::TypeDefOp op, auto scope) const { return keep_only_if_used(op, scope); }
+        bool keep(hl::TypeDeclOp op, auto scope) const { return keep_only_if_used(op, scope); }
 
         //
         // function unused definition elimination
@@ -114,6 +115,7 @@ namespace vast::hl {
                     .Case([&](aggregate_interface op) { return dispatch(op); })
                     .Case([&](hl::FieldDeclOp op)     { return dispatch(op); })
                     .Case([&](hl::TypeDefOp op)       { return dispatch(op); })
+                    .Case([&](hl::TypeDeclOp op)      { return dispatch(op); })
                     .Case([&](hl::FuncOp op)          { return dispatch(op); })
                     .Default([&](operation)           { return true; });
             };
