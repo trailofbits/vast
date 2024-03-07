@@ -55,7 +55,7 @@ namespace vast::hl {
 
         walk_result filtered_users(auto op, auto scope, auto &&yield) const {
             return users(op, scope, [yield = std::forward< decltype(yield) >(yield)] (operation op) {
-                    // skip module as it always contains value use
+                // skip module as it always contains value use
                 return mlir::isa< vast_module >(op) ? walk_result::advance() : yield(op);
             });
         }
@@ -69,6 +69,11 @@ namespace vast::hl {
         walk_result filtered_users(hl::FieldDeclOp decl, auto scope, yield_t &&yield) const {
             return filtered_users(decl.getParentAggregate(), scope, std::forward< yield_t >(yield));
         }
+
+        //
+        // typedef unused definition elimination
+        //
+        bool keep(hl::TypeDefOp op, auto scope) const { return keep_only_if_used(op, scope); }
 
         void process(operation op, vast_module mod) {
             // we keep the operation if it is resolved to be kept or any of its
@@ -93,6 +98,7 @@ namespace vast::hl {
                 return llvm::TypeSwitch< operation, bool >(op)
                     .Case([&](aggregate_interface op) { return dispatch(op); })
                     .Case([&](hl::FieldDeclOp op)     { return dispatch(op); })
+                    .Case([&](hl::TypeDefOp op)       { return dispatch(op); })
                     .Default([&](operation)           { return true; });
             };
 
