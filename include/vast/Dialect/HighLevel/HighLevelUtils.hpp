@@ -8,13 +8,18 @@
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Interfaces/SymbolInterface.hpp"
 
+#include "vast/Util/TypeUtils.hpp"
+
 #include "vast/Util/Common.hpp"
 
-#include "gap/core/generator.hpp"
+#include <gap/core/generator.hpp>
 
 /* Contains common utilities often needed to work with hl dialect. */
 
 namespace vast::hl {
+
+    using aggregate_interface = AggregateTypeDefinitionInterface;
+
     static inline gap::generator< mlir_type > get_field_types(auto op) {
         for (auto [_, type] : get_fields_info(op)) {
             co_yield type;
@@ -25,7 +30,7 @@ namespace vast::hl {
     ) {
         for (auto &maybe_field : op.getOps()) {
             // Definition of nested structure, we ignore not a field.
-            if (mlir::isa< AggregateTypeDefinitionInterface >(maybe_field)) {
+            if (mlir::isa< aggregate_interface >(maybe_field)) {
                 continue;
             }
 
@@ -35,10 +40,10 @@ namespace vast::hl {
         }
     }
 
-    static inline gap::generator< AggregateTypeDefinitionInterface >
+    static inline gap::generator< aggregate_interface >
     get_nested_declarations(auto op) {
         for (auto &maybe_field : op.getOps()) {
-            if (auto casted = mlir::dyn_cast< AggregateTypeDefinitionInterface >(maybe_field)) {
+            if (auto casted = mlir::dyn_cast< aggregate_interface >(maybe_field)) {
                 co_yield casted;
             }
         }
@@ -48,13 +53,14 @@ namespace vast::hl {
     //           In general, we will need generic resolution for scoping that
     //           will be used instead of this function.
     static inline auto definition_of(mlir::Type t, vast_module module_op)
-        -> AggregateTypeDefinitionInterface {
+        -> aggregate_interface
+    {
         auto type_name = hl::name_of_record(t);
         VAST_CHECK(type_name, "hl::name_of_record failed with {0}", t);
 
-        AggregateTypeDefinitionInterface out;
+        aggregate_interface out;
         ;
-        auto walker = [&](AggregateTypeDefinitionInterface op) {
+        auto walker = [&](aggregate_interface op) {
             if (op.getDefinedName() == type_name) {
                 out = op;
                 return mlir::WalkResult::interrupt();
@@ -108,10 +114,10 @@ namespace vast::hl {
     }
 
     static inline std::optional< std::size_t >
-    field_idx(llvm::StringRef name, AggregateTypeDefinitionInterface decl) {
+    field_idx(llvm::StringRef name, aggregate_interface agg) {
         std::size_t idx = 0;
         // `llvm::enumerate` is unhappy when coroutine is passed in.
-        for (const auto &[field_name, _] : decl.getFieldsInfo()) {
+        for (const auto &[field_name, _] : agg.getFieldsInfo()) {
             if (field_name == name) {
                 return { idx };
             }
@@ -119,4 +125,24 @@ namespace vast::hl {
         }
         return {};
     }
+
+    template< typename yield_t >
+    walk_result users(aggregate_interface agg, auto scope, yield_t &&yield) {
+        return type_users([&] (mlir_type ty) {
+            if (auto rt = mlir::dyn_cast< RecordType >(ty))
+                return rt.getName() == agg.getDefinedName();
+            return false;
+        }, scope, std::forward< yield_t >(yield));
+    }
+
+    template< typename yield_t >
+    walk_result users(hl::TypeDefOp def, auto scope, yield_t &&yield) {
+        return type_users([&] (mlir_type ty) {
+            if (auto td = mlir::dyn_cast< TypedefType >(ty))
+                return td.getName() == def.getName();
+            return false;
+        }, scope, std::forward< yield_t >(yield));
+    }
+
+
 } // namespace vast::hl

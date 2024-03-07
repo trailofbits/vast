@@ -42,36 +42,21 @@ namespace vast::hl {
 
         operations_t unused;
 
-        using walk_result = mlir::WalkResult;
-
+        // We interupt the walk of users as we know we need to keep the
+        // operation because it is used in other kept operation (user)
         static inline auto keep_operation = walk_result::interrupt();
+        // If we andvance the walk, we know that the operation is not used
         static inline auto drop_operation = walk_result::advance();
-
-        using aggregate = AggregateTypeDefinitionInterface;
 
         //
         // aggregate unused definition elimination
         //
-        bool keep(aggregate op, auto scope) const { return keep_only_if_used(op, scope); }
+        bool keep(aggregate_interface op, auto scope) const { return keep_only_if_used(op, scope); }
 
-        walk_result users(aggregate agg, auto scope, auto &&yield) const {
-            auto accept = [&] (mlir_type ty) {
-                if (auto rec = mlir::dyn_cast< RecordType >(ty))
-                    return rec.getName() == agg.getDefinedName();
-                return false;
-            };
-
-            return scope.walk([&](operation op) {
-                if (mlir::isa< vast_module >(op)) {
+        walk_result filtered_users(auto op, auto scope, auto &&yield) const {
+            return users(op, scope, [yield = std::forward< decltype(yield) >(yield)] (operation op) {
                     // skip module as it always contains value use
-                    return drop_operation;
-                }
-
-                if (has_type_somewhere(op, accept)) {
-                    return yield(op);
-                }
-
-                return drop_operation;
+                return mlir::isa< vast_module >(op) ? walk_result::advance() : yield(op);
             });
         }
 
@@ -80,8 +65,9 @@ namespace vast::hl {
             return keep(op.getParentAggregate(), scope);
         }
 
-        walk_result users(hl::FieldDeclOp decl, auto scope, auto &&yield) const {
-            return users(decl.getParentAggregate(), scope, std::forward< decltype(yield) >(yield));
+        template< typename yield_t >
+        walk_result filtered_users(hl::FieldDeclOp decl, auto scope, yield_t &&yield) const {
+            return filtered_users(decl.getParentAggregate(), scope, std::forward< yield_t >(yield));
         }
 
         void process(operation op, vast_module mod) {
@@ -94,7 +80,7 @@ namespace vast::hl {
                     if (this->keep(op, mod))
                         return true;
 
-                    auto result = users(op, mod, [&](auto user) -> walk_result {
+                    auto result = filtered_users(op, mod, [&](auto user) -> walk_result {
                         auto keep_user = self(user);
                         VAST_UDE_DEBUG("user: {0} : {1}", *user, keep_user ? "keep" : "drop");
                         // if any user is to be kept, keep the operation
@@ -105,9 +91,9 @@ namespace vast::hl {
                 };
 
                 return llvm::TypeSwitch< operation, bool >(op)
-                    .Case([&](aggregate op)       { return dispatch(op); })
-                    .Case([&](hl::FieldDeclOp op) { return dispatch(op); })
-                    .Default([&](operation) { return true; });
+                    .Case([&](aggregate_interface op) { return dispatch(op); })
+                    .Case([&](hl::FieldDeclOp op)     { return dispatch(op); })
+                    .Default([&](operation)           { return true; });
             };
 
             auto to_keep = gap::recursive_memoize<bool(operation)>(keep);
