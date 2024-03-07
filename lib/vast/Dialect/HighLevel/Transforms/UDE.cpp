@@ -22,6 +22,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "PassesDetails.hpp"
 
+#include <unordered_set>
+
 namespace vast::hl {
 
 #if !defined(NDEBUG)
@@ -82,11 +84,18 @@ namespace vast::hl {
         bool keep(hl::FuncOp op, auto scope) const { return !op.isDeclaration(); }
 
         void process(operation op, vast_module mod) {
+            std::unordered_set< operation > seen;
             // we keep the operation if it is resolved to be kept or any of its
             // users is marked as to be kept, otherwise we mark it as unused and
             // erase it
-            auto keep = [this, mod](auto &self, operation op) {
-                auto dispatch = [this, mod, &self] (auto op) {
+            auto keep = [this, mod, &seen](auto &self, operation op) {
+                auto dispatch = [this, mod, &self, &seen] (auto op) {
+                    if (const auto [_, inserted] = seen.insert(op); !inserted) {
+                        // Already processed, the operation has recursive dependency.
+                        // We can safely return false here, as some other user
+                        // needs to determine if the operation is to be kept.
+                        return false;
+                    }
                     VAST_UDE_DEBUG("processing: {0}", *op);
                     if (this->keep(op, mod))
                         return true;
