@@ -18,8 +18,7 @@ def AggregateTypeDefinition
                 "gap::generator< mlir::Type >", "getFieldTypes", (ins), [{}] >,
 
             InterfaceMethod< "Return all elements in order of their declaration.",
-                "gap::generator< std::tuple< std::string, mlir::Type > >",
-                "getFieldsInfo", (ins), [{}] >,
+                "gap::generator< vast::field_info_t >", "getFieldsInfo", (ins), [{}] >,
 
             InterfaceMethod< "Return all nested definitions",
                 "gap::generator< vast::AggregateTypeDefinitionInterface >",

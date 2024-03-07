@@ -51,7 +51,7 @@ namespace vast {
                 op_t op, typename op_t::Adaptor ops, conversion_rewriter &rewriter,
                 hl::StructDeclOp struct_decl
             ) const {
-                auto idx = hl::field_idx(op.getName(), struct_decl);
+                auto idx = hl::field_index(op.getName(), struct_decl);
                 if (!idx) {
                     return mlir::failure();
                 }
