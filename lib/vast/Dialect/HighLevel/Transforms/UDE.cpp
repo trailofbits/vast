@@ -27,7 +27,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::hl {
 
 #if !defined(NDEBUG)
-    constexpr bool debug_ude_pass = true;
+    constexpr bool debug_ude_pass = false;
     #define VAST_UDE_DEBUG(...) VAST_REPORT_WITH_PREFIX_IF(debug_ude_pass, "[UDE] ", __VA_ARGS__)
 #else
     #define VAST_UDE_DEBUG(...)
@@ -76,7 +76,7 @@ namespace vast::hl {
         //
         // typedef/decl unused definition elimination
         //
-        bool keep(hl::TypeDefOp op, auto scope) const { return keep_only_if_used(op, scope); }
+        bool keep(hl::TypeDefOp op, auto scope)  const { return keep_only_if_used(op, scope); }
         bool keep(hl::TypeDeclOp op, auto scope) const { return keep_only_if_used(op, scope); }
 
         //
@@ -84,6 +84,14 @@ namespace vast::hl {
         //
         bool keep(hl::FuncOp op, auto scope) const {
             return !op.isDeclaration() && !op->hasAttr( hl::AlwaysInlineAttr::getMnemonic() );
+        }
+
+        //
+        // variable unused definition elimination
+        //
+        bool keep(hl::VarDeclOp op, auto scope) const {
+            VAST_CHECK(!op.hasExternalStorage() || op.getInitializer().empty(), "extern variable with initializer");
+            return !op.hasExternalStorage();
         }
 
         void process(operation op, vast_module mod) {
@@ -130,6 +138,7 @@ namespace vast::hl {
                     .Case([&](hl::TypeDefOp op)       { return dispatch(op); })
                     .Case([&](hl::TypeDeclOp op)      { return dispatch(op); })
                     .Case([&](hl::FuncOp op)          { return dispatch(op); })
+                    .Case([&](hl::VarDeclOp op)       { return dispatch(op); })
                     .Default([&](operation)           { return true; });
             };
 
