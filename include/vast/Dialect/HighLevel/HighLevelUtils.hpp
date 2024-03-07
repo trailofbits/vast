@@ -156,24 +156,21 @@ namespace vast::hl {
         }, scope, std::forward< decltype(yield) >(yield));
     }
 
-    namespace detail {
-        walk_result symbol_users(auto op, auto scope, auto &&yield) {
-            for (auto user : util::symbol_users(op, scope)) {
-                if (auto result = yield(user); result == walk_result::interrupt()) {
-                    return result;
-                }
-            }
-
-            return walk_result::advance();
-        }
-    } // namespace detail
-
-    walk_result users(hl::VarDeclOp op, auto scope, auto &&yield) {
-        return detail::symbol_users(op, scope, std::forward< decltype(yield) >(yield));
+    walk_result users(hl::VarDeclOp var, auto scope, auto &&yield) {
+        VAST_CHECK(var.hasGlobalStorage(), "Only global variables are supported");
+        return scope.walk([&](GlobalRefOp op) {
+            return op.getGlobal() == var.getName() ? yield(op) : walk_result::advance();
+        });
     }
 
     walk_result users(hl::FuncOp op, auto scope, auto &&yield) {
-        return detail::symbol_users(op, scope, std::forward< decltype(yield) >(yield));
+        for (auto user : util::symbol_users(op, scope)) {
+            if (auto result = yield(user); result == walk_result::interrupt()) {
+                return result;
+            }
+        }
+
+        return walk_result::advance();
     }
 
 } // namespace vast::hl
