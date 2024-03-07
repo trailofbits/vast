@@ -82,7 +82,9 @@ namespace vast::hl {
         //
         // function unused definition elimination
         //
-        bool keep(hl::FuncOp op, auto scope) const { return !op.isDeclaration(); }
+        bool keep(hl::FuncOp op, auto scope) const {
+            return !op.isDeclaration() && !op->hasAttr( hl::AlwaysInlineAttr::getMnemonic() );
+        }
 
         void process(operation op, vast_module mod) {
             std::unordered_set< operation > seen;
