@@ -27,7 +27,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::hl {
 
 #if !defined(NDEBUG)
-    constexpr bool debug_ude_pass = false;
+    constexpr bool debug_ude_pass = true;
     #define VAST_UDE_DEBUG(...) VAST_REPORT_WITH_PREFIX_IF(debug_ude_pass, "[UDE] ", __VA_ARGS__)
 #else
     #define VAST_UDE_DEBUG(...)
@@ -58,12 +58,12 @@ namespace vast::hl {
 
         walk_result filtered_users(auto op, auto scope, auto &&yield) const {
             return hl::users(op, scope, [yield = std::forward< decltype(yield) >(yield)] (operation op) {
-                // skip module as it always contains value use
+                // Skip module as it always contains value use.
                 return mlir::isa< vast_module >(op) ? walk_result::advance() : yield(op);
             });
         }
 
-        // keep field if its parent is kept
+        // Keep field if its parent is kept.
         bool keep(hl::FieldDeclOp op, auto scope) const {
             return keep(op.getParentAggregate(), scope);
         }
@@ -88,9 +88,9 @@ namespace vast::hl {
 
         void process(operation op, vast_module mod) {
             std::unordered_set< operation > seen;
-            // we keep the operation if it is resolved to be kept or any of its
+            // We keep the operation if it is resolved to be kept or any of its
             // users is marked as to be kept, otherwise we mark it as unused and
-            // erase it
+            // erase it.
             auto keep = [this, mod, &seen](auto &self, operation op) {
                 auto dispatch = [this, mod, &self, &seen] (auto op) {
                     if (const auto [_, inserted] = seen.insert(op); !inserted) {
@@ -117,7 +117,7 @@ namespace vast::hl {
                             }
                         }
 
-                        // if any user is to be kept, keep the operation
+                        // If any user is to be kept, keep the operation.
                         return keep_user ? keep_operation : drop_operation;
                     });
 
