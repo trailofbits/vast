@@ -132,20 +132,22 @@ namespace vast::hl {
         return std::nullopt;
     }
 
-    template< typename yield_t >
-    walk_result users(aggregate_interface agg, auto scope, yield_t &&yield) {
-        return type_users([&] (mlir_type ty) {
-            if (auto rt = mlir::dyn_cast< RecordType >(ty))
-                return rt.getName() == agg.getDefinedName();
-            return false;
-        }, scope, std::forward< yield_t >(yield));
-    }
+    template <typename yield_t, typename op_t >
+    walk_result users(op_t op, auto scope, yield_t &&yield) {
+        return type_users([&](mlir_type ty) {
+            if constexpr (std::is_same_v< op_t, hl::TypeDefOp >) {
+                if (auto td = mlir::dyn_cast< TypedefType >(ty))
+                    return td.getName() == op.getName();
+            } else if constexpr (std::is_same_v< op_t, hl::TypeDeclOp > ) {
+                if (auto rt = mlir::dyn_cast< RecordType >(ty))
+                    return rt.getName() == op.getName();
+            } else if constexpr (std::is_same_v< op_t, aggregate_interface >) {
+                if (auto ft = mlir::dyn_cast< RecordType >(ty))
+                    return ft.getName() == op.getDefinedName();
+            } else {
+                VAST_FATAL("Unsupported operation type");
+            }
 
-    template< typename yield_t >
-    walk_result users(hl::TypeDefOp def, auto scope, yield_t &&yield) {
-        return type_users([&] (mlir_type ty) {
-            if (auto td = mlir::dyn_cast< TypedefType >(ty))
-                return td.getName() == def.getName();
             return false;
         }, scope, std::forward< yield_t >(yield));
     }
@@ -160,6 +162,5 @@ namespace vast::hl {
 
         return walk_result::advance();
     }
-
 
 } // namespace vast::hl
