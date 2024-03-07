@@ -132,35 +132,48 @@ namespace vast::hl {
         return std::nullopt;
     }
 
-    template <typename yield_t, typename op_t >
-    walk_result users(op_t op, auto scope, yield_t &&yield) {
+    walk_result users(hl::TypeDefOp op, auto scope, auto &&yield) {
         return type_users([&](mlir_type ty) {
-            if constexpr (std::is_same_v< op_t, hl::TypeDefOp >) {
-                if (auto td = mlir::dyn_cast< TypedefType >(ty))
-                    return td.getName() == op.getName();
-            } else if constexpr (std::is_same_v< op_t, hl::TypeDeclOp > ) {
-                if (auto rt = mlir::dyn_cast< RecordType >(ty))
-                    return rt.getName() == op.getName();
-            } else if constexpr (std::is_same_v< op_t, aggregate_interface >) {
-                if (auto ft = mlir::dyn_cast< RecordType >(ty))
-                    return ft.getName() == op.getDefinedName();
-            } else {
-                VAST_FATAL("Unsupported operation type");
-            }
-
+            if (auto td = mlir::dyn_cast< TypedefType >(ty))
+                return td.getName() == op.getName();
             return false;
-        }, scope, std::forward< yield_t >(yield));
+        }, scope, std::forward< decltype(yield) >(yield));
     }
 
-    template< typename yield_t >
-    walk_result users(hl::FuncOp func, auto scope, yield_t &&yield) {
-        for (auto user : util::symbol_users(func, scope)) {
-            if (auto result = yield(user); result == walk_result::interrupt()) {
-                return result;
-            }
-        }
+    walk_result users(hl::TypeDeclOp op, auto scope, auto &&yield) {
+        return type_users([&](mlir_type ty) {
+            if (auto rt = mlir::dyn_cast< RecordType >(ty))
+                return rt.getName() == op.getName();
+            return false;
+        }, scope, std::forward< decltype(yield) >(yield));
+    }
 
-        return walk_result::advance();
+    walk_result users(aggregate_interface op, auto scope, auto &&yield) {
+        return type_users([&](mlir_type ty) {
+            if (auto rt = mlir::dyn_cast< RecordType >(ty))
+                return rt.getName() == op.getDefinedName();
+            return false;
+        }, scope, std::forward< decltype(yield) >(yield));
+    }
+
+    namespace detail {
+        walk_result symbol_users(auto op, auto scope, auto &&yield) {
+            for (auto user : util::symbol_users(op, scope)) {
+                if (auto result = yield(user); result == walk_result::interrupt()) {
+                    return result;
+                }
+            }
+
+            return walk_result::advance();
+        }
+    } // namespace detail
+
+    walk_result users(hl::VarDeclOp op, auto scope, auto &&yield) {
+        return detail::symbol_users(op, scope, std::forward< decltype(yield) >(yield));
+    }
+
+    walk_result users(hl::FuncOp op, auto scope, auto &&yield) {
+        return detail::symbol_users(op, scope, std::forward< decltype(yield) >(yield));
     }
 
 } // namespace vast::hl
