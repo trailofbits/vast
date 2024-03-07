@@ -55,6 +55,10 @@ namespace vast::cg {
             return make< hl::AnnotationAttr >(attr->getAnnotation());
         }
 
+        mlir_attr VisitAlwaysInlineAttr(const clang::AlwaysInlineAttr *attr) {
+            return make< hl::AlwaysInlineAttr >();
+        }
+
         mlir_attr VisitLoaderUninitializedAttr(const clang::LoaderUninitializedAttr *attr) {
             return make< hl::LoaderUninitializedAttr >();
         }
