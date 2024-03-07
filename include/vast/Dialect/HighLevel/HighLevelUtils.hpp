@@ -8,9 +8,9 @@
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Interfaces/SymbolInterface.hpp"
 
-#include "vast/Util/TypeUtils.hpp"
-
 #include "vast/Util/Common.hpp"
+#include <vast/Util/Symbols.hpp>
+#include "vast/Util/TypeUtils.hpp"
 
 #include <gap/core/generator.hpp>
 
@@ -148,6 +148,17 @@ namespace vast::hl {
                 return td.getName() == def.getName();
             return false;
         }, scope, std::forward< yield_t >(yield));
+    }
+
+    template< typename yield_t >
+    walk_result users(hl::FuncOp func, auto scope, yield_t &&yield) {
+        for (auto user : util::symbol_users(func, scope)) {
+            if (auto result = yield(user); result == walk_result::interrupt()) {
+                return result;
+            }
+        }
+
+        return walk_result::advance();
     }
 
 
