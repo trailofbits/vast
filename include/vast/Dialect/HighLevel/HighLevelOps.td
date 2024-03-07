@@ -230,7 +230,7 @@ class RecordLikeDeclOp< string mnemonic, string concrete_name, list< Trait > tra
         return hl::get_nested_declarations(*this);
     }
 
-    std::string }] # concrete_name # [{ ::getDefinedName() { return this->getName().str(); }
+    llvm::StringRef }] # concrete_name # [{ ::getDefinedName() { return this->getName(); }
 
   }];
 
