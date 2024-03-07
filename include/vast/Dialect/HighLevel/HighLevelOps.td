@@ -218,11 +218,11 @@ class RecordLikeDeclOp< string mnemonic, string concrete_name, list< Trait > tra
   let extraClassDefinition = [{
     // AggregateTypeDefinitionInterface
 
-    gap::generator<mlir::Type> }] # concrete_name # [{ ::getFieldTypes() {
+    gap::generator< mlir_type > }] # concrete_name # [{ ::getFieldTypes() {
         return hl::get_field_types(*this);
     }
 
-    gap::generator<std::tuple<std::string, mlir::Type>>}] # concrete_name # [{ ::getFieldsInfo() {
+    gap::generator< vast::field_info_t >}] # concrete_name # [{ ::getFieldsInfo() {
         return hl::get_fields_info(*this);
     }
 

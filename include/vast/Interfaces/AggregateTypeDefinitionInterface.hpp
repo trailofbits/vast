@@ -11,7 +11,20 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/OperationSupport.h>
 VAST_RELAX_WARNINGS
 
+#include "vast/Util/Common.hpp"
+
 #include <gap/core/generator.hpp>
+
+namespace vast {
+
+    struct field_info_t
+    {
+        std::string name;
+        mlir_type type;
+    };
+
+} // namespace vast
+
 
 /// Include the generated interface declarations.
 #include "vast/Interfaces/AggregateTypeDefinitionInterface.h.inc"
