@@ -106,6 +106,17 @@ namespace vast::hl {
                     auto result = filtered_users(op, mod, [&](auto user) -> walk_result {
                         auto keep_user = self(user);
                         VAST_UDE_DEBUG("user: {0} : {1}", *user, keep_user ? "keep" : "drop");
+
+                        // If the user is an always inlined function that is not
+                        // used, we mark it as unused.
+                        if (keep_user) {
+                            if (auto parent = user->template getParentOfType< hl::FuncOp >()) {
+                                if (!self(parent)) {
+                                    return drop_operation;
+                                }
+                            }
+                        }
+
                         // if any user is to be kept, keep the operation
                         return keep_user ? keep_operation : drop_operation;
                     });
