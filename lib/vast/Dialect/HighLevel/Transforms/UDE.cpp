@@ -33,136 +33,125 @@ namespace vast::hl {
     #define VAST_UDE_DEBUG(...)
 #endif
 
-    template< typename ... args_t >
-    bool is_one_of( operation op ) { return ( mlir::isa< args_t >( op ) || ... ); }
-
     constexpr auto keep_only_if_used = [] (auto, auto) { /* do not keep by default */ return false; };
+
+    template< typename yield_t >
+    walk_result users(hl::FieldDeclOp decl, auto scope, yield_t &&yield) {
+        return hl::users(decl.getParentAggregate(), scope, std::forward< yield_t >(yield));
+    }
 
     struct UDE : UDEBase< UDE >
     {
-        using base         = UDEBase< UDE >;
-        using operations_t = std::vector< operation >;
+        using base = UDEBase< UDE >;
 
-        operations_t unused;
-
-        // We interupt the walk of users as we know we need to keep the
-        // operation because it is used in other kept operation (user)
-        static inline auto keep_operation = walk_result::interrupt();
-        // If we andvance the walk, we know that the operation is not used
-        static inline auto drop_operation = walk_result::advance();
-
-        //
-        // aggregate unused definition elimination
-        //
         bool keep(aggregate_interface op, auto scope) const { return keep_only_if_used(op, scope); }
-
-        walk_result filtered_users(auto op, auto scope, auto &&yield) const {
-            return hl::users(op, scope, [yield = std::forward< decltype(yield) >(yield)] (operation op) {
-                // Skip module as it always contains value use.
-                return mlir::isa< vast_module >(op) ? walk_result::advance() : yield(op);
-            });
-        }
-
-        // Keep field if its parent is kept.
-        bool keep(hl::FieldDeclOp op, auto scope) const {
-            return keep(op.getParentAggregate(), scope);
-        }
-
-        template< typename yield_t >
-        walk_result filtered_users(hl::FieldDeclOp decl, auto scope, yield_t &&yield) const {
-            return filtered_users(decl.getParentAggregate(), scope, std::forward< yield_t >(yield));
-        }
-
-        //
-        // typedef/decl unused definition elimination
-        //
-        bool keep(hl::TypeDefOp op, auto scope)  const { return keep_only_if_used(op, scope); }
-        bool keep(hl::TypeDeclOp op, auto scope) const { return keep_only_if_used(op, scope); }
-
-        //
-        // function unused definition elimination
-        //
+        bool keep(hl::TypeDefOp op, auto scope)   const { return keep_only_if_used(op, scope); }
+        bool keep(hl::TypeDeclOp op, auto scope)  const { return keep_only_if_used(op, scope); }
+        // Mark field to be kept if the parent aggregate is kept
+        bool keep(hl::FieldDeclOp op, auto scope) const { return keep(op.getParentAggregate(), scope); }
         bool keep(hl::FuncOp op, auto scope) const {
             return !op.isDeclaration() && !op->hasAttr( hl::AlwaysInlineAttr::getMnemonic() );
         }
-
-        //
-        // variable unused definition elimination
-        //
         bool keep(hl::VarDeclOp op, auto scope) const {
             VAST_CHECK(!op.hasExternalStorage() || op.getInitializer().empty(), "extern variable with initializer");
             return !op.hasExternalStorage();
         }
 
-        void process(operation op, vast_module mod) {
-            std::unordered_set< operation > seen;
-            // We keep the operation if it is resolved to be kept or any of its
-            // users is marked as to be kept, otherwise we mark it as unused and
-            // erase it.
-            auto keep = [this, mod, &seen](auto &self, operation op) {
-                auto dispatch = [this, mod, &self, &seen] (auto op) {
-                    if (const auto [_, inserted] = seen.insert(op); !inserted) {
-                        // Already processed, the operation has recursive dependency.
-                        // We can safely return false here, as some other user
-                        // needs to determine if the operation is to be kept.
-                        return false;
-                    }
-                    VAST_UDE_DEBUG("processing: {0}", *op);
-                    if (this->keep(op, mod))
-                        return true;
-
-                    auto result = filtered_users(op, mod, [&](auto user) -> walk_result {
-                        auto keep_user = self(user);
-                        VAST_UDE_DEBUG("user: {0} : {1}", *user, keep_user ? "keep" : "drop");
-
-                        // If the user is an always inlined function that is not
-                        // used, we mark it as unused.
-                        if (keep_user) {
-                            if (auto parent = user->template getParentOfType< hl::FuncOp >()) {
-                                if (!self(parent)) {
-                                    return drop_operation;
-                                }
-                            }
-                        }
-
-                        // If any user is to be kept, keep the operation.
-                        return keep_user ? keep_operation : drop_operation;
-                    });
-
-                    return result == keep_operation;
-                };
-
-                return llvm::TypeSwitch< operation, bool >(op)
-                    .Case([&](aggregate_interface op) { return dispatch(op); })
-                    .Case([&](hl::FieldDeclOp op)     { return dispatch(op); })
-                    .Case([&](hl::TypeDefOp op)       { return dispatch(op); })
-                    .Case([&](hl::TypeDeclOp op)      { return dispatch(op); })
-                    .Case([&](hl::FuncOp op)          { return dispatch(op); })
-                    .Case([&](hl::VarDeclOp op)       { return dispatch(op); })
-                    .Default([&](operation)           { return true; });
-            };
-
-            auto to_keep = gap::recursive_memoize<bool(operation)>(keep);
-
-            if (!to_keep(op)) {
-                VAST_UDE_DEBUG("unused: {0}", *op);
-                unused.push_back(op);
-            }
+        void erase_from_module(operation op, vast_module mod) {
+            VAST_UDE_DEBUG("erase: {0}", op);
+            op->erase();
         }
 
-        void process(vast_module mod) {
-            for (auto &op : mod.getOps()) {
-                process(&op, mod);
+        std::unordered_set< operation > unused_cached;
+
+        bool is_unused_impl(auto op, auto scope, auto &seen) {
+            if (keep(op, scope)) {
+                VAST_UDE_DEBUG("keep: {0}", *op);
+                return false;
             }
+
+            auto result = hl::users(op, scope, [&](operation user) -> walk_result {
+                VAST_UDE_DEBUG("user: {0} of {1}", *user, *op);
+                // Ignore top-level use
+                if (user == scope) {
+                    return walk_result::advance();
+                }
+
+                if (is_unused(user, scope, seen)) {
+                    VAST_UDE_DEBUG("unused user: {0}", *user);
+                    return walk_result::advance();
+                }
+
+                // If the user is an always inlined function that is not used,
+                // we mark it as unused.
+                if (auto parent = user->template getParentOfType< hl::FuncOp >()) {
+                    if (is_unused(parent, scope, seen)) {
+                        VAST_REPORT("user in always inlined function: {0}", *user);
+                        return walk_result::advance();
+                    }
+                }
+
+                // We interrupt the walk if the operation is used
+                return walk_result::interrupt();
+            });
+
+            // Operation is used if the walk was interrupted so we need to keep it.
+            return !result.wasInterrupted();
+        }
+
+        bool is_unused(operation op, auto scope, auto &seen) {
+            if (unused_cached.contains(op)) {
+                VAST_UDE_DEBUG("cached: {0}", *op);
+                return true;
+            }
+
+            if (const auto [_, inserted] = seen.insert(op); !inserted) {
+                VAST_UDE_DEBUG("recursive: {0}", *op);
+                // Already processed, the operation has recursive dependency.
+                // We can safely return true here, as some other user
+                // needs to determine if the operation is to be kept.
+                return true;
+            }
+
+            VAST_UDE_DEBUG("processing: {0}", *op);
+            bool result = llvm::TypeSwitch< operation, bool >(op)
+                .Case([&](aggregate_interface op) { return is_unused_impl(op, scope, seen); })
+                .Case([&](hl::FieldDeclOp op)     { return is_unused_impl(op, scope, seen); })
+                .Case([&](hl::TypeDefOp op)       { return is_unused_impl(op, scope, seen); })
+                .Case([&](hl::TypeDeclOp op)      { return is_unused_impl(op, scope, seen); })
+                .Case([&](hl::FuncOp op)          { return is_unused_impl(op, scope, seen); })
+                .Case([&](hl::VarDeclOp op)       { return is_unused_impl(op, scope, seen); })
+                .Default([&](operation)           { return false; });
+
+            if (result) {
+                unused_cached.insert(op);
+            }
+
+            return result;
+        }
+
+        std::vector< operation > gather_unused(auto scope) {
+            std::vector< operation > unused_operations;
+            for (auto &op : scope.getOps()) {
+                std::unordered_set< operation > seen;
+                if (is_unused(&op, scope, seen)) {
+                    unused_operations.push_back(&op);
+                }
+            }
+
+            return unused_operations;
         }
 
         void runOnOperation() override {
-            process(getOperation());
-            for (auto &op : unused) {
-                op->erase();
+            auto mod = getOperation();
+            auto unused = gather_unused(mod);
+
+            for (auto op : unused) {
+                erase_from_module(op, mod);
             }
         }
     };
 
     std::unique_ptr< mlir::Pass > createUDEPass() { return std::make_unique< UDE >(); }
+
 } // namespace vast::hl
