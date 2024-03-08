@@ -71,6 +71,10 @@ def TypeDeclOp
   let summary = "VAST type declaration";
   let description = [{ VAST type declaration }];
 
+  let extraClassDeclaration = [{
+    mlir_type getDefinedType();
+  }];
+
   let assemblyFormat = [{ $name attr-dict }];
 }
 
@@ -86,7 +90,7 @@ def TypeDefOp
   }];
 
   let extraClassDeclaration = [{
-    mlir_type getTypeDefType();
+    mlir_type getDefinedType();
   }];
 
   let assemblyFormat = [{ $name attr-dict `:` $type }];
@@ -201,7 +205,7 @@ def EnumDeclOp
   let assemblyFormat = [{ $name attr-dict `:` ($type^ $constants)? }];
 }
 
-class RecordLikeDeclOp< string mnemonic, string concrete_name, list< Trait > traits = [] >
+class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op<
         mnemonic,
         !listconcat(traits, [NoTerminator, VastSymbol,
@@ -222,31 +226,34 @@ class RecordLikeDeclOp< string mnemonic, string concrete_name, list< Trait > tra
   let extraClassDefinition = [{
     // AggregateTypeDefinitionInterface
 
-    gap::generator< mlir_type > }] # concrete_name # [{ ::getFieldTypes() {
+    gap::generator< mlir_type > $cppClass::getFieldTypes() {
         return hl::get_field_types(*this);
     }
 
-    gap::generator< vast::field_info_t >}] # concrete_name # [{ ::getFieldsInfo() {
+    gap::generator< vast::field_info_t > $cppClass::getFieldsInfo() {
         return hl::get_fields_info(*this);
     }
 
-    gap::generator< vast::AggregateTypeDefinitionInterface > }] # concrete_name # [{ ::getNestedDeclarations() {
+    gap::generator< vast::AggregateTypeDefinitionInterface > $cppClass::getNestedDeclarations() {
         return hl::get_nested_declarations(*this);
     }
 
-    llvm::StringRef }] # concrete_name # [{ ::getDefinedName() { return this->getName(); }
+    llvm::StringRef $cppClass::getDefinedName() { return this->getName(); }
 
+    mlir::Type $cppClass::getDefinedType() {
+      return hl::RecordType::get(getContext(), getDefinedName());
+    }
   }];
 
   let assemblyFormat = [{ $name attr-dict `:` $fields }];
 }
 
-def StructDeclOp : RecordLikeDeclOp< "struct", "StructDeclOp" > {
+def StructDeclOp : RecordLikeDeclOp< "struct" > {
   let summary = "VAST struct declaration";
   let description = [{ VAST struct declaration }];
 }
 
-def UnionDeclOp : RecordLikeDeclOp< "union", "UnionDeclOp" > {
+def UnionDeclOp : RecordLikeDeclOp< "union" > {
   let summary = "VAST record declaration";
   let description = [{ VAST record declaration }];
 }

@@ -370,7 +370,11 @@ namespace vast::hl
         build_region(bld, st, expr);
     }
 
-    mlir_type TypeDefOp::getTypeDefType() {
+    mlir_type TypeDeclOp::getDefinedType() {
+        return hl::RecordType::get(getContext(), getName());
+    }
+
+    mlir_type TypeDefOp::getDefinedType() {
         return hl::TypedefType::get(getContext(), getName());
     }
 
