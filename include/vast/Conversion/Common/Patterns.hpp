@@ -84,6 +84,10 @@ namespace vast {
     {
         using base = mlir::ConversionPattern;
 
+        generic_conversion_pattern(mcontext_t *mctx)
+            : base(mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx)
+        {}
+
         generic_conversion_pattern(mlir::TypeConverter &tc,
                                    mcontext_t &mctx)
             : base(tc, mlir::Pattern::MatchAnyOpTypeTag{}, 1, &mctx)
