@@ -95,6 +95,19 @@ namespace vast::dl {
         bool operator==(const DLEntry &o) const = default;
     };
 
+    void filter_data_layout(vast_module mod, auto &&filter) {
+        auto dl = mod.getDataLayoutSpec();
+
+        auto filtered_entries = llvm::to_vector(
+            llvm::make_filter_range(dl.getEntries(), std::forward< decltype(filter) >(filter))
+        );
+
+        mod->setAttr(
+            mlir::DLTIDialect::kDataLayoutAttrName,
+            mlir::DataLayoutSpecAttr::get(mod.getContext(), filtered_entries)
+        );
+    }
+
     // For each type remember its data layout information.
     struct DataLayoutBlueprint
     {
