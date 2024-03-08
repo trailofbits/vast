@@ -370,6 +370,10 @@ namespace vast::hl
         build_region(bld, st, expr);
     }
 
+    mlir_type TypeDefOp::getTypeDefType() {
+        return hl::TypedefType::get(getContext(), getName());
+    }
+
     FuncOp getCallee(CallOp call)
     {
         auto coi = mlir::cast<mlir::CallOpInterface>(call.getOperation());

@@ -85,6 +85,10 @@ def TypeDefOp
     be referenced as NamedType later.
   }];
 
+  let extraClassDeclaration = [{
+    mlir_type getTypeDefType();
+  }];
+
   let assemblyFormat = [{ $name attr-dict `:` $type }];
 }
 
