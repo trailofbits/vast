@@ -14,6 +14,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/Builtin/Dialect.hpp"
 #include "vast/Dialect/LowLevel/LowLevelDialect.hpp"
 #include "vast/Dialect/Core/CoreDialect.hpp"
 #include "vast/Dialect/ABI/ABIDialect.hpp"

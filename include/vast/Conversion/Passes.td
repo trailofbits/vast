@@ -155,4 +155,16 @@ def HLEmitLazyRegions : Pass<"vast-hl-to-lazy-regions", "mlir::ModuleOp"> {
   ];
 }
 
+def HLToHLBI : Pass<"vast-hl-to-hl-builtin", "mlir::ModuleOp"> {
+  let summary = "Transform hl operations that have builtin attribute to specialized dialect.";
+  let description = [{
+    This pass is still a work in progress.
+  }];
+
+  let constructor = "vast::createHLToHLBI()";
+  let dependentDialects = [
+    "vast::hlbi::BuiltinDialect"
+  ];
+}
+
 #endif // VAST_CONVERSION_PASSES_TD
