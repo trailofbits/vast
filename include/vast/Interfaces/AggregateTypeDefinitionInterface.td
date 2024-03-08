@@ -25,7 +25,10 @@ def AggregateTypeDefinition
                 "getNestedDeclarations", (ins), [{}] >,
 
             InterfaceMethod< "Get name of the defined type",
-                "llvm::StringRef", "getDefinedName", (ins), [{}] >
+                "llvm::StringRef", "getDefinedName", (ins), [{}] >,
+
+            InterfaceMethod< "Get defined type",
+                "mlir::Type", "getDefinedType", (ins), [{}] >
         ];
     }
 
