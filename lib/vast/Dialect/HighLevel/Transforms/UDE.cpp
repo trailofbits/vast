@@ -44,25 +44,23 @@ namespace vast::hl {
     {
         using base = UDEBase< UDE >;
 
+        std::unordered_set< operation > unused_cached;
+
         bool keep(aggregate_interface op, auto scope) const { return keep_only_if_used(op, scope); }
-        bool keep(hl::TypeDefOp op, auto scope)   const { return keep_only_if_used(op, scope); }
-        bool keep(hl::TypeDeclOp op, auto scope)  const { return keep_only_if_used(op, scope); }
+        bool keep(hl::TypeDefOp op, auto scope)       const { return keep_only_if_used(op, scope); }
+        bool keep(hl::TypeDeclOp op, auto scope)      const { return keep_only_if_used(op, scope); }
+
         // Mark field to be kept if the parent aggregate is kept
         bool keep(hl::FieldDeclOp op, auto scope) const { return keep(op.getParentAggregate(), scope); }
+
         bool keep(hl::FuncOp op, auto scope) const {
             return !op.isDeclaration() && !op->hasAttr( hl::AlwaysInlineAttr::getMnemonic() );
         }
+
         bool keep(hl::VarDeclOp op, auto scope) const {
             VAST_CHECK(!op.hasExternalStorage() || op.getInitializer().empty(), "extern variable with initializer");
             return !op.hasExternalStorage();
         }
-
-        void erase_from_module(operation op, vast_module mod) {
-            VAST_UDE_DEBUG("erase: {0}", op);
-            op->erase();
-        }
-
-        std::unordered_set< operation > unused_cached;
 
         bool is_unused_impl(auto op, auto scope, auto &seen) {
             if (keep(op, scope)) {
@@ -86,7 +84,7 @@ namespace vast::hl {
                 // we mark it as unused.
                 if (auto parent = user->template getParentOfType< hl::FuncOp >()) {
                     if (is_unused(parent, scope, seen)) {
-                        VAST_REPORT("user in always inlined function: {0}", *user);
+                        VAST_UDE_DEBUG("user in always inlined function: {0}", *user);
                         return walk_result::advance();
                     }
                 }
@@ -146,8 +144,34 @@ namespace vast::hl {
             auto mod = getOperation();
             auto unused = gather_unused(mod);
 
+            llvm::DenseSet< mlir_type > unused_types;
+            for (auto &op : unused) {
+                if (auto td = mlir::dyn_cast< hl::TypeDefOp >(op)) {
+                    unused_types.insert(td.getDefinedType());
+                }
+
+                if (auto agg = mlir::dyn_cast< aggregate_interface >(op)) {
+                    unused_types.insert(agg.getDefinedType());
+                }
+
+                if (auto td = mlir::dyn_cast< hl::TypeDeclOp >(op)) {
+                    unused_types.insert(td.getDefinedType());
+                }
+            }
+
+            auto contains_unused_subtype = [&] (mlir_type type) {
+                return contains_subtype(type, [&] (mlir_type sub) {
+                    return unused_types.contains(sub);
+                });
+            };
+
+            dl::filter_data_layout(mod, [&] (const auto &entry) {
+                auto type = entry.getKey().template get< mlir_type >();
+                return !contains_unused_subtype(type);
+            });
+
             for (auto op : unused) {
-                erase_from_module(op, mod);
+                op->erase();
             }
         }
     };
