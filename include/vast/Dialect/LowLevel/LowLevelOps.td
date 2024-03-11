@@ -332,6 +332,14 @@ def LowLevel_FuncOp : Core_FuncBaseOp< LowLevel_Dialect, "func", [] >
       InsertionGuard guard($_builder);
       build_region($_builder, $_state, body);
 
+      $_state.addAttribute(
+        mlir::SymbolTable::getSymbolAttrName(), $_builder.getStringAttr(name)
+      );
+      $_state.addAttribute(getFunctionTypeAttrName($_state.name), mlir::TypeAttr::get(type));
+      $_state.addAttribute(
+        "linkage", core::GlobalLinkageKindAttr::get($_builder.getContext(), linkage)
+      );
+
       $_state.attributes.append(attrs.begin(), attrs.end());
 
       if (arg_attrs.empty())
@@ -340,6 +348,26 @@ def LowLevel_FuncOp : Core_FuncBaseOp< LowLevel_Dialect, "func", [] >
       mlir::function_interface_impl::addArgAndResultAttrs(
         $_builder, $_state, arg_attrs, res_attrs,
         getArgAttrsAttrName($_state.name), getResAttrsAttrName($_state.name)
+      );
+    }] >,
+
+    OpBuilder< (ins
+      "llvm::ArrayRef<mlir::NamedAttribute>":$attrs,
+      CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
+      CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$res_attrs,
+      CArg< "BuilderCallback", "std::nullopt" >:$body), [{
+
+        InsertionGuard guard($_builder);
+        build_region($_builder, $_state, body);
+
+        $_state.attributes.append(attrs.begin(), attrs.end());
+
+        if (arg_attrs.empty())
+          return;
+
+        mlir::function_interface_impl::addArgAndResultAttrs(
+          $_builder, $_state, arg_attrs, res_attrs,
+          getArgAttrsAttrName($_state.name), getResAttrsAttrName($_state.name)
       );
     }] >
   ];
