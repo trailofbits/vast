@@ -36,6 +36,40 @@ def ArgAlloca
     }];
 }
 
+def Alloca
+    : LowLevel_Op< "alloca" >,
+      Results<(outs AnyType:$result)>
+{
+    let summary = "Alloca for a piece of memory. For now does not support array types.";
+
+    let assemblyFormat = [{
+        attr-dict `:` type($result)
+    }];
+}
+
+def Load
+    : LowLevel_Op< "load" >,
+      Arguments<(ins AnyType:$ptr)>,
+      Results<(outs AnyType:$result)>
+{
+    let summary = "Load.";
+
+    let assemblyFormat = [{
+        operands attr-dict `:` functional-type(operands, results)
+    }];
+}
+
+def Store
+    : LowLevel_Op< "store" >,
+      Arguments<(ins AnyType:$val, AnyType:$ptr)>
+{
+    let summary = "Store.";
+
+    let assemblyFormat = [{
+        operands attr-dict `:` functional-type(operands, results)
+    }];
+}
+
 def UninitializedVar
     : LowLevel_Op< "uninitialized_var", [VastSymbol] >
     , Results<(outs AnyType:$result)>
