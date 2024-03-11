@@ -15,13 +15,11 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Conversion/Common/Block.hpp"
 #include "vast/Conversion/Common/Passes.hpp"
 #include "vast/Conversion/Common/Patterns.hpp"
+#include "vast/Conversion/Common/Rewriter.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DialectConversion.hpp"
 #include "vast/Util/TypeList.hpp"
-
-#include "vast/Conversion/Common/Block.hpp"
-#include "vast/Conversion/Common/Rewriter.hpp"
 
 #include "vast/Dialect/Builtin/Dialect.hpp"
 #include "vast/Dialect/Builtin/Ops.hpp"
@@ -32,17 +30,23 @@ VAST_UNRELAX_WARNINGS
 #include <memory>
 
 namespace vast::conv {
-    struct convert_builtin_operation : generic_conversion_pattern
+    template< typename call_op >
+    struct convert_builtin_operation : operation_conversion_pattern< call_op >
     {
-        using base = generic_conversion_pattern;
+        using base = operation_conversion_pattern< call_op >;
         using base::base;
 
+        using adaptor_t = call_op::Adaptor;
+
         logical_result matchAndRewrite(
-            operation op, llvm::ArrayRef< mlir_value > operands, conversion_rewriter &rewriter
+            call_op op, adaptor_t ops, conversion_rewriter &rewriter
         ) const override {
-            auto attr = op->getAttrOfType< hl::BuiltinAttr >("Builtin");
-            if (!attr)
+            auto callee = mlir::cast< mlir::CallOpInterface >(op.getOperation()).resolveCallable();
+            callee->dump();
+            auto attr = callee->template getAttrOfType< hl::BuiltinAttr >("builtin");
+            if (!attr) {
                 return mlir::failure();
+            }
 
             auto id = attr.getID();
             if (id == 0) {
@@ -278,17 +282,17 @@ namespace vast::conv {
                 case clang::Builtin::BI__builtin_va_start:
                 case clang::Builtin::BI__va_start:
                 {
-                    rewriter.replaceOpWithNewOp< hlbi::VAStartOp >(op, op->getResultTypes(), operands);
+                    rewriter.replaceOpWithNewOp< hlbi::VAStartOp >(op, op.getResultTypes(), ops.getOperands());
                     return mlir::success();
                 }
                 case clang::Builtin::BI__builtin_va_end:
                 {
-                    rewriter.replaceOpWithNewOp< hlbi::VAEndOp >(op, op->getResultTypes(), operands);
+                    rewriter.replaceOpWithNewOp< hlbi::VAEndOp >(op, op.getResultTypes(), ops.getOperands());
                     return mlir::success();
                 }
                 case clang::Builtin::BI__builtin_va_copy:
                 {
-                    rewriter.replaceOpWithNewOp< hlbi::VACopyOp >(op, op->getResultTypes(), operands);
+                    rewriter.replaceOpWithNewOp< hlbi::VACopyOp >(op, op.getResultTypes(), ops.getOperands());
                     return mlir::success();
                 }
 
@@ -374,14 +378,22 @@ namespace vast::conv {
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
             target.addLegalDialect< hlbi::BuiltinDialect >();
+
             target.markUnknownOpDynamicallyLegal([](const operation op) -> bool {
-                return !(op->hasAttr("Builtin"));
+                if (auto call = mlir::dyn_cast< mlir::CallOpInterface >(op))
+                    return !call.resolveCallable()->hasAttr("builtin");
+                return true;
             });
+
             return target;
         }
 
         static void populate_conversions(config_t &config) {
-            populate_conversions_base< util::type_list< convert_builtin_operation > >(config);
+            populate_conversions_base<
+                util::type_list< convert_builtin_operation< hl::CallOp >,
+                                 convert_builtin_operation< hl::IndirectCallOp >
+                               >
+            >(config);
         }
     };
 } // namespace vast::conv
