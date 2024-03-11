@@ -105,32 +105,13 @@ namespace vast::conv::tc {
     };
 
     template< typename self_t >
-    struct CoreToStd
+    struct CoreToStd : ConvertFunctionType< self_t >
     {
       private:
         self_t &self() { return static_cast< self_t & >(*this); }
 
       public:
-        auto convert_fn_type() {
-            return [&](core::FunctionType t) -> maybe_type_t {
-                // To be consistent with how others use the conversion, we
-                // do not convert input types directly.
-                auto signature_conversion = self().signature_conversion(t.getInputs());
-
-                auto results = self().convert_types_to_types(t.getResults());
-
-                if (!signature_conversion || !results) {
-                    return {};
-                }
-
-                return { core::FunctionType::get(
-                    t.getContext(), signature_conversion->getConvertedTypes(), *results,
-                    t.isVarArg()
-                ) };
-            };
-        }
-
-        void init() { self().addConversion(convert_fn_type()); }
+        void init() { self().addConversion(this->template convert_fn_type< core::FunctionType >()); }
     };
 
     struct HLToStd
