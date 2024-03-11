@@ -1256,4 +1256,14 @@ def AsmOp
   let assemblyFormat = [{attr-dict $asm_template `(`($output_names $asm_outputs^ `:` $output_constraints)? `)` `(` (`ins` `:`$input_names $asm_inputs^ `:` $input_constraints)? `)` `(`( $clobbers^)?`)` `(`( $labels^)?`)` `:` functional-type(operands, results)}];
 }
 
+def VAArgExpr
+  : HighLevel_Op< "va_arg_expr" >
+  , Arguments< (ins AnyType: $arg_list) >
+  , Results< (outs AnyType: $result) >
+{
+  let summary = "Fetch next variadic element.";
+
+  let assemblyFormat = "$arg_list `:` functional-type(operands, $result) attr-dict";
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
