@@ -33,7 +33,7 @@ namespace vast::hl {
     #define VAST_UDE_DEBUG(...)
 #endif
 
-    constexpr auto keep_only_if_used = [] (auto, auto) { /* do not keep by default */ return false; };
+    constexpr bool keep_only_if_used = false;
 
     template< typename yield_t >
     walk_result users(hl::FieldDeclOp decl, auto scope, yield_t &&yield) {
@@ -46,9 +46,9 @@ namespace vast::hl {
 
         std::unordered_set< operation > unused_cached;
 
-        bool keep(aggregate_interface op, auto scope) const { return keep_only_if_used(op, scope); }
-        bool keep(hl::TypeDefOp op, auto scope)       const { return keep_only_if_used(op, scope); }
-        bool keep(hl::TypeDeclOp op, auto scope)      const { return keep_only_if_used(op, scope); }
+        bool keep(aggregate_interface op, auto scope) const { return keep_only_if_used; }
+        bool keep(hl::TypeDefOp op, auto scope)       const { return keep_only_if_used; }
+        bool keep(hl::TypeDeclOp op, auto scope)      const { return keep_only_if_used; }
 
         // Mark field to be kept if the parent aggregate is kept
         bool keep(hl::FieldDeclOp op, auto scope) const { return keep(op.getParentAggregate(), scope); }
