@@ -607,7 +607,7 @@ namespace vast
                 if (!name.consume_front(conv::abi::abi_func_name_prefix))
                     return mlir::failure();
 
-                auto fn = rewriter.create< hl::FuncOp >(
+                auto fn = rewriter.create< ll::FuncOp >(
                         op.getLoc(),
                         name,
                         op.getFunctionType(),
