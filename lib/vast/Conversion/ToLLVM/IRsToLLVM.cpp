@@ -576,9 +576,12 @@ namespace vast::conv::irstollvm
                 auto user = result.getUses().begin()->getOwner();
                 if (user->hasTrait< core::return_trait >())
                 {
+                    auto guard = insertion_guard(rewriter);
+                    rewriter.setInsertionPoint(user);
+
+                    rewriter.create< LLVM::ReturnOp >(user->getLoc(), mlir::ValueRange());
                     rewriter.eraseOp(user);
                     rewriter.eraseOp(op);
-                    rewriter.create< LLVM::ReturnOp >(op.getLoc(), mlir::ValueRange());
                     return logical_result::success();
                 }
             }
