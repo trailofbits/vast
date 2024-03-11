@@ -22,7 +22,7 @@ int average(int count, ...) {
     int sum = 0;
     for(int i = 0; i < count; i++) {
         sum += va_arg(args, int);
-        // CHECK: VAArgExpr
+        // CHECK: hl.va_arg_expr
     }
 
     va_end(args);
