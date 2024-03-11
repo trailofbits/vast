@@ -1051,7 +1051,12 @@ namespace vast::cg {
             return {};
         }
 
-        // operation VisitVAArgExpr(const clang::VAArgExpr *expr)
+        operation VisitVAArgExpr(const clang::VAArgExpr *expr) {
+            auto loc = meta_location(expr);
+            auto rty = visit(expr->getType());
+            auto arg = visit(expr->getSubExpr())->getResults();
+            return make< hl::VAArgExpr >(loc, rty, arg);
+        }
 
         operation VisitNullStmt(const clang::NullStmt *stmt) {
             return make< hl::SkipStmt >(meta_location(stmt));
