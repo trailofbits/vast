@@ -33,13 +33,4 @@ def VACopyOp : Builtin_Op< "va.copy" >
   let assemblyFormat = "$src_list `to` $trg_list `:` functional-type(operands, $result) attr-dict";
 }
 
-def VAArgOp : Builtin_Op< "va.arg" >
-  , Arguments< (ins AnyType: $arg_list) >
-  , Results< (outs AnyType: $result) >
-{
-  let summary = "Fetch next variadic element.";
-
-  let assemblyFormat = "$arg_list `:` functional-type(operands, $result) attr-dict";
-}
-
 #endif //VAST_DIALECT_BUILTIN_OPS
