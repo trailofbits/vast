@@ -31,9 +31,6 @@ namespace vast::conv::hltollfunc
 
                 auto fn = rewriter.create< ll::FuncOp >(
                     op.getLoc(),
-                    adaptor.getSymName(),
-                    adaptor.getFunctionType(),
-                    adaptor.getLinkage(),
                     op->getAttrs(),
                     arg_attrs,
                     res_attrs
