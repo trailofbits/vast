@@ -59,7 +59,9 @@ def IRsToLLVM : Pass<"vast-irs-to-llvm", "mlir::ModuleOp"> {
   let constructor = "vast::createIRsToLLVMPass()";
   let dependentDialects = [
     "mlir::LLVM::LLVMDialect",
-    "vast::core::CoreDialect"
+    "vast::core::CoreDialect",
+    "vast::ll::LowLevelDialect",
+    "vast::hl::HighLevelDialect",
   ];
 }
 
