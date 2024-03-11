@@ -511,13 +511,6 @@ namespace vast::conv::irstollvm
             if (!block.isEntryBlock())
                 return logical_result::failure();
 
-            mlir::OpBuilder::InsertionGuard guard(rewriter);
-            rewriter.setInsertionPointToStart(&block);
-
-            for (auto arg : block.getArguments())
-                if (mlir::failed(arg_to_alloca(arg, block, rewriter)))
-                    return logical_result::failure();
-
             return logical_result::success();
         }
 
