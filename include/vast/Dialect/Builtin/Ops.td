@@ -6,7 +6,7 @@
 include "mlir/IR/OpBase.td"
 
 def VAStartOp
-  : Builtin_Op< "va.start" >
+  : Builtin_Op< "va_start" >
   , Arguments< (ins AnyType: $arg_list, AnyType: $count) >
   , Results< (outs AnyType: $result) >
 {
@@ -15,7 +15,7 @@ def VAStartOp
   let assemblyFormat = "$arg_list `size` $count `:` functional-type(operands, $result) attr-dict";
 }
 
-def VAEndOp : Builtin_Op< "va.end" >
+def VAEndOp : Builtin_Op< "va_end" >
   , Arguments< (ins AnyType: $arg_list) >
   , Results< (outs AnyType: $result) >
 {
@@ -24,7 +24,7 @@ def VAEndOp : Builtin_Op< "va.end" >
   let assemblyFormat = "$arg_list `:` functional-type(operands, $result) attr-dict";
 }
 
-def VACopyOp : Builtin_Op< "va.copy" >
+def VACopyOp : Builtin_Op< "va_copy" >
   , Arguments< (ins AnyType: $src_list, AnyType: $trg_list) >
   , Results< (outs AnyType: $result) >
 {
