@@ -72,28 +72,41 @@ namespace vast::conv::irstollvm
                 VAST_CHECK(op->getResults().size() == 1, "Unexpected number of results");
                 return op->getResults()[0];
             }
+            return construct_value(rewriter, init_list.getLoc(), init_list.getElements(), type);
+        }
 
+        mlir_value construct_value(auto &rewriter, auto loc,
+                                   const auto &operands, mlir_type type) const
+        {
             auto trg_type = self().convert(type);
             if (mlir::isa< mlir::LLVM::LLVMArrayType, mlir::LLVM::LLVMStructType >(trg_type))
-                return construct_aggregate_value(rewriter, init_list, trg_type);
+                return construct_aggregate_value(rewriter, loc, operands, trg_type);
             VAST_FATAL("Not implemented yet.");
         }
 
         mlir_value construct_aggregate_value(
-            conversion_rewriter &rewriter, hl::InitListExpr init_list,
-            mlir_type aggragate_type
+            auto &rewriter, auto loc, const auto &operands,
+            mlir_type aggregate_type
         ) const {
             // Currently we are only supporting this type of initialization so
             // better be defensive about it.
-            mlir_value init = self().undef(rewriter, init_list.getLoc(), aggragate_type);
-            for (auto [idx, element] : llvm::enumerate(init_list.getElements()))
+            mlir_value init = self().undef(rewriter, loc, aggregate_type);
+            for (auto [idx, element] : llvm::enumerate(operands))
             {
                 auto elem = construct_value(rewriter, element);
                 init = rewriter.template create< mlir::LLVM::InsertValueOp >(
-                    init_list.getLoc(), init, elem, idx);
+                    loc, init, elem, idx);
             }
-            rewriter.eraseOp(init_list);
             return init;
+        }
+
+        mlir_value construct_aggregate_value(
+            auto &rewriter, hl::InitListExpr init_list,
+            mlir_type aggregate_type
+        ) const {
+            return construct_aggregate_value(
+                rewriter, init_list.getLoc(),
+                init_list.getElements(), aggregate_type);
         }
     };
 
@@ -339,7 +352,8 @@ namespace vast::conv::irstollvm
         }
     };
 
-    struct init_list_expr : base_pattern< hl::InitListExpr >
+    struct init_list_expr : base_pattern< hl::InitListExpr >,
+                            value_builder< init_list_expr >
     {
         using op_t = hl::InitListExpr;
         using base = base_pattern< op_t >;
@@ -349,22 +363,11 @@ namespace vast::conv::irstollvm
                 op_t op, typename op_t::Adaptor ops,
                 conversion_rewriter &rewriter) const override
         {
-            std::vector< mlir::Value > converted;
-            // TODO(lukas): Can we just directly use `getElements`?
-            for (auto element : ops.getElements())
-                converted.push_back(element);
-
-
-            // We cannot replace the op with just `converted` as there is an internal
-            // assert that number we replace the same count of things.
             VAST_PATTERN_CHECK(op.getNumResults() == 1, "Unexpected number of results");
-            auto res_type = tc.convert_type_to_type(op.getType(0));
-            VAST_PATTERN_CHECK(res_type, "Failed conversion of InitListExpr res type");
-            auto new_op = rewriter.create< hl::InitListExpr >(
-                    op.getLoc(), *res_type, converted);
-            rewriter.replaceOp(op, new_op.getResults());
-
-            return logical_result::success();
+            auto value = construct_value(
+                rewriter, op.getLoc(), ops.getOperands(), op.getType(0));
+            rewriter.replaceOp(op, value);
+            return mlir::success();
         }
     };
 
