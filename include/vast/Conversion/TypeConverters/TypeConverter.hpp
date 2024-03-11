@@ -220,4 +220,33 @@ namespace vast::conv::tc {
                 .template take_wrapped< maybe_attr_t >();
         };
     }
+
+    template< typename self_t >
+    struct ConvertFunctionType
+    {
+      private:
+        self_t &self() { return static_cast< self_t & >(*this); }
+
+      public:
+        template< typename fn_t >
+        auto convert_fn_type() {
+            return [&](fn_t t) -> maybe_type_t {
+                // To be consistent with how others use the conversion, we
+                // do not convert input types directly.
+                auto signature_conversion = self().signature_conversion(t.getInputs());
+
+                auto results = self().convert_types_to_types(t.getResults());
+
+                if (!signature_conversion || !results) {
+                    return {};
+                }
+
+                return { fn_t::get(
+                    t.getContext(), signature_conversion->getConvertedTypes(), *results,
+                    t.isVarArg()
+                ) };
+            };
+        }
+
+    };
 } // namespace vast::conv::tc
