@@ -34,7 +34,7 @@ namespace vast::conv::tc {
         // TODO(conv:tc): This should probably be some interface instead, since
         //                 we are only updating the root?
         logical_result replace(mlir::FunctionOpInterface fn,
-                               conversion_rewriter &rewriter) const
+                               auto &rewriter) const
         {
             auto old_type = fn.getFunctionType();
             auto trg_type = get_type_converter().convert_type_to_type(old_type);
@@ -53,7 +53,7 @@ namespace vast::conv::tc {
 
         logical_result replace(
             mlir::Operation *op,
-            conversion_rewriter &rewriter
+            auto &rewriter
         ) const {
             auto &tc = get_type_converter();
 
