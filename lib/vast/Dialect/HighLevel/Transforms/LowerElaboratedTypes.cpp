@@ -64,7 +64,7 @@ namespace vast::hl {
                 }
             };
 
-            using lower_elaborated = conv::tc::hl_type_converting_pattern< type_converter >;
+            using lower_elaborated = conv::tc::generic_type_converting_pattern< type_converter >;
         } // namespace pattern
     } // namespace
 
