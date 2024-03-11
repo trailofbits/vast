@@ -1492,6 +1492,68 @@ namespace vast::conv::irstollvm
         fixup_yield_types< hl::ValueYieldOp >
     >;
 
+    // `ll.` memory operations
+
+    struct ll_load : base_pattern< ll::Load >
+    {
+        using op_t = ll::Load;
+        using base = base_pattern< op_t >;
+        using base::base;
+
+        logical_result matchAndRewrite(
+            op_t op, typename op_t::Adaptor ops,
+            conversion_rewriter &rewriter) const override
+        {
+            auto trg = convert(op.getResult().getType());
+            auto load = rewriter.create< mlir::LLVM::LoadOp >(op.getLoc(), trg, ops.getPtr());
+
+            rewriter.replaceOp(op, load);
+            return mlir::success();
+        }
+    };
+
+    struct ll_store : base_pattern< ll::Store >
+    {
+        using op_t = ll::Store;
+        using base = base_pattern< op_t >;
+        using base::base;
+
+        logical_result matchAndRewrite(
+            op_t op, typename op_t::Adaptor ops,
+            conversion_rewriter &rewriter) const override
+        {
+            auto store = rewriter.create< LLVM::StoreOp >(
+                op.getLoc(), ops.getVal(), ops.getPtr());
+            rewriter.replaceOp(op, store);
+            return mlir::success();
+        }
+    };
+
+    struct ll_alloca : base_pattern< ll::Alloca >
+    {
+        using op_t = ll::Alloca;
+        using base = base_pattern< op_t >;
+        using base::base;
+
+        logical_result matchAndRewrite(
+            op_t op, typename op_t::Adaptor ops,
+            conversion_rewriter &rewriter) const override
+        {
+            auto alloca = mk_alloca(rewriter, convert(op.getType()), op.getLoc());
+            rewriter.replaceOp(op, alloca);
+
+            return mlir::success();
+        }
+    };
+
+    using ll_memory_ops = util::type_list<
+        ll_load,
+        ll_store,
+        ll_alloca
+    >;
+
+
+
     struct IRsToLLVMPass : ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >
     {
         using base = ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >;
