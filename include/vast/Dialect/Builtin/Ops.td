@@ -7,8 +7,7 @@ include "mlir/IR/OpBase.td"
 
 include "vast/Dialect/Core/Utils.td"
 
-def VAStartOp
-  : Builtin_Op< "va_start" >
+def HLBuiltin_VAStartOp : HLBuiltin_Op< "va_start" >
   , Arguments< (ins AnyType: $arg_list, AnyType: $count) >
   , Results< (outs VoidLikeType: $result) >
 {
@@ -17,7 +16,7 @@ def VAStartOp
   let assemblyFormat = "$arg_list `size` $count `:` functional-type(operands, $result) attr-dict";
 }
 
-def VAEndOp : Builtin_Op< "va_end" >
+def HLBuiltin_VAEndOp : HLBuiltin_Op< "va_end" >
   , Arguments< (ins AnyType: $arg_list) >
   , Results< (outs VoidLikeType: $result) >
 {
@@ -26,7 +25,7 @@ def VAEndOp : Builtin_Op< "va_end" >
   let assemblyFormat = "$arg_list `:` functional-type(operands, $result) attr-dict";
 }
 
-def VACopyOp : Builtin_Op< "va_copy" >
+def HLBuiltin_VACopyOp : HLBuiltin_Op< "va_copy" >
   , Arguments< (ins AnyType: $src_list, AnyType: $trg_list) >
   , Results< (outs VoidLikeType: $result) >
 {

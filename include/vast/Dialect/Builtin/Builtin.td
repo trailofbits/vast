@@ -24,7 +24,7 @@ def HLBuiltin_Dialect : Dialect {
   let hasConstantMaterializer = 1;
 }
 
-class Builtin_Op< string mnemonic, list< Trait > traits = [] >
+class HLBuiltin_Op< string mnemonic, list< Trait > traits = [] >
   : Op< HLBuiltin_Dialect, mnemonic, traits >;
 
 include "vast/Dialect/Builtin/Ops.td"
