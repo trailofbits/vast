@@ -18,7 +18,6 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Builtin/Dialect.hpp"
 #include "vast/Dialect/Builtin/Ops.hpp"
-#include "vast/Dialect/Builtin/Types.hpp"
 
 using namespace vast::hlbi;
 

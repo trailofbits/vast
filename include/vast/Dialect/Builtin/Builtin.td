@@ -21,19 +21,12 @@ def Builtin_Dialect : Dialect {
     TODO
   }];
 
-  let extraClassDeclaration = [{
-      void registerTypes();
-  }];
-
-  let useDefaultTypePrinterParser = 1;
-
   let hasConstantMaterializer = 1;
 }
 
 class Builtin_Op< string mnemonic, list< Trait > traits = [] >
   : Op< Builtin_Dialect, mnemonic, traits >;
 
-include "vast/Dialect/Builtin/Types.td"
 include "vast/Dialect/Builtin/Ops.td"
 
 #endif // VAST_DIALECT_BUILTIN

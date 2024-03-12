@@ -11,7 +11,6 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Builtin/Dialect.hpp"
-#include "vast/Dialect/Builtin/Types.hpp"
 #include "vast/Util/Common.hpp"
 
 #define GET_OP_CLASSES
