@@ -9,5 +9,6 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/OperationSupport.h>
 VAST_RELAX_WARNINGS
 
+#include "vast/Dialect/Core/TypeTraits.hpp"
 // Pull in the dialect definition.
 #include "vast/Dialect/Builtin/BuiltinDialect.h.inc"
