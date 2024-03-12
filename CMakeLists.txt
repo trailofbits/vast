@@ -391,7 +391,7 @@ if (VAST_INSTALL)
       ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME} CACHE PATH "Path where CMake utilities will be installed"
     )
 
-    set(GAP_INSTALL_TARGETS gap gap-core gap-settings)
+    set(GAP_INSTALL_TARGETS gap gap-core gap-coro gap-settings)
     set(GAP_EXPORT_NAME gapTargets)
 
     install(TARGETS ${GAP_INSTALL_TARGETS}

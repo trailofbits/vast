@@ -11,8 +11,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Transforms/GreedyPatternRewriteDriver.h>
 VAST_UNRELAX_WARNINGS
 
-#include <gap/core/memoize.hpp>
-#include <gap/core/generator.hpp>
+#include <gap/coro/generator.hpp>
 
 #include <vast/Dialect/HighLevel/HighLevelUtils.hpp>
 #include <vast/Interfaces/AggregateTypeDefinitionInterface.hpp>

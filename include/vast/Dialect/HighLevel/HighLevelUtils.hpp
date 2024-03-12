@@ -12,7 +12,7 @@
 #include <vast/Util/Symbols.hpp>
 #include "vast/Util/TypeUtils.hpp"
 
-#include <gap/core/generator.hpp>
+#include <gap/coro/generator.hpp>
 
 #include <ranges>
 

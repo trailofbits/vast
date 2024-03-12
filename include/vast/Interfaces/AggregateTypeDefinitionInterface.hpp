@@ -13,7 +13,7 @@ VAST_RELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 
-#include <gap/core/generator.hpp>
+#include <gap/coro/generator.hpp>
 
 namespace vast {
 

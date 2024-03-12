@@ -11,7 +11,7 @@ VAST_RELAX_WARNINGS
 #include <clang/AST/Attr.h>
 VAST_UNRELAX_WARNINGS
 
-#include <gap/core/generator.hpp>
+#include <gap/coro/generator.hpp>
 
 #include <vast/Util/TypeList.hpp>
 

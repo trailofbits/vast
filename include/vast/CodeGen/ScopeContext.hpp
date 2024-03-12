@@ -4,7 +4,7 @@
 
 #include "vast/Util/Warnings.hpp"
 
-#include <gap/core/generator.hpp>
+#include <gap/coro/generator.hpp>
 
 #include <functional>
 #include <queue>

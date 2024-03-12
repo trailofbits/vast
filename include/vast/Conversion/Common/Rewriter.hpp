@@ -10,7 +10,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 
-#include <gap/core/generator.hpp>
+#include <gap/coro/generator.hpp>
 
 #include <ranges>
 #include <vector>
