@@ -34,11 +34,9 @@ namespace vast::conv {
     struct true_visitor
     {
         template< typename /*target*/, typename... args_t >
-        bool visit(operation op, args_t... args) {
-            return true;
+        logical_result visit(operation op, args_t... args) {
+            return mlir::success();
         }
-
-        bool default_res() { return false; }
     };
 
     struct rewriter_visitor
@@ -52,27 +50,25 @@ namespace vast::conv {
             base_rewriter.replaceOpWithNewOp< target >(op, args...);
             return mlir::success();
         }
-
-        auto default_res() { return mlir::failure(); }
     };
 
     template< typename visitor_t >
     auto visit_builtin_op(operation op, auto operands, visitor_t &&visitor) {
         auto caller = mlir::dyn_cast< mlir::CallOpInterface >(op);
         if (!caller) {
-            return visitor.default_res();
+            return mlir::failure();
         }
         auto callee = caller.resolveCallable();
 
         auto attr = callee->template getAttrOfType< hl::BuiltinAttr >("builtin");
         if (!attr) {
-            return visitor.default_res();
+            return mlir::failure();
         }
 
         auto id = attr.getID();
         if (id == 0) {
             VAST_REPORT("Attempting to visit builtin expr that is not builtin (id is 0).");
-            return visitor.default_res();
+            return mlir::failure();
         }
 
         switch (id) {
@@ -383,7 +379,7 @@ namespace vast::conv {
             // case clang::Builtin::BI__builtin_popcountll:
 
             default:
-                return visitor.default_res();
+                return mlir::failure();
         }
     }
 
@@ -395,17 +391,16 @@ namespace vast::conv {
 
         using adaptor_t = call_op::Adaptor;
 
+        using is_visitable = true_visitor;
+
         logical_result
         matchAndRewrite(call_op op, adaptor_t ops, conversion_rewriter &rew) const override {
-            auto rewriter = rewriter_visitor{ rew };
-            return visit_builtin_op(op.getOperation(), ops.getOperands(), rewriter);
+            return visit_builtin_op(op.getOperation(), ops.getOperands(), rewriter_visitor(rew));
         }
 
         static void legalize(conversion_target &trg) {
             trg.addDynamicallyLegalOp< call_op >([](operation op) -> bool {
-                auto visitor = true_visitor{};
-                auto res     = !visit_builtin_op(op, op->getOperands(), visitor);
-                return res;
+                return visit_builtin_op(op, op->getOperands(), is_visitable()).failed();
             });
         }
     };
