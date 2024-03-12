@@ -412,7 +412,7 @@ namespace vast::conv {
 
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
-            target.addLegalDialect< hlbi::BuiltinDialect >();
+            target.addLegalDialect< hlbi::HLBuiltinDialect >();
             return target;
         }
 

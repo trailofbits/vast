@@ -11,7 +11,7 @@ include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/IR/RegionKindInterface.td"
 include "mlir/IR/BuiltinAttributeInterfaces.td"
 
-def Builtin_Dialect : Dialect {
+def HLBuiltin_Dialect : Dialect {
   let name = "hlbi";
   let cppNamespace = "::vast::hlbi";
 
@@ -25,7 +25,7 @@ def Builtin_Dialect : Dialect {
 }
 
 class Builtin_Op< string mnemonic, list< Trait > traits = [] >
-  : Op< Builtin_Dialect, mnemonic, traits >;
+  : Op< HLBuiltin_Dialect, mnemonic, traits >;
 
 include "vast/Dialect/Builtin/Ops.td"
 
