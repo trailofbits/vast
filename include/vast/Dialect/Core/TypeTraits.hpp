@@ -26,6 +26,8 @@ CORE_TRAIT(TypedefTrait);
 
 CORE_TRAIT(TypeOfTrait);
 
+CORE_TRAIT(VoidTrait);
+
 } // namespace TypeTrait
 } // namespace mlir
 #endif //CORE_TRAITS_H

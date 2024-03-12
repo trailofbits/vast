@@ -37,6 +37,8 @@ def TypedefTrait      : NativeTypeTrait< "TypedefTrait" >;
 
 def TypeOfTrait       : NativeTypeTrait< "TypeOfTrait" >;
 
+def VoidTrait         : NativeTypeTrait< "VoidTrait" >;
+
 //
 // Type trait predicates
 //
@@ -89,6 +91,10 @@ class IsTypeOf< string arg > : PredOpTrait< "value is of a typeofed type",
 
 class IsBuiltinType< string arg > : PredOpTrait< "is a type from the builtin dialect",
     CPred< "mlir::isa< mlir::BuiltinDialect >($" # arg # ".getType().getDialect())" >
+>;
+
+class IsVoid< string arg > : PredOpTrait< "value is of a void type",
+  CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::VoidTrait >()" >
 >;
 
 #endif // VAST_DIALECT_CORE_UTILS
