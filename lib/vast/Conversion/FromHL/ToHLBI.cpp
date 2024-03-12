@@ -31,7 +31,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::conv {
 
-    struct true_visitor
+    struct identity_visitor
     {
         template< typename /*target*/, typename... args_t >
         logical_result visit(operation op, args_t... args) {
@@ -41,13 +41,15 @@ namespace vast::conv {
 
     struct rewriter_visitor
     {
-        conversion_rewriter &base_rewriter;
+        explicit rewriter_visitor(conversion_rewriter &rw)
+            : rewriter(rw)
+        {}
 
-        auto &operator->() { return base_rewriter; }
+        conversion_rewriter &rewriter;
 
         template< typename target, typename... args_t >
         auto visit(operation op, args_t... args) {
-            base_rewriter.replaceOpWithNewOp< target >(op, args...);
+            rewriter.replaceOpWithNewOp< target >(op, args...);
             return mlir::success();
         }
     };
@@ -66,10 +68,7 @@ namespace vast::conv {
         }
 
         auto id = attr.getID();
-        if (id == 0) {
-            VAST_REPORT("Attempting to visit builtin expr that is not builtin (id is 0).");
-            return mlir::failure();
-        }
+        VAST_CHECK(id != 0, "Attempting to visit builtin expr that is not builtin (id is 0).");
 
         switch (id) {
             // case clang::Builtin::BIceil:
@@ -391,16 +390,13 @@ namespace vast::conv {
 
         using adaptor_t = call_op::Adaptor;
 
-        using is_visitable = true_visitor;
-
-        logical_result
-        matchAndRewrite(call_op op, adaptor_t ops, conversion_rewriter &rew) const override {
-            return visit_builtin_op(op.getOperation(), ops.getOperands(), rewriter_visitor(rew));
+        logical_result matchAndRewrite(call_op op, adaptor_t ops, conversion_rewriter &cw) const override {
+            return visit_builtin_op(op.getOperation(), ops.getOperands(), rewriter_visitor(cw));
         }
 
         static void legalize(conversion_target &trg) {
             trg.addDynamicallyLegalOp< call_op >([](operation op) -> bool {
-                return visit_builtin_op(op, op->getOperands(), is_visitable()).failed();
+                return visit_builtin_op(op, op->getOperands(), identity_visitor()).failed();
             });
         }
     };
