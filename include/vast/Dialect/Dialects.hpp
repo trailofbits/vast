@@ -23,7 +23,7 @@ namespace vast {
     inline void registerAllDialects(mlir::DialectRegistry &registry) {
         registry.insert<
             vast::abi::ABIDialect,
-            vast::hlbi::BuiltinDialect,
+            vast::hlbi::HLBuiltinDialect,
             vast::core::CoreDialect,
             vast::hl::HighLevelDialect,
             vast::ll::LowLevelDialect,

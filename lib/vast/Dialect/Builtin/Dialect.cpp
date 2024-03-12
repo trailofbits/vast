@@ -12,14 +12,14 @@
 namespace vast::hlbi {
     using OpBuilder = mlir::OpBuilder;
 
-    void BuiltinDialect::initialize() {
+    void HLBuiltinDialect::initialize() {
         addOperations<
 #define GET_OP_LIST
 #include "vast/Dialect/Builtin/Builtin.cpp.inc"
             >();
     }
 
-    Operation *BuiltinDialect::materializeConstant(
+    Operation *HLBuiltinDialect::materializeConstant(
         OpBuilder &builder, Attribute value, Type type, Location loc
     ) {
         VAST_UNIMPLEMENTED;

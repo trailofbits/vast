@@ -163,7 +163,7 @@ def HLToHLBI : Pass<"vast-hl-to-hl-builtin", "mlir::ModuleOp"> {
 
   let constructor = "vast::createHLToHLBI()";
   let dependentDialects = [
-    "vast::hlbi::BuiltinDialect"
+    "vast::hlbi::HLBuiltinDialect"
   ];
 }
 
