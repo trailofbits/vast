@@ -417,9 +417,11 @@ namespace vast::conv {
         }
 
         static void populate_conversions(config_t &config) {
-            populate_conversions_base< util::type_list<
-                convert_builtin_operation< hl::CallOp >,
-                convert_builtin_operation< hl::IndirectCallOp > > >(config);
+            populate_conversions_base<
+                util::type_list<
+                    convert_builtin_operation< hl::CallOp >
+                >
+            >(config);
         }
     };
 } // namespace vast::conv
