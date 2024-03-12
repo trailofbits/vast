@@ -53,7 +53,9 @@ namespace vast::cg
         }
 
         loc_t location(const clang::SourceLocation &loc) const {
-            return location(clang::FullSourceLoc(loc, actx->getSourceManager()));
+            if (loc.isValid())
+                return location(clang::FullSourceLoc(loc, actx->getSourceManager()));
+            return mlir::UnknownLoc::get(mctx);
         }
 
         acontext_t *actx;
