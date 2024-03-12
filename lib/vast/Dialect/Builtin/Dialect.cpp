@@ -2,7 +2,6 @@
 //
 #include "vast/Dialect/Builtin/Dialect.hpp"
 #include "vast/Dialect/Builtin/Ops.hpp"
-#include "vast/Dialect/Builtin/Types.hpp"
 
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/DialectImplementation.h>
@@ -14,8 +13,6 @@ namespace vast::hlbi {
     using OpBuilder = mlir::OpBuilder;
 
     void BuiltinDialect::initialize() {
-        registerTypes();
-
         addOperations<
 #define GET_OP_LIST
 #include "vast/Dialect/Builtin/Builtin.cpp.inc"
