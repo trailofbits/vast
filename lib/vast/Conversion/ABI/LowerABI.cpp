@@ -43,7 +43,7 @@ VAST_UNRELAX_WARNINGS
 #include <iostream>
 #include <unordered_map>
 
-#include <gap/core/generator.hpp>
+#include <gap/coro/generator.hpp>
 
 #include "vast/Conversion/ABI/AggregateTypes.hpp"
 #include "vast/Conversion/Common/Block.hpp"
