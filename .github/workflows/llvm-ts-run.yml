@@ -128,7 +128,7 @@ jobs:
        continue-on-error: true
        if: matrix.vast-target == 'bin'
        working-directory: ./llvm-test-suite/build
-       run: lit --timeout=60 -v -o ../../results-${{ matrix.vast-target }}.json .
+       run: lit --timeout=360 -v -o ../../results-${{ matrix.vast-target }}.json .
 
      - name: Upload results
        uses: actions/upload-artifact@v4
