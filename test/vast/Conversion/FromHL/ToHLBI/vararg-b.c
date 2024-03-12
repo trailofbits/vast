@@ -7,8 +7,7 @@ typedef __builtin_va_list va_list;
 #define va_arg(ap, type)    __builtin_va_arg(ap, type)
 #define va_copy(dst, src)   __builtin_va_copy(dst, src)
 
-// CHECK: hl.struct "__va_list_tag"
-// CHECK: hl.typedef "__builtin_va_list" : !hl.array<1, !hl.record<"__va_list_tag">>
+// CHECK: hl.typedef "__builtin_va_list"
 // CHECK: hl.typedef "va_list" : !hl.elaborated<!hl.typedef<"__builtin_va_list">>
 
 int average(int count, ...) {
