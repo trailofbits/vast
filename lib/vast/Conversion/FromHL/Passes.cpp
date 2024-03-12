@@ -11,6 +11,10 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::conv::pipeline {
 
+    pipeline_step_ptr to_hlbi() {
+        return pass(createHLToHLBI);
+    }
+
     pipeline_step_ptr hl_to_ll_cf() {
         // TODO add dependencies
         return pass(createHLToLLCFPass);

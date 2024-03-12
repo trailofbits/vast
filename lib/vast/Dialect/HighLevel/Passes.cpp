@@ -7,6 +7,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Pass/PassManager.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Conversion/Passes.hpp"
 #include "vast/Dialect/HighLevel/Passes.hpp"
 
 namespace vast::hl::pipeline {
@@ -52,7 +53,7 @@ namespace vast::hl::pipeline {
     }
 
     pipeline_step_ptr simplify() {
-        return compose("simplify", ude, dce, desugar);
+        return compose("simplify", conv::pipeline::to_hlbi, ude, dce, desugar);
     }
 
     //

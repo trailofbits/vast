@@ -65,6 +65,7 @@ namespace vast
 
     namespace conv::pipeline
     {
+        pipeline_step_ptr to_hlbi();
         pipeline_step_ptr abi();
         pipeline_step_ptr irs_to_llvm();
         pipeline_step_ptr core_to_llvm();
