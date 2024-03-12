@@ -97,5 +97,10 @@ class IsVoid< string arg > : PredOpTrait< "value is of a void type",
   CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::VoidTrait >()" >
 >;
 
-#endif // VAST_DIALECT_CORE_UTILS
+def VoidLikeType : Type<
+    CPred<"$_self.hasTrait< mlir::TypeTrait::VoidTrait >()">,
+    "Type with VoidTrit"
+>;
 
+
+#endif // VAST_DIALECT_CORE_UTILS

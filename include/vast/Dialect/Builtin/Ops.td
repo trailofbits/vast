@@ -8,27 +8,27 @@ include "mlir/IR/OpBase.td"
 include "vast/Dialect/Core/Utils.td"
 
 def VAStartOp
-  : Builtin_Op< "va_start", [IsVoid< "result" >] >
+  : Builtin_Op< "va_start" >
   , Arguments< (ins AnyType: $arg_list, AnyType: $count) >
-  , Results< (outs AnyType: $result) >
+  , Results< (outs VoidLikeType: $result) >
 {
   let summary = "Start of the variable argument list";
 
   let assemblyFormat = "$arg_list `size` $count `:` functional-type(operands, $result) attr-dict";
 }
 
-def VAEndOp : Builtin_Op< "va_end", [IsVoid< "result" >] >
+def VAEndOp : Builtin_Op< "va_end" >
   , Arguments< (ins AnyType: $arg_list) >
-  , Results< (outs AnyType: $result) >
+  , Results< (outs VoidLikeType: $result) >
 {
   let summary = "End of the variable argument list";
 
   let assemblyFormat = "$arg_list `:` functional-type(operands, $result) attr-dict";
 }
 
-def VACopyOp : Builtin_Op< "va_copy", [IsVoid< "result" >] >
+def VACopyOp : Builtin_Op< "va_copy" >
   , Arguments< (ins AnyType: $src_list, AnyType: $trg_list) >
-  , Results< (outs AnyType: $result) >
+  , Results< (outs VoidLikeType: $result) >
 {
   let summary = "Start of the variable argument list";
 
