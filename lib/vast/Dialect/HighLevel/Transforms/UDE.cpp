@@ -17,6 +17,8 @@ VAST_UNRELAX_WARNINGS
 #include <vast/Interfaces/AggregateTypeDefinitionInterface.hpp>
 
 #include <vast/Conversion/Common/Passes.hpp>
+
+#include <vast/Util/Attribute.hpp>
 #include <vast/Util/TypeUtils.hpp>
 
 #include "PassesDetails.hpp"
@@ -53,7 +55,7 @@ namespace vast::hl {
         bool keep(hl::FieldDeclOp op, auto scope) const { return keep(op.getParentAggregate(), scope); }
 
         bool keep(hl::FuncOp op, auto scope) const {
-            return !op.isDeclaration() && !op->hasAttr( hl::AlwaysInlineAttr::getMnemonic() );
+            return !op.isDeclaration() && !util::has_attr< hl::AlwaysInlineAttr >(op);
         }
 
         bool keep(hl::VarDeclOp op, auto scope) const {

@@ -17,6 +17,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Conversion/Common/Patterns.hpp"
 #include "vast/Conversion/Common/Rewriter.hpp"
 
+#include "vast/Util/Attribute.hpp"
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DialectConversion.hpp"
 #include "vast/Util/TypeList.hpp"
@@ -62,12 +63,12 @@ namespace vast::conv {
         }
         auto callee = caller.resolveCallable();
 
-        auto attr = callee->template getAttrOfType< hl::BuiltinAttr >("builtin");
+        auto attr = util::get_attr< hl::BuiltinAttr >(callee);
         if (!attr) {
             return mlir::failure();
         }
 
-        auto id = attr.getID();
+        auto id = mlir::cast< hl::BuiltinAttr >(attr).getID();
         VAST_CHECK(id != 0, "Attempting to visit builtin expr that is not builtin (id is 0).");
 
         switch (id) {
