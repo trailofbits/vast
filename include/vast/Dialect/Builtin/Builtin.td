@@ -18,8 +18,14 @@ def HLBuiltin_Dialect : Dialect {
   let summary = "Dialect for representing compiler builtin constructs";
 
   let description = [{
-    TODO
+    Dialect for representing compiler builtin constructs.
   }];
+
+  let extraClassDeclaration = [{
+    void registerTypes();
+  }];
+
+  let useDefaultTypePrinterParser = 1;
 
   let hasConstantMaterializer = 1;
 }
@@ -28,5 +34,6 @@ class HLBuiltin_Op< string mnemonic, list< Trait > traits = [] >
   : Op< HLBuiltin_Dialect, mnemonic, traits >;
 
 include "vast/Dialect/Builtin/Ops.td"
+include "vast/Dialect/Builtin/Types.td"
 
 #endif // VAST_DIALECT_BUILTIN
