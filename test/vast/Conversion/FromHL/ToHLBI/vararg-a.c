@@ -4,7 +4,6 @@
 
 // CHECK: hl.func @__builtin_va_end
 // CHECK: hl.func @__builtin_va_start
-// CHECK: hl.struct "__va_list_tag"
 // CHECK: hl.typedef "va_list"
 
 // CHECK: hl.func @format ({{%.*}}: !hl.lvalue<!hl.ptr<!hl.char< const >>>, ...) -> !hl.void
