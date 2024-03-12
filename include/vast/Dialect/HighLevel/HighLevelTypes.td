@@ -229,7 +229,7 @@ def RValue : TypeWithSubType< "RValue", "rvalue" > { }
 //
 // Basic types
 //
-def VoidType : CVQualifiedType< "Void", "void", (ins) > {
+def VoidType : CVQualifiedType< "Void", "void", (ins), [VoidTrait] > {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
 
