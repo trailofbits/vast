@@ -121,7 +121,13 @@ namespace vast::cg {
         }
 
         auto with_qualifiers(const clang::TypedefType *ty, qualifiers quals) -> mlir_type {
-            auto name = make_name_attr( ty->getDecl()->getName() );
+            auto name_ref = ty->getDecl()->getName();
+            auto name = make_name_attr(name_ref);
+
+            if (name_ref.contains("va_list")) {
+                visit(acontext().getBuiltinVaListDecl());
+            }
+
             return with_cvr_qualifiers( type_builder< hl::TypedefType >().bind(name), quals ).freeze();
         }
 
