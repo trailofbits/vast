@@ -62,6 +62,8 @@ namespace llvm {
 
 namespace vast::cg
 {
+    using target_info = clang::TargetInfo;
+
     struct mangler_t {
 
         explicit mangler_t(clang::MangleContext *mangle_context)
@@ -69,10 +71,10 @@ namespace vast::cg
         {}
 
         mangled_name_ref get_mangled_name(
-            clang::GlobalDecl decl, const clang::TargetInfo &target_info, const std::string &module_name_hash
-        );
+            clang::GlobalDecl decl, const target_info &target_info, const std::string &module_name_hash
+        ) const;
 
-        std::optional< clang::GlobalDecl >  lookup_representative_decl(mangled_name_ref name) const;
+        std::optional< clang::GlobalDecl > lookup_representative_decl(mangled_name_ref name) const;
 
       private:
         std::string mangle(
@@ -82,8 +84,8 @@ namespace vast::cg
         std::unique_ptr< clang::MangleContext > mangle_context;
 
         // An ordered map of canonical GlobalDecls to their mangled names.
-        llvm::MapVector< clang::GlobalDecl, mangled_name_ref > mangled_decl_names;
-        llvm::StringMap< clang::GlobalDecl, llvm::BumpPtrAllocator > manglings;
+        mutable llvm::MapVector< clang::GlobalDecl, mangled_name_ref > mangled_decl_names;
+        mutable llvm::StringMap< clang::GlobalDecl, llvm::BumpPtrAllocator > manglings;
     };
 
 } // namespace vast::cg

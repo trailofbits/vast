@@ -11,17 +11,10 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg
 {
-    void driver::emit(clang::DeclGroupRef decls) {
-        generator.emit(decls);
-    }
+    void driver::emit(clang::DeclGroupRef decls) { generator.emit(decls); }
+    void driver::emit(clang::Decl *decl)         { generator.emit(decl); }
 
-    void driver::emit(clang::Decl *decl) {
-        generator.emit(decl);
-    }
-
-    owning_module_ref driver::freeze() {
-        return generator.freeze();
-    }
+    owning_module_ref driver::freeze() { return generator.freeze(); }
 
     void driver::finalize(const cc::vast_args &vargs) {
         if (!vargs.has_option(cc::opt::disable_vast_verifier)) {
