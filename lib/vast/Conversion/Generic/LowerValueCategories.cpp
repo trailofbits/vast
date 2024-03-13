@@ -165,18 +165,6 @@ namespace vast::conv
             }
         };
 
-
-        template< typename ... users_ts >
-        void propagate_ptr(auto root, auto ptr, auto &rewriter)
-        {
-            auto uses_ptr = [&](mlir::OpOperand &operand) -> bool {
-                auto op = operand.getOwner();
-                return mlir::isa< users_ts ... >(op);
-            };
-
-            rewriter.replaceUsesWithIf(root, ptr, uses_ptr);
-        }
-
         template< typename op_t >
         struct allocate_and_propagate : memory_allocation< op_t >
         {
@@ -184,8 +172,6 @@ namespace vast::conv
 
             REWRITE {
                 auto ptr = this->allocate(op, rewriter);
-                propagate_ptr< hl::AddressOf, ll::StructGEPOp >(op, ptr, rewriter);
-
                 rewriter.replaceOp(op, ptr);
                 return mlir::success();
             }
@@ -213,7 +199,6 @@ namespace vast::conv
             REWRITE {
                 auto allocation = this->allocate(op, rewriter);
                 this->initialize(allocation, ops.getOperands()[0], rewriter);
-                propagate_ptr< hl::AddressOf, ll::StructGEPOp >(op, allocation, rewriter);
                 rewriter.replaceOp(op, allocation);
 
                 return mlir::success();
@@ -226,13 +211,12 @@ namespace vast::conv
             using base = base_pattern< op_t >;
 
             REWRITE {
-                auto ptr = ops.getDecl();
+                auto ptr = ops.getOperands()[0];
 
                 auto et = this->element_type(ptr.getType());
                 VAST_CHECK(et, "{0} was not a pointer!", ptr);
                 auto load = rewriter.create< ll::Load >(op.getLoc(), et, ptr);
 
-                propagate_ptr< hl::AddressOf, ll::StructGEPOp >(op, ptr, rewriter);
                 rewriter.replaceOp(op, load);
 
                 return mlir::success();
@@ -300,7 +284,6 @@ namespace vast::conv
 
             }
         };
-
     } // namespace
 
     struct type_rewriter : pattern_rewriter {
@@ -320,15 +303,15 @@ namespace vast::conv
 
             mlir::RewritePatternSet patterns(&mctx);
 
+            patterns.add< fallback >(tc, mctx);
             patterns.add< with_store< ll::ArgAlloca > >(mctx, tc);
-            patterns.add< as_load< hl::DeclRefOp > >(mctx, tc);
-            patterns.add< ignore< hl::ImplicitCastOp > >(mctx, tc);
+            patterns.add< ignore< hl::DeclRefOp > >(mctx, tc);
+            patterns.add< as_load< hl::ImplicitCastOp > >(mctx, tc);
             patterns.add< ignore< hl::Deref > >(mctx, tc);
 
             patterns.add< assign< hl::AssignOp > >(mctx, tc);
             patterns.add< identity< ll::UninitializedVar > >(mctx, tc);
 
-            patterns.add< fallback >(tc, mctx);
 
             auto trg = mlir::ConversionTarget(mctx);
 
@@ -338,6 +321,14 @@ namespace vast::conv
                        tc.template get_has_legal_operand_types< operation >()(op);
             };
             trg.markUnknownOpDynamicallyLegal(is_legal);
+
+            // As we go and replace operands, sometimes it can happen that this cast
+            // already will be in form `hl.ptr< T > -> T` instead of `hl.lvalue< T > -> T`.
+            // I am not sure why this is happening, quite possibly some pattern is doing
+            // something that breaks some invariant, but for now this fix works.
+            trg.addDynamicallyLegalOp< hl::ImplicitCastOp >([&](hl::ImplicitCastOp op) {
+                return op.getKind() != hl::CastKind::LValueToRValue;
+            });
 
             convert_function_types(tc);
             if (mlir::failed(mlir::applyPartialConversion(root, trg, std::move(patterns))))
