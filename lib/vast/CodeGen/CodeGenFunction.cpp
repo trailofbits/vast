@@ -20,23 +20,16 @@ namespace vast::cg
         });
     }
 
-    // operation get_global_value(mangled_name_ref name) {
-    //     if (auto global = mlir::SymbolTable::lookupSymbolIn(mod.get(), name.name))
-    //         return global;
-    //     return {};
-    // }
-
     void prototype_generator::emit(clang_function *decl) {
-        // auto ctx = dynamic_cast< function_context* >(parent);
-        // VAST_CHECK(ctx, "prototype generator must be a child of a function context");
+        auto ctx = dynamic_cast< function_context* >(parent);
+        VAST_CHECK(ctx, "prototype generator must be a child of a function context");
 
-        // auto mod = dynamic_cast< module_context* >(ctx->parent);
-        // VAST_CHECK(mod, "function context must be a child of a module context");
+        auto mod = dynamic_cast< module_context* >(ctx->parent);
+        VAST_CHECK(mod, "function context must be a child of a module context");
 
-        // auto mangled_name = get_mangled_name(mod, decl);
-        // if (auto proto = mod->get_global_value(mangled_name)) {
-        //     return proto;
-        // }
+        if (auto proto = get_global_value(mod, clang_global(decl))) {
+            return;
+        }
 
         // auto fty = visit_function_type(decl->getFunctionType(), decl->isVariadic());
         // get_or_create_vast_function(mangled_name, fty, decl, emit);
