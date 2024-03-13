@@ -30,10 +30,10 @@ namespace vast::cg {
     void set_target_triple(owning_module_ref &mod, std::string triple);
     void set_source_language(owning_module_ref &mod, source_language lang);
 
-
     struct module_context : module_scope {
-        explicit module_context(owning_module_ref mod, acontext_t &actx)
-            : mod(std::move(mod))
+        explicit module_context(owning_module_ref mod, acontext_t &actx, scope_context *parent = nullptr)
+            : module_scope(parent)
+            , mod(std::move(mod))
             , mangler(actx.createMangleContext())
         {}
 
@@ -41,16 +41,17 @@ namespace vast::cg {
 
         owning_module_ref freeze();
 
-    protected:
-        bool frozen = false;
         owning_module_ref mod;
         dl::DataLayoutBlueprint dl;
-
         mangler_t mangler;
     };
 
     owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
     owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, source_language lang);
+
+    const target_info &get_target_info(const module_context *mod);
+    const std::string &get_module_name_hash(const module_context *mod);
+    mangled_name_ref get_mangled_name(const module_context *mod, clang_function *decl);
 
 
     struct module_generator : module_context

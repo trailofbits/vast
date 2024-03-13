@@ -57,6 +57,10 @@ namespace vast::cg {
         // generators
         //
         std::unique_ptr< meta_generator > meta;
+
+        //
+        // module generation state
+        //
         module_generator generator;
     };
 

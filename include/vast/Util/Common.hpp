@@ -74,7 +74,7 @@ namespace vast {
     using maybe_type_t  = std::optional< mlir_type >;
     using maybe_types_t = std::optional< types_t >;
 
-    using values_t       = mlir::SmallVector< mlir_value >;
+    using values_t      = mlir::SmallVector< mlir_value >;
 
     using loc_t         = mlir::Location;
 
@@ -87,4 +87,9 @@ namespace vast {
     using block_ptr     = block_t*;
 
     using walk_result = mlir::WalkResult;
+
+    //
+    // clang related aliases
+    //
+    using clang_function = clang::FunctionDecl;
 } // namespace vast

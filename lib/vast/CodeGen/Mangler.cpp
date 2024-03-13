@@ -5,8 +5,8 @@
 namespace vast::cg
 {
     mangled_name_ref mangler_t::get_mangled_name(
-        clang::GlobalDecl decl, const clang::TargetInfo &target_info, const std::string &module_name_hash
-    ) {
+        clang::GlobalDecl decl, const target_info &target_info, const std::string &module_name_hash
+    ) const {
         auto canonical = decl.getCanonicalDecl();
 
         // Some ABIs don't have constructor variants. Make sure that base and complete
@@ -14,8 +14,6 @@ namespace vast::cg
         if (const auto *ctor = clang::dyn_cast< clang::CXXConstructorDecl >(canonical.getDecl())) {
             VAST_UNIMPLEMENTED_IF(!target_info.getCXXABI().hasConstructorVariants());
         }
-
-        // VAST_UNIMPLEMENTED_IF(!langOpts.CUDAIsDevice);
 
         // Keep the first result in the case of a mangling collision.
         auto mangled_name = mangle(decl, module_name_hash);

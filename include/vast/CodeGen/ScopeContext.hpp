@@ -36,56 +36,42 @@ namespace vast::cg
         }
     };
 
-    using deferred_action_t = std::function< void() >;
-
-    enum class emition_kind {
-        immediate, deferred
-    };
-
     struct scope_context {
 
-        scope_context() = default;
+        using deferred_task = std::function< void() >;
 
-        virtual ~scope_context() {
-            children.clear();
-            commit();
-            VAST_ASSERT(!has_deferred_actions());
+        explicit scope_context(scope_context *parent) : parent(parent) {};
+
+        virtual ~scope_context() { finalize(); }
+
+        void finalize() {
+            for (auto &child : children) {
+                child->finalize();
+            }
+
+            while (!deferred.empty()) {
+                deferred.front()();
+                deferred.pop_front();
+            }
         }
 
         scope_context(const scope_context &) = delete;
-        scope_context(scope_context &&other)
-            : deferred_actions(std::move(other.deferred_actions))
-        {}
+        scope_context(scope_context &&other) noexcept = default;
 
         scope_context &operator=(const scope_context &) = delete;
-        scope_context &operator=(scope_context &&) = default;
+        scope_context &operator=(scope_context &&) noexcept = default;
 
-        gap::generator< deferred_action_t > deferred() {
-            while (!deferred_actions.empty()) {
-                co_yield deferred_actions.front();
-                deferred_actions.pop_front();
-            }
+        void hook_child(std::unique_ptr< scope_context > &&child) {
+            children.push_back(std::move(child));
         }
 
-        void defer(deferred_action_t action) {
-            deferred_actions.push_back(std::move(action));
+        void defer(deferred_task task) {
+            deferred.push_back(std::move(task));
         }
 
-        void commit() {
-            for (const auto &action : deferred()) {
-                action();
-            }
-        }
-
-        void hook(std::unique_ptr< scope_context > &&scope) {
-            scope->parent = this;
-            children.push_back(std::move(scope));
-        }
-
-        bool has_deferred_actions() const { return !deferred_actions.empty(); }
+        std::deque< deferred_task > deferred;
 
         scope_context *parent = nullptr;
-        std::deque< deferred_action_t > deferred_actions;
         std::vector< std::unique_ptr< scope_context > > children;
     };
 
@@ -96,12 +82,14 @@ namespace vast::cg
     // definition, the identifier has block scope, which terminates at the end
     // of the associated block.
     struct block_scope : scope_context {
+        using scope_context::scope_context;
         virtual ~block_scope() = default;
     };
 
 
     // Refers to function scope §6.2.1 of C standard
     struct function_scope : block_scope {
+        using block_scope::block_scope;
         virtual ~function_scope() = default;
         // label scope
     };
@@ -113,6 +101,7 @@ namespace vast::cg
     // part of a function definition), the identifier has function prototype
     // scope, which terminates at the end of the function declarator
     struct prototype_scope : scope_context {
+        using scope_context::scope_context;
         virtual ~prototype_scope() = default;
     };
 
@@ -122,12 +111,14 @@ namespace vast::cg
     // outside of any block or list of parameters, the identifier has file
     // scope, which terminates at the end of the translation unit.
     struct module_scope : scope_context {
+        using scope_context::scope_context;
         virtual ~module_scope() = default;
     };
 
     // Scope of member names for structures and unions
 
     struct members_scope : scope_context {
+        using scope_context::scope_context;
         virtual ~members_scope() = default;
     };
 
