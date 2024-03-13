@@ -5,7 +5,7 @@
 namespace vast::cg
 {
     mangled_name_ref mangler_t::get_mangled_name(
-        clang::GlobalDecl decl, const target_info &target_info, const std::string &module_name_hash
+        clang_global decl, const target_info &target_info, const std::string &module_name_hash
     ) const {
         auto canonical = decl.getCanonicalDecl();
 
@@ -22,7 +22,7 @@ namespace vast::cg
         return mangled_decl_names[canonical] = mangled_name_ref{ result.first->first() };
     }
 
-    std::optional< clang::GlobalDecl > mangler_t::lookup_representative_decl(mangled_name_ref mangled_name) const {
+    std::optional< clang_global > mangler_t::lookup_representative_decl(mangled_name_ref mangled_name) const {
         if (auto res = manglings.find(mangled_name.name); res != manglings.end()) {
             return res->getValue();
         }
@@ -32,7 +32,7 @@ namespace vast::cg
 
     // Returns true if decl is a function decl with internal linkage and needs a
     // unique suffix after the mangled name.
-    static bool is_unique_internal_linkage_decl(clang::GlobalDecl /* decl */, const std::string &module_name_hash) {
+    static bool is_unique_internal_linkage_decl(clang_global /* decl */, const std::string &module_name_hash) {
         if (!module_name_hash.empty()) {
             VAST_UNIMPLEMENTED_MSG( "Unique internal linkage names NYI");
         }
@@ -43,13 +43,13 @@ namespace vast::cg
         return fn && fn->getType()->castAs< clang::FunctionType >()->getCallConv() == clang::CC_X86RegCall;
     }
 
-    bool is_cuda_kernel_name(const clang::FunctionDecl *fn, clang::GlobalDecl decl) {
+    bool is_cuda_kernel_name(const clang::FunctionDecl *fn, clang_global decl) {
         return fn
             && fn->hasAttr< clang::CUDAGlobalAttr >()
             && decl.getKernelReferenceKind() == clang::KernelReferenceKind::Stub;
     }
 
-    std::string mangler_t::mangle(clang::GlobalDecl decl, const std::string &module_name_hash) const {
+    std::string mangler_t::mangle(clang_global decl, const std::string &module_name_hash) const {
         const auto *named = clang::cast< clang::NamedDecl >(decl.getDecl());
 
         llvm::SmallString< 256 > buffer;

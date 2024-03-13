@@ -71,21 +71,21 @@ namespace vast::cg
         {}
 
         mangled_name_ref get_mangled_name(
-            clang::GlobalDecl decl, const target_info &target_info, const std::string &module_name_hash
+            clang_global decl, const target_info &target_info, const std::string &module_name_hash
         ) const;
 
-        std::optional< clang::GlobalDecl > lookup_representative_decl(mangled_name_ref name) const;
+        std::optional< clang_global > lookup_representative_decl(mangled_name_ref name) const;
 
       private:
         std::string mangle(
-            clang::GlobalDecl decl, const std::string &module_name_hash
+            clang_global decl, const std::string &module_name_hash
         ) const;
 
         std::unique_ptr< clang::MangleContext > mangle_context;
 
         // An ordered map of canonical GlobalDecls to their mangled names.
-        mutable llvm::MapVector< clang::GlobalDecl, mangled_name_ref > mangled_decl_names;
-        mutable llvm::StringMap< clang::GlobalDecl, llvm::BumpPtrAllocator > manglings;
+        mutable llvm::MapVector< clang_global, mangled_name_ref > mangled_decl_names;
+        mutable llvm::StringMap< clang_global, llvm::BumpPtrAllocator > manglings;
     };
 
 } // namespace vast::cg

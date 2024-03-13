@@ -33,6 +33,7 @@ namespace vast::cg {
     struct module_context : module_scope {
         explicit module_context(owning_module_ref mod, acontext_t &actx, scope_context *parent = nullptr)
             : module_scope(parent)
+            , actx(actx)
             , mod(std::move(mod))
             , mangler(actx.createMangleContext())
         {}
@@ -41,6 +42,7 @@ namespace vast::cg {
 
         owning_module_ref freeze();
 
+        acontext_t &actx;
         owning_module_ref mod;
         dl::DataLayoutBlueprint dl;
         mangler_t mangler;
@@ -51,7 +53,10 @@ namespace vast::cg {
 
     const target_info &get_target_info(const module_context *mod);
     const std::string &get_module_name_hash(const module_context *mod);
-    mangled_name_ref get_mangled_name(const module_context *mod, clang_function *decl);
+    mangled_name_ref get_mangled_name(const module_context *mod, clang_global decl);
+
+    operation get_global_value(const module_context *ctx, clang_global name);
+    operation get_global_value(const module_context *ctx, mangled_name_ref name);
 
 
     struct module_generator : module_context

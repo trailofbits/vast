@@ -30,6 +30,24 @@ namespace vast::cg
         mod.get()->setAttr(core::CoreDialect::getLanguageAttrName(), attr);
     }
 
+    operation get_global_value(const module_context *ctx, clang_global decl) {
+        return get_global_value(ctx, get_mangled_name(ctx, decl));
+    }
+
+    operation get_global_value(const module_context *ctx, mangled_name_ref name) {
+        if (auto global = mlir::SymbolTable::lookupSymbolIn(ctx->mod.get(), name.name))
+            return global;
+        return {};
+    }
+
+    string_ref get_path_to_source(acontext_t &actx) {
+        // Set the module name to be the name of the main file. TranslationUnitDecl
+        // often contains invalid source locations and isn't a reliable source for the
+        // module location.
+        auto main_file_id = actx.getSourceManager().getMainFileID();
+        const auto &main_file = *actx.getSourceManager().getFileEntryForID(main_file_id);
+        return main_file.tryGetRealPathName();
+    }
 
     //
     // Module Generator
@@ -38,13 +56,7 @@ namespace vast::cg
     namespace detail
     {
         std::pair< loc_t, std::string > module_loc_name(mcontext_t &mctx, acontext_t &actx) {
-            // Set the module name to be the name of the main file. TranslationUnitDecl
-            // often contains invalid source locations and isn't a reliable source for the
-            // module location.
-            auto main_file_id = actx.getSourceManager().getMainFileID();
-            const auto &main_file = *actx.getSourceManager().getFileEntryForID(main_file_id);
-            auto path = main_file.tryGetRealPathName();
-            if (!path.empty()) {
+            if (auto path = get_path_to_source(actx); !path.empty()) {
                 return { mlir::FileLineColLoc::get(&mctx, path, 0, 0), path.str() };
             }
 
@@ -69,15 +81,16 @@ namespace vast::cg
     }
 
     const target_info &get_target_info(const module_context *mod) {
-        VAST_UNIMPLEMENTED;
+        return mod->actx.getTargetInfo();
     }
 
     const std::string &get_module_name_hash(const module_context *mod) {
+        /* FIXME for UniqueInternalLinkageNames */
         VAST_UNIMPLEMENTED;
     }
 
-    mangled_name_ref get_mangled_name(const module_context *mod, clang_function *decl) {
-        return mod->mangler.get_mangled_name(decl, get_target_info(mod), get_module_name_hash(mod));
+    mangled_name_ref get_mangled_name(const module_context *mod, clang_global decl) {
+        return mod->mangler.get_mangled_name(decl, get_target_info(mod), "" /* get_module_name_hash(mod) */);
     }
 
     void module_generator::emit(clang::DeclGroupRef decls) {
@@ -101,7 +114,7 @@ namespace vast::cg
         }
     }
 
-    void module_generator::emit(clang::GlobalDecl */* decl */) {
+    void module_generator::emit(clang_global */* decl */) {
         VAST_UNIMPLEMENTED;
     }
 
