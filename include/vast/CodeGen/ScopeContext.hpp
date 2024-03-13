@@ -37,7 +37,6 @@ namespace vast::cg
     };
 
     struct scope_context {
-
         using deferred_task = std::function< void() >;
 
         explicit scope_context(scope_context *parent) : parent(parent) {};
