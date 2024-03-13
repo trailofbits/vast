@@ -16,11 +16,7 @@ namespace vast::cg
     // Module Context
     //
 
-    owning_module_ref module_context::freeze() {
-        VAST_ASSERT(!frozen);
-        frozen = true;
-        return std::move(mod);
-    }
+    owning_module_ref module_context::freeze() { return std::move(mod); }
 
     void set_target_triple(owning_module_ref &mod, std::string triple) {
         mlir::OpBuilder bld(mod.get());
@@ -72,79 +68,74 @@ namespace vast::cg
         return mod;
     }
 
+    const target_info &get_target_info(const module_context *mod) {
+        VAST_UNIMPLEMENTED;
+    }
+
+    const std::string &get_module_name_hash(const module_context *mod) {
+        VAST_UNIMPLEMENTED;
+    }
+
+    mangled_name_ref get_mangled_name(const module_context *mod, clang_function *decl) {
+        return mod->mangler.get_mangled_name(decl, get_target_info(mod), get_module_name_hash(mod));
+    }
+
     void module_generator::emit(clang::DeclGroupRef decls) {
-        VAST_ASSERT(!frozen);
-        for (auto &decl : decls) {
-            emit(decl);
-        }
+        for (auto &decl : decls) { emit(decl); }
     }
 
     void module_generator::emit(clang::Decl *decl) {
-        VAST_ASSERT(!frozen);
         switch (decl->getKind()) {
             case clang::Decl::Kind::Typedef:
-                emit(cast<clang::TypedefDecl>(decl));
-                break;
+                return emit(cast<clang::TypedefDecl>(decl));
             case clang::Decl::Kind::Enum:
-                emit(cast<clang::EnumDecl>(decl));
-                break;
+                return emit(cast<clang::EnumDecl>(decl));
             case clang::Decl::Kind::Record:
-                emit(cast<clang::RecordDecl>(decl));
-                break;
+                return emit(cast<clang::RecordDecl>(decl));
             case clang::Decl::Kind::Function:
-                emit(cast<clang::FunctionDecl>(decl));
-                break;
+                return emit(cast<clang::FunctionDecl>(decl));
             case clang::Decl::Kind::Var:
-                emit(cast<clang::VarDecl>(decl));
-                break;
+                return emit(cast<clang::VarDecl>(decl));
             default:
                 VAST_FATAL("unhandled decl kind: {}", decl->getDeclKindName());
         }
     }
 
     void module_generator::emit(clang::GlobalDecl */* decl */) {
-        VAST_ASSERT(!frozen);
         VAST_UNIMPLEMENTED;
     }
 
     void module_generator::emit(clang::TypedefDecl */* decl */) {
-        VAST_ASSERT(!frozen);
         VAST_UNIMPLEMENTED;
     }
 
     void module_generator::emit(clang::EnumDecl */* decl */) {
-        VAST_ASSERT(!frozen);
         VAST_UNIMPLEMENTED;
     }
 
     void module_generator::emit(clang::RecordDecl */* decl */) {
-        VAST_ASSERT(!frozen);
         VAST_UNIMPLEMENTED;
     }
 
     void module_generator::emit(clang::FunctionDecl *decl) {
-        VAST_ASSERT(!frozen);
-        hook(generate_function(decl, mangler));
+        hook_child(generate< function_generator >(decl, this));
     }
 
     void module_generator::emit(clang::VarDecl */* decl */) {
-        VAST_ASSERT(!frozen);
         VAST_UNIMPLEMENTED;
     }
 
     void module_generator::emit_data_layout() {
-        VAST_ASSERT(!frozen);
         auto mctx = mod.get()->getContext();
         vast::cg::emit_data_layout(*mctx, mod, dl);
     }
 
     void module_generator::finalize() {
-        VAST_ASSERT(!frozen);
+        scope_context::finalize();
         emit_data_layout();
     }
 
     bool module_generator::verify() {
-        VAST_ASSERT(!frozen);
         return mlir::verify(mod.get()).succeeded();
     }
 

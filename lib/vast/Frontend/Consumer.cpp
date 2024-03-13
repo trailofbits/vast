@@ -39,7 +39,8 @@ namespace vast::cc {
             return true;
         }
 
-        return driver->emit(decls), true;
+        driver->emit(decls);
+        return true;
     }
 
     void vast_consumer::HandleCXXStaticMemberVarInstantiation(clang::VarDecl * /* decl */) {
