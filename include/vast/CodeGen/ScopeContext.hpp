@@ -8,7 +8,7 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/ScopedHashTable.h>
 VAST_UNRELAX_WARNINGS
 
-#include <gap/coro/generator.hpp>
+#include "vast/CodeGen/VisitorView.hpp"
 
 #include <functional>
 #include <queue>
@@ -119,6 +119,17 @@ namespace vast::cg
     struct members_scope : scope_context {
         using scope_context::scope_context;
         virtual ~members_scope() = default;
+    };
+
+    template< typename context >
+    struct scope_generator : context {
+        scope_generator(visitor_view visitor, auto &&...args)
+            : context(std::forward< decltype(args) >(args)...), visitor(visitor)
+        {}
+
+        virtual ~scope_generator() = default;
+
+        visitor_view visitor;
     };
 
 } // namespace vast::cg

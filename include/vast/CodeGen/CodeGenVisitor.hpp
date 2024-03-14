@@ -14,5 +14,27 @@
 
 namespace vast::cg
 {
+    struct default_visitor : visitor_base
+    {
+        void Visit(clang::Decl *decl) override
+        {
+            VAST_UNIMPLEMENTED;
+        }
+
+        void Visit(clang::Stmt *stmt) override
+        {
+            VAST_UNIMPLEMENTED;
+        }
+
+        void Visit(clang::Type *type) override
+        {
+            VAST_UNIMPLEMENTED;
+        }
+
+        void Visit(clang::Attr *attr) override
+        {
+            VAST_UNIMPLEMENTED;
+        }
+    };
 
 } // namespace vast::cg

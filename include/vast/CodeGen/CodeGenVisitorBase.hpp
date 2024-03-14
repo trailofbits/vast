@@ -28,4 +28,14 @@ namespace vast::cg {
     template< typename derived_t >
     using attr_visitor_base = clang::ConstAttrVisitor< derived_t, mlir_attr >;
 
+    struct visitor_base
+    {
+        virtual ~visitor_base() = default;
+
+        virtual void Visit(clang::Decl *decl) = 0;
+        virtual void Visit(clang::Stmt *stmt) = 0;
+        virtual void Visit(clang::Type *type) = 0;
+        virtual void Visit(clang::Attr *attr) = 0;
+    };
+
 } // namespace vast::cg

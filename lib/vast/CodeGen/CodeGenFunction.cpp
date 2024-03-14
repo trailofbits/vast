@@ -14,9 +14,9 @@ namespace vast::cg
    void function_generator::emit(clang_function *decl) {
         auto ctx = dynamic_cast< module_context* >(parent);
         VAST_CHECK(ctx, "function generator must be a child of a module context");
-        hook_child(generate< prototype_generator >(decl, this));
+        hook_child(generate< prototype_generator >(decl, this, visitor));
         defer([=] {
-            hook_child(generate< body_generator >(decl, this));
+            hook_child(generate< body_generator >(decl, this, visitor));
         });
     }
 
