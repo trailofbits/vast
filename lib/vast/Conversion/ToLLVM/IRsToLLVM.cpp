@@ -287,9 +287,10 @@ namespace vast::conv::irstollvm
     using inline_region_from_op_conversions =
         util::type_list< inline_region_from_op< hl::TranslationUnitOp >, scope_op >;
 
-    struct subscript : base_pattern< hl::SubscriptOp >
+    template< typename op_t >
+    struct subscript_like : base_pattern< op_t >
     {
-        using Op = hl::SubscriptOp;
+        using Op = op_t;
         using base = base_pattern< Op >;
         using base::base;
 
@@ -297,7 +298,7 @@ namespace vast::conv::irstollvm
                 Op op, typename Op::Adaptor ops,
                 conversion_rewriter &rewriter) const override
         {
-            auto trg_type = tc.convert_type_to_type(op.getType());
+            auto trg_type = this->tc.convert_type_to_type(op.getType());
             VAST_PATTERN_CHECK(trg_type, "Could not convert vardecl type");
 
             auto gep = rewriter.create< mlir::LLVM::GEPOp >(
@@ -381,7 +382,7 @@ namespace vast::conv::irstollvm
                 op_t op, typename op_t::Adaptor ops,
                 conversion_rewriter &rewriter) const override
         {
-            auto t = mlir::dyn_cast< hl::LValueType >(op.getType());
+            auto t = mlir::dyn_cast< hl::PointerType >(op.getType());
             auto target_type = this->convert(t.getElementType());
 
             // Sadly, we cannot build `mlir::LLVM::GlobalOp` without
@@ -1374,7 +1375,8 @@ namespace vast::conv::irstollvm
         call,
         cmp,
         deref,
-        subscript,
+        subscript_like< ll::Subscript >,
+        subscript_like< hl::SubscriptOp >,
         sizeof_pattern,
         propagate_yield< hl::ExprOp, hl::ValueYieldOp >,
         value_yield_in_global_var
