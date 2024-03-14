@@ -59,10 +59,17 @@ namespace vast::cg {
     operation get_global_value(const module_context *ctx, mangled_name_ref name);
 
 
-    struct module_generator : module_context
+    struct module_generator : scope_generator< module_context >
     {
-        explicit module_generator(acontext_t &actx, mcontext_t &mctx, source_language lang, meta_generator &meta)
-            : module_context(mk_module_with_attrs(actx, mctx, lang), actx), meta(meta)
+        using base = scope_generator< module_context >;
+
+        explicit module_generator(
+            acontext_t &actx, mcontext_t &mctx, source_language lang,
+            meta_generator &meta,
+            visitor_view visitor
+        )
+            : base(visitor, mk_module_with_attrs(actx, mctx, lang), actx)
+            , meta(meta)
         {}
 
         virtual ~module_generator() = default;

@@ -13,6 +13,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 #include "vast/CodeGen/CodeGenModule.hpp"
+#include "vast/CodeGen/CodeGenVisitorBase.hpp"
 
 #include "vast/Frontend/Options.hpp"
 
@@ -27,13 +28,16 @@ namespace vast::cg {
 
     std::unique_ptr< mcontext_t > mk_mcontext();
 
+    std::unique_ptr< visitor_base > mk_visitor(const cc::vast_args &vargs);
+
     struct driver
     {
         explicit driver(cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx)
             : actx(actx)
             , mctx(mk_mcontext())
             , meta(mk_meta_generator(actx, *mctx, vargs))
-            , generator(actx, *mctx, cc::get_source_language(opts.lang), *meta)
+            , visitor(mk_visitor(vargs))
+            , generator(actx, *mctx, cc::get_source_language(opts.lang), *meta, visitor_view(*visitor))
         {}
 
         void emit(clang::DeclGroupRef decls);
@@ -57,6 +61,7 @@ namespace vast::cg {
         // generators
         //
         std::unique_ptr< meta_generator > meta;
+        std::unique_ptr< visitor_base > visitor;
 
         //
         // module generation state
