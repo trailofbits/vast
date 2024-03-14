@@ -14,10 +14,8 @@ namespace vast::cg
    void function_generator::emit(clang_function *decl) {
         auto ctx = dynamic_cast< module_context* >(parent);
         VAST_CHECK(ctx, "function generator must be a child of a module context");
-        hook_child(generate< prototype_generator >(decl, this, visitor));
-        defer([=] {
-            hook_child(generate< body_generator >(decl, this, visitor));
-        });
+        generate_child< prototype_generator >(decl);
+        defer([=] { generate_child< body_generator >(decl); });
     }
 
     void prototype_generator::emit(clang_function *decl) {
@@ -31,10 +29,16 @@ namespace vast::cg
             return;
         }
 
-        // auto fty = visit_function_type(decl->getFunctionType(), decl->isVariadic());
+        // emit_function_type(decl->getFunctionType(), decl->isVariadic());
         // get_or_create_vast_function(mangled_name, fty, decl, emit);
         // auto fn = create_vast_function(meta_location(decl), mangled_name, fty, function_decl);
     }
+
+    // mlir_type prototype_generator::emit_function_type(
+    //     const clang_function_type *fty, bool is_variadic
+    // ) {
+    //     VAST_UNIMPLEMENTED;
+    // }
 
     void body_generator::emit(clang_function *decl) {
         emit_epilogue(decl);
