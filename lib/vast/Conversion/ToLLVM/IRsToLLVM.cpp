@@ -1513,6 +1513,7 @@ namespace vast::conv::irstollvm
             target.addIllegalDialect< hl::HighLevelDialect >();
             target.addIllegalDialect< ll::LowLevelDialect >();
             target.addLegalDialect< core::CoreDialect >();
+            target.addLegalDialect< mlir::LLVM::LLVMDialect >();
 
             auto legal_with_llvm_ret_type = [&]< typename T >( T && )
             {
@@ -1520,18 +1521,23 @@ namespace vast::conv::irstollvm
                 target.addDynamicallyLegalOp< T >(std::move(query));
             };
 
+            auto with_legal_operands = [&]< typename T >(T &&t)
+            {
+                auto query = tc.template get_has_legal_operand_types< T >();
+                target.addDynamicallyLegalOp< T >(std::move(query));
+            };
+
             legal_with_llvm_ret_type( core::LazyOp{} );
             legal_with_llvm_ret_type( core::BinLAndOp{} );
             legal_with_llvm_ret_type( core::BinLOrOp{} );
-            legal_with_llvm_ret_type( hl::ValueYieldOp{} );
 
-
-            target.addDynamicallyLegalOp< hl::InitListExpr >(
-                tc.template get_has_only_legal_types< hl::InitListExpr >()
-            );
+            with_legal_operands( mlir::memref::StoreOp{} );
 
             target.addIllegalOp< mlir::func::FuncOp >();
-            target.markUnknownOpDynamicallyLegal([](auto) { return true; });
+            target.addLegalOp< mlir::ModuleOp >();
+
+            auto is_legal = tc.get_is_type_conversion_legal();
+            target.markUnknownOpDynamicallyLegal(is_legal);
 
             return target;
         }
