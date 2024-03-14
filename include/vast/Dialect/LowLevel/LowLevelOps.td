@@ -24,6 +24,22 @@ def LowLevel_StructGEPOp
     let description = [{ VAST struct gep operation }];
 }
 
+def Subscript
+    : LowLevel_Op< "subscript" >
+    , Arguments<(ins
+        AnyType:$array,
+        AnyType:$index)>
+    , Results<(outs AnyType:$result)>
+{
+  let summary = "VAST array subscript operator";
+  let description = [{ VAST array subscript operator }];
+
+  let assemblyFormat = [{
+    $array `at` ` ` `[` $index `:` type($index) `]` attr-dict
+      `:` type($array) `->` type($result)
+  }];
+}
+
 def ArgAlloca
     : LowLevel_Op< "arg_alloca" >,
       Arguments<(ins AnyType:$fn_arg)>,
