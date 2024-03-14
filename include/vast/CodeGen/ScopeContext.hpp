@@ -129,6 +129,13 @@ namespace vast::cg
 
         virtual ~scope_generator() = default;
 
+        template< typename generator_t, typename what_t >
+        void generate_child(what_t &&what) {
+            this->hook_child(generate< generator_t >(
+                std::forward< what_t >(what), this, visitor)
+            );
+        }
+
         visitor_view visitor;
     };
 
