@@ -1556,7 +1556,8 @@ namespace vast::conv::irstollvm
                 label_patterns,
                 lazy_op_type_conversions,
                 ll_generic_patterns,
-                ll_cf::conversions
+                ll_cf::conversions,
+                ll_memory_ops
             >(cfg);
         }
 
