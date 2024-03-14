@@ -130,6 +130,12 @@ namespace vast::conv
                 return {};
             }
 
+            static mlir_value iN(auto &bld, auto loc, auto type, auto val) {
+                return bld.template create< hl::ConstantOp >(
+                    loc, type,
+                    llvm::APSInt(llvm::APInt(64, val, true)));
+            }
+
             mlir_type convert(mlir_type type) const
             {
                 auto trg = tc.convert_type_to_type(type);
@@ -223,13 +229,44 @@ namespace vast::conv
             }
         };
 
+        struct lvalue_to_rvalue_cast : as_load< hl::ImplicitCastOp >
+        {
+            using op_t = hl::ImplicitCastOp;
+            using base = as_load< op_t >;
+
+            REWRITE {
+                if (op.getKind() != hl::CastKind::LValueToRValue)
+                    return mlir::failure();
+                return this->base::matchAndRewrite(op, ops, rewriter);
+            }
+        };
+
         template< typename op_t >
         struct ignore : base_pattern< op_t >
         {
             using base = base_pattern< op_t >;
 
             REWRITE {
-                rewriter.replaceOp(op, ops.getOperands());
+                rewriter.replaceAllUsesWith(op, ops.getOperands()[0]);
+                rewriter.eraseOp(op);
+                return mlir::success();
+            }
+        };
+
+        struct array_to_pointer_decay_cast : base_pattern< hl::ImplicitCastOp >
+        {
+            using op_t = hl::ImplicitCastOp;
+            using base = base_pattern< op_t >;
+
+            REWRITE {
+                if (op.getKind() != hl::CastKind::ArrayToPointerDecay)
+                    return mlir::failure();
+
+                auto trg_type = this->convert(op.getResult().getType());
+                auto cast = rewriter.create< hl::ImplicitCastOp >(
+                    op.getLoc(), trg_type, ops.getValue(), ops.getKind());
+                rewriter.replaceOp(op, cast);
+
                 return mlir::success();
             }
         };
@@ -264,6 +301,93 @@ namespace vast::conv
             }
         };
 
+        struct subscript : base_pattern< hl::SubscriptOp >
+        {
+            using op_t = hl::SubscriptOp;
+
+            using base = base_pattern< op_t >;
+
+            REWRITE {
+                auto trg_type = this->convert(op.getResult().getType());
+                auto new_op = rewriter.create< ll::Subscript >(
+                    op.getLoc(), trg_type, ops.getArray(), ops.getIndex());
+                rewriter.replaceAllUsesWith(op, new_op);
+                rewriter.eraseOp(op);
+                return mlir::success();
+            }
+        };
+
+        template< typename op_t >
+        struct store_and_forward_ptr : base_pattern< op_t >
+        {
+            using base = base_pattern< op_t >;
+
+            REWRITE {
+                rewriter.template create< ll::Store >(
+                    op.getLoc(), ops.getElements()[0], ops.getVar());
+                rewriter.replaceOp(op, ops.getVar());
+                return mlir::success();
+            }
+        };
+
+        struct prefix_tag {};
+        struct postfix_tag {};
+
+        template< typename Tag >
+        constexpr static bool prefix_yield()
+        {
+            return std::is_same_v< Tag, prefix_tag >;
+        }
+
+        template< typename Tag >
+        constexpr static bool postfix_yield()
+        {
+            return std::is_same_v< Tag, postfix_tag >;
+        }
+
+        template< typename Op, typename Trg, typename YieldAt >
+        struct unary_in_place  : base_pattern< Op >
+        {
+            using base = base_pattern< Op >;
+            using base::base;
+
+            logical_result matchAndRewrite(
+                        Op op, typename Op::Adaptor ops,
+                        conversion_rewriter &rewriter) const override
+            {
+                auto arg = ops.getArg();
+                auto type = this->element_type(arg.getType());
+                if (!type)
+                    return mlir::failure();
+
+                auto value = rewriter.create< ll::Load >(op.getLoc(), type, arg);
+                auto one = this->iN(rewriter, op.getLoc(), value.getType(), 1);
+                auto adjust = rewriter.create< Trg >(op.getLoc(), type, value, one);
+
+                rewriter.create< ll::Store >(op.getLoc(), adjust, arg);
+
+                auto yielded = [&]() {
+                    if constexpr (prefix_yield< YieldAt >())
+                        return adjust;
+                    else if constexpr (postfix_yield< YieldAt >())
+                        return value;
+                }();
+
+                rewriter.replaceAllUsesWith(op, yielded);
+                rewriter.eraseOp(op);
+
+                return logical_result::success();
+            }
+        };
+
+
+        using unary_in_place_conversions = util::type_list<
+            unary_in_place< hl::PreIncOp, hl::AddIOp, prefix_tag >,
+            unary_in_place< hl::PostIncOp, hl::AddIOp, postfix_tag >,
+
+            unary_in_place< hl::PreDecOp, hl::SubIOp, prefix_tag >,
+            unary_in_place< hl::PostDecOp, hl::SubIOp, postfix_tag >
+        >;
 
         struct fallback : tc::generic_type_converting_pattern< value_category_type_converter >
         {
@@ -284,6 +408,7 @@ namespace vast::conv
 
             }
         };
+
     } // namespace
 
     struct type_rewriter : pattern_rewriter {
@@ -293,6 +418,14 @@ namespace vast::conv
     struct LowerValueCategoriesPass : LowerValueCategoriesBase< LowerValueCategoriesPass >
     {
         using base = LowerValueCategoriesBase< LowerValueCategoriesPass >;
+
+        template< typename ... Args >
+        void populate(
+            util::type_list< Args ... >, mlir::RewritePatternSet &patterns,
+            mcontext_t &mctx, value_category_type_converter &tc
+        ) {
+            patterns.add< Args ... >(mctx, tc);
+        }
 
         void runOnOperation() override
         {
@@ -305,13 +438,19 @@ namespace vast::conv
 
             patterns.add< fallback >(tc, mctx);
             patterns.add< with_store< ll::ArgAlloca > >(mctx, tc);
+            patterns.add< store_and_forward_ptr< ll::InitializeVar > >(mctx, tc);
             patterns.add< ignore< hl::DeclRefOp > >(mctx, tc);
-            patterns.add< as_load< hl::ImplicitCastOp > >(mctx, tc);
             patterns.add< ignore< hl::Deref > >(mctx, tc);
 
             patterns.add< assign< hl::AssignOp > >(mctx, tc);
             patterns.add< identity< ll::UninitializedVar > >(mctx, tc);
+            patterns.add< subscript >(mctx, tc);
 
+            // implicit casts
+            patterns.add< lvalue_to_rvalue_cast >(mctx, tc);
+            patterns.add< array_to_pointer_decay_cast >(mctx, tc);
+
+            populate( unary_in_place_conversions{}, patterns, mctx, tc);
 
             auto trg = mlir::ConversionTarget(mctx);
 
@@ -329,6 +468,11 @@ namespace vast::conv
             trg.addDynamicallyLegalOp< hl::ImplicitCastOp >([&](hl::ImplicitCastOp op) {
                 return op.getKind() != hl::CastKind::LValueToRValue;
             });
+
+            trg.addIllegalOp<
+                  ll::InitializeVar
+                , hl::PreIncOp, hl::PreDecOp
+                , hl::PostIncOp, hl::PreIncOp >();
 
             convert_function_types(tc);
             if (mlir::failed(mlir::applyPartialConversion(root, trg, std::move(patterns))))
