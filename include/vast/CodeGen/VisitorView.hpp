@@ -19,10 +19,21 @@ namespace vast::cg {
     {
         explicit visitor_view(visitor_base &visitor) : visitor(visitor) {}
 
-        void Visit(clang::Decl *decl) { visitor.Visit(decl); }
-        void Visit(clang::Stmt *stmt) { visitor.Visit(stmt); }
-        void Visit(clang::Type *type) { visitor.Visit(type); }
-        void Visit(clang::Attr *attr) { visitor.Visit(attr); }
+        decltype(auto) visit(clang_decl *decl) { visitor.visit(decl); }
+        decltype(auto) visit(clang_stmt *stmt) { visitor.visit(stmt); }
+        decltype(auto) visit(clang_type *type) { visitor.visit(type); }
+        decltype(auto) visit(clang_qual_type ty) { visitor.visit(ty); }
+        decltype(auto) visit(clang_attr *attr) { visitor.visit(attr); }
+
+        decltype(auto) visit_function_type(
+            const clang_function_type *fty, bool is_variadic)
+        {
+            return visitor.visit_function_type(fty, is_variadic);
+        }
+
+        decltype(auto) visit_as_lvalue_type(clang_qual_type ty) {
+            return visitor.visit_as_lvalue_type(ty);
+        }
 
       private:
         visitor_base &visitor;

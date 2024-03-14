@@ -16,6 +16,16 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg {
 
+    using clang_decl = clang::Decl;
+    using clang_stmt = clang::Stmt;
+    using clang_type = clang::Type;
+    using clang_attr = clang::Attr;
+
+    using clang_function_type = clang::FunctionType;
+    using clang_function_proto_type = clang::FunctionProtoType;
+
+    using clang_qual_type = clang::QualType;
+
     template< typename derived_t >
     using decl_visitor_base = clang::ConstDeclVisitor< derived_t, operation >;
 
@@ -32,10 +42,14 @@ namespace vast::cg {
     {
         virtual ~visitor_base() = default;
 
-        virtual void Visit(clang::Decl *decl) = 0;
-        virtual void Visit(clang::Stmt *stmt) = 0;
-        virtual void Visit(clang::Type *type) = 0;
-        virtual void Visit(clang::Attr *attr) = 0;
+        virtual operation visit(clang_decl *decl) = 0;
+        virtual operation visit(clang_stmt *stmt) = 0;
+        virtual mlir_type visit(clang_type *type) = 0;
+        virtual mlir_type visit(clang_qual_type attr) = 0;
+        virtual mlir_attr visit(clang_attr *attr) = 0;
+
+        virtual mlir_type visit_function_type(const clang_function_type *fty, bool is_variadic) = 0;
+        virtual mlir_type visit_as_lvalue_type(clang_qual_type ty) = 0;
     };
 
 } // namespace vast::cg
