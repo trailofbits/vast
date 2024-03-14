@@ -1122,54 +1122,6 @@ namespace vast::conv::irstollvm
         return op && op.getType().template isa< hl::LValueType >();
     }
 
-    struct prefix_tag {};
-    struct postfix_tag {};
-
-    template< typename Tag >
-    constexpr static bool prefix_yield()
-    {
-        return std::is_same_v< Tag, prefix_tag >;
-    }
-
-    template< typename Tag >
-    constexpr static bool postfix_yield()
-    {
-        return std::is_same_v< Tag, postfix_tag >;
-    }
-
-    template< typename Op, typename Trg, typename YieldAt >
-    struct unary_in_place  : base_pattern< Op >
-    {
-        using base = base_pattern< Op >;
-        using base::base;
-
-        logical_result matchAndRewrite(
-                    Op op, typename Op::Adaptor ops,
-                    conversion_rewriter &rewriter) const override
-        {
-            auto arg = ops.getArg();
-            if (is_lvalue(arg))
-                return logical_result::failure();
-
-            auto value = rewriter.create< LLVM::LoadOp >(op.getLoc(), arg);
-            auto one = this->constant(rewriter, op.getLoc(), value.getType(), 1);
-            auto adjust = rewriter.create< Trg >(op.getLoc(), value, one);
-
-            rewriter.create< LLVM::StoreOp >(op.getLoc(), adjust, arg);
-
-            auto yielded = [&]() {
-                if constexpr (prefix_yield< YieldAt >())
-                    return adjust;
-                else if constexpr (postfix_yield< YieldAt >())
-                    return value;
-            }();
-
-            rewriter.replaceOp(op, yielded);
-
-            return logical_result::success();
-        }
-    };
-
     struct logical_not : base_pattern< hl::LNotOp >
     {
         using base = base_pattern< hl::LNotOp >;
@@ -1238,11 +1190,6 @@ namespace vast::conv::irstollvm
     };
 
     using unary_in_place_conversions = util::type_list<
-        unary_in_place< hl::PreIncOp,  LLVM::AddOp, prefix_tag  >,
-        unary_in_place< hl::PostIncOp, LLVM::AddOp, postfix_tag >,
-
-        unary_in_place< hl::PreDecOp,  LLVM::SubOp, prefix_tag  >,
-        unary_in_place< hl::PostDecOp, LLVM::SubOp, postfix_tag >,
         logical_not,
         bin_not
     >;
