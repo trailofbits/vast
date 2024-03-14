@@ -9,6 +9,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Frontend/Options.hpp"
 
+#include "vast/CodeGen/CodeGenVisitor.hpp"
+
 namespace vast::cg
 {
     void driver::emit(clang::DeclGroupRef decls) { generator.emit(decls); }
@@ -40,6 +42,11 @@ namespace vast::cg
         vast::registerAllDialects(*mctx);
         mctx->loadAllAvailableDialects();
         return mctx;
+    }
+
+    std::unique_ptr< visitor_base > mk_visitor(const cc::vast_args &vargs) {
+        // TODO pick the right visitor based on the command line args
+        return std::make_unique< default_visitor >();
     }
 
 } // namespace vast::cg

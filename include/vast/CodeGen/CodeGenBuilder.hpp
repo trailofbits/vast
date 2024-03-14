@@ -17,8 +17,8 @@
 namespace vast::cg {
 
     template< typename scope_t >
-    struct scope_generator : insertion_guard {
-        scope_generator(mlir_builder &builder, loc_t loc)
+    struct scope_generator_guard : insertion_guard {
+        scope_generator_guard(mlir_builder &builder, loc_t loc)
             : insertion_guard(builder), loc(loc)
             , scope(builder.create< scope_t >(loc))
         {
@@ -32,8 +32,8 @@ namespace vast::cg {
         scope_t scope;
     };
 
-    using CoreScope = scope_generator< core::ScopeOp >;
-    using TranslationUnitScope = scope_generator< hl::TranslationUnitOp >;
+    using CoreScope = scope_generator_guard< core::ScopeOp >;
+    using TranslationUnitScope = scope_generator_guard< hl::TranslationUnitOp >;
 
     //
     // composable builder state
