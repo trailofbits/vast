@@ -66,7 +66,7 @@ namespace vast::cg {
         explicit module_generator(
             acontext_t &actx, mcontext_t &mctx, source_language lang,
             meta_generator &meta,
-            codegen_visitor_view visitor
+            visitor_view visitor
         )
             : base(visitor, mk_module_with_attrs(actx, mctx, lang), actx)
             , meta(meta)

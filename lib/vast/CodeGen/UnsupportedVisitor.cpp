@@ -11,7 +11,7 @@
 
 namespace vast::cg
 {
-    auto try_make_body_builder(base_visitor_view visitor, const clang_decl *decl)
+    auto try_make_body_builder(visitor_view visitor, const clang_decl *decl)
         -> std::optional< BuilderCallBackFn >
     {
         auto callback = [&] (auto body) {
