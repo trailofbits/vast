@@ -4,59 +4,37 @@
 
 #include "vast/Util/Warnings.hpp"
 
+#include "vast/CodeGen/CodeGenVisitorBase.hpp"
+
 namespace vast::cg
 {
-    template< typename derived_t >
-    struct unreach_stmt_visitor {
-        operation Visit(const clang::Stmt *stmt) {
-            VAST_FATAL("unsupported stmt: {0}", stmt->getStmtClassName());
-        }
-    };
+    //
+    // This is a bottom visitor, which yields an error if called
+    //
+    struct unreach_visitor final : visitor_base
+    {
+        using visitor_base::visitor_base;
 
-    template< typename derived_t >
-    struct unreach_decl_visitor {
-        operation Visit(const clang::Decl *decl) {
+        operation visit(const clang_decl *decl) override {
             VAST_FATAL("unsupported decl: {0}", decl->getDeclKindName());
         }
-    };
 
-    template< typename derived_t >
-    struct unreach_type_visitor {
-        mlir_type Visit(clang::QualType type) {
+        operation visit(const clang_stmt *stmt) override {
+            VAST_FATAL("unsupported stmt: {0}", stmt->getStmtClassName());
+        }
+
+        mlir_type visit(const clang_type *type) override {
+            VAST_FATAL("unsupported type: {0}", type->getTypeClassName());
+        }
+
+        mlir_type visit(clang_qual_type type) override {
             VAST_FATAL("unsupported type: {0}", type.getAsString());
         }
 
-        mlir_type Visit(const clang::Type *type) {
-            VAST_FATAL("unsupported type: {0}", type->getTypeClassName());
-        }
-    };
-
-    template< typename derived_t >
-    struct unreach_attr_visitor {
-        mlir_attr Visit(const clang::Attr *attr) {
+        mlir_attr visit(const clang_attr *attr) override {
             VAST_FATAL("unsupported attr: {0}", attr->getSpelling());
         }
     };
 
-    //
-    // This is a bottom visitor, which yields an error if called
-    //
-    template< typename derived_t >
-    struct unreach_visitor
-        : unreach_decl_visitor< derived_t >
-        , unreach_stmt_visitor< derived_t >
-        , unreach_type_visitor< derived_t >
-        , unreach_attr_visitor< derived_t >
-    {
-        using decl_visitor = unreach_decl_visitor< derived_t >;
-        using stmt_visitor = unreach_stmt_visitor< derived_t >;
-        using type_visitor = unreach_type_visitor< derived_t >;
-        using attr_visitor = unreach_attr_visitor< derived_t >;
-
-        using decl_visitor::Visit;
-        using stmt_visitor::Visit;
-        using type_visitor::Visit;
-        using attr_visitor::Visit;
-    };
 
 } // namespace vast::cg
