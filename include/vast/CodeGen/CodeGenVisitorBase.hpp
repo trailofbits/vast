@@ -42,14 +42,19 @@ namespace vast::cg {
     {
         virtual ~visitor_base() = default;
 
-        virtual operation visit(clang_decl *decl) = 0;
-        virtual operation visit(clang_stmt *stmt) = 0;
-        virtual mlir_type visit(clang_type *type) = 0;
-        virtual mlir_type visit(clang_qual_type attr) = 0;
-        virtual mlir_attr visit(clang_attr *attr) = 0;
+        virtual operation visit(const clang_decl *) { return {}; };
+        virtual operation visit(const clang_stmt *) { return {}; };
+        virtual mlir_type visit(const clang_type *) { return {}; };
+        virtual mlir_type visit(clang_qual_type)    { return {}; };
+        virtual mlir_attr visit(const clang_attr *) { return {}; };
 
-        virtual mlir_type visit_function_type(const clang_function_type *fty, bool is_variadic) = 0;
-        virtual mlir_type visit_as_lvalue_type(clang_qual_type ty) = 0;
+        virtual mlir_type visit(const clang_function_type *, bool /* is_variadic */) {
+            return {};
+        }
+
+        virtual mlir_type visit_as_lvalue_type(clang_qual_type) noexcept {
+            return {};
+        }
     };
 
 } // namespace vast::cg
