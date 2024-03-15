@@ -18,6 +18,7 @@ namespace vast::cg
     //
     struct codegen_visitor_base : fallback_visitor
     {
+        using fallback_visitor::fallback_visitor;
         virtual ~codegen_visitor_base() = default;
 
         using visitor_base::visit;
