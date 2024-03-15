@@ -11,11 +11,9 @@ namespace vast::cg
 {
     struct unsup_decl_visitor
     {
-        unsup_decl_visitor(base_visitor_view self) : self(self) {}
+        explicit unsup_decl_visitor(base_visitor_view self) : self(self) {}
 
-        operation visit(const clang_decl *decl) {
-            VAST_UNIMPLEMENTED;
-        }
+        operation visit(const clang_decl *decl);
 
       private:
         base_visitor_view self;
@@ -24,51 +22,48 @@ namespace vast::cg
 
     struct unsup_stmt_visitor
     {
-        unsup_stmt_visitor(base_visitor_view self) : self(self) {}
+        explicit unsup_stmt_visitor(base_visitor_view self) : self(self) {}
 
-        operation visit(const clang_stmt *stmt) {
-            VAST_UNIMPLEMENTED;
-        }
+        operation visit(const clang_stmt *stmt);
 
       private:
+        std::vector< BuilderCallBackFn > make_children(const clang_stmt *stmt);
+        mlir_type return_type(const clang_stmt *stmt);
+
         base_visitor_view self;
     };
 
 
     struct unsup_type_visitor
     {
-        unsup_type_visitor(base_visitor_view self) : self(self) {}
+        explicit unsup_type_visitor(base_visitor_view self) : self(self) {}
 
-        mlir_type visit(const clang_type *type) { return make_type(type); }
-
+        mlir_type visit(const clang_type *type);
         mlir_type visit(clang_qual_type type) {
             VAST_ASSERT(!type.isNull());
             return visit(type.getTypePtr());
         }
 
       private:
-        mlir_type make_type(const clang_type *type);
-
         base_visitor_view self;
     };
 
 
     struct unsup_attr_visitor
     {
-        unsup_attr_visitor(base_visitor_view self) : self(self) {}
+        explicit unsup_attr_visitor(base_visitor_view self) : self(self) {}
 
-        mlir_attr visit(const clang_attr *attr) {
-            VAST_UNIMPLEMENTED;
-        }
+        mlir_attr visit(const clang_attr *attr);
 
       private:
         base_visitor_view self;
     };
 
+
     //
     // composed unsupported visitor
     //
-    struct unsup_visitor final
+    struct unsup_visitor
         : visitor_base
         , unsup_decl_visitor
         , unsup_stmt_visitor

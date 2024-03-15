@@ -86,6 +86,18 @@ namespace vast::cg {
         }
 
         template< typename arg_t >
+        constexpr inline auto bind_if_valid(arg_t &&arg) && {
+            auto binded = [arg = std::forward< arg_t >(arg), binder = std::move(binder)] (auto &&...args) {
+                if (valid(arg)) {
+                    return binder(arg, std::forward< decltype(args) >(args)...);
+                }
+
+                return binder(std::forward< decltype(args) >(args)...);
+            };
+            return compose_state_t< result_type, decltype(binded) >(std::move(binded));
+        }
+
+        template< typename arg_t >
         constexpr inline auto bind_region_if(bool cond, arg_t &&arg) && {
             auto binded = [cond, arg = std::forward< arg_t >(arg), binder = std::move(binder)] (auto &&...args) {
                 if (cond) {
@@ -107,6 +119,18 @@ namespace vast::cg {
 
     struct codegen_builder : mlir_builder {
         using mlir_builder::mlir_builder;
+
+        template< typename result_type, typename builder_type >
+        auto compose_start(builder_type &&builder) {
+            return compose_state_t< result_type, builder_type >(std::forward< builder_type >(builder));
+        }
+
+        template< typename op_t >
+        auto compose() {
+            return compose_start< op_t >([&] (auto&& ...args) {
+                return create< op_t >(std::forward< decltype(args) >(args)...);
+            });
+        }
     };
 
 } // namespace vast::cg

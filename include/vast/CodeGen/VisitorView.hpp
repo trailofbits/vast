@@ -33,6 +33,11 @@ namespace vast::cg {
             mcontext_t& mcontext() { return visitor.mcontext(); }
             const mcontext_t& mcontext() const { return visitor.mcontext(); }
 
+            codegen_builder& builder() { return visitor.builder(); }
+
+            template< typename op_t >
+            auto compose() { return builder().template compose< op_t >(); }
+
           protected:
             visitor_base &visitor;
         };

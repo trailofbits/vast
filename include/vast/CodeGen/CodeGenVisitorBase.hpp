@@ -46,7 +46,7 @@ namespace vast::cg {
     struct visitor_base
     {
         visitor_base(mcontext_t &mctx, meta_generator &meta)
-            : mctx(mctx), meta(meta), builder(&mctx)
+            : mctx(mctx), meta(meta), bld(&mctx)
         {}
 
         virtual ~visitor_base() = default;
@@ -62,13 +62,15 @@ namespace vast::cg {
 
         loc_t location(const auto *node) const { return meta.location(node); }
 
+        codegen_builder& builder() { return bld; }
+
       protected:
         mcontext_t &mctx;
         meta_generator &meta;
 
         // TODO figure out how to make scoped visitor that initilizes builder to
         // specific scopes
-        codegen_builder builder;
+        codegen_builder bld;
     };
 
     using visitor_base_ptr = std::unique_ptr< visitor_base >;
