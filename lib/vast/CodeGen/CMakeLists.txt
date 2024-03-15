@@ -15,6 +15,8 @@ add_vast_library(CodeGen
     DataLayout.cpp
     Mangler.cpp
 
+    UnsupportedVisitor.cpp
+
   LINK_LIBS PUBLIC
     ${CLANG_LIBS}
     ${VAST_CONVERSION_LIBS}
