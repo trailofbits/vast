@@ -1,6 +1,6 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
-#include "vast/CodeGen/CodeGenStmtVisitor.hpp"
+#include "vast/CodeGen/DefaultStmtVisitor.hpp"
 
 namespace vast::hl
 {
