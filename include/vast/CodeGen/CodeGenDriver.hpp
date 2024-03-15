@@ -28,7 +28,9 @@ namespace vast::cg {
 
     std::unique_ptr< mcontext_t > mk_mcontext();
 
-    std::unique_ptr< codegen_visitor_base > mk_visitor(const cc::vast_args &vargs, mcontext_t &mctx);
+    std::unique_ptr< codegen_visitor_base > mk_visitor(
+        const cc::vast_args &vargs, mcontext_t &mctx, meta_generator &meta
+    );
 
     struct driver
     {
@@ -36,7 +38,7 @@ namespace vast::cg {
             : actx(actx)
             , mctx(mk_mcontext())
             , meta(mk_meta_generator(actx, *mctx, vargs))
-            , visitor(mk_visitor(vargs, *mctx))
+            , visitor(mk_visitor(vargs, *mctx, *meta))
             , generator(actx, *mctx, cc::get_source_language(opts.lang), *meta, visitor_view(*visitor))
         {}
 

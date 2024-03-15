@@ -37,6 +37,8 @@ namespace vast::cg {
             return visitor.visit_as_lvalue_type(ty);
         }
 
+        loc_t location(const auto *node) const { return visitor.location(node); }
+
       private:
         codegen_visitor_base &visitor;
     };

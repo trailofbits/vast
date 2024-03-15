@@ -11,8 +11,8 @@ VAST_RELAX_WARNINGS
 #include <clang/AST/TypeVisitor.h>
 VAST_UNRELAX_WARNINGS
 
-
 #include "vast/Util/Common.hpp"
+#include "vast/CodeGen/CodeGenMeta.hpp"
 
 namespace vast::cg {
 
@@ -43,7 +43,9 @@ namespace vast::cg {
     //
     struct visitor_base
     {
-        visitor_base(mcontext_t &mctx) : mctx(mctx) {}
+        visitor_base(mcontext_t &mctx, meta_generator &meta)
+            : mctx(mctx), meta(meta)
+        {}
 
         virtual ~visitor_base() = default;
 
@@ -56,8 +58,11 @@ namespace vast::cg {
         mcontext_t& mcontext() { return mctx; }
         const mcontext_t& mcontext() const { return mctx; }
 
+        loc_t location(const auto *node) const { return meta.location(node); }
+
       protected:
         mcontext_t &mctx;
+        meta_generator &meta;
     };
 
     using visitor_base_ptr = std::unique_ptr< visitor_base >;
