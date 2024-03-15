@@ -5,6 +5,8 @@
 #include "vast/Util/Warnings.hpp"
 #include "vast/Util/TypeList.hpp"
 
+#include "vast/CodeGen/CodeGenVisitorBase.hpp"
+
 namespace vast::cg
 {
     //
@@ -13,8 +15,6 @@ namespace vast::cg
     // Allows to specify chain of fallback visitors in case that first `visitor::visit` is
     // unsuccessful.
     //
-    using visitor_base_ptr = std::unique_ptr< visitor_base >;
-
     struct fallback_visitor : visitor_base
     {
         fallback_visitor(auto &&... visitors)
@@ -36,11 +36,6 @@ namespace vast::cg
         mlir_type visit(const clang_type *type) override { return visit_with_fallback(type); }
         mlir_attr visit(const clang_attr *attr) override { return visit_with_fallback(attr); }
         mlir_type visit(clang_qual_type type) override { return visit_with_fallback(type); }
-
-        mlir_type visit(const clang_function_type *fty, bool is_variadic) override
-        {
-            return visit_with_fallback(fty, is_variadic);
-        }
 
         std::vector< visitor_base_ptr > visitors;
     };
