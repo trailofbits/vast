@@ -11,6 +11,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/CodeGenVisitor.hpp"
 #include "vast/CodeGen/UnreachableVisitor.hpp"
+#include "vast/CodeGen/UnsupportedVisitor.hpp"
 
 namespace vast::cg {
     void driver::emit(clang::DeclGroupRef decls) { generator.emit(decls); }
@@ -49,6 +50,7 @@ namespace vast::cg {
     ) {
         // TODO pick the right visitors based on the command line args
         fallback_visitor::visitor_stack visitors;
+        visitors.push_back(std::make_unique< unsup_visitor >(mctx, meta));
         visitors.push_back(std::make_unique< unreach_visitor >(mctx, meta));
         return std::make_unique< codegen_visitor >(mctx, meta, std::move(visitors));
     }
