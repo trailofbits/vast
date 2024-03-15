@@ -28,7 +28,7 @@ namespace vast::cg {
     {
         using base = scope_generator< function_context >;
 
-        function_generator(visitor_view visitor, scope_context *parent)
+        function_generator(codegen_visitor_view visitor, scope_context *parent)
             : base(visitor, parent)
         {}
 
@@ -51,7 +51,7 @@ namespace vast::cg {
     {
         using base = scope_generator< prototype_context >;
 
-        prototype_generator(visitor_view visitor, scope_context *parent)
+        prototype_generator(codegen_visitor_view visitor, scope_context *parent)
             : base(visitor, parent)
         {}
 
@@ -73,7 +73,7 @@ namespace vast::cg {
     {
         using base = scope_generator< body_context >;
 
-        body_generator(visitor_view visitor, scope_context *parent)
+        body_generator(codegen_visitor_view visitor, scope_context *parent)
             : base(visitor, parent)
         {}
 
@@ -84,7 +84,7 @@ namespace vast::cg {
     };
 
     template< typename T >
-    auto generate(clang_function *decl, scope_context *parent, visitor_view visitor)
+    auto generate(clang_function *decl, scope_context *parent, codegen_visitor_view visitor)
         -> std::unique_ptr< T >
     {
         auto gen = std::make_unique< T >(visitor, parent);

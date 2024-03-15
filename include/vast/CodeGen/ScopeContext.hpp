@@ -123,7 +123,7 @@ namespace vast::cg
 
     template< typename context >
     struct scope_generator : context {
-        scope_generator(visitor_view visitor, auto &&...args)
+        scope_generator(codegen_visitor_view visitor, auto &&...args)
             : context(std::forward< decltype(args) >(args)...), visitor(visitor)
         {}
 
@@ -136,7 +136,7 @@ namespace vast::cg
             );
         }
 
-        visitor_view visitor;
+        codegen_visitor_view visitor;
     };
 
 } // namespace vast::cg
