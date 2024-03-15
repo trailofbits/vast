@@ -3,206 +3,105 @@
 #pragma once
 
 #include "vast/Util/Warnings.hpp"
-#include "vast/Util/TypeList.hpp"
 
-#include "vast/Dialect/Unsupported/UnsupportedDialect.hpp"
-#include "vast/Dialect/Unsupported/UnsupportedOps.hpp"
-#include "vast/Dialect/Unsupported/UnsupportedTypes.hpp"
-#include "vast/Dialect/Unsupported/UnsupportedAttributes.hpp"
+#include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/VisitorView.hpp"
 
-#include "vast/CodeGen/CodeGen.hpp"
-#include "vast/CodeGen/CodeGenBuilder.hpp"
-#include "vast/CodeGen/CodeGenContext.hpp"
-#include "vast/CodeGen/CodeGenVisitor.hpp"
-
-#include <functional>
-
-namespace vast::cg {
-
-    template< typename derived_t >
-    struct unsup_stmt_visitor
-        : stmt_visitor_base< derived_t >
-        , visitor_lens< derived_t, unsup_stmt_visitor >
-    {
-        using lens = visitor_lens< derived_t, unsup_stmt_visitor >;
-
-        using lens::derived;
-        using lens::visit;
-
-        using lens::meta_location;
-
-        operation make_unsupported_stmt(auto stmt, mlir_type type = {}) {
-            std::vector< BuilderCallBackFn > children;
-            for (auto ch : stmt->children()) {
-                // For each subexpression, the unsupported operation holds a region.
-                // Last value of the region is an operand of the expression.
-                children.push_back([this, ch](auto &bld, auto loc) {
-                    this->visit(ch);
-                });
-            }
-
-            return this->template make_operation< unsup::UnsupportedStmt >()
-                .bind(meta_location(stmt))
-                .bind(stmt->getStmtClassName())
-                .bind(type)
-                .bind(children)
-                .freeze();
-        }
-
-        operation Visit(const clang::Stmt *stmt) {
-            if (auto expr = mlir::dyn_cast< clang::Expr >(stmt)) {
-                return make_unsupported_stmt(expr, visit(expr->getType()));
-            }
-
-            return make_unsupported_stmt(stmt);
-        }
-    };
-
-    template< typename derived_t >
+namespace vast::cg
+{
     struct unsup_decl_visitor
-        : decl_visitor_base< derived_t >
-        , visitor_lens< derived_t, unsup_decl_visitor >
     {
-        using lens = visitor_lens< derived_t, unsup_decl_visitor >;
+        unsup_decl_visitor(base_visitor_view self) : self(self) {}
 
-        using lens::derived;
-        using lens::context;
-        using lens::visit;
-
-        using lens::make_operation;
-        using lens::meta_location;
-
-        auto make_body_callback(auto decl) -> std::optional< BuilderCallBackFn > {
-            auto callback = [&] (auto body) {
-                return [&, body] (auto &bld, auto loc) { visit(body); };
-            };
-
-            #define VAST_UNSUPPORTED_DECL_BODY_CALLBACK(type, body) \
-            if (auto d = mlir::dyn_cast< clang::type >(decl)) { \
-                return callback(d->get##body()); \
-            }
-
-            VAST_UNSUPPORTED_DECL_BODY_CALLBACK(StaticAssertDecl, AssertExpr)
-            VAST_UNSUPPORTED_DECL_BODY_CALLBACK(BlockDecl, Body)
-            VAST_UNSUPPORTED_DECL_BODY_CALLBACK(BindingDecl, Binding)
-            VAST_UNSUPPORTED_DECL_BODY_CALLBACK(CapturedDecl, Body)
-            VAST_UNSUPPORTED_DECL_BODY_CALLBACK(NamespaceAliasDecl, Namespace)
-            VAST_UNSUPPORTED_DECL_BODY_CALLBACK(UsingDecl, UnderlyingDecl)
-            VAST_UNSUPPORTED_DECL_BODY_CALLBACK(UsingShadowDecl, TargetDecl)
-
-            #undef VAST_UNSUPPORTED_DECL_BODY_CALLBACK
-
-            if (auto d = mlir::dyn_cast< clang::DeclContext >(decl)) {
-                return [this, d] (auto &bld, auto loc) {
-                    for (auto child : d->decls()) {
-                        this->visit(child);
-                    }
-                };
-            }
-
-            return std::nullopt;
-        };
-
-        std::string decl_name(auto decl) {
-            std::stringstream ss;
-            ss << decl->getDeclKindName();
-            if (auto named = dyn_cast< clang::NamedDecl >(decl)) {
-                ss << "::" << context().decl_name(named).str();
-            }
-            return ss.str();
+        operation visit(const clang_decl *decl) {
+            VAST_UNIMPLEMENTED;
         }
 
-        operation make_unsupported_decl(auto decl) {
-            auto op = this->template make_operation< unsup::UnsupportedDecl >()
-                .bind(meta_location(decl)) // location
-                .bind(decl_name(decl));    // name
-
-            if (auto callback = make_body_callback(decl)) {
-                return std::move(op).bind(callback.value()).freeze(); // body
-            }
-
-            return op.freeze();
-        }
-
-        operation Visit(const clang::Decl *decl) {
-            if (auto op = make_unsupported_decl(decl)) {
-                if (decl->hasAttrs()) {
-                    mlir::NamedAttrList attrs = op->getAttrs();
-                    for (auto attr : decl->getAttrs()) {
-                        attrs.append(attr->getSpelling(), visit(attr));
-                    }
-                    op->setAttrs(attrs);
-                }
-                return op;
-            }
-            return {};
-
-        }
+      private:
+        base_visitor_view self;
     };
 
-    template< typename derived_t >
+
+    struct unsup_stmt_visitor
+    {
+        unsup_stmt_visitor(base_visitor_view self) : self(self) {}
+
+        operation visit(const clang_stmt *stmt) {
+            VAST_UNIMPLEMENTED;
+        }
+
+      private:
+        base_visitor_view self;
+    };
+
+
     struct unsup_type_visitor
-        : type_visitor_base< derived_t >
-        , visitor_lens< derived_t, unsup_type_visitor >
     {
-        using lens = visitor_lens< derived_t, unsup_type_visitor >;
-        using lens::mcontext;
-        using lens::derived;
+        unsup_type_visitor(base_visitor_view self) : self(self) {}
 
-        auto make_unsupported_type(auto ty) {
-            return derived().template make_type< unsup::UnsupportedType >()
-                .bind(&mcontext())
-                .bind(ty->getTypeClassName())
-                .freeze();
+        mlir_type visit(const clang_type *type) { return make_type(type); }
+
+        mlir_type visit(clang_qual_type type) {
+            VAST_ASSERT(!type.isNull());
+            return visit(type.getTypePtr());
         }
 
-        mlir_type Visit(clang::QualType ty) {
-            return ty.isNull() ? Type() : Visit(ty.getTypePtr());
-        }
+      private:
+        mlir_type make_type(const clang_type *type);
 
-        mlir_type Visit(const clang::Type *ty) {
-            return make_unsupported_type(ty);
-        }
+        base_visitor_view self;
     };
 
-    template< typename derived_t >
+
     struct unsup_attr_visitor
-        : attr_visitor_base< derived_t >
-        , visitor_lens< derived_t, unsup_attr_visitor >
     {
-        using lens = visitor_lens< derived_t, unsup_attr_visitor >;
+        unsup_attr_visitor(base_visitor_view self) : self(self) {}
 
-        using lens::mcontext;
-        using lens::derived;
-
-        using lens::mlir_builder;
-
-        auto make_unsupported_attr(auto attr) {
-            std::string spelling(attr->getSpelling());
-            return mlir_builder().template getAttr< unsup::UnsupportedAttr >(spelling);
+        mlir_attr visit(const clang_attr *attr) {
+            VAST_UNIMPLEMENTED;
         }
 
-        mlir_attr Visit(const clang::Attr *attr) {
-            return make_unsupported_attr(attr);
-        }
+      private:
+        base_visitor_view self;
     };
 
-    template< typename derived_t >
-    struct unsup_visitor
-        : unsup_decl_visitor< derived_t >
-        , unsup_stmt_visitor< derived_t >
-        , unsup_type_visitor< derived_t >
-        , unsup_attr_visitor< derived_t >
+    //
+    // composed unsupported visitor
+    //
+    struct unsup_visitor final
+        : visitor_base
+        , unsup_decl_visitor
+        , unsup_stmt_visitor
+        , unsup_type_visitor
+        , unsup_attr_visitor
     {
-        using decl_visitor = unsup_decl_visitor< derived_t >;
-        using stmt_visitor = unsup_stmt_visitor< derived_t >;
-        using type_visitor = unsup_type_visitor< derived_t >;
-        using attr_visitor = unsup_attr_visitor< derived_t >;
+        unsup_visitor(mcontext_t &mctx, meta_generator &meta)
+            : visitor_base(mctx, meta)
+            , unsup_decl_visitor(base_visitor_view(*this))
+            , unsup_stmt_visitor(base_visitor_view(*this))
+            , unsup_type_visitor(base_visitor_view(*this))
+            , unsup_attr_visitor(base_visitor_view(*this))
+        {}
 
-        using decl_visitor::Visit;
-        using stmt_visitor::Visit;
-        using type_visitor::Visit;
-        using attr_visitor::Visit;
+        operation visit(const clang_decl *decl) override {
+            return unsup_decl_visitor::visit(decl);
+        }
+
+        operation visit(const clang_stmt *stmt) override {
+            return unsup_stmt_visitor::visit(stmt);
+        }
+
+        mlir_type visit(const clang_type *type) override {
+            return unsup_type_visitor::visit(type);
+        }
+
+        mlir_type visit(clang_qual_type type) override {
+            return unsup_type_visitor::visit(type);
+        }
+
+        mlir_attr visit(const clang_attr *attr) override {
+            return unsup_attr_visitor::visit(attr);
+        }
     };
 
 } // namespace vast::cg
