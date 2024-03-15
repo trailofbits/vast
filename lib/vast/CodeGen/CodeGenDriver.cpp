@@ -11,8 +11,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/CodeGenVisitor.hpp"
 
-namespace vast::cg
-{
+namespace vast::cg {
     void driver::emit(clang::DeclGroupRef decls) { generator.emit(decls); }
     void driver::emit(clang::Decl *decl)         { generator.emit(decl); }
 
@@ -44,9 +43,9 @@ namespace vast::cg
         return mctx;
     }
 
-    std::unique_ptr< visitor_base > mk_visitor(const cc::vast_args &vargs) {
+    std::unique_ptr< codegen_visitor_base > mk_visitor(const cc::vast_args &vargs) {
         // TODO pick the right visitor based on the command line args
-        return std::make_unique< default_visitor >();
+        return std::make_unique< codegen_visitor >();
     }
 
 } // namespace vast::cg
