@@ -17,8 +17,10 @@ namespace vast::cg
     //
     struct fallback_visitor : visitor_base
     {
-        fallback_visitor(mcontext_t &mctx, auto &&... visitors)
-            : visitor_base(mctx), visitors{std::forward< decltype(visitors) >(visitors)...}
+        using visitor_stack = std::vector< visitor_base_ptr >;
+
+        fallback_visitor(mcontext_t &mctx, visitor_stack &&visitors)
+            : visitor_base(mctx), visitors(std::move(visitors))
         {}
 
         auto visit_with_fallback(auto &&...tokens) {
@@ -37,7 +39,7 @@ namespace vast::cg
         mlir_attr visit(const clang_attr *attr) override { return visit_with_fallback(attr); }
         mlir_type visit(clang_qual_type type) override { return visit_with_fallback(type); }
 
-        std::vector< visitor_base_ptr > visitors;
+        visitor_stack visitors;
     };
 
 } // namespace vast::cg
