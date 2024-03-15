@@ -63,7 +63,7 @@ namespace vast::cg
     //
     // composed unsupported visitor
     //
-    struct unsup_visitor
+    struct unsup_visitor final
         : visitor_base
         , unsup_decl_visitor
         , unsup_stmt_visitor
