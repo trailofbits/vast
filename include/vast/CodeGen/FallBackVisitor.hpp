@@ -10,27 +10,39 @@ namespace vast::cg
     //
     // fallback_visitor
     //
-    // Allows to specify chain of fallback visitors in case that first `visitor::Visit` is
+    // Allows to specify chain of fallback visitors in case that first `visitor::visit` is
     // unsuccessful.
     //
-    template< typename derived_t, template< typename > typename ...visitors >
-    struct fallback_visitor : visitors< derived_t >...
+    using visitor_base_ptr = std::unique_ptr< visitor_base >;
+
+    struct fallback_visitor : visitor_base
     {
-        operation Visit(const clang::Stmt *stmt) { return visit_with_fallback(stmt); }
-        operation Visit(const clang::Decl *decl) { return visit_with_fallback(decl); }
-        mlir_type Visit(const clang::Type *type) { return visit_with_fallback(type); }
-        mlir_attr Visit(const clang::Attr *attr) { return visit_with_fallback(attr); }
-        mlir_type Visit(clang::QualType    type) { return visit_with_fallback(type); }
+        fallback_visitor(auto &&... visitors)
+            : visitors{std::forward< decltype(visitors) >(visitors)...}
+        {}
 
-        using visitors_list = util::type_list< visitors< derived_t >... >;
+        auto visit_with_fallback(auto &&...tokens) {
+            for (auto &visitor : visitors) {
+                if (auto result = visitor->visit(std::forward< decltype(tokens) >(tokens)...)) {
+                    return result;
+                }
+            }
 
-        auto visit_with_fallback(auto token) {
-            using result_type = decltype(visitors_list::head::Visit(token));
-
-            result_type result;
-            ((result = visitors< derived_t >::Visit(token)) || ... );
-            return result;
+            VAST_UNREACHABLE("Vistors chain exhausted. No fallback visitor was able to handle the token.");
         }
+
+        operation visit(const clang_stmt *stmt) override { return visit_with_fallback(stmt); }
+        operation visit(const clang_decl *decl) override { return visit_with_fallback(decl); }
+        mlir_type visit(const clang_type *type) override { return visit_with_fallback(type); }
+        mlir_attr visit(const clang_attr *attr) override { return visit_with_fallback(attr); }
+        mlir_type visit(clang_qual_type type) override { return visit_with_fallback(type); }
+
+        mlir_type visit(const clang_function_type *fty, bool is_variadic) override
+        {
+            return visit_with_fallback(fty, is_variadic);
+        }
+
+        std::vector< visitor_base_ptr > visitors;
     };
 
 } // namespace vast::cg
