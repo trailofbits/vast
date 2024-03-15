@@ -46,7 +46,7 @@ namespace vast::cg {
         return mctx;
     }
 
-    std::unique_ptr< codegen_visitor_base > mk_visitor(
+    std::unique_ptr< visitor_base > mk_visitor(
         const cc::vast_args &vargs, mcontext_t &mctx, meta_generator &meta
     ) {
         // TODO pick the right visitors based on the command line args

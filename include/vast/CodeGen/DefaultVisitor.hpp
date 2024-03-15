@@ -19,10 +19,10 @@ namespace vast::cg
     {
         default_visitor(mcontext_t &mctx, meta_generator &meta)
             : visitor_base(mctx, meta)
-            , default_decl_visitor(base_visitor_view(*this))
-            , default_stmt_visitor(base_visitor_view(*this))
-            , default_type_visitor_with_dl(base_visitor_view(*this))
-            , default_attr_visitor(base_visitor_view(*this))
+            , default_decl_visitor(visitor_view(*this))
+            , default_stmt_visitor(visitor_view(*this))
+            , default_type_visitor_with_dl(visitor_view(*this))
+            , default_attr_visitor(visitor_view(*this))
         {}
 
         operation visit(const clang_decl *decl) override {

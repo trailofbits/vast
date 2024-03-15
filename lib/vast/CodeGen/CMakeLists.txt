@@ -8,7 +8,7 @@ add_vast_library(CodeGen
     DefaultStmtVisitor.cpp
     DefaultTypeVisitor.cpp
 
-    CodeGenVisitor.cpp
+    CodeGenVisitorBase.cpp
 
     CodeGenFunction.cpp
     CodeGenModule.cpp

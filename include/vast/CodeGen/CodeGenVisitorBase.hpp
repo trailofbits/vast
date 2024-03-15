@@ -57,6 +57,9 @@ namespace vast::cg {
         virtual mlir_type visit(clang_qual_type)    = 0;
         virtual mlir_attr visit(const clang_attr *) = 0;
 
+        virtual mlir_type visit(const clang_function_type *, bool /* is_variadic */);
+        virtual mlir_type visit_as_lvalue_type(clang_qual_type);
+
         mcontext_t& mcontext() { return mctx; }
         const mcontext_t& mcontext() const { return mctx; }
 

@@ -28,7 +28,7 @@ namespace vast::cg {
 
     std::unique_ptr< mcontext_t > mk_mcontext();
 
-    std::unique_ptr< codegen_visitor_base > mk_visitor(
+    std::unique_ptr< visitor_base > mk_visitor(
         const cc::vast_args &vargs, mcontext_t &mctx, meta_generator &meta
     );
 
@@ -39,7 +39,7 @@ namespace vast::cg {
             , mctx(mk_mcontext())
             , meta(mk_meta_generator(actx, *mctx, vargs))
             , visitor(mk_visitor(vargs, *mctx, *meta))
-            , generator(actx, *mctx, cc::get_source_language(opts.lang), *meta, codegen_visitor_view(*visitor))
+            , generator(actx, *mctx, cc::get_source_language(opts.lang), *meta, visitor_view(*visitor))
         {}
 
         void emit(clang::DeclGroupRef decls);
@@ -63,7 +63,7 @@ namespace vast::cg {
         // generators
         //
         std::unique_ptr< meta_generator > meta;
-        std::unique_ptr< codegen_visitor_base > visitor;
+        std::unique_ptr< visitor_base > visitor;
 
         //
         // module generation state

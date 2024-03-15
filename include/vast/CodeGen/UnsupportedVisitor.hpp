@@ -11,18 +11,18 @@ namespace vast::cg
 {
     struct unsup_decl_visitor
     {
-        explicit unsup_decl_visitor(base_visitor_view self) : self(self) {}
+        explicit unsup_decl_visitor(visitor_view self) : self(self) {}
 
         operation visit(const clang_decl *decl);
 
       private:
-        base_visitor_view self;
+        visitor_view self;
     };
 
 
     struct unsup_stmt_visitor
     {
-        explicit unsup_stmt_visitor(base_visitor_view self) : self(self) {}
+        explicit unsup_stmt_visitor(visitor_view self) : self(self) {}
 
         operation visit(const clang_stmt *stmt);
 
@@ -30,13 +30,13 @@ namespace vast::cg
         std::vector< BuilderCallBackFn > make_children(const clang_stmt *stmt);
         mlir_type return_type(const clang_stmt *stmt);
 
-        base_visitor_view self;
+        visitor_view self;
     };
 
 
     struct unsup_type_visitor
     {
-        explicit unsup_type_visitor(base_visitor_view self) : self(self) {}
+        explicit unsup_type_visitor(visitor_view self) : self(self) {}
 
         mlir_type visit(const clang_type *type);
         mlir_type visit(clang_qual_type type) {
@@ -45,18 +45,18 @@ namespace vast::cg
         }
 
       private:
-        base_visitor_view self;
+        visitor_view self;
     };
 
 
     struct unsup_attr_visitor
     {
-        explicit unsup_attr_visitor(base_visitor_view self) : self(self) {}
+        explicit unsup_attr_visitor(visitor_view self) : self(self) {}
 
         mlir_attr visit(const clang_attr *attr);
 
       private:
-        base_visitor_view self;
+        visitor_view self;
     };
 
 
@@ -72,10 +72,10 @@ namespace vast::cg
     {
         unsup_visitor(mcontext_t &mctx, meta_generator &meta)
             : visitor_base(mctx, meta)
-            , unsup_decl_visitor(base_visitor_view(*this))
-            , unsup_stmt_visitor(base_visitor_view(*this))
-            , unsup_type_visitor(base_visitor_view(*this))
-            , unsup_attr_visitor(base_visitor_view(*this))
+            , unsup_decl_visitor(visitor_view(*this))
+            , unsup_stmt_visitor(visitor_view(*this))
+            , unsup_type_visitor(visitor_view(*this))
+            , unsup_attr_visitor(visitor_view(*this))
         {}
 
         operation visit(const clang_decl *decl) override {
