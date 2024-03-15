@@ -3,11 +3,15 @@
 get_property(VAST_CONVERSION_LIBS GLOBAL PROPERTY VAST_CONVERSION_LIBS)
 
 add_vast_library(CodeGen
+    CodeGenDriver.cpp
+
     CodeGenStmtVisitor.cpp
     CodeGenTypeVisitor.cpp
-    CodeGenDriver.cpp
+    CodeGenVisitor.cpp
+
     CodeGenFunction.cpp
     CodeGenModule.cpp
+
     DataLayout.cpp
     Mangler.cpp
 
