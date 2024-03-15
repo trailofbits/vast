@@ -2,9 +2,6 @@
 
 #pragma once
 
-#include "vast/CodeGen/CodeGenScope.hpp"
-#include "vast/Util/Warnings.hpp"
-
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
 #include "vast/CodeGen/FallBackVisitor.hpp"
 

@@ -24,20 +24,20 @@ namespace vast::cg
         virtual loc_t location(const clang::Expr *) const = 0;
     };
 
-    struct default_meta_gen : meta_generator {
+    struct default_meta_gen final : meta_generator {
         default_meta_gen(acontext_t *actx, mcontext_t *mctx)
             : actx(actx), mctx(mctx)
         {}
 
-        loc_t location(const clang::Decl *decl) const final {
+        loc_t location(const clang::Decl *decl) const override {
             return location(decl->getLocation());
         }
 
-        loc_t location(const clang::Stmt *stmt) const final {
+        loc_t location(const clang::Stmt *stmt) const override {
             return location(stmt->getBeginLoc());
         }
 
-        loc_t location(const clang::Expr *expr) const final {
+        loc_t location(const clang::Expr *expr) const override {
             return location(expr->getExprLoc());
         }
 
@@ -60,14 +60,14 @@ namespace vast::cg
         mcontext_t *mctx;
     };
 
-    struct id_meta_gen : meta_generator {
+    struct id_meta_gen final : meta_generator {
         id_meta_gen(acontext_t *, mcontext_t *mctx)
             : mctx(mctx)
         {}
 
-        loc_t location(const clang::Decl *decl) const final { return location_impl(decl); }
-        loc_t location(const clang::Stmt *stmt) const final { return location_impl(stmt); }
-        loc_t location(const clang::Expr *expr) const final { return location_impl(expr); }
+        loc_t location(const clang::Decl *decl) const override { return location_impl(decl); }
+        loc_t location(const clang::Stmt *stmt) const override { return location_impl(stmt); }
+        loc_t location(const clang::Expr *expr) const override { return location_impl(expr); }
 
       private:
 

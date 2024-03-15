@@ -1,6 +1,6 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
-#include "vast/CodeGen/CodeGenTypeVisitor.hpp"
+#include "vast/CodeGen/DefaultTypeVisitor.hpp"
 
 namespace vast::cg {
 
