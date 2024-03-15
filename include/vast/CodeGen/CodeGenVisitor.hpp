@@ -10,23 +10,33 @@
 
 namespace vast::cg
 {
-    struct default_visitor : fallback_visitor
+    //
+    // Classes derived from `codegen_visitor_base` extend the `visitor_base` with codegen
+    // specific methods. Codegen visitor is a fallback visitor, which means that it can be
+    // initialized with a chain of other visitors, which will be used as a fallback in case
+    // that the first `visit` method is unsuccessful.
+    //
+    struct codegen_visitor_base : fallback_visitor
     {
-        using fallback_visitor::fallback_visitor;
+        virtual ~codegen_visitor_base() = default;
 
-        using fallback_visitor::visit;
+        using visitor_base::visit;
 
-        mlir_type visit(const clang_function_type *fty, bool is_variadic) override
-        {
-            llvm::SmallVector< mlir_type > args;
-            if (auto proto = clang::dyn_cast< clang_function_proto_type >(fty)) {
-                for (auto param : proto->getParamTypes()) {
-                    args.push_back(visit_as_lvalue_type(param));
-                }
-            }
+        virtual mlir_type visit(const clang_function_type *, bool /* is_variadic */) = 0;
+        virtual mlir_type visit_as_lvalue_type(clang_qual_type) = 0;
+    };
 
-            return core::FunctionType::get(args, {visit(fty->getReturnType())}, is_variadic);
-        }
+    //
+    // default codegen visitor configuration
+    //
+    struct codegen_visitor : codegen_visitor_base
+    {
+        using codegen_visitor_base::codegen_visitor_base;
+
+        using codegen_visitor_base::visit;
+
+        mlir_type visit(const clang_function_type *fty, bool is_variadic) override;
+        mlir_type visit_as_lvalue_type(clang_qual_type ty) override;
     };
 
 } // namespace vast::cg

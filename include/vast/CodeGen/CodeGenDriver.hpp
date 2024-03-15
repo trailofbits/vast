@@ -28,7 +28,7 @@ namespace vast::cg {
 
     std::unique_ptr< mcontext_t > mk_mcontext();
 
-    std::unique_ptr< visitor_base > mk_visitor(const cc::vast_args &vargs);
+    std::unique_ptr< codegen_visitor_base > mk_visitor(const cc::vast_args &vargs);
 
     struct driver
     {
@@ -61,7 +61,7 @@ namespace vast::cg {
         // generators
         //
         std::unique_ptr< meta_generator > meta;
-        std::unique_ptr< visitor_base > visitor;
+        std::unique_ptr< codegen_visitor_base > visitor;
 
         //
         // module generation state

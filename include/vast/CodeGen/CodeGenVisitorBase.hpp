@@ -38,23 +38,20 @@ namespace vast::cg {
     template< typename derived_t >
     using attr_visitor_base = clang::ConstAttrVisitor< derived_t, mlir_attr >;
 
+    //
+    // Classes derived from `visitor_base` are used to visit clang AST nodes
+    //
     struct visitor_base
     {
         virtual ~visitor_base() = default;
 
-        virtual operation visit(const clang_decl *) { return {}; };
-        virtual operation visit(const clang_stmt *) { return {}; };
-        virtual mlir_type visit(const clang_type *) { return {}; };
-        virtual mlir_type visit(clang_qual_type)    { return {}; };
-        virtual mlir_attr visit(const clang_attr *) { return {}; };
-
-        virtual mlir_type visit(const clang_function_type *, bool /* is_variadic */) {
-            return {};
-        }
-
-        virtual mlir_type visit_as_lvalue_type(clang_qual_type) noexcept {
-            return {};
-        }
+        virtual operation visit(const clang_decl *) = 0;
+        virtual operation visit(const clang_stmt *) = 0;
+        virtual mlir_type visit(const clang_type *) = 0;
+        virtual mlir_type visit(clang_qual_type)    = 0;
+        virtual mlir_attr visit(const clang_attr *) = 0;
     };
+
+    using visitor_base_ptr = std::unique_ptr< visitor_base >;
 
 } // namespace vast::cg
