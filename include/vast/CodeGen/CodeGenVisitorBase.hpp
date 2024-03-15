@@ -13,11 +13,13 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 #include "vast/CodeGen/CodeGenMeta.hpp"
+#include "vast/CodeGen/CodeGenBuilder.hpp"
 
 namespace vast::cg {
 
     using clang_decl = clang::Decl;
     using clang_stmt = clang::Stmt;
+    using clang_expr = clang::Expr;
     using clang_type = clang::Type;
     using clang_attr = clang::Attr;
 
@@ -44,7 +46,7 @@ namespace vast::cg {
     struct visitor_base
     {
         visitor_base(mcontext_t &mctx, meta_generator &meta)
-            : mctx(mctx), meta(meta)
+            : mctx(mctx), meta(meta), builder(&mctx)
         {}
 
         virtual ~visitor_base() = default;
@@ -63,6 +65,10 @@ namespace vast::cg {
       protected:
         mcontext_t &mctx;
         meta_generator &meta;
+
+        // TODO figure out how to make scoped visitor that initilizes builder to
+        // specific scopes
+        codegen_builder builder;
     };
 
     using visitor_base_ptr = std::unique_ptr< visitor_base >;
