@@ -17,6 +17,7 @@ add_vast_library(CodeGen
 
     UnsupportedVisitor.cpp
 
+    Util.cpp
   LINK_LIBS PUBLIC
     ${CLANG_LIBS}
     ${VAST_CONVERSION_LIBS}
