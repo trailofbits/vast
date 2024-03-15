@@ -30,7 +30,7 @@ namespace vast::cg
     //
     // default codegen visitor configuration
     //
-    struct codegen_visitor : codegen_visitor_base
+    struct codegen_visitor final : codegen_visitor_base
     {
         using codegen_visitor_base::codegen_visitor_base;
 
