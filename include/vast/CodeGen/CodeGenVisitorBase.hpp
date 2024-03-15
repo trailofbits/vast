@@ -43,6 +43,8 @@ namespace vast::cg {
     //
     struct visitor_base
     {
+        visitor_base(mcontext_t &mctx) : mctx(mctx) {}
+
         virtual ~visitor_base() = default;
 
         virtual operation visit(const clang_decl *) = 0;
@@ -50,6 +52,12 @@ namespace vast::cg {
         virtual mlir_type visit(const clang_type *) = 0;
         virtual mlir_type visit(clang_qual_type)    = 0;
         virtual mlir_attr visit(const clang_attr *) = 0;
+
+        mcontext_t& mcontext() { return mctx; }
+        const mcontext_t& mcontext() const { return mctx; }
+
+      protected:
+        mcontext_t &mctx;
     };
 
     using visitor_base_ptr = std::unique_ptr< visitor_base >;

@@ -17,8 +17,8 @@ namespace vast::cg
     //
     struct fallback_visitor : visitor_base
     {
-        fallback_visitor(auto &&... visitors)
-            : visitors{std::forward< decltype(visitors) >(visitors)...}
+        fallback_visitor(mcontext_t &mctx, auto &&... visitors)
+            : visitor_base(mctx), visitors{std::forward< decltype(visitors) >(visitors)...}
         {}
 
         auto visit_with_fallback(auto &&...tokens) {
