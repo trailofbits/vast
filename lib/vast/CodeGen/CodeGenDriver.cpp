@@ -44,11 +44,13 @@ namespace vast::cg {
         return mctx;
     }
 
-    std::unique_ptr< codegen_visitor_base > mk_visitor(const cc::vast_args &vargs, mcontext_t &mctx) {
+    std::unique_ptr< codegen_visitor_base > mk_visitor(
+        const cc::vast_args &vargs, mcontext_t &mctx, meta_generator &meta
+    ) {
         // TODO pick the right visitors based on the command line args
         fallback_visitor::visitor_stack visitors;
-        visitors.push_back(std::make_unique< unreach_visitor >(mctx));
-        return std::make_unique< codegen_visitor >(mctx, std::move(visitors));
+        visitors.push_back(std::make_unique< unreach_visitor >(mctx, meta));
+        return std::make_unique< codegen_visitor >(mctx, meta, std::move(visitors));
     }
 
 } // namespace vast::cg
