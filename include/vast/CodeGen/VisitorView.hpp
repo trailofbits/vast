@@ -15,40 +15,15 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg {
 
-    namespace detail
+    struct visitor_view
     {
-        template< typename visitor_base >
-        struct visitor_view
-        {
-            explicit visitor_view(visitor_base &visitor) : visitor(visitor) {}
+        explicit visitor_view(visitor_base &visitor) : visitor(visitor) {}
 
-            operation visit(const clang_decl *decl) { return visitor.visit(decl); }
-            operation visit(const clang_stmt *stmt) { return visitor.visit(stmt); }
-            mlir_type visit(const clang_type *type) { return visitor.visit(type); }
-            mlir_type visit(clang_qual_type ty)     { return visitor.visit(ty); }
-            mlir_attr visit(const clang_attr *attr) { return visitor.visit(attr); }
-
-            loc_t location(const auto *node) const { return visitor.location(node); }
-
-            mcontext_t& mcontext() { return visitor.mcontext(); }
-            const mcontext_t& mcontext() const { return visitor.mcontext(); }
-
-            codegen_builder& builder() { return visitor.builder(); }
-
-            template< typename op_t >
-            auto compose() { return builder().template compose< op_t >(); }
-
-          protected:
-            visitor_base &visitor;
-        };
-    } // namespace detail
-
-
-    using base_visitor_view = detail::visitor_view< visitor_base >;
-
-    struct codegen_visitor_view : detail::visitor_view< codegen_visitor_base >
-    {
-        using detail::visitor_view< codegen_visitor_base >::visitor_view;
+        operation visit(const clang_decl *decl) { return visitor.visit(decl); }
+        operation visit(const clang_stmt *stmt) { return visitor.visit(stmt); }
+        mlir_type visit(const clang_type *type) { return visitor.visit(type); }
+        mlir_type visit(clang_qual_type ty)     { return visitor.visit(ty); }
+        mlir_attr visit(const clang_attr *attr) { return visitor.visit(attr); }
 
         mlir_type visit(const clang_function_type *fty, bool is_variadic) {
             return visitor.visit(fty, is_variadic);
@@ -57,6 +32,19 @@ namespace vast::cg {
         mlir_type visit_as_lvalue_type(clang_qual_type ty) {
             return visitor.visit_as_lvalue_type(ty);
         }
+
+        loc_t location(const auto *node) const { return visitor.location(node); }
+
+        mcontext_t& mcontext() { return visitor.mcontext(); }
+        const mcontext_t& mcontext() const { return visitor.mcontext(); }
+
+        codegen_builder& builder() { return visitor.builder(); }
+
+        template< typename op_t >
+        auto compose() { return builder().template compose< op_t >(); }
+
+      protected:
+        visitor_base &visitor;
     };
 
 } // namespace vast::cg

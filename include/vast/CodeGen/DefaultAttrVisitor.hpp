@@ -15,12 +15,12 @@ namespace vast::cg {
 
     struct default_attr_visitor
     {
-        explicit default_attr_visitor(base_visitor_view self) : self(self) {}
+        explicit default_attr_visitor(visitor_view self) : self(self) {}
 
         mlir_attr visit(const clang_attr *decl) { return {}; }
 
       private:
-        base_visitor_view self;
+        visitor_view self;
     };
 
 } // namespace vast::cg
