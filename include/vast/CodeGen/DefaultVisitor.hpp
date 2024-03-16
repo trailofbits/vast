@@ -14,14 +14,14 @@ namespace vast::cg
         : visitor_base
         , default_decl_visitor
         , default_stmt_visitor
-        , default_type_visitor_with_dl
+        , cached_default_type_visitor
         , default_attr_visitor
     {
         default_visitor(mcontext_t &mctx, meta_generator &meta)
             : visitor_base(mctx, meta)
             , default_decl_visitor(visitor_view(*this))
             , default_stmt_visitor(visitor_view(*this))
-            , default_type_visitor_with_dl(visitor_view(*this))
+            , cached_default_type_visitor(visitor_view(*this))
             , default_attr_visitor(visitor_view(*this))
         {}
 
@@ -34,11 +34,11 @@ namespace vast::cg
         }
 
         mlir_type visit(const clang_type *type) override {
-            return default_type_visitor_with_dl::visit(type);
+            return cached_default_type_visitor::visit(type);
         }
 
         mlir_type visit(clang_qual_type type) override {
-            return default_type_visitor_with_dl::visit(type);
+            return cached_default_type_visitor::visit(type);
         }
 
         mlir_attr visit(const clang_attr *attr) override {
