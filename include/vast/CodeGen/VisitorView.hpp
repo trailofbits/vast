@@ -11,7 +11,7 @@ VAST_RELAX_WARNINGS
 #include <clang/AST/Type.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/CodeGen/CodeGenVisitor.hpp"
+#include "vast/CodeGen/CodeGenVisitorBase.hpp"
 
 namespace vast::cg {
 
@@ -42,6 +42,8 @@ namespace vast::cg {
 
         template< typename op_t >
         auto compose() { return builder().template compose< op_t >(); }
+
+        visitor_base *raw() { return &visitor; }
 
       protected:
         visitor_base &visitor;
