@@ -62,6 +62,33 @@ namespace vast::conv::abi
         {
             return contains_subtype< hl::RecordType >(type);
         }
+
+        // TODO(conv:abi): Figure out how to instead use some generic helper.
+        gap::generator< ll::StructGEPOp > field_ptrs(
+            operation root, auto loc, auto &bld
+        ) const {
+            auto module_op = root->getParentOfType< vast_module >();
+            VAST_ASSERT(module_op);
+            VAST_ASSERT(root->getNumResults() == 1);
+
+            auto trg_type = [&] {
+                auto root_type = root->getResultTypes()[0];
+                if (auto ptr_type = mlir::dyn_cast< hl::PointerType >(root_type))
+                    return ptr_type.getElementType();
+                return root_type;
+            }();
+
+            auto def = hl::definition_of(trg_type, module_op);
+            std::size_t idx = 0;
+            for (const auto &[name, type] : def.getFieldsInfo()) {
+                auto ptr_type = hl::PointerType::get(root->getContext(), type);
+                auto gep = bld.template create< ll::StructGEPOp >(
+                    loc, ptr_type, root->getResult(0), bld.getI32IntegerAttr(idx),
+                    bld.getStringAttr(name));
+                ++idx;
+                co_yield gep;
+            }
+        }
     };
 
     // TODO(conv:abi): Parametrize by materializer, which will resolve what dialect
@@ -279,17 +306,23 @@ namespace vast::conv::abi
             auto handle_field = [&](auto gep)
             {
                 auto field_type = gep.getType();
-                if (needs_nesting(field_type))
+                auto ptr_type = mlir::dyn_cast< hl::PointerType >(field_type);
+                VAST_ASSERT(ptr_type);
+                auto element_type = ptr_type.getElementType();
+
+                if (needs_nesting(element_type))
                     return self_t(state, mod).run_on(gep.getOperation(), rewriter);
 
-                auto rvalue = hl::implicit_cast_lvalue_to_rvalue(rewriter, gep.getLoc(), gep);
+                auto rvalue = rewriter.template create< ll::Load >(
+                    gep.getLoc(), element_type, gep) ;
+
                 state.adjust_by_align(rewriter, gep.getLoc(), rvalue.getType());
-                if (auto val = state.allocate(field_type, rewriter, rvalue))
+                if (auto val = state.allocate(element_type, rewriter, rvalue))
                     partials.push_back(*val);
             };
 
             auto loc = root->getLoc();
-            for (auto field_gep : hl::generate_ptrs_to_record_members(root, loc, rewriter))
+            for (auto field_gep : this->field_ptrs(root, loc, rewriter))
                 handle_field(field_gep);
         }
 
