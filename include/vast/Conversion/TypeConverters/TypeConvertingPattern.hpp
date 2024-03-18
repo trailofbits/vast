@@ -42,7 +42,7 @@ namespace vast::conv::tc {
 
             auto update = [&]() {
                 fn.setType(*trg_type);
-                if (fn->getNumRegions() != 0) {
+                if (!fn.empty() && fn->getNumRegions() != 0) {
                     fixup_entry_block(fn.front());
                 }
             };
