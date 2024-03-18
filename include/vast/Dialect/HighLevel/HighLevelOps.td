@@ -810,7 +810,7 @@ class CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< Trai
         TypesMatchWith<
           "underlying destination type match result type",
           "dst", "result",
-          "$_self.cast< LValueType >().getElementType()"
+          "$_self.cast< ElementTypeInterface >().getElementType()"
         >
     ])>
     // FIXME: add argument constraints and infer return type
