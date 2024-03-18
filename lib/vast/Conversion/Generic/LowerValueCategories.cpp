@@ -158,7 +158,6 @@ namespace vast::conv
             auto allocate(op_t op, auto &rewriter) const
             {
                 auto type = this->tc.convert_type_to_type(op.getType());
-                //auto memref_type = mlir::dyn_cast< mlir::MemRefType >(*type);
                 return rewriter.template create< ll::Alloca >(
                     op.getLoc(), *type);
             }
@@ -247,8 +246,7 @@ namespace vast::conv
             using base = base_pattern< op_t >;
 
             REWRITE {
-                rewriter.replaceAllUsesWith(op, ops.getOperands()[0]);
-                rewriter.eraseOp(op);
+                rewriter.replaceOp(op, ops.getOperands()[0]);
                 return mlir::success();
             }
         };
@@ -294,6 +292,7 @@ namespace vast::conv
 
             REWRITE {
                 auto new_op = rewriter.clone(*op);
+                new_op->setOperands(ops.getOperands());
                 for (auto v : new_op->getResults())
                     v.setType(this->convert(v.getType()));
                 rewriter.replaceOp(op, new_op);
@@ -311,8 +310,7 @@ namespace vast::conv
                 auto trg_type = this->convert(op.getResult().getType());
                 auto new_op = rewriter.create< ll::Subscript >(
                     op.getLoc(), trg_type, ops.getArray(), ops.getIndex());
-                rewriter.replaceAllUsesWith(op, new_op);
-                rewriter.eraseOp(op);
+                rewriter.replaceOp(op, new_op);
                 return mlir::success();
             }
         };
@@ -325,6 +323,7 @@ namespace vast::conv
             REWRITE {
                 rewriter.template create< ll::Store >(
                     op.getLoc(), ops.getElements()[0], ops.getVar());
+
                 rewriter.replaceOp(op, ops.getVar());
                 return mlir::success();
             }
@@ -373,9 +372,7 @@ namespace vast::conv
                         return value;
                 }();
 
-                rewriter.replaceAllUsesWith(op, yielded);
-                rewriter.eraseOp(op);
-
+                rewriter.replaceOp(op, yielded);
                 return logical_result::success();
             }
         };
@@ -400,10 +397,19 @@ namespace vast::conv
                 if (mlir::failed(this->base::matchAndRewrite(op, ops, rewriter)))
                     return mlir::failure();
 
-                auto update = [&] {
-                    op->setOperands(ops);
+                auto convert = [&](auto t)
+                {
+                    auto mt = this->get_type_converter().convert_type_to_type(t);
+                    VAST_ASSERT(mt);
+                    return *mt;
                 };
-                rewriter.updateRootInPlace(op, update);
+
+                auto new_op = rewriter.clone(*op);
+                new_op->setOperands(ops);
+                for (auto v : new_op->getResults())
+                    v.setType(convert(v.getType()));
+
+                rewriter.replaceOp(op, new_op);
                 return mlir::success();
 
             }
@@ -439,8 +445,9 @@ namespace vast::conv
             patterns.add< fallback >(tc, mctx);
             patterns.add< with_store< ll::ArgAlloca > >(mctx, tc);
             patterns.add< store_and_forward_ptr< ll::InitializeVar > >(mctx, tc);
-            patterns.add< ignore< hl::DeclRefOp > >(mctx, tc);
-            patterns.add< ignore< hl::Deref > >(mctx, tc);
+            patterns.add< ignore< hl::DeclRefOp >
+                        , ignore< hl::Deref >
+                        , ignore< hl::AddressOf > >(mctx, tc);
 
             patterns.add< assign< hl::AssignOp > >(mctx, tc);
             patterns.add< identity< ll::UninitializedVar > >(mctx, tc);
@@ -450,7 +457,7 @@ namespace vast::conv
             patterns.add< lvalue_to_rvalue_cast >(mctx, tc);
             patterns.add< array_to_pointer_decay_cast >(mctx, tc);
 
-            populate( unary_in_place_conversions{}, patterns, mctx, tc);
+            populate(unary_in_place_conversions{}, patterns, mctx, tc);
 
             auto trg = mlir::ConversionTarget(mctx);
 
@@ -466,13 +473,16 @@ namespace vast::conv
             // I am not sure why this is happening, quite possibly some pattern is doing
             // something that breaks some invariant, but for now this fix works.
             trg.addDynamicallyLegalOp< hl::ImplicitCastOp >([&](hl::ImplicitCastOp op) {
-                return op.getKind() != hl::CastKind::LValueToRValue;
+                return op.getKind() != hl::CastKind::LValueToRValue && is_legal(op);
             });
 
             trg.addIllegalOp<
                   ll::InitializeVar
                 , hl::PreIncOp, hl::PreDecOp
                 , hl::PostIncOp, hl::PreIncOp >();
+
+            // This will never have correct types but we want to have it legal.
+            trg.addLegalOp< mlir::UnrealizedConversionCastOp >();
 
             convert_function_types(tc);
             if (mlir::failed(mlir::applyPartialConversion(root, trg, std::move(patterns))))
