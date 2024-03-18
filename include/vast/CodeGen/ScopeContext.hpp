@@ -8,6 +8,7 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/ScopedHashTable.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/CodeGen/Mangler.hpp"
 #include "vast/CodeGen/VisitorView.hpp"
 
 #include <functional>
@@ -15,6 +16,8 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg
 {
+    using vast_function = vast::hl::FuncOp;
+
     template< typename From, typename To >
     struct scoped_table : llvm::ScopedHashTable< From, To >
     {
@@ -36,10 +39,26 @@ namespace vast::cg
         }
     };
 
+
+    using functions_scope_table = scoped_table< string_ref, vast_function >;
+
+
+    struct scope_tables
+    {
+        functions_scope_table functions;
+    };
+
+
+    template< typename From, typename To >
+    using symbol_table_scope = llvm::ScopedHashTableScope< From, To >;
+
+
     struct scope_context {
         using deferred_task = std::function< void() >;
 
-        explicit scope_context(scope_context *parent) : parent(parent) {};
+        explicit scope_context(scope_tables &scopes, scope_context *parent)
+            : scopes(&scopes), parent(parent)
+        {}
 
         virtual ~scope_context() { finalize(); }
 
@@ -60,6 +79,10 @@ namespace vast::cg
         scope_context &operator=(const scope_context &) = delete;
         scope_context &operator=(scope_context &&) noexcept = default;
 
+        void declare(vast_function function) {
+            scopes->functions.insert(function.getName(), function);
+        }
+
         void hook_child(std::unique_ptr< scope_context > &&child) {
             children.push_back(std::move(child));
         }
@@ -70,6 +93,7 @@ namespace vast::cg
 
         std::deque< deferred_task > deferred;
 
+        scope_tables *scopes = nullptr;
         scope_context *parent = nullptr;
         std::vector< std::unique_ptr< scope_context > > children;
     };
@@ -110,8 +134,17 @@ namespace vast::cg
     // outside of any block or list of parameters, the identifier has file
     // scope, which terminates at the end of the translation unit.
     struct module_scope : scope_context {
-        using scope_context::scope_context;
+        module_scope(
+              scope_tables &scopes
+            , scope_context *parent
+        )
+            : scope_context(scopes, parent)
+            , functions(scopes.functions)
+        {}
+
         virtual ~module_scope() = default;
+
+        symbol_table_scope< string_ref, vast_function > functions;
     };
 
     // Scope of member names for structures and unions
@@ -130,10 +163,11 @@ namespace vast::cg
         virtual ~scope_generator() = default;
 
         template< typename generator_t, typename what_t >
-        void generate_child(what_t &&what) {
-            this->hook_child(generate< generator_t >(
-                std::forward< what_t >(what), this, visitor)
-            );
+        auto generate_child(what_t &&what) {
+            auto child = generate< generator_t >(std::forward< what_t >(what), this, visitor);
+            auto result = child->result();
+            this->hook_child(std::move(child));
+            return result;
         }
 
         visitor_view visitor;
