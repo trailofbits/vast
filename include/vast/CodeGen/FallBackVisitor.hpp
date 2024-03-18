@@ -6,6 +6,7 @@
 #include "vast/Util/TypeList.hpp"
 
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/VisitorView.hpp"
 
 namespace vast::cg
 {
@@ -38,6 +39,8 @@ namespace vast::cg
         mlir_type visit(const clang_type *type) override { return visit_with_fallback(type); }
         mlir_attr visit(const clang_attr *attr) override { return visit_with_fallback(attr); }
         mlir_type visit(clang_qual_type type) override { return visit_with_fallback(type); }
+
+        visitor_view front() { return visitor_view(*visitors.front()); }
 
         visitor_stack visitors;
     };

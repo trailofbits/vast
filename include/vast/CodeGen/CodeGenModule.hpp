@@ -44,7 +44,6 @@ namespace vast::cg {
 
         acontext_t &actx;
         owning_module_ref mod;
-        dl::DataLayoutBlueprint dl;
         mangler_t mangler;
     };
 
