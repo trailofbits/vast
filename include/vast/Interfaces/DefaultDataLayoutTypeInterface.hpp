@@ -24,7 +24,11 @@ namespace vast
                               const mlir::DataLayout &dl,
                               mlir::DataLayoutEntryListRef entries)
     {
-        VAST_CHECK(entries.size() != 0, "Data layout query did not match to any dl entry!");
+        // First we try to find an exact match in the data layout entries.
+        auto casted_self = static_cast< const ConcreteType & >(self);
+        VAST_CHECK(
+            entries.size() != 0, "Data layout query for: {0} did not match to any dl entry!",
+            casted_self);
 
         std::optional< unsigned > out;
         auto handle_entry = [&](const auto &entry)
@@ -38,8 +42,6 @@ namespace vast
                        *out, current, entries.size());
         };
 
-        // First we try to find an exact match in the data layout entries.
-        auto casted_self = static_cast< const ConcreteType & >(self);
         for (const auto &entry : entries)
         {
             auto raw = dl::DLEntry(entry);
