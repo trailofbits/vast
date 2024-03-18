@@ -77,7 +77,9 @@ namespace vast::cg {
         )
             : base(visitor, scopes, mk_module_with_attrs(actx, mctx, lang), actx)
             , meta(meta)
-        {}
+        {
+            visitor.set_insertion_point_to_start(mod->getBody());
+        }
 
         virtual ~module_generator() = default;
 
