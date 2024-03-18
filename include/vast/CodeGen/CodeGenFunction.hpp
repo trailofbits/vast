@@ -11,6 +11,10 @@
 
 namespace vast::cg {
 
+    using linkage_kind = core::GlobalLinkageKind;
+    using mlir_visibility = mlir::SymbolTable::Visibility;
+    using mlir_attr_list = mlir::NamedAttrList;
+
     //
     // function generation
     //
@@ -56,7 +60,21 @@ namespace vast::cg {
         virtual ~prototype_generator() = default;
 
         vast_function emit(clang_function *decl);
-        vast_function emit(clang_function *decl, mlir_type fty);
+
+        vast_function declare(
+            loc_t loc,
+            mangled_name_ref name,
+            mlir_type fty,
+            linkage_kind linkage,
+            mlir_visibility visibility,
+            mlir_attr_list attrs
+        );
+
+        mlir_visibility get_function_visibility(
+            clang_function *decl, linkage_kind linkage
+        );
+
+        mlir_attr_list get_function_attrs(clang_function *decl);
     };
 
     //
