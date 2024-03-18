@@ -40,13 +40,25 @@ namespace vast::conv::pipeline {
         return pass(createHLToLLFuncPass);
     }
 
+    pipeline_step_ptr fn_args_to_alloca() {
+        // TODO add dependencies
+        return pass(createFnArgsToAllocaPass);
+    }
+
+    pipeline_step_ptr lower_value_categories() {
+        // TODO add dependencies
+        return pass(createLowerValueCategoriesPass);
+    }
+
     pipeline_step_ptr to_ll() {
         return compose( "to-ll",
             hl_to_ll_func,
             hl_to_ll_vars,
             hl_to_ll_cf,
-            lazy_regions,
-            hl_to_ll_geps
+            hl_to_ll_geps,
+            fn_args_to_alloca,
+            lower_value_categories,
+            lazy_regions
         );
     }
 
