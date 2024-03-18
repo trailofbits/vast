@@ -10,6 +10,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/DataLayout.hpp"
 #include "vast/CodeGen/CodeGenFunction.hpp"
 
+#include "vast/CodeGen/DefaultTypeVisitor.hpp"
+#include "vast/CodeGen/FallBackVisitor.hpp"
+
 namespace vast::cg
 {
     //
@@ -138,9 +141,55 @@ namespace vast::cg
         VAST_UNIMPLEMENTED;
     }
 
+    // TODO this should not be needed the data layout should be emitted from cached types directly
+    dl::DataLayoutBlueprint emit_datalayout_blueprint(
+        const clang::ASTContext &actx, const cached_default_type_visitor &type_visitor
+    ) {
+        dl::DataLayoutBlueprint dl;
+
+        auto store_layout = [&] (const clang_type *orig, mlir_type vast_type) {
+            if (orig->isFunctionType()) {
+                return;
+            }
+
+            // skip forward declared types
+            if (auto tag = orig->getAsTagDecl()) {
+                if (!tag->isThisDeclarationADefinition()) {
+                    return;
+                }
+            }
+
+            dl.try_emplace(vast_type, orig, actx);
+        };
+
+        for (auto [orig, vast_type] : type_visitor.cache) {
+            store_layout(orig, vast_type);
+        }
+
+        for (auto [qual_type, vast_type] : type_visitor.qual_cache) {
+            auto [orig, quals] = qual_type.split();
+            store_layout(orig, vast_type);
+        }
+
+        return dl;
+    }
+
     void module_generator::emit_data_layout() {
         auto mctx = mod.get()->getContext();
-        vast::cg::emit_data_layout(*mctx, mod, dl);
+
+        auto default_visitor = [&] {
+            if (auto fallback = dynamic_cast< fallback_visitor* >(visitor.raw())) {
+                return fallback->front();
+            }
+
+            return visitor;
+        } ();
+
+
+        if (auto type_visitor = dynamic_cast< cached_default_type_visitor* >(default_visitor.raw())) {
+            auto dl = emit_datalayout_blueprint(actx, *type_visitor);
+            vast::cg::emit_data_layout(*mctx, mod, dl);
+        }
     }
 
     void module_generator::finalize() {
