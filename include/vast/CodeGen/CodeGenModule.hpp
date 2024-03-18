@@ -31,8 +31,13 @@ namespace vast::cg {
     void set_source_language(owning_module_ref &mod, source_language lang);
 
     struct module_context : module_scope {
-        explicit module_context(owning_module_ref mod, acontext_t &actx, scope_context *parent = nullptr)
-            : module_scope(parent)
+        explicit module_context(
+              scope_tables &scopes
+            , owning_module_ref mod
+            , acontext_t &actx
+            , scope_context *parent = nullptr
+        )
+            : module_scope(scopes, parent)
             , actx(actx)
             , mod(std::move(mod))
             , mangler(actx.createMangleContext())
@@ -63,11 +68,14 @@ namespace vast::cg {
         using base = scope_generator< module_context >;
 
         explicit module_generator(
-            acontext_t &actx, mcontext_t &mctx, source_language lang,
-            meta_generator &meta,
-            visitor_view visitor
+              acontext_t &actx
+            , mcontext_t &mctx
+            , source_language lang
+            , scope_tables &scopes
+            , meta_generator &meta
+            , visitor_view visitor
         )
-            : base(visitor, mk_module_with_attrs(actx, mctx, lang), actx)
+            : base(visitor, scopes, mk_module_with_attrs(actx, mctx, lang), actx)
             , meta(meta)
         {}
 
@@ -87,6 +95,7 @@ namespace vast::cg {
         bool verify();
         void finalize();
     private:
+
         [[maybe_unused]] meta_generator &meta;
     };
 

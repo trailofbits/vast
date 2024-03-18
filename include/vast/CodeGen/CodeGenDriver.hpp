@@ -39,8 +39,13 @@ namespace vast::cg {
             , mctx(mk_mcontext())
             , meta(mk_meta_generator(actx, *mctx, vargs))
             , visitor(mk_visitor(vargs, *mctx, *meta))
-            , generator(actx, *mctx, cc::get_source_language(opts.lang), *meta, visitor_view(*visitor))
-        {}
+            , generator(
+                  actx, *mctx,
+                  cc::get_source_language(opts.lang),
+                  scopes, *meta,
+                  visitor_view(*visitor)
+              )
+            {}
 
         void emit(clang::DeclGroupRef decls);
         void emit(clang::Decl *decl);
@@ -58,6 +63,8 @@ namespace vast::cg {
         //
         acontext_t &actx;
         std::unique_ptr< mcontext_t > mctx;
+
+        scope_tables scopes;
 
         //
         // generators
