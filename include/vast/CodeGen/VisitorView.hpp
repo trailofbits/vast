@@ -43,6 +43,14 @@ namespace vast::cg {
         template< typename op_t >
         auto compose() { return builder().template compose< op_t >(); }
 
+        insertion_guard insertion_guard() { return visitor.insertion_guard(); }
+
+        void set_insertion_point_to_start(region_ptr region) { visitor.set_insertion_point_to_start(region); }
+        void set_insertion_point_to_end(region_ptr region)   { visitor.set_insertion_point_to_end(region); }
+
+        void set_insertion_point_to_start(block_ptr block) { visitor.set_insertion_point_to_start(block); }
+        void set_insertion_point_to_end(block_ptr block)   { visitor.set_insertion_point_to_end(block); }
+
         visitor_base *raw() { return &visitor; }
 
       protected:

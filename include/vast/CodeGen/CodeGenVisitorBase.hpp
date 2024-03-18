@@ -66,6 +66,23 @@ namespace vast::cg {
         loc_t location(const auto *node) const { return meta.location(node); }
 
         codegen_builder& builder() { return bld; }
+        insertion_guard insertion_guard() { return { builder() }; }
+
+        void set_insertion_point_to_start(region_ptr region) {
+            set_insertion_point_to_start(&region->front());
+        }
+
+        void set_insertion_point_to_end(region_ptr region) {
+            set_insertion_point_to_end(&region->back());
+        }
+
+        void set_insertion_point_to_start(block_ptr block) {
+            bld.setInsertionPointToStart(block);
+        }
+
+        void set_insertion_point_to_end(block_ptr block) {
+            bld.setInsertionPointToEnd(block);
+        }
 
       protected:
         mcontext_t &mctx;
