@@ -138,7 +138,7 @@ namespace vast
                 return out;
             }
 
-            core::FunctionType abified_type()
+            core::FunctionType abified_type(bool is_var_arg=false)
             {
                 auto add_lvalue = [&](const auto &from)
                 {
@@ -148,8 +148,8 @@ namespace vast
                     return out;
                 };
 
-                return  core::FunctionType::get(add_lvalue(abified_args()),
-                                                abified_rets());
+                return core::FunctionType::get(add_lvalue(abified_args()),
+                                               abified_rets(), is_var_arg);
             }
 
             // TODO(conv:abi): Can be replaced with `llvm::zip`? Will work with
@@ -163,7 +163,6 @@ namespace vast
                     yield(*a_it, *b_it);
                     ++a_it; ++b_it;
                 }
-                VAST_ASSERT(a_it == a.end() && b_it == b.end());
             }
 
             void zip_ret(const auto &abi, const auto &results, const auto &concretes,
@@ -194,6 +193,15 @@ namespace vast
                 }
             }
 
+            gap::generator< mlir_value > var_args(auto call, auto abi_args_size) {
+                auto args = call.getOperands();
+                if (std::ranges::size(args) <= abi_args_size)
+                    co_return;
+
+                auto it = std::next(args.begin(), abi_args_size);
+                for (; it != args.end(); ++it)
+                    co_yield *it;
+            }
         };
 
         template< typename op_t >
@@ -230,7 +238,7 @@ namespace vast
                         // Temporal, to avoid verification issues, will be changed once
                         // original func is removed.
                         conv::abi::abi_func_name_prefix + op.getName().str(),
-                        this->abified_type(),
+                        this->abified_type(op.isVarArg()),
                         core::GlobalLinkageKind::InternalLinkage,
                         other_attrs,
                         arg_attrs
@@ -409,6 +417,21 @@ namespace vast
 
             using values_t = std::vector< mlir::Value >;
 
+            auto get_callee() -> mlir::FunctionOpInterface {
+                auto caller = mlir::dyn_cast< mlir::CallOpInterface >(*op);
+                auto callee = mlir::dyn_cast< mlir::FunctionOpInterface >(
+                    caller.resolveCallable());
+                VAST_ASSERT(callee);
+                return callee;
+            }
+
+            bool is_var_arg() {
+                auto type = get_callee().getFunctionType();
+                auto fn_type = mlir::dyn_cast< core::FunctionType >(type);
+                VAST_ASSERT(fn_type);
+                return fn_type.isVarArg();
+            }
+
             template< typename Impl >
             auto mk_direct(auto &bld, auto loc,
                            const abi::direct &arg, values_t concrete_args)
@@ -498,6 +521,10 @@ namespace vast
                         return { cooked_args.begin(), cooked_args.end() };
                     }();
 
+                    if (is_var_arg())
+                        for (auto v : this->var_args(op, this->abified_args().size()))
+                            args.push_back(v);
+
                     auto call = bld.template create< abi::CallOp >(
                             loc,
                             op.getCallee(),
@@ -538,7 +565,7 @@ namespace vast
                         std::visit(dispatch, arg_info.style);
                     };
 
-                    this->zip(abi_info.args(), op.getArgOperands(), process);
+                    this->zip(abi_info.args(), op.getOperands(), process);
 
                     bld.template create< abi::YieldOp >(
                         loc,
