@@ -6,6 +6,7 @@ add_vast_library(CodeGen
     CodeGenDriver.cpp
 
     DefaultAttrVisitor.cpp
+    DefaultDeclVisitor.cpp
     DefaultStmtVisitor.cpp
     DefaultTypeVisitor.cpp
 
