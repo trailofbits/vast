@@ -483,7 +483,9 @@ namespace vast::conv::irstollvm
             // TODO(lukas): Linkage?
             auto linkage = LLVM::Linkage::External;
             auto new_func = rewriter.create< LLVM::LLVMFuncOp >(
-                func_op.getLoc(), func_op.getName(), target_type, linkage, false, LLVM::CConv::C
+                func_op.getLoc(), func_op.getName(),
+                target_type, linkage,
+                func_op.isVarArg(), LLVM::CConv::C
             );
             rewriter.inlineRegionBefore(func_op.getBody(), new_func.getBody(), new_func.end());
             tc::convert_region_types(func_op, new_func, signature);
@@ -499,10 +501,6 @@ namespace vast::conv::irstollvm
                 mlir::LLVM::LLVMFuncOp fn,
                 conversion_rewriter &rewriter) const
         {
-            // TODO(lukas): Missing support in hl.
-            if (fn.isVarArg())
-                return logical_result::failure();
-
             if (fn.empty())
                 return logical_result::success();
 
