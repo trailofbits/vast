@@ -13,11 +13,16 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg {
 
-    struct default_decl_visitor
+    struct default_decl_visitor : decl_visitor_base< default_decl_visitor >
     {
         explicit default_decl_visitor(visitor_view self) : self(self) {}
 
-        operation visit(const clang_decl *decl) { return {}; }
+        using decl_visitor_base< default_decl_visitor >::Visit;
+
+        operation visit(const clang_decl *decl) { return Visit(decl); }
+        operation visit_prototype(const clang::FunctionDecl *decl);
+
+        operation VisitFunctionDecl(const clang::FunctionDecl *decl);
 
       private:
         visitor_view self;
