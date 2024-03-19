@@ -88,7 +88,7 @@ namespace vast::cg {
         mcontext_t &mctx;
         meta_generator &meta;
 
-        // TODO figure out how to make scoped visitor that initilizes builder to
+        // TODO figure out how to make scoped visitor that initiliazes builder to
         // specific scopes
         codegen_builder bld;
     };
