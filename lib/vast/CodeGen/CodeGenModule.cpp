@@ -134,7 +134,7 @@ namespace vast::cg
     }
 
     void module_generator::emit(clang::FunctionDecl *decl) {
-        generate_child< function_generator >(decl);
+        make_child< function_generator >().emit(decl);
     }
 
     void module_generator::emit(clang::VarDecl */* decl */) {

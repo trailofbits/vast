@@ -39,13 +39,15 @@ namespace vast::cg
         }
     };
 
+    using clang_var_decl = clang::VarDecl;
 
-    using functions_scope_table = scoped_table< string_ref, vast_function >;
+    // TODO why is this name and not function?
+    using funs_scope_table = scoped_table< string_ref, operation >;
+    using vars_scope_table = scoped_table< clang_var_decl*, mlir_value >;
 
-
-    struct scope_tables
+    struct symbol_tables
     {
-        functions_scope_table functions;
+        funs_scope_table funs;
     };
 
 
@@ -56,8 +58,8 @@ namespace vast::cg
     struct scope_context {
         using deferred_task = std::function< void() >;
 
-        explicit scope_context(scope_tables &scopes, scope_context *parent)
-            : scopes(&scopes), parent(parent)
+        scope_context(symbol_tables &symbols, scope_context *parent = nullptr)
+            : symbols(symbols), parent(parent)
         {}
 
         virtual ~scope_context() { finalize(); }
@@ -74,17 +76,23 @@ namespace vast::cg
         }
 
         scope_context(const scope_context &) = delete;
-        scope_context(scope_context &&other) noexcept = default;
+        scope_context(scope_context &&other) noexcept = delete;
 
         scope_context &operator=(const scope_context &) = delete;
-        scope_context &operator=(scope_context &&) noexcept = default;
+        scope_context &operator=(scope_context &&) noexcept = delete;
 
         void declare(vast_function function) {
-            scopes->functions.insert(function.getName(), function);
+            symbols.funs.insert(function.getName(), function);
         }
 
-        void hook_child(std::unique_ptr< scope_context > &&child) {
+        void hook_child(std::unique_ptr< scope_context > child) {
+            child->parent = this;
             children.push_back(std::move(child));
+        }
+
+        template< typename scope_generator_t >
+        scope_generator_t& last_child() {
+            return *static_cast< scope_generator_t* >(children.back().get());
         }
 
         void defer(deferred_task task) {
@@ -93,7 +101,7 @@ namespace vast::cg
 
         std::deque< deferred_task > deferred;
 
-        scope_tables *scopes = nullptr;
+        symbol_tables &symbols;
         scope_context *parent = nullptr;
         std::vector< std::unique_ptr< scope_context > > children;
     };
@@ -105,7 +113,10 @@ namespace vast::cg
     // definition, the identifier has block scope, which terminates at the end
     // of the associated block.
     struct block_scope : scope_context {
-        using scope_context::scope_context;
+        block_scope(symbol_tables &symbols, scope_context *parent = nullptr)
+            : scope_context(symbols, parent)
+        {}
+
         virtual ~block_scope() = default;
     };
 
@@ -134,17 +145,14 @@ namespace vast::cg
     // outside of any block or list of parameters, the identifier has file
     // scope, which terminates at the end of the translation unit.
     struct module_scope : scope_context {
-        module_scope(
-              scope_tables &scopes
-            , scope_context *parent
-        )
-            : scope_context(scopes, parent)
-            , functions(scopes.functions)
+        module_scope(symbol_tables &symbols, scope_context *parent)
+            : scope_context(symbols, parent)
+            , functions(symbols.funs)
         {}
 
         virtual ~module_scope() = default;
 
-        symbol_table_scope< string_ref, vast_function > functions;
+        symbol_table_scope< string_ref, operation > functions;
     };
 
     // Scope of member names for structures and unions
@@ -152,25 +160,6 @@ namespace vast::cg
     struct members_scope : scope_context {
         using scope_context::scope_context;
         virtual ~members_scope() = default;
-    };
-
-    template< typename context >
-    struct scope_generator : context {
-        scope_generator(visitor_view visitor, auto &&...args)
-            : context(std::forward< decltype(args) >(args)...), visitor(visitor)
-        {}
-
-        virtual ~scope_generator() = default;
-
-        template< typename generator_t, typename what_t >
-        auto generate_child(what_t &&what) {
-            auto child = generate< generator_t >(std::forward< what_t >(what), this, visitor);
-            auto result = child->result();
-            this->hook_child(std::move(child));
-            return result;
-        }
-
-        visitor_view visitor;
     };
 
 } // namespace vast::cg
