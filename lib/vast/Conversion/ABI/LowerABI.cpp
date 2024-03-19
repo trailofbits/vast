@@ -217,19 +217,13 @@ namespace vast
                 auto as_lvalue = [&]() -> mlir::Operation *
                 {
                     VAST_ASSERT(val->getNumResults() == 1);
-                    auto as_val = val->getResult(0);
-                    if (mlir::isa< hl::LValueType >(as_val.getType()))
-                        return val;
-
-                    if (auto implicit_cast = mlir::dyn_cast< hl::ImplicitCastOp >(val))
-                    {
-                        if (implicit_cast.getKind() == hl::CastKind::LValueToRValue)
-                        {
-                            return implicit_cast.getOperand().getDefiningOp();
-                        }
-                    }
-
-                    VAST_UNREACHABLE("ABI conversion could not make lvalue for {0}", *val);
+                    auto mctx = direct.getContext();
+                    auto type = hl::PointerType::get(
+                        mctx, direct.getOperand(0).getType());
+                    auto memory = state.rewriter.template create< ll::UninitializedVar >(
+                        direct.getLoc(), type);
+                    return state.rewriter.template create< ll::InitializeVar >(
+                        direct.getLoc(), type, memory, direct.getOperand(0));
                 }();
 
                 return conv::abi::deconstruct_aggregate(pattern, direct, as_lvalue,
@@ -247,31 +241,9 @@ namespace vast
                                          target_type),
                            "Cannot do concat when converting {0}", direct);
 
-                auto stripped_lvalues = [&]()
-                {
-                    std::vector< mlir::Value > out;
-                    for (auto v : direct.getOperands())
-                    {
-                        auto lvalue_type = mlir::dyn_cast< hl::LValueType >(v.getType());
-                        if (!lvalue_type)
-                        {
-                            out.push_back(v);
-                            continue;
-                        }
-
-                        auto cast = state.rewriter.template create< hl::ImplicitCastOp >(
-                                direct.getLoc(),
-                                lvalue_type.getElementType(),
-                                v,
-                                hl::CastKind::LValueToRValue);
-                        out.push_back(cast);
-                    }
-                    return out;
-                }();
-
                 return state.rewriter.template create< ll::Concat >(
                         direct.getLoc(),
-                        target_type, stripped_lvalues);
+                        target_type, direct.getOperands());
             }
 
             auto convert(mlir::Type target_type, abi::DirectOp direct)
