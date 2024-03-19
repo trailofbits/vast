@@ -15,6 +15,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/DataLayout.hpp"
 
 #include "vast/CodeGen/ScopeContext.hpp"
+#include "vast/CodeGen/ScopeGenerator.hpp"
 #include "vast/CodeGen/VisitorView.hpp"
 #include "vast/CodeGen/CodeGenMeta.hpp"
 
@@ -32,7 +33,7 @@ namespace vast::cg {
 
     struct module_context : module_scope {
         explicit module_context(
-              scope_tables &scopes
+              symbol_tables &scopes
             , owning_module_ref mod
             , acontext_t &actx
             , scope_context *parent = nullptr
@@ -71,7 +72,7 @@ namespace vast::cg {
               acontext_t &actx
             , mcontext_t &mctx
             , source_language lang
-            , scope_tables &scopes
+            , symbol_tables &scopes
             , meta_generator &meta
             , visitor_view visitor
         )

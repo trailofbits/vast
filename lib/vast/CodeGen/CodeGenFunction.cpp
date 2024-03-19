@@ -15,27 +15,16 @@ VAST_UNRELAX_WARNINGS
 namespace vast::cg
 {
    vast_function function_generator::emit(clang_function *decl) {
-        if (decl->getAttr< clang::ConstructorAttr >()) {
-            return {}; // Unsupported
-        }
+        auto &prototype_scope = make_child< prototype_generator >();
+        auto prototype = prototype_scope.emit(decl);
 
-        if (decl->getAttr< clang::DestructorAttr >()) {
-            return {}; // Unsupported
-        }
+        defer([=] {
+            auto &body = make_child< body_generator >();
+            // TODO pass prototype to body generator
+            body.emit(decl);
+        });
 
-        if (decl->isMultiVersion()) {
-            return {}; // Unsupported
-        }
-
-        if (llvm::dyn_cast< clang::CXXMethodDecl >(decl)) {
-            return {}; // Unsupported
-        }
-
-        auto ctx = dynamic_cast< module_context* >(parent);
-        VAST_CHECK(ctx, "function generator must be a child of a module context");
-        function = generate_child< prototype_generator >(decl);
-        defer([=] { generate_child< body_generator >(decl); });
-        return function;
+        return prototype;
     }
 
     vast_function prototype_generator::emit(clang_function *decl) {
@@ -49,7 +38,7 @@ namespace vast::cg
         if (auto proto = get_global_value(mod, clang_global(decl))) {
             VAST_ASSERT(mlir::isa< vast_function >(proto));
             VAST_ASSERT(mlir::cast< vast_function >(proto).getFunctionType() == fty);
-            function = mlir::cast< vast_function >(proto);
+            return mlir::cast< vast_function >(proto);
         } else {
             auto loc = visitor.location(decl);
             auto mangled_name = get_mangled_name(mod, decl);
@@ -57,12 +46,10 @@ namespace vast::cg
             auto visibility = get_function_visibility(decl, linkage);
             auto attrs = get_function_attrs(decl);
 
-            function = declare(
+            return declare(
                 loc, mangled_name, fty, linkage, visibility, std::move(attrs)
             );
         }
-
-        return function;
     }
 
     vast_function prototype_generator::declare(

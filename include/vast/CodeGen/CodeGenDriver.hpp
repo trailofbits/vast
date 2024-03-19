@@ -64,7 +64,7 @@ namespace vast::cg {
         acontext_t &actx;
         std::unique_ptr< mcontext_t > mctx;
 
-        scope_tables scopes;
+        symbol_tables scopes;
 
         //
         // generators
