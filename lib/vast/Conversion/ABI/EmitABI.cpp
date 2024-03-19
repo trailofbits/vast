@@ -142,16 +142,7 @@ namespace vast
 
             core::FunctionType abified_type(bool is_var_arg=false)
             {
-                auto add_lvalue = [&](const auto &from)
-                {
-                    types_t out;
-                    for (auto t : from)
-                        out.push_back(hl::LValueType::get(t.getContext(), t));
-                    return out;
-                };
-
-                return core::FunctionType::get(add_lvalue(abified_args()),
-                                               abified_rets(), is_var_arg);
+                return  core::FunctionType::get(abified_args(), abified_rets(), is_var_arg);
             }
 
             // TODO(conv:abi): Can be replaced with `llvm::zip`? Will work with
