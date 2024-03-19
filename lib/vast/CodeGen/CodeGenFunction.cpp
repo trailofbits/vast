@@ -15,6 +15,22 @@ VAST_UNRELAX_WARNINGS
 namespace vast::cg
 {
    vast_function function_generator::emit(clang_function *decl) {
+        if (decl->getAttr< clang::ConstructorAttr >()) {
+            return {}; // Unsupported
+        }
+
+        if (decl->getAttr< clang::DestructorAttr >()) {
+            return {}; // Unsupported
+        }
+
+        if (decl->isMultiVersion()) {
+            return {}; // Unsupported
+        }
+
+        if (llvm::dyn_cast< clang::CXXMethodDecl >(decl)) {
+            return {}; // Unsupported
+        }
+
         auto ctx = dynamic_cast< module_context* >(parent);
         VAST_CHECK(ctx, "function generator must be a child of a module context");
         function = generate_child< prototype_generator >(decl);
