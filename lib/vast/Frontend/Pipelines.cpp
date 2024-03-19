@@ -54,7 +54,7 @@ namespace vast::cc {
 
         conversion_path default_conversion_path = {
             { target_dialect::high_level, { reduce_high_level } },
-            { target_dialect::std, { standard_types, abi } },
+            { target_dialect::std, { standard_types } },
             { target_dialect::llvm, { llvm } }
         };
 
