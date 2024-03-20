@@ -24,6 +24,68 @@ def LowLevel_StructGEPOp
     let description = [{ VAST struct gep operation }];
 }
 
+def Subscript
+    : LowLevel_Op< "subscript" >
+    , Arguments<(ins
+        AnyType:$array,
+        AnyType:$index)>
+    , Results<(outs AnyType:$result)>
+{
+  let summary = "VAST array subscript operator";
+  let description = [{ VAST array subscript operator }];
+
+  let assemblyFormat = [{
+    $array `at` ` ` `[` $index `:` type($index) `]` attr-dict
+      `:` type($array) `->` type($result)
+  }];
+}
+
+def ArgAlloca
+    : LowLevel_Op< "arg_alloca" >,
+      Arguments<(ins AnyType:$fn_arg)>,
+      Results<(outs AnyType:$result)>
+{
+    let summary = "Alloca that holds the function argument.";
+
+    let assemblyFormat = [{
+        operands attr-dict `:` functional-type(operands, results)
+    }];
+}
+
+def Alloca
+    : LowLevel_Op< "alloca" >,
+      Results<(outs AnyType:$result)>
+{
+    let summary = "Alloca for a piece of memory. For now does not support array types.";
+
+    let assemblyFormat = [{
+        attr-dict `:` type($result)
+    }];
+}
+
+def Load
+    : LowLevel_Op< "load" >,
+      Arguments<(ins AnyType:$ptr)>,
+      Results<(outs AnyType:$result)>
+{
+    let summary = "Load.";
+
+    let assemblyFormat = [{
+        operands attr-dict `:` functional-type(operands, results)
+    }];
+}
+
+def Store
+    : LowLevel_Op< "store" >,
+      Arguments<(ins AnyType:$val, AnyType:$ptr)>
+{
+    let summary = "Store.";
+
+    let assemblyFormat = [{
+        operands attr-dict `:` functional-type(operands, results)
+    }];
+}
+
 def UninitializedVar
     : LowLevel_Op< "uninitialized_var", [VastSymbol] >
     , Results<(outs AnyType:$result)>
@@ -286,6 +348,14 @@ def LowLevel_FuncOp : Core_FuncBaseOp< LowLevel_Dialect, "func", [] >
       InsertionGuard guard($_builder);
       build_region($_builder, $_state, body);
 
+      $_state.addAttribute(
+        mlir::SymbolTable::getSymbolAttrName(), $_builder.getStringAttr(name)
+      );
+      $_state.addAttribute(getFunctionTypeAttrName($_state.name), mlir::TypeAttr::get(type));
+      $_state.addAttribute(
+        "linkage", core::GlobalLinkageKindAttr::get($_builder.getContext(), linkage)
+      );
+
       $_state.attributes.append(attrs.begin(), attrs.end());
 
       if (arg_attrs.empty())
@@ -294,6 +364,26 @@ def LowLevel_FuncOp : Core_FuncBaseOp< LowLevel_Dialect, "func", [] >
       mlir::function_interface_impl::addArgAndResultAttrs(
         $_builder, $_state, arg_attrs, res_attrs,
         getArgAttrsAttrName($_state.name), getResAttrsAttrName($_state.name)
+      );
+    }] >,
+
+    OpBuilder< (ins
+      "llvm::ArrayRef<mlir::NamedAttribute>":$attrs,
+      CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
+      CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$res_attrs,
+      CArg< "BuilderCallback", "std::nullopt" >:$body), [{
+
+        InsertionGuard guard($_builder);
+        build_region($_builder, $_state, body);
+
+        $_state.attributes.append(attrs.begin(), attrs.end());
+
+        if (arg_attrs.empty())
+          return;
+
+        mlir::function_interface_impl::addArgAndResultAttrs(
+          $_builder, $_state, arg_attrs, res_attrs,
+          getArgAttrsAttrName($_state.name), getResAttrsAttrName($_state.name)
       );
     }] >
   ];

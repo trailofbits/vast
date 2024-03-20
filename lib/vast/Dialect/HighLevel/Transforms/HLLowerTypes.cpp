@@ -37,7 +37,7 @@ namespace vast::hl
     using type_converter_t = conv::tc::HLToStd;
 
     namespace pattern {
-        using lower_type = conv::tc::hl_type_converting_pattern< type_converter_t >;
+        using lower_type = conv::tc::generic_type_converting_pattern< type_converter_t >;
     } // namespace pattern
 
     struct HLLowerTypesPass : HLLowerTypesBase< HLLowerTypesPass >

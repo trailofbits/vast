@@ -6,6 +6,7 @@
 
 VAST_RELAX_WARNINGS
 #include <mlir/Dialect/SCF/IR/SCF.h>
+#include <mlir/Dialect/MemRef/IR/MemRef.h>
 
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/Operation.h>
@@ -58,6 +59,10 @@ namespace vast
     std::unique_ptr< mlir::Pass > createHLToLLFuncPass();
 
     std::unique_ptr< mlir::Pass > createHLToHLBI();
+
+    std::unique_ptr< mlir::Pass > createFnArgsToAllocaPass();
+
+    std::unique_ptr< mlir::Pass > createLowerValueCategoriesPass();
 
     // Generate the code for registering passes.
     #define GEN_PASS_REGISTRATION

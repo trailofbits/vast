@@ -29,11 +29,10 @@ namespace vast::conv::hltollfunc
                 op.getAllArgAttrs(arg_attrs);
                 op.getAllResultAttrs(res_attrs);
 
+
+
                 auto fn = rewriter.create< ll::FuncOp >(
                     op.getLoc(),
-                    adaptor.getSymName(),
-                    adaptor.getFunctionType(),
-                    adaptor.getLinkage(),
                     op->getAttrs(),
                     arg_attrs,
                     res_attrs

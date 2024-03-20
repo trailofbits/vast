@@ -59,7 +59,38 @@ def IRsToLLVM : Pass<"vast-irs-to-llvm", "mlir::ModuleOp"> {
   let constructor = "vast::createIRsToLLVMPass()";
   let dependentDialects = [
     "mlir::LLVM::LLVMDialect",
+    "vast::core::CoreDialect",
+    "vast::ll::LowLevelDialect",
+    "vast::hl::HighLevelDialect",
+  ];
+}
+
+def FnArgsToAlloca : Pass<"vast-fn-args-to-alloca", "mlir::ModuleOp"> {
+  let summary = "VAST to LLVM Dialect conversion";
+  let description = [{
+    For each function emit its prologue - for each argument make an alloca
+    and store the corresponding argument in it.
+  }];
+
+  let constructor = "vast::createFnArgsToAllocaPass()";
+  let dependentDialects = [
+    "vast::ll::LowLevelDialect",
     "vast::core::CoreDialect"
+  ];
+}
+
+def LowerValueCategories : Pass<"vast-lower-value-categories", "mlir::ModuleOp"> {
+  let summary = "Lower `hl.lvalue` into explicit pointers and loads.";
+  let description = [{
+    Lower `hl.lvalue` into explicit memory. This changes types to pointers and emits
+    explicit load operations.
+  }];
+
+  let constructor = "vast::createLowerValueCategoriesPass()";
+  let dependentDialects = [
+    "vast::ll::LowLevelDialect",
+    "vast::hl::HighLevelDialect",
+    "mlir::memref::MemRefDialect"
   ];
 }
 
