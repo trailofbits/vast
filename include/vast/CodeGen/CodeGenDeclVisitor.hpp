@@ -332,18 +332,9 @@ namespace vast::cg {
         operation VisitFunctionLikeDecl(const Decl *decl) {
             auto gdecl = get_gdecl(decl);
             auto mangled = context().get_mangled_name(gdecl);
-
-            if (auto fn = context().lookup_function(mangled, false /* emit no error */)) {
-                return fn;
-            }
-
-            auto guard = insertion_guard();
             auto is_definition = decl->isThisDeclarationADefinition();
-
-            // emit definition instead of declaration
-            if (!is_definition && decl->getDefinition()) {
-                return visit(decl->getDefinition());
-            }
+            auto fn = context().lookup_function(mangled, false /* emit no error */);
+            auto guard = insertion_guard();
 
             auto is_terminator = [] (auto &op) {
                 return op.template hasTrait< mlir::OpTrait::IsTerminator >() ||
@@ -354,13 +345,13 @@ namespace vast::cg {
                 // In MLIR the entry block of the function must have the same
                 // argument list as the function itself.
                 // FIXME: driver solves this already
-                auto params = llvm::zip(decl->getDefinition()->parameters(), entry->getArguments());
+                auto params = llvm::zip(decl->parameters(), entry->getArguments());
                 for (const auto &[arg, earg] : params) {
                     context().declare(arg, mlir_value(earg));
                 }
             };
 
-            auto emit_function_terminator = [&] (auto fn) {
+            auto emit_function_terminator = [&] () {
                 auto loc = fn.getLoc();
                 if (decl->getReturnType()->isVoidType()) {
                     auto void_val = constant(loc);
@@ -377,7 +368,7 @@ namespace vast::cg {
                 }
             };
 
-            auto emit_function_body = [&] (auto fn) {
+            auto emit_function_body = [&] () {
                 auto entry = fn.addEntryBlock();
                 set_insertion_point_to_start(entry);
 
@@ -430,32 +421,38 @@ namespace vast::cg {
                     || !last_op
                     || !is_terminator(*last_op))
                 {
-                    emit_function_terminator(fn);
+                    emit_function_terminator();
                 }
             };
 
             llvm::ScopedHashTableScope scope(context().vars);
 
-            auto linkage = core::get_function_linkage(gdecl);
+            auto def  = decl->getDefinition();
+            auto linkage = core::get_function_linkage(def ? get_gdecl(def) : gdecl);
+            
+            if (!fn) {
+                fn = context().declare(mangled, [&] () {
+                    auto loc  = meta_location(decl);
+                    auto type = visit_function_type(decl->getFunctionType(), decl->isVariadic());
+                    
+                    // make function header, that will be later filled with function body
+                    // or returned as declaration in the case of external function
+                    auto ret = make< hl::FuncOp >(loc, mangled.name, type, linkage);
 
-            auto fn = context().declare(mangled, [&] () {
-                auto loc  = meta_location(decl);
-                auto type = visit_function_type(decl->getFunctionType(), decl->isVariadic());
-                // make function header, that will be later filled with function body
-                // or returned as declaration in the case of external function
-                return make< hl::FuncOp >(loc, mangled.name, type, linkage);
-            });
+                    // MLIR requires declrations to have private visibility
+                    ret.setVisibility(mlir::SymbolTable::Visibility::Private);
+
+                    return ret;
+                });
+            }
 
             if (!is_definition) {
-                // MLIR requires declrations to have private visibility
-                fn.setVisibility(mlir::SymbolTable::Visibility::Private);
                 return fn;
             }
 
             fn.setVisibility(core::get_visibility_from_linkage(linkage));
-
             if (fn.empty()) {
-                emit_function_body(fn);
+                emit_function_body();
             }
 
             return fn;
@@ -564,12 +561,10 @@ namespace vast::cg {
         // operation VisitLinkageSpecDecl(const clang::LinkageSpecDecl *decl)
 
         operation VisitTranslationUnitDecl(const clang::TranslationUnitDecl *tu) {
-            auto loc = meta_location(tu);
-            return derived().template make_scoped< TranslationUnitScope >(loc, [&] {
-                for (const auto &decl : tu->decls()) {
-                    visit(decl);
-                }
-            });
+            for (const auto &decl : tu->decls()) {
+                visit(decl);
+            }
+            return {};
         }
 
         // operation VisitTypedefNameDecl(const clang::TypedefNameDecl *decl)

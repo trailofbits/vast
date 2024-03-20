@@ -167,6 +167,11 @@ class IsMaybeWrappedTypedef< string arg > : PredOpTrait<
     CPred< "::vast::hl::strip_elaborated($" # arg # ").hasTrait< mlir::TypeTrait::TypedefTrait >()" >
 >;
 
+class IsMaybeWrappedEnum< string arg > : PredOpTrait<
+    "type is an enum, maybe wrapped in the elaborated type",
+    CPred< "::vast::hl::strip_elaborated($" # arg # ").isa< ::vast::hl::EnumType >()" >
+>;
+
 class ContainsTypedef< list< string > tl > : PredOpTrait< "contains typedef type",
     Or< !foreach(type, tl, IsMaybeWrappedTypedef< type >.predicate) >
 >;
@@ -261,12 +266,13 @@ def LongLongType : IntegerType< "LongLong", "longlong", [LongLongTypeTrait] >;
 def Int128Type   : IntegerType< "Int128", "int128", [Int128TypeTrait] >;
 
 def HLIntegerType : AnyTypeOf<[
-  CharType, ShortType, IntType, LongType, LongLongType, Int128Type, TypedefType
+  CharType, ShortType, IntType, LongType, LongLongType, Int128Type, TypedefType, EnumType
 ]>;
 
 def IntegerLikeType : TypeConstraint<
   Or< [HLIntegerType.predicate, AnyInteger.predicate,
-       IsMaybeWrappedTypedef< "_self" >.predicate] >,
+       IsMaybeWrappedTypedef< "_self" >.predicate,
+       IsMaybeWrappedEnum< "_self" >.predicate] >,
   "integer like type"
 >;
 
