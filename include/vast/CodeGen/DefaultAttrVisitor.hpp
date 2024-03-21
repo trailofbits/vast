@@ -9,13 +9,16 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
-#include "vast/CodeGen/VisitorView.hpp"
 
 namespace vast::cg {
 
     struct default_attr_visitor : attr_visitor_base< default_attr_visitor >
     {
-        explicit default_attr_visitor(visitor_view self) : self(self) {}
+        using base = attr_visitor_base< default_attr_visitor >;
+
+        explicit default_attr_visitor(codegen_builder &bld, visitor_view self)
+            : base(bld, self)
+        {}
 
         using attr_visitor_base< default_attr_visitor >::Visit;
 
@@ -41,13 +44,10 @@ namespace vast::cg {
         mlir_attr VisitAllocSizeAttr(const clang::AllocSizeAttr *attr);
 
       private:
-
         template< typename attr_t, typename... args_t >
         auto make(args_t &&...args) {
-            return self.builder().getAttr< attr_t >(std::forward< args_t >(args)...);
+            return bld.getAttr< attr_t >(std::forward< args_t >(args)...);
         }
-
-        visitor_view self;
     };
 
 } // namespace vast::cg

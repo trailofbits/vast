@@ -10,7 +10,6 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
-#include "vast/CodeGen/VisitorView.hpp"
 
 namespace vast::cg {
 

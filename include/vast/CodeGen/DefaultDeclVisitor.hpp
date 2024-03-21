@@ -9,23 +9,22 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
-#include "vast/CodeGen/VisitorView.hpp"
 
 namespace vast::cg {
 
     struct default_decl_visitor : decl_visitor_base< default_decl_visitor >
     {
-        explicit default_decl_visitor(visitor_view self) : self(self) {}
+        using base = decl_visitor_base< default_decl_visitor >;
+
+        explicit default_decl_visitor(codegen_builder &bld, visitor_view self)
+            : base(bld, self)
+        {}
 
         using decl_visitor_base< default_decl_visitor >::Visit;
 
         operation visit(const clang_decl *decl) { return Visit(decl); }
-        operation visit_prototype(const clang::FunctionDecl *decl);
-
-        operation VisitFunctionDecl(const clang::FunctionDecl *decl);
-
-      private:
-        visitor_view self;
+        operation visit_prototype(const clang_function *decl);
+        mlir_attr_list visit_attrs(const clang_function *decl);
     };
 
 } // namespace vast::cg

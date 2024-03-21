@@ -54,7 +54,7 @@ namespace vast::cg
     }
 
     operation unsup_decl_visitor::visit(const clang_decl *decl) {
-        auto op = self.compose< unsup::UnsupportedDecl >()
+        auto op = bld.compose< unsup::UnsupportedDecl >()
             .bind(self.location(decl))
             .bind(decl_name(decl))
             .bind_if_valid(try_make_body_builder(self, decl))
@@ -90,7 +90,7 @@ namespace vast::cg
 
     operation unsup_stmt_visitor::visit(const clang_stmt *stmt) {
         auto rty = return_type(stmt);
-        return self.builder().create< unsup::UnsupportedStmt >(
+        return bld.create< unsup::UnsupportedStmt >(
             self.location(stmt), stmt->getStmtClassName(), rty, make_children(stmt)
         );
     }
