@@ -16,7 +16,6 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/ScopeContext.hpp"
 #include "vast/CodeGen/ScopeGenerator.hpp"
-#include "vast/CodeGen/VisitorView.hpp"
 #include "vast/CodeGen/CodeGenMeta.hpp"
 
 #include "vast/Dialect/Dialects.hpp"
@@ -36,51 +35,39 @@ namespace vast::cg {
               symbol_tables &scopes
             , owning_module_ref mod
             , acontext_t &actx
-            , scope_context *parent = nullptr
         )
-            : module_scope(scopes, parent)
+            : module_scope(scopes)
             , actx(actx)
             , mod(std::move(mod))
-            , mangler(actx.createMangleContext())
         {}
 
         virtual ~module_context() = default;
 
         owning_module_ref freeze();
 
+        operation lookup_global(symbol_name name) const;
+
         acontext_t &actx;
         owning_module_ref mod;
-        mangler_t mangler;
     };
 
     owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
     owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, source_language lang);
 
-    const target_info &get_target_info(const module_context *mod);
-    const std::string &get_module_name_hash(const module_context *mod);
-    mangled_name_ref get_mangled_name(const module_context *mod, clang_global decl);
-
-    operation get_global_value(const module_context *ctx, clang_global name);
-    operation get_global_value(const module_context *ctx, mangled_name_ref name);
-
-
-    struct module_generator : scope_generator< module_context >
+    struct module_generator : scope_generator< module_generator, module_context >
     {
-        using base = scope_generator< module_context >;
+        using base = scope_generator< module_generator, module_context >;
 
         explicit module_generator(
               acontext_t &actx
             , mcontext_t &mctx
             , source_language lang
-            , symbol_tables &scopes
-            , meta_generator &meta
+            , codegen_builder &bld
             , visitor_view visitor
+            , symbol_tables &scopes
         )
-            : base(visitor, scopes, mk_module_with_attrs(actx, mctx, lang), actx)
-            , meta(meta)
-        {
-            visitor.set_insertion_point_to_start(mod->getBody());
-        }
+            : base(visitor, bld, scopes, mk_module_with_attrs(actx, mctx, lang), actx)
+        {}
 
         virtual ~module_generator() = default;
 
@@ -97,9 +84,6 @@ namespace vast::cg {
 
         bool verify();
         void finalize();
-    private:
-
-        [[maybe_unused]] meta_generator &meta;
     };
 
 } // namespace vast::cg
