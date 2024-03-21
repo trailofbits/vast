@@ -12,6 +12,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
+#include "vast/CodeGen/ScopeContext.hpp"
 #include "vast/CodeGen/CodeGenModule.hpp"
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
 
@@ -26,26 +27,34 @@ namespace vast::cg {
         acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs
     );
 
+    std::unique_ptr< symbol_generator > mk_symbol_generator(
+        acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs
+    );
+
     std::unique_ptr< mcontext_t > mk_mcontext();
 
     std::unique_ptr< visitor_base > mk_visitor(
-        const cc::vast_args &vargs, mcontext_t &mctx, meta_generator &meta
+        const cc::vast_args &vargs, mcontext_t &mctx, meta_generator &mg
     );
 
     struct driver
     {
-        explicit driver(cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx)
+        explicit driver(
+              acontext_t &actx
+            , std::unique_ptr< mcontext_t > mctx
+            , std::unique_ptr< codegen_builder > bld
+            , std::unique_ptr< meta_generator > mg
+            , std::unique_ptr< symbol_generator > sg
+            , std::unique_ptr< visitor_base > visitor
+        )
             : actx(actx)
-            , mctx(mk_mcontext())
-            , meta(mk_meta_generator(actx, *mctx, vargs))
-            , visitor(mk_visitor(vargs, *mctx, *meta))
-            , generator(
-                  actx, *mctx,
-                  cc::get_source_language(opts.lang),
-                  scopes, *meta,
-                  visitor_view(*visitor)
-              )
-            {}
+            , mctx(std::move(mctx))
+            , bld(std::move(bld))
+            , mg(std::move(mg))
+            , sg(std::move(sg))
+            , visitor(std::move(visitor))
+            , generator(mk_module_generator())
+        {}
 
         void emit(clang::DeclGroupRef decls);
         void emit(clang::Decl *decl);
@@ -69,13 +78,18 @@ namespace vast::cg {
         //
         // generators
         //
-        std::unique_ptr< meta_generator > meta;
+        std::unique_ptr< codegen_builder > bld;
+        std::unique_ptr< meta_generator > mg;
+        std::unique_ptr< symbol_generator > sg;
         std::unique_ptr< visitor_base > visitor;
 
         //
         // module generation state
         //
+        module_generator mk_module_generator();
         module_generator generator;
     };
+
+    std::unique_ptr< driver > mk_driver(cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx);
 
 } // namespace vast::cg
