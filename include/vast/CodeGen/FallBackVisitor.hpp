@@ -6,7 +6,6 @@
 #include "vast/Util/TypeList.hpp"
 
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
-#include "vast/CodeGen/VisitorView.hpp"
 
 namespace vast::cg
 {
@@ -20,8 +19,8 @@ namespace vast::cg
     {
         using visitor_stack = std::vector< visitor_base_ptr >;
 
-        fallback_visitor(mcontext_t &mctx, meta_generator &meta, visitor_stack &&visitors)
-            : visitor_base(mctx, meta), visitors(std::move(visitors))
+        fallback_visitor(mcontext_t &mctx, meta_generator &mg, symbol_generator &sg, visitor_stack &&visitors)
+            : visitor_base(mctx, mg, sg), visitors(std::move(visitors))
         {}
 
         auto visit_with_fallback(auto &&...tokens) {
@@ -39,6 +38,16 @@ namespace vast::cg
         mlir_type visit(const clang_type *type) override { return visit_with_fallback(type); }
         mlir_attr visit(const clang_attr *attr) override { return visit_with_fallback(attr); }
         mlir_type visit(clang_qual_type type) override { return visit_with_fallback(type); }
+
+        operation visit_prototype(const clang_function *decl) override {
+            for (auto &visitor : visitors) {
+                if (auto result = visitor->visit_prototype(decl)) {
+                    return result;
+                }
+            }
+
+            VAST_UNREACHABLE("Vistors chain exhausted. No fallback visitor was able to handle prototype.");
+        }
 
         visitor_view front() { return visitor_view(*visitors.front()); }
 

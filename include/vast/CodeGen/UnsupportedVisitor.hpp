@@ -5,58 +5,45 @@
 #include "vast/Util/Warnings.hpp"
 
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
-#include "vast/CodeGen/VisitorView.hpp"
 
 namespace vast::cg
 {
-    struct unsup_decl_visitor
+    using unsup_visitor_base = subvisitor_base;
+
+    struct unsup_decl_visitor : unsup_visitor_base
     {
-        explicit unsup_decl_visitor(visitor_view self) : self(self) {}
-
+        using unsup_visitor_base::unsup_visitor_base;
         operation visit(const clang_decl *decl);
-
-      private:
-        visitor_view self;
     };
 
 
-    struct unsup_stmt_visitor
+    struct unsup_stmt_visitor : subvisitor_base
     {
-        explicit unsup_stmt_visitor(visitor_view self) : self(self) {}
-
+        using unsup_visitor_base::unsup_visitor_base;
         operation visit(const clang_stmt *stmt);
 
       private:
         std::vector< BuilderCallBackFn > make_children(const clang_stmt *stmt);
         mlir_type return_type(const clang_stmt *stmt);
-
-        visitor_view self;
     };
 
 
-    struct unsup_type_visitor
+    struct unsup_type_visitor : unsup_visitor_base
     {
-        explicit unsup_type_visitor(visitor_view self) : self(self) {}
+        using unsup_visitor_base::unsup_visitor_base;
 
         mlir_type visit(const clang_type *type);
         mlir_type visit(clang_qual_type type) {
             VAST_ASSERT(!type.isNull());
             return visit(type.getTypePtr());
         }
-
-      private:
-        visitor_view self;
     };
 
 
-    struct unsup_attr_visitor
+    struct unsup_attr_visitor : unsup_visitor_base
     {
-        explicit unsup_attr_visitor(visitor_view self) : self(self) {}
-
+        using unsup_visitor_base::unsup_visitor_base;
         mlir_attr visit(const clang_attr *attr);
-
-      private:
-        visitor_view self;
     };
 
 
@@ -70,12 +57,12 @@ namespace vast::cg
         , unsup_type_visitor
         , unsup_attr_visitor
     {
-        unsup_visitor(mcontext_t &mctx, meta_generator &meta)
-            : visitor_base(mctx, meta)
-            , unsup_decl_visitor(visitor_view(*this))
-            , unsup_stmt_visitor(visitor_view(*this))
-            , unsup_type_visitor(visitor_view(*this))
-            , unsup_attr_visitor(visitor_view(*this))
+        unsup_visitor(mcontext_t &mctx, codegen_builder &bld, meta_generator &mg, symbol_generator &sg)
+            : visitor_base(mctx, mg, sg)
+            , unsup_decl_visitor(bld, visitor_view(*this))
+            , unsup_stmt_visitor(bld, visitor_view(*this))
+            , unsup_type_visitor(bld, visitor_view(*this))
+            , unsup_attr_visitor(bld, visitor_view(*this))
         {}
 
         operation visit(const clang_decl *decl) override {
@@ -96,6 +83,10 @@ namespace vast::cg
 
         mlir_attr visit(const clang_attr *attr) override {
             return unsup_attr_visitor::visit(attr);
+        }
+
+        operation visit_prototype(const clang_function *decl) override {
+            return unsup_decl_visitor::visit(decl);
         }
     };
 

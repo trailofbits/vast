@@ -34,6 +34,10 @@ namespace vast::cg
         mlir_attr visit(const clang_attr *attr) override {
             VAST_FATAL("unsupported attr: {0}", attr->getSpelling());
         }
+
+        operation visit_prototype(const clang_function *decl) override {
+            VAST_FATAL("unsupported prototype: {0}", decl->getName());
+        }
     };
 
 
