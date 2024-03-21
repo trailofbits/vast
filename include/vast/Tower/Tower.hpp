@@ -6,6 +6,7 @@
 
 VAST_RELAX_WARNINGS
 #include <mlir/Pass/PassManager.h>
+#include <mlir/Pass/Pass.h>
 VAST_UNRELAX_WARNINGS
 
 namespace vast::tw {
