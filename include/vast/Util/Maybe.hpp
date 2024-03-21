@@ -27,12 +27,10 @@ namespace vast
         static_assert(std::is_default_constructible_v< T >);
         static_assert(std::is_move_constructible_v< T >);
         T self;
-        // TODO(lukas): For debuggin purposes, remove later.
-        bool contains_value = false;
 
         explicit Maybe() = default;
         explicit Maybe(T self_)
-            : self( std::move(self_ ) ), contains_value(static_cast< bool >(self))
+            : self( std::move(self_ ) )
         {}
 
         template< class F >
@@ -82,13 +80,18 @@ namespace vast
 
         auto take() { return std::move( self ); }
 
-        explicit operator bool() const { return has_value(); }
+        explicit operator bool() const { return static_cast< bool >(self); }
         bool has_value() const
         {
-            VAST_ASSERT(contains_value == static_cast< bool >(self));
-            return contains_value;
+            return static_cast< bool >(self);
         }
     };
+
+    template< typename T >
+    auto dyn_cast = [] (auto arg) { return mlir::dyn_cast< T >(arg); };
+
+    template< typename T >
+    auto cast = [] (auto arg) { return mlir::dyn_cast< T >(arg); };
 
     template< typename T >
     Maybe(T t) -> Maybe< T >;
