@@ -1,30 +1,36 @@
 // Copyright (c) 2023, Trail of Bits, Inc.
 
-#include <vast/CodeGen/Mangler.hpp>
+#include "vast/CodeGen/Mangler.hpp"
+
+#include "vast/Util/Maybe.hpp"
 
 namespace vast::cg
 {
-    mangled_name_ref mangler_t::get_mangled_name(
-        clang_global decl, const target_info &target_info, const std::string &module_name_hash
-    ) const {
-        auto canonical = decl.getCanonicalDecl();
+    std::optional< symbol_name > default_symbol_mangler::symbol(clang_global decl) {
+        return Maybe(decl.getCanonicalDecl().getDecl())
+            .and_then(dyn_cast< clang_named_decl >)
+            .and_then([&](auto decl) {
+                return symbol(decl);
+            })
+            .take();
+    }
 
-        // Some ABIs don't have constructor variants. Make sure that base and complete
-        // constructors get mangled the same.
-        if (const auto *ctor = clang::dyn_cast< clang::CXXConstructorDecl >(canonical.getDecl())) {
-            VAST_UNIMPLEMENTED_IF(!target_info.getCXXABI().hasConstructorVariants());
+
+    std::optional< symbol_name > default_symbol_mangler::symbol(const clang_named_decl *decl) {
+        auto &actx = mangle_context->getASTContext();
+
+        // Some ABIs don't have constructor variants. Make sure that base and
+        // complete constructors get mangled the same.
+        if (const auto *ctor = clang::dyn_cast< clang::CXXConstructorDecl >(decl)) {
+            if (!actx.getTargetInfo().getCXXABI().hasConstructorVariants()) {
+                return std::nullopt;
+            }
         }
 
         // Keep the first result in the case of a mangling collision.
-        auto mangled_name = mangle(decl, module_name_hash);
-
-        auto result = manglings.insert(std::make_pair(mangled_name, decl));
-        return mangled_decl_names[canonical] = mangled_name_ref{ result.first->first() };
-    }
-
-    std::optional< clang_global > mangler_t::lookup_representative_decl(mangled_name_ref mangled_name) const {
-        if (auto res = manglings.find(mangled_name.name); res != manglings.end()) {
-            return res->getValue();
+        if (auto mangled_name = mangle(decl)) {
+            auto [it, _] = manglings.try_emplace(mangled_name.value(), decl);
+            return mangled_decl_names[decl] = it->getKey();
         }
 
         return std::nullopt;
@@ -32,9 +38,10 @@ namespace vast::cg
 
     // Returns true if decl is a function decl with internal linkage and needs a
     // unique suffix after the mangled name.
-    static bool is_unique_internal_linkage_decl(clang_global /* decl */, const std::string &module_name_hash) {
+    static bool is_unique_internal_linkage_decl(const clang_named_decl */* decl */, const std::string &module_name_hash) {
         if (!module_name_hash.empty()) {
-            VAST_UNIMPLEMENTED_MSG( "Unique internal linkage names NYI");
+            // FIXME: Implement unique internal linkage names.
+            return true;
         }
         return false;
     }
@@ -49,57 +56,53 @@ namespace vast::cg
             && decl.getKernelReferenceKind() == clang::KernelReferenceKind::Stub;
     }
 
-    std::string mangler_t::mangle(clang_global decl, const std::string &module_name_hash) const {
-        const auto *named = clang::cast< clang::NamedDecl >(decl.getDecl());
-
+    std::optional< std::string > default_symbol_mangler::mangle(const clang_named_decl *decl) {
         llvm::SmallString< 256 > buffer;
         llvm::raw_svector_ostream out(buffer);
 
         if (!module_name_hash.empty()) {
-            VAST_UNIMPLEMENTED_MSG("mangling with uninitilized module");
+            return std::nullopt; // mangling with uninitilized module
         }
 
-        if (mangle_context->shouldMangleDeclName(named)) {
-            mangle_context->mangleName(decl.getWithDecl(named), out);
+        if (mangle_context->shouldMangleDeclName(decl)) {
+            mangle_context->mangleName(decl, out);
         } else {
-            auto *identifier = named->getIdentifier();
-            VAST_CHECK(identifier, "Attempt to mangle unnamed decl.");
+            auto *identifier = decl->getIdentifier();
+            if (!identifier) {
+                return std::nullopt; // attempt mangling of unnamed decl
+            }
 
-            const auto *fn = clang::dyn_cast< clang::FunctionDecl >(named);
+            // Check if the module name hash should be appended for internal linkage
+            // symbols. This should come before multi-version target suffixes are
+            // appendded. This is to keep the name and module hash suffix of the internal
+            // linkage function together. The unique suffix should only be added when name
+            // mangling is done to make sure that the final name can be properly
+            // demangled. For example, for C functions without prototypes, name mangling
+            // is not done and the unique suffix should not be appended then.
+            if (is_unique_internal_linkage_decl(decl, module_name_hash)) {
+                return std::nullopt; // unimplemented unique internal linkage names
+            }
 
-            if (is_x86_regular(fn)) {
-                VAST_UNIMPLEMENTED_MSG("x86 function name mangling");
-            } else if (is_cuda_kernel_name(fn, decl)) {
-                VAST_UNIMPLEMENTED_MSG("cuda name mangling");
-            } else {
-                out << identifier->getName();
+            if (const auto *fn = clang::dyn_cast< clang::FunctionDecl >(decl)) {
+                if (fn->isMultiVersion()) {
+                    return std::nullopt; // unimplemented multi-version function name mangling
+                }
+
+                if (is_x86_regular(fn)) {
+                    return std::nullopt; // unimplemented x86 function name mangling
+                } else if (is_cuda_kernel_name(fn, decl)) {
+                    return std::nullopt; // unimplemented cuda name mangling
+                } else {
+                    out << identifier->getName();
+                }
             }
         }
 
-        // Check if the module name hash should be appended for internal linkage
-        // symbols. This should come before multi-version target suffixes are
-        // appendded. This is to keep the name and module hash suffix of the internal
-        // linkage function together. The unique suffix should only be added when name
-        // mangling is done to make sure that the final name can be properly
-        // demangled. For example, for C functions without prototypes, name mangling
-        // is not done and the unique suffix should not be appended then.
-        VAST_UNIMPLEMENTED_IF(is_unique_internal_linkage_decl(decl, module_name_hash));
-
-        if (const auto *fn = clang::dyn_cast< clang::FunctionDecl >(named)) {
-            VAST_UNIMPLEMENTED_IF(fn->isMultiVersion());
+        auto &actx = mangle_context->getASTContext();
+        if (actx.getLangOpts().GPURelocatableDeviceCode) {
+            return std::nullopt; // unimplemented GPURelocatableDeviceCode name mangling
         }
-
-        // VAST_UNIMPLEMENTED_IF(CGM.getLangOpts().GPURelocatableDeviceCode);
 
         return std::string(out.str());
     }
 } // namespace vast::cg
-
-
-namespace llvm {
-
-    [[nodiscard]] hash_code hash_value(vast::cg::mangled_name_ref mangled) {
-        return hash_value(mangled.name);
-    }
-
-} // llvm
