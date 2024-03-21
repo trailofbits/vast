@@ -1451,6 +1451,7 @@ namespace vast::conv::irstollvm
                 result.setType(this->convert(result.getType()));
             };
 
+            // TODO: Should we use clone instead?
             rewriter.updateRootInPlace(op, lower_res_type);
             return logical_result::success();
         }
@@ -1479,17 +1480,8 @@ namespace vast::conv::irstollvm
                 return logical_result::success();
             }
 
-            // Proceed with "normal path"
-            // TODO: This will probably need rework. If not, merge with implementation
-            //       in `lazy_op_type`.
-            auto lower_res_type = [&]()
-            {
-                auto result = op.getResult();
-                result.setType(this->convert(result.getType()));
-            };
-
-            rewriter.updateRootInPlace(op, lower_res_type);
-            return logical_result::success();
+            // TODO: What would it take to make this work `updateRootInPlace`?
+            return this->update_via_clone(rewriter, op, ops.getOperands());
         }
     };
 
