@@ -21,13 +21,13 @@ namespace vast::cg {
     owning_module_ref driver::freeze() { return generator.freeze(); }
 
     void driver::finalize(const cc::vast_args &vargs) {
+        generator.finalize();
+
         if (!vargs.has_option(cc::opt::disable_vast_verifier)) {
             if (!generator.verify()) {
                 VAST_FATAL("codegen: module verification error before running vast passes");
             }
         }
-
-        generator.finalize();
     }
 
     std::unique_ptr< codegen_builder > mk_codegen_builder(mcontext_t &mctx) {
