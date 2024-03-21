@@ -57,6 +57,16 @@ namespace vast::conv::irstollvm {
         auto undef(auto &rewriter, auto loc, auto type) const {
             return rewriter.template create< mlir::LLVM::UndefOp >(loc, type);
         }
+
+        // Does *not* work for operations with regions.
+        logical_result update_via_clone(auto &rewriter, auto op, auto new_operands) const {
+            auto new_op = rewriter.clone(*op);
+            new_op->setOperands(new_operands);
+            for (auto v : new_op->getResults())
+                v.setType(convert(v.getType()));
+            rewriter.replaceOp(op, new_op);
+            return mlir::success();
+        }
     };
 
     template< typename src_t, typename trg_t >
