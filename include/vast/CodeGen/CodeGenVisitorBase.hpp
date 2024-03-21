@@ -11,42 +11,82 @@ VAST_RELAX_WARNINGS
 #include <clang/AST/TypeVisitor.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Util/Common.hpp"
+#include "vast/CodeGen/Common.hpp"
 #include "vast/CodeGen/CodeGenMeta.hpp"
 #include "vast/CodeGen/CodeGenBuilder.hpp"
+#include "vast/CodeGen/SymbolGenerator.hpp"
 
 namespace vast::cg {
 
-    using clang_decl = clang::Decl;
-    using clang_stmt = clang::Stmt;
-    using clang_expr = clang::Expr;
-    using clang_type = clang::Type;
-    using clang_attr = clang::Attr;
+    struct visitor_base;
 
-    using clang_function_type = clang::FunctionType;
-    using clang_function_proto_type = clang::FunctionProtoType;
+    struct visitor_view
+    {
+        explicit visitor_view(visitor_base &visitor) : visitor(visitor) {}
 
-    using clang_qual_type = clang::QualType;
+        operation visit(const clang_decl *decl);
+        operation visit(const clang_stmt *stmt);
+        mlir_type visit(const clang_type *type);
+        mlir_type visit(clang_qual_type ty);
+        mlir_attr visit(const clang_attr *attr);
+
+        operation visit_prototype(const clang_function *decl);
+
+        mlir_type visit(const clang_function_type *fty, bool is_variadic);
+
+        mlir_type visit_as_lvalue_type(clang_qual_type ty);
+
+        loc_t location(const auto *node) const;
+
+        std::optional< symbol_name > symbol(auto &&decl);
+
+        mcontext_t& mcontext();
+        const mcontext_t& mcontext() const;
+
+        visitor_base *raw() { return &visitor; }
+
+      protected:
+        visitor_base &visitor;
+    };
+
+    struct subvisitor_base
+    {
+        subvisitor_base(codegen_builder &bld, visitor_view self)
+            : bld(bld), self(self)
+        {}
+
+      protected:
+        codegen_builder &bld;
+        visitor_view self;
+    };
 
     template< typename derived_t >
-    using decl_visitor_base = clang::ConstDeclVisitor< derived_t, operation >;
+    struct decl_visitor_base : subvisitor_base, clang::ConstDeclVisitor< derived_t, operation > {
+        using subvisitor_base::subvisitor_base;
+    };
 
     template< typename derived_t >
-    using stmt_visitor_base = clang::ConstStmtVisitor< derived_t, operation >;
+    struct stmt_visitor_base : subvisitor_base, clang::ConstStmtVisitor< derived_t, operation > {
+        using subvisitor_base::subvisitor_base;
+    };
 
     template< typename derived_t >
-    using type_visitor_base = clang::TypeVisitor< derived_t, mlir_type >;
+    struct type_visitor_base : subvisitor_base, clang::TypeVisitor< derived_t, mlir_type > {
+        using subvisitor_base::subvisitor_base;
+    };
 
     template< typename derived_t >
-    using attr_visitor_base = clang::ConstAttrVisitor< derived_t, mlir_attr >;
+    struct attr_visitor_base : subvisitor_base, clang::ConstAttrVisitor< derived_t, mlir_attr > {
+        using subvisitor_base::subvisitor_base;
+    };
 
     //
     // Classes derived from `visitor_base` are used to visit clang AST nodes
     //
     struct visitor_base
     {
-        visitor_base(mcontext_t &mctx, meta_generator &meta)
-            : mctx(mctx), meta(meta), bld(&mctx)
+        visitor_base(mcontext_t &mctx, meta_generator &mg, symbol_generator &sg)
+            : mctx(mctx), mg(mg), sg(sg)
         {}
 
         virtual ~visitor_base() = default;
@@ -60,39 +100,30 @@ namespace vast::cg {
         virtual mlir_type visit(const clang_function_type *, bool /* is_variadic */);
         virtual mlir_type visit_as_lvalue_type(clang_qual_type);
 
+        virtual operation visit_prototype(const clang_function *decl) = 0;
+
         mcontext_t& mcontext() { return mctx; }
         const mcontext_t& mcontext() const { return mctx; }
 
-        loc_t location(const auto *node) const { return meta.location(node); }
+        loc_t location(const auto *node) const { return mg.location(node); }
 
-        codegen_builder& builder() { return bld; }
-        insertion_guard insertion_guard() { return { builder() }; }
-
-        void set_insertion_point_to_start(region_ptr region) {
-            set_insertion_point_to_start(&region->front());
-        }
-
-        void set_insertion_point_to_end(region_ptr region) {
-            set_insertion_point_to_end(&region->back());
-        }
-
-        void set_insertion_point_to_start(block_ptr block) {
-            bld.setInsertionPointToStart(block);
-        }
-
-        void set_insertion_point_to_end(block_ptr block) {
-            bld.setInsertionPointToEnd(block);
+        std::optional< symbol_name > symbol(auto &&decl) {
+            return sg.symbol(std::forward< decltype(decl) >(decl));
         }
 
       protected:
         mcontext_t &mctx;
-        meta_generator &meta;
-
-        // TODO figure out how to make scoped visitor that initiliazes builder to
-        // specific scopes
-        codegen_builder bld;
+        meta_generator &mg;
+        symbol_generator &sg;
     };
 
     using visitor_base_ptr = std::unique_ptr< visitor_base >;
 
+    loc_t visitor_view::location(const auto *node) const {
+        return visitor.location(node);
+    }
+
+    std::optional< symbol_name > visitor_view::symbol(auto &&decl) {
+        return visitor.symbol(std::forward< decltype(decl) >(decl));
+    }
 } // namespace vast::cg

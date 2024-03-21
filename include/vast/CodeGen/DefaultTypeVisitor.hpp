@@ -9,21 +9,22 @@
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 
-#include "vast/CodeGen/VisitorView.hpp"
-
 namespace vast::cg {
 
     using clang_qualifiers = clang::Qualifiers;
 
     struct default_type_visitor : type_visitor_base< default_type_visitor >
     {
-        explicit default_type_visitor(visitor_view self) : self(self) {}
+        using base = type_visitor_base< default_type_visitor >;
+        explicit default_type_visitor(codegen_builder &bld, visitor_view self)
+            : base(bld, self)
+        {}
 
         using type_visitor_base< default_type_visitor >::Visit;
 
         template< typename type >
         auto compose_type() {
-            return self.builder().compose_start< type >([&] (auto &&...args) {
+            return bld.compose_start< type >([&] (auto &&...args) {
                 return type::get(&self.mcontext(), std::forward< decltype(args) >(args)...);
             });
         }
@@ -146,8 +147,6 @@ namespace vast::cg {
             auto ref = hl::ReferenceType::get(&self.mcontext(), pointee);
             return value_type::get(&self.mcontext(), ref);
         }
-
-        visitor_view self;
     };
 
     struct cached_default_type_visitor : default_type_visitor
