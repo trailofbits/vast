@@ -6,15 +6,12 @@
 
 #include "vast/CodeGen/ScopeContext.hpp"
 #include "vast/CodeGen/ScopeGenerator.hpp"
-#include "vast/CodeGen/VisitorView.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 namespace vast::cg {
 
-    using linkage_kind = core::GlobalLinkageKind;
-    using mlir_visibility = mlir::SymbolTable::Visibility;
-    using mlir_attr_list = mlir::NamedAttrList;
+    struct module_context;
 
     //
     // function generation
@@ -25,14 +22,18 @@ namespace vast::cg {
         virtual ~function_context() = default;
     };
 
-    struct function_generator : scope_generator< function_context >
+    struct function_generator : scope_generator< function_generator, function_context >
     {
-        using base = scope_generator< function_context >;
+        using base = scope_generator< function_generator, function_context >;
         using base::base;
 
         virtual ~function_generator() = default;
 
-        vast_function emit(clang_function *decl);
+      private:
+
+        friend struct scope_generator< function_generator, function_context >;
+
+        operation emit(clang_function *decl);
     };
 
     //
@@ -44,29 +45,19 @@ namespace vast::cg {
         virtual ~prototype_context() = default;
     };
 
-    struct prototype_generator : scope_generator< prototype_context >
+    struct prototype_generator : scope_generator< prototype_generator, prototype_context >
     {
-        using base = scope_generator< prototype_context >;
+        using base = scope_generator< prototype_generator, prototype_context >;
         using base::base;
 
         virtual ~prototype_generator() = default;
 
-        vast_function emit(clang_function *decl);
+      private:
 
-        vast_function declare(
-            loc_t loc,
-            mangled_name_ref name,
-            mlir_type fty,
-            linkage_kind linkage,
-            mlir_visibility visibility,
-            mlir_attr_list attrs
-        );
+        friend struct scope_generator< prototype_generator, prototype_context >;
 
-        mlir_visibility get_function_visibility(
-            clang_function *decl, linkage_kind linkage
-        );
-
-        mlir_attr_list get_function_attrs(clang_function *decl);
+        operation emit(clang_function *decl);
+        operation lookup_or_declare(clang_function *decl, module_context *mod);
     };
 
     //
@@ -76,17 +67,18 @@ namespace vast::cg {
     {
         using block_scope::block_scope;
         virtual ~body_context() = default;
-
-        region_ptr result() { return region; }
-        region_ptr region = nullptr;
     };
 
-    struct body_generator : scope_generator< body_context >
+    struct body_generator : scope_generator< body_generator, body_context >
     {
-        using base = scope_generator< body_context >;
+        using base = scope_generator< body_generator, body_context >;
         using base::base;
 
         virtual ~body_generator() = default;
+
+     private:
+
+        friend struct scope_generator< body_generator, body_context >;
 
         void emit(clang_function *decl);
         void emit_epilogue(clang_function *decl);
