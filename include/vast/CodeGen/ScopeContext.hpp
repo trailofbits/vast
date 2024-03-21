@@ -9,15 +9,12 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/Mangler.hpp"
-#include "vast/CodeGen/VisitorView.hpp"
 
 #include <functional>
 #include <queue>
 
 namespace vast::cg
 {
-    using vast_function = vast::hl::FuncOp;
-
     template< typename From, typename To >
     struct scoped_table : llvm::ScopedHashTable< From, To >
     {
@@ -39,8 +36,6 @@ namespace vast::cg
         }
     };
 
-    using clang_var_decl = clang::VarDecl;
-
     // TODO why is this name and not function?
     using funs_scope_table = scoped_table< string_ref, operation >;
     using vars_scope_table = scoped_table< clang_var_decl*, mlir_value >;
@@ -58,8 +53,12 @@ namespace vast::cg
     struct scope_context {
         using deferred_task = std::function< void() >;
 
-        scope_context(symbol_tables &symbols, scope_context *parent = nullptr)
-            : symbols(symbols), parent(parent)
+        explicit scope_context(scope_context *parent)
+            : symbols(parent->symbols), parent(parent)
+        {}
+
+        explicit scope_context(symbol_tables &symbols)
+            : symbols(symbols)
         {}
 
         virtual ~scope_context() { finalize(); }
@@ -101,7 +100,10 @@ namespace vast::cg
 
         std::deque< deferred_task > deferred;
 
+        // scope contents
         symbol_tables &symbols;
+
+        // links between scopes
         scope_context *parent = nullptr;
         std::vector< std::unique_ptr< scope_context > > children;
     };
@@ -113,10 +115,7 @@ namespace vast::cg
     // definition, the identifier has block scope, which terminates at the end
     // of the associated block.
     struct block_scope : scope_context {
-        block_scope(symbol_tables &symbols, scope_context *parent = nullptr)
-            : scope_context(symbols, parent)
-        {}
-
+        using scope_context::scope_context;
         virtual ~block_scope() = default;
     };
 
@@ -145,8 +144,8 @@ namespace vast::cg
     // outside of any block or list of parameters, the identifier has file
     // scope, which terminates at the end of the translation unit.
     struct module_scope : scope_context {
-        module_scope(symbol_tables &symbols, scope_context *parent)
-            : scope_context(symbols, parent)
+        explicit module_scope(symbol_tables &symbols)
+            : scope_context(symbols)
             , functions(symbols.funs)
         {}
 

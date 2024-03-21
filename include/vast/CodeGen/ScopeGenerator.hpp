@@ -2,28 +2,34 @@
 
 #pragma once
 
-#include "vast/CodeGen/VisitorView.hpp"
+#include "vast/CodeGen/CodeGenVisitorBase.hpp"
 
 namespace vast::cg {
 
-    template< typename scope_type >
-    struct scope_generator : scope_type
+    template< typename generator_type, typename generator_context >
+    struct scope_generator : generator_context
     {
-        explicit scope_generator(visitor_view visitor, auto &&...args)
-            : scope_type(std::forward< decltype(args) >(args)...), visitor(visitor)
+        scope_generator(visitor_view visitor, codegen_builder &bld, auto &&...args)
+            : generator_context(std::forward< decltype(args) >(args)...)
+            , bld(bld), visitor(visitor)
         {}
 
-        virtual ~scope_generator() = default;
+        auto & self() { return *static_cast< generator_type * >(this); }
 
         template< typename child_generator >
-        child_generator &make_child(auto &&...args) {
-            scope_type::hook_child(std::make_unique< child_generator >(
-                visitor, scope_type::symbols
-            ));
-
-            return scope_type::template last_child< child_generator >();
+        child_generator &make_child() {
+            auto &parent = self();
+            parent.hook_child(std::make_unique< child_generator >(visitor, bld, &parent));
+            return parent.template last_child< child_generator >();
         }
 
+        auto do_emit(region_t &scope, auto &&...args) {
+            auto guard = bld.insertion_guard();
+            bld.set_insertion_point_to_start(&scope);
+            return self().emit(std::forward< decltype(args) >(args)...);
+        }
+
+        codegen_builder &bld;
         visitor_view visitor;
     };
 
