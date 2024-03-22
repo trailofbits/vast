@@ -8,6 +8,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/DataLayout.hpp"
+#include "vast/CodeGen/CodeGenGlobal.hpp"
 #include "vast/CodeGen/CodeGenFunction.hpp"
 
 #include "vast/CodeGen/DefaultTypeVisitor.hpp"
@@ -116,8 +117,9 @@ namespace vast::cg
         fg.do_emit(mod->getBodyRegion(), decl);
     }
 
-    void module_generator::emit(clang::VarDecl */* decl */) {
-        VAST_UNIMPLEMENTED;
+    void module_generator::emit(clang::VarDecl *decl) {
+        auto &gg = make_child< global_generator >();
+        gg.do_emit(mod->getBodyRegion(), decl);
     }
 
     // TODO this should not be needed the data layout should be emitted from cached types directly

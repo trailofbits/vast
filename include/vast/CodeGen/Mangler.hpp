@@ -29,9 +29,9 @@ namespace vast::cg
         {}
 
         std::optional< symbol_name > symbol(clang_global decl) override;
+        std::optional< symbol_name > symbol(const clang_named_decl *decl);
 
       private:
-        std::optional< symbol_name > symbol(const clang_named_decl *decl);
         std::optional< std::string > mangle(const clang_named_decl *decl);
 
         std::unique_ptr< mangle_context > mangle_context;

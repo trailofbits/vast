@@ -11,23 +11,31 @@ namespace vast::cg
 {
     bool unsupported(const clang_function *decl) {
         if (decl->getAttr< clang::ConstructorAttr >()) {
+            VAST_REPORT("Unsupported function with constructor attribute");
             return true;
         }
 
         if (decl->getAttr< clang::DestructorAttr >()) {
+            VAST_REPORT("Unsupported function with destructor attribute");
             return true;
         }
 
         if (decl->isMultiVersion()) {
+            VAST_REPORT("Unsupported function with multi-version attribute");
             return true;
         }
 
         if (llvm::dyn_cast< clang::CXXMethodDecl >(decl)) {
+            VAST_REPORT("Unsupported C++ method declaration");
             return true;
         }
 
         return false;
     }
+
+    //
+    // Function Declaration
+    //
 
     mlir_visibility get_function_visibility(const clang_function *decl, linkage_kind linkage) {
         if (decl->isThisDeclarationADefinition()) {
@@ -98,6 +106,98 @@ namespace vast::cg
         }
 
         return attrs;
+    }
+
+    //
+    // Variable Declaration
+    //
+
+    hl::StorageClass storage_class(const clang_var_decl *decl) {
+        switch (decl->getStorageClass()) {
+            case clang::SC_None: return hl::StorageClass::sc_none;
+            case clang::SC_Auto: return hl::StorageClass::sc_auto;
+            case clang::SC_Static: return hl::StorageClass::sc_static;
+            case clang::SC_Extern: return hl::StorageClass::sc_extern;
+            case clang::SC_PrivateExtern: return hl::StorageClass::sc_private_extern;
+            case clang::SC_Register: return hl::StorageClass::sc_register;
+        }
+        VAST_UNIMPLEMENTED_MSG("unknown storage class");
+    }
+
+    hl::TSClass thread_storage_class(const clang_var_decl *decl) {
+        switch (decl->getTSCSpec()) {
+            case clang::TSCS_unspecified: return hl::TSClass::tsc_none;
+            case clang::TSCS___thread: return hl::TSClass::tsc_gnu_thread;
+            case clang::TSCS_thread_local: return hl::TSClass::tsc_cxx_thread;
+            case clang::TSCS__Thread_local: return hl::TSClass::tsc_c_thread;
+        }
+        VAST_UNIMPLEMENTED_MSG("unknown thread storage class");
+    }
+
+    bool unsupported(const clang_var_decl *decl) {
+        auto &actx = decl->getASTContext();
+        auto lang = actx.getLangOpts();
+
+        if (decl->hasInit() && lang.CPlusPlus) {
+            VAST_REPORT("Unsupported variable declaration with initializer in C++");
+            return false;
+        }
+
+        if (lang.OpenCL || lang.OpenMPIsTargetDevice || lang.CUDA || lang.OpenMP) {
+            VAST_REPORT("Unsupported variable declaration in the language");
+            return false;
+        }
+
+        if (decl->needsDestruction(actx) == clang::QualType::DK_cxx_destructor) {
+            VAST_REPORT("Unsupported variable declaration with destructor");
+            return false;
+        }
+
+        return false;
+    }
+
+    operation default_decl_visitor::VisitVarDecl(const clang::VarDecl *decl) {
+        if (unsupported(decl)) {
+            return {};
+        }
+
+        bool has_allocator = decl->getType()->isVariableArrayType();
+        bool has_init = decl->getInit();
+
+        auto array_allocator = [decl](auto &state, auto loc) {
+            if (auto type = clang::dyn_cast< clang::VariableArrayType >(decl->getType())) {
+                VAST_UNIMPLEMENTED; // emit(type->getSizeExpr(), state, loc);
+            }
+        };
+
+        auto set_storage_classes = [&] (auto var) {
+            if (auto sc = storage_class(decl); sc != hl::StorageClass::sc_none) {
+                var.setStorageClass(sc);
+            }
+
+            if (auto tsc = thread_storage_class(decl); tsc != hl::TSClass::tsc_none) {
+                var.setThreadStorageClass(tsc);
+            }
+
+            return var;
+        };
+
+        return bld.compose< hl::VarDeclOp >()
+            .bind(self.location(decl))
+            .bind(self.visit_as_lvalue_type(decl->getType()))
+            .bind(self.symbol(decl))
+            // The initializer region is filled later as it might
+            // have references to the VarDecl we are currently
+            // visiting - int *x = malloc(sizeof(*x))
+            .bind_region_if(has_init, [](auto, auto){})
+            .bind_region_if(has_allocator, std::move(array_allocator))
+            .freeze_as_maybe() // construct global
+            .transform(set_storage_classes)
+            .take();
+    }
+
+    operation default_decl_visitor::visit_var_init(const clang_var_decl *decl) {
+        return {};
     }
 
 } // namespace vast::hl
