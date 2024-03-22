@@ -12,6 +12,7 @@ add_vast_library(CodeGen
 
     CodeGenVisitorBase.cpp
 
+    CodeGenGlobal.cpp
     CodeGenFunction.cpp
     CodeGenModule.cpp
 

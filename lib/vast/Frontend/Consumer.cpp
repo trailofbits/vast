@@ -88,13 +88,9 @@ namespace vast::cc {
     //     VAST_UNIMPLEMENTED;
     // }
 
-    void vast_consumer::CompleteTentativeDefinition(clang::VarDecl *decl) {
-        driver->emit(decl);
-    }
+    void vast_consumer::CompleteTentativeDefinition(clang::VarDecl * /* decl */) {}
 
-    void vast_consumer::CompleteExternalDeclaration(clang::VarDecl * /* decl */) {
-        VAST_UNIMPLEMENTED;
-    }
+    void vast_consumer::CompleteExternalDeclaration(clang::VarDecl * /* decl */) {}
 
     void vast_consumer::AssignInheritanceModel(clang::CXXRecordDecl * /* decl */) {
         VAST_UNIMPLEMENTED;
