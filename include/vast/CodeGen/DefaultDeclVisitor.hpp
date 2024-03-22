@@ -22,9 +22,20 @@ namespace vast::cg {
 
         using decl_visitor_base< default_decl_visitor >::Visit;
 
+        //
+        // Function Declaration
+        //
+
         operation visit(const clang_decl *decl) { return Visit(decl); }
         operation visit_prototype(const clang_function *decl);
         mlir_attr_list visit_attrs(const clang_function *decl);
+
+        //
+        // Variable Declaration
+        //
+
+        operation VisitVarDecl(const clang_var_decl *decl);
+        operation visit_var_init(const clang_var_decl *decl);
     };
 
 } // namespace vast::cg

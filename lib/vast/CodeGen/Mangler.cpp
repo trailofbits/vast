@@ -19,6 +19,10 @@ namespace vast::cg
     std::optional< symbol_name > default_symbol_mangler::symbol(const clang_named_decl *decl) {
         auto &actx = mangle_context->getASTContext();
 
+        if (mangled_decl_names.count(decl)) {
+            return mangled_decl_names[decl];
+        }
+
         // Some ABIs don't have constructor variants. Make sure that base and
         // complete constructors get mangled the same.
         if (const auto *ctor = clang::dyn_cast< clang::CXXConstructorDecl >(decl)) {
@@ -95,6 +99,10 @@ namespace vast::cg
                 } else {
                     out << identifier->getName();
                 }
+            }
+
+            if (const auto *var = clang::dyn_cast< clang::VarDecl >(decl)) {
+                out << identifier->getName();
             }
         }
 

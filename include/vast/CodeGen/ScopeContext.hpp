@@ -38,11 +38,12 @@ namespace vast::cg
 
     // TODO why is this name and not function?
     using funs_scope_table = scoped_table< string_ref, operation >;
-    using vars_scope_table = scoped_table< clang_var_decl*, mlir_value >;
+    using vars_scope_table = scoped_table< string_ref, mlir_value >;
 
     struct symbol_tables
     {
         funs_scope_table funs;
+        vars_scope_table vars;
     };
 
 
@@ -84,6 +85,10 @@ namespace vast::cg
             symbols.funs.insert(function.getName(), function);
         }
 
+        void declare(hl::VarDeclOp var) {
+            symbols.vars.insert(var.getName(), var);
+        }
+
         void hook_child(std::unique_ptr< scope_context > child) {
             child->parent = this;
             children.push_back(std::move(child));
@@ -115,8 +120,14 @@ namespace vast::cg
     // definition, the identifier has block scope, which terminates at the end
     // of the associated block.
     struct block_scope : scope_context {
-        using scope_context::scope_context;
+        explicit block_scope(scope_context *parent)
+            : scope_context(parent)
+            // , vars(parent->symbols.vars)
+        {}
+
         virtual ~block_scope() = default;
+
+//        symbol_table_scope< clang_var_decl*, mlir_value > vars;
     };
 
 
@@ -147,11 +158,13 @@ namespace vast::cg
         explicit module_scope(symbol_tables &symbols)
             : scope_context(symbols)
             , functions(symbols.funs)
+            , globals(symbols.vars)
         {}
 
         virtual ~module_scope() = default;
 
         symbol_table_scope< string_ref, operation > functions;
+        symbol_table_scope< string_ref, mlir_value > globals;
     };
 
     // Scope of member names for structures and unions
