@@ -30,6 +30,72 @@ namespace vast::cg
             return true;
         }
 
+        if (decl->usesSEHTry()) {
+            VAST_REPORT("Unsupported function with SEH try attribute");
+            return true;
+        }
+
+        if (decl->getAttr< clang::PatchableFunctionEntryAttr >()) {
+            VAST_REPORT("Unsupported function with patchable function entry attribute");
+            return true;
+        }
+
+        if (decl->hasAttr< clang::CFICanonicalJumpTableAttr >()) {
+            VAST_REPORT("Unsupported function with CFI canonical jump table attribute");
+            return true;
+        }
+
+        if (decl->hasAttr< clang::NoProfileFunctionAttr >()) {
+            VAST_REPORT("Unsupported function with no profile function attribute");
+            return true;
+        }
+
+        if (decl->hasAttr< clang::MinVectorWidthAttr >()) {
+            VAST_REPORT("Unsupported function with min vector width attribute");
+            return true;
+        }
+
+        if (decl->hasAttr< clang::NoDebugAttr >()) {
+            VAST_REPORT("Unsupported function with no debug attribute");
+            return true;
+        }
+
+        auto &actx = decl->getASTContext();
+        auto &lang = actx.getLangOpts();
+
+        if (lang.OpenCL || lang.OpenMPIsTargetDevice || lang.CUDA || lang.OpenMP) {
+            VAST_REPORT("Unsupported function declaration in the language");
+            return true;
+        }
+
+        // Add no-jump-tables value.
+        // if (opts.codegen.NoUseJumpTables) {
+        //     return false;
+        // }
+
+        // // Add no-inline-line-tables value.
+        // if (opts.codegen.NoInlineLineTables) {
+        //     return false;
+        // }
+
+        // // TODO: Add profile-sample-accurate value.
+        // if (opts.codegen.ProfileSampleAccurate) {
+        //     return false;
+        // }
+
+        // Detect the unusual situation where an inline version is shadowed by a
+        // non-inline version. In that case we should pick the external one
+        // everywhere. That's GCC behavior too. Unfortunately, I cannot find a way
+        // to detect that situation before we reach codegen, so do some late
+        // replacement.
+        for (const auto *prev = decl->getPreviousDecl(); prev; prev = prev->getPreviousDecl()) {
+            if (LLVM_UNLIKELY(prev->isInlineBuiltinDeclaration())) {
+                VAST_REPORT("Unsupported inline builtin declaration");
+                return true;
+            }
+        }
+
+
         return false;
     }
 
