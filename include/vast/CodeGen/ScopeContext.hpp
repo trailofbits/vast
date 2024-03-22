@@ -85,8 +85,13 @@ namespace vast::cg
             symbols.funs.insert(function.getName(), function);
         }
 
+        void declare(string_ref name, mlir_value value) {
+            symbols.vars.insert(name, value);
+        }
+
+
         void declare(hl::VarDeclOp var) {
-            symbols.vars.insert(var.getName(), var);
+            declare(var.getName(), var);
         }
 
         void hook_child(std::unique_ptr< scope_context > child) {

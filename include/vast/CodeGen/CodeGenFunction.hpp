@@ -34,6 +34,8 @@ namespace vast::cg {
         friend struct scope_generator< function_generator, function_context >;
 
         operation emit(clang_function *decl);
+
+        void declare_function_params(vast_function fn, clang_function *decl);
     };
 
     //
