@@ -27,13 +27,36 @@ namespace vast::cg
         auto &pg = make_child< prototype_generator >();
         auto prototype = pg.do_emit(ctx->mod->getBodyRegion(), decl);
 
+        if (auto fn = mlir::dyn_cast< vast_function >(prototype)) {
+            if (decl->hasBody()) {
+                declare_function_params(fn, decl);
+
         defer([=] {
-            //auto &bg = make_child< body_generator >();
-            // TODO pass prototype to body generator
-            // bg.emit(decl);
-        });
+                    if (auto fn = mlir::dyn_cast< vast_function >(prototype)) {
+                        auto &bg = make_child< body_generator >();
+                        bg.do_emit(fn.getBody(), decl);
+                    } else {
+                        VAST_REPORT("can not emit function body for unknown prototype");
+                    }
+                });
+            }
+        }
 
         return prototype;
+    }
+
+    void function_generator::declare_function_params(vast_function fn, clang_function *decl) {
+        auto *entry_block = fn.addEntryBlock();
+        auto params = llvm::zip(decl->parameters(), entry_block->getArguments());
+        for (const auto &[param, earg] : params) {
+            // TODO set alignment
+
+            earg.setLoc(visitor.location(param));
+            if (auto name = visitor.symbol(param)) {
+                // TODO set name
+                scope_context::declare(name.value(), earg);
+            }
+        }
     }
 
     //
