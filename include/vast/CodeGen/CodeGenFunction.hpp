@@ -13,6 +13,12 @@ namespace vast::cg {
 
     struct module_context;
 
+    struct function_codegen_options
+    {
+        bool has_strict_return;
+        uint8_t optimization_level;
+    };
+
     //
     // function generation
     //
@@ -20,6 +26,8 @@ namespace vast::cg {
     {
         using function_scope::function_scope;
         virtual ~function_context() = default;
+
+        function_codegen_options opts;
     };
 
     struct function_generator : scope_generator< function_generator, function_context >
@@ -33,9 +41,9 @@ namespace vast::cg {
 
         friend struct scope_generator< function_generator, function_context >;
 
-        operation emit(clang_function *decl);
+        operation emit(const clang_function *decl);
 
-        void declare_function_params(vast_function fn, clang_function *decl);
+        void declare_function_params(const clang_function *decl, vast_function fn);
     };
 
     //
@@ -58,8 +66,8 @@ namespace vast::cg {
 
         friend struct scope_generator< prototype_generator, prototype_context >;
 
-        operation emit(clang_function *decl);
-        operation lookup_or_declare(clang_function *decl, module_context *mod);
+        operation emit(const clang_function *decl);
+        operation lookup_or_declare(const clang_function *decl, module_context *mod);
     };
 
     //
@@ -82,8 +90,19 @@ namespace vast::cg {
 
         friend struct scope_generator< body_generator, body_context >;
 
-        void emit(clang_function *decl);
-        void emit_epilogue(clang_function *decl);
+        void emit(const clang_function *decl, vast_function fn);
+        void emit_epilogue(const clang_function *decl, vast_function fn);
+
+        void deal_with_missing_return(const clang_function *decl, vast_function fn);
+
+        bool should_final_emit_unreachable(const clang_function *decl) const;
+
+        insertion_guard insert_at_end(vast_function fn);
+
+        void emit_trap(const clang_function *decl);
+        void emit_unreachable(const clang_function *decl);
+        void emit_implicit_return_zero(const clang_function *decl);
+        void emit_implicit_void_return(const clang_function *decl);
     };
 
 } // namespace vast::cg

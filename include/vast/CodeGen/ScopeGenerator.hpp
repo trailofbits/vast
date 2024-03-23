@@ -24,8 +24,8 @@ namespace vast::cg {
         }
 
         auto do_emit(region_t &scope, auto &&...args) {
-            auto guard = bld.insertion_guard();
-            bld.set_insertion_point_to_start(&scope);
+            auto _ = bld.insertion_guard();
+            bld.set_insertion_point_to_end(&scope);
             return self().emit(std::forward< decltype(args) >(args)...);
         }
 

@@ -31,6 +31,7 @@ namespace vast::cg
         VAST_UNIMPLEMENTED;
     }
 
+    // TODO deduplicate with prototype_generator::lookup_or_declare
     operation global_generator::lookup_or_declare(clang_var_decl *decl, module_context *mod) {
         if (auto symbol = visitor.symbol(decl)) {
             if (auto gv = mod->lookup_global(symbol.value())) {

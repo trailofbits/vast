@@ -169,6 +169,32 @@ namespace vast::cg {
             setInsertionPointToEnd(block);
         }
 
+        hl::VoidType void_type() { return getType< hl::VoidType >(); }
+        hl::BoolType bool_type() { return getType< hl::BoolType >(); }
+
+        mlir_value void_value(loc_t loc) {
+            return create< hl::ConstantOp >(loc, void_type());
+        }
+
+        mlir_value bool_value(loc_t loc, bool value) {
+            return create< hl::ConstantOp >(loc, bool_type(), value);
+        }
+
+        mlir_value true_value(loc_t loc)  { return bool_value(loc, true); }
+        mlir_value false_value(loc_t loc) { return bool_value(loc, false); }
+
+        mlir_value constant(loc_t loc) {
+            return void_value(loc);
+        }
+
+        mlir_value constant(loc_t loc, bool value) {
+            return bool_value(loc, value);
+        }
+
+        mlir_value constant(loc_t loc, mlir_type ty, auto &&value) {
+            return create< hl::ConstantOp >(loc, ty, std::forward< decltype(value) >(value));
+        }
+
         template< typename result_type, typename builder_type >
         auto compose_start(builder_type &&builder) {
             return compose_state_t< result_type, builder_type >(std::forward< builder_type >(builder));
