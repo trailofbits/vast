@@ -10,6 +10,26 @@
 namespace vast::cg
 {
     bool unsupported(const clang_function *decl) {
+        if (clang::isa< clang::CXXConstructorDecl >(decl)) {
+            VAST_REPORT("Unsupported constructor declaration");
+            return true;
+        }
+
+        if (clang::isa< clang::CXXDestructorDecl >(decl)) {
+            VAST_REPORT("Unsupported destructor declaration");
+            return true;
+        }
+
+        if (llvm::dyn_cast< clang::CXXMethodDecl >(decl)) {
+            VAST_REPORT("Unsupported C++ method declaration");
+            return true;
+        }
+
+        if (decl->isDefaulted()) {
+            VAST_REPORT("Unsupported defaulted functions");
+            return true;
+        }
+
         if (decl->getAttr< clang::ConstructorAttr >()) {
             VAST_REPORT("Unsupported function with constructor attribute");
             return true;
@@ -22,11 +42,6 @@ namespace vast::cg
 
         if (decl->isMultiVersion()) {
             VAST_REPORT("Unsupported function with multi-version attribute");
-            return true;
-        }
-
-        if (llvm::dyn_cast< clang::CXXMethodDecl >(decl)) {
-            VAST_REPORT("Unsupported C++ method declaration");
             return true;
         }
 
@@ -60,10 +75,15 @@ namespace vast::cg
             return true;
         }
 
+        if (decl->hasAttr< clang::CUDAGlobalAttr >()) {
+            VAST_REPORT("Unsupported function with no cuda global attribute");
+            return true;
+        }
+
         auto &actx = decl->getASTContext();
         auto &lang = actx.getLangOpts();
 
-        if (lang.OpenCL || lang.OpenMPIsTargetDevice || lang.CUDA || lang.OpenMP) {
+        if (lang.OpenCL || lang.OpenMPIsTargetDevice || lang.CUDA || lang.CUDAIsDevice || lang.OpenMP) {
             VAST_REPORT("Unsupported function declaration in the language");
             return true;
         }
