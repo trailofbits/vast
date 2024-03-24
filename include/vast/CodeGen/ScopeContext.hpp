@@ -73,6 +73,8 @@ namespace vast::cg
                 deferred.front()();
                 deferred.pop_front();
             }
+
+            children.clear();
         }
 
         scope_context(const scope_context &) = delete;
@@ -127,12 +129,12 @@ namespace vast::cg
     struct block_scope : scope_context {
         explicit block_scope(scope_context *parent)
             : scope_context(parent)
-            // , vars(parent->symbols.vars)
+            , vars(parent->symbols.vars)
         {}
 
         virtual ~block_scope() = default;
 
-//        symbol_table_scope< clang_var_decl*, mlir_value > vars;
+        symbol_table_scope< string_ref, mlir_value > vars;
     };
 
 
