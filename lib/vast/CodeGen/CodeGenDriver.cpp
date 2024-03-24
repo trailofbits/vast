@@ -14,6 +14,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/UnreachableVisitor.hpp"
 #include "vast/CodeGen/UnsupportedVisitor.hpp"
 
+#include "vast/CodeGen/CodeGenModule.hpp"
+
 namespace vast::cg {
     void driver::emit(clang::DeclGroupRef decls) { generator.emit(decls); }
     void driver::emit(clang::Decl *decl)         { generator.emit(decl); }
@@ -76,14 +78,27 @@ namespace vast::cg {
         auto sg      = mk_symbol_generator(actx);
         auto visitor = mk_visitor(vargs, *mctx, *bld, *mg, *sg);
 
+        options_t copts = {
+            .lang = cc::get_source_language(actx.getLangOpts()),
+            .optimization_level = opts.codegen.OptimizationLevel,
+            // function emition options
+            .has_strict_return = opts.codegen.StrictReturn,
+        };
+
         return std::make_unique< driver >(
-            actx, std::move(mctx), std::move(bld), std::move(mg), std::move(sg), std::move(visitor)
+            actx,
+            std::move(mctx),
+            std::move(copts),
+            std::move(bld),
+            std::move(mg),
+            std::move(sg),
+            std::move(visitor)
         );
     }
 
-    module_generator driver::mk_module_generator() {
+    module_generator driver::mk_module_generator(const options_t &opts) {
         return module_generator(
-            actx, *mctx, cc::get_source_language(actx.getLangOpts()), *bld, visitor_view(*visitor), scopes
+            actx, *mctx, opts, *bld, visitor_view(*visitor), scopes
         );
     }
 
