@@ -42,6 +42,7 @@ namespace vast::cg {
         explicit driver(
               acontext_t &actx
             , std::unique_ptr< mcontext_t > mctx
+            , options_t opts
             , std::unique_ptr< codegen_builder > bld
             , std::unique_ptr< meta_generator > mg
             , std::unique_ptr< symbol_generator > sg
@@ -49,11 +50,12 @@ namespace vast::cg {
         )
             : actx(actx)
             , mctx(std::move(mctx))
+            , opts(opts)
             , bld(std::move(bld))
             , mg(std::move(mg))
             , sg(std::move(sg))
             , visitor(std::move(visitor))
-            , generator(mk_module_generator())
+            , generator(mk_module_generator(opts))
         {}
 
         void emit(clang::DeclGroupRef decls);
@@ -73,6 +75,8 @@ namespace vast::cg {
         acontext_t &actx;
         std::unique_ptr< mcontext_t > mctx;
 
+        [[maybe_unused]] options_t opts;
+
         symbol_tables scopes;
 
         //
@@ -86,7 +90,7 @@ namespace vast::cg {
         //
         // module generation state
         //
-        module_generator mk_module_generator();
+        module_generator mk_module_generator(const options_t &opts);
         module_generator generator;
     };
 

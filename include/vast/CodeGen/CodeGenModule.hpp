@@ -17,6 +17,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/ScopeContext.hpp"
 #include "vast/CodeGen/ScopeGenerator.hpp"
 #include "vast/CodeGen/CodeGenMeta.hpp"
+#include "vast/CodeGen/CodeGenOptions.hpp"
+
+#include "vast/CodeGen/CodeGenFunction.hpp"
 
 #include "vast/Dialect/Dialects.hpp"
 #include "vast/Dialect/Core/CoreAttributes.hpp"
@@ -25,20 +28,23 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg {
 
-    using source_language = core::SourceLanguage;
-
     void set_target_triple(owning_module_ref &mod, std::string triple);
     void set_source_language(owning_module_ref &mod, source_language lang);
+
+    owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
+    owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, source_language lang);
 
     struct module_context : module_scope {
         explicit module_context(
               symbol_tables &scopes
-            , owning_module_ref mod
+            , const options_t &opts
             , acontext_t &actx
+            , mcontext_t &mctx
         )
             : module_scope(scopes)
+            , opts(opts)
             , actx(actx)
-            , mod(std::move(mod))
+            , mod(mk_module_with_attrs(actx, mctx, opts.lang))
         {}
 
         virtual ~module_context() = default;
@@ -47,12 +53,11 @@ namespace vast::cg {
 
         operation lookup_global(symbol_name name) const;
 
+        const options_t &opts;
+
         acontext_t &actx;
         owning_module_ref mod;
     };
-
-    owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
-    owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, source_language lang);
 
     struct module_generator : scope_generator< module_generator, module_context >
     {
@@ -61,12 +66,12 @@ namespace vast::cg {
         explicit module_generator(
               acontext_t &actx
             , mcontext_t &mctx
-            , source_language lang
+            , const options_t &opts
             , codegen_builder &bld
             , visitor_view visitor
             , symbol_tables &scopes
         )
-            : base(visitor, bld, scopes, mk_module_with_attrs(actx, mctx, lang), actx)
+            : base(visitor, bld, scopes, opts, actx, mctx)
         {}
 
         virtual ~module_generator() = default;

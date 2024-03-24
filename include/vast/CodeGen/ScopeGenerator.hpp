@@ -16,10 +16,12 @@ namespace vast::cg {
 
         auto & self() { return *static_cast< generator_type * >(this); }
 
-        template< typename child_generator >
-        child_generator &make_child() {
+        template< typename child_generator, typename ...args_t >
+        child_generator &make_child(args_t &&...args) {
             auto &parent = self();
-            parent.hook_child(std::make_unique< child_generator >(visitor, bld, &parent));
+            parent.hook_child(std::make_unique< child_generator >(
+                visitor, bld, &parent, std::forward< args_t >(args)...
+            ));
             return parent.template last_child< child_generator >();
         }
 

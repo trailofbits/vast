@@ -6,6 +6,7 @@
 
 #include "vast/CodeGen/ScopeContext.hpp"
 #include "vast/CodeGen/ScopeGenerator.hpp"
+#include "vast/CodeGen/CodeGenOptions.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
@@ -13,21 +14,18 @@ namespace vast::cg {
 
     struct module_context;
 
-    struct function_codegen_options
-    {
-        bool has_strict_return;
-        uint8_t optimization_level;
-    };
-
     //
     // function generation
     //
     struct function_context : function_scope
     {
-        using function_scope::function_scope;
+        function_context(scope_context *parent, const options_t &opts)
+            : function_scope(parent), opts(opts)
+        {}
+
         virtual ~function_context() = default;
 
-        function_codegen_options opts;
+        const options_t &opts;
     };
 
     struct function_generator : scope_generator< function_generator, function_context >

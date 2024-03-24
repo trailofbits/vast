@@ -113,7 +113,7 @@ namespace vast::cg
     }
 
     void module_generator::emit(clang::FunctionDecl *decl) {
-        auto &fg = make_child< function_generator >();
+        auto &fg = make_child< function_generator >(opts);
         fg.do_emit(mod->getBodyRegion(), decl);
     }
 
