@@ -355,8 +355,12 @@ namespace vast::conv
                                                      op.getLoc(), *value, body_block );
                 rewriter.eraseOp( cond_yield );
 
-                VAST_PATTERN_CHECK(parent_t::tie( bld, op.getLoc(),
-                                                   *scope_entry, *cond_block ),
+                VAST_PATTERN_CHECK(parent_t::tie(bld, op.getLoc(),
+                                                 *scope_entry, *cond_block),
+                                   tie_fail);
+
+                VAST_PATTERN_CHECK(parent_t::tie(bld, op.getLoc(),
+                                                 *body_block, *cond_block),
                                    tie_fail);
 
                 rewriter.eraseOp( op );
