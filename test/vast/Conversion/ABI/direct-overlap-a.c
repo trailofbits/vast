@@ -10,7 +10,7 @@ struct data
 // ABI:      abi.func {{.*}} (%arg0: !hl.lvalue<i64>) -> si32 {{.*}}
 // ABI:        {{.*}} = abi.prologue {
 // ABI-NEXT:     [[V0:%[0-9]+]] = abi.direct %arg0 : !hl.lvalue<i64> -> !hl.lvalue<!hl.elaborated<!hl.record<"data">>>
-// ABI-NEXT:     {{.*}} = abi.yield [[V0]] : !hl.lvalue<!hl.elaborated<!hl.record<"data">>> -> si32
+// ABI-NEXT:     {{.*}} = abi.yield [[V0]] : !hl.lvalue<!hl.elaborated<!hl.record<"data">>> -> !hl.lvalue<!hl.elaborated<!hl.record<"data">>>
 // ABI-NEXT:   } : !hl.lvalue<!hl.elaborated<!hl.record<"data">>>
 
 
