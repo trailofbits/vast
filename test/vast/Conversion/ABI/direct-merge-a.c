@@ -9,7 +9,7 @@ struct vec
 // ABI:      abi.func {{.*}} (%arg0: !hl.lvalue<i64>) -> si32 {{.*}}
 // ABI-NEXT: [[P0:%[0-9]+]] = abi.prologue {
 // ABI-NEXT:   [[P9:%[0-9]+]] = abi.direct %arg0 : !hl.lvalue<i64> -> !hl.lvalue<!hl.elaborated<!hl.record<"vec">>>
-// ABI-NEXT:   {{.*}} = abi.yield [[P9]] : !hl.lvalue<!hl.elaborated<!hl.record<"vec">>> -> si32
+// ABI-NEXT:   {{.*}} = abi.yield [[P9]] : !hl.lvalue<!hl.elaborated<!hl.record<"vec">>> -> !hl.lvalue<!hl.elaborated<!hl.record<"vec">>>
 // ABI-NEXT: } : !hl.lvalue<!hl.elaborated<!hl.record<"vec">>>
 
 // ABI:      [[E8:%[0-9]+]] = abi.epilogue {

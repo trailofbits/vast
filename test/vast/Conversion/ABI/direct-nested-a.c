@@ -16,7 +16,7 @@ struct data
 // ABI:      abi.func {{.*}} (%arg0: !hl.lvalue<i64>) -> i64 {{.*}}
 // ABI:        {{.*}} = abi.prologue {
 // ABI-NEXT:     [[P4:%[0-9]+]] = abi.direct %arg0 : !hl.lvalue<i64> -> !hl.lvalue<!hl.elaborated<!hl.record<"data">>>
-// ABI-NEXT:     {{.*}} = abi.yield [[P4]] : !hl.lvalue<!hl.elaborated<!hl.record<"data">>> -> !hl.elaborated<!hl.record<"data">>
+// ABI-NEXT:     {{.*}} = abi.yield [[P4]] : !hl.lvalue<!hl.elaborated<!hl.record<"data">>> -> !hl.lvalue<!hl.elaborated<!hl.record<"data">>>
 // ABI-NEXT:   } : !hl.lvalue<!hl.elaborated<!hl.record<"data">>>
 
 // ABI:      [[E3:%[0-9]+]] = abi.epilogue {
@@ -38,7 +38,7 @@ struct data id( struct data v )
 // ABI-NEXT:     [[C10:%[0-9]+]] = abi.call @id([[C9]]) : (i64) -> i64
 // ABI-NEXT:     [[C11:%[0-9]+]] = abi.call_rets {
 // ABI-NEXT:       [[C13:%[0-9]+]] = abi.direct [[C10]] : i64 -> !hl.elaborated<!hl.record<"data">>
-// ABI-NEXT:       {{.*}} = abi.yield [[C13]] : !hl.elaborated<!hl.record<"data">> -> i64
+// ABI-NEXT:       {{.*}} = abi.yield [[C13]] : !hl.elaborated<!hl.record<"data">> -> !hl.elaborated<!hl.record<"data">>
 // ABI-NEXT:     } : !hl.elaborated<!hl.record<"data">>
 // ABI-NEXT:     {{.*}} = abi.yield [[C11]] : !hl.elaborated<!hl.record<"data">> -> !hl.elaborated<!hl.record<"data">>
 // ABI-NEXT:   } : (!hl.elaborated<!hl.record<"data">>) -> !hl.elaborated<!hl.record<"data">>
