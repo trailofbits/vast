@@ -20,7 +20,7 @@ namespace vast::cg
                 auto &initializer = declared.getInitializer();
                 VAST_ASSERT(initializer.empty());
 
-                do_emit(initializer, decl->getInit());
+                emit_in_scope(initializer, decl->getInit());
             });
         }
 

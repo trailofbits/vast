@@ -8,7 +8,16 @@
 
 namespace vast::cg
 {
-    using unsup_visitor_base = subvisitor_base;
+    struct unsup_visitor_base  {
+        unsup_visitor_base(codegen_builder &bld, visitor_view self)
+            : bld(bld), self(self)
+        {}
+
+      protected:
+
+        codegen_builder &bld;
+        visitor_view self;
+    };
 
     struct unsup_decl_visitor : unsup_visitor_base
     {
@@ -17,7 +26,7 @@ namespace vast::cg
     };
 
 
-    struct unsup_stmt_visitor : subvisitor_base
+    struct unsup_stmt_visitor : unsup_visitor_base
     {
         using unsup_visitor_base::unsup_visitor_base;
         operation visit(const clang_stmt *stmt);

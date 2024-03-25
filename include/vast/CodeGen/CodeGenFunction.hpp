@@ -4,8 +4,9 @@
 
 #include "vast/Util/Common.hpp"
 
+#include "vast/CodeGen/CodeGenBuilder.hpp"
+#include "vast/CodeGen/CodeGenVisitorBase.hpp"
 #include "vast/CodeGen/ScopeContext.hpp"
-#include "vast/CodeGen/ScopeGenerator.hpp"
 #include "vast/CodeGen/CodeGenOptions.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
@@ -17,76 +18,68 @@ namespace vast::cg {
     //
     // function generation
     //
-    struct function_context : function_scope
+    struct function_generator : function_scope
     {
-        function_context(scope_context *parent, const options_t &opts)
-            : function_scope(parent), opts(opts)
+        function_generator(
+             scope_context *parent
+            , const options_t &opts
+            , codegen_builder &bld
+            , visitor_view visitor
+        )
+            : function_scope(parent), opts(opts), bld(bld), visitor(visitor)
         {}
-
-        virtual ~function_context() = default;
-
-        const options_t &opts;
-    };
-
-    struct function_generator : scope_generator< function_generator, function_context >
-    {
-        using base = scope_generator< function_generator, function_context >;
-        using base::base;
 
         virtual ~function_generator() = default;
 
+        operation emit_in_scope(region_t &scope, const clang_function *decl);
+
+        const options_t &opts;
+
       private:
 
-        friend struct scope_generator< function_generator, function_context >;
-
         operation emit(const clang_function *decl);
-
         void declare_function_params(const clang_function *decl, vast_function fn);
+
+        codegen_builder &bld;
+        visitor_view visitor;
     };
 
     //
     // function prototype generation
     //
-    struct prototype_context : prototype_scope
+    struct prototype_generator : prototype_scope
     {
-        using prototype_scope::prototype_scope;
-        virtual ~prototype_context() = default;
-    };
-
-    struct prototype_generator : scope_generator< prototype_generator, prototype_context >
-    {
-        using base = scope_generator< prototype_generator, prototype_context >;
-        using base::base;
+        prototype_generator(scope_context *parent, codegen_builder &bld, visitor_view visitor)
+            : prototype_scope(parent), bld(bld), visitor(visitor)
+        {}
 
         virtual ~prototype_generator() = default;
 
-      private:
+        operation emit_in_scope(region_t &scope, const clang_function *decl);
 
-        friend struct scope_generator< prototype_generator, prototype_context >;
+      private:
 
         operation emit(const clang_function *decl);
         operation lookup_or_declare(const clang_function *decl, module_context *mod);
+
+        codegen_builder &bld;
+        visitor_view visitor;
     };
 
     //
     // function body generation
     //
-    struct body_context : block_scope
+    struct body_generator : block_scope
     {
-        using block_scope::block_scope;
-        virtual ~body_context() = default;
-    };
-
-    struct body_generator : scope_generator< body_generator, body_context >
-    {
-        using base = scope_generator< body_generator, body_context >;
-        using base::base;
+        body_generator(scope_context *parent, codegen_builder &bld, visitor_view visitor)
+            : block_scope(parent), bld(bld), visitor(visitor)
+        {}
 
         virtual ~body_generator() = default;
 
-     private:
+        void emit_in_scope(region_t &scope, const clang_function *decl, vast_function fn);
 
-        friend struct scope_generator< body_generator, body_context >;
+     private:
 
         void emit(const clang_function *decl, vast_function fn);
         void emit_epilogue(const clang_function *decl, vast_function fn);
@@ -101,6 +94,9 @@ namespace vast::cg {
         void emit_unreachable(const clang_function *decl);
         void emit_implicit_return_zero(const clang_function *decl);
         void emit_implicit_void_return(const clang_function *decl);
+
+        codegen_builder &bld;
+        visitor_view visitor;
     };
 
 } // namespace vast::cg

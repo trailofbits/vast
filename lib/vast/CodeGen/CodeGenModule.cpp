@@ -113,13 +113,13 @@ namespace vast::cg
     }
 
     void module_generator::emit(clang::FunctionDecl *decl) {
-        auto &fg = make_child< function_generator >(opts);
-        fg.do_emit(mod->getBodyRegion(), decl);
+        auto &fg = mk_child< function_generator >(opts, bld, visitor);
+        fg.emit_in_scope(mod->getBodyRegion(), decl);
     }
 
     void module_generator::emit(clang::VarDecl *decl) {
-        auto &gg = make_child< global_generator >();
-        gg.do_emit(mod->getBodyRegion(), decl);
+        auto &gg = mk_child< global_generator >(bld, visitor);
+        gg.emit_in_scope(mod->getBodyRegion(), decl);
     }
 
     // TODO this should not be needed the data layout should be emitted from cached types directly

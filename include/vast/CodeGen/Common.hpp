@@ -32,4 +32,6 @@ namespace vast::cg {
     using vast_function = vast::hl::FuncOp;
     using vast_function_type = core::FunctionType;
 
+    using clang_compound_stmt = clang::CompoundStmt;
+
 } // namespace vast::cg
