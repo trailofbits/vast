@@ -369,7 +369,7 @@ namespace vast
                     }
 
                     bld.template create< abi::YieldOp >(
-                            loc, op.getFunctionType().getResults(), to_yield );
+                            loc, op.getFunctionType().getInputs(), to_yield );
                 };
 
                 auto abi_prologue = rewriter.template create< abi::PrologueOp >(
@@ -598,7 +598,7 @@ namespace vast
 
                     bld.template create< abi::YieldOp >(
                         loc,
-                        this->abified_rets(),
+                        op.getResultTypes(),
                         out);
                 };
             }
