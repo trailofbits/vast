@@ -20,12 +20,18 @@ namespace vast::cg
     // function generation
     //
 
-   operation function_generator::emit(const clang_function *decl) {
+    operation function_generator::emit_in_scope(region_t &scope, const clang_function *decl) {
+        auto _ = bld.insertion_guard();
+        bld.set_insertion_point_to_end(&scope);
+        return emit(decl);
+    }
+
+    operation function_generator::emit(const clang_function *decl) {
         auto ctx = dynamic_cast< module_context* >(parent);
         VAST_CHECK(ctx, "function context must be a child of a module context");
 
-        auto &pg = make_child< prototype_generator >();
-        auto prototype = pg.do_emit(ctx->mod->getBodyRegion(), decl);
+        auto &pg = mk_child< prototype_generator >(bld, visitor);
+        auto prototype = pg.emit_in_scope(ctx->mod->getBodyRegion(), decl);
 
         if (auto fn = mlir::dyn_cast< vast_function >(prototype)) {
             if (decl->hasBody()) {
@@ -33,8 +39,8 @@ namespace vast::cg
 
                 defer([=] {
                     if (auto fn = mlir::dyn_cast< vast_function >(prototype)) {
-                        auto &bg = make_child< body_generator >();
-                        bg.do_emit(fn.getBody(), decl, fn);
+                        auto &bg = mk_child< body_generator >(bld, visitor);
+                        bg.emit_in_scope(fn.getBody(), decl, fn);
                     } else {
                         VAST_REPORT("can not emit function body for unknown prototype");
                     }
@@ -63,6 +69,12 @@ namespace vast::cg
     // function prototype generation
     //
 
+    operation prototype_generator::emit_in_scope(region_t &scope, const clang_function *decl) {
+        auto _ = bld.insertion_guard();
+        bld.set_insertion_point_to_end(&scope);
+        return emit(decl);
+    }
+
     operation prototype_generator::lookup_or_declare(const clang_function *decl, module_context *mod) {
         if (auto symbol = visitor.symbol(decl)) {
             if (auto fn = mod->lookup_global(symbol.value())) {
@@ -82,7 +94,7 @@ namespace vast::cg
     }
 
     operation prototype_generator::emit(const clang_function *decl) {
-        auto ctx = dynamic_cast< function_context* >(parent);
+        auto ctx = dynamic_cast< function_scope* >(parent);
         VAST_CHECK(ctx, "prototype generator must be a child of a function context");
 
         auto mod = dynamic_cast< module_context* >(ctx->parent);
@@ -97,13 +109,19 @@ namespace vast::cg
     // function body generation
     //
 
+    void body_generator::emit_in_scope(region_t &scope, const clang_function *decl, vast_function fn) {
+        auto _ = bld.insertion_guard();
+        bld.set_insertion_point_to_end(&scope);
+        emit(decl, fn);
+    }
+
     void body_generator::emit(const clang_function *decl, vast_function fn) {
         if (clang::isa< clang::CoroutineBodyStmt >(decl->getBody())) {
             VAST_REPORT("coroutines are not supported");
             return;
         }
 
-        // TODO emit body here
+        visitor.visit(decl->getBody());
 
         VAST_ASSERT(mlir::succeeded(fn.verifyBody()));
 
@@ -154,14 +172,14 @@ namespace vast::cg
     }
 
     bool body_generator::should_final_emit_unreachable(const clang_function *decl) const {
-        auto ctx  = static_cast< function_context* >(parent);
+        auto ctx  = static_cast< function_generator* >(parent);
         auto rty  = decl->getReturnType();
         auto & actx = decl->getASTContext();
         return ctx->opts.has_strict_return || may_drop_function_return(rty, actx);
     }
 
     void body_generator::deal_with_missing_return(const clang_function *decl, vast_function fn) {
-        auto ctx = static_cast< function_context* >(parent);
+        auto ctx = static_cast< function_generator* >(parent);
         auto rty = decl->getReturnType();
 
         auto _ = insert_at_end(fn);

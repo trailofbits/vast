@@ -106,6 +106,12 @@ namespace vast::cg
             return *static_cast< scope_generator_t* >(children.back().get());
         }
 
+        template< typename child_generator_t, typename ...args_t >
+        child_generator_t & mk_child(args_t &&...args) {
+            hook_child(std::make_unique< child_generator_t >(this, std::forward< args_t >(args)...));
+            return last_child< child_generator_t >();
+        }
+
         void defer(deferred_task task) {
             deferred.push_back(std::move(task));
         }

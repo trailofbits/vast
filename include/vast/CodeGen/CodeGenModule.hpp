@@ -14,8 +14,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Triple.hpp"
 #include "vast/Util/DataLayout.hpp"
 
+#include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/CodeGenBuilder.hpp"
 #include "vast/CodeGen/ScopeContext.hpp"
-#include "vast/CodeGen/ScopeGenerator.hpp"
 #include "vast/CodeGen/CodeGenMeta.hpp"
 #include "vast/CodeGen/CodeGenOptions.hpp"
 
@@ -59,10 +60,8 @@ namespace vast::cg {
         owning_module_ref mod;
     };
 
-    struct module_generator : scope_generator< module_generator, module_context >
+    struct module_generator : module_context
     {
-        using base = scope_generator< module_generator, module_context >;
-
         explicit module_generator(
               acontext_t &actx
             , mcontext_t &mctx
@@ -71,7 +70,9 @@ namespace vast::cg {
             , visitor_view visitor
             , symbol_tables &scopes
         )
-            : base(visitor, bld, scopes, opts, actx, mctx)
+            : module_context(scopes, opts, actx, mctx)
+            , bld(bld)
+            , visitor(visitor)
         {}
 
         virtual ~module_generator() = default;
@@ -89,6 +90,10 @@ namespace vast::cg {
 
         bool verify();
         void finalize();
+
+      private:
+        codegen_builder &bld;
+        visitor_view visitor;
     };
 
 } // namespace vast::cg

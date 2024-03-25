@@ -6,33 +6,35 @@
 
 #include "vast/CodeGen/CodeGenModule.hpp"
 #include "vast/CodeGen/ScopeContext.hpp"
-#include "vast/CodeGen/ScopeGenerator.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 namespace vast::cg {
 
     // global ctor block
-    struct global_context : block_scope
+    struct global_generator : block_scope
     {
-        using block_scope::block_scope;
-        virtual ~global_context() = default;
-    };
-
-    struct global_generator : scope_generator< global_generator, global_context >
-    {
-        using base = scope_generator< global_generator, global_context >;
-        using base::base;
+        global_generator(scope_context *parent,  codegen_builder &bld, visitor_view visitor)
+            : block_scope(parent), bld(bld), visitor(visitor)
+        {}
 
         virtual ~global_generator() = default;
 
-      private:
+        void emit_in_scope(region_t &scope, auto decl) {
+            auto _ = bld.insertion_guard();
+            bld.set_insertion_point_to_end(&scope);
+            emit(decl);
+        }
 
-        friend struct scope_generator< global_generator, global_context >;
+      private:
 
         operation  emit(clang_var_decl *decl);
         mlir_value emit(clang_expr *init);
+
         operation lookup_or_declare(clang_var_decl *decl, module_context *mod);
+
+        codegen_builder &bld;
+        visitor_view visitor;
     };
 
 } // namespace vast::cg
