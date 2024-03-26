@@ -7,6 +7,7 @@ VAST_RELAX_WARNINGS
 #include <clang/Basic/TargetInfo.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/CodeGen/CodeGenBlock.hpp"
 #include "vast/CodeGen/CodeGenModule.hpp"
 #include "vast/CodeGen/Util.hpp"
 
@@ -116,12 +117,19 @@ namespace vast::cg
     }
 
     void body_generator::emit(const clang_function *decl, vast_function fn) {
-        if (clang::isa< clang::CoroutineBodyStmt >(decl->getBody())) {
+        auto body = decl->getBody();
+
+        if (clang::isa< clang::CoroutineBodyStmt >(body)) {
             VAST_REPORT("coroutines are not supported");
             return;
         }
 
-        visitor.visit(decl->getBody());
+        if (auto stmt = clang::dyn_cast< clang_compound_stmt >(body)) {
+            auto &sg = mk_child< block_generator >(bld, visitor);
+            sg.emit_in_scope(fn.getBody(), stmt);
+        } else {
+            visitor.visit(body);
+        }
 
         VAST_ASSERT(mlir::succeeded(fn.verifyBody()));
 
