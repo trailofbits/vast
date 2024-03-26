@@ -17,12 +17,12 @@ namespace vast::cg
         , cached_default_type_visitor
         , default_attr_visitor
     {
-        default_visitor(mcontext_t &mctx, codegen_builder &bld, meta_generator &mg, symbol_generator &sg)
+        default_visitor(mcontext_t &mctx, codegen_builder &bld, meta_generator &mg, symbol_generator &sg, visitor_view self)
             : visitor_base(mctx, mg, sg)
-            , default_decl_visitor(bld, visitor_view(*this))
-            , default_stmt_visitor(bld, visitor_view(*this))
-            , cached_default_type_visitor(bld, visitor_view(*this))
-            , default_attr_visitor(bld, visitor_view(*this))
+            , default_decl_visitor(bld, self)
+            , default_stmt_visitor(bld, self)
+            , cached_default_type_visitor(bld, self)
+            , default_attr_visitor(bld, self)
         {}
 
         operation visit(const clang_decl *decl) override {

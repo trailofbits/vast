@@ -66,12 +66,12 @@ namespace vast::cg
         , unsup_type_visitor
         , unsup_attr_visitor
     {
-        unsup_visitor(mcontext_t &mctx, codegen_builder &bld, meta_generator &mg, symbol_generator &sg)
+        unsup_visitor(mcontext_t &mctx, codegen_builder &bld, meta_generator &mg, symbol_generator &sg, visitor_view self)
             : visitor_base(mctx, mg, sg)
-            , unsup_decl_visitor(bld, visitor_view(*this))
-            , unsup_stmt_visitor(bld, visitor_view(*this))
-            , unsup_type_visitor(bld, visitor_view(*this))
-            , unsup_attr_visitor(bld, visitor_view(*this))
+            , unsup_decl_visitor(bld, self)
+            , unsup_stmt_visitor(bld, self)
+            , unsup_type_visitor(bld, self)
+            , unsup_attr_visitor(bld, self)
         {}
 
         operation visit(const clang_decl *decl) override {
