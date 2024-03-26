@@ -195,6 +195,62 @@ namespace vast::cg
     }
 
     //
+    // Compound Assignment Operations
+    //
+    operation default_stmt_visitor::VisinBinAssign(const clang::CompoundAssignOperator *op) {
+        return visit_assign_bin_op< hl::AssignOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinMulAssign(const clang::CompoundAssignOperator *op) {
+        return visit_assign_ifbin_op< hl::MulIAssignOp, hl::MulIAssignOp, hl::MulFAssignOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinDivAssign(const clang::CompoundAssignOperator *op) {
+        return visit_assign_ifbin_op< hl::DivUAssignOp, hl::DivSAssignOp, hl::DivFAssignOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinRemAssign(const clang::CompoundAssignOperator *op) {
+        return visit_assign_ibin_op< hl::RemUAssignOp, hl::RemSAssignOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinAddAssign(const clang::CompoundAssignOperator *op) {
+        return visit_assign_ifbin_op< hl::AddIAssignOp, hl::AddIAssignOp, hl::AddFAssignOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinSubAssign(const clang::CompoundAssignOperator *op) {
+        return visit_assign_ifbin_op< hl::SubIAssignOp, hl::SubIAssignOp, hl::SubFAssignOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinShlAssign(const clang::CompoundAssignOperator *op) {
+        return visit_assign_bin_op< hl::BinShlAssignOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinShrAssign(const clang::CompoundAssignOperator *op) {
+        return visit_assign_ibin_op< hl::BinLShrAssignOp, hl::BinAShrAssignOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinAndAssign(const clang::CompoundAssignOperator *op) {
+        return visit_assign_bin_op< hl::BinAndAssignOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinXorAssign(const clang::CompoundAssignOperator *op) {
+        return visit_assign_bin_op< hl::BinXorAssignOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinOrAssign(const clang::CompoundAssignOperator *op) {
+        return visit_assign_bin_op< hl::BinOrAssignOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinComma(const clang::BinaryOperator *op) {
+        return bld.compose< hl::BinComma >()
+            .bind(self.location(op))
+            .bind(self.visit(op->getType()))
+            .bind_transform(self.visit(op->getLHS()), first_result)
+            .bind_transform(self.visit(op->getRHS()), first_result)
+            .freeze();
+    }
+
+    //
     // ControlFlow Statements
     //
     operation default_stmt_visitor::VisitReturnStmt(const clang::ReturnStmt *stmt) {
