@@ -5,9 +5,9 @@ struct wrapped
     int x;
 };
 
-// ABI:      abi.func {{.*}} (%arg0: !hl.lvalue<i32>) -> si32 {{.*}}
+// ABI:      abi.func {{.*}} (%arg0: i32) -> si32 {{.*}}
 // ABI-NEXT:   {{.*}} = abi.prologue {
-// ABI-NEXT:     [[V5:%[0-9]+]] = abi.direct %arg0 : !hl.lvalue<i32> -> !hl.lvalue<!hl.elaborated<!hl.record<"wrapped">>>
+// ABI-NEXT:     [[V5:%[0-9]+]] = abi.direct %arg0 : i32 -> !hl.lvalue<!hl.elaborated<!hl.record<"wrapped">>>
 // ABI-NEXT:     [[V6:%[0-9]+]] = abi.yield [[V5]] : !hl.lvalue<!hl.elaborated<!hl.record<"wrapped">>> -> !hl.lvalue<!hl.elaborated<!hl.record<"wrapped">>>
 int fn( struct wrapped w )
 {
