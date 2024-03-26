@@ -69,9 +69,34 @@ namespace vast::cg {
         operation VisitBinOr(const clang::BinaryOperator *op);
 
         //
+        // Compound Assignment Operations
+        //
+        template< typename Op >
+        operation visit_assign_bin_op(const clang::CompoundAssignOperator *op);
+
+        template< typename UOp, typename SOp >
+        operation visit_assign_ibin_op(const clang::CompoundAssignOperator *op);
+
+        template< typename UOp, typename SOp, typename FOp >
+        operation visit_assign_ifbin_op(const clang::CompoundAssignOperator *op);
+
+        operation VisinBinAssign(const clang::CompoundAssignOperator *op);
+
+        operation VisitBinMulAssign(const clang::CompoundAssignOperator *op);
+        operation VisitBinDivAssign(const clang::CompoundAssignOperator *op);
+        operation VisitBinRemAssign(const clang::CompoundAssignOperator *op);
+        operation VisitBinAddAssign(const clang::CompoundAssignOperator *op);
+        operation VisitBinSubAssign(const clang::CompoundAssignOperator *op);
+        operation VisitBinShlAssign(const clang::CompoundAssignOperator *op);
+        operation VisitBinShrAssign(const clang::CompoundAssignOperator *op);
+        operation VisitBinAndAssign(const clang::CompoundAssignOperator *op);
+        operation VisitBinXorAssign(const clang::CompoundAssignOperator *op);
+        operation VisitBinOrAssign(const clang::CompoundAssignOperator *op);
+        operation VisitBinComma(const clang::BinaryOperator *op);
+
+        //
         // ControlFlow Statements
         //
-
         operation VisitReturnStmt(const clang::ReturnStmt *stmt);
 
         //
@@ -169,6 +194,47 @@ namespace vast::cg {
             return visit_cmp_op< spred >(op);
         } else if (ty->isFloatingType()) {
             return visit_fcmp_op< fpred >(op);
+        } else {
+            return {};
+        }
+    }
+
+    template< typename Op >
+    operation default_stmt_visitor::visit_assign_bin_op(const clang::CompoundAssignOperator *op) {
+        auto lhs = self.visit(op->getLHS());
+        auto rhs = self.visit(op->getRHS());
+
+        return bld.compose< Op >()
+            .bind(self.location(op))
+            .bind_transform(lhs, first_result)
+            .bind_transform(rhs, first_result)
+            .freeze();
+    }
+
+    template< typename UOp, typename SOp >
+    operation default_stmt_visitor::visit_assign_ibin_op(const clang::CompoundAssignOperator *op) {
+        auto ty = op->getType();
+
+        if (ty->isUnsignedIntegerType()) {
+            return visit_assign_bin_op< UOp >(op);
+        } else if (ty->isIntegerType()) {
+            return visit_assign_bin_op< SOp >(op);
+        } else {
+            return {};
+        }
+
+    }
+
+    template< typename UOp, typename SOp, typename FOp >
+    operation default_stmt_visitor::visit_assign_ifbin_op(const clang::CompoundAssignOperator *op) {
+        auto ty = op->getType();
+
+        if (ty->isUnsignedIntegerType()) {
+            return visit_assign_bin_op< UOp >(op);
+        } else if (ty->isIntegerType()) {
+            return visit_assign_bin_op< SOp >(op);
+        } else if (ty->isFloatingType()) {
+            return visit_assign_bin_op< FOp >(op);
         } else {
             return {};
         }
