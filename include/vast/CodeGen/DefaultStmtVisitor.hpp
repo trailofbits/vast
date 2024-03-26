@@ -13,6 +13,8 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg {
 
+    hl::CastKind cast_kind(const clang::CastExpr *expr);
+
     struct default_stmt_visitor : stmt_visitor_base< default_stmt_visitor >
     {
         using base = stmt_visitor_base< default_stmt_visitor >;
@@ -117,6 +119,24 @@ namespace vast::cg {
         operation VisitUnaryReal(const clang::UnaryOperator *op);
         operation VisitUnaryImag(const clang::UnaryOperator *op);
         operation VisitUnaryCoawait(const clang::UnaryOperator *op);
+
+        //
+        // Cast Operations
+        //
+        template< typename Op >
+        operation visit_cast_op(const clang::CastExpr *cast);
+
+        mlir_type cast_result_type(const clang::CastExpr *cast, mlir_type from);
+
+        operation VisitImplicitCastExpr(const clang::ImplicitCastExpr *cast);
+        operation VisitCStyleCastExpr(const clang::CStyleCastExpr *cast);
+        operation VisitBuiltinBitCastExpr(const clang::BuiltinBitCastExpr *cast);
+
+        operation VisitCXXFunctionalCastExpr(const clang::CXXFunctionalCastExpr *cast);
+        operation VisitCXXConstCastExpr(const clang::CXXConstCastExpr *cast);
+        operation VisitCXXDynamicCastExpr(const clang::CXXDynamicCastExpr *cast);
+        operation VisitCXXReinterpretCastExpr(const clang::CXXReinterpretCastExpr *cast);
+        operation VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *cast);
 
         //
         // ControlFlow Statements
@@ -291,6 +311,20 @@ namespace vast::cg {
                 .bind(self.location(op))
                 .bind_transform(type, strip_lvalue)
                 .bind(arg->getResult(0))
+                .freeze();
+        }
+
+        return {};
+    }
+
+    template< typename Op >
+    operation default_stmt_visitor::visit_cast_op(const clang::CastExpr *cast) {
+        if (auto arg = self.visit(cast->getSubExpr())) {
+            return bld.compose< Op >()
+                .bind(self.location(cast))
+                .bind(cast_result_type(cast, arg->getResultTypes().front()))
+                .bind_transform(arg, first_result)
+                .bind(cast_kind(cast))
                 .freeze();
         }
 
