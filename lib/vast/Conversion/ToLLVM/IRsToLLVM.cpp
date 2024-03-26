@@ -1451,17 +1451,14 @@ namespace vast::conv::irstollvm
                 target.addDynamicallyLegalOp< T >(std::move(query));
             };
 
-            auto with_legal_operands = [&]< typename T >(T &&t)
-            {
-                auto query = tc.template get_has_legal_operand_types< T >();
-                target.addDynamicallyLegalOp< T >(std::move(query));
-            };
-
             legal_with_llvm_ret_type( core::LazyOp{} );
             legal_with_llvm_ret_type( core::BinLAndOp{} );
             legal_with_llvm_ret_type( core::BinLOrOp{} );
 
-            with_legal_operands( mlir::memref::StoreOp{} );
+            target.addDynamicallyLegalOp< hl::ValueYieldOp >([&](hl::ValueYieldOp op) {
+                return mlir::isa< core::LazyOp >(op->getParentOp()) &&
+                       tc.template get_has_legal_operand_types< hl::ValueYieldOp >()(op);
+            });
 
             target.addIllegalOp< mlir::func::FuncOp >();
             target.addLegalOp< mlir::ModuleOp >();
