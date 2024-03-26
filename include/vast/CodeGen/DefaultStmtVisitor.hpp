@@ -13,14 +13,17 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg {
 
-    struct default_stmt_visitor
+    struct default_stmt_visitor : stmt_visitor_base< default_stmt_visitor >
     {
-        explicit default_stmt_visitor(visitor_view self) : self(self) {}
+        using base = stmt_visitor_base< default_stmt_visitor >;
 
-        operation visit(const clang_stmt *stmt) { return {}; }
+        explicit default_stmt_visitor(codegen_builder &bld, visitor_view self)
+            : base(bld, self)
+        {}
 
-      private:
-        visitor_view self;
+        using base::Visit;
+
+        operation visit(const clang_stmt *stmt) { return Visit(stmt); }
     };
 
 } // namespace vast::cg

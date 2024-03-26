@@ -20,7 +20,7 @@ namespace vast::cg
         default_visitor(mcontext_t &mctx, codegen_builder &bld, meta_generator &mg, symbol_generator &sg)
             : visitor_base(mctx, mg, sg)
             , default_decl_visitor(bld, visitor_view(*this))
-            , default_stmt_visitor(visitor_view(*this))
+            , default_stmt_visitor(bld, visitor_view(*this))
             , cached_default_type_visitor(bld, visitor_view(*this))
             , default_attr_visitor(bld, visitor_view(*this))
         {}

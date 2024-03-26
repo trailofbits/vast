@@ -2,8 +2,13 @@
 
 #include "vast/CodeGen/DefaultStmtVisitor.hpp"
 
-namespace vast::hl
+#include "vast/CodeGen/CodeGenBlock.hpp"
+#include "vast/CodeGen/CodeGenVisitorBase.hpp"
+
+namespace vast::cg
 {
+    using hl::CastKind;
+
     CastKind cast_kind(const clang::CastExpr *expr)
     {
         switch (expr->getCastKind()) {
@@ -89,6 +94,8 @@ namespace vast::hl
         VAST_UNIMPLEMENTED_MSG( "unsupported cast kind" );
     }
 
+    using hl::IdentKind;
+
     IdentKind ident_kind(const clang::PredefinedExpr *expr)
     {
         switch(expr->getIdentKind())
@@ -106,4 +113,4 @@ namespace vast::hl
         }
     }
 
-} // namespace vast::hl
+} // namespace vast::cg
