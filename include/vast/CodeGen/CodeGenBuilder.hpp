@@ -106,6 +106,22 @@ namespace vast::cg {
             return compose_state_t< result_type, decltype(bound) >(std::move(bound));
         }
 
+        template< typename arg_t, typename func_t >
+        constexpr inline auto bind_transform(arg_t &&arg, func_t &&fn) && {
+            auto bound = [
+                arg = std::forward< arg_t >(arg),
+                fn = std::forward< func_t >(fn),
+                binder = std::move(binder)
+            ] (auto &&...args) {
+                if (!valid(arg)) {
+                    return result_type{};
+                }
+
+                return binder(fn(arg), std::forward< decltype(args) >(args)...);
+            };
+            return compose_state_t< result_type, decltype(bound) >(std::move(bound));
+        }
+
         template <typename arg_t>
         constexpr inline auto bind_region_if(bool cond, arg_t &&arg) && {
             auto bound = [cond, arg = std::forward<arg_t>(arg), binder = std::move(binder)](auto &&...args) {

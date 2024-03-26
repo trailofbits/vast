@@ -21,9 +21,52 @@ namespace vast::cg {
             : base(bld, self)
         {}
 
+        operation visit(const clang_stmt *stmt) { return Visit(stmt); }
+
         using base::Visit;
 
-        operation visit(const clang_stmt *stmt) { return Visit(stmt); }
+        //
+        // Binary Operations
+        //
+        template< typename Op >
+        operation visit_bin_op(const clang::BinaryOperator *op);
+
+        template< typename UOp, typename SOp >
+        operation visit_ibin_op(const clang::BinaryOperator *op);
+
+        template< typename UOp, typename SOp, typename FOp >
+        operation visit_ifbin_op(const clang::BinaryOperator *op);
+
+        template< hl::Predicate pred >
+        operation visit_cmp_op(const clang::BinaryOperator *op);
+
+        template< hl::FPredicate pred >
+        operation visit_fcmp_op(const clang::BinaryOperator *op);
+
+        template< hl::Predicate upred, hl::Predicate spred, hl::FPredicate fpred >
+        operation visit_cmp_op(const clang::BinaryOperator *op);
+
+        template< typename LOp >
+        operation visit_logical_op(const clang::BinaryOperator *op);
+
+        operation VisitBinPtrMemD(const clang::BinaryOperator *op);
+        operation VisitBinPtrMemI(const clang::BinaryOperator *op);
+        operation VisitBinMul(const clang::BinaryOperator *op);
+        operation VisitBinDiv(const clang::BinaryOperator *op);
+        operation VisitBinRem(const clang::BinaryOperator *op);
+        operation VisitBinAdd(const clang::BinaryOperator *op);
+        operation VisitBinSub(const clang::BinaryOperator *op);
+        operation VisitBinShl(const clang::BinaryOperator *op);
+        operation VisitBinShr(const clang::BinaryOperator *op);
+        operation VisitBinLT(const clang::BinaryOperator *op);
+        operation VisitBinGT(const clang::BinaryOperator *op);
+        operation VisitBinLE(const clang::BinaryOperator *op);
+        operation VisitBinGE(const clang::BinaryOperator *op);
+        operation VisitBinEQ(const clang::BinaryOperator *op);
+        operation VisitBinNE(const clang::BinaryOperator *op);
+        operation VisitBinAnd(const clang::BinaryOperator *op);
+        operation VisitBinXor(const clang::BinaryOperator *op);
+        operation VisitBinOr(const clang::BinaryOperator *op);
 
         //
         // ControlFlow Statements
@@ -42,5 +85,93 @@ namespace vast::cg {
         operation VisitCompoundLiteralExpr(const clang::CompoundLiteralExpr *lit);
         operation VisitFixedPointLiteral(const clang::FixedPointLiteral *lit);
     };
+
+    static inline auto first_result = [] (auto op) {
+        return op->getResult(0);
+    };
+
+    template< typename Op >
+    operation default_stmt_visitor::visit_bin_op(const clang::BinaryOperator *op) {
+        auto lhs = self.visit(op->getLHS());
+        auto rhs = self.visit(op->getRHS());
+
+        return bld.compose< Op >()
+            .bind(self.location(op))
+            .bind(self.visit(op->getType()))
+            .bind_transform(lhs, first_result)
+            .bind_transform(rhs, first_result)
+            .freeze();
+    }
+
+    template< typename UOp, typename SOp >
+    operation default_stmt_visitor::visit_ibin_op(const clang::BinaryOperator *op) {
+        auto ty = op->getType();
+
+        if (ty->isUnsignedIntegerType()) {
+            return visit_bin_op< UOp >(op);
+        } else if (ty->isIntegerType()) {
+            return visit_bin_op< SOp >(op);
+        } else {
+            return {};
+        }
+    }
+
+    template< typename UOp, typename SOp, typename FOp >
+    operation default_stmt_visitor::visit_ifbin_op(const clang::BinaryOperator *op) {
+        auto ty = op->getType();
+
+        if (ty->isUnsignedIntegerType()) {
+            return visit_bin_op< UOp >(op);
+        } else if (ty->isIntegerType()) {
+            return visit_bin_op< SOp >(op);
+        } else if (ty->isFloatingType()) {
+            return visit_bin_op< FOp >(op);
+        } else {
+            return {};
+        }
+    }
+
+    template< hl::Predicate pred >
+    operation default_stmt_visitor::visit_cmp_op(const clang::BinaryOperator *op) {
+        auto lhs = self.visit(op->getLHS());
+        auto rhs = self.visit(op->getRHS());
+
+        return bld.compose< hl::CmpOp >()
+            .bind(self.location(op))
+            .bind(self.visit(op->getType()))
+            .bind(pred)
+            .bind_transform(lhs, first_result)
+            .bind_transform(rhs, first_result)
+            .freeze();
+    }
+
+    template< hl::FPredicate pred >
+    operation default_stmt_visitor::visit_fcmp_op(const clang::BinaryOperator *op) {
+        auto lhs = self.visit(op->getLHS());
+        auto rhs = self.visit(op->getRHS());
+
+        return bld.compose< hl::FCmpOp >()
+            .bind(self.location(op))
+            .bind(self.visit(op->getType()))
+            .bind(pred)
+            .bind_transform(lhs, first_result)
+            .bind_transform(rhs, first_result)
+            .freeze();
+    }
+
+    template< hl::Predicate upred, hl::Predicate spred, hl::FPredicate fpred >
+    operation default_stmt_visitor::visit_cmp_op(const clang::BinaryOperator *op) {
+        auto ty = op->getLHS()->getType();
+
+        if (ty->isUnsignedIntegerType() || ty->isPointerType()) {
+            return visit_cmp_op< upred >(op);
+        } else if (ty->isIntegerType()) {
+            return visit_cmp_op< spred >(op);
+        } else if (ty->isFloatingType()) {
+            return visit_fcmp_op< fpred >(op);
+        } else {
+            return {};
+        }
+    }
 
 } // namespace vast::cg
