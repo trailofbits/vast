@@ -1005,76 +1005,6 @@ namespace vast::conv::irstollvm
         one_to_one< hl::BinAShrOp, LLVM::AShrOp >
     >;
 
-
-    template< typename Src, typename Trg >
-    struct assign_pattern : base_pattern< Src >
-    {
-        using base = base_pattern< Src >;
-        using base::base;
-
-        logical_result matchAndRewrite(
-                    Src op, typename Src::Adaptor ops,
-                    conversion_rewriter &rewriter) const override
-        {
-            auto lhs = ops.getDst();
-            auto rhs = ops.getSrc();
-
-            // TODO(lukas): This should not happen?
-            if (rhs.getType().template isa< hl::LValueType >())
-                return logical_result::failure();
-
-            auto target_ty = this->convert(op.getSrc().getType());
-
-            // Probably the easiest way to compose this (some template specialization would
-            // require a lot of boilerplate).
-            auto new_op = [&]()
-            {
-                if constexpr (!std::is_same_v< Trg, void >) {
-                    auto load_lhs = rewriter.create< LLVM::LoadOp >(op.getLoc(), lhs);
-                    return rewriter.create< Trg >(op.getLoc(), target_ty, load_lhs, rhs);
-                } else {
-                    return rhs;
-                }
-            }();
-
-            rewriter.create< LLVM::StoreOp >(op.getLoc(), new_op, lhs);
-
-            // `hl.assign` returns value for cases like `int x = y = 5;`
-            rewriter.replaceOp(op, new_op);
-            return logical_result::success();
-        }
-    };
-
-    using assign_conversions = util::type_list<
-        assign_pattern< hl::AddIAssignOp, LLVM::AddOp >,
-        assign_pattern< hl::SubIAssignOp, LLVM::SubOp >,
-        assign_pattern< hl::MulIAssignOp, LLVM::MulOp >,
-
-        assign_pattern< hl::AddFAssignOp, LLVM::FAddOp >,
-        assign_pattern< hl::SubFAssignOp, LLVM::FSubOp >,
-        assign_pattern< hl::MulFAssignOp, LLVM::FMulOp >,
-
-        assign_pattern< hl::DivSAssignOp, LLVM::SDivOp >,
-        assign_pattern< hl::DivUAssignOp, LLVM::UDivOp >,
-        assign_pattern< hl::DivFAssignOp, LLVM::FDivOp >,
-
-        assign_pattern< hl::RemSAssignOp, LLVM::SRemOp >,
-        assign_pattern< hl::RemUAssignOp, LLVM::URemOp >,
-        assign_pattern< hl::RemFAssignOp, LLVM::FRemOp >,
-
-        assign_pattern< hl::BinOrAssignOp, LLVM::OrOp >,
-        assign_pattern< hl::BinAndAssignOp, LLVM::AndOp >,
-        assign_pattern< hl::BinXorAssignOp, LLVM::XOrOp >,
-
-        assign_pattern< hl::BinShlAssignOp, LLVM::ShlOp >,
-
-        assign_pattern< hl::BinLShrAssignOp, LLVM::LShrOp >,
-        assign_pattern< hl::BinAShrAssignOp, LLVM::AShrOp >,
-
-        assign_pattern< hl::AssignOp, void >
-    >;
-
-
     struct call : base_pattern< hl::CallOp >
     {
         using base = base_pattern< hl::CallOp >;
@@ -1547,7 +1477,6 @@ namespace vast::conv::irstollvm
                 one_to_one_conversions,
                 inline_region_from_op_conversions,
                 return_conversions,
-                assign_conversions,
                 unary_in_place_conversions,
                 sign_conversions,
                 init_conversions,
