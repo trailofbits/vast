@@ -95,6 +95,30 @@ namespace vast::cg {
         operation VisitBinComma(const clang::BinaryOperator *op);
 
         //
+        // Unary Operations
+        //
+        template< typename Op >
+        operation visit_unary_op(const clang::UnaryOperator *op, mlir_type rty);
+
+        template< typename Op >
+        operation visit_underlying_type_preserving_unary_op(const clang::UnaryOperator *op);
+
+        operation VisitUnaryPostInc(const clang::UnaryOperator *op);
+        operation VisitUnaryPostDec(const clang::UnaryOperator *op);
+        operation VisitUnaryPreInc(const clang::UnaryOperator *op);
+        operation VisitUnaryPreDec(const clang::UnaryOperator *op);
+        operation VisitUnaryAddrOf(const clang::UnaryOperator *op);
+        operation VisitUnaryDeref(const clang::UnaryOperator *op);
+        operation VisitUnaryPlus(const clang::UnaryOperator *op);
+        operation VisitUnaryMinus(const clang::UnaryOperator *op);
+        operation VisitUnaryNot(const clang::UnaryOperator *op);
+        operation VisitUnaryLNot(const clang::UnaryOperator *op);
+        operation VisitUnaryExtension(const clang::UnaryOperator *op);
+        operation VisitUnaryReal(const clang::UnaryOperator *op);
+        operation VisitUnaryImag(const clang::UnaryOperator *op);
+        operation VisitUnaryCoawait(const clang::UnaryOperator *op);
+
+        //
         // ControlFlow Statements
         //
         operation VisitReturnStmt(const clang::ReturnStmt *stmt);
@@ -238,6 +262,39 @@ namespace vast::cg {
         } else {
             return {};
         }
+    }
+
+    template< typename Op >
+    operation default_stmt_visitor::visit_unary_op(const clang::UnaryOperator *op, mlir_type rty) {
+        return bld.compose< Op >()
+            .bind(self.location(op))
+            .bind(rty)
+            .bind_transform(self.visit(op->getSubExpr()), first_result)
+            .freeze();
+    }
+
+    static inline mlir_type strip_lvalue(mlir_type ty) {
+        if (auto ref = mlir::dyn_cast< hl::LValueType >(ty)) {
+            return ref.getElementType();
+        }
+
+        return ty;
+    }
+
+    template< typename Op >
+    operation default_stmt_visitor::visit_underlying_type_preserving_unary_op(
+        const clang::UnaryOperator *op
+    ) {
+        if (auto arg = self.visit(op->getSubExpr())) {
+            auto type = arg->getResult(0).getType();
+            return bld.compose< Op >()
+                .bind(self.location(op))
+                .bind_transform(type, strip_lvalue)
+                .bind(arg->getResult(0))
+                .freeze();
+        }
+
+        return {};
     }
 
 } // namespace vast::cg

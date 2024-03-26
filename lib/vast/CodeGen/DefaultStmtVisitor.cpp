@@ -251,6 +251,64 @@ namespace vast::cg
     }
 
     //
+    // Unary Operations
+    //
+    operation default_stmt_visitor::VisitUnaryPostInc(const clang::UnaryOperator *op) {
+        return visit_underlying_type_preserving_unary_op< hl::PostIncOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitUnaryPostDec(const clang::UnaryOperator *op) {
+        return visit_underlying_type_preserving_unary_op< hl::PostDecOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitUnaryPreInc(const clang::UnaryOperator *op) {
+        return visit_underlying_type_preserving_unary_op< hl::PreIncOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitUnaryPreDec(const clang::UnaryOperator *op) {
+        return visit_underlying_type_preserving_unary_op< hl::PreDecOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitUnaryAddrOf(const clang::UnaryOperator *op) {
+        return visit_unary_op< hl::AddressOf >(op, self.visit(op->getType()));
+    }
+
+    operation default_stmt_visitor::VisitUnaryDeref(const clang::UnaryOperator *op) {
+        return visit_unary_op< hl::Deref >(op, self.visit_as_lvalue_type(op->getType()));
+    }
+
+    operation default_stmt_visitor::VisitUnaryPlus(const clang::UnaryOperator *op) {
+        return visit_underlying_type_preserving_unary_op< hl::PlusOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitUnaryMinus(const clang::UnaryOperator *op) {
+        return visit_underlying_type_preserving_unary_op< hl::MinusOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitUnaryNot(const clang::UnaryOperator *op) {
+        return visit_underlying_type_preserving_unary_op< hl::NotOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitUnaryLNot(const clang::UnaryOperator *op) {
+        return visit_unary_op< hl::LNotOp >(op, self.visit(op->getType()));
+    }
+
+    operation default_stmt_visitor::VisitUnaryExtension(const clang::UnaryOperator *op) {
+        return visit_underlying_type_preserving_unary_op< hl::ExtensionOp >(op);
+    }
+    operation default_stmt_visitor::VisitUnaryReal(const clang::UnaryOperator *op) {
+        return {};
+    }
+
+    operation default_stmt_visitor::VisitUnaryImag(const clang::UnaryOperator *op) {
+        return {};
+    }
+
+    operation default_stmt_visitor::VisitUnaryCoawait(const clang::UnaryOperator *op) {
+        return {};
+    }
+
+    //
     // ControlFlow Statements
     //
     operation default_stmt_visitor::VisitReturnStmt(const clang::ReturnStmt *stmt) {
