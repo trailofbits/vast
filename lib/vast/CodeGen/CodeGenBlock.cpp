@@ -6,8 +6,7 @@
 namespace vast::cg
 {
     operation block_generator::emit_in_scope(region_t &scope, const clang_compound_stmt *stmt) {
-        auto _ = bld.insertion_guard();
-        bld.set_insertion_point_to_end(&scope);
+        auto _ = bld.scoped_insertion_at_end(&scope);
         return emit(stmt);
     }
 
@@ -15,8 +14,7 @@ namespace vast::cg
         auto scope = bld.create< core::ScopeOp >(visitor.location(stmt));
         scope.getBody().emplaceBlock();
 
-        auto _ = bld.insertion_guard();
-        bld.set_insertion_point_to_end(&scope.getBody());
+        auto _ = bld.scoped_insertion_at_end(&scope.getBody());
 
         for (auto &s : stmt->body()) {
             if (auto c = clang::dyn_cast< clang_compound_stmt >(s)) {

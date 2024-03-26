@@ -22,8 +22,7 @@ namespace vast::cg
     //
 
     operation function_generator::emit_in_scope(region_t &scope, const clang_function *decl) {
-        auto _ = bld.insertion_guard();
-        bld.set_insertion_point_to_end(&scope);
+        auto _ = bld.scoped_insertion_at_end(&scope);
         return emit(decl);
     }
 
@@ -71,8 +70,7 @@ namespace vast::cg
     //
 
     operation prototype_generator::emit_in_scope(region_t &scope, const clang_function *decl) {
-        auto _ = bld.insertion_guard();
-        bld.set_insertion_point_to_end(&scope);
+        auto _ = bld.scoped_insertion_at_end(&scope);
         return emit(decl);
     }
 
@@ -111,8 +109,7 @@ namespace vast::cg
     //
 
     void body_generator::emit_in_scope(region_t &scope, const clang_function *decl, vast_function fn) {
-        auto _ = bld.insertion_guard();
-        bld.set_insertion_point_to_end(&scope);
+        auto _ = bld.scoped_insertion_at_end(&scope);
         emit(decl, fn);
     }
 
@@ -134,12 +131,6 @@ namespace vast::cg
         VAST_ASSERT(mlir::succeeded(fn.verifyBody()));
 
         emit_epilogue(decl, fn);
-    }
-
-    insertion_guard body_generator::insert_at_end(vast_function fn) {
-        auto guard = bld.insertion_guard();
-        bld.set_insertion_point_to_end(&fn.getBody().back());
-        return guard;
     }
 
     void body_generator::emit_implicit_return_zero(const clang_function *decl) {
@@ -190,7 +181,7 @@ namespace vast::cg
         auto ctx = static_cast< function_generator* >(parent);
         auto rty = decl->getReturnType();
 
-        auto _ = insert_at_end(fn);
+        auto _ = bld.scoped_insertion_at_end(&fn.getBody().back());
 
         if (rty->isVoidType()) {
             emit_implicit_void_return(decl);

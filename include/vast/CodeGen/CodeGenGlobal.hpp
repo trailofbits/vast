@@ -21,8 +21,7 @@ namespace vast::cg {
         virtual ~global_generator() = default;
 
         void emit_in_scope(region_t &scope, auto decl) {
-            auto _ = bld.insertion_guard();
-            bld.set_insertion_point_to_end(&scope);
+            auto _ = bld.scoped_insertion_at_end(&scope);
             emit(decl);
         }
 

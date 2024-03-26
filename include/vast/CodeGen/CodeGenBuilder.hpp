@@ -150,6 +150,28 @@ namespace vast::cg {
             setInsertionPointToEnd(block);
         }
 
+        [[nodiscard]] auto scoped_insertion_at_start(block_ptr block) {
+            auto guard = insertion_guard();
+            set_insertion_point_to_start(block);
+            return guard;
+        }
+
+        [[nodiscard]] auto scoped_insertion_at_end(block_ptr block) {
+            auto guard = insertion_guard();
+            set_insertion_point_to_end(block);
+            return guard;
+        }
+
+        [[nodiscard]] auto scoped_insertion_at_start(region_ptr region) {
+            VAST_CHECK(!region->empty(), "Inserting into region with no blocks");
+            return scoped_insertion_at_start(&region->front());
+        }
+
+        [[nodiscard]] auto scoped_insertion_at_end(region_ptr region) {
+            VAST_CHECK(!region->empty(), "Inserting into region with no blocks");
+            return scoped_insertion_at_end(&region->back());
+        }
+
         hl::VoidType void_type() { return getType< hl::VoidType >(); }
         hl::BoolType bool_type() { return getType< hl::BoolType >(); }
 
@@ -188,5 +210,6 @@ namespace vast::cg {
             });
         }
     };
+
 
 } // namespace vast::cg
