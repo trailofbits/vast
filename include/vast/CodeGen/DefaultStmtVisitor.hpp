@@ -26,6 +26,12 @@ namespace vast::cg {
         operation visit(const clang_stmt *stmt) { return Visit(stmt); }
 
         //
+        // ControlFlow Statements
+        //
+
+        operation VisitReturnStmt(const clang::ReturnStmt *stmt);
+
+        //
         // Literals
         //
         operation VisistCharacterLiteral(const clang::CharacterLiteral *lit);
