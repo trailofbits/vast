@@ -114,6 +114,20 @@ namespace vast::cg
     }
 
     //
+    // ControlFlow Statements
+    //
+    operation default_stmt_visitor::VisitReturnStmt(const clang::ReturnStmt *stmt) {
+        auto loc = self.location(stmt);
+        auto op = bld.compose< hl::ReturnOp >().bind(loc);
+
+        if (stmt->getRetValue()) {
+            return std::move(op).bind(self.visit(stmt->getRetValue())->getResults()).freeze();
+        } else {
+            return std::move(op).bind(bld.void_value(loc)).freeze();
+        }
+    }
+
+    //
     // Literals
     //
     operation default_stmt_visitor::VisistCharacterLiteral(const clang::CharacterLiteral *lit) {
