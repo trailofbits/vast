@@ -98,7 +98,7 @@ namespace vast::cg {
 
     module_generator driver::mk_module_generator(const options_t &opts) {
         return module_generator(
-            actx, *mctx, opts, *bld, visitor_view(*visitor), scopes
+            actx, *mctx, opts, *bld, visitor_view(*visitor), symbols
         );
     }
 

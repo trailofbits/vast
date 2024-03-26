@@ -37,12 +37,12 @@ namespace vast::cg {
 
     struct module_context : module_scope {
         explicit module_context(
-              symbol_tables &scopes
+              symbol_tables &symbols
             , const options_t &opts
             , acontext_t &actx
             , mcontext_t &mctx
         )
-            : module_scope(scopes)
+            : module_scope(symbols)
             , opts(opts)
             , actx(actx)
             , mod(mk_module_with_attrs(actx, mctx, opts.lang))
@@ -68,9 +68,9 @@ namespace vast::cg {
             , const options_t &opts
             , codegen_builder &bld
             , visitor_view visitor
-            , symbol_tables &scopes
+            , symbol_tables &symbols
         )
-            : module_context(scopes, opts, actx, mctx)
+            : module_context(symbols, opts, actx, mctx)
             , bld(bld)
             , visitor(visitor)
         {}

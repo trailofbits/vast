@@ -77,7 +77,7 @@ namespace vast::cg {
 
         [[maybe_unused]] options_t opts;
 
-        symbol_tables scopes;
+        symbol_tables symbols;
 
         //
         // generators
