@@ -5,6 +5,8 @@
 #include "vast/CodeGen/CodeGenBlock.hpp"
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
 
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+
 namespace vast::cg
 {
     using hl::CastKind;
@@ -114,6 +116,85 @@ namespace vast::cg
     }
 
     //
+    // Binary Operations
+    //
+
+    operation default_stmt_visitor::VisitBinPtrMemD(const clang::BinaryOperator */* op */) {
+        return {};
+    }
+
+    operation default_stmt_visitor::VisitBinPtrMemI(const clang::BinaryOperator */* op */) {
+        return {};
+    }
+
+    operation default_stmt_visitor::VisitBinMul(const clang::BinaryOperator *op) {
+        return visit_ifbin_op< hl::MulIOp, hl::MulIOp, hl::MulFOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinDiv(const clang::BinaryOperator *op) {
+        return visit_ifbin_op< hl::DivUOp, hl::DivSOp, hl::DivFOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinRem(const clang::BinaryOperator *op) {
+        return visit_ifbin_op< hl::RemUOp, hl::RemSOp, hl::RemFOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinAdd(const clang::BinaryOperator *op) {
+        return visit_ifbin_op< hl::AddIOp, hl::AddIOp, hl::AddFOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinSub(const clang::BinaryOperator *op) {
+        return visit_ifbin_op< hl::SubIOp, hl::SubIOp, hl::SubFOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinShl(const clang::BinaryOperator *op) {
+        return visit_bin_op< hl::BinShlOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinShr(const clang::BinaryOperator *op) {
+        return visit_ibin_op< hl::BinLShrOp, hl::BinAShrOp >(op);
+    }
+
+    using ipred = hl::Predicate;
+    using fpred = hl::FPredicate;
+
+    operation default_stmt_visitor::VisitBinLT(const clang::BinaryOperator *op) {
+        return visit_cmp_op< ipred::ult, ipred::slt, fpred::olt >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinGT(const clang::BinaryOperator *op) {
+        return visit_cmp_op< ipred::ugt, ipred::sgt, fpred::ogt >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinLE(const clang::BinaryOperator *op) {
+        return visit_cmp_op< ipred::ule, ipred::sle, fpred::ole >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinGE(const clang::BinaryOperator *op) {
+        return visit_cmp_op< ipred::uge, ipred::sge, fpred::oge >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinEQ(const clang::BinaryOperator *op) {
+        return visit_cmp_op< ipred::eq, ipred::eq, fpred::oeq >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinNE(const clang::BinaryOperator *op) {
+        return visit_cmp_op< ipred::ne, ipred::ne, fpred::one >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinAnd(const clang::BinaryOperator *op) {
+        return visit_bin_op< hl::BinAndOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinXor(const clang::BinaryOperator *op) {
+        return visit_bin_op< hl::BinXorOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinOr(const clang::BinaryOperator *op) {
+        return visit_bin_op< hl::BinOrOp >(op);
+    }
+
+    //
     // ControlFlow Statements
     //
     operation default_stmt_visitor::VisitReturnStmt(const clang::ReturnStmt *stmt) {
@@ -147,15 +228,15 @@ namespace vast::cg
         return bld.constant(self.location(lit), self.visit_as_lvalue_type(lit->getType()), lit->getString()).getDefiningOp();
     }
 
-    operation default_stmt_visitor::VisitUserDefinedLiteral(const clang::UserDefinedLiteral *lit) {
+    operation default_stmt_visitor::VisitUserDefinedLiteral(const clang::UserDefinedLiteral */* lit */) {
         return {};
     }
 
-    operation default_stmt_visitor::VisitCompoundLiteralExpr(const clang::CompoundLiteralExpr *lit) {
+    operation default_stmt_visitor::VisitCompoundLiteralExpr(const clang::CompoundLiteralExpr */* lit */) {
         return {};
     }
 
-    operation default_stmt_visitor::VisitFixedPointLiteral(const clang::FixedPointLiteral *lit) {
+    operation default_stmt_visitor::VisitFixedPointLiteral(const clang::FixedPointLiteral */* lit */) {
         return {};
     }
 
