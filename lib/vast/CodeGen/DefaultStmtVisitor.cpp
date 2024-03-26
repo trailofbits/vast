@@ -113,4 +113,36 @@ namespace vast::cg
         }
     }
 
+    //
+    // Literals
+    //
+    operation default_stmt_visitor::VisistCharacterLiteral(const clang::CharacterLiteral *lit) {
+        return bld.constant(self.location(lit), self.visit(lit->getType()), lit->getValue()).getDefiningOp();
+    }
+
+    operation default_stmt_visitor::VisitIntegerLiteral(const clang::IntegerLiteral *lit) {
+        return bld.constant(self.location(lit), self.visit(lit->getType()), llvm::APSInt(lit->getValue(), false)).getDefiningOp();
+    }
+
+    operation default_stmt_visitor::VisitFloatingLiteral(const clang::FloatingLiteral *lit) {
+        return bld.constant(self.location(lit), self.visit(lit->getType()), lit->getValue()).getDefiningOp();
+    }
+
+    operation default_stmt_visitor::VisitStringLiteral(const clang::StringLiteral *lit) {
+        VAST_ASSERT(lit->isLValue() && "string literal is expected to be an lvalue");
+        return bld.constant(self.location(lit), self.visit_as_lvalue_type(lit->getType()), lit->getString()).getDefiningOp();
+    }
+
+    operation default_stmt_visitor::VisitUserDefinedLiteral(const clang::UserDefinedLiteral *lit) {
+        return {};
+    }
+
+    operation default_stmt_visitor::VisitCompoundLiteralExpr(const clang::CompoundLiteralExpr *lit) {
+        return {};
+    }
+
+    operation default_stmt_visitor::VisitFixedPointLiteral(const clang::FixedPointLiteral *lit) {
+        return {};
+    }
+
 } // namespace vast::cg
