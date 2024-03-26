@@ -6,6 +6,7 @@
 
 #include "vast/CodeGen/CodeGenBuilder.hpp"
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/DefaultGeneratorBase.hpp"
 #include "vast/CodeGen/ScopeContext.hpp"
 #include "vast/CodeGen/CodeGenOptions.hpp"
 
@@ -18,7 +19,7 @@ namespace vast::cg {
     //
     // function generation
     //
-    struct function_generator : function_scope
+    struct function_generator : default_generator_base, function_scope
     {
         function_generator(
              scope_context *parent
@@ -26,7 +27,7 @@ namespace vast::cg {
             , codegen_builder &bld
             , visitor_view visitor
         )
-            : function_scope(parent), opts(opts), bld(bld), visitor(visitor)
+            : default_generator_base(bld, visitor), function_scope(parent), opts(opts)
         {}
 
         virtual ~function_generator() = default;
@@ -39,18 +40,15 @@ namespace vast::cg {
 
         operation emit(const clang_function *decl);
         void declare_function_params(const clang_function *decl, vast_function fn);
-
-        codegen_builder &bld;
-        visitor_view visitor;
     };
 
     //
     // function prototype generation
     //
-    struct prototype_generator : prototype_scope
+    struct prototype_generator : default_generator_base, prototype_scope
     {
         prototype_generator(scope_context *parent, codegen_builder &bld, visitor_view visitor)
-            : prototype_scope(parent), bld(bld), visitor(visitor)
+            : default_generator_base(bld, visitor), prototype_scope(parent)
         {}
 
         virtual ~prototype_generator() = default;
@@ -61,18 +59,15 @@ namespace vast::cg {
 
         operation emit(const clang_function *decl);
         operation lookup_or_declare(const clang_function *decl, module_context *mod);
-
-        codegen_builder &bld;
-        visitor_view visitor;
     };
 
     //
     // function body generation
     //
-    struct body_generator : block_scope
+    struct body_generator : default_generator_base, block_scope
     {
         body_generator(scope_context *parent, codegen_builder &bld, visitor_view visitor)
-            : block_scope(parent), bld(bld), visitor(visitor)
+            : default_generator_base(bld, visitor), block_scope(parent)
         {}
 
         virtual ~body_generator() = default;
@@ -92,9 +87,6 @@ namespace vast::cg {
         void emit_unreachable(const clang_function *decl);
         void emit_implicit_return_zero(const clang_function *decl);
         void emit_implicit_void_return(const clang_function *decl);
-
-        codegen_builder &bld;
-        visitor_view visitor;
     };
 
 } // namespace vast::cg

@@ -22,8 +22,7 @@ namespace vast::cg
     //
 
     operation function_generator::emit_in_scope(region_t &scope, const clang_function *decl) {
-        auto _ = bld.scoped_insertion_at_end(&scope);
-        return emit(decl);
+        return default_generator_base::emit_in_scope(scope, [&] { return emit(decl); });
     }
 
     operation function_generator::emit(const clang_function *decl) {
@@ -70,8 +69,7 @@ namespace vast::cg
     //
 
     operation prototype_generator::emit_in_scope(region_t &scope, const clang_function *decl) {
-        auto _ = bld.scoped_insertion_at_end(&scope);
-        return emit(decl);
+        return default_generator_base::emit_in_scope(scope, [&] { return emit(decl); });
     }
 
     operation prototype_generator::lookup_or_declare(const clang_function *decl, module_context *mod) {
@@ -109,8 +107,7 @@ namespace vast::cg
     //
 
     void body_generator::emit_in_scope(region_t &scope, const clang_function *decl, vast_function fn) {
-        auto _ = bld.scoped_insertion_at_end(&scope);
-        emit(decl, fn);
+        default_generator_base::emit_in_scope(scope, [&] { emit(decl, fn); });
     }
 
     void body_generator::emit(const clang_function *decl, vast_function fn) {

@@ -60,7 +60,7 @@ namespace vast::cg {
         owning_module_ref mod;
     };
 
-    struct module_generator : module_context
+    struct module_generator : default_generator_base, module_context
     {
         explicit module_generator(
               acontext_t &actx
@@ -70,9 +70,8 @@ namespace vast::cg {
             , visitor_view visitor
             , symbol_tables &symbols
         )
-            : module_context(symbols, opts, actx, mctx)
-            , bld(bld)
-            , visitor(visitor)
+            : default_generator_base(bld, visitor)
+            , module_context(symbols, opts, actx, mctx)
         {}
 
         virtual ~module_generator() = default;
@@ -90,10 +89,6 @@ namespace vast::cg {
 
         bool verify();
         void finalize();
-
-      private:
-        codegen_builder &bld;
-        visitor_view visitor;
     };
 
 } // namespace vast::cg

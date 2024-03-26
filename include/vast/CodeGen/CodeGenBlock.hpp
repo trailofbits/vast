@@ -6,6 +6,7 @@
 
 #include "vast/CodeGen/CodeGenBuilder.hpp"
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/DefaultGeneratorBase.hpp"
 #include "vast/CodeGen/ScopeContext.hpp"
 #include "vast/CodeGen/CodeGenOptions.hpp"
 
@@ -13,10 +14,10 @@
 
 namespace vast::cg {
 
-    struct block_generator : block_scope
+    struct block_generator : default_generator_base, block_scope
     {
         block_generator(scope_context *parent, codegen_builder &bld, visitor_view visitor)
-            : block_scope(parent), bld(bld), visitor(visitor)
+            : default_generator_base(bld, visitor), block_scope(parent)
         {}
 
         virtual ~block_generator() = default;
@@ -25,8 +26,5 @@ namespace vast::cg {
       private:
 
         operation emit(const clang_compound_stmt *stmt);
-
-        codegen_builder &bld;
-        visitor_view visitor;
     };
 } // namespace vast::cg

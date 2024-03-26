@@ -6,8 +6,7 @@
 namespace vast::cg
 {
     operation block_generator::emit_in_scope(region_t &scope, const clang_compound_stmt *stmt) {
-        auto _ = bld.scoped_insertion_at_end(&scope);
-        return emit(stmt);
+        return default_generator_base::emit_in_scope(scope, [&] { return emit(stmt); });
     }
 
     operation block_generator::emit(const clang_compound_stmt *stmt) {
