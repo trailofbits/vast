@@ -24,6 +24,17 @@ namespace vast::cg {
         using base::Visit;
 
         operation visit(const clang_stmt *stmt) { return Visit(stmt); }
+
+        //
+        // Literals
+        //
+        operation VisistCharacterLiteral(const clang::CharacterLiteral *lit);
+        operation VisitIntegerLiteral(const clang::IntegerLiteral *lit);
+        operation VisitFloatingLiteral(const clang::FloatingLiteral *lit);
+        operation VisitStringLiteral(const clang::StringLiteral *lit);
+        operation VisitUserDefinedLiteral(const clang::UserDefinedLiteral *lit);
+        operation VisitCompoundLiteralExpr(const clang::CompoundLiteralExpr *lit);
+        operation VisitFixedPointLiteral(const clang::FixedPointLiteral *lit);
     };
 
 } // namespace vast::cg
