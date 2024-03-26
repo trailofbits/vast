@@ -7,7 +7,7 @@
 
 namespace vast::cg
 {
-   operation global_generator::emit(clang_var_decl *decl) {
+    operation global_generator::emit(clang_var_decl *decl) {
         auto mod = dynamic_cast< module_context* >(parent);
         VAST_CHECK(mod, "global context must be a child of a module context");
         VAST_CHECK(decl->isFileVarDecl(), "Cannot emit local var decl as global.");
