@@ -15,7 +15,7 @@ namespace vast::cg
         auto var = lookup_or_declare(decl, mod);
 
         if (decl->hasInit()) {
-            defer([=] {
+            defer([=, this] {
                 auto declared = mlir::dyn_cast< hl::VarDeclOp >(var);
                 auto &initializer = declared.getInitializer();
                 VAST_ASSERT(initializer.empty());
