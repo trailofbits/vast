@@ -59,12 +59,15 @@ namespace vast::cg {
         , meta_generator &mg
         , symbol_generator &sg
     ) {
-        // TODO pick the right visitors based on the command line args
-        fallback_visitor::visitor_stack visitors;
-        visitors.push_back(std::make_unique< default_visitor >(mctx, bld, mg, sg));
-        visitors.push_back(std::make_unique< unsup_visitor   >(mctx, bld, mg, sg));
-        visitors.push_back(std::make_unique< unreach_visitor >(mctx, mg, sg));
-        return std::make_unique< codegen_visitor >(mctx, mg, sg, std::move(visitors));
+        auto top = std::make_unique< codegen_visitor >(
+            mctx, mg, sg
+        );
+
+        top->visitors.push_back(std::make_unique< default_visitor >(mctx, bld, mg, sg, visitor_view(*top)));
+        top->visitors.push_back(std::make_unique< unsup_visitor   >(mctx, bld, mg, sg, visitor_view(*top)));
+        top->visitors.push_back(std::make_unique< unreach_visitor >(mctx, mg, sg));
+
+        return top;
     }
 
     std::unique_ptr< symbol_generator > mk_symbol_generator(acontext_t &actx) {
