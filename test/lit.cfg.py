@@ -51,12 +51,18 @@ tools = [
     ToolSubst('%vast-opt', command = 'vast-opt'),
     ToolSubst('%vast-opt-irs-to-llvm', command = 'vast-opt',
         extra_args=[
-            "--vast-hl-lower-types",
-            "--vast-hl-to-ll-cf",
-            "--vast-hl-to-ll-vars",
             "--vast-hl-lower-elaborated-types",
             "--vast-hl-lower-typedefs",
-            "--vast-irs-to-llvm"
+            "--vast-hl-lower-types",
+            "--vast-hl-to-ll-func",
+            "--vast-hl-to-ll-vars",
+            "--vast-hl-to-ll-cf",
+            "--vast-hl-to-ll-geps",
+            "--vast-fn-args-to-alloca",
+            "--vast-lower-value-categories",
+            "--vast-hl-to-lazy-regions",
+            "--vast-irs-to-llvm",
+            "--vast-core-to-llvm",
         ]
     ),
     ToolSubst('%vast-opt-core-to-llvm', command = 'vast-opt',
