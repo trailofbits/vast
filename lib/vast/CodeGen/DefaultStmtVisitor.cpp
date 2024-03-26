@@ -309,6 +309,140 @@ namespace vast::cg
     }
 
     //
+    // Cast Operations
+    //
+    operation default_stmt_visitor::VisitImplicitCastExpr(const clang::ImplicitCastExpr *cast) {
+        return visit_cast_op< hl::ImplicitCastOp >(cast);
+    }
+
+    operation default_stmt_visitor::VisitCStyleCastExpr(const clang::CStyleCastExpr *cast) {
+        return visit_cast_op< hl::CStyleCastOp >(cast);
+    }
+
+    operation default_stmt_visitor::VisitBuiltinBitCastExpr(const clang::BuiltinBitCastExpr *cast) {
+        return visit_cast_op< hl::BuiltinBitCastOp >(cast);
+    }
+
+    operation default_stmt_visitor::VisitCXXFunctionalCastExpr(const clang::CXXFunctionalCastExpr *cast) {
+        return {};
+    }
+
+    operation default_stmt_visitor::VisitCXXConstCastExpr(const clang::CXXConstCastExpr *cast) {
+        return {};
+    }
+
+    operation default_stmt_visitor::VisitCXXDynamicCastExpr(const clang::CXXDynamicCastExpr *cast) {
+        return {};
+    }
+
+    operation default_stmt_visitor::VisitCXXReinterpretCastExpr(const clang::CXXReinterpretCastExpr *cast) {
+        return {};
+    }
+
+    operation default_stmt_visitor::VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *cast) {
+        return {};
+    }
+
+    mlir_type default_stmt_visitor::cast_result_type(const clang::CastExpr *cast, mlir_type from) {
+        auto to_rvalue_cast     = [&] { return self.visit(cast->getType()); };
+        auto lvalue_cast        = [&] { return self.visit_as_lvalue_type(cast->getType()); };
+        auto non_lvalue_cast    = [&] { return self.visit(cast->getType()); };
+        auto array_to_ptr_cast  = [&] { return self.visit(cast->getType()); };
+        auto keep_category_cast = [&] {
+            if (mlir::isa< hl::LValueType >(from))
+                return lvalue_cast();
+            return non_lvalue_cast();
+        };
+
+        switch (cast->getCastKind()) {
+            // case clang::CastKind::CK_Dependent:
+            case clang::CastKind::CK_BitCast:               return non_lvalue_cast();
+            case clang::CastKind::CK_LValueBitCast:         return lvalue_cast();
+            case clang::CastKind::CK_LValueToRValueBitCast: return to_rvalue_cast();
+            case clang::CastKind::CK_LValueToRValue:        return to_rvalue_cast();
+            case clang::CastKind::CK_NoOp:                  return from;
+
+            case clang::CastKind::CK_BaseToDerived:          return lvalue_cast();
+            case clang::CastKind::CK_DerivedToBase:          return lvalue_cast();
+            case clang::CastKind::CK_UncheckedDerivedToBase: return lvalue_cast();
+            case clang::CastKind::CK_Dynamic:                return lvalue_cast();
+            case clang::CastKind::CK_ToUnion:                return lvalue_cast();
+
+            case clang::CastKind::CK_NullToPointer:          return non_lvalue_cast();
+            case clang::CastKind::CK_ArrayToPointerDecay:    return array_to_ptr_cast();
+            case clang::CastKind::CK_FunctionToPointerDecay:
+            // case clang::CastKind::CK_NullToMemberPointer:        return;
+            // case clang::CastKind::CK_BaseToderived_tMemberPointer: return;
+            // case clang::CastKind::CK_derived_tToBaseMemberPointer: return;
+            // case clang::CastKind::CK_MemberPointerToBoolean:     return;
+            // case clang::CastKind::CK_ReinterpretMemberPointer:   return;
+            // case clang::CastKind::CK_UserDefinedConversion:      return;
+            // case clang::CastKind::CK_ConstructorConversion:      return;
+                return keep_category_cast();
+
+            case clang::CastKind::CK_IntegralToPointer:
+            case clang::CastKind::CK_PointerToIntegral:
+            case clang::CastKind::CK_PointerToBoolean :
+                return keep_category_cast();
+
+            case clang::CastKind::CK_ToVoid:
+                return keep_category_cast();
+
+            // case clang::CastKind::CK_VectorSplat: return;
+
+            case clang::CastKind::CK_IntegralCast:
+            case clang::CastKind::CK_IntegralToBoolean:
+            case clang::CastKind::CK_IntegralToFloating:
+            case clang::CastKind::CK_FloatingToFixedPoint:
+            case clang::CastKind::CK_FixedPointToFloating:
+            case clang::CastKind::CK_FixedPointCast:
+            case clang::CastKind::CK_FixedPointToIntegral:
+            case clang::CastKind::CK_IntegralToFixedPoint:
+            case clang::CastKind::CK_FixedPointToBoolean:
+            case clang::CastKind::CK_FloatingToIntegral:
+            case clang::CastKind::CK_FloatingToBoolean:
+            case clang::CastKind::CK_BooleanToSignedIntegral:
+            case clang::CastKind::CK_FloatingCast:
+                return keep_category_cast();
+
+            // case clang::CastKind::CK_CPointerToObjCPointerCast:
+            // case clang::CastKind::CK_BlockPointerToObjCPointerCast:
+            // case clang::CastKind::CK_AnyPointerToBlockPointerCast:
+            // case clang::CastKind::CK_ObjCObjectLValueCast:
+
+            case clang::CastKind::CK_FloatingRealToComplex:
+            case clang::CastKind::CK_FloatingComplexToReal:
+            case clang::CastKind::CK_FloatingComplexToBoolean:
+            case clang::CastKind::CK_FloatingComplexCast:
+            case clang::CastKind::CK_FloatingComplexToIntegralComplex:
+            case clang::CastKind::CK_IntegralRealToComplex:
+            case clang::CastKind::CK_IntegralComplexToReal:
+            case clang::CastKind::CK_IntegralComplexToBoolean:
+            case clang::CastKind::CK_IntegralComplexCast:
+            case clang::CastKind::CK_IntegralComplexToFloatingComplex:
+                return keep_category_cast();
+
+            // case clang::CastKind::CK_ARCProduceObject:
+            // case clang::CastKind::CK_ARCConsumeObject:
+            // case clang::CastKind::CK_ARCReclaimReturnedObject:
+            // case clang::CastKind::CK_ARCExtendBlockObject:
+
+            // case clang::CastKind::CK_AtomicToNonAtomic:
+            // case clang::CastKind::CK_NonAtomicToAtomic:
+
+            // case clang::CastKind::CK_CopyAndAutoreleaseBlockObject:
+            // case clang::CastKind::CK_BuiltinFnToFnPtr:
+
+            // case clang::CastKind::CK_ZeroToOCLOpaqueType:
+            // case clang::CastKind::CK_AddressSpaceConversion:
+            // case clang::CastKind::CK_IntToOCLSampler:
+
+            // case clang::CastKind::CK_MatrixCast:
+            default: return {};
+        }
+    }
+
+    //
     // ControlFlow Statements
     //
     operation default_stmt_visitor::VisitReturnStmt(const clang::ReturnStmt *stmt) {
