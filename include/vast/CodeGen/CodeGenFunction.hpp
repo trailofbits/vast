@@ -88,8 +88,6 @@ namespace vast::cg {
 
         bool should_final_emit_unreachable(const clang_function *decl) const;
 
-        insertion_guard insert_at_end(vast_function fn);
-
         void emit_trap(const clang_function *decl);
         void emit_unreachable(const clang_function *decl);
         void emit_implicit_return_zero(const clang_function *decl);
