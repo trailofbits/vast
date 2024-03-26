@@ -139,6 +139,11 @@ namespace vast::cg {
         operation VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *cast);
 
         //
+        // Other Statements
+        //
+        operation VisitDeclStmt(const clang::DeclStmt *stmt);
+
+        //
         // ControlFlow Statements
         //
         operation VisitReturnStmt(const clang::ReturnStmt *stmt);
