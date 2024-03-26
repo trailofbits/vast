@@ -65,13 +65,13 @@ namespace vast::cg
         virtual ~scope_context() { finalize(); }
 
         void finalize() {
-            for (auto &child : children) {
-                child->finalize();
-            }
-
             while (!deferred.empty()) {
                 deferred.front()();
                 deferred.pop_front();
+            }
+
+            for (auto &child : children) {
+                child->finalize();
             }
 
             children.clear();
@@ -90,7 +90,6 @@ namespace vast::cg
         void declare(string_ref name, mlir_value value) {
             symbols.vars.insert(name, value);
         }
-
 
         void declare(hl::VarDeclOp var) {
             declare(var.getName(), var);
