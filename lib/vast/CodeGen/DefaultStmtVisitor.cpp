@@ -488,4 +488,17 @@ namespace vast::cg
         return {};
     }
 
+    //
+    // Other Statements
+    //
+    operation default_stmt_visitor::VisitDeclStmt(const clang::DeclStmt *stmt) {
+        // TODO make scoped
+        operation last = {};
+        for (auto decl : stmt->decls()) {
+            last = self.visit(decl);
+        }
+
+        return last;
+    }
+
 } // namespace vast::cg
