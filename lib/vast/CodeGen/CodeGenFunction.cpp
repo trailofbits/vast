@@ -36,7 +36,7 @@ namespace vast::cg
             if (decl->hasBody()) {
                 declare_function_params(decl, fn);
 
-                defer([=] {
+                defer([=, this] {
                     if (auto fn = mlir::dyn_cast< vast_function >(prototype)) {
                         auto &bg = mk_child< body_generator >(bld, visitor);
                         bg.emit_in_scope(fn.getBody(), decl, fn);
