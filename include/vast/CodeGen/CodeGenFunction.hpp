@@ -42,6 +42,11 @@ namespace vast::cg {
         void declare_function_params(const clang_function *decl, vast_function fn);
     };
 
+    operation mk_function_in_scope(auto &parent, region_t &region, const clang_function *decl) {
+        auto &fg = parent.template mk_child< function_generator >(parent.opts, parent.bld, parent.visitor);
+        return fg.emit_in_scope(region, decl);
+    }
+
     //
     // function prototype generation
     //
@@ -58,8 +63,12 @@ namespace vast::cg {
       private:
 
         operation emit(const clang_function *decl);
-        operation lookup_or_declare(const clang_function *decl, module_context *mod);
     };
+
+    operation mk_prototype_in_scope(auto &parent, region_t &region, const clang_function *decl) {
+        auto &pg = parent.template mk_child< prototype_generator >(parent.bld, parent.visitor);
+        return pg.emit_in_scope(region, decl);
+    }
 
     //
     // function body generation
@@ -88,5 +97,10 @@ namespace vast::cg {
         void emit_implicit_return_zero(const clang_function *decl);
         void emit_implicit_void_return(const clang_function *decl);
     };
+
+    void mk_function_body(auto &parent, vast_function fn, const clang_function *decl) {
+        auto &bg = parent.template mk_child< body_generator >(parent.bld, parent.visitor);
+        bg.emit_in_scope(fn.getBody(), decl, fn);
+    }
 
 } // namespace vast::cg
