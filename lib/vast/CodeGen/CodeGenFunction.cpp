@@ -29,8 +29,7 @@ namespace vast::cg
         auto ctx = dynamic_cast< module_context* >(parent);
         VAST_CHECK(ctx, "function context must be a child of a module context");
 
-        auto &pg = mk_child< prototype_generator >(bld, visitor);
-        auto prototype = pg.emit_in_scope(ctx->mod->getBodyRegion(), decl);
+        auto prototype = mk_prototype_in_scope(*this, ctx->mod->getBodyRegion(), decl);
 
         if (auto fn = mlir::dyn_cast< vast_function >(prototype)) {
             if (decl->hasBody()) {
@@ -38,8 +37,7 @@ namespace vast::cg
 
                 defer([=, this] {
                     if (auto fn = mlir::dyn_cast< vast_function >(prototype)) {
-                        auto &bg = mk_child< body_generator >(bld, visitor);
-                        bg.emit_in_scope(fn.getBody(), decl, fn);
+                        mk_function_body(*this, fn, decl);
                     } else {
                         VAST_REPORT("can not emit function body for unknown prototype");
                     }
@@ -72,13 +70,14 @@ namespace vast::cg
         return default_generator_base::emit_in_scope(scope, [&] { return emit(decl); });
     }
 
-    operation prototype_generator::lookup_or_declare(const clang_function *decl, module_context *mod) {
-        if (auto symbol = visitor.symbol(decl)) {
-            if (auto fn = mod->lookup_global(symbol.value())) {
-                return fn;
-            }
-        }
+    operation prototype_generator::emit(const clang_function *decl) {
+        auto ctx = dynamic_cast< function_scope* >(parent);
+        VAST_CHECK(ctx, "prototype generator must be a child of a function context");
 
+        auto mod = dynamic_cast< module_context* >(ctx->parent);
+        VAST_CHECK(mod, "function context must be a child of a module context");
+
+        // TODO create a new function prototype scope here
         if (auto op = visitor.visit_prototype(decl)) {
             if (auto fn = mlir::dyn_cast< vast_function >(op)) {
                 scope_context::declare(fn);
@@ -88,18 +87,6 @@ namespace vast::cg
         }
 
         return {};
-    }
-
-    operation prototype_generator::emit(const clang_function *decl) {
-        auto ctx = dynamic_cast< function_scope* >(parent);
-        VAST_CHECK(ctx, "prototype generator must be a child of a function context");
-
-        auto mod = dynamic_cast< module_context* >(ctx->parent);
-        VAST_CHECK(mod, "function context must be a child of a module context");
-
-        // TODO create a new function prototype scope here
-
-        return lookup_or_declare(decl, mod);
     }
 
     //
