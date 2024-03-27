@@ -33,4 +33,6 @@ namespace vast::cg
             }
         }
     }
+
+    std::string get_namespaced_decl_name(const clang::NamedDecl *decl);
 } // namespace vast::cg

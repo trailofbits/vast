@@ -1,35 +1,53 @@
-// Copyright (c) 2022-present, Trail of Bits, Inc.
+// Copyright (c) 2024-present, Trail of Bits, Inc.
 
 #pragma once
 
-#include "vast/CodeGen/CodeGenDeclVisitor.hpp"
-#include "vast/CodeGen/CodeGenStmtVisitor.hpp"
-#include "vast/CodeGen/CodeGenTypeVisitor.hpp"
-#include "vast/CodeGen/CodeGenAttrVisitor.hpp"
+#include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/DefaultAttrVisitor.hpp"
+#include "vast/CodeGen/DefaultDeclVisitor.hpp"
+#include "vast/CodeGen/DefaultStmtVisitor.hpp"
+#include "vast/CodeGen/DefaultTypeVisitor.hpp"
 
 namespace vast::cg
 {
-    //
-    // default_visitor
-    //
-    // Provides default codegen for statements, declarations, types and comments.
-    //
-    template< typename derived_t >
-    struct default_visitor
-        : decl_visitor_with_attrs< derived_t >
-        , default_stmt_visitor< derived_t >
-        , type_visitor_with_dl< derived_t >
-        , default_attr_visitor< derived_t >
+    struct default_visitor final
+        : visitor_base
+        , default_decl_visitor
+        , default_stmt_visitor
+        , cached_default_type_visitor
+        , default_attr_visitor
     {
-        using decl_visitor = decl_visitor_with_attrs< derived_t >;
-        using stmt_visitor = default_stmt_visitor< derived_t >;
-        using type_visitor = type_visitor_with_dl< derived_t >;
-        using attr_visitor = default_attr_visitor< derived_t >;
+        default_visitor(mcontext_t &mctx, codegen_builder &bld, meta_generator &mg, symbol_generator &sg, visit_view_with_scope self)
+            : visitor_base(mctx, mg, sg)
+            , default_decl_visitor(bld, self)
+            , default_stmt_visitor(bld, self)
+            , cached_default_type_visitor(bld, self)
+            , default_attr_visitor(bld, self)
+        {}
 
-        using decl_visitor::Visit;
-        using stmt_visitor::Visit;
-        using type_visitor::Visit;
-        using attr_visitor::Visit;
+        operation visit(const clang_decl *decl) override {
+            return default_decl_visitor::visit(decl);
+        }
+
+        operation visit(const clang_stmt *stmt) override {
+            return default_stmt_visitor::visit(stmt);
+        }
+
+        mlir_type visit(const clang_type *type) override {
+            return cached_default_type_visitor::visit(type);
+        }
+
+        mlir_type visit(clang_qual_type type) override {
+            return cached_default_type_visitor::visit(type);
+        }
+
+        mlir_attr visit(const clang_attr *attr) override {
+            return default_attr_visitor::visit(attr);
+        }
+
+        operation visit_prototype(const clang_function *decl) override {
+            return default_decl_visitor::visit_prototype(decl);
+        }
     };
 
 } // namespace vast::cg

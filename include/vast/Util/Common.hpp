@@ -6,6 +6,7 @@
 
 VAST_RELAX_WARNINGS
 #include <clang/AST/Expr.h>
+#include <clang/AST/GlobalDecl.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/MLIRContext.h>
@@ -43,7 +44,6 @@ namespace vast {
     using acontext_t = clang::ASTContext;
     using mcontext_t = mlir::MLIRContext;
 
-    // FIXME: eventually replace with tower_module
     using vast_module       = mlir::ModuleOp;
     using owning_module_ref = mlir::OwningOpRef< vast_module >;
 
@@ -63,7 +63,6 @@ namespace vast {
 
     using mlir_attr    = mlir::Attribute;
 
-    // TODO replace with attr_t
     using attr_t       = mlir::Attribute;
     using maybe_attr_t = std::optional< mlir::Attribute >;
 
@@ -74,7 +73,7 @@ namespace vast {
     using maybe_type_t  = std::optional< mlir_type >;
     using maybe_types_t = std::optional< types_t >;
 
-    using values_t       = mlir::SmallVector< mlir_value >;
+    using values_t      = mlir::SmallVector< mlir_value >;
 
     using loc_t         = mlir::Location;
 
