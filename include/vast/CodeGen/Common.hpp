@@ -24,8 +24,12 @@ namespace vast::cg {
     using clang_function_type = clang::FunctionType;
     using clang_function_proto_type = clang::FunctionProtoType;
 
+    using clang_global   = clang::GlobalDecl;
+
     using clang_named_decl = clang::NamedDecl;
     using clang_var_decl = clang::VarDecl;
+    using clang_decl_ref_expr = clang::DeclRefExpr;
+    using clang_decl_stmt = clang::DeclStmt;
 
     using clang_qual_type = clang::QualType;
 

@@ -16,6 +16,9 @@
 
 namespace vast::cg {
 
+    static inline auto first_result = [] (auto op) { return op->getResult(0); };
+    static inline auto results = [] (auto op) { return op->getResults(); };
+
     //
     // composable builder state
     //

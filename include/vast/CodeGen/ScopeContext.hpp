@@ -193,4 +193,13 @@ namespace vast::cg
         virtual ~members_scope() = default;
     };
 
+
+    // Used for generators that does not introduce new scope but populates the
+    // parent scope
+
+    struct inherited_scope : scope_context {
+        using scope_context::scope_context;
+        virtual ~inherited_scope() = default;
+    };
+
 } // namespace vast::cg

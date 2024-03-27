@@ -8,8 +8,8 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/DataLayout.hpp"
-#include "vast/CodeGen/CodeGenGlobal.hpp"
 #include "vast/CodeGen/CodeGenFunction.hpp"
+#include "vast/CodeGen/CodeGenVar.hpp"
 
 #include "vast/CodeGen/DefaultTypeVisitor.hpp"
 #include "vast/CodeGen/FallBackVisitor.hpp"
@@ -118,8 +118,7 @@ namespace vast::cg
     }
 
     void module_generator::emit(clang::VarDecl *decl) {
-        auto &gg = mk_child< global_generator >(bld, visitor);
-        gg.emit_in_scope(mod->getBodyRegion(), decl);
+        mk_var_in_scope(*this, mod->getBodyRegion(), decl);
     }
 
     // TODO this should not be needed the data layout should be emitted from cached types directly

@@ -138,7 +138,6 @@ namespace vast::cg {
         //
         // Other Statements
         //
-        operation VisitDeclStmt(const clang::DeclStmt *stmt);
         operation VisitDeclRefExpr(const clang::DeclRefExpr *expr);
 
         operation visit_enum_decl_ref(const clang::DeclRefExpr *expr);
@@ -213,6 +212,7 @@ namespace vast::cg {
         // operation VisitOpaqueValueExpr(const clang::OpaqueValueExpr *expr)
         // operation VisitOverloadExpr(const clang::OverloadExpr *expr)
 
+        operation VisitParenExpr(const clang::ParenExpr *expr);
         // operation VisitParenListExpr(const clang::ParenListExpr *expr)
         operation VisitStmtExpr(const clang::StmtExpr *expr);
 
@@ -231,10 +231,6 @@ namespace vast::cg {
         operation VisitUserDefinedLiteral(const clang::UserDefinedLiteral *lit);
         operation VisitCompoundLiteralExpr(const clang::CompoundLiteralExpr *lit);
         operation VisitFixedPointLiteral(const clang::FixedPointLiteral *lit);
-    };
-
-    static inline auto first_result = [] (auto op) {
-        return op->getResult(0);
     };
 
     template< typename Op >
