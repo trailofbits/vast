@@ -501,4 +501,153 @@ namespace vast::cg
         return last;
     }
 
+    operation default_stmt_visitor::VisitDeclRefExpr(const clang::DeclRefExpr *expr) {
+        auto underlying = expr->getDecl()->getUnderlyingDecl();
+
+        return llvm::TypeSwitch< const clang::NamedDecl *, operation >(underlying)
+            .Case< clang::EnumDecl >([&] (auto /* e */) { return visit_enum_decl_ref(expr); })
+            .Case< clang::VarDecl  >([&] (auto v) {
+                if (v->isFileVarDecl()) {
+                    return visit_file_var_decl_ref(expr);
+                } else {
+                    return visit_var_decl_ref(expr);
+                }
+            })
+            .Case< clang::FunctionDecl >([&] (auto) { return visit_function_decl_ref(expr); })
+            .Default([](const clang::NamedDecl *) { return operation{}; });
+    }
+
+    operation default_stmt_visitor::visit_enum_decl_ref(const clang::DeclRefExpr *expr) {
+        return operation{};
+
+        // auto decl = clang::cast< clang::EnumConstantDecl >(expr->getDecl()->getUnderlyingDecl());
+        // if (auto val = context().enumconsts.lookup(decl)) {
+        //     auto rty = visit(expr->getType());
+        //     return make< hl::EnumRefOp >(meta_location(expr), rty, val.getName());
+        // }
+
+        // // Ref: https://github.com/trailofbits/vast/issues/384
+        // // github issue to avoid emitting error if declaration is missing
+        // context().error("error: missing enum constant declaration " + decl->getName());
+        // return nullptr;
+    }
+
+    operation default_stmt_visitor::visit_file_var_decl_ref(const clang::DeclRefExpr *expr) {
+        return operation{};
+
+        // auto decl = getDeclForVarRef(expr);
+        // if (auto var = context().vars.lookup(decl)) {
+        //     return VisitVarDeclRefExprImpl(expr, var);
+        // }
+
+        // // Ref: https://github.com/trailofbits/vast/issues/384
+        // // github issue to avoid emitting error if declaration is missing
+        // context().error("error: missing variable declaration " + decl->getName());
+        // return nullptr;
+    }
+
+    operation default_stmt_visitor::visit_var_decl_ref(const clang::DeclRefExpr *expr) {
+        return operation{};
+
+        // auto decl = getDeclForVarRef(expr);
+        // if (!context().vars.lookup(decl)) {
+        //     // Ref: https://github.com/trailofbits/vast/issues/384
+        //     // github issue to avoid emitting error if declaration is missing
+        //     context().error("error: missing global variable declaration " + decl->getName());
+        //     return nullptr;
+        // }
+        // auto var  = getDefiningOpOfGlobalVar(decl);
+        // auto name = mlir::StringAttr::get(&mcontext(), var.getName());
+
+        // auto rty = getLValueReturnType(expr);
+        // return make< hl::GlobalRefOp >(meta_location(expr), rty, name);
+    }
+
+    operation default_stmt_visitor::visit_function_decl_ref(const clang::DeclRefExpr *expr) {
+        return operation{};
+
+        // auto decl = clang::cast< clang::FunctionDecl >( expr->getDecl()->getUnderlyingDecl() );
+        // auto mangled = context().get_mangled_name(decl);
+        // auto fn      = context().lookup_function(mangled, false);
+        // if (!fn) {
+        //     auto guard = insertion_guard();
+        //     set_insertion_point_to_start(&context().getBodyRegion());
+        //     fn = mlir::cast< hl::FuncOp >(visit(decl));
+        // }
+        // auto rty = getLValueReturnType(expr);
+
+        // return make< hl::FuncRefOp >(meta_location(expr), rty, mlir::SymbolRefAttr::get(fn));
+    }
+
+    operation default_stmt_visitor::VisitPredefinedExpr(const clang::PredefinedExpr *expr) { return {};}
+
+    operation default_stmt_visitor::VisitBreakStmt(const clang::BreakStmt *stmt) { return {}; }
+    operation default_stmt_visitor::VisitContinueStmt(const clang::ContinueStmt *stmt) { return {}; }
+    operation default_stmt_visitor::VisitCaseStmt(const clang::CaseStmt *stmt) { return {}; }
+    operation default_stmt_visitor::VisitDefaultStmt(const clang::DefaultStmt *stmt) { return {}; }
+    operation default_stmt_visitor::VisitSwitchStmt(const clang::SwitchStmt *stmt) { return {}; }
+    operation default_stmt_visitor::VisitDoStmt(const clang::DoStmt *stmt) { return {}; }
+    // operation default_stmt_visitor::VisitCXXCatchStmt(const clang::CXXCatchStmt *stmt)
+    // operation default_stmt_visitor::VisitCXXForRangeStmt(const clang::CXXForRangeStmt *stmt)
+    // operation default_stmt_visitor::VisitCXXTryStmt(const clang::CXXTryStmt *stmt)
+    // operation default_stmt_visitor::VisitCXXTryStmt(const clang::CXXTryStmt *stmt)
+    // operation default_stmt_visitor::VisitCapturedStmt(const clang::CapturedStmt *stmt)
+    operation default_stmt_visitor::VisitWhileStmt(const clang::WhileStmt *stmt) { return {}; }
+    operation default_stmt_visitor::VisitForStmt(const clang::ForStmt *stmt) { return {}; }
+    operation default_stmt_visitor::VisitGotoStmt(const clang::GotoStmt *stmt) { return {}; }
+    operation default_stmt_visitor::VisitLabelStmt(const clang::LabelStmt *stmt) { return {}; }
+    operation default_stmt_visitor::VisitIfStmt(const clang::IfStmt *stmt) { return {}; }
+
+    //
+    // Expressions
+    //
+    operation default_stmt_visitor::VisitMemberExpr(const clang::MemberExpr *expt) { return {}; }
+    operation default_stmt_visitor::VisitConditionalOperator(const clang::ConditionalOperator *op) { return {}; }
+    operation default_stmt_visitor::VisitAddrLabelExpr(const clang::AddrLabelExpr *expt) { return {}; }
+    operation default_stmt_visitor::VisitConstantExpr(const clang::ConstantExpr *expt) { return {}; }
+    operation default_stmt_visitor::VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *expt) { return {}; }
+    // operation default_stmt_visitor::VisitArrayTypeTraitExpr(const clang::ArrayTypeTraitExpr *expr)
+    // operation default_stmt_visitor::VisitAsTypeExpr(const clang::AsTypeExpr *expr)
+    // operation default_stmt_visitor::VisitAtomicExpr(const clang::AtomicExpr *expr)
+    // operation default_stmt_visitor::VisitBlockExpr(const clang::BlockExpr *expr)
+
+    // operation default_stmt_visitor::VisitCXXBindTemporaryExpr(const clang::CXXBindTemporaryExpr *expt) { return {}; }
+    operation default_stmt_visitor::VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *expt) { return {}; }
+
+    // operation default_stmt_visitor::VisitCXXConstructExpr(const clang::CXXConstructExpr *expr)
+    // operation default_stmt_visitor::VisitCXXTemporaryObjectExpr(const clang::CXXTemporaryObjectExpr *expr)
+    // operation default_stmt_visitor::VisitCXXDefaultArgExpr(const clang::CXXDefaultArgExpr *expr)
+    // operation default_stmt_visitor::VisitCXXDefaultInitExpr(const clang::CXXDefaultInitExpr *expr)
+    // operation default_stmt_visitor::VisitCXXDeleteExpr(const clang::CXXDeleteExpr *expr)
+    // operation default_stmt_visitor::VisitCXXDependentScopeMemberExpr(const clang::CXXDependentScopeMemberExpr *expr)
+    // operation default_stmt_visitor::VisitCXXNewExpr(const clang::CXXNewExpr *expr)
+    // operation default_stmt_visitor::VisitCXXNoexceptExpr(const clang::CXXNoexceptExpr *expr)
+    // operation default_stmt_visitor::VisitCXXNullPtrLiteralExpr(const clang::CXXNullPtrLiteralExpr *expr)
+    // operation default_stmt_visitor::VisitCXXPseudoDestructorExpr(const clang::CXXPseudoDestructorExpr *expr)
+    // operation default_stmt_visitor::VisitCXXScalarValueInitExpr(const clang::CXXScalarValueInitExpr *expr)
+    // operation default_stmt_visitor::VisitCXXStdInitializerListExpr(const clang::CXXStdInitializerListExpr *expr)
+    // operation default_stmt_visitor::VisitCXXThisExpr(const clang::CXXThisExpr *expr)
+    // operation default_stmt_visitor::VisitCXXThrowExpr(const clang::CXXThrowExpr *expr)
+    // operation default_stmt_visitor::VisitCXXTypeidExpr(const clang::CXXTypeidExpr *expr)
+    // operation CXXFoldExpr(const clang::CXXFoldExpr *expr)
+    // operation default_stmt_visitor::VisitCXXUnresolvedConstructExpr(const clang::CXXThrowExpr *expr)
+    // operation default_stmt_visitor::VisitCXXUuidofExpr(const clang::CXXUuidofExpr *expr)
+
+    operation default_stmt_visitor::VisitCallExpr(const clang::CallExpr *expt) { return {}; }
+
+    // operation default_stmt_visitor::VisitCXXMemberCallExpr(const clang::CXXMemberCallExpr *expr)
+    // operation default_stmt_visitor::VisitCXXOperatorCallExpr(const clang::CXXOperatorCallExpr *expr)
+
+    // operation default_stmt_visitor::VisitOffsetOfExpr(const clang::OffsetOfExpr *expr)
+    // operation default_stmt_visitor::VisitOpaqueValueExpr(const clang::OpaqueValueExpr *expr)
+    // operation default_stmt_visitor::VisitOverloadExpr(const clang::OverloadExpr *expr)
+
+    // operation default_stmt_visitor::VisitParenListExpr(const clang::ParenListExpr *expr)
+    operation default_stmt_visitor::VisitStmtExpr(const clang::StmtExpr *expt) { return {}; }
+
+    operation default_stmt_visitor::VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *expt) { return {}; }
+    operation default_stmt_visitor::VisitVAArgExpr(const clang::VAArgExpr *expt) { return {}; }
+    operation default_stmt_visitor::VisitNullStmt(const clang::NullStmt *stmt) { return {}; }
+    operation default_stmt_visitor::VisitCXXThisExpr(const clang::CXXThisExpr *expt) { return {}; }
+
 } // namespace vast::cg
