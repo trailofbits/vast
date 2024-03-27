@@ -149,7 +149,7 @@ namespace vast::cg
     }
 
     void body_generator::emit_trap(const clang_function *decl) {
-        // TODO fix when we support builtin function (emit enreachable for now)
+        // TODO fix when we support builtin function (emit unreachable for now)
         emit_unreachable(decl);
     }
 
