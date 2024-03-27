@@ -377,6 +377,11 @@ namespace vast::conv {
             // case clang::Builtin::BI__builtin_popcount:
             // case clang::Builtin::BI__builtin_popcountl:
             // case clang::Builtin::BI__builtin_popcountll:
+            //
+            case clang::Builtin::BI__builtin_debugtrap:
+                return visitor.template visit< hlbi::DebugTrapOp >(op, op->getResultTypes());
+            case clang::Builtin::BI__builtin_trap:
+                return visitor.template visit< hlbi::TrapOp >(op, op->getResultTypes());
 
             default:
                 return mlir::failure();
