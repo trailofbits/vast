@@ -52,24 +52,6 @@ namespace vast::cg {
         return mctx;
     }
 
-    std::unique_ptr< visitor_base > mk_visitor(
-          const cc::vast_args &vargs
-        , mcontext_t &mctx
-        , codegen_builder &bld
-        , meta_generator &mg
-        , symbol_generator &sg
-    ) {
-        auto top = std::make_unique< codegen_visitor >(
-            mctx, mg, sg
-        );
-
-        top->visitors.push_back(std::make_unique< default_visitor >(mctx, bld, mg, sg, visitor_view(*top)));
-        top->visitors.push_back(std::make_unique< unsup_visitor   >(mctx, bld, mg, sg, visitor_view(*top)));
-        top->visitors.push_back(std::make_unique< unreach_visitor >(mctx, mg, sg));
-
-        return top;
-    }
-
     std::unique_ptr< symbol_generator > mk_symbol_generator(acontext_t &actx) {
         return std::make_unique< default_symbol_mangler >(actx.createMangleContext());
     }
@@ -79,13 +61,14 @@ namespace vast::cg {
         auto bld     = mk_codegen_builder(*mctx);
         auto mg      = mk_meta_generator(actx, *mctx, vargs);
         auto sg      = mk_symbol_generator(actx);
-        auto visitor = mk_visitor(vargs, *mctx, *bld, *mg, *sg);
 
         options_t copts = {
             .lang = cc::get_source_language(actx.getLangOpts()),
             .optimization_level = opts.codegen.OptimizationLevel,
             // function emition options
             .has_strict_return = opts.codegen.StrictReturn,
+            // visitor options
+            .enable_unsupported = true,
         };
 
         return std::make_unique< driver >(
@@ -94,10 +77,36 @@ namespace vast::cg {
             std::move(copts),
             std::move(bld),
             std::move(mg),
-            std::move(sg),
-            std::move(visitor)
+            std::move(sg)
         );
     }
+
+    std::unique_ptr< visitor_base > driver::mk_visitor(
+        const options_t &opts
+    ) {
+        auto top = std::make_unique< codegen_visitor >(*mctx, *mg, *sg);
+
+        top->visitors.push_back(
+            std::make_unique< default_visitor >(
+                *mctx, *bld, *mg, *sg, visit_view_with_scope(*top, symbols)
+            )
+        );
+
+        if (opts.enable_unsupported) {
+            top->visitors.push_back(
+                std::make_unique< unsup_visitor >(
+                    *mctx, *bld, *mg, *sg, visitor_view(*top)
+                )
+            );
+        }
+
+        top->visitors.push_back(
+            std::make_unique< unreach_visitor >(*mctx, *mg, *sg)
+        );
+
+        return top;
+    }
+
 
     module_generator driver::mk_module_generator(const options_t &opts) {
         return module_generator(

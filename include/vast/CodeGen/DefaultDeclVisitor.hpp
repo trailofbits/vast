@@ -15,10 +15,7 @@ namespace vast::cg {
     struct default_decl_visitor : decl_visitor_base< default_decl_visitor >
     {
         using base = decl_visitor_base< default_decl_visitor >;
-
-        explicit default_decl_visitor(codegen_builder &bld, visitor_view self)
-            : base(bld, self)
-        {}
+        using base::base;
 
         using decl_visitor_base< default_decl_visitor >::Visit;
 
