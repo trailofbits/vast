@@ -315,7 +315,7 @@ namespace vast::cg
     }
 
     operation default_decl_visitor::VisitEmptyDecl(const clang::EmptyDecl *decl) {
-        return {};
+        return bld.compose< hl::EmptyDeclOp >().bind(self.location(decl)).freeze();
     }
 
     operation default_decl_visitor::VisitEnumDecl(const clang::EnumDecl *decl) {
