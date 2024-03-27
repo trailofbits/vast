@@ -142,11 +142,87 @@ namespace vast::cg {
         // Other Statements
         //
         operation VisitDeclStmt(const clang::DeclStmt *stmt);
+        operation VisitDeclRefExpr(const clang::DeclRefExpr *expr);
+
+        operation visit_enum_decl_ref(const clang::DeclRefExpr *expr);
+        operation visit_file_var_decl_ref(const clang::DeclRefExpr *expr);
+        operation visit_var_decl_ref(const clang::DeclRefExpr *expr);
+        operation visit_function_decl_ref(const clang::DeclRefExpr *expr);
+
+        operation VisitPredefinedExpr(const clang::PredefinedExpr *expr);
 
         //
         // ControlFlow Statements
         //
         operation VisitReturnStmt(const clang::ReturnStmt *stmt);
+        operation VisitBreakStmt(const clang::BreakStmt *stmt);
+        operation VisitContinueStmt(const clang::ContinueStmt *stmt);
+        operation VisitCaseStmt(const clang::CaseStmt *stmt);
+        operation VisitDefaultStmt(const clang::DefaultStmt *stmt);
+        operation VisitSwitchStmt(const clang::SwitchStmt *stmt);
+        operation VisitDoStmt(const clang::DoStmt *stmt);
+        // operation VisitCXXCatchStmt(const clang::CXXCatchStmt *stmt)
+        // operation VisitCXXForRangeStmt(const clang::CXXForRangeStmt *stmt)
+        // operation VisitCXXTryStmt(const clang::CXXTryStmt *stmt)
+        // operation VisitCXXTryStmt(const clang::CXXTryStmt *stmt)
+        // operation VisitCapturedStmt(const clang::CapturedStmt *stmt)
+        operation VisitWhileStmt(const clang::WhileStmt *stmt);
+        operation VisitForStmt(const clang::ForStmt *stmt);
+        operation VisitGotoStmt(const clang::GotoStmt *stmt);
+        operation VisitLabelStmt(const clang::LabelStmt *stmt);
+        operation VisitIfStmt(const clang::IfStmt *stmt);
+
+        //
+        // Expressions
+        //
+        operation VisitMemberExpr(const clang::MemberExpr *expr);
+        operation VisitConditionalOperator(const clang::ConditionalOperator *op);
+        operation VisitAddrLabelExpr(const clang::AddrLabelExpr *expr);
+        operation VisitConstantExpr(const clang::ConstantExpr *expr);
+        operation VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *expr);
+        // operation VisitArrayTypeTraitExpr(const clang::ArrayTypeTraitExpr *expr)
+        // operation VisitAsTypeExpr(const clang::AsTypeExpr *expr)
+        // operation VisitAtomicExpr(const clang::AtomicExpr *expr)
+        // operation VisitBlockExpr(const clang::BlockExpr *expr)
+
+        // operation VisitCXXBindTemporaryExpr(const clang::CXXBindTemporaryExpr *expr);
+        operation VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *expr);
+
+        // operation VisitCXXConstructExpr(const clang::CXXConstructExpr *expr)
+        // operation VisitCXXTemporaryObjectExpr(const clang::CXXTemporaryObjectExpr *expr)
+        // operation VisitCXXDefaultArgExpr(const clang::CXXDefaultArgExpr *expr)
+        // operation VisitCXXDefaultInitExpr(const clang::CXXDefaultInitExpr *expr)
+        // operation VisitCXXDeleteExpr(const clang::CXXDeleteExpr *expr)
+        // operation VisitCXXDependentScopeMemberExpr(const clang::CXXDependentScopeMemberExpr *expr)
+        // operation VisitCXXNewExpr(const clang::CXXNewExpr *expr)
+        // operation VisitCXXNoexceptExpr(const clang::CXXNoexceptExpr *expr)
+        // operation VisitCXXNullPtrLiteralExpr(const clang::CXXNullPtrLiteralExpr *expr)
+        // operation VisitCXXPseudoDestructorExpr(const clang::CXXPseudoDestructorExpr *expr)
+        // operation VisitCXXScalarValueInitExpr(const clang::CXXScalarValueInitExpr *expr)
+        // operation VisitCXXStdInitializerListExpr(const clang::CXXStdInitializerListExpr *expr)
+        // operation VisitCXXThisExpr(const clang::CXXThisExpr *expr)
+        // operation VisitCXXThrowExpr(const clang::CXXThrowExpr *expr)
+        // operation VisitCXXTypeidExpr(const clang::CXXTypeidExpr *expr)
+        // operation CXXFoldExpr(const clang::CXXFoldExpr *expr)
+        // operation VisitCXXUnresolvedConstructExpr(const clang::CXXThrowExpr *expr)
+        // operation VisitCXXUuidofExpr(const clang::CXXUuidofExpr *expr)
+
+        operation VisitCallExpr(const clang::CallExpr *expr);
+
+        // operation VisitCXXMemberCallExpr(const clang::CXXMemberCallExpr *expr)
+        // operation VisitCXXOperatorCallExpr(const clang::CXXOperatorCallExpr *expr)
+
+        // operation VisitOffsetOfExpr(const clang::OffsetOfExpr *expr)
+        // operation VisitOpaqueValueExpr(const clang::OpaqueValueExpr *expr)
+        // operation VisitOverloadExpr(const clang::OverloadExpr *expr)
+
+        // operation VisitParenListExpr(const clang::ParenListExpr *expr)
+        operation VisitStmtExpr(const clang::StmtExpr *expr);
+
+        operation VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *expr);
+        operation VisitVAArgExpr(const clang::VAArgExpr *expr);
+        operation VisitNullStmt(const clang::NullStmt *stmt);
+        operation VisitCXXThisExpr(const clang::CXXThisExpr *expr);
 
         //
         // Literals
