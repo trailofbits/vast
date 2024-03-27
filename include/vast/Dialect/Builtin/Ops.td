@@ -34,4 +34,16 @@ def HLBuiltin_VACopyOp : HLBuiltin_Op< "va_copy" >
   let assemblyFormat = "$src_list `to` $trg_list `:` functional-type(operands, $result) attr-dict";
 }
 
+def HLBuiltin_TrapOp : HLBuiltin_Op< "trap" >
+  , Results< (outs VoidLikeType: $result) >
+{
+  let summary = "Builtin trap op";
+}
+
+def HLBuiltin_DebugTrapOp : HLBuiltin_Op< "dbgtrap" >
+  , Results< (outs VoidLikeType: $result) >
+{
+  let summary = "Builtin debug trap op";
+}
+
 #endif //VAST_DIALECT_BUILTIN_OPS
