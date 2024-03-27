@@ -16,9 +16,7 @@ namespace vast::cg {
     struct default_type_visitor : type_visitor_base< default_type_visitor >
     {
         using base = type_visitor_base< default_type_visitor >;
-        explicit default_type_visitor(codegen_builder &bld, visitor_view self)
-            : base(bld, self)
-        {}
+        using base::base;
 
         using type_visitor_base< default_type_visitor >::Visit;
 

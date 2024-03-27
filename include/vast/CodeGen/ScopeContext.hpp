@@ -47,19 +47,40 @@ namespace vast::cg
     };
 
 
+    struct symbols_view {
+        explicit symbols_view(symbol_tables &symbols)
+            : symbols(symbols)
+        {}
+
+        void declare(vast_function function) {
+            symbols.funs.insert(function.getName(), function);
+        }
+
+        void declare(string_ref name, mlir_value value) {
+            symbols.vars.insert(name, value);
+        }
+
+        void declare(hl::VarDeclOp var) {
+            declare(var.getName(), var);
+        }
+
+        symbol_tables &symbols;
+    };
+
+
     template< typename From, typename To >
     using symbol_table_scope = llvm::ScopedHashTableScope< From, To >;
 
 
-    struct scope_context {
+    struct scope_context : symbols_view {
         using deferred_task = std::function< void() >;
 
         explicit scope_context(scope_context *parent)
-            : symbols(parent->symbols), parent(parent)
+            : symbols_view(parent->symbols), parent(parent)
         {}
 
         explicit scope_context(symbol_tables &symbols)
-            : symbols(symbols)
+            : symbols_view(symbols)
         {}
 
         virtual ~scope_context() { finalize(); }
@@ -83,18 +104,6 @@ namespace vast::cg
         scope_context &operator=(const scope_context &) = delete;
         scope_context &operator=(scope_context &&) noexcept = delete;
 
-        void declare(vast_function function) {
-            symbols.funs.insert(function.getName(), function);
-        }
-
-        void declare(string_ref name, mlir_value value) {
-            symbols.vars.insert(name, value);
-        }
-
-        void declare(hl::VarDeclOp var) {
-            declare(var.getName(), var);
-        }
-
         void hook_child(std::unique_ptr< scope_context > child) {
             child->parent = this;
             children.push_back(std::move(child));
@@ -117,13 +126,11 @@ namespace vast::cg
 
         std::deque< deferred_task > deferred;
 
-        // scope contents
-        symbol_tables &symbols;
-
         // links between scopes
         scope_context *parent = nullptr;
         std::vector< std::unique_ptr< scope_context > > children;
     };
+
 
     // Refers to block scope §6.2.1 of C standard
     //
