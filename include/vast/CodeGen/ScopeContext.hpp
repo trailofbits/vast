@@ -39,11 +39,13 @@ namespace vast::cg
     // TODO why is this name and not function?
     using funs_scope_table = scoped_table< string_ref, operation >;
     using vars_scope_table = scoped_table< string_ref, mlir_value >;
+    using enum_constants_table = scoped_table< string_ref, operation >;
 
     struct symbol_tables
     {
         funs_scope_table funs;
         vars_scope_table vars;
+        enum_constants_table enum_constants;
     };
 
 
@@ -62,6 +64,10 @@ namespace vast::cg
 
         void declare(hl::VarDeclOp var) {
             declare(var.getName(), var);
+        }
+
+        mlir_value lookup_var(string_ref name) {
+            return symbols.vars.lookup(name);
         }
 
         symbol_tables &symbols;
