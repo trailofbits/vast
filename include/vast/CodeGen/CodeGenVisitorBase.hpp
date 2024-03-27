@@ -50,15 +50,30 @@ namespace vast::cg {
         visitor_base &visitor;
     };
 
+
+    struct visit_view_with_scope : visitor_view
+    {
+        visit_view_with_scope(visitor_base &visitor, symbols_view symbols)
+            : visitor_view(visitor), symbols(symbols)
+        {}
+
+        visit_view_with_scope(visitor_base &visitor, symbol_tables &symbols)
+            : visitor_view(visitor), symbols(symbols)
+        {}
+
+        symbols_view symbols;
+    };
+
+
     struct clang_visitor_base
     {
-        clang_visitor_base(codegen_builder &bld, visitor_view self)
+        clang_visitor_base(codegen_builder &bld, visit_view_with_scope self)
             : bld(bld), self(self)
         {}
 
       protected:
         codegen_builder &bld;
-        visitor_view self;
+        visit_view_with_scope self;
     };
 
     template< typename derived_t >
@@ -112,14 +127,10 @@ namespace vast::cg {
             return sg.symbol(std::forward< decltype(decl) >(decl));
         }
 
-        // scope_context& scope() { return scp; }
-        // const scope_context& scope() const { return scp; }
-
       protected:
         mcontext_t &mctx;
         meta_generator &mg;
         symbol_generator &sg;
-        // scope_context &scp;
     };
 
     using visitor_base_ptr = std::unique_ptr< visitor_base >;
@@ -131,8 +142,5 @@ namespace vast::cg {
     std::optional< symbol_name > visitor_view::symbol(auto &&decl) {
         return visitor.symbol(std::forward< decltype(decl) >(decl));
     }
-
-    // scope_context &visitor_view::scope() { return visitor.scope(); }
-    // const scope_context &visitor_view::scope() const { return visitor.scope(); }
 
 } // namespace vast::cg

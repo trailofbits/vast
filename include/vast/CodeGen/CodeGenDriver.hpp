@@ -33,10 +33,6 @@ namespace vast::cg {
 
     std::unique_ptr< mcontext_t > mk_mcontext();
 
-    std::unique_ptr< visitor_base > mk_visitor(
-        const cc::vast_args &vargs, mcontext_t &mctx, meta_generator &mg
-    );
-
     struct driver
     {
         explicit driver(
@@ -46,7 +42,6 @@ namespace vast::cg {
             , std::unique_ptr< codegen_builder > bld
             , std::unique_ptr< meta_generator > mg
             , std::unique_ptr< symbol_generator > sg
-            , std::unique_ptr< visitor_base > visitor
         )
             : actx(actx)
             , mctx(std::move(mctx))
@@ -54,7 +49,7 @@ namespace vast::cg {
             , bld(std::move(bld))
             , mg(std::move(mg))
             , sg(std::move(sg))
-            , visitor(std::move(visitor))
+            , visitor(mk_visitor(opts))
             , generator(mk_module_generator(opts))
         {}
 
@@ -86,6 +81,8 @@ namespace vast::cg {
         std::unique_ptr< meta_generator > mg;
         std::unique_ptr< symbol_generator > sg;
         std::unique_ptr< visitor_base > visitor;
+
+        std::unique_ptr< visitor_base > mk_visitor(const options_t &opts);
 
         //
         // module generation state

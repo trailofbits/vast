@@ -15,10 +15,7 @@ namespace vast::cg {
     struct default_attr_visitor : attr_visitor_base< default_attr_visitor >
     {
         using base = attr_visitor_base< default_attr_visitor >;
-
-        explicit default_attr_visitor(codegen_builder &bld, visitor_view self)
-            : base(bld, self)
-        {}
+        using base::base;
 
         using attr_visitor_base< default_attr_visitor >::Visit;
 

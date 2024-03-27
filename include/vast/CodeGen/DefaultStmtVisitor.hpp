@@ -18,10 +18,7 @@ namespace vast::cg {
     struct default_stmt_visitor : stmt_visitor_base< default_stmt_visitor >
     {
         using base = stmt_visitor_base< default_stmt_visitor >;
-
-        explicit default_stmt_visitor(codegen_builder &bld, visitor_view self)
-            : base(bld, self)
-        {}
+        using base::base;
 
         operation visit(const clang_stmt *stmt) { return Visit(stmt); }
 
