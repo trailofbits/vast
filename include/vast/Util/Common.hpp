@@ -63,7 +63,6 @@ namespace vast {
 
     using mlir_attr    = mlir::Attribute;
 
-    // TODO replace with attr_t
     using attr_t       = mlir::Attribute;
     using maybe_attr_t = std::optional< mlir::Attribute >;
 
@@ -87,10 +86,4 @@ namespace vast {
     using block_ptr     = block_t*;
 
     using walk_result = mlir::WalkResult;
-
-    //
-    // clang related aliases
-    //
-    using clang_function = clang::FunctionDecl;
-    using clang_global   = clang::GlobalDecl;
 } // namespace vast
