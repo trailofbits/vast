@@ -15,6 +15,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Core/Linkage.hpp"
 
+#include "vast/Dialect/Builtin/Ops.hpp"
+
 namespace vast::cg
 {
     //
@@ -136,8 +138,7 @@ namespace vast::cg
     }
 
     void body_generator::emit_trap(const clang_function *decl) {
-        // TODO fix when we support builtin function (emit unreachable for now)
-        emit_unreachable(decl);
+        bld.create< hlbi::TrapOp >(visitor.location(decl), bld.void_type());
     }
 
     void body_generator::emit_unreachable(const clang_function *decl) {
