@@ -13,6 +13,7 @@ namespace vast::cg {
         virtual ~symbol_generator() = default;
 
         virtual std::optional< symbol_name > symbol(clang_global decl) = 0;
+        virtual std::optional< symbol_name > symbol(const clang_decl_ref_expr *decl) = 0;
     };
 
 } // namespace vast::cg

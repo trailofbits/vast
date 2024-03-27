@@ -491,16 +491,6 @@ namespace vast::cg
     //
     // Other Statements
     //
-    operation default_stmt_visitor::VisitDeclStmt(const clang::DeclStmt *stmt) {
-        // TODO make scoped
-        operation last = {};
-        for (auto decl : stmt->decls()) {
-            last = self.visit(decl);
-        }
-
-        return last;
-    }
-
     operation default_stmt_visitor::VisitDeclRefExpr(const clang::DeclRefExpr *expr) {
         auto underlying = expr->getDecl()->getUnderlyingDecl();
 
@@ -518,71 +508,51 @@ namespace vast::cg
     }
 
     operation default_stmt_visitor::visit_enum_decl_ref(const clang::DeclRefExpr *expr) {
-        return operation{};
-
-        // auto decl = clang::cast< clang::EnumConstantDecl >(expr->getDecl()->getUnderlyingDecl());
-        // if (auto val = context().enumconsts.lookup(decl)) {
-        //     auto rty = visit(expr->getType());
-        //     return make< hl::EnumRefOp >(meta_location(expr), rty, val.getName());
-        // }
-
-        // // Ref: https://github.com/trailofbits/vast/issues/384
-        // // github issue to avoid emitting error if declaration is missing
-        // context().error("error: missing enum constant declaration " + decl->getName());
-        // return nullptr;
+        return bld.compose< hl::EnumRefOp >()
+            .bind(self.location(expr))
+            .bind(self.visit(expr->getType()))
+            .bind(self.symbol(expr))
+            .freeze();
     }
 
     operation default_stmt_visitor::visit_file_var_decl_ref(const clang::DeclRefExpr *expr) {
-        return operation{};
-
-        // auto decl = getDeclForVarRef(expr);
-        // if (auto var = context().vars.lookup(decl)) {
-        //     return VisitVarDeclRefExprImpl(expr, var);
-        // }
-
-        // // Ref: https://github.com/trailofbits/vast/issues/384
-        // // github issue to avoid emitting error if declaration is missing
-        // context().error("error: missing variable declaration " + decl->getName());
-        // return nullptr;
+        return bld.compose< hl::GlobalRefOp >()
+            .bind(self.location(expr))
+            .bind(self.visit_as_lvalue_type(expr->getType()))
+            .bind(self.symbol(expr))
+            .freeze();
     }
 
     operation default_stmt_visitor::visit_var_decl_ref(const clang::DeclRefExpr *expr) {
-        return operation{};
+        if (auto name = self.symbol(expr)) {
+            return bld.compose< hl::DeclRefOp >()
+                .bind(self.location(expr))
+                .bind(self.visit_as_lvalue_type(expr->getType()))
+                .bind(self.symbols.lookup_var(name.value()))
+                .freeze();
+        }
 
-        // auto decl = getDeclForVarRef(expr);
-        // if (!context().vars.lookup(decl)) {
-        //     // Ref: https://github.com/trailofbits/vast/issues/384
-        //     // github issue to avoid emitting error if declaration is missing
-        //     context().error("error: missing global variable declaration " + decl->getName());
-        //     return nullptr;
-        // }
-        // auto var  = getDefiningOpOfGlobalVar(decl);
-        // auto name = mlir::StringAttr::get(&mcontext(), var.getName());
-
-        // auto rty = getLValueReturnType(expr);
-        // return make< hl::GlobalRefOp >(meta_location(expr), rty, name);
+        return {};
     }
 
     operation default_stmt_visitor::visit_function_decl_ref(const clang::DeclRefExpr *expr) {
-        return operation{};
-
-        // auto decl = clang::cast< clang::FunctionDecl >( expr->getDecl()->getUnderlyingDecl() );
-        // auto mangled = context().get_mangled_name(decl);
-        // auto fn      = context().lookup_function(mangled, false);
-        // if (!fn) {
-        //     auto guard = insertion_guard();
-        //     set_insertion_point_to_start(&context().getBodyRegion());
-        //     fn = mlir::cast< hl::FuncOp >(visit(decl));
-        // }
-        // auto rty = getLValueReturnType(expr);
-
-        // return make< hl::FuncRefOp >(meta_location(expr), rty, mlir::SymbolRefAttr::get(fn));
+        return bld.compose< hl::FuncRefOp >()
+            .bind(self.location(expr))
+            .bind(self.visit_as_lvalue_type(expr->getType()))
+            .bind(self.symbol(expr))
+            .freeze();
     }
 
     operation default_stmt_visitor::VisitPredefinedExpr(const clang::PredefinedExpr *expr) { return {};}
 
-    operation default_stmt_visitor::VisitBreakStmt(const clang::BreakStmt *stmt) { return {}; }
-    operation default_stmt_visitor::VisitContinueStmt(const clang::ContinueStmt *stmt) { return {}; }
+    operation default_stmt_visitor::VisitBreakStmt(const clang::BreakStmt *stmt) {
+        return bld.compose< hl::BreakOp >().bind(self.location(stmt)).freeze();
+    }
+
+    operation default_stmt_visitor::VisitContinueStmt(const clang::ContinueStmt *stmt) {
+        return bld.compose< hl::ContinueOp >().bind(self.location(stmt)).freeze();
+    }
+
     operation default_stmt_visitor::VisitCaseStmt(const clang::CaseStmt *stmt) { return {}; }
     operation default_stmt_visitor::VisitDefaultStmt(const clang::DefaultStmt *stmt) { return {}; }
     operation default_stmt_visitor::VisitSwitchStmt(const clang::SwitchStmt *stmt) { return {}; }
@@ -594,7 +564,14 @@ namespace vast::cg
     // operation default_stmt_visitor::VisitCapturedStmt(const clang::CapturedStmt *stmt)
     operation default_stmt_visitor::VisitWhileStmt(const clang::WhileStmt *stmt) { return {}; }
     operation default_stmt_visitor::VisitForStmt(const clang::ForStmt *stmt) { return {}; }
-    operation default_stmt_visitor::VisitGotoStmt(const clang::GotoStmt *stmt) { return {}; }
+
+    operation default_stmt_visitor::VisitGotoStmt(const clang::GotoStmt *stmt) {
+        return bld.compose< hl::GotoStmt >()
+            .bind(self.location(stmt))
+            .bind_transform(self.visit(stmt->getLabel()), first_result)
+            .freeze();
+    }
+
     operation default_stmt_visitor::VisitLabelStmt(const clang::LabelStmt *stmt) { return {}; }
     operation default_stmt_visitor::VisitIfStmt(const clang::IfStmt *stmt) { return {}; }
 
@@ -613,9 +590,19 @@ namespace vast::cg
             .freeze();
     }
 
-    operation default_stmt_visitor::VisitConstantExpr(const clang::ConstantExpr *expr) { return {}; }
+    operation default_stmt_visitor::VisitConstantExpr(const clang::ConstantExpr *expr) {
+        // TODO create ConstantExprOp
+        return self.visit(expr->getSubExpr());
+    }
 
-    operation default_stmt_visitor::VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *expr) { return {}; }
+    operation default_stmt_visitor::VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *expr) {
+        return bld.compose< hl::SubscriptOp >()
+            .bind(self.location(expr))
+            .bind(self.visit_as_lvalue_type(expr->getType()))
+            .bind_transform(self.visit(expr->getBase()), first_result)
+            .bind_transform(self.visit(expr->getIdx()), first_result)
+            .freeze();
+    }
 
     // operation default_stmt_visitor::VisitArrayTypeTraitExpr(const clang::ArrayTypeTraitExpr *expr)
     // operation default_stmt_visitor::VisitAsTypeExpr(const clang::AsTypeExpr *expr)
@@ -654,12 +641,30 @@ namespace vast::cg
     // operation default_stmt_visitor::VisitOpaqueValueExpr(const clang::OpaqueValueExpr *expr)
     // operation default_stmt_visitor::VisitOverloadExpr(const clang::OverloadExpr *expr)
 
+    operation default_stmt_visitor::VisitParenExpr(const clang::ParenExpr *expr) { return {}; }
+
     // operation default_stmt_visitor::VisitParenListExpr(const clang::ParenListExpr *expr)
     operation default_stmt_visitor::VisitStmtExpr(const clang::StmtExpr *expr) { return {}; }
 
     operation default_stmt_visitor::VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *expr) { return {}; }
-    operation default_stmt_visitor::VisitVAArgExpr(const clang::VAArgExpr *expr) { return {}; }
-    operation default_stmt_visitor::VisitNullStmt(const clang::NullStmt *stmt) { return {}; }
-    operation default_stmt_visitor::VisitCXXThisExpr(const clang::CXXThisExpr *expr) { return {}; }
+
+    operation default_stmt_visitor::VisitVAArgExpr(const clang::VAArgExpr *expr) {
+        return bld.compose< hl::VAArgExpr >()
+            .bind(self.location(expr))
+            .bind(self.visit(expr->getType()))
+            .bind_transform(self.visit(expr->getSubExpr()), results)
+            .freeze();
+    }
+
+    operation default_stmt_visitor::VisitNullStmt(const clang::NullStmt *stmt) {
+        return bld.compose< hl::SkipStmt >().bind(self.location(stmt)).freeze();
+    }
+
+    operation default_stmt_visitor::VisitCXXThisExpr(const clang::CXXThisExpr *expr) {
+        return bld.compose< hl::ThisOp >()
+            .bind(self.location(expr))
+            .bind(self.visit(expr->getType()))
+            .freeze();
+    }
 
 } // namespace vast::cg

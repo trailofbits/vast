@@ -40,6 +40,14 @@ namespace vast::cg
         return std::nullopt;
     }
 
+    std::optional< symbol_name > default_symbol_mangler::symbol(const clang_decl_ref_expr *decl) {
+        return Maybe(decl->getDecl())
+            .and_then([&](auto decl) {
+                return symbol(decl);
+            })
+            .take();
+    }
+
     // Returns true if decl is a function decl with internal linkage and needs a
     // unique suffix after the mangled name.
     static bool is_unique_internal_linkage_decl(const clang_named_decl */* decl */, const std::string &module_name_hash) {
