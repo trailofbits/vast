@@ -282,8 +282,63 @@ namespace vast::cg
             .take();
     }
 
-    operation default_decl_visitor::visit_var_init(const clang_var_decl *decl) {
+    operation default_decl_visitor::VisitParmVarDecl(const clang::ParmVarDecl *decl) {
         return {};
     }
 
+    operation default_decl_visitor::VisitImplicitParamDecl(const clang::ImplicitParamDecl */* decl */) {
+        return {};
+    }
+
+    operation default_decl_visitor::VisitLinkageSpecDecl(const clang::LinkageSpecDecl */* decl */) {
+        return {};
+    }
+
+    operation default_decl_visitor::VisitTranslationUnitDecl(const clang::TranslationUnitDecl *decl) {
+        return {};
+    }
+
+    operation default_decl_visitor::VisitTypedefNameDecl(const clang::TypedefNameDecl *decl) {
+        return {};
+    }
+
+    operation default_decl_visitor::VisitTypedefDecl(const clang::TypedefDecl *decl) {
+        return {};
+    }
+
+    operation default_decl_visitor::VisitTypeAliasDecl(const clang::TypeAliasDecl *decl) {
+        return {};
+    }
+
+    operation default_decl_visitor::VisitLabelDecl(const clang::LabelDecl *decl) {
+        return {};
+    }
+
+    operation default_decl_visitor::VisitEmptyDecl(const clang::EmptyDecl *decl) {
+        return {};
+    }
+
+    operation default_decl_visitor::VisitEnumDecl(const clang::EnumDecl *decl) {
+        return {};
+    }
+
+    operation default_decl_visitor::VisitEnumConstantDecl(const clang::EnumConstantDecl *decl) {
+        return {};
+    }
+
+    operation default_decl_visitor::VisitRecordDecl(const clang::RecordDecl *decl) {
+        return {};
+    }
+
+    operation default_decl_visitor::VisitCXXRecordDecl(const clang::CXXRecordDecl *decl) {
+        return {};
+    }
+
+    operation default_decl_visitor::VisitAccessSpecDecl(const clang::AccessSpecDecl *decl) {
+        return {};
+    }
+
+    operation default_decl_visitor::VisitFieldDecl(const clang::FieldDecl *decl)  {
+        return {};
+    }
 } // namespace vast::hl
