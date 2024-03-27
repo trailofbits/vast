@@ -38,12 +38,14 @@ def HLBuiltin_TrapOp : HLBuiltin_Op< "trap" >
   , Results< (outs VoidLikeType: $result) >
 {
   let summary = "Builtin trap op";
+  let assemblyFormat = " `:` type($result) attr-dict";
 }
 
 def HLBuiltin_DebugTrapOp : HLBuiltin_Op< "dbgtrap" >
   , Results< (outs VoidLikeType: $result) >
 {
   let summary = "Builtin debug trap op";
+  let assemblyFormat = " `:` type($result) attr-dict";
 }
 
 #endif //VAST_DIALECT_BUILTIN_OPS
