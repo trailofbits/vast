@@ -22,9 +22,14 @@ namespace vast::cg {
 
         virtual ~block_generator() = default;
 
-        operation emit_in_scope(region_t &scope, const clang_compound_stmt *stmt);
+        void emit_in_scope(region_t &scope, const clang_compound_stmt *stmt);
       private:
+        void emit_in_new_scope(const clang_compound_stmt *stmt);
 
-        operation emit(const clang_compound_stmt *stmt);
-    };
+        core::ScopeOp make_scope(loc_t loc);
+
+        void emit(const clang_compound_stmt *stmt);
+        void emit(const clang_decl_stmt *stmt);
+        void emit(const clang_decl *decl);
+};
 } // namespace vast::cg
