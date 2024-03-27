@@ -601,18 +601,30 @@ namespace vast::cg
     //
     // Expressions
     //
-    operation default_stmt_visitor::VisitMemberExpr(const clang::MemberExpr *expt) { return {}; }
+    operation default_stmt_visitor::VisitMemberExpr(const clang::MemberExpr *expr) { return {}; }
+
     operation default_stmt_visitor::VisitConditionalOperator(const clang::ConditionalOperator *op) { return {}; }
-    operation default_stmt_visitor::VisitAddrLabelExpr(const clang::AddrLabelExpr *expt) { return {}; }
-    operation default_stmt_visitor::VisitConstantExpr(const clang::ConstantExpr *expt) { return {}; }
-    operation default_stmt_visitor::VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *expt) { return {}; }
+
+    operation default_stmt_visitor::VisitAddrLabelExpr(const clang::AddrLabelExpr *expr) {
+        return bld.compose< hl::AddrLabelExpr >()
+            .bind(self.location(expr))
+            .bind(self.visit_as_lvalue_type(expr->getType()))
+            .bind_transform(self.visit(expr->getLabel()), first_result)
+            .freeze();
+    }
+
+    operation default_stmt_visitor::VisitConstantExpr(const clang::ConstantExpr *expr) { return {}; }
+
+    operation default_stmt_visitor::VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *expr) { return {}; }
+
     // operation default_stmt_visitor::VisitArrayTypeTraitExpr(const clang::ArrayTypeTraitExpr *expr)
     // operation default_stmt_visitor::VisitAsTypeExpr(const clang::AsTypeExpr *expr)
     // operation default_stmt_visitor::VisitAtomicExpr(const clang::AtomicExpr *expr)
     // operation default_stmt_visitor::VisitBlockExpr(const clang::BlockExpr *expr)
 
-    // operation default_stmt_visitor::VisitCXXBindTemporaryExpr(const clang::CXXBindTemporaryExpr *expt) { return {}; }
-    operation default_stmt_visitor::VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *expt) { return {}; }
+    // operation default_stmt_visitor::VisitCXXBindTemporaryExpr(const clang::CXXBindTemporaryExpr *expr) { return {}; }
+
+    operation default_stmt_visitor::VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *expr) { return {}; }
 
     // operation default_stmt_visitor::VisitCXXConstructExpr(const clang::CXXConstructExpr *expr)
     // operation default_stmt_visitor::VisitCXXTemporaryObjectExpr(const clang::CXXTemporaryObjectExpr *expr)
@@ -633,7 +645,7 @@ namespace vast::cg
     // operation default_stmt_visitor::VisitCXXUnresolvedConstructExpr(const clang::CXXThrowExpr *expr)
     // operation default_stmt_visitor::VisitCXXUuidofExpr(const clang::CXXUuidofExpr *expr)
 
-    operation default_stmt_visitor::VisitCallExpr(const clang::CallExpr *expt) { return {}; }
+    operation default_stmt_visitor::VisitCallExpr(const clang::CallExpr *expr) { return {}; }
 
     // operation default_stmt_visitor::VisitCXXMemberCallExpr(const clang::CXXMemberCallExpr *expr)
     // operation default_stmt_visitor::VisitCXXOperatorCallExpr(const clang::CXXOperatorCallExpr *expr)
@@ -643,11 +655,11 @@ namespace vast::cg
     // operation default_stmt_visitor::VisitOverloadExpr(const clang::OverloadExpr *expr)
 
     // operation default_stmt_visitor::VisitParenListExpr(const clang::ParenListExpr *expr)
-    operation default_stmt_visitor::VisitStmtExpr(const clang::StmtExpr *expt) { return {}; }
+    operation default_stmt_visitor::VisitStmtExpr(const clang::StmtExpr *expr) { return {}; }
 
-    operation default_stmt_visitor::VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *expt) { return {}; }
-    operation default_stmt_visitor::VisitVAArgExpr(const clang::VAArgExpr *expt) { return {}; }
+    operation default_stmt_visitor::VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *expr) { return {}; }
+    operation default_stmt_visitor::VisitVAArgExpr(const clang::VAArgExpr *expr) { return {}; }
     operation default_stmt_visitor::VisitNullStmt(const clang::NullStmt *stmt) { return {}; }
-    operation default_stmt_visitor::VisitCXXThisExpr(const clang::CXXThisExpr *expt) { return {}; }
+    operation default_stmt_visitor::VisitCXXThisExpr(const clang::CXXThisExpr *expr) { return {}; }
 
 } // namespace vast::cg
