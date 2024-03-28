@@ -151,19 +151,19 @@ namespace vast::conv::tc {
         }
 
         auto get_is_illegal() {
-            return [=](mlir_type t) { return !self().isLegal(t); };
+            return [&](mlir_type t) { return !self().isLegal(t); };
         }
 
         template< typename op_t >
         auto get_has_only_legal_types() {
-            return [=](op_t op) -> bool {
+            return [&](op_t op) -> bool {
                 return !has_type_somewhere(op, get_is_illegal());
             };
         }
 
         template< typename op_t >
         auto get_has_legal_return_type() {
-            return [=](op_t op) -> bool {
+            return [&](op_t op) -> bool {
                 auto types = op->getResults().getTypes();
                 return !contains_subtype(types, get_is_illegal());
             };
@@ -171,7 +171,7 @@ namespace vast::conv::tc {
 
         template< typename op_t >
         auto get_has_legal_operand_types() {
-             return [=](op_t op) -> bool {
+             return [&](op_t op) -> bool {
                 auto types = op->getOperands().getTypes();
                 return !contains_subtype(types, get_is_illegal());
             };
