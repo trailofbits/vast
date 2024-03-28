@@ -90,7 +90,6 @@ def LowerValueCategories : Pass<"vast-lower-value-categories", "mlir::ModuleOp">
   let dependentDialects = [
     "vast::ll::LowLevelDialect",
     "vast::hl::HighLevelDialect",
-    "mlir::memref::MemRefDialect"
   ];
 }
 
