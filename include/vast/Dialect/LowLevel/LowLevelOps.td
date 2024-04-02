@@ -9,6 +9,7 @@ include "mlir/IR/BuiltinAttributes.td"
 include "mlir/Interfaces/ControlFlowInterfaces.td"
 
 include "vast/Interfaces/SymbolInterface.td"
+include "vast/Interfaces/ElementTypeInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
 
@@ -41,9 +42,9 @@ def Subscript
 }
 
 def ArgAlloca
-    : LowLevel_Op< "arg_alloca" >,
-      Arguments<(ins AnyType:$fn_arg)>,
-      Results<(outs AnyType:$result)>
+    : LowLevel_Op< "arg_alloca" >
+    , Arguments<(ins AnyType:$fn_arg)>
+    , Results<(outs AnyType:$result)>
 {
     let summary = "Alloca that holds the function argument.";
 
@@ -63,12 +64,18 @@ def Alloca
     }];
 }
 
+class PointerPointeeTypeMatch< string ptr, string val >
+    : TypesMatchWith< "Inconsistent type between pointer and its value", ptr, val,
+                      "(mlir::isa< ElementTypeInterface >($_self))"
+                      "? mlir::cast< ElementTypeInterface >($_self).getElementType()"
+                      ": mlir::Type{}" >;
+
 def Load
-    : LowLevel_Op< "load" >,
-      Arguments<(ins AnyType:$ptr)>,
-      Results<(outs AnyType:$result)>
+    : LowLevel_Op< "load", [PointerPointeeTypeMatch<"ptr", "result"> ] >
+    , Arguments<(ins ElementTypeInterface:$ptr)>
+    , Results<(outs AnyType:$result)>
 {
-    let summary = "Load.";
+    let summary = "Load value from memory. Expects `hl.ptr` as pointer type.";
 
     let assemblyFormat = [{
         operands attr-dict `:` functional-type(operands, results)
@@ -76,13 +83,13 @@ def Load
 }
 
 def Store
-    : LowLevel_Op< "store" >,
-      Arguments<(ins AnyType:$val, AnyType:$ptr)>
+    : LowLevel_Op< "store", [PointerPointeeTypeMatch<"ptr", "val">]>
+    , Arguments<(ins AnyType:$val, ElementTypeInterface:$ptr)>
 {
-    let summary = "Store.";
+    let summary = "Store value into memory. Expects `hl.ptr` as pointer type.";
 
     let assemblyFormat = [{
-        operands attr-dict `:` functional-type(operands, results)
+        $ptr `,` $val attr-dict `:` type($ptr) `,` type($val)
     }];
 }
 
