@@ -45,6 +45,7 @@ namespace vast::conv::irstollvm
         ignore_pattern< hl::DeclRefOp >,
         ignore_pattern< hl::PredefinedExpr >,
         ignore_pattern< hl::AddressOf >,
+        ignore_pattern< hl::SkipStmt >,
         erase_pattern< hl::StructDeclOp >,
         erase_pattern< hl::UnionDeclOp >,
         erase_pattern< hl::TypeDeclOp >
