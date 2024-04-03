@@ -65,6 +65,19 @@ tools = [
             "--vast-core-to-llvm",
         ]
     ),
+    ToolSubst('%vast-opt-lower-value-categories', command = 'vast-opt',
+        extra_args=[
+            "--vast-hl-lower-elaborated-types",
+            "--vast-hl-lower-typedefs",
+            "--vast-hl-lower-types",
+            "--vast-hl-to-ll-func",
+            "--vast-hl-to-ll-vars",
+            "--vast-hl-to-ll-cf",
+            "--vast-hl-to-ll-geps",
+            "--vast-fn-args-to-alloca",
+            "--vast-lower-value-categories",
+        ]
+    ),
     ToolSubst('%vast-opt-core-to-llvm', command = 'vast-opt',
         extra_args=[
             "--vast-hl-lower-types",
