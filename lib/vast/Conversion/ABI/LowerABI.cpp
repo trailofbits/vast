@@ -204,7 +204,6 @@ namespace vast
 
             auto deconstruct_record(hl::RecordType record_type, abi::DirectOp direct)
             {
-                auto val = direct.getOperand(0).getDefiningOp();
                 // So we are going to emit a bunch `hl.member` which are
                 // semantically geps. These need an operand, that is lvalue.
                 // First, we try to see if lvalue can be fetched one step backwards
@@ -213,10 +212,9 @@ namespace vast
                 // `ll` uninitialized variable (as they don't need names) and then
                 // simply hope later on this will get obliterated during some form
                 // of mem2reg.
-
                 auto as_lvalue = [&]() -> mlir::Operation *
                 {
-                    VAST_ASSERT(val->getNumResults() == 1);
+                    VAST_ASSERT(direct.getOperand(0).getDefiningOp()->getNumResults() == 1);
                     auto mctx = direct.getContext();
                     auto type = hl::PointerType::get(
                         mctx, direct.getOperand(0).getType());
