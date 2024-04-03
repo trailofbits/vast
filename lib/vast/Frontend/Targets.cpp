@@ -15,6 +15,9 @@ namespace vast::cc {
         if (trg == "cir") {
             return target_dialect::cir;
         }
+        if (trg == "abi") {
+            return target_dialect::abi;
+        }
         VAST_FATAL("Unknown option of target dialect: {0}", trg);
     }
 
@@ -28,6 +31,8 @@ namespace vast::cc {
                 return "llvm";
             case target_dialect::cir:
                 return "cir";
+            case target_dialect::abi:
+                return "abi";
         }
     }
 

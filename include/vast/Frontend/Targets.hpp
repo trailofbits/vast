@@ -14,7 +14,7 @@ namespace vast::cc {
         none
     };
 
-    enum class target_dialect { high_level, std, llvm, cir };
+    enum class target_dialect { high_level, std, llvm, cir, abi };
 
     target_dialect parse_target_dialect(string_ref from);
 
