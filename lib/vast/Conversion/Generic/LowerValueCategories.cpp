@@ -15,10 +15,10 @@ VAST_UNRELAX_WARNINGS
 #include "../PassesDetails.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
-
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
 #include "vast/Util/Common.hpp"
+#include "vast/Util/Terminator.hpp"
 
 #include "vast/Conversion/Common/Passes.hpp"
 #include "vast/Conversion/TypeConverters/TypeConvertingPattern.hpp"
@@ -436,6 +436,30 @@ namespace vast::conv {
 
             assign_pattern< hl::AssignOp, void > >;
 
+        template< typename op_t, typename yield_op_t >
+        struct propagate_yield : base_pattern< op_t >
+        {
+            using base = base_pattern< op_t >;
+            using base::base;
+
+            logical_result matchAndRewrite(
+                        op_t op, typename op_t::Adaptor ops,
+                        conversion_rewriter &rewriter) const override
+            {
+                auto body = op.getBody();
+                if (!body)
+                    return logical_result::success();
+
+                auto yield = terminator_t< yield_op_t >::get(*body);
+                VAST_PATTERN_CHECK(yield, "Expected yield in: {0}", op);
+
+                rewriter.inlineBlockBefore(body, op);
+                rewriter.replaceOp(op, yield.op().getResult());
+                rewriter.eraseOp(yield.op());
+                return logical_result::success();
+            }
+        };
+
         struct fallback : tc::generic_type_converting_pattern< value_category_type_converter >
         {
             using base = tc::generic_type_converting_pattern< value_category_type_converter >;
@@ -510,6 +534,10 @@ namespace vast::conv {
             // implicit casts
             patterns.add< lvalue_to_rvalue_cast >(mctx, tc);
             patterns.add< array_to_pointer_decay_cast >(mctx, tc);
+
+            // TODO: This should probably be left to a separate pass.
+            // `hl.expr` will get inlined.
+            patterns.add< propagate_yield< hl::ExprOp, hl::ValueYieldOp > >(mctx, tc);
 
             populate(unary_in_place_conversions{}, patterns, trg, mctx, tc);
             populate(assign_conversions{}, patterns, trg, mctx, tc);
