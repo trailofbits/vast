@@ -41,12 +41,10 @@ namespace vast::conv::pipeline {
     }
 
     pipeline_step_ptr fn_args_to_alloca() {
-        // TODO add dependencies
         return pass(createFnArgsToAllocaPass);
     }
 
     pipeline_step_ptr lower_value_categories() {
-        // TODO add dependencies
         return pass(createLowerValueCategoriesPass);
     }
 
