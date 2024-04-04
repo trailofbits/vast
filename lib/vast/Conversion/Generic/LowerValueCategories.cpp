@@ -528,7 +528,7 @@ namespace vast::conv {
                     mctx, tc
                 );
 
-            patterns.add< identity< ll::UninitializedVar > >(mctx, tc);
+            patterns.add< memory_allocation< ll::UninitializedVar > >(mctx, tc);
             patterns.add< subscript >(mctx, tc);
 
             // implicit casts
