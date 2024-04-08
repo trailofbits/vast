@@ -1,0 +1,118 @@
+name: "SV-Comp test suite"
+
+on:
+  workflow_run:
+    workflows: [Build]
+    types:
+      - completed
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    name: "Build VAST"
+    strategy:
+      matrix:
+        llvm-version: [17]
+        image-version: [22.04]
+
+    runs-on: ubuntu-${{ matrix.image-version }}
+    timeout-minutes: 60
+    container:
+      image:
+        ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
+
+    env:
+        CMAKE_PREFIX_PATH: "/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/mlir/;/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/clang/"
+        TOOLCHAIN: ${{ github.workspace }}/cmake/lld.toolchain.cmake
+        LLVM_EXTERNAL_LIT: "/usr/local/bin/lit"
+
+    steps:
+      - name: Clone the VAST repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 1
+
+      - name: Configure build
+        run: |
+            cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} \
+              -DCMAKE_VERBOSE_MAKEFILE=True \
+              -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
+              -DLLVM_EXTERNAL_LIT=${LLVM_EXTERNAL_LIT}
+
+      - name: Build release
+        run: |
+            cmake --build --preset ninja-rel -j $(nproc)
+            cpack -G TXZ --config ./builds/ninja-multi-default/CPackConfig.cmake
+
+      - name: Upload VAST build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VAST
+          path: ./builds/ninja-multi-default/package/*
+          retention-days: 1
+
+  test:
+    name: "Run SV-Comp test suite"
+    needs: build
+    strategy:
+      matrix:
+        llvm-version: [17]
+        image-version: [22.04]
+        vast-target: ['hl']
+
+    runs-on: ubuntu-${{ matrix.image-version }}
+    timeout-minutes: 360
+    container:
+      image:
+        ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
+
+    steps:
+     - name: Fetch VAST artifact
+       uses: actions/download-artifact@v4
+       with:
+         name: VAST
+
+     - name: Unpack VAST
+       run: |
+          mkdir vast && tar -xf VAST-* -C vast --strip-components=1
+
+     - name: Export vast binaries
+       run: |
+          echo "${PWD}/vast/bin/" >> $GITHUB_PATH
+
+     - name: Install test suite dependencies
+       run: |
+          apt-get update
+          apt-get -y install git
+
+     - name: Clone test suite repository
+       run: |
+        git clone --depth=1 https://gitlab.com/sosy-lab/benchmarking/sv-benchmarks.git
+
+     - name: Clone patch repository
+       uses: actions/checkout@v4
+       with:
+        repository: trailofbits/sv-bench-patch
+        ref: main
+        path: sv-bench-patch
+        fetch-depth: 1
+
+     - name: Apply patch
+       working-directory: sv-bench-patch
+       run: |
+          ./apply
+
+     - name: Run benchmarks
+       run: |
+          sh ./sv-bench-patch/compile-all.sh -d ./sv-benchmarks
+
+     - name: Upload results
+       uses: actions/upload-artifact@v4
+       with:
+        path: ./stats
+        name: results-${{ matrix.vast-target }}
