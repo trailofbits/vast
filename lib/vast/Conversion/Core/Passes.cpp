@@ -5,6 +5,7 @@
 VAST_RELAX_WARNINGS
 #include <mlir/Pass/Pass.h>
 #include <mlir/Pass/PassManager.h>
+#include <mlir/Transforms/Passes.h>
 
 #include <mlir/Dialect/LLVMIR/Transforms/Passes.h>
 VAST_UNRELAX_WARNINGS
@@ -29,6 +30,13 @@ namespace vast::conv::pipeline {
 
     pipeline_step_ptr to_llvm() {
         return compose("to-llvm", irs_to_llvm, core_to_llvm, llvm_debug_scope);
+    }
+
+
+    pipeline_step_ptr canonicalize() {
+        return pass([] {
+            return mlir::createCanonicalizerPass();
+        });
     }
 
 } // namespace vast::conv::pipeline

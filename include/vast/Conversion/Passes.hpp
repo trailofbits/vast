@@ -78,6 +78,8 @@ namespace vast
 
         pipeline_step_ptr to_llvm();
 
+        pipeline_step_ptr canonicalize();
+
     } // namespace conv::pipeline
 
 } // namespace vast

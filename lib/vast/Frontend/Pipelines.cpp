@@ -11,9 +11,7 @@ namespace vast::cc {
 
         // Generates almost AST like MLIR, without any conversions applied
         pipeline_step_ptr high_level() {
-            return compose("canonicalize",
-                hl::pipeline::canonicalize
-            );
+            return hl::pipeline::splice_trailing_scopes();
         }
 
         // Simplifies high level MLIR
@@ -49,14 +47,24 @@ namespace vast::cc {
         // specify some intermediate taarget dialect) but produce all dependend
         // steps before.
         using conversion_path = std::vector<
-            std::pair< target_dialect, std::vector< llvm::function_ref< pipeline_step_ptr() > > >
+            std::tuple<
+                target_dialect, /* target dialect */
+                llvm::function_ref< bool(const vast_args &) >, /* constraint to run the step */
+                std::vector< llvm::function_ref< pipeline_step_ptr() > > /* pipeline for the step */
+             >
         >;
 
+        static auto unconstrained = [] (const vast_args & /* vargs */) { return true; };
+
+        static auto has_option = [] (string_ref option) {
+            return [option] (const vast_args &vargs) { return vargs.has_option(option); };
+        };
+
         conversion_path default_conversion_path = {
-            { target_dialect::high_level, { reduce_high_level } },
-            { target_dialect::std, { standard_types } },
-            { target_dialect::abi, { abi } },
-            { target_dialect::llvm, { llvm } }
+            { target_dialect::high_level, has_option(opt::simplify), { reduce_high_level } },
+            { target_dialect::std , unconstrained, { standard_types } },
+            { target_dialect::abi , unconstrained, { abi } },
+            { target_dialect::llvm, unconstrained, { llvm } }
         };
 
         gap::generator< pipeline_step_ptr > conversion(
@@ -66,22 +74,22 @@ namespace vast::cc {
         ) {
             // TODO: add support for custom conversion paths
             // deduced from source, target and vargs
-            auto path = default_conversion_path;
+            const auto path = default_conversion_path;
 
-            bool simplify = vargs.has_option(opt::simplify);
-
-            if (trg == target_dialect::high_level && !simplify) {
-                co_return;
-            }
-
-            for (const auto &[dialect, step_passes] : path) {
-                for (auto &step : step_passes) {
-                    co_yield step();
+            for (const auto &[dialect, apply, step_passes] : path) {
+                if (apply(vargs)) {
+                    for (auto &step : step_passes) {
+                        co_yield step();
+                    }
                 }
 
                 if (trg == dialect) {
                     break;
                 }
+            }
+
+            if (vargs.has_option(opt::canonicalize)) {
+                co_yield conv::pipeline::canonicalize();
             }
         }
 
