@@ -5,7 +5,7 @@
 
 include "mlir/Pass/PassBase.td"
 
-#ifdef ENABLE_PDLL_CONVERSIONS
+#ifdef VAST_ENABLE_PDLL_CONVERSIONS
 
 // TODO(lukas): Figure out better naming for passes that are implemented in both PDLL and C++
 //              (if it becomes more common occurence).
@@ -28,7 +28,7 @@ def HLToFunc_pdll : Pass<"vast-hl-to-func-pdll", "mlir::ModuleOp"> {
   ];
 }
 
-#endif // ENABLE_PDLL_CONVERSIONS
+#endif // VAST_ENABLE_PDLL_CONVERSIONS
 
 def HLToLLCF : Pass<"vast-hl-to-ll-cf", "mlir::ModuleOp"> {
   let summary = "VAST HL control flow to LL control flow";

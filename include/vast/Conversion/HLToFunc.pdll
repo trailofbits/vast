@@ -1,4 +1,0 @@
-#include "mlir/Dialect/Func/IR/FuncOps.td"
-
-Pattern FuncPattern => replace op<hl.func> with op<func.func>;
-    

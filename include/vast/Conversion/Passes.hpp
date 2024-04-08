@@ -26,7 +26,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast
 {
-    #ifdef ENABLE_PDLL_CONVERSIONS
+    #ifdef VAST_ENABLE_PDLL_CONVERSIONS
         constexpr bool enable_pdll_conversion_passes = true;
 
         namespace pdll
