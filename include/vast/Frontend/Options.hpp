@@ -80,6 +80,7 @@ namespace vast::cc
         constexpr string_ref debug = "debug";
 
         constexpr string_ref simplify = "simplify";
+        constexpr string_ref canonicalize = "canonicalize";
 
         llvm::Twine disable(string_ref pipeline_name);
 

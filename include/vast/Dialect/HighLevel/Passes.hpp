@@ -35,7 +35,7 @@ namespace vast::hl {
 #include "vast/Dialect/HighLevel/Passes.h.inc"
 
     namespace pipeline {
-        pipeline_step_ptr canonicalize();
+        pipeline_step_ptr splice_trailing_scopes();
 
         pipeline_step_ptr desugar();
 

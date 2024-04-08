@@ -5,24 +5,19 @@
 VAST_RELAX_WARNINGS
 #include <mlir/Pass/Pass.h>
 #include <mlir/Pass/PassManager.h>
+#include <mlir/Transforms/Passes.h>
 VAST_UNRELAX_WARNINGS
+
+#include "vast/Util/Pipeline.hpp"
 
 #include "vast/Conversion/Passes.hpp"
 #include "vast/Dialect/HighLevel/Passes.hpp"
 
+
 namespace vast::hl::pipeline {
 
-    //
-    // canonicalization pipeline passes
-    //
-    static pipeline_step_ptr splice_trailing_scopes() {
+    pipeline_step_ptr splice_trailing_scopes() {
         return pass(hl::createSpliceTrailingScopes);
-    }
-
-    // TODO: add more passes here (remove reduntant skips etc.)
-
-    pipeline_step_ptr canonicalize() {
-        return splice_trailing_scopes();
     }
 
     //
@@ -45,15 +40,21 @@ namespace vast::hl::pipeline {
     // simplifcaiton passes
     //
     static pipeline_step_ptr dce() {
-        return pass(hl::createDCEPass).depends_on(canonicalize);
+        return pass(hl::createDCEPass).depends_on(splice_trailing_scopes);
     }
 
     static pipeline_step_ptr ude() {
-        return pass(hl::createUDEPass).depends_on(canonicalize);
+        return pass(hl::createUDEPass).depends_on(splice_trailing_scopes);
     }
 
     pipeline_step_ptr simplify() {
-        return compose("simplify", conv::pipeline::to_hlbi, ude, dce, desugar);
+        return compose("simplify",
+            conv::pipeline::canonicalize,
+            conv::pipeline::to_hlbi,
+            ude,
+            dce,
+            desugar
+        );
     }
 
     //
