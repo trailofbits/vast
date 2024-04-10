@@ -29,7 +29,7 @@ namespace vast::conv::tc {
 
         bool isSignatureLegal(core::FunctionType ty);
 
-        maybe_types_t do_conversion(mlir::Type t) {
+        maybe_types_t do_conversion(mlir::Type t) const {
             types_t out;
             if (mlir::succeeded(this->convertTypes(t, out))) {
                 return { std::move(out) };
@@ -82,31 +82,32 @@ namespace vast::conv::tc {
     template< typename derived >
     struct mixins
     {
+        const derived &self() const { return static_cast< const derived & >(*this); }
         derived &self() { return static_cast< derived & >(*this); }
 
-        auto convert_type() {
+        auto convert_type() const {
             return [&](auto t) { return self().do_conversion(t); };
         }
 
-        auto convert_type_to_type() {
+        auto convert_type_to_type() const {
             return [&](auto t) { return self().convert_type_to_type(t); };
         }
 
-        maybe_types_t convert_type_to_types(mlir_type t, std::size_t count = 1) {
+        maybe_types_t convert_type_to_types(mlir_type t, std::size_t count = 1) const {
             return Maybe(t)
                 .and_then(self().convert_type())
                 .keep_if([&](const auto &ts) { return ts->size() == count; })
                 .template take_wrapped< maybe_types_t >();
         }
 
-        maybe_type_t convert_type_to_type(mlir_type t) {
+        maybe_type_t convert_type_to_type(mlir_type t) const {
             return Maybe(t)
                 .and_then([&](auto t) { return self().convert_type_to_types(t, 1); })
                 .and_then([&](auto ts) { return *ts->begin(); })
                 .template take_wrapped< maybe_type_t >();
         }
 
-        auto appender(types_t &out) {
+        auto appender(types_t &out) const {
             return [&](auto collection) {
                 out.insert(
                     out.end(), std::move_iterator(collection.begin()),
@@ -115,7 +116,7 @@ namespace vast::conv::tc {
             };
         }
 
-        maybe_types_t convert_types_to_types(auto types) {
+        maybe_types_t convert_types_to_types(auto types) const {
             types_t out;
             auto append = appender(out);
 
@@ -130,7 +131,7 @@ namespace vast::conv::tc {
             return { out };
         }
 
-        maybe_signature_conversion_t signature_conversion(const auto &inputs) {
+        maybe_signature_conversion_t signature_conversion(const auto &inputs) const {
             signature_conversion_t sc(inputs.size());
             if (mlir::failed(self().convertSignatureArgs(inputs, sc))) {
                 return {};
@@ -150,19 +151,19 @@ namespace vast::conv::tc {
             };
         }
 
-        auto get_is_illegal() {
+        auto get_is_illegal() const {
             return [&](mlir_type t) { return !self().isLegal(t); };
         }
 
         template< typename op_t >
-        auto get_has_only_legal_types() {
+        auto get_has_only_legal_types() const {
             return [&](op_t op) -> bool {
                 return !has_type_somewhere(op, get_is_illegal());
             };
         }
 
         template< typename op_t >
-        auto get_has_legal_return_type() {
+        auto get_has_legal_return_type() const {
             return [&](op_t op) -> bool {
                 auto types = op->getResults().getTypes();
                 return !contains_subtype(types, get_is_illegal());
@@ -170,14 +171,14 @@ namespace vast::conv::tc {
         }
 
         template< typename op_t >
-        auto get_has_legal_operand_types() {
+        auto get_has_legal_operand_types() const {
              return [&](op_t op) -> bool {
                 auto types = op->getOperands().getTypes();
                 return !contains_subtype(types, get_is_illegal());
             };
         }
 
-        mcontext_t &get_context() { return self().mctx; }
+        mcontext_t &get_context() const { return self().mctx; }
     };
 
     // TODO(lukas): `rewriter.convertRegionTypes` should do the job, but it does not.
@@ -225,6 +226,7 @@ namespace vast::conv::tc {
     struct ConvertFunctionType
     {
       private:
+        const self_t &self() const { return static_cast< const self_t & >(*this); }
         self_t &self() { return static_cast< self_t & >(*this); }
 
       public:

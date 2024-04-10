@@ -56,7 +56,7 @@ namespace vast::conv::tc {
         LLVMTypeConverter &operator=(const LLVMTypeConverter &) = delete;
         LLVMTypeConverter &operator=(LLVMTypeConverter &&)      = delete;
 
-        maybe_types_t do_conversion(mlir::Type t) {
+        maybe_types_t do_conversion(mlir::Type t) const {
             types_t out;
             if (mlir::succeeded(this->convertTypes(t, out))) {
                 return { std::move(out) };
