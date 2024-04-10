@@ -5,7 +5,7 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-#include <mlir/IR/FunctionInterfaces.h>
+#include <mlir/Interfaces/FunctionInterfaces.h>
 #include <mlir/Interfaces/CallInterfaces.h>
 #include <mlir/Interfaces/InferTypeOpInterface.h>
 VAST_UNRELAX_WARNINGS

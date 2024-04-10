@@ -3,19 +3,20 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-#include <mlir/Interfaces/CallInterfaces.h>
+#include <llvm/Support/ErrorHandling.h>
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
+
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/OperationSupport.h>
 #include <mlir/IR/SymbolTable.h>
 #include <mlir/IR/OpImplementation.h>
-#include <mlir/IR/FunctionInterfaces.h>
-#include <mlir/IR/FunctionImplementation.h>
 
 #include <mlir/Dialect/CommonFolders.h>
 
-#include <llvm/Support/ErrorHandling.h>
+#include <mlir/Interfaces/CallInterfaces.h>
+#include <mlir/Interfaces/FunctionImplementation.h>
+#include <mlir/Interfaces/FunctionInterfaces.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"

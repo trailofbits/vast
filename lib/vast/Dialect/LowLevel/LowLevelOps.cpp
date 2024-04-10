@@ -9,8 +9,8 @@
 
 VAST_RELAX_WARNINGS
 #include <mlir/IR/Builders.h>
-#include <mlir/IR/FunctionInterfaces.h>
-#include <mlir/IR/FunctionImplementation.h>
+#include <mlir/Interfaces/FunctionInterfaces.h>
+#include <mlir/Interfaces/FunctionImplementation.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Dialect.hpp"
