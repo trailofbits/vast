@@ -28,7 +28,7 @@ namespace vast::conv::tc {
       public:
 
         auto &get_type_converter() const {
-            return static_cast< type_converter & >(*self().getTypeConverter());
+            return static_cast< const type_converter & >(*self().getTypeConverter());
         }
 
         // TODO(conv:tc): This should probably be some interface instead, since

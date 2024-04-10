@@ -32,6 +32,7 @@ namespace vast::conv::tc {
     struct HLAggregates
     {
       private:
+        const self_t &self() const { return static_cast< const self_t & >(*this); }
         self_t &self() { return static_cast< self_t & >(*this); }
 
       public:
@@ -108,6 +109,7 @@ namespace vast::conv::tc {
     struct CoreToStd : ConvertFunctionType< self_t >
     {
       private:
+        const self_t &self() const { return static_cast< const self_t & >(*this); }
         self_t &self() { return static_cast< self_t & >(*this); }
 
       public:
