@@ -123,7 +123,7 @@ namespace vast {
         }
 
         mlir_value null_ptr(auto &rewriter, auto loc, mlir_type type) const {
-            return rewriter.template create< mlir::LLVM::NullOp >(loc, type);
+            return rewriter.template create< mlir::LLVM::ZeroOp >(loc, type);
         }
 
         mlir_value ptr(auto &rewriter, auto loc, mlir_type type, auto val) const {
