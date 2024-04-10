@@ -4,11 +4,10 @@
 #define VAST_DIALECT_CORE_FUNC
 
 include "mlir/IR/OpBase.td"
-include "mlir/IR/FunctionInterfaces.td"
-
-include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/IR/RegionKindInterface.td"
 
+include "mlir/Interfaces/CallInterfaces.td"
+include "mlir/Interfaces/FunctionInterfaces.td"
 include "vast/Interfaces/SymbolInterface.td"
 
 def GlobalLinkageKind : Attr<

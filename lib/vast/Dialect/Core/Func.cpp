@@ -3,11 +3,12 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-#include <mlir/Support/LogicalResult.h>
-#include <mlir/IR/OperationSupport.h>
-#include <mlir/IR/FunctionImplementation.h>
-
 #include <llvm/Support/ErrorHandling.h>
+#include <mlir/Support/LogicalResult.h>
+
+#include <mlir/IR/OperationSupport.h>
+
+#include <mlir/Interfaces/FunctionImplementation.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Core/Func.hpp"

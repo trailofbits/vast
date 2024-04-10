@@ -6,7 +6,7 @@
 
 VAST_RELAX_WARNINGS
 #include <mlir/IR/BuiltinDialect.h>
-#include <mlir/IR/FunctionInterfaces.h>
+#include <mlir/Interfaces/FunctionInterfaces.h>
 #include <mlir/Interfaces/InferTypeOpInterface.h>
 VAST_UNRELAX_WARNINGS
 

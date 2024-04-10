@@ -4,12 +4,14 @@
 
 VAST_RELAX_WARNINGS
 #include <mlir/IR/Builders.h>
-#include <mlir/IR/FunctionImplementation.h>
-#include <mlir/IR/FunctionInterfaces.h>
 #include <mlir/IR/OpImplementation.h>
 #include <mlir/IR/OperationSupport.h>
 #include <mlir/IR/SymbolTable.h>
+
+#include <mlir/Interfaces/FunctionImplementation.h>
+#include <mlir/Interfaces/FunctionInterfaces.h>
 #include <mlir/Interfaces/CallInterfaces.h>
+
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
 

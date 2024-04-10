@@ -6,7 +6,7 @@
 #include "vast/Util/Common.hpp"
 
 VAST_RELAX_WARNINGS
-#include <mlir/IR/FunctionImplementation.h>
+#include <mlir/Interfaces/FunctionImplementation.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Core/CoreDialect.hpp"
