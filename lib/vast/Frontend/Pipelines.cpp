@@ -25,7 +25,7 @@ namespace vast::cc {
         pipeline_step_ptr standard_types() {
             return compose("standard-types",
                 hl::pipeline::stdtypes
-            );
+            ).depends_on(reduce_high_level);
         }
 
         pipeline_step_ptr abi() {
