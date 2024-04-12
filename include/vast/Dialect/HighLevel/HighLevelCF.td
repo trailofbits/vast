@@ -263,7 +263,7 @@ def HighLevel_DoOp : ControlFlowOp< "do" >
   }];
 }
 
-def HighLevel_BreakOp : ControlFlowOp< "break", [soft_terminator] >
+def HighLevel_BreakOp : ControlFlowOp< "break", [SoftTerminatorTrait] >
 {
   let summary = "VAST break statement";
   let description = [{ VAST break statement }];
@@ -271,7 +271,7 @@ def HighLevel_BreakOp : ControlFlowOp< "break", [soft_terminator] >
   let assemblyFormat = [{ attr-dict }];
 }
 
-def HighLevel_ContinueOp : ControlFlowOp< "continue", [soft_terminator] >
+def HighLevel_ContinueOp : ControlFlowOp< "continue", [SoftTerminatorTrait] >
 {
   let summary = "VAST continue statement";
   let description = [{ VAST continue statement }];

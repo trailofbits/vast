@@ -358,7 +358,7 @@ def ExprOp
 }
 
 def ReturnOp
-  : HighLevel_Op< "return", [soft_terminator, return_trait] >
+  : HighLevel_Op< "return", [SoftTerminatorTrait, ReturnLikeTrait] >
   , Arguments<(ins Variadic<AnyType>:$result)>
 {
   let assemblyFormat = "($result^ `:` type($result))? attr-dict";

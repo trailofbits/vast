@@ -5,14 +5,13 @@
 
 include "mlir/IR/DialectBase.td"
 
-def soft_terminator : NativeOpTrait< "soft_terminator" >, StructuralOpTrait
-{
+def SoftTerminatorTrait : NativeOpTrait< "SoftTerminatorTrait" >, StructuralOpTrait {
     let cppNamespace = "::vast::core";
 }
 
-def return_trait : NativeOpTrait< "return_trait" >, StructuralOpTrait
-{
+def ReturnLikeTrait : NativeOpTrait< "ReturnLikeTrait" >, StructuralOpTrait {
     let cppNamespace = "::vast::core";
+}
 }
 
 #endif //VAST_DIALECT_CORE_CORETRAITS
