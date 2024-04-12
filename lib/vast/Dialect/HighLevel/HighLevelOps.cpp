@@ -13,6 +13,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/FunctionInterfaces.h>
 #include <mlir/IR/FunctionImplementation.h>
 
+#include <mlir/Dialect/CommonFolders.h>
+
 #include <llvm/Support/ErrorHandling.h>
 VAST_UNRELAX_WARNINGS
 
@@ -46,8 +48,35 @@ namespace vast::hl
     // ArithBinOps
     //===----------------------------------------------------------------------===//
 
-    FoldResult AddIOp::fold(FoldAdaptor /* adaptor */) {
+    FoldResult checked_int_arithmetic(
+        mlir_type type, auto adaptor, auto &&op
+    ) {
+        if (auto lhs = mlir::dyn_cast_or_null< core::IntegerAttr >(adaptor.getLhs())) {
+            if (auto rhs = mlir::dyn_cast_or_null< core::IntegerAttr >(adaptor.getRhs())) {
+                if (auto result = op(lhs.getValue(), rhs.getValue())) {
+                    return core::IntegerAttr::get(type, result.value());
+                }
+            }
+        }
+
         return {};
+    }
+
+    FoldResult AddIOp::fold(FoldAdaptor adaptor) {
+        return checked_int_arithmetic(getType(), adaptor,
+            [] (const ap_sint &lhs, const ap_sint &rhs) -> std::optional< ap_sint > {
+                if (lhs.isUnsigned()) {
+                    return lhs + rhs;
+                }
+
+                bool overflow = false;
+                if (auto result = lhs.sadd_ov(rhs, overflow); !overflow) {
+                    return llvm::APSInt(result);
+                }
+
+                return {};
+            }
+        );
     }
 
     FoldResult SubIOp::fold(FoldAdaptor /* adaptor */) {
