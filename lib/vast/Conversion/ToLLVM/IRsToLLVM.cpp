@@ -576,8 +576,7 @@ namespace vast::conv::irstollvm
             auto result = op.getResult();
             if (result.hasOneUse()) {
                 auto user = result.getUses().begin()->getOwner();
-                if (user->hasTrait< core::return_trait >())
-                {
+                if (core::is_return_like(user)) {
                     auto guard = insertion_guard(rewriter);
                     rewriter.setInsertionPoint(user);
 

@@ -72,7 +72,7 @@ namespace vast::cg
         auto missing_return = [&] (auto &block) {
             if (codegen.has_insertion_block()) {
                 if (auto op = get_last_effective_operation(block)) {
-                    return !op->template hasTrait< core::return_trait >();
+                    return !core::is_return_like(op);
                 }
                 return true;
             }
