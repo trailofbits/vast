@@ -41,8 +41,119 @@ namespace vast::hl
 {
     using FoldResult = mlir::OpFoldResult;
 
+
     //===----------------------------------------------------------------------===//
-    // FuncOp
+    // ArithBinOps
+    //===----------------------------------------------------------------------===//
+
+    FoldResult AddIOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult SubIOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult AddFOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult SubFOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult MulIOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult MulFOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult DivSOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult DivUOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult DivFOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult RemSOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult RemUOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult RemFOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult BinXorOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult BinOrOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult BinAndOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult BinLAndOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult BinLOrOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult BinComma::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult BinShlOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult BinLShrOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    FoldResult BinAShrOp::fold(FoldAdaptor /* adaptor */) {
+        return {};
+    }
+
+    void build_logic_op(Builder &bld, State &st, Type type, BuilderCallback lhs, BuilderCallback rhs)
+    {
+        VAST_ASSERT(lhs && "the builder callback for 'lhs' region must be present");
+        VAST_ASSERT(rhs && "the builder callback for 'rhs' region must be present");
+
+        Builder::InsertionGuard guard(bld);
+
+        build_region(bld, st, lhs);
+        build_region(bld, st, rhs);
+        st.addTypes(type);
+    }
+
+    void BinLAndOp::build(Builder &bld, State &st, Type type, BuilderCallback lhs, BuilderCallback rhs)
+    {
+        build_logic_op(bld, st, type, lhs, rhs);
+    }
+
+    void BinLOrOp::build(Builder &bld, State &st, Type type, BuilderCallback lhs, BuilderCallback rhs)
+    {
+        build_logic_op(bld, st, type, lhs, rhs);
+    }
+
+    //===----------------------------------------------------------------------===//
+    // FunctionOp
     //===----------------------------------------------------------------------===//
 
     static llvm::StringRef getLinkageAttrNameString() { return "linkage"; }
@@ -171,28 +282,6 @@ namespace vast::hl
         setOperand(0, callee.get< mlir_value >());
     }
 
-
-    void build_logic_op(Builder &bld, State &st, Type type, BuilderCallback lhs, BuilderCallback rhs)
-    {
-        VAST_ASSERT(lhs && "the builder callback for 'lhs' region must be present");
-        VAST_ASSERT(rhs && "the builder callback for 'rhs' region must be present");
-
-        Builder::InsertionGuard guard(bld);
-
-        build_region(bld, st, lhs);
-        build_region(bld, st, rhs);
-        st.addTypes(type);
-    }
-
-    void BinLAndOp::build(Builder &bld, State &st, Type type, BuilderCallback lhs, BuilderCallback rhs)
-    {
-        build_logic_op(bld, st, type, lhs, rhs);
-    }
-
-    void BinLOrOp::build(Builder &bld, State &st, Type type, BuilderCallback lhs, BuilderCallback rhs)
-    {
-        build_logic_op(bld, st, type, lhs, rhs);
-    }
 
     mlir::ParseResult IfOp::parse(mlir::OpAsmParser &parser, mlir::OperationState &result) {
         std::unique_ptr< mlir::Region > condRegion = std::make_unique< mlir::Region >();

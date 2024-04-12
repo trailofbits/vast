@@ -698,6 +698,8 @@ class ArithBinOp< string mnemonic, list< Trait > traits = [] >
     ];
 
     let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` functional-type(operands, results) }];
+
+    let hasFolder = 1;
 }
 
 class StandardArithBinOp< string mnemonic, list< Trait > traits = [] >
@@ -752,6 +754,8 @@ class LogicBinOp< string mnemonic, list< Trait > traits = [] >
     ];
 
     let assemblyFormat = [{ $lhs`,` $rhs attr-dict `:` type(results) }];
+
+    let hasFolder = 1;
 }
 
 def BinLAndOp : LogicBinOp< "bin.land" >;
@@ -765,6 +769,8 @@ def BinComma
     let summary = "VAST binary operation";
 
     let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` functional-type(operands, results) }];
+
+    let hasFolder = 1;
 }
 
 class ShiftOp< string mnemonic, list< Trait > traits = [] >
@@ -785,6 +791,8 @@ class ShiftOp< string mnemonic, list< Trait > traits = [] >
     }];
 
     let assemblyFormat = [{ $lhs `,` $rhs attr-dict `:` functional-type(operands, results) }];
+
+    let hasFolder = 1;
 }
 
 def BinShlOp : ShiftOp<"bin.shl" >;
