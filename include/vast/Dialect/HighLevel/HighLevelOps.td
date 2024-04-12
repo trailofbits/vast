@@ -415,7 +415,7 @@ def EnumRefOp
 }
 
 def ConstantOp
-  : HighLevel_Op< "const", [ConstantLike, AllTypesMatch< ["value", "result"] >] >
+  : HighLevel_Op< "const", [ConstantLike, Pure, AllTypesMatch< ["value", "result"] >] >
   , Arguments<(ins TypedAttrInterface:$value)>
   , Results<(outs AnyType:$result)>
 {
@@ -441,6 +441,10 @@ def ConstantOp
   ];
 
   let hasFolder = 1;
+
+  let extraClassDeclaration = [{
+    static bool isBuildableWith(mlir_attr value, mlir_type type);
+  }];
 
   let assemblyFormat = "$value attr-dict";
 }
@@ -1102,16 +1106,20 @@ def SubscriptOp
 }
 
 class TypeTraitOp< string mnemonic, list< Trait > traits = [] >
-  : HighLevel_Op< mnemonic, traits >
+  : HighLevel_Op< mnemonic, !listconcat([Pure], traits) >
   , Arguments<(ins TypeAttr:$arg)>
   , Results<(outs IntegerLikeType:$result)>
 {
   let assemblyFormat = [{ $arg attr-dict `->` type($result) }];
 }
 
-def SizeOfTypeOp : TypeTraitOp< "sizeof.type" > {
+def SizeOfTypeOp : TypeTraitOp< "sizeof.type", [Pure] > {
   let summary = "VAST type sizeof operator";
-  let description = [{ VAST type sizeof operator }];
+  let description = [{ Corresponds to sizeof(<type>) expression. }];
+
+  let extraClassDeclaration = [{ std::size_t getValue(); }];
+
+  let hasFolder = 1;
 }
 
 def AlignOfTypeOp : TypeTraitOp< "alignof.type" > {
@@ -1120,7 +1128,7 @@ def AlignOfTypeOp : TypeTraitOp< "alignof.type" > {
 }
 
 class ExprTraitOp< string mnemonic, list< Trait > traits = [] >
-  : HighLevel_Op< mnemonic, traits >
+  : HighLevel_Op< mnemonic, !listconcat([Pure], traits) >
   , Results<(outs IntegerLikeType:$result)>
 {
   let regions = (region SizedRegion<1>:$expr);
@@ -1136,6 +1144,9 @@ class ExprTraitOp< string mnemonic, list< Trait > traits = [] >
 def SizeOfExprOp : ExprTraitOp< "sizeof.expr" > {
   let summary = "VAST expr sizeof operator";
   let description = [{ VAST expr sizeof operator }];
+
+  let extraClassDeclaration = [{ std::size_t getValue(); }];
+  let hasFolder = 1;
 }
 
 def AlignOfExprOp : ExprTraitOp< "alignof.expr" > {
