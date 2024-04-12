@@ -48,9 +48,7 @@ namespace vast::hl
     // ArithBinOps
     //===----------------------------------------------------------------------===//
 
-    FoldResult checked_int_arithmetic(
-        mlir_type type, auto adaptor, auto &&op
-    ) {
+    FoldResult checked_int_arithmetic(mlir_type type, auto adaptor, auto &&op) {
         if (auto lhs = mlir::dyn_cast_or_null< core::IntegerAttr >(adaptor.getLhs())) {
             if (auto rhs = mlir::dyn_cast_or_null< core::IntegerAttr >(adaptor.getRhs())) {
                 if (auto result = op(lhs.getValue(), rhs.getValue())) {
