@@ -35,7 +35,9 @@ class APSIntParameter<string desc> :
   }];
 }
 
-def BooleanAttr : Core_Attr<"Boolean", "bool", [TypedAttrInterface] > {
+def BooleanAttr : Core_Attr<"Boolean", "bool",
+  [ConstantLikeAttrTrait, TypedAttrInterface]
+> {
   let summary = "An Attribute containing a boolean value";
 
   let description = [{
@@ -55,7 +57,9 @@ def BooleanAttr : Core_Attr<"Boolean", "bool", [TypedAttrInterface] > {
   // let genVerifyDecl = 1;
 }
 
-def IntegerAttr : Core_Attr<"Integer", "integer", [TypedAttrInterface] > {
+def IntegerAttr : Core_Attr<"Integer", "integer",
+  [ConstantLikeAttrTrait, TypedAttrInterface]
+> {
   let summary = "An Attribute containing a integer value";
 
   let description = [{
@@ -76,7 +80,9 @@ def IntegerAttr : Core_Attr<"Integer", "integer", [TypedAttrInterface] > {
   // let genVerifyDecl = 1;
 }
 
-def FloatAttr : Core_Attr<"Float", "float", [TypedAttrInterface] > {
+def FloatAttr : Core_Attr<"Float", "float",
+  [ConstantLikeAttrTrait, TypedAttrInterface]
+> {
   let summary = "An Attribute containing a floating point value";
 
   let description = [{
@@ -97,7 +103,9 @@ def FloatAttr : Core_Attr<"Float", "float", [TypedAttrInterface] > {
   // let genVerifyDecl = 1;
 }
 
-def VoidAttr : Core_Attr<"Void", "void", [TypedAttrInterface]> {
+def VoidAttr : Core_Attr<"Void", "void",
+  [ConstantLikeAttrTrait, TypedAttrInterface]
+> {
   let summary = "Attribute to represent void value.";
   let description = [{
     The VoidAttr is used to return void from statements uniformly.
