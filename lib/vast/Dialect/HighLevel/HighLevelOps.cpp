@@ -454,6 +454,50 @@ namespace vast::hl
     GRAPH_REGION_OP(CondOp);
     GRAPH_REGION_OP(ContinueOp);
 
+    std::size_t handle_size_of(auto op, mlir_type type) {
+        auto eval = [op] (mlir_type ty) -> std::size_t {
+            // sizeof(void), sizeof(function) = 1 as a gcc extension
+            if (ty.hasTrait< mlir::TypeTrait::VoidTrait >()) {
+                return 1;
+            }
+
+            if (mlir::isa< core::FunctionType >(ty)) {
+                return 1;
+            }
+
+            // TODO: yield an error on dependent type
+
+            // TODO: yield an error on vla
+
+            return mlir::DataLayout::closest(*op).getTypeSize(ty);
+        };
+
+        // C++ [expr.sizeof]p2: "When applied to a reference or a reference type,
+        // the result is the size of the referenced type."
+        if (auto ref = mlir::dyn_cast< hl::ReferenceType >(type)) {
+            return eval(ref.getElementType());
+        }
+
+        return eval(type);
+    }
+
+    //
+    // SizeOfTypeOp
+    //
+    std::size_t SizeOfTypeOp::getValue() { return handle_size_of(this, getArg()); }
+
+    FoldResult SizeOfTypeOp::fold(FoldAdaptor) {
+        return core::IntegerAttr::get(getType(), apsint(getValue()));
+    }
+
+    //
+    // SizeOfExprOp
+    //
+    std::size_t SizeOfExprOp::getValue() { return handle_size_of(this, getType()); }
+
+    FoldResult SizeOfExprOp::fold(FoldAdaptor adaptor) {
+        return core::IntegerAttr::get(getType(), apsint(getValue()));
+    }
 
 }
 
