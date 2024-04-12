@@ -12,6 +12,9 @@ def SoftTerminatorTrait : NativeOpTrait< "SoftTerminatorTrait" >, StructuralOpTr
 def ReturnLikeTrait : NativeOpTrait< "ReturnLikeTrait" >, StructuralOpTrait {
     let cppNamespace = "::vast::core";
 }
+
+def ConstantLikeAttrTrait : NativeAttrTrait<"ConstantLikeAttrTrait"> {
+  let cppNamespace = "::vast::core";
 }
 
 #endif //VAST_DIALECT_CORE_CORETRAITS

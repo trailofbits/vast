@@ -37,5 +37,11 @@ namespace vast::core
     static inline bool is_return_like(operation op) {
         return op->hasTrait< ReturnLikeTrait >();
     }
-} // namespace vast::core
 
+    //
+    // ConstantLikeAttrTrait
+    //
+    template< typename ConcreteType >
+    struct ConstantLikeAttrTrait : attr_trait_base< ConcreteType, ConstantLikeAttrTrait > {};
+
+} // namespace vast::core

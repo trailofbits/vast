@@ -16,6 +16,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Common.hpp"
 #include "vast/Util/TypeList.hpp"
 
+#include "vast/Dialect/Core/CoreTraits.hpp"
+
 #define GET_ATTRDEF_CLASSES
 #include "vast/Dialect/Core/CoreAttributes.h.inc"
 
