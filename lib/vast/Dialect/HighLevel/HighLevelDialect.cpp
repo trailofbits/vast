@@ -60,9 +60,14 @@ namespace vast::hl
     using DialectParser = mlir::AsmParser;
     using DialectPrinter = mlir::AsmPrinter;
 
-    Operation *HighLevelDialect::materializeConstant(Builder &builder, Attribute value, Type type, Location loc)
+    operation HighLevelDialect::materializeConstant(mlir_builder &builder, mlir_attr value, mlir_type type, loc_t loc)
     {
-        VAST_UNIMPLEMENTED;
+        if (ConstantOp::isBuildableWith(value, type)) {
+            auto typed = mlir::cast< mlir::TypedAttr >(value);
+            return builder.create< ConstantOp >(loc, type, typed);
+        }
+
+        return {};
     }
 
 } // namespace vast::hl

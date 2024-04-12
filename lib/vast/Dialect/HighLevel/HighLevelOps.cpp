@@ -69,6 +69,15 @@ namespace vast::hl
         return adaptor.getValue();
     }
 
+    bool ConstantOp::isBuildableWith(mlir_attr value, mlir_type type) {
+        auto typed = mlir::dyn_cast< mlir::TypedAttr >(value);
+
+        if (!typed || typed.getType() != type) {
+            return false;
+        }
+
+        return value.hasTrait< core::ConstantLikeAttrTrait >();
+    }
 
     void build_expr_trait(Builder &bld, State &st, Type rty, BuilderCallback expr) {
         VAST_ASSERT(expr && "the builder callback for 'expr' region must be present");
