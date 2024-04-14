@@ -76,8 +76,8 @@ namespace vast::cc {
             // deduced from source, target and vargs
             const auto path = default_conversion_path;
 
-            for (const auto &[dialect, apply, step_passes] : path) {
-                if (apply(vargs)) {
+            for (const auto &[dialect, is_to_be_applied, step_passes] : path) {
+                if (is_to_be_applied(vargs)) {
                     for (auto &step : step_passes) {
                         co_yield step();
                     }
