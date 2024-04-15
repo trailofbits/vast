@@ -26,6 +26,7 @@ nav:
   - Related Projects: Projects/related.md
   - Benchmarks:
     - LLVM Single Source: Benchmarks/single-source-results.md
+    - SV-Comp: Benchmarks/sv-comp-results.md
   - About:
     - 'License': 'statement.md'
 
