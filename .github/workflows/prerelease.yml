@@ -95,12 +95,10 @@ jobs:
          name: VAST
 
      - name: Unpack VAST
-       run: |
-          mkdir vast && tar -xf VAST-* -C vast --strip-components=1
+       run: mkdir vast && tar -xf VAST-* -C vast --strip-components=1
 
      - name: Export vast binaries
-       run: |
-          echo "${PWD}/vast/bin/" >> $GITHUB_PATH
+       run: echo "${PWD}/vast/bin/" >> $GITHUB_PATH
 
      - name: Install test suite dependencies
        run: |
@@ -162,8 +160,7 @@ jobs:
           merge-multiple: true
 
       - name: Install evaluator dependencies
-        run: |
-            pip3 install pandas scipy tabulate
+        run:  pip3 install pandas scipy tabulate
 
       - name: Clone test suite repository
         uses: actions/checkout@v4
@@ -213,12 +210,10 @@ jobs:
          name: VAST
 
      - name: Unpack VAST
-       run: |
-          mkdir vast && tar -xf VAST-* -C vast --strip-components=1
+       run: mkdir vast && tar -xf VAST-* -C vast --strip-components=1
 
      - name: Export vast binaries
-       run: |
-          echo "${PWD}/vast/bin/" >> $GITHUB_PATH
+       run: echo "${PWD}/vast/bin/" >> $GITHUB_PATH
 
      - name: Install test suite dependencies
        run: |
@@ -226,8 +221,7 @@ jobs:
           apt-get -y install git
 
      - name: Clone test suite repository
-       run: |
-        git clone --depth=1 https://gitlab.com/sosy-lab/benchmarking/sv-benchmarks.git
+       run: git clone --depth=1 https://gitlab.com/sosy-lab/benchmarking/sv-benchmarks.git
 
      - name: Clone patch repository
        uses: actions/checkout@v4
@@ -239,12 +233,10 @@ jobs:
 
      - name: Apply patch
        working-directory: sv-bench-patch
-       run: |
-          ./apply
+       run: ./apply
 
      - name: Run benchmarks
-       run: |
-          sh ./sv-bench-patch/compile-all.sh -t ${{ matrix.vast-target }} -d ./sv-benchmarks
+       run: sh ./sv-bench-patch/compile-all.sh -t ${{ matrix.vast-target }} -d ./sv-benchmarks
 
      - name: Upload results
        uses: actions/upload-artifact@v4
@@ -266,8 +258,7 @@ jobs:
           pattern: results-sv-*
 
       - name: Install evaluator dependencies
-        run: |
-            pip3 install pandas scipy tabulate
+        run: pip3 install pandas scipy tabulate
 
       - name: Clone patch repository
         uses: actions/checkout@v4
@@ -289,8 +280,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sv-comp-results
-          path: |
-            ./sv-comp-results.md
+          path: ./sv-comp-results.md
 #
 #     Webpage build
 #
