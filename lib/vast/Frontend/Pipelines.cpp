@@ -57,7 +57,9 @@ namespace vast::cc {
         static auto unconstrained = [] (const vast_args & /* vargs */) { return true; };
 
         static auto has_option = [] (string_ref option) {
-            return [option] (const vast_args &vargs) { return vargs.has_option(option); };
+            return [option = std::string(option)] (const vast_args &vargs) {
+                return vargs.has_option(option);
+            };
         };
 
         conversion_path default_conversion_path = {
