@@ -43,21 +43,23 @@ namespace vast::cc
         virtual_file_system &vfs;
     };
 
-    constexpr string_ref vast_option_prefix = "-vast-";
+    using option_t = string_ref;
+
+    constexpr option_t vast_option_prefix = "-vast-";
 
     struct vast_args
     {
-        using option_list = std::vector< string_ref >;
+        using option_list = std::vector< option_t >;
 
         argv_storage args;
 
         // detects the presence of an option in one of formats:
         // (1) -vast-"name"
         // (2) -vast-"name"="value"
-        bool has_option(string_ref opt) const;
+        bool has_option(option_t opt) const;
 
         // from option of form -vast-"name"="value" returns the "value"
-        std::optional< string_ref > get_option(string_ref opt) const;
+        std::optional< option_t > get_option(string_ref opt) const;
 
         // from option of form -vast-"name"="value1;value2;value3" returns list of values
         std::optional< option_list > get_options_list(string_ref opt) const;
@@ -68,28 +70,28 @@ namespace vast::cc
     std::pair< vast_args, argv_storage > filter_args(const argv_storage_base &args);
 
     namespace opt {
-        constexpr string_ref emit_llvm = "emit-llvm";
-        constexpr string_ref emit_obj  = "emit-obj";
-        constexpr string_ref emit_asm  = "emit-asm";
-        constexpr string_ref emit_mlir = "emit-mlir";
+        constexpr option_t emit_llvm = "emit-llvm";
+        constexpr option_t emit_obj  = "emit-obj";
+        constexpr option_t emit_asm  = "emit-asm";
+        constexpr option_t emit_mlir = "emit-mlir";
 
-        constexpr string_ref print_pipeline = "print-pipeline";
-        constexpr string_ref emit_crash_reproducer = "emit-crash-reproducer";
+        constexpr option_t print_pipeline = "print-pipeline";
+        constexpr option_t emit_crash_reproducer = "emit-crash-reproducer";
 
-        constexpr string_ref disable_multithreading = "disable-multithreading";
-        constexpr string_ref debug = "debug";
+        constexpr option_t disable_multithreading = "disable-multithreading";
+        constexpr option_t debug = "debug";
 
-        constexpr string_ref simplify = "simplify";
-        constexpr string_ref canonicalize = "canonicalize";
+        constexpr option_t simplify = "simplify";
+        constexpr option_t canonicalize = "canonicalize";
 
         llvm::Twine disable(string_ref pipeline_name);
 
-        constexpr string_ref show_locs = "show-locs";
-        constexpr string_ref locs_as_meta_ids = "locs-as-meta-ids";
+        constexpr option_t show_locs = "show-locs";
+        constexpr option_t locs_as_meta_ids = "locs-as-meta-ids";
 
-        constexpr string_ref disable_vast_verifier = "disable-vast-verifier";
-        constexpr string_ref vast_verify_diags = "verify-diags";
-        constexpr string_ref disable_emit_cxx_default = "disable-emit-cxx-default";
+        constexpr option_t disable_vast_verifier = "disable-vast-verifier";
+        constexpr option_t vast_verify_diags = "verify-diags";
+        constexpr option_t disable_emit_cxx_default = "disable-emit-cxx-default";
 
         bool emit_only_mlir(const vast_args &vargs);
         bool emit_only_llvm(const vast_args &vargs);
