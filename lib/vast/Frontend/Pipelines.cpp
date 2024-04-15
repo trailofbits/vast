@@ -5,6 +5,8 @@
 #include "vast/Dialect/HighLevel/Passes.hpp"
 #include "vast/Conversion/Passes.hpp"
 
+#include <gap/core/overloads.hpp>
+
 namespace vast::cc {
 
     namespace pipeline {
@@ -42,6 +44,11 @@ namespace vast::cc {
             co_yield high_level();
         }
 
+        using noguard_t = std::monostate;
+        using guard   = std::variant< string_ref, noguard_t >;
+
+        static constexpr noguard_t noguard = {};
+
         // Defines a sequence of dialects and for each conversion dialect a
         // passes to be run. This allows to stop conversion at any point (i.e.,
         // specify some intermediate taarget dialect) but produce all dependend
@@ -49,24 +56,23 @@ namespace vast::cc {
         using conversion_path = std::vector<
             std::tuple<
                 target_dialect, /* target dialect */
-                llvm::function_ref< bool(const vast_args &) >, /* constraint to run the step */
+                guard,          /* guard to check if the step should be run */
                 std::vector< llvm::function_ref< pipeline_step_ptr() > > /* pipeline for the step */
              >
         >;
 
-        static auto unconstrained = [] (const vast_args & /* vargs */) { return true; };
-
-        static auto has_option = [] (string_ref option) {
-            return [option = std::string(option)] (const vast_args &vargs) {
-                return vargs.has_option(option);
-            };
-        };
+        bool check_step_guard(guard g, const vast_args &vargs) {
+            return std::visit( gap::overloaded {
+                [] (noguard_t) { return true; },
+                [&] (string_ref opt) { return vargs.has_option(opt); }
+            }, g);
+        }
 
         conversion_path default_conversion_path = {
-            { target_dialect::high_level, has_option(opt::simplify), { reduce_high_level } },
-            { target_dialect::std , unconstrained, { standard_types } },
-            { target_dialect::abi , unconstrained, { abi } },
-            { target_dialect::llvm, unconstrained, { llvm } }
+            { target_dialect::high_level, opt::simplify, { reduce_high_level } },
+            { target_dialect::std , noguard, { standard_types } },
+            { target_dialect::abi , noguard, { abi } },
+            { target_dialect::llvm, noguard, { llvm } }
         };
 
         gap::generator< pipeline_step_ptr > conversion(
@@ -78,8 +84,8 @@ namespace vast::cc {
             // deduced from source, target and vargs
             const auto path = default_conversion_path;
 
-            for (const auto &[dialect, is_to_be_applied, step_passes] : path) {
-                if (is_to_be_applied(vargs)) {
+            for (const auto &[dialect, guard, step_passes] : path) {
+                if (check_step_guard(guard, vargs)) {
                     for (auto &step : step_passes) {
                         co_yield step();
                     }
