@@ -70,7 +70,9 @@ jobs:
           files: |
             ./LICENSE
             ./builds/ci/package/*
-
+#
+#     LLVM Test Suite
+#
   run_llvm_ts:
     name: "Run LLVM test suite"
     needs: build
@@ -143,10 +145,10 @@ jobs:
        uses: actions/upload-artifact@v4
        with:
         path: ./results-${{ matrix.vast-target }}.json
-        name: results-${{ matrix.vast-target }}
+        name: results-llvm-ts-${{ matrix.vast-target }}
 
   eval_llvm_ts:
-    name: "Eval test results"
+    name: "Eval LLVM Singlesource results"
     needs: run_llvm_ts
     strategy:
       matrix:
@@ -156,7 +158,7 @@ jobs:
       - name: Fetch result artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: results-*
+          pattern: results-llvm-ts-*
           merge-multiple: true
 
       - name: Install evaluator dependencies
@@ -186,7 +188,9 @@ jobs:
           path: |
             ./single-source-results.csv
             ./single-source-results.md
-
+#
+#     SV-Comp bencmharks
+#
   run_svcomp:
     name: "Run SV-Comp test suite"
     needs: build
@@ -246,8 +250,50 @@ jobs:
        uses: actions/upload-artifact@v4
        with:
         path: ./stats
-        name: results-${{ matrix.vast-target }}
+        name: results-sv-${{ matrix.vast-target }}
 
+  eval_svcomp:
+    name: "Eval SV-Comp test results"
+    needs: run_svcomp
+    strategy:
+      matrix:
+        image-version: [22.04]
+    runs-on: ubuntu-${{ matrix.image-version }}
+    steps:
+      - name: Fetch result artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: results-sv-*
+
+      - name: Install evaluator dependencies
+        run: |
+            pip3 install pandas scipy tabulate
+
+      - name: Clone patch repository
+        uses: actions/checkout@v4
+        with:
+          repository: trailofbits/sv-bench-patch
+          sparse-checkout: make_table.py
+          ref: main
+          path: llvm-test-suite
+          fetch-depth: 1
+
+      - name: Generate the results
+        run: |
+          python3 sv-bench-patch/make_table.py \
+            --columns HighLevel,LLVM-IR \
+            --files results-sv-hl/results.txt,results-sv-llvm/results.txt \
+            --output sv-comp-results
+
+      - name: Post results as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sv-comp-results
+          path: |
+            ./sv-comp-results.md
+#
+#     Webpage build
+#
   build_doc:
     strategy:
       matrix:
@@ -275,8 +321,12 @@ jobs:
         with:
           name: llvm-test-suite-results
           path: llvm-test-suite-results
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Fetch SV-Comp benchmarks results
+        uses: actions/download-artifact@v4
+        with:
+          name: sv-comp-results
+          path: sv-comp-results
 
       - name: Build Pages
         run: |
