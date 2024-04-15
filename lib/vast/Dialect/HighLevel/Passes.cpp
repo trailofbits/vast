@@ -49,7 +49,6 @@ namespace vast::hl::pipeline {
 
     pipeline_step_ptr simplify() {
         return compose("simplify",
-            conv::pipeline::canonicalize,
             conv::pipeline::to_hlbi,
             ude,
             dce,
