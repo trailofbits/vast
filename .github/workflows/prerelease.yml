@@ -54,6 +54,13 @@ jobs:
       - name: Package
         run: cpack --preset ci
 
+      - name: Upload VAST build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VAST
+          path: ./builds/ninja-multi-default/package/*
+          retention-days: 1
+
       - name: Publish Pre-Release
         uses: softprops/action-gh-release@v1
         with:
@@ -64,6 +71,202 @@ jobs:
             ./LICENSE
             ./builds/ci/package/*
 
+  run_llvm_ts:
+    name: "Run LLVM test suite"
+    needs: build
+    strategy:
+      matrix:
+        llvm-version: [17]
+        image-version: [22.04]
+        vast-target: ['hl', 'llvm', 'bin']
+
+    runs-on: ubuntu-${{ matrix.image-version }}
+    timeout-minutes: 60
+    container:
+      image:
+        ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
+
+    steps:
+     - name: Fetch VAST artifact
+       uses: actions/download-artifact@v4
+       with:
+         name: VAST
+
+     - name: Unpack VAST
+       run: |
+          mkdir vast && tar -xf VAST-* -C vast --strip-components=1
+
+     - name: Export vast binaries
+       run: |
+          echo "${PWD}/vast/bin/" >> $GITHUB_PATH
+
+     - name: Install test suite dependencies
+       run: |
+          apt-get update
+          apt-get -y install clang
+          pip3 install lit psutil
+
+     - name: Clone test suite repository
+       uses: actions/checkout@v4
+       with:
+        repository: trailofbits/vast-llvm-test-suite
+        ref: main
+        path: llvm-test-suite
+        fetch-depth: 1
+
+     - name: Run test-suite
+       continue-on-error: true
+       run: |
+        mkdir llvm-test-suite/build && cd llvm-test-suite/build/
+        cmake ../ -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER=$(readlink -f ../tools/compiler) \
+          -DCMAKE_CXX_COMPILER=$(readlink -f ../tools/compiler++) \
+          -C=../cmake/caches/O3.cmake \
+          -DTEST_SUITE_COLLECT_CODE_SIZE=OFF \
+          -DTEST_SUITE_SUBDIRS=SingleSource \
+          -DVAST_TEST_SUITE_ENABLE=ON \
+          -DVAST_TEST_SUITE_TARGET=${{ matrix.vast-target }}
+        make -j $(nproc) -k
+
+     - name: Collect run data (mlir)
+       if: matrix.vast-target != 'bin'
+       working-directory: ./llvm-test-suite/build
+       run: python3 ../utils/mlir_compile_json_gen.py >> ../../results-${{ matrix.vast-target }}.json
+
+     - name: Collect run data (bin)
+       continue-on-error: true
+       if: matrix.vast-target == 'bin'
+       working-directory: ./llvm-test-suite/build
+       run: lit --timeout=360 -v -o ../../results-${{ matrix.vast-target }}.json .
+
+     - name: Upload results
+       uses: actions/upload-artifact@v4
+       with:
+        path: ./results-${{ matrix.vast-target }}.json
+        name: results-${{ matrix.vast-target }}
+
+  eval_llvm_ts:
+    name: "Eval test results"
+    needs: run_llvm_ts
+    strategy:
+      matrix:
+        image-version: [22.04]
+    runs-on: ubuntu-${{ matrix.image-version }}
+    steps:
+      - name: Fetch result artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: results-*
+          merge-multiple: true
+
+      - name: Install evaluator dependencies
+        run: |
+            pip3 install pandas scipy tabulate
+
+      - name: Clone test suite repository
+        uses: actions/checkout@v4
+        with:
+          repository: trailofbits/vast-llvm-test-suite
+          sparse-checkout: utils/vast_compare.py
+          ref: main
+          path: llvm-test-suite
+          fetch-depth: 1
+
+      - name: Generate the results
+        run: |
+          python3 llvm-test-suite/utils/vast_compare.py \
+            --columns vast-hl,vast-llvm,vast-bin \
+            --files results-hl.json,results-llvm.json,results-bin.json \
+            --output single-source-results
+
+      - name: Post results as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: llvm-test-suite-results
+          path: |
+            ./single-source-results.csv
+            ./single-source-results.md
+
+  run_svcomp:
+    name: "Run SV-Comp test suite"
+    needs: build
+    strategy:
+      matrix:
+        llvm-version: [17]
+        image-version: [22.04]
+        vast-target: ['hl', 'llvm']
+
+    runs-on: ubuntu-${{ matrix.image-version }}
+    timeout-minutes: 360
+    container:
+      image:
+        ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
+
+    steps:
+     - name: Fetch VAST artifact
+       uses: actions/download-artifact@v4
+       with:
+         name: VAST
+
+     - name: Unpack VAST
+       run: |
+          mkdir vast && tar -xf VAST-* -C vast --strip-components=1
+
+     - name: Export vast binaries
+       run: |
+          echo "${PWD}/vast/bin/" >> $GITHUB_PATH
+
+     - name: Install test suite dependencies
+       run: |
+          apt-get update
+          apt-get -y install git
+
+     - name: Clone test suite repository
+       run: |
+        git clone --depth=1 https://gitlab.com/sosy-lab/benchmarking/sv-benchmarks.git
+
+     - name: Clone patch repository
+       uses: actions/checkout@v4
+       with:
+        repository: trailofbits/sv-bench-patch
+        ref: ci-version
+        path: sv-bench-patch
+        fetch-depth: 1
+
+     - name: Apply patch
+       working-directory: sv-bench-patch
+       run: |
+          ./apply
+
+     - name: Run benchmarks
+       run: |
+          sh ./sv-bench-patch/compile-all.sh -t ${{ matrix.vast-target }} -d ./sv-benchmarks
+
+     - name: Upload results
+       uses: actions/upload-artifact@v4
+       with:
+        path: ./stats
+        name: results-${{ matrix.vast-target }}
+
+  build_doc:
+    strategy:
+      matrix:
+        llvm-version: [17]
+        image-version: [22.04]
+    name: "Build VAST doc"
+    runs-on: ubuntu-${{ matrix.image-version }}
+    needs: [eval_llvm_ts, run_svcomp]
+    timeout-minutes: 60
+    container:
+      image:
+        ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
+
+    env:
+        CMAKE_PREFIX_PATH: "/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/mlir/;/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/clang/"
+        TOOLCHAIN: ${{ github.workspace }}/cmake/lld.toolchain.cmake
+        LLVM_EXTERNAL_LIT: "/usr/local/bin/lit"
+
+    steps:
       - name: Build VAST Doc
         run: cmake --build --preset ci-release --target vast-doc
 
