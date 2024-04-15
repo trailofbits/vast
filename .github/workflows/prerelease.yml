@@ -10,7 +10,7 @@ name: "Pre Release"
 
 on:
   workflow_run:
-    workflows: ["LLVM test suite"]
+    workflows: ["Build"]
     types:
       - completed
     branches:
