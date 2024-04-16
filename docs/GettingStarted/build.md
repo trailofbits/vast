@@ -17,10 +17,16 @@ To configure project run `cmake` with following default options.
 In case `clang` isn't your default compiler prefix the command with `CC=clang CXX=clang++`.
 If you want to use system installed `llvm` and `mlir` (on Ubuntu) use:
 
+The simplest way is to run
+
 ```
-cmake --preset ninja-multi-default \
-    --toolchain ./cmake/lld.toolchain.cmake \
-    -DCMAKE_PREFIX_PATH=/usr/lib/llvm-17/
+cmake --workflow release
+```
+
+If this method doesn't work for you, configure the project in the usual way:
+
+```
+cmake --preset default
 ```
 
 To use a specific `llvm` provide `-DCMAKE_PREFIX_PATH=<llvm & mlir instalation paths>` option, where `CMAKE_PREFIX_PATH` points to directory containing `LLVMConfig.cmake` and `MLIRConfig.cmake`.
@@ -31,10 +37,10 @@ Note: vast requires LLVM with RTTI enabled. Use `LLVM_ENABLE_RTTI=ON` if you bui
 Finally, build the project:
 
 ```
-cmake --build --preset ninja-rel
+cmake --build --preset release
 ```
 
-Use `ninja-deb` preset for debug build.
+Use `debug` preset for debug build.
 
 ## Run
 
@@ -49,5 +55,5 @@ Supported dialects are: `hl`, `ll`, `llvm`
 ## Test
 
 ```
-ctest --preset ninja-deb
+ctest --preset debug
 ```
