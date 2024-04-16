@@ -123,7 +123,7 @@ namespace vast::core {
     DstFuncOp convert_function(auto src, auto &rewriter, string_ref name) {
         return convert_function< DstFuncOp >(src, rewriter, name, src.getFunctionType(),
             [src] (auto &rewriter, auto &dst) mutable {
-                rewriter.updateRootInPlace(dst, [&] () {
+                rewriter.modifyOpInPlace(dst, [&] () {
                     dst.getBody().takeBody(src.getBody());
                 });
             }

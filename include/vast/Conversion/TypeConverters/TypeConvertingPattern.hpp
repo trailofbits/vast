@@ -47,7 +47,7 @@ namespace vast::conv::tc {
                 }
             };
 
-            rewriter.updateRootInPlace(fn, update);
+            rewriter.modifyOpInPlace(fn, update);
             return mlir::success();
         }
 
@@ -81,7 +81,7 @@ namespace vast::conv::tc {
                 }
             };
 
-            rewriter.updateRootInPlace(op, update);
+            rewriter.modifyOpInPlace(op, update);
 
             return mlir::success();
         }

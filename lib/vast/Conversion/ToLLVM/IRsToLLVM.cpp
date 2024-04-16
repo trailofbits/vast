@@ -1330,7 +1330,7 @@ namespace vast::conv::irstollvm
             };
 
             // TODO: Should we use clone instead?
-            rewriter.updateRootInPlace(op, lower_res_type);
+            rewriter.modifyOpInPlace(op, lower_res_type);
             return logical_result::success();
         }
     };
