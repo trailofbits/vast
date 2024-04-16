@@ -19,8 +19,8 @@ namespace vast
     // filter data layout entries. Once one is selected it will be casted
     // to `DLEntry` and passed `extract` to produce resulting value.
     // TODO(interface): Return can be generic based on what `extract` returns.
-    template< typename ConcreteType, typename Interface, typename Extract >
-    unsigned default_dl_query(const Interface &self, Extract &&extract,
+    template< typename ConcreteType, typename Out, typename Interface, typename Extract >
+    Out default_dl_query(const Interface &self, Extract &&extract,
                               const mlir::DataLayout &dl,
                               mlir::DataLayoutEntryListRef entries)
     {
@@ -30,10 +30,10 @@ namespace vast
             entries.size() != 0, "Data layout query for: {0} did not match to any dl entry!",
             casted_self);
 
-        std::optional< unsigned > out;
+        std::optional< Out > out;
         auto handle_entry = [&](const auto &entry)
         {
-            auto current = extract(entry);
+            auto current = dl::DLEntry::cast< Out >(extract(entry));
             if (!out)
                 out = current;
 

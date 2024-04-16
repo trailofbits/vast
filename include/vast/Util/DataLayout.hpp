@@ -27,6 +27,7 @@ namespace vast::dl {
     struct DLEntry
     {
         using bitwidth_t = uint32_t;
+        using type_size_t = llvm::TypeSize;
 
         mlir_type type;
         bitwidth_t bw        = 0;
@@ -66,6 +67,11 @@ namespace vast::dl {
             return static_cast< bitwidth_t >(int_attr.getInt());
         }
 
+        template< typename T >
+        static T extract_as(mlir::DictionaryAttr dict_attr, llvm::StringRef key) {
+            return cast< T >(extract(dict_attr, key));
+        }
+
         mlir::StringAttr wrap_str(mcontext_t &mctx, llvm::StringRef str_value) const {
             return mlir::StringAttr::get(&mctx, str_value);
         }
@@ -84,6 +90,14 @@ namespace vast::dl {
             };
 
             return mlir::DictionaryAttr::get(&mctx, all);
+        }
+
+        template< typename T >
+        static T cast(bitwidth_t bw) {
+            if constexpr (std::is_same_v< T, type_size_t >)
+                return type_size_t::getFixed(static_cast< uint64_t >(bw));
+            else
+                return static_cast< T >(bw);
         }
 
         // Wrap information in this object as `mlir::Attribute`, which is not attached yet
