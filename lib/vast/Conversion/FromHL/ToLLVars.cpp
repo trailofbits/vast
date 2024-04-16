@@ -90,7 +90,7 @@ namespace vast
                         }
                     }
                 };
-                rewriter.updateRootInPlace(op, fix_init_refs);
+                rewriter.modifyOpInPlace(op, fix_init_refs);
 
                 auto yield = inline_init_region< hl::ValueYieldOp >(op, rewriter);
                 rewriter.setInsertionPointAfter(yield);
