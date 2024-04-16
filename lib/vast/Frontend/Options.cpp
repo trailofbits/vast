@@ -19,7 +19,7 @@ namespace vast::cc {
         std::optional< string_ref > get_option_impl(argv_t args, string_ref name) {
             auto is_opt_with_name = [] (auto name) {
                 return [name] (auto arg) {
-                    return name_and_value_view(arg).startswith(name);
+                    return name_and_value_view(arg).starts_with(name);
                 };
             };
 
@@ -100,7 +100,7 @@ namespace vast::cc {
             opts.CPlusPlus17 || opts.CPlusPlus20 || opts.CPlusPlus23 ||
             opts.CPlusPlus26)
             return source_language::CXX;
-        if (opts.C99 || opts.C11 || opts.C17 || opts.C2x ||
+        if (opts.C99 || opts.C11 || opts.C17 || opts.C23 ||
             opts.LangStd == ClangStd::lang_c89)
             return source_language::C;
 

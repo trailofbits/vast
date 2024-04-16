@@ -108,7 +108,7 @@ void preprocess_vast_arguments(vast::cc::argv_storage &args) {
 
     for (auto it = args.begin(); it != args.end(); it++) {
         auto arg = vast::string_ref(*it);
-        if (arg.startswith(vast::cc::vast_option_prefix)) {
+        if (arg.starts_with(vast::cc::vast_option_prefix)) {
             it = make_plugin_argument(it);
         }
     }
