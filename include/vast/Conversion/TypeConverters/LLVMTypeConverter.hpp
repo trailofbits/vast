@@ -67,7 +67,7 @@ namespace vast::conv::tc {
         auto make_ptr_type() {
             return [&](auto t) {
                 VAST_ASSERT(!t.template isa< mlir::NoneType >());
-                return LLVM::LLVMPointerType::get(t);
+                return LLVM::LLVMPointerType::get(&this->getContext(), 0);
             };
         }
 
