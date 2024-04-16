@@ -123,8 +123,13 @@ namespace vast::conv::irstollvm
             op_t op, typename op_t::Adaptor ops, conversion_rewriter &rewriter
         ) const override {
             std::vector< mlir::LLVM::GEPArg > indices{ 0ul, ops.getIdx() };
+
+            auto ptr = mlir::dyn_cast< hl::PointerType >(op.getRecord().getType());
+            VAST_CHECK(ptr, "{0} is not a pointer to record!", op.getRecord().getType());
+
             auto gep = rewriter.create< mlir::LLVM::GEPOp >(
-                op.getLoc(), convert(op.getType()), ops.getRecord(), indices
+                op.getLoc(), convert(op.getType()),
+                convert(ptr.getElementType()), ops.getRecord(), indices
             );
 
             rewriter.replaceOp(op, gep);
@@ -159,16 +164,7 @@ namespace vast::conv::irstollvm
         ) const override {
             auto loc = op.getLoc();
 
-            auto value = [&]() -> mlir::Value {
-                auto arg = ops.getArg();
-                if (auto ptr = mlir::dyn_cast< mlir::LLVM::LLVMPointerType >(arg.getType())) {
-                    return rewriter.create< mlir::LLVM::LoadOp >(
-                        op.getLoc(), ptr.getElementType(), arg
-                    );
-                }
-                return arg;
-            }();
-
+            auto value = ops.getArg();
             auto from = op.from();
 
             auto shift = rewriter.create< mlir::LLVM::LShrOp >(
@@ -299,13 +295,14 @@ namespace vast::conv::irstollvm
                 Op op, typename Op::Adaptor ops,
                 conversion_rewriter &rewriter) const override
         {
-            auto trg_type = this->tc.convert_type_to_type(op.getType());
+            auto trg_type = this->convert(op.getType());
+            auto element_type = this->converted_element_type(op.getType());
             VAST_PATTERN_CHECK(trg_type, "Could not convert vardecl type");
 
             auto gep = rewriter.create< mlir::LLVM::GEPOp >(
                     op.getLoc(),
-                    *trg_type, ops.getArray(),
-                    ops.getIndex() );
+                    trg_type, element_type,
+                    ops.getArray(), ops.getIndex() );
 
             rewriter.replaceOp(op, gep);
             return logical_result::success();
@@ -323,7 +320,8 @@ namespace vast::conv::irstollvm
                 op_t op, typename op_t::Adaptor ops,
                 conversion_rewriter &rewriter) const override
         {
-            auto alloca = mk_alloca(rewriter, convert(op.getType()), op.getLoc());
+            auto et = converted_element_type(op.getType());
+            auto alloca = mk_alloca(rewriter, convert(op.getType()), et, op.getLoc());
             rewriter.replaceOp(op, alloca);
 
             return logical_result::success();
@@ -516,29 +514,6 @@ namespace vast::conv::irstollvm
             return logical_result::success();
         }
 
-        // TODO(lukas): Extract common codebase (there will be other places
-        //              that need to create allocas).
-        logical_result arg_to_alloca(mlir::BlockArgument arg, mlir::Block &block,
-                                          conversion_rewriter &rewriter) const
-        {
-            auto ptr_type = mlir::LLVM::LLVMPointerType::get(arg.getType());
-            if (!ptr_type)
-                return logical_result::failure();
-
-            auto count = rewriter.create< LLVM::ConstantOp >(
-                    arg.getLoc(),
-                    this->convert(rewriter.getIndexType()),
-                    rewriter.getIntegerAttr(rewriter.getIndexType(), 1));
-
-            auto alloca_op = rewriter.create< LLVM::AllocaOp >(
-                    arg.getLoc(), ptr_type, count, 0);
-
-            arg.replaceAllUsesWith(alloca_op);
-            rewriter.create< mlir::LLVM::StoreOp >(arg.getLoc(), arg, alloca_op);
-
-            return logical_result::success();
-        }
-
         static void legalize(conversion_target &target) { target.addIllegalOp< op_t >(); }
     };
 
@@ -640,7 +615,7 @@ namespace vast::conv::irstollvm
 
 
         mlir::Value convert_strlit(hl::ConstantOp op, auto rewriter, auto &tc,
-                                   mlir_type target_type, mlir::StringAttr str_lit) const
+                                   mlir_type original_type, mlir::StringAttr str_lit) const
         {
             // We need to include the terminating `0` which will not happen
             // if we "just" pass the value in.
@@ -648,26 +623,27 @@ namespace vast::conv::irstollvm
                                                       str_lit.getValue().size() + 1));
             auto converted_attr = mlir::StringAttr::get(op->getContext(), twine);
 
-            auto ptr_type = mlir::dyn_cast< mlir::LLVM::LLVMPointerType >(target_type);
-
             auto mod = op->getParentOfType< mlir::ModuleOp >();
             auto name = next_strlit_name(mod);
+
+            auto et = converted_element_type(original_type);
+            if (!et)
+                return {};
 
             rewriter.guarded([&]()
             {
                 rewriter->setInsertionPoint(&*mod.begin());
                 rewriter->template create< mlir::LLVM::GlobalOp >(
                     op.getLoc(),
-                    ptr_type.getElementType(),
+                    et,
                     true, /* is constant */
                     LLVM::Linkage::Internal,
                     name,
                     converted_attr);
             });
 
-            return rewriter->template create< mlir::LLVM::AddressOfOp >(op.getLoc(),
-                                                                        target_type,
-                                                                        name);
+            return rewriter->template create< mlir::LLVM::AddressOfOp >(
+                    op.getLoc(), convert(original_type), name);
         }
 
         mlir::Value make_from(
@@ -679,7 +655,7 @@ namespace vast::conv::irstollvm
 
             if (auto str_lit = mlir::dyn_cast< mlir::StringAttr >(op.getValue()))
                 return convert_strlit(op, rewriter_wrapper_t(rewriter), tc,
-                                      target_type, str_lit);
+                                      op.getType(), str_lit);
 
             auto attr = convert_attr(op.getValue(), op, rewriter);
             if (!attr)
@@ -723,6 +699,7 @@ namespace vast::conv::irstollvm
 
     logical_result match_and_rewrite_cast(auto &pattern, auto op, auto adaptor, auto &rewriter) {
         auto dst_type = pattern.convert(op.getType());
+        auto element_type = pattern.converted_element_type(op.getType());
 
         auto src = adaptor.getValue();
         auto src_type = src.getType();
@@ -747,7 +724,7 @@ namespace vast::conv::irstollvm
 
         auto arr_to_ptr_decay = [&] {
             rewriter.template replaceOpWithNewOp< LLVM::GEPOp >(
-                op, dst_type, src, LLVM::GEPArg{ 0 }
+                op, dst_type, element_type, src, LLVM::GEPArg{ 0 }
             );
             return mlir::success();
         };
@@ -1417,7 +1394,8 @@ namespace vast::conv::irstollvm
             op_t op, typename op_t::Adaptor ops,
             conversion_rewriter &rewriter) const override
         {
-            auto alloca = mk_alloca(rewriter, convert(op.getType()), op.getLoc());
+            auto et = converted_element_type(op.getType());
+            auto alloca = mk_alloca(rewriter, convert(op.getType()), et, op.getLoc());
             rewriter.replaceOp(op, alloca);
 
             return mlir::success();

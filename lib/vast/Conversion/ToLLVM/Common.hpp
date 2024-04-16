@@ -27,13 +27,16 @@ namespace vast::conv::irstollvm {
 
         auto dl(auto op) const { return tc.getDataLayoutAnalysis()->getAtOrAbove(op); }
 
-        auto mk_alloca(auto &rewriter, mlir_type trg_type, auto loc) const {
+        auto mk_alloca(
+            auto &rewriter, mlir_type res_type, mlir_type element_type, auto loc
+        ) const {
             auto count = rewriter.template create< LLVM::ConstantOp >(
                 loc, type_converter().convertType(rewriter.getIndexType()),
                 rewriter.getIntegerAttr(rewriter.getIndexType(), 1)
             );
 
-            return rewriter.template create< LLVM::AllocaOp >(loc, trg_type, count, 0);
+            return rewriter.template create< LLVM::AllocaOp >(
+                loc, res_type, element_type, count, 0);
         }
 
         // Some operations want more fine-grained control, and we really just
@@ -66,6 +69,13 @@ namespace vast::conv::irstollvm {
                 v.setType(convert(v.getType()));
             rewriter.replaceOp(op, new_op);
             return mlir::success();
+        }
+
+        mlir_type converted_element_type(mlir_type t) const {
+            auto ptr = mlir::dyn_cast< hl::PointerType >(t);
+            if (!ptr)
+                return {};
+            return convert(ptr.getElementType());
         }
     };
 
