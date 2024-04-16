@@ -46,7 +46,7 @@ namespace vast::cg
       private:
 
         loc_t location(const clang::FullSourceLoc &loc) const {
-            auto file = loc.getFileEntry() ? loc.getFileEntry()->getName() : "unknown";
+            auto file = loc.getFileEntryRef() ? loc.getFileEntryRef()->getName() : "unknown";
             auto line = loc.getLineNumber();
             auto col  = loc.getColumnNumber();
             return { mlir::FileLineColLoc::get(mctx, file, line, col) };
