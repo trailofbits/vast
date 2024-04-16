@@ -93,15 +93,15 @@ namespace vast::hl
     {
         switch(expr->getIdentKind())
         {
-            case clang::PredefinedExpr::IdentKind::Func : return IdentKind::Func;
-            case clang::PredefinedExpr::IdentKind::Function : return IdentKind::Function;
-            case clang::PredefinedExpr::IdentKind::LFunction : return IdentKind::LFunction;
-            case clang::PredefinedExpr::IdentKind::FuncDName : return IdentKind::FuncDName;
-            case clang::PredefinedExpr::IdentKind::FuncSig : return IdentKind::FuncSig;
-            case clang::PredefinedExpr::IdentKind::LFuncSig : return IdentKind::LFuncSig;
-            case clang::PredefinedExpr::IdentKind::PrettyFunction :
+            case clang::PredefinedIdentKind::Func : return IdentKind::Func;
+            case clang::PredefinedIdentKind::Function : return IdentKind::Function;
+            case clang::PredefinedIdentKind::LFunction : return IdentKind::LFunction;
+            case clang::PredefinedIdentKind::FuncDName : return IdentKind::FuncDName;
+            case clang::PredefinedIdentKind::FuncSig : return IdentKind::FuncSig;
+            case clang::PredefinedIdentKind::LFuncSig : return IdentKind::LFuncSig;
+            case clang::PredefinedIdentKind::PrettyFunction :
                 return IdentKind::PrettyFunction;
-            case clang::PredefinedExpr::IdentKind::PrettyFunctionNoVirtual :
+            case clang::PredefinedIdentKind::PrettyFunctionNoVirtual :
                 return IdentKind::PrettyFunctionNoVirtual;
         }
     }
