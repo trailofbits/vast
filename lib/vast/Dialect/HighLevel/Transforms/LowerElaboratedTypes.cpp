@@ -47,7 +47,7 @@ namespace vast::hl {
                     addConversion([&](mlir_type t) { return this->convert(t); });
                 }
 
-                maybe_types_t do_conversion(mlir_type type) {
+                maybe_types_t do_conversion(mlir_type type) const {
                     types_t out;
                     if (mlir::succeeded(this->convertTypes(type, out))) {
                         return { std::move(out) };

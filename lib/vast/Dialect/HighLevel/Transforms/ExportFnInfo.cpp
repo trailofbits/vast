@@ -38,7 +38,7 @@ namespace vast::hl
         }
 
         TypeEntryBase &size(const mlir::DataLayout &dl) {
-            raw["size"] = dl.getTypeSizeInBits(type);
+            raw["size"] = dl.getTypeSizeInBits(type).getFixedValue();
             return *this;
         }
 
