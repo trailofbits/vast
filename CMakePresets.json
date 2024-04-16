@@ -1,14 +1,14 @@
 {
-    "version": 3,
+    "version": 6,
     "cmakeMinimumRequired": {
         "major": 3,
-        "minor": 21,
+        "minor": 25,
         "patch": 0
     },
     "configurePresets": [
         {
-            "name": "ninja-multi-default",
-            "displayName": "Ninja Multi-Config",
+            "name": "default",
+            "displayName": "Default",
             "binaryDir": "${sourceDir}/builds/${presetName}",
             "generator": "Ninja Multi-Config",
             "toolchainFile": "${sourceDir}/cmake/lld.toolchain.cmake",
@@ -21,43 +21,65 @@
             }
         },
         {
-            "name": "ninja-multi-osx-cxx-common",
+            "name": "ci",
+            "displayName": "CI",
+            "inherits": "default",
+            "cacheVariables": {
+                "ENABLE_SANITIZER_UNDEFINED_BEHAVIOR": "$env{ENABLE_SANITIZER_UNDEFINED_BEHAVIOR}",
+                "ENABLE_SANITIZER_ADDRESS": "$env{ENABLE_SANITIZER_ADDRESS}",
+                "CMAKE_VERBOSE_MAKEFILE": "True"
+            }
+        },
+        {
+            "name": "osx-cxx-common",
             "displayName": "Ninja Multi-Config OSX with cxx-common",
             "description": "Configure with cxx-common toolchain for x64-osx",
-            "binaryDir": "${sourceDir}/builds/${presetName}",
-            "generator": "Ninja Multi-Config",
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
             "installDir": "${sourceDir}/install",
+            "inherits": "default",
             "cacheVariables": {
-                "CMAKE_CONFIGURATION_TYPES": "Release;RelWithDebInfo;Debug",
                 "VCPKG_TARGET_TRIPLET": "x64-osx",
-                "VCPKG_HOST_TRIPLET": "x64-osx",
-                "LLVM_EXTERNAL_LIT": "$env{LLVM_EXTERNAL_LIT}"
+                "VCPKG_HOST_TRIPLET": "x64-osx"
             }
         }
     ],
     "buildPresets": [
         {
-            "name": "ninja-rel",
-            "configurePreset": "ninja-multi-default",
-            "displayName": "Build ninja-multi-release",
+            "name": "default",
+            "hidden": true,
+            "configurePreset": "default"
+        },
+        {
+            "name": "release",
+            "configurePreset": "default",
+            "displayName": "Release",
             "configuration": "Release"
         },
         {
-            "name": "ninja-deb",
-            "configurePreset": "ninja-multi-default",
-            "displayName": "Build ninja-multi-debug",
+            "name": "debug",
+            "configurePreset": "default",
+            "displayName": "Debug",
             "configuration": "Debug"
         },
         {
-            "name": "ninja-osx-cxx-common-rel",
-            "configurePreset": "ninja-multi-osx-cxx-common",
+            "name": "relwithdebinfo",
+            "configurePreset": "default",
+            "displayName": "RelWithDebInfo",
+            "configuration": "RelWithDebInfo"
+        },
+        {
+            "name": "ci",
+            "configurePreset": "ci"
+        },
+        {
+            "name": "osx-cxx-common-rel",
+            "configurePreset": "osx-cxx-common",
             "displayName": "Build osx-release with cxx-common",
             "configuration": "Release"
         },
         {
-            "name": "ninja-osx-cxx-common-deb",
-            "configurePreset": "ninja-multi-osx-cxx-common",
+            "name": "osx-cxx-common-deb",
+            "configurePreset": "osx-cxx-common",
             "displayName": "Build osx-debug with cxx-common",
             "configuration": "Debug"
         }
@@ -66,7 +88,6 @@
         {
             "name": "test-base",
             "hidden": true,
-            "configurePreset": "ninja-multi-default",
             "output": {
               "outputOnFailure": true,
               "verbosity": "default"
@@ -78,35 +99,76 @@
         },
         {
             "name": "default",
+            "configurePreset": "default",
             "hidden": true,
-            "configurePreset": "ninja-multi-default",
             "inherits": "test-base"
         },
         {
-            "name": "ninja-rel", "inherits": "default",
-            "displayName": "Test ninja-rel",
+            "name": "release",
+            "configurePreset": "default",
+            "inherits": "default",
             "configuration": "Release"
         },
         {
-            "name": "ninja-deb", "inherits": "default",
-            "displayName": "Test ninja-deb",
+            "name": "debug",
+            "configurePreset": "default",
+            "inherits": "default",
             "configuration": "Debug"
         },
         {
-            "name": "cxx-common-osx",
-            "hidden": true,
-            "configurePreset": "ninja-multi-osx-cxx-common",
+            "name": "relwithdebinfo",
+            "configurePreset": "default",
+            "inherits": "default",
+            "configuration": "RelWithDebInfo"
+        },
+        {
+            "name": "ci",
+            "configurePreset": "ci",
             "inherits": "test-base"
+        }
+    ],
+    "packagePresets": [
+        {
+            "name": "ci",
+            "configurePreset": "ci",
+            "generators": ["TGZ"],
+            "configFile": "${sourceDir}/builds/${presetName}/CPackConfig.cmake"
+        }
+    ],
+    "workflowPresets": [
+        {
+            "name": "debug",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "default"
+                },
+                {
+                    "type": "build",
+                    "name": "debug"
+                },
+                {
+                    "type": "test",
+                    "name": "debug"
+                }
+            ]
         },
         {
-            "name": "cxx-common-osx-rel", "inherits": "cxx-common-osx",
-            "displayName": "Test cxx-common-osx-rel",
-            "configuration": "Release"
-        },
-        {
-            "name": "cxx-common-osx-deb", "inherits": "cxx-common-osx",
-            "displayName": "Test cxx-common-osx-deb",
-            "configuration": "Debug"
+            "name": "release",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "default"
+                },
+                {
+                    "type": "build",
+                    "name": "release"
+                },
+                {
+                    "type": "test",
+                    "name": "release"
+                }
+            ]
         }
     ]
 }
