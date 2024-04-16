@@ -42,6 +42,11 @@ namespace vast::abi
         return this->getOperands();
     }
 
+    mlir::MutableOperandRange CallOp::getArgOperandsMutable()
+    {
+        return mlir::MutableOperandRange(*this, 1, getOperands().size());
+    }
+
     void CallOp::setCalleeFromCallable(mlir::CallInterfaceCallable callee)
     {
         setOperand(0, callee.get< mlir_value >());
@@ -104,6 +109,11 @@ namespace vast::abi
     mlir::Operation::operand_range CallExecutionOp::getArgOperands()
     {
         return this->getOperands();
+    }
+
+    mlir::MutableOperandRange CallExecutionOp::getArgOperandsMutable()
+    {
+        return mlir::MutableOperandRange(*this, 1, getOperands().size());
     }
 
     void CallExecutionOp::setCalleeFromCallable(mlir::CallInterfaceCallable callee)
