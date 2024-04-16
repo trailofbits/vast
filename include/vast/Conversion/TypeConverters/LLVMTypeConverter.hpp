@@ -191,10 +191,10 @@ namespace vast::conv::tc {
             return { std::move(out) };
         }
 
-        template< typename op_t >
+        template< typename type >
         auto convert_recordlike() {
             // We need this prototype to handle recursive types.
-            return [&](op_t t, mlir::SmallVectorImpl< mlir_type > &out,
+            return [&](type t, mlir::SmallVectorImpl< mlir_type > &out,
                        mlir::ArrayRef< mlir_type > stack) -> logical_result {
                 auto core =
                     mlir::LLVM::LLVMStructType::getIdentified(t.getContext(), t.getName());
