@@ -390,11 +390,12 @@ namespace vast::abi
             if ( TypeConfig::represents_pointer( t ) )
                 return { Class::Integer, Class::NoClass };
 
+            // Float, Float16, Double, BFloat16
             if ( TypeConfig::is_scalar_float( t ) )
             {
                 // float, double, _Decimal32, _Decimal64, __m64
                 if ( size( t ) <= 64 )
-                    return mk_classification( Class::Integer );
+                    return mk_classification( Class::SSE );
                 // __float128, _Decimal128, __m128
                 return { Class::SSE, { Class::SSEUp } };
 
@@ -515,6 +516,9 @@ namespace vast::abi
                     }
                     return { target_type };
                 }
+
+                case Class::SSE:
+                    return { t };
                 default:
                     VAST_UNREACHABLE("Wrong class");
             }
@@ -668,7 +672,7 @@ namespace vast::abi
 
                 case Class::SSE:
                 {
-                    VAST_TODO( "arg_lo::SSE" );
+                    return { t };
                 }
             }
         }
