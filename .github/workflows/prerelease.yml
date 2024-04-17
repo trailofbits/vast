@@ -77,7 +77,7 @@ jobs:
 
       - name: Build Pages
         run: |
-          sh ./www/setup.sh _site ./builds/ninja-multi-default/
+          sh ./www/setup.sh _site ./builds/ci/
 
       - name: Deploy docs
         uses: mhausenblas/mkdocs-deploy-gh-pages@master
