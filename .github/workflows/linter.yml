@@ -32,7 +32,6 @@ jobs:
 
     env:
         CMAKE_PREFIX_PATH: "/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/mlir/;/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/clang/"
-        TOOLCHAIN: ${{ github.workspace }}/cmake/lld.toolchain.cmake
 
     steps:
       - name: Remove safety checks for pygit
@@ -45,7 +44,7 @@ jobs:
           fetch-depth: 1
 
       - name: Export compile commands
-        run: cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+        run: cmake --preset ci
 
       - name: Install dependencies
         run: |
@@ -60,7 +59,7 @@ jobs:
         with:
           version: ${{ matrix.llvm-version }}
           style: file
-          database: ./builds/ninja-multi-default/
+          database: ./builds/ci/
           lines-changed-only: true
           thread-comments: true
           step-summary: true

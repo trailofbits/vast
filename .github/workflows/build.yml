@@ -26,7 +26,7 @@ jobs:
       matrix:
         llvm-version: [17]
         image-version: [22.04]
-        build-type: [rel, deb]
+        build-type: [Release, Debug]
         sanitizers: [ON, OFF]
 
     runs-on: ubuntu-${{ matrix.image-version }}
@@ -37,8 +37,9 @@ jobs:
 
     env:
         CMAKE_PREFIX_PATH: "/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/mlir/;/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/clang/"
-        TOOLCHAIN: ${{ github.workspace }}/cmake/lld.toolchain.cmake
         LLVM_EXTERNAL_LIT: "/usr/local/bin/lit"
+        ENABLE_SANITIZER_UNDEFINED_BEHAVIOR: ${{ matrix.sanitizers }}
+        ENABLE_SANITIZER_ADDRESS: ${{ matrix.sanitizers }}
 
     steps:
       - name: Clone the VAST repository
@@ -48,17 +49,10 @@ jobs:
           fetch-depth: 1
 
       - name: Configure build - sanitizers ${{ matrix.sanitizers }}
-        run: |
-            cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} \
-              -DCMAKE_VERBOSE_MAKEFILE=True \
-              -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=${{ matrix.sanitizers }}\
-              -DENABLE_SANITIZER_ADDRESS=${{ matrix.sanitizers }}\
-              -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
-              -DLLVM_EXTERNAL_LIT=${LLVM_EXTERNAL_LIT}
+        run: cmake --preset ci
 
       - name: Build ${{ matrix.build-type }} with sanitizers set ${{ matrix.sanitizers }}
-        run: |
-            cmake --build --preset ninja-${{ matrix.build-type }} -j $(nproc)
+        run: cmake --build --preset ci -C ${{ matrix.build-type }} -j $(nproc)
 
       - name: Test ${{ matrix.build-type }} with sanitizers set ${{ matrix.sanitizers }}
-        run: ctest --preset ninja-${{ matrix.build-type }} --output-on-failure
+        run: ctest --preset ci -C ${{ matrix.build-type }}

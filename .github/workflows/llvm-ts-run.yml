@@ -43,22 +43,19 @@ jobs:
           fetch-depth: 1
 
       - name: Configure build
-        run: |
-            cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} \
-              -DCMAKE_VERBOSE_MAKEFILE=True \
-              -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
-              -DLLVM_EXTERNAL_LIT=${LLVM_EXTERNAL_LIT}
+        run: cmake --preset ci
 
       - name: Build release
-        run: |
-            cmake --build --preset ninja-rel -j $(nproc)
-            cpack -G TXZ --config ./builds/ninja-multi-default/CPackConfig.cmake
+        run: cmake --build --preset ci-release -j $(nproc)
+
+      - name: Package
+        run: cpack --preset ci
 
       - name: Upload VAST build artifact
         uses: actions/upload-artifact@v4
         with:
           name: VAST
-          path: ./builds/ninja-multi-default/package/*
+          path: ./builds/ci/package/*
           retention-days: 1
 
   test:
@@ -84,12 +81,10 @@ jobs:
          name: VAST
 
      - name: Unpack VAST
-       run: |
-          mkdir vast && tar -xf VAST-* -C vast --strip-components=1
+       run: mkdir vast && tar -xf VAST-* -C vast --strip-components=1
 
      - name: Export vast binaries
-       run: |
-          echo "${PWD}/vast/bin/" >> $GITHUB_PATH
+       run: echo "${PWD}/vast/bin/" >> $GITHUB_PATH
 
      - name: Install test suite dependencies
        run: |
@@ -151,8 +146,7 @@ jobs:
           merge-multiple: true
 
       - name: Install evaluator dependencies
-        run: |
-            pip3 install pandas scipy tabulate
+        run: pip3 install pandas scipy tabulate
 
       - name: Clone test suite repository
         uses: actions/checkout@v4

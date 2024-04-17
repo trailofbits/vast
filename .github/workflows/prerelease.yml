@@ -46,16 +46,13 @@ jobs:
           fetch-depth: 1
 
       - name: Configure build
-        run: |
-            cmake --preset ninja-multi-default --toolchain ${TOOLCHAIN} \
-              -DCMAKE_VERBOSE_MAKEFILE=True \
-              -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
-              -DLLVM_EXTERNAL_LIT=${LLVM_EXTERNAL_LIT}
+        run: cmake --preset ci
 
       - name: Build release
-        run: |
-            cmake --build --preset ninja-rel -j $(nproc)
-            cpack -G TXZ --config ./builds/ninja-multi-default/CPackConfig.cmake
+        run: cmake --build --preset ci-release -j $(nproc)
+
+      - name: Package
+        run: cpack --preset ci
 
       - name: Publish Pre-Release
         uses: softprops/action-gh-release@v1
@@ -65,10 +62,10 @@ jobs:
           generate_release_notes: true
           files: |
             ./LICENSE
-            ./builds/ninja-multi-default/package/*
+            ./builds/ci/package/*
 
       - name: Build VAST Doc
-        run: cmake --build --preset ninja-rel --target vast-doc
+        run: cmake --build --preset ci-release --target vast-doc
 
       - name: Fetch LLVM test suite results
         uses: actions/download-artifact@v4
