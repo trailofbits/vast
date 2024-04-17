@@ -52,7 +52,7 @@ jobs:
         run: cmake --preset ci
 
       - name: Build ${{ matrix.build-type }} with sanitizers set ${{ matrix.sanitizers }}
-        run: cmake --build --preset ci -C ${{ matrix.build-type }} -j $(nproc)
+        run: cmake --build --preset ci --config ${{ matrix.build-type }} -j $(nproc)
 
       - name: Test ${{ matrix.build-type }} with sanitizers set ${{ matrix.sanitizers }}
-        run: ctest --preset ci -C ${{ matrix.build-type }}
+        run: ctest --preset ci --build-config ${{ matrix.build-type }}
