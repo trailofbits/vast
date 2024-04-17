@@ -16,18 +16,33 @@
                 "CMAKE_CONFIGURATION_TYPES": "Release;RelWithDebInfo;Debug",
                 "VAST_ENABLE_TESTING": "ON",
                 "LLVM_EXTERNAL_LIT": "$env{LLVM_EXTERNAL_LIT}",
-                "CMAKE_PREFIX_PATH": "$env{CMAKE_PREFIX_PATH}",
-                "VAST_ENABLE_PDLL_CONVERSIONS": "ON"
+                "CMAKE_PREFIX_PATH": "$env{CMAKE_PREFIX_PATH}"
             }
         },
         {
             "name": "ci",
-            "displayName": "CI",
+            "displayName": "Configure VAST for CI",
             "inherits": "default",
             "cacheVariables": {
                 "ENABLE_SANITIZER_UNDEFINED_BEHAVIOR": "$env{ENABLE_SANITIZER_UNDEFINED_BEHAVIOR}",
                 "ENABLE_SANITIZER_ADDRESS": "$env{ENABLE_SANITIZER_ADDRESS}",
                 "CMAKE_VERBOSE_MAKEFILE": "True"
+            }
+        },
+        {
+            "name": "compiler-explorer",
+            "displayName": "Configure VAST for Compiler Explorer",
+            "binaryDir": "${sourceDir}/builds/${presetName}",
+            "generator": "Ninja Multi-Config",
+            "toolchainFile": "${sourceDir}/cmake/lld.toolchain.cmake",
+            "cacheVariables": {
+                "CMAKE_CONFIGURATION_TYPES": "Release",
+                "VAST_ENABLE_TESTING": "OFF",
+                "CMAKE_C_COMPILER": "/usr/bin/clang-17",
+                "CMAKE_CXX_COMPILER": "/usr/bin/clang++-17",
+                "CMAKE_INSTALL_PREFIX": "$env{STAGING_DIR}",
+                "CMAKE_INSTALL_RPATH": "$env{ORIGIN}/../lib",
+                "CMAKE_PREFIX_PATH": "/usr/lib/llvm-17;/usr/lib/llvm-17/lib/cmake/mlir;/usr/lib/llvm-17/lib/cmake/clang"
             }
         },
         {
@@ -70,6 +85,12 @@
         {
             "name": "ci",
             "configurePreset": "ci"
+        },
+        {
+            "name": "compiler-explorer",
+            "configurePreset": "compiler-explorer",
+            "displayName": "Build VAST for Compiler Explorer",
+            "configuration": "Release"
         },
         {
             "name": "osx-cxx-common-rel",
@@ -167,6 +188,19 @@
                 {
                     "type": "test",
                     "name": "release"
+                }
+            ]
+        },
+        {
+            "name": "compiler-explorer",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "compiler-explorer"
+                },
+                {
+                    "type": "build",
+                    "name": "compiler-explorer"
                 }
             ]
         }
