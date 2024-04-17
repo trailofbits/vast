@@ -1,0 +1,13 @@
+#include <assert.h>
+
+float float_sum(float a, float b);
+double double_sum(double a, double b);
+
+int main()
+{
+    assert(float_sum(0.1f, 0.1f) == 0.2f);
+    assert(double_sum(0.5, 0.5) == 1);
+
+    assert(float_sum(42.1f, -42.1f) == 0.0f);
+    assert(double_sum(42.1, -42.1) == 0.0);
+}
