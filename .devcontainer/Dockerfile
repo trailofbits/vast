@@ -9,7 +9,7 @@ ARG LLVM_VERSION
 
 # [Optional] Install CMake version different from what base image has already installed.
 # CMake reinstall choices: none, 3.21.5, 3.22.2, or versions from https://cmake.org/download/
-ARG REINSTALL_CMAKE_VERSION_FROM_SOURCE="3.23.3"
+ARG REINSTALL_CMAKE_VERSION_FROM_SOURCE="3.29.2"
 
 # Optionally install the cmake for vcpkg
 COPY ./reinstall-cmake.sh /tmp/
