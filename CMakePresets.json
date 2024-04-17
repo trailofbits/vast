@@ -87,6 +87,18 @@
             "configurePreset": "ci"
         },
         {
+            "name": "ci-release",
+            "configurePreset": "ci",
+            "displayName": "CI Release",
+            "configuration": "Release"
+        },
+        {
+            "name": "ci-debug",
+            "configurePreset": "ci",
+            "displayName": "CI Debug",
+            "configuration": "Debug"
+        },
+        {
             "name": "compiler-explorer",
             "configurePreset": "compiler-explorer",
             "displayName": "Build VAST for Compiler Explorer",
