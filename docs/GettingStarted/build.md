@@ -47,7 +47,7 @@ Use `debug` preset for debug build.
 To run mlir codegen of highlevel dialect use.
 
 ```
-./builds/ninja-multi-default/tools/vast-front/Release/vast-front -vast-emit-mlir=<dialect> <input.c> -o <output.mlir>
+./builds/default/tools/vast-front/Release/vast-front -vast-emit-mlir=<dialect> <input.c> -o <output.mlir>
 ```
 
 Supported dialects are: `hl`, `ll`, `llvm`
