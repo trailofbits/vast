@@ -120,27 +120,36 @@ namespace vast::core {
     };
 
     template< typename DstFuncOp >
-    DstFuncOp convert_function_without_body(auto src, auto &rewriter, string_ref name, core::FunctionType fty) {
-        return convert_function< DstFuncOp >(src, rewriter, name, fty, [] (auto &, auto &) {} /* noop */ );
-    };
-
-    template< typename DstFuncOp >
-    DstFuncOp convert_function(auto src, auto &rewriter) {
-        return convert_function< DstFuncOp >(src, rewriter, src.getName(), src.getFunctionType(),
+    DstFuncOp convert_function(auto src, auto &rewriter, string_ref name) {
+        return convert_function< DstFuncOp >(src, rewriter, name, src.getFunctionType(),
             [src] (auto &rewriter, auto &dst) mutable {
                 rewriter.updateRootInPlace(dst, [&] () {
                     dst.getBody().takeBody(src.getBody());
                 });
             }
         );
+    };
+
+    template< typename DstFuncOp >
+    DstFuncOp convert_function(auto src, auto &rewriter) {
+        return convert_function< DstFuncOp >(src, rewriter, src.getName());
     }
 
+    template< typename DstFuncOp >
+    DstFuncOp convert_function_without_body(auto src, auto &rewriter, string_ref name, core::FunctionType fty) {
+        return convert_function< DstFuncOp >(src, rewriter, name, fty, [] (auto &, auto &) {} /* noop */ );
+    };
+
+    template< typename DstFuncOp >
+    logical_result convert_and_replace_function(auto src, auto &rewriter, string_ref name) {
+        auto dst = convert_function< DstFuncOp >(src, rewriter, name);
+        rewriter.replaceOp(src, dst->getOpResults());
+        return mlir::success();
+    }
 
     template< typename DstFuncOp >
     logical_result convert_and_replace_function(auto src, auto &rewriter) {
-        auto dst = convert_function< DstFuncOp >(src, rewriter);
-        rewriter.replaceOp(src, dst->getOpResults());
-        return mlir::success();
+        return convert_and_replace_function< DstFuncOp >(src, rewriter, src.getName());
     }
 
 } // namespace vast::core

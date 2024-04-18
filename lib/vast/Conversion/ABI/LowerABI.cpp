@@ -25,6 +25,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelUtils.hpp"
 
+#include "vast/Dialect/Core/Func.hpp"
+
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
 #include "vast/ABI/ABI.hpp"
@@ -559,43 +561,20 @@ namespace vast
 
         struct function : operation_conversion_pattern< abi::FuncOp >
         {
-            using base = operation_conversion_pattern< abi::FuncOp >;
-            using op_t = abi::FuncOp;
-
+            using base      = operation_conversion_pattern< abi::FuncOp >;
             using base::base;
 
-            logical_result matchAndRewrite(op_t op,
-                                           typename op_t::Adaptor ops,
-                                           conversion_rewriter &rewriter) const override
+            using op_t      = abi::FuncOp;
+            using adaptor_t = abi::FuncOp::Adaptor;
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t adaptor, conversion_rewriter &rewriter) const override
             {
-                mlir::SmallVector< mlir::DictionaryAttr, 8 > arg_attrs;
-                mlir::SmallVector< mlir::NamedAttribute, 8 > other_attrs;
-
-                op.getAllArgAttrs(arg_attrs);
-
                 auto name = op.getName();
                 if (!name.consume_front(conv::abi::abi_func_name_prefix))
                     return mlir::failure();
 
-                auto fn = rewriter.create< ll::FuncOp >(
-                        op.getLoc(),
-                        name,
-                        op.getFunctionType(),
-                        op.getLinkage(),
-                        other_attrs,
-                        arg_attrs
-                );
-
-                fn.setVisibility(op.getVisibility());
-
-                rewriter.inlineRegionBefore(op.getBody(),
-                                            fn.getBody(),
-                                            fn.getBody().begin());
-
-
-                rewriter.eraseOp(op);
-                return mlir::success();
-
+                return core::convert_and_replace_function< ll::FuncOp >(op, rewriter, name);
             }
         };
 
