@@ -67,9 +67,73 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
 
   let regions = (region AnyRegion:$body);
 
+  let skipDefaultBuilders = 1;
+
+  let builders = [
+    OpBuilder< (ins
+      "llvm::StringRef":$name,
+      "core::FunctionType":$type,
+      "std::unique_ptr< mlir::Region >":$body,
+      CArg< "core::GlobalLinkageKind", "core::GlobalLinkageKind::ExternalLinkage" >:$linkage,
+      CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
+      CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
+      CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$res_attrs
+    ), [{
+      InsertionGuard guard($_builder);
+      if (body)
+        $_state.addRegion(std::move(body));
+      else
+        $_state.addRegion();
+
+      $_state.addAttribute(
+        mlir::SymbolTable::getSymbolAttrName(), $_builder.getStringAttr(name)
+      );
+      $_state.addAttribute(getFunctionTypeAttrName($_state.name), mlir::TypeAttr::get(type));
+      $_state.addAttribute(
+        "linkage", core::GlobalLinkageKindAttr::get($_builder.getContext(), linkage)
+      );
+
+      $_state.attributes.append(attrs.begin(), attrs.end());
+
+      if (arg_attrs.empty())
+        return;
+
+      mlir::function_interface_impl::addArgAndResultAttrs(
+        $_builder, $_state, arg_attrs, res_attrs,
+        getArgAttrsAttrName($_state.name), getResAttrsAttrName($_state.name)
+      );
+    }] >,
+    OpBuilder< (ins
+      "llvm::StringRef":$name,
+      "core::FunctionType":$type,
+      CArg< "core::GlobalLinkageKind", "core::GlobalLinkageKind::ExternalLinkage" >:$linkage,
+      CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
+      CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
+      CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$res_attrs
+    ), [{
+      build($_builder, $_state, name, type, nullptr, linkage, attrs, arg_attrs, res_attrs);
+    }]>,
+    OpBuilder< (ins
+      "llvm::StringRef":$name,
+      "core::FunctionType":$type,
+      CArg< "core::GlobalLinkageKind", "core::GlobalLinkageKind::ExternalLinkage" >:$linkage,
+      CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
+      CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
+      CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$res_attrs,
+      CArg< "BuilderCallback", "std::nullopt" >:$body
+    ), [{
+      InsertionGuard guard($_builder);
+      auto region = std::make_unique< mlir::Region >();
+      fill_region(region.get(), $_builder, $_state, body);
+      build($_builder, $_state, name, type, std::move(region), linkage, attrs, arg_attrs, res_attrs);
+    }] >
+  ];
+
   let assemblyFormat = [{
     $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
   }];
+
+  let hasVerifier = 1;
 
   let extraClassDeclaration = [{
     bool isVarArg() { return getFunctionType().isVarArg(); }

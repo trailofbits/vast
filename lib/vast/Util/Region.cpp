@@ -4,13 +4,16 @@
 
 namespace vast {
 
-    Region* build_region(Builder &bld, State &st, BuilderCallback callback) {
-        auto reg = st.addRegion();
+    Region* fill_region(Region *reg, Builder &bld, State &st, BuilderCallback callback) {
         if (callback.has_value()) {
             bld.createBlock(reg);
             callback.value()(bld, st.location);
         }
         return reg;
+    }
+
+    Region* build_region(Builder &bld, State &st, BuilderCallback callback) {
+        return fill_region(st.addRegion(), bld, st, callback);
     }
 
     Region* build_empty_region(Builder &bld, State &st) {
