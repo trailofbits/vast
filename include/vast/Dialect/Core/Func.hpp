@@ -77,4 +77,51 @@ namespace vast::core {
             );
         }
     }
+
+    template< typename DstFuncOp >
+    logical_result convert_function(auto src, auto /* adaptor */, auto &rewriter) {
+        mlir::SmallVector< mlir::DictionaryAttr, 8 > arg_attrs;
+        mlir::SmallVector< mlir::DictionaryAttr, 8 > res_attrs;
+        src.getAllArgAttrs(arg_attrs);
+        src.getAllResultAttrs(res_attrs);
+
+        auto filter_src_attrs = [&] (auto op) {
+            mlir::SmallVector< mlir::NamedAttribute > result;
+
+            for (auto attr : op->getAttrs()) {
+                auto name = attr.getName();
+                if (name == mlir::SymbolTable::getSymbolAttrName() ||
+                    name == src.getFunctionTypeAttrName() ||
+                    name == getLinkageAttrNameString() ||
+                    name == src.getArgAttrsAttrName() ||
+                    name == src.getResAttrsAttrName()
+                ) {
+                    continue;
+                }
+
+                result.push_back(attr);
+            }
+
+            return result;
+        };
+
+        auto dst = rewriter.template create< DstFuncOp >(
+            src.getLoc(),
+            src.getName(),
+            src.getFunctionType(),
+            src.getLinkage(),
+            filter_src_attrs(src),
+            arg_attrs,
+            res_attrs
+        );
+
+        rewriter.updateRootInPlace(dst, [&]() {
+            dst.getBody().takeBody(src.getBody());
+        });
+
+        rewriter.replaceOp(src, dst->getOpResults());
+
+        return mlir::success();
+    }
+
 } // namespace vast::core

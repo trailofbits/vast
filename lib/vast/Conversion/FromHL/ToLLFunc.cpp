@@ -22,52 +22,10 @@ namespace vast::conv::hltollfunc
             using base::base;
             using adaptor_t = hl::FuncOp::Adaptor;
 
-            static mlir::SmallVector< mlir::NamedAttribute > filter_attrs(hl::FuncOp op) {
-                mlir::SmallVector< mlir::NamedAttribute > result;
-
-                for (auto attr : op->getAttrs()) {
-                    auto name = attr.getName();
-                    if (name == mlir::SymbolTable::getSymbolAttrName() ||
-                        name == op.getFunctionTypeAttrName() ||
-                        name == core::getLinkageAttrNameString() ||
-                        name == op.getArgAttrsAttrName() ||
-                        name == op.getResAttrsAttrName()
-                    ) {
-                        continue;
-                    }
-
-                    result.push_back(attr);
-                }
-
-                return result;
-            }
-
             logical_result matchAndRewrite(
                 hl::FuncOp op, adaptor_t adaptor, conversion_rewriter &rewriter) const override
             {
-                llvm::SmallVector< mlir::DictionaryAttr > arg_attrs;
-                llvm::SmallVector< mlir::DictionaryAttr > res_attrs;
-                op.getAllArgAttrs(arg_attrs);
-                op.getAllResultAttrs(res_attrs);
-
-                auto fn = rewriter.create< ll::FuncOp >(
-                    op.getLoc(),
-                    op.getName(),
-                    op.getFunctionType(),
-                    op.getLinkage(),
-                    filter_attrs(op),
-                    arg_attrs,
-                    res_attrs
-                );
-
-                rewriter.updateRootInPlace(fn.getOperation(), [&](){
-                    fn.getBody().takeBody(op.getBody());
-                });
-
-                rewriter.replaceOp(op, fn->getOpResults());
-
-                return logical_result::success();
-
+                return core::convert_function< ll::FuncOp >(op, adaptor, rewriter);
             }
 
             static void legalize(conversion_target &target) {

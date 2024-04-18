@@ -340,46 +340,6 @@ def InlineScope
     let regions = (region AnyRegion:$body);
 }
 
-def LowLevel_FuncOp : Core_FuncBaseOp< LowLevel_Dialect, "func", [] >
-{
-  let skipDefaultBuilders = 1;
-
-  let builders = [OpBuilder< (ins
-    "llvm::StringRef":$name,
-    "core::FunctionType":$type,
-    CArg< "core::GlobalLinkageKind", "core::GlobalLinkageKind::ExternalLinkage" >:$linkage,
-    CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
-    CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
-    CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$res_attrs,
-    CArg< "BuilderCallback", "std::nullopt" >:$body), [{
-      InsertionGuard guard($_builder);
-      build_region($_builder, $_state, body);
-
-      $_state.addAttribute(
-        mlir::SymbolTable::getSymbolAttrName(), $_builder.getStringAttr(name)
-      );
-      $_state.addAttribute(getFunctionTypeAttrName($_state.name), mlir::TypeAttr::get(type));
-      $_state.addAttribute(
-        "linkage", core::GlobalLinkageKindAttr::get($_builder.getContext(), linkage)
-      );
-
-      $_state.attributes.append(attrs.begin(), attrs.end());
-
-      if (arg_attrs.empty())
-        return;
-
-      mlir::function_interface_impl::addArgAndResultAttrs(
-        $_builder, $_state, arg_attrs, res_attrs,
-        getArgAttrsAttrName($_state.name), getResAttrsAttrName($_state.name)
-      );
-    }] >,
-  ];
-
-  let assemblyFormat = [{
-    $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
-  }];
-
-  let hasVerifier = 1;
-}
+def LowLevel_FuncOp : Core_FuncBaseOp< LowLevel_Dialect, "func", [] > {}
 
 #endif // VAST_DIALECT_IR_LOWLEVELOPS

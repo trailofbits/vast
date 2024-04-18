@@ -13,6 +13,8 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast {
 
+    Region* fill_region(Region *reg, Builder &bld, State &st, BuilderCallback callback);
+
     Region* build_region(Builder &bld, State &st, BuilderCallback callback);
     Region* build_empty_region(Builder &bld, State &st);
 
