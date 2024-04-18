@@ -5,6 +5,8 @@
 #include "vast/Dialect/ABI/ABIDialect.hpp"
 #include "vast/Dialect/ABI/ABIOps.hpp"
 
+#include "vast/Util/Region.hpp"
+
 VAST_RELAX_WARNINGS
 #include <mlir/IR/Builders.h>
 VAST_UNRELAX_WARNINGS
@@ -111,6 +113,14 @@ namespace vast::abi
 
     SSACFG_REGION_OP( FuncOp );
     SSACFG_REGION_OP( WrapFuncOp );
+
+    logical_result FuncOp::verify() {
+        return core::verifyFuncOp(*this);
+    }
+
+    logical_result WrapFuncOp::verify() {
+        return core::verifyFuncOp(*this);
+    }
 
 } // namespace vast::abi
 
