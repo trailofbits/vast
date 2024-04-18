@@ -42,18 +42,6 @@ def RetDirectOp
     let assemblyFormat = [{ $value attr-dict `:` type($value) `->` type($result) }];
 }
 
-def TodoOp
-    : ABI_Op< "todo" >
-    , Arguments<(ins AnyType:$value)>
-    , Results<(outs Variadic<AnyType>:$result)>
-{
-    let summary = "Not implement yet.";
-    let description = [{ Not implemented yet }];
-
-    let assemblyFormat = [{ $value attr-dict `:` type($value) `->` type($result) }];
-}
-
-
 class HasBody< string mnemonic >
     : ABI_Op< mnemonic >
     , Results<(outs Variadic<AnyType>:$results)>
