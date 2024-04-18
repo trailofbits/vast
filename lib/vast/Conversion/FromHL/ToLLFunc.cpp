@@ -6,6 +6,7 @@
 #include "vast/Conversion/Common/Passes.hpp"
 #include "vast/Conversion/Common/Patterns.hpp"
 
+#include "vast/Dialect/Core/Func.hpp"
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
 #include "vast/Util/Common.hpp"
@@ -21,6 +22,26 @@ namespace vast::conv::hltollfunc
             using base::base;
             using adaptor_t = hl::FuncOp::Adaptor;
 
+            static mlir::SmallVector< mlir::NamedAttribute > filter_attrs(hl::FuncOp op) {
+                mlir::SmallVector< mlir::NamedAttribute > result;
+
+                for (auto attr : op->getAttrs()) {
+                    auto name = attr.getName();
+                    if (name == mlir::SymbolTable::getSymbolAttrName() ||
+                        name == op.getFunctionTypeAttrName() ||
+                        name == core::getLinkageAttrNameString() ||
+                        name == op.getArgAttrsAttrName() ||
+                        name == op.getResAttrsAttrName()
+                    ) {
+                        continue;
+                    }
+
+                    result.push_back(attr);
+                }
+
+                return result;
+            }
+
             logical_result matchAndRewrite(
                 hl::FuncOp op, adaptor_t adaptor, conversion_rewriter &rewriter) const override
             {
@@ -31,12 +52,20 @@ namespace vast::conv::hltollfunc
 
                 auto fn = rewriter.create< ll::FuncOp >(
                     op.getLoc(),
-                    op->getAttrs(),
+                    op.getName(),
+                    op.getFunctionType(),
+                    op.getLinkage(),
+                    filter_attrs(op),
                     arg_attrs,
                     res_attrs
                 );
-                rewriter.updateRootInPlace(fn.getOperation(), [&](){fn.getBody().takeBody(op.getBody());});
+
+                rewriter.updateRootInPlace(fn.getOperation(), [&](){
+                    fn.getBody().takeBody(op.getBody());
+                });
+
                 rewriter.replaceOp(op, fn->getOpResults());
+
                 return logical_result::success();
 
             }
