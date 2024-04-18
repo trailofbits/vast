@@ -38,6 +38,19 @@ namespace vast::core
         llvm::SmallVector< Type, 8 > arg_types;
         llvm::SmallVector< Type, 4 > result_types;
 
+        // Default to external linkage if no keyword is provided.
+        if (!attr_dict.getNamed(getLinkageAttrNameString())) {
+            attr_dict.append(
+                getLinkageAttrNameString(),
+                core::GlobalLinkageKindAttr::get(
+                    parser.getContext(),
+                    parse_optional_vast_keyword< GlobalLinkageKind >(
+                        parser, GlobalLinkageKind::ExternalLinkage
+                    )
+                )
+            );
+        }
+
         bool is_variadic = false;
         if (mlir::failed(mlir::function_interface_impl::parseFunctionSignature(
             parser, /*allowVariadic=*/true, arguments, is_variadic, result_types, result_attrs
@@ -66,19 +79,6 @@ namespace vast::core
         // return mlir::function_interface_impl::addArgAndResultAttrs(
         //     builder, state, arguments, result_attrs
         // );
-
-        // Default to external linkage if no keyword is provided.
-        if (!attr_dict.getNamed(getLinkageAttrNameString())) {
-            attr_dict.append(
-                getLinkageAttrNameString(),
-                core::GlobalLinkageKindAttr::get(
-                    parser.getContext(),
-                    parse_optional_vast_keyword< GlobalLinkageKind >(
-                        parser, GlobalLinkageKind::ExternalLinkage
-                    )
-                )
-            );
-        }
 
         auto loc = parser.getCurrentLocation();
         auto parse_result = parser.parseOptionalRegion(
