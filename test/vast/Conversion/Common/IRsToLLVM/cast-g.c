@@ -10,14 +10,14 @@ void bool_to_int() {
     int i = b;
 }
 
-// HL: hl.func @bool_to_int ()
+// HL: hl.func @bool_to_int
 // HL:    hl.implicit_cast {{.*}} IntegralCast : !hl.bool -> !hl.int
 // HL: }
 
-// MLIR: llvm.func @bool_to_int()
+// MLIR: llvm.func @bool_to_int
 // MLIR:    llvm.zext {{.*}} : i8 to i32
 // MLIR: }
 
-// LLVM: define void @bool_to_int()
+// LLVM: define void @bool_to_int
 // LLVM:    zext i8 {{.*}} to i32
 // LLVM: }

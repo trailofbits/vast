@@ -16,7 +16,7 @@ int loop()
     return sum;
 }
 
-// HL: hl.func @loop () -> !hl.int
+// HL: hl.func @loop {{.*}} () -> !hl.int
 
 // MLIR: llvm.func @loop() -> i32
 

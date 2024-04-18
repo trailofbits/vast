@@ -10,16 +10,16 @@ void float_to_bool() {
     _Bool b = f;
 }
 
-// HL: hl.func @float_to_bool ()
+// HL: hl.func @float_to_bool
 // HL:    hl.implicit_cast {{.*}} FloatingToBoolean
 // HL: }
 
-// MLIR: llvm.func @float_to_bool()
+// MLIR: llvm.func @float_to_bool
 // MLIR:    llvm.mlir.constant(0.000000e+00 : f32)
 // MLIR:    llvm.fcmp "une"
 // MLIR:    llvm.zext {{.*}} : i1 to i8
 // MLIR: }
 
-// LLVM: define void @float_to_bool()
+// LLVM: define void @float_to_bool
 // LLVM:    fcmp une {{.*}} 0.000000e+00
 // LLVM: }

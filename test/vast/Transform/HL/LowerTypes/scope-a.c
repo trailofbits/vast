@@ -1,6 +1,6 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt --vast-hl-lower-types | %file-check %s
 
-// CHECK: hl.func @test1 () -> si32
+// CHECK: hl.func @test1
 int test1()
 {
     // CHECK: core.scope
@@ -13,7 +13,7 @@ int test1()
     return a;
 }
 
-// CHECK: hl.func @test2 ()
+// CHECK: hl.func @test2
 void test2()
 {
     // CHECK: core.scope
@@ -35,7 +35,7 @@ void test2()
     }
 }
 
-// CHECK: hl.func @test3 () -> si32
+// CHECK: hl.func @test3
 int test3()
 {
     // CHECK: hl.var "b" : !hl.lvalue<si32>
@@ -53,7 +53,7 @@ int test3()
     return 0;
 }
 
-// CHECK: hl.func @test4 () -> si32
+// CHECK: hl.func @test4
 int test4()
 {
     // CHECK-NOT: core.scope

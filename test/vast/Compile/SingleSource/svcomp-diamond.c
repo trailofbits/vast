@@ -84,7 +84,7 @@ int main(void)
     __VERIFIER_assert((x % 2) == (y % 2));
 }
 
-// HL: hl.func @main () -> !hl.int
+// HL: hl.func @main {{.*}} () -> !hl.int
 
 // MLIR: llvm.func @main() -> i32
 

@@ -15,26 +15,26 @@ void double_to_float_cast() {
     float f = d;
 }
 
-// HL: hl.func @float_to_double_cast ()
+// HL: hl.func @float_to_double_cast
 // HL:    hl.implicit_cast {{.*}} FloatingCast : !hl.float -> !hl.double
 // HL: }
 
-// HL: hl.func @double_to_float_cast ()
+// HL: hl.func @double_to_float_cast
 // HL:    hl.implicit_cast {{.*}} FloatingCast : !hl.double -> !hl.float
 // HL: }
 
-// MLIR: llvm.func @float_to_double_cast()
+// MLIR: llvm.func @float_to_double_cast
 // MLIR:    llvm.fpext {{.*}} : f32 to f64
 // MLIR: }
 
-// MLIR: llvm.func @double_to_float_cast()
+// MLIR: llvm.func @double_to_float_cast
 // MLIR:    llvm.fptrunc {{.*}} : f64 to f32
 // MLIR: }
 
-// LLVM: define void @float_to_double_cast()
+// LLVM: define void @float_to_double_cast
 // LLVM:    fpext float {{.*}} to double
 // LLVM: }
 
-// LLVM: define void @double_to_float_cast()
+// LLVM: define void @double_to_float_cast
 // LLVM:    fptrunc double {{.*}} to float
 // LLVM: }

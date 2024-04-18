@@ -1,6 +1,6 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt --vast-hl-lower-types | %file-check %s
 
-// CHECK-LABEL: hl.func @main () -> si32
+// CHECK-LABEL: hl.func @main {{.*}} () -> si32
 int main()
 {
     // CHECK: hl.var "a" : !hl.lvalue<si32>

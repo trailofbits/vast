@@ -6,7 +6,7 @@ static CURLcode base64_encode(const char * table64, const char * inputbuff,
 
 static const char base64encdec [] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
-// CHECK: hl.func @Curl_base64_encode (%arg0: !hl.lvalue<!hl.ptr<si8>>, %arg1: !hl.lvalue<ui64>, %arg2: !hl.lvalue<!hl.ptr<!hl.ptr<si8>>>, %arg3: !hl.lvalue<!hl.ptr<ui64>>) -> !hl.elaborated<!hl.typedef<"CURLcode">> {
+// CHECK: hl.func @Curl_base64_encode {{.*}} (%arg0: !hl.lvalue<!hl.ptr<si8>>, %arg1: !hl.lvalue<ui64>, %arg2: !hl.lvalue<!hl.ptr<!hl.ptr<si8>>>, %arg3: !hl.lvalue<!hl.ptr<ui64>>) -> !hl.elaborated<!hl.typedef<"CURLcode">> {
 CURLcode Curl_base64_encode (const char *inputbuff, unsigned long insize,
                              char **outptr, unsigned long *outlen)
 {

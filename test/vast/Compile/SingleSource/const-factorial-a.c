@@ -25,7 +25,7 @@ int main()
     return result;
 }
 
-// HL: hl.func @factorial (!hl.int) -> !hl.int
+// HL: hl.func @factorial {{.*}} (!hl.int) -> !hl.int
 
 // MLIR: llvm.func @conditional(i32) -> i32
 

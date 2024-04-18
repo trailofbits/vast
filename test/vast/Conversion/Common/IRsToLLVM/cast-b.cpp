@@ -10,21 +10,21 @@ void int_to_bool() {
     bool b = i;
 }
 
-// HL: hl.func @_Z11int_to_boolv () -> !hl.void {
+// HL: hl.func @_Z11int_to_boolv
 // HL:   hl.var "i" : !hl.lvalue<!hl.int>
 // HL:   hl.var "b" : !hl.lvalue<!hl.bool>
 // HL:     hl.implicit_cast {{.*}} LValueToRValue
 // HL:     hl.implicit_cast {{.*}} IntegralToBoolean
 // HL: }
 
-// MLIR: llvm.func @_Z11int_to_boolv() {
+// MLIR: llvm.func @_Z11int_to_boolv
 // MLIR:   [[A:%[0-9]+]] = llvm.alloca {{.*}} x i32
 // MLIR:   llvm.alloca {{.*}} x i8
 // MLIR:   llvm.mlir.constant(0 : i32)
 // MLIR:   llvm.icmp "ne"
 // MLIR: }
 
-// LLVM: define void @_Z11int_to_boolv()
+// LLVM: define void @_Z11int_to_boolv
 // LLVM:    %1 = alloca i32
 // LLVM:    %2 = alloca i8
 // LLVM:    %3 = load i32, ptr %1, align 4

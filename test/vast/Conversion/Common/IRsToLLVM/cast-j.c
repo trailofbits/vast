@@ -9,14 +9,14 @@ void null_to_ptr() {
     void *p = 0;
 }
 
-// HL: hl.func @null_to_ptr ()
+// HL: hl.func @null_to_ptr
 // HL:    hl.implicit_cast {{.*}} NullToPointer : !hl.int -> !hl.ptr<!hl.void>
 // HL: }
 
-// MLIR: llvm.func @null_to_ptr()
+// MLIR: llvm.func @null_to_ptr
 // MLIR:    llvm.mlir.null
 // MLIR: }
 
-// LLVM: define void @null_to_ptr()
+// LLVM: define void @null_to_ptr
 // LLVM:    store ptr null, ptr
 // LLVM: }

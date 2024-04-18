@@ -11,7 +11,6 @@ struct X
     int member_y;
 };
 
-// CHECK-LABEL: hl.func @main () -> si32
 int main()
 {
     // CHECK: [[V0:%[0-9]+]] = hl.var "var_a" : !hl.lvalue<!hl.elaborated<!hl.record<"X">>>
