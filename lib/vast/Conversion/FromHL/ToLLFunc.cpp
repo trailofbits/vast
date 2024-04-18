@@ -25,7 +25,7 @@ namespace vast::conv::hltollfunc
             logical_result matchAndRewrite(
                 hl::FuncOp op, adaptor_t adaptor, conversion_rewriter &rewriter) const override
             {
-                return core::convert_function< ll::FuncOp >(op, adaptor, rewriter);
+                return core::convert_and_replace_function< ll::FuncOp >(op, rewriter);
             }
 
             static void legalize(conversion_target &target) {
