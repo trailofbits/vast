@@ -112,13 +112,8 @@ namespace vast::abi
     }
 
     SSACFG_REGION_OP( FuncOp );
-    SSACFG_REGION_OP( WrapFuncOp );
 
     logical_result FuncOp::verify() {
-        return core::verifyFuncOp(*this);
-    }
-
-    logical_result WrapFuncOp::verify() {
         return core::verifyFuncOp(*this);
     }
 

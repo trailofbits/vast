@@ -170,9 +170,4 @@ def FuncOp : ABIFuncBase< "func" >
     let summary = [{ Function with transformed type. }];
 }
 
-def WrapFuncOp : ABIFuncBase< "wrap_fn" >
-{
-    let summary = [{ Function that defines abi transformation of args. }];
-}
-
 #endif // VAST_DIALECT_IR_ABIOPS
