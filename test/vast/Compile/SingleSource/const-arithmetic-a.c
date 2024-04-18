@@ -7,10 +7,10 @@ int arithmetic() {
     return 5 + 10;
 }
 
-// HL: hl.func @arithmetic () -> !hl.int
+// HL: hl.func @arithmetic {{.*}} () -> !hl.int
 // HL:  hl.const #core.integer<5>
 // HL:  hl.const #core.integer<10>
 // HL:  hl.add
 
-// CAN: hl.func @arithmetic () -> !hl.int
+// CAN: hl.func @arithmetic {{.*}} () -> !hl.int
 // CAN:  hl.const #core.integer<15>

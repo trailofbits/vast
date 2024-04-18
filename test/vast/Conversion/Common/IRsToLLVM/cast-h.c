@@ -15,26 +15,26 @@ void float_to_unsigned() {
     unsigned u = f;
 }
 
-// HL: hl.func @float_to_signed ()
+// HL: hl.func @float_to_signed
 // HL:    hl.implicit_cast {{.*}} FloatingToIntegral : !hl.float -> !hl.int
 // HL: }
 
-// HL: hl.func @float_to_unsigned ()
+// HL: hl.func @float_to_unsigned
 // HL:    hl.implicit_cast {{.*}} FloatingToIntegral : !hl.float -> !hl.int< unsigned >
 // HL: }
 
-// MLIR: llvm.func @float_to_signed()
+// MLIR: llvm.func @float_to_signed
 // MLIR:    llvm.fptosi {{.*}} : f32 to i32
 // MLIR: }
 
-// MLIR: llvm.func @float_to_unsigned()
+// MLIR: llvm.func @float_to_unsigned
 // MLIR:    llvm.fptoui {{.*}} : f32 to i32
 // MLIR: }
 
-// LLVM: define void @float_to_signed()
+// LLVM: define void @float_to_signed
 // LLVM:    fptosi float {{.*}} to i32
 // LLVM: }
 
-// LLVM: define void @float_to_unsigned()
+// LLVM: define void @float_to_unsigned
 // LLVM:    fptoui float {{.*}} to i32
 // LLVM: }

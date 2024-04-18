@@ -6,7 +6,7 @@
 // CHECK: hl.func @__builtin_va_start
 // CHECK: hl.typedef "va_list"
 
-// CHECK: hl.func @format ({{%.*}}: !hl.lvalue<!hl.ptr<!hl.char< const >>>, ...) -> !hl.void
+// CHECK: hl.func @format {{.*}} ({{%.*}}: !hl.lvalue<!hl.ptr<!hl.char< const >>>, ...) -> !hl.void
 void format(const char *fmt, ...) {
     // CHECK: hl.var "args" : !hl.lvalue<!hl.elaborated<!hl.typedef<"va_list">>>
     va_list args;

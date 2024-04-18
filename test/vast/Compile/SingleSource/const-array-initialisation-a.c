@@ -19,7 +19,7 @@ int array_sum()
     return sum;
 }
 
-// HL: hl.func @array_sum () -> !hl.int
+// HL: hl.func @array_sum {{.*}} () -> !hl.int
 
 // MLIR: llvm.func @array_sum() -> i32
 

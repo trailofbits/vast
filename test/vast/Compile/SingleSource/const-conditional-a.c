@@ -16,7 +16,7 @@ int conditional()
     return y;
 }
 
-// HL: hl.func @conditional () -> !hl.int
+// HL: hl.func @conditional {{.*}} () -> !hl.int
 
 // MLIR: llvm.func @conditional() -> i32
 

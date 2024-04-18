@@ -10,17 +10,17 @@ void ptr_to_bool() {
     _Bool b = p;
 }
 
-// HL: hl.func @ptr_to_bool ()
+// HL: hl.func @ptr_to_bool
 // HL:    hl.implicit_cast {{.*}} PointerToBoolean : !hl.ptr<!hl.void> -> !hl.bool
 // HL: }
 
-// MLIR: llvm.func @ptr_to_bool()
+// MLIR: llvm.func @ptr_to_bool
 // MLIR:    llvm.mlir.null
 // MLIR:    llvm.icmp "ne"
 // MLIR:    llvm.zext {{.*}} : i1 to i8
 // MLIR: }
 
-// LLVM: define void @ptr_to_bool()
+// LLVM: define void @ptr_to_bool
 // LLVM:    icmp ne ptr {{.*}}, null
 // LLVM:    zext i1 {{.*}} to i8
 // LLVM: }

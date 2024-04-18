@@ -2,5 +2,5 @@
 
 typedef int INT;
 
-// CHECK: hl.func @foo (!hl.lvalue<si32>) -> si32 attributes {sym_visibility = "private"}
+// CHECK: hl.func @foo {{.*}} (!hl.lvalue<si32>) -> si32 attributes {sym_visibility = "private"}
 INT foo(INT);

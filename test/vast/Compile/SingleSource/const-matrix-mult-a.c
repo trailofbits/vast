@@ -27,7 +27,7 @@ int mul()
     return result[2][1];
 }
 
-// HL: hl.func @mul () -> !hl.int
+// HL: hl.func @mul {{.*}} () -> !hl.int
 
 // MLIR: llvm.func @mul() -> i32
 

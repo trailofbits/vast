@@ -10,7 +10,7 @@ void ptr_decay_test() {
     int *p = a;
 }
 
-// HL: hl.func @ptr_decay_test () -> !hl.void {
+// HL: hl.func @ptr_decay_test {{.*}} () -> !hl.void {
 // HL:   hl.var "a"
 // HL:   hl.var "p"
 // HL:     hl.implicit_cast {{.*}} ArrayToPointerDecay
