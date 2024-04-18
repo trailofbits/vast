@@ -220,28 +220,15 @@ namespace vast
 
             using types_t = std::vector< mlir::Type >;
 
-            abi::FuncOp make()
-            {
-                mlir::SmallVector< mlir::DictionaryAttr, 8 > arg_attrs;
-                mlir::SmallVector< mlir::NamedAttribute, 8 > other_attrs;
-
-                op.getAllArgAttrs(arg_attrs);
-                auto wrapper = rewriter.template create< abi::FuncOp >(
-                        op.getLoc(),
-                        // Temporal, to avoid verification issues, will be changed once
-                        // original func is removed.
-                        conv::abi::abi_func_name_prefix + op.getName().str(),
-                        this->abified_type(op.isVarArg()),
-                        core::GlobalLinkageKind::InternalLinkage,
-                        other_attrs,
-                        arg_attrs
+            abi::FuncOp make() {
+                auto wrapper = core::convert_function_without_body< abi::FuncOp >(
+                    op, rewriter, conv::abi::abi_func_name_prefix + op.getName().str(),
+                    this->abified_type(op.isVarArg())
                 );
 
-                // Copying visibility from the original function results in error?
-                wrapper.setVisibility(mlir::SymbolTable::Visibility::Private);
-
-                if (!op.getBody().empty())
+                if (!op.getBody().empty()) {
                     mk_prologue(wrapper);
+                }
 
                 return wrapper;
             }

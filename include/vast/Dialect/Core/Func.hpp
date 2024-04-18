@@ -10,6 +10,8 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Core/CoreDialect.hpp"
+#include "vast/Dialect/Core/Linkage.hpp"
+#include "vast/Dialect/Core/CoreTypes.hpp"
 
 namespace vast::core {
 
@@ -20,7 +22,8 @@ namespace vast::core {
     // Verifies linkage types, similar to LLVM:
     // - functions don't have 'common' linkage
     // - external functions have 'external' or 'extern_weak' linkage
-    logical_result verifyFuncOp(auto op) {
+    template< typename FuncOp >
+    logical_result verifyFuncOp(FuncOp op) {
         using core::GlobalLinkageKind;
 
         auto linkage = op.getLinkage();
@@ -48,14 +51,16 @@ namespace vast::core {
         return mlir::success();
     }
 
+
     ParseResult parseFunctionSignatureAndBody(
         Parser &parser, Attribute &funcion_type,
         mlir::NamedAttrList &attr_dict, Region &body
     );
 
 
+    template< typename FuncOp >
     void printFunctionSignatureAndBody(
-        Printer &printer, auto op,
+        Printer &printer, FuncOp op,
         Attribute /* funcion_type */, mlir::DictionaryAttr, Region &body
     ) {
         printer << stringifyGlobalLinkageKind(op.getLinkage()) << ' ';
@@ -79,7 +84,7 @@ namespace vast::core {
     }
 
     template< typename DstFuncOp >
-    logical_result convert_function(auto src, auto /* adaptor */, auto &rewriter) {
+    DstFuncOp convert_function(auto src, auto &rewriter, string_ref name, core::FunctionType fty, auto body_builder) {
         mlir::SmallVector< mlir::DictionaryAttr, 8 > arg_attrs;
         mlir::SmallVector< mlir::DictionaryAttr, 8 > res_attrs;
         src.getAllArgAttrs(arg_attrs);
@@ -106,21 +111,35 @@ namespace vast::core {
         };
 
         auto dst = rewriter.template create< DstFuncOp >(
-            src.getLoc(),
-            src.getName(),
-            src.getFunctionType(),
-            src.getLinkage(),
-            filter_src_attrs(src),
-            arg_attrs,
-            res_attrs
+            src.getLoc(), name, fty, src.getLinkage(), filter_src_attrs(src), arg_attrs, res_attrs
         );
 
-        rewriter.updateRootInPlace(dst, [&]() {
-            dst.getBody().takeBody(src.getBody());
-        });
+        body_builder(rewriter, dst);
 
+        return dst;
+    };
+
+    template< typename DstFuncOp >
+    DstFuncOp convert_function_without_body(auto src, auto &rewriter, string_ref name, core::FunctionType fty) {
+        return convert_function< DstFuncOp >(src, rewriter, name, fty, [] (auto &, auto &) {} /* noop */ );
+    };
+
+    template< typename DstFuncOp >
+    DstFuncOp convert_function(auto src, auto &rewriter) {
+        return convert_function< DstFuncOp >(src, rewriter, src.getName(), src.getFunctionType(),
+            [src] (auto &rewriter, auto &dst) mutable {
+                rewriter.updateRootInPlace(dst, [&] () {
+                    dst.getBody().takeBody(src.getBody());
+                });
+            }
+        );
+    }
+
+
+    template< typename DstFuncOp >
+    logical_result convert_and_replace_function(auto src, auto &rewriter) {
+        auto dst = convert_function< DstFuncOp >(src, rewriter);
         rewriter.replaceOp(src, dst->getOpResults());
-
         return mlir::success();
     }
 
