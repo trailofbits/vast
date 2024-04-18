@@ -3,7 +3,7 @@
 
 #define CHAR_BIT 8
 
-// CHECK: sign1 ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
+// CHECK: @sign1 {{.*}} ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int sign1(int v) {
     // CHECK: [[V0:%[0-9]+]] = hl.expr : !hl.int
     // CHECK:   [[V1:%[0-9]+]] = hl.ref [[A1]]
@@ -14,7 +14,7 @@ int sign1(int v) {
     return -(v < 0);
 }
 
-// CHECK: sign2 ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
+// CHECK: @sign2 {{.*}} ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int sign2(int v) {
     // CHECK: hl.expr : !hl.int< unsigned >
     // CHECK:  hl.expr : !hl.int
@@ -32,7 +32,7 @@ int sign2(int v) {
     return -(int)((unsigned int)((int)v) >> (sizeof(int) * CHAR_BIT - 1));
 }
 
-// CHECK: sign3 ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.long< unsigned >>) -> !hl.int
+// CHECK: @sign3 {{.*}} ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.long< unsigned >>) -> !hl.int
 int sign3(unsigned long v) {
     // CHECK: [[V0:%[0-9]+]] = hl.ref [[A1]]
     // CHECK: [[V1:%[0-9]+]] = hl.implicit_cast [[V0]]

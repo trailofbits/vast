@@ -8,7 +8,7 @@ typedef void (*function_pointer_t)(int); // <-- this creates a function pointer 
 // CHECK: hl.typedef "function_t" : !core.fn<(!hl.lvalue<!hl.int>) -> (!hl.void)>
 typedef void function_t(int); // <-- this creates a function type
 
-// CHECK: hl.func @my_func (!hl.lvalue<!hl.int>)
+// CHECK: hl.func @my_func {{.*}} (!hl.lvalue<!hl.int>)
 function_t my_func; // <-- this declares "void my_func(int)"
 
 // CHECK: hl.func @bar

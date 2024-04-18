@@ -36,7 +36,7 @@ typedef struct ck_c_initialize_args *CK_C_INITIALIZE_ARGS_PTR;
 // CHECK: hl.var "global_locking" sc_static : !hl.lvalue<!hl.elaborated<!hl.typedef<"CK_C_INITIALIZE_ARGS_PTR">>>
 static CK_C_INITIALIZE_ARGS_PTR	global_locking;
 
-// CHECK: hl.func @sc_pkcs11_lock () -> !hl.long
+// CHECK: hl.func @sc_pkcs11_lock {{.*}} () -> !hl.long
 long sc_pkcs11_lock(void)
 {
     // CHECK: [[V1:%[0-9]+]] = hl.globref "global_locking" : !hl.lvalue<!hl.elaborated<!hl.typedef<"CK_C_INITIALIZE_ARGS_PTR">>>

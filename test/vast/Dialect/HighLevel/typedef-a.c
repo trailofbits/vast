@@ -5,7 +5,7 @@
 // CHECK: hl.typedef "SHORT" : !hl.short
 typedef int INT;
 typedef short SHORT;
-// CHECK: hl.func @arithemtic_int_short ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.elaborated<!hl.typedef<"INT">>>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.elaborated<!hl.typedef<"SHORT">>>)
+// CHECK: hl.func @arithemtic_int_short {{.*}} ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.elaborated<!hl.typedef<"INT">>>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.elaborated<!hl.typedef<"SHORT">>>)
 void arithemtic_int_short(INT a, SHORT b)
 {
     INT c;

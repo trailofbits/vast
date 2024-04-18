@@ -6,11 +6,11 @@
 int main() {}
 
 // CHECK: module @"{{.*}}vast/Dialect/HighLevel/main-a.c"
-// CHECK: hl.func @main () -> !hl.int
+// CHECK: hl.func @main {{.*}} () -> !hl.int
 
-// LOCS: hl.func @main () -> !hl.int {
+// LOCS: hl.func @main {{.*}} () -> !hl.int {
 // LOCS: } {{.*}}/main-a.c:6:5
 // LOCS: } {{.*}}/main-a.c:0:0
 
-// META: hl.func @main () -> !hl.int {
+// META: hl.func @main {{.*}} () -> !hl.int {
 // META: } <#meta.id<0>>
