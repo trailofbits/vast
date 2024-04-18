@@ -5,7 +5,7 @@
 // CHECK: hl.typedef "INT2" : !hl.long
 typedef int INT;
 typedef long INT2;
-// CHECK: hl.func @fun ([[A0:%arg[0-9]+]]: !hl.lvalue<!hl.elaborated<!hl.typedef<"INT">>>, [[A1:%arg[0-9]+]]: !hl.lvalue<!hl.elaborated<!hl.typedef<"INT2">>>) -> !hl.elaborated<!hl.typedef<"INT">>
+// CHECK: hl.func @fun {{.*}} ([[A0:%arg[0-9]+]]: !hl.lvalue<!hl.elaborated<!hl.typedef<"INT">>>, [[A1:%arg[0-9]+]]: !hl.lvalue<!hl.elaborated<!hl.typedef<"INT2">>>) -> !hl.elaborated<!hl.typedef<"INT">>
 INT fun(INT a, INT2 b) {
     // CHECK: [[V0:%[0-9]+]] = hl.ref [[A0]]
     // CHECK: [[V1:%[0-9]+]] = hl.post.inc [[V0]] : !hl.lvalue<!hl.elaborated<!hl.typedef<"INT">>> -> !hl.elaborated<!hl.typedef<"INT">>
@@ -47,4 +47,3 @@ INT fun(INT a, INT2 b) {
     // CHECK: hl.implicit_cast [[X:%[0-9]+]] IntegralCast : !hl.elaborated<!hl.typedef<"INT2">> -> !hl.elaborated<!hl.typedef<"INT">>
     return b;
 }
-

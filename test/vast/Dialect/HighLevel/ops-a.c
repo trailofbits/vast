@@ -1,7 +1,7 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.func @add1 ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
+// CHECK: hl.func @add1 {{.*}} ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int add1(int a, int b)
 {
     // CHECK: [[V1:%[0-9]+]] = hl.ref [[A1]]
@@ -12,7 +12,7 @@ int add1(int a, int b)
     return a + b;
 }
 
-// CHECK: hl.func @add2 ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
+// CHECK: hl.func @add2 {{.*}} ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int add2(int a, int b)
 {
     // CHECK: [[R:%[0-9]+]] = hl.var "r" : !hl.lvalue<!hl.int> = {
@@ -30,7 +30,7 @@ int add2(int a, int b)
     return r;
 }
 
-// CHECK: hl.func @add3 ()
+// CHECK: hl.func @add3
 void add3()
 {
     // CHECK: hl.var "v" : !hl.lvalue<!hl.int> = {
