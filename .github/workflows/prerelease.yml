@@ -286,7 +286,7 @@ jobs:
         image-version: [22.04]
     name: "Build VAST doc"
     runs-on: ubuntu-${{ matrix.image-version }}
-    needs: [eval_llvm_ts, run_svcomp]
+    needs: [eval_llvm_ts, eval_svcomp]
     timeout-minutes: 60
     container:
       image:
