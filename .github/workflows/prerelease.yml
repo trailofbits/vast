@@ -58,7 +58,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: VAST
-          path: ./builds/ninja-multi-default/package/*
+          path: ./builds/ci/package/*
           retention-days: 1
 
       - name: Publish Pre-Release
