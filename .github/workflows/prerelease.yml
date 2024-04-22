@@ -198,7 +198,7 @@ jobs:
         vast-target: ['hl', 'llvm']
 
     runs-on: ubuntu-${{ matrix.image-version }}
-    timeout-minutes: 360
+    timeout-minutes: 720
     container:
       image:
         ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
