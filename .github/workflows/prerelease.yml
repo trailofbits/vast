@@ -215,11 +215,6 @@ jobs:
      - name: Export vast binaries
        run: echo "${PWD}/vast/bin/" >> $GITHUB_PATH
 
-     - name: Install test suite dependencies
-       run: |
-          apt-get update
-          apt-get -y install git
-
      - name: Clone test suite repository
        run: git clone --depth=1 https://gitlab.com/sosy-lab/benchmarking/sv-benchmarks.git
 
