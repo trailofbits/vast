@@ -51,29 +51,25 @@ namespace vast::cg {
     };
 
 
-    struct visit_view_with_scope : visitor_view
+    struct scoped_visitor_view : visitor_view
     {
-        visit_view_with_scope(visitor_base &visitor, symbols_view symbols)
-            : visitor_view(visitor), symbols(symbols)
+        scoped_visitor_view(visitor_base &visitor, scope_context &scope)
+            : visitor_view(visitor), scope(scope)
         {}
 
-        visit_view_with_scope(visitor_base &visitor, symbol_tables &symbols)
-            : visitor_view(visitor), symbols(symbols)
-        {}
-
-        symbols_view symbols;
+        scope_context &scope;
     };
 
 
     struct clang_visitor_base
     {
-        clang_visitor_base(codegen_builder &bld, visit_view_with_scope self)
+        clang_visitor_base(codegen_builder &bld, scoped_visitor_view self)
             : bld(bld), self(self)
         {}
 
       protected:
         codegen_builder &bld;
-        visit_view_with_scope self;
+        scoped_visitor_view self;
     };
 
     template< typename derived_t >

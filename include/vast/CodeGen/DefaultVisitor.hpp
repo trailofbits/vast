@@ -17,7 +17,7 @@ namespace vast::cg
         , cached_default_type_visitor
         , default_attr_visitor
     {
-        default_visitor(mcontext_t &mctx, codegen_builder &bld, meta_generator &mg, symbol_generator &sg, visit_view_with_scope self)
+        default_visitor(mcontext_t &mctx, codegen_builder &bld, meta_generator &mg, symbol_generator &sg, scoped_visitor_view self)
             : visitor_base(mctx, mg, sg)
             , default_decl_visitor(bld, self)
             , default_stmt_visitor(bld, self)
