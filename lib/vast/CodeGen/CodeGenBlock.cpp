@@ -3,8 +3,6 @@
 #include "vast/CodeGen/CodeGenBlock.hpp"
 #include "vast/CodeGen/Util.hpp"
 
-#include "vast/CodeGen/CodeGenVar.hpp"
-
 namespace vast::cg
 {
     void block_generator::emit_in_scope(region_t &scope, const clang_compound_stmt *stmt) {
