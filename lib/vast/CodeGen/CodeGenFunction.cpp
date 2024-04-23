@@ -23,26 +23,20 @@ namespace vast::cg
     // function generation
     //
 
-    operation function_generator::emit_in_scope(region_t &scope, const clang_function *decl) {
-        return default_generator_base::emit_in_scope(scope, [&] { return emit(decl); });
+    operation mk_prototype(auto &parent, const clang_function *decl) {
+        auto gen = mk_scoped_generator< prototype_generator >(parent);
+        return gen.emit(decl);
     }
 
     operation function_generator::emit(const clang_function *decl) {
-        auto ctx = dynamic_cast< module_context* >(parent);
-        VAST_CHECK(ctx, "function context must be a child of a module context");
-
-        auto prototype = mk_prototype_in_scope(*this, ctx->mod->getBodyRegion(), decl);
+        auto prototype = mk_prototype(*this, decl);
 
         if (auto fn = mlir::dyn_cast< vast_function >(prototype)) {
             if (decl->hasBody()) {
+                // no need to declare params without body
                 declare_function_params(decl, fn);
-
-                defer([=, this] {
-                    if (auto fn = mlir::dyn_cast< vast_function >(prototype)) {
-                        mk_function_body(*this, fn, decl);
-                    } else {
-                        VAST_REPORT("can not emit function body for unknown prototype");
-                    }
+                defer([=, parent = *this] () mutable {
+                    parent.emit_body(decl, fn);
                 });
             }
         }
@@ -59,47 +53,13 @@ namespace vast::cg
             earg.setLoc(visitor.location(param));
             if (auto name = visitor.symbol(param)) {
                 // TODO set name
-                scope_context::declare(name.value(), earg);
+                scope().declare(name.value(), earg);
             }
         }
     }
 
-    //
-    // function prototype generation
-    //
-
-    operation prototype_generator::emit_in_scope(region_t &scope, const clang_function *decl) {
-        return default_generator_base::emit_in_scope(scope, [&] { return emit(decl); });
-    }
-
-    operation prototype_generator::emit(const clang_function *decl) {
-        auto ctx = dynamic_cast< function_scope* >(parent);
-        VAST_CHECK(ctx, "prototype generator must be a child of a function context");
-
-        auto mod = dynamic_cast< module_context* >(ctx->parent);
-        VAST_CHECK(mod, "function context must be a child of a module context");
-
-        // TODO create a new function prototype scope here
-        if (auto op = visitor.visit_prototype(decl)) {
-            if (auto fn = mlir::dyn_cast< vast_function >(op)) {
-                scope_context::declare(fn);
-            }
-
-            return op;
-        }
-
-        return {};
-    }
-
-    //
-    // function body generation
-    //
-
-    void body_generator::emit_in_scope(region_t &scope, const clang_function *decl, vast_function fn) {
-        default_generator_base::emit_in_scope(scope, [&] { emit(decl, fn); });
-    }
-
-    void body_generator::emit(const clang_function *decl, vast_function fn) {
+    void function_generator::emit_body(const clang_function *decl, vast_function prototype) {
+        auto _ = bld.scoped_insertion_at_start(&prototype.getBody());
         auto body = decl->getBody();
 
         if (clang::isa< clang::CoroutineBodyStmt >(body)) {
@@ -107,19 +67,14 @@ namespace vast::cg
             return;
         }
 
-        if (auto stmt = clang::dyn_cast< clang_compound_stmt >(body)) {
-            auto &sg = mk_child< block_generator >(bld, visitor);
-            sg.emit_in_scope(fn.getBody(), stmt);
-        } else {
-            visitor.visit(body);
-        }
+        visitor.visit(body);
 
-        VAST_ASSERT(mlir::succeeded(fn.verifyBody()));
-
-        emit_epilogue(decl, fn);
+        emit_epilogue(decl, prototype);
+        VAST_ASSERT(mlir::succeeded(prototype.verifyBody()));
     }
 
-    void body_generator::emit_implicit_return_zero(const clang_function *decl) {
+
+    void function_generator::emit_implicit_return_zero(const clang_function *decl) {
         auto loc = visitor.location(decl);
         auto rty = visitor.visit(decl->getFunctionType()->getReturnType());
 
@@ -127,7 +82,7 @@ namespace vast::cg
         bld.create< core::ImplicitReturnOp >(loc, value);
     }
 
-    void body_generator::emit_implicit_void_return(const clang_function *decl) {
+    void function_generator::emit_implicit_void_return(const clang_function *decl) {
         VAST_CHECK( decl->getReturnType()->isVoidType(),
             "Can't emit implicit void return in non-void function."
         );
@@ -137,11 +92,11 @@ namespace vast::cg
         bld.create< core::ImplicitReturnOp >(loc, value);
     }
 
-    void body_generator::emit_trap(const clang_function *decl) {
+    void function_generator::emit_trap(const clang_function *decl) {
         bld.create< hlbi::TrapOp >(visitor.location(decl), bld.void_type());
     }
 
-    void body_generator::emit_unreachable(const clang_function *decl) {
+    void function_generator::emit_unreachable(const clang_function *decl) {
         bld.create< hl::UnreachableOp >(visitor.location(decl));
     }
 
@@ -155,15 +110,13 @@ namespace vast::cg
         return rty.isTriviallyCopyableType(actx);
     }
 
-    bool body_generator::should_final_emit_unreachable(const clang_function *decl) const {
-        auto ctx  = static_cast< function_generator* >(parent);
+    bool function_generator::should_final_emit_unreachable(const clang_function *decl) const {
         auto rty  = decl->getReturnType();
         auto & actx = decl->getASTContext();
-        return ctx->opts.has_strict_return || may_drop_function_return(rty, actx);
+        return opts.has_strict_return || may_drop_function_return(rty, actx);
     }
 
-    void body_generator::deal_with_missing_return(const clang_function *decl, vast_function fn) {
-        auto ctx = static_cast< function_generator* >(parent);
+    void function_generator::deal_with_missing_return(const clang_function *decl, vast_function fn) {
         auto rty = decl->getReturnType();
 
         auto _ = bld.scoped_insertion_at_end(&fn.getBody().back());
@@ -181,7 +134,7 @@ namespace vast::cg
             //   function call is used by the caller, the behavior is undefined.
 
             // TODO: skip if SawAsmBlock
-            if (ctx->opts.optimization_level == 0) {
+            if (opts.optimization_level == 0) {
                 emit_trap(decl);
             } else {
                 emit_unreachable(decl);
@@ -205,12 +158,12 @@ namespace vast::cg
 
     bool has_return(block_t &block) {
         if (auto op = get_last_effective_operation(block)) {
-            return op->template hasTrait< core::return_trait >();
+            return core::is_return_like(op);
         }
         return false;
     }
 
-    void body_generator::emit_epilogue(const clang_function *decl, vast_function fn) {
+    void function_generator::emit_epilogue(const clang_function *decl, vast_function fn) {
         auto &last_block = fn.getBody().back();
         if (!has_return(last_block)) {
             deal_with_missing_return(decl, fn);
@@ -222,6 +175,23 @@ namespace vast::cg
         // TODO: If we haven't marked the function nothrow through other means, do a
         // quick pass now to see if we can.
         // if (!decl->doesNotThrow()) TryMarkNoThrow(decl);
+    }
+
+    //
+    // function prototype generation
+    //
+
+    operation prototype_generator::emit(const clang_function *decl) {
+        // TODO create a new function prototype scope here
+        if (auto op = visitor.visit_prototype(decl)) {
+            if (auto fn = mlir::dyn_cast< vast_function >(op)) {
+                scope().declare(fn);
+            }
+
+            return op;
+        }
+
+        return {};
     }
 
 } // namespace vast::cg
