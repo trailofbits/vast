@@ -14,7 +14,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/ScopeContext.hpp"
 #include "vast/CodeGen/CodeGenModule.hpp"
-#include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/CodeGenVisitor.hpp"
 
 #include "vast/Frontend/Options.hpp"
 
@@ -33,25 +33,35 @@ namespace vast::cg {
 
     std::unique_ptr< mcontext_t > mk_mcontext();
 
+    void set_target_triple(owning_module_ref &mod, std::string triple);
+    void set_source_language(owning_module_ref &mod, source_language lang);
+
+    owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
+    owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, source_language lang);
+
     struct driver
     {
         explicit driver(
-              acontext_t &actx
-            , std::unique_ptr< mcontext_t > mctx
-            , options_t opts
-            , std::unique_ptr< codegen_builder > bld
-            , std::unique_ptr< meta_generator > mg
-            , std::unique_ptr< symbol_generator > sg
+              acontext_t &_actx
+            , std::unique_ptr< mcontext_t > _mctx
+            , options_t _opts
+            , std::unique_ptr< codegen_builder > _bld
+            , std::unique_ptr< meta_generator > _mg
+            , std::unique_ptr< symbol_generator > _sg
         )
-            : actx(actx)
-            , mctx(std::move(mctx))
-            , opts(opts)
-            , bld(std::move(bld))
-            , mg(std::move(mg))
-            , sg(std::move(sg))
-            , visitor(mk_visitor(opts))
-            , generator(mk_module_generator(opts))
-        {}
+            : actx(_actx)
+            , mctx(std::move(_mctx))
+            , opts(std::move(_opts))
+            , bld(std::move(_bld))
+            , mg(std::move(_mg))
+            , sg(std::move(_sg))
+            , mod(mk_module_with_attrs(actx, *mctx, opts.lang))
+            , scope(symbols)
+            , visitor(mk_visitor(opts, scope))
+            , generator(*bld, scoped_visitor_view(*visitor, scope), opts)
+        {
+            bld->set_insertion_point_to_start(&mod->getBodyRegion());
+        }
 
         void emit(clang::DeclGroupRef decls);
         void emit(clang::Decl *decl);
@@ -62,6 +72,7 @@ namespace vast::cg {
         mcontext_t &mcontext() { return *mctx; }
         acontext_t &acontext() { return actx; }
 
+        bool verify();
       private:
 
         //
@@ -70,8 +81,7 @@ namespace vast::cg {
         acontext_t &actx;
         std::unique_ptr< mcontext_t > mctx;
 
-        [[maybe_unused]] options_t opts;
-
+        options_t opts;
         symbol_tables symbols;
 
         //
@@ -80,14 +90,17 @@ namespace vast::cg {
         std::unique_ptr< codegen_builder > bld;
         std::unique_ptr< meta_generator > mg;
         std::unique_ptr< symbol_generator > sg;
-        std::unique_ptr< visitor_base > visitor;
-
-        std::unique_ptr< visitor_base > mk_visitor(const options_t &opts);
 
         //
         // module generation state
         //
-        module_generator mk_module_generator(const options_t &opts);
+        owning_module_ref mod;
+        module_scope scope;
+
+        // visitor requires scope to be set
+        std::unique_ptr< codegen_visitor > visitor;
+        std::unique_ptr< codegen_visitor > mk_visitor(const options_t &opts, scope_context &scope);
+
         module_generator generator;
     };
 

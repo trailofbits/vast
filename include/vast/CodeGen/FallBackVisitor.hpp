@@ -33,6 +33,17 @@ namespace vast::cg
             VAST_UNREACHABLE("Vistors chain exhausted. No fallback visitor was able to handle the token.");
         }
 
+        template< typename visitor_t >
+        std::optional< visitor_t > find() {
+            for (auto &visitor : visitors) {
+                if (auto result = dynamic_cast< visitor_t* >(visitor.get())) {
+                    return *result;
+                }
+            }
+
+            return std::nullopt;
+        }
+
         operation visit(const clang_stmt *stmt) override { return visit_with_fallback(stmt); }
         operation visit(const clang_decl *decl) override { return visit_with_fallback(decl); }
         mlir_type visit(const clang_type *type) override { return visit_with_fallback(type); }
