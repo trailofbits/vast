@@ -261,7 +261,7 @@ jobs:
           repository: trailofbits/sv-bench-patch
           sparse-checkout: make_table.py
           ref: ci-version
-          path: llvm-test-suite
+          path: sv-bench-patch
           fetch-depth: 1
 
       - name: Generate the results
