@@ -29,7 +29,12 @@ namespace vast {
             logical_result matchAndRewrite(
                 op_t op, typename op_t::Adaptor ops, conversion_rewriter &rewriter
             ) const override {
-                auto parent_type = ops.getRecord().getType();
+                auto parent_type = [&] {
+                    auto type = ops.getRecord().getType();
+                    if (auto ptr = mlir::dyn_cast< hl::PointerType >(type))
+                        return ptr.getElementType();
+                    return type;
+                }();
 
                 auto mod = op->getParentOfType< vast_module >();
                 if (!mod) {
