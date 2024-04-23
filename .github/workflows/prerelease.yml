@@ -195,10 +195,10 @@ jobs:
       matrix:
         llvm-version: [17]
         image-version: [22.04]
-        vast-target: ['hl', 'llvm']
+        vast-target: ['hl']
 
     runs-on: ubuntu-${{ matrix.image-version }}
-    timeout-minutes: 720
+    timeout-minutes: 360
     container:
       image:
         ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
@@ -267,8 +267,8 @@ jobs:
       - name: Generate the results
         run: |
           python3 sv-bench-patch/make_table.py \
-            --columns HighLevel,LLVM-IR \
-            --files results-sv-hl/results.txt,results-sv-llvm/results.txt \
+            --columns HighLevel \
+            --files results-sv-hl/results.txt \
             --output sv-comp-results
 
       - name: Post results as artifacts
