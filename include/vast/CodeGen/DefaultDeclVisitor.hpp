@@ -23,6 +23,8 @@ namespace vast::cg {
         operation visit_prototype(const clang_function *decl);
         mlir_attr_list visit_attrs(const clang_function *decl);
 
+        void fill_init(const clang_expr *init, hl::VarDeclOp var);
+
         operation VisitVarDecl(const clang_var_decl *decl);
         operation VisitParmVarDecl(const clang::ParmVarDecl *decl);
         operation VisitImplicitParamDecl(const clang::ImplicitParamDecl *decl);

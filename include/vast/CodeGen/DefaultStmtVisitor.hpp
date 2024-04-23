@@ -20,9 +20,11 @@ namespace vast::cg {
         using base = stmt_visitor_base< default_stmt_visitor >;
         using base::base;
 
-        operation visit(const clang_stmt *stmt) { return Visit(stmt); }
+        operation visit(const clang_stmt *stmt) {return Visit(stmt); }
 
         using base::Visit;
+
+        operation VisitCompoundStmt(const clang::CompoundStmt *stmt);
 
         //
         // Binary Operations
@@ -171,6 +173,8 @@ namespace vast::cg {
         //
         // Expressions
         //
+        operation VisitDeclStmt(const clang::DeclStmt *stmt);
+
         operation VisitMemberExpr(const clang::MemberExpr *expr);
         operation VisitConditionalOperator(const clang::ConditionalOperator *op);
         operation VisitAddrLabelExpr(const clang::AddrLabelExpr *expr);

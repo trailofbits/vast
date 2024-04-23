@@ -96,23 +96,9 @@ namespace vast::cg
         VAST_UNIMPLEMENTED_MSG( "unsupported cast kind" );
     }
 
-    using hl::IdentKind;
-
-    IdentKind ident_kind(const clang::PredefinedExpr *expr)
-    {
-        switch(expr->getIdentKind())
-        {
-            case clang::PredefinedIdentKind::Func : return IdentKind::Func;
-            case clang::PredefinedIdentKind::Function : return IdentKind::Function;
-            case clang::PredefinedIdentKind::LFunction : return IdentKind::LFunction;
-            case clang::PredefinedIdentKind::FuncDName : return IdentKind::FuncDName;
-            case clang::PredefinedIdentKind::FuncSig : return IdentKind::FuncSig;
-            case clang::PredefinedIdentKind::LFuncSig : return IdentKind::LFuncSig;
-            case clang::PredefinedIdentKind::PrettyFunction :
-                return IdentKind::PrettyFunction;
-            case clang::PredefinedIdentKind::PrettyFunctionNoVirtual :
-                return IdentKind::PrettyFunctionNoVirtual;
-        }
+    operation default_stmt_visitor::VisitCompoundStmt(const clang::CompoundStmt *stmt) {
+        auto gen = mk_scoped_generator< block_generator >(self.scope, bld, self);
+        return gen.emit(stmt);
     }
 
     //
@@ -528,7 +514,7 @@ namespace vast::cg
             return bld.compose< hl::DeclRefOp >()
                 .bind(self.location(expr))
                 .bind(self.visit_as_lvalue_type(expr->getType()))
-                .bind(self.symbols.lookup_var(name.value()))
+                .bind(self.scope.lookup_var(name.value()))
                 .freeze();
         }
 
@@ -578,6 +564,13 @@ namespace vast::cg
     //
     // Expressions
     //
+    operation default_stmt_visitor::VisitDeclStmt(const clang::DeclStmt *stmt) {
+        if (stmt->isSingleDecl()) {
+            return self.visit(stmt->getSingleDecl());
+        } else {
+            return {};
+        }
+    }
     operation default_stmt_visitor::VisitMemberExpr(const clang::MemberExpr *expr) { return {}; }
 
     operation default_stmt_visitor::VisitConditionalOperator(const clang::ConditionalOperator *op) { return {}; }

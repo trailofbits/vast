@@ -268,7 +268,7 @@ namespace vast::cg
             return var;
         };
 
-        return bld.compose< hl::VarDeclOp >()
+        auto var = bld.compose< hl::VarDeclOp >()
             .bind(self.location(decl))
             .bind(self.visit_as_lvalue_type(decl->getType()))
             .bind(self.symbol(decl))
@@ -280,6 +280,23 @@ namespace vast::cg
             .freeze_as_maybe() // construct global
             .transform(set_storage_classes)
             .take();
+
+        if (decl->hasInit()) {
+            fill_init(decl->getInit(), var);
+        }
+
+        return var;
+    }
+
+    void default_decl_visitor::fill_init(const clang_expr *init, hl::VarDeclOp var) {
+        auto &region = var.getInitializer();
+        VAST_ASSERT(region.hasOneBlock());
+        auto _ = bld.scoped_insertion_at_start(&region);
+
+        bld.compose< hl::ValueYieldOp >()
+            .bind(self.location(init))
+            .bind_transform(self.visit(init), first_result)
+            .freeze();
     }
 
     operation default_decl_visitor::VisitParmVarDecl(const clang::ParmVarDecl *decl) {
