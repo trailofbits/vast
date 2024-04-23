@@ -47,6 +47,10 @@ namespace vast::hl::pipeline {
         return pass(hl::createUDEPass).depends_on(splice_trailing_scopes);
     }
 
+    static pipeline_step_ptr lower_enums() {
+        return pass(hl::createLowerEnumsPass).depends_on(desugar);
+    }
+
     pipeline_step_ptr simplify() {
         return compose("simplify",
             conv::pipeline::to_hlbi,
@@ -60,7 +64,7 @@ namespace vast::hl::pipeline {
     // stdtypes passes
     //
     pipeline_step_ptr stdtypes() {
-        return pass(hl::createHLLowerTypesPass).depends_on(desugar);
+        return pass(hl::createHLLowerTypesPass).depends_on(desugar, lower_enums);
     }
 
 } // namespace vast::hl::pipeline
