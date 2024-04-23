@@ -5,6 +5,7 @@ add_vast_conversion_library(HighLevelTransforms
   HLLowerTypes.cpp
   DCE.cpp
   LowerElaboratedTypes.cpp
+  LowerEnums.cpp
   LowerTypeDefs.cpp
   SpliceTrailingScopes.cpp
   UDE.cpp
