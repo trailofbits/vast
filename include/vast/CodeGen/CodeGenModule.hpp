@@ -29,49 +29,10 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg {
 
-    void set_target_triple(owning_module_ref &mod, std::string triple);
-    void set_source_language(owning_module_ref &mod, source_language lang);
-
-    owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
-    owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, source_language lang);
-
-    struct module_context : module_scope {
-        explicit module_context(
-              symbol_tables &symbols
-            , const options_t &opts
-            , acontext_t &actx
-            , mcontext_t &mctx
-        )
-            : module_scope(symbols)
-            , opts(opts)
-            , actx(actx)
-            , mod(mk_module_with_attrs(actx, mctx, opts.lang))
-        {}
-
-        virtual ~module_context() = default;
-
-        owning_module_ref freeze();
-
-        operation lookup_global(symbol_name name) const;
-
-        const options_t &opts;
-
-        acontext_t &actx;
-        owning_module_ref mod;
-    };
-
-    struct module_generator : default_generator_base, module_context
+    struct module_generator : generator_base
     {
-        explicit module_generator(
-              acontext_t &actx
-            , mcontext_t &mctx
-            , const options_t &opts
-            , codegen_builder &bld
-            , visitor_view visitor
-            , symbol_tables &symbols
-        )
-            : default_generator_base(bld, visitor)
-            , module_context(symbols, opts, actx, mctx)
+        module_generator(codegen_builder &bld, scoped_visitor_view visitor, const options_t &opts)
+            : generator_base(bld, visitor), opts(opts)
         {}
 
         virtual ~module_generator() = default;
@@ -85,10 +46,10 @@ namespace vast::cg {
         void emit(clang::FunctionDecl *decl);
         void emit(clang::VarDecl *decl);
 
+        void finalize();
         void emit_data_layout();
 
-        bool verify();
-        void finalize();
+        const options_t &opts;
     };
 
 } // namespace vast::cg

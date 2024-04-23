@@ -77,7 +77,6 @@ namespace vast::cg
     template< typename From, typename To >
     using symbol_table_scope = llvm::ScopedHashTableScope< From, To >;
 
-
     struct scope_context : symbols_view {
         using deferred_task = std::function< void() >;
 
@@ -110,20 +109,10 @@ namespace vast::cg
         scope_context &operator=(const scope_context &) = delete;
         scope_context &operator=(scope_context &&) noexcept = delete;
 
-        void hook_child(std::unique_ptr< scope_context > child) {
-            child->parent = this;
-            children.push_back(std::move(child));
-        }
-
-        template< typename scope_generator_t >
-        scope_generator_t& last_child() {
-            return *static_cast< scope_generator_t* >(children.back().get());
-        }
-
-        template< typename child_generator_t, typename ...args_t >
-        child_generator_t & mk_child(args_t &&...args) {
-            hook_child(std::make_unique< child_generator_t >(this, std::forward< args_t >(args)...));
-            return last_child< child_generator_t >();
+        template< typename child_scope_type >
+        scope_context &mk_child() {
+            children.push_back(std::make_unique< child_scope_type >(this));
+            return *children.back();
         }
 
         void defer(deferred_task task) {
@@ -197,15 +186,6 @@ namespace vast::cg
     struct members_scope : scope_context {
         using scope_context::scope_context;
         virtual ~members_scope() = default;
-    };
-
-
-    // Used for generators that does not introduce new scope but populates the
-    // parent scope
-
-    struct inherited_scope : scope_context {
-        using scope_context::scope_context;
-        virtual ~inherited_scope() = default;
     };
 
 } // namespace vast::cg
