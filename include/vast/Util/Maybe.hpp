@@ -91,7 +91,7 @@ namespace vast
     auto dyn_cast = [] (auto arg) { return mlir::dyn_cast< T >(arg); };
 
     template< typename T >
-    auto cast = [] (auto arg) { return mlir::dyn_cast< T >(arg); };
+    auto cast = [] (auto arg) { return mlir::cast< T >(arg); };
 
     template< typename T >
     Maybe(T t) -> Maybe< T >;
