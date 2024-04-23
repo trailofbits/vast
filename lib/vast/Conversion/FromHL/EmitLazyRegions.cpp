@@ -133,6 +133,7 @@ namespace vast
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
             target.addLegalDialect< vast::core::CoreDialect >();
+            target.markUnknownOpDynamicallyLegal([](auto){ return true; });
             return target;
         }
 
