@@ -71,6 +71,9 @@ class QualfiersParams< string name, list<Qualifier> qualifiers>
 {
   let parameters = FlattenInsList< !foreach(qual, qualifiers, qual.param) >.result;
 
+  // See commit `3dbac2c007c11` in the upstream.
+  string attrName = name;
+
   let assemblyFormat = "params ` `";
 }
 
