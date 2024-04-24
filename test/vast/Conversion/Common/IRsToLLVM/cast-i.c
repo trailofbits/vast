@@ -15,7 +15,7 @@ void ptr_to_bool() {
 // HL: }
 
 // MLIR: llvm.func @ptr_to_bool
-// MLIR:    llvm.mlir.null
+// MLIR:    llvm.mlir.zero
 // MLIR:    llvm.icmp "ne"
 // MLIR:    llvm.zext {{.*}} : i1 to i8
 // MLIR: }

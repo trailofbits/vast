@@ -4,7 +4,7 @@ struct X { int x; };
 
 int main()
 {
-    // CHECK: {{.*}} = llvm.alloca {{.*}} x !llvm.struct<"X", (i32)> : (i64) -> !llvm.ptr<struct<"X", (i32)>>
+    // CHECK: {{.*}} = llvm.alloca {{.*}} x !llvm.struct<"X", (i32)> : (i64) -> !llvm.ptr
     struct X x;
     return 0;
 }

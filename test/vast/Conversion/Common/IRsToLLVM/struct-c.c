@@ -8,10 +8,10 @@ struct Y { const float x; };
 
 int main()
 {
-    // CHECK: {{.*}}  = llvm.alloca {{.*}} x !llvm.struct<"X", (i32, ptr<struct<"Y", (f32)>>)> : (i64) -> !llvm.ptr<struct<"X", (i32, ptr<struct<"Y", (f32)>>)>>
+    // CHECK: {{.*}}  = llvm.alloca {{.*}} x !llvm.struct<"X", (i32, ptr)> : (i64) -> !llvm.ptr
     struct X x = { 2, 0 };
 
-    // CHECK: {{.*}} = llvm.alloca {{.*}} x !llvm.struct<"Y", (f32)> : (i64) -> !llvm.ptr<struct<"Y", (f32)>>
+    // CHECK: {{.*}} = llvm.alloca {{.*}} x !llvm.struct<"Y", (f32)> : (i64) -> !llvm.ptr
     struct Y y = { 2.0f };
 
     return 0;
