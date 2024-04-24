@@ -230,7 +230,14 @@ namespace vast::cg
 
     struct members_scope : scope_context {
         using scope_context::scope_context;
+        explicit members_scope(scope_context *parent)
+            : scope_context(parent)
+            , vars(parent->symbols.vars)
+        {}
+
         virtual ~members_scope() = default;
+
+        symbol_table_scope< string_ref, mlir_value > vars;
     };
 
 } // namespace vast::cg
