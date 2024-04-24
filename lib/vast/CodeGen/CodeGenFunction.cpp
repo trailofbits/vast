@@ -53,7 +53,7 @@ namespace vast::cg
             earg.setLoc(visitor.location(param));
             if (auto name = visitor.symbol(param)) {
                 // TODO set name
-                scope().declare(name.value(), earg);
+                scope().declare_function_param(name.value(), earg);
             }
         }
     }

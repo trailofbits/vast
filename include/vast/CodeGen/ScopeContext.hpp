@@ -25,52 +25,94 @@ namespace vast::cg
 
         using base::count;
         using base::insert;
-
-        logical_result declare(const From &from, const To &to) {
-            if (count(from)) {
-                return mlir::failure();
-            }
-
-            insert(from, to);
-            return mlir::success();
-        }
     };
 
     // TODO why is this name and not function?
-    using funs_scope_table = scoped_table< string_ref, operation >;
-    using vars_scope_table = scoped_table< string_ref, mlir_value >;
+    using funs_scope_table     = scoped_table< string_ref, operation >;
+    using vars_scope_table     = scoped_table< string_ref, mlir_value >;
+    using types_scope_table    = scoped_table< string_ref, operation >;
     using enum_constants_table = scoped_table< string_ref, operation >;
 
     struct symbol_tables
     {
         funs_scope_table funs;
         vars_scope_table vars;
+        types_scope_table types;
         enum_constants_table enum_constants;
     };
 
 
+    namespace symbol {
+        using var_decls  = util::type_list< hl::VarDeclOp >;
+        using fun_decls  = util::type_list< hl::FuncOp >;
+        using type_decls = util::type_list< hl::TypeDeclOp >;
+
+        template< typename op_t >
+        concept var_decl_like = var_decls::contains< op_t >;
+
+        template< typename op_t >
+        concept fun_decl_like = fun_decls::contains< op_t >;
+
+        template< typename op_t >
+        concept type_decl_like = type_decls::contains< op_t >;
+
+    } // namespace symbol
+
     struct symbols_view {
+
+        template< typename builder_t >
+        auto declare(builder_t &&bld) -> decltype(bld()) {
+            return declare(bld());
+        }
+
         explicit symbols_view(symbol_tables &symbols)
             : symbols(symbols)
         {}
 
-        void declare(vast_function function) {
-            symbols.funs.insert(function.getName(), function);
+        auto declare(hl::FuncOp op) {
+            return symbols.funs.insert(op.getName(), op), op;
         }
 
-        void declare(string_ref name, mlir_value value) {
-            symbols.vars.insert(name, value);
+        auto declare(hl::VarDeclOp op) {
+            return symbols.vars.insert(op.getName(), op), op;
         }
 
-        void declare(hl::VarDeclOp var) {
-            declare(var.getName(), var);
+        auto declare_function_param(string_ref name, mlir_value value) {
+            return symbols.vars.insert(name, value), value;
         }
 
-        mlir_value lookup_var(string_ref name) {
+        auto declare(hl::TypeDeclOp op) {
+            return symbols.types.insert(op.getName(), op), op;
+        }
+
+        mlir_value lookup_var(string_ref name) const {
             return symbols.vars.lookup(name);
         }
 
+        operation lookup_fun(string_ref name) const {
+            return symbols.funs.lookup(name);
+        }
+
+        operation lookup_type(string_ref name) const {
+            return symbols.types.lookup(name);
+        }
+
+        template< typename op_t >
+        op_t lookup(string_ref name) {
+            return mlir::dyn_cast< op_t >(lookup_impl< op_t >(name));
+        }
+
         symbol_tables &symbols;
+
+      private:
+        template< symbol::var_decl_like op_t >
+        auto lookup_impl(string_ref name) { return lookup_var(name); }
+
+        template< symbol::fun_decl_like op_t >
+        auto lookup_impl(string_ref name) { return lookup_fun(name); }
+
+        template< symbol::type_decl_like op_t >
+        auto lookup_impl(string_ref name) { return lookup_type(name); }
     };
 
 
