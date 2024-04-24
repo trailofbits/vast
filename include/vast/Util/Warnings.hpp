@@ -14,7 +14,8 @@
   _Pragma( "GCC diagnostic ignored \"-Wctad-maybe-unsupported\"" ) \
   _Pragma( "GCC diagnostic ignored \"-Wdouble-promotion\"" ) \
   _Pragma( "GCC diagnostic ignored \"-Wshadow\"") \
-  _Pragma( "GCC diagnostic ignored \"-Wunused-function\"")
+  _Pragma( "GCC diagnostic ignored \"-Wunused-function\"") \
+  _Pragma( "GCC diagnostic ignored \"-Wdeprecated-this-capture\"")
 
 #define VAST_CLANG_RELAX_WARNINGS \
   _Pragma( "GCC diagnostic ignored \"-Wambiguous-reversed-operator\"" )
