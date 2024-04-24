@@ -67,6 +67,11 @@ namespace vast::cg {
             : bld(bld), self(self)
         {}
 
+        template< typename Builder >
+        auto declare(Builder &&bld) -> decltype(bld()) {
+            return self.scope.declare(std::forward< Builder >(bld));
+        }
+
       protected:
         codegen_builder &bld;
         scoped_visitor_view self;
