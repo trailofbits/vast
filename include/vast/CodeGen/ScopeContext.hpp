@@ -46,33 +46,14 @@ namespace vast::cg
 
     struct symbols_view {
 
-        template< typename builder_t >
-        auto maybe_declare(builder_t &&bld) -> decltype(bld()) {
-            if (auto val = bld()) {
-                return mlir::dyn_cast< decltype(bld()) >(declare(val));
-            } else {
-                return val;
-            }
-        }
-
         explicit symbols_view(symbol_tables &symbols)
             : symbols(symbols)
         {}
 
-        auto declare(mlir_value val) {
-            auto op = val.getDefiningOp();
-            if (core::declares_variable(op)) {
-                symbols.vars.insert(util::symbol_name(op), val);
-            } else {
-                VAST_UNREACHABLE("Unknown value declaration type");
-            }
-
-            return val;
-        }
-
         auto declare(operation op) {
-            op->dump();
-            if (core::declares_function(op)) {
+            if (core::declares_variable(op)) {
+                symbols.vars.insert(util::symbol_name(op), op->getResult(0));
+            } else if (core::declares_function(op)) {
                 symbols.funs.insert(util::symbol_name(op), op);
             } else if (core::declares_type(op)) {
                 symbols.types.insert(util::symbol_name(op), op);
@@ -81,6 +62,15 @@ namespace vast::cg
             }
 
             return op;
+        }
+
+        template< typename builder_t >
+        auto maybe_declare(builder_t &&bld) -> decltype(bld()) {
+            if (auto val = bld()) {
+                return mlir::dyn_cast< decltype(bld()) >(declare(val));
+            } else {
+                return val;
+            }
         }
 
         auto declare_function_param(string_ref name, mlir_value value) {
