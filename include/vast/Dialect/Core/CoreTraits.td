@@ -17,4 +17,16 @@ def ConstantLikeAttrTrait : NativeAttrTrait<"ConstantLikeAttrTrait"> {
   let cppNamespace = "::vast::core";
 }
 
+def DeclaresTypeTrait : NativeOpTrait< "DeclaresTypeTrait" >, StructuralOpTrait {
+    let cppNamespace = "::vast::core";
+}
+
+def DeclaresFunctionTrait : NativeOpTrait< "DeclaresFunctionTrait" >, StructuralOpTrait {
+    let cppNamespace = "::vast::core";
+}
+
+def DeclaresVariableTrait : NativeOpTrait< "DeclaresVariableTrait" >, StructuralOpTrait {
+    let cppNamespace = "::vast::core";
+}
+
 #endif //VAST_DIALECT_CORE_CORETRAITS
