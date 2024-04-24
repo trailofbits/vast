@@ -102,7 +102,7 @@ tools = [
         ]
     ),
     ToolSubst('%file-check', command = 'FileCheck'),
-    ToolSubst('%clang', command = 'clang-17')
+    ToolSubst('%clang', command = 'clang-18')
 ]
 
 if 'BUILD_TYPE' in lit_config.params:
