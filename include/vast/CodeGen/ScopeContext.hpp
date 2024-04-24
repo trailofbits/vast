@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/Mangler.hpp"
+#include "vast/Util/TypeList.hpp"
 
 #include <functional>
 #include <queue>
@@ -214,12 +215,14 @@ namespace vast::cg
         explicit module_scope(symbol_tables &symbols)
             : scope_context(symbols)
             , functions(symbols.funs)
+            , types(symbols.types)
             , globals(symbols.vars)
         {}
 
         virtual ~module_scope() = default;
 
-        symbol_table_scope< string_ref, operation > functions;
+        symbol_table_scope< string_ref, operation >  functions;
+        symbol_table_scope< string_ref, operation >  types;
         symbol_table_scope< string_ref, mlir_value > globals;
     };
 
