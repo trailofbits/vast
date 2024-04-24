@@ -1,12 +1,12 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
-#ifndef VAST_DIALECT_HIGHLEVEL_IR_SYMBOLINTERFACE
-#define VAST_DIALECT_HIGHLEVEL_IR_SYMBOLINTERFACE
+#ifndef VAST_INTERFACES_SYMBOL_INTERFACE
+#define VAST_INTERFACES_SYMBOL_INTERFACE
 
 include "mlir/IR/OpBase.td"
+include "vast/Interfaces/Common.td"
 
-// TODO: Add to operations
-def VastSymbol : OpInterface< "VastSymbolOpInterface" > {
+def VastSymbol : VastOpInterface< "VastSymbolOpInterface" > {
     let description = [{
         This interface describes an operation that may define a `VastSymbol`.
     }];
@@ -40,4 +40,4 @@ def VastSymbol : OpInterface< "VastSymbolOpInterface" > {
     ];
 }
 
-#endif // VAST_DIALECT_HIGHLEVEL_IR_SYMBOLINTERFACE
+#endif // VAST_INTERFACES_SYMBOL_INTERFACE

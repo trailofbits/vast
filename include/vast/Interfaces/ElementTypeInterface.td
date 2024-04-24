@@ -1,23 +1,21 @@
 // Copyright (c) 2023-present, Trail of Bits, Inc.
 
-#ifndef VAST_IR_ELEMENTTYPEINTERFACE
-#define VAST_IR_ELEMENTTYPEINTERFACE
+#ifndef VAST_INTERFACES_ELEMENT_TYPE_INTERFACE
+#define VAST_INTERFACES_ELEMENT_TYPE_INTERFACE
 
 include "mlir/IR/OpBase.td"
+include "vast/Interfaces/Common.td"
 
-def ElementTypeInterface
-    : TypeInterface< "ElementTypeInterface" > {
-        let description = [{
-            Simple interface to access the element type in a uniform way.
-        }];
+def ElementTypeInterface : VastTypeInterface< "ElementTypeInterface" > {
+    let description = [{
+        Simple interface to access the element type in a uniform way.
+    }];
 
-        let cppNamespace = "::vast";
+    let methods = [
+        InterfaceMethod< "Returns the element type.",
+            "::mlir::Type", "getElementType", (ins),
+            [{return $_type.getElementType(); }] >
+    ];
+}
 
-        let methods = [
-            InterfaceMethod< "Returns the element type.",
-                "::mlir::Type", "getElementType", (ins),
-                [{return $_type.getElementType(); }] >
-        ];
-    }
-
-#endif // VAST_IR_ELEMENTTYPEINTERFACE
+#endif // VAST_INTERFACES_ELEMENT_TYPE_INTERFACE

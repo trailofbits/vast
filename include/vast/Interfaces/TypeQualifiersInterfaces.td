@@ -1,13 +1,13 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
-#ifndef VAST_TYPE_QUALIFIERS_INTERFACES
-#define VAST_TYPE_QUALIFIERS_INTERFACES
+#ifndef VAST_INTERFACES_TYPE_QUALIFIERS_INTERFACES
+#define VAST_INTERFACES_TYPE_QUALIFIERS_INTERFACES
 
 include "mlir/IR/OpBase.td"
+include "vast/Interfaces/Common.td"
 
-def ConstQualifierInterface : AttrInterface< "ConstQualifierInterface" > {
+def ConstQualifierInterface : VastAttrInterface< "ConstQualifierInterface" > {
     let description = [{ This is interface to access const qualifier. }];
-    let cppNamespace = "::vast";
 
     let methods = [
         InterfaceMethod<"Returns true if type has const qualifier.",
@@ -19,9 +19,8 @@ def ConstQualifierInterface : AttrInterface< "ConstQualifierInterface" > {
     ];
 }
 
-def VolatileQualifierInterface : AttrInterface< "VolatileQualifierInterface" > {
+def VolatileQualifierInterface : VastAttrInterface< "VolatileQualifierInterface" > {
     let description = [{ This is interface to access volatile qualifier. }];
-    let cppNamespace = "::vast";
 
     let methods = [
         InterfaceMethod<"Returns true if type has volatile qualifier.",
@@ -33,9 +32,8 @@ def VolatileQualifierInterface : AttrInterface< "VolatileQualifierInterface" > {
     ];
 }
 
-def RestrictQualifierInterface : AttrInterface< "RestrictQualifierInterface" > {
+def RestrictQualifierInterface : VastAttrInterface< "RestrictQualifierInterface" > {
     let description = [{ This is interface to access restrict qualifier. }];
-    let cppNamespace = "::vast";
 
     let methods = [
         InterfaceMethod<"Returns true if tzpe has restrict qualifier.",
@@ -47,9 +45,8 @@ def RestrictQualifierInterface : AttrInterface< "RestrictQualifierInterface" > {
     ];
 }
 
-def UnsignedQualifierInterface : AttrInterface< "UnsignedQualifierInterface" > {
+def UnsignedQualifierInterface : VastAttrInterface< "UnsignedQualifierInterface" > {
     let description = [{ This is interface to access unsigned qualifier. }];
-    let cppNamespace = "::vast";
 
     let methods = [
         InterfaceMethod<"Returns true if type has unsigned qualifier.",
@@ -61,4 +58,4 @@ def UnsignedQualifierInterface : AttrInterface< "UnsignedQualifierInterface" > {
     ];
 }
 
-#endif  // VAST_TYPE_QUALIFIERS_INTERFACES
+#endif  // VAST_INTERFACES_TYPE_QUALIFIERS_INTERFACES
