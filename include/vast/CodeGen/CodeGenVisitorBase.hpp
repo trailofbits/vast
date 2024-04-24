@@ -68,8 +68,8 @@ namespace vast::cg {
         {}
 
         template< typename Builder >
-        auto declare(Builder &&bld) -> decltype(bld()) {
-            return self.scope.declare(std::forward< Builder >(bld));
+        auto maybe_declare(Builder &&bld) -> decltype(bld()) {
+            return self.scope.maybe_declare(std::forward< Builder >(bld));
         }
 
       protected:

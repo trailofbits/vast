@@ -368,7 +368,7 @@ namespace vast::cg
     }
 
     operation default_decl_visitor::mk_incomplete_decl(const clang::RecordDecl *decl) {
-        return declare([&] {
+        return maybe_declare([&] {
             return bld.compose< hl::TypeDeclOp >()
                 .bind(self.location(decl))
                 .bind(self.symbol(decl))
