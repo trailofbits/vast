@@ -16,7 +16,7 @@ jobs:
   cpp-linter:
     strategy:
       matrix:
-        llvm-version: [17]
+        llvm-version: [18]
         image-version: [22.04]
 
     runs-on: ubuntu-${{ matrix.image-version }}

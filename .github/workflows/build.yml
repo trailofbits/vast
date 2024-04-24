@@ -24,7 +24,7 @@ jobs:
   build:
     strategy:
       matrix:
-        llvm-version: [17]
+        llvm-version: [18]
         image-version: [22.04]
         build-type: [Release, Debug]
         sanitizers: [ON, OFF]
