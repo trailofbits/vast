@@ -14,7 +14,7 @@ void null_to_ptr() {
 // HL: }
 
 // MLIR: llvm.func @null_to_ptr
-// MLIR:    llvm.mlir.null
+// MLIR:    llvm.mlir.zero
 // MLIR: }
 
 // LLVM: define void @null_to_ptr
