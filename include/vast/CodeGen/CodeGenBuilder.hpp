@@ -228,6 +228,26 @@ namespace vast::cg {
                 return create< op_t >(std::forward< decltype(args) >(args)...);
             });
         }
+
+        template< typename T >
+        Type bitwidth_type() {
+            return mlir::IntegerType::get(getContext(), bits< T >());
+        }
+
+        template< typename T >
+        integer_attr_t interger_attr(T v) {
+            return integer_attr_t::get(bitwidth_type< T >(), v);
+        }
+
+        integer_attr_t  u8(uint8_t  v) { return interger_attr(v); }
+        integer_attr_t u16(uint16_t v) { return interger_attr(v); }
+        integer_attr_t u32(uint32_t v) { return interger_attr(v); }
+        integer_attr_t u64(uint64_t v) { return interger_attr(v); }
+
+        integer_attr_t  i8(int8_t  v) { return interger_attr(v); }
+        integer_attr_t i16(int16_t v) { return interger_attr(v); }
+        integer_attr_t i32(int32_t v) { return interger_attr(v); }
+        integer_attr_t i64(int64_t v) { return interger_attr(v); }
     };
 
 
