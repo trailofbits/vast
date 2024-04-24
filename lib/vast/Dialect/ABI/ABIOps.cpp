@@ -29,7 +29,7 @@ namespace vast::abi
         Printer &printer, auto op,
         Attribute attr, mlir::DictionaryAttr dict, Region &body
     ) {
-        return core::printFunctionSignatureAndBody( printer, op, attr, dict, body );
+        return core::printFunctionSignatureAndBodyImpl( printer, op, attr, dict, body );
     }
 
     mlir::CallInterfaceCallable CallOp::getCallableForCallee()

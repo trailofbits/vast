@@ -59,7 +59,7 @@ namespace vast::core {
 
 
     template< typename FuncOp >
-    void printFunctionSignatureAndBody(
+    void printFunctionSignatureAndBodyImpl(
         Printer &printer, FuncOp op,
         Attribute /* funcion_type */, mlir::DictionaryAttr, Region &body
     ) {
