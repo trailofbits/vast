@@ -344,7 +344,15 @@ namespace vast::cg
     }
 
     operation default_decl_visitor::VisitRecordDecl(const clang::RecordDecl *decl) {
-        return {};
+        if (!decl->isCompleteDefinition()) {
+            return mk_incomplete_decl(decl);
+        }
+
+        if (decl->isUnion()) {
+            return mk_record_decl< hl::UnionDeclOp >(decl);
+        } else {
+            return mk_record_decl< hl::StructDeclOp >(decl);
+        }
     }
 
     operation default_decl_visitor::VisitCXXRecordDecl(const clang::CXXRecordDecl *decl) {
@@ -358,4 +366,14 @@ namespace vast::cg
     operation default_decl_visitor::VisitFieldDecl(const clang::FieldDecl *decl)  {
         return {};
     }
+
+    operation default_decl_visitor::mk_incomplete_decl(const clang::RecordDecl *decl) {
+        return declare([&] {
+            return bld.compose< hl::TypeDeclOp >()
+                .bind(self.location(decl))
+                .bind(self.symbol(decl))
+                .freeze();
+        });
+    }
+
 } // namespace vast::hl
