@@ -64,19 +64,20 @@ namespace vast::cg
             if (core::declares_variable(op)) {
                 symbols.vars.insert(util::symbol_name(op), val);
             } else {
-                VAST_UNREACHABLE("Unknown declaration type");
+                VAST_UNREACHABLE("Unknown value declaration type");
             }
 
             return val;
         }
 
         auto declare(operation op) {
+            op->dump();
             if (core::declares_function(op)) {
                 symbols.funs.insert(util::symbol_name(op), op);
             } else if (core::declares_type(op)) {
                 symbols.types.insert(util::symbol_name(op), op);
             } else {
-                VAST_UNREACHABLE("Unknown declaration type");
+                VAST_UNREACHABLE("Unknown operation declaration type");
             }
 
             return op;

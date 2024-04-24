@@ -55,11 +55,13 @@ namespace vast::cg {
                 gen.emit(decl);
             };
 
-            return bld.compose< RecordDeclOp >()
-                .bind(self.location(decl))
-                .bind(self.symbol(decl))
-                .bind(field_builder)
-                .freeze();
+            return maybe_declare([&] {
+                return bld.compose< RecordDeclOp >()
+                    .bind(self.location(decl))
+                    .bind(self.symbol(decl))
+                    .bind(field_builder)
+                    .freeze();
+            });
         }
     };
 
