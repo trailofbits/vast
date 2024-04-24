@@ -206,13 +206,14 @@ def EnumDeclOp
 }
 
 class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
-    : HighLevel_Op<
-        mnemonic,
-        !listconcat(traits, [NoTerminator, VastSymbol,
-                            DeclareOpInterfaceMethods< AggregateTypeDefinition >]) >
+    : HighLevel_Op< mnemonic,
+        !listconcat(traits, [
+          NoTerminator, VastSymbol, DeclaresTypeTrait,
+          DeclareOpInterfaceMethods< AggregateTypeDefinition >
+        ])
+      >
     , Arguments<(ins StrAttr:$name)>
 {
-  // TODO(Heno): Add region constraints.
   let regions = (region AnyRegion:$fields);
 
   let skipDefaultBuilders = 1;
