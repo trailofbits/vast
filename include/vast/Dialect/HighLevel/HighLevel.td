@@ -37,6 +37,8 @@ def HighLevel_Dialect : Dialect {
     let hasConstantMaterializer = 1;
 
     let dependentDialects = ["vast::core::CoreDialect"];
+
+    let usePropertiesForAttributes = 0;
 }
 
 class HighLevel_Op< string mnemonic, list< Trait > traits = [] >
