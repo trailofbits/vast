@@ -46,7 +46,7 @@ namespace vast::ll
         Printer &printer, FuncOp op, Attribute function_type,
         mlir::DictionaryAttr dict_attr, Region &body
     ) {
-        return core::printFunctionSignatureAndBody(printer, op, function_type, dict_attr, body);
+        return core::printFunctionSignatureAndBodyImpl(printer, op, function_type, dict_attr, body);
     }
 
     SSACFG_REGION_OP( FuncOp );
