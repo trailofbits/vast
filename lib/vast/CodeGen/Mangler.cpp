@@ -109,8 +109,8 @@ namespace vast::cg
                 }
             }
 
-            if (const auto *var = clang::dyn_cast< clang::VarDecl >(decl)) {
-                out << identifier->getName();
+            if (const auto *named = clang::dyn_cast< clang::NamedDecl >(decl)) {
+                out << named->getName();
             }
         }
 
