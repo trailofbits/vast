@@ -62,8 +62,12 @@ namespace vast::cg
     struct symbols_view {
 
         template< typename builder_t >
-        auto declare(builder_t &&bld) -> decltype(bld()) {
-            return declare(bld());
+        auto maybe_declare(builder_t &&bld) -> decltype(bld()) {
+            if (auto val = bld()) {
+                return declare(val);
+            } else {
+                return val;
+            }
         }
 
         explicit symbols_view(symbol_tables &symbols)
