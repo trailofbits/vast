@@ -10,7 +10,6 @@ def VastSymbol : VastOpInterface< "VastSymbolOpInterface" > {
     let description = [{
         This interface describes an operation that may define a `VastSymbol`.
     }];
-    let cppNamespace = "::vast";
 
     let methods = [
         InterfaceMethod<"Returns the name of this symbol.",
@@ -39,5 +38,11 @@ def VastSymbol : VastOpInterface< "VastSymbolOpInterface" > {
         >
     ];
 }
+
+def VarSymbol       : VastOpInterface< "VarSymbolOpInterface",  [VastSymbol] >;
+def MemberVarSymbol : VastOpInterface< "MemberVarSymbolOpInterface", [VastSymbol] >;
+def EnumSymbol      : VastOpInterface< "EnumSymbolOpInterface", [VastSymbol] >;
+def FuncSymbol      : VastOpInterface< "FuncSymbolOpInterface", [VastSymbol] >;
+def TypeSymbol      : VastOpInterface< "TypeSymbolOpInterface", [VastSymbol] >;
 
 #endif // VAST_INTERFACES_SYMBOL_INTERFACE
