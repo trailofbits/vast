@@ -9,6 +9,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/Dialect/Func/IR/FuncOps.h>
 #include <mlir/Dialect/LLVMIR/LLVMTypes.h>
 #include <mlir/IR/Types.h>
+
+#include <llvm/ADT/ScopeExit.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
@@ -194,16 +196,15 @@ namespace vast::conv::tc {
         template< typename type >
         auto convert_recordlike() {
             // We need this prototype to handle recursive types.
-            return [&](type t, mlir::SmallVectorImpl< mlir_type > &out,
-                       mlir::ArrayRef< mlir_type > stack) -> logical_result {
+            return [&](type t, mlir::SmallVectorImpl< mlir_type > &out) -> logical_result {
                 auto core =
                     mlir::LLVM::LLVMStructType::getIdentified(t.getContext(), t.getName());
-                // Last element is `t`.
-                auto bt = stack.drop_back();
 
-                if (core.isOpaque() && std::ranges::find(bt, t) == bt.end()) {
+                auto &stack = self().get_stack();
+                if (core.isOpaque() && !llvm::count(stack, t)) {
+                    stack.push_back(t);
+                    auto pop = llvm::make_scope_exit([&]{ stack.pop_back(); });
                     if (auto body = convert_field_types(t)) {
-                        // Multithreading may cause some issues?
                         [[maybe_unused]] auto status = core.setBody(*body, false);
                         VAST_ASSERT(mlir::succeeded(status));
                     }
@@ -212,6 +213,7 @@ namespace vast::conv::tc {
                 return mlir::success();
             };
         }
+
     };
 
     // Really basic draft of how union lowering works, it should however be able to
@@ -307,6 +309,8 @@ namespace vast::conv::tc {
         {
             addConversion(convert_recordlike< hl::RecordType >());
         }
+
+        llvm::SmallVector<mlir_type> &get_stack() { return this->getCurrentThreadRecursiveStack(); }
 
         auto get_field_types(mlir_type t) -> std::optional< gap::generator< mlir_type > > {
             if (!mlir::isa< hl::RecordType >(t)) {
