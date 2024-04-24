@@ -41,16 +41,16 @@ namespace vast::cg
         VAST_UNIMPLEMENTED;
     }
 
-    void module_generator::emit(clang::TypedefDecl */* decl */) {
-        VAST_UNIMPLEMENTED;
+    void module_generator::emit(clang::TypedefDecl *decl) {
+        visitor.visit(decl);
     }
 
-    void module_generator::emit(clang::EnumDecl */* decl */) {
-        VAST_UNIMPLEMENTED;
+    void module_generator::emit(clang::EnumDecl *decl) {
+        visitor.visit(decl);
     }
 
-    void module_generator::emit(clang::RecordDecl */* decl */) {
-        VAST_UNIMPLEMENTED;
+    void module_generator::emit(clang::RecordDecl *decl) {
+        visitor.visit(decl);
     }
 
     void module_generator::emit(clang::FunctionDecl *decl) {
@@ -59,7 +59,7 @@ namespace vast::cg
     }
 
     void module_generator::emit(clang::VarDecl *decl) {
-        VAST_UNIMPLEMENTED;
+        visitor.visit(decl);
     }
 
 
