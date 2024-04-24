@@ -50,6 +50,16 @@ namespace vast::util
 
     static inline auto symbol_name(mlir_symbol_interface value) { return value.getName(); }
 
+    static inline auto symbol_name(operation op) {
+        if (auto symbol = mlir::dyn_cast< vast_symbol_interface >(op)) {
+            return symbol_name(symbol);
+        } else if (auto symbol = mlir::dyn_cast< mlir_symbol_interface >(op)) {
+            return symbol_name(symbol);
+        } else {
+            return string_ref{};
+        }
+    }
+
     gap::generator< operation > symbol_users(vast_symbol_interface op, auto scope) {
         for (auto user : op->getUsers()) {
             co_yield user;
