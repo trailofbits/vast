@@ -65,7 +65,7 @@ def HighLevel_FuncOp
 }
 
 def TypeDeclOp
-  : HighLevel_Op< "type", [VastSymbol] >
+  : HighLevel_Op< "type", [VastSymbol, DeclaresTypeTrait] >
   , Arguments<(ins StrAttr:$name)>
 {
   let summary = "VAST type declaration";
@@ -79,7 +79,7 @@ def TypeDeclOp
 }
 
 def TypeDefOp
-  : HighLevel_Op< "typedef", [VastSymbol] >
+  : HighLevel_Op< "typedef", [VastSymbol, DeclaresTypeTrait] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
 {
   let summary = "VAST typedef operation";
@@ -97,7 +97,7 @@ def TypeDefOp
 }
 
 def TypeOfTypeOp
-  : HighLevel_Op< "typeof.type", [VastSymbol] >
+  : HighLevel_Op< "typeof.type" >
   , Arguments<(ins TypeAttr:$type)>
 {
   let summary = "VAST typeof(type) operation";

@@ -3,6 +3,8 @@
 #ifndef VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELVAR
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELVAR
 
+include "vast/Dialect/Core/CoreTraits.td"
+
 class StorageClassAttr< string name, int val >
   : I64EnumAttrCase< name, val >
 {}
@@ -148,7 +150,7 @@ class StorageSpecifiers :
 }
 
 // Variable Operation
-def HighLevel_VarDeclOp : HighLevel_Op< "var", [VastSymbol] >
+def HighLevel_VarDeclOp : HighLevel_Op< "var", [VastSymbol, DeclaresVariableTrait] >
   , StorageSpecifiers
 {
   let summary = "VAST variable declaration";
