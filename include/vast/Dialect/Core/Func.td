@@ -10,6 +10,8 @@ include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/Interfaces/FunctionInterfaces.td"
 include "vast/Interfaces/SymbolInterface.td"
 
+include "vast/Dialect/Core/CoreTraits.td"
+
 def GlobalLinkageKind : Attr<
     CPred<"::llvm::isa<::vast::core::GlobalLinkageKindAttr>($_self)">,
     "global linkage kind"
@@ -37,6 +39,7 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
       IsolatedFromAbove,
       Symbol,
       NoTerminator,
+      DeclaresFunctionTrait,
       DeclareOpInterfaceMethods< RegionKindInterface >
     ])
 > {
