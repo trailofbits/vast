@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/CodeGenMembers.hpp"
 
 namespace vast::cg {
 
@@ -41,6 +42,25 @@ namespace vast::cg {
         operation VisitCXXRecordDecl(const clang::CXXRecordDecl *decl);
         operation VisitAccessSpecDecl(const clang::AccessSpecDecl *decl);
         operation VisitFieldDecl(const clang::FieldDecl *decl) ;
+
+        operation mk_incomplete_decl(const clang::RecordDecl *decl);
+
+        template< typename RecordDeclOp >
+        operation mk_record_decl(const clang::RecordDecl *decl) {
+            auto field_builder = [&] (auto &/* bld */, auto /* loc */) {
+                auto gen = mk_scoped_generator< members_generator >(
+                    self.scope, bld, self
+                );
+
+                gen.emit(decl);
+            };
+
+            return bld.compose< RecordDeclOp >()
+                .bind(self.location(decl))
+                .bind(self.symbol(decl))
+                .bind(field_builder)
+                .freeze();
+        }
     };
 
 } // namespace vast::cg
