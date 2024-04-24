@@ -10,6 +10,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/Mangler.hpp"
 #include "vast/Util/TypeList.hpp"
+#include "vast/Util/Symbols.hpp"
 
 #include <functional>
 #include <queue>
@@ -43,28 +44,12 @@ namespace vast::cg
     };
 
 
-    namespace symbol {
-        using var_decls  = util::type_list< hl::VarDeclOp >;
-        using fun_decls  = util::type_list< hl::FuncOp >;
-        using type_decls = util::type_list< hl::TypeDeclOp >;
-
-        template< typename op_t >
-        concept var_decl_like = var_decls::contains< op_t >;
-
-        template< typename op_t >
-        concept fun_decl_like = fun_decls::contains< op_t >;
-
-        template< typename op_t >
-        concept type_decl_like = type_decls::contains< op_t >;
-
-    } // namespace symbol
-
     struct symbols_view {
 
         template< typename builder_t >
         auto maybe_declare(builder_t &&bld) -> decltype(bld()) {
             if (auto val = bld()) {
-                return declare(val);
+                return mlir::dyn_cast< decltype(bld()) >(declare(val));
             } else {
                 return val;
             }
@@ -74,20 +59,31 @@ namespace vast::cg
             : symbols(symbols)
         {}
 
-        auto declare(hl::FuncOp op) {
-            return symbols.funs.insert(op.getName(), op), op;
+        auto declare(mlir_value val) {
+            auto op = val.getDefiningOp();
+            if (core::declares_variable(op)) {
+                symbols.vars.insert(util::symbol_name(op), val);
+            } else {
+                VAST_UNREACHABLE("Unknown declaration type");
+            }
+
+            return val;
         }
 
-        auto declare(hl::VarDeclOp op) {
-            return symbols.vars.insert(op.getName(), op), op;
+        auto declare(operation op) {
+            if (core::declares_function(op)) {
+                symbols.funs.insert(util::symbol_name(op), op);
+            } else if (core::declares_type(op)) {
+                symbols.types.insert(util::symbol_name(op), op);
+            } else {
+                VAST_UNREACHABLE("Unknown declaration type");
+            }
+
+            return op;
         }
 
         auto declare_function_param(string_ref name, mlir_value value) {
             return symbols.vars.insert(name, value), value;
-        }
-
-        auto declare(hl::TypeDeclOp op) {
-            return symbols.types.insert(op.getName(), op), op;
         }
 
         mlir_value lookup_var(string_ref name) const {
@@ -102,22 +98,7 @@ namespace vast::cg
             return symbols.types.lookup(name);
         }
 
-        template< typename op_t >
-        op_t lookup(string_ref name) {
-            return mlir::dyn_cast< op_t >(lookup_impl< op_t >(name));
-        }
-
         symbol_tables &symbols;
-
-      private:
-        template< symbol::var_decl_like op_t >
-        auto lookup_impl(string_ref name) { return lookup_var(name); }
-
-        template< symbol::fun_decl_like op_t >
-        auto lookup_impl(string_ref name) { return lookup_fun(name); }
-
-        template< symbol::type_decl_like op_t >
-        auto lookup_impl(string_ref name) { return lookup_type(name); }
     };
 
 
