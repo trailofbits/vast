@@ -22,7 +22,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/DialectConversion.hpp"
 #include "vast/Util/TypeUtils.hpp"
 
-
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
@@ -41,9 +40,7 @@ namespace vast::conv {
                 mcontext_t &mctx;
 
                 type_converter(mcontext_t &mctx, vast_module mod)
-                    : conv::tc::base_type_converter(),
-                      mod(mod), mctx(mctx)
-                {
+                    : conv::tc::base_type_converter(), mod(mod), mctx(mctx) {
                     addConversion([&](mlir_type t) { return this->convert(t); });
                 }
 
@@ -57,20 +54,22 @@ namespace vast::conv {
 
                 maybe_type_t convert(mlir_type type) {
                     mlir::AttrTypeReplacer replacer;
-                    replacer.addReplacement([] (mlir_type t) {
-                        return hl::strip_elaborated(t);
-                    });
+                    replacer.addReplacement([](mlir_type t) { return hl::strip_elaborated(t); }
+                    );
                     return replacer.replace(type);
                 }
             };
 
-            using lower_elaborated = conv::tc::generic_type_converting_pattern< type_converter >;
+            using lower_elaborated =
+                conv::tc::generic_type_converting_pattern< type_converter >;
         } // namespace pattern
     } // namespace
 
-    struct LowerElaboratedTypes : ModuleConversionPassMixin< LowerElaboratedTypes, LowerElaboratedTypesBase >
+    struct LowerElaboratedTypes
+        : ModuleConversionPassMixin< LowerElaboratedTypes, LowerElaboratedTypesBase >
     {
-        using base     = ModuleConversionPassMixin< LowerElaboratedTypes, LowerElaboratedTypesBase >;
+        using base =
+            ModuleConversionPassMixin< LowerElaboratedTypes, LowerElaboratedTypesBase >;
         using config_t = typename base::config_t;
 
         static auto create_conversion_target(mcontext_t &mctx) {

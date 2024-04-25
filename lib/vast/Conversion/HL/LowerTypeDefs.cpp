@@ -22,7 +22,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/DialectConversion.hpp"
 #include "vast/Util/TypeUtils.hpp"
 
-
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
@@ -41,9 +40,7 @@ namespace vast::conv {
                 mcontext_t &mctx;
 
                 type_converter(mcontext_t &mctx, vast_module mod)
-                    : conv::tc::base_type_converter(),
-                      mod(mod), mctx(mctx)
-                {
+                    : conv::tc::base_type_converter(), mod(mod), mctx(mctx) {
                     addConversion([&](mlir_type t) { return this->convert(t); });
                 }
 
@@ -62,15 +59,12 @@ namespace vast::conv {
 
                 maybe_type_t convert(mlir_type type) {
                     mlir::AttrTypeReplacer replacer;
-                    replacer.addReplacement([this] (mlir_type t) {
-                        return nested_type(t);
-                    });
+                    replacer.addReplacement([this](mlir_type t) { return nested_type(t); });
                     return replacer.replace(type);
                 }
             };
 
-            struct resolve_typedef
-                : conv::tc::generic_type_converting_pattern< type_converter >
+            struct resolve_typedef : conv::tc::generic_type_converting_pattern< type_converter >
             {
                 using base = conv::tc::generic_type_converting_pattern< type_converter >;
                 using base::base;
@@ -81,8 +75,9 @@ namespace vast::conv {
                 ) const override {
                     auto status = base::matchAndRewrite(op, ops, rewriter);
 
-                    if (mlir::isa< hl::TypeDefOp >(op))
+                    if (mlir::isa< hl::TypeDefOp >(op)) {
                         rewriter.eraseOp(op);
+                    }
 
                     return status;
                 }

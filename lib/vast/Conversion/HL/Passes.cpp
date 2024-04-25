@@ -12,19 +12,14 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Conversion/Passes.hpp"
 
-
 namespace vast::conv::pipeline {
 
-    pipeline_step_ptr splice_trailing_scopes() {
-        return pass(createSpliceTrailingScopes);
-    }
+    pipeline_step_ptr splice_trailing_scopes() { return pass(createSpliceTrailingScopes); }
 
     //
     // desugar pipeline passes
     //
-    static pipeline_step_ptr lower_typedefs() {
-        return pass(createLowerTypeDefsPass);
-    }
+    static pipeline_step_ptr lower_typedefs() { return pass(createLowerTypeDefsPass); }
 
     static pipeline_step_ptr lower_elaborated_types() {
         return pass(createLowerElaboratedTypesPass);
@@ -47,19 +42,12 @@ namespace vast::conv::pipeline {
     }
 
     pipeline_step_ptr simplify() {
-        return compose("simplify",
-            conv::pipeline::to_hlbi,
-            ude,
-            dce,
-            desugar
-        );
+        return compose("simplify", conv::pipeline::to_hlbi, ude, dce, desugar);
     }
 
     //
     // stdtypes passes
     //
-    pipeline_step_ptr stdtypes() {
-        return pass(createHLLowerTypesPass).depends_on(desugar);
-    }
+    pipeline_step_ptr stdtypes() { return pass(createHLLowerTypesPass).depends_on(desugar); }
 
 } // namespace vast::conv::pipeline

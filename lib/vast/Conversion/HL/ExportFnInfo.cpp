@@ -17,14 +17,14 @@ VAST_UNRELAX_WARNINGS
 #include <vast/Util/Symbols.hpp>
 #include <vast/Util/TypeSwitch.hpp>
 
-namespace vast::conv
-{
+namespace vast::conv {
     llvm::json::Object json_type_entry(const mlir::DataLayout &dl, mlir::Type type);
 
     //
     // generic type entry
     //
-    struct TypeEntryBase {
+    struct TypeEntryBase
+    {
         llvm::json::Object raw;
         mlir::Type type;
 
@@ -56,8 +56,10 @@ namespace vast::conv
     // dialect type entry emits type mnemonic name
     //
     template< typename DialectType >
-    struct DialectTypeEntry : TypeEntryBase {
+    struct DialectTypeEntry : TypeEntryBase
+    {
         using Base = TypeEntryBase;
+
         DialectTypeEntry(DialectType type) : Base(type) {}
 
         DialectType in_dialect() { return type.cast< DialectType >(); }
@@ -77,8 +79,10 @@ namespace vast::conv
     // void type entry
     //
     template< typename DialectType >
-    struct VoidTypeEntry : DialectTypeEntry< DialectType > {
+    struct VoidTypeEntry : DialectTypeEntry< DialectType >
+    {
         using Base = DialectTypeEntry< DialectType >;
+
         VoidTypeEntry(DialectType t) : Base(t) {}
 
         TypeEntryBase &emit() { return Base::emit().size(0u); }
@@ -91,8 +95,10 @@ namespace vast::conv
     // entry to emit type qualifiers
     //
     template< typename DialectType >
-    struct WithModifiersEntry : DialectTypeEntry< DialectType > {
+    struct WithModifiersEntry : DialectTypeEntry< DialectType >
+    {
         using Base = DialectTypeEntry< DialectType >;
+
         WithModifiersEntry(DialectType t) : Base(t) {}
 
         using Base::in_dialect;
@@ -116,13 +122,13 @@ namespace vast::conv
     // scalar values are dialect types with modifiers
     //
     template< typename DialectType >
-    struct ScalarTypeEntry : WithModifiersEntry< DialectType > {
+    struct ScalarTypeEntry : WithModifiersEntry< DialectType >
+    {
         using Base = WithModifiersEntry< DialectType >;
+
         ScalarTypeEntry(DialectType t) : Base(t) {}
 
-        TypeEntryBase &emit(const mlir::DataLayout &dl) {
-            return Base::emit().size(dl);
-        }
+        TypeEntryBase &emit(const mlir::DataLayout &dl) { return Base::emit().size(dl); }
     };
 
     template< typename DialectType >
@@ -132,8 +138,10 @@ namespace vast::conv
     // type entry with subelement
     //
     template< typename DialectType >
-    struct WithElementType : WithModifiersEntry< DialectType > {
+    struct WithElementType : WithModifiersEntry< DialectType >
+    {
         using Base = WithModifiersEntry< DialectType >;
+
         WithElementType(DialectType t) : Base(t) {}
 
         using Base::in_dialect;
@@ -161,8 +169,10 @@ namespace vast::conv
     // pointer entry is dialect entry with modifiers and sub_element entry
     //
     template< typename DialectType >
-    struct PointerTypeEntry : WithElementType< DialectType > {
+    struct PointerTypeEntry : WithElementType< DialectType >
+    {
         using Base = WithElementType< DialectType >;
+
         PointerTypeEntry(DialectType t) : Base(t) {}
 
         using Base::emit;
@@ -175,12 +185,14 @@ namespace vast::conv
     // lvalue type entry
     //
     template< typename DialectType >
-    struct LValueTypeEntry : DialectTypeEntry< DialectType > {
+    struct LValueTypeEntry : DialectTypeEntry< DialectType >
+    {
         using Base = DialectTypeEntry< DialectType >;
+
         LValueTypeEntry(DialectType t) : Base(t) {}
 
-        using Base::raw;
         using Base::in_dialect;
+        using Base::raw;
 
         TypeEntryBase &emit(const mlir::DataLayout &dl) {
             raw = type_entry(dl, in_dialect().getElementType()).raw;
@@ -208,7 +220,8 @@ namespace vast::conv
         return type_entry(dl, type).take();
     }
 
-    struct ExportFnInfo : ExportFnInfoBase< ExportFnInfo > {
+    struct ExportFnInfo : ExportFnInfoBase< ExportFnInfo >
+    {
         void runOnOperation() override {
             mlir::ModuleOp mod = this->getOperation();
 

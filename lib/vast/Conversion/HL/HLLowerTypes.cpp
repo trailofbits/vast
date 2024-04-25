@@ -5,8 +5,8 @@
 VAST_RELAX_WARNINGS
 #include <mlir/Analysis/DataLayoutAnalysis.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
-#include <mlir/IR/PatternMatch.h>
 #include <mlir/IR/BuiltinAttributeInterfaces.h>
+#include <mlir/IR/PatternMatch.h>
 #include <mlir/Transforms/DialectConversion.h>
 #include <mlir/Transforms/GreedyPatternRewriteDriver.h>
 VAST_UNRELAX_WARNINGS
@@ -17,8 +17,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
-#include "vast/Dialect/Core/CoreTypes.hpp"
 #include "vast/Dialect/Core/CoreAttributes.hpp"
+#include "vast/Dialect/Core/CoreTypes.hpp"
 
 #include "vast/Conversion/Common/Types.hpp"
 
@@ -32,8 +32,7 @@ VAST_UNRELAX_WARNINGS
 #include <algorithm>
 #include <iostream>
 
-namespace vast::conv
-{
+namespace vast::conv {
     using type_converter_t = conv::tc::HLToStd;
 
     namespace pattern {

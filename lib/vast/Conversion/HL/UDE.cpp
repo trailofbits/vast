@@ -36,7 +36,8 @@ namespace vast::conv {
 
 #if !defined(NDEBUG)
     constexpr bool debug_ude_pass = false;
-    #define VAST_UDE_DEBUG(...) VAST_REPORT_WITH_PREFIX_IF(debug_ude_pass, "[UDE] ", __VA_ARGS__)
+    #define VAST_UDE_DEBUG(...) \
+        VAST_REPORT_WITH_PREFIX_IF(debug_ude_pass, "[UDE] ", __VA_ARGS__)
 #else
     #define VAST_UDE_DEBUG(...)
 #endif
@@ -50,18 +51,25 @@ namespace vast::conv {
         std::unordered_set< operation > unused_cached;
 
         bool keep(hl::aggregate_interface op, auto scope) const { return keep_only_if_used; }
-        bool keep(hl::TypeDefOp op, auto scope)       const { return keep_only_if_used; }
-        bool keep(hl::TypeDeclOp op, auto scope)      const { return keep_only_if_used; }
+
+        bool keep(hl::TypeDefOp op, auto scope) const { return keep_only_if_used; }
+
+        bool keep(hl::TypeDeclOp op, auto scope) const { return keep_only_if_used; }
 
         // Mark field to be kept if the parent aggregate is kept
-        bool keep(hl::FieldDeclOp op, auto scope) const { return keep(op.getParentAggregate(), scope); }
+        bool keep(hl::FieldDeclOp op, auto scope) const {
+            return keep(op.getParentAggregate(), scope);
+        }
 
         bool keep(hl::FuncOp op, auto scope) const {
             return !op.isDeclaration() && !util::has_attr< hl::AlwaysInlineAttr >(op);
         }
 
         bool keep(hl::VarDeclOp op, auto scope) const {
-            VAST_CHECK(!op.hasExternalStorage() || op.getInitializer().empty(), "extern variable with initializer");
+            VAST_CHECK(
+                !op.hasExternalStorage() || op.getInitializer().empty(),
+                "extern variable with initializer"
+            );
             return !op.hasExternalStorage();
         }
 
@@ -144,7 +152,7 @@ namespace vast::conv {
         }
 
         void runOnOperation() override {
-            auto mod = getOperation();
+            auto mod    = getOperation();
             auto unused = gather_unused(mod);
 
             llvm::DenseSet< mlir_type > unused_types;
@@ -162,13 +170,13 @@ namespace vast::conv {
                 }
             }
 
-            auto contains_unused_subtype = [&] (mlir_type type) {
-                return contains_subtype(type, [&] (mlir_type sub) {
+            auto contains_unused_subtype = [&](mlir_type type) {
+                return contains_subtype(type, [&](mlir_type sub) {
                     return unused_types.contains(sub);
                 });
             };
 
-            dl::filter_data_layout(mod, [&] (const auto &entry) {
+            dl::filter_data_layout(mod, [&](const auto &entry) {
                 auto type = entry.getKey().template get< mlir_type >();
                 return !contains_unused_subtype(type);
             });
