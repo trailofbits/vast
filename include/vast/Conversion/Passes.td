@@ -197,25 +197,6 @@ def HLToHLBI : Pass<"vast-hl-to-hl-builtin", "mlir::ModuleOp"> {
   ];
 }
 
-def ExportFnInfo : Pass<"vast-export-fn-info", "mlir::ModuleOp"> {
-  let summary = "Create JSON that exports information about function arguments.";
-  let description = [{
-    Lowers module into llvm IR and dumps it on stderr.
-  }];
-
-  let dependentDialects = [
-    "vast::hl::HighLevelDialect",
-    "vast::core::CoreDialect"
-  ];
-
-  let constructor = "vast::createExportFnInfoPass()";
-
-  let options = [
-    Option< "o", "o", "std::string", "",
-            "Output JSON file to be created." >
-  ];
-}
-
 def DCE : Pass<"vast-hl-dce", "mlir::ModuleOp"> {
   let summary = "Trim dead code";
   let description = [{

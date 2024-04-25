@@ -66,8 +66,6 @@ namespace vast
     std::unique_ptr< mlir::Pass > createHLLowerTypesPass();
 
     // HL
-    std::unique_ptr< mlir::Pass > createExportFnInfoPass();
-
     std::unique_ptr< mlir::Pass > createDCEPass();
 
     std::unique_ptr< mlir::Pass > createUDEPass();
