@@ -11,16 +11,12 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::conv::pipeline {
 
-    static pipeline_step_ptr emit_abi() {
-        return pass(createEmitABIPass).depends_on(to_ll);
-    }
+    static pipeline_step_ptr emit_abi() { return pass(createEmitABIPass).depends_on(to_ll); }
 
     static pipeline_step_ptr lower_abi() {
         return pass(createLowerABIPass).depends_on(emit_abi);
     }
 
-    pipeline_step_ptr abi() {
-        return compose("abi", lower_abi);
-    }
+    pipeline_step_ptr abi() { return compose("abi", lower_abi); }
 
 } // namespace vast::conv::pipeline
