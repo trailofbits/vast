@@ -2,7 +2,4 @@
 
 #include "vast/ABI/ABI.hpp"
 
-namespace vast::abi
-{
-
-} // namespace vast::abi
+namespace vast::abi {} // namespace vast::abi
