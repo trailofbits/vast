@@ -63,15 +63,41 @@ namespace vast
 
     std::unique_ptr< mlir::Pass > createLowerValueCategoriesPass();
 
+    std::unique_ptr< mlir::Pass > createHLLowerTypesPass();
+
+    // HL
+    std::unique_ptr< mlir::Pass > createExportFnInfoPass();
+
+    std::unique_ptr< mlir::Pass > createDCEPass();
+
+    std::unique_ptr< mlir::Pass > createUDEPass();
+
+    std::unique_ptr< mlir::Pass > createLowerTypeDefsPass();
+
+    std::unique_ptr< mlir::Pass > createLowerElaboratedTypesPass();
+
+    std::unique_ptr< mlir::Pass > createSpliceTrailingScopes();
+
     // Generate the code for registering passes.
     #define GEN_PASS_REGISTRATION
     #include "vast/Conversion/Passes.h.inc"
 
     namespace conv::pipeline
     {
+        pipeline_step_ptr splice_trailing_scopes();
+
+        pipeline_step_ptr desugar();
+
+        pipeline_step_ptr simplify();
+
+        pipeline_step_ptr stdtypes();
+
         pipeline_step_ptr to_hlbi();
+
         pipeline_step_ptr abi();
+
         pipeline_step_ptr irs_to_llvm();
+
         pipeline_step_ptr core_to_llvm();
 
         pipeline_step_ptr to_ll();

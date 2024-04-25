@@ -1,6 +1,6 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
-#include "vast/Dialect/HighLevel/Passes.hpp"
+#include "vast/Conversion/Passes.hpp"
 
 VAST_RELAX_WARNINGS
 #include <mlir/Dialect/Func/IR/FuncOps.h>
@@ -22,9 +22,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
-#include "PassesDetails.hpp"
+#include "../PassesDetails.hpp"
 
-namespace vast::hl
+namespace vast::conv
 {
     namespace
     {
@@ -95,8 +95,9 @@ namespace vast::hl
         }
     };
 
-    std::unique_ptr< mlir::Pass > createDCEPass()
-    {
-        return std::make_unique< DCE >();
-    }
-} // namespace vast::hl
+} // namespace vast::conv
+
+std::unique_ptr< mlir::Pass > vast::createDCEPass()
+{
+    return std::make_unique< vast::conv::DCE >();
+}

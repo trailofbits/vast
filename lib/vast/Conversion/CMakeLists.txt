@@ -1,5 +1,6 @@
 add_subdirectory(ABI)
 add_subdirectory(PDLL)
+add_subdirectory(HL)
 add_subdirectory(ToLLVM)
 add_subdirectory(FromHL)
 add_subdirectory(TypeConverters)

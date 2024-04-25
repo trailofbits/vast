@@ -2,7 +2,7 @@
 
 #include "vast/Frontend/Pipelines.hpp"
 
-#include "vast/Dialect/HighLevel/Passes.hpp"
+#include "vast/Conversion/Passes.hpp"
 #include "vast/Conversion/Passes.hpp"
 
 #include <gap/core/overloads.hpp>
@@ -13,20 +13,20 @@ namespace vast::cc {
 
         // Generates almost AST like MLIR, without any conversions applied
         pipeline_step_ptr high_level() {
-            return hl::pipeline::splice_trailing_scopes();
+            return conv::pipeline::splice_trailing_scopes();
         }
 
         // Simplifies high level MLIR
         pipeline_step_ptr reduce_high_level() {
             return compose("reduce-hl",
-                hl::pipeline::simplify
+                conv::pipeline::simplify
             );
         }
 
         // Generates MLIR with standard types
         pipeline_step_ptr standard_types() {
             return compose("standard-types",
-                hl::pipeline::stdtypes
+                conv::pipeline::stdtypes
             ).depends_on(reduce_high_level);
         }
 

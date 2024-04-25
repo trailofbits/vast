@@ -26,7 +26,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 #include "vast/Conversion/Passes.hpp"
-#include "vast/Dialect/HighLevel/Passes.hpp"
 
 namespace vast::target::llvmir
 {

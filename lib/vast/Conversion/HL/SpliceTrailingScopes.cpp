@@ -1,6 +1,6 @@
 // Copyright (c) 2023-present, Trail of Bits, Inc.
 
-#include "vast/Dialect/HighLevel/Passes.hpp"
+#include "vast/Conversion/Passes.hpp"
 
 VAST_RELAX_WARNINGS
 #include <mlir/IR/IRMapping.h>
@@ -13,9 +13,9 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 
-#include "PassesDetails.hpp"
+#include "../PassesDetails.hpp"
 
-namespace vast::hl
+namespace vast::conv
 {
     struct SpliceTrailingScopes : SpliceTrailingScopesBase< SpliceTrailingScopes >
     {
@@ -80,9 +80,9 @@ namespace vast::hl
                 splice_trailing_scope(op);
         }
     };
-} // namespace vast::hl
+} // namespace vast::conv
 
-std::unique_ptr< mlir::Pass > vast::hl::createSpliceTrailingScopes()
+std::unique_ptr< mlir::Pass > vast::createSpliceTrailingScopes()
 {
-    return std::make_unique< vast::hl::SpliceTrailingScopes >();
+    return std::make_unique< vast::conv::SpliceTrailingScopes >();
 }

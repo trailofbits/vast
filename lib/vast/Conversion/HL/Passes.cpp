@@ -11,24 +11,23 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Pipeline.hpp"
 
 #include "vast/Conversion/Passes.hpp"
-#include "vast/Dialect/HighLevel/Passes.hpp"
 
 
-namespace vast::hl::pipeline {
+namespace vast::conv::pipeline {
 
     pipeline_step_ptr splice_trailing_scopes() {
-        return pass(hl::createSpliceTrailingScopes);
+        return pass(createSpliceTrailingScopes);
     }
 
     //
     // desugar pipeline passes
     //
     static pipeline_step_ptr lower_typedefs() {
-        return pass(hl::createLowerTypeDefsPass);
+        return pass(createLowerTypeDefsPass);
     }
 
     static pipeline_step_ptr lower_elaborated_types() {
-        return pass(hl::createLowerElaboratedTypesPass);
+        return pass(createLowerElaboratedTypesPass);
     }
 
     // TODO: add more passes here (remove elaborations, decayed types, lvalue types etc.)
@@ -40,11 +39,11 @@ namespace vast::hl::pipeline {
     // simplifcaiton passes
     //
     static pipeline_step_ptr dce() {
-        return pass(hl::createDCEPass).depends_on(splice_trailing_scopes);
+        return pass(createDCEPass).depends_on(splice_trailing_scopes);
     }
 
     static pipeline_step_ptr ude() {
-        return pass(hl::createUDEPass).depends_on(splice_trailing_scopes);
+        return pass(createUDEPass).depends_on(splice_trailing_scopes);
     }
 
     pipeline_step_ptr simplify() {
@@ -60,7 +59,7 @@ namespace vast::hl::pipeline {
     // stdtypes passes
     //
     pipeline_step_ptr stdtypes() {
-        return pass(hl::createHLLowerTypesPass).depends_on(desugar);
+        return pass(createHLLowerTypesPass).depends_on(desugar);
     }
 
-} // namespace vast::hl::pipeline
+} // namespace vast::conv::pipeline

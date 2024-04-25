@@ -1,6 +1,6 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
-#include "vast/Dialect/HighLevel/Passes.hpp"
+#include "vast/Conversion/Passes.hpp"
 
 VAST_RELAX_WARNINGS
 #include <mlir/Dialect/ControlFlow/IR/ControlFlowOps.h>
@@ -21,11 +21,18 @@ VAST_UNRELAX_WARNINGS
 #include <vast/Util/Attribute.hpp>
 #include <vast/Util/TypeUtils.hpp>
 
-#include "PassesDetails.hpp"
+#include "../PassesDetails.hpp"
 
 #include <unordered_set>
 
 namespace vast::hl {
+    template< typename yield_t >
+    walk_result users(hl::FieldDeclOp decl, auto scope, yield_t &&yield) {
+        return hl::users(decl.getParentAggregate(), scope, std::forward< yield_t >(yield));
+    }
+} // namespace vast::hl
+
+namespace vast::conv {
 
 #if !defined(NDEBUG)
     constexpr bool debug_ude_pass = false;
@@ -36,18 +43,13 @@ namespace vast::hl {
 
     constexpr bool keep_only_if_used = false;
 
-    template< typename yield_t >
-    walk_result users(hl::FieldDeclOp decl, auto scope, yield_t &&yield) {
-        return hl::users(decl.getParentAggregate(), scope, std::forward< yield_t >(yield));
-    }
-
     struct UDE : UDEBase< UDE >
     {
         using base = UDEBase< UDE >;
 
         std::unordered_set< operation > unused_cached;
 
-        bool keep(aggregate_interface op, auto scope) const { return keep_only_if_used; }
+        bool keep(hl::aggregate_interface op, auto scope) const { return keep_only_if_used; }
         bool keep(hl::TypeDefOp op, auto scope)       const { return keep_only_if_used; }
         bool keep(hl::TypeDeclOp op, auto scope)      const { return keep_only_if_used; }
 
@@ -114,7 +116,7 @@ namespace vast::hl {
 
             VAST_UDE_DEBUG("processing: {0}", *op);
             bool result = llvm::TypeSwitch< operation, bool >(op)
-                .Case([&](aggregate_interface op) { return is_unused_impl(op, scope, seen); })
+                .Case([&](hl::aggregate_interface op) { return is_unused_impl(op, scope, seen); })
                 .Case([&](hl::FieldDeclOp op)     { return is_unused_impl(op, scope, seen); })
                 .Case([&](hl::TypeDefOp op)       { return is_unused_impl(op, scope, seen); })
                 .Case([&](hl::TypeDeclOp op)      { return is_unused_impl(op, scope, seen); })
@@ -151,7 +153,7 @@ namespace vast::hl {
                     unused_types.insert(td.getDefinedType());
                 }
 
-                if (auto agg = mlir::dyn_cast< aggregate_interface >(op)) {
+                if (auto agg = mlir::dyn_cast< hl::aggregate_interface >(op)) {
                     unused_types.insert(agg.getDefinedType());
                 }
 
@@ -176,7 +178,8 @@ namespace vast::hl {
             }
         }
     };
+} // namespace vast::conv
 
-    std::unique_ptr< mlir::Pass > createUDEPass() { return std::make_unique< UDE >(); }
-
-} // namespace vast::hl
+std::unique_ptr< mlir::Pass > vast::createUDEPass() {
+    return std::make_unique< vast::conv::UDE >();
+}

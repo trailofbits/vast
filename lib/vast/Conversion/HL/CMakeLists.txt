@@ -8,4 +8,6 @@ add_vast_conversion_library(HighLevelTransforms
   LowerTypeDefs.cpp
   SpliceTrailingScopes.cpp
   UDE.cpp
+
+  Passes.cpp
 )

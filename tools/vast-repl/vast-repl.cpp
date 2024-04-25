@@ -16,7 +16,6 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Dialects.hpp"
-#include "vast/Dialect/HighLevel/Passes.hpp"
 #include "vast/Conversion/Passes.hpp"
 #include "vast/Util/Common.hpp"
 #include "vast/repl/cli.hpp"

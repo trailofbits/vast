@@ -1,6 +1,6 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
-#include "vast/Dialect/HighLevel/Passes.hpp"
+#include "vast/Conversion/Passes.hpp"
 
 VAST_RELAX_WARNINGS
 #include <llvm/Support/FileSystem.h>
@@ -10,14 +10,14 @@ VAST_RELAX_WARNINGS
 #include <mlir/Target/LLVMIR/Dialect/All.h>
 VAST_UNRELAX_WARNINGS
 
-#include "PassesDetails.hpp"
+#include "../PassesDetails.hpp"
 
 #include <vast/Dialect/HighLevel/HighLevelDialect.hpp>
 #include <vast/Dialect/HighLevel/HighLevelOps.hpp>
 #include <vast/Util/Symbols.hpp>
 #include <vast/Util/TypeSwitch.hpp>
 
-namespace vast::hl
+namespace vast::conv
 {
     llvm::json::Object json_type_entry(const mlir::DataLayout &dl, mlir::Type type);
 
@@ -201,7 +201,7 @@ namespace vast::hl
             .Case< hl::LValueType >(lvalue_entry)
             .Case< hl::PointerType >(ptr_entry)
             .Case< hl::VoidType >(void_entry)
-            .Case(scalar_types{}, scalar_entry);
+            .Case(hl::scalar_types{}, scalar_entry);
     }
 
     llvm::json::Object json_type_entry(const mlir::DataLayout &dl, mlir::Type type) {
@@ -215,7 +215,7 @@ namespace vast::hl
             llvm::json::Object top;
 
             // TODO use FunctionOpInterface instead of specific operation
-            util::functions(mod, [&](FuncOp fn) {
+            util::functions(mod, [&](hl::FuncOp fn) {
                 const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
                 const auto &dl          = dl_analysis.getAtOrAbove(mod);
 
@@ -250,8 +250,8 @@ namespace vast::hl
         }
     };
 
-} // namespace vast::hl
+} // namespace vast::conv
 
-std::unique_ptr< mlir::Pass > vast::hl::createExportFnInfoPass() {
-    return std::make_unique< ExportFnInfo >();
+std::unique_ptr< mlir::Pass > vast::createExportFnInfoPass() {
+    return std::make_unique< vast::conv::ExportFnInfo >();
 }

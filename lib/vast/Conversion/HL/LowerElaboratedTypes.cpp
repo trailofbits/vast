@@ -1,6 +1,6 @@
 // Copyright (c) 2023-present, Trail of Bits, Inc.
 
-#include "vast/Dialect/HighLevel/Passes.hpp"
+#include "vast/Conversion/Passes.hpp"
 
 VAST_RELAX_WARNINGS
 #include <mlir/Dialect/ControlFlow/IR/ControlFlowOps.h>
@@ -26,9 +26,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
-#include "PassesDetails.hpp"
+#include "../PassesDetails.hpp"
 
-namespace vast::hl {
+namespace vast::conv {
     namespace {
         using type_map = std::map< mlir_type, mlir_type >;
 
@@ -99,8 +99,8 @@ namespace vast::hl {
         }
     };
 
-} // namespace vast::hl
+} // namespace vast::conv
 
-std::unique_ptr< mlir::Pass > vast::hl::createLowerElaboratedTypesPass() {
-    return std::make_unique< vast::hl::LowerElaboratedTypes >();
+std::unique_ptr< mlir::Pass > vast::createLowerElaboratedTypesPass() {
+    return std::make_unique< vast::conv::LowerElaboratedTypes >();
 }

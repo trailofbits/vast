@@ -1,6 +1,6 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
-#include "vast/Dialect/HighLevel/Passes.hpp"
+#include "vast/Conversion/Passes.hpp"
 
 VAST_RELAX_WARNINGS
 #include <mlir/Analysis/DataLayoutAnalysis.h>
@@ -11,7 +11,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Transforms/GreedyPatternRewriteDriver.h>
 VAST_UNRELAX_WARNINGS
 
-#include "PassesDetails.hpp"
+#include "../PassesDetails.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
@@ -32,7 +32,7 @@ VAST_UNRELAX_WARNINGS
 #include <algorithm>
 #include <iostream>
 
-namespace vast::hl
+namespace vast::conv
 {
     using type_converter_t = conv::tc::HLToStd;
 
@@ -62,8 +62,8 @@ namespace vast::hl
             }
         }
     };
-} // namespace vast::hl
+} // namespace vast::conv
 
-std::unique_ptr< mlir::Pass > vast::hl::createHLLowerTypesPass() {
-    return std::make_unique< HLLowerTypesPass >();
+std::unique_ptr< mlir::Pass > vast::createHLLowerTypesPass() {
+    return std::make_unique< vast::conv::HLLowerTypesPass >();
 }
