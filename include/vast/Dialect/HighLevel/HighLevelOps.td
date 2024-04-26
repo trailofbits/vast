@@ -132,7 +132,7 @@ def TypeOfExprOp
 }
 
 def EnumConstantOp
-  : HighLevel_Op< "enum.const" >
+  : HighLevel_Op< "enum.const", [EnumConstantSymbol] >
   , Arguments<(ins StrAttr:$name, TypedAttrInterface:$value)>
 {
   let summary = "VAST enum constant declaration";
@@ -178,7 +178,7 @@ def EnumConstantOp
 def EnumRegion : Region< HasOneBlock, "enum constants region" >;
 
 def EnumDeclOp
-  : HighLevel_Op< "enum", [NoTerminator, EnumSymbol] >
+  : HighLevel_Op< "enum", [NoTerminator, TypeSymbol] >
   , Arguments<(ins StrAttr:$name, OptionalAttr<TypeAttr>:$type)>
 {
   let summary = "VAST enum declaration";

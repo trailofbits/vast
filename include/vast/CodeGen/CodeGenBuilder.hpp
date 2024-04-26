@@ -125,7 +125,7 @@ namespace vast::cg {
             return compose_state_t< result_type, decltype(bound) >(std::move(bound));
         }
 
-        template <typename arg_t>
+        template< typename arg_t >
         constexpr inline auto bind_region_if(bool cond, arg_t &&arg) && {
             auto bound = [cond, arg = std::forward<arg_t>(arg), binder = std::move(binder)](auto &&...args) {
                 if (cond) {
