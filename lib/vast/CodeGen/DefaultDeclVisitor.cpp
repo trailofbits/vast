@@ -366,7 +366,30 @@ namespace vast::cg
     }
 
     operation default_decl_visitor::VisitFieldDecl(const clang::FieldDecl *decl)  {
-        return {};
+        // define field type if the field defines a new nested type
+        if (auto tag = decl->getType()->getAsTagDecl()) {
+            if (tag->isThisDeclarationADefinition()) {
+                if (auto symbol = self.symbol(tag)) {
+                    if (!is_declared_type(self.symbol(tag).value())) {
+                        visit(tag);
+                    }
+                }
+            }
+        }
+
+        auto visit_bitfield = [&] {
+            auto &actx = decl->getASTContext();
+            return decl->getBitWidth() ? bld.u32(decl->getBitWidthValue(actx)) : nullptr;
+        };
+
+        return maybe_declare([&] {
+            return bld.compose< hl::FieldDeclOp >()
+                .bind(self.location(decl))
+                .bind(self.symbol(decl))
+                .bind(self.visit(decl->getType()))
+                .bind(visit_bitfield())
+                .freeze();
+        });
     }
 
     operation default_decl_visitor::mk_incomplete_decl(const clang::RecordDecl *decl) {
