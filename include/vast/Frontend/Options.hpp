@@ -84,6 +84,8 @@ namespace vast::cc
         constexpr option_t simplify = "simplify";
         constexpr option_t canonicalize = "canonicalize";
 
+        constexpr option_t snapshot_at = "snapshot-at";
+
         llvm::Twine disable(string_ref pipeline_name);
 
         constexpr option_t show_locs = "show-locs";
