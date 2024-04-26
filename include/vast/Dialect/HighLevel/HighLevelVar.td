@@ -150,7 +150,7 @@ class StorageSpecifiers :
 }
 
 // Variable Operation
-def HighLevel_VarDeclOp : HighLevel_Op< "var", [VastSymbol, DeclaresVariableTrait] >
+def HighLevel_VarDeclOp : HighLevel_Op< "var", [VarSymbol] >
   , StorageSpecifiers
 {
   let summary = "VAST variable declaration";

@@ -44,28 +44,4 @@ namespace vast::core
     template< typename ConcreteType >
     struct ConstantLikeAttrTrait : attr_trait_base< ConcreteType, ConstantLikeAttrTrait > {};
 
-    //
-    // Declaration Traits
-    //
-    template< typename ConcreteType >
-    struct DeclaresVariableTrait : op_trait_base< ConcreteType, DeclaresVariableTrait > {};
-
-    static inline bool declares_variable(operation op) {
-        return op->hasTrait< DeclaresVariableTrait >();
-    }
-
-    template< typename ConcreteType >
-    struct DeclaresFunctionTrait : op_trait_base< ConcreteType, DeclaresFunctionTrait > {};
-
-    static inline bool declares_function(operation op) {
-        return op->hasTrait< DeclaresFunctionTrait >();
-    }
-
-    template< typename ConcreteType >
-    struct DeclaresTypeTrait : op_trait_base< ConcreteType, DeclaresTypeTrait > {};
-
-    static inline bool declares_type(operation op) {
-        return op->hasTrait< DeclaresTypeTrait >();
-    }
-
 } // namespace vast::core

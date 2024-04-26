@@ -163,7 +163,7 @@ namespace vast::hl {
         });
     }
 
-    walk_result users(hl::FuncOp op, auto scope, auto &&yield) {
+    walk_result users(FuncSymbolOpInterface op, auto scope, auto &&yield) {
         for (auto user : util::symbol_users(op, scope)) {
             if (auto result = yield(user); result == walk_result::interrupt()) {
                 return result;

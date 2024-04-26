@@ -65,7 +65,7 @@ def HighLevel_FuncOp
 }
 
 def TypeDeclOp
-  : HighLevel_Op< "type", [VastSymbol, DeclaresTypeTrait] >
+  : HighLevel_Op< "type", [TypeSymbol] >
   , Arguments<(ins StrAttr:$name)>
 {
   let summary = "VAST type declaration";
@@ -79,7 +79,7 @@ def TypeDeclOp
 }
 
 def TypeDefOp
-  : HighLevel_Op< "typedef", [VastSymbol, DeclaresTypeTrait] >
+  : HighLevel_Op< "typedef", [TypeSymbol] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
 {
   let summary = "VAST typedef operation";
@@ -106,7 +106,7 @@ def TypeOfTypeOp
 }
 
 def TypeOfExprOp
-  : HighLevel_Op< "typeof.expr", [VastSymbol, SingleBlock] >
+  : HighLevel_Op< "typeof.expr", [SingleBlock] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
 {
   let summary = "VAST typeof(expr) operation";
@@ -178,8 +178,7 @@ def EnumConstantOp
 def EnumRegion : Region< HasOneBlock, "enum constants region" >;
 
 def EnumDeclOp
-  : HighLevel_Op< "enum", [NoTerminator, VastSymbol] >
-  // TODO(Heno): check integer like type attr
+  : HighLevel_Op< "enum", [NoTerminator, EnumSymbol] >
   , Arguments<(ins StrAttr:$name, OptionalAttr<TypeAttr>:$type)>
 {
   let summary = "VAST enum declaration";
@@ -208,7 +207,7 @@ def EnumDeclOp
 class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic,
         !listconcat(traits, [
-          NoTerminator, VastSymbol, DeclaresTypeTrait,
+          NoTerminator, TypeSymbol,
           DeclareOpInterfaceMethods< AggregateTypeDefinition >
         ])
       >
@@ -260,7 +259,7 @@ def UnionDeclOp : RecordLikeDeclOp< "union" > {
 }
 
 def FieldDeclOp
-  : HighLevel_Op< "field", [VastSymbol] >
+  : HighLevel_Op< "field", [MemberVarSymbol] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type, OptionalAttr<I32Attr>:$bits)>
 {
   let summary = "VAST record field declaration";
