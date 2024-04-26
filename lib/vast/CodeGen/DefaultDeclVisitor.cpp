@@ -322,7 +322,13 @@ namespace vast::cg
     }
 
     operation default_decl_visitor::VisitTypedefDecl(const clang::TypedefDecl *decl) {
-        return {};
+        return maybe_declare([&] {
+            return bld.compose< hl::TypeDefOp >()
+                .bind(self.location(decl))
+                .bind(self.symbol(decl))
+                .bind(self.visit(decl->getUnderlyingType()))
+                .freeze();
+        });
     }
 
     operation default_decl_visitor::VisitTypeAliasDecl(const clang::TypeAliasDecl *decl) {
