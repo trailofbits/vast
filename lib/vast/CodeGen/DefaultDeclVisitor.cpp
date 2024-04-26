@@ -330,7 +330,12 @@ namespace vast::cg
     }
 
     operation default_decl_visitor::VisitLabelDecl(const clang::LabelDecl *decl) {
-        return {};
+        return maybe_declare([&] {
+            return bld.compose< hl::LabelDeclOp >()
+                .bind(self.location(decl))
+                .bind(self.symbol(decl))
+                .freeze();
+        });
     }
 
     operation default_decl_visitor::VisitEmptyDecl(const clang::EmptyDecl *decl) {

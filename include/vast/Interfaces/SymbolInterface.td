@@ -44,6 +44,8 @@ def MemberVarSymbol : VastOpInterface< "MemberVarSymbolOpInterface", [VastSymbol
 def FuncSymbol      : VastOpInterface< "FuncSymbolOpInterface", [VastSymbol] >;
 def TypeSymbol      : VastOpInterface< "TypeSymbolOpInterface", [VastSymbol] >;
 
+def LabelSymbol     : VastOpInterface< "LabelSymbolOpInterface", [VastSymbol] >;
+
 def EnumConstantSymbol : VastOpInterface< "EnumConstantSymbolOpInterface", [VastSymbol] >;
 
 #endif // VAST_INTERFACES_SYMBOL_INTERFACE
