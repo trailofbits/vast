@@ -12,6 +12,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/TypeList.hpp"
 #include "vast/Util/Symbols.hpp"
 
+#include "vast/Interfaces/SymbolInterface.hpp"
+
 #include <functional>
 #include <queue>
 
@@ -29,10 +31,10 @@ namespace vast::cg
         using base::insert;
     };
 
-    // TODO why is this name and not function?
     using funs_scope_table     = scoped_table< string_ref, operation >;
     using vars_scope_table     = scoped_table< string_ref, mlir_value >;
     using types_scope_table    = scoped_table< string_ref, operation >;
+    using members_scope_table  = scoped_table< string_ref, operation >;
     using enum_constants_table = scoped_table< string_ref, operation >;
 
     struct symbol_tables
@@ -40,6 +42,7 @@ namespace vast::cg
         funs_scope_table funs;
         vars_scope_table vars;
         types_scope_table types;
+        members_scope_table members;
         enum_constants_table enum_constants;
     };
 
@@ -50,16 +53,23 @@ namespace vast::cg
             : symbols(symbols)
         {}
 
-        auto declare(operation op) {
-            if (core::declares_variable(op)) {
-                symbols.vars.insert(util::symbol_name(op), op->getResult(0));
-            } else if (core::declares_function(op)) {
-                symbols.funs.insert(util::symbol_name(op), op);
-            } else if (core::declares_type(op)) {
-                symbols.types.insert(util::symbol_name(op), op);
-            } else {
-                VAST_UNREACHABLE("Unknown operation declaration type");
-            }
+        operation declare(operation op) {
+            llvm::TypeSwitch< operation >(op)
+                .Case< VarSymbolOpInterface >([&] (auto &op) {
+                    symbols.vars.insert(op.getSymbolName(), op->getResult(0));
+                })
+                .Case< TypeSymbolOpInterface >([&] (auto &op) {
+                    symbols.types.insert(op.getSymbolName(), op);
+                })
+                .Case< FuncSymbolOpInterface >([&] (auto &op) {
+                    symbols.funs.insert(op.getSymbolName(), op);
+                })
+                .Case< MemberVarSymbolOpInterface >([&] (auto &op) {
+                    symbols.members.insert(op.getSymbolName(), op);
+                })
+                .Default([] (auto &op){
+                    VAST_UNREACHABLE("Unknown operation declaration type");
+                });
 
             return op;
         }
@@ -87,6 +97,14 @@ namespace vast::cg
 
         operation lookup_type(string_ref name) const {
             return symbols.types.lookup(name);
+        }
+
+        bool is_declared_fun(string_ref name) const {
+            return lookup_fun(name);
+        }
+
+        bool is_declared_type(string_ref name) const {
+            return lookup_type(name);
         }
 
         symbol_tables &symbols;
@@ -208,12 +226,12 @@ namespace vast::cg
         using scope_context::scope_context;
         explicit members_scope(scope_context *parent)
             : scope_context(parent)
-            , vars(parent->symbols.vars)
+            , members(parent->symbols.members)
         {}
 
         virtual ~members_scope() = default;
 
-        symbol_table_scope< string_ref, mlir_value > vars;
+        symbol_table_scope< string_ref, operation > members;
     };
 
 } // namespace vast::cg

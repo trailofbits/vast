@@ -72,6 +72,10 @@ namespace vast::cg {
             return self.scope.maybe_declare(std::forward< Builder >(bld));
         }
 
+        bool is_declared_type(string_ref name) const {
+            return self.scope.is_declared_type(name);
+        }
+
       protected:
         codegen_builder &bld;
         scoped_visitor_view self;

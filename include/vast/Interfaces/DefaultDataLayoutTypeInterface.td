@@ -56,4 +56,4 @@ def DefaultDataLayoutTypeInterface : VastTypeInterface< "DefaultDataLayoutTypeIn
     ];
 }
 
-#endif // VAST_IR_DEFAULTDATALAYOUTTYPEINTERFACE
+#endif // VAST_INTERFACES_DEFAULT_DATA_LAYOUT_TYPE_INTERFACE
