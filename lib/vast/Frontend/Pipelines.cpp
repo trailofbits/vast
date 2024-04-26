@@ -125,18 +125,16 @@ namespace vast::cc {
         pipeline_source src,
         target_dialect trg,
         mcontext_t &mctx,
-        const vast_args &vargs
+        const vast_args &vargs,
+        std::string snapshot_prefix
     ) {
         auto passes = std::make_unique< vast_pipeline >(mctx, vargs);
+        passes->print_on_error(llvm::errs());
 
-        passes->enableIRPrinting(
-            [](auto *, auto *) { return false; }, // before
-            [](auto *, auto *) { return true; },  // after
-            false,                                // module scope
-            false,                                // after change
-            true,                                 // after failure
-            llvm::errs()
-        );
+        if (auto snapshot_at = vargs.get_options_list(opt::snapshot_at)) {
+            auto instrument = std::make_unique< with_snapshots >(*snapshot_at, snapshot_prefix);
+            passes->addInstrumentation(std::move(instrument));
+        }
 
         // generate high level MLIR in case of AST input
         if (pipeline_source::ast == src) {
