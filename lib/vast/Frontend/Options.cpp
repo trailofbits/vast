@@ -49,7 +49,6 @@ namespace vast::cc {
     std::optional< string_ref > vast_args::get_option(string_ref name) const {
         if (auto opt = detail::get_option_impl(args, name)) {
             if (auto [lhs, rhs] = opt->split('='); !rhs.empty()) {
-                VAST_ASSERT(!is_options_list(rhs));
                 return rhs;
             }
         }
