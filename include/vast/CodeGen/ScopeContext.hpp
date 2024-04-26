@@ -35,6 +35,7 @@ namespace vast::cg
     using vars_scope_table     = scoped_table< string_ref, mlir_value >;
     using types_scope_table    = scoped_table< string_ref, operation >;
     using members_scope_table  = scoped_table< string_ref, operation >;
+    using labels_scope_table   = scoped_table< string_ref, operation >;
     using enum_constants_table = scoped_table< string_ref, operation >;
 
     struct symbol_tables {
@@ -42,6 +43,7 @@ namespace vast::cg
         vars_scope_table vars;
         types_scope_table types;
         members_scope_table members;
+        labels_scope_table labels;
         enum_constants_table enum_constants;
     };
 
@@ -65,6 +67,9 @@ namespace vast::cg
                 })
                 .Case< MemberVarSymbolOpInterface >([&] (auto &op) {
                     symbols.members.insert(op.getSymbolName(), op);
+                })
+                .Case< LabelSymbolOpInterface >([&] (auto &op) {
+                    symbols.labels.insert(op.getSymbolName(), op);
                 })
                 .Case< EnumConstantSymbolOpInterface >([&] (auto &op) {
                     symbols.enum_constants.insert(op.getSymbolName(), op);
@@ -192,8 +197,14 @@ namespace vast::cg
     // Refers to function scope §6.2.1 of C standard
     struct function_scope : block_scope {
         using block_scope::block_scope;
+        explicit function_scope(scope_context *parent)
+            : block_scope(parent)
+            , labels(parent->symbols.labels)
+        {}
+
         virtual ~function_scope() = default;
-        // label scope
+
+        symbol_table_scope< string_ref, operation > labels;
     };
 
     // Refers to function prototype scope §6.2.1 of C standard
