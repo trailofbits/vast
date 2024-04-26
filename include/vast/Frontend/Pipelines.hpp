@@ -48,7 +48,8 @@ namespace vast::cc {
     std::unique_ptr< vast_pipeline > setup_pipeline(
         pipeline_source src, target_dialect trg,
         mcontext_t &mctx,
-        const vast_args &vargs
+        const vast_args &vargs,
+        std::string snapshot_prefix
     );
 
 } // namespace vast::cc

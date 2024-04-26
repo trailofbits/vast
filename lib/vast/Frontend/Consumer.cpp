@@ -14,6 +14,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h>
 VAST_UNRELAX_WARNINGS
 
+#include <filesystem>
+
 #include "vast/CodeGen/CodeGenContext.hpp"
 #include "vast/CodeGen/CodeGenDriver.hpp"
 
@@ -205,7 +207,11 @@ namespace vast::cc {
         }
 
         // Setup and execute vast pipeline
-        auto pipeline = setup_pipeline(pipeline_source::ast, target, *mctx, vargs);
+        auto file_entry = src_mgr.getFileEntryRefForID(main_file_id);
+        VAST_CHECK(file_entry, "failed to recover file entry ref");
+        auto snapshot_prefix = std::filesystem::path(file_entry->getName().str()).stem();
+
+        auto pipeline = setup_pipeline(pipeline_source::ast, target, *mctx, vargs, snapshot_prefix);
         VAST_CHECK(pipeline, "failed to setup pipeline");
 
         auto result = pipeline->run(mod);
