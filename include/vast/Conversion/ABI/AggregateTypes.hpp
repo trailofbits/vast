@@ -214,6 +214,10 @@ namespace vast::conv::abi
 
             auto dst()
             {
+                VAST_CHECK(
+                    this->arg_idx < this->abi_op.getResults().getTypes().size(),
+                    "Trying to access {0} index in result types of {1}",
+                    this->arg_idx, this->abi_op);
                 return this->abi_op.getResults().getTypes()[this->arg_idx];
             }
 
@@ -265,9 +269,10 @@ namespace vast::conv::abi
                     0, breakpoint);
 
                 current.push_back(prefix);
-                auto to_yield = construct(rewriter);
 
                 auto suffix_size = (start + bw(type)) - bw(dst());
+                auto to_yield = construct(rewriter);
+
                 auto suffix = rewriter.template create< ll::Extract >(
                     this->abi_op.getLoc(), mk_int_type(suffix_size), val,
                     breakpoint, bw(type));
@@ -336,8 +341,10 @@ namespace vast::conv::abi
         {
             run_on(root, rewriter);
             // Now construct the rest into a value
-            auto val = state.construct(rewriter);
-            partials.push_back(val);
+            if (!this->state.current.empty()) {
+                auto val = state.construct(rewriter);
+                partials.push_back(val);
+            }
 
             return std::move(partials);
         }
