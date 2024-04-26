@@ -302,6 +302,12 @@ namespace vast::cg
     }
 
     operation default_decl_visitor::VisitParmVarDecl(const clang::ParmVarDecl *decl) {
+        if (auto name = self.symbol(decl)) {
+            if (auto var = self.scope.lookup_var(name.value())) {
+                return var.getDefiningOp();
+            }
+        }
+
         return {};
     }
 
