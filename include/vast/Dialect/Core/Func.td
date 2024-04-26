@@ -37,9 +37,8 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
       CallableOpInterface,
       FunctionOpInterface,
       IsolatedFromAbove,
-      Symbol,
+      FuncSymbol,
       NoTerminator,
-      DeclaresFunctionTrait,
       DeclareOpInterfaceMethods< RegionKindInterface >
     ])
 > {
@@ -132,7 +131,7 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
   ];
 
   let assemblyFormat = [{
-    $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
+    custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
   }];
 
   let hasVerifier = 1;

@@ -94,7 +94,7 @@ def Store
 }
 
 def UninitializedVar
-    : LowLevel_Op< "uninitialized_var", [VastSymbol] >
+    : LowLevel_Op< "uninitialized_var", [VarSymbol] >
     , Results<(outs AnyType:$result)>
 {
     let summary = "Declaration of variable that have not been initialized yet.";

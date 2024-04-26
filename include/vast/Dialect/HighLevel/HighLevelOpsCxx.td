@@ -4,7 +4,7 @@
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS_CXX
 
 class CxxRecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
-    : HighLevel_Op< mnemonic, !listconcat(traits, [NoTerminator, VastSymbol]) >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoTerminator, TypeSymbol]) >
     , Arguments<(ins StrAttr:$name)>
 {
   // TODO(hl:cxx): Add region constraints.
@@ -64,7 +64,7 @@ def AccessSpecifierOp
 }
 
 def CxxBaseSpecifierOp
-  : HighLevel_Op< "base", [VastSymbol] >
+  : HighLevel_Op< "base" >
   , Arguments<(ins TypeAttr:$type, AccessSpecifier:$access, UnitAttr:$is_virtual)>
 {
   let summary = "VAST base class specifier";
