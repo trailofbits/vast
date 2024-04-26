@@ -131,7 +131,7 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
   ];
 
   let assemblyFormat = [{
-    custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
+    $sym_name custom< FunctionSignatureAndBody >($function_type, attr-dict, $body)
   }];
 
   let hasVerifier = 1;
