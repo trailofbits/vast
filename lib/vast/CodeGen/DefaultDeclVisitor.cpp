@@ -338,11 +338,47 @@ namespace vast::cg
     }
 
     operation default_decl_visitor::VisitEnumDecl(const clang::EnumDecl *decl) {
-        return {};
+        // TODO deal with incomplete decls
+        return maybe_declare([&] {
+            if (!decl->isComplete()) {
+                return bld.compose< hl::EnumDeclOp >()
+                    .bind(self.location(decl))
+                    .bind(self.symbol(decl))
+                    .freeze();
+            }
+
+            auto constants = [&] (auto &bld, auto loc) {
+                for (auto con : decl->enumerators()) {
+                    visit(con);
+                }
+            };
+
+            return bld.compose< hl::EnumDeclOp >()
+                .bind(self.location(decl))
+                .bind(self.symbol(decl))
+                .bind(self.visit(decl->getIntegerType()))
+                .bind(constants)
+                .freeze();
+        });
     }
 
     operation default_decl_visitor::VisitEnumConstantDecl(const clang::EnumConstantDecl *decl) {
-        return {};
+        return maybe_declare([&] {
+            auto initializer = [&] (auto & /* bld */, auto loc) {
+                bld.compose< hl::ValueYieldOp >()
+                    .bind(loc)
+                    .bind_transform(self.visit(decl->getInitExpr()), first_result)
+                    .freeze();
+            };
+
+            return bld.compose< hl::EnumConstantOp >()
+                .bind(self.location(decl))
+                .bind(self.symbol(decl))
+                .bind(self.visit(decl->getType()))
+                .bind(decl->getInitVal())
+                .bind_if(decl->getInitExpr(), std::move(initializer))
+                .freeze();
+        });
     }
 
     operation default_decl_visitor::VisitRecordDecl(const clang::RecordDecl *decl) {

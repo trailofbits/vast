@@ -37,8 +37,7 @@ namespace vast::cg
     using members_scope_table  = scoped_table< string_ref, operation >;
     using enum_constants_table = scoped_table< string_ref, operation >;
 
-    struct symbol_tables
-    {
+    struct symbol_tables {
         funs_scope_table funs;
         vars_scope_table vars;
         types_scope_table types;
@@ -66,6 +65,9 @@ namespace vast::cg
                 })
                 .Case< MemberVarSymbolOpInterface >([&] (auto &op) {
                     symbols.members.insert(op.getSymbolName(), op);
+                })
+                .Case< EnumConstantSymbolOpInterface >([&] (auto &op) {
+                    symbols.enum_constants.insert(op.getSymbolName(), op);
                 })
                 .Default([] (auto &op){
                     VAST_UNREACHABLE("Unknown operation declaration type");
@@ -174,11 +176,16 @@ namespace vast::cg
         explicit block_scope(scope_context *parent)
             : scope_context(parent)
             , vars(parent->symbols.vars)
+            , types(parent->symbols.types)
+            , enum_constants(parent->symbols.enum_constants)
         {}
 
         virtual ~block_scope() = default;
 
         symbol_table_scope< string_ref, mlir_value > vars;
+
+        symbol_table_scope< string_ref, operation > types;
+        symbol_table_scope< string_ref, operation > enum_constants;
     };
 
 
