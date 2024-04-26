@@ -65,6 +65,17 @@ namespace vast {
 
         virtual void schedule(pipeline_step_ptr step) = 0;
 
+        void print_on_error(llvm::raw_ostream &os) {
+            enableIRPrinting(
+                [](auto *, auto *) { return false; }, // before
+                [](auto *, auto *) { return true; },  // after
+                false,                                // module scope
+                false,                                // after change
+                true,                                 // after failure
+                os
+            );
+        }
+
         llvm::DenseSet< pass_id_t > seen;
     };
 
