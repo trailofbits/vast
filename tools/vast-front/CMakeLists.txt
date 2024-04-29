@@ -7,3 +7,7 @@ add_vast_executable(vast-front
     ${LLVM_LIBS}
     ${CLANG_LIBS}
 )
+
+if(VAST_CUSTOM_INCLUDE_PATH)
+    add_compile_definitions(VAST_CUSTOM_INCLUDE_PATH="${VAST_CUSTOM_INCLUDE_PATH}")
+endif()
