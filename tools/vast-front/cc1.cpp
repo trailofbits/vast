@@ -81,6 +81,13 @@ namespace vast::cc {
         // auto &target_opts   = comp->getFrontendOpts();
         auto &header_opts   = comp->getHeaderSearchOpts();
 
+        #ifdef VAST_CUSTOM_INCLUDE_PATH
+        header_opts.AddPath(VAST_CUSTOM_INCLUDE_PATH,
+                            clang::frontend::IncludeDirGroup::System,
+                            /* isFramework */ false,
+                            /* IgnoreSysRoot */ true );
+        #endif
+
         if (!frontend_opts.TimeTracePath.empty()) {
             llvm::timeTraceProfilerInitialize(frontend_opts.TimeTraceGranularity, tool);
         }
