@@ -32,9 +32,8 @@ requiring users to implement & provide interface that specifies various details
 about used types; algorithm will be same when talking about `hl` or `LLVM` types
 after all.
 
-We currently implement classification algorithm for x86 as it is our main target
-and it provides nice test of the approach given all of the weird cases that
-can happen.
+_Currently, we only provide support for x86 target to assess the approach's 
+applicability._
 
 ## ABI Dialect (`-vast-emit-abi`)
 
