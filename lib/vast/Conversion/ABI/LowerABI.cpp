@@ -214,19 +214,20 @@ namespace vast
                 // `ll` uninitialized variable (as they don't need names) and then
                 // simply hope later on this will get obliterated during some form
                 // of mem2reg.
-                auto as_lvalue = [&]() -> mlir::Operation *
+                auto as_ptr = [&]() -> mlir::Operation *
                 {
                     VAST_ASSERT(direct.getOperand(0).getDefiningOp()->getNumResults() == 1);
                     auto mctx = direct.getContext();
                     auto type = hl::PointerType::get(
                         mctx, direct.getOperand(0).getType());
-                    auto memory = state.rewriter.template create< ll::UninitializedVar >(
+                    auto memory = state.rewriter.template create< ll::Alloca >(
                         direct.getLoc(), type);
-                    return state.rewriter.template create< ll::InitializeVar >(
-                        direct.getLoc(), type, memory, direct.getOperand(0));
+                    state.rewriter.template create< ll::Store >(
+                        direct.getLoc(), direct.getOperand(0), memory);
+                    return memory;
                 }();
 
-                return conv::abi::deconstruct_aggregate(pattern, direct, as_lvalue,
+                return conv::abi::deconstruct_aggregate(pattern, direct, as_ptr,
                                                         state.rewriter);
             }
 
@@ -290,28 +291,6 @@ namespace vast
                 VAST_CHECK(direct.getNumOperands() >= 1,
                            "abi.direct op should have > 1 operands: {0}", direct);
 
-                auto stripped_lvalues = [&]()
-                {
-                    std::vector< mlir::Value > out;
-                    for (auto v : direct.getOperands())
-                    {
-                        auto lvalue_type = mlir::dyn_cast< hl::LValueType >(v.getType());
-                        if (!lvalue_type)
-                        {
-                            out.push_back(v);
-                            continue;
-                        }
-
-                        auto cast = state.rewriter.template create< hl::ImplicitCastOp >(
-                                direct.getLoc(),
-                                lvalue_type.getElementType(),
-                                v,
-                                hl::CastKind::LValueToRValue);
-                        out.push_back(cast);
-                    }
-                    return out;
-                }();
-
                 // We need to reconstruct the type and we ?know? that arguments
                 // simply need to be concated?
                 VAST_CHECK(can_concat_as(pattern.dl, direct.getOperands().getTypes(),
@@ -319,8 +298,8 @@ namespace vast
                            "Cannot do concat when converting {0}", direct);
 
                 return state.rewriter.template create< ll::Concat >(
-                        direct.getLoc(),
-                        target_type, stripped_lvalues);
+                    direct.getLoc(),
+                    target_type, direct.getOperands());
             }
 
             mlir::Value convert(mlir::Type res_type, abi::DirectOp direct)
@@ -430,7 +409,7 @@ namespace vast
 
             values match_on(abi::IndirectOp indirect, state_capture state) const override
             {
-                co_yield state.rewriter.template create< hl::Deref >(
+                co_yield state.rewriter.template create< ll::Load >(
                     indirect.getLoc(),
                     indirect.getResult().getType(),
                     indirect.getValue());
@@ -466,19 +445,13 @@ namespace vast
             {
                 auto loc = indirect.getLoc();
                 auto mctx = indirect.getContext();
-                auto ptr_type = indirect.getResult().getType();
-                auto type = hl::LValueType::get(mctx, indirect.getValue().getType());
+                auto type = hl::PointerType::get(mctx, indirect.getValue().getType());
 
-                auto var = state.rewriter.template create< ll::UninitializedVar >(
+                auto var = state.rewriter.template create< ll::Alloca >(
                     indirect.getLoc(), type);
                 // Now we initilizae before yielding the ptr
-                auto initialized = state.rewriter.template create< ll::InitializeVar >(
-                    loc, type, var, indirect.getValue());
-
-                co_yield state.rewriter.template create< hl::AddressOf >(
-                    loc,
-                    ptr_type,
-                    initialized);
+                state.rewriter.template create< ll::Store >(loc, indirect.getValue(), var);
+                co_yield var;
             }
         };
 
