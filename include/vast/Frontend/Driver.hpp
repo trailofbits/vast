@@ -103,8 +103,6 @@ namespace vast::cc {
             : cc1_entry_point(cc1), cmd_args(cmd_args), diag(cmd_args, path)
             , drv(path, llvm::sys::getDefaultTargetTriple(), diag.engine, "vast compiler")
         {
-            drv.ResourceDir = CLANG_RESOURCE_DIR;
-
             set_install_dir(cmd_args, canonical_prefixes);
 
             auto target_and_mode = toolchain::getTargetAndModeFromProgramName(cmd_args[0]);
@@ -313,6 +311,13 @@ namespace vast::cc {
 
             if (vast::cc::opt::emit_only_llvm(vargs)) {
                 all_args.push_back("-emit-llvm");
+            }
+
+            auto is_resource_dir = [](auto arg){ return llvm::StringRef(arg).starts_with("-resource-dir"); };
+            if(std::ranges::find_if(ccargs, is_resource_dir) == std::ranges::end(ccargs)) {
+                all_args.push_back("-resource-dir");
+                auto res_arg = clang_driver::GetResourcesPath(CLANG_BINARY_PATH, "");
+                all_args.push_back(strdup(res_arg.c_str()));
             }
         }
 
