@@ -302,7 +302,7 @@ namespace vast::cc {
             return true;
         }
 
-        static void preprocess_vast_args(argv_storage_base &all_args) {
+        void preprocess_vast_args(argv_storage_base &all_args) {
             auto [vargs, ccargs] = vast::cc::filter_args(all_args);
             // force no link step in case of emiting mlir file
             if (vast::cc::opt::emit_only_mlir(vargs)) {
@@ -313,11 +313,16 @@ namespace vast::cc {
                 all_args.push_back("-emit-llvm");
             }
 
-            auto is_resource_dir = [](auto arg){ return llvm::StringRef(arg).starts_with("-resource-dir"); };
-            if(std::ranges::find_if(ccargs, is_resource_dir) == std::ranges::end(ccargs)) {
+            auto is_resource_dir = [](llvm::StringRef arg) {
+                return arg.starts_with("-resource-dir");
+            };
+
+            if (std::ranges::count_if(ccargs, is_resource_dir) == 0) {
                 all_args.push_back("-resource-dir");
-                auto res_arg = clang_driver::GetResourcesPath(CLANG_BINARY_PATH, "");
-                all_args.push_back(strdup(res_arg.c_str()));
+                auto &res_arg = cached_strings.emplace_back(
+                    clang_driver::GetResourcesPath(CLANG_BINARY_PATH, "")
+                );
+                all_args.push_back(res_arg.data());
             }
         }
 
@@ -348,6 +353,7 @@ namespace vast::cc {
 
         exec_compile_t cc1_entry_point;
         argv_storage_base &cmd_args;
+        std::vector< std::string > cached_strings;
 
         errs_diagnostics diag;
         clang_driver drv;
