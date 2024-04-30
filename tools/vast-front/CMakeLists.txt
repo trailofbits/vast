@@ -8,7 +8,7 @@ add_vast_executable(vast-front
     ${CLANG_LIBS}
 )
 
-set(CLANG_BIN_PATH ${LLVM_BUILD_BINARY_DIR}/bin/clang)
+set(CLANG_BIN_PATH ${LLVM_BINARY_DIR}/bin/clang)
 
 if(NOT EXISTS ${CLANG_BIN_PATH})
     message(FATAL_ERROR "Could not find clang binary to deduce resource path!")

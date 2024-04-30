@@ -84,8 +84,6 @@ configure_file(
 #
 find_package(Clang REQUIRED CONFIG)
 
-set(CLANG_RESOURCE_DIR  ${LLVM_LIBRARY_DIR}/clang/${LLVM_VERSION_MAJOR})
-
 configure_file(
   ${VAST_SOURCE_DIR}/include/vast/Config/config.h.cmake
   ${VAST_BINARY_DIR}/include/vast/Config/config.h
