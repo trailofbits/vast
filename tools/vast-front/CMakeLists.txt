@@ -8,6 +8,10 @@ add_vast_executable(vast-front
     ${CLANG_LIBS}
 )
 
-if(VAST_CUSTOM_INCLUDE_PATH)
-    add_compile_definitions(VAST_CUSTOM_INCLUDE_PATH="${VAST_CUSTOM_INCLUDE_PATH}")
+set(CLANG_BIN_PATH ${LLVM_BUILD_BINARY_DIR}/bin/clang)
+
+if(NOT EXISTS ${CLANG_BIN_PATH})
+    message(FATAL_ERROR "Could not find clang binary to deduce resource path!")
 endif()
+
+add_compile_definitions(CLANG_BINARY_PATH="${CLANG_BIN_PATH}")
