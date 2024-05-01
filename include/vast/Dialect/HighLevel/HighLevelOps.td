@@ -350,7 +350,12 @@ def ExprOp
   let regions = (region SizedRegion<1>:$subexpr);
 
   let skipDefaultBuilders = 1;
-  let builders = [ OpBuilder<(ins "Type":$rty, "std::unique_ptr< Region > &&":$region)> ];
+  let builders = [
+      OpBuilder<(ins
+          "Type":$type,
+          "BuilderCallback":$subexpr_builder
+      )>
+  ];
 
   let assemblyFormat = [{
      attr-dict `:` type($result) $subexpr
@@ -1175,7 +1180,12 @@ def StmtExprOp
   let regions = (region SizedRegion<1>:$substmt);
 
   let skipDefaultBuilders = 1;
-  let builders = [ OpBuilder<(ins "Type":$rty, "std::unique_ptr< Region > &&":$region)> ];
+  let builders = [
+      OpBuilder<(ins
+          "Type":$type,
+          "BuilderCallback":$subexpr_builder
+      )>
+  ];
 
   let assemblyFormat = [{
      attr-dict `:` type($result) $substmt

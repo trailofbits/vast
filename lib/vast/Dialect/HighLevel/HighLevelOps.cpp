@@ -179,7 +179,7 @@ namespace vast::hl
         VAST_ASSERT(lhs && "the builder callback for 'lhs' region must be present");
         VAST_ASSERT(rhs && "the builder callback for 'rhs' region must be present");
 
-        Builder::InsertionGuard guard(bld);
+        InsertionGuard guard(bld);
 
         build_region(bld, st, lhs);
         build_region(bld, st, rhs);
@@ -249,9 +249,9 @@ namespace vast::hl
         build_expr_trait(bld, st, rty, expr);
     }
 
-    void StmtExprOp::build(Builder &bld, State &st, Type rty, std::unique_ptr< Region > &&region) {
+    void StmtExprOp::build(Builder &bld, State &st, Type rty, BuilderCallback expr) {
         InsertionGuard guard(bld);
-        st.addRegion(std::move(region));
+        build_region(bld, st, expr);
         st.addTypes(rty);
     }
 
@@ -499,12 +499,12 @@ namespace vast::hl
         build_region(bld, st, substmt);
     }
 
-    void ExprOp::build(Builder &bld, State &st, Type rty, std::unique_ptr< Region > &&region) {
+
+    void ExprOp::build(Builder &bld, State &st, Type rty, BuilderCallback expr) {
         InsertionGuard guard(bld);
-        st.addRegion(std::move(region));
+        build_region(bld, st, expr);
         st.addTypes(rty);
     }
-
     void TypeOfExprOp::build(Builder &bld, State &st, llvm::StringRef name, Type type, BuilderCallback expr) {
         InsertionGuard guard(bld);
         st.addAttribute("name", bld.getStringAttr(name));
