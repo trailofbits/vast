@@ -609,7 +609,11 @@ namespace vast::cg
         if (stmt->isSingleDecl()) {
             return self.visit(stmt->getSingleDecl());
         } else {
-            return {};
+            operation last = {};
+            for (auto decl : stmt->decls()) {
+                last = self.visit(decl);
+            }
+            return last;
         }
     }
     operation default_stmt_visitor::VisitMemberExpr(const clang::MemberExpr *expr) { return {}; }
