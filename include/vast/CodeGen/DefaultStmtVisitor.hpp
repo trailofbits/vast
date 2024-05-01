@@ -69,6 +69,9 @@ namespace vast::cg {
         operation VisitBinXor(const clang::BinaryOperator *op);
         operation VisitBinOr(const clang::BinaryOperator *op);
 
+        operation VisitBinLAnd(const clang::BinaryOperator *op);
+        operation VisitBinLOr(const clang::BinaryOperator *op);
+
         //
         // Compound Assignment Operations
         //
@@ -239,14 +242,11 @@ namespace vast::cg {
 
     template< typename Op >
     operation default_stmt_visitor::visit_bin_op(const clang::BinaryOperator *op) {
-        auto lhs = self.visit(op->getLHS());
-        auto rhs = self.visit(op->getRHS());
-
         return bld.compose< Op >()
             .bind(self.location(op))
             .bind(self.visit(op->getType()))
-            .bind_transform(lhs, first_result)
-            .bind_transform(rhs, first_result)
+            .bind_transform(self.visit(op->getLHS()), first_result)
+            .bind_transform(self.visit(op->getRHS()), first_result)
             .freeze();
     }
 
@@ -280,30 +280,23 @@ namespace vast::cg {
 
     template< hl::Predicate pred >
     operation default_stmt_visitor::visit_cmp_op(const clang::BinaryOperator *op) {
-        op->dump();
-        auto lhs = self.visit(op->getLHS());
-        auto rhs = self.visit(op->getRHS());
-
         return bld.compose< hl::CmpOp >()
             .bind(self.location(op))
             .bind(self.visit(op->getType()))
             .bind(pred)
-            .bind_transform(lhs, first_result)
-            .bind_transform(rhs, first_result)
+            .bind_transform(self.visit(op->getLHS()), first_result)
+            .bind_transform(self.visit(op->getRHS()), first_result)
             .freeze();
     }
 
     template< hl::FPredicate pred >
     operation default_stmt_visitor::visit_fcmp_op(const clang::BinaryOperator *op) {
-        auto lhs = self.visit(op->getLHS());
-        auto rhs = self.visit(op->getRHS());
-
         return bld.compose< hl::FCmpOp >()
             .bind(self.location(op))
             .bind(self.visit(op->getType()))
             .bind(pred)
-            .bind_transform(lhs, first_result)
-            .bind_transform(rhs, first_result)
+            .bind_transform(self.visit(op->getLHS()), first_result)
+            .bind_transform(self.visit(op->getRHS()), first_result)
             .freeze();
     }
 
@@ -320,6 +313,16 @@ namespace vast::cg {
         } else {
             return {};
         }
+    }
+
+    template< typename LOp >
+    operation default_stmt_visitor::visit_logical_op(const clang::BinaryOperator *op) {
+        return bld.compose< LOp >()
+            .bind(self.location(op))
+            .bind(self.visit(op->getType()))
+            .bind_region(make_value_builder(op->getLHS()))
+            .bind_region(make_value_builder(op->getRHS()))
+            .freeze();
     }
 
     template< typename Op >
