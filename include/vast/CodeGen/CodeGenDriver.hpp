@@ -55,9 +55,9 @@ namespace vast::cg {
             , bld(std::move(_bld))
             , mg(std::move(_mg))
             , sg(std::move(_sg))
+            , visitor(mk_visitor(opts))
             , mod(mk_module_with_attrs(actx, *mctx, opts.lang))
             , scope(symbols)
-            , visitor(mk_visitor(opts, scope))
             , generator(*bld, scoped_visitor_view(*visitor, scope), opts)
         {
             bld->set_insertion_point_to_start(&mod->getBodyRegion());
@@ -91,15 +91,14 @@ namespace vast::cg {
         std::unique_ptr< meta_generator > mg;
         std::unique_ptr< symbol_generator > sg;
 
+        std::unique_ptr< codegen_visitor > visitor;
+        std::unique_ptr< codegen_visitor > mk_visitor(const options_t &opts);
+
         //
         // module generation state
         //
         owning_module_ref mod;
         module_scope scope;
-
-        // visitor requires scope to be set
-        std::unique_ptr< codegen_visitor > visitor;
-        std::unique_ptr< codegen_visitor > mk_visitor(const options_t &opts, scope_context &scope);
 
         module_generator generator;
     };

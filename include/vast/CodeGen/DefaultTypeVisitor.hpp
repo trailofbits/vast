@@ -147,32 +147,4 @@ namespace vast::cg {
         }
     };
 
-    struct cached_default_type_visitor : default_type_visitor
-    {
-        using default_type_visitor::default_type_visitor;
-
-        llvm::DenseMap< const clang_type *, mlir_type > cache;
-        llvm::DenseMap< clang_qual_type, mlir_type > qual_cache;
-
-        mlir_type visit(const clang_type *type) {
-            if (auto value = cache.lookup(type)) {
-                return value;
-            }
-
-            auto result = default_type_visitor::visit(type);
-            cache.try_emplace(type, result);
-            return result;
-        }
-
-        mlir_type visit(clang_qual_type type) {
-            if (auto value = qual_cache.lookup(type)) {
-                return value;
-            }
-
-            auto result = default_type_visitor::visit(type);
-            qual_cache.try_emplace(type, result);
-            return result;
-        }
-    };
-
 } // namespace vast::cg

@@ -22,18 +22,18 @@ namespace vast::cg
     struct unsup_decl_visitor : unsup_visitor_base
     {
         using unsup_visitor_base::unsup_visitor_base;
-        operation visit(const clang_decl *decl);
+        operation visit(const clang_decl *decl, scope_context &scope);
     };
 
 
     struct unsup_stmt_visitor : unsup_visitor_base
     {
         using unsup_visitor_base::unsup_visitor_base;
-        operation visit(const clang_stmt *stmt);
+        operation visit(const clang_stmt *stmt, scope_context &scope);
 
       private:
-        std::vector< BuilderCallBackFn > make_children(const clang_stmt *stmt);
-        mlir_type return_type(const clang_stmt *stmt);
+        std::vector< BuilderCallBackFn > make_children(const clang_stmt *stmt, scope_context &scope);
+        mlir_type return_type(const clang_stmt *stmt, scope_context &scope);
     };
 
 
@@ -41,18 +41,15 @@ namespace vast::cg
     {
         using unsup_visitor_base::unsup_visitor_base;
 
-        mlir_type visit(const clang_type *type);
-        mlir_type visit(clang_qual_type type) {
-            VAST_ASSERT(!type.isNull());
-            return visit(type.getTypePtr());
-        }
+        mlir_type visit(const clang_type *type, scope_context &scope);
+        mlir_type visit(clang_qual_type type, scope_context &scope);
     };
 
 
     struct unsup_attr_visitor : unsup_visitor_base
     {
         using unsup_visitor_base::unsup_visitor_base;
-        mlir_attr visit(const clang_attr *attr);
+        mlir_attr visit(const clang_attr *attr, scope_context &scope);
     };
 
 
@@ -74,28 +71,28 @@ namespace vast::cg
             , unsup_attr_visitor(bld, self)
         {}
 
-        operation visit(const clang_decl *decl) override {
-            return unsup_decl_visitor::visit(decl);
+        operation visit(const clang_decl *decl, scope_context &scope) override {
+            return unsup_decl_visitor::visit(decl, scope);
         }
 
-        operation visit(const clang_stmt *stmt) override {
-            return unsup_stmt_visitor::visit(stmt);
+        operation visit(const clang_stmt *stmt, scope_context &scope) override {
+            return unsup_stmt_visitor::visit(stmt, scope);
         }
 
-        mlir_type visit(const clang_type *type) override {
-            return unsup_type_visitor::visit(type);
+        mlir_type visit(const clang_type *type, scope_context &scope) override {
+            return unsup_type_visitor::visit(type, scope);
         }
 
-        mlir_type visit(clang_qual_type type) override {
-            return unsup_type_visitor::visit(type);
+        mlir_type visit(clang_qual_type type, scope_context &scope) override {
+            return unsup_type_visitor::visit(type, scope);
         }
 
-        mlir_attr visit(const clang_attr *attr) override {
-            return unsup_attr_visitor::visit(attr);
+        mlir_attr visit(const clang_attr *attr, scope_context &scope) override {
+            return unsup_attr_visitor::visit(attr, scope);
         }
 
-        operation visit_prototype(const clang_function *decl) override {
-            return unsup_decl_visitor::visit(decl);
+        operation visit_prototype(const clang_function *decl, scope_context &scope) override {
+            return unsup_decl_visitor::visit(decl, scope);
         }
     };
 
