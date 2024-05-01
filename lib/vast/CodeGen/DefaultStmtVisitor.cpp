@@ -183,7 +183,7 @@ namespace vast::cg
     //
     // Compound Assignment Operations
     //
-    operation default_stmt_visitor::VisinBinAssign(const clang::CompoundAssignOperator *op) {
+    operation default_stmt_visitor::VisitBinAssign(const clang::BinaryOperator *op) {
         return visit_assign_bin_op< hl::AssignOp >(op);
     }
 
