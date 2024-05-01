@@ -238,6 +238,42 @@ namespace vast::cg {
         operation VisitUserDefinedLiteral(const clang::UserDefinedLiteral *lit);
         operation VisitCompoundLiteralExpr(const clang::CompoundLiteralExpr *lit);
         operation VisitFixedPointLiteral(const clang::FixedPointLiteral *lit);
+
+        template< typename yield_type >
+        auto make_stmt_builder(const clang_stmt *stmt) {
+            return [this, stmt] (auto &state, auto loc) {
+                self.visit(stmt);
+                auto &op = state.getBlock()->back();
+                VAST_ASSERT(op.getNumResults() == 1);
+                bld.create< yield_type >(loc, op.getResult(0));
+            };
+        }
+
+        auto make_value_builder(const clang_stmt *stmt) {
+            return make_stmt_builder< hl::ValueYieldOp >(stmt);
+        }
+
+        auto make_cond_builder(const clang_stmt *stmt) {
+            return make_stmt_builder< hl::CondYieldOp >(stmt);
+        }
+
+        auto make_true_yielder() {
+            return [this] (auto &, auto loc) {
+               bld.create< hl::CondYieldOp >(loc, bld.true_value(loc));
+            };
+        }
+
+        auto make_false_yielder() {
+            return [this] (auto &, auto loc) {
+                bld.create< hl::CondYieldOp >(loc, bld.false_value(loc));
+            };
+        }
+
+        auto make_optional_region_builder(const clang_stmt *stmt) {
+            return [this, stmt] (auto &bld, auto) {
+                if (stmt) self.visit(stmt);
+            };
+        }
     };
 
     template< typename Op >
