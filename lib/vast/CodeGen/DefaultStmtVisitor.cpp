@@ -676,7 +676,39 @@ namespace vast::cg
     // operation default_stmt_visitor::VisitCXXUnresolvedConstructExpr(const clang::CXXThrowExpr *expr)
     // operation default_stmt_visitor::VisitCXXUuidofExpr(const clang::CXXUuidofExpr *expr)
 
-    operation default_stmt_visitor::VisitCallExpr(const clang::CallExpr *expr) { return {}; }
+    values_t default_stmt_visitor::get_call_args(const clang::CallExpr *expr) {
+        values_t args;
+        for (auto arg : expr->arguments()) {
+            args.push_back(self.visit(arg)->getResult(0));
+        }
+        return args;
+    }
+
+    operation default_stmt_visitor::mk_direct_call(const clang::CallExpr *expr) {
+        return bld.compose< hl::CallOp >()
+            .bind(self.location(expr))
+            .bind(self.symbol(expr->getDirectCallee()))
+            .bind(self.visit(expr->getType()))
+            .bind(get_call_args(expr))
+            .freeze();
+    }
+
+    operation default_stmt_visitor::mk_indirect_call(const clang::CallExpr *expr) {
+        return bld.compose< hl::IndirectCallOp >()
+            .bind(self.location(expr))
+            .bind(self.visit(expr->getType()))
+            .bind_transform(self.visit(expr->getCallee()), first_result)
+            .bind(get_call_args(expr))
+            .freeze();
+    }
+
+    operation default_stmt_visitor::VisitCallExpr(const clang::CallExpr *expr) {
+        if (expr->getDirectCallee()) {
+            return mk_direct_call(expr);
+        } else {
+            return mk_indirect_call(expr);
+        }
+    }
 
     // operation default_stmt_visitor::VisitCXXMemberCallExpr(const clang::CXXMemberCallExpr *expr)
     // operation default_stmt_visitor::VisitCXXOperatorCallExpr(const clang::CXXOperatorCallExpr *expr)
