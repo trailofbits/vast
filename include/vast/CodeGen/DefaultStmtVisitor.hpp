@@ -73,7 +73,7 @@ namespace vast::cg {
         // Compound Assignment Operations
         //
         template< typename Op >
-        operation visit_assign_bin_op(const clang::CompoundAssignOperator *op);
+        operation visit_assign_bin_op(const clang::BinaryOperator *op);
 
         template< typename UOp, typename SOp >
         operation visit_assign_ibin_op(const clang::CompoundAssignOperator *op);
@@ -81,7 +81,7 @@ namespace vast::cg {
         template< typename UOp, typename SOp, typename FOp >
         operation visit_assign_ifbin_op(const clang::CompoundAssignOperator *op);
 
-        operation VisinBinAssign(const clang::CompoundAssignOperator *op);
+        operation VisitBinAssign(const clang::BinaryOperator *op);
 
         operation VisitBinMulAssign(const clang::CompoundAssignOperator *op);
         operation VisitBinDivAssign(const clang::CompoundAssignOperator *op);
@@ -280,6 +280,7 @@ namespace vast::cg {
 
     template< hl::Predicate pred >
     operation default_stmt_visitor::visit_cmp_op(const clang::BinaryOperator *op) {
+        op->dump();
         auto lhs = self.visit(op->getLHS());
         auto rhs = self.visit(op->getRHS());
 
@@ -322,14 +323,11 @@ namespace vast::cg {
     }
 
     template< typename Op >
-    operation default_stmt_visitor::visit_assign_bin_op(const clang::CompoundAssignOperator *op) {
-        auto lhs = self.visit(op->getLHS());
-        auto rhs = self.visit(op->getRHS());
-
+    operation default_stmt_visitor::visit_assign_bin_op(const clang::BinaryOperator *op) {
         return bld.compose< Op >()
             .bind(self.location(op))
-            .bind_transform(lhs, first_result)
-            .bind_transform(rhs, first_result)
+            .bind_transform(self.visit(op->getLHS()), first_result)
+            .bind_transform(self.visit(op->getRHS()), first_result)
             .freeze();
     }
 
