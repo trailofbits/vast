@@ -529,7 +529,40 @@ namespace vast::cg
             .freeze();
     }
 
-    operation default_stmt_visitor::VisitPredefinedExpr(const clang::PredefinedExpr *expr) { return {};}
+    hl::IdentKind ident_kind(const clang::PredefinedExpr *expr) {
+        switch (expr->getIdentKind()) {
+            case clang::PredefinedIdentKind::Func:
+                return hl::IdentKind::Func;
+            case clang::PredefinedIdentKind::Function:
+                return hl::IdentKind::Function;
+            case clang::PredefinedIdentKind::LFunction:
+                return hl::IdentKind::LFunction;
+            case clang::PredefinedIdentKind::FuncDName:
+                return hl::IdentKind::FuncDName;
+            case clang::PredefinedIdentKind::FuncSig:
+                return hl::IdentKind::FuncSig;
+            case clang::PredefinedIdentKind::LFuncSig:
+                return hl::IdentKind::LFuncSig;
+            case clang::PredefinedIdentKind::PrettyFunction:
+                return hl::IdentKind::PrettyFunction;
+            case clang::PredefinedIdentKind::PrettyFunctionNoVirtual:
+                return hl::IdentKind::PrettyFunctionNoVirtual;
+        }
+    }
+
+    operation default_stmt_visitor::VisitPredefinedExpr(const clang::PredefinedExpr *expr) {
+        auto name = expr->getFunctionName();
+        if (!name) {
+            return {}; // unsupported clang::PredefinedExpr without name
+        }
+
+        return bld.compose< hl::PredefinedExpr >()
+            .bind(self.location(expr))
+            .bind(self.visit(expr->getType()))
+            .bind_transform(self.visit(name), first_result)
+            .bind(ident_kind(expr))
+            .freeze();
+    }
 
     operation default_stmt_visitor::VisitBreakStmt(const clang::BreakStmt *stmt) {
         return bld.compose< hl::BreakOp >().bind(self.location(stmt)).freeze();
