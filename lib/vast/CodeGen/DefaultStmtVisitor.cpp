@@ -637,7 +637,13 @@ namespace vast::cg
 
     // operation default_stmt_visitor::VisitCXXBindTemporaryExpr(const clang::CXXBindTemporaryExpr *expr) { return {}; }
 
-    operation default_stmt_visitor::VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *expr) { return {}; }
+    operation default_stmt_visitor::VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *expr) {
+        return bld.compose< hl::ConstantOp >()
+            .bind(self.location(expr))
+            .bind(self.visit(expr->getType()))
+            .bind(expr->getValue())
+            .freeze();
+    }
 
     // operation default_stmt_visitor::VisitCXXConstructExpr(const clang::CXXConstructExpr *expr)
     // operation default_stmt_visitor::VisitCXXTemporaryObjectExpr(const clang::CXXTemporaryObjectExpr *expr)
