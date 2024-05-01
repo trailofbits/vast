@@ -210,6 +210,11 @@ namespace vast::cg {
         // operation VisitCXXUnresolvedConstructExpr(const clang::CXXThrowExpr *expr)
         // operation VisitCXXUuidofExpr(const clang::CXXUuidofExpr *expr)
 
+        values_t get_call_args(const clang::CallExpr *expr);
+
+        operation mk_direct_call(const clang::CallExpr *expr);
+        operation mk_indirect_call(const clang::CallExpr *expr);
+
         operation VisitCallExpr(const clang::CallExpr *expr);
 
         // operation VisitCXXMemberCallExpr(const clang::CXXMemberCallExpr *expr)
