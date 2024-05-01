@@ -29,7 +29,7 @@ namespace vast::cg {
 
     // TODO this should not be needed the data layout should be emitted from cached types directly
     dl::DataLayoutBlueprint emit_data_layout_blueprint(
-        const acontext_t &actx, const cached_default_type_visitor &type_visitor
+        const acontext_t &actx, const default_visitor &visitor
     ) {
         dl::DataLayoutBlueprint dl;
 
@@ -48,11 +48,11 @@ namespace vast::cg {
             dl.try_emplace(vast_type, orig, actx);
         };
 
-        for (auto [orig, vast_type] : type_visitor.cache) {
+        for (auto [orig, vast_type] : visitor.cache) {
             store_layout(orig, vast_type);
         }
 
-        for (auto [qual_type, vast_type] : type_visitor.qual_cache) {
+        for (auto [qual_type, vast_type] : visitor.qual_cache) {
             auto [orig, quals] = qual_type.split();
             store_layout(orig, vast_type);
         }
@@ -63,7 +63,7 @@ namespace vast::cg {
     void driver::finalize(const cc::vast_args &vargs) {
         generator.finalize();
 
-        if (auto type_visitor = visitor->find< cached_default_type_visitor >()) {
+        if (auto type_visitor = visitor->find< default_visitor >()) {
             auto dl = emit_data_layout_blueprint(actx, type_visitor.value());
             emit_data_layout(*mctx, mod, dl);
         }
@@ -128,14 +128,12 @@ namespace vast::cg {
         );
     }
 
-    std::unique_ptr< codegen_visitor > driver::mk_visitor(
-        const options_t &opts, scope_context &scope
-    ) {
+    std::unique_ptr< codegen_visitor > driver::mk_visitor(const options_t &opts) {
         auto top = std::make_unique< codegen_visitor >(*mctx, *mg, *sg);
 
         top->visitors.push_back(
             std::make_unique< default_visitor >(
-                *mctx, *bld, *mg, *sg, scoped_visitor_view(*top, scope)
+                *mctx, *bld, *mg, *sg, visitor_view(*top)
             )
         );
 

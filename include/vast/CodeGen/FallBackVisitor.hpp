@@ -44,15 +44,29 @@ namespace vast::cg
             return std::nullopt;
         }
 
-        operation visit(const clang_stmt *stmt) override { return visit_with_fallback(stmt); }
-        operation visit(const clang_decl *decl) override { return visit_with_fallback(decl); }
-        mlir_type visit(const clang_type *type) override { return visit_with_fallback(type); }
-        mlir_attr visit(const clang_attr *attr) override { return visit_with_fallback(attr); }
-        mlir_type visit(clang_qual_type type) override { return visit_with_fallback(type); }
+        operation visit(const clang_stmt *stmt, scope_context &scope) override {
+            return visit_with_fallback(stmt, scope);
+        }
 
-        operation visit_prototype(const clang_function *decl) override {
+        operation visit(const clang_decl *decl, scope_context &scope) override {
+            return visit_with_fallback(decl, scope);
+        }
+
+        mlir_type visit(const clang_type *type, scope_context &scope) override {
+            return visit_with_fallback(type, scope);
+        }
+
+        mlir_attr visit(const clang_attr *attr, scope_context &scope) override {
+            return visit_with_fallback(attr, scope);
+        }
+
+        mlir_type visit(clang_qual_type type, scope_context &scope) override {
+            return visit_with_fallback(type, scope);
+        }
+
+        operation visit_prototype(const clang_function *decl, scope_context &scope) override {
             for (auto &visitor : visitors) {
-                if (auto result = visitor->visit_prototype(decl)) {
+                if (auto result = visitor->visit_prototype(decl, scope)) {
                     return result;
                 }
             }
