@@ -685,10 +685,22 @@ namespace vast::cg
     // operation default_stmt_visitor::VisitOpaqueValueExpr(const clang::OpaqueValueExpr *expr)
     // operation default_stmt_visitor::VisitOverloadExpr(const clang::OverloadExpr *expr)
 
-    operation default_stmt_visitor::VisitParenExpr(const clang::ParenExpr *expr) { return {}; }
+    operation default_stmt_visitor::VisitParenExpr(const clang::ParenExpr *expr) {
+        return bld.compose< hl::ExprOp >()
+            .bind(self.location(expr))
+            .bind(self.visit(expr->getType()))
+            .bind_region(make_value_builder(expr->getSubExpr()))
+            .freeze();
+    }
 
     // operation default_stmt_visitor::VisitParenListExpr(const clang::ParenListExpr *expr)
-    operation default_stmt_visitor::VisitStmtExpr(const clang::StmtExpr *expr) { return {}; }
+    operation default_stmt_visitor::VisitStmtExpr(const clang::StmtExpr *expr) {
+        return bld.compose< hl::StmtExprOp >()
+            .bind(self.location(expr))
+            .bind(self.visit(expr->getType()))
+            .bind_region(make_optional_region_builder(expr->getSubStmt()))
+            .freeze();
+    }
 
     operation default_stmt_visitor::VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *expr) { return {}; }
 
