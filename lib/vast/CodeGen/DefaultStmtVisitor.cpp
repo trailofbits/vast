@@ -180,6 +180,14 @@ namespace vast::cg
         return visit_bin_op< hl::BinOrOp >(op);
     }
 
+    operation default_stmt_visitor::VisitBinLAnd(const clang::BinaryOperator *op) {
+        return visit_logical_op< hl::BinLAndOp >(op);
+    }
+
+    operation default_stmt_visitor::VisitBinLOr(const clang::BinaryOperator *op) {
+        return visit_logical_op< hl::BinLOrOp >(op);
+    }
+
     //
     // Compound Assignment Operations
     //
