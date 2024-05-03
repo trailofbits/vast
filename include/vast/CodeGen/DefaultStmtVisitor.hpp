@@ -312,6 +312,8 @@ namespace vast::cg {
             return visit_bin_op< UOp >(op);
         } else if (ty->isIntegerType()) {
             return visit_bin_op< SOp >(op);
+        } else if (ty->isPointerType()) {
+            return visit_bin_op< SOp >(op);
         } else if (ty->isFloatingType()) {
             return visit_bin_op< FOp >(op);
         } else {
