@@ -76,7 +76,16 @@ namespace vast::cg
             return std::nullopt; // mangling with uninitilized module
         }
 
-        if (mangle_context->shouldMangleDeclName(decl)) {
+        auto should_mangle_filter = [](const clang_named_decl *decl) {
+            if (auto var = clang::dyn_cast< clang::VarDecl >(decl)) {
+                return !var->isLocalVarDeclOrParm();
+            }
+
+            return true; // check to see if decl should be mangled
+        };
+
+
+        if (should_mangle_filter(decl) && mangle_context->shouldMangleDeclName(decl)) {
             mangle_context->mangleName(decl, out);
         } else {
             auto *identifier = decl->getIdentifier();
@@ -107,8 +116,8 @@ namespace vast::cg
                 } else {
                     out << identifier->getName();
                 }
-            } else if (const auto *named = clang::dyn_cast< clang::NamedDecl >(decl)) {
-                out << named->getName();
+            } else {
+                out << decl->getName();
             }
         }
 
