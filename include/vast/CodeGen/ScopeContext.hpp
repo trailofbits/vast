@@ -229,6 +229,7 @@ namespace vast::cg
             , functions(symbols.funs)
             , types(symbols.types)
             , globals(symbols.vars)
+            , enum_constants(symbols.enum_constants)
         {}
 
         virtual ~module_scope() = default;
@@ -236,6 +237,7 @@ namespace vast::cg
         symbol_table_scope< string_ref, operation >  functions;
         symbol_table_scope< string_ref, operation >  types;
         symbol_table_scope< string_ref, mlir_value > globals;
+        symbol_table_scope< string_ref, operation >  enum_constants;
     };
 
     // Scope of member names for structures and unions
