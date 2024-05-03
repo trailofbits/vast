@@ -272,14 +272,8 @@ namespace vast::cg {
         return VisitRecordType(ty, ty->desugar().getLocalQualifiers());
     }
 
-    auto make_name_attr(string_ref name, mcontext_t &ctx) {
-        return mlir::StringAttr::get(&ctx, name);
-    }
-
     mlir_type default_type_visitor::VisitRecordType(const clang::RecordType *ty, clang_qualifiers quals) {
-        // TODO mangle name
-        auto name = make_name_attr(get_namespaced_decl_name(ty->getDecl()), self.mcontext());
-        return with_cv_qualifiers(compose_type< hl::RecordType >().bind(name), quals).freeze();
+        return mk_record_type(ty, quals);
     }
 
     mlir_type default_type_visitor::VisitEnumType(const clang::EnumType *ty) {
@@ -287,9 +281,7 @@ namespace vast::cg {
     }
 
     mlir_type default_type_visitor::VisitEnumType(const clang::EnumType *ty, clang_qualifiers quals) {
-        // TODO mangle name
-        auto name = make_name_attr(get_namespaced_decl_name(ty->getDecl()), self.mcontext());
-        return with_cv_qualifiers(compose_type< hl::RecordType >().bind(name), quals).freeze();
+        return mk_record_type(ty, quals);
     }
 
     mlir_type default_type_visitor::VisitTypedefType(const clang::TypedefType *ty) {
@@ -298,15 +290,18 @@ namespace vast::cg {
 
     mlir_type default_type_visitor::VisitTypedefType(const clang::TypedefType *ty, clang_qualifiers quals) {
         auto decl = ty->getDecl();
-        auto name_ref = decl->getName();
-        auto name = make_name_attr(name_ref, self.mcontext());
+        if (auto symbol = self.symbol(decl)) {
+            auto name = mlir::StringAttr::get(&self.mcontext(), symbol.value());
 
-        // TODO deal with va_list in preprocessing pass
-        if (name_ref.contains("va_list")) {
-            self.visit(decl->getASTContext().getBuiltinVaListDecl());
+            // TODO deal with va_list in preprocessing pass
+            if (symbol->contains("va_list")) {
+                self.visit(decl->getASTContext().getBuiltinVaListDecl());
+            }
+
+            return with_cvr_qualifiers(compose_type< hl::TypedefType >().bind(name), quals).freeze();
         }
 
-        return with_cvr_qualifiers(compose_type< hl::TypedefType >().bind(name), quals).freeze();
+        return {};
     }
 
     mlir_type default_type_visitor::VisitParenType(const clang::ParenType *ty) {

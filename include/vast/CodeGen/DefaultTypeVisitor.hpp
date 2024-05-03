@@ -145,6 +145,17 @@ namespace vast::cg {
             auto ref = hl::ReferenceType::get(&self.mcontext(), pointee);
             return value_type::get(&self.mcontext(), ref);
         }
+
+        template< typename record_type >
+        mlir_type mk_record_type(const record_type *ty, clang_qualifiers quals) {
+            if (auto symbol = self.symbol(ty->getDecl())) {
+                auto name = mlir::StringAttr::get(&self.mcontext(), symbol.value());
+                return with_cv_qualifiers(compose_type< hl::RecordType >().bind(name), quals).freeze();
+            }
+
+            return {};
+        }
+
     };
 
 } // namespace vast::cg
