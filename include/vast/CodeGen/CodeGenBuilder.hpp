@@ -135,6 +135,17 @@ namespace vast::cg {
         }
 
         template< typename arg_t >
+        constexpr inline auto bind_region(arg_t &&arg) && {
+            auto bound = [arg = std::forward< arg_t >(arg), binder = std::move(binder)] (auto &&...args) {
+                if (!valid(arg)) {
+                    return result_type{};
+                }
+                return binder(arg, std::forward<decltype(args)>(args)...);
+            };
+            return compose_state_t<result_type, decltype(bound)>(std::move(bound));
+        }
+
+        template< typename arg_t >
         constexpr inline auto bind_region_if(bool cond, arg_t &&arg) && {
             auto bound = [cond, arg = std::forward<arg_t>(arg), binder = std::move(binder)](auto &&...args) {
                 if (cond) {
@@ -145,6 +156,25 @@ namespace vast::cg {
                 }
                 return binder(std::nullopt, std::forward<decltype(args)>(args)...);
             };
+            return compose_state_t<result_type, decltype(bound)>(std::move(bound));
+        }
+
+        template< typename then_arg_t, typename else_arg_t >
+        constexpr inline auto bind_region_choose(bool cond, then_arg_t &&then_arg, else_arg_t &&else_arg) && {
+            auto bound = [cond, then_arg = std::forward<then_arg_t>(then_arg), else_arg = std::forward<else_arg_t>(else_arg), binder = std::move(binder)](auto &&...args) {
+                if (cond) {
+                    if (!valid(then_arg)) {
+                        return result_type{};
+                    }
+                    return binder(then_arg, std::forward<decltype(args)>(args)...);
+                } else {
+                    if (!valid(else_arg)) {
+                        return result_type{};
+                    }
+                    return binder(else_arg, std::forward<decltype(args)>(args)...);
+                }
+            };
+
             return compose_state_t<result_type, decltype(bound)>(std::move(bound));
         }
 
@@ -198,6 +228,22 @@ namespace vast::cg {
         [[nodiscard]] auto scoped_insertion_at_end(region_ptr region) {
             VAST_CHECK(!region->empty(), "Inserting into region with no blocks");
             return scoped_insertion_at_end(&region->back());
+        }
+
+        [[nodiscard]] auto get_module_region() {
+            auto curr = getBlock()->getParentOp();
+            while (!mlir::isa< vast_module >(curr)) {
+                curr = curr->getParentOp();
+            }
+            return mlir::cast< vast_module >(curr).getBody();
+        }
+
+        [[nodiscard]] auto set_insertion_point_to_start_of_module() {
+            return scoped_insertion_at_start(get_module_region());
+        }
+
+        [[nodiscard]] auto set_insertion_point_to_end_of_module() {
+            return scoped_insertion_at_end(get_module_region());
         }
 
         hl::VoidType void_type() { return getType< hl::VoidType >(); }
