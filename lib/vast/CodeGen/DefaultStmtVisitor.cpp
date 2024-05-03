@@ -487,9 +487,8 @@ namespace vast::cg
     //
     operation default_stmt_visitor::VisitDeclRefExpr(const clang::DeclRefExpr *expr) {
         auto underlying = expr->getDecl()->getUnderlyingDecl();
-
         return llvm::TypeSwitch< const clang::NamedDecl *, operation >(underlying)
-            .Case< clang::EnumDecl >([&] (auto /* e */) { return visit_enum_decl_ref(expr); })
+            .Case< clang::EnumConstantDecl >([&] (auto /* e */) { return visit_enum_decl_ref(expr); })
             .Case< clang::VarDecl  >([&] (auto v) {
                 if (v->isFileVarDecl()) {
                     return visit_file_var_decl_ref(expr);
