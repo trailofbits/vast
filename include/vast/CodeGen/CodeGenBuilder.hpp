@@ -55,6 +55,15 @@ namespace vast::cg {
         }
 
         template< typename ...args_t >
+        constexpr inline auto bind_always(args_t &&...args) && {
+            auto bound = [... args = std::forward< args_t >(args), binder = std::move(binder)] (auto &&...rest) {
+                return binder(args..., std::forward< decltype(rest) >(rest)...);
+            };
+            return compose_state_t< result_type, decltype(bound) >(std::move(bound));
+        }
+
+
+        template< typename ...args_t >
         constexpr inline auto bind(args_t &&...args) && {
             auto bound = [... args = std::forward< args_t >(args), binder = std::move(binder)] (auto &&...rest) {
                 if (!valid(args...)) {

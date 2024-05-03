@@ -259,11 +259,11 @@ namespace vast::cg {
     }
 
     mlir_type default_type_visitor::VisitArrayType(const clang::ArrayType *ty, clang_qualifiers quals) {
-        auto element_type = visit(ty->getElementType());
         return with_cvr_qualifiers(
             compose_type< hl::ArrayType >()
-                .bind(get_size_attr(ty, self.mcontext()))
-                .bind(element_type),
+                // bind also uninitialized size
+                .bind_always(get_size_attr(ty, self.mcontext()))
+                .bind(self.visit(ty->getElementType())),
             quals
         ).freeze();
     }
