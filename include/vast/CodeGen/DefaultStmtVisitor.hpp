@@ -228,6 +228,15 @@ namespace vast::cg {
         // operation VisitParenListExpr(const clang::ParenListExpr *expr)
         operation VisitStmtExpr(const clang::StmtExpr *expr);
 
+        template< typename op_t >
+        operation mk_type_trait_expr(const clang::UnaryExprOrTypeTraitExpr *expr);
+
+        template< typename op_t >
+        operation mk_expr_trait_expr(const clang::UnaryExprOrTypeTraitExpr *expr);
+
+        template< typename type_trait_op, typename expr_trait_op >
+        operation mk_trait_expr(const clang::UnaryExprOrTypeTraitExpr *expr);
+
         operation VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *expr);
         operation VisitVAArgExpr(const clang::VAArgExpr *expr);
         operation VisitNullStmt(const clang::NullStmt *stmt);
@@ -453,4 +462,30 @@ namespace vast::cg {
         return {};
     }
 
+    template< typename op_t >
+    operation default_stmt_visitor::mk_type_trait_expr(const clang::UnaryExprOrTypeTraitExpr *expr) {
+        return bld.compose< op_t >()
+            .bind(self.location(expr))
+            .bind(self.visit(expr->getType()))
+            .bind(self.visit(expr->getArgumentType()))
+            .freeze();
+    }
+
+    template< typename op_t >
+    operation default_stmt_visitor::mk_expr_trait_expr(const clang::UnaryExprOrTypeTraitExpr *expr) {
+        return bld.compose< op_t >()
+            .bind(self.location(expr))
+            .bind(self.visit(expr->getType()))
+            .bind_region(make_value_builder(expr->getArgumentExpr()))
+            .freeze();
+    }
+
+    template< typename type_trait_op, typename expr_trait_op >
+    operation default_stmt_visitor::mk_trait_expr(const clang::UnaryExprOrTypeTraitExpr *expr) {
+        if (expr->isArgumentType()) {
+            return mk_type_trait_expr< type_trait_op >(expr);
+        } else {
+            return mk_expr_trait_expr< expr_trait_op >(expr);
+        }
+    }
 } // namespace vast::cg
