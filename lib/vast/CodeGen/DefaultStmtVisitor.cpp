@@ -733,7 +733,16 @@ namespace vast::cg
             .freeze();
     }
 
-    operation default_stmt_visitor::VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *expr) { return {}; }
+    operation default_stmt_visitor::VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *expr) {
+        switch (expr->getKind()) {
+            case clang::UETT_SizeOf:
+                return mk_trait_expr< hl::SizeOfTypeOp, hl::SizeOfExprOp >(expr);
+            case clang::UETT_AlignOf:
+                return mk_trait_expr< hl::AlignOfTypeOp, hl::AlignOfExprOp >(expr);
+            default:
+                return {};
+        }
+    }
 
     operation default_stmt_visitor::VisitVAArgExpr(const clang::VAArgExpr *expr) {
         return bld.compose< hl::VAArgExpr >()
