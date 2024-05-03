@@ -210,8 +210,6 @@ namespace vast::cg {
         // operation VisitCXXUnresolvedConstructExpr(const clang::CXXThrowExpr *expr)
         // operation VisitCXXUuidofExpr(const clang::CXXUuidofExpr *expr)
 
-        values_t get_call_args(const clang::CallExpr *expr);
-
         operation mk_direct_call(const clang::CallExpr *expr);
         operation mk_indirect_call(const clang::CallExpr *expr);
 
@@ -252,6 +250,17 @@ namespace vast::cg {
         operation VisitUserDefinedLiteral(const clang::UserDefinedLiteral *lit);
         operation VisitCompoundLiteralExpr(const clang::CompoundLiteralExpr *lit);
         operation VisitFixedPointLiteral(const clang::FixedPointLiteral *lit);
+
+        operation VisitInitListExpr(const clang::InitListExpr *expr);
+
+        template< typename RangeType >
+        values_t visit_values_range(RangeType &&range) {
+            values_t values;
+            for (auto item : range) {
+                values.push_back(self.visit(item)->getResult(0));
+            }
+            return values;
+        }
 
         template< typename yield_type >
         auto make_stmt_builder(const clang_stmt *stmt) {

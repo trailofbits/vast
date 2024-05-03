@@ -675,20 +675,12 @@ namespace vast::cg
     // operation default_stmt_visitor::VisitCXXUnresolvedConstructExpr(const clang::CXXThrowExpr *expr)
     // operation default_stmt_visitor::VisitCXXUuidofExpr(const clang::CXXUuidofExpr *expr)
 
-    values_t default_stmt_visitor::get_call_args(const clang::CallExpr *expr) {
-        values_t args;
-        for (auto arg : expr->arguments()) {
-            args.push_back(self.visit(arg)->getResult(0));
-        }
-        return args;
-    }
-
     operation default_stmt_visitor::mk_direct_call(const clang::CallExpr *expr) {
         return bld.compose< hl::CallOp >()
             .bind(self.location(expr))
             .bind(self.symbol(expr->getDirectCallee()))
             .bind(self.visit(expr->getType()))
-            .bind(get_call_args(expr))
+            .bind(visit_values_range(expr->arguments()))
             .freeze();
     }
 
@@ -697,7 +689,7 @@ namespace vast::cg
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
             .bind_transform(self.visit(expr->getCallee()), first_result)
-            .bind(get_call_args(expr))
+            .bind(visit_values_range(expr->arguments()))
             .freeze();
     }
 
@@ -760,6 +752,14 @@ namespace vast::cg
         return bld.compose< hl::ThisOp >()
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
+            .freeze();
+    }
+
+    operation default_stmt_visitor::VisitInitListExpr(const clang::InitListExpr *expr) {
+        return bld.compose< hl::InitListExpr >()
+            .bind(self.location(expr))
+            .bind(self.visit(expr->getType()))
+            .bind(visit_values_range(expr->inits()))
             .freeze();
     }
 
