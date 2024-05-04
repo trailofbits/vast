@@ -12,8 +12,14 @@ namespace vast::cg
 {
     struct default_visitor final : visitor_base
     {
-        default_visitor(mcontext_t &mctx, codegen_builder &bld, meta_generator &mg, symbol_generator &sg, visitor_view self)
-            : visitor_base(mctx, mg, sg), bld(bld), self(self)
+        default_visitor(
+              mcontext_t &mctx
+            , codegen_builder &bld
+            , meta_generator &mg
+            , symbol_generator &sg
+            , visitor_view self
+        )
+            : visitor_base(mctx, mg, sg, self.options()), bld(bld), self(self)
         {}
 
         operation visit(const clang_decl *decl, scope_context &scope) override {

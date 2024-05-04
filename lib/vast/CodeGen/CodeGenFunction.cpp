@@ -111,12 +111,14 @@ namespace vast::cg
 
     bool function_generator::should_final_emit_unreachable(const clang_function *decl) const {
         auto rty  = decl->getReturnType();
-        auto & actx = decl->getASTContext();
+        auto &actx = decl->getASTContext();
+        const auto &opts = visitor.options();
         return opts.has_strict_return || may_drop_function_return(rty, actx);
     }
 
     void function_generator::deal_with_missing_return(const clang_function *decl, vast_function fn) {
         auto rty = decl->getReturnType();
+        const auto &opts = visitor.options();
 
         auto _ = bld.scoped_insertion_at_end(&fn.getBody().back());
 

@@ -23,8 +23,8 @@ namespace vast::cg {
     {
         using scope_type = function_scope;
 
-        function_generator(codegen_builder &bld, scoped_visitor_view visitor, const options_t &opts)
-            : generator_base(bld, visitor), opts(opts)
+        function_generator(codegen_builder &bld, scoped_visitor_view visitor)
+            : generator_base(bld, visitor)
         {}
 
         using generator_base::generator_base;
@@ -43,8 +43,6 @@ namespace vast::cg {
         void emit_unreachable(const clang_function *decl);
         void emit_implicit_return_zero(const clang_function *decl);
         void emit_implicit_void_return(const clang_function *decl);
-
-        const options_t &opts;
     };
 
     //
