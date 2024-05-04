@@ -303,6 +303,115 @@ namespace vast::cg
     }
 
     //
+    // Assembly Statements
+    //
+    operation default_stmt_visitor::VisitAsmStmt(const clang::AsmStmt *stmt) {
+        return {};
+    }
+
+    operation default_stmt_visitor::VisitGCCAsmStmt(const clang::GCCAsmStmt *stmt) {
+        auto get_string_attr = [&](mlir::StringRef str) {
+            return mlir::StringAttr::get(&self.mcontext(), str);
+        };
+
+        auto asm_attr = get_string_attr(stmt->getAsmString()->getString());
+
+        if (stmt->isSimple()) {
+            return bld.compose< hl::AsmOp >()
+                .bind(self.location(stmt))
+                .bind_always(asm_attr)
+                .bind_always(stmt->isVolatile())
+                .bind_always(false /* has goto */)
+                .freeze();
+        }
+
+        values_t outputs;
+        values_t inputs;
+        attrs_t  out_names;
+        attrs_t  in_names;
+        attrs_t  out_constraints;
+        attrs_t  in_constraints;
+        attrs_t  clobbers;
+        values_t labels;
+
+        auto get_integer_attr = [&](int i) {
+            return bld.getI64IntegerAttr(i);
+        };
+
+        auto get_out_expr       = [&](int i) { return stmt->getOutputExpr(i); };
+        auto get_out_name       = [&](int i) { return stmt->getOutputName(i); };
+        auto get_out_constraint = [&](int i) { return stmt->getOutputConstraint(i); };
+
+        auto get_in_expr       = [&](int i) { return stmt->getInputExpr(i); };
+        auto get_in_name       = [&](int i) { return stmt->getInputName(i); };
+        auto get_in_constraint = [&](int i) { return stmt->getInputConstraint(i); };
+
+        int arg_num = 0;
+
+        auto fill_vectors = [&](
+            int size, const auto &get_expr, const auto &get_name,
+            const auto &get_constraint, auto &vals, auto &names,
+            auto &constraints
+        ) {
+            for (int i = 0; i < size; i++) {
+                auto id = get_name(i);
+                if (id.size()) {
+                    names.push_back(get_string_attr(id));
+                } else {
+                    names.push_back(get_integer_attr(arg_num));
+                }
+                arg_num++;
+
+                constraints.push_back(get_string_attr(get_constraint(i)));
+                vals.emplace_back(visit(get_expr(i))->getResult(0));
+            }
+        };
+
+        fill_vectors(
+            stmt->getNumOutputs(), get_out_expr, get_out_name, get_out_constraint, outputs,
+            out_names, out_constraints
+        );
+
+        fill_vectors(
+            stmt->getNumInputs(), get_in_expr, get_in_name, get_in_constraint, inputs,
+            in_names, in_constraints
+        );
+
+        if (stmt->isAsmGoto()) {
+            for (const auto &lab : stmt->labels()) {
+                labels.emplace_back(visit(lab)->getResult(0));
+            }
+        }
+
+        for (size_t i = 0; i < stmt->getNumClobbers(); i++) {
+            clobbers.emplace_back(get_string_attr(stmt->getClobber(i)));
+        }
+
+        auto get_array_attr = [&](attrs_t &arr) {
+            return mlir::ArrayAttr::get(&self.mcontext(), mlir::ArrayRef(arr));
+        };
+
+        return bld.compose< hl::AsmOp >()
+            .bind(self.location(stmt))
+            .bind_always(asm_attr)
+            .bind_always(stmt->isVolatile())
+            .bind_always(stmt->isAsmGoto())
+            .bind_always(outputs)
+            .bind_always(inputs)
+            .bind_always(get_array_attr(out_names))
+            .bind_always(get_array_attr(in_names))
+            .bind_always(get_array_attr(out_constraints))
+            .bind_always(get_array_attr(in_constraints))
+            .bind_always(get_array_attr(clobbers))
+            .bind_always(labels)
+            .freeze();
+    }
+
+    operation default_stmt_visitor::VisVisitMSAsmStmtitAsmStmt(const clang::MSAsmStmt *stmt) {
+        return {};
+    }
+
+    //
     // Cast Operations
     //
     operation default_stmt_visitor::VisitImplicitCastExpr(const clang::ImplicitCastExpr *cast) {
