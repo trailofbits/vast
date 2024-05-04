@@ -39,12 +39,6 @@ namespace vast::cg {
 
         void emit(clang::DeclGroupRef decls);
         void emit(clang::Decl *decl);
-        void emit(clang::GlobalDecl *decl);
-        void emit(clang::TypedefDecl *decl);
-        void emit(clang::EnumDecl *decl);
-        void emit(clang::RecordDecl *decl);
-        void emit(clang::FunctionDecl *decl);
-        void emit(clang::VarDecl *decl);
 
         void finalize();
         void emit_data_layout();

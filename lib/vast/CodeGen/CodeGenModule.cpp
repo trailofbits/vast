@@ -21,46 +21,8 @@ namespace vast::cg
     }
 
     void module_generator::emit(clang::Decl *decl) {
-        switch (decl->getKind()) {
-            case clang::Decl::Kind::Typedef:
-                return emit(cast<clang::TypedefDecl>(decl));
-            case clang::Decl::Kind::Enum:
-                return emit(cast<clang::EnumDecl>(decl));
-            case clang::Decl::Kind::Record:
-                return emit(cast<clang::RecordDecl>(decl));
-            case clang::Decl::Kind::Function:
-                return emit(cast<clang::FunctionDecl>(decl));
-            case clang::Decl::Kind::Var:
-                return emit(cast<clang::VarDecl>(decl));
-            default:
-                VAST_FATAL("unhandled decl kind: {}", decl->getDeclKindName());
-        }
-    }
-
-    void module_generator::emit(clang_global */* decl */) {
-        VAST_UNIMPLEMENTED;
-    }
-
-    void module_generator::emit(clang::TypedefDecl *decl) {
         visitor.visit(decl);
     }
-
-    void module_generator::emit(clang::EnumDecl *decl) {
-        visitor.visit(decl);
-    }
-
-    void module_generator::emit(clang::RecordDecl *decl) {
-        visitor.visit(decl);
-    }
-
-    void module_generator::emit(clang::FunctionDecl *decl) {
-        visitor.visit(decl);
-    }
-
-    void module_generator::emit(clang::VarDecl *decl) {
-        visitor.visit(decl);
-    }
-
 
     void module_generator::finalize() { scope().finalize(); }
 
