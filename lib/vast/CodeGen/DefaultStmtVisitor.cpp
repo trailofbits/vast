@@ -676,6 +676,13 @@ namespace vast::cg
     // operation default_stmt_visitor::VisitCXXUuidofExpr(const clang::CXXUuidofExpr *expr)
 
     operation default_stmt_visitor::mk_direct_call(const clang::CallExpr *expr) {
+        if (auto callee = expr->getDirectCallee()) {
+            if (callee->getBuiltinID()) {
+                auto _ = bld.set_insertion_point_to_start_of_module();
+                self.visit(callee);
+            }
+        }
+
         return bld.compose< hl::CallOp >()
             .bind(self.location(expr))
             .bind(self.symbol(expr->getDirectCallee()))
