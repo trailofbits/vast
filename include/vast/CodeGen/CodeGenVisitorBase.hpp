@@ -13,6 +13,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/CodeGenBuilder.hpp"
 #include "vast/CodeGen/CodeGenMeta.hpp"
+#include "vast/CodeGen/CodeGenOptions.hpp"
 #include "vast/CodeGen/Common.hpp"
 #include "vast/CodeGen/ScopeContext.hpp"
 #include "vast/CodeGen/SymbolGenerator.hpp"
@@ -43,6 +44,8 @@ namespace vast::cg {
 
         mcontext_t& mcontext();
         const mcontext_t& mcontext() const;
+
+        const options_t &options() const;
 
         visitor_base *raw() { return &visitor; }
 
@@ -121,8 +124,13 @@ namespace vast::cg {
     //
     struct visitor_base
     {
-        visitor_base(mcontext_t &mctx, meta_generator &mg, symbol_generator &sg)
-            : mctx(mctx), mg(mg), sg(sg)
+        visitor_base(
+              mcontext_t &mctx
+            , meta_generator &mg
+            , symbol_generator &sg
+            , const options_t &opts
+        )
+            : mctx(mctx), mg(mg), sg(sg), opts(opts)
         {}
 
         virtual ~visitor_base() = default;
@@ -141,6 +149,8 @@ namespace vast::cg {
         mcontext_t& mcontext() { return mctx; }
         const mcontext_t& mcontext() const { return mctx; }
 
+        const options_t &options() const { return opts; }
+
         loc_t location(const auto *node) const { return mg.location(node); }
 
         std::optional< symbol_name > symbol(auto &&decl) {
@@ -151,6 +161,8 @@ namespace vast::cg {
         mcontext_t &mctx;
         meta_generator &mg;
         symbol_generator &sg;
+
+        const options_t &opts;
     };
 
     using visitor_base_ptr = std::unique_ptr< visitor_base >;

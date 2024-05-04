@@ -129,7 +129,7 @@ namespace vast::cg {
     }
 
     std::unique_ptr< codegen_visitor > driver::mk_visitor(const options_t &opts) {
-        auto top = std::make_unique< codegen_visitor >(*mctx, *mg, *sg);
+        auto top = std::make_unique< codegen_visitor >(*mctx, *mg, *sg, opts);
 
         top->visitors.push_back(
             std::make_unique< default_visitor >(
@@ -146,7 +146,7 @@ namespace vast::cg {
         }
 
         top->visitors.push_back(
-            std::make_unique< unreach_visitor >(*mctx, *mg, *sg)
+            std::make_unique< unreach_visitor >(*mctx, *mg, *sg, opts)
         );
 
         return top;
