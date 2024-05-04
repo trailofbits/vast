@@ -123,6 +123,14 @@ namespace vast::cg {
         operation VisitUnaryCoawait(const clang::UnaryOperator *op);
 
         //
+        // Assembly Statements
+        //
+
+        operation VisitAsmStmt(const clang::AsmStmt *stmt);
+        operation VisitGCCAsmStmt(const clang::GCCAsmStmt *stmt);
+        operation VisVisitMSAsmStmtitAsmStmt(const clang::MSAsmStmt *stmt);
+
+        //
         // Cast Operations
         //
         template< typename Op >
