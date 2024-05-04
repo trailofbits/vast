@@ -598,7 +598,13 @@ namespace vast::cg
             .freeze();
     }
 
-    operation default_stmt_visitor::VisitLabelStmt(const clang::LabelStmt *stmt) { return {}; }
+    operation default_stmt_visitor::VisitLabelStmt(const clang::LabelStmt *stmt) {
+        return bld.compose< hl::LabelStmt >()
+            .bind(self.location(stmt))
+            .bind_transform(self.visit(stmt->getDecl()), first_result)
+            .bind_region(make_optional_region_builder(stmt->getSubStmt()))
+            .freeze();
+    }
     operation default_stmt_visitor::VisitIfStmt(const clang::IfStmt *stmt) { return {}; }
 
     //
