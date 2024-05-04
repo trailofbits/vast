@@ -54,8 +54,7 @@ namespace vast::cg
     }
 
     void module_generator::emit(clang::FunctionDecl *decl) {
-        auto gen = mk_scoped_generator< function_generator >(*this);
-        gen.emit(decl);
+        visitor.visit(decl);
     }
 
     void module_generator::emit(clang::VarDecl *decl) {

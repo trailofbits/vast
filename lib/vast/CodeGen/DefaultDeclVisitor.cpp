@@ -4,6 +4,8 @@
 
 #include "vast/Dialect/Core/Linkage.hpp"
 
+#include "vast/CodeGen/CodeGenFunction.hpp"
+
 #include "vast/Util/Maybe.hpp"
 #include "vast/CodeGen/Util.hpp"
 
@@ -317,6 +319,11 @@ namespace vast::cg
 
     operation default_decl_visitor::VisitLinkageSpecDecl(const clang::LinkageSpecDecl */* decl */) {
         return {};
+    }
+
+    operation default_decl_visitor::VisitFunctionDecl(const clang::FunctionDecl *decl) {
+        auto gen = mk_scoped_generator< function_generator >(self.scope, bld, self);
+        return gen.emit(decl);
     }
 
     operation default_decl_visitor::VisitTranslationUnitDecl(const clang::TranslationUnitDecl *decl) {

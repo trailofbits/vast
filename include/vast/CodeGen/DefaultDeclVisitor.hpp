@@ -30,6 +30,7 @@ namespace vast::cg {
         operation VisitParmVarDecl(const clang::ParmVarDecl *decl);
         operation VisitImplicitParamDecl(const clang::ImplicitParamDecl *decl);
         operation VisitLinkageSpecDecl(const clang::LinkageSpecDecl *decl);
+        operation VisitFunctionDecl(const clang::FunctionDecl *decl);
         operation VisitTranslationUnitDecl(const clang::TranslationUnitDecl *decl);
         operation VisitTypedefNameDecl(const clang::TypedefNameDecl *decl);
         operation VisitTypedefDecl(const clang::TypedefDecl *decl);
