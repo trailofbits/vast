@@ -33,8 +33,8 @@ namespace vast::cg
 
         if (auto fn = mlir::dyn_cast< vast_function >(prototype)) {
             if (decl->hasBody()) {
-                defer([=, parent = *this] () mutable {
-                    declare_function_params(decl, fn);
+                defer([parent = *this, decl, fn] () mutable {
+                    parent.declare_function_params(decl, fn);
                     parent.emit_body(decl, fn);
                 });
             }
