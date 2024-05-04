@@ -29,6 +29,12 @@ namespace vast::cg
     }
 
     operation function_generator::emit(const clang_function *decl) {
+        if (auto symbol = visitor.symbol(decl)) {
+            if (auto fn = visitor.scope.lookup_fun(symbol.value())) {
+                return fn;
+            }
+        }
+
         auto prototype = mk_prototype(*this, decl);
 
         if (auto fn = mlir::dyn_cast< vast_function >(prototype)) {
