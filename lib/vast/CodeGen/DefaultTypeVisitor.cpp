@@ -273,7 +273,7 @@ namespace vast::cg {
     }
 
     mlir_type default_type_visitor::VisitRecordType(const clang::RecordType *ty, clang_qualifiers quals) {
-        return mk_record_type(ty, quals);
+        return mk_compound_type< hl::RecordType >(ty, quals);
     }
 
     mlir_type default_type_visitor::VisitEnumType(const clang::EnumType *ty) {
@@ -281,7 +281,7 @@ namespace vast::cg {
     }
 
     mlir_type default_type_visitor::VisitEnumType(const clang::EnumType *ty, clang_qualifiers quals) {
-        return mk_record_type(ty, quals);
+        return mk_compound_type< hl::EnumType >(ty, quals);
     }
 
     mlir_type default_type_visitor::VisitTypedefType(const clang::TypedefType *ty) {

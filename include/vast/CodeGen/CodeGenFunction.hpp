@@ -36,6 +36,8 @@ namespace vast::cg {
         void emit_body(const clang_function *decl, vast_function prototype);
         void emit_epilogue(const clang_function *decl, vast_function prototype);
 
+        void emit_labels(const clang_function *decl, vast_function prototype);
+
         void deal_with_missing_return(const clang_function *decl, vast_function fn);
         bool should_final_emit_unreachable(const clang_function *decl) const;
 
