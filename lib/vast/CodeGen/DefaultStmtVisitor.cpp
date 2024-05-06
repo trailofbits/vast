@@ -864,7 +864,11 @@ namespace vast::cg
     operation default_stmt_visitor::VisitParenExpr(const clang::ParenExpr *expr) {
         return bld.compose< hl::ExprOp >()
             .bind(self.location(expr))
-            .bind(self.visit(expr->getType()))
+            .bind_choose(
+                expr->isLValue(),
+                self.visit_as_lvalue_type(expr->getType()),
+                self.visit(expr->getType())
+            )
             .bind_region(make_value_builder(expr->getSubExpr()))
             .freeze();
     }
