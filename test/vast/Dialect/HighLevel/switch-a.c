@@ -33,7 +33,7 @@ int switch_simple(int num)
         // CHECK: }
     }
     // CHECK: }
-    // CHECK: hl.unreachable
+    // CHECK: hlbi.trap
 }
 
 // CHECK: hl.func @switch_fallthorugh_1 {{.*}} ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
@@ -56,7 +56,7 @@ int switch_fallthorugh_1(int num)
         // CHECK: }
     }
     // CHECK: }
-    // CHECK: hl.unreachable
+    // CHECK: hlbi.trap
 }
 
 // CHECK: hl.func @switch_fallthorugh_2 {{.*}} ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
@@ -79,7 +79,7 @@ int switch_fallthorugh_2(int num)
         // CHECK: }
     }
     // CHECK: }
-    // CHECK: hl.unreachable
+    // CHECK: hlbi.trap
 }
 
 // CHECK: hl.func @switch_nodefault {{.*}} ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
