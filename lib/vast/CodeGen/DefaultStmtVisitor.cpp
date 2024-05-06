@@ -890,18 +890,25 @@ namespace vast::cg
     }
 
     // operation default_stmt_visitor::VisitParenListExpr(const clang::ParenListExpr *expr)
+
+    operation last_effective_operation(mlir::Block *block) {
+        auto last = std::prev(block->end());
+        while (last != block->begin() && mlir::isa< hl::SkipStmt >(&*last)) {
+            last = std::prev(last);
+        }
+        return &*last;
+    }
     operation default_stmt_visitor::VisitStmtExpr(const clang::StmtExpr *expr) {
         auto make_stmt_expr_region_builder = [&] (const clang_stmt *stmt) {
             return [this, stmt] (auto &state, auto) {
-                self.visit(stmt);
+                auto compound = clang::cast< clang::CompoundStmt >(stmt);
+                for (auto sub_stmt : compound->body()) {
+                    self.visit(sub_stmt);
+                }
 
                 auto last_block = state.getBlock();
                 // ({5;;;;;}) <- this is supposed to return 5...
-                auto last = std::prev(last_block->end());
-                while (last != last_block->begin() && mlir::isa< hl::SkipStmt >(&*last)) {
-                    last = std::prev(last);
-                }
-
+                auto last = last_effective_operation(last_block);
                 auto _ = bld.scoped_insertion_at_end(last_block);
 
                 auto stmt_loc = self.location(stmt);
