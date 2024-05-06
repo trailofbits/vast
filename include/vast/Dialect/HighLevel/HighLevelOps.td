@@ -634,7 +634,10 @@ class CastOp< string mnemonic, list< Trait > traits = [] >
     let assemblyFormat = "$value $kind attr-dict `:` type($value) `->` type($result)";
 }
 
-def ImplicitCastOp   : CastOp< "implicit_cast" >;
+def ImplicitCastOp   : CastOp< "implicit_cast" > {
+    let hasFolder = 1;
+}
+
 def CStyleCastOp     : CastOp< "cstyle_cast" >;
 def BuiltinBitCastOp : CastOp< "builtin_bitcast" >;
 
