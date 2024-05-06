@@ -106,6 +106,10 @@ namespace vast::cg
             return symbols.types.lookup(name);
         }
 
+        operation lookup_label(string_ref name) const {
+            return symbols.labels.lookup(name);
+        }
+
         bool is_declared_fun(string_ref name) const {
             return lookup_fun(name);
         }

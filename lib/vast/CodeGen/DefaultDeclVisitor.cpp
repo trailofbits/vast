@@ -367,8 +367,27 @@ namespace vast::cg
         return bld.compose< hl::EmptyDeclOp >().bind(self.location(decl)).freeze();
     }
 
+    void default_decl_visitor::fill_enum_constants(const clang::EnumDecl *decl) {
+        for (auto con : decl->enumerators()) {
+            self.visit(con);
+        }
+    }
+
     operation default_decl_visitor::VisitEnumDecl(const clang::EnumDecl *decl) {
-        // TODO deal with incomplete decls
+        if (auto symbol = self.symbol(decl)) {
+            if (auto op = self.scope.lookup_type(symbol.value())) {
+                auto enum_decl = mlir::cast< hl::EnumDeclOp >(op);
+                // Fill in the enum constants if the enum was predeclared
+                if (decl->isComplete() && !enum_decl.isComplete()) {
+                    auto _ = bld.scoped_insertion_at_start(&enum_decl.getConstants().front());
+                    enum_decl.setType(self.visit(decl->getIntegerType()));
+                    fill_enum_constants(decl);
+                }
+
+                return enum_decl;
+            }
+        }
+
         return maybe_declare([&] {
             if (!decl->isComplete()) {
                 return bld.compose< hl::EnumDeclOp >()
@@ -378,9 +397,7 @@ namespace vast::cg
             }
 
             auto constants = [&] (auto &bld, auto loc) {
-                for (auto con : decl->enumerators()) {
-                    visit(con);
-                }
+                fill_enum_constants(decl);
             };
 
             return bld.compose< hl::EnumDeclOp >()

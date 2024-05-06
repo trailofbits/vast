@@ -201,7 +201,15 @@ def EnumDeclOp
     )>
   ];
 
-  let assemblyFormat = [{ $name attr-dict `:` ($type^ $constants)? }];
+  let extraClassDeclaration = [{
+    bool isComplete();
+  }];
+
+  let extraClassDefinition = [{
+    bool $cppClass::isComplete() { return !getConstants().front().empty(); }
+  }];
+
+  let assemblyFormat = [{ $name attr-dict (`:` $type^ $constants)? }];
 }
 
 class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >

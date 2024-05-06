@@ -41,6 +41,7 @@ namespace vast::cg
             if (decl->hasBody()) {
                 defer([parent = *this, decl, fn] () mutable {
                     parent.declare_function_params(decl, fn);
+                    parent.emit_labels(decl, fn);
                     parent.emit_body(decl, fn);
                 });
             }
@@ -63,8 +64,15 @@ namespace vast::cg
         }
     }
 
+    void function_generator::emit_labels(const clang_function *decl, vast_function fn) {
+        auto _ = bld.scoped_insertion_at_start(&fn.getBody());
+        for (const auto lab : filter< clang::LabelDecl >(decl->decls())) {
+            visitor.visit(lab);
+        }
+    }
+
     void function_generator::emit_body(const clang_function *decl, vast_function prototype) {
-        auto _ = bld.scoped_insertion_at_start(&prototype.getBody());
+        auto _ = bld.scoped_insertion_at_end(&prototype.getBody());
         auto body = decl->getBody();
 
         if (clang::isa< clang::CoroutineBodyStmt >(body)) {
