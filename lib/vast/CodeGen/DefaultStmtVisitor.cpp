@@ -763,7 +763,15 @@ namespace vast::cg
     }
     operation default_stmt_visitor::VisitMemberExpr(const clang::MemberExpr *expr) { return {}; }
 
-    operation default_stmt_visitor::VisitConditionalOperator(const clang::ConditionalOperator *op) { return {}; }
+    operation default_stmt_visitor::VisitConditionalOperator(const clang::ConditionalOperator *op) {
+        return bld.compose< hl::CondOp >()
+            .bind(self.location(op))
+            .bind(self.visit(op->getType()))
+            .bind(mk_cond_builder(op->getCond()))
+            .bind(mk_value_builder(op->getTrueExpr()))
+            .bind(mk_value_builder(op->getFalseExpr()))
+            .freeze();
+    }
 
     operation default_stmt_visitor::VisitAddrLabelExpr(const clang::AddrLabelExpr *expr) {
         return bld.compose< hl::AddrLabelExpr >()
