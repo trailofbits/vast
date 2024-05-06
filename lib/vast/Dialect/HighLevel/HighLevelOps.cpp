@@ -61,6 +61,22 @@ namespace vast::hl
         return {};
     }
 
+    namespace {
+
+        FoldResult fold_integral_cast(auto &self, auto adaptor) {
+            if (self.getResult().getType() == self.getValue().getType())
+                return self.getValue();
+            return {};
+        }
+
+    } // namespace
+
+    FoldResult ImplicitCastOp::fold(FoldAdaptor adaptor) {
+        if (getKind() == CastKind::IntegralCast)
+            return fold_integral_cast(*this, adaptor);
+        return {};
+    }
+
     FoldResult AddIOp::fold(FoldAdaptor adaptor) {
         return checked_int_arithmetic(getType(), adaptor,
             [] (const ap_sint &lhs, const ap_sint &rhs) -> std::optional< ap_sint > {
