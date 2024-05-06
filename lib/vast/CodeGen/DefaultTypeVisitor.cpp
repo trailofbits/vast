@@ -390,7 +390,28 @@ namespace vast::cg {
     }
 
     mlir_type default_type_visitor::VisitTypeOfExprType(const clang::TypeOfExprType *ty, clang_qualifiers quals) {
-        return {};
+        auto type_of_expr_name = [] (clang_expr *expr) {
+            std::string name;
+            llvm::raw_string_ostream output(name);
+            expr->printPretty(output, nullptr, clang::PrintingPolicy(clang::LangOptions()));
+            return name;
+        };
+
+        auto expr = ty->getUnderlyingExpr();
+        auto name = type_of_expr_name(expr);
+
+        auto def  = bld.compose< hl::TypeOfExprOp >()
+            .bind(self.location(expr))
+            .bind(name)
+            .bind(self.visit(expr->getType()))
+            .bind(mk_type_yield_builder(expr))
+            .freeze();
+
+        if (def) {
+            return with_cvr_qualifiers(compose_type< hl::TypeOfExprType >().bind(name), quals).freeze();
+        } else {
+            return {};
+        }
     }
 
     mlir_type default_type_visitor::VisitTypeOfType(const clang::TypeOfType *ty) {
@@ -398,7 +419,8 @@ namespace vast::cg {
     }
 
     mlir_type default_type_visitor::VisitTypeOfType(const clang::TypeOfType *ty, clang_qualifiers quals) {
-        return {};
+        auto type = self.visit(ty->getUnmodifiedType());
+        return with_cvr_qualifiers(compose_type< hl::TypeOfTypeType >().bind(type), quals).freeze();
     }
 
 } // namespace vast::hl
