@@ -3,7 +3,7 @@
 
 enum E { fst = 0 };
 
-// CHECK:   hl.func @id {{.*}} (%arg0: !hl.lvalue<!hl.record<"E">>) -> !hl.record<"E"> {
+// CHECK:   hl.func @id {{.*}} (%arg0: !hl.lvalue<!hl.enum<"E">>) -> !hl.enum<"E"> {
 enum E id(enum E a)
 {
     return a;
