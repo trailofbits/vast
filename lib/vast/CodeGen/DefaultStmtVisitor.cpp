@@ -688,9 +688,32 @@ namespace vast::cg
         return bld.compose< hl::ContinueOp >().bind(self.location(stmt)).freeze();
     }
 
-    operation default_stmt_visitor::VisitCaseStmt(const clang::CaseStmt *stmt) { return {}; }
-    operation default_stmt_visitor::VisitDefaultStmt(const clang::DefaultStmt *stmt) { return {}; }
-    operation default_stmt_visitor::VisitSwitchStmt(const clang::SwitchStmt *stmt) { return {}; }
+    operation default_stmt_visitor::VisitCaseStmt(const clang::CaseStmt *stmt) {
+        return bld.compose< hl::CaseOp >()
+            .bind(self.location(stmt))
+            .bind_region(make_value_builder(stmt->getLHS()))
+            .bind_region(make_optional_region_builder(stmt->getSubStmt()))
+            .freeze();
+    }
+
+    operation default_stmt_visitor::VisitDefaultStmt(const clang::DefaultStmt *stmt) {
+        return bld.compose< hl::DefaultOp >()
+            .bind(self.location(stmt))
+            .bind_region(make_optional_region_builder(stmt->getSubStmt()))
+            .freeze();
+    }
+
+    operation default_stmt_visitor::VisitSwitchStmt(const clang::SwitchStmt *stmt) {
+        if (stmt->getInit()) {
+            return {};
+        }
+
+        return bld.compose< hl::SwitchOp >()
+            .bind(self.location(stmt))
+            .bind_region(make_value_builder(stmt->getCond()))
+            .bind_region(make_optional_region_builder(stmt->getBody()))
+            .freeze();
+    }
 
     operation default_stmt_visitor::VisitDoStmt(const clang::DoStmt *stmt) {
         return bld.compose< hl::DoOp >()
