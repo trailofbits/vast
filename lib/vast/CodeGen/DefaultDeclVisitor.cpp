@@ -252,9 +252,9 @@ namespace vast::cg
         bool has_allocator = decl->getType()->isVariableArrayType();
         bool has_init = decl->getInit();
 
-        auto array_allocator = [decl](auto &state, auto loc) {
+        auto array_allocator = [this, decl](auto &state, auto loc) {
             if (auto type = clang::dyn_cast< clang::VariableArrayType >(decl->getType())) {
-                VAST_UNIMPLEMENTED; // emit(type->getSizeExpr(), state, loc);
+                mk_value_builder(type->getSizeExpr())(bld, loc);
             }
         };
 
@@ -349,6 +349,12 @@ namespace vast::cg
     }
 
     operation default_decl_visitor::VisitLabelDecl(const clang::LabelDecl *decl) {
+        if (auto symbol = self.symbol(decl)) {
+            if (auto label = self.scope.lookup_label(symbol.value())) {
+                return label;
+            }
+        }
+
         return maybe_declare([&] {
             return bld.compose< hl::LabelDeclOp >()
                 .bind(self.location(decl))
