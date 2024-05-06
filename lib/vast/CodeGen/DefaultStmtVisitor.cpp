@@ -691,7 +691,15 @@ namespace vast::cg
     operation default_stmt_visitor::VisitCaseStmt(const clang::CaseStmt *stmt) { return {}; }
     operation default_stmt_visitor::VisitDefaultStmt(const clang::DefaultStmt *stmt) { return {}; }
     operation default_stmt_visitor::VisitSwitchStmt(const clang::SwitchStmt *stmt) { return {}; }
-    operation default_stmt_visitor::VisitDoStmt(const clang::DoStmt *stmt) { return {}; }
+
+    operation default_stmt_visitor::VisitDoStmt(const clang::DoStmt *stmt) {
+        return bld.compose< hl::DoOp >()
+            .bind(self.location(stmt))
+            .bind_region(make_optional_region_builder(stmt->getBody()))
+            .bind_region(make_cond_builder(stmt->getCond()))
+            .freeze();
+    }
+
     // operation default_stmt_visitor::VisitCXXCatchStmt(const clang::CXXCatchStmt *stmt)
     // operation default_stmt_visitor::VisitCXXForRangeStmt(const clang::CXXForRangeStmt *stmt)
     // operation default_stmt_visitor::VisitCXXTryStmt(const clang::CXXTryStmt *stmt)
