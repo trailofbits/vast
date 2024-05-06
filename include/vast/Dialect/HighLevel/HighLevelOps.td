@@ -816,7 +816,7 @@ def BinLShrOp : ShiftOp<"bin.lshr" >;
 def BinAShrOp : ShiftOp<"bin.ashr" >;
 
 class IsLValuePointer< string arg > : PredOpTrait< "lvalue is of an integer type",
-    CPred< "$" # arg # ".getType().cast< LValueType >().getElementType().isa< hl::PointerType >()" >
+    CPred< "mlir::isa< LValueType >($" # arg # ".getType()) && mlir::isa< hl::PointerType >(mlir::cast< LValueType >($" # arg # ".getType()).getElementType())" >
 >;
 
 class IsCompoundPtrAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation on pointers",
@@ -828,7 +828,7 @@ class IsCompoundPtrAdditive< string lhs, string rhs, string res > : PredOpTrait<
 class IsCompoundAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation (types match or are ptr and integral)",
     Or<[
         IsCompoundPtrAdditive< lhs, rhs, res >.predicate,
-        CPred< "$" # lhs # ".getType().cast< LValueType >().getElementType() == $" # res # ".getType()" >,
+        CPred< "mlir::isa< LValueType >($" # lhs # ".getType()) && mlir::cast< LValueType >($" # lhs # ".getType()).getElementType() == $" # res # ".getType()" >,
         ContainsTypedef< [lhs, rhs] >.predicate
     ]>
 >;
@@ -838,7 +838,7 @@ class CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< Trai
         TypesMatchWith<
           "underlying destination type match result type",
           "dst", "result",
-          "$_self.cast< ElementTypeInterface >().getElementType()"
+          "mlir::isa< ElementTypeInterface >($_self) ? mlir::cast< ElementTypeInterface >($_self).getElementType() : mlir::Type()"
         >
     ])>
     // FIXME: add argument constraints and infer return type
