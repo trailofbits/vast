@@ -430,7 +430,7 @@ namespace vast::cg
         if (auto tag = decl->getType()->getAsTagDecl()) {
             if (tag->isThisDeclarationADefinition()) {
                 if (auto symbol = self.symbol(tag)) {
-                    if (!is_declared_type(self.symbol(tag).value())) {
+                    if (!is_declared_type(symbol.value())) {
                         visit(tag);
                     }
                 }
