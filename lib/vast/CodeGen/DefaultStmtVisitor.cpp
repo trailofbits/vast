@@ -691,15 +691,15 @@ namespace vast::cg
     operation default_stmt_visitor::VisitCaseStmt(const clang::CaseStmt *stmt) {
         return bld.compose< hl::CaseOp >()
             .bind(self.location(stmt))
-            .bind(make_value_builder(stmt->getLHS()))
-            .bind(make_optional_region_builder(stmt->getSubStmt()))
+            .bind(mk_value_builder(stmt->getLHS()))
+            .bind(mk_optional_region_builder(stmt->getSubStmt()))
             .freeze();
     }
 
     operation default_stmt_visitor::VisitDefaultStmt(const clang::DefaultStmt *stmt) {
         return bld.compose< hl::DefaultOp >()
             .bind(self.location(stmt))
-            .bind(make_optional_region_builder(stmt->getSubStmt()))
+            .bind(mk_optional_region_builder(stmt->getSubStmt()))
             .freeze();
     }
 
@@ -710,16 +710,16 @@ namespace vast::cg
 
         return bld.compose< hl::SwitchOp >()
             .bind(self.location(stmt))
-            .bind(make_value_builder(stmt->getCond()))
-            .bind(make_optional_region_builder(stmt->getBody()))
+            .bind(mk_value_builder(stmt->getCond()))
+            .bind(mk_optional_region_builder(stmt->getBody()))
             .freeze();
     }
 
     operation default_stmt_visitor::VisitDoStmt(const clang::DoStmt *stmt) {
         return bld.compose< hl::DoOp >()
             .bind(self.location(stmt))
-            .bind(make_optional_region_builder(stmt->getBody()))
-            .bind(make_cond_builder(stmt->getCond()))
+            .bind(mk_optional_region_builder(stmt->getBody()))
+            .bind(mk_cond_builder(stmt->getCond()))
             .freeze();
     }
 
@@ -742,7 +742,7 @@ namespace vast::cg
         return bld.compose< hl::LabelStmt >()
             .bind(self.location(stmt))
             .bind_transform(self.visit(stmt->getDecl()), first_result)
-            .bind(make_optional_region_builder(stmt->getSubStmt()))
+            .bind(mk_optional_region_builder(stmt->getSubStmt()))
             .freeze();
     }
     operation default_stmt_visitor::VisitIfStmt(const clang::IfStmt *stmt) { return {}; }
@@ -869,7 +869,7 @@ namespace vast::cg
                 self.visit_as_lvalue_type(expr->getType()),
                 self.visit(expr->getType())
             )
-            .bind(make_value_builder(expr->getSubExpr()))
+            .bind(mk_value_builder(expr->getSubExpr()))
             .freeze();
     }
 
