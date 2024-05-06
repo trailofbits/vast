@@ -728,8 +728,32 @@ namespace vast::cg
     // operation default_stmt_visitor::VisitCXXTryStmt(const clang::CXXTryStmt *stmt)
     // operation default_stmt_visitor::VisitCXXTryStmt(const clang::CXXTryStmt *stmt)
     // operation default_stmt_visitor::VisitCapturedStmt(const clang::CapturedStmt *stmt)
-    operation default_stmt_visitor::VisitWhileStmt(const clang::WhileStmt *stmt) { return {}; }
-    operation default_stmt_visitor::VisitForStmt(const clang::ForStmt *stmt) { return {}; }
+
+    operation default_stmt_visitor::VisitWhileStmt(const clang::WhileStmt *stmt) {
+        return bld.compose< hl::WhileOp >()
+            .bind(self.location(stmt))
+            .bind(mk_cond_builder(stmt->getCond()))
+            .bind(mk_optional_region_builder(stmt->getBody()))
+            .freeze();
+    }
+
+    operation default_stmt_visitor::VisitForStmt(const clang::ForStmt *stmt) {
+        if (auto init = stmt->getInit()) {
+            // FIXME: make initialization section
+            self.visit(init);
+        }
+
+        return bld.compose< hl::ForOp >()
+            .bind(self.location(stmt))
+            .bind_choose(
+                  stmt->getCond()
+                , mk_cond_builder(stmt->getCond())
+                , mk_true_yielder()
+            )
+            .bind(mk_optional_region_builder(stmt->getInc()))
+            .bind(mk_optional_region_builder(stmt->getBody()))
+            .freeze();
+    }
 
     operation default_stmt_visitor::VisitGotoStmt(const clang::GotoStmt *stmt) {
         return bld.compose< hl::GotoStmt >()
