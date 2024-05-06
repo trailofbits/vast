@@ -251,7 +251,7 @@ namespace vast::cg {
         //
         // Literals
         //
-        operation VisistCharacterLiteral(const clang::CharacterLiteral *lit);
+        operation VisitCharacterLiteral(const clang::CharacterLiteral *lit);
         operation VisitIntegerLiteral(const clang::IntegerLiteral *lit);
         operation VisitFloatingLiteral(const clang::FloatingLiteral *lit);
         operation VisitStringLiteral(const clang::StringLiteral *lit);
