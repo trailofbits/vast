@@ -745,7 +745,15 @@ namespace vast::cg
             .bind(mk_optional_region_builder(stmt->getSubStmt()))
             .freeze();
     }
-    operation default_stmt_visitor::VisitIfStmt(const clang::IfStmt *stmt) { return {}; }
+
+    operation default_stmt_visitor::VisitIfStmt(const clang::IfStmt *stmt) {
+        return bld.compose< hl::IfOp >()
+            .bind(self.location(stmt))
+            .bind(mk_cond_builder(stmt->getCond()))
+            .bind(mk_optional_region_builder(stmt->getThen()))
+            .bind_if(stmt->getElse(), mk_optional_region_builder(stmt->getElse()))
+            .freeze();
+    }
 
     //
     // Expressions
