@@ -107,7 +107,7 @@ def LowerElaboratedTypes : Pass<"vast-hl-lower-elaborated-types", "mlir::ModuleO
 }
 
 def SpliceTrailingScopes : Pass<"vast-hl-splice-trailing-scopes", "mlir::ModuleOp"> {
-  let summary = "Remove trailing `hl::Scope`s.";
+  let summary = "Remove trailing `core::ScopeOp`s.";
   let description = [{
     Removes trailing scopes.
   }];
