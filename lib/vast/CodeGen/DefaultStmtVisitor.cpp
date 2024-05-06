@@ -840,10 +840,33 @@ namespace vast::cg
 
     // operation default_stmt_visitor::VisitParenListExpr(const clang::ParenListExpr *expr)
     operation default_stmt_visitor::VisitStmtExpr(const clang::StmtExpr *expr) {
+        auto make_stmt_expr_region_builder = [&] (const clang_stmt *stmt) {
+            return [this, stmt] (auto &state, auto) {
+                self.visit(stmt);
+
+                auto last_block = state.getBlock();
+                // ({5;;;;;}) <- this is supposed to return 5...
+                auto last = std::prev(last_block->end());
+                while (last != last_block->begin() && mlir::isa< hl::SkipStmt >(&*last)) {
+                    last = std::prev(last);
+                }
+
+                auto _ = bld.scoped_insertion_at_end(last_block);
+
+                auto stmt_loc = self.location(stmt);
+
+                if (last->getNumResults() > 0) {
+                    bld.create< hl::ValueYieldOp >(stmt_loc, last->getResult(0));
+                } else {
+                    bld.create< hl::ValueYieldOp >(stmt_loc, bld.void_value(self.location(stmt)));
+                }
+            };
+        };
+
         return bld.compose< hl::StmtExprOp >()
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
-            .bind_region(make_optional_region_builder(expr->getSubStmt()))
+            .bind_region(make_stmt_expr_region_builder(expr->getSubStmt()))
             .freeze();
     }
 
