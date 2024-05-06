@@ -44,6 +44,8 @@ namespace vast::cg {
         operation VisitAccessSpecDecl(const clang::AccessSpecDecl *decl);
         operation VisitFieldDecl(const clang::FieldDecl *decl) ;
 
+        void fill_enum_constants(const clang::EnumDecl *decl);
+
         operation mk_incomplete_decl(const clang::RecordDecl *decl);
 
         template< typename RecordDeclOp >
