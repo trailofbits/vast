@@ -389,8 +389,8 @@ namespace vast::cg {
         return bld.compose< LOp >()
             .bind(self.location(op))
             .bind(self.visit(op->getType()))
-            .bind_region(make_value_builder(op->getLHS()))
-            .bind_region(make_value_builder(op->getRHS()))
+            .bind(make_value_builder(op->getLHS()))
+            .bind(make_value_builder(op->getRHS()))
             .freeze();
     }
 
@@ -493,7 +493,7 @@ namespace vast::cg {
         return bld.compose< op_t >()
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
-            .bind_region(make_value_builder(expr->getArgumentExpr()))
+            .bind(make_value_builder(expr->getArgumentExpr()))
             .freeze();
     }
 

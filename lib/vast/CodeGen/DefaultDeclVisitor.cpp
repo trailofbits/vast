@@ -278,8 +278,8 @@ namespace vast::cg
                 // The initializer region is filled later as it might
                 // have references to the VarDecl we are currently
                 // visiting - int *x = malloc(sizeof(*x))
-                .bind_region_if(has_init, [](auto, auto){})
-                .bind_region_if(has_allocator, std::move(array_allocator))
+                .bind_if(has_init, [](auto, auto){})
+                .bind_if(has_allocator, std::move(array_allocator))
                 .freeze_as_maybe() // construct global
                 .transform(set_storage_classes)
                 .take();
