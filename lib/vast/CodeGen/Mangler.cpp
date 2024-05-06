@@ -76,6 +76,12 @@ namespace vast::cg
             return std::nullopt; // mangling with uninitilized module
         }
 
+        if (const auto *field  = clang::dyn_cast< clang::FieldDecl >(decl)) {
+            if (field->isUnnamedBitfield() || field->isAnonymousStructOrUnion()) {
+                return "anonymous[" + std::to_string(decl->getID()) + "]";
+            }
+        }
+
         auto should_mangle_filter = [](const clang_named_decl *decl) {
             if (auto var = clang::dyn_cast< clang::VarDecl >(decl)) {
                 return !var->isLocalVarDeclOrParm();
