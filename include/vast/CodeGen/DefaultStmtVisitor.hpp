@@ -260,51 +260,6 @@ namespace vast::cg {
         operation VisitFixedPointLiteral(const clang::FixedPointLiteral *lit);
 
         operation VisitInitListExpr(const clang::InitListExpr *expr);
-
-        template< typename RangeType >
-        values_t visit_values_range(RangeType &&range) {
-            values_t values;
-            for (auto item : range) {
-                values.push_back(self.visit(item)->getResult(0));
-            }
-            return values;
-        }
-
-        template< typename yield_type >
-        auto make_stmt_builder(const clang_stmt *stmt) {
-            return [this, stmt] (auto &state, auto loc) {
-                self.visit(stmt);
-                auto &op = state.getBlock()->back();
-                VAST_ASSERT(op.getNumResults() == 1);
-                bld.create< yield_type >(loc, op.getResult(0));
-            };
-        }
-
-        auto make_value_builder(const clang_stmt *stmt) {
-            return make_stmt_builder< hl::ValueYieldOp >(stmt);
-        }
-
-        auto make_cond_builder(const clang_stmt *stmt) {
-            return make_stmt_builder< hl::CondYieldOp >(stmt);
-        }
-
-        auto make_true_yielder() {
-            return [this] (auto &, auto loc) {
-               bld.create< hl::CondYieldOp >(loc, bld.true_value(loc));
-            };
-        }
-
-        auto make_false_yielder() {
-            return [this] (auto &, auto loc) {
-                bld.create< hl::CondYieldOp >(loc, bld.false_value(loc));
-            };
-        }
-
-        auto make_optional_region_builder(const clang_stmt *stmt) {
-            return [this, stmt] (auto &bld, auto) {
-                if (stmt) self.visit(stmt);
-            };
-        }
     };
 
     template< typename Op >
@@ -389,8 +344,8 @@ namespace vast::cg {
         return bld.compose< LOp >()
             .bind(self.location(op))
             .bind(self.visit(op->getType()))
-            .bind(make_value_builder(op->getLHS()))
-            .bind(make_value_builder(op->getRHS()))
+            .bind(mk_value_builder(op->getLHS()))
+            .bind(mk_value_builder(op->getRHS()))
             .freeze();
     }
 
@@ -493,7 +448,7 @@ namespace vast::cg {
         return bld.compose< op_t >()
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
-            .bind(make_value_builder(expr->getArgumentExpr()))
+            .bind(mk_value_builder(expr->getArgumentExpr()))
             .freeze();
     }
 

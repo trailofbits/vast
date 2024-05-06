@@ -94,6 +94,54 @@ namespace vast::cg {
             return self.scope.is_declared_type(name);
         }
 
+        template< typename RangeType >
+        values_t visit_values_range(RangeType &&range) {
+            values_t values;
+            for (auto item : range) {
+                values.push_back(self.visit(item)->getResult(0));
+            }
+            return values;
+        }
+
+        template< typename yield_type >
+        auto mk_stmt_builder(const clang_stmt *stmt) {
+            return [this, stmt] (auto &state, auto loc) {
+                self.visit(stmt);
+                auto &op = state.getBlock()->back();
+                VAST_ASSERT(op.getNumResults() == 1);
+                bld.create< yield_type >(loc, op.getResult(0));
+            };
+        }
+
+        auto mk_value_builder(const clang_stmt *stmt) {
+            return mk_stmt_builder< hl::ValueYieldOp >(stmt);
+        }
+
+        auto mk_cond_builder(const clang_stmt *stmt) {
+            return mk_stmt_builder< hl::CondYieldOp >(stmt);
+        }
+
+        auto mk_true_yielder() {
+            return [this] (auto &, auto loc) {
+               bld.create< hl::CondYieldOp >(loc, bld.true_value(loc));
+            };
+        }
+
+        auto mk_false_yielder() {
+            return [this] (auto &, auto loc) {
+                bld.create< hl::CondYieldOp >(loc, bld.false_value(loc));
+            };
+        }
+
+        auto mk_optional_region_builder(const clang_stmt *stmt) {
+            return [this, stmt] (auto &bld, auto) {
+                if (stmt) self.visit(stmt);
+            };
+        }
+
+        auto mk_type_yield_builder(const clang_expr *expr) {
+            return mk_stmt_builder< hl::TypeYieldOp >(expr);
+        }
       protected:
         codegen_builder &bld;
         scoped_visitor_view self;
