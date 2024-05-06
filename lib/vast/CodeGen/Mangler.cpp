@@ -76,8 +76,14 @@ namespace vast::cg
             return std::nullopt; // mangling with uninitilized module
         }
 
-        if (const auto *field  = clang::dyn_cast< clang::FieldDecl >(decl)) {
+        if (const auto *field = clang::dyn_cast< clang::FieldDecl >(decl)) {
             if (field->isUnnamedBitfield() || field->isAnonymousStructOrUnion()) {
+                return "anonymous[" + std::to_string(decl->getID()) + "]";
+            }
+        }
+
+        if (const auto *record = clang::dyn_cast< clang::RecordDecl >(decl)) {
+            if (record->isAnonymousStructOrUnion() || !record->getIdentifier()) {
                 return "anonymous[" + std::to_string(decl->getID()) + "]";
             }
         }
