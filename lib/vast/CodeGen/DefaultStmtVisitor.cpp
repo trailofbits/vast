@@ -769,7 +769,15 @@ namespace vast::cg
             return last;
         }
     }
-    operation default_stmt_visitor::VisitMemberExpr(const clang::MemberExpr *expr) { return {}; }
+
+    operation default_stmt_visitor::VisitMemberExpr(const clang::MemberExpr *expr) {
+        return bld.compose< hl::RecordMemberOp >()
+            .bind(self.location(expr))
+            .bind(self.visit_as_lvalue_type(expr->getType()))
+            .bind_transform(self.visit(expr->getBase()), first_result)
+            .bind(self.symbol(expr->getMemberDecl()))
+            .freeze();
+    }
 
     operation default_stmt_visitor::VisitConditionalOperator(const clang::ConditionalOperator *op) {
         return bld.compose< hl::CondOp >()

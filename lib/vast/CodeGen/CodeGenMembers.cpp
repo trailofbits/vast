@@ -6,6 +6,9 @@ namespace vast::cg
 {
     void members_generator::emit(const clang::RecordDecl *record) {
         for (auto *decl : record->decls()) {
+            // FIXME: Handle IndirectFieldDecl.
+            if (clang::isa< clang::IndirectFieldDecl >(decl))
+                continue;
             visitor.visit(decl);
         }
     }

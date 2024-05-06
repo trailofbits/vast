@@ -475,6 +475,10 @@ namespace vast::cg
         });
     }
 
+    operation default_decl_visitor::VisitIndirectFieldDecl(const clang::IndirectFieldDecl *decl) {
+        return {};
+    }
+
     operation default_decl_visitor::mk_incomplete_decl(const clang::RecordDecl *decl) {
         return maybe_declare([&] {
             return bld.compose< hl::TypeDeclOp >()
