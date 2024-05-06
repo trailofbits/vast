@@ -562,7 +562,7 @@ namespace vast::cg
     //
     // Literals
     //
-    operation default_stmt_visitor::VisistCharacterLiteral(const clang::CharacterLiteral *lit) {
+    operation default_stmt_visitor::VisitCharacterLiteral(const clang::CharacterLiteral *lit) {
         return bld.constant(self.location(lit), self.visit(lit->getType()), lit->getValue()).getDefiningOp();
     }
 
