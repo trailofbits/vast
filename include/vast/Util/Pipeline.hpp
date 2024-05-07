@@ -85,12 +85,10 @@ namespace vast {
         using output_stream_ptr = std::shared_ptr< llvm::raw_pwrite_stream >;
         using passes_t = std::vector< llvm::StringRef >;
 
-        passes_t snapshot_at;
         std::string file_prefix;
 
-        with_snapshots(const passes_t &snapshot_at, llvm::StringRef file_prefix)
-            : snapshot_at(snapshot_at),
-              file_prefix(file_prefix.str())
+        with_snapshots(llvm::StringRef file_prefix)
+            : file_prefix(file_prefix.str())
         {}
 
         // We return `shared_ptr` in case we may want to keep the stream open for longer
@@ -104,9 +102,7 @@ namespace vast {
             return std::move(os);
         }
 
-        bool should_snapshot(mlir::Pass *pass) const {
-            return std::ranges::count(snapshot_at, pass->getArgument());
-        }
+        virtual bool should_snapshot(mlir::Pass *pass) const = 0;
 
         void runAfterPass(mlir::Pass *pass, operation op) override {
             if (!should_snapshot(pass))
@@ -114,6 +110,30 @@ namespace vast {
 
             auto os = make_output_stream(pass);
             (*os) << *op;
+        }
+    };
+
+    struct snapshot_at_passes : with_snapshots {
+        using base = with_snapshots;
+
+        passes_t snapshot_at;
+
+        template< typename ... Args >
+        snapshot_at_passes(const passes_t &snapshot_at, Args && ... args)
+            : base(std::forward< Args >(args)...), snapshot_at(snapshot_at)
+        {}
+
+        virtual bool should_snapshot(mlir::Pass *pass) const override {
+            return std::ranges::count(snapshot_at, pass->getArgument());
+        }
+    };
+
+    struct snapshot_all : with_snapshots {
+        using base = with_snapshots;
+        using base::base;
+
+        bool should_snapshot(mlir::Pass *) const override {
+            return true;
         }
     };
 
