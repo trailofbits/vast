@@ -18,6 +18,9 @@ on:
 
 permissions: write-all
 
+env:
+  LLVM_DISABLE_SYMBOLIZATION: 1
+
 jobs:
   build:
     strategy:
