@@ -9,9 +9,9 @@ int main() {
     // CHECK:   FunctionToPointerDecay : !hl.lvalue<!core.fn<() -> (!hl.int)>> -> !hl.lvalue<!hl.ptr<!core.fn<() -> (!hl.int)>>>
     int (*p)() = f;    // pointer p is pointing to f
 
-    // CHECK: [[E:%[0-9]+]] = hl.expr : !hl.lvalue<!hl.paren<!core.fn<() -> (!hl.int)>>>
-    // CHECK: [[P:%[0-9]+]] = hl.implicit_cast [[E]] FunctionToPointerDecay : !hl.lvalue<!hl.paren<!core.fn<() -> (!hl.int)>>> -> !hl.lvalue<!hl.ptr<!hl.paren<!core.fn<() -> (!hl.int)>>>>
-    // CHECK: hl.indirect_call [[P]] : !hl.lvalue<!hl.ptr<!hl.paren<!core.fn<() -> (!hl.int)>>>>() : () -> !hl.int
+    // CHECK: [[E:%[0-9]+]] = hl.expr : !hl.paren<!core.fn<() -> (!hl.int)>>
+    // CHECK: [[P:%[0-9]+]] = hl.implicit_cast [[E]] FunctionToPointerDecay : !hl.paren<!core.fn<() -> (!hl.int)>> -> !hl.ptr<!hl.paren<!core.fn<() -> (!hl.int)>>>
+    // CHECK: hl.indirect_call [[P]] : !hl.ptr<!hl.paren<!core.fn<() -> (!hl.int)>>>() : () -> !hl.int
     (*p)(); // function f invoked through the function designator
 
     // CHECK: [[R:%[0-9]+]] = hl.ref [[FP]]
