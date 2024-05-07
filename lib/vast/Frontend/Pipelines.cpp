@@ -132,7 +132,11 @@ namespace vast::cc {
         passes->print_on_error(llvm::errs());
 
         if (auto snapshot_at = vargs.get_options_list(opt::snapshot_at)) {
-            auto instrument = std::make_unique< with_snapshots >(*snapshot_at, snapshot_prefix);
+            auto instrument = [&]() -> std::unique_ptr< with_snapshots > {
+                if (std::ranges::count(*snapshot_at, llvm::StringRef("*")))
+                    return std::make_unique< snapshot_all >(snapshot_prefix);
+                return std::make_unique< snapshot_at_passes >(*snapshot_at, snapshot_prefix);
+            }();
             passes->addInstrumentation(std::move(instrument));
         }
 
