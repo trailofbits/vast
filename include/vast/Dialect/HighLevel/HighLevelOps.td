@@ -96,15 +96,6 @@ def TypeDefOp
   let assemblyFormat = [{ $name attr-dict `:` $type }];
 }
 
-def TypeOfTypeOp
-  : HighLevel_Op< "typeof.type" >
-  , Arguments<(ins TypeAttr:$type)>
-{
-  let summary = "VAST typeof(type) operation";
-
-  let assemblyFormat = [{ attr-dict `:` $type }];
-}
-
 def TypeOfExprOp
   : HighLevel_Op< "typeof.expr", [SingleBlock] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
