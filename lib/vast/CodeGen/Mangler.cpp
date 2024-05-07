@@ -76,15 +76,25 @@ namespace vast::cg
             return std::nullopt; // mangling with uninitilized module
         }
 
+        auto anonoymous_mangle = [&]() {
+            return "anonymous[" + std::to_string(decl->getID()) + "]";
+        };
+
         if (const auto *field = clang::dyn_cast< clang::FieldDecl >(decl)) {
             if (field->isUnnamedBitfield() || field->isAnonymousStructOrUnion()) {
-                return "anonymous[" + std::to_string(decl->getID()) + "]";
+                return anonoymous_mangle();
             }
         }
 
         if (const auto *record = clang::dyn_cast< clang::RecordDecl >(decl)) {
-            if (record->isAnonymousStructOrUnion() || !record->getIdentifier()) {
-                return "anonymous[" + std::to_string(decl->getID()) + "]";
+            if (record->isAnonymousStructOrUnion()) {
+                return anonoymous_mangle();
+            }
+        }
+
+        if (const auto *enum_decl = clang::dyn_cast< clang::NamedDecl >(decl)) {
+            if (!enum_decl->getIdentifier()) {
+                return anonoymous_mangle();
             }
         }
 
