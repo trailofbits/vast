@@ -55,25 +55,11 @@ namespace vast::cg
     }
 
     mlir_type default_visitor::visit(const clang_type *type, scope_context &scope) {
-        if (auto value = cache.lookup(type)) {
-            return value;
-        }
-
-        default_type_visitor visitor(bld, self, scope);
-        auto result = visitor.visit(type);
-        cache.try_emplace(type, result);
-        return result;
+        return visit_type(type, cache, scope);
     }
 
     mlir_type default_visitor::visit(clang_qual_type type, scope_context &scope) {
-        if (auto value = qual_cache.lookup(type)) {
-            return value;
-        }
-
-        default_type_visitor visitor(bld, self, scope);
-        auto result = visitor.visit(type);
-        qual_cache.try_emplace(type, result);
-        return result;
+        return visit_type(type, qual_cache, scope);
     }
 
     mlir_attr default_visitor::visit(const clang_attr *attr, scope_context &scope) {

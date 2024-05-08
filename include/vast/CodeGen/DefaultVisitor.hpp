@@ -33,11 +33,27 @@ namespace vast::cg
 
         operation visit_prototype(const clang_function *decl, scope_context &scope) override;
 
+        mlir_type visit_type(auto type, auto& cache, scope_context& scope);
+
         llvm::DenseMap< const clang_type *, mlir_type > cache;
         llvm::DenseMap< clang_qual_type, mlir_type > qual_cache;
 
         codegen_builder &bld;
         visitor_view self;
     };
+
+    mlir_type default_visitor::visit_type(auto type, auto& cache, scope_context& scope) {
+        if (auto value = cache.lookup(type)) {
+            return value;
+        }
+
+        default_type_visitor visitor(bld, self, scope);
+        if (auto result = visitor.visit(type)) {
+            cache.try_emplace(type, result);
+            return result;
+        } else {
+            return {};
+        }
+    }
 
 } // namespace vast::cg
