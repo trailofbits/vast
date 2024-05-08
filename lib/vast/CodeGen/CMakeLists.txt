@@ -15,7 +15,6 @@ add_vast_library(CodeGen
 
     CodeGenBlock.cpp
     CodeGenFunction.cpp
-    CodeGenMembers.cpp
     CodeGenModule.cpp
 
     DataLayout.cpp
