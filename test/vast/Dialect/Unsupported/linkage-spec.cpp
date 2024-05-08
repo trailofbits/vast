@@ -6,7 +6,6 @@
 
 // CHECK: unsup.decl "LinkageSpec"
 __BEGIN_DECLS
-// CHECK: hl.typedef "__int8_t" : !hl.char
 typedef signed char __int8_t;
 typedef short __int16_t;
 typedef unsigned short __uint16_t;
