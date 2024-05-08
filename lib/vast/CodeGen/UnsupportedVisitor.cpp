@@ -11,49 +11,6 @@
 
 namespace vast::cg
 {
-    struct unsup_body_scope : block_scope {
-        explicit unsup_body_scope(scope_context *parent)
-            : block_scope(parent)
-            , members(parent->symbols.members)
-            , labels(parent->symbols.labels)
-        {}
-        symbol_table_scope< string_ref, operation > members;
-        symbol_table_scope< string_ref, operation > labels;
-    };
-
-    std::optional< BuilderCallBackFn > unsup_decl_visitor::try_make_body_builder(
-        const clang_decl *decl, scope_context &scope
-    ) {
-        #define VAST_UNSUPPORTED_DECL_BODY_CALLBACK(type, body) \
-            if (auto d = mlir::dyn_cast< clang::type >(decl)) { \
-                return [this, d, &scope] (auto &bld, auto loc) { \
-                    unsup_body_scope scope_tables(&scope); \
-                    self.visit(d->get##body(), scope); \
-                }; \
-            }
-
-        VAST_UNSUPPORTED_DECL_BODY_CALLBACK(StaticAssertDecl, AssertExpr)
-        VAST_UNSUPPORTED_DECL_BODY_CALLBACK(BlockDecl, Body)
-        VAST_UNSUPPORTED_DECL_BODY_CALLBACK(BindingDecl, Binding)
-        VAST_UNSUPPORTED_DECL_BODY_CALLBACK(CapturedDecl, Body)
-        VAST_UNSUPPORTED_DECL_BODY_CALLBACK(NamespaceAliasDecl, Namespace)
-        VAST_UNSUPPORTED_DECL_BODY_CALLBACK(UsingDecl, UnderlyingDecl)
-        VAST_UNSUPPORTED_DECL_BODY_CALLBACK(UsingShadowDecl, TargetDecl)
-
-        #undef VAST_UNSUPPORTED_DECL_BODY_CALLBACK
-
-        if (auto ctx = mlir::dyn_cast< clang::DeclContext >(decl)) {
-            return [this, ctx, &scope] (auto &bld, auto loc) {
-                unsup_body_scope scope_tables(&scope);
-                for (auto child : ctx->decls()) {
-                    self.visit(child, scope);
-                }
-            };
-        }
-
-        return std::nullopt;
-    }
-
     std::string decl_name(const clang_decl *decl, visitor_view visitor) {
         std::stringstream ss;
         ss << decl->getDeclKindName();
@@ -67,7 +24,6 @@ namespace vast::cg
         auto op = bld.compose< unsup::UnsupportedDecl >()
             .bind(self.location(decl))
             .bind(decl_name(decl, self))
-            .bind_if_valid(try_make_body_builder(decl, scope))
             .freeze();
 
         if (decl->hasAttrs()) {

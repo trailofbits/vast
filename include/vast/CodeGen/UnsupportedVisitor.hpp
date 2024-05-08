@@ -23,8 +23,6 @@ namespace vast::cg
     {
         using unsup_visitor_base::unsup_visitor_base;
         operation visit(const clang_decl *decl, scope_context &scope);
-
-        std::optional< BuilderCallBackFn > try_make_body_builder(const clang_decl *decl, scope_context &scope);
     };
 
 
