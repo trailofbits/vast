@@ -253,15 +253,19 @@ namespace vast::conv::irstollvm
         using base = ll_cf::scope_like< op_t >;
         using base::base;
 
-        using Op = op_t;
+        using adaptor_t = typename op_t::Adaptor;
 
-        mlir::Block *start_block(Op op) const override { return &*op.getBody().begin(); }
+        mlir::Block *start_block(op_t op) const override { return &op.getBody().front(); }
 
-        auto
-        matchAndRewrite(Op op, typename Op::Adaptor ops, conversion_rewriter &rewriter) const
-            -> logical_result override {
-            // If we do not have any branching inside, we can just "inline"
-            // the op.
+        auto matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const
+            -> logical_result override
+        {
+            if (op.getBody().empty()) {
+                rewriter.eraseOp(op);
+                return logical_result::success();
+            }
+
+            // If we do not have any branching inside, we can just "inline" the op.
             if (op.getBody().hasOneBlock()) {
                 return base::handle_singleblock(op, ops, rewriter);
             }
