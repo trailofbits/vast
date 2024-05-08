@@ -80,7 +80,9 @@ namespace vast::cg
             return;
         }
 
-        visitor.visit(body);
+        if (!decl->hasTrivialBody()) {
+            visitor.visit(body);
+        }
 
         emit_epilogue(decl, prototype);
         VAST_ASSERT(mlir::succeeded(prototype.verifyBody()));
