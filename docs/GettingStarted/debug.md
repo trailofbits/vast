@@ -33,3 +33,6 @@ vast-opt --pass-pipeline="pipeline-string"
 ### Debug Pipeline
 
 With the `-vast-debug` option, you get more detailed crash reports. It shows MLIR operations when there's an error and provides current stack traces.
+
+Sometimes it is needed to examine the results of conversion steps more closely to discover what went wrong. `-vast-snapshot-at=pass1;...;passN` will instrument conversion pipeline to store a result of `passN` into a file after it is applied. Name of the file will be in the form of: `basename.pass_name`.
+Passing `"*"` in the string will result in output after every step.

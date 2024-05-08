@@ -44,6 +44,10 @@ Additional customization options include:
 - `-vast-disable-vast-verifier`
   - Skips verification of the produced VAST MLIR module.
 
+- `vast-snapshot-at="pass1;...;passN`
+  - After each pass that was specified as an option store MLIR into a file (format is `src.pass_name`).
+  - `"*"` stores snapshot after every conversion.
+
 ## Pipelines
 
 WIP pipelines documentation
