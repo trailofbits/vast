@@ -194,10 +194,13 @@ def EnumDeclOp
 
   let extraClassDeclaration = [{
     bool isComplete();
+    mlir::Block& getConstantsBlock();
   }];
 
   let extraClassDefinition = [{
-    bool $cppClass::isComplete() { return !getConstants().front().empty(); }
+    bool $cppClass::isComplete() { return !getConstantsBlock().empty(); }
+
+    mlir::Block& $cppClass::getConstantsBlock() { return getConstants().front(); }
   }];
 
   let assemblyFormat = [{ $name attr-dict (`:` $type^ $constants)? }];
@@ -222,7 +225,16 @@ class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
     )>
   ];
 
+  let extraClassDeclaration = [{
+    bool isCompleteDefinition();
+    mlir::Block& getFieldsBlock();
+  }];
+
   let extraClassDefinition = [{
+    bool $cppClass::isCompleteDefinition() { return !getFieldsBlock().empty(); }
+
+    mlir::Block& $cppClass::getFieldsBlock() { return getFields().front(); }
+
     // AggregateTypeDefinitionInterface
 
     gap::generator< mlir_type > $cppClass::getFieldTypes() {
