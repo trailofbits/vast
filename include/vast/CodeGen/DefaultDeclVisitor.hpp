@@ -47,26 +47,37 @@ namespace vast::cg {
 
         void fill_enum_constants(const clang::EnumDecl *decl);
 
-        operation mk_incomplete_decl(const clang::RecordDecl *decl);
+        void fill_decl_members(const clang::RecordDecl *decl);
 
         template< typename RecordDeclOp >
-        operation mk_record_decl(const clang::RecordDecl *decl) {
-            auto field_builder = [&] (auto &/* bld */, auto /* loc */) {
-                auto gen = mk_scoped_generator< members_generator >(
-                    self.scope, bld, self
-                );
-
-                gen.emit(decl);
-            };
-
-            return maybe_declare([&] {
-                return bld.compose< RecordDeclOp >()
-                    .bind(self.location(decl))
-                    .bind(self.symbol(decl))
-                    .bind(field_builder)
-                    .freeze();
-            });
-        }
+        operation mk_record_decl(const clang::RecordDecl *decl);
     };
+
+    template< typename RecordDeclOp >
+    operation default_decl_visitor::mk_record_decl(const clang::RecordDecl *decl) {
+        if (auto name = self.symbol(decl)) {
+            if (auto op = self.scope.lookup_type(name.value())) {
+                auto record_decl = mlir::cast< RecordDeclOp >(op);
+                // Fill in the record members if the record was predeclared
+                if (decl->isCompleteDefinition() && !record_decl.isCompleteDefinition()) {
+                    auto _ = bld.scoped_insertion_at_start(&record_decl.getFieldsBlock());
+                    fill_decl_members(decl);
+                }
+                return record_decl;
+            }
+        }
+
+        auto field_builder = [&] (auto &/* bld */, auto /* loc */) {
+            fill_decl_members(decl);
+        };
+
+        return maybe_declare([&] {
+            return bld.compose< RecordDeclOp >()
+                .bind(self.location(decl))
+                .bind(self.symbol(decl))
+                .bind(field_builder)
+                .freeze();
+        });
+    }
 
 } // namespace vast::cg
