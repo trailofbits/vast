@@ -201,7 +201,7 @@ namespace vast::cg {
     }
 
     mlir_type default_type_visitor::VisitElaboratedType(const clang::ElaboratedType *ty, clang_qualifiers quals) {
-        auto element_type  = visit(ty->getNamedType());
+        auto element_type = self.visit(ty->getNamedType());
         return with_cvr_qualifiers(
             compose_type< hl::ElaboratedType >().bind(element_type), quals
         ).freeze();
@@ -250,7 +250,7 @@ namespace vast::cg {
     }
 
     mlir_type default_type_visitor::VisitPointerType(const clang::PointerType *ty, clang_qualifiers quals) {
-        auto pointee = visit(ty->getPointeeType());
+        auto pointee = self.visit(ty->getPointeeType());
         return with_cvr_qualifiers(compose_type< hl::PointerType >().bind(pointee), quals).freeze();
     }
 
@@ -345,7 +345,7 @@ namespace vast::cg {
     }
 
     mlir_type default_type_visitor::VisitBlockPointerType(const clang::BlockPointerType *ty, clang_qualifiers quals) {
-        auto pointee = visit(ty->getPointeeType());
+        auto pointee = self.visit(ty->getPointeeType());
         return with_cvr_qualifiers(compose_type< hl::PointerType >().bind(pointee), quals).freeze();
     }
 
