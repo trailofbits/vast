@@ -103,10 +103,11 @@ namespace vast::cg
                 return !var->isLocalVarDeclOrParm();
             }
 
-            return true; // check to see if decl should be mangled
+            if (clang::isa< clang::FunctionDecl >(decl)) {
+                return true;
+            }
+            return false; // check to see if decl should be mangled
         };
-
-
         if (should_mangle_filter(decl) && mangle_context->shouldMangleDeclName(decl)) {
             mangle_context->mangleName(decl, out);
         } else {
