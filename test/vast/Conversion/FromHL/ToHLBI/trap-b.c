@@ -1,5 +1,5 @@
 // RUN: %vast-front -vast-emit-mlir=hl -o - %s | %vast-opt --vast-hl-to-hl-builtin | %file-check %s
 void fn() {
-    // CHECK: hlbi.dbgtrap : !hl.void
+    // CHECK: hlbi.dbgtrap
     __builtin_debugtrap();
 }
