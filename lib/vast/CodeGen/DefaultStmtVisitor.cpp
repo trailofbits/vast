@@ -575,8 +575,15 @@ namespace vast::cg
     }
 
     operation default_stmt_visitor::VisitStringLiteral(const clang::StringLiteral *lit) {
-        VAST_ASSERT(lit->isLValue() && "string literal is expected to be an lvalue");
-        return bld.constant(self.location(lit), self.visit_as_lvalue_type(lit->getType()), lit->getString()).getDefiningOp();
+        auto type = [&] {
+            if (lit->isLValue()) {
+                return self.visit_as_lvalue_type(lit->getType());
+            } else {
+                return self.visit(lit->getType());
+            }
+        }();
+
+        return bld.constant(self.location(lit), type, lit->getString()).getDefiningOp();
     }
 
     operation default_stmt_visitor::VisitUserDefinedLiteral(const clang::UserDefinedLiteral */* lit */) {
