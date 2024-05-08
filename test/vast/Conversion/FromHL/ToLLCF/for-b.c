@@ -2,7 +2,6 @@
 
 int fn()
 {
-    // CHECK: core.scope {
     // CHECK:   ll.scope {
     // CHECK:     ll.br ^bb2
     // CHECK:   ^bb1:  // pred: ^bb4
@@ -20,7 +19,6 @@ int fn()
             break;
         else
             continue;
-    // CHECK:   }
     // CHECK: }
     return 43;
 }
