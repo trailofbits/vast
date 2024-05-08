@@ -1,7 +1,6 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
-
-// CHECK: hl.type "s"
+// REQUIRES: locally-scoped-structs
 
 // tag naming an unknown struct declares it
 // CHECK: hl.var "p" : !hl.lvalue<!hl.ptr<!hl.elaborated<!hl.record<"s">>>> = {

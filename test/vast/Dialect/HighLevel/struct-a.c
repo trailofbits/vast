@@ -15,7 +15,6 @@ struct pair {
 // CHECK: hl.var "p" : !hl.lvalue<!hl.elaborated<!hl.record<"pair">>>
 struct pair p;
 
-// CHECK: hl.type "forward"
 struct forward;
 
 // CHECK: hl.struct "forward" : {

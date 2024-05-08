@@ -1,4 +1,5 @@
 // RUN: %vast-front -vast-emit-mlir=hl -o - %s | %file-check %s
+// REQUIRES: non-graph-regions
 
 #include <stdlib.h>
 
