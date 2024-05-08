@@ -11,16 +11,14 @@
 
 namespace vast::cg
 {
-    auto try_make_body_builder(visitor_view visitor, const clang_decl *decl, scope_context &scope)
-        -> std::optional< BuilderCallBackFn >
-    {
-        auto callback = [&] (auto body) {
-            return [&, body] (auto &bld, auto loc) { visitor.visit(body, scope); };
-        };
-
+    std::optional< BuilderCallBackFn > unsup_decl_visitor::try_make_body_builder(
+        const clang_decl *decl, scope_context &scope
+    ) {
         #define VAST_UNSUPPORTED_DECL_BODY_CALLBACK(type, body) \
             if (auto d = mlir::dyn_cast< clang::type >(decl)) { \
-                return callback(d->get##body()); \
+                return [this, d, &scope] (auto &bld, auto loc) { \
+                    self.visit(d->get##body(), scope); \
+                }; \
             }
 
         VAST_UNSUPPORTED_DECL_BODY_CALLBACK(StaticAssertDecl, AssertExpr)
@@ -34,9 +32,9 @@ namespace vast::cg
         #undef VAST_UNSUPPORTED_DECL_BODY_CALLBACK
 
         if (auto ctx = mlir::dyn_cast< clang::DeclContext >(decl)) {
-            return [&visitor, ctx, &scope] (auto &bld, auto loc) {
+            return [this, ctx, &scope] (auto &bld, auto loc) {
                 for (auto child : ctx->decls()) {
-                    visitor.visit(child, scope);
+                    self.visit(child, scope);
                 }
             };
         }
@@ -44,11 +42,11 @@ namespace vast::cg
         return std::nullopt;
     }
 
-    std::string decl_name(const clang_decl *decl) {
+    std::string decl_name(const clang_decl *decl, visitor_view visitor) {
         std::stringstream ss;
         ss << decl->getDeclKindName();
         if (auto named = dyn_cast< clang::NamedDecl >(decl)) {
-            ss << "::" << get_namespaced_decl_name(named);
+            ss << "::" << named->getNameAsString();
         }
         return ss.str();
     }
@@ -56,8 +54,8 @@ namespace vast::cg
     operation unsup_decl_visitor::visit(const clang_decl *decl, scope_context &scope) {
         auto op = bld.compose< unsup::UnsupportedDecl >()
             .bind(self.location(decl))
-            .bind(decl_name(decl))
-            .bind_if_valid(try_make_body_builder(self, decl, scope))
+            .bind(decl_name(decl, self))
+            .bind_if_valid(try_make_body_builder(decl, scope))
             .freeze();
 
         if (decl->hasAttrs()) {
