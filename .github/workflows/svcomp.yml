@@ -1,0 +1,153 @@
+#
+# Copyright (c) 2022-present, Trail of Bits, Inc.
+# All rights reserved.
+#
+# This source code is licensed in accordance with the terms specified in
+# the LICENSE file found in the root directory of this source tree.
+#
+
+name: "SV-Comp test suite"
+
+on:
+  pull_request:
+    branches:
+      - '*'
+
+permissions: write-all
+
+env:
+  LLVM_DISABLE_SYMBOLIZATION: 1
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        llvm-version: [18]
+        image-version: [22.04]
+
+    name: "Build"
+    runs-on: ubuntu-${{ matrix.image-version }}
+    timeout-minutes: 60
+    container:
+      image:
+        ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
+
+    env:
+        CMAKE_PREFIX_PATH: "/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/mlir/;/usr/lib/llvm-${{ matrix.llvm-version }}/lib/cmake/clang/"
+        TOOLCHAIN: ${{ github.workspace }}/cmake/lld.toolchain.cmake
+        LLVM_EXTERNAL_LIT: "/usr/local/bin/lit"
+
+    steps:
+      - name: Clone the VAST repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 1
+
+      - name: Configure build
+        run: cmake --preset ci
+
+      - name: Build release
+        run: cmake --build --preset ci-release -j $(nproc)
+
+      - name: Package
+        run: cpack --preset ci
+
+      - name: Upload VAST build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VAST
+          path: ./builds/ci/package/*
+          retention-days: 1
+
+#
+#     SV-Comp bencmharks
+#
+  run_svcomp:
+    name: "Run SV-Comp test suite"
+    needs: build
+    strategy:
+      matrix:
+        llvm-version: [18]
+        image-version: [22.04]
+        vast-target: ['hl', 'llvm']
+
+    runs-on: ubuntu-${{ matrix.image-version }}
+    timeout-minutes: 360
+    container:
+      image:
+        ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
+
+    steps:
+     - name: Fetch VAST artifact
+       uses: actions/download-artifact@v4
+       with:
+         name: VAST
+
+     - name: Unpack VAST
+       run: mkdir vast && tar -xf VAST-* -C vast --strip-components=1
+
+     - name: Export vast binaries
+       run: echo "${PWD}/vast/bin/" >> $GITHUB_PATH
+
+     - name: Clone test suite repository
+       run: git clone --depth=1 https://gitlab.com/sosy-lab/benchmarking/sv-benchmarks.git
+
+     - name: Clone patch repository
+       uses: actions/checkout@v4
+       with:
+        repository: trailofbits/sv-bench-patch
+        ref: ci-version
+        path: sv-bench-patch
+        fetch-depth: 1
+
+     - name: Apply patch
+       working-directory: sv-bench-patch
+       run: ./apply
+
+     - name: Run benchmarks
+       run: sh ./sv-bench-patch/compile-all.sh -t ${{ matrix.vast-target }} -d ./sv-benchmarks
+
+     - name: Upload results
+       uses: actions/upload-artifact@v4
+       with:
+        path: ./stats
+        name: results-sv-${{ matrix.vast-target }}
+
+  eval_svcomp:
+    name: "Eval SV-Comp test results"
+    needs: run_svcomp
+    strategy:
+      matrix:
+        image-version: [22.04]
+    runs-on: ubuntu-${{ matrix.image-version }}
+    steps:
+      - name: Fetch result artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: results-sv-*
+
+      - name: Install evaluator dependencies
+        run: pip3 install pandas scipy tabulate
+
+      - name: Clone patch repository
+        uses: actions/checkout@v4
+        with:
+          repository: trailofbits/sv-bench-patch
+          sparse-checkout: make_table.py
+          ref: ci-version
+          path: sv-bench-patch
+          fetch-depth: 1
+
+      - name: Generate the results
+        run: |
+          python3 sv-bench-patch/make_table.py \
+            --columns HighLevel,LLVM \
+            --files results-sv-hl/results.txt,results-sv-llvm/results.txt \
+            --output sv-comp-results
+
+      - name: Post results as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sv-comp-results
+          path: ./sv-comp-results.md
