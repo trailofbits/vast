@@ -12,7 +12,7 @@ int fn( struct wrapped w )
 
 int main()
 {
-    // ABI:      {{.*}} = abi.call_exec @fn(%2) {
+    // ABI:      {{.*}} = abi.call_exec @fn({{.*}}) {
     // ABI-NEXT:   [[V4:%[0-9]+]] = abi.call_args {
     // ABI-NEXT:     [[V8:%[0-9]+]] = abi.direct {{.*}} : !hl.elaborated<!hl.record<"wrapped">> -> i32
     // ABI-NEXT:     {{.*}} = abi.yield [[V8]] : i32 -> i32
