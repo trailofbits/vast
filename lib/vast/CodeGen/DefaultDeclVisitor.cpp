@@ -379,7 +379,7 @@ namespace vast::cg
                 auto enum_decl = mlir::cast< hl::EnumDeclOp >(op);
                 // Fill in the enum constants if the enum was predeclared
                 if (decl->isComplete() && !enum_decl.isComplete()) {
-                    auto _ = bld.scoped_insertion_at_start(&enum_decl.getConstants().front());
+                    auto _ = bld.scoped_insertion_at_start(&enum_decl.getConstantsBlock());
                     enum_decl.setType(self.visit(decl->getIntegerType()));
                     fill_enum_constants(decl);
                 }
@@ -428,11 +428,18 @@ namespace vast::cg
         });
     }
 
-    operation default_decl_visitor::VisitRecordDecl(const clang::RecordDecl *decl) {
-        if (!decl->isCompleteDefinition()) {
-            return mk_incomplete_decl(decl);
+    void default_decl_visitor::fill_decl_members(const clang::RecordDecl *decl) {
+        members_scope members_scope(&self.scope);
+        // TODO deduplicate lookup mechanism
+        for (auto *decl : decl->decls()) {
+            // FIXME: Handle IndirectFieldDecl.
+            if (clang::isa< clang::IndirectFieldDecl >(decl))
+                continue;
+            self.visit(decl);
         }
+    }
 
+    operation default_decl_visitor::VisitRecordDecl(const clang::RecordDecl *decl) {
         if (decl->isUnion()) {
             return mk_record_decl< hl::UnionDeclOp >(decl);
         } else {
@@ -477,15 +484,6 @@ namespace vast::cg
 
     operation default_decl_visitor::VisitIndirectFieldDecl(const clang::IndirectFieldDecl *decl) {
         return {};
-    }
-
-    operation default_decl_visitor::mk_incomplete_decl(const clang::RecordDecl *decl) {
-        return maybe_declare([&] {
-            return bld.compose< hl::TypeDeclOp >()
-                .bind(self.location(decl))
-                .bind(self.symbol(decl))
-                .freeze();
-        });
     }
 
 } // namespace vast::hl
