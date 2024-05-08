@@ -11,12 +11,23 @@
 
 namespace vast::cg
 {
+    struct unsup_body_scope : block_scope {
+        explicit unsup_body_scope(scope_context *parent)
+            : block_scope(parent)
+            , members(parent->symbols.members)
+            , labels(parent->symbols.labels)
+        {}
+        symbol_table_scope< string_ref, operation > members;
+        symbol_table_scope< string_ref, operation > labels;
+    };
+
     std::optional< BuilderCallBackFn > unsup_decl_visitor::try_make_body_builder(
         const clang_decl *decl, scope_context &scope
     ) {
         #define VAST_UNSUPPORTED_DECL_BODY_CALLBACK(type, body) \
             if (auto d = mlir::dyn_cast< clang::type >(decl)) { \
                 return [this, d, &scope] (auto &bld, auto loc) { \
+                    unsup_body_scope scope_tables(&scope); \
                     self.visit(d->get##body(), scope); \
                 }; \
             }
@@ -33,6 +44,7 @@ namespace vast::cg
 
         if (auto ctx = mlir::dyn_cast< clang::DeclContext >(decl)) {
             return [this, ctx, &scope] (auto &bld, auto loc) {
+                unsup_body_scope scope_tables(&scope);
                 for (auto child : ctx->decls()) {
                     self.visit(child, scope);
                 }
