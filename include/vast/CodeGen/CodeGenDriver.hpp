@@ -60,6 +60,7 @@ namespace vast::cg {
             , scope(symbols)
             , generator(*bld, scoped_visitor_view(*visitor, scope), opts)
         {
+            bld->module = mod.get();
             bld->set_insertion_point_to_start(&mod->getBodyRegion());
         }
 
