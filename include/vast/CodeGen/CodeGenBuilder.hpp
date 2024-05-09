@@ -165,6 +165,8 @@ namespace vast::cg {
     struct codegen_builder : mlir_builder {
         using mlir_builder::mlir_builder;
 
+        vast_module module;
+
         insertion_guard insertion_guard() { return { *this }; }
 
         void set_insertion_point_to_start(region_ptr region) {
@@ -205,13 +207,7 @@ namespace vast::cg {
             return scoped_insertion_at_end(&region->back());
         }
 
-        [[nodiscard]] auto get_module_region() {
-            auto curr = getBlock()->getParentOp();
-            while (!mlir::isa< vast_module >(curr)) {
-                curr = curr->getParentOp();
-            }
-            return mlir::cast< vast_module >(curr).getBody();
-        }
+        [[nodiscard]] region_ptr get_module_region() { return &module.getBodyRegion(); }
 
         [[nodiscard]] auto set_insertion_point_to_start_of_module() {
             return scoped_insertion_at_start(get_module_region());

@@ -59,8 +59,6 @@ namespace vast {
     using string_ref     = llvm::StringRef;
     using logical_result = mlir::LogicalResult;
 
-    using insertion_guard = Builder::InsertionGuard;
-
     using mlir_attr    = mlir::Attribute;
 
     using attr_t       = mlir::Attribute;
@@ -79,7 +77,10 @@ namespace vast {
 
     using loc_t         = mlir::Location;
 
-    using mlir_builder  = mlir::OpBuilder;
+    using mlir_builder    = mlir::OpBuilder;
+    using insertion_guard = mlir_builder::InsertionGuard;
+    using insert_point    = mlir_builder::InsertPoint;
+
 
     using region_t      = mlir::Region;
     using region_ptr    = region_t*;
