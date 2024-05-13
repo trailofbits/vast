@@ -39,6 +39,7 @@ def HLBuiltin_TrapOp : HLBuiltin_Op< "trap" >
 {
   let summary = "Builtin trap op";
   let assemblyFormat = " `:` type($result) attr-dict";
+  let builders = [OpBuilder< (ins) >];
 }
 
 def HLBuiltin_DebugTrapOp : HLBuiltin_Op< "dbgtrap" >
@@ -46,6 +47,7 @@ def HLBuiltin_DebugTrapOp : HLBuiltin_Op< "dbgtrap" >
 {
   let summary = "Builtin debug trap op";
   let assemblyFormat = " `:` type($result) attr-dict";
+  let builders = [OpBuilder< (ins) >];
 }
 
 #endif //VAST_DIALECT_BUILTIN_OPS
