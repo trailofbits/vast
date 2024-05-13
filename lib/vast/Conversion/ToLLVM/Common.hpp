@@ -77,6 +77,14 @@ namespace vast::conv::irstollvm {
                 return {};
             return convert(ptr.getElementType());
         }
+
+        std::vector< mlir::Value > filter_out_void(const auto &values) const {
+            std::vector< mlir::Value > out;
+            for (auto v : values)
+                if (!mlir::isa< LLVM::LLVMVoidType >(v.getType()))
+                    out.push_back(v);
+            return out;
+        }
     };
 
     template< typename src_t, typename trg_t >
