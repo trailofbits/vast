@@ -1,4 +1,5 @@
 // RUN: %vast-front -o %t %s && %t hello | %file-check %s
+// REQUIRES: ssa-core-scope
 
 int puts(const char *);
 
