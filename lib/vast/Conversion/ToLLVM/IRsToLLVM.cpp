@@ -1305,15 +1305,24 @@ namespace vast::conv::irstollvm
             LazyOp op, typename LazyOp::Adaptor ops,
             conversion_rewriter &rewriter) const override
         {
-            auto lower_res_type = [&]()
-            {
-                auto result = op.getResult();
-                result.setType(this->convert(result.getType()));
-            };
+            // It does have regions, we cannot use `clone` as it will screw the
+            // queue of ops that needs to be converted conversion to-be done.
+            if (op->getNumRegions()) {
+                auto lower_res_type = [&]()
+                {
+                    for (std::size_t i = 0; i < op->getNumResults(); ++i) {
+                        auto result = op->getResult(i);
+                        result.setType(this->convert(result.getType()));
+                    }
+                };
 
-            // TODO: Should we use clone instead?
-            rewriter.modifyOpInPlace(op, lower_res_type);
-            return logical_result::success();
+                // TODO: Should we use clone instead?
+                rewriter.modifyOpInPlace(op, lower_res_type);
+                return logical_result::success();
+            }
+
+            // It does not have regions
+            return this->update_via_clone(rewriter, op, ops.getOperands());
         }
     };
 
@@ -1352,6 +1361,7 @@ namespace vast::conv::irstollvm
         lazy_op_type< core::LazyOp >,
         lazy_op_type< core::BinLAndOp >,
         lazy_op_type< core::BinLOrOp >,
+        lazy_op_type< core::SelectOp >,
         fixup_yield_types< hl::ValueYieldOp >
     >;
 
@@ -1440,6 +1450,7 @@ namespace vast::conv::irstollvm
             legal_with_llvm_ret_type( core::LazyOp{} );
             legal_with_llvm_ret_type( core::BinLAndOp{} );
             legal_with_llvm_ret_type( core::BinLOrOp{} );
+            legal_with_llvm_ret_type( core::SelectOp{} );
 
             target.addDynamicallyLegalOp< hl::ValueYieldOp >([&](hl::ValueYieldOp op) {
                 return mlir::isa< core::LazyOp >(op->getParentOp()) &&
