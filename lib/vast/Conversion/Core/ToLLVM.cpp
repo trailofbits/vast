@@ -54,7 +54,8 @@ namespace vast
                 auto &yield = lazy_region.back().back();
                 auto yield_op = mlir::dyn_cast< hl::ValueYieldOp >(yield);
                 auto res = yield_op ? std::optional(yield_op.getResult()) : std::nullopt;
-                rewriter.eraseOp(&yield);
+                if (yield_op)
+                    rewriter.eraseOp(&yield);
 
                 auto &first_block = lazy_region.front();
                 // The rewriter API doesn't provide a call to insert into a selected block
