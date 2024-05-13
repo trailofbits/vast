@@ -144,8 +144,9 @@ namespace vast::cg
                 deferred.pop_front();
             }
 
-            for (auto &child : children) {
-                child->finalize();
+            while (!children.empty()) {
+                children.back()->finalize();
+                children.pop_back();
             }
 
             children.clear();
@@ -171,7 +172,7 @@ namespace vast::cg
 
         // links between scopes
         scope_context *parent = nullptr;
-        std::vector< std::unique_ptr< scope_context > > children;
+        std::deque< std::unique_ptr< scope_context > > children;
     };
 
 
