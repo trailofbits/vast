@@ -33,19 +33,6 @@ namespace vast::conv::tc {
         using base      = mlir::LLVMTypeConverter;
         using helpers_t = tc::mixins< LLVMTypeConverter >;
 
-        auto ignore_none_materialization() {
-            return [&](mlir::OpBuilder &bld, mlir::NoneType t, mlir::ValueRange inputs,
-                       mlir::Location loc) {
-                return bld.create< mlir::LLVM::ZeroOp >(loc, *this->convert_type_to_type(t));
-            };
-        }
-        auto ignore_void_materialization() {
-            return [&](mlir::OpBuilder &bld, mlir::LLVM::LLVMVoidType t, mlir::ValueRange inputs,
-                       mlir::Location loc) {
-                return bld.create< mlir::LLVM::ZeroOp >(loc, *this->convert_type_to_type(t));
-            };
-        }
-
         template< typename... Args >
         LLVMTypeConverter(Args &&...args) : base(std::forward< Args >(args)...) {
             addConversion([&](hl::LabelType t) { return t; });
@@ -68,13 +55,6 @@ namespace vast::conv::tc {
             // does not work with void values and LLVM dialect constraints) this means verifier error.
             // Instead we just emit a dummy constant, so that verifier does not hit unhappy path
             // that leads to a crash. These should be removed by subsequent passes as a cleanup.
-            addArgumentMaterialization(ignore_none_materialization());
-            addSourceMaterialization(ignore_none_materialization());
-            addTargetMaterialization(ignore_none_materialization());
-
-            addArgumentMaterialization(ignore_void_materialization());
-            addSourceMaterialization(ignore_void_materialization());
-            addTargetMaterialization(ignore_void_materialization());
         }
 
         // Moving the converter caused bugs in the code - since the base class has no comments

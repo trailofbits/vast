@@ -1019,6 +1019,12 @@ namespace vast::conv::irstollvm
                 // dialect will fire - it would create a value of void type, which is
                 // not allowed.
                 mk_call(std::vector< mlir::Type >{}, op.getCallee(), ops.getOperands());
+                // Proactively drop uses of the call to avoid MLIR
+                // going FUBAR about NoneType
+                for (auto res : op.getResults()) {
+                    for (auto user : res.getUsers())
+                        rewriter.eraseOp(user);
+                }
                 rewriter.eraseOp(op);
             } else {
                 auto call = mk_call(*rtys, op.getCallee(), ops.getOperands());
@@ -1342,7 +1348,6 @@ namespace vast::conv::irstollvm
             if (mlir::isa< mlir::LLVM::GlobalOp >(op->getParentOp()))
                 return logical_result::failure();
 
-            // Some operations need to keep it even with void value.
             if (ops.getResult().getType().template isa< mlir::LLVM::LLVMVoidType >())
             {
                 rewriter.eraseOp(op);
