@@ -679,7 +679,7 @@ namespace vast::conv::irstollvm
                 op_t ret_op, typename op_t::Adaptor ops,
                 conversion_rewriter &rewriter) const override
         {
-            rewriter.create< LLVM::ReturnOp >(ret_op.getLoc(), ops.getOperands());
+            rewriter.create< LLVM::ReturnOp >(ret_op.getLoc(), this->strip_voids(ops.getOperands()));
             rewriter.eraseOp(ret_op);
             return logical_result::success();
         }
