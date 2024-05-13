@@ -20,8 +20,20 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Builtin/Dialect.hpp"
 #include "vast/Dialect/Builtin/Ops.hpp"
+#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
 using namespace vast::hlbi;
+
+    void TrapOp::build(Builder &bld, State &st)
+    {
+        st.addTypes(vast::hl::VoidType::get(bld.getContext()));
+    }
+
+    void DebugTrapOp::build(Builder &bld, State &st)
+    {
+        st.addTypes(vast::hl::VoidType::get(bld.getContext()));
+    }
+
 
 #define GET_OP_CLASSES
 #include "vast/Dialect/Builtin/Builtin.cpp.inc"
