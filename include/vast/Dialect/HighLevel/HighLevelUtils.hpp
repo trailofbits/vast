@@ -163,14 +163,18 @@ namespace vast::hl {
         });
     }
 
-    walk_result users(FuncSymbolOpInterface op, auto scope, auto &&yield) {
-        for (auto user : util::symbol_users(op, scope)) {
-            if (auto result = yield(user); result == walk_result::interrupt()) {
-                return result;
+    walk_result users(FuncSymbolOpInterface fn, auto scope, auto &&yield) {
+        return scope.walk([&](operation op) {
+            if (auto call = mlir::dyn_cast< hl::CallOp >(op)) {
+                return call.getCallee() == fn.getSymbolName() ? yield(op) : walk_result::advance();
             }
-        }
 
-        return walk_result::advance();
+            if (auto ref = mlir::dyn_cast< hl::FuncRefOp >(op)) {
+                return ref.getFunction() == fn.getSymbolName() ? yield(op) : walk_result::advance();
+            }
+
+            return walk_result::advance();
+        });
     }
 
 } // namespace vast::hl
