@@ -16,7 +16,6 @@ VAST_UNRELAX_WARNINGS
 
 #include <filesystem>
 
-#include "vast/CodeGen/CodeGenContext.hpp"
 #include "vast/CodeGen/CodeGenDriver.hpp"
 
 #include "vast/Util/Common.hpp"
