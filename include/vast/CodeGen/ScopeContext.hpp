@@ -148,8 +148,6 @@ namespace vast::cg
                 children.back()->finalize();
                 children.pop_back();
             }
-
-            children.clear();
         }
 
         scope_context(const scope_context &) = delete;
