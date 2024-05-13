@@ -17,6 +17,7 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && \
 // RUN: %vast-query --show-symbols=functions %t | \
 // RUN: %file-check %s -check-prefix=FUN
+// REQUIRES: vast-query
 
 // FOO-VAR-DAG: hl.var : a
 // FUN-DAG: func : foo
