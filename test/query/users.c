@@ -9,6 +9,8 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && \
 // RUN: %vast-query --symbol-users=a --scope=foo %t | \
 // RUN: %file-check %s -check-prefix=FOO
+// REQUIRES: vast-query
+
 
 // FOO: hl.ref %0
 int foo() {
