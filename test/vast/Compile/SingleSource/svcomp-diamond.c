@@ -4,6 +4,7 @@
 // RUN: %file-check --input-file=%t.mlir %s -check-prefix=MLIR
 // RUN: %vast-cc1 -triple x86_64-unknown-linux-gnu -vast-emit-llvm %s -o %t.ll
 // RUN: %file-check --input-file=%t.ll %s -check-prefix=LLVM
+// REQUIRES: ssa-core-scope
 
 extern void abort(void);
 extern void __assert_fail(const char *, const char *, unsigned int, const char *) __attribute__((__nothrow__, __leaf__)) __attribute__((__noreturn__));
