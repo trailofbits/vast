@@ -25,7 +25,7 @@ namespace vast::cg
 
         auto visit_with_fallback(auto &&...tokens) {
             for (auto &visitor : visitors) {
-                if (auto result = visitor->visit(std::forward< decltype(tokens) >(tokens)...)) {
+                if (auto result = visitor->visit(tokens...)) {
                     return result;
                 }
             }

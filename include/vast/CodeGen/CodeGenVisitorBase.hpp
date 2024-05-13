@@ -94,8 +94,9 @@ namespace vast::cg {
             return self.scope.is_declared_type(name);
         }
 
-        template< typename RangeType >
-        values_t visit_values_range(RangeType &&range) {
+        // expects a range of values (operations returning a single value)
+        template< typename range_type >
+        values_t visit_values_range(range_type &&range) {
             values_t values;
             for (auto item : range) {
                 values.push_back(self.visit(item)->getResult(0));
