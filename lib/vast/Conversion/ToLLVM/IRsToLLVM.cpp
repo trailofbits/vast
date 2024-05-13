@@ -1343,12 +1343,10 @@ namespace vast::conv::irstollvm
                 return logical_result::failure();
 
             // Some operations need to keep it even with void value.
-            if (!mlir::isa< core::LazyOp >(op->getParentOp())) {
-                if (ops.getResult().getType().template isa< mlir::LLVM::LLVMVoidType >())
-                {
-                    rewriter.eraseOp(op);
-                    return logical_result::success();
-                }
+            if (ops.getResult().getType().template isa< mlir::LLVM::LLVMVoidType >())
+            {
+                rewriter.eraseOp(op);
+                return logical_result::success();
             }
 
             // TODO: What would it take to make this work `updateRootInPlace`?

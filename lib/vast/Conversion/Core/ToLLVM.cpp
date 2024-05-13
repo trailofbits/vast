@@ -37,7 +37,7 @@ namespace vast
 
             auto lazy_into_block(
                 Operation* lazy_op, Block* target, conversion_rewriter &rewriter
-            ) const -> std::tuple< mlir_value, mlir::Block * > {
+            ) const -> std::tuple< std::optional< mlir_value >, mlir::Block * > {
                 auto &lazy_region = mlir::dyn_cast< core::LazyOp >(*lazy_op).getLazy();
 
                 // In case `lazy_op` already has multiple blocks (nested lazy ops)
@@ -52,7 +52,8 @@ namespace vast
 
                 // Last block should have hl.value.yield with the final value
                 auto &yield = lazy_region.back().back();
-                auto res = mlir::dyn_cast< hl::ValueYieldOp >(yield).getResult();
+                auto yield_op = mlir::dyn_cast< hl::ValueYieldOp >(yield);
+                auto res = yield_op ? std::optional(yield_op.getResult()) : std::nullopt;
                 rewriter.eraseOp(&yield);
 
                 auto &first_block = lazy_region.front();
@@ -95,7 +96,7 @@ namespace vast
                 auto current_it = current_block->getIterator();
                 rewriter.setInsertionPointToEnd(&*current_it);
                 if (arg)
-                    rewriter.template create< LLVM::BrOp >(loc, arg, target_block);
+                    rewriter.template create< LLVM::BrOp >(loc, arg.value(), target_block);
                 else
                     rewriter.template create< LLVM::BrOp >(loc, std::nullopt, target_block);
             }
@@ -152,12 +153,13 @@ namespace vast
 
                 auto [ lhs_res, _1 ] = lazy_into_block(ops.getLhs().getDefiningOp(), curr_block, rewriter);
                 auto [ rhs_res, _2 ] = lazy_into_block(ops.getRhs().getDefiningOp(), rhs_block, rewriter);
+                VAST_ASSERT(lhs_res && rhs_res && "logical binary operation with invalid yield");
 
                 rewriter.setInsertionPointToEnd(curr_block);
-                auto zero = iN(rewriter, op.getLoc(), lhs_res.getType(), 0);
+                auto zero = iN(rewriter, op.getLoc(), lhs_res->getType(), 0);
 
                 auto cmp_lhs = rewriter.create< LLVM::ICmpOp >(
-                    op.getLoc(), LLVM::ICmpPredicate::ne, lhs_res, zero
+                    op.getLoc(), LLVM::ICmpPredicate::ne, lhs_res.value(), zero
                 );
 
                 // Block argument that recieves the result value
@@ -174,7 +176,7 @@ namespace vast
                 auto rhs_end_it = std::prev(end_block->getIterator());
                 rewriter.setInsertionPointToEnd(&*rhs_end_it);
                 auto cmp_rhs = rewriter.create< LLVM::ICmpOp >(
-                    op.getLoc(), LLVM::ICmpPredicate::ne, rhs_res, zero
+                    op.getLoc(), LLVM::ICmpPredicate::ne, rhs_res.value(), zero
                 );
                 rewriter.create< LLVM::BrOp >(op.getLoc(), cmp_rhs.getResult(), end_block);
 
@@ -211,15 +213,15 @@ namespace vast
                 auto cmp = mk_icmp_ne(rewriter, op.getLoc(), ops.getCond());
 
                 // Block argument that recieves the result value
-                auto end_arg = add_argument(end_block, true_res.getType(), op.getLoc());
+                auto end_arg = true_res ? add_argument(end_block, true_res->getType(), op.getLoc()) : std::nullopt;
 
                 rewriter.create< LLVM::CondBrOp >(
                     op.getLoc(), cmp, true_block, std::nullopt, false_block, std::nullopt);
 
 
                 auto tie = get_tie_block(rewriter, op.getLoc(), end_block);
-                tie(false_end, (end_arg) ? false_res : mlir_value{});
-                tie(true_end, (end_arg) ? true_res : mlir_value{});
+                tie(false_end, false_res);
+                tie(true_end, true_res);
 
                 rewriter.setInsertionPointToStart(end_block);
 
