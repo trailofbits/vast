@@ -108,7 +108,7 @@ namespace vast::cg
     }
 
     void function_generator::emit_trap(const clang_function *decl) {
-        bld.create< hlbi::TrapOp >(visitor.location(decl));
+        bld.create< hlbi::TrapOp >(visitor.location(decl), bld.void_type());
     }
 
     void function_generator::emit_unreachable(const clang_function *decl) {
