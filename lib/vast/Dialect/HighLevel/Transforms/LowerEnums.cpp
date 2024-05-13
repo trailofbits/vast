@@ -66,10 +66,8 @@ namespace vast::hl {
         }
 
         auto convert_enum() {
-            return [&](hl::RecordType record) -> maybe_type_t {
-                // If not in the mapping it is not an `enum` (both `union` and `struct` use
-                // `record` as well.
-                auto name = record.getName();
+            return [&](hl::EnumType enum_type) -> maybe_type_t {
+                auto name = enum_type.getName();
                 auto it = info.name_to_decl.find(name);
                 if (it == info.name_to_decl.end())
                     return {};
