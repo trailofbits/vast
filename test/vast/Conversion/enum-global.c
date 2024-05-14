@@ -1,6 +1,13 @@
-// RUN: %vast-cc1 -vast-emit-mlir-after=vast-hl-lower-enums %s -o - | %file-check %s -check-prefix=ENUM
-// RUN: %vast-cc1 -vast-emit-mlir-after=vast-irs-to-llvm %s -o - | %file-check %s -check-prefix=LLVM
+// RUN: %vast-front -vast-emit-mlir-after=vast-hl-lower-enums %s -o %t.mlir
+// RUN: %file-check --input-file=%t.mlir %s -check-prefix=ENUM
 
+// RUN: %vast-front -vast-emit-mlir-after=vast-irs-to-llvm %s -o %t.mlir
+// RUN: %file-check --input-file=%t.mlir %s -check-prefix=LLVM
+
+// REQUIRES: erase-enum-type-from-data-layout
+
+// ENUM-NOT: hl.enum
+// ENUM-NOT: hl.enum.const
 enum E : char {
     E_a = 0
 };

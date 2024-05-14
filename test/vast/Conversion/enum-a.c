@@ -1,5 +1,8 @@
-// RUN: %vast-cc1 -vast-emit-mlir-after=vast-hl-lower-enums %s -o - | %file-check %s -check-prefix=ENUM
+// RUN: %vast-front -vast-emit-mlir-after=vast-hl-lower-enums %s -o %t.mlir
+// RUN: %file-check --input-file=%t.mlir %s -check-prefix=ENUM
 
+// ENUM-NOT: hl.enum
+// ENUM-NOT: hl.enum.const
 enum E : int {
     E_a = 0,
     E_b = 1
