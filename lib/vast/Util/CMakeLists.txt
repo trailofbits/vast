@@ -3,5 +3,6 @@
 add_vast_library(Util
     Pipeline.cpp
     Region.cpp
+    Snapshots.cpp
     Warnings.cpp
 )

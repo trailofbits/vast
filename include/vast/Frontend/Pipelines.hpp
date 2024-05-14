@@ -49,7 +49,7 @@ namespace vast::cc {
         pipeline_source src, target_dialect trg,
         mcontext_t &mctx,
         const vast_args &vargs,
-        std::string snapshot_prefix
+        string_ref snapshot_prefix = "snapshot"
     );
 
 } // namespace vast::cc

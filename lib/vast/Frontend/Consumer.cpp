@@ -172,7 +172,7 @@ namespace vast::cc {
         // Setup and execute vast pipeline
         auto file_entry = src_mgr.getFileEntryRefForID(main_file_id);
         VAST_CHECK(file_entry, "failed to recover file entry ref");
-        auto snapshot_prefix = std::filesystem::path(file_entry->getName().str()).stem();
+        auto snapshot_prefix = std::filesystem::path(file_entry->getName().str()).stem().string();
 
         auto pipeline = setup_pipeline(pipeline_source::ast, target, mctx, vargs, snapshot_prefix);
         VAST_CHECK(pipeline, "failed to setup pipeline");
