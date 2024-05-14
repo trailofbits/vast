@@ -7,7 +7,6 @@
 VAST_RELAX_WARNINGS
 #include <llvm/ADT/DenseSet.h>
 #include <mlir/IR/DialectRegistry.h>
-#include <mlir/Pass/PassInstrumentation.h>
 #include <mlir/Pass/PassManager.h>
 #include <mlir/Pass/PassRegistry.h>
 #include <mlir/Pass/Pass.h>
@@ -79,64 +78,6 @@ namespace vast {
 
         llvm::DenseSet< pass_id_t > seen;
     };
-
-    struct with_snapshots : mlir::PassInstrumentation
-    {
-        using output_stream_ptr = std::shared_ptr< llvm::raw_pwrite_stream >;
-        using passes_t = std::vector< llvm::StringRef >;
-
-        std::string file_prefix;
-
-        with_snapshots(llvm::StringRef file_prefix)
-            : file_prefix(file_prefix.str())
-        {}
-
-        // We return `shared_ptr` in case we may want to keep the stream open for longer
-        // in some derived class. Should not make a difference, snapshoting will be expensive
-        // anyway.
-        virtual output_stream_ptr make_output_stream(mlir::Pass *pass) {
-            std::string name = file_prefix + "." + pass->getArgument().str();
-            std::error_code ec;
-            auto os = std::make_shared< llvm::raw_fd_ostream >(name, ec);
-            VAST_CHECK(!ec, "Cannot open file to store snapshot at, ec: {0}", ec.message());
-            return std::move(os);
-        }
-
-        virtual bool should_snapshot(mlir::Pass *pass) const = 0;
-
-        void runAfterPass(mlir::Pass *pass, operation op) override {
-            if (!should_snapshot(pass))
-                return;
-
-            auto os = make_output_stream(pass);
-            (*os) << *op;
-        }
-    };
-
-    struct snapshot_at_passes : with_snapshots {
-        using base = with_snapshots;
-
-        passes_t snapshot_at;
-
-        template< typename ... Args >
-        snapshot_at_passes(const passes_t &snapshot_at, Args && ... args)
-            : base(std::forward< Args >(args)...), snapshot_at(snapshot_at)
-        {}
-
-        virtual bool should_snapshot(mlir::Pass *pass) const override {
-            return std::ranges::count(snapshot_at, pass->getArgument());
-        }
-    };
-
-    struct snapshot_all : with_snapshots {
-        using base = with_snapshots;
-        using base::base;
-
-        bool should_snapshot(mlir::Pass *) const override {
-            return true;
-        }
-    };
-
 
     using pipeline_step_builder = std::function< pipeline_step_ptr(void) >;
 

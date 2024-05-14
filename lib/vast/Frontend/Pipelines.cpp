@@ -126,18 +126,19 @@ namespace vast::cc {
         target_dialect trg,
         mcontext_t &mctx,
         const vast_args &vargs,
-        std::string snapshot_prefix
+        string_ref snapshot_prefix
     ) {
         auto passes = std::make_unique< vast_pipeline >(mctx, vargs);
         passes->print_on_error(llvm::errs());
 
-        if (auto snapshot_at = vargs.get_options_list(opt::snapshot_at)) {
-            auto instrument = [&]() -> std::unique_ptr< with_snapshots > {
-                if (std::ranges::count(*snapshot_at, llvm::StringRef("*")))
-                    return std::make_unique< snapshot_all >(snapshot_prefix);
-                return std::make_unique< snapshot_at_passes >(*snapshot_at, snapshot_prefix);
-            }();
-            passes->addInstrumentation(std::move(instrument));
+        if (auto at = vargs.get_options_list(opt::snapshot_at)) {
+            passes->addInstrumentation([&] () -> std::unique_ptr< util::with_snapshots > {
+                if (std::ranges::count(at.value(), "*")) {
+                    return std::make_unique< util::snapshot_all >(snapshot_prefix);
+                } else {
+                    return std::make_unique< util::snapshot_after_passes >(at.value(), snapshot_prefix);
+                }
+            } ());
         }
 
         // generate high level MLIR in case of AST input
