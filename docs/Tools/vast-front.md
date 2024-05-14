@@ -8,6 +8,10 @@
   - Possible dialects: hl, std, llvm, cir
   - This will execute the translation pipeline up to the specified dialect.
 
+- `-vast-emit-mlir-after=<pass-argument-name>`
+  - This will execute the translation pipeline up to the specified mlir pass (including).
+  - It uses same names as `opt` to specify passes.
+
 Other available outputs:
 
 - `-vast-emit-llvm`
