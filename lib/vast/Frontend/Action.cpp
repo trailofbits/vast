@@ -17,7 +17,7 @@ namespace vast::cc {
 
     namespace opt {
         bool emit_only_mlir(const vast_args &vargs) {
-            for (auto arg : { emit_mlir }) {
+            for (auto arg : { emit_mlir, emit_mlir_until }) {
                 if (vargs.has_option(arg)) {
                     return true;
                 }

@@ -18,7 +18,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::cc
 {
     frontend_action_ptr create_frontend_action(const vast_args &vargs) {
-        if (vargs.has_option(opt::emit_mlir)) {
+        if (opt::emit_only_mlir(vargs)) {
             return std::make_unique< vast::cc::emit_mlir_action >(vargs);
         }
 
