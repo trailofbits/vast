@@ -1,5 +1,4 @@
-// RUN: %vast-front -c -vast-snapshot-at="vast-hl-lower-enums" %s
-// RUN: %file-check %s -input-file=$(basename %s .c).vast-hl-lower-enums -check-prefix=ENUM
+// RUN: %vast-cc1 -vast-emit-mlir-after=vast-hl-lower-enums %s -o - | %file-check %s -check-prefix=ENUM
 
 enum E : char {
     E_a = 0,

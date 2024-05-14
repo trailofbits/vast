@@ -1,6 +1,5 @@
-// RUN: %vast-front -c -vast-snapshot-at="vast-hl-lower-enums;vast-irs-to-llvm" %s
-// RUN: %file-check %s -input-file=$(basename %s .c).vast-hl-lower-enums -check-prefix=ENUM
-// RUN: %file-check %s -input-file=$(basename %s .c).vast-irs-to-llvm -check-prefix=LLVM
+// RUN: %vast-cc1 -vast-emit-mlir-after=vast-hl-lower-enums %s -o - | %file-check %s -check-prefix=ENUM
+// RUN: %vast-cc1 -vast-emit-mlir-after=vast-irs-to-llvm %s -o - | %file-check %s -check-prefix=LLVM
 
 enum E : char {
     E_a = 0
