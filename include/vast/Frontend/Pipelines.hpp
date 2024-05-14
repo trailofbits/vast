@@ -26,7 +26,7 @@ namespace vast::cc {
 
         virtual ~vast_pipeline() = default;
 
-        void schedule(pipeline_step_ptr step) override;
+        schedule_result schedule(pipeline_step_ptr step) override;
 
         bool is_disabled(const pipeline_step_ptr &step) const;
 

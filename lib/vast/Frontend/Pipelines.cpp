@@ -4,6 +4,7 @@
 
 #include "vast/Dialect/HighLevel/Passes.hpp"
 #include "vast/Conversion/Passes.hpp"
+#include "vast/Util/Snapshots.hpp"
 
 #include <gap/core/overloads.hpp>
 
@@ -84,9 +85,9 @@ namespace vast::cc {
             // deduced from source, target and vargs
             const auto path = default_conversion_path;
 
-            for (const auto &[dialect, guard, step_passes] : path) {
+            for (const auto &[dialect, guard, steps] : path) {
                 if (check_step_guard(guard, vargs)) {
-                    for (auto &step : step_passes) {
+                    for (auto &step : steps) {
                         co_yield step();
                     }
                 }
@@ -108,17 +109,21 @@ namespace vast::cc {
         return vargs.has_option(disable_step_option);
     }
 
-    void vast_pipeline::schedule(pipeline_step_ptr step) {
+    schedule_result vast_pipeline::schedule(pipeline_step_ptr step) {
         if (is_disabled(step)) {
             VAST_PIPELINE_DEBUG("step is disabled: {0}", step->name());
-            return;
+            return schedule_result::advance;
         }
 
         for (auto &&dep : step->dependencies()) {
-            schedule(std::move(dep));
+            if (schedule(std::move(dep)) == schedule_result::stop) {
+                return schedule_result::stop;
+            }
         }
 
         step->schedule_on(*this);
+
+        return schedule_result::advance;
     }
 
     std::unique_ptr< vast_pipeline > setup_pipeline(
@@ -153,7 +158,9 @@ namespace vast::cc {
         // can specify how we want to convert to llvm dialect and allows to turn
         // off optional pipelines.
         for (auto &&step : pipeline::conversion(src, trg, vargs)) {
-            passes->schedule(std::move(step));
+            if (passes->schedule(std::move(step)) == schedule_result::stop) {
+                break;
+            }
         }
 
         if (vargs.has_option(opt::print_pipeline)) {
