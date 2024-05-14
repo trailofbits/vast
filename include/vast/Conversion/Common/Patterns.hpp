@@ -148,6 +148,29 @@ namespace vast {
             VAST_UNREACHABLE("not an integer or float type");
         }
 
+        static auto insert_trunc_or_ext(mlir_value val, mlir_type dst_type, auto &rewriter)
+            -> mlir_value {
+            auto val_type = val.getType();
+            auto val_bw   = val_type.getIntOrFloatBitWidth();
+            auto dst_bw   = dst_type.getIntOrFloatBitWidth();
+
+            auto insert_modifier = [&]< typename op >(auto val) -> mlir_value {
+                auto modifier = rewriter.template create< op >(val.getLoc(), dst_type, val);
+                rewriter.replaceAllUsesExcept(val, modifier, modifier);
+                return modifier;
+            };
+
+            if (val_bw > dst_bw) {
+                return insert_modifier.template operator()< mlir::LLVM::TruncOp >(val);
+            } else if (val_bw < dst_bw) {
+                if (val_type.isSignedInteger()) {
+                    return insert_modifier.template operator()< mlir::LLVM::SExtOp >(val);
+                } else {
+                    return insert_modifier.template operator()< mlir::LLVM::ZExtOp >(val);
+                }
+            }
+            return val;
+        }
 
         static auto replace_with_trunc_or_ext(
             auto op, auto src, auto orig_src_type, mlir_type dst_type, auto &rewriter

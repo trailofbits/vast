@@ -959,6 +959,30 @@ namespace vast::conv::irstollvm
         }
     };
 
+    template< typename src_t, typename trg_t >
+    struct shift_op : base_pattern< src_t >
+    {
+        using base = base_pattern< src_t >;
+        using base::base;
+
+        using adaptor_t = typename src_t::Adaptor;
+
+        logical_result
+        matchAndRewrite(src_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
+            auto target_ty = this->type_converter().convert_type_to_type(op.getType());
+            auto rhs       = base::insert_trunc_or_ext(ops.getRhs(), *target_ty, rewriter);
+            auto new_op = rewriter.create< trg_t >(op.getLoc(), *target_ty, ops.getLhs(), rhs);
+            rewriter.replaceOp(op, new_op);
+            return mlir::success();
+        }
+    };
+
+    using shift_conversions = util::type_list<
+        shift_op< hl::BinShlOp, LLVM::ShlOp >,
+
+        shift_op< hl::BinLShrOp, LLVM::LShrOp >,
+        shift_op< hl::BinAShrOp, LLVM::AShrOp >
+    >;
 
     using one_to_one_conversions = util::type_list<
         one_to_one< hl::AddIOp, LLVM::AddOp >,
@@ -979,12 +1003,7 @@ namespace vast::conv::irstollvm
 
         one_to_one< hl::BinOrOp, LLVM::OrOp >,
         one_to_one< hl::BinAndOp, LLVM::AndOp >,
-        one_to_one< hl::BinXorOp, LLVM::XOrOp >,
-
-        one_to_one< hl::BinShlOp, LLVM::ShlOp >,
-
-        one_to_one< hl::BinLShrOp, LLVM::LShrOp >,
-        one_to_one< hl::BinAShrOp, LLVM::AShrOp >
+        one_to_one< hl::BinXorOp, LLVM::XOrOp >
     >;
 
     struct call : base_pattern< hl::CallOp >
@@ -1469,6 +1488,7 @@ namespace vast::conv::irstollvm
         static void populate_conversions(config &cfg) {
             base::populate_conversions_base<
                 one_to_one_conversions,
+                shift_conversions,
                 inline_region_from_op_conversions,
                 return_conversions,
                 unary_in_place_conversions,
