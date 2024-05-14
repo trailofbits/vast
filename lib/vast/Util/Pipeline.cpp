@@ -12,7 +12,7 @@ namespace vast {
         }
 
         seen.insert(id);
-        VAST_PIPELINE_DEBUG("scheduling pass: {0}", pass->getName());
+        VAST_PIPELINE_DEBUG("scheduling pass: {0}", pass->getArgument());
         base::addPass(std::move(pass));
     }
 
@@ -30,8 +30,9 @@ namespace vast {
         }
     }
 
-    void pass_pipeline_step::schedule_on(pipeline_t &ppl) const {
+    schedule_result pass_pipeline_step::schedule_on(pipeline_t &ppl) const {
         ppl.addPass(pass_builder());
+        return schedule_result::advance;
     }
 
     string_ref pass_pipeline_step::name() const {
@@ -41,11 +42,15 @@ namespace vast {
         return pass_builder()->getArgument();
     }
 
-    void compound_pipeline_step::schedule_on(pipeline_t &ppl) const {
+    schedule_result compound_pipeline_step::schedule_on(pipeline_t &ppl) const {
         VAST_PIPELINE_DEBUG("scheduling compound step: {0}", pipeline_name);
         for (const auto &step : steps) {
-            ppl.schedule(step());
+            if (ppl.schedule(step()) == schedule_result::stop) {
+                return schedule_result::stop;
+            }
         }
+
+        return schedule_result::advance;
     }
 
     string_ref compound_pipeline_step::name() const {

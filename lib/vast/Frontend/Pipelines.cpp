@@ -129,7 +129,10 @@ namespace vast::cc {
             }
         }
 
-        step->schedule_on(*this);
+        if (step->schedule_on(*this) == schedule_result::stop) {
+            return schedule_result::stop;
+        }
+
         if (stop_after_step(step)) {
             return schedule_result::stop;
         }

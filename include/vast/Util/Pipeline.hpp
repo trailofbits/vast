@@ -61,7 +61,7 @@ namespace vast {
             }
 
             seen.insert(id);
-            VAST_PIPELINE_DEBUG("scheduling nested pass: {0}", pass->getName());
+            VAST_PIPELINE_DEBUG("scheduling nested pass: {0}", pass->getArgument());
             base::addNestedPass< parent_t >(std::move(pass));
         }
 
@@ -115,7 +115,7 @@ namespace vast {
         explicit pipeline_step() = default;
         virtual ~pipeline_step() = default;
 
-        virtual void schedule_on(pipeline_t &ppl) const = 0;
+        virtual schedule_result schedule_on(pipeline_t &ppl) const = 0;
         virtual gap::generator< pipeline_step_ptr > substeps() const = 0;
 
         gap::generator< pipeline_step_ptr > dependencies() const;
@@ -139,7 +139,7 @@ namespace vast {
             : pass_builder(builder)
         {}
 
-        void schedule_on(pipeline_t &ppl) const override;
+        schedule_result schedule_on(pipeline_t &ppl) const override;
 
         gap::generator< pipeline_step_ptr > substeps() const override;
 
@@ -159,8 +159,9 @@ namespace vast {
 
         virtual ~nested_pass_pipeline_step() = default;
 
-        void schedule_on(pipeline_t &ppl) const override {
+        schedule_result schedule_on(pipeline_t &ppl) const override {
             ppl.addNestedPass< parent_t >(pass_builder());
+            return schedule_result::advance;
         }
     };
 
@@ -174,7 +175,7 @@ namespace vast {
 
         virtual ~compound_pipeline_step() = default;
 
-        void schedule_on(pipeline_t &ppl) const override;
+        schedule_result schedule_on(pipeline_t &ppl) const override;
 
         gap::generator< pipeline_step_ptr > substeps() const override;
 
