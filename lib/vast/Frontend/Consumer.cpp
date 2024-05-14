@@ -105,6 +105,20 @@ namespace vast::cc {
     // vast stream consumer
     //
 
+    std::optional< target_dialect > get_target_dialect(const vast_args &vargs) {
+        if (vargs.has_option(opt::emit_mlir_until)) {
+            // Pretend to emit all the way to LLVM and
+            // let the pass scheduler decide where to stop.
+            return target_dialect::llvm;
+        }
+
+        if (auto trg = vargs.get_option(opt::emit_mlir)) {
+            return parse_target_dialect(trg.value());
+        }
+
+        return std::nullopt;
+    }
+
     void vast_stream_consumer::HandleTranslationUnit(acontext_t &actx) {
         base::HandleTranslationUnit(actx);
         auto mod = result();
@@ -113,10 +127,11 @@ namespace vast::cc {
             case output_type::emit_assembly:
                 return emit_backend_output(backend::Backend_EmitAssembly, std::move(mod));
             case output_type::emit_mlir: {
-                if (auto trg = vargs.get_option(opt::emit_mlir)) {
-                    return emit_mlir_output(parse_target_dialect(trg.value()), std::move(mod));
+                if (auto trg = get_target_dialect(vargs)) {
+                    return emit_mlir_output(trg.value(), std::move(mod));
+                } else {
+                    VAST_FATAL("no target dialect specified for MLIR output");
                 }
-                VAST_FATAL("no target dialect specified for MLIR output");
             }
             case output_type::emit_llvm:
                 return emit_backend_output(backend::Backend_EmitLL, std::move(mod));
