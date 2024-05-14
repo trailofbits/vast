@@ -266,18 +266,6 @@ namespace vast
         static void populate_conversions(config_t &config) {
             populate_conversions_base< pattern::bin_lop_conversions >(config);
         }
-
-        void after_operation() override {
-            // Now we know that we need to get rid fo any remaining `llvm.mlir.zero` that
-            // are of void type because they cannot be codegen'ed into LLVM IR.
-            auto exec = [&](mlir::LLVM::ZeroOp op) {
-                if (!llvm::isa< mlir::LLVM::LLVMVoidType >(op.getType()))
-                    return;
-                VAST_CHECK(op->getUsers().empty(), "{0} remains live after all conversions!", op);
-                op->erase();
-            };
-            this->getOperation()->walk(exec);
-        }
     };
 
     std::unique_ptr< mlir::Pass > createCoreToLLVMPass() {

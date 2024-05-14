@@ -85,6 +85,25 @@ namespace vast::conv::irstollvm {
                     out.push_back(v);
             return out;
         }
+
+        auto replace_void_return(auto &rewriter, auto ret_op) const {
+            VAST_ASSERT(core::is_return_like(ret_op)
+                        && "Replacing an operation that is not return-like.");
+            return rewriter.template replaceOpWithNewOp< LLVM::ReturnOp >(ret_op,
+                                                                          mlir::TypeRange(),
+                                                                          std::nullopt);
+        }
+
+        auto fix_none_return(auto &rewriter, auto op) const {
+            if (core::is_return_like(op)
+                && op->getNumOperands() == 1
+                && mlir::isa< mlir::NoneType >(op->getOperand(0).getType()))
+            {
+                return replace_void_return(rewriter, op) ? logical_result::success()
+                                                         : logical_result::failure();
+            }
+            return logical_result::failure();
+        }
     };
 
     template< typename src_t, typename trg_t >

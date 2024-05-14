@@ -554,13 +554,12 @@ namespace vast::conv::irstollvm
         {
             auto result = op.getResult();
             if (result.hasOneUse()) {
-                auto user = result.getUses().begin()->getOwner();
+                auto user = *result.getUsers().begin();
                 if (core::is_return_like(user)) {
                     auto guard = insertion_guard(rewriter);
                     rewriter.setInsertionPoint(user);
 
-                    rewriter.create< LLVM::ReturnOp >(user->getLoc(), mlir::ValueRange());
-                    rewriter.eraseOp(user);
+                    replace_void_return(rewriter, user);
                     rewriter.eraseOp(op);
                     return logical_result::success();
                 }
@@ -1022,8 +1021,16 @@ namespace vast::conv::irstollvm
                 // Proactively drop uses of the call to avoid MLIR
                 // going FUBAR about NoneType
                 for (auto res : op.getResults()) {
-                    for (auto user : res.getUsers())
-                        rewriter.eraseOp(user);
+                    for (auto user : res.getUsers()) {
+                        if (mlir::isa< hl::ValueYieldOp >(user)) {
+                            rewriter.eraseOp(user);
+                            continue;
+                        }
+                        if (fix_none_return(rewriter, user).succeeded()) {
+                            continue;
+                        };
+                        return logical_result::failure();
+                    }
                 }
                 rewriter.eraseOp(op);
             } else {
