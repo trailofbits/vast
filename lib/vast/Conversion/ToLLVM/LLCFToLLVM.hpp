@@ -148,31 +148,9 @@ namespace vast::conv::irstollvm::ll_cf
         }
     };
 
-    struct scope : scope_like< ll::Scope >
-    {
-        using base = scope_like< ll::Scope >;
-        using base::base;
-
-        using op_t = ll::Scope;
-        using adaptor_t = typename op_t::Adaptor;
-
-        mlir::Block *start_block(op_t op) const override
-        {
-            return op.start_block();
-        }
-
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops,
-            conversion_rewriter &rewriter) const override
-        {
-            return handle_multiblock(op, ops, rewriter);
-        }
-    };
-
     using conversions = util::type_list<
           cond_br
         , br
-        , scope
     >;
 
 } // namespace vast::conv::irstollvm::ll_cf
