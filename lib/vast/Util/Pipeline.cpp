@@ -5,7 +5,7 @@
 
 namespace vast {
 
-    void pipeline_t::addPass(std::unique_ptr<mlir::Pass> pass) {
+    void pipeline_t::addPass(owning_pass_ptr pass) {
         auto id = pass->getTypeID();
         if (seen.count(id)) {
             return;
@@ -22,6 +22,22 @@ namespace vast {
         }
     }
 
+    pass_ptr cached_pass_builder::get() const {
+        if (!cached_pass) {
+            cached_pass = bld();
+        }
+
+        return cached_pass.get();
+    }
+
+    owning_pass_ptr cached_pass_builder::take() {
+        if (cached_pass) {
+            return std::move(cached_pass);
+        } else {
+            return bld();
+        }
+    }
+
     gap::generator< pipeline_step_ptr > pass_pipeline_step::substeps() const { co_return; }
 
     gap::generator< pipeline_step_ptr > compound_pipeline_step::substeps() const {
@@ -30,19 +46,20 @@ namespace vast {
         }
     }
 
-    schedule_result pass_pipeline_step::schedule_on(pipeline_t &ppl) const {
-        ppl.addPass(pass_builder());
+    schedule_result pass_pipeline_step::schedule_on(pipeline_t &ppl) {
+        ppl.addPass(take_pass());
         return schedule_result::advance;
     }
 
     string_ref pass_pipeline_step::name() const {
-        return pass_builder()->getName();
-    }
-    string_ref pass_pipeline_step::cli_name() const {
-        return pass_builder()->getArgument();
+        return pass()->getName();
     }
 
-    schedule_result compound_pipeline_step::schedule_on(pipeline_t &ppl) const {
+    string_ref pass_pipeline_step::cli_name() const {
+        return pass()->getArgument();
+    }
+
+    schedule_result compound_pipeline_step::schedule_on(pipeline_t &ppl) {
         VAST_PIPELINE_DEBUG("scheduling compound step: {0}", pipeline_name);
         for (const auto &step : steps) {
             if (ppl.schedule(step()) == schedule_result::stop) {
