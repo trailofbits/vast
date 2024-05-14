@@ -5,7 +5,7 @@
 
 namespace vast::util {
 
-    void with_snapshots::runAfterPass(mlir::Pass *pass, operation op) {
+    void with_snapshots::runAfterPass(pass_ptr pass, operation op) {
         if (!should_snapshot(pass)) {
             return;
         }
@@ -14,7 +14,7 @@ namespace vast::util {
         (*os) << *op;
     }
 
-    auto with_snapshots::make_output_stream(mlir::Pass *pass)
+    auto with_snapshots::make_output_stream(pass_ptr pass)
         -> output_stream_ptr
     {
         std::string output_file_name = file_prefix + "." + pass->getArgument().str();

@@ -51,10 +51,10 @@ namespace vast {
 
         virtual ~pipeline_t() = default;
 
-        void addPass(std::unique_ptr< mlir::Pass > pass);
+        void addPass(owning_pass_ptr pass);
 
         template< typename parent_t >
-        void addNestedPass(std::unique_ptr< mlir::Pass > pass) {
+        void addNestedPass(owning_pass_ptr pass) {
             auto id = pass->getTypeID();
             if (seen.count(id)) {
                 return;
@@ -115,7 +115,7 @@ namespace vast {
         explicit pipeline_step() = default;
         virtual ~pipeline_step() = default;
 
-        virtual schedule_result schedule_on(pipeline_t &ppl) const = 0;
+        virtual schedule_result schedule_on(pipeline_t &ppl) = 0;
         virtual gap::generator< pipeline_step_ptr > substeps() const = 0;
 
         gap::generator< pipeline_step_ptr > dependencies() const;
@@ -131,7 +131,18 @@ namespace vast {
         std::vector< pipeline_step_builder > deps;
     };
 
-    using pass_builder_t = llvm::function_ref< std::unique_ptr< mlir::Pass >(void) >;
+    using pass_builder_t = llvm::function_ref< owning_pass_ptr(void) >;
+
+    struct cached_pass_builder {
+        explicit cached_pass_builder(pass_builder_t bld) : bld(bld) {}
+
+        pass_ptr get() const;
+        owning_pass_ptr take();
+
+      private:
+        mutable owning_pass_ptr cached_pass;
+        pass_builder_t bld;
+    };
 
     struct pass_pipeline_step : pipeline_step
     {
@@ -139,15 +150,18 @@ namespace vast {
             : pass_builder(builder)
         {}
 
-        schedule_result schedule_on(pipeline_t &ppl) const override;
+        schedule_result schedule_on(pipeline_t &ppl) override;
 
         gap::generator< pipeline_step_ptr > substeps() const override;
 
         string_ref name() const override;
         string_ref cli_name() const override;
 
+        pass_ptr pass() const { return pass_builder.get(); }
+        owning_pass_ptr take_pass() { return pass_builder.take();}
+
     protected:
-        pass_builder_t pass_builder;
+        cached_pass_builder pass_builder;
     };
 
     template< typename parent_t >
@@ -159,8 +173,8 @@ namespace vast {
 
         virtual ~nested_pass_pipeline_step() = default;
 
-        schedule_result schedule_on(pipeline_t &ppl) const override {
-            ppl.addNestedPass< parent_t >(pass_builder());
+        schedule_result schedule_on(pipeline_t &ppl) override {
+            ppl.addNestedPass< parent_t >(take_pass());
             return schedule_result::advance;
         }
     };
@@ -175,7 +189,7 @@ namespace vast {
 
         virtual ~compound_pipeline_step() = default;
 
-        schedule_result schedule_on(pipeline_t &ppl) const override;
+        schedule_result schedule_on(pipeline_t &ppl) override;
 
         gap::generator< pipeline_step_ptr > substeps() const override;
 

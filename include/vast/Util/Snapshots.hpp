@@ -22,11 +22,11 @@ namespace vast::util {
         // We return `shared_ptr` in case we may want to keep the stream open
         // for longer in some derived class. Should not make a difference,
         // snapshoting will be expensive anyway.
-        virtual output_stream_ptr make_output_stream(mlir::Pass *pass);
+        virtual output_stream_ptr make_output_stream(pass_ptr pass);
 
-        virtual bool should_snapshot(mlir::Pass *pass) const = 0;
+        virtual bool should_snapshot(pass_ptr pass) const = 0;
 
-        void runAfterPass(mlir::Pass *pass, operation op) override;
+        void runAfterPass(pass_ptr pass, operation op) override;
 
         std::string file_prefix;
     };
@@ -41,7 +41,7 @@ namespace vast::util {
             : base(std::forward< args_t >(args)...), snapshot_at(snapshot_at)
         {}
 
-        bool should_snapshot(mlir::Pass *pass) const override {
+        bool should_snapshot(pass_ptr pass) const override {
             return std::ranges::count(snapshot_at, pass->getArgument());
         }
 
@@ -53,7 +53,7 @@ namespace vast::util {
         using base = with_snapshots;
         using base::base;
 
-        bool should_snapshot(mlir::Pass *) const override { return true; }
+        bool should_snapshot(pass_ptr) const override { return true; }
     };
 
 } // namespace vast::util

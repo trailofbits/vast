@@ -12,6 +12,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/IR/OwningOpRef.h>
 #include <mlir/IR/Value.h>
+#include <mlir/Pass/Pass.h>
 VAST_UNRELAX_WARNINGS
 
 #include <optional>
@@ -89,4 +90,9 @@ namespace vast {
     using block_ptr     = block_t*;
 
     using walk_result = mlir::WalkResult;
+
+    using mlir_pass = mlir::Pass;
+    using owning_pass_ptr = std::unique_ptr< mlir_pass >;
+    using pass_ptr = mlir_pass*;
+
 } // namespace vast
