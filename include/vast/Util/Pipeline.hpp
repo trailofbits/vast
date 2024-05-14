@@ -36,6 +36,8 @@ namespace vast {
 
     using pipeline_step_ptr = std::unique_ptr< pipeline_step >;
 
+    enum class schedule_result { stop, advance };
+
     //
     // pipeline is a pass manager, which keeps track of duplicit passes and does
     // not schedule them twice
@@ -63,7 +65,7 @@ namespace vast {
             base::addNestedPass< parent_t >(std::move(pass));
         }
 
-        virtual void schedule(pipeline_step_ptr step) = 0;
+        virtual schedule_result schedule(pipeline_step_ptr step) = 0;
 
         void print_on_error(llvm::raw_ostream &os) {
             enableIRPrinting(
