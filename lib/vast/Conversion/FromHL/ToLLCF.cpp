@@ -457,12 +457,40 @@ namespace vast::conv
             }
         };
 
+        template< typename op_t, typename trg_t >
+        struct replace_scope : base_pattern< op_t >
+        {
+            using parent_t = base_pattern< op_t >;
+            using parent_t::parent_t;
+
+
+            mlir::LogicalResult matchAndRewrite(
+                op_t op,
+                typename op_t::Adaptor ops,
+                conversion_rewriter &rewriter) const override
+            {
+                auto new_scope = rewriter.create< trg_t >( op.getLoc(), ops.getOperands() );
+                auto &front_block = new_scope.getBody().emplaceBlock();
+                rewriter.inlineRegionBefore(op.getBody(), &front_block);
+
+                rewriter.replaceOp(op, new_scope);
+                return mlir::success();
+            }
+
+            static void legalize( conversion_target &trg )
+            {
+                trg.addIllegalOp< op_t >();
+                trg.addLegalOp< trg_t >();
+            }
+        };
+
         using cf_patterns = util::make_list<
               if_op
             , while_op
             , for_op
             , replace< hl::ReturnOp, ll::ReturnOp >
             , replace< core::ImplicitReturnOp, ll::ReturnOp >
+            , replace_scope< core::ScopeOp, ll::Scope >
         >;
 
     } // namespace pattern
