@@ -37,6 +37,9 @@ namespace vast {
     string_ref pass_pipeline_step::name() const {
         return pass_builder()->getName();
     }
+    string_ref pass_pipeline_step::cli_name() const {
+        return pass_builder()->getArgument();
+    }
 
     void compound_pipeline_step::schedule_on(pipeline_t &ppl) const {
         VAST_PIPELINE_DEBUG("scheduling compound step: {0}", pipeline_name);
@@ -46,6 +49,10 @@ namespace vast {
     }
 
     string_ref compound_pipeline_step::name() const {
+        return pipeline_name;
+    }
+
+    string_ref compound_pipeline_step::cli_name() const {
         return pipeline_name;
     }
 
