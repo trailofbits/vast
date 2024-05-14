@@ -74,7 +74,7 @@ namespace vast::cc
         constexpr option_t emit_obj  = "emit-obj";
         constexpr option_t emit_asm  = "emit-asm";
         constexpr option_t emit_mlir = "emit-mlir";
-        constexpr option_t emit_mlir_until = "emit-mlir-until";
+        constexpr option_t emit_mlir_after = "emit-mlir-after";
 
         constexpr option_t print_pipeline = "print-pipeline";
         constexpr option_t emit_crash_reproducer = "emit-crash-reproducer";

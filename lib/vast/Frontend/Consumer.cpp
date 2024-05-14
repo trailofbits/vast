@@ -106,7 +106,7 @@ namespace vast::cc {
     //
 
     std::optional< target_dialect > get_target_dialect(const vast_args &vargs) {
-        if (vargs.has_option(opt::emit_mlir_until)) {
+        if (vargs.has_option(opt::emit_mlir_after)) {
             // Pretend to emit all the way to LLVM and
             // let the pass scheduler decide where to stop.
             return target_dialect::llvm;

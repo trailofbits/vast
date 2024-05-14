@@ -110,8 +110,8 @@ namespace vast::cc {
     }
 
     bool vast_pipeline::stop_after_step(const pipeline_step_ptr &step) const {
-        if (auto until = vargs.get_option(opt::emit_mlir_until)) {
-            return until.value() == step->cli_name();
+        if (auto sentinel = vargs.get_option(opt::emit_mlir_after)) {
+            return sentinel.value() == step->cli_name();
         }
 
         return false;
