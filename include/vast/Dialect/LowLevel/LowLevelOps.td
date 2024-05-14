@@ -308,7 +308,7 @@ def ReturnOp
 }
 
 def Scope
-    : LowLevel_Op< "scope", [NoRegionArguments] >
+    : LowLevel_Op< "scope", [NoRegionArguments, NoTerminator] >
 {
     let summary = "Scope, holds one region.";
     let description = [{ Scope that holds one region, each block should be terminated
