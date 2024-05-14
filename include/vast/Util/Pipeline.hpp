@@ -121,6 +121,7 @@ namespace vast {
         gap::generator< pipeline_step_ptr > dependencies() const;
 
         virtual string_ref name() const = 0;
+        virtual string_ref cli_name() const = 0;
 
         template< typename ...deps_t >
         void depends_on(deps_t &&... dep) {
@@ -143,6 +144,7 @@ namespace vast {
         gap::generator< pipeline_step_ptr > substeps() const override;
 
         string_ref name() const override;
+        string_ref cli_name() const override;
 
     protected:
         pass_builder_t pass_builder;
@@ -177,6 +179,7 @@ namespace vast {
         gap::generator< pipeline_step_ptr > substeps() const override;
 
         string_ref name() const override;
+        string_ref cli_name() const override;
 
     protected:
         std::string pipeline_name;

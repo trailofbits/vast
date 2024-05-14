@@ -29,6 +29,7 @@ namespace vast::cc {
         schedule_result schedule(pipeline_step_ptr step) override;
 
         bool is_disabled(const pipeline_step_ptr &step) const;
+        bool stop_after_step(const pipeline_step_ptr &step) const;
 
         const vast_args &vargs;
     };

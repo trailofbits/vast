@@ -109,6 +109,14 @@ namespace vast::cc {
         return vargs.has_option(disable_step_option);
     }
 
+    bool vast_pipeline::stop_after_step(const pipeline_step_ptr &step) const {
+        if (auto until = vargs.get_option(opt::emit_mlir_until)) {
+            return until.value() == step->cli_name();
+        }
+
+        return false;
+    }
+
     schedule_result vast_pipeline::schedule(pipeline_step_ptr step) {
         if (is_disabled(step)) {
             VAST_PIPELINE_DEBUG("step is disabled: {0}", step->name());
@@ -122,6 +130,9 @@ namespace vast::cc {
         }
 
         step->schedule_on(*this);
+        if (stop_after_step(step)) {
+            return schedule_result::stop;
+        }
 
         return schedule_result::advance;
     }
