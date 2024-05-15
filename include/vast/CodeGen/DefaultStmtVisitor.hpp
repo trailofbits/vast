@@ -258,6 +258,7 @@ namespace vast::cg {
         operation VisitUserDefinedLiteral(const clang::UserDefinedLiteral *lit);
         operation VisitCompoundLiteralExpr(const clang::CompoundLiteralExpr *lit);
         operation VisitFixedPointLiteral(const clang::FixedPointLiteral *lit);
+        operation VisitImaginaryLiteral(const clang::ImaginaryLiteral *lit);
 
         operation VisitInitListExpr(const clang::InitListExpr *expr);
     };
