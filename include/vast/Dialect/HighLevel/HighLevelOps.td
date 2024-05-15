@@ -761,6 +761,21 @@ def BinXorOp : StandardArithBinOp< "bin.xor" >;
 def BinOrOp  : StandardArithBinOp<  "bin.or" >;
 def BinAndOp : StandardArithBinOp< "bin.and" >;
 
+class ComplexUnaryOp< string mnemonic, list< Trait > traits = [] >
+  : HighLevel_Op< mnemonic, traits >
+  , Arguments< (ins AnyType:$arg) >
+  , Results< (outs AnyType:$result) >
+{
+  let summary = "VAST op for manipulation with C complex type variables.";
+  let description = [{
+      TODO
+  }];
+
+  let assemblyFormat = [{ $arg attr-dict `:` functional-type(operands, results) }];
+}
+
+def RealOp : ComplexUnaryOp< "real" >;
+def ImagOp : ComplexUnaryOp< "imag" >;
 
 class LogicBinOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, traits >
