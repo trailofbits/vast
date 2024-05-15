@@ -35,7 +35,7 @@ class APSIntParameter<string desc> :
   }];
 }
 
-def BooleanAttr : Core_Attr<"Boolean", "bool",
+def Core_BooleanAttr : Core_Attr<"Boolean", "bool",
   [ConstantLikeAttrTrait, TypedAttrInterface]
 > {
   let summary = "An Attribute containing a boolean value";
@@ -57,7 +57,7 @@ def BooleanAttr : Core_Attr<"Boolean", "bool",
   // let genVerifyDecl = 1;
 }
 
-def IntegerAttr : Core_Attr<"Integer", "integer",
+def Core_IntegerAttr : Core_Attr<"Integer", "integer",
   [ConstantLikeAttrTrait, TypedAttrInterface]
 > {
   let summary = "An Attribute containing a integer value";
@@ -80,7 +80,7 @@ def IntegerAttr : Core_Attr<"Integer", "integer",
   // let genVerifyDecl = 1;
 }
 
-def FloatAttr : Core_Attr<"Float", "float",
+def Core_FloatAttr : Core_Attr<"Float", "float",
   [ConstantLikeAttrTrait, TypedAttrInterface]
 > {
   let summary = "An Attribute containing a floating point value";
@@ -103,7 +103,7 @@ def FloatAttr : Core_Attr<"Float", "float",
   // let genVerifyDecl = 1;
 }
 
-def VoidAttr : Core_Attr<"Void", "void",
+def Core_VoidAttr : Core_Attr<"Void", "void",
   [ConstantLikeAttrTrait, TypedAttrInterface]
 > {
   let summary = "Attribute to represent void value.";
@@ -115,17 +115,15 @@ def VoidAttr : Core_Attr<"Void", "void",
   let assemblyFormat = [{}];
 }
 
-def C : I32EnumAttrCase<"C", 1, "c">;
-def CXX : I32EnumAttrCase<"CXX", 2, "cxx">;
-
-def SourceLanguage : I32EnumAttr<"SourceLanguage", "Source language", [
-  C, CXX
+def Core_SourceLanguage : I32EnumAttr<"SourceLanguage", "Source language", [
+  I32EnumAttrCase<"C", 1, "c">,
+  I32EnumAttrCase<"CXX", 2, "cxx">
 ]> {
   let cppNamespace = "::vast::core";
   let genSpecializedAttr = 0;
 }
 
-def SourceLanguageAttr : EnumAttr< Core_Dialect, SourceLanguage, "lang" > {
+def Core_SourceLanguageAttr : EnumAttr< Core_Dialect, Core_SourceLanguage, "lang" > {
   let summary = "Module source language";
   let description = [{
     Represents the source language used to generate the module.
