@@ -598,6 +598,14 @@ namespace vast::cg
         return {};
     }
 
+    operation default_stmt_visitor::VisitImaginaryLiteral(const clang::ImaginaryLiteral *lit) {
+        return bld.compose< hl::InitializedConstantOp >()
+            .bind(self.location(lit))
+            .bind(self.visit(lit->getType()))
+            .bind(mk_value_builder(lit->getSubExpr()))
+            .freeze();
+    }
+
     //
     // Other Statements
     //
