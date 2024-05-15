@@ -1,6 +1,8 @@
-// RUN: %vast-front -vast-emit-mlir=llvm -vast-snapshot-at="vast-core-to-llvm;vast-hl-to-lazy-regions" %s
-// RUN: %file-check %s -input-file=$(basename %s .c).vast-hl-to-lazy-regions -check-prefix=LAZY
-// RUN: %file-check %s -input-file=$(basename %s .c).vast-core-to-llvm -check-prefix=LLVM
+// RUN: %vast-front -vast-emit-mlir-after=vast-hl-to-lazy-regions %s -o %t.mlir
+// RUN: %file-check --input-file=%t.mlir %s -check-prefix=LAZY
+
+// RUN: %vast-front -vast-emit-mlir-after=vast-core-to-llvm %s -o %t.mlir
+// RUN: %file-check --input-file=%t.mlir %s -check-prefix=LLVM
 
 #include <stdlib.h>
 #include <stdio.h>
