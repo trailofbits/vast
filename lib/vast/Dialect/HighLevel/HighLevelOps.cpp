@@ -628,6 +628,17 @@ namespace vast::hl
             st.addAttribute(getClobbersAttrName(st.name), clobbers);
     }
 
+
+    void InitializedConstantOp::build(Builder &bld, State &st, Type type, BuilderCallback init)
+    {
+        VAST_ASSERT(init && "the builder callback for 'init' region must be present");
+
+        InsertionGuard guard(bld);
+
+        build_region(bld, st, init);
+        st.addTypes(type);
+    }
+
     GRAPH_REGION_OP(FuncOp);
     GRAPH_REGION_OP(StmtExprOp);
 

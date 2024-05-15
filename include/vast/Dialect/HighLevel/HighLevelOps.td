@@ -465,6 +465,22 @@ def ConstantOp
   let assemblyFormat = "$value attr-dict";
 }
 
+def InitializedConstantOp : HighLevel_Op< "const.init" >
+  , Results<(outs AnyType:$result)>
+{
+  let summary = "VAST value constant";
+  let description = [{ VAST value constant with more complicated initialization }];
+  let regions = (region ValueRegion:$init);
+  let skipDefaultBuilders = 1;
+  let builders = [
+      OpBuilder<(ins
+          "Type":$type,
+          "BuilderCallback":$initbuilder
+      )>
+  ];
+  let assemblyFormat = [{ attr-dict `:` type($result) $init }];
+}
+
 def UnreachableOp : HighLevel_Op<"unreachable", [Terminator]> {
   let summary = "VAST unreachable operation";
   let description = [{ VAST unreachable operation }];
