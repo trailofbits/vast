@@ -88,6 +88,9 @@ namespace vast::cg {
         mlir_type VisitTypeOfType(const clang::TypeOfType *ty);
         mlir_type VisitTypeOfType(const clang::TypeOfType *ty, clang_qualifiers quals);
 
+        mlir_type VisitComplexType(const clang::ComplexType *ty);
+        mlir_type VisitComplexType(const clang::ComplexType *ty, clang_qualifiers quals);
+
       private:
         auto with_ucv_qualifiers(auto &&state, bool is_unsigned, clang_qualifiers q) {
             return std::forward< decltype(state) >(state)
