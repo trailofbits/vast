@@ -3,6 +3,7 @@
 void fn()
 {
     // CHECK: ll.scope {
+    // CHECK: ll.scope {
     // CHECK-NEXT: ll.br ^bb1
 
     // CHECK: ^bb1:  // pred: ^bb0
