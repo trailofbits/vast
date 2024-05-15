@@ -23,8 +23,4 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::core {
 
-    using typed_attrs = util::type_list<
-        BooleanAttr, IntegerAttr, FloatAttr, VoidAttr
-    >;
-
 } // namespace vast::core
