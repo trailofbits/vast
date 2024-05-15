@@ -433,4 +433,15 @@ def TypeOfType : CVRQualifiedType<
   let assemblyFormat = "`<` $unmodifiedType (`,` $quals^ )? `>`";
 }
 
+def Complex : CVRQualifiedType<
+  "Complex", "complex"
+  , (ins "Type":$elementType) > {
+  let builders = [
+    TypeBuilder<(ins "Type":$elementType), [{
+      return $_get($_ctxt, elementType, CVRQualifiersAttr());
+    }]>
+  ];
+  let assemblyFormat = "`<` $elementType (`,` $quals^)? `>`";
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
