@@ -18,7 +18,7 @@ namespace vast::cg {
         unsigned int has_strict_return : 1;
 
         // visitor options
-        bool enable_unsupported : 1;
+        bool disable_unsupported : 1;
     };
 
 } // namespace vast::cg
