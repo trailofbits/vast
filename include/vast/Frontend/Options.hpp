@@ -92,6 +92,8 @@ namespace vast::cc
         constexpr option_t show_locs = "show-locs";
         constexpr option_t locs_as_meta_ids = "locs-as-meta-ids";
 
+        constexpr option_t disable_unsupported = "disable-unsupported";
+
         constexpr option_t disable_vast_verifier = "disable-vast-verifier";
         constexpr option_t vast_verify_diags = "verify-diags";
         constexpr option_t disable_emit_cxx_default = "disable-emit-cxx-default";

@@ -113,9 +113,9 @@ namespace vast::cg {
             .lang = cc::get_source_language(actx.getLangOpts()),
             .optimization_level = opts.codegen.OptimizationLevel,
             // function emition options
-            .has_strict_return = opts.codegen.StrictReturn,
+            .has_strict_return   = opts.codegen.StrictReturn,
             // visitor options
-            .enable_unsupported = true,
+            .disable_unsupported = vargs.has_option(cc::opt::disable_unsupported),
         };
 
         return std::make_unique< driver >(
@@ -137,7 +137,7 @@ namespace vast::cg {
             )
         );
 
-        if (opts.enable_unsupported) {
+        if (!opts.disable_unsupported) {
             top->visitors.push_back(
                 std::make_unique< unsup_visitor >(
                     *mctx, *bld, *mg, *sg, visitor_view(*top)
