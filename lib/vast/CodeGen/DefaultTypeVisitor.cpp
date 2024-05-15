@@ -193,6 +193,10 @@ namespace vast::cg {
             return VisitTypeOfType(t, quals);
         }
 
+        if (auto t = llvm::dyn_cast< clang::ComplexType >(underlying)) {
+            return VisitComplexType(t, quals);
+        }
+
         return {};
     }
 
@@ -422,5 +426,14 @@ namespace vast::cg {
         auto type = self.visit(ty->getUnmodifiedType());
         return with_cvr_qualifiers(compose_type< hl::TypeOfTypeType >().bind(type), quals).freeze();
     }
+
+    mlir_type default_type_visitor::VisitComplexType(const clang::ComplexType *ty) {
+        return VisitComplexType(ty, ty->desugar().getLocalQualifiers());
+    }
+    mlir_type default_type_visitor::VisitComplexType(const clang::ComplexType *ty, clang_qualifiers quals) {
+        auto type = self.visit(ty->getElementType());
+        return with_cvr_qualifiers(compose_type< hl::ComplexType >().bind(type), quals).freeze();
+    }
+
 
 } // namespace vast::hl
