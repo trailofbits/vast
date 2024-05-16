@@ -756,15 +756,15 @@ def DivUOp : StandardArithBinOp< "udiv" >;
 def RemSOp : StandardArithBinOp< "srem" >;
 def RemUOp : StandardArithBinOp< "urem" >;
 
+def BinXorOp : StandardArithBinOp< "bin.xor" >;
+def BinOrOp  : StandardArithBinOp<  "bin.or" >;
+def BinAndOp : StandardArithBinOp< "bin.and" >;
+
 def AddFOp : FloatArithBinOp< "fadd" >;
 def SubFOp : FloatArithBinOp< "fsub" >;
 def MulFOp : FloatArithBinOp< "fmul" >;
 def DivFOp : FloatArithBinOp< "fdiv" >;
 def RemFOp : FloatArithBinOp< "frem" >;
-
-def BinXorOp : StandardArithBinOp< "bin.xor" >;
-def BinOrOp  : StandardArithBinOp<  "bin.or" >;
-def BinAndOp : StandardArithBinOp< "bin.and" >;
 
 class ComplexUnaryOp< string mnemonic, list< Trait > traits = [] >
   : HighLevel_Op< mnemonic, traits >
