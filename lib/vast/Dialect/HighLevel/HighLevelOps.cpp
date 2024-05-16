@@ -70,6 +70,11 @@ namespace vast::hl
     logical_result DivFOp::verify() { return verify_float_arith_op(this->getOperation()); }
     logical_result RemFOp::verify() { return verify_float_arith_op(this->getOperation()); }
 
+    logical_result FCmpOp::verify() {
+        return strip_complex(getLhs()) == strip_complex(getRhs()) ? logical_result::success()
+                                                                  : logical_result::failure();
+    }
+
     FoldResult checked_int_arithmetic(mlir_type type, auto adaptor, auto &&op) {
         if (auto lhs = mlir::dyn_cast_or_null< core::IntegerAttr >(adaptor.getLhs())) {
             if (auto rhs = mlir::dyn_cast_or_null< core::IntegerAttr >(adaptor.getRhs())) {
