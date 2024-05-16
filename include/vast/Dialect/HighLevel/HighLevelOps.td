@@ -743,7 +743,8 @@ class StandardArithBinOp< string mnemonic, list< Trait > traits = [] >
       >;
 
 class FloatArithBinOp< string mnemonic, list< Trait > traits = [] >
-    : ArithBinOp< mnemonic, traits > {
+    : ArithBinOp< mnemonic, traits > 
+{
       let hasVerifier = 1;
 }
 
