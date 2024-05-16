@@ -469,7 +469,7 @@ def InitializedConstantOp : HighLevel_Op< "const.init" >
   , Results<(outs AnyType:$result)>
 {
   let summary = "VAST value constant";
-  let description = [{ VAST value constant with more complicated initialization }];
+  let description = [{ VAST value constant witch requires region initialization }];
   let regions = (region ValueRegion:$init);
   let skipDefaultBuilders = 1;
   let builders = [
@@ -771,11 +771,6 @@ class ComplexUnaryOp< string mnemonic, list< Trait > traits = [] >
   , Arguments< (ins AnyType:$arg) >
   , Results< (outs AnyType:$result) >
 {
-  let summary = "VAST op for manipulation with C complex type variables.";
-  let description = [{
-      TODO
-  }];
-
   let assemblyFormat = [{ $arg attr-dict `:` functional-type(operands, results) }];
 }
 
