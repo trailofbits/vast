@@ -223,7 +223,6 @@ class TypesOrLValueTypesMatch<string summary, string lhs, string rhs> : PredOpTr
     AllTypesMatch< ["src", "dst"] >.predicate
   ]>
 >;
-
 //
 // RValue high-level type
 //
@@ -296,8 +295,19 @@ def DoubleType     : FloatingType< "Double", "double" >;
 def LongDoubleType : FloatingType< "LongDouble", "longdouble" >;
 def Float128Type   : FloatingType< "Float128", "float128" >;
 
+def ComplexType : CVRQualifiedType<
+  "Complex", "complex"
+  , (ins "Type":$elementType) > {
+  let builders = [
+    TypeBuilder<(ins "Type":$elementType), [{
+      return $_get($_ctxt, elementType, CVRQualifiersAttr());
+    }]>
+  ];
+  let assemblyFormat = "`<` $elementType (`,` $quals^)? `>`";
+}
+
 def HLFloatType : AnyTypeOf<[
-  HalfType, BFloat16Type, FloatType, DoubleType, LongDoubleType, Float128Type, TypedefType
+  HalfType, BFloat16Type, FloatType, DoubleType, LongDoubleType, Float128Type, TypedefType, ComplexType
 ]>;
 
 def FloatLikeType : TypeConstraint<
@@ -431,17 +441,6 @@ def TypeOfType : CVRQualifiedType<
   ];
 
   let assemblyFormat = "`<` $unmodifiedType (`,` $quals^ )? `>`";
-}
-
-def Complex : CVRQualifiedType<
-  "Complex", "complex"
-  , (ins "Type":$elementType) > {
-  let builders = [
-    TypeBuilder<(ins "Type":$elementType), [{
-      return $_get($_ctxt, elementType, CVRQualifiersAttr());
-    }]>
-  ];
-  let assemblyFormat = "`<` $elementType (`,` $quals^)? `>`";
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES

@@ -38,6 +38,18 @@ namespace vast::hl
         return t;
     }
 
+    mlir_type strip_complex(mlir_value v)
+    {
+        return strip_complex(v.getType());
+    }
+
+    mlir_type strip_complex(mlir_type t)
+    {
+        if (auto c = mlir::dyn_cast< hl::ComplexType >(t))
+            return c.getElementType();
+        return t;
+    }
+
     mlir_type getBottomTypedefType(TypedefType def, vast_module mod)
     {
         return getBottomTypedefType(getTypedefType(def, mod), mod);
