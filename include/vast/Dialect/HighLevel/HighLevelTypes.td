@@ -307,7 +307,7 @@ def ComplexType : CVRQualifiedType<
 }
 
 def HLFloatType : AnyTypeOf<[
-  HalfType, BFloat16Type, FloatType, DoubleType, LongDoubleType, Float128Type, TypedefType, ComplexType
+  HalfType, BFloat16Type, FloatType, DoubleType, LongDoubleType, Float128Type, TypedefType
 ]>;
 
 def FloatLikeType : TypeConstraint<
