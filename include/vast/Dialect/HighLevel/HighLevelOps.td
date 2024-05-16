@@ -1019,11 +1019,12 @@ def FPredicate : FPredicateList< "FPredicate", "floating point comparison predic
 
 def FCmpOp
   : HighLevel_Op< "fcmp" >
-  , Arguments<(ins FPredicate:$predicate, FloatLikeType:$lhs, FloatLikeType:$rhs)>
+  , Arguments<(ins FPredicate:$predicate, AnyType:$lhs, AnyType:$rhs)>
   , Results<(outs IntOrBoolType:$result)>
 {
   let summary = "VAST flaoting point comparison operation";
   let description = [{ VAST floating point comparison operation }];
+  let hasVerifier = 1;
 
   let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type(operands) `->` type($result)";
 }
