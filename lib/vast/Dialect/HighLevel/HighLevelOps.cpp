@@ -49,6 +49,27 @@ namespace vast::hl
     // ArithBinOps
     //===----------------------------------------------------------------------===//
 
+    namespace {
+        logical_result verify_float_arith_op(operation op) {
+            VAST_ASSERT(op -> getNumResults() == 1);
+            auto res_type = strip_complex(op->getResult(0).getType());
+
+            for (auto t : op->getOperandTypes()) {
+                if (strip_complex(t) != res_type) {
+                    return logical_result::failure();
+                }
+            }
+
+            return logical_result::success();
+        }
+    } // namespace
+
+    logical_result AddFOp::verify() { return verify_float_arith_op(this->getOperation()); }
+    logical_result SubFOp::verify() { return verify_float_arith_op(this->getOperation()); }
+    logical_result MulFOp::verify() { return verify_float_arith_op(this->getOperation()); }
+    logical_result DivFOp::verify() { return verify_float_arith_op(this->getOperation()); }
+    logical_result RemFOp::verify() { return verify_float_arith_op(this->getOperation()); }
+
     FoldResult checked_int_arithmetic(mlir_type type, auto adaptor, auto &&op) {
         if (auto lhs = mlir::dyn_cast_or_null< core::IntegerAttr >(adaptor.getLhs())) {
             if (auto rhs = mlir::dyn_cast_or_null< core::IntegerAttr >(adaptor.getRhs())) {

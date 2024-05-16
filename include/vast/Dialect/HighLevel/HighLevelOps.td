@@ -742,20 +742,25 @@ class StandardArithBinOp< string mnemonic, list< Trait > traits = [] >
         !listconcat(traits, [TypesMatchOrTypedef< ["lhs", "rhs", "result"] >])
       >;
 
+class FloatArithBinOp< string mnemonic, list< Trait > traits = [] >
+    : ArithBinOp< mnemonic, traits > {
+      let hasVerifier = 1;
+}
 
 def AddIOp : ArithBinOp< "add", [Commutative, IsAdditive< "lhs", "rhs", "result" >] >;
 def SubIOp : ArithBinOp< "sub", [IsSub< "lhs", "rhs", "result" >] >;
 
-def AddFOp : StandardArithBinOp< "fadd" >;
-def SubFOp : StandardArithBinOp< "fsub" >;
 def MulIOp : StandardArithBinOp<  "mul", [Commutative] >;
-def MulFOp : StandardArithBinOp< "fmul" >;
 def DivSOp : StandardArithBinOp< "sdiv" >;
 def DivUOp : StandardArithBinOp< "udiv" >;
-def DivFOp : StandardArithBinOp< "fdiv" >;
 def RemSOp : StandardArithBinOp< "srem" >;
 def RemUOp : StandardArithBinOp< "urem" >;
-def RemFOp : StandardArithBinOp< "frem" >;
+
+def AddFOp : FloatArithBinOp< "fadd" >;
+def SubFOp : FloatArithBinOp< "fsub" >;
+def MulFOp : FloatArithBinOp< "fmul" >;
+def DivFOp : FloatArithBinOp< "fdiv" >;
+def RemFOp : FloatArithBinOp< "frem" >;
 
 def BinXorOp : StandardArithBinOp< "bin.xor" >;
 def BinOrOp  : StandardArithBinOp<  "bin.or" >;
@@ -1027,8 +1032,6 @@ def FCmpOp
 
   let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type(operands) `->` type($result)";
 }
-
-
 
 class UnInplaceOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [

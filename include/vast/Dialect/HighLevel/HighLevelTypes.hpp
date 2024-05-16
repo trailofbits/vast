@@ -45,6 +45,9 @@ namespace vast::hl
     mlir_type strip_value_category(mlir_type);
     mlir_type strip_value_category(mlir_value);
 
+    mlir_type strip_complex(mlir_type);
+    mlir_type strip_complex(mlir_value);
+
 } // namespace vast::hl
 
 #define GET_TYPEDEF_CLASSES
