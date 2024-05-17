@@ -60,13 +60,11 @@ namespace vast {
     using logical_result = mlir::LogicalResult;
 
     using mlir_attr    = mlir::Attribute;
-
-    using attr_t       = mlir::Attribute;
-    using maybe_attr_t = std::optional< mlir::Attribute >;
+    using maybe_attr_t = std::optional< mlir_attr >;
 
     using integer_attr_t = mlir::IntegerAttr;
 
-    using attrs_t       = mlir::SmallVector< mlir::Attribute >;
+    using attrs_t       = mlir::SmallVector< mlir_attr >;
     using maybe_attrs_t = std::optional< attrs_t >;
 
     using types_t       = mlir::SmallVector< mlir_type >;

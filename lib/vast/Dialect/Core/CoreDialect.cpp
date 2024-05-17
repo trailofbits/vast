@@ -37,7 +37,7 @@ namespace vast::core
             return AliasResult::NoAlias;
         }
 
-        AliasResult getAlias(attr_t attr, llvm::raw_ostream &os) const final {
+        AliasResult getAlias(mlir_attr attr, llvm::raw_ostream &os) const final {
             if (auto at = attr.dyn_cast< core::VoidAttr >()) {
                 os << "void_value";
                 return AliasResult::FinalAlias;
