@@ -23,7 +23,6 @@ namespace vast {
     using Value     = mlir::Value;
     using Attribute = mlir::Attribute;
     using Operation = mlir::Operation;
-    using Block     = mlir::Block;
 
     using Region    = mlir::Region;
     using Builder   = mlir::OpBuilder;
@@ -82,10 +81,8 @@ namespace vast {
     using insertion_guard = mlir_builder::InsertionGuard;
     using insert_point    = mlir_builder::InsertPoint;
 
-
     using region_t      = mlir::Region;
     using region_ptr    = region_t*;
-
     using block_t       = mlir::Block;
     using block_ptr     = block_t*;
 

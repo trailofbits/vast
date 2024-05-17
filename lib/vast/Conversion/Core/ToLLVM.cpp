@@ -36,8 +36,8 @@ namespace vast
             using base::base;
 
             auto lazy_into_block(
-                Operation* lazy_op, Block* target, conversion_rewriter &rewriter
-            ) const -> std::tuple< mlir_value, mlir::Block * > {
+                Operation* lazy_op, block_t* target, conversion_rewriter &rewriter
+            ) const -> std::tuple< mlir_value, block_t * > {
                 auto &lazy_region = mlir::dyn_cast< core::LazyOp >(*lazy_op).getLazy();
 
                 // In case `lazy_op` already has multiple blocks (nested lazy ops)
@@ -127,7 +127,7 @@ namespace vast
             using base::iN;
 
             void cond_br_lhs(
-                conversion_rewriter &rewriter, auto loc, Value cond, Block *rhs, Block *end) const
+                conversion_rewriter &rewriter, auto loc, Value cond, block_t *rhs, block_t *end) const
             {
                 if constexpr (short_on_true) {
                     rewriter.create< LLVM::CondBrOp >(loc, cond, end, cond, rhs, std::nullopt);
