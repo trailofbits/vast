@@ -105,6 +105,33 @@ tools = [
     ToolSubst('%cc', command = 'cc')
 ]
 
+passes = [
+      "vast-hl-splice-trailing-scopes"
+    , "vast-hl-to-hl-builtin"
+    , "vast-hl-ude"
+    , "vast-hl-dce"
+    , "vast-hl-lower-elaborated-types"
+    , "vast-hl-lower-typedefs"
+    , "vast-hl-lower-enums"
+    , "vast-hl-lower-types"
+    , "vast-hl-to-ll-func"
+    , "vast-hl-to-ll-vars"
+    , "vast-hl-to-ll-cf"
+    , "vast-hl-to-ll-geps"
+    , "vast-fn-args-to-alloca"
+    , "vast-lower-value-categories"
+    , "vast-hl-to-lazy-regions"
+    , "vast-emit-abi"
+    , "vast-lower-abi"
+    , "vast-irs-to-llvm"
+    , "vast-core-to-llvm"
+]
+
+for p in passes:
+    name = "%check-" + p[len("vast-"):]
+    tools.append(ToolSubst(name, command = 'vast-front',
+                           extra_args = ['-vast-emit-mlir-after=' + p, '-o', '-']))
+
 if 'BUILD_TYPE' in lit_config.params:
     config.vast_build_type = lit_config.params['BUILD_TYPE']
 else:
