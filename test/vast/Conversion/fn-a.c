@@ -1,8 +1,6 @@
-// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt-irs-to-llvm | %file-check %s
+// RUN: %check-core-to-llvm %s | %file-check %s -check-prefix=C_LLVM
 
-// CHECK: llvm.func @fn() {
-void fn()
-{
-    // CHECK: llvm.return
-}
-// CHECK : }
+// C_LLVM: llvm.func @fn() {
+// C_LLVM:   llvm.return
+// C_LLVM: }
+void fn() {}

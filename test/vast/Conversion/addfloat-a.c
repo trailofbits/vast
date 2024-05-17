@@ -1,10 +1,10 @@
-// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt-irs-to-llvm | %file-check %s
+// RUN: %check-core-to-llvm %s | %file-check %s -check-prefix=C_LLVM
 
-// CHECK: llvm.func @fn(%arg0: f32, %arg1: f32) -> f32 {
+// C_LLVM: llvm.func @fn([[A0:%.*]]: f32, [[A1:%.*]]: f32) -> f32 {
+// C_LLVM:  [[R:%[0-9]+]] = llvm.fadd [[V1:%[0-9]+]], [[V2:%[0-9]+]] : f32
+// C_LLVM:  llvm.return [[R]] : f32
+// C_LLVM: }
 float fn(float arg0, float arg1)
 {
-    // CHECK: [[R:%[0-9]+]] = llvm.fadd [[V1:%[0-9]+]], [[V2:%[0-9]+]] : f32
-    // CHECK: llvm.return [[R]] : f32
     return arg0 + arg1;
 }
-// CHECK : }
