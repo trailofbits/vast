@@ -32,7 +32,7 @@ namespace vast::cg
         operation visit(const clang_stmt *stmt, scope_context &scope);
 
       private:
-        std::vector< BuilderCallBackFn > make_children(const clang_stmt *stmt, scope_context &scope);
+        std::vector< builder_callback > make_children(const clang_stmt *stmt, scope_context &scope);
         mlir_type return_type(const clang_stmt *stmt, scope_context &scope);
     };
 

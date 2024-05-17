@@ -173,8 +173,8 @@ def HighLevel_VarDeclOp : HighLevel_Op< "var", [VarSymbol] >
     OpBuilder<(ins
       "Type":$type,
       "llvm::StringRef":$name,
-      CArg< "BuilderCallback", "std::nullopt" >:$initBuilder,
-      CArg< "BuilderCallback", "std::nullopt" >:$allocaBuilder
+      CArg< "maybe_builder_callback_ref", "std::nullopt" >:$initBuilder,
+      CArg< "maybe_builder_callback_ref", "std::nullopt" >:$allocaBuilder
     )>
   ];
 

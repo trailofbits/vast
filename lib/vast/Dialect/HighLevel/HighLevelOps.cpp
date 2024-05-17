@@ -174,25 +174,33 @@ namespace vast::hl
         return {};
     }
 
-    void build_logic_op(Builder &bld, State &st, Type type, BuilderCallback lhs, BuilderCallback rhs)
-    {
+    void build_logic_op(
+        Builder &bld, State &st, Type type,
+        builder_callback_ref lhs,
+        builder_callback_ref rhs
+    ) {
         VAST_ASSERT(lhs && "the builder callback for 'lhs' region must be present");
         VAST_ASSERT(rhs && "the builder callback for 'rhs' region must be present");
 
         InsertionGuard guard(bld);
-
         build_region(bld, st, lhs);
         build_region(bld, st, rhs);
         st.addTypes(type);
     }
 
-    void BinLAndOp::build(Builder &bld, State &st, Type type, BuilderCallback lhs, BuilderCallback rhs)
-    {
+    void BinLAndOp::build(
+        Builder &bld, State &st, Type type,
+        builder_callback_ref lhs,
+        builder_callback_ref rhs
+    ) {
         build_logic_op(bld, st, type, lhs, rhs);
     }
 
-    void BinLOrOp::build(Builder &bld, State &st, Type type, BuilderCallback lhs, BuilderCallback rhs)
-    {
+    void BinLOrOp::build(
+        Builder &bld, State &st, Type type,
+        builder_callback_ref lhs,
+        builder_callback_ref rhs
+    ) {
         build_logic_op(bld, st, type, lhs, rhs);
     }
 
@@ -234,28 +242,43 @@ namespace vast::hl
         return value.hasTrait< core::ConstantLikeAttrTrait >();
     }
 
-    void build_expr_trait(Builder &bld, State &st, Type rty, BuilderCallback expr) {
-        VAST_ASSERT(expr && "the builder callback for 'expr' region must be present");
+    void build_expr_trait(
+        Builder &bld, State &st, Type rty,
+        builder_callback_ref expr
+    ) {
         InsertionGuard guard(bld);
         build_region(bld, st, expr);
         st.addTypes(rty);
     }
 
-    void SizeOfExprOp::build(Builder &bld, State &st, Type rty, BuilderCallback expr) {
+    void SizeOfExprOp::build(
+        Builder &bld, State &st, Type rty,
+        builder_callback_ref expr
+    ) {
         build_expr_trait(bld, st, rty, expr);
     }
 
-    void AlignOfExprOp::build(Builder &bld, State &st, Type rty, BuilderCallback expr) {
+    void AlignOfExprOp::build(
+        Builder &bld, State &st, Type rty,
+        builder_callback_ref expr
+    ) {
         build_expr_trait(bld, st, rty, expr);
     }
 
-    void StmtExprOp::build(Builder &bld, State &st, Type rty, BuilderCallback expr) {
+    void StmtExprOp::build(
+        Builder &bld, State &st, Type rty,
+        builder_callback_ref expr
+    ) {
         InsertionGuard guard(bld);
         build_region(bld, st, expr);
         st.addTypes(rty);
     }
 
-    void VarDeclOp::build(Builder &bld, State &st, Type type, llvm::StringRef name, BuilderCallback init, BuilderCallback alloc) {
+    void VarDeclOp::build(
+        Builder &bld, State &st, Type type, llvm::StringRef name,
+        maybe_builder_callback_ref init,
+        maybe_builder_callback_ref alloc
+    ) {
         st.addAttribute("name", bld.getStringAttr(name));
         InsertionGuard guard(bld);
 
@@ -265,7 +288,10 @@ namespace vast::hl
         st.addTypes(type);
     }
 
-    void EnumDeclOp::build(Builder &bld, State &st, llvm::StringRef name, Type type, BuilderCallback constants) {
+    void EnumDeclOp::build(
+        Builder &bld, State &st, llvm::StringRef name, Type type,
+        builder_callback_ref constants
+    ) {
         st.addAttribute("name", bld.getStringAttr(name));
         st.addAttribute("type", mlir::TypeAttr::get(type));
         InsertionGuard guard(bld);
@@ -278,14 +304,21 @@ namespace vast::hl
     }
 
     namespace detail {
-        void build_record_like_decl(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
+        void build_record_like_decl(
+            Builder &bld, State &st, llvm::StringRef name,
+            maybe_builder_callback_ref fields
+        ) {
             st.addAttribute("name", bld.getStringAttr(name));
 
             InsertionGuard guard(bld);
             build_region(bld, st, fields);
         }
 
-        void build_cxx_record_like_decl(Builder &bld, State &st, llvm::StringRef name, BuilderCallback bases, BuilderCallback fields) {
+        void build_cxx_record_like_decl(
+            Builder &bld, State &st, llvm::StringRef name,
+            maybe_builder_callback_ref bases,
+            maybe_builder_callback_ref fields
+        ) {
             st.addAttribute("name", bld.getStringAttr(name));
 
             InsertionGuard guard(bld);
@@ -294,19 +327,33 @@ namespace vast::hl
         }
     } // namespace detail
 
-    void StructDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
+    void StructDeclOp::build(
+        Builder &bld, State &st, llvm::StringRef name,
+        maybe_builder_callback_ref fields
+    ) {
         detail::build_record_like_decl(bld, st, name, fields);
     }
 
-    void UnionDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback fields) {
+    void UnionDeclOp::build(
+        Builder &bld, State &st, llvm::StringRef name,
+        maybe_builder_callback_ref fields
+    ) {
         detail::build_record_like_decl(bld, st, name, fields);
     }
 
-    void CxxStructDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback bases, BuilderCallback fields) {
+    void CxxStructDeclOp::build(
+        Builder &bld, State &st, llvm::StringRef name,
+        maybe_builder_callback_ref bases,
+        maybe_builder_callback_ref fields
+    ) {
         detail::build_cxx_record_like_decl(bld, st, name, bases, fields);
     }
 
-    void ClassDeclOp::build(Builder &bld, State &st, llvm::StringRef name, BuilderCallback bases, BuilderCallback fields) {
+    void ClassDeclOp::build(
+        Builder &bld, State &st, llvm::StringRef name,
+        maybe_builder_callback_ref bases,
+        maybe_builder_callback_ref fields
+    ) {
         detail::build_cxx_record_like_decl(bld, st, name, bases, fields);
     }
 
@@ -377,29 +424,28 @@ namespace vast::hl
         odsPrinter.printOptionalAttrDict((*this)->getAttrs(), elidedAttrs);
     }
 
-    void IfOp::build(Builder &bld, State &st, BuilderCallback condBuilder, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
-    {
-        VAST_ASSERT(condBuilder && "the builder callback for 'condition' region must be present");
-        VAST_ASSERT(thenBuilder && "the builder callback for 'then' region must be present");
-
+    void IfOp::build(
+        Builder &bld, State &st,
+        builder_callback_ref cond,
+        builder_callback_ref then_builder,
+        maybe_builder_callback_ref else_builder
+    ) {
         InsertionGuard guard(bld);
-
-        build_region(bld, st, condBuilder);
-        build_region(bld, st, thenBuilder);
-        build_region(bld, st, elseBuilder);
+        build_region(bld, st, cond);
+        build_region(bld, st, then_builder);
+        build_region(bld, st, else_builder);
     }
 
-    void CondOp::build(Builder &bld, State &st, Type type, BuilderCallback condBuilder, BuilderCallback thenBuilder, BuilderCallback elseBuilder)
-    {
-        VAST_ASSERT(condBuilder && "the builder callback for 'condition' region must be present");
-        VAST_ASSERT(thenBuilder && "the builder callback for 'true' region must be present");
-        VAST_ASSERT(elseBuilder && "the builder callback for 'false' region must be present");
-
+    void CondOp::build(
+        Builder &bld, State &st, Type type,
+        builder_callback_ref cond,
+        builder_callback_ref then_builder,
+        builder_callback_ref else_builder
+    ) {
         InsertionGuard guard(bld);
-
-        build_region(bld, st, condBuilder);
-        build_region(bld, st, thenBuilder);
-        build_region(bld, st, elseBuilder);
+        build_region(bld, st, cond);
+        build_region(bld, st, then_builder);
+        build_region(bld, st, else_builder);
         st.addTypes(type);
     }
 
@@ -433,82 +479,92 @@ namespace vast::hl
         return mlir::success(compatible);
     }
 
-    void WhileOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback body)
-    {
-        VAST_ASSERT(cond && "the builder callback for 'condition' region must be present");
-        VAST_ASSERT(body && "the builder callback for 'body' region must be present");
-
+    void WhileOp::build(
+        Builder &bld, State &st,
+        builder_callback_ref cond,
+        builder_callback_ref body
+    ) {
         InsertionGuard guard(bld);
-
         build_region(bld, st, cond);
         build_region(bld, st, body);
     }
 
-    void ForOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback incr, BuilderCallback body)
-    {
-        VAST_ASSERT(body && "the builder callback for 'body' region must be present");
+    void ForOp::build(
+        Builder &bld, State &st,
+        builder_callback_ref cond,
+        builder_callback_ref incr,
+        builder_callback_ref body
+    ) {
         InsertionGuard guard(bld);
-
         build_region(bld, st, cond);
         build_region(bld, st, incr);
         build_region(bld, st, body);
     }
 
-    void DoOp::build(Builder &bld, State &st, BuilderCallback body, BuilderCallback cond)
-    {
-        VAST_ASSERT(body && "the builder callback for 'body' region must be present");
+    void DoOp::build(
+        Builder &bld, State &st,
+        builder_callback_ref body,
+        builder_callback_ref cond
+    ) {
         InsertionGuard guard(bld);
-
         build_region(bld, st, body);
         build_region(bld, st, cond);
     }
 
-    void SwitchOp::build(Builder &bld, State &st, BuilderCallback cond, BuilderCallback body)
-    {
-        VAST_ASSERT(cond && "the builder callback for 'condition' region must be present");
+    void SwitchOp::build(
+        Builder &bld, State &st,
+        builder_callback_ref cond,
+        builder_callback_ref body
+    ) {
         InsertionGuard guard(bld);
-
         build_region(bld, st, cond);
         build_region(bld, st, body);
     }
 
-    void CaseOp::build(Builder &bld, State &st, BuilderCallback lhs, BuilderCallback body)
-    {
-        VAST_ASSERT(lhs && "the builder callback for 'case condition' region must be present");
+    void CaseOp::build(
+        Builder &bld, State &st,
+        builder_callback_ref lhs,
+        builder_callback_ref body
+    ) {
         InsertionGuard guard(bld);
-
         build_region(bld, st, lhs);
         build_region(bld, st, body);
     }
 
-    void DefaultOp::build(Builder &bld, State &st, BuilderCallback body)
+    void DefaultOp::build(Builder &bld, State &st, builder_callback_ref body)
     {
-        VAST_ASSERT(body && "the builder callback for 'body' region must be present");
         InsertionGuard guard(bld);
-
         build_region(bld, st, body);
     }
 
-    void LabelStmt::build(Builder &bld, State &st, Value label, BuilderCallback substmt)
-    {
+    void LabelStmt::build(
+        Builder &bld, State &st, Value label,
+        builder_callback_ref substmt
+    ) {
         st.addOperands(label);
 
-        VAST_ASSERT(substmt && "the builder callback for 'substmt' region must be present");
         InsertionGuard guard(bld);
-
         build_region(bld, st, substmt);
     }
 
 
-    void ExprOp::build(Builder &bld, State &st, Type rty, BuilderCallback expr) {
+    void ExprOp::build(
+        Builder &bld, State &st, Type rty,
+        builder_callback_ref expr
+    ) {
         InsertionGuard guard(bld);
         build_region(bld, st, expr);
         st.addTypes(rty);
     }
-    void TypeOfExprOp::build(Builder &bld, State &st, llvm::StringRef name, Type type, BuilderCallback expr) {
-        InsertionGuard guard(bld);
+
+    void TypeOfExprOp::build(
+        Builder &bld, State &st, llvm::StringRef name, Type type,
+        maybe_builder_callback_ref expr
+    ) {
         st.addAttribute("name", bld.getStringAttr(name));
         st.addAttribute("type", mlir::TypeAttr::get(type));
+
+        InsertionGuard guard(bld);
         build_region(bld, st, expr);
     }
 

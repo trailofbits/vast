@@ -52,51 +52,53 @@ namespace vast::abi
         setOperand(0, callee.get< mlir_value >());
     }
 
-    void build_op_with_region(Builder &bld, State &st, BuilderCallback body_cb)
-    {
+    void build_op_with_region(
+        Builder &bld, State &st,
+        maybe_builder_callback_ref body
+    ) {
         Builder::InsertionGuard guard(bld);
-        auto body = st.addRegion();
-        if (body_cb.has_value())
-        {
-            bld.createBlock(body);
-            body_cb.value()(bld, st.location);
-        }
+        build_region(bld, st, body);
     }
 
-    void PrologueOp::build(Builder &bld, State &st,
-                           mlir::TypeRange types, BuilderCallback body_cb)
-    {
+    void PrologueOp::build(
+        Builder &bld, State &st, mlir::TypeRange types,
+        maybe_builder_callback_ref body
+    ) {
         st.addTypes(types);
-        return build_op_with_region(bld, st, body_cb);
+        return build_op_with_region(bld, st, body);
     }
 
-    void EpilogueOp::build(Builder &bld, State &st,
-                           mlir::TypeRange types, BuilderCallback body_cb)
-    {
+    void EpilogueOp::build(
+        Builder &bld, State &st, mlir::TypeRange types,
+        maybe_builder_callback_ref body
+    ) {
         st.addTypes(types);
-        return build_op_with_region(bld, st, body_cb);
+        return build_op_with_region(bld, st, body);
     }
 
-    void CallArgsOp::build(Builder &bld, State &st,
-                           mlir::TypeRange types, BuilderCallback body_cb)
-    {
+    void CallArgsOp::build(
+        Builder &bld, State &st, mlir::TypeRange types,
+        maybe_builder_callback_ref body
+    ) {
         st.addTypes(types);
-        return build_op_with_region(bld, st, body_cb);
+        return build_op_with_region(bld, st, body);
     }
 
-    void CallRetsOp::build(Builder &bld, State &st,
-                           mlir::TypeRange types, BuilderCallback body_cb)
-    {
+    void CallRetsOp::build(
+        Builder &bld, State &st, mlir::TypeRange types,
+        maybe_builder_callback_ref body
+    ) {
         st.addTypes(types);
-        return build_op_with_region(bld, st, body_cb);
+        return build_op_with_region(bld, st, body);
     }
 
-    void CallExecutionOp::build(Builder &bld, State &st, llvm::StringRef callee,
-                                mlir::TypeRange types, mlir::ValueRange operands,
-                                BuilderCallback body_cb)
-    {
+    void CallExecutionOp::build(
+        Builder &bld, State &st, llvm::StringRef callee,
+        mlir::TypeRange types, mlir::ValueRange operands,
+        maybe_builder_callback_ref body
+    ) {
         st.addTypes(types);
-        build_op_with_region(bld, st, body_cb);
+        build_op_with_region(bld, st, body);
         st.addOperands(operands);
         st.addAttribute("callee", mlir::SymbolRefAttr::get(bld.getContext(), callee));
     }

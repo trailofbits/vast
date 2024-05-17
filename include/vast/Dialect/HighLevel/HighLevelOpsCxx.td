@@ -16,8 +16,8 @@ class CxxRecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
   let builders = [
     OpBuilder<(ins
       "llvm::StringRef":$name,
-       CArg<"BuilderCallback", "std::nullopt">:$bases,
-       CArg<"BuilderCallback", "std::nullopt">:$fields
+       CArg< "maybe_builder_callback_ref", "std::nullopt" >:$bases,
+       CArg< "maybe_builder_callback_ref", "std::nullopt" >:$fields
     )>
   ];
 
