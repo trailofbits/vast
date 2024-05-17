@@ -51,7 +51,7 @@ namespace vast::hl
             scope.erase();
         }
 
-        void find(Block &block)
+        void find(block_t &block)
         {
             for (auto &op : block.getOperations())
                 find(&op);
