@@ -52,7 +52,7 @@ class HasBody< string mnemonic >
     let builders = [
         OpBuilder<(ins
             "mlir::TypeRange":$types,
-            CArg< "BuilderCallback", "std::nullopt" >:$bodyBuilder
+            CArg< "maybe_builder_callback_ref", "std::nullopt" >:$bodyBuilder
         )>
     ];
 
@@ -97,11 +97,12 @@ def CallExecutionOp
 
     let skipDefaultBuilders = 1;
     let builders = [
-        OpBuilder< (ins "llvm::StringRef":$callee,
-                        "mlir::TypeRange":$results,
-                        CArg<"mlir::ValueRange", "{}">:$operands,
-                        CArg< "BuilderCallback", "std::nullopt" >:$bodyBuilder)
-                 >
+        OpBuilder< (ins
+            "llvm::StringRef":$callee,
+            "mlir::TypeRange":$results,
+            CArg< "mlir::ValueRange", "{}" >:$operands,
+            CArg< "maybe_builder_callback_ref", "std::nullopt" >:$bodyBuilder)
+        >
     ];
 
     let assemblyFormat = [{
@@ -133,9 +134,10 @@ def CallOp
 
   let skipDefaultBuilders = 1;
   let builders = [
-    OpBuilder< (ins "llvm::StringRef":$callee,
-                "mlir::TypeRange":$results,
-                CArg<"mlir::ValueRange", "{}">:$operands),
+    OpBuilder< (ins
+        "llvm::StringRef":$callee,
+        "mlir::TypeRange":$results,
+        CArg< "mlir::ValueRange", "{}" >:$operands),
     [{
       $_state.addOperands(operands);
       $_state.addAttribute("callee", mlir::SymbolRefAttr::get($_builder.getContext(), callee));

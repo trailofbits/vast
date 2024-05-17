@@ -17,7 +17,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::unsup {
 
     void UnsupportedDecl::build(
-        Builder &bld, State &st, llvm::StringRef name, BuilderCallback body
+        Builder &bld, State &st, llvm::StringRef name, maybe_builder_callback_ref body
     ) {
         st.addAttribute(getNameAttrName(st.name), bld.getStringAttr(name));
         InsertionGuard guard(bld);
@@ -26,7 +26,7 @@ namespace vast::unsup {
 
     void UnsupportedStmt::build(
         Builder &bld, State &st, llvm::StringRef name, Type rty,
-        const std::vector< BuilderCallBackFn > &builders
+        const std::vector< builder_callback > &builders
     ) {
         InsertionGuard guard(bld);
         // Optional, add a check if rty exist.
@@ -34,7 +34,7 @@ namespace vast::unsup {
             st.addTypes(rty);
         }
         st.addAttribute(getNameAttrName(st.name), bld.getStringAttr(name));
-        for (auto child : builders) {
+        for (builder_callback_ref child : builders) {
             build_region(bld, st, child);
         }
     }

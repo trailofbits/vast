@@ -105,9 +105,9 @@ def HighLevel_IfOp : ControlFlowOp< "if" >
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
-      "BuilderCallback":$condBuilder,
-      "BuilderCallback":$thenBuilder,
-      CArg<"BuilderCallback", "std::nullopt">:$elseBuilder
+      "builder_callback_ref":$condBuilder,
+      "builder_callback_ref":$thenBuilder,
+      CArg< "maybe_builder_callback_ref", "std::nullopt" >:$elseBuilder
     )>
   ];
 
@@ -151,9 +151,9 @@ def HighLevel_CondOp : ControlFlowOp< "cond" >
   let builders = [
     OpBuilder<(ins
       "Type":$type,
-      "BuilderCallback":$condBuilder,
-      "BuilderCallback":$thenBuilder,
-      "BuilderCallback":$elseBuilder
+      "builder_callback_ref":$condBuilder,
+      "builder_callback_ref":$thenBuilder,
+      "builder_callback_ref":$elseBuilder
     )>
   ];
 
@@ -186,8 +186,8 @@ def HighLevel_WhileOp : ControlFlowOp< "while", [NoTerminator] >
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
-      "BuilderCallback":$condBuilder,
-      "BuilderCallback":$bodyBuilder
+      "builder_callback_ref":$condBuilder,
+      "builder_callback_ref":$bodyBuilder
     )>
   ];
 
@@ -222,9 +222,9 @@ def HighLevel_ForOp : ControlFlowOp< "for" >
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
-      "BuilderCallback":$condBuilder,
-      "BuilderCallback":$incrBuilder,
-      "BuilderCallback":$bodyBuilder
+      "builder_callback_ref":$condBuilder,
+      "builder_callback_ref":$incrBuilder,
+      "builder_callback_ref":$bodyBuilder
     )>
   ];
 
@@ -254,8 +254,8 @@ def HighLevel_DoOp : ControlFlowOp< "do" >
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
-      "BuilderCallback":$bodyBuilder,
-      "BuilderCallback":$condBuilder
+      "builder_callback_ref":$bodyBuilder,
+      "builder_callback_ref":$condBuilder
     )>
   ];
 
@@ -301,8 +301,8 @@ def HighLevel_SwitchOp : ControlFlowOp< "switch" >
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
-      "BuilderCallback":$condBuilder,
-      "BuilderCallback":$casesBuilder
+      "builder_callback_ref":$condBuilder,
+      "builder_callback_ref":$casesBuilder
     )>
   ];
 
@@ -334,8 +334,8 @@ def HighLevel_CaseOp : ControlFlowOp< "case" >
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
-      "BuilderCallback":$lhsBuilder,
-      "BuilderCallback":$bodyBuilder
+      "builder_callback_ref":$lhsBuilder,
+      "builder_callback_ref":$bodyBuilder
     )>
   ];
 
@@ -352,7 +352,7 @@ def HighLevel_DefaultOp : ControlFlowOp< "default" >
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
-      "BuilderCallback":$bodyBuilder
+      "builder_callback_ref":$bodyBuilder
     )>
   ];
 
@@ -377,7 +377,7 @@ def HighLevel_LabelStmt
   let builders = [
     OpBuilder<(ins
       "mlir::Value":$label,
-      "BuilderCallback":$substmtBuilder
+      "builder_callback_ref":$substmtBuilder
     )>
   ];
 

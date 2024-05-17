@@ -19,11 +19,15 @@ VAST_UNRELAX_WARNINGS
 #include <variant>
 
 namespace vast {
+    // usings for tablegen generated code
     using Type      = mlir::Type;
     using Value     = mlir::Value;
     using Attribute = mlir::Attribute;
     using Operation = mlir::Operation;
 
+    //
+    // Legacy VAST usings (don't use these in new code)
+    //
     using Region    = mlir::Region;
     using Builder   = mlir::OpBuilder;
     using Location  = mlir::Location;
@@ -37,10 +41,9 @@ namespace vast {
     using Printer     = mlir::OpAsmPrinter;
     using FoldResult  = mlir::OpFoldResult;
 
-    using BuilderCallback = std::optional< llvm::function_ref< void(Builder &, Location) > >;
-
-    using BuilderCallBackFn = std::function< void(Builder &, Location) >;
-
+    //
+    // New VAST usings
+    //
     using acontext_t = clang::ASTContext;
     using mcontext_t = mlir::MLIRContext;
 
@@ -76,6 +79,7 @@ namespace vast {
     using loc_t         = mlir::Location;
 
     using mlir_builder    = mlir::OpBuilder;
+    using op_state        = mlir::OperationState;
     using insertion_guard = mlir_builder::InsertionGuard;
     using insert_point    = mlir_builder::InsertPoint;
 
@@ -89,5 +93,9 @@ namespace vast {
     using mlir_pass = mlir::Pass;
     using owning_pass_ptr = std::unique_ptr< mlir_pass >;
     using pass_ptr = mlir_pass*;
+
+    using builder_callback_ref       = llvm::function_ref< void(mlir_builder &, loc_t) >;
+    using maybe_builder_callback_ref = std::optional< builder_callback_ref >;
+    using builder_callback           = std::function< void(mlir_builder &, loc_t) >;
 
 } // namespace vast

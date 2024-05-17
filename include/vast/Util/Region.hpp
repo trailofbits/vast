@@ -13,20 +13,22 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast {
 
-    Region* fill_region(Region *reg, Builder &bld, State &st, BuilderCallback callback);
+    region_t* build_region(mlir_builder &bld, op_state &st, builder_callback_ref callback);
+    region_t* build_region(mlir_builder &bld, op_state &st, maybe_builder_callback_ref callback);
+    region_t* build_region(region_t *reg, mlir_builder &bld, op_state &st, builder_callback_ref callback);
+    region_t* build_region(region_t *reg, mlir_builder &bld, op_state &st, maybe_builder_callback_ref callback);
 
-    Region* build_region(Builder &bld, State &st, BuilderCallback callback);
-    Region* build_empty_region(Builder &bld, State &st);
+    region_t* build_empty_region(mlir_builder &bld, op_state &st);
 
-    hl::ValueYieldOp get_maybe_yield(Region &reg);
-    hl::ValueYieldOp get_yield(Region &reg);
+    hl::ValueYieldOp get_maybe_yield(region_t &reg);
+    hl::ValueYieldOp get_yield(region_t &reg);
 
-    mlir_value get_maybe_yielded_value(Region &reg);
-    mlir_value get_yielded_value(Region &reg);
+    mlir_value get_maybe_yielded_value(region_t &reg);
+    mlir_value get_yielded_value(region_t &reg);
 
-    mlir_type get_maybe_yielded_type(Region &reg);
-    mlir_type get_yielded_type(Region &reg);
+    mlir_type get_maybe_yielded_type(region_t &reg);
+    mlir_type get_yielded_type(region_t &reg);
 
-    mlir::RegionSuccessor trivial_region_succ(Region *reg);
+    mlir::RegionSuccessor trivial_region_succ(region_t *reg);
 
 } // namespace vast

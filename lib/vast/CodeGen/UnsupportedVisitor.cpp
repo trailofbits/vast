@@ -37,10 +37,10 @@ namespace vast::cg
         return op;
     }
 
-    std::vector< BuilderCallBackFn > unsup_stmt_visitor::make_children(
+    std::vector< builder_callback > unsup_stmt_visitor::make_children(
         const clang_stmt *stmt, scope_context &scope
     ) {
-        std::vector< BuilderCallBackFn > children;
+        std::vector< builder_callback > children;
         for (auto ch : stmt->children()) {
             // For each subexpression, the unsupported operation holds a region.
             // Last value of the region is an operand of the expression.

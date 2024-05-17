@@ -16,7 +16,7 @@ def UnsupportedDecl
     let builders = [
         OpBuilder<(ins
             "llvm::StringRef":$name,
-             CArg<"BuilderCallback", "std::nullopt">:$body
+             CArg< "maybe_builder_callback_ref", "std::nullopt" >:$body
         )>
     ];
 
@@ -38,7 +38,7 @@ def UnsupportedStmt
         OpBuilder<(ins
             "llvm::StringRef":$name,
             "Type":$rty,
-            "const std::vector< BuilderCallBackFn > &":$builders
+            "const std::vector< builder_callback > &":$builders
         )>
     ];
 

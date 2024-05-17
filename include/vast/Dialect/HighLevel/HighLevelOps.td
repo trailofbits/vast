@@ -41,7 +41,7 @@ def HighLevel_FuncOp
     CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
     CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
     CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$res_attrs,
-    CArg< "BuilderCallback", "std::nullopt" >:$body), [{
+    CArg< "maybe_builder_callback_ref", "std::nullopt" >:$body), [{
       InsertionGuard guard($_builder);
       build_region($_builder, $_state, body);
 
@@ -115,7 +115,7 @@ def TypeOfExprOp
     OpBuilder<(ins
       "llvm::StringRef":$name,
       "Type":$type,
-      CArg<"BuilderCallback", "std::nullopt">:$expr
+      CArg<"maybe_builder_callback_ref", "std::nullopt">:$expr
     )>
   ];
 
@@ -153,7 +153,7 @@ def EnumConstantOp
     OpBuilder<(ins
       "llvm::StringRef":$name,
       "Type":$type, "llvm::APSInt":$value,
-      CArg< "BuilderCallback", "std::nullopt" >:$init
+      CArg< "maybe_builder_callback_ref", "std::nullopt" >:$init
     ), [{
       $_state.addAttribute("name", $_builder.getStringAttr(name));
       $_state.addAttribute("value", core::IntegerAttr::get(type, value));
@@ -185,7 +185,7 @@ def EnumDeclOp
     OpBuilder<(ins
       "llvm::StringRef":$name,
       "mlir::Type":$type,
-      "BuilderCallback":$constants
+      "builder_callback_ref":$constants
     )>,
     OpBuilder<(ins
       "llvm::StringRef":$name
@@ -221,7 +221,7 @@ class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
   let builders = [
     OpBuilder<(ins
       "llvm::StringRef":$name,
-       CArg<"BuilderCallback", "std::nullopt">:$fields
+       CArg< "maybe_builder_callback_ref", "std::nullopt" >:$fields
     )>
   ];
 
@@ -364,7 +364,7 @@ def ExprOp
   let builders = [
       OpBuilder<(ins
           "Type":$type,
-          "BuilderCallback":$subexpr_builder
+          "builder_callback_ref":$subexpr_builder
       )>
   ];
 
@@ -767,8 +767,8 @@ class LogicBinOp< string mnemonic, list< Trait > traits = [] >
     let builders = [
         OpBuilder<(ins
             "Type":$type,
-            "BuilderCallback":$lhsbuilder,
-            "BuilderCallback":$rhsbuilder
+            "builder_callback_ref":$lhsbuilder,
+            "builder_callback_ref":$rhsbuilder
         )>
     ];
 
@@ -1162,7 +1162,10 @@ class ExprTraitOp< string mnemonic, list< Trait > traits = [] >
 
   let skipDefaultBuilders = 1;
   let builders = [
-    OpBuilder<(ins "Type":$type, "BuilderCallback":$exprBuilder)>
+      OpBuilder<(ins
+          "Type":$type,
+          "builder_callback_ref":$exprBuilder
+      )>
   ];
 
   let assemblyFormat = [{ attr-dict `->` type($result) $expr }];
@@ -1194,7 +1197,7 @@ def StmtExprOp
   let builders = [
       OpBuilder<(ins
           "Type":$type,
-          "BuilderCallback":$subexpr_builder
+          "builder_callback_ref":$subexpr_builder
       )>
   ];
 

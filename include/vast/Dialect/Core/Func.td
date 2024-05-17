@@ -121,11 +121,11 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
       CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
       CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
       CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$res_attrs,
-      CArg< "BuilderCallback", "std::nullopt" >:$body
+      CArg< "maybe_builder_callback_ref", "std::nullopt" >:$body
     ), [{
       InsertionGuard guard($_builder);
       auto region = std::make_unique< mlir::Region >();
-      fill_region(region.get(), $_builder, $_state, body);
+      build_region(region.get(), $_builder, $_state, body);
       build($_builder, $_state, name, type, std::move(region), linkage, attrs, arg_attrs, res_attrs);
     }] >
   ];
