@@ -284,7 +284,7 @@ jobs:
       - name: Generate the results
         run: |
           python3 sv-bench-patch/make_table.py \
-            --columns HighLevel,HighLevel without Unsupported \
+            --columns HighLevel,"HighLevel without Unsupported" \
             --files results-sv-hl-false/results.txt,results-sv-hl-true/results.txt \
             --output sv-comp-results
 
