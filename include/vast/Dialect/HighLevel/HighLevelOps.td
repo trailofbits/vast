@@ -475,7 +475,7 @@ def InitializedConstantOp : HighLevel_Op< "const.init", [ConstantLike, Pure] >
   let builders = [
       OpBuilder<(ins
           "Type":$type,
-          "BuilderCallback":$initbuilder
+          "builder_callback":$initbuilder
       )>
   ];
   let assemblyFormat = [{ attr-dict `:` type($result) `=` $init }];
@@ -743,7 +743,7 @@ class StandardArithBinOp< string mnemonic, list< Trait > traits = [] >
       >;
 
 class FloatArithBinOp< string mnemonic, list< Trait > traits = [] >
-    : ArithBinOp< mnemonic, traits > 
+    : ArithBinOp< mnemonic, traits >
 {
       let hasVerifier = 1;
 }
