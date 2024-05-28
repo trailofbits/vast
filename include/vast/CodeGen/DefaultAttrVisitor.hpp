@@ -39,6 +39,8 @@ namespace vast::cg {
         mlir_attr VisitAsmLabelAttr(const clang::AsmLabelAttr *attr);
         mlir_attr VisitAllocAlignAttr(const clang::AllocAlignAttr *attr);
         mlir_attr VisitAllocSizeAttr(const clang::AllocSizeAttr *attr);
+        mlir_attr VisitLeafAttr(const clang::LeafAttr *attr);
+        mlir_attr VisitColdAttr(const clang::ColdAttr *attr);
 
       private:
         template< typename attr_t, typename... args_t >
