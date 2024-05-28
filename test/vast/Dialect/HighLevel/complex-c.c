@@ -3,10 +3,10 @@
 #include <complex.h>
 
 void fun() {
-    double complex x = 3;
-    double y = 3;
-// CHECK: hl.fcmp {{.*}} : !hl.complex<!hl.double>, !hl.double
+    float complex x = 3;
+    float y = 3;
+// CHECK: hl.fcmp {{.*}} : !hl.complex<!hl.float>, !hl.float
     int cmp1 = x == y;
-// CHECK: hl.fcmp {{.*}} : !hl.double, !hl.complex<!hl.double>
+// CHECK: hl.fcmp {{.*}} : !hl.float, !hl.complex<!hl.float>
     int cmp2 = y == x;
 }
