@@ -84,6 +84,7 @@ jobs:
         llvm-version: [18]
         image-version: [22.04]
         vast-target: ['hl', 'llvm', 'bin']
+        disable-unsup: ['ON', 'OFF']
 
     runs-on: ubuntu-${{ matrix.image-version }}
     timeout-minutes: 60
@@ -92,6 +93,12 @@ jobs:
         ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
 
     steps:
+     - name: Check unsup
+       run: |
+         if [ "${{ matrix.disable-unsup }}" == "ON" && ${{ matrix.vast-target }} != 'hl' ]; then
+           exit 0
+         fi
+
      - name: Fetch VAST artifact
        uses: actions/download-artifact@v4
        with:
@@ -128,6 +135,7 @@ jobs:
           -DTEST_SUITE_COLLECT_CODE_SIZE=OFF \
           -DTEST_SUITE_SUBDIRS=SingleSource \
           -DVAST_TEST_SUITE_ENABLE=ON \
+          -DVAST_DISABLE_UNSUPPORTED=${{ matrix.disable-unsup }} \
           -DVAST_TEST_SUITE_TARGET=${{ matrix.vast-target }}
         make -j $(nproc) -k
 
@@ -145,8 +153,8 @@ jobs:
      - name: Upload results
        uses: actions/upload-artifact@v4
        with:
-        path: ./results-${{ matrix.vast-target }}.json
-        name: results-llvm-ts-${{ matrix.vast-target }}
+        path: ./results-${{ matrix.vast-target }}-${{ matrix.disable-unsup }}.json
+        name: results-llvm-ts-${{ matrix.vast-target }}-${{ matrix.disable-unsup }}
 
   eval_llvm_ts:
     name: "Eval LLVM Singlesource results"
@@ -177,8 +185,8 @@ jobs:
       - name: Generate the results
         run: |
           python3 llvm-test-suite/utils/vast_compare.py \
-            --columns vast-hl,vast-llvm,vast-bin \
-            --files results-hl.json,results-llvm.json,results-bin.json \
+            --columns HighLevel with Unsupported,HighLevel,LLVM,Binary \
+            --files results-hl-OFF.json,results-hl-ON.json,results-llvm-OFF.json,results-bin-OFF.json \
             --output single-source-results
 
       - name: Post results as artifacts
