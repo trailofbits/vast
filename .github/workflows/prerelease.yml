@@ -207,6 +207,7 @@ jobs:
         llvm-version: [18]
         image-version: [22.04]
         vast-target: ['hl']
+        disable-unsup: [true, false]
 
     runs-on: ubuntu-${{ matrix.image-version }}
     timeout-minutes: 360
@@ -242,13 +243,18 @@ jobs:
        run: ./apply
 
      - name: Run benchmarks
+       if: ${{ !matrix.disable-unsup }}
        run: sh ./sv-bench-patch/compile-all.sh -t ${{ matrix.vast-target }} -d ./sv-benchmarks
+
+     - name: Run benchmarks without unsupported
+       if: ${{ matrix.disable-unsup }}
+       run: sh ./sv-bench-patch/compile-all.sh -t ${{ matrix.vast-target }} --disable-unsup -d ./sv-benchmarks
 
      - name: Upload results
        uses: actions/upload-artifact@v4
        with:
         path: ./stats
-        name: results-sv-${{ matrix.vast-target }}
+        name: results-sv-${{ matrix.vast-target }}-${{ matrix.disable-unsup }}
 
   eval_svcomp:
     name: "Eval SV-Comp test results"
@@ -278,8 +284,8 @@ jobs:
       - name: Generate the results
         run: |
           python3 sv-bench-patch/make_table.py \
-            --columns HighLevel \
-            --files results-sv-hl/results.txt \
+            --columns HighLevel,HighLevel without Unsupported \
+            --files results-sv-hl-false/results.txt,results-sv-hl-true/results.txt \
             --output sv-comp-results
 
       - name: Post results as artifacts
