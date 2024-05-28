@@ -84,7 +84,10 @@ jobs:
         llvm-version: [18]
         image-version: [22.04]
         vast-target: ['hl', 'llvm', 'bin']
-        disable-unsup: ['ON', 'OFF']
+        disable-unsup: ['OFF']
+        include:
+            - vast-target: 'hl'
+              disable-unsup: 'ON'
 
     runs-on: ubuntu-${{ matrix.image-version }}
     timeout-minutes: 60
@@ -93,12 +96,6 @@ jobs:
         ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
 
     steps:
-     - name: Check unsup
-       run: |
-         if [ "${{ matrix.disable-unsup }}" == "ON" && ${{ matrix.vast-target }} != 'hl' ]; then
-           exit 0
-         fi
-
      - name: Fetch VAST artifact
        uses: actions/download-artifact@v4
        with:
@@ -142,13 +139,13 @@ jobs:
      - name: Collect run data (mlir)
        if: matrix.vast-target != 'bin'
        working-directory: ./llvm-test-suite/build
-       run: python3 ../utils/mlir_compile_json_gen.py >> ../../results-${{ matrix.vast-target }}.json
+       run: python3 ../utils/mlir_compile_json_gen.py >> ../../results-${{ matrix.vast-target }}-${{ matrix.disable-unsup }}.json
 
      - name: Collect run data (bin)
        continue-on-error: true
        if: matrix.vast-target == 'bin'
        working-directory: ./llvm-test-suite/build
-       run: lit --timeout=360 -v -o ../../results-${{ matrix.vast-target }}.json .
+       run: lit --timeout=360 -v -o ../../results-${{ matrix.vast-target }}-${{ matrix.disable-unsup }}.json .
 
      - name: Upload results
        uses: actions/upload-artifact@v4
@@ -207,7 +204,10 @@ jobs:
         llvm-version: [18]
         image-version: [22.04]
         vast-target: ['hl']
-        disable-unsup: [true, false]
+        disable-unsup: [false]
+        include:
+          - vast-target: 'hl'
+            disable-unsup: true
 
     runs-on: ubuntu-${{ matrix.image-version }}
     timeout-minutes: 360
