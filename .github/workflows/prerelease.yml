@@ -185,7 +185,7 @@ jobs:
       - name: Generate the results
         run: |
           python3 llvm-test-suite/utils/vast_compare.py \
-            --columns HighLevel with Unsupported,HighLevel,LLVM,Binary \
+            --columns HighLevel,"HighLevel without Unsupported",LLVM,Binary \
             --files results-hl-OFF.json,results-hl-ON.json,results-llvm-OFF.json,results-bin-OFF.json \
             --output single-source-results
 
