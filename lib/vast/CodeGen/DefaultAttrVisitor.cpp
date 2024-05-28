@@ -78,4 +78,12 @@ namespace vast::cg
         auto num = attr->getNumElemsParam().isValid() ? attr->getNumElemsParam().getSourceIndex() : int();
         return make< hl::AllocSizeAttr >(attr->getElemSizeParam().getSourceIndex(), num);
     }
+
+    mlir_attr default_attr_visitor::VisitLeafAttr(const clang::LeafAttr *attr) {
+        return make< hl::LeafAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitColdAttr(const clang::ColdAttr *attr) {
+        return make< hl::ColdAttr >();
+    }
 } // namespace vast::hcg

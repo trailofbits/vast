@@ -43,6 +43,8 @@ def WarnUnusedResAttr : HighLevel_Attr< "WarnUnusedResult", "warn_unused_result"
 def RestrictAttr : HighLevel_Attr< "Restrict", "restrict" >;
 def NoThrowAttr  : HighLevel_Attr< "NoThrow", "nothrow" >;
 def NonNullAttr  : HighLevel_Attr< "NonNull", "nonnull" >;
+def LeafAttr     : HighLevel_Attr< "Leaf", "leaf" >;
+def ColdAttr     : HighLevel_Attr< "Cold", "cold" >;
 
 def AsmLabelAttr : HighLevel_Attr< "AsmLabel", "asm" > {
   let parameters = (ins "::mlir::StringAttr":$label, "bool":$isLiteral);
