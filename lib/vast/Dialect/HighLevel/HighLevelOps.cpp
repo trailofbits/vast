@@ -71,8 +71,7 @@ namespace vast::hl
     logical_result RemFOp::verify() { return verify_float_arith_op(this->getOperation()); }
 
     logical_result FCmpOp::verify() {
-        return strip_complex(getLhs()) == strip_complex(getRhs()) ? logical_result::success()
-                                                                  : logical_result::failure();
+        return logical_result::success(strip_complex(getLhs()) == strip_complex(getRhs()));
     }
 
     FoldResult checked_int_arithmetic(mlir_type type, auto adaptor, auto &&op) {
