@@ -64,12 +64,6 @@ namespace vast::hl
         }
     } // namespace
 
-    logical_result AddFOp::verify() { return verify_float_arith_op(this->getOperation()); }
-    logical_result SubFOp::verify() { return verify_float_arith_op(this->getOperation()); }
-    logical_result MulFOp::verify() { return verify_float_arith_op(this->getOperation()); }
-    logical_result DivFOp::verify() { return verify_float_arith_op(this->getOperation()); }
-    logical_result RemFOp::verify() { return verify_float_arith_op(this->getOperation()); }
-
     logical_result FCmpOp::verify() {
         return logical_result::success(strip_complex(getLhs()) == strip_complex(getRhs()));
     }
