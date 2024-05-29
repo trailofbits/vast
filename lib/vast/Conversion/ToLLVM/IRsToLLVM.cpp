@@ -416,7 +416,7 @@ namespace vast::conv::irstollvm
                     // TODO(conv:irstollvm): Constant.
                     true,
                     LLVM::Linkage::Internal,
-                    op.getName(), create_dummy_value());
+                    op.getSymbolName(), create_dummy_value());
 
             // If we want the global to have a body it cannot have value attribute.
             gop.removeValueAttr();
