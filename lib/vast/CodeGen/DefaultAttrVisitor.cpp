@@ -22,6 +22,11 @@ namespace vast::cg
         return make< hl::AnnotationAttr >(attr->getAnnotation());
     }
 
+    mlir_attr default_attr_visitor::VisitAlignedAttr(const clang::AlignedAttr *attr) {
+        // TODO(#595): Keep the alignment in the attribute
+        return make< hl::AlignedAttr >();
+    }
+
     mlir_attr default_attr_visitor::VisitAlwaysInlineAttr(const clang::AlwaysInlineAttr *) {
         return make< hl::AlwaysInlineAttr >();
     }
