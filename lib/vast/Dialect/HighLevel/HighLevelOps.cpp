@@ -667,6 +667,16 @@ namespace vast::hl
         st.addTypes(type);
     }
 
+    void CompoundLiteralOp::build(Builder &bld, State &st, Type type, builder_callback init)
+    {
+        VAST_ASSERT(init && "the builder callback for 'init' region must be present");
+
+        InsertionGuard guard(bld);
+
+        build_region(bld, st, builder_callback_ref(init));
+        st.addTypes(type);
+    }
+
     GRAPH_REGION_OP(FuncOp);
     GRAPH_REGION_OP(StmtExprOp);
 

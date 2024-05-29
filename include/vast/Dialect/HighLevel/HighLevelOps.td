@@ -487,6 +487,22 @@ def UnreachableOp : HighLevel_Op<"unreachable", [Terminator]> {
   let assemblyFormat = "attr-dict";
 }
 
+def CompoundLiteralOp : HighLevel_Op< "compound_literal" >
+  , Results< (outs AnyType:$result) >
+{
+  let summary = "TODO";
+  let description = [{ TODO }];
+  let regions = (region ValueRegion:$init);
+  let skipDefaultBuilders = 1;
+  let builders = [
+      OpBuilder<(ins
+          "Type":$type,
+          "builder_callback":$initbuilder
+      )>
+  ];
+  let assemblyFormat = [{ attr-dict `:` type($result) `=` $init }];
+}
+
 class CastKindAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
 class CastKindList< string name, string summary, list< CastKindAttr > cases >
