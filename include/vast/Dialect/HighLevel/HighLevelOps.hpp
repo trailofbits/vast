@@ -16,6 +16,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
+#include "vast/Dialect/Core/SymbolTable.hpp"
+
 #include "vast/Interfaces/SymbolInterface.hpp"
 #include "vast/Interfaces/AggregateTypeDefinitionInterface.hpp"
 #include "vast/Interfaces/AST/DeclInterface.hpp"

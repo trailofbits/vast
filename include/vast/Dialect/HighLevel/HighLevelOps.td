@@ -16,11 +16,16 @@ include "vast/Dialect/Core/Utils.td"
 include "vast/Dialect/Core/CoreTraits.td"
 include "vast/Interfaces/AST/DeclInterface.td"
 
+include "vast/Dialect/Core/SymbolTable.td"
 include "vast/Dialect/Core/Func.td"
 
 
 def TranslationUnitOp
-  : HighLevel_Op< "translation_unit", [NoTerminator, SymbolTable, IsolatedFromAbove] >
+  : HighLevel_Op< "translation_unit", [
+      NoTerminator,
+      ShadowingSymbolTable< [FuncSymbol, VarSymbol, TypeSymbol, ElaboratedTypeSymbol] >,
+      IsolatedFromAbove
+  ] >
 {
   let summary = "VAST translation unit";
   let description = [{ VAST tranaslation unit }];
