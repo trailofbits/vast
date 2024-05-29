@@ -136,22 +136,28 @@ jobs:
           -DVAST_TEST_SUITE_TARGET=${{ matrix.vast-target }}
         make -j $(nproc) -k
 
+     - name: Setup result suffix
+       run: |
+        if [ "${{ matrix.disable-unsup }}" = "OFF" ]; then
+          echo "VAST_RESULTS_SUFFIX=-with-unsup" >> $GITHUB_ENV
+        fi
+
      - name: Collect run data (mlir)
        if: matrix.vast-target != 'bin'
        working-directory: ./llvm-test-suite/build
-       run: python3 ../utils/mlir_compile_json_gen.py >> ../../results-${{ matrix.vast-target }}-${{ matrix.disable-unsup }}.json
+       run: python3 ../utils/mlir_compile_json_gen.py >> ../../results-${{ matrix.vast-target }}$VAST_RESULTS_SUFFIX.json
 
      - name: Collect run data (bin)
        continue-on-error: true
        if: matrix.vast-target == 'bin'
        working-directory: ./llvm-test-suite/build
-       run: lit --timeout=360 -v -o ../../results-${{ matrix.vast-target }}-${{ matrix.disable-unsup }}.json .
+       run: lit --timeout=360 -v -o ../../results-${{ matrix.vast-target }}$VAST_RESULTS_SUFFIX.json .
 
      - name: Upload results
        uses: actions/upload-artifact@v4
        with:
-        path: ./results-${{ matrix.vast-target }}-${{ matrix.disable-unsup }}.json
-        name: results-llvm-ts-${{ matrix.vast-target }}-${{ matrix.disable-unsup }}
+        path: ./results-${{ matrix.vast-target }}$VAST_RESULTS_SUFFIX.json
+        name: results-llvm-ts-${{ matrix.vast-target }}$VAST_RESULTS_SUFFIX
 
   eval_llvm_ts:
     name: "Eval LLVM Singlesource results"
@@ -183,7 +189,7 @@ jobs:
         run: |
           python3 llvm-test-suite/utils/vast_compare.py \
             --columns HighLevel,"HighLevel without Unsupported",LLVM,Binary \
-            --files results-hl-OFF.json,results-hl-ON.json,results-llvm-OFF.json,results-bin-OFF.json \
+            --files results-hl-with-unsup.json,results-hl.json,results-llvm-with-unsup.json,results-bin-with-unsup.json \
             --output single-source-results
 
       - name: Post results as artifacts
@@ -250,11 +256,17 @@ jobs:
        if: ${{ matrix.disable-unsup }}
        run: sh ./sv-bench-patch/compile-all.sh -t ${{ matrix.vast-target }} --disable-unsup -d ./sv-benchmarks
 
+     - name: Setup result suffix
+       run: |
+        if [ "${{ matrix.disable-unsup }}" = "true" ]; then
+          echo "VAST_RESULTS_SUFFIX=-with-unsup" >> $GITHUB_ENV
+        fi
+
      - name: Upload results
        uses: actions/upload-artifact@v4
        with:
         path: ./stats
-        name: results-sv-${{ matrix.vast-target }}-${{ matrix.disable-unsup }}
+        name: results-sv-${{ matrix.vast-target }}$VAST_RESULTS_SUFFIX
 
   eval_svcomp:
     name: "Eval SV-Comp test results"
@@ -285,7 +297,7 @@ jobs:
         run: |
           python3 sv-bench-patch/make_table.py \
             --columns HighLevel,"HighLevel without Unsupported" \
-            --files results-sv-hl-false/results.txt,results-sv-hl-true/results.txt \
+            --files results-sv-hl-with-unsup/results.txt,results-sv-hl/results.txt \
             --output sv-comp-results
 
       - name: Post results as artifacts
