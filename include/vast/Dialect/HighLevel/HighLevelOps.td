@@ -746,6 +746,11 @@ class FloatArithBinOp< string mnemonic, list< Trait > traits = [] >
     : ArithBinOp< mnemonic, traits >
 {
       let hasVerifier = 1;
+      let extraClassDefinition = [{
+        logical_result $cppClass::verify() {
+          return verify_float_arith_op(this->getOperation());
+        }
+      }];
 }
 
 def AddIOp : ArithBinOp< "add", [Commutative, IsAdditive< "lhs", "rhs", "result" >] >;
