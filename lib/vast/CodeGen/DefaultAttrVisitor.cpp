@@ -95,4 +95,8 @@ namespace vast::cg
     mlir_attr default_attr_visitor::VisitDeprecatedAttr(const clang::DeprecatedAttr *attr) {
         return make< hl::DeprecatedAttr >(attr->getMessage(), attr->getReplacement());
     }
+
+    mlir_attr default_attr_visitor::VisitTransparentUnionAttr(const clang::TransparentUnionAttr *attr) {
+        return make< hl::TransparentUnionAttr >();
+    }
 } // namespace vast::hcg
