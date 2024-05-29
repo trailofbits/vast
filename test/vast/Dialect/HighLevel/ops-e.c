@@ -3,9 +3,9 @@
 
 void assign_assign() {
     int a, b, c;
-    // CHECK: [[A:%[0-9]+]] = hl.var "a" : !hl.lvalue<!hl.int>
-    // CHECK: [[B:%[0-9]+]] = hl.var "b" : !hl.lvalue<!hl.int>
-    // CHECK: [[C:%[0-9]+]] = hl.var "c" : !hl.lvalue<!hl.int>
+    // CHECK: [[A:%[0-9]+]] = hl.var @a : !hl.lvalue<!hl.int>
+    // CHECK: [[B:%[0-9]+]] = hl.var @b : !hl.lvalue<!hl.int>
+    // CHECK: [[C:%[0-9]+]] = hl.var @c : !hl.lvalue<!hl.int>
 
     // CHECK: [[RA:%[0-9]+]] = hl.ref [[A]]
     // CHECK: [[V1:%[0-9]+]] = hl.expr

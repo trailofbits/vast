@@ -5,9 +5,9 @@
 void cast_cstyle()
 {
     int i = 0;
-    // CHECK: [[I:%[0-9]+]] = hl.var "i" : !hl.lvalue<!hl.int>
+    // CHECK: [[I:%[0-9]+]] = hl.var @i : !hl.lvalue<!hl.int>
     short s = (short)i;
-    // CHECK: hl.var "s" : !hl.lvalue<!hl.short>
+    // CHECK: hl.var @s : !hl.lvalue<!hl.short>
     // CHECK: [[V1:%[0-9]+]] = hl.ref [[I]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int
     // CHECK: [[V3:%[0-9]+]] = hl.implicit_cast [[V2]] IntegralCast : !hl.int -> !hl.short

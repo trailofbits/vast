@@ -3,7 +3,7 @@
 
 int main() {
     // CHECK: hl.stmt.expr : !hl.int
-    // CHECK:   hl.var "x"
+    // CHECK:   hl.var @x
     // CHECK:   hl.value.yield
     // CHECK:   hl.value.yield
     int v = ({int x = 4; x;});

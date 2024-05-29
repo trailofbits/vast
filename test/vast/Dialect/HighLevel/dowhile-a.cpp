@@ -14,7 +14,7 @@ void basic() {
 
 // CHECK-LABEL: hl.func @_Z10inner_condv
 void inner_cond() {
-    // CHECK: [[I:%[0-9]+]] = hl.var "i" : !hl.lvalue<!hl.int>
+    // CHECK: [[I:%[0-9]+]] = hl.var @i : !hl.lvalue<!hl.int>
     int i = 0;
     // CHECK: hl.do {
     // CHECK: [[V1:%[0-9]+]] = hl.ref [[I]]

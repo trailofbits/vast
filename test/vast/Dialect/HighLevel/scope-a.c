@@ -18,19 +18,19 @@ int test1()
 void test2()
 {
     // CHECK: core.scope
-    // CHECK: hl.var "a" : !hl.lvalue<!hl.int>
+    // CHECK: hl.var @a : !hl.lvalue<!hl.int>
     {
         int a;
     }
 
     // CHECK: core.scope
-    // CHECK: hl.var "a" : !hl.lvalue<!hl.int>
+    // CHECK: hl.var @a : !hl.lvalue<!hl.int>
     {
         int a;
     }
 
     // CHECK: core.scope
-    // CHECK: hl.var "a" : !hl.lvalue<!hl.int>
+    // CHECK: hl.var @a : !hl.lvalue<!hl.int>
     {
         int a;
     }
@@ -39,12 +39,12 @@ void test2()
 // CHECK-LABEL: hl.func @test3
 int test3()
 {
-    // CHECK: hl.var "b" : !hl.lvalue<!hl.int>
+    // CHECK: hl.var @b : !hl.lvalue<!hl.int>
     int b;
 
     // CHECK: core.scope
     {
-        // CHECK: hl.var "a" : !hl.lvalue<!hl.int>
+        // CHECK: hl.var @a : !hl.lvalue<!hl.int>
         int a;
     }
 

@@ -4,7 +4,7 @@
 #include <complex.h>
 
 void fun(void) {
-// CHECK: "x" : !hl.lvalue<!hl.complex<!hl.int>>
+// CHECK: @x : !hl.lvalue<!hl.complex<!hl.int>>
     int complex x = I;
     int z = 3;
 

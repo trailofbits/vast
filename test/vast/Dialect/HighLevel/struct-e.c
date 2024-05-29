@@ -12,9 +12,9 @@ struct s {
 
 // CHECK: hl.func @f
 void f() {
-    // CHECK: [[V:%[0-9]+]] = hl.var "v" : !hl.lvalue<!hl.elaborated<!hl.record<"s">>>
+    // CHECK: [[V:%[0-9]+]] = hl.var @v : !hl.lvalue<!hl.elaborated<!hl.record<"s">>>
     struct s v;
-    // CHECK: hl.var "x" : !hl.lvalue<!hl.int>
+    // CHECK: hl.var @x : !hl.lvalue<!hl.int>
     // CHECK:   [[V1:%[0-9]+]] = hl.ref [[V]]
     // CHECK:   [[V2:%[0-9]+]] = hl.member [[V1]] at "a" : !hl.lvalue<!hl.elaborated<!hl.record<"s">>> -> !hl.lvalue<!hl.int>
     // CHECK:   [[V3:%[0-9]+]] = hl.implicit_cast [[V2]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int

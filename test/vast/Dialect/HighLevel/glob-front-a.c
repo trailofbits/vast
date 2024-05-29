@@ -1,6 +1,6 @@
 // RUN: %vast-front %s -vast-emit-mlir=hl -o - | %file-check %s
 
-// CHECK: hl.var "NUM"
+// CHECK: hl.var @NUM
 // CHECK: hl.value.yield
 short NUM = 10;
 //CHECK: hl.globref "NUM"

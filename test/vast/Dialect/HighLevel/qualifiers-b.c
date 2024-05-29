@@ -3,12 +3,12 @@
 
 int main()
 {
-    // CHECK: hl.var "c" : !hl.lvalue<!hl.char>
+    // CHECK: hl.var @c : !hl.lvalue<!hl.char>
     char c;
 
-    // CHECK: hl.var "uc" : !hl.lvalue<!hl.char< unsigned >>
+    // CHECK: hl.var @uc : !hl.lvalue<!hl.char< unsigned >>
     unsigned char uc;
 
-    // CHECK: hl.var "sc" : !hl.lvalue<!hl.char>
+    // CHECK: hl.var @sc : !hl.lvalue<!hl.char>
     signed char sc;
 }

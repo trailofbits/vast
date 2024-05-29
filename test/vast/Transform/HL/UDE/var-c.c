@@ -6,5 +6,5 @@ struct unused_struct;
 // CHECK-NOT: hl.typedef "unused_t"
 typedef struct unused_struct unused_t;
 
-// CHECK-NOT: hl.var "unused"
+// CHECK-NOT: hl.var @unused
 extern unused_t unused;
