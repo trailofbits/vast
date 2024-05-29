@@ -9,7 +9,7 @@ typedef short SHORT;
 void arithemtic_int_short(INT a, SHORT b)
 {
     INT c;
-    // CHECK: [[C:%[0-9]+]] = hl.var "c" : !hl.lvalue<!hl.elaborated<!hl.typedef<"INT">>>
+    // CHECK: [[C:%[0-9]+]] = hl.var @c : !hl.lvalue<!hl.elaborated<!hl.typedef<"INT">>>
     // CHECK: [[CR:%[0-9]+]] = hl.ref [[C]]
     // CHECK: [[V1:%[0-9]+]] = hl.ref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.elaborated<!hl.typedef<"INT">>> -> !hl.elaborated<!hl.typedef<"INT">>
@@ -113,7 +113,7 @@ void arithemtic_int_short(INT a, SHORT b)
 void arithemtic_pointer_long(INT* a, long b)
 {
     INT* c;
-    // CHECK: [[C:%[0-9]+]] = hl.var "c" : !hl.lvalue<!hl.ptr<!hl.elaborated<!hl.typedef<"INT">>>>
+    // CHECK: [[C:%[0-9]+]] = hl.var @c : !hl.lvalue<!hl.ptr<!hl.elaborated<!hl.typedef<"INT">>>>
     // CHECK: [[CR:%[0-9]+]] = hl.ref [[C]]
     // CHECK: [[V1:%[0-9]+]] = hl.ref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.ptr<!hl.elaborated<!hl.typedef<"INT">>>> -> !hl.ptr<!hl.elaborated<!hl.typedef<"INT">>>

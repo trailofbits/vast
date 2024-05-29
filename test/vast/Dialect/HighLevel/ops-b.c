@@ -5,7 +5,7 @@
 void arithemtic_signed(int a, int b)
 {
     int c;
-    // CHECK: [[C:%[0-9]+]] = hl.var "c" : !hl.lvalue<!hl.int>
+    // CHECK: [[C:%[0-9]+]] = hl.var @c : !hl.lvalue<!hl.int>
     // CHECK: [[CR:%[0-9]+]] = hl.ref [[C]]
     // CHECK: [[V1:%[0-9]+]] = hl.ref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int

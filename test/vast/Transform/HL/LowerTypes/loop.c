@@ -2,7 +2,7 @@
 
 void loop_simple()
 {
-    // CHECK: [[I:%[0-9]+]] = hl.var "i" : !hl.lvalue<si32>
+    // CHECK: [[I:%[0-9]+]] = hl.var @i : !hl.lvalue<si32>
     // CHECK: hl.for
     // CHECK:   [[V0:%[0-9]+]] = hl.ref [[I]]
     // CHECK:   [[V1:%[0-9]+]] = hl.implicit_cast [[V0]] LValueToRValue : !hl.lvalue<si32> -> si32

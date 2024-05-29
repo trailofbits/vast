@@ -3,9 +3,9 @@
 
 void f() {
 int src = 1;
-// CHECK: [[SRC:%[0-9]+]] = hl.var "src"
+// CHECK: [[SRC:%[0-9]+]] = hl.var @src
 int dst;
-// CHECK: [[DST:%[0-9]+]] = hl.var "dst"
+// CHECK: [[DST:%[0-9]+]] = hl.var @dst
 // CHECK: [[DST_REF:%[0-9]+]] = hl.ref [[DST]]
 // CHECK: [[SRC_REF:%[0-9]+]] = hl.ref [[SRC]]
 // CHECK: [[CAST_SRC:%[0-9]+]] = hl.implicit_cast [[SRC_REF]]

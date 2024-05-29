@@ -5,7 +5,7 @@
 void arithemtic_int_short(int a, short b)
 {
     int c;
-    // CHECK: [[C:%[0-9]+]] = hl.var "c" : !hl.lvalue<!hl.int>
+    // CHECK: [[C:%[0-9]+]] = hl.var @c : !hl.lvalue<!hl.int>
     // CHECK: [[CR:%[0-9]+]] = hl.ref [[C]]
     // CHECK: [[V1:%[0-9]+]] = hl.ref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int
@@ -101,7 +101,7 @@ void arithemtic_int_short(int a, short b)
 void arithemtic_int_long(int a, long b)
 {
     long c;
-    // CHECK: [[C:%[0-9]+]] = hl.var "c" : !hl.lvalue<!hl.long>
+    // CHECK: [[C:%[0-9]+]] = hl.var @c : !hl.lvalue<!hl.long>
     // CHECK: [[CR:%[0-9]+]] = hl.ref [[C]]
     // CHECK: [[V1:%[0-9]+]] = hl.ref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int
@@ -197,7 +197,7 @@ void arithemtic_int_long(int a, long b)
 void arithemtic_short_long(short a, long b)
 {
     long c;
-    // CHECK: [[C:%[0-9]+]] = hl.var "c" : !hl.lvalue<!hl.long>
+    // CHECK: [[C:%[0-9]+]] = hl.var @c : !hl.lvalue<!hl.long>
     // CHECK: [[CR:%[0-9]+]] = hl.ref [[C]]
     // CHECK: [[V1:%[0-9]+]] = hl.ref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.short> -> !hl.short
@@ -293,7 +293,7 @@ void arithemtic_short_long(short a, long b)
 void arithemtic_pointer_short(int* a, short b)
 {
     int* c;
-    // CHECK: [[C:%[0-9]+]] = hl.var "c" : !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK: [[C:%[0-9]+]] = hl.var @c : !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK: [[CR:%[0-9]+]] = hl.ref [[C]]
     // CHECK: [[V1:%[0-9]+]] = hl.ref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.ptr<!hl.int>> -> !hl.ptr<!hl.int>
@@ -326,7 +326,7 @@ void arithemtic_pointer_short(int* a, short b)
 void arithemtic_pointer_long(int* a, long b)
 {
     int* c;
-    // CHECK: [[C:%[0-9]+]] = hl.var "c" : !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK: [[C:%[0-9]+]] = hl.var @c : !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK: [[CR:%[0-9]+]] = hl.ref [[C]]
     // CHECK: [[V1:%[0-9]+]] = hl.ref [[A1]]
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.ptr<!hl.int>> -> !hl.ptr<!hl.int>

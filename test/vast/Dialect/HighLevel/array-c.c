@@ -1,7 +1,7 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.var "cai" : !hl.lvalue<!hl.array<3, !hl.int< const >>> = {
+// CHECK: hl.var @cai : !hl.lvalue<!hl.array<3, !hl.int< const >>> = {
 // CHECK:   [[V1:%[0-9]+]] = hl.const #core.integer<1> : !hl.int
 // CHECK:   [[V2:%[0-9]+]] = hl.const #core.integer<2> : !hl.int
 // CHECK:   [[V3:%[0-9]+]] = hl.const #core.integer<3> : !hl.int

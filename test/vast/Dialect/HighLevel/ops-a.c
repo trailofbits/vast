@@ -15,7 +15,7 @@ int add1(int a, int b)
 // CHECK: hl.func @add2 {{.*}} ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int add2(int a, int b)
 {
-    // CHECK: [[R:%[0-9]+]] = hl.var "r" : !hl.lvalue<!hl.int> = {
+    // CHECK: [[R:%[0-9]+]] = hl.var @r : !hl.lvalue<!hl.int> = {
     // CHECK:   [[V1:%[0-9]+]] = hl.ref [[A1]]
     // CHECK:   [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int
     // CHECK:   [[V3:%[0-9]+]] = hl.ref [[A2]]
@@ -33,7 +33,7 @@ int add2(int a, int b)
 // CHECK: hl.func @add3
 void add3()
 {
-    // CHECK: hl.var "v" : !hl.lvalue<!hl.int> = {
+    // CHECK: hl.var @v : !hl.lvalue<!hl.int> = {
     // CHECK:   [[V1:%[0-9]+]] = hl.const #core.integer<1> : !hl.int
     // CHECK:   [[V2:%[0-9]+]] = hl.const #core.integer<2> : !hl.int
     // CHECK:   [[V3:%[0-9]+]] = hl.add [[V1]], [[V2]] : (!hl.int, !hl.int) -> !hl.int
