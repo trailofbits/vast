@@ -97,16 +97,28 @@ def BuiltinAttr : HighLevel_Attr< "Builtin", "builtin" > {
   let assemblyFormat = "`<` $ID `>`";
 }
 
-def AllocAlignAttr : HighLevel_Attr< "AllocAlign", "alloc_align" >{
+def AllocAlignAttr : HighLevel_Attr< "AllocAlign", "alloc_align" > {
   let parameters = (ins "int":$alignment);
 
   let assemblyFormat = "`<` $alignment `>`";
 }
 
-def AllocSizeAttr : HighLevel_Attr< "AllocSize", "alloc_size" >{
+def AllocSizeAttr : HighLevel_Attr< "AllocSize", "alloc_size" > {
   let parameters = (ins "int":$size_arg_pos, OptionalParameter< "int" >:$num_arg_pos);
 
   let assemblyFormat = "`<` `size_pos` `:` $size_arg_pos (`,` `num_pos` `:` $num_arg_pos^)? `>`";
+}
+
+def DeprecatedAttr : HighLevel_Attr< "Deprecated", "deprecated" > {
+  let parameters = (ins "::mlir::StringAttr":$message,
+                        "::mlir::StringAttr":$fixit);
+  let assemblyFormat = "`<` `msg` `:` $message `,` `fix` `:` $fixit `>`";
+
+  let builders = [
+    AttrBuilder<(ins "::mlir::StringRef":$msg, "::mlir::StringRef":$fix), [{
+      return get($_ctxt, mlir::StringAttr::get($_ctxt, msg), mlir::StringAttr::get($_ctxt, fix));
+    }]>,
+  ];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
