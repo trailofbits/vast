@@ -261,6 +261,7 @@ namespace vast::cg {
         operation VisitImaginaryLiteral(const clang::ImaginaryLiteral *lit);
 
         operation VisitInitListExpr(const clang::InitListExpr *expr);
+        operation VisitImplicitValueInitExpr(const clang::ImplicitValueInitExpr *expr);
     };
 
     template< typename Op >

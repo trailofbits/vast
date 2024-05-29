@@ -1009,4 +1009,12 @@ namespace vast::cg
             .freeze();
     }
 
+    operation default_stmt_visitor::VisitImplicitValueInitExpr(const clang::ImplicitValueInitExpr *expr) {
+        return bld.compose< hl::InitListExpr >()
+            .bind(self.location(expr))
+            .bind(self.visit(expr->getType()))
+            .bind(visit_values_range(expr->children()))
+            .freeze();
+    }
+
 } // namespace vast::cg
