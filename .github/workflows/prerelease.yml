@@ -84,9 +84,11 @@ jobs:
         llvm-version: [18]
         image-version: [22.04]
         vast-target: ['hl', 'llvm', 'bin']
-        disable-unsup: ['OFF']
-        include:
-            - vast-target: 'hl'
+        disable-unsup: ['ON','OFF']
+        exclude:
+            - vast-target: 'llvm'
+              disable-unsup: 'ON'
+            - vast-target: 'bin'
               disable-unsup: 'ON'
 
     runs-on: ubuntu-${{ matrix.image-version }}
@@ -210,10 +212,7 @@ jobs:
         llvm-version: [18]
         image-version: [22.04]
         vast-target: ['hl']
-        disable-unsup: [false]
-        include:
-          - vast-target: 'hl'
-            disable-unsup: true
+        disable-unsup: [true, false]
 
     runs-on: ubuntu-${{ matrix.image-version }}
     timeout-minutes: 360
