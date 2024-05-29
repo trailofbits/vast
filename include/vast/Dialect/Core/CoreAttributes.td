@@ -8,26 +8,27 @@ include "mlir/IR/BuiltinAttributeInterfaces.td"
 
 include "mlir/IR/EnumAttr.td"
 
-class Core_Attr<string name, string attr_mnemonic, list<Trait> traits = []>
+class Core_Attr< string name, string attr_mnemonic, list<Trait> traits = [] >
     : AttrDef< Core_Dialect, name, traits >
 {
   let mnemonic = attr_mnemonic;
 }
 
-class Core_I32Enum<string name, string description, list<I32EnumAttrCase> cases>
-    : I32EnumAttr<name, description, cases>
+class Core_I32Enum< string name, string description, list<I32EnumAttrCase> cases >
+    : I32EnumAttr< name, description, cases >
 {
   let genSpecializedAttr = 0;
   let cppNamespace = "::vast::core";
 }
-class Core_I32EnumAttr<string mnemonic, Core_I32Enum enumInfo>
-  : EnumAttr<Core_Dialect, enumInfo, mnemonic>
+class Core_I32EnumAttr< string mnemonic, Core_I32Enum enumInfo >
+  : EnumAttr< Core_Dialect, enumInfo, mnemonic >
 {
   let assemblyFormat = "`<` $value `>`";
 }
 
-class APSIntParameter<string desc> :
-    AttrOrTypeParameter<"::llvm::APSInt", desc> {
+class APSIntParameter< string desc >
+    : AttrOrTypeParameter< "::llvm::APSInt", desc >
+{
   let comparator = [{
     $_lhs.getBitWidth() == $_rhs.getBitWidth() &&
     $_lhs.isSigned() == $_rhs.isSigned() &&
@@ -35,7 +36,7 @@ class APSIntParameter<string desc> :
   }];
 }
 
-def Core_BooleanAttr : Core_Attr<"Boolean", "bool",
+def Core_BooleanAttr : Core_Attr< "Boolean", "bool",
   [ConstantLikeAttrTrait, TypedAttrInterface]
 > {
   let summary = "An Attribute containing a boolean value";
@@ -57,7 +58,7 @@ def Core_BooleanAttr : Core_Attr<"Boolean", "bool",
   // let genVerifyDecl = 1;
 }
 
-def Core_IntegerAttr : Core_Attr<"Integer", "integer",
+def Core_IntegerAttr : Core_Attr< "Integer", "integer",
   [ConstantLikeAttrTrait, TypedAttrInterface]
 > {
   let summary = "An Attribute containing a integer value";
@@ -80,7 +81,7 @@ def Core_IntegerAttr : Core_Attr<"Integer", "integer",
   // let genVerifyDecl = 1;
 }
 
-def Core_FloatAttr : Core_Attr<"Float", "float",
+def Core_FloatAttr : Core_Attr< "Float", "float",
   [ConstantLikeAttrTrait, TypedAttrInterface]
 > {
   let summary = "An Attribute containing a floating point value";
@@ -103,7 +104,7 @@ def Core_FloatAttr : Core_Attr<"Float", "float",
   // let genVerifyDecl = 1;
 }
 
-def Core_VoidAttr : Core_Attr<"Void", "void",
+def Core_VoidAttr : Core_Attr< "Void", "void",
   [ConstantLikeAttrTrait, TypedAttrInterface]
 > {
   let summary = "Attribute to represent void value.";
@@ -115,10 +116,10 @@ def Core_VoidAttr : Core_Attr<"Void", "void",
   let assemblyFormat = [{}];
 }
 
-def Core_SourceLanguage : I32EnumAttr<"SourceLanguage", "Source language", [
+def Core_SourceLanguage : I32EnumAttr< "SourceLanguage", "Source language", [
   I32EnumAttrCase<"C", 1, "c">,
   I32EnumAttrCase<"CXX", 2, "cxx">
-]> {
+] > {
   let cppNamespace = "::vast::core";
   let genSpecializedAttr = 0;
 }
