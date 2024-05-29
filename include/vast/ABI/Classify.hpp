@@ -177,14 +177,25 @@ namespace vast::abi
             return mlir::IntegerType::get( has_context.getContext(), s );
         }
 
+        static mlir_type fN(auto &mctx, std::size_t s) {
+            if (s == 16)
+                return mlir::Float16Type::get(&mctx);
+            if (s == 32)
+                return mlir::Float32Type::get(&mctx);
+            if (s == 64)
+                return mlir::Float64Type::get(&mctx);
+            if (s == 80)
+                return mlir::Float80Type::get(&mctx);
+            if (s == 128)
+                return mlir::Float128Type::get(&mctx);
+            VAST_UNREACHABLE("Cannot create floating type of size: {0}", s);
+        }
+
         static mlir::Type int_type_at_offset( mlir::Type t, std::size_t offset,
                                               mlir::Type root, std::size_t root_offset,
                                               const auto &ctx )
         {
             const auto &[ dl, _ ] = ctx;
-            //if ( offset != 0 )
-            //    VAST_TODO( "int_type_at_offset called with {0}.", offset );
-
             auto is_int_type = [ & ]( std::size_t trg_size )
             {
                 const auto &[ dl_, _ ] = ctx;
@@ -231,6 +242,86 @@ namespace vast::abi
             VAST_CHECK( final_size != 0, "ABI classification is trying to create i0." );
             return mlir::IntegerType::get( t.getContext(), final_size );
         }
+
+        static auto get_is_sse_type() {
+            return [](auto t) {
+                return is_scalar_float(t);
+            };
+        }
+
+        // TODO: In `clang` int and sse variants have separate implementations (there is
+        //       a lot of difference) but in the core they are doing very similar things.
+        //       It should be possible to make a shared helper that takes away a lot of
+        //       shared complexity.
+        static mlir_type sse_target_type_at_offset(
+            mlir_type t, std::size_t offset,
+            mlir_type root, std::size_t root_offset,
+            const auto &ctx
+        ) {
+            const auto &[ dl, _ ] = ctx;
+            auto &mctx = *t.getContext();
+
+            auto t0 = type_at_offset(t, offset, ctx, get_is_sse_type());
+            if (!t0 || size(dl, t0) == 64)
+                return fN(mctx, 64);
+
+            auto source_size = size(dl, root);
+            auto t0_size = size(dl, t0) - root_offset;
+
+            auto is_16b_fp = [&, dl=dl](auto type) {
+                return is_scalar_float(type) && size(dl, type) == 16;
+            };
+
+            // Fetch second type if applicable.
+            auto t1 = [&]() -> mlir_type {
+                auto nested = type_at_offset(t, offset + t0_size, ctx, get_is_sse_type());
+                if (t0_size > source_size && nested)
+                    return nested;
+
+                // We know `nested` was either not retrieved or that the sizes are not
+                // good enough.
+
+                // Check case of half/bfloat + float.
+                if (size(dl, t0) == 16 && source_size > 4) {
+                    // `+4` comes from alignement
+                    return type_at_offset(t, offset + 4, ctx, get_is_sse_type());
+                }
+                return {};
+            }();
+
+            // If we cannot get second type return first. It seems that `i8` would work
+            // as well.
+            if (!t1)
+                return t0;
+
+            // TODO: There is a bunch of conditions regarding size of `t0/t1` that
+            //       return `llvm::FixedVector` types, which we currently cannot really
+            //       work with anyway.
+            VAST_CHECK(!(is_scalar_float(t0) && is_scalar_float(t1)), "Not yet supported");
+            VAST_CHECK(!(is_16b_fp(t0) || is_16b_fp(t1)), "Not yet supported");
+
+            // Default case returns double.
+            return fN(mctx, 64);
+        }
+
+        static mlir_type type_at_offset(
+            mlir_type t, std::size_t offset,
+            const auto &ctx, const auto &accept
+        ){
+            if (offset == 0 && accept(t))
+                return t;
+
+            if (is_struct(t)) {
+                auto [field, field_start] = field_containing_offset(ctx, t, offset);
+                return type_at_offset(field, field_start, ctx, accept);
+            }
+
+            // TODO: Array support.
+            VAST_CHECK(!is_array(t), "Floats in array type not yet supported!");
+
+            return {};
+        }
+
 
         static auto field_containing_offset( const auto &ctx, mlir::Type t, std::size_t offset )
             -> std::tuple< mlir::Type, std::size_t >
@@ -566,10 +657,11 @@ namespace vast::abi
                 if ( hi_start == 8 )
                     return lo;
                 // TODO(abi): float, half -> promote to double
-                VAST_CHECK( TypeConfig::is_scalar_integer( lo ) ||
-                            TypeConfig::is_pointer( lo ),
-                            "Cannot adjust half type for pair {0}. {1}", lo, hi );
-                return TypeConfig::iN( lo, 64 );
+                if (TypeConfig::is_scalar_integer( lo ) || TypeConfig::is_pointer( lo ))
+                    return TypeConfig::iN(lo, 64);
+                if (TypeConfig::is_scalar_float(lo) && size(lo) < 32)
+                    return TypeConfig::fN(*lo.getContext(), 64);
+                VAST_UNREACHABLE("Cannot combine half types for {0}, {1}.", lo, hi);
             }();
 
             return { adjusted_lo, hi };
@@ -672,7 +764,10 @@ namespace vast::abi
 
                 case Class::SSE:
                 {
-                    return { t };
+                    ++needed_sse;
+                    auto target_type = TypeConfig::sse_target_type_at_offset(
+                        t, 0, t, 0, mk_ctx());
+                    return { target_type };
                 }
             }
         }
@@ -701,9 +796,18 @@ namespace vast::abi
                 }
 
                 case Class::X87Up:
+                {
+                    // Should follow the same rules as SSE
+                    VAST_TODO( "arg_hi::X87Up" );
+                }
                 case Class::SSE:
                 {
-                    VAST_TODO( "arg_hi::X87Up,SSE" );
+                    ++needed_sse;
+                    auto target_type = TypeConfig::sse_target_type_at_offset(
+                        t, 8, t, 8, mk_ctx());
+                    if ( lo == Class::NoClass )
+                        return { arg_info::make< direct >(target_type) };
+                    return { target_type };
                 }
                 case Class::SSEUp:
                 {
