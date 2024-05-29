@@ -42,6 +42,7 @@ namespace vast::cg {
         mlir_attr VisitAllocSizeAttr(const clang::AllocSizeAttr *attr);
         mlir_attr VisitLeafAttr(const clang::LeafAttr *attr);
         mlir_attr VisitColdAttr(const clang::ColdAttr *attr);
+        mlir_attr VisitDeprecatedAttr(const clang::DeprecatedAttr *attr);
 
       private:
         template< typename attr_t, typename... args_t >
