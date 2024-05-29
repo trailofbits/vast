@@ -4,6 +4,7 @@
 
 #include "vast/Dialect/Core/CoreDialect.hpp"
 #include "vast/Dialect/Core/CoreTraits.hpp"
+#include "vast/Dialect/Core/SymbolTable.hpp"
 #include "vast/Interfaces/SymbolInterface.hpp"
 #include "vast/Util/Common.hpp"
 
