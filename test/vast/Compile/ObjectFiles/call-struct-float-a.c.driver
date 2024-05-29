@@ -1,0 +1,30 @@
+#include <assert.h>
+#include <stdio.h>
+
+struct d_data
+{
+    double x;
+    double y;
+};
+
+double sum(struct d_data d);
+
+int main()
+{
+    struct d_data a = { 10.1, 10.2 };
+    // CHECK: 20.300000
+    printf("%f\n", sum(a));
+
+    a.x = -10.2;
+    // CHECK: 0.000000
+    printf("%f\n", sum(a));
+
+    a.y = -10.11;
+    // CHECK: -20.310000
+    printf("%f\n", sum(a));
+
+    a.x = 0;
+    a.y = 0;
+    // CHECK: 0.000000
+    printf("%f\n", sum(a));
+}
