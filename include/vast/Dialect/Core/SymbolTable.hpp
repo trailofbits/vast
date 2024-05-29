@@ -13,6 +13,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Common.hpp"
 
 namespace vast::core {
+
     template< typename... SymbolInterfaces >
     struct ShadowingSymbolTable
     {
@@ -24,4 +25,7 @@ namespace vast::core {
             }
         };
     };
+
+    string_ref symbol_attr_name();
+
 } // namespace vast::core
