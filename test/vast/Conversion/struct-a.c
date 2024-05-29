@@ -1,10 +1,13 @@
-// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt-irs-to-llvm | %file-check %s
+// RUN: %check-lower-value-categories %s | %file-check %s -check-prefix=VAL_CAT
+// RUN: %check-core-to-llvm %s | %file-check %s -check-prefix=C_LLVM
 
 struct X { int x; };
 
+// VAL_CAT: {{.*}} = ll.alloca : !hl.ptr<!hl.record<"X">>
+
+// C_LLVM: {{.*}} = llvm.alloca {{.*}} x !llvm.struct<"X", (i32)> : (i64) -> !llvm.ptr
 int main()
 {
-    // CHECK: {{.*}} = llvm.alloca {{.*}} x !llvm.struct<"X", (i32)> : (i64) -> !llvm.ptr
     struct X x;
     return 0;
 }
