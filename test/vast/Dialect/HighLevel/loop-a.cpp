@@ -5,7 +5,7 @@
 void loop_simple()
 {
     // CHECK: core.scope {
-        // CHECK: hl.var "i" : !hl.lvalue<!hl.int>
+        // CHECK: hl.var @i : !hl.lvalue<!hl.int>
         // CHECK: hl.for {
         // CHECK:   hl.cmp slt
         // CHECK: } incr {
@@ -22,7 +22,7 @@ void loop_simple()
 void loop_noinit()
 {
     int i = 0;
-    // CHECK: hl.var "i" : !hl.lvalue<!hl.int>
+    // CHECK: hl.var @i : !hl.lvalue<!hl.int>
     // CHECK: hl.for {
     // CHECK:   [[V2:%[0-9]+]] = hl.cmp slt
     // CHECK:   hl.cond.yield [[V2]]
@@ -36,7 +36,7 @@ void loop_noinit()
 // CHECK-LABEL: hl.func @_Z11loop_noincrv
 void loop_noincr()
 {
-    // CHECK: hl.var "i" : !hl.lvalue<!hl.int>
+    // CHECK: hl.var @i : !hl.lvalue<!hl.int>
     // CHECK: hl.for {
     // CHECK:   [[V2:%[0-9]+]] = hl.cmp slt
     // CHECK:   hl.cond.yield [[V2]]
@@ -62,7 +62,7 @@ void loop_infinite()
 // CHECK-LABEL: hl.func @_Z11loop_nestedv
 void loop_nested()
 {
-    // CHECK: hl.var "i" : !hl.lvalue<!hl.int>
+    // CHECK: hl.var @i : !hl.lvalue<!hl.int>
     // CHECK: hl.for {
     // CHECK:   [[V2:%[0-9]+]] = hl.cmp slt
     // CHECK:   hl.cond.yield [[V2]]
@@ -70,7 +70,7 @@ void loop_nested()
     // CHECK:   hl.pre.inc
     // CHECK: } do {
     for (int i = 0; i < 100; ++i) {
-        // CHECK: hl.var "j" : !hl.lvalue<!hl.int>
+        // CHECK: hl.var @j : !hl.lvalue<!hl.int>
         // CHECK: hl.for {
         // CHECK:   [[V4:%[0-9]+]] = hl.cmp slt
         // CHECK:   hl.cond.yield [[V4]]

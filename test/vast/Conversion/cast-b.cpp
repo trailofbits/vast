@@ -11,8 +11,8 @@ void int_to_bool() {
 }
 
 // HL: hl.func @_Z11int_to_boolv
-// HL:   hl.var "i" : !hl.lvalue<!hl.int>
-// HL:   hl.var "b" : !hl.lvalue<!hl.bool>
+// HL:   hl.var @i : !hl.lvalue<!hl.int>
+// HL:   hl.var @b : !hl.lvalue<!hl.bool>
 // HL:     hl.implicit_cast {{.*}} LValueToRValue
 // HL:     hl.implicit_cast {{.*}} IntegralToBoolean
 // HL: }

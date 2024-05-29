@@ -4,35 +4,35 @@
 #include <stdlib.h>
 
 int main() {
-    // CHECK: [[Y:%[0-9]+]] = hl.var "y" : !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK: [[Y:%[0-9]+]] = hl.var @y : !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK: hl.sizeof.expr
     // CHECK: hl.ref [[Y]]
     int *y = malloc(sizeof(*y));
     if(1) {
-    // CHECK: [[X:%[0-9]+]] = hl.var "x" : !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK: [[X:%[0-9]+]] = hl.var @x : !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK: hl.sizeof.expr
     // CHECK: hl.ref [[X]]
         int *x = malloc(sizeof(*x));
     }
     while(1) {
-    // CHECK: [[X:%[0-9]+]] = hl.var "x" : !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK: [[X:%[0-9]+]] = hl.var @x : !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK: hl.sizeof.expr
     // CHECK: hl.ref [[X]]
         int *x = malloc(sizeof(*x));
     }
     do{
-    // CHECK: [[X:%[0-9]+]] = hl.var "x" : !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK: [[X:%[0-9]+]] = hl.var @x : !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK: hl.sizeof.expr
     // CHECK: hl.ref [[X]]
         int *x = malloc(sizeof(*x));
     }while(0);
     // CHECK: core.scope
-    // CHECK-NEXT: [[X:%[0-9]+]] = hl.var "x" : !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK-NEXT: [[X:%[0-9]+]] = hl.var @x : !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK: hl.sizeof.expr
     // CHECK: hl.ref [[X]]
     for(int *x = malloc(sizeof(*x)); *x<100; *x++) {
     // CHECK: do
-    // CHECK-NEXT: [[F:%[0-9]+]] = hl.var "f" : !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK-NEXT: [[F:%[0-9]+]] = hl.var @f : !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK: hl.sizeof.expr
     // CHECK: hl.ref [[F]]
         int *f = malloc(sizeof(*f));
@@ -43,7 +43,7 @@ int main() {
     if (*y) {
         case 2: case 3: case 5: case 7: {
     // CHECK: hl.case
-    // CHECK: [[X:%[0-9]+]] = hl.var "x" : !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK: [[X:%[0-9]+]] = hl.var @x : !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK: hl.sizeof.expr
     // CHECK: hl.ref [[X]]
             int *x = malloc(sizeof(*x));
@@ -57,13 +57,13 @@ int main() {
         case 1:
         default: {
     // CHECK: hl.default
-    // CHECK: [[Z:%[0-9]+]] = hl.var "z" : !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK: [[Z:%[0-9]+]] = hl.var @z : !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK: hl.sizeof.expr
     // CHECK: hl.ref [[Z]]
             int *z = malloc(sizeof(*z));
         }
     }
-    // CHECK: [[G:%[0-9]+]] = hl.var "g" : !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK: [[G:%[0-9]+]] = hl.var @g : !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK: hl.cond
     // CHECK: ?
     // CHECK: hl.sizeof.expr
@@ -73,7 +73,7 @@ int main() {
     int *g = y ? malloc(sizeof(*g)) : y ;
     ({
     // CHECK: hl.stmt.expr
-    // CHECK: [[Z:%[0-9]+]] = hl.var "z" : !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK: [[Z:%[0-9]+]] = hl.var @z : !hl.lvalue<!hl.ptr<!hl.int>>
     // CHECK: hl.sizeof.expr
     // CHECK: hl.ref [[Z]]
             int *z = malloc(sizeof(*z));

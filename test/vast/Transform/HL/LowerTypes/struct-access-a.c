@@ -13,7 +13,7 @@ struct X
 
 int main()
 {
-    // CHECK: [[V0:%[0-9]+]] = hl.var "var_a" : !hl.lvalue<!hl.elaborated<!hl.record<"X">>>
+    // CHECK: [[V0:%[0-9]+]] = hl.var @var_a : !hl.lvalue<!hl.elaborated<!hl.record<"X">>>
     // CHECK: [[V1:%[0-9]+]] = hl.ref [[V0]]
     // CHECK: [[V2:%[0-9]+]] = hl.member [[V1]] at "member_x" : !hl.lvalue<!hl.elaborated<!hl.record<"X">>> -> !hl.lvalue<si32>
     // CHECK: [[V3:%[0-9]+]] = hl.const #core.integer<1> : si32
