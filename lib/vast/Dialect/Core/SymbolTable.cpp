@@ -4,4 +4,8 @@
 
 namespace vast::core {
 
+    string_ref symbol_attr_name() {
+        return mlir::SymbolTable::getSymbolAttrName();
+    }
+
 } // namespace vast::core
