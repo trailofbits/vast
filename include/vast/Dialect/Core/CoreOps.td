@@ -8,9 +8,13 @@ include "mlir/IR/OpBase.td"
 include "mlir/IR/RegionKindInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
+include "vast/Dialect/Core/SymbolTable.td"
 
-def Core_ScopeOp : Core_Op< "scope", [NoTerminator, DeclareOpInterfaceMethods<RegionKindInterface>] >
-{
+def Core_ScopeOp : Core_Op< "scope", [
+  NoTerminator,
+  ShadowingSymbolTable< [VarSymbol, TypeSymbol, ElaboratedTypeSymbol] >,
+  DeclareOpInterfaceMethods<RegionKindInterface>
+] > {
   let summary = "VAST scope declaration";
   let description = [{
     Scope operation servers to represent explicitly high-level code scope.
