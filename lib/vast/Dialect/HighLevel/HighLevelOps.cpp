@@ -28,8 +28,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/CoreAttributes.hpp"
 #include "vast/Dialect/Core/CoreDialect.hpp"
 #include "vast/Dialect/Core/CoreTypes.hpp"
-#include "vast/Dialect/Core/Linkage.hpp"
 #include "vast/Dialect/Core/Func.hpp"
+#include "vast/Dialect/Core/Linkage.hpp"
+#include "vast/Dialect/Core/SymbolTable.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Dialect.hpp"
@@ -346,7 +347,7 @@ namespace vast::hl
         maybe_builder_callback_ref init,
         maybe_builder_callback_ref alloc
     ) {
-        st.addAttribute("name", bld.getStringAttr(name));
+        st.addAttribute(core::symbol_attr_name(), bld.getStringAttr(name));
         InsertionGuard guard(bld);
 
         build_region(bld, st, init);

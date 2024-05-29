@@ -157,7 +157,7 @@ def HighLevel_VarDeclOp : HighLevel_Op< "var", [VarSymbol] >
   let description = [{ VAST variable declaration }];
 
   let arguments = (ins
-    StrAttr:$name,
+    SymbolNameAttr:$sym_name,
     OptionalAttr<StorageClass>:$storageClass,
     OptionalAttr<ThreadStorage>:$threadStorageClass
   );
@@ -172,14 +172,14 @@ def HighLevel_VarDeclOp : HighLevel_Op< "var", [VarSymbol] >
   let builders = [
     OpBuilder<(ins
       "Type":$type,
-      "llvm::StringRef":$name,
+      "llvm::StringRef":$sym_name,
       CArg< "maybe_builder_callback_ref", "std::nullopt" >:$initBuilder,
       CArg< "maybe_builder_callback_ref", "std::nullopt" >:$allocaBuilder
     )>
   ];
 
   let assemblyFormat = [{
-    $name attr-dict ($storageClass^)? ($threadStorageClass^)? `:` type($result)
+    $sym_name attr-dict ($storageClass^)? ($threadStorageClass^)? `:` type($result)
       (`=` $initializer^)?
       (`allocation_size` $allocation_size^)?
   }];
