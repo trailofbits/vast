@@ -63,19 +63,25 @@ namespace vast::conv::irstollvm
 
       protected:
 
+        mlir_value get_only_result(operation op) const {
+            VAST_ASSERT(op);
+            VAST_CHECK(op->getResults().size() == 1, "Unexpected number of results: {0}", *op);
+            return op->getResults()[0];
+        }
+
         mlir_value construct_value(auto &rewriter, mlir_value val) const {
+            if (auto bb_arg = mlir::dyn_cast< mlir::BlockArgument >(val))
+                return bb_arg;
+
             auto op = val.getDefiningOp();
-            VAST_ASSERT(op && op->getResults().size() == 1);
-            auto trg_type = self().convert(op->getResults()[0].getType());
+            auto trg_type = self().convert(get_only_result(op).getType());
             return construct_value(rewriter, op, trg_type);
         }
 
         mlir_value construct_value(auto &rewriter, operation op, mlir_type type) const {
             auto init_list = mlir::dyn_cast< hl::InitListExpr >(op);
-            if (!init_list)
-            {
-                VAST_CHECK(op->getResults().size() == 1, "Unexpected number of results");
-                return op->getResults()[0];
+            if (!init_list) {
+                return get_only_result(op);
             }
             return construct_value(rewriter, init_list.getLoc(), init_list.getElements(), type);
         }
