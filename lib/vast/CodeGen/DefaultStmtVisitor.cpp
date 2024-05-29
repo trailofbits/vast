@@ -590,8 +590,12 @@ namespace vast::cg
         return {};
     }
 
-    operation default_stmt_visitor::VisitCompoundLiteralExpr(const clang::CompoundLiteralExpr */* lit */) {
-        return {};
+    operation default_stmt_visitor::VisitCompoundLiteralExpr(const clang::CompoundLiteralExpr *lit) {
+        return bld.compose< hl::CompoundLiteralOp >()
+            .bind(self.location(lit))
+            .bind(self.visit(lit->getType()))
+            .bind(mk_value_builder(lit->getInitializer()))
+            .freeze();
     }
 
     operation default_stmt_visitor::VisitFixedPointLiteral(const clang::FixedPointLiteral */* lit */) {
