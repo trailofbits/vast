@@ -10,3 +10,12 @@ void fun(FLOAT a, FLOAT b) {
     return;
 }
 
+void fun2(FLOAT a, float b) {
+    // CHECK: hl.fadd {{.*}}!hl.elaborated<!hl.typedef<"FLOAT">>, !hl.float
+    float c = a + b;
+    // CHECK: hl.fcmp olt {{.*}}!hl.elaborated<!hl.typedef<"FLOAT">>, !hl.float
+    if (a < b)
+        return;
+    return;
+}
+
