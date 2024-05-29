@@ -17,19 +17,19 @@ int test1()
 void test2()
 {
     // CHECK: core.scope
-    // CHECK: hl.var "a" : !hl.lvalue<si32>
+    // CHECK: hl.var @a : !hl.lvalue<si32>
     {
         int a;
     }
 
     // CHECK: core.scope
-    // CHECK: hl.var "a" : !hl.lvalue<si32>
+    // CHECK: hl.var @a : !hl.lvalue<si32>
     {
         int a;
     }
 
     // CHECK: core.scope
-    // CHECK: hl.var "a" : !hl.lvalue<si32>
+    // CHECK: hl.var @a : !hl.lvalue<si32>
     {
         int a;
     }
@@ -38,12 +38,12 @@ void test2()
 // CHECK: hl.func @test3
 int test3()
 {
-    // CHECK: hl.var "b" : !hl.lvalue<si32>
+    // CHECK: hl.var @b : !hl.lvalue<si32>
     int b;
 
     // CHECK: core.scope
     {
-        // CHECK: hl.var "a" : !hl.lvalue<si32>
+        // CHECK: hl.var @a : !hl.lvalue<si32>
         int a;
     }
 

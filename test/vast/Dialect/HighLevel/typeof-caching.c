@@ -5,7 +5,7 @@ static __attribute__((always_inline)) void usb_fill_int_urb(int interval) {
     typeof((typeof(interval)) ({
     // TYPEOF-COUNT-5: hl.typeof.expr "
     // TYPEOF-NOT:     hl.typeof.expr "
-    // VAR:         hl.var "_v"
+    // VAR:         hl.var @_v
     // VAR-NEXT:    hl.expr
     // VAR-NEXT:    hl.ref
     // VAR-NEXT:    hl.value.yield

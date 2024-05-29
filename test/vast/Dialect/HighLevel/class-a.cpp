@@ -19,6 +19,6 @@ public:
     // CHECK: hl.field "x" : !hl.int
     int x;
 
-    // CHECK: %0 = hl.var "C::y" sc_static : !hl.lvalue<!hl.int>
+    // CHECK: %0 = hl.var @C::y sc_static : !hl.lvalue<!hl.int>
     static int y;
 };

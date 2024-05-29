@@ -14,7 +14,7 @@ void foo(array_ptr_t array_ptr) {
 }
 
 void bar() {
-    // CHECK: hl.var "arr_10" : !hl.lvalue<!hl.array<10, !hl.int>>
+    // CHECK: hl.var @arr_10 : !hl.lvalue<!hl.array<10, !hl.int>>
     int arr_10[10];
     // CHECK: hl.call @foo([[V:%[0-9]+]]) : (!hl.ptr<!hl.array<10, !hl.int>>)
     foo(&arr_10);

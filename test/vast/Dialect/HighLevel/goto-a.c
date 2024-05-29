@@ -4,7 +4,7 @@
 int main() {
     // CHECK: [[L:%[0-9]+]] = hl.label.decl "end" : !hl.label
 
-    // CHECK: hl.var "x" : !hl.lvalue<!hl.int>
+    // CHECK: hl.var @x : !hl.lvalue<!hl.int>
     int x;
 
     // CHECK: hl.goto [[L]]
