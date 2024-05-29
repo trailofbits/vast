@@ -1,0 +1,40 @@
+#include <assert.h>
+#include <stdio.h>
+
+struct wrap
+{
+    double v;
+};
+
+struct d_data
+{
+    struct wrap x;
+    struct wrap y;
+};
+
+double sum(struct d_data d);
+
+int main()
+{
+    struct d_data a = { { 10.1 }, { 10.2 } };
+    // CHECK: 20.300000
+    printf("%f\n", sum(a));
+
+    a.x.v = -10.2;
+    // CHECK: 0.000000
+    printf("%f\n", sum(a));
+
+    a.y.v = -10.11;
+    // CHECK: -20.310000
+    printf("%f\n", sum(a));
+
+    a.x.v = 0;
+    a.y.v = 0;
+    // CHECK: 0.000000
+    printf("%f\n", sum(a));
+
+    struct wrap w = { 0.12 };
+    a.x = w;
+    // CHECK: 0.120000
+    printf("%f\n", sum(a));
+}
