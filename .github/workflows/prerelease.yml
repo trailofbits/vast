@@ -156,8 +156,8 @@ jobs:
      - name: Upload results
        uses: actions/upload-artifact@v4
        with:
-        path: ./results-${{ matrix.vast-target }}$VAST_RESULTS_SUFFIX.json
-        name: results-llvm-ts-${{ matrix.vast-target }}$VAST_RESULTS_SUFFIX
+        path: ./results-${{ matrix.vast-target }}${{ env.VAST_RESULTS_SUFFIX }}.json
+        name: results-llvm-ts-${{ matrix.vast-target }}${{ env.VAST_RESULTS_SUFFIX }}
 
   eval_llvm_ts:
     name: "Eval LLVM Singlesource results"
@@ -266,7 +266,7 @@ jobs:
        uses: actions/upload-artifact@v4
        with:
         path: ./stats
-        name: results-sv-${{ matrix.vast-target }}$VAST_RESULTS_SUFFIX
+        name: results-sv-${{ matrix.vast-target }}${{ env.VAST_RESULTS_SUFFIX }}
 
   eval_svcomp:
     name: "Eval SV-Comp test results"
