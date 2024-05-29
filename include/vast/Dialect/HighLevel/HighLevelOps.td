@@ -43,7 +43,11 @@ def TranslationUnitOp
 }
 
 def HighLevel_FuncOp
-  : Core_FuncBaseOp< HighLevel_Dialect, "func" >
+  : Core_FuncBaseOp< HighLevel_Dialect, "func", [
+    FuncSymbol,
+    ShadowingSymbolTable< [VarSymbol, TypeSymbol, ElaboratedTypeSymbol] >,
+    IsolatedFromAbove
+  ] >
 {
   let skipDefaultBuilders = 1;
 
