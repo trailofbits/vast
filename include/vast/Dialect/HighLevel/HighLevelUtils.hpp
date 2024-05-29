@@ -159,7 +159,7 @@ namespace vast::hl {
     walk_result users(hl::VarDeclOp var, auto scope, auto &&yield) {
         VAST_CHECK(var.hasGlobalStorage(), "Only global variables are supported");
         return scope.walk([&](GlobalRefOp op) {
-            return op.getGlobal() == var.getName() ? yield(op) : walk_result::advance();
+            return op.getGlobal() == var.getSymbolName() ? yield(op) : walk_result::advance();
         });
     }
 
