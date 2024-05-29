@@ -54,7 +54,11 @@ namespace vast::hl
             VAST_ASSERT(op -> getNumResults() == 1);
             auto res_type = strip_complex(op->getResult(0).getType());
 
-            for (auto t : op->getOperandTypes()) {
+            for (auto t_elab : op->getOperandTypes()) {
+                auto t = strip_elaborated(t_elab);
+                if (t.hasTrait< mlir::TypeTrait::TypedefTrait >()) {
+                    return logical_result::success();
+                }
                 if (strip_complex(t) != res_type) {
                     return logical_result::failure();
                 }
@@ -65,7 +69,12 @@ namespace vast::hl
     } // namespace
 
     logical_result FCmpOp::verify() {
-        return logical_result::success(strip_complex(getLhs()) == strip_complex(getRhs()));
+        auto lhs = strip_complex(strip_elaborated(getLhs()));
+        auto rhs = strip_complex(strip_elaborated(getRhs()));
+        return logical_result::success(
+            lhs == rhs || lhs.hasTrait< mlir::TypeTrait::TypedefTrait >()
+            || rhs.hasTrait< mlir::TypeTrait::TypedefTrait >()
+        );
     }
 
     FoldResult checked_int_arithmetic(mlir_type type, auto adaptor, auto &&op) {
