@@ -51,6 +51,10 @@ namespace vast::conv::irstollvm
         erase_pattern< hl::TypeDeclOp >
     >;
 
+    // `InitListExpr` will construct more complicated types from its elements and if
+    // there is some nesting (nested structures for example) there will be a chain of
+    // them. This helper recursively traverses such chains and emits appropriate
+    // `mlir::LLVM::InsertValueOp` to construct the final value.
     template< typename self_t >
     struct value_builder
     {
