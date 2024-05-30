@@ -14,6 +14,8 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/ScopeExit.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelUtils.hpp"
 #include "vast/Util/Maybe.hpp"
@@ -328,10 +330,10 @@ namespace vast::conv::tc {
     {
         using base = LLVMTypeConverter;
 
-        vast_module mod;
+        core::module mod;
 
         template< typename... Args >
-        FullLLVMTypeConverter(vast_module mod, Args &&...args)
+        FullLLVMTypeConverter(core::module mod, Args &&...args)
             : base(std::forward< Args >(args)...), mod(mod)
         {
             addConversion(convert_recordlike< hl::RecordType >());

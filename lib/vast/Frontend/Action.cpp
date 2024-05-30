@@ -5,6 +5,8 @@
 #include "vast/Util/Common.hpp"
 #include "vast/Frontend/Consumer.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 namespace clang {
     class CXXRecordDecl;
     class DeclGroupRef;
@@ -133,8 +135,8 @@ namespace vast::cc {
         _mod = consumer->result();
     }
 
-    owning_module_ref vast_module_action::result() {
-        return std::move(_mod);
+    core::owning_module_ref vast_module_action::result() {
+        return consumer->result();
     }
 
     // emit assembly

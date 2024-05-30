@@ -14,6 +14,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Tower/LocationInfo.hpp"
 #include "vast/Tower/Storage.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 namespace vast::tw {
 
     struct tower
@@ -24,7 +26,7 @@ namespace vast::tw {
         handle_t top_handle;
 
       public:
-        tower(mcontext_t &mctx, location_info_t &li, owning_module_ref root) : mctx(mctx) {
+        tower(mcontext_t &mctx, location_info_t &li, core::owning_module_ref root) : mctx(mctx) {
             mk_root(li, root->getOperation());
             top_handle = storage.store(root_conversion(), std::move(root));
         }

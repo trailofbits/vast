@@ -210,7 +210,7 @@ namespace vast::hl
 
     struct ExportFnInfo : ExportFnInfoBase< ExportFnInfo > {
         void runOnOperation() override {
-            mlir::ModuleOp mod = this->getOperation();
+            auto mod = this->getOperation();
 
             llvm::json::Object top;
 
