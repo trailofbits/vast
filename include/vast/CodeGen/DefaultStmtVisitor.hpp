@@ -252,7 +252,10 @@ namespace vast::cg {
         // Literals
         //
 
-        // Helper for use with literal expressions that might return lvalue
+        // Helper for use with literal expressions that might return lvalue.
+        // It takes an expression, checks if it's lvalue expression
+        // and depending on the result calls either the lvalue type visitor or
+        // the standard type visitor.
         mlir_type visit_maybe_lvalue_literal_type (const clang::Expr *expr);
 
         operation VisitCharacterLiteral(const clang::CharacterLiteral *lit);
