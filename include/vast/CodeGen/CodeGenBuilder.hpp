@@ -171,7 +171,7 @@ namespace vast::cg {
     struct codegen_builder : mlir_builder {
         using mlir_builder::mlir_builder;
 
-        vast_module module;
+        core::module module;
 
         insertion_guard insertion_guard() { return { *this }; }
 

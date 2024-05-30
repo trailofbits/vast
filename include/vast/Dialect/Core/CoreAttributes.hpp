@@ -11,12 +11,13 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Core/CoreDialect.hpp"
+#include "vast/Dialect/Core/CoreTraits.hpp"
+
+#include "vast/Interfaces/SymbolInterface.hpp"
 #include "vast/Interfaces/TypeQualifiersInterfaces.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/TypeList.hpp"
-
-#include "vast/Dialect/Core/CoreTraits.hpp"
 
 #define GET_ATTRDEF_CLASSES
 #include "vast/Dialect/Core/CoreAttributes.h.inc"

@@ -32,7 +32,7 @@ namespace vast::ll
     void ToLLVMPass::runOnOperation()
     {
         auto &mctx = this->getContext();
-        mlir::ModuleOp op = this->getOperation();
+        auto op = this->getOperation();
 
 
         mlir::ConversionTarget target(mctx);

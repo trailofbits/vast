@@ -27,6 +27,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Target/LLVMIR/Convert.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 namespace vast::cc {
 
     [[nodiscard]] target_dialect parse_target_dialect(string_ref from);
@@ -99,7 +101,7 @@ namespace vast::cc {
 
     void vast_consumer::HandleVTable(clang::CXXRecordDecl * /* decl */) { VAST_UNIMPLEMENTED; }
 
-    owning_module_ref vast_consumer::result() {
+    core::owning_module_ref vast_consumer::result() {
         return driver->freeze();
     }
 
@@ -145,7 +147,7 @@ namespace vast::cc {
     }
 
     void vast_stream_consumer::emit_backend_output(
-        backend backend_action, owning_module_ref mod
+        backend backend_action, core::owning_module_ref mod
     ) {
         llvm::LLVMContext llvm_context;
 
@@ -161,7 +163,7 @@ namespace vast::cc {
     }
 
     void vast_stream_consumer::process_mlir_module(
-        target_dialect target, mlir::ModuleOp mod
+        target_dialect target, core::module mod
     ) {
         // Handle source manager properly given that lifetime analysis
         // might emit warnings and remarks.
@@ -211,7 +213,7 @@ namespace vast::cc {
     }
 
     void vast_stream_consumer::emit_mlir_output(
-        target_dialect target, owning_module_ref mod
+        target_dialect target, core::owning_module_ref mod
     ) {
         if (!output_stream || !mod) {
             return;

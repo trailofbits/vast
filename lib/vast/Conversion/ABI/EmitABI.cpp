@@ -27,6 +27,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
 #include "vast/ABI/ABI.hpp"
@@ -869,7 +871,7 @@ namespace vast
         void runOnOperation() override
         {
             auto &mctx = this->getContext();
-            mlir::ModuleOp op = this->getOperation();
+            auto op = this->getOperation();
 
             const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
             auto tc = TypeConverter(dl_analysis.getAtOrAbove(op), mctx);

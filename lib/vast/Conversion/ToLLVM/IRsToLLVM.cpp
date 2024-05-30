@@ -22,6 +22,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
 #include "vast/Dialect/Core/CoreAttributes.hpp"
+#include "vast/Dialect/Core/CoreOps.hpp"
 
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
@@ -538,7 +539,7 @@ namespace vast::conv::irstollvm
 
         static inline constexpr const char *strlit_global_var_prefix = "vast.strlit.constant_";
 
-        std::string next_strlit_name(vast_module mod) const
+        std::string next_strlit_name(core::module mod) const
         {
             std::size_t current = 0;
             for (auto &op : mod.getOps())
@@ -637,7 +638,7 @@ namespace vast::conv::irstollvm
                                                       str_lit.getValue().size() + 1));
             auto converted_attr = mlir::StringAttr::get(op->getContext(), twine);
 
-            auto mod = op->getParentOfType< mlir::ModuleOp >();
+            auto mod = op->getParentOfType< core::module >();
             auto name = next_strlit_name(mod);
 
             auto et = converted_element_type(original_type);
@@ -1025,11 +1026,11 @@ namespace vast::conv::irstollvm
                     hl::CallOp op, typename hl::CallOp::Adaptor ops,
                     conversion_rewriter &rewriter) const override
         {
-            auto module = op->getParentOfType< mlir::ModuleOp >();
+            auto module = op->getParentOfType< core::module >();
             if (!module)
                 return logical_result::failure();
 
-            auto callee = module.lookupSymbol< mlir::LLVM::LLVMFuncOp >(op.getCallee());
+            auto callee = module.lookup_symbol< mlir::LLVM::LLVMFuncOp >(op.getCallee());
             if (!callee)
                 return logical_result::failure();
 
@@ -1551,7 +1552,7 @@ namespace vast::conv::irstollvm
             });
 
             target.addIllegalOp< mlir::func::FuncOp >();
-            target.addLegalOp< mlir::ModuleOp >();
+            target.addLegalOp< core::module >();
 
             auto is_legal = tc->get_is_type_conversion_legal();
             target.markUnknownOpDynamicallyLegal(is_legal);

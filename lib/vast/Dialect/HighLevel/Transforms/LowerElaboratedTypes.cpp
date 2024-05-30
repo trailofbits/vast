@@ -22,6 +22,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/DialectConversion.hpp"
 #include "vast/Util/TypeUtils.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
@@ -37,10 +38,10 @@ namespace vast::hl {
                 : conv::tc::base_type_converter
                 , conv::tc::mixins< type_converter >
             {
-                vast_module mod;
+                core::module mod;
                 mcontext_t &mctx;
 
-                type_converter(mcontext_t &mctx, vast_module mod)
+                type_converter(mcontext_t &mctx, core::module mod)
                     : conv::tc::base_type_converter(),
                       mod(mod), mctx(mctx)
                 {
@@ -83,7 +84,7 @@ namespace vast::hl {
         void runOnOperation() override {
             auto &mctx     = getContext();
             auto target    = create_conversion_target(mctx);
-            vast_module op = getOperation();
+            core::module op = getOperation();
 
             rewrite_pattern_set patterns(&mctx);
 

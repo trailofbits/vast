@@ -6,6 +6,9 @@
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include "vast/Interfaces/SymbolInterface.hpp"
 
 #include "vast/Util/Common.hpp"
@@ -86,7 +89,7 @@ namespace vast::hl {
     auto generate_ptrs_to_record_members(operation root, auto loc, auto &bld)
         ->  gap::generator< hl::RecordMemberOp >
     {
-        auto scope = root->getParentOfType< vast_module >();
+        auto scope = root->getParentOfType< core::module >();
         VAST_ASSERT(scope);
         VAST_ASSERT(root->getNumResults() == 1);
         auto def = definition_of(root->getResultTypes()[0], scope);
