@@ -14,3 +14,9 @@
 
 #define GET_OP_CLASSES
 #include "vast/Dialect/Core/Core.h.inc"
+
+
+namespace vast::core {
+    using module            = core::ModuleOp;
+    using owning_module_ref = mlir::OwningOpRef< module >;
+}
