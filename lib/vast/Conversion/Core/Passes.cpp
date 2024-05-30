@@ -12,13 +12,15 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Conversion/Passes.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 namespace vast::conv::pipeline {
 
     static pipeline_step_ptr llvm_debug_scope() {
         // This is necessary to have line tables emitted and basic debugger
         // working. In the future we will add proper debug information emission
         // directly from our frontend.
-        return nested< vast_module >(mlir::LLVM::createDIScopeForLLVMFuncOpPass)
+        return nested< core::module >(mlir::LLVM::createDIScopeForLLVMFuncOpPass)
             .depends_on(core_to_llvm);
     }
 

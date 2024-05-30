@@ -12,6 +12,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/DialectImplementation.h>
 VAST_RELAX_WARNINGS
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 namespace vast::hl
 {
     mlir_type strip_elaborated(mlir_value v)
@@ -50,19 +52,19 @@ namespace vast::hl
         return t;
     }
 
-    mlir_type getBottomTypedefType(TypedefType def, vast_module mod)
+    mlir_type getBottomTypedefType(TypedefType def, core::module mod)
     {
         return getBottomTypedefType(getTypedefType(def, mod), mod);
     }
 
-    mlir_type getBottomTypedefType(mlir_type type, vast_module mod)
+    mlir_type getBottomTypedefType(mlir_type type, core::module mod)
     {
         if (auto def = mlir::dyn_cast_or_null< TypedefType >(strip_elaborated(type)))
             return getBottomTypedefType(def, mod);
         return type;
     }
 
-    mlir_type getTypedefType(TypedefType type, vast_module mod)
+    mlir_type getTypedefType(TypedefType type, core::module mod)
     {
         auto name = type.getName();
         mlir_type result;
@@ -87,7 +89,7 @@ namespace vast::hl
         return {};
     }
 
-    core::FunctionType getFunctionType(mlir_type type, vast_module mod) {
+    core::FunctionType getFunctionType(mlir_type type, core::module mod) {
         if (auto ty = type.dyn_cast< core::FunctionType >())
             return ty;
         if (auto ty = dyn_cast< ElementTypeInterface >(type))
@@ -100,16 +102,16 @@ namespace vast::hl
 
     core::FunctionType getFunctionType(mlir_value callee) {
         auto op  = callee.getDefiningOp();
-        auto mod = op->getParentOfType< vast_module >();
+        auto mod = op->getParentOfType< core::module >();
         return getFunctionType(callee.getType(), mod);
     }
 
     core::FunctionType getFunctionType(mlir::CallOpInterface call) {
-        auto mod = call->getParentOfType< vast_module >();
+        auto mod = call->getParentOfType< core::module >();
         return getFunctionType(call.getCallableForCallee(), mod);
     }
 
-    core::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, vast_module mod) {
+    core::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, core::module mod) {
         if (!callee) {
             return {};
         }

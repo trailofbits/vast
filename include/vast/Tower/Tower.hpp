@@ -9,6 +9,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/Pass/Pass.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 namespace vast::tw {
 
     struct default_loc_rewriter_t
@@ -28,10 +30,10 @@ namespace vast::tw {
         struct handle_t
         {
             std::size_t id;
-            vast_module mod;
+            core::module mod;
         };
 
-        static auto get(mcontext_t &ctx, owning_module_ref mod)
+        static auto get(mcontext_t &ctx, core::owning_module_ref mod)
             -> std::tuple< tower, handle_t > {
             tower t(ctx, std::move(mod));
             handle_t h{ .id = 0, .mod = t._modules[0].get() };
@@ -41,7 +43,7 @@ namespace vast::tw {
         auto apply(handle_t handle, mlir::PassManager &pm) -> handle_t {
             handle.mod.walk(loc_rewriter::insert);
 
-            _modules.emplace_back(mlir::cast< vast_module >(handle.mod->clone()));
+            _modules.emplace_back(mlir::cast< core::module >(handle.mod->clone()));
 
             auto id  = _modules.size() - 1;
             auto mod = _modules.back().get();
@@ -64,12 +66,12 @@ namespace vast::tw {
         auto top() -> handle_t { return { _modules.size(), _modules.back().get() }; }
 
       private:
-        using module_storage_t = llvm::SmallVector< owning_module_ref, 2 >;
+        using module_storage_t = llvm::SmallVector< core::owning_module_ref, 2 >;
 
         mcontext_t *_ctx;
         module_storage_t _modules;
 
-        tower(mcontext_t &ctx, owning_module_ref mod) : _ctx(&ctx) {
+        tower(mcontext_t &ctx, core::owning_module_ref mod) : _ctx(&ctx) {
             _modules.emplace_back(std::move(mod));
         }
     };

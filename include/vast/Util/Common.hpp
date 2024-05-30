@@ -47,9 +47,6 @@ namespace vast {
     using acontext_t = clang::ASTContext;
     using mcontext_t = mlir::MLIRContext;
 
-    using vast_module       = mlir::ModuleOp;
-    using owning_module_ref = mlir::OwningOpRef< vast_module >;
-
     using mlir_type  = mlir::Type;
 
     using operation  = mlir::Operation *;

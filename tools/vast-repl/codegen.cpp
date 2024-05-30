@@ -16,6 +16,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Frontend/CompilerInvocation.hpp"
 #include "vast/Frontend/Diagnostics.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include <fstream>
 
 namespace vast::cc {
@@ -38,7 +40,7 @@ namespace vast::repl::codegen {
         llvm::sys::RunInterruptHandlers();
     }
 
-    owning_module_ref emit_module(const std::filesystem::path &source, mcontext_t &mctx ) {
+    core::owning_module_ref emit_module(const std::filesystem::path &source, mcontext_t &mctx ) {
         // TODO setup args from repl state
         std::vector< const char * > ccargs = { source.c_str() };
         vast::cc::buffered_diagnostics diags(ccargs);

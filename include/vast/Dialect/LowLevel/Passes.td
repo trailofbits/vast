@@ -5,7 +5,7 @@
 
 include "mlir/Pass/PassBase.td"
 
-def ToLLVM : Pass<"vast-ll-to-llvm", "mlir::ModuleOp"> {
+def ToLLVM : Pass<"vast-ll-to-llvm", "core::ModuleOp"> {
   let summary = "Convert low level operations to LLVM dialect.";
   let description = [{
     Work in progess.

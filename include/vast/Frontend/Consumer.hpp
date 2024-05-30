@@ -16,6 +16,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/CodeGenDriver.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 namespace vast::cc {
 
     using output_stream_ptr = std::unique_ptr< llvm::raw_pwrite_stream >;
@@ -56,7 +58,7 @@ namespace vast::cc {
 
         void HandleVTable(clang::CXXRecordDecl * /* decl */) override;
 
-        owning_module_ref result();
+        core::owning_module_ref result();
 
       protected:
 
@@ -94,11 +96,11 @@ namespace vast::cc {
         void HandleTranslationUnit(acontext_t &acontext) override;
 
       private:
-        void emit_backend_output(backend backend_action, owning_module_ref mod);
+        void emit_backend_output(backend backend_action, core::owning_module_ref mod);
 
-        void emit_mlir_output(target_dialect target, owning_module_ref mod);
+        void emit_mlir_output(target_dialect target, core::owning_module_ref mod);
 
-        void process_mlir_module(target_dialect target, mlir::ModuleOp mod);
+        void process_mlir_module(target_dialect target, core::module mod);
 
         void print_mlir_bytecode(owning_module_ref mod);
         void print_mlir_string_format(owning_module_ref mod);

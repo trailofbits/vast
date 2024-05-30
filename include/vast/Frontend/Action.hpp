@@ -14,6 +14,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Frontend/Options.hpp"
 #include "vast/Frontend/Targets.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 namespace llvm {
     class LLVMIRContext;
     class Module;
@@ -67,7 +69,7 @@ namespace vast::cc {
     struct vast_module_action : frontend_action {
         virtual ~vast_module_action() = default;
 
-        owning_module_ref result();
+        core::owning_module_ref result();
 
         vast_consumer *consumer;
     protected:

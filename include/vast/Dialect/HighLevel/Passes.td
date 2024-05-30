@@ -5,7 +5,7 @@
 
 include "mlir/Pass/PassBase.td"
 
-def ExportFnInfo : Pass<"vast-export-fn-info", "mlir::ModuleOp"> {
+def ExportFnInfo : Pass<"vast-export-fn-info", "core::ModuleOp"> {
   let summary = "Create JSON that exports information about function arguments.";
   let description = [{
     Lowers module into llvm IR and dumps it on stderr.
@@ -24,7 +24,7 @@ def ExportFnInfo : Pass<"vast-export-fn-info", "mlir::ModuleOp"> {
   ];
 }
 
-def DCE : Pass<"vast-hl-dce", "mlir::ModuleOp"> {
+def DCE : Pass<"vast-hl-dce", "core::ModuleOp"> {
   let summary = "Trim dead code";
   let description = [{
     Removes unreachable code, such as code after return or break/continue.
@@ -38,7 +38,7 @@ def DCE : Pass<"vast-hl-dce", "mlir::ModuleOp"> {
   let constructor = "vast::hl::createDCEPass()";
 }
 
-def UDE : Pass<"vast-hl-ude", "mlir::ModuleOp"> {
+def UDE : Pass<"vast-hl-ude", "core::ModuleOp"> {
   let summary = "Eliminate unused definitions";
   let description = [{
     Removes unused definitions, such as typedefs, structs and functions.
@@ -52,7 +52,7 @@ def UDE : Pass<"vast-hl-ude", "mlir::ModuleOp"> {
   let constructor = "vast::hl::createUDEPass()";
 }
 
-def HLLowerTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
+def HLLowerTypes : Pass<"vast-hl-lower-types", "core::ModuleOp"> {
   let summary = "Lower high-level types to standard types";
   let description = [{
     Lower high-level types into standard types which is usually required first step
@@ -73,7 +73,7 @@ def HLLowerTypes : Pass<"vast-hl-lower-types", "mlir::ModuleOp"> {
   let constructor = "vast::hl::createHLLowerTypesPass()";
 }
 
-def LowerTypeDefs : Pass<"vast-hl-lower-typedefs", "mlir::ModuleOp"> {
+def LowerTypeDefs : Pass<"vast-hl-lower-typedefs", "core::ModuleOp"> {
   let summary = "Replace `hl::TypeDef` type by its underlying aliased type.";
   let description = [{
     Replaces `hl::TypeDef` types by its underlying aliased types.
@@ -90,7 +90,7 @@ def LowerTypeDefs : Pass<"vast-hl-lower-typedefs", "mlir::ModuleOp"> {
   let constructor = "vast::hl::createLowerTypeDefsPass()";
 }
 
-def LowerElaboratedTypes : Pass<"vast-hl-lower-elaborated-types", "mlir::ModuleOp"> {
+def LowerElaboratedTypes : Pass<"vast-hl-lower-elaborated-types", "core::ModuleOp"> {
   let summary = "Replace `hl::ElaboratedType` type by its underlying type.";
   let description = [{
     Replaces `hl::ElaboratedType` types by its underlying type.
@@ -106,7 +106,7 @@ def LowerElaboratedTypes : Pass<"vast-hl-lower-elaborated-types", "mlir::ModuleO
   let constructor = "vast::hl::createLowerElaboratedTypesPass()";
 }
 
-def SpliceTrailingScopes : Pass<"vast-hl-splice-trailing-scopes", "mlir::ModuleOp"> {
+def SpliceTrailingScopes : Pass<"vast-hl-splice-trailing-scopes", "core::ModuleOp"> {
   let summary = "Remove trailing `core::ScopeOp`s.";
   let description = [{
     Removes trailing scopes.
@@ -120,7 +120,7 @@ def SpliceTrailingScopes : Pass<"vast-hl-splice-trailing-scopes", "mlir::ModuleO
   let constructor = "vast::hl::createSpliceTrailingScopes()";
 }
 
-def LowerEnums : Pass<"vast-hl-lower-enums", "mlir::ModuleOp"> {
+def LowerEnums : Pass<"vast-hl-lower-enums", "core::ModuleOp"> {
   let summary = "Lower high level representation of enums.";
   let description = [{
     Lower enum values and types into their underlying representations. Definition of enum

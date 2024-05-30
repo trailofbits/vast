@@ -15,6 +15,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
+#include "vast/Dialect/Core/CoreOps.hpp"
 
 #include <type_traits>
 
@@ -109,7 +110,7 @@ namespace vast::dl {
         bool operator==(const DLEntry &o) const = default;
     };
 
-    void filter_data_layout(vast_module mod, auto &&filter) {
+    void filter_data_layout(core::module mod, auto &&filter) {
         auto dl = mod.getDataLayoutSpec();
 
         auto filtered_entries = llvm::to_vector(
