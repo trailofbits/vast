@@ -251,6 +251,10 @@ namespace vast::cg {
         //
         // Literals
         //
+
+        // Helper for use with literal expressions that might return lvalue
+        mlir_type visit_maybe_lvalue_literal_type (const clang::Expr *expr);
+
         operation VisitCharacterLiteral(const clang::CharacterLiteral *lit);
         operation VisitIntegerLiteral(const clang::IntegerLiteral *lit);
         operation VisitFloatingLiteral(const clang::FloatingLiteral *lit);

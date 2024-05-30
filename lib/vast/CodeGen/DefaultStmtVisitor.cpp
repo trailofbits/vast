@@ -562,6 +562,12 @@ namespace vast::cg
     //
     // Literals
     //
+    mlir_type default_stmt_visitor::visit_maybe_lvalue_literal_type (const clang::Expr *lit){
+        if (lit->isLValue())
+            return self.visit_as_lvalue_type(lit->getType());
+        return self.visit(lit->getType());
+    }
+
     operation default_stmt_visitor::VisitCharacterLiteral(const clang::CharacterLiteral *lit) {
         return bld.constant(self.location(lit), self.visit(lit->getType()), apsint(lit->getValue())).getDefiningOp();
     }
@@ -575,15 +581,9 @@ namespace vast::cg
     }
 
     operation default_stmt_visitor::VisitStringLiteral(const clang::StringLiteral *lit) {
-        auto type = [&] {
-            if (lit->isLValue()) {
-                return self.visit_as_lvalue_type(lit->getType());
-            } else {
-                return self.visit(lit->getType());
-            }
-        }();
-
-        return bld.constant(self.location(lit), type, lit->getString()).getDefiningOp();
+        return bld.constant(self.location(lit),
+                            visit_maybe_lvalue_literal_type(lit),
+                            lit->getString()).getDefiningOp();
     }
 
     operation default_stmt_visitor::VisitUserDefinedLiteral(const clang::UserDefinedLiteral */* lit */) {
