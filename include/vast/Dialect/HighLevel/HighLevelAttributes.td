@@ -64,6 +64,7 @@ def NonNullAttr  : HighLevel_Attr< "NonNull", "nonnull" >;
 def LeafAttr     : HighLevel_Attr< "Leaf", "leaf" >;
 def ColdAttr     : HighLevel_Attr< "Cold", "cold" >;
 def TransparentUnionAttr : HighLevel_Attr< "TransparentUnion", "transparent_union" >;
+def ReturnsTwiceAttr      : HighLevel_Attr< "ReturnsTwice", "returns_twice" >;
 
 def AsmLabelAttr : HighLevel_Attr< "AsmLabel", "asm" > {
   let parameters = (ins "::mlir::StringAttr":$label, "bool":$isLiteral);
