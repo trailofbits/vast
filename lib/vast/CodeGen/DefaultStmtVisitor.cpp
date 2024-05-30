@@ -593,7 +593,7 @@ namespace vast::cg
     operation default_stmt_visitor::VisitCompoundLiteralExpr(const clang::CompoundLiteralExpr *lit) {
         return bld.compose< hl::CompoundLiteralOp >()
             .bind(self.location(lit))
-            .bind(self.visit(lit->getType()))
+            .bind(visit_maybe_lvalue_literal_type(lit))
             .bind(mk_value_builder(lit->getInitializer()))
             .freeze();
     }
