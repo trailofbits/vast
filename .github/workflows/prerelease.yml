@@ -190,7 +190,7 @@ jobs:
       - name: Generate the results
         run: |
           python3 llvm-test-suite/utils/vast_compare.py \
-            --columns HighLevel,"HighLevel without Unsupported",LLVM,Binary \
+            --columns "HighLevel with Unsupported",HighLevel,LLVM,Binary \
             --files results-hl-with-unsup.json,results-hl.json,results-llvm-with-unsup.json,results-bin-with-unsup.json \
             --output single-source-results
 
@@ -257,7 +257,7 @@ jobs:
 
      - name: Setup result suffix
        run: |
-        if [ "${{ matrix.disable-unsup }}" = "true" ]; then
+        if [ "${{ matrix.disable-unsup }}" = "false" ]; then
           echo "VAST_RESULTS_SUFFIX=-with-unsup" >> $GITHUB_ENV
         fi
 
@@ -295,7 +295,7 @@ jobs:
       - name: Generate the results
         run: |
           python3 sv-bench-patch/make_table.py \
-            --columns HighLevel,"HighLevel without Unsupported" \
+            --columns "HighLevel with Unsupported",HighLevel \
             --files results-sv-hl-with-unsup/results.txt,results-sv-hl/results.txt \
             --output sv-comp-results
 
