@@ -96,15 +96,17 @@ def AllocSizeAttr : HighLevel_Attr< "AllocSize", "alloc_size" > {
 }
 
 def DeprecatedAttr : HighLevel_Attr< "Deprecated", "deprecated" > {
-  let parameters = (ins "::mlir::StringAttr":$message,
-                        "::mlir::StringAttr":$fixit);
-  let assemblyFormat = "`<` `msg` `:` $message `,` `fix` `:` $fixit `>`";
+  let parameters = (ins
+    "::mlir::StringAttr":$message,
+    "::mlir::StringAttr":$fixit);
 
   let builders = [
     AttrBuilder<(ins "::mlir::StringRef":$msg, "::mlir::StringRef":$fix), [{
       return get($_ctxt, mlir::StringAttr::get($_ctxt, msg), mlir::StringAttr::get($_ctxt, fix));
     }]>,
   ];
+
+  let assemblyFormat = "`<` `msg` `:` $message `,` `fix` `:` $fixit `>`";
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
