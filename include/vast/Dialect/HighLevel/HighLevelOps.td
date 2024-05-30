@@ -490,8 +490,10 @@ def UnreachableOp : HighLevel_Op<"unreachable", [Terminator]> {
 def CompoundLiteralOp : HighLevel_Op< "compound_literal" >
   , Results< (outs AnyType:$result) >
 {
-  let summary = "TODO";
-  let description = [{ TODO }];
+  let summary = "VAST operation for building compound literals.";
+  let description = [{ Creates a compound literal that represents an unnamed object
+                       and is initialzied by initializer-list.}];
+
   let regions = (region ValueRegion:$init);
   let skipDefaultBuilders = 1;
   let builders = [
