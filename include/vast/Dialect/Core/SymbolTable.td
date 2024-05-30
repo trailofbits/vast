@@ -11,8 +11,8 @@ class GetCppInterfaceName< list<Interface> interfaces >
     string result = !interleave(cppInterfaceNames, ", ");
 }
 
-class ShadowingSymbolTable< list<Interface> symbolInterfaces >
-    : CoreParamNativeOpTrait< "ShadowingSymbolTable", GetCppInterfaceName< symbolInterfaces >.result >
+class ShadowingSymbolTable< list<Interface> symbol_interfaces >
+    : CoreParamNativeOpTrait< "ShadowingSymbolTable", GetCppInterfaceName< symbol_interfaces >.result >
 {}
 
 #endif // VAST_DIALECT_CORE_SYMBOL_TABLE
