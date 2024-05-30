@@ -30,22 +30,6 @@ class NameAttr<string name, string attr_mnemonic>
   let assemblyFormat = "`<` $name `>`";
 }
 
-class NumberAttr<string name, string attr_mnemonic>
-  : HighLevel_Attr< name, attr_mnemonic >
-{
-  let parameters = (ins "::mlir::IntegerAttr":$value);
-  let builders = [
-    AttrBuilderWithInferredContext<( ins "::mlir::IntegerAttr":$value), [{
-        return get(value.getContext(), value);
-      }]>,
-    AttrBuilder<(ins "::mlir::APSInt":$value), [{
-        return get(mlir::IntegerAttr::get($_ctxt, value));
-      }]>,
-  ];
-
-  let assemblyFormat = "`<` $value `>`";
-}
-
 def AnnotationAttr    : NameAttr< "Annotation", "annotation" >;
 def FormatAttr        : NameAttr< "Format", "format" >;
 def SectionAttr       : NameAttr< "Section", "section" >;
