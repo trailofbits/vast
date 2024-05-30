@@ -99,4 +99,8 @@ namespace vast::cg
     mlir_attr default_attr_visitor::VisitTransparentUnionAttr(const clang::TransparentUnionAttr *attr) {
         return make< hl::TransparentUnionAttr >();
     }
+
+    mlir_attr default_attr_visitor::VisitReturnsTwiceAttr(const clang::ReturnsTwiceAttr *attr) {
+        return make< hl::ReturnsTwiceAttr >();
+    }
 } // namespace vast::hcg
