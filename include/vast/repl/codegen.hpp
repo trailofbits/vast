@@ -15,10 +15,12 @@ VAST_UNRELAX_WARNINGS
 
 #include <filesystem>
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 namespace vast::repl::codegen {
 
     std::unique_ptr< clang::ASTUnit > ast_from_source(string_ref source);
 
-    owning_module_ref emit_module(const std::filesystem::path &source, mcontext_t &ctx);
+    core::owning_module_ref emit_module(const std::filesystem::path &source, mcontext_t &ctx);
 
 } // namespace vast::repl::codegen

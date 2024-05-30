@@ -30,8 +30,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Interfaces/DefaultDataLayoutTypeInterface.hpp"
 #include "vast/Interfaces/ElementTypeInterface.hpp"
 
-#include "vast/Dialect/Core/TypeTraits.hpp"
+#include "vast/Dialect/Core/CoreOps.hpp"
 #include "vast/Dialect/Core/CoreTypes.hpp"
+#include "vast/Dialect/Core/TypeTraits.hpp"
 
 namespace vast::hl
 {
@@ -124,18 +125,18 @@ namespace vast::hl
         }
     }
 
-    core::FunctionType getFunctionType(mlir_type function_pointer, vast_module mod);
+    core::FunctionType getFunctionType(mlir_type function_pointer, core::module mod);
 
     core::FunctionType getFunctionType(Value callee);
     core::FunctionType getFunctionType(mlir::CallOpInterface call);
-    core::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, vast_module mod);
+    core::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, core::module mod);
 
-    mlir_type getTypedefType(TypedefType type, vast_module mod);
+    mlir_type getTypedefType(TypedefType type, core::module mod);
 
     // unwraps all typedef aliases to get to real underlying type
-    mlir_type getBottomTypedefType(TypedefType def, vast_module mod);
+    mlir_type getBottomTypedefType(TypedefType def, core::module mod);
 
-    mlir_type getBottomTypedefType(mlir_type type, vast_module mod);
+    mlir_type getBottomTypedefType(mlir_type type, core::module mod);
 
     // Usually record types are wrapped in `elaborated` or `lvalue` - this helper
     // takes care of traversing them.

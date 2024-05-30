@@ -19,6 +19,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Dialects.hpp"
+#include "vast/Dialect/Core/CoreOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
@@ -98,7 +99,7 @@ namespace vast::query
     auto is_global() {
         return [](mlir::Operation *op) {
             auto parent = op->getParentOp();
-            return mlir::isa< T >(op) && is_one_of< mlir::ModuleOp, hl::TranslationUnitOp >()(parent);
+            return mlir::isa< T >(op) && is_one_of< core::ModuleOp, hl::TranslationUnitOp >()(parent);
         };
     }
 
@@ -177,7 +178,7 @@ namespace vast
         bool wasThreadingEnabled = ctx.isMultithreadingEnabled();
         ctx.disableMultithreading();
 
-        owning_module_ref mod(mlir::parseSourceFile< vast_module >(source_mgr, &ctx));
+        core::owning_module_ref mod(mlir::parseSourceFile< core::module >(source_mgr, &ctx));
         ctx.enableMultithreading(wasThreadingEnabled);
         if (!mod) {
             llvm::errs() << "error: cannot parse module\n";

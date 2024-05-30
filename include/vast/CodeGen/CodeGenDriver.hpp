@@ -9,6 +9,8 @@ VAST_RELAX_WARNINGS
 #include <clang/AST/GlobalDecl.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
@@ -32,11 +34,13 @@ namespace vast::cg {
         acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs
     );
 
-    void set_target_triple(owning_module_ref &mod, std::string triple);
-    void set_source_language(owning_module_ref &mod, cc::source_language lang);
+    std::unique_ptr< mcontext_t > mk_mcontext();
 
-    owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
-    owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, cc::source_language lang);
+    void set_target_triple(core::owning_module_ref &mod, std::string triple);
+    void set_source_language(core::owning_module_ref &mod, cc::source_language lang);
+
+    core::owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
+    core::owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, cc::source_language lang);
 
     struct driver
     {
@@ -70,7 +74,7 @@ namespace vast::cg {
         virtual void emit_data_layout();
         virtual void finalize();
 
-        owning_module_ref freeze();
+        core::owning_module_ref freeze();
 
         mcontext_t &mcontext() { return mctx; }
         acontext_t &acontext() { return actx; }
@@ -100,7 +104,7 @@ namespace vast::cg {
         //
         // module generation state
         //
-        owning_module_ref mod;
+        core::owning_module_ref mod;
         module_scope scope;
 
         module_generator generator;

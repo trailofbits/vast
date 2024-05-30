@@ -9,7 +9,7 @@ include "mlir/Pass/PassBase.td"
 
 // TODO(lukas): Figure out better naming for passes that are implemented in both PDLL and C++
 //              (if it becomes more common occurence).
-def HLToFunc_pdll : Pass<"vast-hl-to-func-pdll", "mlir::ModuleOp"> {
+def HLToFunc_pdll : Pass<"vast-hl-to-func-pdll", "core::ModuleOp"> {
   let summary = "Lower high-level functions to func.func operations.";
   let description = [{
     Lowers high-level function operations to function dialect.
@@ -30,7 +30,7 @@ def HLToFunc_pdll : Pass<"vast-hl-to-func-pdll", "mlir::ModuleOp"> {
 
 #endif // VAST_ENABLE_PDLL_CONVERSIONS
 
-def HLToLLCF : Pass<"vast-hl-to-ll-cf", "mlir::ModuleOp"> {
+def HLToLLCF : Pass<"vast-hl-to-ll-cf", "core::ModuleOp"> {
   let summary = "VAST HL control flow to LL control flow";
   let description = [{
     Transforms high level control flow operations into their low level
@@ -47,7 +47,7 @@ def HLToLLCF : Pass<"vast-hl-to-ll-cf", "mlir::ModuleOp"> {
 }
 
 
-def IRsToLLVM : Pass<"vast-irs-to-llvm", "mlir::ModuleOp"> {
+def IRsToLLVM : Pass<"vast-irs-to-llvm", "core::ModuleOp"> {
   let summary = "VAST to LLVM Dialect conversion";
   let description = [{
     Converts lowest level VAST operations to LLVM dialect. It is expected
@@ -65,7 +65,7 @@ def IRsToLLVM : Pass<"vast-irs-to-llvm", "mlir::ModuleOp"> {
   ];
 }
 
-def FnArgsToAlloca : Pass<"vast-fn-args-to-alloca", "mlir::ModuleOp"> {
+def FnArgsToAlloca : Pass<"vast-fn-args-to-alloca", "core::ModuleOp"> {
   let summary = "VAST to LLVM Dialect conversion";
   let description = [{
     For each function emit its prologue - for each argument make an alloca
@@ -79,7 +79,7 @@ def FnArgsToAlloca : Pass<"vast-fn-args-to-alloca", "mlir::ModuleOp"> {
   ];
 }
 
-def LowerValueCategories : Pass<"vast-lower-value-categories", "mlir::ModuleOp"> {
+def LowerValueCategories : Pass<"vast-lower-value-categories", "core::ModuleOp"> {
   let summary = "Lower `hl.lvalue` into explicit pointers and loads.";
   let description = [{
     Lower `hl.lvalue` into explicit memory. This changes types to pointers and emits
@@ -93,7 +93,7 @@ def LowerValueCategories : Pass<"vast-lower-value-categories", "mlir::ModuleOp">
   ];
 }
 
-def CoreToLLVM : Pass<"vast-core-to-llvm", "mlir::ModuleOp"> {
+def CoreToLLVM : Pass<"vast-core-to-llvm", "core::ModuleOp"> {
   let summary = "VAST Core dialect to LLVM Dialect conversion";
   let description = [{
     Converts core dialect operations to LLVM dialect.
@@ -106,7 +106,7 @@ def CoreToLLVM : Pass<"vast-core-to-llvm", "mlir::ModuleOp"> {
   ];
 }
 
-def EmitABI : Pass<"vast-emit-abi", "mlir::ModuleOp"> {
+def EmitABI : Pass<"vast-emit-abi", "core::ModuleOp"> {
   let summary = "Transform functions and apply abi conversion to their type.";
   let description = [{
     This pass is still a work in progress.
@@ -119,7 +119,7 @@ def EmitABI : Pass<"vast-emit-abi", "mlir::ModuleOp"> {
   ];
 }
 
-def LowerABI : Pass<"vast-lower-abi", "mlir::ModuleOp"> {
+def LowerABI : Pass<"vast-lower-abi", "core::ModuleOp"> {
   let summary = "Lower abi operations.";
   let description = [{
     This pass is still a work in progress.
@@ -133,7 +133,7 @@ def LowerABI : Pass<"vast-lower-abi", "mlir::ModuleOp"> {
   ];
 }
 
-def HLToLLGEPs : Pass<"vast-hl-to-ll-geps", "mlir::ModuleOp"> {
+def HLToLLGEPs : Pass<"vast-hl-to-ll-geps", "core::ModuleOp"> {
   let summary = "Convert hl.member to ll.gep";
   let description = [{
     This pass is still a work in progress.
@@ -146,7 +146,7 @@ def HLToLLGEPs : Pass<"vast-hl-to-ll-geps", "mlir::ModuleOp"> {
   ];
 }
 
-def HLToLLVars : Pass<"vast-hl-to-ll-vars", "mlir::ModuleOp"> {
+def HLToLLVars : Pass<"vast-hl-to-ll-vars", "core::ModuleOp"> {
   let summary = "Convert hl variables into ll versions.";
   let description = [{
     This pass is still a work in progress.
@@ -160,7 +160,7 @@ def HLToLLVars : Pass<"vast-hl-to-ll-vars", "mlir::ModuleOp"> {
   ];
 }
 
-def HLToLLFunc : Pass<"vast-hl-to-ll-func", "mlir::ModuleOp"> {
+def HLToLLFunc : Pass<"vast-hl-to-ll-func", "core::ModuleOp"> {
   let summary = "Convert hl functions into ll versions.";
   let description = [{
     This pass is still a work in progress.
@@ -173,7 +173,7 @@ def HLToLLFunc : Pass<"vast-hl-to-ll-func", "mlir::ModuleOp"> {
   ];
 }
 
-def HLEmitLazyRegions : Pass<"vast-hl-to-lazy-regions", "mlir::ModuleOp"> {
+def HLEmitLazyRegions : Pass<"vast-hl-to-lazy-regions", "core::ModuleOp"> {
   let summary = "Transform hl operations that have short-circuiting into lazy operations.";
   let description = [{
     This pass is still a work in progress.
@@ -185,7 +185,7 @@ def HLEmitLazyRegions : Pass<"vast-hl-to-lazy-regions", "mlir::ModuleOp"> {
   ];
 }
 
-def HLToHLBI : Pass<"vast-hl-to-hl-builtin", "mlir::ModuleOp"> {
+def HLToHLBI : Pass<"vast-hl-to-hl-builtin", "core::ModuleOp"> {
   let summary = "Transform hl operations that have builtin attribute to specialized dialect.";
   let description = [{
     This pass is still a work in progress.

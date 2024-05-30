@@ -22,6 +22,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/DefaultMetaGenerator.hpp"
 #include "vast/CodeGen/IdMetaGenerator.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include "vast/CodeGen/CodeGenModule.hpp"
 #include "vast/CodeGen/CodeGenFunction.hpp"
 
@@ -31,7 +33,7 @@ namespace vast::cg {
 
     void driver::emit(clang::Decl *decl) { generator.emit(decl); }
 
-    owning_module_ref driver::freeze() { return std::move(mod); }
+    core::owning_module_ref driver::freeze() { return std::move(mod); }
 
     // TODO this should not be needed the data layout should be emitted from cached types directly
     dl::DataLayoutBlueprint emit_data_layout_blueprint(
@@ -147,13 +149,13 @@ namespace vast::cg {
         return drv;
     }
 
-    void set_target_triple(owning_module_ref &mod, std::string triple) {
+    void set_target_triple(core::owning_module_ref &mod, std::string triple) {
         mlir::OpBuilder bld(mod.get());
         auto attr = bld.getAttr< mlir::StringAttr >(triple);
         mod.get()->setAttr(core::CoreDialect::getTargetTripleAttrName(), attr);
     }
 
-    void set_source_language(owning_module_ref &mod, cc::source_language lang) {
+    void set_source_language(core::owning_module_ref &mod, source_language lang) {
         mlir::OpBuilder bld(mod.get());
         auto attr = bld.getAttr< core::SourceLanguageAttr >(lang);
         mod.get()->setAttr(core::CoreDialect::getLanguageAttrName(), attr);
@@ -179,15 +181,14 @@ namespace vast::cg {
         }
     } // namespace detail
 
-    owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx) {
-        auto [loc, name] = detail::module_loc_name(mctx, actx);
-        auto mod = owning_module_ref(vast_module::create(loc));
+    core::owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx) {
         // TODO use symbol generator
-        mod->setSymName(name);
+        auto [loc, name] = detail::module_loc_name(mctx, actx);
+        auto mod = core::owning_module_ref(core::module::create(loc, name));
         return mod;
     }
 
-    owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, cc::source_language lang) {
+    core::owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, source_language lang) {
         auto mod = mk_module(actx, mctx);
 
         set_target_triple(mod, actx.getTargetInfo().getTriple().str());

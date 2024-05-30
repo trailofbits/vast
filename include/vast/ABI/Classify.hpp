@@ -10,6 +10,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/ABI/ABI.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelUtils.hpp"
 
 namespace vast::abi {
@@ -172,7 +173,6 @@ namespace vast::abi {
             // Default case returns double.
             return type_info.fN(64);
         }
-
 
         // Enum for classification algorithm.
         enum class Class : uint32_t {

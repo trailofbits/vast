@@ -6,7 +6,7 @@
 include "mlir/Pass/PassBase.td"
 
 {% for pass in passes %}
-def {{ pass.name }}Pass : Pass<"vast-{{ pass.mnemonic }}-pass", "mlir::ModuleOp"> {
+def {{ pass.name }}Pass : Pass<"vast-{{ pass.mnemonic }}-pass", "core::ModuleOp"> {
   let summary = "{{ pass.name }} pass summary.";
   let description = [{ {{ pass.name }} pass description. }];
 

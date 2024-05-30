@@ -13,6 +13,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "PassesDetails.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
@@ -121,7 +122,7 @@ namespace vast
             {
                 // TODO(conv): `!ast_node->isLocalVarDeclOrParam()` should maybe be ported
                 //             to the mlir op?
-                return mlir::isa< vast_module >(op->getParentOp());
+                return mlir::isa< core::module >(op->getParentOp());
             });
 
             const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();

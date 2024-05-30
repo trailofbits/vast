@@ -22,6 +22,8 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/TypeSwitch.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
@@ -50,7 +52,7 @@ namespace vast::target::llvmir
     };
 
     // TODO: move to translation passes that erase specific types from module
-    void clean_up_data_layout(vast_module mlir_module) {
+    void clean_up_data_layout(core::module mlir_module) {
         // If the old data layout with high level types is left in the module,
         // some parsing functionality inside the `mlir::translateModuleToLLVMIR`
         // will fail and no conversion translation happens, even in case these
@@ -74,7 +76,7 @@ namespace vast::target::llvmir
     }
 
     std::unique_ptr< llvm::Module > translate(
-        vast_module mlir_module, llvm::LLVMContext &llvm_ctx
+        core::module mlir_module, llvm::LLVMContext &llvm_ctx
     ) {
         clean_up_data_layout(mlir_module);
 
