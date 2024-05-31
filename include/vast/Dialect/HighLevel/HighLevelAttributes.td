@@ -18,6 +18,7 @@ class NameAttr<string name, string attr_mnemonic>
   : HighLevel_Attr< name, attr_mnemonic >
 {
   let parameters = (ins "::mlir::StringAttr":$name);
+
   let builders = [
     AttrBuilderWithInferredContext<(ins "::mlir::StringAttr":$name), [{
       return get(name.getContext(), name);
@@ -52,6 +53,7 @@ def ReturnsTwiceAttr      : HighLevel_Attr< "ReturnsTwice", "returns_twice" >;
 
 def AsmLabelAttr : HighLevel_Attr< "AsmLabel", "asm" > {
   let parameters = (ins "::mlir::StringAttr":$label, "bool":$isLiteral);
+
   let builders = [
     AttrBuilderWithInferredContext<(ins "::mlir::StringAttr":$label, "bool":$literal), [{
       return get(label.getContext(), label, literal);
@@ -66,6 +68,7 @@ def AsmLabelAttr : HighLevel_Attr< "AsmLabel", "asm" > {
 
 def ModeAttr : HighLevel_Attr< "Mode", "mode" > {
   let parameters = (ins "::mlir::StringAttr":$mode);
+
   let builders = [
     AttrBuilderWithInferredContext<(ins "::mlir::StringAttr":$mode), [{
       return get(mode.getContext(), mode);
@@ -80,6 +83,7 @@ def ModeAttr : HighLevel_Attr< "Mode", "mode" > {
 
 def BuiltinAttr : HighLevel_Attr< "Builtin", "builtin" > {
   let parameters = (ins "unsigned":$ID);
+
   let assemblyFormat = "`<` $ID `>`";
 }
 
@@ -98,7 +102,8 @@ def AllocSizeAttr : HighLevel_Attr< "AllocSize", "alloc_size" > {
 def DeprecatedAttr : HighLevel_Attr< "Deprecated", "deprecated" > {
   let parameters = (ins
     "::mlir::StringAttr":$message,
-    "::mlir::StringAttr":$fixit);
+    "::mlir::StringAttr":$fixit
+  );
 
   let builders = [
     AttrBuilder<(ins "::mlir::StringRef":$msg, "::mlir::StringRef":$fix), [{
