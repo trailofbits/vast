@@ -468,9 +468,15 @@ def ConstantOp
 def InitializedConstantOp : HighLevel_Op< "const.init", [ConstantLike, Pure] >
   , Results< (outs AnyType:$result) >
 {
-  let summary = "VAST value constant";
-  let description = [{ VAST value constant witch requires region initialization }];
+  let summary = "VAST constant with non-trivial initialization";
+  let description = [{
+    InitializedConstantOp is used to represent a constant with non-trivial
+    initialization. The initialization is represented by a region that
+    represents initialization expression.
+  }];
+
   let regions = (region ValueRegion:$init);
+
   let skipDefaultBuilders = 1;
   let builders = [
       OpBuilder<(ins
@@ -478,6 +484,7 @@ def InitializedConstantOp : HighLevel_Op< "const.init", [ConstantLike, Pure] >
           "builder_callback":$initbuilder
       )>
   ];
+
   let assemblyFormat = [{ attr-dict `:` type($result) `=` $init }];
 }
 
@@ -490,11 +497,16 @@ def UnreachableOp : HighLevel_Op<"unreachable", [Terminator]> {
 def CompoundLiteralOp : HighLevel_Op< "compound_literal" >
   , Results< (outs AnyType:$result) >
 {
-  let summary = "VAST operation for building compound literals.";
-  let description = [{ Creates a compound literal that represents an unnamed object
-                       and is initialzied by initializer-list.}];
+  let summary = "VAST compound literals operation";
+  let description = [{
+    Creates a compound literal that represents an unnamed object and is
+    initialzied by initializer-list.
+
+    Is used to represetnt `clang::CompoundLiteralExpr`.
+  }];
 
   let regions = (region ValueRegion:$init);
+
   let skipDefaultBuilders = 1;
   let builders = [
       OpBuilder<(ins
@@ -502,6 +514,7 @@ def CompoundLiteralOp : HighLevel_Op< "compound_literal" >
           "builder_callback":$initbuilder
       )>
   ];
+
   let assemblyFormat = [{ attr-dict `:` type($result) `=` $init }];
 }
 
@@ -763,12 +776,12 @@ class StandardArithBinOp< string mnemonic, list< Trait > traits = [] >
 class FloatArithBinOp< string mnemonic, list< Trait > traits = [] >
     : ArithBinOp< mnemonic, traits >
 {
-      let hasVerifier = 1;
-      let extraClassDefinition = [{
+    let hasVerifier = 1;
+    let extraClassDefinition = [{
         logical_result $cppClass::verify() {
-          return verify_float_arith_op(this->getOperation());
+            return verify_float_arith_op(this->getOperation());
         }
-      }];
+    }];
 }
 
 def AddIOp : ArithBinOp< "add", [Commutative, IsAdditive< "lhs", "rhs", "result" >] >;
@@ -1048,6 +1061,7 @@ def FCmpOp
 {
   let summary = "VAST flaoting point comparison operation";
   let description = [{ VAST floating point comparison operation }];
+
   let hasVerifier = 1;
 
   let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type(operands) `->` type($result)";
@@ -1288,8 +1302,8 @@ def IdentKind : IdentKindList< "IdentKind", "ident kind", [
 
 def PredefinedExpr
   : HighLevel_Op< "predefined.expr" >
-    , Arguments<(ins AnyType:$value, IdentKind:$kind)>
-    , Results<(outs AnyType:$result)>
+  , Arguments<(ins AnyType:$value, IdentKind:$kind)>
+  , Results<(outs AnyType:$result)>
 {
     let summary = "VAT predefined expr ( such as __func__ )";
     let description = [{ VAT predefined expr ( such as __func__ ) }];
@@ -1299,8 +1313,8 @@ def PredefinedExpr
 
 def ExtensionOp
   : HighLevel_Op< "gnu.extension" >
-    , Arguments<(ins AnyType:$value)>
-    , Results<(outs AnyType:$result)>
+  , Arguments<(ins AnyType:$value)>
+  , Results<(outs AnyType:$result)>
 {
     let summary = "VAST extension (__extension__) keyword";
     let description = [{ VAST op corresponding to GNU __extension__ keyword. }];
@@ -1332,11 +1346,12 @@ def AsmOp
     )>
 {
   let summary = "VAST operation for inline assembly";
-  let description = [{ VAST operation mirroring the GCCAsmStmt in clang AST. It prints
-                       a name for every operand (either its id or user-supplied string).}];
+  let description = [{
+    VAST operation mirroring the GCCAsmStmt in clang AST. It prints a name for
+    every operand (either its id or user-supplied string).
+  }];
 
   let skipDefaultBuilders = 1;
-
   let builders = [
   OpBuilder< (ins
       "mlir::StringAttr":$asm_template,
@@ -1353,7 +1368,9 @@ def AsmOp
     ) >
   ];
 
-  let assemblyFormat = [{attr-dict $asm_template `(`($output_names $asm_outputs^ `:` $output_constraints)? `)` `(` (`ins` `:`$input_names $asm_inputs^ `:` $input_constraints)? `)` `(`( $clobbers^)?`)` `(`( $labels^)?`)` `:` functional-type(operands, results)}];
+  let assemblyFormat = [{
+    attr-dict $asm_template `(`($output_names $asm_outputs^ `:` $output_constraints)? `)` `(` (`ins` `:`$input_names $asm_inputs^ `:` $input_constraints)? `)` `(`( $clobbers^)?`)` `(`( $labels^)?`)` `:` functional-type(operands, results)
+  }];
 }
 
 def VAArgExpr
