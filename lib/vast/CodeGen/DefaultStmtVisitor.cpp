@@ -562,7 +562,7 @@ namespace vast::cg
     //
     // Literals
     //
-    mlir_type default_stmt_visitor::visit_maybe_lvalue_literal_type (const clang::Expr *lit){
+    mlir_type default_stmt_visitor::visit_maybe_lvalue_result_type(const clang::Expr *lit){
         if (lit->isLValue())
             return self.visit_as_lvalue_type(lit->getType());
         return self.visit(lit->getType());
@@ -582,7 +582,7 @@ namespace vast::cg
 
     operation default_stmt_visitor::VisitStringLiteral(const clang::StringLiteral *lit) {
         return bld.constant(self.location(lit),
-                            visit_maybe_lvalue_literal_type(lit),
+                            visit_maybe_lvalue_result_type(lit),
                             lit->getString()).getDefiningOp();
     }
 
@@ -593,7 +593,7 @@ namespace vast::cg
     operation default_stmt_visitor::VisitCompoundLiteralExpr(const clang::CompoundLiteralExpr *lit) {
         return bld.compose< hl::CompoundLiteralOp >()
             .bind(self.location(lit))
-            .bind(visit_maybe_lvalue_literal_type(lit))
+            .bind(visit_maybe_lvalue_result_type(lit))
             .bind(mk_value_builder(lit->getInitializer()))
             .freeze();
     }
