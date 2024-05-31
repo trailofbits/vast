@@ -165,6 +165,20 @@ def ParenType : HighLevelType< "Paren", [ElementTypeInterface, MemRefElementType
   let assemblyFormat = "`<` $elementType `>`";
 }
 
+class ElaboratedType< TypeConstraint value > : Type<
+  And< [
+    ElaboratedType.predicate,
+    SubstLeaves< "$_self", "$_self.cast< ElaboratedType >().getElementType()", value.predicate >
+  ] >
+>;
+
+class MaybeElaboratedType< TypeConstraint value > : Type<
+  Or< [
+    value.predicate,
+    ElaboratedType< value >.predicate
+  ]>
+>;
+
 class IsMaybeWrappedTypedef< string arg > : PredOpTrait<
     "type is a typedef, maybe wrapped in the elaborated type",
     CPred< "::vast::hl::strip_elaborated($" # arg # ").hasTrait< mlir::TypeTrait::TypedefTrait >()" >
@@ -207,10 +221,12 @@ class LValueOrType<TypeConstraint value> : Type<
   Or< [
     And< [
       LValue.predicate,
-      SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()", value.predicate >
+      SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()",
+                   Or< [ value.predicate, MaybeElaboratedType< TypedefType >.predicate] > >
     ] >,
     value.predicate,
-    TypedefType.predicate
+    TypedefType.predicate,
+    MaybeElaboratedType< TypedefType >.predicate
   ] >,
   "lvalue to " # value.summary
 >;
