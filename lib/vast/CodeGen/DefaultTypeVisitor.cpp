@@ -288,7 +288,6 @@ namespace vast::cg {
     mlir_type default_type_visitor::VisitVectorType(const clang::VectorType *ty, clang_qualifiers quals) {
         return with_cvr_qualifiers(
             compose_type< hl::VectorType >()
-                // bind also uninitialized size
                 .bind_always(get_size_attr(ty, self.mcontext()))
                 .bind(self.visit(ty->getElementType())),
             quals
