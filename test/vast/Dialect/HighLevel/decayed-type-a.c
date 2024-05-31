@@ -5,4 +5,6 @@
 void f(int i[]) {
     // CHECK: hl.subscript {{.*}} at [{{.*}} : !hl.int] : !hl.decayed<!hl.ptr<!hl.int>> -> !hl.lvalue<!hl.int>
     i[1] = 0;
+    // CHECK: hl.add {{.*}} : (!hl.decayed<!hl.ptr<!hl.int>>, !hl.int) -> !hl.decayed<!hl.ptr<!hl.int>>
+    int *p = i + 1;
 }
