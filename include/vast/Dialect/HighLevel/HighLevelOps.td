@@ -289,7 +289,7 @@ def RecordMemberOp
   : HighLevel_Op< "member" >
   // TODO(Heno): add type constraints
   , Arguments<(ins AnyType:$record, StrAttr:$name)>
-  , Results<(outs LValueOf<AnyType>:$element)>
+  , Results<(outs AnyType:$element)>
 {
   let summary = "VAST record element access operation";
   let description = [{ VAST record element access operation }];
