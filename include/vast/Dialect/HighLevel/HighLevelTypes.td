@@ -387,9 +387,10 @@ def SizeParam : TypeParameter<"SizeParam", "size parameter for arrays"> {
   }() }];
 }
 
-def ArrayType : CVRQualifiedType< "Array", "array",
+class ArrayLikeType< string name, string mnem, list<Trait> traits = [] >
+    : CVRQualifiedType< name, mnem,
     (ins SizeParam:$size, "Type":$elementType),
-    [MemRefElementTypeInterface]
+    !listconcat(traits, [MemRefElementTypeInterface])
   >
   , WithDimensionsClass
 {
@@ -403,6 +404,9 @@ def ArrayType : CVRQualifiedType< "Array", "array",
 
   let assemblyFormat = "`<` $size `,` $elementType (`,` $quals^ )? `>`";
 }
+
+def ArrayType  : ArrayLikeType< "Array", "array" >;
+def VectorType : ArrayLikeType< "Vector", "vector" >;
 
 def DecayedType : HighLevelType< "Decayed",
   [MemRefElementTypeInterface, ElementTypeInterface, PointerTypeTrait]
