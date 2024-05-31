@@ -1165,7 +1165,7 @@ def Deref
 def AddrLabelExpr
   : HighLevel_Op< "labeladdr" >
   , Arguments<(ins LabelType:$label)>
-  , Results<(outs LValueOf<PointerLikeType>:$result)>
+  , Results<(outs PointerLikeType:$result)>
 {
     let summary = "VAST address of label extension";
     let description = [{ VAST address of label extension }];

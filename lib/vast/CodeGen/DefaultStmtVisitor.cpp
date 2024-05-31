@@ -835,7 +835,7 @@ namespace vast::cg
     operation default_stmt_visitor::VisitAddrLabelExpr(const clang::AddrLabelExpr *expr) {
         return bld.compose< hl::AddrLabelExpr >()
             .bind(self.location(expr))
-            .bind(self.visit_as_lvalue_type(expr->getType()))
+            .bind(self.visit(expr->getType()))
             .bind_transform(self.visit(expr->getLabel()), first_result)
             .freeze();
     }
