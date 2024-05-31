@@ -118,6 +118,11 @@ namespace vast::cg {
             });
     }
 
+    hl::SizeParam get_size_attr(const clang::VectorType *arr, mcontext_t &ctx) {
+        // Represents GNU C vector with specified constant size.
+        return hl::SizeParam(arr->getNumElements());
+    }
+
     mlir_type default_type_visitor::Visit(clang_qual_type ty) {
         auto underlying = ty.getTypePtr();
         auto quals      = ty.getLocalQualifiers();
@@ -131,6 +136,10 @@ namespace vast::cg {
 
         if (auto t = llvm::dyn_cast< clang::ArrayType >(underlying)) {
             return VisitArrayType(t, quals);
+        }
+
+        if (auto t = llvm::dyn_cast< clang::VectorType >(underlying)) {
+            return VisitVectorType(t, quals);
         }
 
         if (auto t = llvm::dyn_cast< clang::ElaboratedType >(underlying)) {
@@ -265,6 +274,20 @@ namespace vast::cg {
     mlir_type default_type_visitor::VisitArrayType(const clang::ArrayType *ty, clang_qualifiers quals) {
         return with_cvr_qualifiers(
             compose_type< hl::ArrayType >()
+                // bind also uninitialized size
+                .bind_always(get_size_attr(ty, self.mcontext()))
+                .bind(self.visit(ty->getElementType())),
+            quals
+        ).freeze();
+    }
+
+    mlir_type default_type_visitor::VisitVectorType(const clang::VectorType *ty) {
+        return VisitVectorType(ty, clang_qualifiers());
+    }
+
+    mlir_type default_type_visitor::VisitVectorType(const clang::VectorType *ty, clang_qualifiers quals) {
+        return with_cvr_qualifiers(
+            compose_type< hl::VectorType >()
                 // bind also uninitialized size
                 .bind_always(get_size_attr(ty, self.mcontext()))
                 .bind(self.visit(ty->getElementType())),
