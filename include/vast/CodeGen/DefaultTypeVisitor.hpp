@@ -44,6 +44,9 @@ namespace vast::cg {
         mlir_type VisitArrayType(const clang::ArrayType *ty);
         mlir_type VisitArrayType(const clang::ArrayType *ty, clang_qualifiers quals);
 
+        mlir_type VisitVectorType(const clang::VectorType *ty);
+        mlir_type VisitVectorType(const clang::VectorType *ty, clang_qualifiers quals);
+
         mlir_type VisitRecordType(const clang::RecordType *ty);
         mlir_type VisitRecordType(const clang::RecordType *ty, clang_qualifiers quals);
 
