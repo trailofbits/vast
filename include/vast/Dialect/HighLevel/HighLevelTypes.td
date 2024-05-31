@@ -389,7 +389,7 @@ def ArrayType : CVRQualifiedType< "Array", "array",
 }
 
 def DecayedType : HighLevelType< "Decayed",
-  [MemRefElementTypeInterface, ElementTypeInterface]
+  [MemRefElementTypeInterface, ElementTypeInterface, PointerTypeTrait]
 > {
   let mnemonic = "decayed";
   let parameters = (ins "Type":$elementType);
