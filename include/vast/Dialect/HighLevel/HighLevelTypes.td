@@ -172,7 +172,7 @@ class ElaboratedType< TypeConstraint value > : Type<
   ] >
 >;
 
-class MaybeElaboratedType< TypeConstraint value > : Type<
+class TypeOrElaboratedType< TypeConstraint value > : Type<
   Or< [
     value.predicate,
     ElaboratedType< value >.predicate
@@ -222,11 +222,11 @@ class LValueOrType<TypeConstraint value> : Type<
     And< [
       LValue.predicate,
       SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()",
-                   Or< [ value.predicate, MaybeElaboratedType< TypedefType >.predicate] > >
+                   Or< [ value.predicate, TypeOrElaboratedType< TypedefType >.predicate] > >
     ] >,
     value.predicate,
     TypedefType.predicate,
-    MaybeElaboratedType< TypedefType >.predicate
+    TypeOrElaboratedType< TypedefType >.predicate
   ] >,
   "lvalue to " # value.summary
 >;
