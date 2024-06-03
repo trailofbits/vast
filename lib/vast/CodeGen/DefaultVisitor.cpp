@@ -27,17 +27,13 @@ namespace vast::cg
             for (auto attr : exclude_attrs< excluded_attr_list >(decl->getAttrs())) {
                 auto visited = self.visit(attr, scope);
 
-                auto spelling = attr->getSpelling();
-                // Bultin attr doesn't have spelling because it can not be written in code
-                if (auto builtin = clang::dyn_cast< clang::BuiltinAttr >(attr)) {
-                    spelling = "builtin";
+                auto key = visited.getAbstractAttribute().getName();
+
+                if (auto prev = attrs.getNamed(key)) {
+                    VAST_CHECK(visited == prev.value().getValue(), "Conflicting redefinition of attribute {0} with spelling {1}", key, attr->getSpelling());
                 }
 
-                if (auto prev = attrs.getNamed(spelling)) {
-                    VAST_CHECK(visited == prev.value().getValue(), "Conflicting redefinition of attribute {0}", spelling);
-                }
-
-                attrs.set(spelling, visited);
+                attrs.set(key, visited);
             }
             op->setAttrs(attrs);
         }
