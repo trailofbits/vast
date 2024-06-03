@@ -6,12 +6,12 @@ namespace vast::util
 {
     template< typename attribute_type >
     attribute_type get_attr(auto op) {
-        return op->template getAttrOfType< attribute_type >(attribute_type::getMnemonic());
+        return op->template getAttrOfType< attribute_type >(attribute_type::name);
     }
 
     template< typename attribute_type >
     bool has_attr(auto op) {
-        return op->hasAttr(attribute_type::getMnemonic());
+        return op->hasAttr(attribute_type::name);
     }
 
 } // namespace vast::util
