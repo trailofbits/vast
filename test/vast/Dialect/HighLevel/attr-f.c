@@ -1,7 +1,7 @@
 // RUN: %vast-front -vast-emit-mlir=hl -o - %s | %file-check %s
 // RUN: %vast-front -vast-emit-mlir=hl -o - %s > %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.union "u" {transparent_union = #hl.transparent_union}
+// CHECK: hl.union "u" {hl.transparent_union = #hl.transparent_union}
 union u {
     int *a;
     char *b;

@@ -6,5 +6,5 @@ typedef unsigned long long u64;
 
 # define __nocast	__attribute__((annotate("nocast")))
 
-// CHECK: hl.typedef "cputime_t" {annotate = #hl.annotation<"nocast">} : !hl.elaborated<!hl.typedef<"u64">>
+// CHECK: hl.typedef "cputime_t" {hl.annotation = #hl.annotation<"nocast">} : !hl.elaborated<!hl.typedef<"u64">>
 typedef u64 __nocast cputime_t;
