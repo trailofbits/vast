@@ -103,4 +103,8 @@ namespace vast::cg
     mlir_attr default_attr_visitor::VisitReturnsTwiceAttr(const clang::ReturnsTwiceAttr *attr) {
         return make< hl::ReturnsTwiceAttr >();
     }
+
+    mlir_attr default_attr_visitor::VisitMaxFieldAlignmentAttr(const clang::MaxFieldAlignmentAttr *attr) {
+        return make< hl::MaxFieldAlignmentAttr >(attr->getAlignment());
+    }
 } // namespace vast::hcg
