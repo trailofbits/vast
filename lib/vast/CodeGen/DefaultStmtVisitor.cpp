@@ -781,6 +781,13 @@ namespace vast::cg
             .freeze();
     }
 
+    operation default_stmt_visitor::VisitIndirectGotoStmt(const clang::IndirectGotoStmt *stmt) {
+        return bld.compose< hl::IndirectGotoStmt >()
+            .bind(self.location(stmt))
+            .bind(mk_value_builder(stmt->getTarget()))
+            .freeze();
+    }
+
     operation default_stmt_visitor::VisitLabelStmt(const clang::LabelStmt *stmt) {
         return bld.compose< hl::LabelStmt >()
             .bind(self.location(stmt))
