@@ -293,6 +293,13 @@ namespace vast::hl
         build_expr_trait(bld, st, rty, expr);
     }
 
+    void PreferredAlignOfExprOp::build(
+        Builder &bld, State &st, Type rty,
+        builder_callback_ref expr
+    ) {
+        build_expr_trait(bld, st, rty, expr);
+    }
+
     void StmtExprOp::build(
         Builder &bld, State &st, Type rty,
         builder_callback_ref expr

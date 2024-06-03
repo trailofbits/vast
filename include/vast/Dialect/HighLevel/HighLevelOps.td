@@ -1217,10 +1217,14 @@ def SizeOfTypeOp : TypeTraitOp< "sizeof.type", [Pure] > {
   let hasFolder = 1;
 }
 
-def AlignOfTypeOp : TypeTraitOp< "alignof.type" > {
+class AlignOfTypeOpBase< string mnemonic, list< Trait > traits = [] >
+    : TypeTraitOp< mnemonic, traits >  {
   let summary = "VAST type alignof operator";
   let description = [{ VAST type alignof operator }];
 }
+
+def AlignOfTypeOp          : AlignOfTypeOpBase< "alignof.type" >;
+def PreferredAlignOfTypeOp : AlignOfTypeOpBase< "preferred_alignof.type" >;
 
 class ExprTraitOp< string mnemonic, list< Trait > traits = [] >
   : HighLevel_Op< mnemonic, !listconcat([Pure], traits) >
@@ -1247,10 +1251,14 @@ def SizeOfExprOp : ExprTraitOp< "sizeof.expr" > {
   let hasFolder = 1;
 }
 
-def AlignOfExprOp : ExprTraitOp< "alignof.expr" > {
+class AlignOfExprOpBase< string mnemonic, list< Trait > traits = [] >
+    : ExprTraitOp< mnemonic, traits > {
   let summary = "VAST expr alignof operator";
   let description = [{ VAST expr alignof operator }];
 }
+
+def AlignOfExprOp          : AlignOfExprOpBase< "alignof.expr" >;
+def PreferredAlignOfExprOp : AlignOfExprOpBase< "preferred_alignof.expr" >;
 
 def StmtExprOp
   : HighLevel_Op< "stmt.expr", [SingleBlock, DeclareOpInterfaceMethods<RegionKindInterface>] >
