@@ -31,26 +31,26 @@ class NameAttr<string name, string attr_mnemonic>
   let assemblyFormat = "`<` $name `>`";
 }
 
-def AnnotationAttr    : NameAttr< "Annotation", "annotation" >;
-def FormatAttr        : NameAttr< "Format", "format" >;
-def SectionAttr       : NameAttr< "Section", "section" >;
+def AnnotationAttr       : NameAttr< "Annotation", "annotation" >;
+def FormatAttr           : NameAttr< "Format", "format" >;
+def SectionAttr          : NameAttr< "Section", "section" >;
 // TODO(#595): Make aligned attribute keep the alignment value/expr
-def AlignedAttr       : HighLevel_Attr< "Aligned", "aligned" >;
-def AlwaysInlineAttr  : HighLevel_Attr< "AlwaysInline", "always_inline" >;
-def NoInlineAttr      : HighLevel_Attr< "NoInline", "noinline" >;
-def ConstAttr         : HighLevel_Attr< "Const", "const" >;
-def LoaderUninitAttr  : HighLevel_Attr< "LoaderUninitialized", "loader_uninitialized" >;
-def NoInstrumentAttr  : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
-def PackedAttr        : HighLevel_Attr< "Packed", "packed" >;
-def PureAttr          : HighLevel_Attr< "Pure", "pure" >;
-def WarnUnusedResAttr : HighLevel_Attr< "WarnUnusedResult", "warn_unused_result" >;
-def RestrictAttr : HighLevel_Attr< "Restrict", "restrict" >;
-def NoThrowAttr  : HighLevel_Attr< "NoThrow", "nothrow" >;
-def NonNullAttr  : HighLevel_Attr< "NonNull", "nonnull" >;
-def LeafAttr     : HighLevel_Attr< "Leaf", "leaf" >;
-def ColdAttr     : HighLevel_Attr< "Cold", "cold" >;
+def AlignedAttr          : HighLevel_Attr< "Aligned", "aligned" >;
+def AlwaysInlineAttr     : HighLevel_Attr< "AlwaysInline", "always_inline" >;
+def NoInlineAttr         : HighLevel_Attr< "NoInline", "noinline" >;
+def ConstAttr            : HighLevel_Attr< "Const", "const" >;
+def LoaderUninitAttr     : HighLevel_Attr< "LoaderUninitialized", "loader_uninitialized" >;
+def NoInstrumentAttr     : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
+def PackedAttr           : HighLevel_Attr< "Packed", "packed" >;
+def PureAttr             : HighLevel_Attr< "Pure", "pure" >;
+def WarnUnusedResAttr    : HighLevel_Attr< "WarnUnusedResult", "warn_unused_result" >;
+def RestrictAttr         : HighLevel_Attr< "Restrict", "restrict" >;
+def NoThrowAttr          : HighLevel_Attr< "NoThrow", "nothrow" >;
+def NonNullAttr          : HighLevel_Attr< "NonNull", "nonnull" >;
+def LeafAttr             : HighLevel_Attr< "Leaf", "leaf" >;
+def ColdAttr             : HighLevel_Attr< "Cold", "cold" >;
 def TransparentUnionAttr : HighLevel_Attr< "TransparentUnion", "transparent_union" >;
-def ReturnsTwiceAttr      : HighLevel_Attr< "ReturnsTwice", "returns_twice" >;
+def ReturnsTwiceAttr     : HighLevel_Attr< "ReturnsTwice", "returns_twice" >;
 
 def AsmLabelAttr : HighLevel_Attr< "AsmLabel", "asm" > {
   let parameters = (ins "::mlir::StringAttr":$label, "bool":$isLiteral);
