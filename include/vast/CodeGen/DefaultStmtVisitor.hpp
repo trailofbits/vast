@@ -178,6 +178,7 @@ namespace vast::cg {
         operation VisitWhileStmt(const clang::WhileStmt *stmt);
         operation VisitForStmt(const clang::ForStmt *stmt);
         operation VisitGotoStmt(const clang::GotoStmt *stmt);
+        operation VisitIndirectGotoStmt(const clang::IndirectGotoStmt *stmt);
         operation VisitLabelStmt(const clang::LabelStmt *stmt);
         operation VisitIfStmt(const clang::IfStmt *stmt);
 
