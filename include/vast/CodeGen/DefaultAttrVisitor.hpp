@@ -45,6 +45,7 @@ namespace vast::cg {
         mlir_attr VisitDeprecatedAttr(const clang::DeprecatedAttr *attr);
         mlir_attr VisitTransparentUnionAttr(const clang::TransparentUnionAttr *attr);
         mlir_attr VisitReturnsTwiceAttr(const clang::ReturnsTwiceAttr *attr);
+        mlir_attr VisitMaxFieldAlignmentAttr(const clang::MaxFieldAlignmentAttr *attr);
 
       private:
         template< typename attr_t, typename... args_t >
