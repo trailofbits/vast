@@ -291,11 +291,11 @@ namespace vast::cg
         return visit_underlying_type_preserving_unary_op< hl::ExtensionOp >(op);
     }
     operation default_stmt_visitor::VisitUnaryReal(const clang::UnaryOperator *op) {
-        return visit_unary_op< hl::RealOp >(op, self.visit(op->getType()));
+        return visit_unary_op< hl::RealOp >(op, visit_maybe_lvalue_result_type(op));
     }
 
     operation default_stmt_visitor::VisitUnaryImag(const clang::UnaryOperator *op) {
-        return visit_unary_op< hl::ImagOp >(op, self.visit(op->getType()));
+        return visit_unary_op< hl::ImagOp >(op, visit_maybe_lvalue_result_type(op));
     }
 
     operation default_stmt_visitor::VisitUnaryCoawait(const clang::UnaryOperator *op) {
