@@ -37,6 +37,7 @@ def SectionAttr       : NameAttr< "Section", "section" >;
 // TODO(#595): Make aligned attribute keep the alignment value/expr
 def AlignedAttr       : HighLevel_Attr< "Aligned", "aligned" >;
 def AlwaysInlineAttr  : HighLevel_Attr< "AlwaysInline", "always_inline" >;
+def NoInlineAttr      : HighLevel_Attr< "NoInline", "noinline" >;
 def ConstAttr         : HighLevel_Attr< "Const", "const" >;
 def LoaderUninitAttr  : HighLevel_Attr< "LoaderUninitialized", "loader_uninitialized" >;
 def NoInstrumentAttr  : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
