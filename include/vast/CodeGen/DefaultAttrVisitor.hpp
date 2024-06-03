@@ -27,6 +27,7 @@ namespace vast::cg {
         mlir_attr VisitAnnotateAttr(const clang::AnnotateAttr *attr);
         mlir_attr VisitAlignedAttr(const clang::AlignedAttr *attr);
         mlir_attr VisitAlwaysInlineAttr(const clang::AlwaysInlineAttr *attr);
+        mlir_attr VisitNoInlineAttr(const clang::NoInlineAttr *attr);
         mlir_attr VisitLoaderUninitializedAttr(const clang::LoaderUninitializedAttr *attr);
         mlir_attr VisitNoInstrumentFunctionAttr(const clang::NoInstrumentFunctionAttr *attr);
         mlir_attr VisitPackedAttr(const clang::PackedAttr *attr);
