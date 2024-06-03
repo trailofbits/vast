@@ -92,6 +92,10 @@ namespace vast::cg
         return make< hl::ColdAttr >();
     }
 
+    mlir_attr default_attr_visitor::VisitNoInlineAttr(const clang::NoInlineAttr *attr) {
+        return make< hl::NoInlineAttr >();
+    }
+
     mlir_attr default_attr_visitor::VisitDeprecatedAttr(const clang::DeprecatedAttr *attr) {
         return make< hl::DeprecatedAttr >(attr->getMessage(), attr->getReplacement());
     }
