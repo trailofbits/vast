@@ -146,13 +146,6 @@ namespace vast::cg
             return fn;
         };
 
-        auto set_attrs = [&] (vast_function fn) {
-            auto attrs = visit_attrs(decl);
-            attrs.append(fn->getAttrs());
-            fn->setAttrs(attrs);
-            return fn;
-        };
-
         return bld.compose< vast_function >()
             .bind(self.location(decl))
             .bind(self.symbol(decl))
@@ -160,7 +153,6 @@ namespace vast::cg
             .bind(core::get_function_linkage(decl))
             .freeze_as_maybe() // construct vast_function
             .transform(set_visibility)
-            .transform(set_attrs)
             .take();
     }
 
