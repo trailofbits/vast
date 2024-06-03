@@ -31,6 +31,10 @@ namespace vast::cg
         return make< hl::AlwaysInlineAttr >();
     }
 
+    mlir_attr default_attr_visitor::VisitNoInlineAttr(const clang::NoInlineAttr *attr) {
+        return make< hl::NoInlineAttr >();
+    }
+
     mlir_attr default_attr_visitor::VisitLoaderUninitializedAttr(const clang::LoaderUninitializedAttr *) {
         return make< hl::LoaderUninitializedAttr >();
     }
@@ -90,10 +94,6 @@ namespace vast::cg
 
     mlir_attr default_attr_visitor::VisitColdAttr(const clang::ColdAttr *attr) {
         return make< hl::ColdAttr >();
-    }
-
-    mlir_attr default_attr_visitor::VisitNoInlineAttr(const clang::NoInlineAttr *attr) {
-        return make< hl::NoInlineAttr >();
     }
 
     mlir_attr default_attr_visitor::VisitDeprecatedAttr(const clang::DeprecatedAttr *attr) {
