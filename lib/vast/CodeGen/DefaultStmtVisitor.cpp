@@ -979,6 +979,8 @@ namespace vast::cg
         switch (expr->getKind()) {
             case clang::UETT_SizeOf:
                 return mk_trait_expr< hl::SizeOfTypeOp, hl::SizeOfExprOp >(expr);
+            case clang::UETT_PreferredAlignOf:
+                return mk_trait_expr< hl::PreferredAlignOfTypeOp, hl::PreferredAlignOfExprOp >(expr);
             case clang::UETT_AlignOf:
                 return mk_trait_expr< hl::AlignOfTypeOp, hl::AlignOfExprOp >(expr);
             default:
