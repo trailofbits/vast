@@ -391,6 +391,21 @@ def HighLevel_GotoStmt
   let assemblyFormat = [{ $label attr-dict }];
 }
 
+def HighLevel_IndirectGotoStmt
+  : HighLevel_Op< "indirect_goto", [] >
+{
+  let regions = (region ValueRegion:$target);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "builder_callback_ref":$targetBuilder
+    )>
+  ];
+
+  let assemblyFormat = [{ attr-dict `:` $target }];
+}
+
 def HighLevel_SkipStmt : HighLevel_Op< "skip", [] >
 {
   let summary = "VAST skip statement";

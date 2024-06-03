@@ -582,6 +582,13 @@ namespace vast::hl
         build_region(bld, st, substmt);
     }
 
+    void IndirectGotoStmt::build(
+        Builder &bld, State &st, builder_callback_ref target)
+    {
+        InsertionGuard guard(bld);
+        build_region(bld, st, target);
+    }
+
 
     void ExprOp::build(
         Builder &bld, State &st, Type rty,
