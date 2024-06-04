@@ -2,6 +2,8 @@
 
 #include "vast/CodeGen/DefaultVisitor.hpp"
 
+#include "vast/Dialect/Unsupported/UnsupportedDialect.hpp"
+
 #include "vast/CodeGen/Util.hpp"
 
 namespace vast::cg
@@ -21,16 +23,25 @@ namespace vast::cg
         , clang::CUDAGlobalAttr
     >;
 
-    operation default_visitor::visit_decl_attrs(operation op, const clang_decl *decl, scope_context &scope) {
+    operation default_visitor::visit_decl_attrs(
+        operation op, const clang_decl *decl, scope_context &scope
+    ) {
         if (decl->hasAttrs()) {
             mlir::NamedAttrList attrs = op->getAttrs();
             for (auto attr : exclude_attrs< excluded_attr_list >(decl->getAttrs())) {
                 auto visited = self.visit(attr, scope);
 
-                auto key = visited.getAbstractAttribute().getName();
+                // All attributes in unsupported dialect have the same name
+                auto is_unsup = mlir::isa< unsup::UnsupportedDialect >(visited.getDialect());
+                auto key =
+                    is_unsup ? attr->getSpelling() : visited.getAbstractAttribute().getName();
 
                 if (auto prev = attrs.getNamed(key)) {
-                    VAST_CHECK(visited == prev.value().getValue(), "Conflicting redefinition of attribute {0} with spelling {1}", key, attr->getSpelling());
+                    VAST_CHECK(
+                        is_unsup || visited == prev.value().getValue(),
+                        "Conflicting redefinition of attribute {0} with spelling {1}", key,
+                        attr->getSpelling()
+                    );
                 }
 
                 attrs.set(key, visited);
