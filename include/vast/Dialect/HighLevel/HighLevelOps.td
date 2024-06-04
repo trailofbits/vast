@@ -23,7 +23,7 @@ include "vast/Dialect/Core/Func.td"
 def TranslationUnitOp
   : HighLevel_Op< "translation_unit", [
       NoTerminator,
-      ShadowingSymbolTable< [FuncSymbol, VarSymbol, TypeSymbol, ElaboratedTypeSymbol] >,
+      ShadowingSymbolTable< [[FuncSymbol, VarSymbol, TypeSymbol], [ElaboratedTypeSymbol]] >,
       IsolatedFromAbove
   ] >
 {
@@ -45,7 +45,7 @@ def TranslationUnitOp
 def HighLevel_FuncOp
   : Core_FuncBaseOp< HighLevel_Dialect, "func", [
     FuncSymbol,
-    ShadowingSymbolTable< [VarSymbol, TypeSymbol, ElaboratedTypeSymbol] >,
+    ShadowingSymbolTable< [[VarSymbol, TypeSymbol], [ElaboratedTypeSymbol]] >,
     IsolatedFromAbove
   ] >
 {
