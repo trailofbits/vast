@@ -26,14 +26,6 @@ namespace vast::cg
             .bind(decl_name(decl, self))
             .freeze();
 
-        if (decl->hasAttrs()) {
-            mlir::NamedAttrList attrs = op->getAttrs();
-            for (auto attr : decl->getAttrs()) {
-                attrs.append(attr->getSpelling(), self.visit(attr, scope));
-            }
-            op->setAttrs(attrs);
-        }
-
         return op;
     }
 
