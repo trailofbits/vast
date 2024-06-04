@@ -111,4 +111,8 @@ namespace vast::cg
     mlir_attr default_attr_visitor::VisitMaxFieldAlignmentAttr(const clang::MaxFieldAlignmentAttr *attr) {
         return make< hl::MaxFieldAlignmentAttr >(attr->getAlignment());
     }
+
+    mlir_attr default_attr_visitor::VisitAvailableOnlyInDefaultEvalMethodAttr(const clang::AvailableOnlyInDefaultEvalMethodAttr *attr) {
+        return make< hl::AvailableOnlyInDefaultEvalMethodAttr >();
+    };
 } // namespace vast::hcg
