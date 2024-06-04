@@ -3,7 +3,7 @@
 
 #pragma pack(4)
 
-// CHECK: #hl.max_field_alignment<alignment : {{[0-9]+}}>
+// CHECK: #hl.max_field_alignment<{{[0-9]+}}>
 struct foo2 {
   short a;
   long  x;
