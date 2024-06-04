@@ -118,7 +118,7 @@ def DeprecatedAttr : HighLevel_Attr< "Deprecated", "deprecated" > {
 def MaxFieldAlignmentAttr : HighLevel_Attr< "MaxFieldAlignment", "max_field_alignment" > {
   let parameters = (ins "unsigned": $alignment);
 
-  let assemblyFormat = "`<` `alignment` `:` $alignment `>`";
+  let assemblyFormat = "`<` $alignment `>`";
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
