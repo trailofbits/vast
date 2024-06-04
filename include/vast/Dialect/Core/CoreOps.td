@@ -13,7 +13,7 @@ include "vast/Dialect/Core/SymbolTable.td"
 def Core_ModuleOp : Core_Op< "module", [
   IsolatedFromAbove,
   NoTerminator, NoTerminator, SingleBlock, VastSymbol,
-  ShadowingSymbolTable< [VarSymbol, TypeSymbol, ElaboratedTypeSymbol] >
+  ShadowingSymbolTable< [[FuncSymbol, VarSymbol, TypeSymbol], [ElaboratedTypeSymbol]] >,
 ] > {
   let summary = "VAST top level container operation";
   let description = [{
@@ -69,7 +69,7 @@ def Core_ModuleOp : Core_Op< "module", [
 
 def Core_ScopeOp : Core_Op< "scope", [
   NoTerminator,
-  ShadowingSymbolTable< [VarSymbol, TypeSymbol, ElaboratedTypeSymbol] >,
+  ShadowingSymbolTable< [[VarSymbol, TypeSymbol], [ElaboratedTypeSymbol]] >,
   DeclareOpInterfaceMethods<RegionKindInterface>
 ] > {
   let summary = "VAST scope declaration";
