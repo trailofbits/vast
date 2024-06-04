@@ -38,11 +38,11 @@
             "cacheVariables": {
                 "CMAKE_CONFIGURATION_TYPES": "Release",
                 "VAST_ENABLE_TESTING": "OFF",
-                "CMAKE_C_COMPILER": "/usr/bin/clang-17",
-                "CMAKE_CXX_COMPILER": "/usr/bin/clang++-17",
+                "CMAKE_C_COMPILER": "/usr/bin/clang-18",
+                "CMAKE_CXX_COMPILER": "/usr/bin/clang++-18",
                 "CMAKE_INSTALL_PREFIX": "$env{STAGING_DIR}",
                 "CMAKE_INSTALL_RPATH": "$env{ORIGIN}/../lib",
-                "CMAKE_PREFIX_PATH": "/usr/lib/llvm-17;/usr/lib/llvm-17/lib/cmake/mlir;/usr/lib/llvm-17/lib/cmake/clang"
+                "CMAKE_PREFIX_PATH": "/usr/lib/llvm-18;/usr/lib/llvm-18/lib/cmake/mlir;/usr/lib/llvm-18/lib/cmake/clang"
             }
         },
         {
