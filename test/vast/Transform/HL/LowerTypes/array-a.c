@@ -1,22 +1,22 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt --vast-hl-lower-types | %file-check %s
 
-// CHECK: hl.var "ai" : !hl.lvalue<memref<10xsi32>>
+// CHECK: hl.var "ai" : !hl.lvalue<!hl.array<10, si32>>
 int ai[10];
 
-// CHECK: hl.var "aci" : !hl.lvalue<memref<5xsi32>>
+// CHECK: hl.var "aci" : !hl.lvalue<!hl.array<5, si32>>
 const int aci[5];
 
-// CHECK: hl.var "avi" : !hl.lvalue<memref<5xsi32>>
+// CHECK: hl.var "avi" : !hl.lvalue<!hl.array<5, si32>>
 volatile int avi[5];
 
-// CHECK: hl.var "acvi" : !hl.lvalue<memref<5xsi32>>
+// CHECK: hl.var "acvi" : !hl.lvalue<!hl.array<5, si32>>
 const volatile int acvi[5];
 
-// CHECK: hl.var "acvui" : !hl.lvalue<memref<5xui32>>
+// CHECK: hl.var "acvui" : !hl.lvalue<!hl.array<5, ui32>>
 const volatile unsigned int acvui[5];
 
-// CHECK: hl.var "af" : !hl.lvalue<memref<10xf32>>
+// CHECK: hl.var "af" : !hl.lvalue<!hl.array<10, f32>>
 float af[10];
 
-// CHECK: hl.var "a3d" : !hl.lvalue<memref<2x4x3xf32>>
+// CHECK: hl.var "a3d" : !hl.lvalue<!hl.array<2, !hl.array<4, !hl.array<3, f32>>>>
 float a3d[2][4][3];
