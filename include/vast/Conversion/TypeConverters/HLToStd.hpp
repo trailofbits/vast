@@ -214,18 +214,14 @@ namespace vast::conv::tc {
         }
 
         maybe_type_t convert_arr_type(hl::ArrayType arr) {
-            auto [dims, nested_ty] = arr.dim_and_type();
-            std::vector< int64_t > coerced_dim;
-            for (auto dim : dims) {
-                if (dim.has_value()) {
-                    coerced_dim.push_back(dim.value());
-                } else {
-                    coerced_dim.push_back(mlir::ShapedType::kDynamic);
-                }
-            }
+            auto make_array = [&](mlir_type element_type) {
+                return hl::ArrayType::get(arr.getContext(), arr.getSize(), element_type);
+            };
 
-            return Maybe(convert_type_to_type(nested_ty))
-                .and_then([&](auto t) { return mlir::MemRefType::get({ coerced_dim }, *t); })
+            return Maybe(arr.getElementType())
+                .and_then(convert_type_to_type())
+                .unwrap()
+                .and_then(make_array)
                 .take_wrapped< maybe_type_t >();
         }
     };
