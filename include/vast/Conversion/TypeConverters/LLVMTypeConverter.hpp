@@ -52,7 +52,6 @@ namespace vast::conv::tc {
             addConversion([&](hl::LValueType t) { return this->convert_lvalue_type(t); });
             addConversion([&](hl::PointerType t) { return this->convert_pointer_type(t); });
             addConversion([&](hl::ArrayType t) { return this->convert_array_type(t); });
-            addConversion([&](mlir::MemRefType t) { return this->convert_memref_type(t); });
             addConversion([&](mlir::UnrankedMemRefType t) {
                 return this->convert_memref_type(t);
             });
@@ -119,23 +118,21 @@ namespace vast::conv::tc {
                 .take_wrapped< maybe_type_t >();
         }
 
+
         auto make_array(auto shape) {
-            return [shape = std::move(shape)](auto t) {
-                auto out = LLVM::LLVMArrayType::get(t, shape.back());
-                for (int i = shape.size() - 2; i >= 0; --i) {
-                    out = LLVM::LLVMArrayType::get(out, shape[i]);
-                }
-                return out;
+            return [shape = std::move(shape)](mlir_type t) {
+                VAST_CHECK(shape, "Was not able to retrieve size of array type!");
+                return mlir::LLVM::LLVMArrayType::get(t, *shape);
             };
         }
 
-        maybe_type_t convert_memref_type(mlir::MemRefType t) {
+        maybe_type_t convert_array_type(hl::ArrayType t) {
             return Maybe(t.getElementType())
-                .and_then(helpers_t::convert_type_to_type())
+                .and_then(convert_type_to_type())
                 .unwrap()
-                .and_then(make_array(t.getShape()))
+                .and_then(make_array(t.getSize()))
                 .take_wrapped< maybe_type_t >();
-        }
+        };
 
         maybe_type_t convert_memref_type(mlir::UnrankedMemRefType t) { return {}; }
 
