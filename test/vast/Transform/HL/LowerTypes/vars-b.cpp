@@ -16,12 +16,12 @@ int main()
     char y = 'H';
 
 
-    // CHECK: hl.var "ia" : !hl.lvalue<memref<3xsi32>> =  {
+    // CHECK: hl.var "ia" : !hl.lvalue<!hl.array<3, si32>> =  {
     // CHECK:   [[V3:%[0-9]+]] = hl.const #core.integer<0> : si32
     // CHECK:   [[V4:%[0-9]+]] = hl.const #core.integer<1> : si32
     // CHECK:   [[V5:%[0-9]+]] = hl.const #core.integer<2> : si32
-    // CHECK:   [[V6:%[0-9]+]] = hl.initlist [[V3]], [[V4]], [[V5]] : (si32, si32, si32) -> memref<3xsi32>
-    // CHECK:   hl.value.yield [[V6]] : memref<3xsi32>
+    // CHECK:   [[V6:%[0-9]+]] = hl.initlist [[V3]], [[V4]], [[V5]] : (si32, si32, si32) -> !hl.array<3, si32>
+    // CHECK:   hl.value.yield [[V6]] : !hl.array<3, si32>
     // CHECK: }
     int ia[3] = { 0, 1, 2 };
 
@@ -40,15 +40,15 @@ int main()
     // CHECK: }
     long double ld = 91.02;
 
-    // CHECK: hl.var "fa" : !hl.lvalue<memref<3xf32>> =  {
+    // CHECK: hl.var "fa" : !hl.lvalue<!hl.array<3, f32>> =  {
     // CHECK:   [[V11:%[0-9]+]] = hl.const #core.float<0.000000e+00> : f64
     // CHECK:   [[V12:%[0-9]+]] = hl.implicit_cast [[V11]] FloatingCast : f64 -> f32
     // CHECK:   [[V13:%[0-9]+]] = hl.const #core.float<5.000000e-01> : f64
     // CHECK:   [[V14:%[0-9]+]] = hl.implicit_cast [[V13]] FloatingCast : f64 -> f32
     // CHECK:   [[V15:%[0-9]+]] = hl.const #core.float<1.000000e+00> : f64
     // CHECK:   [[V16:%[0-9]+]] = hl.implicit_cast [[V15]] FloatingCast : f64 -> f32
-    // CHECK:   [[V17:%[0-9]+]] = hl.initlist [[V12]], [[V14]], [[V16]] : (f32, f32, f32) -> memref<3xf32>
-    // CHECK:   hl.value.yield [[V17]] : memref<3xf32>
+    // CHECK:   [[V17:%[0-9]+]] = hl.initlist [[V12]], [[V14]], [[V16]] : (f32, f32, f32) -> !hl.array<3, f32>
+    // CHECK:   hl.value.yield [[V17]] : !hl.array<3, f32>
     // CHECK: }
     float fa[3] = { 0.0, 0.5, 1.0 };
 }
