@@ -1,0 +1,15 @@
+#include <assert.h>
+
+int sum(int array[2]);
+
+int main()
+{
+    int a[2] = { 0, 0 };
+    assert(sum(a) == 0);
+    a[1] = 5;
+    assert(sum(a) == 5);
+    a[0] = 10;
+    assert(sum(a) == 15);
+    a[1] = -10;
+    assert(sum(a) == 0);
+}
