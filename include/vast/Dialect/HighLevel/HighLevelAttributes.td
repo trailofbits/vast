@@ -51,6 +51,7 @@ def LeafAttr             : HighLevel_Attr< "Leaf", "leaf" >;
 def ColdAttr             : HighLevel_Attr< "Cold", "cold" >;
 def TransparentUnionAttr : HighLevel_Attr< "TransparentUnion", "transparent_union" >;
 def ReturnsTwiceAttr     : HighLevel_Attr< "ReturnsTwice", "returns_twice" >;
+def MayAliasAttr         : HighLevel_Attr< "MayAlias", "may_alias" >;
 def AvailableOnlyInDefaultEvalMethodAttr
   : HighLevel_Attr< "AvailableOnlyInDefaultEvalMethod", "available_only_in_default_eval_method" >;
 
