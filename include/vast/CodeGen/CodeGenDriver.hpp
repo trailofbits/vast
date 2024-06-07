@@ -44,7 +44,7 @@ namespace vast::cg {
         explicit driver(
               acontext_t &_actx
             , std::unique_ptr< mcontext_t > _mctx
-            , options_t _opts
+            , options _opts
             , std::unique_ptr< codegen_builder > _bld
             , std::unique_ptr< meta_generator > _mg
             , std::unique_ptr< symbol_generator > _sg
@@ -82,7 +82,7 @@ namespace vast::cg {
         acontext_t &actx;
         std::unique_ptr< mcontext_t > mctx;
 
-        options_t opts;
+        options opts;
         symbol_tables symbols;
 
         //
@@ -93,7 +93,7 @@ namespace vast::cg {
         std::unique_ptr< symbol_generator > sg;
 
         std::unique_ptr< codegen_visitor > visitor;
-        std::unique_ptr< codegen_visitor > mk_visitor(const options_t &opts);
+        std::unique_ptr< codegen_visitor > mk_visitor(const options &opts);
 
         //
         // module generation state

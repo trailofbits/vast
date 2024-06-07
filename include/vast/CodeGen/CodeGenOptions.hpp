@@ -9,7 +9,7 @@ namespace vast::cg {
 
     using source_language = core::SourceLanguage;
 
-    struct options_t
+    struct options
     {
         source_language lang;
         unsigned int optimization_level : 2;

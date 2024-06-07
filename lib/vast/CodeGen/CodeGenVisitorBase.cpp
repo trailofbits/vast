@@ -47,7 +47,7 @@ namespace vast::cg
         return visitor.mcontext();
     }
 
-    const options_t &visitor_view::options() const {
+    const options &visitor_view::options() const {
         return visitor.options();
     }
 
