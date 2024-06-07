@@ -23,6 +23,8 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg {
 
+    std::unique_ptr< codegen_builder > mk_codegen_builder(mcontext_t *mctx);
+
     std::unique_ptr< meta_generator > mk_meta_generator(
         acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs
     );
