@@ -642,10 +642,10 @@ namespace vast::abi {
                 if (hi_start == 8) {
                     return lo;
                 }
-                // TODO(abi): float, half -> promote to double
                 if (TypeConfig::is_scalar_integer(lo) || TypeConfig::is_pointer(lo)) {
                     return TypeConfig::iN(lo, 64);
                 }
+                // TODO(abi): float, half -> promote to double
                 if (TypeConfig::is_scalar_float(lo) && size(lo) < 32) {
                     return TypeConfig::fN(*lo.getContext(), 64);
                 }
