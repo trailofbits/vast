@@ -285,7 +285,11 @@ namespace vast::conv::abi {
                 auto element_type = ptr_type.getElementType();
 
                 if (needs_nesting(element_type)) {
-                    return self_t(state, mod).run_on(gep.getOperation(), rewriter);
+                    auto nested_deconstructor = self_t(state, mod);
+                    nested_deconstructor.run_on(gep.getDefiningOp(), rewriter);
+                    auto result = std::move(nested_deconstructor.partials);
+                    partials.insert(partials.end(), result.begin(), result.end());
+                    return;
                 }
 
                 auto rvalue =
