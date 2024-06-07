@@ -100,7 +100,7 @@ namespace vast::conv::abi {
             }
         }
 
-        std::vector< mlir_value > field_ptrs(operation root, auto loc, auto &bld) const {
+        gap::generator< mlir_value > field_ptrs(operation root, auto loc, auto &bld) const {
             auto trg_type = [&] {
                 auto root_type = root->getResultTypes()[0];
                 if (auto ptr_type = mlir::dyn_cast< hl::PointerType >(root_type)) {
@@ -113,12 +113,9 @@ namespace vast::conv::abi {
 
             auto root_value = root->getResult(0);
             if (auto array_type = mlir::dyn_cast< hl::ArrayType >(trg_type))
-                for(auto f : field_ptrs(array_type, root_value, loc, bld))
-                    out.push_back(f);
+                return field_ptrs(array_type, root_value, loc, bld);
             if (auto record_type = mlir::dyn_cast< hl::RecordType >(trg_type))
-                for(auto f : field_ptrs(record_type, root_value, loc, bld))
-                    out.push_back(f);
-return out;
+                return field_ptrs(record_type, root_value, loc, bld);
             VAST_UNREACHABLE("Trying to generator pointers to unsupported value: {0}", root);
         }
 
@@ -306,6 +303,7 @@ return out;
                 if (pad_by == 0) {
                     return;
                 }
+                this->offset += pad_by;
 
                 auto i_type = mlir::IntegerType::get(
                     this->abi_op.getContext(), pad_by, mlir::IntegerType::Signless
