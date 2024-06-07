@@ -60,16 +60,47 @@ namespace vast::conv::abi {
         //                 `SubElement` interface won't work, for pointers or arrays
         //                 we do not care.
         bool needs_nesting(mlir_type type) const {
-            return contains_subtype< hl::RecordType >(type);
+            return contains_subtype< hl::RecordType, hl::ArrayType >(type);
         }
 
         // TODO(conv:abi): Figure out how to instead use some generic helper.
-        gap::generator< ll::StructGEPOp >
-        field_ptrs(operation root, auto loc, auto &bld) const {
-            auto module_op = root->getParentOfType< vast_module >();
-            VAST_ASSERT(module_op);
-            VAST_ASSERT(root->getNumResults() == 1);
+        gap::generator< mlir_value > field_ptrs(
+            hl::ArrayType array_type, mlir_value value,
+            auto loc, auto &bld
+        ) const {
+            VAST_CHECK(mlir::isa< hl::PointerType >(value.getType()), "Trying to iterate non-ptr!");
 
+            auto idx = llvm::APSInt(64, 0);
+            for (auto f : fields(array_type)) {
+                auto idx_type = mk_int_type(*array_type.getContext(), 64);
+                auto idx_value = bld.template create< hl::ConstantOp >(loc, idx_type, idx);
+                auto target_type = hl::PointerType::get(f);
+                co_yield bld.template create< ll::Subscript >(loc, target_type, value, idx_value);
+                ++idx;
+            }
+        }
+
+        gap::generator< mlir_value > field_ptrs(
+            hl::RecordType record_type, mlir_value value,
+            auto loc, auto &bld
+        ) const {
+            vast_module mod = value.getDefiningOp()->getParentOfType< vast_module >();
+            VAST_ASSERT(mod);
+
+            auto def        = hl::definition_of(record_type, mod);
+            std::size_t idx = 0;
+            for (const auto &[name, type] : def.getFieldsInfo()) {
+                auto ptr_type = hl::PointerType::get(type);
+                auto idx_attr = bld.getI32IntegerAttr(idx++);
+                auto gep      = bld.template create< ll::StructGEPOp >(
+                    loc, ptr_type, value, idx_attr,
+                    bld.getStringAttr(name)
+                );
+                co_yield gep;
+            }
+        }
+
+        std::vector< mlir_value > field_ptrs(operation root, auto loc, auto &bld) const {
             auto trg_type = [&] {
                 auto root_type = root->getResultTypes()[0];
                 if (auto ptr_type = mlir::dyn_cast< hl::PointerType >(root_type)) {
@@ -78,17 +109,33 @@ namespace vast::conv::abi {
                 return root_type;
             }();
 
-            auto def        = hl::definition_of(trg_type, module_op);
-            std::size_t idx = 0;
-            for (const auto &[name, type] : def.getFieldsInfo()) {
-                auto ptr_type = hl::PointerType::get(root->getContext(), type);
-                auto gep      = bld.template create< ll::StructGEPOp >(
-                    loc, ptr_type, root->getResult(0), bld.getI32IntegerAttr(idx),
-                    bld.getStringAttr(name)
-                );
-                ++idx;
-                co_yield gep;
+            std::vector< mlir_value > out;
+
+            auto root_value = root->getResult(0);
+            if (auto array_type = mlir::dyn_cast< hl::ArrayType >(trg_type))
+                for(auto f : field_ptrs(array_type, root_value, loc, bld))
+                    out.push_back(f);
+            if (auto record_type = mlir::dyn_cast< hl::RecordType >(trg_type))
+                for(auto f : field_ptrs(record_type, root_value, loc, bld))
+                    out.push_back(f);
+return out;
+            VAST_UNREACHABLE("Trying to generator pointers to unsupported value: {0}", root);
+        }
+
+        gap::generator< mlir_type > fields(hl::ArrayType array_type) const {
+            auto element_type = array_type.getElementType();
+            auto size = array_type.getSize();
+            VAST_CHECK(size, "Unexpected array type without explicit size!");
+            for (std::size_t i = 0; i < *size; ++i)
+                co_yield element_type;
+        }
+
+        // This is different than a generic walker, because we want to "unpack" array types.
+        auto fields(mlir_type t, vast_module mod) const {
+            if (auto array_type = mlir::dyn_cast< hl::ArrayType >(t)) {
+                return fields(array_type);
             }
+            return vast::hl::field_types(t, mod);
         }
     };
 
@@ -152,7 +199,7 @@ namespace vast::conv::abi {
                 return state.allocate(field_type, rewriter);
             };
 
-            for (auto field_type : vast::hl::field_types(root_type, mod)) {
+            for (auto field_type : this->fields(root_type, mod)) {
                 partials.push_back(handle_type(field_type));
             }
 
