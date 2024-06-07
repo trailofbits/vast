@@ -374,9 +374,8 @@ namespace vast::abi {
 
         auto size(mlir::Type t) { return dl.getTypeSizeInBits(t); }
 
-        auto align(type) {
-            // TODO(abi): Implement into data layout of vast stack.
-            return 0;
+        auto align(type t) {
+            return dl.getTypeABIAlignment(t);
         }
 
         // Enum for classification algorithm.
@@ -634,7 +633,7 @@ namespace vast::abi {
         // TODO(abi): Implement. Requires information about alignment and size of alloca.
         types combine_half_types(type lo, type hi) {
             VAST_CHECK(size(hi) / 8 != 0, "{0}", hi);
-            auto hi_start = llvm::alignTo(size(lo) / 8, size(hi) / 8);
+            auto hi_start = llvm::alignTo(size(lo) / 8, align(hi));
             VAST_CHECK(hi_start != 0 && hi_start / 8 <= 8, "{0} {1} {2}", lo, hi, hi_start);
 
             // `hi` needs to start at later offset - we need to add explicit padding
