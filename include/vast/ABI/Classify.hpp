@@ -68,6 +68,13 @@ namespace vast::abi {
             return maybe_strip< hl::ElaboratedType >(t).isa< hl::ArrayType >();
         }
 
+        // Must be invoked with `t` that is array-like.
+        static auto array_info(mlir_type t) -> std::tuple< std::optional< std::size_t >, mlir_type > {
+            auto array_type = mlir::dyn_cast< hl::ArrayType >(t);
+            VAST_ASSERT(array_type);
+            return { array_type.getSize(), array_type.getElementType() };
+        }
+
         static bool can_be_passed_in_regs(mlir::Type t) {
             // TODO(abi): Seems like in C nothing can prevent this.
             return true;
@@ -121,8 +128,10 @@ namespace vast::abi {
                 return true;
             }
 
+            // TODO: Implement. For now we are saying the array is okay as in `C` this will be
+            //       rarely broken.
             if (is_array(t)) {
-                VAST_TODO("bits_contain_no_user_data, array: {0}", t);
+                return true;
             }
 
             if (is_record(t)) {
@@ -178,18 +187,20 @@ namespace vast::abi {
                 return is_scalar_integer(t) && size(dl_, t) == trg_size;
             };
 
-            if ((is_pointer(t) && pointer_size() == 64) || is_int_type(64)) {
-                return t;
-            }
-
-            if (is_int_type(8) || is_int_type(16) || is_int_type(32)) {
-                // TODO(abi): Here should be check if `BitsContainNoUserData` - however
-                //            for now it should be safe to always pretend to it being `false`?
-                if (bits_contain_no_user_data(
-                        root, offset + size(dl, t), root_offset + 64, classifier_ctx
-                    ))
-                {
+            if (offset == 0) {
+                if ((is_pointer(t) && pointer_size() == 64) || is_int_type(64)) {
                     return t;
+                }
+
+                if (is_int_type(8) || is_int_type(16) || is_int_type(32)) {
+                    // TODO(abi): Here should be check if `BitsContainNoUserData` - however
+                    //            for now it should be safe to always pretend to it being `false`?
+                    if (bits_contain_no_user_data(
+                            root, offset + size(dl, t), root_offset + 64, classifier_ctx
+                        ))
+                    {
+                        return t;
+                    }
                 }
             }
 
@@ -200,12 +211,17 @@ namespace vast::abi {
                 auto [field, field_start] = field_containing_offset(classifier_ctx, t, offset);
                 VAST_ASSERT(field);
                 return int_type_at_offset(
-                    field, field_start, root, root_offset, classifier_ctx
+                    field, offset - field_start, root, root_offset, classifier_ctx
                 );
             }
 
             if (is_array(t)) {
-                VAST_TODO("int_type_at_offset in {0} (is_array_was_true", t);
+                auto [_, element_type] = array_info(t);
+                auto element_size = size(dl, element_type);
+                auto element_offset = root_offset / element_size * element_size;
+                return int_type_at_offset(
+                    element_type, offset - element_offset,
+                    root, root_offset, classifier_ctx);
             }
 
             auto type_size = size(dl, root);
@@ -313,7 +329,18 @@ namespace vast::abi {
             VAST_UNREACHABLE("Did not find field at offset {0} in {1}", offset, t);
         }
 
+        static gap::generator< mlir_type > mock_array_fields(hl::ArrayType array_type) {
+            auto size = array_type.getSize();
+            VAST_CHECK(size, "Variable size array type not yet supported");
+
+            auto et =array_type.getElementType();
+            for (std::size_t i = 0; i < *size; ++i)
+               co_yield et;
+        }
+
         static auto fields(mlir_type type, auto func) {
+            if (auto array_type = mlir::dyn_cast< hl::ArrayType >(type))
+                return mock_array_fields(array_type);
             auto mod = func->template getParentOfType< vast_module >();
             return vast::hl::field_types(type, mod);
         }
