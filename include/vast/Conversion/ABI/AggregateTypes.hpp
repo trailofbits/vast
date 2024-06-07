@@ -50,6 +50,12 @@ namespace vast::conv::abi {
             }
         };
 
+        static mlir_type mk_int_type(mcontext_t &mctx, auto size) {
+            return mlir::IntegerType::get(
+                &mctx, size, mlir::IntegerType::Signless
+            );
+        };
+
         // TODO(conv:abi): Issue #423 - figure out how to make this not adhoc.
         //                 `SubElement` interface won't work, for pointers or arrays
         //                 we do not care.
@@ -213,6 +219,7 @@ namespace vast::conv::abi {
             // Returns value only one destination is saturated.
             auto
             allocate(mlir_type type, auto &rewriter, auto val) -> std::optional< mlir::Value > {
+                auto &mctx = *type.getContext();
                 auto start = this->offset;
 
                 if (fits(type)) {
@@ -227,14 +234,9 @@ namespace vast::conv::abi {
                 // We need to do the split
                 auto breakpoint = bw(dst()) - start;
 
-                auto mk_int_type = [&](auto size) {
-                    return mlir::IntegerType::get(
-                        this->abi_op.getContext(), size, mlir::IntegerType::Signless
-                    );
-                };
 
                 auto prefix = rewriter.template create< ll::Extract >(
-                    this->abi_op.getLoc(), mk_int_type(breakpoint), val, 0, breakpoint
+                    this->abi_op.getLoc(), mk_int_type(mctx, breakpoint), val, 0, breakpoint
                 );
 
                 current.push_back(prefix);
@@ -243,7 +245,7 @@ namespace vast::conv::abi {
                 auto to_yield    = construct(rewriter);
 
                 auto suffix = rewriter.template create< ll::Extract >(
-                    this->abi_op.getLoc(), mk_int_type(suffix_size), val, breakpoint, bw(type)
+                    this->abi_op.getLoc(), mk_int_type(mctx, suffix_size), val, breakpoint, bw(type)
                 );
 
                 this->offset = suffix_size;
