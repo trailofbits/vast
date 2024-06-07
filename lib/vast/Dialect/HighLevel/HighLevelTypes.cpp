@@ -200,4 +200,8 @@ namespace vast::hl
         return { std::move(dims), collect(*this, collect) };
     }
 
+    PointerType PointerType::get(mlir_type element_type) {
+        return PointerType::get(element_type.getContext(), element_type);
+    }
+
 } // namespace vast::hl

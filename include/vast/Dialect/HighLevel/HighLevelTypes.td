@@ -5,6 +5,7 @@
 
 include "mlir/Interfaces/DataLayoutInterfaces.td"
 include "mlir/IR/BuiltinTypeInterfaces.td"
+include "mlir/IR/AttrTypeBase.td"
 
 include "vast/Dialect/HighLevel/HighLevelAttributes.td"
 include "vast/Interfaces/TypeQualifiersInterfaces.td"
@@ -343,7 +344,8 @@ def PointerType : CVRQualifiedType< "Pointer", "ptr",
   let builders = [
     TypeBuilder<(ins "Type":$element), [{
       return $_get($_ctxt, element, CVRQualifiersAttr());
-    }]>
+    }]>,
+    TypeBuilderWithInferredContext<(ins "Type":$element)>
   ];
 
   let assemblyFormat = "`<` $elementType (`,` $quals^ )? `>`";
