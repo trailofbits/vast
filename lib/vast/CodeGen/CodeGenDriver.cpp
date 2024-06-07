@@ -109,7 +109,7 @@ namespace vast::cg {
         auto mg   = mk_meta_generator(&actx, mctx.get(), vargs);
         auto sg   = mk_symbol_generator(actx);
 
-        options_t copts = {
+        options copts = {
             .lang = cc::get_source_language(actx.getLangOpts()),
             .optimization_level = opts.codegen.OptimizationLevel,
             // function emition options
@@ -128,7 +128,7 @@ namespace vast::cg {
         );
     }
 
-    std::unique_ptr< codegen_visitor > driver::mk_visitor(const options_t &opts) {
+    std::unique_ptr< codegen_visitor > driver::mk_visitor(const options &opts) {
         auto top = std::make_unique< codegen_visitor >(*mctx, *mg, *sg, opts);
 
         top->visitors.push_back(

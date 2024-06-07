@@ -31,7 +31,7 @@ namespace vast::cg {
 
     struct module_generator : generator_base
     {
-        module_generator(codegen_builder &bld, scoped_visitor_view visitor, const options_t &opts)
+        module_generator(codegen_builder &bld, scoped_visitor_view visitor, const options &opts)
             : generator_base(bld, visitor), opts(opts)
         {}
 
@@ -43,7 +43,7 @@ namespace vast::cg {
         void finalize();
         void emit_data_layout();
 
-        const options_t &opts;
+        const options &opts;
     };
 
 } // namespace vast::cg

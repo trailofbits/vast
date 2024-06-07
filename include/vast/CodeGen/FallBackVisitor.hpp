@@ -19,7 +19,7 @@ namespace vast::cg
     {
         using visitor_stack = std::vector< visitor_base_ptr >;
 
-        fallback_visitor(mcontext_t &mctx, meta_generator &mg, symbol_generator &sg, const options_t &opts)
+        fallback_visitor(mcontext_t &mctx, meta_generator &mg, symbol_generator &sg, const struct options &opts)
             : visitor_base(mctx, mg, sg, opts)
         {}
 

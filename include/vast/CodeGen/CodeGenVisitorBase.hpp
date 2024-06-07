@@ -45,7 +45,7 @@ namespace vast::cg {
         mcontext_t& mcontext();
         const mcontext_t& mcontext() const;
 
-        const options_t &options() const;
+        const options &options() const;
 
         visitor_base *raw() { return &visitor; }
 
@@ -177,7 +177,7 @@ namespace vast::cg {
               mcontext_t &mctx
             , meta_generator &mg
             , symbol_generator &sg
-            , const options_t &opts
+            , const options &opts
         )
             : mctx(mctx), mg(mg), sg(sg), opts(opts)
         {}
@@ -198,7 +198,7 @@ namespace vast::cg {
         mcontext_t& mcontext() { return mctx; }
         const mcontext_t& mcontext() const { return mctx; }
 
-        const options_t &options() const { return opts; }
+        const options &options() const { return opts; }
 
         loc_t location(const auto *node) const { return mg.location(node); }
 
@@ -211,7 +211,7 @@ namespace vast::cg {
         meta_generator &mg;
         symbol_generator &sg;
 
-        const options_t &opts;
+        const struct options &opts;
     };
 
     using visitor_base_ptr = std::unique_ptr< visitor_base >;
