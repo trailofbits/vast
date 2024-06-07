@@ -263,7 +263,7 @@ return out;
                 return out;
             }
 
-            // Returns value only one destination is saturated.
+            // Returns value only once destination is saturated.
             auto
             allocate(mlir_type type, auto &rewriter, auto val) -> std::optional< mlir::Value > {
                 auto &mctx = *type.getContext();
