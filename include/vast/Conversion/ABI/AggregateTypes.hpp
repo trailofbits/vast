@@ -273,10 +273,6 @@ namespace vast::conv::abi {
         vast_module mod;
         std::vector< mlir::Value > partials;
 
-        bool needs_nesting(mlir_type type) const {
-            return contains_subtype< hl::RecordType >(type);
-        }
-
         void run_on(operation root, auto &rewriter) {
             auto handle_field = [&](auto gep) {
                 auto field_type = gep.getType();
