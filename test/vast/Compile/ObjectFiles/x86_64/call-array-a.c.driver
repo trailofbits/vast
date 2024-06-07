@@ -1,6 +1,7 @@
 #include <assert.h>
 
 int sum(int array[2]);
+int vast_tests();
 
 int main()
 {
@@ -12,4 +13,6 @@ int main()
     assert(sum(a) == 15);
     a[1] = -10;
     assert(sum(a) == 0);
+
+    return vast_tests();
 }
