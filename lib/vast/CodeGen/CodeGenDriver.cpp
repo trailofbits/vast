@@ -60,7 +60,7 @@ namespace vast::cg {
         return dl;
     }
 
-    void driver::finalize(const cc::vast_args &vargs) {
+    void driver::finalize() {
         generator.finalize();
 
         if (auto type_visitor = visitor->find< default_visitor >()) {
@@ -68,7 +68,7 @@ namespace vast::cg {
             emit_data_layout(*mctx, mod, dl);
         }
 
-        if (!vargs.has_option(cc::opt::disable_vast_verifier)) {
+        if (!opts.disable_vast_verifier) {
             if (!verify()) {
                 VAST_FATAL("codegen: module verification error before running vast passes");
             }
@@ -116,6 +116,8 @@ namespace vast::cg {
             .has_strict_return   = opts.codegen.StrictReturn,
             // visitor options
             .disable_unsupported = vargs.has_option(cc::opt::disable_unsupported),
+            // vast options
+            .disable_vast_verifier = vargs.has_option(cc::opt::disable_vast_verifier)
         };
 
         return std::make_unique< driver >(

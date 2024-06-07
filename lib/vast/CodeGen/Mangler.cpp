@@ -73,7 +73,7 @@ namespace vast::cg
         llvm::raw_svector_ostream out(buffer);
 
         if (!module_name_hash.empty()) {
-            return std::nullopt; // mangling with uninitilized module
+            return std::nullopt; // mangling with uninitialized module
         }
 
         auto anonoymous_mangle = [&]() {
