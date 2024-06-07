@@ -61,7 +61,7 @@ namespace vast::cc {
         // Note that this method is called after `HandleTopLevelDecl` has already
         // ran all over the top level decls. Here clang mostly wraps defered and
         // global codegen, followed by running vast passes.
-        driver->finalize(vargs);
+        driver->finalize();
     }
 
     void vast_consumer::HandleTagDeclDefinition(clang::TagDecl *decl) {

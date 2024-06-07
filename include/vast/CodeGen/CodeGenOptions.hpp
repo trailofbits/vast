@@ -14,11 +14,14 @@ namespace vast::cg {
         source_language lang;
         unsigned int optimization_level : 2;
 
-        // function emition optionsi
+        // function emition options
         unsigned int has_strict_return : 1;
 
         // visitor options
         bool disable_unsupported : 1;
+
+        // vast options
+        bool disable_vast_verifier : 1;
     };
 
 } // namespace vast::cg

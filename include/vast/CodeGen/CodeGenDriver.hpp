@@ -68,7 +68,7 @@ namespace vast::cg {
 
         void emit(clang::DeclGroupRef decls);
         void emit(clang::Decl *decl);
-        void finalize(const cc::vast_args &vargs);
+        void finalize();
 
         owning_module_ref freeze();
 
