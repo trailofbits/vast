@@ -26,6 +26,13 @@ def TranslationUnitOp
 
   let regions = (region AnyRegion:$body);
 
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "builder_callback_ref":$bodyBuilder
+    )>
+  ];
+
   let assemblyFormat = [{ $body attr-dict }];
 }
 
