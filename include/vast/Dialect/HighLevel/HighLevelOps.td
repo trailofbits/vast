@@ -94,6 +94,24 @@ def TypeDefOp
     Typedef operation servers to declare named types.
     It creates a new type symbol in the current scope to
     be referenced as NamedType later.
+
+    This operation corresponds to `clang::TypedefDecl`.
+  }];
+
+  let extraClassDeclaration = [{
+    mlir_type getDefinedType();
+  }];
+
+  let assemblyFormat = [{ $name attr-dict `:` $type }];
+}
+
+def TypeAliasOp
+  : HighLevel_Op< "alias", [TypeSymbol] >
+  , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
+{
+  let summary = "VAST type alias operation";
+  let description = [{
+    This operation corresponds to `clang::TypeAliasDecl`.
   }];
 
   let extraClassDeclaration = [{
