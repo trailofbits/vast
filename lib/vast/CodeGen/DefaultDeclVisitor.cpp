@@ -330,6 +330,10 @@ namespace vast::cg
             return VisitTypedefDecl(ty);
         }
 
+        if (auto ty = clang::dyn_cast< clang::TypeAliasDecl >(decl)) {
+            return VisitTypeAliasDecl(ty);
+        }
+
         return {};
     }
 
@@ -344,6 +348,13 @@ namespace vast::cg
     }
 
     operation default_decl_visitor::VisitTypeAliasDecl(const clang::TypeAliasDecl *decl) {
+        return maybe_declare([&] {
+            return bld.compose< hl::TypeAliasOp >()
+                .bind(self.location(decl))
+                .bind(self.symbol(decl))
+                .bind(self.visit(decl->getUnderlyingType()))
+                .freeze();
+        });
         return {};
     }
 
