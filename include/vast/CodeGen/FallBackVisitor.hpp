@@ -44,6 +44,10 @@ namespace vast::cg
             return std::nullopt;
         }
 
+        void push(visitor_base_ptr &&visitor) {
+            visitors.push_back(std::move(visitor));
+        }
+
         operation visit(const clang_stmt *stmt, scope_context &scope) override {
             return visit_with_fallback(stmt, scope);
         }

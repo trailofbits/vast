@@ -75,6 +75,10 @@ namespace vast::cg {
         }
     }
 
+    void driver::push_visitor(visitor_base_ptr &&visitor_layer) {
+        visitor->push(std::move(visitor_layer));
+    }
+
     bool driver::verify() {
         return mlir::verify(mod.get()).succeeded();
     }
@@ -117,7 +121,8 @@ namespace vast::cg {
             // visitor options
             .disable_unsupported = vargs.has_option(cc::opt::disable_unsupported),
             // vast options
-            .disable_vast_verifier = vargs.has_option(cc::opt::disable_vast_verifier)
+            .disable_vast_verifier = vargs.has_option(cc::opt::disable_vast_verifier),
+            .prepare_default_visitor_stack = true
         };
 
         return std::make_unique< driver >(
@@ -131,27 +136,7 @@ namespace vast::cg {
     }
 
     std::unique_ptr< codegen_visitor > driver::mk_visitor(const options &opts) {
-        auto top = std::make_unique< codegen_visitor >(*mctx, *mg, *sg, opts);
-
-        top->visitors.push_back(
-            std::make_unique< default_visitor >(
-                *mctx, *bld, *mg, *sg, visitor_view(*top)
-            )
-        );
-
-        if (!opts.disable_unsupported) {
-            top->visitors.push_back(
-                std::make_unique< unsup_visitor >(
-                    *mctx, *bld, *mg, *sg, visitor_view(*top)
-                )
-            );
-        }
-
-        top->visitors.push_back(
-            std::make_unique< unreach_visitor >(*mctx, *mg, *sg, opts)
-        );
-
-        return top;
+        return std::make_unique< codegen_visitor >(*mctx, *mg, *sg, opts);
     }
 
     void set_target_triple(owning_module_ref &mod, std::string triple) {
@@ -202,6 +187,32 @@ namespace vast::cg {
         set_source_language(mod, lang);
 
         return mod;
+    }
+
+    template< typename visitor_kind >
+    visitor_base_ptr mk_visitor_kind(driver &drv) {
+        return std::make_unique< visitor_kind >(
+            drv.mcontext(),
+            drv.get_codegen_builder(),
+            drv.get_meta_generator(),
+            drv.get_symbol_generator(),
+            visitor_view(drv.get_visitor_stack())
+        );
+    }
+
+    void setup_default_visitor_stack(driver &drv) {
+        drv.push_visitor(mk_visitor_kind< default_visitor >(drv));
+
+        if (!drv.get_options().disable_unsupported) {
+            drv.push_visitor(mk_visitor_kind< unsup_visitor >(drv));
+        }
+
+        drv.push_visitor(std::make_unique< unreach_visitor >(
+            drv.mcontext(),
+            drv.get_meta_generator(),
+            drv.get_symbol_generator(),
+            drv.get_options()
+        ));
     }
 
 } // namespace vast::cg
