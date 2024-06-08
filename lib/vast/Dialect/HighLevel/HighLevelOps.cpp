@@ -44,6 +44,14 @@ namespace vast::hl
 {
     using FoldResult = mlir::OpFoldResult;
 
+    //===----------------------------------------------------------------------===//
+    // TranslationUnitOp
+    //===----------------------------------------------------------------------===//
+
+    void TranslationUnitOp::build(Builder &bld, State &st, builder_callback_ref decls) {
+        InsertionGuard guard(bld);
+        build_region(bld, st, decls);
+    }
 
     //===----------------------------------------------------------------------===//
     // ArithBinOps

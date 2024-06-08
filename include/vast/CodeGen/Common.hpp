@@ -16,6 +16,8 @@ namespace vast::cg {
     using clang_type = clang::Type;
     using clang_attr = clang::Attr;
 
+    using clang_decl_context = clang::DeclContext;
+
     using linkage_kind = core::GlobalLinkageKind;
     using mlir_visibility = mlir::SymbolTable::Visibility;
     using mlir_attr_list = mlir::NamedAttrList;

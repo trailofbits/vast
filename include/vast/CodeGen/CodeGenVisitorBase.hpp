@@ -140,6 +140,14 @@ namespace vast::cg {
             };
         }
 
+        auto mk_decl_context_builder(const clang_decl_context *ctx) {
+            return [this, ctx] (auto &, auto) {
+                for (auto decl : ctx->decls()) {
+                    self.visit(decl);
+                }
+            };
+        }
+
         auto mk_type_yield_builder(const clang_expr *expr) {
             return mk_stmt_builder< hl::TypeYieldOp >(expr);
         }

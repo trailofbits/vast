@@ -319,7 +319,10 @@ namespace vast::cg
     }
 
     operation default_decl_visitor::VisitTranslationUnitDecl(const clang::TranslationUnitDecl *decl) {
-        return {};
+        return bld.compose< hl::TranslationUnitOp >()
+            .bind(self.location(decl))
+            .bind(mk_decl_context_builder(decl))
+            .freeze();
     }
 
     operation default_decl_visitor::VisitTypedefNameDecl(const clang::TypedefNameDecl *decl) {
