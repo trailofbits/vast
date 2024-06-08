@@ -326,6 +326,10 @@ namespace vast::cg
     }
 
     operation default_decl_visitor::VisitTypedefNameDecl(const clang::TypedefNameDecl *decl) {
+        if (auto ty = clang::dyn_cast< clang::TypedefDecl >(decl)) {
+            return VisitTypedefDecl(ty);
+        }
+
         return {};
     }
 
