@@ -22,6 +22,7 @@ namespace vast::cg {
 
         // vast options
         bool disable_vast_verifier : 1;
+        bool prepare_default_visitor_stack : 1;
     };
 
 } // namespace vast::cg

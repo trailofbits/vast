@@ -41,6 +41,9 @@ namespace vast::cg {
     owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
     owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, source_language lang);
 
+    struct driver;
+    void setup_default_visitor_stack(driver &drv);
+
     struct driver
     {
         explicit driver(
@@ -62,6 +65,10 @@ namespace vast::cg {
             , scope(symbols)
             , generator(*bld, scoped_visitor_view(*visitor, scope), opts)
         {
+            if (opts.prepare_default_visitor_stack) {
+                setup_default_visitor_stack(*this);
+            }
+
             bld->module = mod.get();
             bld->set_insertion_point_to_start(&mod->getBodyRegion());
         }
@@ -70,12 +77,22 @@ namespace vast::cg {
         void emit(clang::Decl *decl);
         void finalize();
 
+        void push_visitor(visitor_base_ptr &&visitor_layer);
+
         owning_module_ref freeze();
 
         mcontext_t &mcontext() { return *mctx; }
         acontext_t &acontext() { return actx; }
 
         bool verify();
+
+        codegen_builder&  get_codegen_builder()  { return *bld; }
+        meta_generator&   get_meta_generator()   { return *mg; }
+        symbol_generator& get_symbol_generator() { return *sg; }
+        codegen_visitor&  get_visitor_stack()    { return *visitor;}
+
+        const options& get_options() const { return opts; }
+
       private:
 
         //
