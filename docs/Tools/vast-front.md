@@ -12,6 +12,8 @@
   - This will execute the translation pipeline up to the specified mlir pass (including).
   - It uses same names as `opt` to specify passes.
 
+- `-vast-emit-mlir-bytecode` can be used in conjunction with `-vast-emit-mlir=<dialect>` to print the bytecode format instead of the pretty form.
+
 Other available outputs:
 
 - `-vast-emit-llvm`

@@ -93,6 +93,9 @@ namespace vast::cc {
 
         void process_mlir_module(target_dialect target, mlir::ModuleOp mod);
 
+        void print_mlir_bytecode(owning_module_ref mod);
+        void print_mlir_string_format(owning_module_ref mod);
+
         output_type action;
         output_stream_ptr output_stream;
     };
