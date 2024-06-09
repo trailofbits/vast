@@ -8,5 +8,6 @@ add_vast_library(Frontend
     Targets.cpp
 
     LINK_LIBS PUBLIC
+    MLIRBytecodeWriter
     VASTCodeGen
 )

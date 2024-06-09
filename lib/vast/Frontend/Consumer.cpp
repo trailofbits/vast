@@ -5,6 +5,8 @@
 VAST_RELAX_WARNINGS
 #include <llvm/Support/Signals.h>
 
+#include <mlir/Bytecode/BytecodeWriter.h>
+
 #include <mlir/Pass/PassManager.h>
 
 #include <mlir/Target/LLVMIR/Dialect/All.h>
@@ -217,6 +219,21 @@ namespace vast::cc {
 
         process_mlir_module(target, mod.get());
 
+        if (vargs.has_option(opt::emit_mlir_bytecode)) {
+            print_mlir_bytecode(std::move(mod));
+        } else {
+            print_mlir_string_format(std::move(mod));
+        }
+    }
+
+    void vast_stream_consumer::print_mlir_bytecode(owning_module_ref mod) {
+        mlir::BytecodeWriterConfig config("VAST");
+        if (mlir::failed(mlir::writeBytecodeToFile(mod.get(), *output_stream, config))) {
+            VAST_FATAL("Could not generate mlir bytecode");
+        }
+    }
+
+    void vast_stream_consumer::print_mlir_string_format(owning_module_ref mod) {
         // FIXME: we cannot roundtrip prettyForm=true right now.
         mlir::OpPrintingFlags flags;
         flags.enableDebugInfo(vargs.has_option(opt::show_locs), /* prettyForm */ true);
