@@ -315,6 +315,8 @@ namespace vast::cg
 
     operation default_decl_visitor::VisitFunctionDecl(const clang::FunctionDecl *decl) {
         auto gen = mk_scoped_generator< function_generator >(self.scope, bld, self);
+        gen.emit_strict_function_return = emit_strict_function_return;
+        gen.missing_return_policy = missing_return_policy;
         return gen.emit(decl);
     }
 

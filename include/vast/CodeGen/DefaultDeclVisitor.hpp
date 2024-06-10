@@ -9,6 +9,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/CodeGenFunction.hpp"
 
 namespace vast::cg {
 
@@ -50,6 +51,9 @@ namespace vast::cg {
 
         template< typename RecordDeclOp >
         operation mk_record_decl(const clang::RecordDecl *decl);
+
+        bool emit_strict_function_return;
+        missing_return_policy missing_return_policy;
     };
 
     template< typename RecordDeclOp >

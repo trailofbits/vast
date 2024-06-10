@@ -10,6 +10,8 @@ namespace vast::cg
 {
     operation default_visitor::visit_with_attrs(const clang_decl *decl, scope_context &scope) {
         default_decl_visitor visitor(bld, self, scope);
+        visitor.emit_strict_function_return = emit_strict_function_return;
+        visitor.missing_return_policy = missing_return_policy;
         if (auto op = visitor.visit(decl)) {
             return visit_decl_attrs(op, decl, scope);
         }

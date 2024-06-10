@@ -116,7 +116,7 @@ namespace vast::cg
     }
 
     bool may_drop_function_return(clang_qual_type rty, acontext_t &actx) {
-        // We can't just disard the return value for a record type with a
+        // We can't just discard the return value for a record type with a
         // complex destructor or a non-trivially copyable type.
         if (const auto *recorrd_type = rty.getCanonicalType()->getAs< clang::RecordType >()) {
             VAST_UNIMPLEMENTED;
@@ -128,13 +128,11 @@ namespace vast::cg
     bool function_generator::should_final_emit_unreachable(const clang_function *decl) const {
         auto rty  = decl->getReturnType();
         auto &actx = decl->getASTContext();
-        const auto &opts = visitor.options();
-        return opts.has_strict_return || may_drop_function_return(rty, actx);
+        return emit_strict_function_return || may_drop_function_return(rty, actx);
     }
 
     void function_generator::deal_with_missing_return(const clang_function *decl, vast_function fn) {
         auto rty = decl->getReturnType();
-        const auto &opts = visitor.options();
 
         auto _ = bld.scoped_insertion_at_end(&fn.getBody().back());
 
@@ -151,10 +149,13 @@ namespace vast::cg
             //   function call is used by the caller, the behavior is undefined.
 
             // TODO: skip if SawAsmBlock
-            if (opts.optimization_level == 0) {
-                emit_trap(decl);
-            } else {
-                emit_unreachable(decl);
+            switch (missing_return_policy) {
+                case missing_return_policy::emit_trap:
+                    emit_trap(decl);
+                    break;
+                case missing_return_policy::emit_unreachable:
+                    emit_unreachable(decl);
+                    break;
             }
         } else {
             VAST_UNIMPLEMENTED_MSG("unknown missing return case");

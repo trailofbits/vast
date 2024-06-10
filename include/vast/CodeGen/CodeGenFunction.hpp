@@ -6,7 +6,6 @@
 
 #include "vast/CodeGen/CodeGenBuilder.hpp"
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
-#include "vast/CodeGen/CodeGenOptions.hpp"
 #include "vast/CodeGen/GeneratorBase.hpp"
 #include "vast/CodeGen/ScopeContext.hpp"
 
@@ -16,6 +15,8 @@ namespace vast::cg {
 
     struct module_context;
 
+    enum class missing_return_policy { emit_unreachable, emit_trap };
+
     //
     // function generation
     //
@@ -23,12 +24,7 @@ namespace vast::cg {
     {
         using scope_type = function_scope;
 
-        function_generator(codegen_builder &bld, scoped_visitor_view visitor)
-            : generator_base(bld, visitor)
-        {}
-
         using generator_base::generator_base;
-        virtual ~function_generator() = default;
 
         operation emit(const clang_function *decl);
         void declare_function_params(const clang_function *decl, vast_function fn);
@@ -45,6 +41,9 @@ namespace vast::cg {
         void emit_unreachable(const clang_function *decl);
         void emit_implicit_return_zero(const clang_function *decl);
         void emit_implicit_void_return(const clang_function *decl);
+
+        bool emit_strict_function_return;
+        missing_return_policy missing_return_policy;
     };
 
     //

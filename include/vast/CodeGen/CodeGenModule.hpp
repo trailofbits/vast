@@ -18,7 +18,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/CodeGenBuilder.hpp"
 #include "vast/CodeGen/ScopeContext.hpp"
 #include "vast/CodeGen/CodeGenMeta.hpp"
-#include "vast/CodeGen/CodeGenOptions.hpp"
 
 #include "vast/CodeGen/CodeGenFunction.hpp"
 
@@ -31,19 +30,15 @@ namespace vast::cg {
 
     struct module_generator : generator_base
     {
-        module_generator(codegen_builder &bld, scoped_visitor_view visitor, const options &opts)
-            : generator_base(bld, visitor), opts(opts)
+        module_generator(codegen_builder &bld, scoped_visitor_view visitor)
+            : generator_base(bld, visitor)
         {}
-
-        virtual ~module_generator() = default;
 
         void emit(clang::DeclGroupRef decls);
         void emit(clang::Decl *decl);
 
         void finalize();
         void emit_data_layout();
-
-        const options &opts;
     };
 
 } // namespace vast::cg
