@@ -75,10 +75,6 @@ namespace vast::cg {
         }
     }
 
-    void driver::push_visitor(visitor_base_ptr &&visitor_layer) {
-        visitor->push(std::move(visitor_layer));
-    }
-
     bool driver::verify() {
         return mlir::verify(mod.get()).succeeded();
     }
@@ -87,12 +83,12 @@ namespace vast::cg {
         return std::make_unique< codegen_builder >(mctx);
     }
 
-    std::unique_ptr< meta_generator > mk_meta_generator(
+    std::shared_ptr< meta_generator > mk_meta_generator(
         acontext_t *actx, mcontext_t *mctx, const cc::vast_args &vargs
     ) {
         if (vargs.has_option(cc::opt::locs_as_meta_ids))
-            return std::make_unique< id_meta_gen >(actx, mctx);
-        return std::make_unique< default_meta_gen >(actx, mctx);
+            return std::make_shared< id_meta_gen >(actx, mctx);
+        return std::make_shared< default_meta_gen >(actx, mctx);
     }
 
     std::unique_ptr< mcontext_t > mk_mcontext() {
@@ -103,11 +99,11 @@ namespace vast::cg {
         return mctx;
     }
 
-    std::unique_ptr< symbol_generator > mk_symbol_generator(acontext_t &actx) {
-        return std::make_unique< default_symbol_mangler >(actx.createMangleContext());
+    std::shared_ptr< symbol_generator > mk_symbol_generator(acontext_t &actx) {
+        return std::make_shared< default_symbol_mangler >(actx.createMangleContext());
     }
 
-    std::unique_ptr< driver > mk_driver(cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx) {
+    std::unique_ptr< driver > mk_default_driver(cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx) {
         auto mctx = mk_mcontext();
         auto bld  = mk_codegen_builder(mctx.get());
         auto mg   = mk_meta_generator(&actx, mctx.get(), vargs);
@@ -122,7 +118,6 @@ namespace vast::cg {
             .disable_unsupported = vargs.has_option(cc::opt::disable_unsupported),
             // vast options
             .disable_vast_verifier = vargs.has_option(cc::opt::disable_vast_verifier),
-            .prepare_default_visitor_stack = true
         };
 
         return std::make_unique< driver >(
@@ -136,7 +131,17 @@ namespace vast::cg {
     }
 
     std::unique_ptr< codegen_visitor > driver::mk_visitor(const options &opts) {
-        return std::make_unique< codegen_visitor >(*mctx, *mg, *sg, opts);
+        auto stack = std::make_unique< codegen_visitor >(*mctx, opts);
+        auto view  = visitor_view(*stack);
+
+        stack->push(std::make_unique< default_visitor >(mcontext(), *bld, mg, sg, view));
+
+        if (!opts.disable_unsupported) {
+            stack->push(std::make_unique< unsup_visitor >(mcontext(), *bld, view));
+        }
+
+        stack->push(std::make_unique< unreach_visitor >(mcontext(), view.options()));
+        return stack;
     }
 
     void set_target_triple(owning_module_ref &mod, std::string triple) {
@@ -187,32 +192,6 @@ namespace vast::cg {
         set_source_language(mod, lang);
 
         return mod;
-    }
-
-    template< typename visitor_kind >
-    visitor_base_ptr mk_visitor_kind(driver &drv) {
-        return std::make_unique< visitor_kind >(
-            drv.mcontext(),
-            drv.get_codegen_builder(),
-            drv.get_meta_generator(),
-            drv.get_symbol_generator(),
-            visitor_view(drv.get_visitor_stack())
-        );
-    }
-
-    void setup_default_visitor_stack(driver &drv) {
-        drv.push_visitor(mk_visitor_kind< default_visitor >(drv));
-
-        if (!drv.get_options().disable_unsupported) {
-            drv.push_visitor(mk_visitor_kind< unsup_visitor >(drv));
-        }
-
-        drv.push_visitor(std::make_unique< unreach_visitor >(
-            drv.mcontext(),
-            drv.get_meta_generator(),
-            drv.get_symbol_generator(),
-            drv.get_options()
-        ));
     }
 
 } // namespace vast::cg

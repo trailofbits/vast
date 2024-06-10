@@ -22,7 +22,7 @@ namespace vast::cg
 
     operation unsup_decl_visitor::visit(const clang_decl *decl, scope_context &scope) {
         auto op = bld.compose< unsup::UnsupportedDecl >()
-            .bind(self.location(decl))
+            .bind(self.maybe_location(decl))
             .bind(decl_name(decl, self))
             .freeze();
 
@@ -51,7 +51,7 @@ namespace vast::cg
     operation unsup_stmt_visitor::visit(const clang_stmt *stmt, scope_context &scope) {
         auto rty = return_type(stmt, scope);
         return bld.create< unsup::UnsupportedStmt >(
-            self.location(stmt), stmt->getStmtClassName(), rty, make_children(stmt, scope)
+            self.maybe_location(stmt), stmt->getStmtClassName(), rty, make_children(stmt, scope)
         );
     }
 

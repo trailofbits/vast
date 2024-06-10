@@ -12,7 +12,7 @@ namespace vast::cg
     }
 
     operation block_generator::emit(const clang_compound_stmt *stmt) {
-        auto block = make_block(visitor.location(stmt));
+        auto block = make_block(visitor.maybe_location(stmt));
 
         auto _ = bld.scoped_insertion_at_start(&block.getBody());
         for (auto &s : stmt->body()) {

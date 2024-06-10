@@ -56,7 +56,7 @@ namespace vast::cg
         for (const auto &[param, earg] : params) {
             // TODO set alignment
 
-            earg.setLoc(visitor.location(param));
+            earg.setLoc(visitor.maybe_location(param));
             if (auto name = visitor.symbol(param)) {
                 // TODO set name
                 scope().declare_function_param(name.value(), earg);
@@ -90,7 +90,7 @@ namespace vast::cg
 
 
     void function_generator::emit_implicit_return_zero(const clang_function *decl) {
-        auto loc = visitor.location(decl);
+        auto loc = visitor.maybe_location(decl);
         auto rty = visitor.visit(decl->getFunctionType()->getReturnType());
 
         auto value = bld.constant(loc, rty, apsint(0));
@@ -102,17 +102,17 @@ namespace vast::cg
             "Can't emit implicit void return in non-void function."
         );
 
-        auto loc = visitor.location(decl);
+        auto loc = visitor.maybe_location(decl);
         auto value = bld.constant(loc);
         bld.create< core::ImplicitReturnOp >(loc, value);
     }
 
     void function_generator::emit_trap(const clang_function *decl) {
-        bld.create< hlbi::TrapOp >(visitor.location(decl), bld.void_type());
+        bld.create< hlbi::TrapOp >(visitor.maybe_location(decl), bld.void_type());
     }
 
     void function_generator::emit_unreachable(const clang_function *decl) {
-        bld.create< hl::UnreachableOp >(visitor.location(decl));
+        bld.create< hl::UnreachableOp >(visitor.maybe_location(decl));
     }
 
     bool may_drop_function_return(clang_qual_type rty, acontext_t &actx) {

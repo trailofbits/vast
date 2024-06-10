@@ -19,8 +19,8 @@ namespace vast::cg
     {
         using visitor_stack = std::vector< visitor_base_ptr >;
 
-        fallback_visitor(mcontext_t &mctx, meta_generator &mg, symbol_generator &sg, const struct options &opts)
-            : visitor_base(mctx, mg, sg, opts)
+        fallback_visitor(mcontext_t &mctx, const struct options &opts)
+            : visitor_base(mctx, opts)
         {}
 
         auto visit_with_fallback(auto &&...tokens) {
@@ -77,6 +77,46 @@ namespace vast::cg
 
             VAST_UNREACHABLE("Vistors chain exhausted. No fallback visitor was able to handle prototype.");
         }
+
+        std::optional< loc_t > location_with_fallback(const auto *node) {
+            for (auto &visitor : visitors) {
+                if (auto result = visitor->location(node)) {
+                    return result;
+                }
+            }
+
+            VAST_UNREACHABLE("Vistors chain exhausted. No fallback visitor was able to handle location.");
+        }
+
+        std::optional< loc_t > location(const clang_decl *decl) override {
+            return location_with_fallback(decl);
+        }
+
+        std::optional< loc_t > location(const clang_stmt *stmt) override {
+            return location_with_fallback(stmt);
+        }
+
+        std::optional< loc_t > location(const clang_expr *expr) override {
+            return location_with_fallback(expr);
+        }
+
+        std::optional< symbol_name > symbol_with_fallback(auto node) {
+            for (auto &visitor : visitors) {
+                if (auto result = visitor->symbol(node)) {
+                    return result;
+                }
+            }
+
+            VAST_UNREACHABLE("Vistors chain exhausted. No fallback visitor was able to handle symbol.");
+        }
+
+        std::optional< symbol_name > symbol(clang_global decl) override {
+            return symbol_with_fallback(decl);
+        }
+        std::optional< symbol_name > symbol(const clang_decl_ref_expr *decl) override {
+            return symbol_with_fallback(decl);
+        }
+
 
         visitor_view front() { return visitor_view(*visitors.front()); }
 

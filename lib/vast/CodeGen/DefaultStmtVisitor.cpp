@@ -549,13 +549,12 @@ namespace vast::cg
     // ControlFlow Statements
     //
     operation default_stmt_visitor::VisitReturnStmt(const clang::ReturnStmt *stmt) {
-        auto loc = self.location(stmt);
-        auto op = bld.compose< hl::ReturnOp >().bind(loc);
+        auto op = bld.compose< hl::ReturnOp >().bind(self.maybe_location(stmt));
 
         if (stmt->getRetValue()) {
             return std::move(op).bind(self.visit(stmt->getRetValue())->getResults()).freeze();
         } else {
-            return std::move(op).bind(bld.void_value(loc)).freeze();
+            return std::move(op).bind(bld.void_value(self.maybe_location(stmt))).freeze();
         }
     }
 
@@ -569,19 +568,19 @@ namespace vast::cg
     }
 
     operation default_stmt_visitor::VisitCharacterLiteral(const clang::CharacterLiteral *lit) {
-        return bld.constant(self.location(lit), self.visit(lit->getType()), apsint(lit->getValue())).getDefiningOp();
+        return bld.constant(self.maybe_location(lit), self.visit(lit->getType()), apsint(lit->getValue())).getDefiningOp();
     }
 
     operation default_stmt_visitor::VisitIntegerLiteral(const clang::IntegerLiteral *lit) {
-        return bld.constant(self.location(lit), self.visit(lit->getType()), llvm::APSInt(lit->getValue(), false)).getDefiningOp();
+        return bld.constant(self.maybe_location(lit), self.visit(lit->getType()), llvm::APSInt(lit->getValue(), false)).getDefiningOp();
     }
 
     operation default_stmt_visitor::VisitFloatingLiteral(const clang::FloatingLiteral *lit) {
-        return bld.constant(self.location(lit), self.visit(lit->getType()), lit->getValue()).getDefiningOp();
+        return bld.constant(self.maybe_location(lit), self.visit(lit->getType()), lit->getValue()).getDefiningOp();
     }
 
     operation default_stmt_visitor::VisitStringLiteral(const clang::StringLiteral *lit) {
-        return bld.constant(self.location(lit),
+        return bld.constant(self.maybe_location(lit),
                             visit_maybe_lvalue_result_type(lit),
                             lit->getString()).getDefiningOp();
     }
@@ -869,7 +868,7 @@ namespace vast::cg
     // operation default_stmt_visitor::VisitCXXBindTemporaryExpr(const clang::CXXBindTemporaryExpr *expr) { return {}; }
 
     operation default_stmt_visitor::VisitCXXBoolLiteralExpr(const clang::CXXBoolLiteralExpr *expr) {
-        return bld.constant(self.location(expr), self.visit(expr->getType()), expr->getValue()).getDefiningOp();
+        return bld.constant(self.maybe_location(expr), self.visit(expr->getType()), expr->getValue()).getDefiningOp();
     }
 
     // operation default_stmt_visitor::VisitCXXConstructExpr(const clang::CXXConstructExpr *expr)
@@ -1003,12 +1002,12 @@ namespace vast::cg
                 auto last = last_effective_operation(last_block);
                 auto _ = bld.scoped_insertion_at_end(last_block);
 
-                auto stmt_loc = self.location(stmt);
+                auto stmt_loc = self.maybe_location(stmt);
 
                 if (last->getNumResults() > 0) {
                     bld.create< hl::ValueYieldOp >(stmt_loc, last->getResult(0));
                 } else {
-                    bld.create< hl::ValueYieldOp >(stmt_loc, bld.void_value(self.location(stmt)));
+                    bld.create< hl::ValueYieldOp >(stmt_loc, bld.void_value(stmt_loc));
                 }
             };
         };
