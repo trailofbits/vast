@@ -63,7 +63,7 @@ namespace vast::cg
         , unsup_attr_visitor
     {
         unsup_visitor(mcontext_t &mctx, codegen_builder &bld, visitor_view self)
-            : visitor_base(mctx, self.options())
+            : visitor_base(mctx)
             , unsup_decl_visitor(bld, self)
             , unsup_stmt_visitor(bld, self)
             , unsup_type_visitor(bld, self)

@@ -8,6 +8,8 @@
 #include "vast/CodeGen/DefaultStmtVisitor.hpp"
 #include "vast/CodeGen/DefaultTypeVisitor.hpp"
 
+#include "vast/CodeGen/CodeGenFunction.hpp"
+
 namespace vast::cg
 {
     struct default_visitor final : visitor_base
@@ -19,7 +21,7 @@ namespace vast::cg
             , std::shared_ptr< symbol_generator > sg
             , visitor_view self
         )
-            : visitor_base(mctx, self.options())
+            : visitor_base(mctx)
             , mg(std::move(mg))
             , sg(std::move(sg))
             , bld(bld)
@@ -46,8 +48,13 @@ namespace vast::cg
         std::optional< symbol_name > symbol(clang_global decl) override;
         std::optional< symbol_name > symbol(const clang_decl_ref_expr *decl) override;
 
+        // FIXME: this shouldnt be part of default visitor -- add caching layer instead
         llvm::DenseMap< const clang_type *, mlir_type > cache;
         llvm::DenseMap< clang_qual_type, mlir_type > qual_cache;
+
+        // FIXME: This should be store on single location
+        bool emit_strict_function_return;
+        missing_return_policy missing_return_policy;
 
         std::shared_ptr< meta_generator > mg;
         std::shared_ptr< symbol_generator > sg;

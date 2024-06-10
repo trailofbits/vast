@@ -36,38 +36,34 @@ namespace vast::cg {
     std::unique_ptr< mcontext_t > mk_mcontext();
 
     void set_target_triple(owning_module_ref &mod, std::string triple);
-    void set_source_language(owning_module_ref &mod, source_language lang);
+    void set_source_language(owning_module_ref &mod, cc::source_language lang);
 
     owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
-    owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, source_language lang);
-
-    struct driver;
-    void setup_default_visitor_stack(driver &drv);
+    owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, cc::source_language lang);
 
     struct driver
     {
         explicit driver(
               acontext_t &_actx
             , std::unique_ptr< mcontext_t > _mctx
-            , options _opts
             , std::unique_ptr< codegen_builder > _bld
-            , std::shared_ptr< meta_generator > _mg
-            , std::shared_ptr< symbol_generator > _sg
+            , std::unique_ptr< codegen_visitor > _visitor
         )
             : actx(_actx)
             , mctx(std::move(_mctx))
-            , opts(std::move(_opts))
             , bld(std::move(_bld))
-            , mg(std::move(_mg))
-            , sg(std::move(_sg))
-            , visitor(mk_visitor(opts))
-            , mod(mk_module_with_attrs(actx, *mctx, opts.lang))
+            , visitor(std::move(_visitor))
+            , mod(mk_module_with_attrs(
+                actx, *mctx, cc::get_source_language(actx.getLangOpts())
+            ))
             , scope(symbols)
-            , generator(*bld, scoped_visitor_view(*visitor, scope), opts)
+            , generator(*bld, scoped_visitor_view(*visitor, scope))
         {
             bld->module = mod.get();
             bld->set_insertion_point_to_start(&mod->getBodyRegion());
         }
+
+        bool enable_verifier(bool set = true) { return (enabled_verifier = set); }
 
         void emit(clang::DeclGroupRef decls);
         void emit(clang::Decl *decl);
@@ -80,9 +76,11 @@ namespace vast::cg {
 
         bool verify();
 
-        const options& get_options() const { return opts; }
-
       private:
+        //
+        // driver options
+        //
+        bool enabled_verifier;
 
         //
         // contexts
@@ -90,18 +88,13 @@ namespace vast::cg {
         acontext_t &actx;
         std::unique_ptr< mcontext_t > mctx;
 
-        options opts;
         symbol_tables symbols;
 
         //
         // generators
         //
         std::unique_ptr< codegen_builder > bld;
-        std::shared_ptr< meta_generator > mg;
-        std::shared_ptr< symbol_generator > sg;
-
         std::unique_ptr< codegen_visitor > visitor;
-        std::unique_ptr< codegen_visitor > mk_visitor(const options &opts);
 
         //
         // module generation state
@@ -113,5 +106,4 @@ namespace vast::cg {
     };
 
     std::unique_ptr< driver > mk_default_driver(cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx);
-
 } // namespace vast::cg

@@ -47,10 +47,6 @@ namespace vast::cg
         return visitor.mcontext();
     }
 
-    const options &visitor_view::options() const {
-        return visitor.options();
-    }
-
     operation scoped_visitor_view::visit(const clang_decl *decl) {
         return visitor_view::visit(decl, scope);
     }

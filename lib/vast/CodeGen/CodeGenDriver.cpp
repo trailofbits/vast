@@ -18,6 +18,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/UnsupportedVisitor.hpp"
 
 #include "vast/CodeGen/CodeGenModule.hpp"
+#include "vast/CodeGen/CodeGenFunction.hpp"
 
 namespace vast::cg {
 
@@ -68,7 +69,7 @@ namespace vast::cg {
             emit_data_layout(*mctx, mod, dl);
         }
 
-        if (!opts.disable_vast_verifier) {
+        if (enabled_verifier) {
             if (!verify()) {
                 VAST_FATAL("codegen: module verification error before running vast passes");
             }
@@ -103,45 +104,44 @@ namespace vast::cg {
         return std::make_shared< default_symbol_mangler >(actx.createMangleContext());
     }
 
+    missing_return_policy get_missing_return_policy(cc::action_options &opts) {
+        if (opts.codegen.OptimizationLevel == 0) {
+            return missing_return_policy::emit_trap;
+        } else {
+            return missing_return_policy::emit_unreachable;
+        }
+    }
+
     std::unique_ptr< driver > mk_default_driver(cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx) {
         auto mctx = mk_mcontext();
         auto bld  = mk_codegen_builder(mctx.get());
         auto mg   = mk_meta_generator(&actx, mctx.get(), vargs);
         auto sg   = mk_symbol_generator(actx);
 
-        options copts = {
-            .lang = cc::get_source_language(actx.getLangOpts()),
-            .optimization_level = opts.codegen.OptimizationLevel,
-            // function emition options
-            .has_strict_return   = opts.codegen.StrictReturn,
-            // visitor options
-            .disable_unsupported = vargs.has_option(cc::opt::disable_unsupported),
-            // vast options
-            .disable_vast_verifier = vargs.has_option(cc::opt::disable_vast_verifier),
-        };
+        // setup visitor stack
+        auto visitor = std::make_unique< codegen_visitor >(*mctx);
+        auto view  = visitor_view(*visitor);
 
-        return std::make_unique< driver >(
-            actx,
-            std::move(mctx),
-            std::move(copts),
-            std::move(bld),
-            std::move(mg),
-            std::move(sg)
-        );
-    }
+        auto vis = std::make_unique< default_visitor >(*mctx, *bld, std::move(mg), std::move(sg), view);
+        vis->emit_strict_function_return = opts.codegen.StrictReturn;
+        vis->missing_return_policy = get_missing_return_policy(opts);
+        visitor->push(std::move(vis));
 
-    std::unique_ptr< codegen_visitor > driver::mk_visitor(const options &opts) {
-        auto stack = std::make_unique< codegen_visitor >(*mctx, opts);
-        auto view  = visitor_view(*stack);
-
-        stack->push(std::make_unique< default_visitor >(mcontext(), *bld, mg, sg, view));
-
-        if (!opts.disable_unsupported) {
-            stack->push(std::make_unique< unsup_visitor >(mcontext(), *bld, view));
+        if (!vargs.has_option(cc::opt::disable_unsupported)) {
+            visitor->push(std::make_unique< unsup_visitor >(*mctx, *bld, view));
         }
 
-        stack->push(std::make_unique< unreach_visitor >(mcontext(), view.options()));
-        return stack;
+        visitor->push(std::make_unique< unreach_visitor >(*mctx));
+
+        auto drv = std::make_unique< driver >(
+            actx,
+            std::move(mctx),
+            std::move(bld),
+            std::move(visitor)
+        );
+
+        drv->enable_verifier(!vargs.has_option(cc::opt::disable_vast_verifier));
+        return drv;
     }
 
     void set_target_triple(owning_module_ref &mod, std::string triple) {
@@ -150,7 +150,7 @@ namespace vast::cg {
         mod.get()->setAttr(core::CoreDialect::getTargetTripleAttrName(), attr);
     }
 
-    void set_source_language(owning_module_ref &mod, source_language lang) {
+    void set_source_language(owning_module_ref &mod, cc::source_language lang) {
         mlir::OpBuilder bld(mod.get());
         auto attr = bld.getAttr< core::SourceLanguageAttr >(lang);
         mod.get()->setAttr(core::CoreDialect::getLanguageAttrName(), attr);
@@ -184,8 +184,7 @@ namespace vast::cg {
         return mod;
     }
 
-    owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, source_language lang) {
-
+    owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, cc::source_language lang) {
         auto mod = mk_module(actx, mctx);
 
         set_target_triple(mod, actx.getTargetInfo().getTriple().str());
