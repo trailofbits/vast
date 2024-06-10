@@ -300,6 +300,18 @@ namespace vast::hl
         build_expr_trait(bld, st, rty, expr);
     }
 
+    void OffsetOfExprOp::build(
+        Builder &bld, State &st, Type rty, mlir::ArrayAttr components,
+        const std::vector< builder_callback > &builders
+    ) {
+        InsertionGuard guard(bld);
+        st.addTypes(rty);
+        st.addAttribute(getComponentsAttrName(st.name), components);
+        for (const auto &callback : builders) {
+            build_region(bld, st, builder_callback_ref(callback));
+        }
+    }
+
     void StmtExprOp::build(
         Builder &bld, State &st, Type rty,
         builder_callback_ref expr

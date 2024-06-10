@@ -1260,6 +1260,50 @@ class AlignOfExprOpBase< string mnemonic, list< Trait > traits = [] >
 def AlignOfExprOp          : AlignOfExprOpBase< "alignof.expr" >;
 def PreferredAlignOfExprOp : AlignOfExprOpBase< "preferred_alignof.expr" >;
 
+def OffsetOfNodeAttr
+  : HighLevel_Attr< "OffsetOfNode", "offset_of_node" > {
+    let parameters = (ins
+      OptionalParameter< "std::optional< unsigned int >" >:$array_expr_index,
+      OptionalParameter< "std::optional< ::mlir::StringAttr >" >:$identifier_name
+      //TODO base class specifier
+    );
+
+    let builders = [
+      AttrBuilder< (ins "::mlir::StringAttr":$attr), [{
+          return get($_ctxt, std::nullopt, std::optional(attr));
+        }]>,
+      AttrBuilder< (ins "unsigned int":$value), [{
+          return get($_ctxt, std::optional(value), std::nullopt);
+        }]>,
+      AttrBuilder< (ins "llvm::StringRef":$value), [{
+          return get($_ctxt, mlir::StringAttr::get($_ctxt, value));
+        }]>,
+    ];
+
+    let assemblyFormat = "`<` (`index` `:` $array_expr_index^)? (`identifier` `:` $identifier_name^)? `>`";
+}
+
+def OffsetOfExprOp
+  : HighLevel_Op< "offsetof.expr" >
+  , Arguments< (ins ArrayAttr:$components) >
+  , Results< (outs AnyType:$result) >
+{
+  let summary = "VAST expr offsetof operator";
+  let description = [{ VAST expr offsetof operator }];
+  let regions = (region VariadicRegion< ValueRegion >:$array_index_exprs);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+      OpBuilder< (ins
+        "Type":$type,
+        "mlir::ArrayAttr":$components,
+        "const std::vector< builder_callback > &":$builders
+      ) >
+  ];
+
+  let assemblyFormat = [{ attr-dict $components `:` type($result) $array_index_exprs }];
+}
+
 def StmtExprOp
   : HighLevel_Op< "stmt.expr", [SingleBlock, DeclareOpInterfaceMethods<RegionKindInterface>] >
   , Results<(outs AnyType:$result)>
