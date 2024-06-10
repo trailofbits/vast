@@ -1263,12 +1263,16 @@ def PreferredAlignOfExprOp : AlignOfExprOpBase< "preferred_alignof.expr" >;
 def OffsetOfNodeAttr
   : HighLevel_Attr< "OffsetOfNode", "offset_of_node" > {
     let parameters = (ins
-      // Index into the list of expressions/regions of indexes
       OptionalParameter< "std::optional< unsigned int >" >:$array_expr_index,
-      // Identifier of a field in the structure
       OptionalParameter< "std::optional< ::mlir::StringAttr >" >:$identifier_name
       //TODO base class specifier
     );
+
+  let summary = "VAST expr offsetofnode ";
+  let description = [{ This attribute corresponds to OffsetOfExprNode used by Clang AST.
+                       It can containt either an index into the list of expressions(regions) that index arrays
+                       or a field identifier or base class specifier.
+  }];
 
     let builders = [
       AttrBuilder< (ins "::mlir::StringAttr":$attr), [{
@@ -1287,13 +1291,14 @@ def OffsetOfNodeAttr
 
 def OffsetOfExprOp
   : HighLevel_Op< "offsetof.expr" >
-  // List of identifiers and indexes of array indexing expressions
   , Arguments< (ins ArrayAttr:$components) >
   , Results< (outs AnyType:$result) >
 {
   let summary = "VAST expr offsetof operator";
-  let description = [{ VAST expr offsetof operator }];
-  // Each region corresponds to one indexing expression
+  let description = [{ VAST expr offsetof operator.
+                       The operation holds an array of components - identifiers or indexes of array indexing expressions
+                       and an array of regions - each corresponding to one indexing expression.
+  }];
   let regions = (region VariadicRegion< ValueRegion >:$array_index_exprs);
 
   let skipDefaultBuilders = 1;
