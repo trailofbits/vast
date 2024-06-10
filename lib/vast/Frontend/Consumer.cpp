@@ -35,7 +35,7 @@ namespace vast::cc {
 
     void vast_consumer::Initialize(acontext_t &actx) {
         VAST_CHECK(!driver, "initialized multiple times");
-        driver = cg::mk_driver(opts, vargs, actx);
+        driver = cg::mk_default_driver(opts, vargs, actx);
     }
 
     bool vast_consumer::HandleTopLevelDecl(clang::DeclGroupRef decls) {

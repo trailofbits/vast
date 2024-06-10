@@ -15,11 +15,15 @@ namespace vast::cg
         default_visitor(
               mcontext_t &mctx
             , codegen_builder &bld
-            , meta_generator &mg
-            , symbol_generator &sg
+            , std::shared_ptr< meta_generator > mg
+            , std::shared_ptr< symbol_generator > sg
             , visitor_view self
         )
-            : visitor_base(mctx, mg, sg, self.options()), bld(bld), self(self)
+            : visitor_base(mctx, self.options())
+            , mg(std::move(mg))
+            , sg(std::move(sg))
+            , bld(bld)
+            , self(self)
         {}
 
         operation visit_with_attrs(const clang_decl *decl, scope_context &scope);
@@ -35,8 +39,18 @@ namespace vast::cg
 
         mlir_type visit_type(auto type, auto& cache, scope_context& scope);
 
+        std::optional< loc_t > location(const clang_decl *) override;
+        std::optional< loc_t > location(const clang_stmt *) override;
+        std::optional< loc_t > location(const clang_expr *) override;
+
+        std::optional< symbol_name > symbol(clang_global decl) override;
+        std::optional< symbol_name > symbol(const clang_decl_ref_expr *decl) override;
+
         llvm::DenseMap< const clang_type *, mlir_type > cache;
         llvm::DenseMap< clang_qual_type, mlir_type > qual_cache;
+
+        std::shared_ptr< meta_generator > mg;
+        std::shared_ptr< symbol_generator > sg;
 
         codegen_builder &bld;
         visitor_view self;

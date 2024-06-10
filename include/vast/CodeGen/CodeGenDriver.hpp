@@ -25,11 +25,11 @@ namespace vast::cg {
 
     std::unique_ptr< codegen_builder > mk_codegen_builder(mcontext_t *mctx);
 
-    std::unique_ptr< meta_generator > mk_meta_generator(
+    std::shared_ptr< meta_generator > mk_meta_generator(
         acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs
     );
 
-    std::unique_ptr< symbol_generator > mk_symbol_generator(
+    std::shared_ptr< symbol_generator > mk_symbol_generator(
         acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs
     );
 
@@ -51,8 +51,8 @@ namespace vast::cg {
             , std::unique_ptr< mcontext_t > _mctx
             , options _opts
             , std::unique_ptr< codegen_builder > _bld
-            , std::unique_ptr< meta_generator > _mg
-            , std::unique_ptr< symbol_generator > _sg
+            , std::shared_ptr< meta_generator > _mg
+            , std::shared_ptr< symbol_generator > _sg
         )
             : actx(_actx)
             , mctx(std::move(_mctx))
@@ -65,10 +65,6 @@ namespace vast::cg {
             , scope(symbols)
             , generator(*bld, scoped_visitor_view(*visitor, scope), opts)
         {
-            if (opts.prepare_default_visitor_stack) {
-                setup_default_visitor_stack(*this);
-            }
-
             bld->module = mod.get();
             bld->set_insertion_point_to_start(&mod->getBodyRegion());
         }
@@ -77,19 +73,12 @@ namespace vast::cg {
         void emit(clang::Decl *decl);
         void finalize();
 
-        void push_visitor(visitor_base_ptr &&visitor_layer);
-
         owning_module_ref freeze();
 
         mcontext_t &mcontext() { return *mctx; }
         acontext_t &acontext() { return actx; }
 
         bool verify();
-
-        codegen_builder&  get_codegen_builder()  { return *bld; }
-        meta_generator&   get_meta_generator()   { return *mg; }
-        symbol_generator& get_symbol_generator() { return *sg; }
-        codegen_visitor&  get_visitor_stack()    { return *visitor;}
 
         const options& get_options() const { return opts; }
 
@@ -108,8 +97,8 @@ namespace vast::cg {
         // generators
         //
         std::unique_ptr< codegen_builder > bld;
-        std::unique_ptr< meta_generator > mg;
-        std::unique_ptr< symbol_generator > sg;
+        std::shared_ptr< meta_generator > mg;
+        std::shared_ptr< symbol_generator > sg;
 
         std::unique_ptr< codegen_visitor > visitor;
         std::unique_ptr< codegen_visitor > mk_visitor(const options &opts);
@@ -123,6 +112,6 @@ namespace vast::cg {
         module_generator generator;
     };
 
-    std::unique_ptr< driver > mk_driver(cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx);
+    std::unique_ptr< driver > mk_default_driver(cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx);
 
 } // namespace vast::cg

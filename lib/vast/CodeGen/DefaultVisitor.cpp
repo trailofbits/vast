@@ -72,4 +72,11 @@ namespace vast::cg
         return visitor.visit_prototype(decl);
     }
 
+    std::optional< loc_t > default_visitor::location(const clang_decl *decl) { return mg->location(decl); }
+    std::optional< loc_t > default_visitor::location(const clang_stmt *stmt) { return mg->location(stmt); }
+    std::optional< loc_t > default_visitor::location(const clang_expr *expr) { return mg->location(expr); }
+
+    std::optional< symbol_name > default_visitor::symbol(clang_global decl) { return sg->symbol(decl); }
+    std::optional< symbol_name > default_visitor::symbol(const clang_decl_ref_expr *decl) { return sg->symbol(decl); }
+
 } // namespace vast::cg

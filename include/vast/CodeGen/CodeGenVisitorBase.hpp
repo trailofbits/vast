@@ -38,7 +38,8 @@ namespace vast::cg {
 
         mlir_type visit_as_lvalue_type(clang_qual_type ty, scope_context &scope);
 
-        loc_t location(const auto *node) const;
+        std::optional< loc_t > location(const auto *node) const;
+        loc_t maybe_location(const auto *node);
 
         std::optional< symbol_name > symbol(auto &&decl);
 
@@ -181,14 +182,7 @@ namespace vast::cg {
     //
     struct visitor_base
     {
-        visitor_base(
-              mcontext_t &mctx
-            , meta_generator &mg
-            , symbol_generator &sg
-            , const options &opts
-        )
-            : mctx(mctx), mg(mg), sg(sg), opts(opts)
-        {}
+        visitor_base(mcontext_t &mctx, const options &opts) : mctx(mctx), opts(opts) {}
 
         virtual ~visitor_base() = default;
 
@@ -208,24 +202,28 @@ namespace vast::cg {
 
         const options &options() const { return opts; }
 
-        loc_t location(const auto *node) const { return mg.location(node); }
+        virtual std::optional< loc_t > location(const clang_decl *) { return std::nullopt; }
+        virtual std::optional< loc_t > location(const clang_stmt *) { return std::nullopt; }
+        virtual std::optional< loc_t > location(const clang_expr *) { return std::nullopt; }
 
-        std::optional< symbol_name > symbol(auto &&decl) {
-            return sg.symbol(std::forward< decltype(decl) >(decl));
-        }
+        virtual std::optional< symbol_name > symbol(clang_global decl) { return std::nullopt; }
+        virtual std::optional< symbol_name > symbol(const clang_decl_ref_expr *decl) { return std::nullopt; }
 
       protected:
         mcontext_t &mctx;
-        meta_generator &mg;
-        symbol_generator &sg;
-
         const struct options &opts;
     };
 
     using visitor_base_ptr = std::unique_ptr< visitor_base >;
 
-    loc_t visitor_view::location(const auto *node) const {
+    std::optional< loc_t > visitor_view::location(const auto *node) const {
         return visitor.location(node);
+    }
+
+    loc_t visitor_view::maybe_location(const auto *node) {
+        if (auto loc = visitor.location(node))
+            return loc.value();
+        return mlir::UnknownLoc::get(&mcontext());
     }
 
     std::optional< symbol_name > visitor_view::symbol(auto &&decl) {

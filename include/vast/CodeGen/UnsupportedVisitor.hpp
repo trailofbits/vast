@@ -14,7 +14,6 @@ namespace vast::cg
         {}
 
       protected:
-
         codegen_builder &bld;
         visitor_view self;
     };
@@ -63,8 +62,8 @@ namespace vast::cg
         , unsup_type_visitor
         , unsup_attr_visitor
     {
-        unsup_visitor(mcontext_t &mctx, codegen_builder &bld, meta_generator &mg, symbol_generator &sg, visitor_view self)
-            : visitor_base(mctx, mg, sg, self.options())
+        unsup_visitor(mcontext_t &mctx, codegen_builder &bld, visitor_view self)
+            : visitor_base(mctx, self.options())
             , unsup_decl_visitor(bld, self)
             , unsup_stmt_visitor(bld, self)
             , unsup_type_visitor(bld, self)
@@ -94,6 +93,7 @@ namespace vast::cg
         operation visit_prototype(const clang_function *decl, scope_context &scope) override {
             return unsup_decl_visitor::visit(decl, scope);
         }
+
     };
 
 } // namespace vast::cg
