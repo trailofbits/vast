@@ -927,7 +927,39 @@ namespace vast::cg
     // operation default_stmt_visitor::VisitCXXMemberCallExpr(const clang::CXXMemberCallExpr *expr)
     // operation default_stmt_visitor::VisitCXXOperatorCallExpr(const clang::CXXOperatorCallExpr *expr)
 
-    // operation default_stmt_visitor::VisitOffsetOfExpr(const clang::OffsetOfExpr *expr)
+    operation default_stmt_visitor::VisitOffsetOfExpr(const clang::OffsetOfExpr *expr) {
+        attrs_t components;
+        std::vector< builder_callback > index_exprs;
+
+        auto comps = expr->getNumComponents();
+
+        for (unsigned int i = 0; i < comps; i++) {
+            auto &component = expr->getComponent(i);
+            auto kind       = component.getKind();
+            if (kind == clang::OffsetOfNode::Kind::Array) {
+                auto index = component.getArrayExprIndex();
+                components.push_back(hl::OffsetOfNodeAttr::get(&self.mcontext(), index));
+                index_exprs.push_back(mk_value_builder(expr->getIndexExpr(index)));
+            }
+            if (kind == clang::OffsetOfNode::Kind::Field
+                || kind == clang::OffsetOfNode::Kind::Identifier)
+            {
+                components.push_back(hl::OffsetOfNodeAttr::get(
+                    &self.mcontext(), component.getFieldName()->getName()
+                ));
+            }
+            if (kind == clang::OffsetOfNode::Kind::Base) {
+                VAST_REPORT("OffsetOfExprOp unimplemented for C++ classes with inheritance.");
+                return {};
+            }
+        }
+        return bld.compose< hl::OffsetOfExprOp >()
+            .bind(self.location(expr))
+            .bind(self.visit(expr->getType()))
+            .bind(mlir::ArrayAttr::get(&self.mcontext(), components))
+            .bind(index_exprs)
+            .freeze();
+    }
     // operation default_stmt_visitor::VisitOpaqueValueExpr(const clang::OpaqueValueExpr *expr)
     // operation default_stmt_visitor::VisitOverloadExpr(const clang::OverloadExpr *expr)
 

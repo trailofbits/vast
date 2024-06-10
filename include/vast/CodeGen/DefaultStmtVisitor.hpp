@@ -227,7 +227,7 @@ namespace vast::cg {
         // operation VisitCXXMemberCallExpr(const clang::CXXMemberCallExpr *expr)
         // operation VisitCXXOperatorCallExpr(const clang::CXXOperatorCallExpr *expr)
 
-        // operation VisitOffsetOfExpr(const clang::OffsetOfExpr *expr)
+        operation VisitOffsetOfExpr(const clang::OffsetOfExpr *expr);
         // operation VisitOpaqueValueExpr(const clang::OpaqueValueExpr *expr)
         // operation VisitOverloadExpr(const clang::OverloadExpr *expr)
 
