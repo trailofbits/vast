@@ -11,6 +11,7 @@ VAST_RELAX_WARNINGS
 #include <clang/Basic/FileEntry.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/CodeGen/Common.hpp"
 #include "vast/Dialect/Meta/MetaAttributes.hpp"
 
 #include <concepts>
@@ -19,9 +20,9 @@ namespace vast::cg
 {
     struct meta_generator {
         virtual ~meta_generator() = default;
-        virtual loc_t location(const clang::Decl *) const = 0;
-        virtual loc_t location(const clang::Stmt *) const = 0;
-        virtual loc_t location(const clang::Expr *) const = 0;
+        virtual loc_t location(const clang_decl *) const = 0;
+        virtual loc_t location(const clang_stmt *) const = 0;
+        virtual loc_t location(const clang_expr *) const = 0;
     };
 
     struct default_meta_gen final : meta_generator {
@@ -29,15 +30,15 @@ namespace vast::cg
             : actx(actx), mctx(mctx)
         {}
 
-        loc_t location(const clang::Decl *decl) const override {
+        loc_t location(const clang_decl *decl) const override {
             return location(decl->getLocation());
         }
 
-        loc_t location(const clang::Stmt *stmt) const override {
+        loc_t location(const clang_stmt *stmt) const override {
             return location(stmt->getBeginLoc());
         }
 
-        loc_t location(const clang::Expr *expr) const override {
+        loc_t location(const clang_expr *expr) const override {
             return location(expr->getExprLoc());
         }
 
@@ -65,9 +66,9 @@ namespace vast::cg
             : mctx(mctx)
         {}
 
-        loc_t location(const clang::Decl *decl) const override { return location_impl(decl); }
-        loc_t location(const clang::Stmt *stmt) const override { return location_impl(stmt); }
-        loc_t location(const clang::Expr *expr) const override { return location_impl(expr); }
+        loc_t location(const clang_decl *decl) const override { return location_impl(decl); }
+        loc_t location(const clang_stmt *stmt) const override { return location_impl(stmt); }
+        loc_t location(const clang_expr *expr) const override { return location_impl(expr); }
 
       private:
 
