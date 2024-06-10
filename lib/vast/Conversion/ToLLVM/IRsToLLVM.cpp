@@ -1166,43 +1166,107 @@ namespace vast::conv::irstollvm
         ignore_pattern< hl::PlusOp >
     >;
 
-    struct cmp : base_pattern< hl::CmpOp >
+    template<
+        typename src_op_t, typename trg_op_t, typename src_predicate_t,
+        typename trg_predicate_t >
+    struct cmp_base : base_pattern< src_op_t >
     {
-        using op_t = hl::CmpOp;
+        using op_t = src_op_t;
         using base = base_pattern< op_t >;
         using base::base;
 
         using adaptor_t = typename op_t::Adaptor;
+
+        virtual trg_predicate_t convert_predicate(src_predicate_t predicate) const = 0;
 
         logical_result matchAndRewrite(
             op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
         ) const override {
             auto pred = convert_predicate(op.getPredicate());
 
-            auto new_cmp = rewriter.create< LLVM::ICmpOp >(
+            auto new_cmp = rewriter.create< trg_op_t >(
                 op.getLoc(), pred, adaptor.getLhs(), adaptor.getRhs()
             );
 
-            auto dst_type = convert(op.getType());
-
-            replace_with_trunc_or_ext(op, new_cmp, new_cmp.getType(), dst_type, rewriter);
+            auto dst_type = this->convert(op.getType());
+            this->replace_with_trunc_or_ext(op, new_cmp, new_cmp.getType(), dst_type, rewriter);
 
             return mlir::success();
         }
+    };
 
-        auto convert_predicate(hl::Predicate predicate) const -> LLVM::ICmpPredicate {
-            switch (predicate)
-            {
-                case hl::Predicate::eq  : return LLVM::ICmpPredicate::eq;
-                case hl::Predicate::ne  : return LLVM::ICmpPredicate::ne;
-                case hl::Predicate::slt : return LLVM::ICmpPredicate::slt;
-                case hl::Predicate::sle : return LLVM::ICmpPredicate::sle;
-                case hl::Predicate::sgt : return LLVM::ICmpPredicate::sgt;
-                case hl::Predicate::sge : return LLVM::ICmpPredicate::sge;
-                case hl::Predicate::ult : return LLVM::ICmpPredicate::ult;
-                case hl::Predicate::ule : return LLVM::ICmpPredicate::ule;
-                case hl::Predicate::ugt : return LLVM::ICmpPredicate::ugt;
-                case hl::Predicate::uge : return LLVM::ICmpPredicate::uge;
+    using icmp_base = cmp_base< hl::CmpOp, LLVM::ICmpOp, hl::Predicate, LLVM::ICmpPredicate >;
+    struct icmp : icmp_base
+    {
+        using base = icmp_base;
+        using base::base;
+
+        mlir::LLVM::ICmpPredicate convert_predicate(hl::Predicate predicate) const override {
+            switch (predicate) {
+                case hl::Predicate::eq:
+                    return LLVM::ICmpPredicate::eq;
+                case hl::Predicate::ne:
+                    return LLVM::ICmpPredicate::ne;
+                case hl::Predicate::slt:
+                    return LLVM::ICmpPredicate::slt;
+                case hl::Predicate::sle:
+                    return LLVM::ICmpPredicate::sle;
+                case hl::Predicate::sgt:
+                    return LLVM::ICmpPredicate::sgt;
+                case hl::Predicate::sge:
+                    return LLVM::ICmpPredicate::sge;
+                case hl::Predicate::ult:
+                    return LLVM::ICmpPredicate::ult;
+                case hl::Predicate::ule:
+                    return LLVM::ICmpPredicate::ule;
+                case hl::Predicate::ugt:
+                    return LLVM::ICmpPredicate::ugt;
+                case hl::Predicate::uge:
+                    return LLVM::ICmpPredicate::uge;
+            }
+        }
+    };
+
+    using fcmp_base = cmp_base< hl::FCmpOp, LLVM::FCmpOp, hl::FPredicate, LLVM::FCmpPredicate >;
+    struct fcmp : fcmp_base
+    {
+        using base = fcmp_base;
+        using base::base;
+
+        mlir::LLVM::FCmpPredicate convert_predicate(hl::FPredicate predicate) const override {
+            switch (predicate) {
+                case hl::FPredicate::ffalse:
+                    return LLVM::FCmpPredicate::_false;
+                case hl::FPredicate::oeq:
+                    return LLVM::FCmpPredicate::oeq;
+                case hl::FPredicate::ogt:
+                    return LLVM::FCmpPredicate::ogt;
+                case hl::FPredicate::oge:
+                    return LLVM::FCmpPredicate::oge;
+                case hl::FPredicate::olt:
+                    return LLVM::FCmpPredicate::olt;
+                case hl::FPredicate::ole:
+                    return LLVM::FCmpPredicate::ole;
+                case hl::FPredicate::one:
+                    return LLVM::FCmpPredicate::one;
+                case hl::FPredicate::ord:
+                    return LLVM::FCmpPredicate::ord;
+                case hl::FPredicate::uno:
+                    return LLVM::FCmpPredicate::uno;
+                case hl::FPredicate::ueq:
+                    return LLVM::FCmpPredicate::ueq;
+                case hl::FPredicate::ugt:
+                    return LLVM::FCmpPredicate::ugt;
+                case hl::FPredicate::uge:
+                    return LLVM::FCmpPredicate::uge;
+                case hl::FPredicate::ult:
+                    return LLVM::FCmpPredicate::ult;
+                case hl::FPredicate::ule:
+                    return LLVM::FCmpPredicate::ule;
+                case hl::FPredicate::une:
+                    return LLVM::FCmpPredicate::une;
+                case hl::FPredicate::ftrue:
+                    return LLVM::FCmpPredicate::_true;
             }
         }
     };
@@ -1314,7 +1378,8 @@ namespace vast::conv::irstollvm
         implicit_cast,
         cstyle_cast,
         call,
-        cmp,
+        icmp,
+        fcmp,
         deref,
         subscript_like< ll::Subscript >,
         subscript_like< hl::SubscriptOp >,
