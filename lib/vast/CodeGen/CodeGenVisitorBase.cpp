@@ -31,14 +31,6 @@ namespace vast::cg
         return visitor.visit_prototype(decl, scope);
     }
 
-    mlir_type visitor_view::visit(const clang_function_type *fty, bool is_variadic, scope_context &scope) {
-        return visitor.visit(fty, is_variadic, scope);
-    }
-
-    mlir_type visitor_view::visit_as_lvalue_type(clang_qual_type ty, scope_context &scope) {
-        return visitor.visit_as_lvalue_type(ty, scope);
-    }
-
     mcontext_t& visitor_view::mcontext() {
         return visitor.mcontext();
     }
@@ -69,35 +61,6 @@ namespace vast::cg
 
     operation scoped_visitor_view::visit_prototype(const clang_function *decl) {
         return visitor_view::visit_prototype(decl, scope);
-    }
-
-    mlir_type scoped_visitor_view::visit(const clang_function_type *fty, bool is_variadic) {
-        return visitor_view::visit(fty, is_variadic, scope);
-    }
-
-    mlir_type scoped_visitor_view::visit_as_lvalue_type(clang_qual_type ty) {
-        return visitor_view::visit_as_lvalue_type(ty, scope);
-    }
-
-    mlir_type visitor_base::visit(const clang_function_type *fty, bool is_variadic, scope_context &scope)
-    {
-        llvm::SmallVector< mlir_type > args;
-        if (auto proto = clang::dyn_cast< clang_function_proto_type >(fty)) {
-            for (auto param : proto->getParamTypes()) {
-                args.push_back(visit_as_lvalue_type(param, scope));
-            }
-        }
-
-        return core::FunctionType::get(args, {visit(fty->getReturnType(), scope)}, is_variadic);
-    }
-
-    mlir_type visitor_base::visit_as_lvalue_type(clang_qual_type ty, scope_context &scope)
-    {
-        auto element_type = visit(ty, scope);
-        if (mlir::isa< hl::LValueType >(element_type)) {
-            return element_type;
-        }
-        return hl::LValueType::get(&mcontext(), element_type);
     }
 
 } // namespace vast::cg

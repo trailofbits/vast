@@ -1,6 +1,7 @@
 // Copyright (c) 2024, Trail of Bits, Inc.
 
 #include "vast/CodeGen/DefaultDeclVisitor.hpp"
+#include "vast/CodeGen/DefaultTypeVisitor.hpp"
 
 #include "vast/Dialect/Core/Linkage.hpp"
 
@@ -149,7 +150,7 @@ namespace vast::cg
         return bld.compose< vast_function >()
             .bind(self.location(decl))
             .bind(self.symbol(decl))
-            .bind_dyn_cast< vast_function_type >(self.visit(decl->getFunctionType(), decl->isVariadic()))
+            .bind_dyn_cast< vast_function_type >(visit_function_type(self, mctx, decl->getFunctionType(), decl->isVariadic()))
             .bind(core::get_function_linkage(decl))
             .freeze_as_maybe() // construct vast_function
             .transform(set_visibility)
@@ -265,7 +266,7 @@ namespace vast::cg
         auto var = maybe_declare([&] {
             return bld.compose< hl::VarDeclOp >()
                 .bind(self.location(decl))
-                .bind(self.visit_as_lvalue_type(decl->getType()))
+                .bind(visit_as_lvalue_type(self, mctx, decl->getType()))
                 .bind(self.symbol(decl))
                 // The initializer region is filled later as it might
                 // have references to the VarDecl we are currently
