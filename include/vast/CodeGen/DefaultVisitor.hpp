@@ -3,6 +3,7 @@
 #pragma once
 
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/ClangVisitorBase.hpp"
 #include "vast/CodeGen/DefaultAttrVisitor.hpp"
 #include "vast/CodeGen/DefaultDeclVisitor.hpp"
 #include "vast/CodeGen/DefaultStmtVisitor.hpp"

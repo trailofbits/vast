@@ -5,7 +5,7 @@
 #include "vast/Util/Common.hpp"
 #include "vast/CodeGen/CodeGenMeta.hpp"
 #include "vast/CodeGen/CodeGenBuilder.hpp"
-#include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/ClangVisitorBase.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 

@@ -12,6 +12,8 @@
 #include "vast/Dialect/Unsupported/UnsupportedTypes.hpp"
 #include "vast/Dialect/Unsupported/UnsupportedAttributes.hpp"
 
+#include "vast/CodeGen/CodeGenBuilder.hpp"
+
 namespace vast::cg
 {
     std::string decl_name(const clang_decl *decl);

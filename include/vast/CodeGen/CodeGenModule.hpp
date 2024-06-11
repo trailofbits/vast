@@ -17,7 +17,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
 #include "vast/CodeGen/CodeGenBuilder.hpp"
 #include "vast/CodeGen/ScopeContext.hpp"
-#include "vast/CodeGen/CodeGenMeta.hpp"
+#include "vast/CodeGen/CodeGenMetaGenerator.hpp"
 
 #include "vast/CodeGen/CodeGenFunction.hpp"
 
