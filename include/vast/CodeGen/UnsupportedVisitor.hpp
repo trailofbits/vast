@@ -136,7 +136,13 @@ namespace vast::cg
         mcontext_t& mcontext() { return mctx; }
         codegen_builder& builder() { return bld; }
 
-        loc_t maybe_location(const auto *decl) { return top_visitor.maybe_location(decl); }
+        loc_t maybe_location(const auto *decl) {
+            if (auto loc = top_visitor.location(decl)) {
+                return *loc;
+            }
+
+            return mlir::UnknownLoc::get(&mctx);
+        }
 
       protected:
         mcontext_t &mctx;
