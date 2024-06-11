@@ -34,7 +34,6 @@ namespace vast::cg {
         operation visit_prototype(const clang_function *decl, scope_context &scope);
 
         std::optional< loc_t > location(const auto *node) const;
-        loc_t maybe_location(const auto *node);
 
         std::optional< symbol_name > symbol(auto &&decl);
 
@@ -183,8 +182,6 @@ namespace vast::cg {
         virtual mlir_type visit(clang_qual_type, scope_context &scope)    = 0;
         virtual mlir_attr visit(const clang_attr *, scope_context &scope) = 0;
 
-        // virtual mlir_type visit_as_lvalue_type(clang_qual_type, scope_context &scope);
-
         virtual operation visit_prototype(const clang_function *decl, scope_context &scope) = 0;
 
         mcontext_t& mcontext() { return mctx; }
@@ -205,12 +202,6 @@ namespace vast::cg {
 
     std::optional< loc_t > visitor_view::location(const auto *node) const {
         return visitor.location(node);
-    }
-
-    loc_t visitor_view::maybe_location(const auto *node) {
-        if (auto loc = visitor.location(node))
-            return loc.value();
-        return mlir::UnknownLoc::get(&mcontext());
     }
 
     std::optional< symbol_name > visitor_view::symbol(auto &&decl) {
