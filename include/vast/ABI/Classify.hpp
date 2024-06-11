@@ -13,134 +13,60 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelUtils.hpp"
 
 namespace vast::abi {
-    template< typename H, typename... Tail >
-    auto maybe_strip(mlir::Type t) {
-        auto casted = [&]() -> mlir::Type {
-            auto c = t.dyn_cast< H >();
-            if (c) {
-                return c.getElementType();
-            }
-            return t;
-        }();
 
-        if constexpr (sizeof...(Tail) == 0) {
-            return casted;
-        } else {
-            return maybe_strip< Tail... >(casted);
-        }
-    }
-
-    struct TypeConfig
+    // Stateful - one object should be use per one function classification.
+    // TODO(abi): For now this serves as x86_64, later core parts will be extracted.
+    // TODO(codestyle): See if `arg_` and `ret_` can be unified - in clang they are separately
+    //                  but it may be just a bad codestyle.
+    template< typename FnInfo, typename TypeInfo >
+    struct classifier_base
     {
-        static bool is_void(mlir::Type t) { return t.isa< mlir::NoneType >(); }
+        using self_t      = classifier_base< FnInfo, TypeInfo >;
 
-        static bool is_aggregate(mlir::Type t) {
-            // TODO(abi): `SubElementTypeInterface` is not good enough, since for
-            //             example hl::PointerType implements it.
-            // TODO(abi): Figure how to better handle this than manual listing.
-            return t.isa< hl::RecordType >() || t.isa< hl::ElaboratedType >()
-                || t.isa< hl::ArrayType >();
-        }
+        using func_info   = FnInfo;
+        using type_info_t = TypeInfo;
 
-        static bool is_scalar(mlir::Type t) {
-            // TODO(abi): Also complex is an option in ABI.
-            return !is_aggregate(t);
-        }
+        using ir_type  = typename func_info::type;
+        using ir_types = typename func_info::types;
 
-        static bool is_complex(mlir::Type t) { VAST_UNREACHABLE(""); }
+        func_info info;
 
-        static bool is_record(mlir::Type t) {
-            if (t.isa< hl::RecordType >()) {
-                return true;
-            }
-            if (auto et = t.dyn_cast< hl::ElaboratedType >()) {
-                return is_record(et.getElementType());
-            }
-            return false;
-        }
+        // Not a `const &` because `iN` and `fN` methods are not required to be `const` due to some
+        // internals, plus this class is supossed to be lightweight.
+        type_info_t type_info;
 
-        static bool is_struct(mlir::Type t) {
-            // TODO(abi): Are these equivalent?
-            return is_record(t);
-        }
+        static constexpr std::size_t max_gpr = 6;
+        static constexpr std::size_t max_sse = 8;
 
-        static bool is_array(mlir::Type t) {
-            return maybe_strip< hl::ElaboratedType >(t).isa< hl::ArrayType >();
-        }
+        std::size_t needed_int = 0;
+        std::size_t needed_sse = 0;
 
-        // Must be invoked with `t` that is array-like.
-        static auto array_info(mlir_type t) -> std::tuple< std::optional< std::size_t >, mlir_type > {
-            auto array_type = mlir::dyn_cast< hl::ArrayType >(t);
-            VAST_ASSERT(array_type);
-            return { array_type.getSize(), array_type.getElementType() };
-        }
+        classifier_base(func_info info, const type_info_t &type_info)
+            : info(std::move(info)), type_info(type_info) {}
 
-        static bool can_be_passed_in_regs(mlir::Type t) {
-            // TODO(abi): Seems like in C nothing can prevent this.
-            return true;
-        }
-
-        static bool is_scalar_integer(mlir::Type t) { return t.isa< mlir::IntegerType >(); }
-
-        // TODO(abi): Implement.
-        static bool has_unaligned_field(mlir::Type t) { return false; }
-
-        static bool is_scalar_float(mlir::Type t) { return t.isa< mlir::FloatType >(); }
-
-        static bool is_pointer(mlir::Type t) { return t.isa< hl::PointerType >(); }
-
-        // Pointers, references etc
-        static bool represents_pointer(mlir_type t) { return is_pointer(t); }
-
-        static mlir_type as_pointer(mlir_type t) {
-            return hl::PointerType::get(t.getContext(), t);
-        }
-
-        static hl::StructDeclOp get_struct_def(hl::RecordType t, mlir::ModuleOp m) {
-            for (auto &op : *m.getBody()) {
-                if (auto decl = mlir::dyn_cast< hl::StructDeclOp >(op)) {
-                    if (decl.getName() == t.getName()) {
-                        return decl;
-                    }
-                }
-            }
-            return {};
-        }
-
-        static bool can_be_promoted(mlir::Type t) { return false; }
-
-        static mlir::Type prepare(mlir::Type t) { return maybe_strip< hl::LValueType >(t); }
-
-        // TODO(abi): Will need to live in a different interface.
-        static std::size_t pointer_size() { return 64; }
-
-        static std::size_t size(const auto &dl, mlir::Type t) {
-            return dl.getTypeSizeInBits(t);
-        }
+        auto size(ir_type t) { return type_info.size(t); }
+        auto align(ir_type t) { return type_info.align(t); }
 
         // [ start, end )
-        static bool bits_contain_no_user_data(
-            mlir::Type t, std::size_t start, std::size_t end, const auto &classifier_ctx
-        ) {
-            const auto &[dl, op] = classifier_ctx;
-
-            if (size(dl, t) <= start) {
+        bool bits_contain_no_user_data(ir_type t, std::size_t start, std::size_t end) {
+            if (type_info.size(t) <= start) {
                 return true;
             }
 
-            if (is_record(t) || is_array(t)) {
+            if (type_info.is_record(t) || type_info.is_array(t)) {
                 // TODO(abi): CXXRecordDecl.
                 std::size_t current = 0;
-                for (auto field : fields(t, op)) {
+                for (auto field : type_info.fields(t)) {
                     if (current >= end) {
                         break;
                     }
-                    if (!bits_contain_no_user_data(field, current, end - start, classifier_ctx))
+
+                    if (!bits_contain_no_user_data(field, current, end - start))
                     {
                         return false;
                     }
 
-                    current += size(dl, t);
+                    current += size(t);
                 }
                 return true;
             }
@@ -148,118 +74,74 @@ namespace vast::abi {
             return false;
         }
 
-        static mlir::Type iN(const auto &has_context, std::size_t s) {
-            return mlir::IntegerType::get(has_context.getContext(), s);
-        }
 
-        static mlir_type fN(auto &mctx, std::size_t s) {
-            if (s == 16) {
-                return mlir::Float16Type::get(&mctx);
-            }
-            if (s == 32) {
-                return mlir::Float32Type::get(&mctx);
-            }
-            if (s == 64) {
-                return mlir::Float64Type::get(&mctx);
-            }
-            if (s == 80) {
-                return mlir::Float80Type::get(&mctx);
-            }
-            if (s == 128) {
-                return mlir::Float128Type::get(&mctx);
-            }
-            VAST_UNREACHABLE("Cannot create floating type of size: {0}", s);
-        }
-
-        static mlir::Type int_type_at_offset(
-            mlir::Type t, std::size_t offset, mlir::Type root, std::size_t root_offset,
-            const auto &classifier_ctx
+        ir_type int_type_at_offset(
+            ir_type t, std::size_t offset, ir_type root, std::size_t root_offset
         ) {
-            const auto &[dl, _] = classifier_ctx;
             auto is_int_type    = [&](std::size_t trg_size) {
-                const auto &[dl_, _] = classifier_ctx;
-                return is_scalar_integer(t) && size(dl_, t) == trg_size;
+                return type_info.is_scalar_integer(t) && size(t) == trg_size;
             };
 
             if (offset == 0) {
-                if ((is_pointer(t) && pointer_size() == 64) || is_int_type(64)) {
+                if ((type_info.is_pointer(t) && type_info.pointer_size() == 64) || is_int_type(64))
                     return t;
-                }
 
                 if (is_int_type(8) || is_int_type(16) || is_int_type(32)) {
                     // TODO(abi): Here should be check if `BitsContainNoUserData` - however
                     //            for now it should be safe to always pretend to it being `false`?
-                    if (bits_contain_no_user_data(
-                            root, offset + size(dl, t), root_offset + 64, classifier_ctx
-                        ))
-                    {
+                    if (bits_contain_no_user_data(root, offset + size(t), root_offset + 64))
                         return t;
-                    }
                 }
             }
 
             // We need to extract a field on current offset.
             // TODO(abi): This is done differently than clang, since they seem to be using
             //            underflow? on offset?
-            if (is_struct(t) && (size(dl, t) > 64)) {
-                auto field_info = field_containing_offset(classifier_ctx, t, offset);
+            if (type_info.is_struct(t) && size(t) > 64) {
+                auto field_info = type_info.field_containing_offset(t, offset);
                 VAST_ASSERT(field_info);
                 auto [field, field_start] = *field_info;
-                return int_type_at_offset(
-                    field, offset - field_start, root, root_offset, classifier_ctx
-                );
+                return int_type_at_offset(field, offset - field_start, root, root_offset);
             }
 
-            if (is_array(t)) {
-                auto [_, element_type] = array_info(t);
-                auto element_size = size(dl, element_type);
+            if (type_info.is_array(t)) {
+                auto [_, element_type] = type_info.array_info(t);
+                auto element_size = size(element_type);
                 auto element_offset = offset / element_size * element_size;
-                return int_type_at_offset(
-                    element_type, offset - element_offset,
-                    root, root_offset, classifier_ctx);
+                return int_type_at_offset(element_type, offset - element_offset, root, root_offset);
             }
 
-            auto type_size = size(dl, root);
-            VAST_CHECK(type_size != 0, "Unexpected empty field? Type: {0}", t);
+            VAST_CHECK(size(root) != 0, "Unexpected empty field? Type: {0}", t);
 
-            auto final_size = std::min< std::size_t >(type_size - (root_offset * 8), 64);
+            auto final_size = std::min< std::size_t >(size(root) - (root_offset * 8), 64);
             // TODO(abi): Issue #422
             // This is definitely not expected right now.
             VAST_CHECK(final_size != 0, "ABI classification is trying to create i0.");
-            return mlir::IntegerType::get(t.getContext(), final_size);
+            return type_info.iN(final_size);
         }
 
-        static auto get_is_sse_type() {
-            return [](auto t) { return is_scalar_float(t); };
+        auto get_is_sse_type() {
+            return [&](auto t) { return type_info.is_scalar_float(t); };
         }
 
-        // TODO: In `clang` int and sse variants have separate implementations (there is
-        //       a lot of difference) but in the core they are doing very similar things.
-        //       It should be possible to make a shared helper that takes away a lot of
-        //       shared complexity.
-        static mlir_type sse_target_type_at_offset(
-            mlir_type t, std::size_t offset, mlir_type root, std::size_t root_offset,
-            const auto &classifier_ctx
+        ir_type sse_target_type_at_offset(
+            ir_type t, std::size_t offset, ir_type root, std::size_t root_offset
         ) {
-            const auto &[dl, _] = classifier_ctx;
-            auto &mctx          = *t.getContext();
-
-            auto t0 = type_at_offset(t, offset, classifier_ctx, get_is_sse_type());
-            if (!t0 || size(dl, t0) == 64) {
-                return fN(mctx, 64);
+            auto t0 = type_info.type_at_offset(t, offset, get_is_sse_type());
+            if (!t0 || size(t0) == 64) {
+                return type_info.fN(64);
             }
 
-            auto source_size = size(dl, root);
-            auto t0_size     = size(dl, t0) - root_offset;
+            auto source_size = size(root);
+            auto t0_size     = size(t0) - root_offset;
 
-            auto is_16b_fp = [&, dl = dl](auto type) {
-                return is_scalar_float(type) && size(dl, type) == 16;
+            auto is_16b_fp = [&](auto type) {
+                return type_info.is_scalar_float(type) && size(type) == 16;
             };
 
             // Fetch second type if applicable.
-            auto t1 = [&]() -> mlir_type {
-                auto nested =
-                    type_at_offset(t, offset + t0_size, classifier_ctx, get_is_sse_type());
+            auto t1 = [&]() -> ir_type {
+                auto nested = type_info.type_at_offset(t, offset + t0_size, get_is_sse_type());
                 if (t0_size > source_size && nested) {
                     return nested;
                 }
@@ -268,9 +150,9 @@ namespace vast::abi {
                 // good enough.
 
                 // Check case of half/bfloat + float.
-                if (size(dl, t0) == 16 && source_size > 4 * 8) {
+                if (size(t0) == 16 && source_size > 4 * 8) {
                     // `+4` comes from alignement
-                    return type_at_offset(t, offset + 32, classifier_ctx, get_is_sse_type());
+                    return type_info.type_at_offset(t, offset + 32, get_is_sse_type());
                 }
                 return {};
             }();
@@ -284,106 +166,14 @@ namespace vast::abi {
             // TODO: There is a bunch of conditions regarding size of `t0/t1` that
             //       return `llvm::FixedVector` types, which we currently cannot really
             //       work with anyway.
-            VAST_CHECK(!(is_scalar_float(t0) && is_scalar_float(t1)), "Not yet supported");
+            VAST_CHECK(!(type_info.is_scalar_float(t0) && type_info.is_scalar_float(t1)),
+                       "Not yet supported");
             VAST_CHECK(!(is_16b_fp(t0) || is_16b_fp(t1)), "Not yet supported");
 
             // Default case returns double.
-            return fN(mctx, 64);
+            return type_info.fN(64);
         }
 
-        static mlir_type type_at_offset(
-            mlir_type t, std::size_t offset, const auto &classifier_ctx, const auto &accept
-        ) {
-            const auto &[dl, _] = classifier_ctx;
-            if (offset == 0 && accept(t)) {
-                return t;
-            }
-
-            if (is_struct(t)) {
-                auto field_info = field_containing_offset(classifier_ctx, t, offset);
-                if (!field_info)
-                    return {};
-                auto [field, field_start] = *field_info;
-                return type_at_offset(field, field_start, classifier_ctx, accept);
-            }
-
-            if (is_array(t)) {
-                auto [_, element_type] = array_info(t);
-                auto element_size = size(dl, element_type);
-                auto element_offset = offset / element_size * element_size;
-                return type_at_offset(
-                    element_type, offset - element_offset,
-                    classifier_ctx, accept);
-            }
-            return {};
-        }
-
-        static auto field_containing_offset(
-            const auto &classifier_ctx, mlir::Type t, std::size_t offset
-        ) -> std::optional< std::tuple< mlir::Type, std::size_t > > {
-            const auto &[dl, op] = classifier_ctx;
-
-            auto curr = 0;
-            for (auto field : fields(t, op)) {
-                if (curr + size(dl, field) > offset) {
-                    return { std::make_tuple(field, curr) };
-                }
-                curr += size(dl, field);
-            }
-            return {};
-        }
-
-        static gap::generator< mlir_type > mock_array_fields(hl::ArrayType array_type) {
-            auto size = array_type.getSize();
-            VAST_CHECK(size, "Variable size array type not yet supported");
-
-            auto et =array_type.getElementType();
-            for (std::size_t i = 0; i < *size; ++i)
-               co_yield et;
-        }
-
-        static auto fields(mlir_type type, auto func) {
-            if (auto array_type = mlir::dyn_cast< hl::ArrayType >(type))
-                return mock_array_fields(array_type);
-            auto mod = func->template getParentOfType< vast_module >();
-            return vast::hl::field_types(type, mod);
-        }
-    };
-
-    // Stateful - one object should be use per one function classification.
-    // TODO(abi): For now this serves as x86_64, later core parts will be extracted.
-    // TODO(codestyle): See if `arg_` and `ret_` can be unified - in clang they are separately
-    //                  but it may be just a bad codestyle.
-    template< typename FnInfo, typename DL, typename TypeInfo >
-    struct classifier_base
-    {
-        using self_t      = classifier_base< FnInfo, DL, TypeInfo >;
-        using func_info   = FnInfo;
-        using data_layout = DL;
-        using type_info_t = TypeInfo;
-
-        using type  = typename func_info::type;
-        using types = typename func_info::types;
-
-        func_info info;
-        const data_layout &dl;
-
-        const type_info_t &type_info;
-
-        static constexpr std::size_t max_gpr = 6;
-        static constexpr std::size_t max_sse = 8;
-
-        std::size_t needed_int = 0;
-        std::size_t needed_sse = 0;
-
-        classifier_base(func_info info, const data_layout &dl, const type_info_t &type_info)
-            : info(std::move(info)), dl(dl), type_info(type_info) {}
-
-        auto size(mlir::Type t) { return dl.getTypeSizeInBits(t); }
-
-        auto align(type t) {
-            return dl.getTypeABIAlignment(t);
-        }
 
         // Enum for classification algorithm.
         enum class Class : uint32_t {
@@ -461,7 +251,7 @@ namespace vast::abi {
             return { join(a1, b1), join(a2, b2) };
         }
 
-        classification_t get_class(mlir::Type t, std::size_t &offset) {
+        classification_t get_class(ir_type t, std::size_t &offset) {
             auto mk_classification = [&](auto c) -> classification_t {
                 if (offset < 8 * 8) {
                     return { c, Class::NoClass };
@@ -471,11 +261,11 @@ namespace vast::abi {
 
             // First we handle all "builtin" types.
 
-            if (TypeConfig::is_void(t)) {
+            if (type_info.is_void(t)) {
                 return { Class::NoClass, Class::NoClass };
             }
 
-            if (TypeConfig::is_scalar_integer(t)) {
+            if (type_info.is_scalar_integer(t)) {
                 // _Bool, char, short, int, long, long long
                 if (size(t) <= 64) {
                     return mk_classification(Class::Integer);
@@ -484,12 +274,12 @@ namespace vast::abi {
                 return { Class::Integer, Class::Integer };
             }
 
-            if (TypeConfig::represents_pointer(t)) {
+            if (type_info.represents_pointer(t)) {
                 return { Class::Integer, Class::NoClass };
             }
 
             // Float, Float16, Double, BFloat16
-            if (TypeConfig::is_scalar_float(t)) {
+            if (type_info.is_scalar_float(t)) {
                 // float, double, _Decimal32, _Decimal64, __m64
                 if (size(t) <= 64) {
                     return mk_classification(Class::SSE);
@@ -507,16 +297,13 @@ namespace vast::abi {
             return get_aggregate_class(t, offset);
         }
 
-        // TODO(abi): Refactor.
-        auto mk_classifier_ctx() const { return std::make_tuple(dl, info.raw_fn); }
-
-        classification_t get_aggregate_class(mlir::Type t, std::size_t &offset) {
-            if (size(t) > 8 * 64 || TypeConfig::has_unaligned_field(t)) {
+        classification_t get_aggregate_class(ir_type t, std::size_t &offset) {
+            if (size(t) > 8 * 64 || type_info.has_unaligned_field(t)) {
                 return { Class::Memory, {} };
             }
             // TODO(abi): C++ perks.
 
-            auto fields             = TypeConfig::fields(t, info.raw_fn);
+            auto fields             = type_info.fields(t);
             classification_t result = { Class::NoClass, Class::NoClass };
 
             auto field_offset = offset;
@@ -530,7 +317,7 @@ namespace vast::abi {
             return post_merge(t, result);
         }
 
-        classification_t post_merge(mlir::Type t, classification_t c) {
+        classification_t post_merge(ir_type t, classification_t c) {
             auto [lo, hi] = c;
             if (lo == Class::Memory || hi == Class::Memory) {
                 return { Class::Memory, Class::Memory };
@@ -552,30 +339,30 @@ namespace vast::abi {
             return { lo, hi };
         }
 
-        auto classify(mlir::Type raw, std::size_t &offset) {
-            auto t = TypeConfig::prepare(raw);
+        auto classify(ir_type raw, std::size_t &offset) {
+            auto t = type_info.prepare(raw);
             return get_class(t, offset);
         }
 
-        auto classify(mlir::Type raw) {
+        auto classify(ir_type raw) {
             std::size_t offset = 0;
             return classify(raw, offset);
         }
 
-        using half_class_result = std::variant< arg_info, type, std::monostate >;
+        using half_class_result = std::variant< arg_info, ir_type, std::monostate >;
 
         static inline std::string to_string(const half_class_result &a) {
             if (auto arg = std::get_if< arg_info >(&a)) {
                 return arg->to_string();
             }
-            if (auto t = std::get_if< type >(&a)) {
+            if (auto t = std::get_if< ir_type >(&a)) {
                 return "type";
             }
             return "monostate";
         }
 
         // Both parts are passed as argument.
-        half_class_result return_lo(type t, classification_t c) {
+        half_class_result return_lo(ir_type t, classification_t c) {
             auto [lo, hi] = c;
             // Check are taken from clang, to not diverge from their implementation for now.
             switch (lo) {
@@ -594,13 +381,12 @@ namespace vast::abi {
 
                 case Class::Memory:
                     // TODO(abi): Inject type.
-                    return { arg_info::make< indirect >(TypeConfig::as_pointer(t)) };
+                    return { arg_info::make< indirect >(type_info.as_pointer(t)) };
 
                 case Class::Integer: {
-                    auto target_type =
-                        TypeConfig::int_type_at_offset(t, 0, t, 0, mk_classifier_ctx());
+                    auto target_type = int_type_at_offset(t, 0, t, 0);
                     // TODO(abi): get integer type for the slice.
-                    if (TypeConfig::is_scalar_integer(t) && TypeConfig::can_be_promoted(t)) {
+                    if (type_info.is_scalar_integer(t) && type_info.can_be_promoted(t)) {
                         return { arg_info::make< extend >(target_type) };
                     }
                     return { target_type };
@@ -613,7 +399,7 @@ namespace vast::abi {
             }
         }
 
-        half_class_result return_hi(type t, classification_t c) {
+        half_class_result return_hi(ir_type t, classification_t c) {
             auto [lo, hi] = c;
             switch (hi) {
                 case Class::Memory:
@@ -623,8 +409,7 @@ namespace vast::abi {
                 case Class::NoClass:
                     return { std::monostate{} };
                 case Class::Integer: {
-                    auto target_type =
-                        TypeConfig::int_type_at_offset(t, 8, t, 8, mk_classifier_ctx());
+                    auto target_type = int_type_at_offset(t, 64, t, 64);
                     if (lo == Class::NoClass) {
                         return { arg_info::make< direct >(target_type) };
                     }
@@ -638,23 +423,23 @@ namespace vast::abi {
         }
 
         // TODO(abi): Implement. Requires information about alignment and size of alloca.
-        types combine_half_types(type lo, type hi) {
+        ir_types combine_half_types(ir_type lo, ir_type hi) {
             VAST_CHECK(size(hi) / 8 != 0, "{0}", hi);
             auto hi_start = llvm::alignTo(size(lo) / 8, align(hi));
             VAST_CHECK(hi_start != 0 && hi_start / 8 <= 8, "{0} {1} {2}", lo, hi, hi_start);
 
             // `hi` needs to start at later offset - we need to add explicit padding
             // to the `lo` type.
-            auto adjusted_lo = [&]() -> type {
+            auto adjusted_lo = [&]() -> ir_type {
                 if (hi_start == 8) {
                     return lo;
                 }
-                if (TypeConfig::is_scalar_integer(lo) || TypeConfig::is_pointer(lo)) {
-                    return TypeConfig::iN(lo, 64);
+                if (type_info.is_scalar_integer(lo) || type_info.is_pointer(lo)) {
+                    return type_info.iN(64);
                 }
                 // TODO(abi): float, half -> promote to double
-                if (TypeConfig::is_scalar_float(lo) && size(lo) < 32) {
-                    return TypeConfig::fN(*lo.getContext(), 64);
+                if (type_info.is_scalar_float(lo) && size(lo) < 32) {
+                    return type_info.fN(64);
                 }
                 VAST_UNREACHABLE("Cannot combine half types for {0}, {1}.", lo, hi);
             }();
@@ -662,7 +447,7 @@ namespace vast::abi {
             return { adjusted_lo, hi };
         }
 
-        arg_info resolve_classification(type t, half_class_result low, half_class_result high) {
+        arg_info resolve_classification(ir_type t, half_class_result low, half_class_result high) {
             // If either returned a result it should be used.
             // TODO(abi): Should `high` be allowed to return `arg_info`?
             if (auto out = get_if< arg_info >(&low)) {
@@ -673,29 +458,29 @@ namespace vast::abi {
             }
 
             if (holds_alternative< std::monostate >(high)) {
-                auto coerced_type = get_if< type >(&low);
+                auto coerced_type = get_if< ir_type >(&low);
                 VAST_ASSERT(coerced_type);
                 // TODO(abi): Pass in `coerced_type`.
                 return arg_info::make< direct >(*coerced_type);
             }
 
             // Both returned types, we need to combine them.
-            auto lo_type = get_if< type >(&low);
-            auto hi_type = get_if< type >(&high);
+            auto lo_type = get_if< ir_type >(&low);
+            auto hi_type = get_if< ir_type >(&high);
             VAST_ASSERT(lo_type && hi_type);
 
             auto res_type = combine_half_types(*lo_type, *hi_type);
             return arg_info::make< direct >(res_type);
         }
 
-        arg_info classify_return(type t) {
-            if (TypeConfig::is_void(t)) {
+        arg_info classify_return(ir_type t) {
+            if (type_info.is_void(t)) {
                 return arg_info::make< ignore >(t);
             }
 
-            if (auto record = TypeConfig::is_record(t)) {
-                if (!TypeConfig::can_be_passed_in_regs(t)) {
-                    return arg_info::make< indirect >(TypeConfig::as_pointer(t));
+            if (auto record = type_info.is_record(t)) {
+                if (!type_info.can_be_passed_in_regs(t)) {
+                    return arg_info::make< indirect >(type_info.as_pointer(t));
                 }
             }
 
@@ -713,7 +498,7 @@ namespace vast::abi {
         // TODO: This is pretty convoluted.
         using arg_class = std::tuple< half_class_result, reg_usage >;
 
-        half_class_result arg_lo(type t, classification_t c) {
+        half_class_result arg_lo(ir_type t, classification_t c) {
             auto [lo, hi] = c;
 
             switch (lo) {
@@ -729,7 +514,7 @@ namespace vast::abi {
                 case Class::ComplexX87: {
                     // TODO(abi): Some C++
                     // TODO(abi): This is more nuanced, see `getIndirectResult` in clang.
-                    return { arg_info::make< indirect >(TypeConfig::as_pointer(t)) };
+                    return { arg_info::make< indirect >(type_info.as_pointer(t)) };
                 }
 
                 case Class::SSEUp:
@@ -740,12 +525,11 @@ namespace vast::abi {
 
                 case Class::Integer: {
                     ++needed_int;
-                    auto target_type =
-                        TypeConfig::int_type_at_offset(t, 0, t, 0, mk_classifier_ctx());
+                    auto target_type = int_type_at_offset(t, 0, t, 0);
                     // TODO(abi): Or enum.
-                    if (hi == Class::NoClass && TypeConfig::is_scalar_integer(target_type)) {
+                    if (hi == Class::NoClass && type_info.is_scalar_integer(target_type)) {
                         // TODO(abi): If enum, treat as underlying type.
-                        if (TypeConfig::can_be_promoted(target_type)) {
+                        if (type_info.can_be_promoted(target_type)) {
                             return { arg_info::make< extend >(target_type) };
                         }
                     }
@@ -755,14 +539,13 @@ namespace vast::abi {
 
                 case Class::SSE: {
                     ++needed_sse;
-                    auto target_type =
-                        TypeConfig::sse_target_type_at_offset(t, 0, t, 0, mk_classifier_ctx());
+                    auto target_type = sse_target_type_at_offset(t, 0, t, 0);
                     return { target_type };
                 }
             }
         }
 
-        half_class_result arg_hi(type t, classification_t c) {
+        half_class_result arg_hi(ir_type t, classification_t c) {
             auto [lo, hi] = c;
             switch (hi) {
                 case Class::Memory:
@@ -775,8 +558,7 @@ namespace vast::abi {
 
                 case Class::Integer: {
                     ++needed_int;
-                    auto target_type =
-                        TypeConfig::int_type_at_offset(t, 8, t, 8, mk_classifier_ctx());
+                    auto target_type = int_type_at_offset(t, 64, t, 64);
                     if (lo == Class::NoClass) {
                         return { arg_info::make< direct >(target_type) };
                     }
@@ -789,8 +571,7 @@ namespace vast::abi {
                 }
                 case Class::SSE: {
                     ++needed_sse;
-                    auto target_type =
-                        TypeConfig::sse_target_type_at_offset(t, 64, t, 64, mk_classifier_ctx());
+                    auto target_type = sse_target_type_at_offset(t, 64, t, 64);
                     if (lo == Class::NoClass) {
                         return { arg_info::make< direct >(target_type) };
                     }
@@ -802,7 +583,7 @@ namespace vast::abi {
             }
         }
 
-        arg_info classify_arg(type t) {
+        arg_info classify_arg(ir_type t) {
             auto c    = classify(t);
             auto low  = arg_lo(t, c);
             auto high = arg_hi(t, c);
@@ -810,14 +591,17 @@ namespace vast::abi {
         }
 
         self_t &compute_abi() {
-            info.add_return(classify_return(TypeConfig::prepare(info.return_type())));
+            info.add_return(classify_return(type_info.prepare(info.return_type())));
             for (auto arg : info.fn_type().getInputs()) {
-                info.add_arg(classify_arg(TypeConfig::prepare(arg)));
+                info.add_arg(classify_arg(type_info.prepare(arg)));
             }
             return *this;
         }
 
         func_info take() { return std::move(info); }
     };
+
+    template< typename FnInfo, typename TypeInfo >
+    classifier_base(FnInfo, TypeInfo) -> classifier_base< FnInfo, TypeInfo >;
 
 } // namespace vast::abi
