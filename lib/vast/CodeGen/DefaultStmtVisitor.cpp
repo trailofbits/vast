@@ -1,6 +1,7 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
 #include "vast/CodeGen/DefaultStmtVisitor.hpp"
+#include "vast/CodeGen/DefaultTypeVisitor.hpp"
 
 #include "vast/CodeGen/CodeGenBlock.hpp"
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
@@ -268,7 +269,7 @@ namespace vast::cg
     }
 
     operation default_stmt_visitor::VisitUnaryDeref(const clang::UnaryOperator *op) {
-        return visit_unary_op< hl::Deref >(op, self.visit_as_lvalue_type(op->getType()));
+        return visit_unary_op< hl::Deref >(op, visit_as_lvalue_type(self, mctx, op->getType()));
     }
 
     operation default_stmt_visitor::VisitUnaryPlus(const clang::UnaryOperator *op) {
@@ -448,7 +449,7 @@ namespace vast::cg
 
     mlir_type default_stmt_visitor::cast_result_type(const clang::CastExpr *cast, mlir_type from) {
         auto to_rvalue_cast     = [&] { return self.visit(cast->getType()); };
-        auto lvalue_cast        = [&] { return self.visit_as_lvalue_type(cast->getType()); };
+        auto lvalue_cast        = [&] { return visit_as_lvalue_type(self, mctx, cast->getType()); };
         auto non_lvalue_cast    = [&] { return self.visit(cast->getType()); };
         auto array_to_ptr_cast  = [&] { return self.visit(cast->getType()); };
         auto keep_category_cast = [&] {
@@ -563,7 +564,7 @@ namespace vast::cg
     //
     mlir_type default_stmt_visitor::visit_maybe_lvalue_result_type(const clang::Expr *lit){
         if (lit->isLValue())
-            return self.visit_as_lvalue_type(lit->getType());
+            return visit_as_lvalue_type(self, mctx, lit->getType());
         return self.visit(lit->getType());
     }
 
@@ -638,7 +639,7 @@ namespace vast::cg
     operation default_stmt_visitor::visit_file_var_decl_ref(const clang::DeclRefExpr *expr) {
         return bld.compose< hl::GlobalRefOp >()
             .bind(self.location(expr))
-            .bind(self.visit_as_lvalue_type(expr->getType()))
+            .bind(visit_as_lvalue_type(self, mctx, expr->getType()))
             .bind(self.symbol(expr))
             .freeze();
     }
@@ -647,7 +648,7 @@ namespace vast::cg
         if (auto name = self.symbol(expr)) {
             return bld.compose< hl::DeclRefOp >()
                 .bind(self.location(expr))
-                .bind(self.visit_as_lvalue_type(expr->getType()))
+                .bind(visit_as_lvalue_type(self, mctx, expr->getType()))
                 .bind(self.scope.lookup_var(name.value()))
                 .freeze();
         }
@@ -658,7 +659,7 @@ namespace vast::cg
     operation default_stmt_visitor::visit_function_decl_ref(const clang::DeclRefExpr *expr) {
         return bld.compose< hl::FuncRefOp >()
             .bind(self.location(expr))
-            .bind(self.visit_as_lvalue_type(expr->getType()))
+            .bind(visit_as_lvalue_type(self, mctx, expr->getType()))
             .bind(self.symbol(expr))
             .freeze();
     }
@@ -854,7 +855,7 @@ namespace vast::cg
     operation default_stmt_visitor::VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *expr) {
         return bld.compose< hl::SubscriptOp >()
             .bind(self.location(expr))
-            .bind(self.visit_as_lvalue_type(expr->getType()))
+            .bind(visit_as_lvalue_type(self, mctx, expr->getType()))
             .bind_transform(self.visit(expr->getBase()), first_result)
             .bind_transform(self.visit(expr->getIdx()), first_result)
             .freeze();
@@ -973,7 +974,7 @@ namespace vast::cg
             .bind(self.location(expr))
             .bind_choose(
                 expr->isLValue(),
-                self.visit_as_lvalue_type(expr->getType()),
+                visit_as_lvalue_type(self, mctx, expr->getType()),
                 self.visit(expr->getType())
             )
             .bind(mk_value_builder(expr->getSubExpr()))

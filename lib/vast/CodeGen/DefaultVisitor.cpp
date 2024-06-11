@@ -9,7 +9,7 @@
 namespace vast::cg
 {
     operation default_visitor::visit_with_attrs(const clang_decl *decl, scope_context &scope) {
-        default_decl_visitor visitor(bld, self, scope);
+        default_decl_visitor visitor(mctx, bld, self, scope);
         visitor.emit_strict_function_return = emit_strict_function_return;
         visitor.missing_return_policy = missing_return_policy;
         if (auto op = visitor.visit(decl)) {
@@ -52,7 +52,7 @@ namespace vast::cg
     }
 
     operation default_visitor::visit(const clang_stmt *stmt, scope_context &scope) {
-        default_stmt_visitor visitor(bld, self, scope);
+        default_stmt_visitor visitor(mctx, bld, self, scope);
         return visitor.visit(stmt);
     }
 
@@ -65,12 +65,12 @@ namespace vast::cg
     }
 
     mlir_attr default_visitor::visit(const clang_attr *attr, scope_context &scope) {
-        default_attr_visitor visitor(bld, self, scope);
+        default_attr_visitor visitor(mctx, bld, self, scope);
         return visitor.visit(attr);
     }
 
     operation default_visitor::visit_prototype(const clang_function *decl, scope_context &scope) {
-        default_decl_visitor visitor(bld, self, scope);
+        default_decl_visitor visitor(mctx, bld, self, scope);
         return visitor.visit_prototype(decl);
     }
 

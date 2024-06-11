@@ -24,6 +24,7 @@ namespace vast::cg
             : visitor_base(mctx)
             , mg(std::move(mg))
             , sg(std::move(sg))
+            , mctx(mctx)
             , bld(bld)
             , self(self)
         {}
@@ -59,6 +60,7 @@ namespace vast::cg
         std::shared_ptr< meta_generator > mg;
         std::shared_ptr< symbol_generator > sg;
 
+        mcontext_t &mctx;
         codegen_builder &bld;
         visitor_view self;
     };
@@ -68,7 +70,7 @@ namespace vast::cg
             return value;
         }
 
-        default_type_visitor visitor(bld, self, scope);
+        default_type_visitor visitor(mctx, bld, self, scope);
         if (auto result = visitor.visit(type)) {
             cache.try_emplace(type, result);
             return result;

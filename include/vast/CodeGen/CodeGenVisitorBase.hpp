@@ -33,10 +33,6 @@ namespace vast::cg {
 
         operation visit_prototype(const clang_function *decl, scope_context &scope);
 
-        mlir_type visit(const clang_function_type *fty, bool is_variadic, scope_context &scope);
-
-        mlir_type visit_as_lvalue_type(clang_qual_type ty, scope_context &scope);
-
         std::optional< loc_t > location(const auto *node) const;
         loc_t maybe_location(const auto *node);
 
@@ -70,17 +66,13 @@ namespace vast::cg {
 
         operation visit_prototype(const clang_function *decl);
 
-        mlir_type visit(const clang_function_type *fty, bool is_variadic);
-
-        mlir_type visit_as_lvalue_type(clang_qual_type ty);
-
         scope_context &scope;
     };
 
     struct clang_visitor_base
     {
-        clang_visitor_base(codegen_builder &bld, visitor_view self, scope_context &scope)
-            : bld(bld), self(self, scope)
+        clang_visitor_base(mcontext_t &mctx, codegen_builder &bld, visitor_view self, scope_context &scope)
+            : mctx(mctx), bld(bld), self(self, scope)
         {}
 
         template< typename builder_t >
@@ -149,7 +141,9 @@ namespace vast::cg {
         auto mk_type_yield_builder(const clang_expr *expr) {
             return mk_stmt_builder< hl::TypeYieldOp >(expr);
         }
+
       protected:
+        mcontext_t &mctx;
         codegen_builder &bld;
         scoped_visitor_view self;
     };
@@ -189,8 +183,7 @@ namespace vast::cg {
         virtual mlir_type visit(clang_qual_type, scope_context &scope)    = 0;
         virtual mlir_attr visit(const clang_attr *, scope_context &scope) = 0;
 
-        virtual mlir_type visit(const clang_function_type *, bool /* is_variadic */, scope_context &scope);
-        virtual mlir_type visit_as_lvalue_type(clang_qual_type, scope_context &scope);
+        // virtual mlir_type visit_as_lvalue_type(clang_qual_type, scope_context &scope);
 
         virtual operation visit_prototype(const clang_function *decl, scope_context &scope) = 0;
 

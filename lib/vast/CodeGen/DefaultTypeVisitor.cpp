@@ -339,7 +339,7 @@ namespace vast::cg {
     }
 
     mlir_type default_type_visitor::VisitFunctionType(const clang::FunctionType *ty) {
-        return self.visit(ty, false /* variadic */);
+        return visit_function_type(self, mctx, ty, false /* variadic */);
     }
 
     mlir_type default_type_visitor::VisitFunctionProtoType(const clang::FunctionProtoType *ty) {
@@ -347,7 +347,7 @@ namespace vast::cg {
     }
 
     mlir_type default_type_visitor::VisitFunctionProtoType(const clang::FunctionProtoType *ty, clang_qualifiers quals) {
-        return self.visit(ty, ty->isVariadic());
+        return visit_function_type(self, mctx, ty, ty->isVariadic());
     }
 
     mlir_type default_type_visitor::VisitFunctionNoProtoType(const clang::FunctionNoProtoType *ty) {
@@ -355,7 +355,7 @@ namespace vast::cg {
     }
 
     mlir_type default_type_visitor::VisitFunctionNoProtoType(const clang::FunctionNoProtoType *ty, clang_qualifiers quals) {
-        return self.visit(ty, false /* variadic */);
+        return visit_function_type(self, mctx, ty, false /* variadic */);
     }
 
     mlir_type default_type_visitor::VisitDecayedType(const clang::DecayedType *ty) {
@@ -452,10 +452,34 @@ namespace vast::cg {
     mlir_type default_type_visitor::VisitComplexType(const clang::ComplexType *ty) {
         return VisitComplexType(ty, ty->desugar().getLocalQualifiers());
     }
+
     mlir_type default_type_visitor::VisitComplexType(const clang::ComplexType *ty, clang_qualifiers quals) {
         auto type = self.visit(ty->getElementType());
         return with_cvr_qualifiers(compose_type< hl::ComplexType >().bind(type), quals).freeze();
     }
+
+    mlir_type visit_function_type(
+        scoped_visitor_view visitor, mcontext_t &mctx, const clang_function_type *fty, bool is_variadic
+    ) {
+        llvm::SmallVector< mlir_type > args;
+        if (auto proto = clang::dyn_cast< clang_function_proto_type >(fty)) {
+            for (auto param : proto->getParamTypes()) {
+                args.push_back(visit_as_lvalue_type(visitor, mctx, param));
+            }
+        }
+
+        return core::FunctionType::get(args, {visitor.visit(fty->getReturnType())}, is_variadic);
+    }
+
+    mlir_type visit_as_lvalue_type(scoped_visitor_view visitor, mcontext_t &mctx, clang_qual_type ty)
+    {
+        auto element_type = visitor.visit(ty);
+        if (mlir::isa< hl::LValueType >(element_type)) {
+            return element_type;
+        }
+        return hl::LValueType::get(&mctx, element_type);
+    }
+
 
 
 } // namespace vast::hl
