@@ -99,21 +99,26 @@ namespace vast::cg
             return std::make_shared< through_proxy >(nullptr, nullptr);
         }
 
-        friend std::shared_ptr< through_proxy > operator|(std::shared_ptr< through_proxy > &&lhs, std::shared_ptr< visitor_base > &&rhs) {
+        friend std::shared_ptr< through_proxy > operator|(std::shared_ptr< through_proxy > lhs, std::shared_ptr< visitor_base > &&rhs) {
             if (lhs->visitor == nullptr) {
                 lhs->visitor = std::move(rhs);
-                return std::move(lhs);
+                return lhs;
             }
 
             if (lhs->next == nullptr) {
                 lhs->next = std::move(rhs);
-                return std::move(lhs);
+                return lhs;
             }
 
-            return std::make_shared< through_proxy >(std::move(lhs), std::move(rhs));
+            if (!std::dynamic_pointer_cast< through_proxy >(lhs->next)) {
+                auto next = std::make_shared< through_proxy >(std::move(lhs->next), std::move(rhs));
+                lhs->next = next;
+                return next;
+            }
+
+            VAST_UNREACHABLE("Through proxy has already full both slots. Cannot add another");
         }
 
-    private:
         std::shared_ptr< visitor_base > visitor;
         std::shared_ptr< visitor_base > next;
     };

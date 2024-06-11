@@ -11,7 +11,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Frontend/Options.hpp"
 
-#include "vast/CodeGen/CodeGenVisitor.hpp"
+#include "vast/CodeGen/ThroughVisitorProxy.hpp"
+
 #include "vast/CodeGen/DataLayout.hpp"
 #include "vast/CodeGen/DefaultVisitor.hpp"
 #include "vast/CodeGen/UnreachableVisitor.hpp"
@@ -67,9 +68,11 @@ namespace vast::cg {
     void driver::finalize() {
         generator.finalize();
 
-        if (auto type_visitor = visitor->find< default_visitor >()) {
-            auto dl = emit_data_layout_blueprint(actx, type_visitor.value());
-            emit_data_layout(*mctx, mod, dl);
+        if (auto proxy = std::dynamic_pointer_cast< through_proxy >(visitor)) {
+            if (auto def = std::dynamic_pointer_cast< default_visitor >(proxy->visitor)) {
+                auto dl = emit_data_layout_blueprint(actx, *def);
+                emit_data_layout(*mctx, mod, dl);
+            }
         }
 
         if (enabled_verifier) {
@@ -115,32 +118,44 @@ namespace vast::cg {
         }
     }
 
+    std::shared_ptr< visitor_base > mk_default_visitor(
+          mcontext_t &mctx
+        , codegen_builder &bld
+        , visitor_view view
+        , std::shared_ptr< meta_generator > mg
+        , std::shared_ptr< symbol_generator > sg
+        , cc::action_options &opts
+    ) {
+        auto vis = std::make_shared< default_visitor >(mctx, bld, view, std::move(mg), std::move(sg));
+        vis->emit_strict_function_return = opts.codegen.StrictReturn;
+        vis->missing_return_policy = get_missing_return_policy(opts);
+        return vis;
+    }
+
     std::unique_ptr< driver > mk_default_driver(cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx) {
         auto mctx = mk_mcontext();
         auto bld  = mk_codegen_builder(mctx.get());
         auto mg   = mk_meta_generator(&actx, mctx.get(), vargs);
         auto sg   = mk_symbol_generator(actx);
 
-        // setup visitor stack
-        auto visitor = std::make_unique< codegen_visitor >();
-        auto view  = visitor_view(*visitor);
+        auto visitors_head = through_proxy::empty();
+        auto view = visitor_view(*visitors_head);
 
-        auto vis = std::make_unique< default_visitor >(*mctx, *bld, view, std::move(mg), std::move(sg));
-        vis->emit_strict_function_return = opts.codegen.StrictReturn;
-        vis->missing_return_policy = get_missing_return_policy(opts);
-        visitor->push(std::move(vis));
+        // make default visitor the top level visitor
+        auto visitors = visitors_head | mk_default_visitor(*mctx, *bld, view, mg, sg, opts);
 
         if (!vargs.has_option(cc::opt::disable_unsupported)) {
-            visitor->push(std::make_unique< unsup_visitor >(*mctx, *bld, view));
+            visitors = visitors | std::make_shared< unsup_visitor >(*mctx, *bld, view);
         }
 
-        visitor->push(std::make_unique< unreach_visitor >());
+        // make unreachable visitor the last visitor to yeild an error as last resort
+        visitors = std::move(visitors) | std::make_shared< unreach_visitor >();
 
         auto drv = std::make_unique< driver >(
             actx,
             std::move(mctx),
             std::move(bld),
-            std::move(visitor)
+            std::move(visitors_head)
         );
 
         drv->enable_verifier(!vargs.has_option(cc::opt::disable_vast_verifier));
