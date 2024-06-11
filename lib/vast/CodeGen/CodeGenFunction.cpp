@@ -5,6 +5,8 @@
 VAST_RELAX_WARNINGS
 #include <clang/AST/GlobalDecl.h>
 #include <clang/Basic/TargetInfo.h>
+#include <clang/AST/Stmt.h>
+#include <clang/AST/StmtCXX.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/CodeGenBlock.hpp"
