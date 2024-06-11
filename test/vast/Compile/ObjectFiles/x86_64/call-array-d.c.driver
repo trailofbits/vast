@@ -1,0 +1,29 @@
+struct data {
+    short a;
+    float array[3];
+};
+
+int sum(struct data d);
+int vast_tests();
+
+#define assert(cond, v) \
+    if (!(cond)) \
+        return v; \
+
+int main()
+{
+    struct data d;
+    for (int i = 0; i < 3; ++i)
+        d.array[i] = 0.0f;
+
+    assert(sum(d) == 0.0f, 1);
+    d.array[1] = 5.0f;
+    d.array[2] = 10.0f;
+    assert(sum(d) == 15.0f, 2);
+    d.array[0] = 10.0f;
+    assert(sum(d) == 25.0f, 3);
+    d.array[1] = -10.0f;
+    assert(sum(d) == 10.0f, 4);
+
+    return vast_tests();
+}
