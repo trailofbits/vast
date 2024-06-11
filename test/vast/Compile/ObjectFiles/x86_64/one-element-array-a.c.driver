@@ -1,0 +1,27 @@
+struct data {
+    int array[1];
+};
+
+int sum(struct data d);
+int vast_tests();
+
+#define assert(cond, v) \
+    if (!(cond)) \
+        return v; \
+
+int main()
+{
+    struct data d;
+    for (int i = 0; i < 1; ++i)
+        d.array[i] = 0;
+
+    assert(sum(d) == 0, 1);
+    d.array[0] = 5;
+    assert(sum(d) == 5, 2);
+    d.array[0] -= 10;
+    assert(sum(d) == -5, 3);
+    d.array[0] = -10;
+    assert(sum(d) == -10, 4);
+
+    return vast_tests();
+}
