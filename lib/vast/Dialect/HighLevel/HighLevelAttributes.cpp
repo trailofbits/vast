@@ -17,20 +17,32 @@ VAST_RELAX_WARNINGS
 namespace vast::hl
 {
     mlir_attr OffsetOfNodeAttr::parse(mlir::AsmParser &parser, mlir_type) {
-        if (parser.parseLess()) return {};
-        if (parser.parseOptionalKeyword("index").succeeded()) {
-            if(parser.parseColon()) return {};
+        if (mlir::failed(parser.parseLess())) {
+            return {};
+        }
+        if (mlir::succeeded(parser.parseOptionalKeyword("index"))) {
+            if (mlir::failed(parser.parseColon())) {
+                return {};
+            }
 
             unsigned int value;
-            if (parser.parseInteger(value) || parser.parseGreater()) return {};
+            if (mlir::failed(parser.parseInteger(value)) || mlir::failed(parser.parseGreater()))
+            {
+                return {};
+            }
             return get(parser.getContext(), value);
         }
 
-        if (parser.parseOptionalKeyword("identifier").succeeded()) {
-            if(parser.parseColon()) return {};
+        if (mlir::succeeded(parser.parseOptionalKeyword("identifier"))) {
+            if (mlir::failed(parser.parseColon())) {
+                return {};
+            }
 
             std::string value;
-            if (parser.parseString(&value) || parser.parseGreater()) return {};
+            if (mlir::failed(parser.parseString(&value)) || mlir::failed(parser.parseGreater()))
+            {
+                return {};
+            }
             return get(parser.getContext(), value);
         }
 
@@ -40,8 +52,10 @@ namespace vast::hl
     void OffsetOfNodeAttr::print(mlir::AsmPrinter &printer) const {
         auto value = getValue();
         printer << "<";
-        auto print_identifier = [&](const mlir::StringAttr &str) { printer << "identifier : " << str; };
-        auto print_index      = [&](unsigned int index) { printer << "index : " << index; };
+        auto print_identifier = [&](const mlir::StringAttr &str) {
+            printer << "identifier : " << str;
+        };
+        auto print_index = [&](unsigned int index) { printer << "index : " << index; };
         std::visit(gap::overloaded{ print_index, print_identifier }, value);
         printer << ">";
     }
