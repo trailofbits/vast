@@ -6,25 +6,15 @@
 
 VAST_RELAX_WARNINGS
 #include <clang/AST/ASTContext.h>
-#include <clang/AST/CXXInheritance.h>
 #include <clang/AST/TypeLoc.h>
 #include <clang/Basic/FileEntry.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/Common.hpp"
-#include "vast/Dialect/Meta/MetaAttributes.hpp"
-
-#include <concepts>
+#include "vast/CodeGen/CodeGenMetaGenerator.hpp"
 
 namespace vast::cg
 {
-    struct meta_generator {
-        virtual ~meta_generator() = default;
-        virtual loc_t location(const clang_decl *) const = 0;
-        virtual loc_t location(const clang_stmt *) const = 0;
-        virtual loc_t location(const clang_expr *) const = 0;
-    };
-
     struct default_meta_gen final : meta_generator {
         default_meta_gen(acontext_t *actx, mcontext_t *mctx)
             : actx(actx), mctx(mctx)
@@ -58,33 +48,6 @@ namespace vast::cg
         }
 
         acontext_t *actx;
-        mcontext_t *mctx;
-    };
-
-    struct id_meta_gen final : meta_generator {
-        id_meta_gen(acontext_t *, mcontext_t *mctx)
-            : mctx(mctx)
-        {}
-
-        loc_t location(const clang_decl *decl) const override { return location_impl(decl); }
-        loc_t location(const clang_stmt *stmt) const override { return location_impl(stmt); }
-        loc_t location(const clang_expr *expr) const override { return location_impl(expr); }
-
-      private:
-
-        loc_t make_location(meta::IdentifierAttr id) const {
-            auto dummy = mlir::UnknownLoc::get(mctx);
-            return mlir::FusedLoc::get( { dummy }, id, mctx );
-        }
-
-        loc_t make_location(meta::identifier_t id) const {
-            return make_location(meta::IdentifierAttr::get(mctx, id));
-        }
-
-        loc_t location_impl(auto token) const { return { make_location(counter++) }; }
-
-        mutable meta::identifier_t counter = 0;
-
         mcontext_t *mctx;
     };
 

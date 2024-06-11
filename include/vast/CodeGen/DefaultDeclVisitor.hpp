@@ -11,6 +11,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/ClangVisitorBase.hpp"
 #include "vast/CodeGen/CodeGenFunction.hpp"
 
+#include "vast/CodeGen/CodeGenMetaGenerator.hpp"
+#include "vast/CodeGen/SymbolGenerator.hpp"
+
 namespace vast::cg {
 
     struct default_decl_visitor : decl_visitor_base< default_decl_visitor >
