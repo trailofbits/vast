@@ -3,7 +3,7 @@
 #pragma once
 
 #include "vast/Util/Common.hpp"
-#include "vast/CodeGen/CodeGenMeta.hpp"
+#include "vast/CodeGen/CodeGenMetaGenerator.hpp"
 #include "vast/CodeGen/CodeGenBuilder.hpp"
 #include "vast/CodeGen/ClangVisitorBase.hpp"
 

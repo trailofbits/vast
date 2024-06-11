@@ -17,6 +17,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/UnreachableVisitor.hpp"
 #include "vast/CodeGen/UnsupportedVisitor.hpp"
 
+#include "vast/CodeGen/DefaultMetaGenerator.hpp"
+#include "vast/CodeGen/IdMetaGenerator.hpp"
+
 #include "vast/CodeGen/CodeGenModule.hpp"
 #include "vast/CodeGen/CodeGenFunction.hpp"
 
