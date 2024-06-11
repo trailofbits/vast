@@ -76,8 +76,6 @@ namespace vast::cg {
         virtual std::optional< symbol_name > symbol(const clang_decl_ref_expr *decl) { return std::nullopt; }
     };
 
-    using visitor_base_ptr = std::unique_ptr< visitor_base >;
-
     std::optional< loc_t > visitor_view::location(const auto *node) const {
         return visitor.location(node);
     }

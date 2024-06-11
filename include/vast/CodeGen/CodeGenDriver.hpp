@@ -14,7 +14,6 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/ScopeContext.hpp"
 #include "vast/CodeGen/CodeGenModule.hpp"
-#include "vast/CodeGen/CodeGenVisitor.hpp"
 
 #include "vast/Frontend/Options.hpp"
 
@@ -47,7 +46,7 @@ namespace vast::cg {
               acontext_t &_actx
             , std::unique_ptr< mcontext_t > _mctx
             , std::unique_ptr< codegen_builder > _bld
-            , std::unique_ptr< codegen_visitor > _visitor
+            , std::shared_ptr< visitor_base > _visitor
         )
             : actx(_actx)
             , mctx(std::move(_mctx))
@@ -94,7 +93,7 @@ namespace vast::cg {
         // generators
         //
         std::unique_ptr< codegen_builder > bld;
-        std::unique_ptr< codegen_visitor > visitor;
+        std::shared_ptr< visitor_base > visitor;
 
         //
         // module generation state

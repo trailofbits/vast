@@ -7,7 +7,6 @@
 
 #include "vast/CodeGen/CodeGenBuilder.hpp"
 #include "vast/CodeGen/DefaultTypeVisitor.hpp"
-#include "vast/CodeGen/FallBackVisitor.hpp"
 
 #include "vast/Util/Common.hpp"
 
