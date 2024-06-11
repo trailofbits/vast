@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "vast/Util/Hashing.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Interfaces/TypeQualifiersInterfaces.hpp"
 
