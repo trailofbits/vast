@@ -31,14 +31,6 @@ namespace vast::cg
         return visitor.visit_prototype(decl, scope);
     }
 
-    mcontext_t& visitor_view::mcontext() {
-        return visitor.mcontext();
-    }
-
-    const mcontext_t& visitor_view::mcontext() const {
-        return visitor.mcontext();
-    }
-
     operation scoped_visitor_view::visit(const clang_decl *decl) {
         return visitor_view::visit(decl, scope);
     }

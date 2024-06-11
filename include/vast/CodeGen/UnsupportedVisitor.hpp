@@ -105,7 +105,7 @@ namespace vast::cg
         , unsup_attr_visitor< unsup_visitor >
     {
         unsup_visitor(mcontext_t &mctx, codegen_builder &bld, visitor_view top)
-            : visitor_base(mctx), mctx(mctx), bld(bld), top_visitor(top)
+            : mctx(mctx), bld(bld), top_visitor(top)
         {}
 
         operation visit(const clang_decl *decl, scope_context &scope) override {

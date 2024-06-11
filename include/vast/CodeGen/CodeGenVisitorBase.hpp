@@ -37,9 +37,6 @@ namespace vast::cg {
 
         std::optional< symbol_name > symbol(auto &&decl);
 
-        mcontext_t& mcontext();
-        const mcontext_t& mcontext() const;
-
         visitor_base *raw() { return &visitor; }
 
       protected:
@@ -172,8 +169,6 @@ namespace vast::cg {
     //
     struct visitor_base
     {
-        visitor_base(mcontext_t &mctx) : mctx(mctx) {}
-
         virtual ~visitor_base() = default;
 
         virtual operation visit(const clang_decl *, scope_context &scope) = 0;
@@ -184,18 +179,12 @@ namespace vast::cg {
 
         virtual operation visit_prototype(const clang_function *decl, scope_context &scope) = 0;
 
-        mcontext_t& mcontext() { return mctx; }
-        const mcontext_t& mcontext() const { return mctx; }
-
         virtual std::optional< loc_t > location(const clang_decl *) { return std::nullopt; }
         virtual std::optional< loc_t > location(const clang_stmt *) { return std::nullopt; }
         virtual std::optional< loc_t > location(const clang_expr *) { return std::nullopt; }
 
         virtual std::optional< symbol_name > symbol(clang_global decl) { return std::nullopt; }
         virtual std::optional< symbol_name > symbol(const clang_decl_ref_expr *decl) { return std::nullopt; }
-
-      protected:
-        mcontext_t &mctx;
     };
 
     using visitor_base_ptr = std::unique_ptr< visitor_base >;

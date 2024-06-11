@@ -23,7 +23,7 @@ namespace vast::cg {
         template< typename type >
         auto compose_type() {
             return bld.compose_start< type >([&] (auto &&...args) {
-                return type::get(&self.mcontext(), std::forward< decltype(args) >(args)...);
+                return type::get(&mctx, std::forward< decltype(args) >(args)...);
             });
         }
 
@@ -98,21 +98,21 @@ namespace vast::cg {
         auto with_ucv_qualifiers(auto &&state, bool is_unsigned, clang_qualifiers q) {
             return std::forward< decltype(state) >(state)
                 .bind_if( is_unsigned || q.hasConst() || q.hasVolatile(),
-                    hl::UCVQualifiersAttr::get(&self.mcontext(), is_unsigned, q.hasConst(), q.hasVolatile())
+                    hl::UCVQualifiersAttr::get(&mctx, is_unsigned, q.hasConst(), q.hasVolatile())
                 );
         }
 
         auto with_cv_qualifiers(auto &&state, clang_qualifiers q) {
             return std::forward< decltype(state) >(state)
                 .bind_if( q.hasConst() || q.hasVolatile(),
-                    hl::CVQualifiersAttr::get(&self.mcontext(), q.hasConst(), q.hasVolatile())
+                    hl::CVQualifiersAttr::get(&mctx, q.hasConst(), q.hasVolatile())
                 );
         }
 
         auto with_cvr_qualifiers(auto &&state, clang_qualifiers q) {
             return std::forward< decltype(state) >(state)
                 .bind_if( q.hasConst() || q.hasVolatile() || q.hasRestrict(),
-                    hl::CVRQualifiersAttr::get(&self.mcontext(), q.hasConst(), q.hasVolatile(), q.hasRestrict())
+                    hl::CVRQualifiersAttr::get(&mctx, q.hasConst(), q.hasVolatile(), q.hasRestrict())
                 );
         }
 
@@ -148,14 +148,14 @@ namespace vast::cg {
         auto create_reference_type(const clang_type *ty, clang_qualifiers /* quals */) -> mlir_type {
             // FIXME add qualifiers?
             auto pointee = self.visit(ty->getPointeeTypeAsWritten());
-            auto ref = hl::ReferenceType::get(&self.mcontext(), pointee);
-            return value_type::get(&self.mcontext(), ref);
+            auto ref = hl::ReferenceType::get(&mctx, pointee);
+            return value_type::get(&mctx, ref);
         }
 
         template< typename vast_type, typename record_type >
         mlir_type mk_compound_type(const record_type *ty, clang_qualifiers quals) {
             if (auto symbol = self.symbol(ty->getDecl())) {
-                auto name = mlir::StringAttr::get(&self.mcontext(), symbol.value());
+                auto name = mlir::StringAttr::get(&mctx, symbol.value());
                 return with_cv_qualifiers(compose_type< vast_type >().bind(name), quals).freeze();
             }
 
