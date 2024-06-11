@@ -1263,8 +1263,7 @@ def PreferredAlignOfExprOp : AlignOfExprOpBase< "preferred_alignof.expr" >;
 def OffsetOfNodeAttr
   : HighLevel_Attr< "OffsetOfNode", "offset_of_node" > {
     let parameters = (ins
-      OptionalParameter< "std::optional< unsigned int >" >:$array_expr_index,
-      OptionalParameter< "std::optional< ::mlir::StringAttr >" >:$identifier_name
+      "std::variant< unsigned int, ::mlir::StringAttr >":$value
       //TODO base class specifier
     );
 
@@ -1274,19 +1273,19 @@ def OffsetOfNodeAttr
                        or a field identifier or base class specifier.
   }];
 
-    let builders = [
-      AttrBuilder< (ins "::mlir::StringAttr":$attr), [{
-          return get($_ctxt, std::nullopt, std::optional(attr));
-        }]>,
-      AttrBuilder< (ins "unsigned int":$value), [{
-          return get($_ctxt, std::optional(value), std::nullopt);
-        }]>,
-      AttrBuilder< (ins "llvm::StringRef":$value), [{
-          return get($_ctxt, mlir::StringAttr::get($_ctxt, value));
-        }]>,
-    ];
+  let builders = [
+    AttrBuilder< (ins "::mlir::StringAttr":$attr), [{
+        return get($_ctxt, std::variant< unsigned int, ::mlir::StringAttr >(attr));
+      }]>,
+    AttrBuilder< (ins "unsigned int":$value), [{
+        return get($_ctxt, std::variant< unsigned int, ::mlir::StringAttr >(value));
+      }]>,
+    AttrBuilder< (ins "llvm::StringRef":$value), [{
+        return get($_ctxt, mlir::StringAttr::get($_ctxt, value));
+      }]>,
+  ];
 
-    let assemblyFormat = "`<` (`index` `:` $array_expr_index^)? (`identifier` `:` $identifier_name^)? `>`";
+  let hasCustomAssemblyFormat = 1;
 }
 
 def OffsetOfExprOp
