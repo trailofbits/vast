@@ -354,12 +354,13 @@ namespace vast::abi {
     // TODO(abi): For now this serves as x86_64, later core parts will be extracted.
     // TODO(codestyle): See if `arg_` and `ret_` can be unified - in clang they are separately
     //                  but it may be just a bad codestyle.
-    template< typename FnInfo, typename DL >
+    template< typename FnInfo, typename DL, typename TypeInfo >
     struct classifier_base
     {
-        using self_t      = classifier_base< FnInfo, DL >;
+        using self_t      = classifier_base< FnInfo, DL, TypeInfo >;
         using func_info   = FnInfo;
         using data_layout = DL;
+        using type_info_t = TypeInfo;
 
         using type  = typename func_info::type;
         using types = typename func_info::types;
@@ -367,14 +368,16 @@ namespace vast::abi {
         func_info info;
         const data_layout &dl;
 
+        const type_info_t &type_info;
+
         static constexpr std::size_t max_gpr = 6;
         static constexpr std::size_t max_sse = 8;
 
         std::size_t needed_int = 0;
         std::size_t needed_sse = 0;
 
-        classifier_base(func_info info, const data_layout &dl)
-            : info(std::move(info)), dl(dl) {}
+        classifier_base(func_info info, const data_layout &dl, const type_info_t &type_info)
+            : info(std::move(info)), dl(dl), type_info(type_info) {}
 
         auto size(mlir::Type t) { return dl.getTypeSizeInBits(t); }
 
