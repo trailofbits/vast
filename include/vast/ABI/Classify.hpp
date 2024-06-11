@@ -128,13 +128,7 @@ namespace vast::abi {
                 return true;
             }
 
-            // TODO: Implement. For now we are saying the array is okay as in `C` this will be
-            //       rarely broken.
-            if (is_array(t)) {
-                return true;
-            }
-
-            if (is_record(t)) {
+            if (is_record(t) || is_array(t)) {
                 // TODO(abi): CXXRecordDecl.
                 std::size_t current = 0;
                 for (auto field : fields(t, op)) {
@@ -208,8 +202,9 @@ namespace vast::abi {
             // TODO(abi): This is done differently than clang, since they seem to be using
             //            underflow? on offset?
             if (is_struct(t) && (size(dl, t) > 64)) {
-                auto [field, field_start] = field_containing_offset(classifier_ctx, t, offset);
-                VAST_ASSERT(field);
+                auto field_info = field_containing_offset(classifier_ctx, t, offset);
+                VAST_ASSERT(field_info);
+                auto [field, field_start] = *field_info;
                 return int_type_at_offset(
                     field, offset - field_start, root, root_offset, classifier_ctx
                 );
@@ -218,7 +213,7 @@ namespace vast::abi {
             if (is_array(t)) {
                 auto [_, element_type] = array_info(t);
                 auto element_size = size(dl, element_type);
-                auto element_offset = root_offset / element_size * element_size;
+                auto element_offset = offset / element_size * element_size;
                 return int_type_at_offset(
                     element_type, offset - element_offset,
                     root, root_offset, classifier_ctx);
@@ -273,9 +268,9 @@ namespace vast::abi {
                 // good enough.
 
                 // Check case of half/bfloat + float.
-                if (size(dl, t0) == 16 && source_size > 4) {
+                if (size(dl, t0) == 16 && source_size > 4 * 8) {
                     // `+4` comes from alignement
-                    return type_at_offset(t, offset + 4, classifier_ctx, get_is_sse_type());
+                    return type_at_offset(t, offset + 32, classifier_ctx, get_is_sse_type());
                 }
                 return {};
             }();
@@ -299,34 +294,43 @@ namespace vast::abi {
         static mlir_type type_at_offset(
             mlir_type t, std::size_t offset, const auto &classifier_ctx, const auto &accept
         ) {
+            const auto &[dl, _] = classifier_ctx;
             if (offset == 0 && accept(t)) {
                 return t;
             }
 
             if (is_struct(t)) {
-                auto [field, field_start] = field_containing_offset(classifier_ctx, t, offset);
+                auto field_info = field_containing_offset(classifier_ctx, t, offset);
+                if (!field_info)
+                    return {};
+                auto [field, field_start] = *field_info;
                 return type_at_offset(field, field_start, classifier_ctx, accept);
             }
 
-            // TODO: Array support.
-            VAST_CHECK(!is_array(t), "Floats in array type not yet supported!");
-
+            if (is_array(t)) {
+                auto [_, element_type] = array_info(t);
+                auto element_size = size(dl, element_type);
+                auto element_offset = offset / element_size * element_size;
+                return type_at_offset(
+                    element_type, offset - element_offset,
+                    classifier_ctx, accept);
+            }
             return {};
         }
 
         static auto field_containing_offset(
             const auto &classifier_ctx, mlir::Type t, std::size_t offset
-        ) -> std::tuple< mlir::Type, std::size_t > {
+        ) -> std::optional< std::tuple< mlir::Type, std::size_t > > {
             const auto &[dl, op] = classifier_ctx;
 
             auto curr = 0;
             for (auto field : fields(t, op)) {
                 if (curr + size(dl, field) > offset) {
-                    return { field, curr };
+                    return { std::make_tuple(field, curr) };
                 }
                 curr += size(dl, field);
             }
-            VAST_UNREACHABLE("Did not find field at offset {0} in {1}", offset, t);
+            return {};
         }
 
         static gap::generator< mlir_type > mock_array_fields(hl::ArrayType array_type) {
@@ -783,7 +787,7 @@ namespace vast::abi {
                 case Class::SSE: {
                     ++needed_sse;
                     auto target_type =
-                        TypeConfig::sse_target_type_at_offset(t, 8, t, 8, mk_classifier_ctx());
+                        TypeConfig::sse_target_type_at_offset(t, 64, t, 64, mk_classifier_ctx());
                     if (lo == Class::NoClass) {
                         return { arg_info::make< direct >(target_type) };
                     }
