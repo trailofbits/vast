@@ -17,16 +17,15 @@ namespace vast::cg
         default_visitor(
               mcontext_t &mctx
             , codegen_builder &bld
+            , visitor_view self
             , std::shared_ptr< meta_generator > mg
             , std::shared_ptr< symbol_generator > sg
-            , visitor_view self
         )
-            : visitor_base(mctx)
-            , mg(std::move(mg))
-            , sg(std::move(sg))
-            , mctx(mctx)
+            : mctx(mctx)
             , bld(bld)
             , self(self)
+            , mg(std::move(mg))
+            , sg(std::move(sg))
         {}
 
         operation visit_with_attrs(const clang_decl *decl, scope_context &scope);
@@ -57,12 +56,13 @@ namespace vast::cg
         bool emit_strict_function_return;
         missing_return_policy missing_return_policy;
 
-        std::shared_ptr< meta_generator > mg;
-        std::shared_ptr< symbol_generator > sg;
-
         mcontext_t &mctx;
         codegen_builder &bld;
         visitor_view self;
+
+        std::shared_ptr< meta_generator > mg;
+        std::shared_ptr< symbol_generator > sg;
+
     };
 
     mlir_type default_visitor::visit_type(auto type, auto& cache, scope_context& scope) {

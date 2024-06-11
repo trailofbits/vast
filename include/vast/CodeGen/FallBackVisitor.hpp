@@ -19,8 +19,6 @@ namespace vast::cg
     {
         using visitor_stack = std::vector< visitor_base_ptr >;
 
-        fallback_visitor(mcontext_t &mctx) : visitor_base(mctx) {}
-
         auto visit_with_fallback(auto &&...tokens) {
             for (auto &visitor : visitors) {
                 if (auto result = visitor->visit(tokens...)) {

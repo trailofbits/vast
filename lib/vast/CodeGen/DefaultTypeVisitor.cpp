@@ -275,7 +275,7 @@ namespace vast::cg {
         return with_cvr_qualifiers(
             compose_type< hl::ArrayType >()
                 // bind also uninitialized size
-                .bind_always(get_size_attr(ty, self.mcontext()))
+                .bind_always(get_size_attr(ty, mctx))
                 .bind(self.visit(ty->getElementType())),
             quals
         ).freeze();
@@ -288,7 +288,7 @@ namespace vast::cg {
     mlir_type default_type_visitor::VisitVectorType(const clang::VectorType *ty, clang_qualifiers quals) {
         return with_cvr_qualifiers(
             compose_type< hl::VectorType >()
-                .bind_always(get_size_attr(ty, self.mcontext()))
+                .bind_always(get_size_attr(ty, mctx))
                 .bind(self.visit(ty->getElementType())),
             quals
         ).freeze();
@@ -317,7 +317,7 @@ namespace vast::cg {
     mlir_type default_type_visitor::VisitTypedefType(const clang::TypedefType *ty, clang_qualifiers quals) {
         auto decl = ty->getDecl();
         if (auto symbol = self.symbol(decl)) {
-            auto name = mlir::StringAttr::get(&self.mcontext(), symbol.value());
+            auto name = mlir::StringAttr::get(&mctx, symbol.value());
 
             // TODO deal with va_list in preprocessing pass
             if (symbol->contains("va_list")) {
@@ -335,7 +335,7 @@ namespace vast::cg {
     }
 
     mlir_type default_type_visitor::VisitParenType(const clang::ParenType *ty, clang_qualifiers quals) {
-        return hl::ParenType::get(&self.mcontext(), self.visit(ty->getInnerType()));
+        return hl::ParenType::get(&mctx, self.visit(ty->getInnerType()));
     }
 
     mlir_type default_type_visitor::VisitFunctionType(const clang::FunctionType *ty) {
@@ -363,7 +363,7 @@ namespace vast::cg {
     }
 
     mlir_type default_type_visitor::VisitDecayedType(const clang::DecayedType *ty, clang_qualifiers quals) {
-        return hl::DecayedType::get(&self.mcontext(), self.visit(ty->getDecayedType()));
+        return hl::DecayedType::get(&mctx, self.visit(ty->getDecayedType()));
     }
 
     mlir_type default_type_visitor::VisitBlockPointerType(const clang::BlockPointerType *ty) {
@@ -381,7 +381,7 @@ namespace vast::cg {
 
     mlir_type default_type_visitor::VisitAttributedType(const clang::AttributedType *ty, clang_qualifiers quals) {
         // FIXME add qualifiers?
-        return hl::AttributedType::get(&self.mcontext(), self.visit(ty->getModifiedType()));
+        return hl::AttributedType::get(&mctx, self.visit(ty->getModifiedType()));
     }
 
     mlir_type default_type_visitor::VisitAdjustedType(const clang::AdjustedType *ty) {
@@ -392,7 +392,7 @@ namespace vast::cg {
         // FIXME add qualifiers?
         auto orig = self.visit(ty->getOriginalType());
         auto adju = self.visit(ty->getAdjustedType());
-        return hl::AdjustedType::get(&self.mcontext(), orig, adju);
+        return hl::AdjustedType::get(&mctx, orig, adju);
     }
 
     mlir_type default_type_visitor::VisitLValueReferenceType(const clang::LValueReferenceType *ty) {

@@ -119,10 +119,10 @@ namespace vast::cg {
         auto sg   = mk_symbol_generator(actx);
 
         // setup visitor stack
-        auto visitor = std::make_unique< codegen_visitor >(*mctx);
+        auto visitor = std::make_unique< codegen_visitor >();
         auto view  = visitor_view(*visitor);
 
-        auto vis = std::make_unique< default_visitor >(*mctx, *bld, std::move(mg), std::move(sg), view);
+        auto vis = std::make_unique< default_visitor >(*mctx, *bld, view, std::move(mg), std::move(sg));
         vis->emit_strict_function_return = opts.codegen.StrictReturn;
         vis->missing_return_policy = get_missing_return_policy(opts);
         visitor->push(std::move(vis));
@@ -131,7 +131,7 @@ namespace vast::cg {
             visitor->push(std::make_unique< unsup_visitor >(*mctx, *bld, view));
         }
 
-        visitor->push(std::make_unique< unreach_visitor >(*mctx));
+        visitor->push(std::make_unique< unreach_visitor >());
 
         auto drv = std::make_unique< driver >(
             actx,

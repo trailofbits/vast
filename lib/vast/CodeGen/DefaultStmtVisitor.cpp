@@ -312,7 +312,7 @@ namespace vast::cg
 
     operation default_stmt_visitor::VisitGCCAsmStmt(const clang::GCCAsmStmt *stmt) {
         auto get_string_attr = [&](mlir::StringRef str) {
-            return mlir::StringAttr::get(&self.mcontext(), str);
+            return mlir::StringAttr::get(&mctx, str);
         };
 
         auto asm_attr = get_string_attr(stmt->getAsmString()->getString());
@@ -389,7 +389,7 @@ namespace vast::cg
         }
 
         auto get_array_attr = [&](attrs_t &arr) {
-            return mlir::ArrayAttr::get(&self.mcontext(), mlir::ArrayRef(arr));
+            return mlir::ArrayAttr::get(&mctx, mlir::ArrayRef(arr));
         };
 
         return bld.compose< hl::AsmOp >()
