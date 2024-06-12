@@ -13,12 +13,10 @@ namespace vast::tw {
 
     struct default_loc_rewriter_t
     {
-        static auto insert(mlir::Operation *op) -> void;
-        static auto remove(mlir::Operation *op) -> void;
-        static auto prev(mlir::Operation *op) -> mlir::Operation *;
+        static auto insert(operation op) -> void;
+        static auto remove(operation op) -> void;
+        static auto prev(operation op) -> operation;
     };
-
-    using pass_ptr_t = std::unique_ptr< mlir::Pass >;
 
     template< typename loc_rewriter_t >
     struct tower
@@ -55,7 +53,7 @@ namespace vast::tw {
             return { id, mod };
         }
 
-        auto apply(handle_t handle, pass_ptr_t pass) -> handle_t {
+        auto apply(handle_t handle, owning_pass_ptr pass) -> handle_t {
             mlir::PassManager pm(_ctx);
             pm.addPass(std::move(pass));
             return apply(handle, pm);
