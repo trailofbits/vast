@@ -58,11 +58,12 @@ namespace vast::hl
     void OffsetOfNodeAttr::print(mlir::AsmPrinter &printer) const {
         auto value = getValue();
         printer << "<";
-        auto print_identifier = [&](const mlir::StringAttr &str) {
-            printer << "identifier : " << str;
-        };
-        auto print_index = [&](unsigned int index) { printer << "index : " << index; };
-        std::visit(gap::overloaded{ print_index, print_identifier }, value);
+        std::visit(
+            gap::overloaded{
+                [&](unsigned int index) { printer << "index : " << index; },
+                [&](const mlir::StringAttr &str) { printer << "identifier : " << str; } },
+            value
+        );
         printer << ">";
     }
 
