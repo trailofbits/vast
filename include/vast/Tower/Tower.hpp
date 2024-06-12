@@ -18,6 +18,46 @@ namespace vast::tw {
         static auto prev(operation op) -> operation;
     };
 
+
+    // Is allowed to have state?
+    struct location_maker {
+      private:
+        // Encoded as `mlir::FusedLocation(original, mlir::OpaqueLocation(pointer_to_self))`
+        using raw_loc_t = mlir::FusedLoc;
+
+        static raw_loc_t raw_loc(operation op) {
+            auto raw = mlir::dyn_cast< raw_loc_t >(op->getLoc());
+            VAST_ASSERT(raw);
+            return raw;
+        }
+
+        template< std::size_t idx > requires (idx < 2)
+        static loc_t get(raw_loc_t raw) {
+            auto locs = raw.getLocations();
+            VAST_ASSERT(locs.size() == 2);
+            return locs[idx];
+        }
+
+        static loc_t prev(raw_loc_t raw) { return get< 0 >(raw); }
+        static loc_t self(raw_loc_t raw) { return get< 1 >(raw); }
+
+        static loc_t prev(operation op) { return prev(raw_loc(op)); }
+        static loc_t self(operation op) { return self(raw_loc(op)); }
+
+        static auto parse(operation op) {
+            return std::make_tuple(prev(op), self(op));
+        }
+
+      public:
+        // For the given operation return location to be used in this module.
+        loc_t next(operation low_op);
+
+        struct location_query {
+            // Returns `true` if `low` and `high` are linked
+            static bool are_tied(operation high, operation low);
+        };
+    };
+
     template< typename loc_rewriter_t >
     struct tower
     {
