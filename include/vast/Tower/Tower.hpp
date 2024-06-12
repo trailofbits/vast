@@ -58,16 +58,18 @@ namespace vast::tw {
         };
     };
 
+    struct handle_t
+    {
+        std::size_t id;
+        vast_module mod;
+    };
+
     template< typename loc_rewriter_t >
     struct tower
     {
         using loc_rewriter = loc_rewriter_t;
 
-        struct handle_t
-        {
-            std::size_t id;
-            vast_module mod;
-        };
+
 
         static auto get(mcontext_t &ctx, owning_module_ref mod)
             -> std::tuple< tower, handle_t > {
