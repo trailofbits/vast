@@ -9,11 +9,40 @@
 
 namespace vast::cg
 {
-    struct through : visitor_node
+    struct through : visitor_list::node
     {
-        using visitor_node::visitor_node;
+        using base = visitor_list::node;
+
+        std::shared_ptr< visitor_base > visitor;
+
+      private:
+        struct deferred_visitor_ctor_tag_t {};
+        constexpr static deferred_visitor_ctor_tag_t deferred_visitor_ctor_tag{};
+      public:
+
+        through(node_tag_t, std::shared_ptr< visitor_base > &&visitor)
+            : base(base::node_tag), visitor(std::move(visitor))
+        {}
+
+        through(deferred_visitor_ctor_tag_t)
+            : base(base::node_tag), visitor(nullptr)
+        {}
 
         virtual ~through() = default;
+
+        // This function defers the construction of the visitor until the
+        // visitor list has a head pointer, as the visitor may use the head
+        // pointer to create a head view.
+        template< std::invocable< visitor_list::node & >  visitor_builder >
+        static visitor_list::node_ptr make(visitor_builder &&bld) {
+            auto node = std::make_shared< through >(deferred_visitor_ctor_tag);
+            node->visitor = std::invoke(std::forward< visitor_builder >(bld), *node);
+            return node;
+        }
+
+        static visitor_list::node_ptr make(std::shared_ptr< visitor_base > &&visitor) {
+            return std::make_shared< through >(base::node_tag, std::move(visitor));
+        }
 
         template< typename... args_t >
         auto visit_or_pass_through(args_t&&... args) {
@@ -97,17 +126,45 @@ namespace vast::cg
         }
     };
 
-    struct empty_pass_thorugh_list_t {};
-    constexpr static empty_pass_thorugh_list_t empty_pass_thorugh_visitor_list{};
+    struct through_visitor_list : visitor_list {};
 
+    struct empty_through_visitor_list : through_visitor_list {};
 
-    visitor_list operator|(visitor_list list, std::shared_ptr< visitor_base > visitor) {
-        return list | through::make< through >(std::move(visitor));
+    template< typename funct_t >
+    concept visitor_builder = std::invocable< funct_t, visitor_list::node & >;
+
+    through_visitor_list operator|(through_visitor_list list, std::shared_ptr< visitor_base > &&visitor) {
+        VAST_ASSERT(list.tail != nullptr);
+        list.tail->next = through::make(std::move(visitor));
+        list.tail       = list.tail->next;
+        return list;
     }
 
-    template< visitor_builder builder_t >
-    visitor_list operator|(empty_pass_thorugh_list_t, builder_t &&visitor_builder) {
-        return through::make< through >(std::forward< builder_t >(visitor_builder));
+    template< visitor_builder visitor_builder_t >
+    through_visitor_list operator|(empty_through_visitor_list, visitor_builder_t &&bld) {
+        auto node = through::make(std::forward< visitor_builder_t >(bld));
+        return {node, node};
+    }
+
+    through_visitor_list operator|(through_visitor_list list, visitor_list::node_ptr &&node) {
+        VAST_ASSERT(list.tail != nullptr);
+        list.tail->next = node;
+        list.tail       = node;
+        return list;
+    }
+
+    template< visitor_builder visitor_builder_t >
+    through_visitor_list operator|(through_visitor_list list, visitor_builder_t &&bld) {
+        return list | through::make(std::forward< visitor_builder_t >(bld));
+    }
+
+    template< typename type >
+    through_visitor_list operator|(through_visitor_list list, std::optional< type > &&visitor) {
+        if (visitor) {
+            return list | std::move(*visitor);
+        } else {
+            return list;
+        }
     }
 
 } // namespace vast::cg
