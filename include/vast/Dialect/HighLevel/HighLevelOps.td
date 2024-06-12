@@ -1274,6 +1274,11 @@ def OffsetOfNodeAttr
       or a field identifier or base class specifier.
   }];
 
+  let extraClassDeclaration = [{
+    static mlir_attr parseAttrWithInteger(mlir::AsmParser &parser);
+    static mlir_attr parseAttrWithString(mlir::AsmParser &parser);
+  }];
+
   let hasCustomAssemblyFormat = 1;
 }
 

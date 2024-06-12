@@ -16,34 +16,40 @@ VAST_RELAX_WARNINGS
 
 namespace vast::hl
 {
+    mlir_attr OffsetOfNodeAttr::parseAttrWithInteger(mlir::AsmParser &parser) {
+        if (mlir::failed(parser.parseColon())) {
+            return {};
+        }
+
+        unsigned int value;
+        if (mlir::failed(parser.parseInteger(value)) || mlir::failed(parser.parseGreater())) {
+            return {};
+        }
+        return get(parser.getContext(), value);
+    }
+
+    mlir_attr OffsetOfNodeAttr::parseAttrWithString(mlir::AsmParser &parser) {
+        if (mlir::failed(parser.parseColon())) {
+            return {};
+        }
+
+        std::string value;
+        if (mlir::failed(parser.parseString(&value)) || mlir::failed(parser.parseGreater())) {
+            return {};
+        }
+        return get(parser.getContext(), mlir::StringAttr::get(parser.getContext(), value));
+    }
+
     mlir_attr OffsetOfNodeAttr::parse(mlir::AsmParser &parser, mlir_type) {
         if (mlir::failed(parser.parseLess())) {
             return {};
         }
         if (mlir::succeeded(parser.parseOptionalKeyword("index"))) {
-            if (mlir::failed(parser.parseColon())) {
-                return {};
-            }
-
-            unsigned int value;
-            if (mlir::failed(parser.parseInteger(value)) || mlir::failed(parser.parseGreater()))
-            {
-                return {};
-            }
-            return get(parser.getContext(), value);
+            return parseAttrWithInteger(parser);
         }
 
         if (mlir::succeeded(parser.parseOptionalKeyword("identifier"))) {
-            if (mlir::failed(parser.parseColon())) {
-                return {};
-            }
-
-            std::string value;
-            if (mlir::failed(parser.parseString(&value)) || mlir::failed(parser.parseGreater()))
-            {
-                return {};
-            }
-            return get(parser.getContext(), value);
+            return parseAttrWithString(parser);
         }
 
         return {};
