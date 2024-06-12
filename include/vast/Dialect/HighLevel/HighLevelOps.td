@@ -1268,9 +1268,10 @@ def OffsetOfNodeAttr
     );
 
   let summary = "VAST expr offsetofnode ";
-  let description = [{ This attribute corresponds to OffsetOfExprNode used by Clang AST.
-                       It can containt either an index into the list of expressions(regions) that index arrays
-                       or a field identifier or base class specifier.
+  let description = [{
+      This attribute corresponds to OffsetOfExprNode used by Clang AST.
+      It can containt either an index into the list of expressions(regions) that index arrays
+      or a field identifier or base class specifier.
   }];
 
   let hasCustomAssemblyFormat = 1;
@@ -1282,9 +1283,10 @@ def OffsetOfExprOp
   , Results< (outs AnyType:$result) >
 {
   let summary = "VAST expr offsetof operator";
-  let description = [{ VAST expr offsetof operator.
-                       The operation holds an array of components - identifiers or indexes of array indexing expressions
-                       and an array of regions - each corresponding to one indexing expression.
+  let description = [{
+      VAST expr offsetof operator.
+      The operation holds an array of components - identifiers or indexes of array indexing expressions
+      and an array of regions - each corresponding to one indexing expression.
   }];
   let regions = (region VariadicRegion< ValueRegion >:$array_index_exprs);
 
