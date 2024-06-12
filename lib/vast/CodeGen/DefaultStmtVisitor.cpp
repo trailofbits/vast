@@ -936,21 +936,27 @@ namespace vast::cg
         for (unsigned int i = 0; i < comps; i++) {
             auto &component = expr->getComponent(i);
             auto kind       = component.getKind();
-            if (kind == clang::OffsetOfNode::Kind::Array) {
-                auto index = component.getArrayExprIndex();
-                components.push_back(hl::OffsetOfNodeAttr::get(&self.mcontext(), index));
-                index_exprs.push_back(mk_value_builder(expr->getIndexExpr(index)));
-            }
-            if (kind == clang::OffsetOfNode::Kind::Field
-                || kind == clang::OffsetOfNode::Kind::Identifier)
-            {
-                components.push_back(hl::OffsetOfNodeAttr::get(
-                    &self.mcontext(), component.getFieldName()->getName()
-                ));
-            }
-            if (kind == clang::OffsetOfNode::Kind::Base) {
-                VAST_REPORT("OffsetOfExprOp unimplemented for C++ classes with inheritance.");
-                return {};
+            switch (kind) {
+                case clang::OffsetOfNode::Kind::Array: {
+                    auto index = component.getArrayExprIndex();
+                    components.push_back(hl::OffsetOfNodeAttr::get(&self.mcontext(), index));
+                    index_exprs.push_back(mk_value_builder(expr->getIndexExpr(index)));
+                    break;
+                }
+                case clang::OffsetOfNode::Kind::Field:
+                case clang::OffsetOfNode::Kind::Identifier: {
+                    components.push_back(hl::OffsetOfNodeAttr::get(
+                        &self.mcontext(),
+                        mlir::StringAttr::get(
+                            &self.mcontext(), component.getFieldName()->getName()
+                        )
+                    ));
+                    break;
+                }
+                case clang::OffsetOfNode::Kind::Base: {
+                    VAST_REPORT("OffsetOfExprOp unimplemented for C++ classes with inheritance.");
+                    return {};
+                }
             }
         }
         return bld.compose< hl::OffsetOfExprOp >()
