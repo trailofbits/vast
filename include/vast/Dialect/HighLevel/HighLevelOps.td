@@ -1273,18 +1273,6 @@ def OffsetOfNodeAttr
                        or a field identifier or base class specifier.
   }];
 
-  let builders = [
-    AttrBuilder< (ins "::mlir::StringAttr":$attr), [{
-        return get($_ctxt, std::variant< unsigned int, ::mlir::StringAttr >(attr));
-      }]>,
-    AttrBuilder< (ins "unsigned int":$value), [{
-        return get($_ctxt, std::variant< unsigned int, ::mlir::StringAttr >(value));
-      }]>,
-    AttrBuilder< (ins "llvm::StringRef":$value), [{
-        return get($_ctxt, mlir::StringAttr::get($_ctxt, value));
-      }]>,
-  ];
-
   let hasCustomAssemblyFormat = 1;
 }
 
