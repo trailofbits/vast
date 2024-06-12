@@ -11,15 +11,15 @@ VAST_UNRELAX_WARNINGS
 
 #include <variant>
 
-namespace std {
-    template<>
-    struct hash< mlir::StringAttr >
-    {
-        size_t operator()(const mlir::StringAttr &attr) const noexcept {
-            return hash_value(attr);
-        }
-    };
+template<>
+struct std::hash< mlir::StringAttr >
+{
+    size_t operator()(const mlir::StringAttr &attr) const noexcept {
+        return hash_value(attr);
+    }
+};
 
+namespace std {
     template< typename... Ts >
     inline ::llvm::hash_code hash_value(const std::variant< Ts... > &value) {
         return ::llvm::hash_code(std::hash< std::variant< Ts... > >{}(value));
