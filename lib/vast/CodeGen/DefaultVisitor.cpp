@@ -37,14 +37,6 @@ namespace vast::cg
                 auto key =
                     is_unsup ? attr->getSpelling() : visited.getAbstractAttribute().getName();
 
-                if (auto prev = attrs.getNamed(key)) {
-                    VAST_CHECK(
-                        is_unsup || visited == prev.value().getValue(),
-                        "Conflicting redefinition of attribute {0} with spelling {1}", key,
-                        attr->getSpelling()
-                    );
-                }
-
                 attrs.set(key, visited);
             }
             op->setAttrs(attrs);
