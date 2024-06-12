@@ -122,9 +122,9 @@ namespace vast::cg {
         auto mctx = mk_mcontext();
         auto bld  = mk_codegen_builder(mctx.get());
 
-        auto mk_default_visitor = [&] (visitor_list list) -> std::shared_ptr< visitor_base > {
+        auto mk_default_visitor = [&] (visitor_list::node &head) -> std::shared_ptr< visitor_base > {
             auto visitor = std::make_shared< default_visitor >(
-                *mctx, *bld, list.head_view(),
+                *mctx, *bld, visitor_view(head),
                 mk_meta_generator(&actx, mctx.get(), vargs),
                 mk_symbol_generator(actx)
             );
@@ -135,8 +135,8 @@ namespace vast::cg {
             return visitor;
         };
 
-        auto mk_unsup_visitor = [&] (visitor_list list) -> std::shared_ptr< visitor_base > {
-            return std::make_shared< unsup_visitor >(*mctx, *bld, list.head_view());
+        auto mk_unsup_visitor = [&] (visitor_list::node &head) -> std::shared_ptr< visitor_base > {
+            return std::make_shared< unsup_visitor >(*mctx, *bld, visitor_view(head));
         };
 
         auto optional = [&]< typename builder_t >(bool disable, builder_t builder)
@@ -149,7 +149,7 @@ namespace vast::cg {
             }
         };
 
-        visitor_list visitors = empty_pass_thorugh_visitor_list
+        visitor_list visitors = empty_through_visitor_list{}
             | mk_default_visitor
             | optional(vargs.has_option(cc::opt::disable_unsupported), mk_unsup_visitor)
             | std::make_shared< unreach_visitor >();
