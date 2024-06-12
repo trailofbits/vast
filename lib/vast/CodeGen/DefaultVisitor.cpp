@@ -32,6 +32,7 @@ namespace vast::cg
                 auto visited = self.visit(attr, scope);
 
                 // All attributes in unsupported dialect have the same name
+                // TODO (#613): Move this to unsupported dialect
                 auto is_unsup = mlir::isa< unsup::UnsupportedDialect >(visited.getDialect());
                 auto key =
                     is_unsup ? attr->getSpelling() : visited.getAbstractAttribute().getName();
