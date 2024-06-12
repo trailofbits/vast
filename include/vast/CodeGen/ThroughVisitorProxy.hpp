@@ -5,14 +5,15 @@
 #include "vast/Util/Warnings.hpp"
 
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/CodeGenVisitorList.hpp"
 
 namespace vast::cg
 {
-    struct through_proxy : visitor_base
+    struct through : visitor_node
     {
-        through_proxy(std::shared_ptr< visitor_base > &&visitor, std::shared_ptr< visitor_base > &&next)
-            : visitor(std::move(visitor)), next(std::move(next))
-        {}
+        using visitor_node::visitor_node;
+
+        virtual ~through() = default;
 
         template< typename... args_t >
         auto visit_or_pass_through(args_t&&... args) {
@@ -94,33 +95,19 @@ namespace vast::cg
         std::optional< symbol_name > symbol(clang_global decl) override {
             return symbol_or_pass_through(decl);
         }
-
-        static std::shared_ptr< through_proxy > empty() {
-            return std::make_shared< through_proxy >(nullptr, nullptr);
-        }
-
-        friend std::shared_ptr< through_proxy > operator|(std::shared_ptr< through_proxy > lhs, std::shared_ptr< visitor_base > &&rhs) {
-            if (lhs->visitor == nullptr) {
-                lhs->visitor = std::move(rhs);
-                return lhs;
-            }
-
-            if (lhs->next == nullptr) {
-                lhs->next = std::move(rhs);
-                return lhs;
-            }
-
-            if (!std::dynamic_pointer_cast< through_proxy >(lhs->next)) {
-                auto next = std::make_shared< through_proxy >(std::move(lhs->next), std::move(rhs));
-                lhs->next = next;
-                return next;
-            }
-
-            VAST_UNREACHABLE("Through proxy has already full both slots. Cannot add another");
-        }
-
-        std::shared_ptr< visitor_base > visitor;
-        std::shared_ptr< visitor_base > next;
     };
+
+    struct empty_pass_thorugh_list_t {};
+    constexpr static empty_pass_thorugh_list_t empty_pass_thorugh_visitor_list{};
+
+
+    visitor_list operator|(visitor_list list, std::shared_ptr< visitor_base > visitor) {
+        return list | through::make< through >(std::move(visitor));
+    }
+
+    template< visitor_builder builder_t >
+    visitor_list operator|(empty_pass_thorugh_list_t, builder_t &&visitor_builder) {
+        return through::make< through >(std::forward< builder_t >(visitor_builder));
+    }
 
 } // namespace vast::cg

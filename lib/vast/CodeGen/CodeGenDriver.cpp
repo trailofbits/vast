@@ -118,44 +118,47 @@ namespace vast::cg {
         }
     }
 
-    std::shared_ptr< visitor_base > mk_default_visitor(
-          mcontext_t &mctx
-        , codegen_builder &bld
-        , visitor_view view
-        , std::shared_ptr< meta_generator > mg
-        , std::shared_ptr< symbol_generator > sg
-        , cc::action_options &opts
-    ) {
-        auto vis = std::make_shared< default_visitor >(mctx, bld, view, std::move(mg), std::move(sg));
-        vis->emit_strict_function_return = opts.codegen.StrictReturn;
-        vis->missing_return_policy = get_missing_return_policy(opts);
-        return vis;
-    }
-
     std::unique_ptr< driver > mk_default_driver(cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx) {
         auto mctx = mk_mcontext();
         auto bld  = mk_codegen_builder(mctx.get());
-        auto mg   = mk_meta_generator(&actx, mctx.get(), vargs);
-        auto sg   = mk_symbol_generator(actx);
 
-        auto visitors_head = through_proxy::empty();
-        auto view = visitor_view(*visitors_head);
+        auto mk_default_visitor = [&] (visitor_list list) -> std::shared_ptr< visitor_base > {
+            auto visitor = std::make_shared< default_visitor >(
+                *mctx, *bld, list.head_view(),
+                mk_meta_generator(&actx, mctx.get(), vargs),
+                mk_symbol_generator(actx)
+            );
 
-        // make default visitor the top level visitor
-        auto visitors = visitors_head | mk_default_visitor(*mctx, *bld, view, mg, sg, opts);
+            visitor->emit_strict_function_return = opts.codegen.StrictReturn;
+            visitor->missing_return_policy = get_missing_return_policy(opts);
 
-        if (!vargs.has_option(cc::opt::disable_unsupported)) {
-            visitors = visitors | std::make_shared< unsup_visitor >(*mctx, *bld, view);
-        }
+            return visitor;
+        };
 
-        // make unreachable visitor the last visitor to yeild an error as last resort
-        visitors = std::move(visitors) | std::make_shared< unreach_visitor >();
+        auto mk_unsup_visitor = [&] (visitor_list list) -> std::shared_ptr< visitor_base > {
+            return std::make_shared< unsup_visitor >(*mctx, *bld, list.head_view());
+        };
+
+        auto optional = [&]< typename builder_t >(bool disable, builder_t builder)
+            -> std::optional< builder_t >
+        {
+            if (disable) {
+                return std::nullopt;
+            } else {
+                return std::make_optional(std::move(builder));
+            }
+        };
+
+        visitor_list visitors = empty_pass_thorugh_visitor_list
+            | mk_default_visitor
+            | optional(vargs.has_option(cc::opt::disable_unsupported), mk_unsup_visitor)
+            | std::make_shared< unreach_visitor >();
 
         auto drv = std::make_unique< driver >(
             actx,
             std::move(mctx),
             std::move(bld),
-            std::move(visitors_head)
+            visitors.head
         );
 
         drv->enable_verifier(!vargs.has_option(cc::opt::disable_vast_verifier));
