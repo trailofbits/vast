@@ -69,6 +69,7 @@ namespace vast::cg {
         virtual void emit(clang::DeclGroupRef decls);
         virtual void emit(clang::Decl *decl);
 
+        virtual void emit_data_layout();
         virtual void finalize();
 
         owning_module_ref freeze();

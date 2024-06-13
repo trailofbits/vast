@@ -13,6 +13,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/DataLayout.hpp"
 #include "vast/CodeGen/DefaultVisitor.hpp"
+#include "vast/CodeGen/TypeCachingProxy.hpp"
 #include "vast/CodeGen/UnreachableVisitor.hpp"
 #include "vast/CodeGen/UnsupportedVisitor.hpp"
 #include "vast/CodeGen/CodeGenVisitorList.hpp"
@@ -33,7 +34,7 @@ namespace vast::cg {
 
     // TODO this should not be needed the data layout should be emitted from cached types directly
     dl::DataLayoutBlueprint emit_data_layout_blueprint(
-        const acontext_t &actx, const default_visitor &visitor
+        const acontext_t &actx, const type_caching_proxy &types
     ) {
         dl::DataLayoutBlueprint dl;
 
@@ -52,11 +53,11 @@ namespace vast::cg {
             dl.try_emplace(vast_type, orig, actx);
         };
 
-        for (auto [orig, vast_type] : visitor.cache) {
+        for (auto [orig, vast_type] : types.cache) {
             store_layout(orig, vast_type);
         }
 
-        for (auto [qual_type, vast_type] : visitor.qual_cache) {
+        for (auto [qual_type, vast_type] : types.qual_cache) {
             auto [orig, quals] = qual_type.split();
             store_layout(orig, vast_type);
         }
@@ -67,16 +68,20 @@ namespace vast::cg {
     void driver::finalize() {
         generator.finalize();
 
-        if (auto proxy = std::dynamic_pointer_cast< through_proxy >(visitor)) {
-            if (auto def = std::dynamic_pointer_cast< default_visitor >(proxy->visitor)) {
-                auto dl = emit_data_layout_blueprint(actx, *def);
-                emit_data_layout(*mctx, mod, dl);
-            }
-        }
+        emit_data_layout();
 
         if (enabled_verifier) {
             if (!verify()) {
                 VAST_FATAL("codegen: module verification error before running vast passes");
+            }
+        }
+    }
+
+    void driver::emit_data_layout() {
+        auto list = std::dynamic_pointer_cast< visitor_list >(visitor);
+        for (auto node = list->head; node; node = node->next) {
+            if (auto types = std::dynamic_pointer_cast< type_caching_proxy >(node)) {
+                ::vast::cg::emit_data_layout(*mctx, mod, emit_data_layout_blueprint(actx, *types));
             }
         }
     }
