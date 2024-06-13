@@ -11,12 +11,11 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Frontend/Options.hpp"
 
-#include "vast/CodeGen/ThroughVisitorProxy.hpp"
-
 #include "vast/CodeGen/DataLayout.hpp"
 #include "vast/CodeGen/DefaultVisitor.hpp"
 #include "vast/CodeGen/UnreachableVisitor.hpp"
 #include "vast/CodeGen/UnsupportedVisitor.hpp"
+#include "vast/CodeGen/CodeGenVisitorList.hpp"
 
 #include "vast/CodeGen/DefaultMetaGenerator.hpp"
 #include "vast/CodeGen/IdMetaGenerator.hpp"
@@ -118,43 +117,32 @@ namespace vast::cg {
         }
     }
 
-    std::unique_ptr< driver > mk_default_driver(cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx) {
+    std::unique_ptr< driver > mk_default_driver(
+        cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx
+    ) {
         auto mctx = mk_mcontext();
         auto bld  = mk_codegen_builder(mctx.get());
 
-        auto mk_default_visitor = [&] (visitor_list::node &head) -> std::shared_ptr< visitor_base > {
-            auto visitor = std::make_shared< default_visitor >(
-                *mctx, *bld, visitor_view(head),
-                mk_meta_generator(&actx, mctx.get(), vargs),
-                mk_symbol_generator(actx)
-            );
+        // setup visitor list
+        const bool enable_unsupported = !vargs.has_option(cc::opt::disable_unsupported);
 
-            visitor->emit_strict_function_return = opts.codegen.StrictReturn;
-            visitor->missing_return_policy = get_missing_return_policy(opts);
+        auto mg = mk_meta_generator(&actx, mctx.get(), vargs);
+        auto sg = mk_symbol_generator(actx);
 
-            return visitor;
-        };
+        const bool strict_return = opts.codegen.StrictReturn;
+        const auto missing_return_policy = get_missing_return_policy(opts);
 
-        auto mk_unsup_visitor = [&] (visitor_list::node &head) -> std::shared_ptr< visitor_base > {
-            return std::make_shared< unsup_visitor >(*mctx, *bld, visitor_view(head));
-        };
+        auto visitors = std::make_shared< visitor_list >()
+            // | mk_node< type_caching_proxy >()
+            | as_node_with_list_ref< default_visitor >(
+                *mctx, *bld, std::move(mg), std::move(sg), strict_return, missing_return_policy
+            )
+            | optional(enable_unsupported, as_node_with_list_ref< unsup_visitor >(*mctx, *bld))
+            | as_node< unreach_visitor >();
 
-        auto optional = [&]<typename bld_t>(bool disable, bld_t builder) -> std::optional<bld_t> {
-            return disable ? std::nullopt : std::make_optional(std::move(builder));
-        };
-
-        auto mk_unreach_visitor = [] { return std::make_shared< unreach_visitor >(); };
-
-        visitor_list visitors = empty_through_visitor_list{}
-            | mk_default_visitor
-            | optional(vargs.has_option(cc::opt::disable_unsupported), mk_unsup_visitor)
-            | mk_unreach_visitor;
-
+        // setup driver
         auto drv = std::make_unique< driver >(
-            actx,
-            std::move(mctx),
-            std::move(bld),
-            visitors.head
+            actx, std::move(mctx), std::move(bld), visitors
         );
 
         drv->enable_verifier(!vargs.has_option(cc::opt::disable_vast_verifier));

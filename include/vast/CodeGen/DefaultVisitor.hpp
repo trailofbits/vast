@@ -13,20 +13,24 @@
 
 namespace vast::cg
 {
-    struct default_visitor final : visitor_base
+    struct default_visitor : visitor_base
     {
         default_visitor(
-              mcontext_t &mctx
+              visitor_base &head
+            , mcontext_t &mctx
             , codegen_builder &bld
-            , visitor_view self
             , std::shared_ptr< meta_generator > mg
             , std::shared_ptr< symbol_generator > sg
+            , bool emit_strict_function_return
+            , missing_return_policy policy
         )
             : mctx(mctx)
             , bld(bld)
-            , self(self)
+            , self(head)
             , mg(std::move(mg))
             , sg(std::move(sg))
+            , emit_strict_function_return(emit_strict_function_return)
+            , missing_return_policy(policy)
         {}
 
         operation visit_with_attrs(const clang_decl *decl, scope_context &scope);
@@ -53,9 +57,6 @@ namespace vast::cg
         llvm::DenseMap< const clang_type *, mlir_type > cache;
         llvm::DenseMap< clang_qual_type, mlir_type > qual_cache;
 
-        // FIXME: This should be store on single location
-        bool emit_strict_function_return;
-        missing_return_policy missing_return_policy;
 
         mcontext_t &mctx;
         codegen_builder &bld;
@@ -64,6 +65,9 @@ namespace vast::cg
         std::shared_ptr< meta_generator > mg;
         std::shared_ptr< symbol_generator > sg;
 
+        // FIXME: This should be store on single location
+        bool emit_strict_function_return;
+        missing_return_policy missing_return_policy;
     };
 
     mlir_type default_visitor::visit_type(auto type, auto& cache, scope_context& scope) {

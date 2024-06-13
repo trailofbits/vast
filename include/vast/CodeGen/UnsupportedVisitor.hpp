@@ -24,12 +24,10 @@ namespace vast::cg
         using util::crtp< derived, unsup_decl_visitor >::underlying;
 
         operation visit(const clang_decl *decl, scope_context &scope) {
-            auto op = underlying().builder().template compose< unsup::UnsupportedDecl >()
-                .bind(underlying().maybe_location(decl))
+            return underlying().builder().template compose< unsup::UnsupportedDecl >()
+                .bind(underlying().head().location(decl).value())
                 .bind(decl_name(decl))
                 .freeze();
-
-            return op;
         }
     };
 
@@ -42,7 +40,7 @@ namespace vast::cg
         operation visit(const clang_stmt *stmt, scope_context &scope) {
             auto rty = return_type(stmt, scope);
             return underlying().builder().template create< unsup::UnsupportedStmt >(
-                underlying().maybe_location(stmt),
+                underlying().location(stmt).value(),
                 stmt->getStmtClassName(),
                 rty,
                 make_children(stmt, scope)
@@ -57,7 +55,7 @@ namespace vast::cg
                 // For each subexpression, the unsupported operation holds a region.
                 // Last value of the region is an operand of the expression.
                 children.push_back([this, ch, &scope](auto &bld, auto loc) {
-                    underlying().top().visit(ch, scope);
+                    underlying().head().visit(ch, scope);
                 });
             }
             return children;
@@ -65,7 +63,7 @@ namespace vast::cg
 
         mlir_type return_type(const clang_stmt *stmt, scope_context &scope) {
             auto expr = mlir::dyn_cast_or_null< clang_expr >(stmt);
-            return expr ? underlying().top().visit(expr->getType(), scope) : mlir_type();
+            return expr ? underlying().head().visit(expr->getType(), scope) : mlir_type();
         }
     };
 
@@ -99,15 +97,15 @@ namespace vast::cg
     //
     // composed unsupported visitor
     //
-    struct unsup_visitor final
+    struct unsup_visitor
         : visitor_base
         , unsup_decl_visitor< unsup_visitor >
         , unsup_stmt_visitor< unsup_visitor >
         , unsup_type_visitor< unsup_visitor >
         , unsup_attr_visitor< unsup_visitor >
     {
-        unsup_visitor(mcontext_t &mctx, codegen_builder &bld, visitor_view top)
-            : mctx(mctx), bld(bld), top_visitor(top)
+        unsup_visitor(visitor_base &head, mcontext_t &mctx, codegen_builder &bld)
+            : mctx(mctx), bld(bld), visitors_head(head)
         {}
 
         operation visit(const clang_decl *decl, scope_context &scope) override {
@@ -134,22 +132,35 @@ namespace vast::cg
             return unsup_decl_visitor::visit(decl, scope);
         }
 
-        visitor_view top() { return top_visitor; }
+        std::optional< loc_t > location(const clang_decl *) override {
+            return mlir::UnknownLoc::get(&mctx);
+        }
+
+        std::optional< loc_t > location(const clang_stmt *) override {
+            return mlir::UnknownLoc::get(&mctx);
+        }
+
+        std::optional< loc_t > location(const clang_expr *) override {
+            return mlir::UnknownLoc::get(&mctx);
+        }
+
+        std::optional< symbol_name > symbol(clang_global) override {
+            return "unsupported";
+        }
+
+        std::optional< symbol_name > symbol(const clang_decl_ref_expr *) override {
+            return "unsupported";
+        }
+
         mcontext_t& mcontext() { return mctx; }
         codegen_builder& builder() { return bld; }
 
-        loc_t maybe_location(const auto *decl) {
-            if (auto loc = top_visitor.location(decl)) {
-                return *loc;
-            }
-
-            return mlir::UnknownLoc::get(&mctx);
-        }
+        visitor_view head() { return visitors_head; }
 
       protected:
         mcontext_t &mctx;
         codegen_builder &bld;
-        visitor_view top_visitor;
+        visitor_view visitors_head;
     };
 
 } // namespace vast::cg
