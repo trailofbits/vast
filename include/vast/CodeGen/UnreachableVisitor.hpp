@@ -11,7 +11,7 @@ namespace vast::cg
     //
     // This is a bottom visitor, which yields an error if called
     //
-    struct unreach_visitor final : visitor_base
+    struct unreach_visitor : visitor_base
     {
         using visitor_base::visitor_base;
 
@@ -37,6 +37,26 @@ namespace vast::cg
 
         operation visit_prototype(const clang_function *decl, scope_context &) override {
             VAST_FATAL("unsupported prototype: {0}", decl->getName());
+        }
+
+        std::optional< loc_t > location(const clang_decl *decl) override {
+            VAST_FATAL("unsupported location for: {0}", decl->getDeclKindName());
+        }
+
+        std::optional< loc_t > location(const clang_stmt *stmt) override {
+            VAST_FATAL("unsupported location for: {0}", stmt->getStmtClassName());
+        }
+
+        std::optional< loc_t > location(const clang_expr *expr) override {
+            VAST_FATAL("unsupported location for: {0}", expr->getStmtClassName());
+        }
+
+        std::optional< symbol_name > symbol(clang_global decl) override {
+            VAST_FATAL("unsupported symbol for: {0}", decl.getDecl()->getDeclKindName());
+        }
+
+        std::optional< symbol_name > symbol(const clang_decl_ref_expr *expr) override {
+            VAST_FATAL("unsupported symbol for: {0}", expr->getStmtClassName());
         }
     };
 
