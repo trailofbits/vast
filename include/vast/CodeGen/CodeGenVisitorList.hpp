@@ -46,14 +46,51 @@ namespace vast::cg {
     template< typename visitor >
     using visitor_node_adaptor_ptr = std::shared_ptr< visitor_list_node_adaptor< visitor > >;
 
-
     template< typename node_type >
     struct list
     {
         std::shared_ptr< node_type > head;
         std::shared_ptr< node_type > tail;
-    };
 
+        struct iterator
+        {
+            using self_type         = iterator;
+            using value_type        = node_type;
+            using reference         = node_type &;
+            using pointer           = node_type *;
+            using iterator_category = std::forward_iterator_tag;
+            using difference_type   = ptrdiff_t;
+
+            explicit iterator(std::shared_ptr< node_type > ptr) : ptr(ptr) {}
+
+            self_type operator++() {
+                if (ptr) {
+                    ptr = ptr->next;
+                }
+                return *this;
+            }
+
+            self_type operator++(int) {
+                self_type i = *this;
+                if (ptr) {
+                    ptr = ptr->next;
+                }
+                return i;
+            }
+
+            reference operator*() { return *ptr; }
+            pointer operator->() { return ptr.get(); }
+
+            bool operator==(const self_type &other) const { return ptr == other.ptr; }
+            bool operator!=(const self_type &other) const { return ptr != other.ptr; }
+
+          private:
+            std::shared_ptr< node_type > ptr;
+        };
+
+        iterator begin() { return iterator(head); }
+        iterator end() { return iterator(nullptr); }
+    };
 
     struct visitor_list : list< visitor_list_node >, visitor_base {
         using list = list< visitor_list_node >;
