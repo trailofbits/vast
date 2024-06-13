@@ -68,12 +68,12 @@ namespace vast::cg {
 
         virtual operation visit_prototype(const clang_function *decl, scope_context &scope) = 0;
 
-        virtual std::optional< loc_t > location(const clang_decl *) { return std::nullopt; }
-        virtual std::optional< loc_t > location(const clang_stmt *) { return std::nullopt; }
-        virtual std::optional< loc_t > location(const clang_expr *) { return std::nullopt; }
+        virtual std::optional< loc_t > location(const clang_decl *) = 0;
+        virtual std::optional< loc_t > location(const clang_stmt *) = 0;
+        virtual std::optional< loc_t > location(const clang_expr *) = 0;
 
-        virtual std::optional< symbol_name > symbol(clang_global decl) { return std::nullopt; }
-        virtual std::optional< symbol_name > symbol(const clang_decl_ref_expr *decl) { return std::nullopt; }
+        virtual std::optional< symbol_name > symbol(clang_global) = 0;
+        virtual std::optional< symbol_name > symbol(const clang_decl_ref_expr *) = 0;
     };
 
     std::optional< loc_t > visitor_view::location(const auto *node) const {
