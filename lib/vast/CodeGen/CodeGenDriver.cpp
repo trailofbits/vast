@@ -139,20 +139,16 @@ namespace vast::cg {
             return std::make_shared< unsup_visitor >(*mctx, *bld, visitor_view(head));
         };
 
-        auto optional = [&]< typename builder_t >(bool disable, builder_t builder)
-            -> std::optional< builder_t >
-        {
-            if (disable) {
-                return std::nullopt;
-            } else {
-                return std::make_optional(std::move(builder));
-            }
+        auto optional = [&]<typename bld_t>(bool disable, bld_t builder) -> std::optional<bld_t> {
+            return disable ? std::nullopt : std::make_optional(std::move(builder));
         };
+
+        auto mk_unreach_visitor = [] { return std::make_shared< unreach_visitor >(); };
 
         visitor_list visitors = empty_through_visitor_list{}
             | mk_default_visitor
             | optional(vargs.has_option(cc::opt::disable_unsupported), mk_unsup_visitor)
-            | std::make_shared< unreach_visitor >();
+            | mk_unreach_visitor;
 
         auto drv = std::make_unique< driver >(
             actx,
