@@ -62,18 +62,21 @@ namespace vast::cg {
             bld->set_insertion_point_to_start(&mod->getBodyRegion());
         }
 
+        virtual ~driver() = default;
+
         bool enable_verifier(bool set = true) { return (enabled_verifier = set); }
 
-        void emit(clang::DeclGroupRef decls);
-        void emit(clang::Decl *decl);
-        void finalize();
+        virtual void emit(clang::DeclGroupRef decls);
+        virtual void emit(clang::Decl *decl);
+
+        virtual void finalize();
 
         owning_module_ref freeze();
 
         mcontext_t &mcontext() { return *mctx; }
         acontext_t &acontext() { return actx; }
 
-        bool verify();
+        virtual bool verify();
 
       private:
         //
