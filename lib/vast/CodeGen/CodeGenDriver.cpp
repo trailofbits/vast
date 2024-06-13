@@ -133,7 +133,7 @@ namespace vast::cg {
         const auto missing_return_policy = get_missing_return_policy(opts);
 
         auto visitors = std::make_shared< visitor_list >()
-            // | mk_node< type_caching_proxy >()
+            | as_node< type_caching_proxy >()
             | as_node_with_list_ref< default_visitor >(
                 *mctx, *bld, std::move(mg), std::move(sg), strict_return, missing_return_policy
             )
