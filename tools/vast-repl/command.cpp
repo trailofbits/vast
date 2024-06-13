@@ -11,7 +11,7 @@ namespace vast::repl::cmd {
 
     void check_source(const state_t &state) {
         if (!state.source.has_value()) {
-            VAST_ERROR("error: missing source");
+            throw_error("error: missing source");
         }
     }
 
@@ -23,7 +23,7 @@ namespace vast::repl::cmd {
 
         // Check if the file is opened successfully
         if (auto errorCode = file_buffer.getError()) {
-            VAST_ERROR("error: missing source {}", errorCode.message());
+            throw_error("error: missing source {}", errorCode.message());
         }
 
         return file_buffer;
@@ -49,7 +49,7 @@ namespace vast::repl::cmd {
     // help command
     //
     void help::run(state_t&) const {
-        VAST_UNIMPLEMENTED;
+        throw_error("Not implemented!");
     };
 
     //
@@ -145,7 +145,7 @@ namespace vast::repl::cmd {
         auto th = state.tower->top();
         for (auto pass : passes) {
             if (mlir::failed(mlir::parsePassPipeline(pass, pm))) {
-                VAST_FATAL("failed to parse pass pipeline");
+                throw_error("failed to parse pass pipeline");
             }
             th = state.tower->apply(th, pm);
         }
