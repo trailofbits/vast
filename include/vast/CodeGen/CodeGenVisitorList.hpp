@@ -80,8 +80,14 @@ namespace vast::cg {
     };
 
     template< typename visitor, typename ...args_t >
-    auto as_node(args_t &&... args) -> std::shared_ptr< visitor_list_node_adaptor< visitor > > {
-        return std::make_shared< visitor_list_node_adaptor< visitor > >(std::forward< args_t >(args)...);
+    auto as_node(args_t &&... args) -> visitor_node_adaptor_ptr< visitor > {
+        return visitor_node_adaptor_ptr< visitor >(std::forward< args_t >(args)...);
+    }
+
+    template< typename proxy, typename ...args_t >
+    requires std::derived_from< proxy, visitor_list_node >
+    auto as_node(args_t &&... args) -> visitor_node_ptr {
+        return std::make_shared< proxy >(std::forward< args_t >(args)...);
     }
 
     using node_with_list_ref_wrap = std::function<

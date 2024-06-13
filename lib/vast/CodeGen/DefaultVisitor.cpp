@@ -57,11 +57,13 @@ namespace vast::cg
     }
 
     mlir_type default_visitor::visit(const clang_type *type, scope_context &scope) {
-        return visit_type(type, cache, scope);
+        default_type_visitor visitor(mctx, bld, self, scope);
+        return visitor.visit(type);
     }
 
     mlir_type default_visitor::visit(clang_qual_type type, scope_context &scope) {
-        return visit_type(type, qual_cache, scope);
+        default_type_visitor visitor(mctx, bld, self, scope);
+        return visitor.visit(type);
     }
 
     mlir_attr default_visitor::visit(const clang_attr *attr, scope_context &scope) {
