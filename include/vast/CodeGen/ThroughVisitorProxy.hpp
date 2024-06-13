@@ -9,7 +9,13 @@
 
 namespace vast::cg
 {
-    struct through : visitor_list::node
+    template< typename func_t >
+    concept defered_visitor_builder = std::invocable< func_t, visitor_list::node & >;
+
+    template< typename func_t >
+    concept visitor_builder = std::invocable< func_t >;
+
+    struct through_proxy : visitor_list::node
     {
         using base = visitor_list::node;
 
@@ -20,29 +26,32 @@ namespace vast::cg
         constexpr static deferred_visitor_ctor_tag_t deferred_visitor_ctor_tag{};
       public:
 
-        through(node_tag_t, std::shared_ptr< visitor_base > &&visitor)
+        through_proxy(node_tag_t, std::shared_ptr< visitor_base > &&visitor)
             : base(base::node_tag), visitor(std::move(visitor))
         {}
 
-        through(deferred_visitor_ctor_tag_t)
+        through_proxy(deferred_visitor_ctor_tag_t)
             : base(base::node_tag), visitor(nullptr)
         {}
 
-        virtual ~through() = default;
+        virtual ~through_proxy() = default;
 
         // This function defers the construction of the visitor until the
         // visitor list has a head pointer, as the visitor may use the head
         // pointer to create a head view.
-        template< std::invocable< visitor_list::node & >  visitor_builder >
-        static visitor_list::node_ptr make(visitor_builder &&bld) {
-            auto node = std::make_shared< through >(deferred_visitor_ctor_tag);
-            node->visitor = std::invoke(std::forward< visitor_builder >(bld), *node);
+        template< defered_visitor_builder visitor_builder_t >
+        static visitor_list::node_ptr make(visitor_builder_t &&bld) {
+            auto node = std::make_shared< through_proxy >(deferred_visitor_ctor_tag);
+            node->visitor = std::invoke(std::forward< visitor_builder_t >(bld), *node);
             return node;
         }
 
         static visitor_list::node_ptr make(std::shared_ptr< visitor_base > &&visitor) {
-            return std::make_shared< through >(base::node_tag, std::move(visitor));
+            return std::make_shared< through_proxy >(base::node_tag, std::move(visitor));
         }
+
+        template< visitor_builder visitor_builder_t >
+        static visitor_list::node_ptr make(visitor_builder_t &&bld) { return make(bld()); }
 
         template< typename... args_t >
         auto visit_or_pass_through(args_t&&... args) {
@@ -130,32 +139,36 @@ namespace vast::cg
 
     struct empty_through_visitor_list : through_visitor_list {};
 
-    template< typename funct_t >
-    concept visitor_builder = std::invocable< funct_t, visitor_list::node & >;
-
-    through_visitor_list operator|(through_visitor_list list, std::shared_ptr< visitor_base > &&visitor) {
-        VAST_ASSERT(list.tail != nullptr);
-        list.tail->next = through::make(std::move(visitor));
-        list.tail       = list.tail->next;
+    through_visitor_list operator|(through_visitor_list list, visitor_list::node_ptr &&node) {
+        if (list.tail == nullptr) {
+            VAST_ASSERT(list.head == nullptr);
+            list.tail = node;
+            list.head = std::move(node);
+        } else {
+            list.tail->next = node;
+            list.tail       = std::move(node);
+        }
         return list;
     }
 
-    template< visitor_builder visitor_builder_t >
+    template< defered_visitor_builder visitor_builder_t >
     through_visitor_list operator|(empty_through_visitor_list, visitor_builder_t &&bld) {
-        auto node = through::make(std::forward< visitor_builder_t >(bld));
+        auto node = through_proxy::make(std::forward< visitor_builder_t >(bld));
         return {node, node};
     }
 
-    through_visitor_list operator|(through_visitor_list list, visitor_list::node_ptr &&node) {
-        VAST_ASSERT(list.tail != nullptr);
-        list.tail->next = node;
-        list.tail       = node;
-        return list;
+    through_visitor_list operator|(through_visitor_list list, std::shared_ptr< visitor_base > &&visitor) {
+        return list | through_proxy::make(std::move(visitor));
+    }
+
+    template< defered_visitor_builder visitor_builder_t >
+    through_visitor_list operator|(through_visitor_list list, visitor_builder_t &&bld) {
+        return list | through_proxy::make(std::forward< visitor_builder_t >(bld));
     }
 
     template< visitor_builder visitor_builder_t >
     through_visitor_list operator|(through_visitor_list list, visitor_builder_t &&bld) {
-        return list | through::make(std::forward< visitor_builder_t >(bld));
+        return list | through_proxy::make(std::forward< visitor_builder_t >(bld));
     }
 
     template< typename type >

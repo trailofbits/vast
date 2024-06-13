@@ -24,6 +24,7 @@ namespace vast::cg {
             node(node_tag_t) : next(nullptr) {}
 
             virtual ~node() = default;
+
             node_ptr next;
         };
 
@@ -31,15 +32,15 @@ namespace vast::cg {
         node_ptr tail;
     };
 
-    struct fallthrough_node_proxy : visitor_list::node
+    struct fallthrough_node : visitor_list::node
     {
         using base = visitor_list::node;
         using base::base;
 
-        virtual ~fallthrough_node_proxy() = default;
+        virtual ~fallthrough_node() = default;
 
         static visitor_list::node_ptr make() {
-            return std::make_shared< fallthrough_node_proxy >(base::node_tag);
+            return std::make_shared< fallthrough_node >(base::node_tag);
         }
 
         operation visit(const clang_decl *decl, scope_context &scope) override {
