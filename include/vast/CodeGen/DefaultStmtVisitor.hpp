@@ -301,7 +301,7 @@ namespace vast::cg {
 
         if (ty->isUnsignedIntegerType()) {
             return visit_bin_op< UOp >(op);
-        } else if (ty->isIntegerType()) {
+        } else if (ty->isIntegerType() || ty->isComplexIntegerType()) {
             return visit_bin_op< SOp >(op);
         } else if (ty->isPointerType()) {
             return visit_bin_op< SOp >(op);
