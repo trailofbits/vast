@@ -49,6 +49,7 @@ namespace vast::cg {
         mlir_attr VisitMayAliasAttr(const clang::MayAliasAttr *attr);
         mlir_attr VisitMaxFieldAlignmentAttr(const clang::MaxFieldAlignmentAttr *attr);
         mlir_attr VisitAvailableOnlyInDefaultEvalMethodAttr(const clang::AvailableOnlyInDefaultEvalMethodAttr *attr);
+        mlir_attr VisitAvailabilityAttr(const clang::AvailabilityAttr *attr);
 
       private:
         template< typename attr_t, typename... args_t >

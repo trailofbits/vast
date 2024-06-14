@@ -118,5 +118,10 @@ namespace vast::cg
 
     mlir_attr default_attr_visitor::VisitAvailableOnlyInDefaultEvalMethodAttr(const clang::AvailableOnlyInDefaultEvalMethodAttr *attr) {
         return make< hl::AvailableOnlyInDefaultEvalMethodAttr >();
-    };
+    }
+
+    mlir_attr default_attr_visitor::VisitAvailabilityAttr(const clang::AvailabilityAttr *attr) {
+        return make< hl::AvailabilityAttrAttr >();
+    }
+
 } // namespace vast::hcg
