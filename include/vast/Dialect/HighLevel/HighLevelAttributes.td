@@ -54,6 +54,7 @@ def ReturnsTwiceAttr     : HighLevel_Attr< "ReturnsTwice", "returns_twice" >;
 def MayAliasAttr         : HighLevel_Attr< "MayAlias", "may_alias" >;
 def AvailableOnlyInDefaultEvalMethodAttr
   : HighLevel_Attr< "AvailableOnlyInDefaultEvalMethod", "available_only_in_default_eval_method" >;
+def AvailabilityAttr     : HighLevel_Attr< "AvailabilityAttr", "availability" >;
 
 def AsmLabelAttr : HighLevel_Attr< "AsmLabel", "asm" > {
   let parameters = (ins "::mlir::StringAttr":$label, "bool":$isLiteral);
