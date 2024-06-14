@@ -33,9 +33,6 @@ namespace vast::cg
             , missing_return_policy(policy)
         {}
 
-        operation visit_with_attrs(const clang_decl *decl, scope_context &scope);
-        operation visit_decl_attrs(operation op, const clang_decl *decl, scope_context &scope);
-
         operation visit(const clang_decl *decl, scope_context &scope) override;
         operation visit(const clang_stmt *stmt, scope_context &scope) override;
         mlir_type visit(const clang_type *type, scope_context &scope) override;

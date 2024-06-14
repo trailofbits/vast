@@ -157,37 +157,6 @@ namespace vast::cg
             .take();
     }
 
-    mlir_attr_list default_decl_visitor::visit_attrs(const clang_function *decl) {
-        if (!decl->hasAttrs()) {
-            return {};
-        }
-
-        // These are already handled by linkage attributes
-        using excluded_attr_list = util::type_list<
-              clang::WeakAttr
-            , clang::SelectAnyAttr
-            , clang::CUDAGlobalAttr
-        >;
-
-        mlir_attr_list attrs;
-        for (auto attr : exclude_attrs< excluded_attr_list >(decl->getAttrs())) {
-            auto visited = self.visit(attr);
-
-            auto spelling = attr->getSpelling();
-            // Bultin attr doesn't have spelling because it can not be written in code
-            if (auto builtin = clang::dyn_cast< clang::BuiltinAttr >(attr)) {
-                spelling = "builtin";
-            }
-
-            if (auto prev = attrs.getNamed(spelling)) {
-                VAST_CHECK(visited == prev.value().getValue(), "Conflicting redefinition of attribute {0}", spelling);
-            }
-
-            attrs.set(spelling, visited);
-        }
-
-        return attrs;
-    }
 
     //
     // Variable Declaration

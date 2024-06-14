@@ -131,13 +131,21 @@ namespace vast::cg {
         std::shared_ptr< visitor_list_node >(visitor_list& list)
     >;
 
-    template< typename visitor, typename... args_t >
-    node_with_list_ref_wrap as_node_with_list_ref(args_t &&... args) {
+    template< typename proxy, typename... args_t >
+    requires std::derived_from< proxy, visitor_list_node >
+    node_with_list_ref_wrap as_node_with_list_ref(args_t &&...args) {
         return [&args...](visitor_list& list) {
-            return std::make_shared< visitor_list_node_adaptor< visitor > >(
+            return std::make_shared< proxy >(
                 static_cast< visitor_base& >(list), std::forward<args_t>(args)...
             );
         };
+    }
+
+    template< typename visitor, typename... args_t >
+    node_with_list_ref_wrap as_node_with_list_ref(args_t &&... args) {
+        return as_node_with_list_ref< visitor_list_node_adaptor< visitor > >(
+            std::forward<args_t>(args)...
+        );
     }
 
     template< typename node_type >
@@ -145,17 +153,7 @@ namespace vast::cg {
         return enable ? std::make_optional(std::forward< node_type >(node)) : std::nullopt;
     }
 
-    visitor_list_ptr operator|(visitor_list_ptr &&list, visitor_node_ptr &&node) {
-        if (!list->head) {
-            list->head = node;
-            list->tail = std::move(node);
-        } else {
-            list->tail->next = node;
-            list->tail = std::move(node);
-        }
-
-        return list;
-    }
+    visitor_list_ptr operator|(visitor_list_ptr &&list, visitor_node_ptr &&node);
 
     template< typename node_type >
     visitor_list_ptr operator|(visitor_list_ptr &&list, std::optional< node_type > &&node) {
@@ -164,10 +162,7 @@ namespace vast::cg {
         return std::move(list);
     }
 
-    visitor_list_ptr operator|(visitor_list_ptr &&list, node_with_list_ref_wrap &&wrap) {
-        auto &list_ref = *list;
-        return std::move(list) | wrap(list_ref);
-    }
+    visitor_list_ptr operator|(visitor_list_ptr &&list, node_with_list_ref_wrap &&wrap);
 
     struct fallthrough_list_node : visitor_list_node {
         operation visit(const clang_decl *decl, scope_context &scope) override { return next->visit(decl, scope); }

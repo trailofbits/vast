@@ -25,14 +25,5 @@ namespace vast::cg
         }
     }
 
-    template< typename list >
-    gap::generator< clang::Attr * > exclude_attrs(auto from) {
-        for (auto attr : from) {
-            if (!util::is_one_of< list >(attr)) {
-                co_yield attr;
-            }
-        }
-    }
-
     std::string get_namespaced_decl_name(const clang::NamedDecl *decl);
 } // namespace vast::cg

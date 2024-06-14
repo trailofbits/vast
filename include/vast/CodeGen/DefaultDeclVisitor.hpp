@@ -25,7 +25,6 @@ namespace vast::cg {
 
         operation visit(const clang_decl *decl) { return Visit(decl); }
         operation visit_prototype(const clang_function *decl);
-        mlir_attr_list visit_attrs(const clang_function *decl);
 
         void fill_init(const clang_expr *init, hl::VarDeclOp var);
 

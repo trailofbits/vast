@@ -11,6 +11,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Frontend/Options.hpp"
 
+#include "vast/CodeGen/AttrVisitorProxy.hpp"
 #include "vast/CodeGen/DataLayout.hpp"
 #include "vast/CodeGen/DefaultVisitor.hpp"
 #include "vast/CodeGen/TypeCachingProxy.hpp"
@@ -138,6 +139,7 @@ namespace vast::cg {
         const auto missing_return_policy = get_missing_return_policy(opts);
 
         auto visitors = std::make_shared< visitor_list >()
+            | as_node_with_list_ref< attr_visitor_proxy >()
             | as_node< type_caching_proxy >()
             | as_node_with_list_ref< default_visitor >(
                 *mctx, *bld, std::move(mg), std::move(sg), strict_return, missing_return_policy

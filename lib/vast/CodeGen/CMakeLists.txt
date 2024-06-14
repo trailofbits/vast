@@ -15,6 +15,7 @@ add_vast_library(CodeGen
     DefaultSymbolGenerator.cpp
 
     CodeGenVisitorBase.cpp
+    CodeGenVisitorList.cpp
 
     CodeGenBlock.cpp
     CodeGenFunction.cpp

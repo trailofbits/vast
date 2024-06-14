@@ -8,47 +8,11 @@
 
 namespace vast::cg
 {
-    operation default_visitor::visit_with_attrs(const clang_decl *decl, scope_context &scope) {
+    operation default_visitor::visit(const clang_decl *decl, scope_context &scope) {
         default_decl_visitor visitor(mctx, bld, self, scope);
         visitor.emit_strict_function_return = emit_strict_function_return;
         visitor.missing_return_policy = missing_return_policy;
-        if (auto op = visitor.visit(decl)) {
-            return visit_decl_attrs(op, decl, scope);
-        }
-
-        return {};
-    }
-
-    using excluded_attr_list = util::type_list<
-          clang::WeakAttr
-        , clang::SelectAnyAttr
-        , clang::CUDAGlobalAttr
-    >;
-
-    operation default_visitor::visit_decl_attrs(
-        operation op, const clang_decl *decl, scope_context &scope
-    ) {
-        if (decl->hasAttrs()) {
-            mlir::NamedAttrList attrs = op->getAttrs();
-            for (auto attr : exclude_attrs< excluded_attr_list >(decl->getAttrs())) {
-                auto visited = self.visit(attr, scope);
-
-                // All attributes in unsupported dialect have the same name
-                // TODO (#613): Move this to unsupported dialect
-                auto is_unsup = mlir::isa< unsup::UnsupportedDialect >(visited.getDialect());
-                auto key =
-                    is_unsup ? attr->getSpelling() : visited.getAbstractAttribute().getName();
-
-                attrs.set(key, visited);
-            }
-            op->setAttrs(attrs);
-        }
-
-        return op;
-    }
-
-    operation default_visitor::visit(const clang_decl *decl, scope_context &scope) {
-        return visit_with_attrs(decl, scope);
+        return visitor.visit(decl);
     }
 
     operation default_visitor::visit(const clang_stmt *stmt, scope_context &scope) {
