@@ -8,6 +8,9 @@ include "mlir/IR/AttrTypeBase.td"
 include "mlir/IR/OpAsmInterface.td"
 include "mlir/IR/SymbolInterfaces.td"
 
+include "mlir/Interfaces/DataLayoutInterfaces.td"
+include "vast/Interfaces/DefaultDataLayoutTypeInterface.td"
+
 include "vast/Interfaces/SymbolInterface.td"
 
 def Unsupported_Dialect : Dialect {
@@ -36,7 +39,10 @@ class Unsupported_Op< string mnemonic, list< Trait > traits = [] >
     : Op< Unsupported_Dialect, mnemonic, traits >;
 
 class UnsupportedType< string name, string _mnemonic, list<Trait> traits = [] >
-    : TypeDef< Unsupported_Dialect, name, traits >
+    : TypeDef< Unsupported_Dialect, name, !listconcat(traits, [
+      DataLayoutTypeInterface,
+      DefaultDataLayoutTypeInterface
+    ]) >
 {
     let mnemonic = _mnemonic;
 }
