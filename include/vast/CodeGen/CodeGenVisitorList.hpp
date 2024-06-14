@@ -29,7 +29,10 @@ namespace vast::cg {
         operation visit(const clang_stmt *stmt, scope_context &scope) override { return visitor::visit(stmt, scope); }
         mlir_type visit(const clang_type *type, scope_context &scope) override { return visitor::visit(type, scope); }
         mlir_type visit(clang_qual_type type, scope_context &scope)   override { return visitor::visit(type, scope); }
-        mlir_attr visit(const clang_attr *attr, scope_context &scope) override { return visitor::visit(attr, scope); }
+
+        std::optional< named_attr > visit(const clang_attr *attr, scope_context &scope) override {
+            return visitor::visit(attr, scope);
+        }
 
         operation visit_prototype(const clang_function *decl, scope_context &scope) override {
             return visitor::visit_prototype(decl, scope);
@@ -99,7 +102,10 @@ namespace vast::cg {
         operation visit(const clang_stmt *stmt, scope_context &scope) override { return head->visit(stmt, scope); }
         mlir_type visit(const clang_type *type, scope_context &scope) override { return head->visit(type, scope); }
         mlir_type visit(clang_qual_type type, scope_context &scope)   override { return head->visit(type, scope); }
-        mlir_attr visit(const clang_attr *attr, scope_context &scope) override { return head->visit(attr, scope); }
+
+        std::optional< named_attr > visit(const clang_attr *attr, scope_context &scope) override {
+            return head->visit(attr, scope);
+        }
 
         operation visit_prototype(const clang_function *decl, scope_context &scope) override {
             return head->visit_prototype(decl, scope);
@@ -118,7 +124,10 @@ namespace vast::cg {
         operation visit(const clang_stmt *stmt, scope_context &scope) override { return next->visit(stmt, scope); }
         mlir_type visit(const clang_type *type, scope_context &scope) override { return next->visit(type, scope); }
         mlir_type visit(clang_qual_type type, scope_context &scope)   override { return next->visit(type, scope); }
-        mlir_attr visit(const clang_attr *attr, scope_context &scope) override { return next->visit(attr, scope); }
+
+        std::optional< named_attr > visit(const clang_attr *attr, scope_context &scope) override {
+            return next->visit(attr, scope);
+        }
 
         operation visit_prototype(const clang_function *decl, scope_context &scope) override {
             return next->visit_prototype(decl, scope);
@@ -157,7 +166,10 @@ namespace vast::cg {
         operation visit(const clang_stmt *stmt, scope_context &scope) override { return try_visit_or_pass(stmt, scope); }
         mlir_type visit(const clang_type *type, scope_context &scope) override { return try_visit_or_pass(type, scope); }
         mlir_type visit(clang_qual_type type, scope_context &scope)   override { return try_visit_or_pass(type, scope); }
-        mlir_attr visit(const clang_attr *attr, scope_context &scope) override { return try_visit_or_pass(attr, scope); }
+
+        std::optional< named_attr > visit(const clang_attr *attr, scope_context &scope) override {
+            return try_visit_or_pass(attr, scope);
+        }
 
         operation visit_prototype(const clang_function *decl, scope_context &scope) override {
             if (auto result = base_visitor::visit_prototype(decl, scope)) {

@@ -88,9 +88,12 @@ namespace vast::cg
     {
         using util::crtp< derived, unsup_attr_visitor >::underlying;
 
-        mlir_attr visit(const clang_attr *attr, scope_context &scope) {
+        std::optional< named_attr > visit(const clang_attr *attr, scope_context &scope) {
             std::string spelling(attr->getSpelling());
-            return unsup::UnsupportedAttr::get(&underlying().mcontext(), spelling);
+            auto mctx = &underlying().mcontext();
+            return std::make_optional< named_attr >(
+                mlir::StringAttr::get(mctx, spelling), unsup::UnsupportedAttr::get(mctx, spelling)
+            );
         }
     };
 
@@ -124,7 +127,7 @@ namespace vast::cg
             return unsup_type_visitor::visit(type, scope);
         }
 
-        mlir_attr visit(const clang_attr *attr, scope_context &scope) override {
+        std::optional< named_attr > visit(const clang_attr *attr, scope_context &scope) override {
             return unsup_attr_visitor::visit(attr, scope);
         }
 

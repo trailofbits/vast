@@ -17,7 +17,7 @@ namespace vast::cg {
         operation visit(const clang_stmt *stmt, scope_context &scope);
         mlir_type visit(const clang_type *type, scope_context &scope);
         mlir_type visit(clang_qual_type ty, scope_context &scope);
-        mlir_attr visit(const clang_attr *attr, scope_context &scope);
+        std::optional< named_attr > visit(const clang_attr *attr, scope_context &scope);
 
         operation visit_prototype(const clang_function *decl, scope_context &scope);
 
@@ -46,7 +46,7 @@ namespace vast::cg {
         operation visit(const clang_stmt *stmt);
         mlir_type visit(const clang_type *type);
         mlir_type visit(clang_qual_type ty);
-        mlir_attr visit(const clang_attr *attr);
+        std::optional< named_attr > visit(const clang_attr *attr);
 
         operation visit_prototype(const clang_function *decl);
 
@@ -64,7 +64,7 @@ namespace vast::cg {
         virtual operation visit(const clang_stmt *, scope_context &scope) = 0;
         virtual mlir_type visit(const clang_type *, scope_context &scope) = 0;
         virtual mlir_type visit(clang_qual_type, scope_context &scope)    = 0;
-        virtual mlir_attr visit(const clang_attr *, scope_context &scope) = 0;
+        virtual std::optional< named_attr > visit(const clang_attr *, scope_context &scope) = 0;
 
         virtual operation visit_prototype(const clang_function *decl, scope_context &scope) = 0;
 
