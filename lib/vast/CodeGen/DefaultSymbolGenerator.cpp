@@ -1,12 +1,12 @@
 // Copyright (c) 2023, Trail of Bits, Inc.
 
-#include "vast/CodeGen/Mangler.hpp"
+#include "vast/CodeGen/DefaultSymbolGenerator.hpp"
 
 #include "vast/Util/Maybe.hpp"
 
 namespace vast::cg
 {
-    std::optional< symbol_name > default_symbol_mangler::symbol(clang_global decl) {
+    std::optional< symbol_name > default_symbol_generator::symbol(clang_global decl) {
         return Maybe(decl.getCanonicalDecl().getDecl())
             .and_then(dyn_cast< clang_named_decl >)
             .and_then([&](auto decl) {
@@ -16,7 +16,7 @@ namespace vast::cg
     }
 
 
-    std::optional< symbol_name > default_symbol_mangler::symbol(const clang_named_decl *decl) {
+    std::optional< symbol_name > default_symbol_generator::symbol(const clang_named_decl *decl) {
         auto &actx = mangle_context->getASTContext();
 
         if (mangled_decl_names.count(decl)) {
@@ -40,7 +40,7 @@ namespace vast::cg
         return std::nullopt;
     }
 
-    std::optional< symbol_name > default_symbol_mangler::symbol(const clang_decl_ref_expr *decl) {
+    std::optional< symbol_name > default_symbol_generator::symbol(const clang_decl_ref_expr *decl) {
         return Maybe(decl->getDecl())
             .and_then([&](auto decl) {
                 return symbol(decl);
@@ -68,7 +68,7 @@ namespace vast::cg
             && decl.getKernelReferenceKind() == clang::KernelReferenceKind::Stub;
     }
 
-    std::optional< std::string > default_symbol_mangler::mangle(const clang_named_decl *decl) {
+    std::optional< std::string > default_symbol_generator::mangle(const clang_named_decl *decl) {
         llvm::SmallString< 256 > buffer;
         llvm::raw_svector_ostream out(buffer);
 

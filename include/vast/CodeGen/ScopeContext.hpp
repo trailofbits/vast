@@ -8,7 +8,7 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/ScopedHashTable.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/CodeGen/Mangler.hpp"
+#include "vast/CodeGen/DefaultSymbolGenerator.hpp"
 #include "vast/Util/TypeList.hpp"
 #include "vast/Util/Symbols.hpp"
 

@@ -24,7 +24,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Dialects.hpp"
 #include "vast/Dialect/Core/CoreAttributes.hpp"
 
-#include "vast/CodeGen/Mangler.hpp"
+#include "vast/CodeGen/DefaultSymbolGenerator.hpp"
 
 namespace vast::cg {
 
