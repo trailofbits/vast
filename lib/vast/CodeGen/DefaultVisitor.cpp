@@ -30,9 +30,16 @@ namespace vast::cg
         return visitor.visit(type);
     }
 
-    mlir_attr default_visitor::visit(const clang_attr *attr, scope_context &scope) {
+    std::optional< named_attr > default_visitor::visit(const clang_attr *attr, scope_context &scope) {
         default_attr_visitor visitor(mctx, bld, self, scope);
-        return visitor.visit(attr);
+        if (auto visited = visitor.visit(attr)) {
+            auto name = visited.getAbstractAttribute().getName();
+            return std::make_optional< named_attr >(
+                mlir::StringAttr::get(&mctx, name), visited
+            );
+        }
+
+        return std::nullopt;
     }
 
     operation default_visitor::visit_prototype(const clang_function *decl, scope_context &scope) {

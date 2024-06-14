@@ -23,7 +23,7 @@ namespace vast::cg
         return visitor.visit(ty, scope);
     }
 
-    mlir_attr visitor_view::visit(const clang_attr *attr, scope_context &scope) {
+    std::optional< named_attr > visitor_view::visit(const clang_attr *attr, scope_context &scope) {
         return visitor.visit(attr, scope);
     }
 
@@ -47,7 +47,7 @@ namespace vast::cg
         return visitor_view::visit(ty, scope);
     }
 
-    mlir_attr scoped_visitor_view::visit(const clang_attr *attr) {
+    std::optional< named_attr > scoped_visitor_view::visit(const clang_attr *attr) {
         return visitor_view::visit(attr, scope);
     }
 

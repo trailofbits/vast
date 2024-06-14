@@ -22,11 +22,9 @@ namespace vast::cg
         });
 
         for (auto attr : filtered_attrs) {
-            auto visited = head.visit(attr, scope);
-            auto is_unsup = mlir::isa< unsup::UnsupportedDialect >(visited.getDialect());
-            auto key = is_unsup ? attr->getSpelling() : visited.getAbstractAttribute().getName();
-
-            attrs.set(key, visited);
+            if (auto visited = head.visit(attr, scope)) {
+                attrs.set(visited->getName(), visited->getValue());
+            }
         }
 
         op->setAttrs(attrs);

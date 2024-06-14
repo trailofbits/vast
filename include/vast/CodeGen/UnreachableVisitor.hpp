@@ -31,7 +31,7 @@ namespace vast::cg
             VAST_FATAL("unsupported type: {0}", type.getAsString());
         }
 
-        mlir_attr visit(const clang_attr *attr, scope_context &) override {
+        std::optional< named_attr > visit(const clang_attr *attr, scope_context &) override {
             VAST_FATAL("unsupported attr: {0}", attr->getSpelling());
         }
 
