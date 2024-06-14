@@ -26,12 +26,6 @@ namespace vast::cg
             auto is_unsup = mlir::isa< unsup::UnsupportedDialect >(visited.getDialect());
             auto key = is_unsup ? attr->getSpelling() : visited.getAbstractAttribute().getName();
 
-            if (auto prev = attrs.getNamed(key)) {
-                VAST_CHECK(visited == prev.value().getValue(),
-                    "Conflicting redefinition of attribute {0}", key
-                );
-            }
-
             attrs.set(key, visited);
         }
 
