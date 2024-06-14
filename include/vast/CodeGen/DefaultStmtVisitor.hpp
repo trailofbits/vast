@@ -371,6 +371,9 @@ namespace vast::cg {
     template< typename UOp, typename SOp >
     operation default_stmt_visitor::visit_assign_ibin_op(const clang::CompoundAssignOperator *op) {
         auto ty = op->getType();
+        if (auto complex_ty = mlir::dyn_cast< clang::ComplexType >(ty)) {
+            ty = complex_ty->getElementType();
+        }
 
         if (ty->isUnsignedIntegerType()) {
             return visit_assign_bin_op< UOp >(op);
@@ -379,17 +382,14 @@ namespace vast::cg {
         } else {
             return {};
         }
-
     }
 
     template< typename UOp, typename SOp, typename FOp >
     operation default_stmt_visitor::visit_assign_ifbin_op(const clang::CompoundAssignOperator *op) {
         auto ty = op->getType();
 
-        if (ty->isUnsignedIntegerType()) {
-            return visit_assign_bin_op< UOp >(op);
-        } else if (ty->isIntegerType()) {
-            return visit_assign_bin_op< SOp >(op);
+        if (ty->isIntegerType() || ty->isComplexIntegerType()) {
+            return visit_assign_ibin_op< UOp, SOp >(op);
         } else if (ty->isPointerType()) {
             return visit_assign_bin_op< SOp >(op);
         } else if (ty->isFloatingType()) {
