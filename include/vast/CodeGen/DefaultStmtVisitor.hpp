@@ -41,6 +41,9 @@ namespace vast::cg {
         template< hl::Predicate pred >
         operation visit_cmp_op(const clang::BinaryOperator *op);
 
+        template< hl::Predicate upred, hl::Predicate spred >
+        operation visit_icmp_op(const clang::BinaryOperator *op);
+
         template< hl::FPredicate pred >
         operation visit_fcmp_op(const clang::BinaryOperator *op);
 
@@ -324,6 +327,22 @@ namespace vast::cg {
             .freeze();
     }
 
+    template< hl::Predicate upred, hl::Predicate spred >
+    operation default_stmt_visitor::visit_icmp_op(const clang::BinaryOperator *op) {
+        auto ty = op->getLHS()->getType();
+        if (auto complex_ty = mlir::dyn_cast< clang::ComplexType >(ty)) {
+            ty = complex_ty->getElementType();
+        }
+
+        if (ty->isUnsignedIntegerType()) {
+            return visit_cmp_op< upred >(op);
+        } else if (ty->isIntegerType()) {
+            return visit_cmp_op< spred >(op);
+        } else {
+            return {};
+        }
+    }
+
     template< hl::FPredicate pred >
     operation default_stmt_visitor::visit_fcmp_op(const clang::BinaryOperator *op) {
         return bld.compose< hl::FCmpOp >()
@@ -339,10 +358,10 @@ namespace vast::cg {
     operation default_stmt_visitor::visit_cmp_op(const clang::BinaryOperator *op) {
         auto ty = op->getLHS()->getType();
 
-        if (ty->isUnsignedIntegerType() || ty->isPointerType()) {
+        if (ty->isPointerType()) {
             return visit_cmp_op< upred >(op);
-        } else if (ty->isIntegerType()) {
-            return visit_cmp_op< spred >(op);
+        } else if (ty->isIntegerType() || ty->isComplexIntegerType()) {
+            return visit_icmp_op< upred, spred >(op);
         } else if (ty->isFloatingType()) {
             return visit_fcmp_op< fpred >(op);
         } else {
