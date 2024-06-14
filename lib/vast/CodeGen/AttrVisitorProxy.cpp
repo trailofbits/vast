@@ -12,7 +12,7 @@ namespace vast::cg
 {
     operation attr_visitor_proxy::visit_decl_attrs(operation op, const clang_decl *decl, scope_context &scope) {
         if (!decl->hasAttrs()) {
-            return {};
+            return op;
         }
 
         mlir_attr_list attrs = op->getAttrs();
