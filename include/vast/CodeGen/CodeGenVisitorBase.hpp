@@ -23,7 +23,7 @@ namespace vast::cg {
 
         std::optional< loc_t > location(const auto *node) const;
 
-        std::optional< symbol_name > symbol(auto &&decl);
+        std::optional< symbol_name > symbol(auto &&node);
 
         visitor_base *raw() { return &visitor; }
 
@@ -80,8 +80,8 @@ namespace vast::cg {
         return visitor.location(node);
     }
 
-    std::optional< symbol_name > visitor_view::symbol(auto &&decl) {
-        return visitor.symbol(std::forward< decltype(decl) >(decl));
+    std::optional< symbol_name > visitor_view::symbol(auto &&node) {
+        return visitor.symbol(std::forward< decltype(node) >(node));
     }
 
 } // namespace vast::cg

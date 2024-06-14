@@ -111,7 +111,7 @@ namespace vast::cg {
     }
 
     std::shared_ptr< symbol_generator > mk_symbol_generator(acontext_t &actx) {
-        return std::make_shared< default_symbol_mangler >(actx.createMangleContext());
+        return std::make_shared< default_symbol_generator >(actx.createMangleContext());
     }
 
     missing_return_policy get_missing_return_policy(cc::action_options &opts) {

@@ -144,12 +144,12 @@ namespace vast::cg
             return mlir::UnknownLoc::get(&mctx);
         }
 
-        std::optional< symbol_name > symbol(clang_global) override {
-            return "unsupported";
+        std::optional< symbol_name > symbol(clang_global decl) override {
+            return decl_name(decl.getDecl());
         }
 
-        std::optional< symbol_name > symbol(const clang_decl_ref_expr *) override {
-            return "unsupported";
+        std::optional< symbol_name > symbol(const clang_decl_ref_expr *expr) override {
+            return decl_name(expr->getDecl());
         }
 
         mcontext_t& mcontext() { return mctx; }

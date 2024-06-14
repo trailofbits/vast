@@ -12,6 +12,7 @@ add_vast_library(CodeGen
     DefaultDeclVisitor.cpp
     DefaultStmtVisitor.cpp
     DefaultTypeVisitor.cpp
+    DefaultSymbolGenerator.cpp
 
     CodeGenVisitorBase.cpp
 
@@ -20,7 +21,6 @@ add_vast_library(CodeGen
     CodeGenModule.cpp
 
     DataLayout.cpp
-    Mangler.cpp
 
     UnsupportedVisitor.cpp
 

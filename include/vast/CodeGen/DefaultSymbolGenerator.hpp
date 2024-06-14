@@ -22,9 +22,9 @@ namespace vast::cg
 
     using mangle_context = clang::MangleContext;
 
-    struct default_symbol_mangler final : symbol_generator {
+    struct default_symbol_generator final : symbol_generator {
 
-        explicit default_symbol_mangler(mangle_context *mangle_context, const std::string &module_name_hash = "")
+        explicit default_symbol_generator(mangle_context *mangle_context, const std::string &module_name_hash = "")
             : mangle_context(mangle_context), module_name_hash(module_name_hash)
         {}
 
