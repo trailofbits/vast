@@ -43,9 +43,6 @@ namespace vast::cg {
         std::optional< symbol_name > symbol(const clang_decl_ref_expr *decl) override { return visitor::symbol(decl); }
     };
 
-    template< typename visitor >
-    using visitor_node_adaptor_ptr = std::shared_ptr< visitor_list_node_adaptor< visitor > >;
-
     template< typename node_type >
     struct list
     {
@@ -116,54 +113,6 @@ namespace vast::cg {
         std::optional< symbol_name > symbol(const clang_decl_ref_expr *decl) override { return head->symbol(decl); }
     };
 
-    template< typename visitor, typename ...args_t >
-    auto as_node(args_t &&... args) -> visitor_node_adaptor_ptr< visitor > {
-        return visitor_node_adaptor_ptr< visitor >(std::forward< args_t >(args)...);
-    }
-
-    template< typename proxy, typename ...args_t >
-    requires std::derived_from< proxy, visitor_list_node >
-    auto as_node(args_t &&... args) -> visitor_node_ptr {
-        return std::make_shared< proxy >(std::forward< args_t >(args)...);
-    }
-
-    using node_with_list_ref_wrap = std::function<
-        std::shared_ptr< visitor_list_node >(visitor_list& list)
-    >;
-
-    template< typename proxy, typename... args_t >
-    requires std::derived_from< proxy, visitor_list_node >
-    node_with_list_ref_wrap as_node_with_list_ref(args_t &&...args) {
-        return [&args...](visitor_list& list) {
-            return std::make_shared< proxy >(
-                static_cast< visitor_base& >(list), std::forward<args_t>(args)...
-            );
-        };
-    }
-
-    template< typename visitor, typename... args_t >
-    node_with_list_ref_wrap as_node_with_list_ref(args_t &&... args) {
-        return as_node_with_list_ref< visitor_list_node_adaptor< visitor > >(
-            std::forward<args_t>(args)...
-        );
-    }
-
-    template< typename node_type >
-    std::optional< node_type > optional(bool enable, node_type &&node) {
-        return enable ? std::make_optional(std::forward< node_type >(node)) : std::nullopt;
-    }
-
-    visitor_list_ptr operator|(visitor_list_ptr &&list, visitor_node_ptr &&node);
-
-    template< typename node_type >
-    visitor_list_ptr operator|(visitor_list_ptr &&list, std::optional< node_type > &&node) {
-        if (node)
-            return std::move(list) | std::move(node.value());
-        return std::move(list);
-    }
-
-    visitor_list_ptr operator|(visitor_list_ptr &&list, node_with_list_ref_wrap &&wrap);
-
     struct fallthrough_list_node : visitor_list_node {
         operation visit(const clang_decl *decl, scope_context &scope) override { return next->visit(decl, scope); }
         operation visit(const clang_stmt *stmt, scope_context &scope) override { return next->visit(stmt, scope); }
@@ -190,6 +139,9 @@ namespace vast::cg {
         using base_visitor = base::base_visitor;
 
         using base::next;
+
+        template< typename... args_t >
+        try_or_through_list_node(args_t&&... args) : base(std::forward< args_t >(args)...) {}
 
         template< typename... args_t >
         auto try_visit_or_pass(args_t &&... args) {
@@ -243,5 +195,58 @@ namespace vast::cg {
         std::optional< symbol_name > symbol(clang_global decl) override { return try_symbol_or_pass(decl); }
         std::optional< symbol_name > symbol(const clang_decl_ref_expr *decl) override { return try_symbol_or_pass(decl); }
     };
+
+    template< typename visitor >
+    using visitor_node_adaptor_ptr = std::shared_ptr< try_or_through_list_node< visitor > >;
+
+
+    template< typename visitor, typename ...args_t >
+    auto as_node(args_t &&... args) -> visitor_node_adaptor_ptr< visitor > {
+        return visitor_node_adaptor_ptr< visitor >(std::forward< args_t >(args)...);
+    }
+
+    template< typename proxy, typename ...args_t >
+    requires std::derived_from< proxy, visitor_list_node >
+    auto as_node(args_t &&... args) -> visitor_node_ptr {
+        return std::make_shared< proxy >(std::forward< args_t >(args)...);
+    }
+
+    using node_with_list_ref_wrap = std::function<
+        std::shared_ptr< visitor_list_node >(visitor_list& list)
+    >;
+
+    template< typename proxy, typename... args_t >
+    requires std::derived_from< proxy, visitor_list_node >
+    node_with_list_ref_wrap as_node_with_list_ref(args_t &&...args) {
+        return [&args...](visitor_list& list) {
+            return std::make_shared< proxy >(
+                static_cast< visitor_base& >(list), std::forward<args_t>(args)...
+            );
+        };
+    }
+
+    template< typename visitor, typename... args_t >
+    node_with_list_ref_wrap as_node_with_list_ref(args_t &&... args) {
+        return as_node_with_list_ref< try_or_through_list_node< visitor > >(
+            std::forward<args_t>(args)...
+        );
+    }
+
+    template< typename node_type >
+    std::optional< node_type > optional(bool enable, node_type &&node) {
+        return enable ? std::make_optional(std::forward< node_type >(node)) : std::nullopt;
+    }
+
+    visitor_list_ptr operator|(visitor_list_ptr &&list, visitor_node_ptr &&node);
+
+    template< typename node_type >
+    visitor_list_ptr operator|(visitor_list_ptr &&list, std::optional< node_type > &&node) {
+        if (node)
+            return std::move(list) | std::move(node.value());
+        return std::move(list);
+    }
+
+    visitor_list_ptr operator|(visitor_list_ptr &&list, node_with_list_ref_wrap &&wrap);
+
 
 } // namespace vast::cg
