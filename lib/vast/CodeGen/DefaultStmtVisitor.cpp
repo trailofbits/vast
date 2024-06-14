@@ -931,25 +931,19 @@ namespace vast::cg
         attrs_t components;
         std::vector< builder_callback > index_exprs;
 
-        auto comps = expr->getNumComponents();
-
-        for (unsigned int i = 0; i < comps; i++) {
+        for (unsigned int i = 0; i <  expr->getNumComponents(); ++i) {
             auto &component = expr->getComponent(i);
-            auto kind       = component.getKind();
-            switch (kind) {
+            switch (component.getKind()) {
                 case clang::OffsetOfNode::Kind::Array: {
                     auto index = component.getArrayExprIndex();
-                    components.push_back(hl::OffsetOfNodeAttr::get(&self.mcontext(), index));
+                    components.push_back(hl::OffsetOfNodeAttr::get(&mctx, index));
                     index_exprs.push_back(mk_value_builder(expr->getIndexExpr(index)));
                     break;
                 }
                 case clang::OffsetOfNode::Kind::Field:
                 case clang::OffsetOfNode::Kind::Identifier: {
                     components.push_back(hl::OffsetOfNodeAttr::get(
-                        &self.mcontext(),
-                        mlir::StringAttr::get(
-                            &self.mcontext(), component.getFieldName()->getName()
-                        )
+                        &mctx, mlir::StringAttr::get(&mctx, component.getFieldName()->getName())
                     ));
                     break;
                 }
@@ -959,13 +953,15 @@ namespace vast::cg
                 }
             }
         }
+
         return bld.compose< hl::OffsetOfExprOp >()
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
-            .bind(mlir::ArrayAttr::get(&self.mcontext(), components))
+            .bind(mlir::ArrayAttr::get(&mctx, components))
             .bind(index_exprs)
             .freeze();
     }
+
     // operation default_stmt_visitor::VisitOpaqueValueExpr(const clang::OpaqueValueExpr *expr)
     // operation default_stmt_visitor::VisitOverloadExpr(const clang::OverloadExpr *expr)
 
