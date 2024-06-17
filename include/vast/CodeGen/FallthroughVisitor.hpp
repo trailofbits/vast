@@ -15,9 +15,16 @@ namespace vast::cg
     operation visit(const clang_stmt *, scope_context &) override { return {}; }
     mlir_type visit(const clang_type *, scope_context &) override { return {}; }
     mlir_type visit(clang_qual_type, scope_context &)    override { return {}; }
-    mlir_attr visit(const clang_attr *, scope_context &) override { return {}; }
+    std::optional< mlir_attr > visit(const clang_attr *, scope_context &) override { return {}; }
 
     operation visit_prototype(const clang_function *, scope_context &) override { return {}; }
+
+    std::optional< loc_t > location(const clang_decl *) override { return {}; }
+    std::optional< loc_t > location(const clang_stmt *) override { return {}; }
+    std::optional< loc_t > location(const clang_expr *) override { return {}; }
+
+    std::optional< symbol_name > symbol(clang_global) override { return {}; }
+    std::optional< symbol_name > symbol(const clang_decl_ref_expr *) override { return {}; }
 };
 
 } // namespace vast::cg
