@@ -14,7 +14,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::abi {
 
-    struct vast_type_info {
+    struct mlir_type_info {
         using data_layout_t = mlir::DataLayout;
         using module_op_t = vast_module;
 
@@ -23,7 +23,7 @@ namespace vast::abi {
         module_op_t module_op;
 
       public:
-        vast_type_info(const data_layout_t &dl, module_op_t module_op)
+        mlir_type_info(const data_layout_t &dl, module_op_t module_op)
             : dl(dl), module_op(module_op)
         {}
 
@@ -76,109 +76,102 @@ namespace vast::abi {
         array_info_t array_info(mlir_type t);
     };
 
-    bool vast_type_info::is_void(mlir_type t) {
+    bool mlir_type_info::is_void(mlir_type t) {
         return mlir::isa< mlir::NoneType >(t);
     }
 
-    bool vast_type_info::is_scalar(mlir_type t) {
+    bool mlir_type_info::is_scalar(mlir_type t) {
         // TODO(abi): Also complex is an option in ABI.
         return !is_aggregate(t);
     }
 
-    bool vast_type_info::is_complex(mlir_type t) {
+    bool mlir_type_info::is_complex(mlir_type t) {
         VAST_UNREACHABLE("Missing support for complex types!");
     }
 
-    // TODO(abi): `SubElementTypeInterface` is not good enough, since for
-    //             example hl::PointerType implements it.
-    // TODO(abi): Figure how to better handle this than manual listing.
-    bool vast_type_info::is_aggregate(mlir_type t) {
+    // TODO: Once Issue #621 is implemented, update this.
+    bool mlir_type_info::is_aggregate(mlir_type t) {
         return mlir::isa< hl::RecordType, hl::ElaboratedType, hl::ArrayType >(t);
     }
 
-    bool vast_type_info::is_record(mlir_type t) {
-        if (t.isa< hl::RecordType >()) {
-            return true;
-        }
-        if (auto et = t.dyn_cast< hl::ElaboratedType >()) {
-            return is_record(et.getElementType());
-        }
-        return false;
+    bool mlir_type_info::is_record(mlir_type t) {
+        return mlir::isa< hl::RecordType >(hl::strip_elaborated(t));
     }
 
-    bool vast_type_info::is_struct(mlir_type t) {
-        // TODO(abi): Are these equivalent?
+    bool mlir_type_info::is_struct(mlir_type t) {
+        // TODO: For now these seem equivalent, but eventually once we introduce classes
+        //       and other C++ features they may diverge.
         return is_record(t);
     }
 
-    bool vast_type_info::is_array(mlir_type t) {
+    bool mlir_type_info::is_array(mlir_type t) {
         return mlir::isa< hl::ArrayType >(hl::strip_elaborated(t));
     }
 
     // Must be invoked with `t` that is array-like.
-    auto vast_type_info::array_info(mlir_type t) -> array_info_t {
+    auto mlir_type_info::array_info(mlir_type t) -> array_info_t {
         auto array_type = mlir::dyn_cast< hl::ArrayType >(t);
         VAST_ASSERT(array_type);
         return { array_type.getSize(), array_type.getElementType() };
     }
 
-    bool vast_type_info::can_be_passed_in_regs(mlir_type t) {
+    bool mlir_type_info::can_be_passed_in_regs(mlir_type t) {
         // TODO(abi): Seems like in C nothing can prevent this.
         return true;
     }
 
-    bool vast_type_info::is_scalar_integer(mlir_type t) {
+    bool mlir_type_info::is_scalar_integer(mlir_type t) {
         return mlir::isa< mlir::IntegerType >(t);
     }
 
     // TODO(abi): Implement.
-    bool vast_type_info::has_unaligned_field(mlir_type t) {
+    bool mlir_type_info::has_unaligned_field(mlir_type t) {
         return false;
     }
 
-    bool vast_type_info::is_scalar_float(mlir_type t) {
+    bool mlir_type_info::is_scalar_float(mlir_type t) {
         return mlir::isa< mlir::FloatType >(t);
     }
 
-    bool vast_type_info::is_pointer(mlir_type t) {
+    bool mlir_type_info::is_pointer(mlir_type t) {
         return mlir::isa< hl::PointerType >(t);
     }
 
     // Pointers, references etc
-    bool vast_type_info::represents_pointer(mlir_type t) {
+    bool mlir_type_info::represents_pointer(mlir_type t) {
         return is_pointer(t);
     }
 
-    mlir_type vast_type_info::as_pointer(mlir_type t) {
+    mlir_type mlir_type_info::as_pointer(mlir_type t) {
         return hl::PointerType::get(t.getContext(), t);
     }
 
-    bool vast_type_info::can_be_promoted(mlir_type t) {
+    bool mlir_type_info::can_be_promoted(mlir_type t) {
         return false;
     }
 
-    mlir_type vast_type_info::prepare(mlir_type t) {
+    mlir_type mlir_type_info::prepare(mlir_type t) {
         return hl::strip_value_category(t);
     }
 
     // TODO(abi): Will need to live in a different interface.
-    std::size_t vast_type_info::pointer_size() {
+    std::size_t mlir_type_info::pointer_size() {
         return 64;
     }
 
-    std::size_t vast_type_info::size(mlir_type t) {
+    std::size_t mlir_type_info::size(mlir_type t) {
         return dl.getTypeSizeInBits(t);
     }
 
-    std::size_t vast_type_info::align(mlir_type t) {
+    std::size_t mlir_type_info::align(mlir_type t) {
         return dl.getTypeABIAlignment(t);
     }
 
-    mlir_type vast_type_info::iN(std::size_t s) {
+    mlir_type mlir_type_info::iN(std::size_t s) {
         return mlir::IntegerType::get(module_op.getContext(), s);
     }
 
-    mlir_type vast_type_info::fN(std::size_t s) {
+    mlir_type mlir_type_info::fN(std::size_t s) {
         auto mctx = module_op.getContext();
         if (s == 16) {
             return mlir::Float16Type::get(mctx);
@@ -198,13 +191,13 @@ namespace vast::abi {
         VAST_UNREACHABLE("Cannot create floating type of size: {0}", s);
     }
 
-    auto vast_type_info::fields(mlir_type type) {
+    auto mlir_type_info::fields(mlir_type type) {
         if (auto array_type = mlir::dyn_cast< hl::ArrayType >(type))
             return mock_array_fields(array_type);
         return vast::hl::field_types(type, module_op);
     }
 
-    mlir_type vast_type_info::type_at_offset(mlir_type t, std::size_t offset, const auto &accept) {
+    mlir_type mlir_type_info::type_at_offset(mlir_type t, std::size_t offset, const auto &accept) {
         if (offset == 0 && accept(t)) {
             return t;
         }
@@ -226,7 +219,7 @@ namespace vast::abi {
         return {};
     }
 
-    auto vast_type_info::field_containing_offset(mlir_type t, std::size_t offset)
+    auto mlir_type_info::field_containing_offset(mlir_type t, std::size_t offset)
     -> std::optional< std::tuple< mlir_type, std::size_t > >
     {
         auto curr = 0;
@@ -239,7 +232,7 @@ namespace vast::abi {
         return {};
     }
 
-    gap::generator< mlir_type > vast_type_info::mock_array_fields(hl::ArrayType array_type) {
+    gap::generator< mlir_type > mlir_type_info::mock_array_fields(hl::ArrayType array_type) {
         auto size = array_type.getSize();
         VAST_CHECK(size, "Variable size array type not yet supported");
 
