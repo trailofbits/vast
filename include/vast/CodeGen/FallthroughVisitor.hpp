@@ -15,7 +15,7 @@ namespace vast::cg
     operation visit(const clang_stmt *, scope_context &) override { return {}; }
     mlir_type visit(const clang_type *, scope_context &) override { return {}; }
     mlir_type visit(clang_qual_type, scope_context &)    override { return {}; }
-    std::optional< mlir_attr > visit(const clang_attr *, scope_context &) override { return {}; }
+    std::optional< named_attr > visit(const clang_attr *, scope_context &) override { return {}; }
 
     operation visit_prototype(const clang_function *, scope_context &) override { return {}; }
 
