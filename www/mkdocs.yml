@@ -7,6 +7,7 @@ nav:
     - Debug: GettingStarted/debug.md
     - How to contribute: CONTRIBUTING.md
     - How to create a new dialect: GettingStarted/extend.md
+    - Driver integration: GettingStarted/integration.md
   - Dialects:
     - ABI: dialects/ABI/ABI.md
     - Core: dialects/Core/Core.md
