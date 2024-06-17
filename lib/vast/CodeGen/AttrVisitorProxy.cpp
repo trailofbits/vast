@@ -23,6 +23,13 @@ namespace vast::cg
 
         for (auto attr : filtered_attrs) {
             if (auto visited = head.visit(attr, scope)) {
+                // Using `attrs.set` instead of `push_back` to ensure that if the
+                // attribute already exists, it is updated with the new value. This
+                // is crucial for handling cases of redeclaration with a different
+                // attribute value.
+                //
+                // FIXME: This is a temporary solution. We need to handle union
+                // of values for the same attribute.
                 attrs.set(visited->getName(), visited->getValue());
             }
         }
