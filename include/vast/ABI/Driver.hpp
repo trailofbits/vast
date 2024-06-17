@@ -20,11 +20,11 @@ namespace vast::abi {
     template< typename FnOp >
     auto make_x86_64(FnOp fn, const mlir::DataLayout &dl) {
         using out        = func_info< FnOp >;
-        using classifier = classifier_base< out, vast_type_info >;
+        using classifier = classifier_base< out, mlir_type_info >;
 
         auto module_op = fn->template getParentOfType< vast_module >();
         VAST_ASSERT(module_op);
-        auto type_info = vast_type_info(dl, module_op);
-        return make< FnOp, vast_type_info, classifier >(fn, type_info);
+        auto type_info = mlir_type_info(dl, module_op);
+        return make< FnOp, mlir_type_info, classifier >(fn, type_info);
     }
 } // namespace vast::abi
