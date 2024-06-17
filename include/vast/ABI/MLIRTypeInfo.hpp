@@ -128,7 +128,7 @@ namespace vast::abi {
     }
 
     bool vast_type_info::is_scalar_integer(mlir_type t) {
-        return t.isa< mlir::IntegerType >();
+        return mlir::isa< mlir::IntegerType >(t);
     }
 
     // TODO(abi): Implement.
@@ -137,11 +137,11 @@ namespace vast::abi {
     }
 
     bool vast_type_info::is_scalar_float(mlir_type t) {
-        return t.isa< mlir::FloatType >();
+        return mlir::isa< mlir::FloatType >(t);
     }
 
     bool vast_type_info::is_pointer(mlir_type t) {
-        return t.isa< hl::PointerType >();
+        return mlir::isa< hl::PointerType >(t);
     }
 
     // Pointers, references etc
@@ -219,8 +219,8 @@ namespace vast::abi {
 
         if (is_array(t)) {
             auto [_, element_type] = array_info(t);
-            auto element_size = size(element_type);
-            auto element_offset = offset / element_size * element_size;
+            const auto element_size = size(element_type);
+            const auto element_offset = offset / element_size * element_size;
             return type_at_offset(element_type, offset - element_offset, accept);
         }
         return {};
