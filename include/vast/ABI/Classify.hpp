@@ -53,22 +53,21 @@ namespace vast::abi {
                 return true;
             }
 
+
             if (type_info.is_record(t) || type_info.is_array(t)) {
                 // TODO(abi): CXXRecordDecl.
+                auto fields = type_info.fields(t);
+
                 std::size_t current = 0;
-                for (auto field : type_info.fields(t)) {
-                    if (current >= end) {
-                        break;
-                    }
+                auto field_range = fields | std::views::take_while([&](auto){ return current < end; });
 
-                    if (!bits_contain_no_user_data(field, current, end - start))
-                    {
-                        return false;
-                    }
+                auto handle_field = [&](auto field) {
+                    bool result = bits_contain_no_user_data(field, current, end - start);
+                    current += type_info.size(field);
+                    return result;
+                };
 
-                    current += size(t);
-                }
-                return true;
+                return std::ranges::all_of(field_range, handle_field);
             }
 
             return false;
