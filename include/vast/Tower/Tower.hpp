@@ -16,71 +16,37 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::tw {
 
-    struct default_loc_rewriter_t
-    {
-        static auto insert(operation op) -> void;
-        static auto remove(operation op) -> void;
-        static auto prev(operation op) -> operation;
-    };
-
-    template< typename loc_rewriter_t >
     struct tower
     {
-        using loc_rewriter = loc_rewriter_t;
-
+      private:
+        mcontext_t &mctx;
         module_storage storage;
+        handle_t top_handle;
 
-        using application_result_t = std::tuple< handle_t, link_t >;
-        application_result_t apply(handle_t root, const conversion_path_t &path);
+        tower(mcontext_t &mctx, location_info &li, owning_module_ref root)
+            : mctx(mctx)
+        {
+            make_root(li, root->getOperation());
+            top_handle = storage.store(root_conversion(), std::move(root));
+        }
 
      private:
-        void make_top();
+        // TODO: Move somewhere else.
+        static conversion_path_t root_conversion() { return {}; }
 
      public:
 
-        static auto get(mcontext_t &ctx, owning_module_ref mod)
-            -> std::tuple< tower, handle_t > {
-            tower t(ctx, std::move(mod));
-            handle_t h{ .id = 0, .mod = t._modules[0].get() };
-            return { std::move(t), h };
+        handle_t top() const { return top_handle; }
+
+        auto apply(handle_t, mlir::PassManager &) -> handle_t {
+            return {};
         }
 
-        auto apply(handle_t handle, mlir::PassManager &pm) -> handle_t {
-            handle.mod.walk(loc_rewriter::insert);
-
-            _modules.emplace_back(mlir::cast< vast_module >(handle.mod->clone()));
-
-            auto id  = _modules.size() - 1;
-            auto mod = _modules.back().get();
-
-            if (mlir::failed(pm.run(mod))) {
-                VAST_FATAL("some pass in apply() failed");
-            }
-
-            handle.mod.walk(loc_rewriter::remove);
-
-            return { id, mod };
-        }
-
-        auto apply(handle_t handle, owning_pass_ptr pass) -> handle_t {
-            mlir::PassManager pm(_ctx);
-            pm.addPass(std::move(pass));
-            return apply(handle, pm);
-        }
-
-        auto top() -> handle_t { return { _modules.size(), _modules.back().get() }; }
-
-      private:
-        using module_storage_t = llvm::SmallVector< owning_module_ref, 2 >;
-
-        mcontext_t *_ctx;
-        module_storage_t _modules;
-
-        tower(mcontext_t &ctx, owning_module_ref mod) : _ctx(&ctx) {
-            _modules.emplace_back(std::move(mod));
+        auto apply(handle_t, owning_pass_ptr) -> handle_t {
+            return {};
         }
     };
 
-    using default_tower = tower< default_loc_rewriter_t >;
+    using default_tower = tower;
 
 } // namespace vast::tw
