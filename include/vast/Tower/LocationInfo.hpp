@@ -42,8 +42,14 @@ namespace vast::tw {
 
       public:
         // For the given operation return location to be used in this module.
-        loc_t next(operation low_op);
+        loc_t get_next(operation low_op);
+        loc_t get_root(operation op);
         static bool are_tied(operation high, operation low);
     };
+
+    // Since we are going to tie together arbitrary modules, it makes sense to make them
+    // have locations in the same shape - therefore root shouldn't be an excuse. It will
+    // however require slightly different handling, so we are exposing a hook for that.
+    void make_root(location_info &, operation);
 
 } // namespace vast::tw
