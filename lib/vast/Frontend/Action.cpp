@@ -130,11 +130,11 @@ namespace vast::cc {
             return;
         }
 
-        // TODO: pass the module around
+        _mod = consumer->result();
     }
 
     owning_module_ref vast_module_action::result() {
-        return consumer->result();
+        return std::move(_mod);
     }
 
     // emit assembly

@@ -86,6 +86,10 @@ namespace vast::cc {
 
         const vast_args &vargs;
         mcontext_t &mctx;
+
+        // Once we are done result is stored here. We cannot pull it from the internals,
+        // because by that point they may be dead (and this is outside our control).
+        owning_module_ref _mod;
     };
 
     //
