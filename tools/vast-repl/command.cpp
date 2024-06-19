@@ -31,12 +31,9 @@ namespace cmd {
     }
 
     void check_and_emit_module(state_t &state) {
-        if (!state.tower) {
-            check_source(state);
-            auto mod    = codegen::emit_module(state.source.value(), state.ctx);
-            auto [t, _] = tw::default_tower::get(state.ctx, std::move(mod));
-            state.tower = std::move(t);
-        }
+        check_source(state);
+        auto mod = codegen::emit_module(state.source.value(), state.ctx);
+        state.raise_tower(std::move(mod));
     }
 
     //
@@ -77,7 +74,7 @@ namespace cmd {
 
     void show_module(state_t &state) {
         check_and_emit_module(state);
-        llvm::outs() << state.tower->top().mod << "\n";
+        llvm::outs() << state.current_module() << "\n";
     }
 
     void show_symbols(state_t &state) {

@@ -28,6 +28,11 @@ namespace vast::repl {
         // mlir module and context
         //
         mcontext_t &ctx;
+
+        //
+        // Tower related state
+        //
+        tw::location_info li;
         std::optional< tw::default_tower > tower;
 
         //
@@ -44,6 +49,9 @@ namespace vast::repl {
         // verbosity flags
         //
         bool verbose_pipeline = true;
+
+        void raise_tower(owning_module_ref mod);
+        vast_module current_module();
     };
 
 } // namespace vast::repl
