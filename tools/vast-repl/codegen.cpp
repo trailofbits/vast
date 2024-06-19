@@ -38,7 +38,7 @@ namespace vast::repl::codegen {
         llvm::sys::RunInterruptHandlers();
     }
 
-    owning_module_ref emit_module(const std::filesystem::path &source, mcontext_t */* mctx */) {
+    owning_module_ref emit_module(const std::filesystem::path &source, mcontext_t &mctx ) {
         // TODO setup args from repl state
         std::vector< const char * > ccargs = { source.c_str() };
         vast::cc::buffered_diagnostics diags(ccargs);
@@ -76,8 +76,7 @@ namespace vast::repl::codegen {
             return {};
         }
 
-        auto mctx = cc::mk_mcontext();
-        if (auto action = std::make_unique< vast::cc::emit_mlir_module >(vargs, *mctx); !action) {
+        if (auto action = std::make_unique< vast::cc::emit_mlir_module >(vargs, mctx)) {
             comp->ExecuteAction(*action);
             llvm::remove_fatal_error_handler();
             return action->result();

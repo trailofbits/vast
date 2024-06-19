@@ -33,7 +33,7 @@ namespace cmd {
     void check_and_emit_module(state_t &state) {
         if (!state.tower) {
             check_source(state);
-            auto mod    = codegen::emit_module(state.source.value(), &state.ctx);
+            auto mod    = codegen::emit_module(state.source.value(), state.ctx);
             auto [t, _] = tw::default_tower::get(state.ctx, std::move(mod));
             state.tower = std::move(t);
         }
