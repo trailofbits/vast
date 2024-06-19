@@ -4,6 +4,7 @@ add_vast_executable(vast-repl
     codegen.cpp
     command.cpp
     config.cpp
+    state.cpp
 
     LINK_LIBS
       ${CLANG_LIBS}
