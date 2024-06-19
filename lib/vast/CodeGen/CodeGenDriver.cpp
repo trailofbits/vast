@@ -82,7 +82,7 @@ namespace vast::cg {
         auto list = std::dynamic_pointer_cast< visitor_list >(visitor);
         for (auto node = list->head; node; node = node->next) {
             if (auto types = std::dynamic_pointer_cast< type_caching_proxy >(node)) {
-                ::vast::cg::emit_data_layout(*mctx, mod, emit_data_layout_blueprint(actx, *types));
+                ::vast::cg::emit_data_layout(mctx, mod, emit_data_layout_blueprint(actx, *types));
             }
         }
     }
@@ -91,8 +91,8 @@ namespace vast::cg {
         return mlir::verify(mod.get()).succeeded();
     }
 
-    std::unique_ptr< codegen_builder > mk_codegen_builder(mcontext_t *mctx) {
-        return std::make_unique< codegen_builder >(mctx);
+    std::unique_ptr< codegen_builder > mk_codegen_builder(mcontext_t &mctx) {
+        return std::make_unique< codegen_builder >(&mctx);
     }
 
     std::shared_ptr< meta_generator > mk_meta_generator(
@@ -124,15 +124,14 @@ namespace vast::cg {
     }
 
     std::unique_ptr< driver > mk_default_driver(
-        cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx
+        cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx, mcontext_t &mctx
     ) {
-        auto mctx = mk_mcontext();
-        auto bld  = mk_codegen_builder(mctx.get());
+        auto bld  = mk_codegen_builder(mctx);
 
         // setup visitor list
         const bool enable_unsupported = !vargs.has_option(cc::opt::disable_unsupported);
 
-        auto mg = mk_meta_generator(&actx, mctx.get(), vargs);
+        auto mg = mk_meta_generator(&actx, &mctx, vargs);
         auto sg = mk_symbol_generator(actx);
 
         const bool strict_return = opts.codegen.StrictReturn;
@@ -142,14 +141,14 @@ namespace vast::cg {
             | as_node_with_list_ref< attr_visitor_proxy >()
             | as_node< type_caching_proxy >()
             | as_node_with_list_ref< default_visitor >(
-                *mctx, *bld, std::move(mg), std::move(sg), strict_return, missing_return_policy
+                mctx, *bld, std::move(mg), std::move(sg), strict_return, missing_return_policy
             )
-            | optional(enable_unsupported, as_node_with_list_ref< unsup_visitor >(*mctx, *bld))
+            | optional(enable_unsupported, as_node_with_list_ref< unsup_visitor >(mctx, *bld))
             | as_node< unreach_visitor >();
 
         // setup driver
         auto drv = std::make_unique< driver >(
-            actx, std::move(mctx), std::move(bld), visitors
+            actx, mctx, std::move(bld), visitors
         );
 
         drv->enable_verifier(!vargs.has_option(cc::opt::disable_vast_verifier));

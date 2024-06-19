@@ -22,7 +22,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg {
 
-    std::unique_ptr< codegen_builder > mk_codegen_builder(mcontext_t *mctx);
+    std::unique_ptr< codegen_builder > mk_codegen_builder(mcontext_t &mctx);
 
     std::shared_ptr< meta_generator > mk_meta_generator(
         acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs
@@ -44,16 +44,16 @@ namespace vast::cg {
     {
         explicit driver(
               acontext_t &_actx
-            , std::unique_ptr< mcontext_t > _mctx
+            , mcontext_t &_mctx
             , std::unique_ptr< codegen_builder > _bld
             , std::shared_ptr< visitor_base > _visitor
         )
             : actx(_actx)
-            , mctx(std::move(_mctx))
+            , mctx(_mctx)
             , bld(std::move(_bld))
             , visitor(std::move(_visitor))
             , mod(mk_module_with_attrs(
-                actx, *mctx, cc::get_source_language(actx.getLangOpts())
+                actx, mctx, cc::get_source_language(actx.getLangOpts())
             ))
             , scope(symbols)
             , generator(*bld, scoped_visitor_view(*visitor, scope))
@@ -74,7 +74,7 @@ namespace vast::cg {
 
         owning_module_ref freeze();
 
-        mcontext_t &mcontext() { return *mctx; }
+        mcontext_t &mcontext() { return mctx; }
         acontext_t &acontext() { return actx; }
 
         virtual bool verify();
@@ -89,7 +89,7 @@ namespace vast::cg {
         // contexts
         //
         acontext_t &actx;
-        std::unique_ptr< mcontext_t > mctx;
+        mcontext_t &mctx;
 
         symbol_tables symbols;
 
@@ -108,5 +108,7 @@ namespace vast::cg {
         module_generator generator;
     };
 
-    std::unique_ptr< driver > mk_default_driver(cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx);
+    std::unique_ptr< driver > mk_default_driver(
+        cc::action_options &opts, const cc::vast_args &vargs,
+        acontext_t &actx, mcontext_t &mctx);
 } // namespace vast::cg
