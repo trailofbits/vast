@@ -74,6 +74,7 @@ namespace vast::cg {
                 if (!valid(args...)) {
                     return result_type{};
                 }
+
                 return binder(args..., std::forward< decltype(rest) >(rest)...);
             };
             return compose_state_t< result_type, decltype(bound) >(std::move(bound));
