@@ -151,7 +151,7 @@ namespace vast::cg
             .bind(self.location(decl))
             .bind(self.symbol(decl))
             .bind_dyn_cast< vast_function_type >(visit_function_type(self, mctx, decl->getFunctionType(), decl->isVariadic()))
-            .bind(core::get_function_linkage(decl))
+            .bind_always(core::get_function_linkage(decl))
             .freeze_as_maybe() // construct vast_function
             .transform(set_visibility)
             .take();
@@ -293,7 +293,7 @@ namespace vast::cg
     operation default_decl_visitor::VisitTranslationUnitDecl(const clang::TranslationUnitDecl *decl) {
         return bld.compose< hl::TranslationUnitOp >()
             .bind(self.location(decl))
-            .bind(mk_decl_context_builder(decl))
+            .bind_always(mk_decl_context_builder(decl))
             .freeze();
     }
 
@@ -386,7 +386,7 @@ namespace vast::cg
                 .bind(self.location(decl))
                 .bind(self.symbol(decl))
                 .bind(self.visit(decl->getIntegerType()))
-                .bind(constants)
+                .bind_always(constants)
                 .freeze();
         });
     }
@@ -395,7 +395,7 @@ namespace vast::cg
         return maybe_declare([&] {
             auto initializer = [&] (auto & /* bld */, auto loc) {
                 bld.compose< hl::ValueYieldOp >()
-                    .bind(loc)
+                    .bind_always(loc)
                     .bind_transform(self.visit(decl->getInitExpr()), first_result)
                     .freeze();
             };
@@ -404,7 +404,7 @@ namespace vast::cg
                 .bind(self.location(decl))
                 .bind(self.symbol(decl))
                 .bind(self.visit(decl->getType()))
-                .bind(decl->getInitVal())
+                .bind_always(decl->getInitVal())
                 .bind_if(decl->getInitExpr(), std::move(initializer))
                 .freeze();
         });
@@ -459,7 +459,7 @@ namespace vast::cg
                 .bind(self.location(decl))
                 .bind(self.symbol(decl))
                 .bind(self.visit(decl->getType()))
-                .bind(visit_bitfield())
+                .bind_always(visit_bitfield())
                 .freeze();
         });
     }

@@ -321,7 +321,7 @@ namespace vast::cg {
         return bld.compose< hl::CmpOp >()
             .bind(self.location(op))
             .bind(self.visit(op->getType()))
-            .bind(pred)
+            .bind_always(pred)
             .bind_transform(self.visit(op->getLHS()), first_result)
             .bind_transform(self.visit(op->getRHS()), first_result)
             .freeze();
@@ -348,7 +348,7 @@ namespace vast::cg {
         return bld.compose< hl::FCmpOp >()
             .bind(self.location(op))
             .bind(self.visit(op->getType()))
-            .bind(pred)
+            .bind_always(pred)
             .bind_transform(self.visit(op->getLHS()), first_result)
             .bind_transform(self.visit(op->getRHS()), first_result)
             .freeze();
@@ -374,8 +374,8 @@ namespace vast::cg {
         return bld.compose< LOp >()
             .bind(self.location(op))
             .bind(self.visit(op->getType()))
-            .bind(mk_value_builder(op->getLHS()))
-            .bind(mk_value_builder(op->getRHS()))
+            .bind_always(mk_value_builder(op->getLHS()))
+            .bind_always(mk_value_builder(op->getRHS()))
             .freeze();
     }
 
@@ -459,7 +459,7 @@ namespace vast::cg {
                 .bind(self.location(cast))
                 .bind(cast_result_type(cast, arg->getResultTypes().front()))
                 .bind_transform(arg, first_result)
-                .bind(cast_kind(cast))
+                .bind_always(cast_kind(cast))
                 .freeze();
         }
 
@@ -480,7 +480,7 @@ namespace vast::cg {
         return bld.compose< op_t >()
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
-            .bind(mk_value_builder(expr->getArgumentExpr()))
+            .bind_always(mk_value_builder(expr->getArgumentExpr()))
             .freeze();
     }
 

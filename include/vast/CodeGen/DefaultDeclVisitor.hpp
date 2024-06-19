@@ -80,7 +80,7 @@ namespace vast::cg {
             return bld.compose< RecordDeclOp >()
                 .bind(self.location(decl))
                 .bind(self.symbol(decl))
-                .bind(field_builder)
+                .bind_always(field_builder)
                 .freeze();
         });
     }
