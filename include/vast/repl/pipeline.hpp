@@ -12,7 +12,7 @@ namespace vast::repl {
         std::vector< pass_name > passes;
 
         bool make_snapshot_after_each = false;
-        std::vector< passname_ref > make_snapshot_after;
+        std::vector< passname_ref > make_snapshot_after = {};
     };
 
 } // namespace vast::repl
