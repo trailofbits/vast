@@ -32,8 +32,6 @@ namespace vast::cg {
         acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs
     );
 
-    std::unique_ptr< mcontext_t > mk_mcontext();
-
     void set_target_triple(owning_module_ref &mod, std::string triple);
     void set_source_language(owning_module_ref &mod, cc::source_language lang);
 

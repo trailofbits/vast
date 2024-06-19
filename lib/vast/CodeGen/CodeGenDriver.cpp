@@ -103,14 +103,6 @@ namespace vast::cg {
         return std::make_shared< default_meta_gen >(actx, mctx);
     }
 
-    std::unique_ptr< mcontext_t > mk_mcontext() {
-        auto mctx = std::make_unique< mcontext_t >();
-        mlir::registerAllDialects(*mctx);
-        vast::registerAllDialects(*mctx);
-        mctx->loadAllAvailableDialects();
-        return mctx;
-    }
-
     std::shared_ptr< symbol_generator > mk_symbol_generator(acontext_t &actx) {
         return std::make_shared< default_symbol_generator >(actx.createMangleContext());
     }
