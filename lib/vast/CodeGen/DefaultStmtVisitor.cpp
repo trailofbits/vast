@@ -531,8 +531,9 @@ namespace vast::cg
             // case clang::CastKind::CK_ARCReclaimReturnedObject:
             // case clang::CastKind::CK_ARCExtendBlockObject:
 
-            // case clang::CastKind::CK_AtomicToNonAtomic:
-            // case clang::CastKind::CK_NonAtomicToAtomic:
+            case clang::CastKind::CK_AtomicToNonAtomic:
+            case clang::CastKind::CK_NonAtomicToAtomic:
+                return keep_category_cast();
 
             // case clang::CastKind::CK_CopyAndAutoreleaseBlockObject:
             // case clang::CastKind::CK_BuiltinFnToFnPtr:
