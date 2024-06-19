@@ -26,8 +26,8 @@ namespace vast::cc {
 
     struct vast_consumer : clang_ast_consumer
     {
-        vast_consumer(action_options opts, const vast_args &vargs)
-            : opts(std::move(opts)), vargs(vargs)
+        vast_consumer(action_options opts, const vast_args &vargs, mcontext_t &mctx)
+            : opts(std::move(opts)), vargs(vargs), mctx(mctx)
         {}
 
         void Initialize(acontext_t &ctx) override;
@@ -70,6 +70,11 @@ namespace vast::cc {
         const vast_args &vargs;
 
         //
+        // MLIR context.
+        //
+        mcontext_t &mctx;
+
+        //
         // vast driver
         //
         std::unique_ptr< cg::driver > driver = nullptr;
@@ -79,9 +84,11 @@ namespace vast::cc {
         using base = vast_consumer;
 
         vast_stream_consumer(
-            output_type act, action_options opts, const vast_args &vargs, output_stream_ptr os
+            output_type act, action_options opts,
+            const vast_args &vargs, mcontext_t &mctx,
+            output_stream_ptr os
         )
-            : base(std::move(opts), vargs), action(act), output_stream(std::move(os))
+            : base(std::move(opts), vargs, mctx), action(act), output_stream(std::move(os))
         {}
 
         void HandleTranslationUnit(acontext_t &acontext) override;

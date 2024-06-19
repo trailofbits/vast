@@ -40,7 +40,7 @@ namespace vast::cc {
 
     protected:
 
-        vast_stream_action(output_type action, const vast_args &vargs);
+        vast_stream_action(output_type action, const vast_args &vargs, mcontext_t &mctx);
 
         std::unique_ptr< clang::ASTConsumer >
         CreateASTConsumer(compiler_instance &ci, string_ref input) override;
@@ -53,6 +53,7 @@ namespace vast::cc {
         friend struct vast_consumer;
 
         const vast_args &vargs;
+        mcontext_t &mctx;
     };
 
     struct vast_consumer;
@@ -69,7 +70,7 @@ namespace vast::cc {
         vast_consumer *consumer;
     protected:
 
-        explicit vast_module_action(const vast_args &vargs);
+        explicit vast_module_action(const vast_args &vargs, mcontext_t &mctx);
 
         std::unique_ptr< clang::ASTConsumer >
         CreateASTConsumer(compiler_instance &ci, string_ref input) override;
@@ -82,13 +83,14 @@ namespace vast::cc {
         friend struct vast_consumer;
 
         const vast_args &vargs;
+        mcontext_t &mctx;
     };
 
     //
     // Emit assembly
     //
     struct emit_assembly_action : vast_stream_action {
-        explicit emit_assembly_action(const vast_args &vargs);
+        explicit emit_assembly_action(const vast_args &vargs, mcontext_t &mctx);
     private:
         virtual void anchor();
     };
@@ -97,7 +99,7 @@ namespace vast::cc {
     // Emit LLVM
     //
     struct emit_llvm_action : vast_stream_action {
-        explicit emit_llvm_action(const vast_args &vargs);
+        explicit emit_llvm_action(const vast_args &vargs, mcontext_t &mctx);
     private:
         virtual void anchor();
     };
@@ -106,7 +108,7 @@ namespace vast::cc {
     // Emit MLIR
     //
     struct emit_mlir_action : vast_stream_action {
-        explicit emit_mlir_action(const vast_args &vargs);
+        explicit emit_mlir_action(const vast_args &vargs, mcontext_t &mctx);
     private:
         virtual void anchor();
     };
@@ -115,7 +117,7 @@ namespace vast::cc {
     // Emit obj
     //
     struct emit_obj_action : vast_stream_action {
-        explicit emit_obj_action(const vast_args &vargs);
+        explicit emit_obj_action(const vast_args &vargs, mcontext_t &mctx);
     private:
         virtual void anchor();
     };
@@ -124,7 +126,7 @@ namespace vast::cc {
     // Emit MLIR Module
     //
     struct emit_mlir_module : vast_module_action {
-        explicit emit_mlir_module(const vast_args &vargs);
+        explicit emit_mlir_module(const vast_args &vargs, mcontext_t &mctx);
     private:
         virtual void anchor();
     };
