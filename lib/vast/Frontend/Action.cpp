@@ -57,8 +57,8 @@ namespace vast::cc {
         return ci.createDefaultOutputFile(false, in, get_output_stream_suffix(act));
     }
 
-    vast_stream_action::vast_stream_action(output_type act, const vast_args &vargs)
-        : action(act), vargs(vargs)
+    vast_stream_action::vast_stream_action(output_type act, const vast_args &vargs, mcontext_t &mctx)
+        : action(act), vargs(vargs), mctx(mctx)
     {}
 
     void vast_stream_action::ExecuteAction() {
@@ -75,7 +75,7 @@ namespace vast::cc {
         }
 
         auto result = std::make_unique< vast_stream_consumer >(
-            action, options(ci), vargs, std::move(out)
+            action, options(ci), vargs, mctx, std::move(out)
         );
 
         consumer = result.get();
@@ -100,8 +100,8 @@ namespace vast::cc {
         // TODO: pass the module around
     }
 
-    vast_module_action::vast_module_action(const vast_args &vargs)
-        : vargs(vargs)
+    vast_module_action::vast_module_action(const vast_args &vargs, mcontext_t &mctx)
+        : vargs(vargs), mctx(mctx)
     {}
 
     void vast_module_action::ExecuteAction() {
@@ -111,7 +111,7 @@ namespace vast::cc {
     auto vast_module_action::CreateASTConsumer(compiler_instance &ci, string_ref input)
         -> std::unique_ptr< clang::ASTConsumer >
     {
-        auto result = std::make_unique< vast_consumer >(options(ci), vargs);
+        auto result = std::make_unique< vast_consumer >(options(ci), vargs, mctx);
         consumer = result.get();
         return result;
     }
@@ -132,36 +132,36 @@ namespace vast::cc {
     // emit assembly
     void emit_assembly_action::anchor() {}
 
-    emit_assembly_action::emit_assembly_action(const vast_args &vargs)
-        : vast_stream_action(output_type::emit_assembly, vargs)
+    emit_assembly_action::emit_assembly_action(const vast_args &vargs, mcontext_t &mctx)
+        : vast_stream_action(output_type::emit_assembly, vargs, mctx)
     {}
 
     // emit_llvm
     void emit_llvm_action::anchor() {}
 
-    emit_llvm_action::emit_llvm_action(const vast_args &vargs)
-        : vast_stream_action(output_type::emit_llvm, vargs)
+    emit_llvm_action::emit_llvm_action(const vast_args &vargs, mcontext_t &mctx)
+        : vast_stream_action(output_type::emit_llvm, vargs, mctx)
     {}
 
     // emit_mlir
     void emit_mlir_action::anchor() {}
 
-    emit_mlir_action::emit_mlir_action(const vast_args &vargs)
-        : vast_stream_action(output_type::emit_mlir, vargs)
+    emit_mlir_action::emit_mlir_action(const vast_args &vargs, mcontext_t &mctx)
+        : vast_stream_action(output_type::emit_mlir, vargs, mctx)
     {}
 
     // emit_obj
     void emit_obj_action::anchor() {}
 
-    emit_obj_action::emit_obj_action(const vast_args &vargs)
-        : vast_stream_action(output_type::emit_obj, vargs)
+    emit_obj_action::emit_obj_action(const vast_args &vargs, mcontext_t &mctx)
+        : vast_stream_action(output_type::emit_obj, vargs, mctx)
     {}
 
     // emit_mlir_module
     void emit_mlir_module::anchor() {}
 
-    emit_mlir_module::emit_mlir_module(const vast_args &vargs)
-        : vast_module_action(vargs)
+    emit_mlir_module::emit_mlir_module(const vast_args &vargs, mcontext_t &mctx)
+        : vast_module_action(vargs, mctx)
     {}
 
 } // namespace vast::cc
