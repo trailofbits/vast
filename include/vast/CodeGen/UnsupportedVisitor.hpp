@@ -25,8 +25,8 @@ namespace vast::cg
 
         operation visit(const clang_decl *decl, scope_context &scope) {
             return underlying().builder().template compose< unsup::UnsupportedDecl >()
-                .bind(underlying().head().location(decl).value())
-                .bind(decl_name(decl))
+                .bind(underlying().head().location(decl))
+                .bind_always(decl_name(decl))
                 .freeze();
         }
     };
@@ -38,13 +38,12 @@ namespace vast::cg
         using util::crtp< derived, unsup_stmt_visitor >::underlying;
 
         operation visit(const clang_stmt *stmt, scope_context &scope) {
-            auto rty = return_type(stmt, scope);
-            return underlying().builder().template create< unsup::UnsupportedStmt >(
-                underlying().location(stmt).value(),
-                stmt->getStmtClassName(),
-                rty,
-                make_children(stmt, scope)
-            );
+            return underlying().builder().template compose< unsup::UnsupportedStmt >()
+                .bind(underlying().location(stmt))
+                .bind_always(stmt->getStmtClassName())
+                .bind(return_type(stmt, scope))
+                .bind_always(make_children(stmt, scope))
+                .freeze();
         }
 
       private:

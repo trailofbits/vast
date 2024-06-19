@@ -432,13 +432,13 @@ namespace vast::cg {
 
         auto def  = bld.compose< hl::TypeOfExprOp >()
             .bind(self.location(expr))
-            .bind(name)
+            .bind_always(name)
             .bind(self.visit(expr->getType()))
-            .bind(mk_type_yield_builder(expr))
+            .bind_always(mk_type_yield_builder(expr))
             .freeze();
 
         if (def) {
-            return with_cvr_qualifiers(compose_type< hl::TypeOfExprType >().bind(name), quals).freeze();
+            return with_cvr_qualifiers(compose_type< hl::TypeOfExprType >().bind_always(name), quals).freeze();
         } else {
             return {};
         }

@@ -550,12 +550,16 @@ namespace vast::cg
     // ControlFlow Statements
     //
     operation default_stmt_visitor::VisitReturnStmt(const clang::ReturnStmt *stmt) {
-        auto op = bld.compose< hl::ReturnOp >().bind(self.location(stmt).value());
+        auto op = bld.compose< hl::ReturnOp >().bind(self.location(stmt));
 
         if (stmt->getRetValue()) {
-            return std::move(op).bind(self.visit(stmt->getRetValue())->getResults()).freeze();
+            return std::move(op)
+                .bind_transform(self.visit(stmt->getRetValue()), first_result)
+                .freeze();
         } else {
-            return std::move(op).bind(bld.void_value(self.location(stmt).value())).freeze();
+            return std::move(op)
+                .bind(bld.void_value(self.location(stmt).value()))
+                .freeze();
         }
     }
 
@@ -594,7 +598,7 @@ namespace vast::cg
         return bld.compose< hl::CompoundLiteralOp >()
             .bind(self.location(lit))
             .bind(visit_maybe_lvalue_result_type(lit))
-            .bind(mk_value_builder(lit->getInitializer()))
+            .bind_always(mk_value_builder(lit->getInitializer()))
             .freeze();
     }
 
@@ -606,7 +610,7 @@ namespace vast::cg
         return bld.compose< hl::InitializedConstantOp >()
             .bind(self.location(lit))
             .bind(self.visit(lit->getType()))
-            .bind(mk_value_builder(lit->getSubExpr()))
+            .bind_always(mk_value_builder(lit->getSubExpr()))
             .freeze();
     }
 
@@ -695,7 +699,7 @@ namespace vast::cg
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
             .bind_transform(self.visit(name), first_result)
-            .bind(ident_kind(expr))
+            .bind_always(ident_kind(expr))
             .freeze();
     }
 
@@ -710,15 +714,15 @@ namespace vast::cg
     operation default_stmt_visitor::VisitCaseStmt(const clang::CaseStmt *stmt) {
         return bld.compose< hl::CaseOp >()
             .bind(self.location(stmt))
-            .bind(mk_value_builder(stmt->getLHS()))
-            .bind(mk_optional_region_builder(stmt->getSubStmt()))
+            .bind_always(mk_value_builder(stmt->getLHS()))
+            .bind_always(mk_optional_region_builder(stmt->getSubStmt()))
             .freeze();
     }
 
     operation default_stmt_visitor::VisitDefaultStmt(const clang::DefaultStmt *stmt) {
         return bld.compose< hl::DefaultOp >()
             .bind(self.location(stmt))
-            .bind(mk_optional_region_builder(stmt->getSubStmt()))
+            .bind_always(mk_optional_region_builder(stmt->getSubStmt()))
             .freeze();
     }
 
@@ -729,16 +733,16 @@ namespace vast::cg
 
         return bld.compose< hl::SwitchOp >()
             .bind(self.location(stmt))
-            .bind(mk_value_builder(stmt->getCond()))
-            .bind(mk_optional_region_builder(stmt->getBody()))
+            .bind_always(mk_value_builder(stmt->getCond()))
+            .bind_always(mk_optional_region_builder(stmt->getBody()))
             .freeze();
     }
 
     operation default_stmt_visitor::VisitDoStmt(const clang::DoStmt *stmt) {
         return bld.compose< hl::DoOp >()
             .bind(self.location(stmt))
-            .bind(mk_optional_region_builder(stmt->getBody()))
-            .bind(mk_cond_builder(stmt->getCond()))
+            .bind_always(mk_optional_region_builder(stmt->getBody()))
+            .bind_always(mk_cond_builder(stmt->getCond()))
             .freeze();
     }
 
@@ -751,8 +755,8 @@ namespace vast::cg
     operation default_stmt_visitor::VisitWhileStmt(const clang::WhileStmt *stmt) {
         return bld.compose< hl::WhileOp >()
             .bind(self.location(stmt))
-            .bind(mk_cond_builder(stmt->getCond()))
-            .bind(mk_optional_region_builder(stmt->getBody()))
+            .bind_always(mk_cond_builder(stmt->getCond()))
+            .bind_always(mk_optional_region_builder(stmt->getBody()))
             .freeze();
     }
 
@@ -769,8 +773,8 @@ namespace vast::cg
                 , mk_cond_builder(stmt->getCond())
                 , mk_true_yielder()
             )
-            .bind(mk_optional_region_builder(stmt->getInc()))
-            .bind(mk_optional_region_builder(stmt->getBody()))
+            .bind_always(mk_optional_region_builder(stmt->getInc()))
+            .bind_always(mk_optional_region_builder(stmt->getBody()))
             .freeze();
     }
 
@@ -784,7 +788,7 @@ namespace vast::cg
     operation default_stmt_visitor::VisitIndirectGotoStmt(const clang::IndirectGotoStmt *stmt) {
         return bld.compose< hl::IndirectGotoStmt >()
             .bind(self.location(stmt))
-            .bind(mk_value_builder(stmt->getTarget()))
+            .bind_always(mk_value_builder(stmt->getTarget()))
             .freeze();
     }
 
@@ -792,15 +796,15 @@ namespace vast::cg
         return bld.compose< hl::LabelStmt >()
             .bind(self.location(stmt))
             .bind_transform(self.visit(stmt->getDecl()), first_result)
-            .bind(mk_optional_region_builder(stmt->getSubStmt()))
+            .bind_always(mk_optional_region_builder(stmt->getSubStmt()))
             .freeze();
     }
 
     operation default_stmt_visitor::VisitIfStmt(const clang::IfStmt *stmt) {
         return bld.compose< hl::IfOp >()
             .bind(self.location(stmt))
-            .bind(mk_cond_builder(stmt->getCond()))
-            .bind(mk_optional_region_builder(stmt->getThen()))
+            .bind_always(mk_cond_builder(stmt->getCond()))
+            .bind_always(mk_optional_region_builder(stmt->getThen()))
             .bind_if(stmt->getElse(), mk_optional_region_builder(stmt->getElse()))
             .freeze();
     }
@@ -833,9 +837,9 @@ namespace vast::cg
         return bld.compose< hl::CondOp >()
             .bind(self.location(op))
             .bind(self.visit(op->getType()))
-            .bind(mk_cond_builder(op->getCond()))
-            .bind(mk_value_builder(op->getTrueExpr()))
-            .bind(mk_value_builder(op->getFalseExpr()))
+            .bind_always(mk_cond_builder(op->getCond()))
+            .bind_always(mk_value_builder(op->getTrueExpr()))
+            .bind_always(mk_value_builder(op->getFalseExpr()))
             .freeze();
     }
 
@@ -903,7 +907,7 @@ namespace vast::cg
             .bind(self.location(expr))
             .bind(self.symbol(expr->getDirectCallee()))
             .bind(self.visit(expr->getType()))
-            .bind(visit_values_range(expr->arguments()))
+            .bind_always(visit_values_range(expr->arguments()))
             .freeze();
     }
 
@@ -912,7 +916,7 @@ namespace vast::cg
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
             .bind_transform(self.visit(expr->getCallee()), first_result)
-            .bind(visit_values_range(expr->arguments()))
+            .bind_always(visit_values_range(expr->arguments()))
             .freeze();
     }
 
@@ -958,7 +962,7 @@ namespace vast::cg
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
             .bind(mlir::ArrayAttr::get(&mctx, components))
-            .bind(index_exprs)
+            .bind_always(index_exprs)
             .freeze();
     }
 
@@ -973,7 +977,7 @@ namespace vast::cg
                 visit_as_lvalue_type(self, mctx, expr->getType()),
                 self.visit(expr->getType())
             )
-            .bind(mk_value_builder(expr->getSubExpr()))
+            .bind_always(mk_value_builder(expr->getSubExpr()))
             .freeze();
     }
 
@@ -987,7 +991,7 @@ namespace vast::cg
         return &*last;
     }
     operation default_stmt_visitor::VisitStmtExpr(const clang::StmtExpr *expr) {
-        auto make_stmt_expr_region_builder = [&] (const clang_stmt *stmt) {
+        auto mk_stmt_expr_region_builder = [&] (const clang_stmt *stmt) {
             return [this, stmt] (auto &state, auto) {
                 auto compound = clang::cast< clang::CompoundStmt >(stmt);
                 for (auto sub_stmt : compound->body()) {
@@ -1012,7 +1016,7 @@ namespace vast::cg
         return bld.compose< hl::StmtExprOp >()
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
-            .bind(make_stmt_expr_region_builder(expr->getSubStmt()))
+            .bind_always(mk_stmt_expr_region_builder(expr->getSubStmt()))
             .freeze();
     }
 
@@ -1052,7 +1056,7 @@ namespace vast::cg
         return bld.compose< hl::InitListExpr >()
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
-            .bind(visit_values_range(expr->inits()))
+            .bind_always(visit_values_range(expr->inits()))
             .freeze();
     }
 
@@ -1060,7 +1064,7 @@ namespace vast::cg
         return bld.compose< hl::InitListExpr >()
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
-            .bind(visit_values_range(expr->children()))
+            .bind_always(visit_values_range(expr->children()))
             .freeze();
     }
 

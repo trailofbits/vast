@@ -25,6 +25,11 @@ namespace vast::cg {
     template< typename result_type, typename bind_type >
     struct compose_state_t;
 
+    template< typename T >
+    concept is_castable_to_bool = requires(T t) {
+        static_cast< bool >(t);
+    };
+
     template< typename result_type, typename bind_type >
     struct compose_state_t {
 
@@ -32,7 +37,7 @@ namespace vast::cg {
 
         template< typename arg_t >
         static constexpr bool valid(const arg_t &arg) {
-            if constexpr (std::convertible_to< arg_t , bool >) {
+            if constexpr (is_castable_to_bool< arg_t >) {
                 return static_cast< bool >(arg);
             } else {
                 // initialized non-boolean arg is always valid
