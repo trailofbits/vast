@@ -23,6 +23,7 @@ namespace vast::tw {
         module_storage storage;
         handle_t top_handle;
 
+      public:
         tower(mcontext_t &mctx, location_info &li, owning_module_ref root)
             : mctx(mctx)
         {
