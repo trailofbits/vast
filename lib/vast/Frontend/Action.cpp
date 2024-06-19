@@ -15,6 +15,14 @@ namespace clang {
 
 namespace vast::cc {
 
+    std::unique_ptr< mcontext_t > mk_mcontext() {
+        auto mctx = std::make_unique< mcontext_t >();
+        mlir::registerAllDialects(*mctx);
+        vast::registerAllDialects(*mctx);
+        mctx->loadAllAvailableDialects();
+        return mctx;
+    }
+
     namespace opt {
         bool emit_only_mlir(const vast_args &vargs) {
             for (auto arg : { emit_mlir, emit_mlir_after }) {

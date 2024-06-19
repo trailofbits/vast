@@ -26,6 +26,8 @@ namespace mlir {
 
 namespace vast::cc {
 
+    std::unique_ptr< mcontext_t > mk_mcontext();
+
     struct vast_stream_consumer;
 
     //
