@@ -3,10 +3,10 @@
 #include "vast/Tower/LocationInfo.hpp"
 
 namespace vast::tw {
-    loc_t location_info::get_next(operation op) {
-        auto mctx = op->getContext();
-        auto id  = mlir::OpaqueLoc::get< operation >(op, mctx);
-        return mlir::FusedLoc::get({ self(op), id }, {}, mctx);
+    loc_t location_info::get_next(operation high, operation low) {
+        auto mctx = low->getContext();
+        auto id  = mlir::OpaqueLoc::get< operation >(low, mctx);
+        return mlir::FusedLoc::get({ self(high), id }, {}, mctx);
     }
 
     loc_t location_info::get_root(operation op) {
