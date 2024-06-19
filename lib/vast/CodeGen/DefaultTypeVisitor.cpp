@@ -206,6 +206,10 @@ namespace vast::cg {
             return VisitComplexType(t, quals);
         }
 
+        if (auto t = llvm::dyn_cast< clang::AtomicType >(underlying)) {
+            return VisitAtomicType(t, quals);
+        }
+
         return {};
     }
 
@@ -456,6 +460,15 @@ namespace vast::cg {
     mlir_type default_type_visitor::VisitComplexType(const clang::ComplexType *ty, clang_qualifiers quals) {
         auto type = self.visit(ty->getElementType());
         return with_cvr_qualifiers(compose_type< hl::ComplexType >().bind(type), quals).freeze();
+    }
+
+    mlir_type default_type_visitor::VisitAtomicType(const clang::AtomicType *ty) {
+        return VisitAtomicType(ty, ty->desugar().getLocalQualifiers());
+    }
+
+    mlir_type default_type_visitor::VisitAtomicType(const clang::AtomicType *ty, clang_qualifiers quals) {
+        auto type = self.visit(ty->getValueType());
+        return with_cvr_qualifiers(compose_type< hl::AtomicType >().bind(type), quals).freeze();
     }
 
     mlir_type visit_function_type(
