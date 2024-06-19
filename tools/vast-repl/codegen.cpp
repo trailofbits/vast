@@ -76,7 +76,8 @@ namespace vast::repl::codegen {
             return {};
         }
 
-        if (auto action = std::make_unique< vast::cc::emit_mlir_module >(vargs); !action) {
+        auto mctx = cc::mk_mcontext();
+        if (auto action = std::make_unique< vast::cc::emit_mlir_module >(vargs, *mctx); !action) {
             comp->ExecuteAction(*action);
             llvm::remove_fatal_error_handler();
             return action->result();
