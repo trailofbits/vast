@@ -17,6 +17,9 @@ namespace vast::cg {
 
     enum class missing_return_policy { emit_unreachable, emit_trap };
 
+    mlir_visibility get_function_visibility(const clang_function *decl, linkage_kind linkage);
+    vast_function set_visibility(const clang_function *decl, vast_function fn);
+
     //
     // function generation
     //

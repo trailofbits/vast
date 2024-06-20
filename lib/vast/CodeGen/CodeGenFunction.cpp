@@ -21,6 +21,22 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg
 {
+    mlir_visibility get_function_visibility(const clang_function *decl, linkage_kind linkage) {
+        if (decl->isThisDeclarationADefinition()) {
+            return core::get_visibility_from_linkage(linkage);
+        }
+        if (decl->doesDeclarationForceExternallyVisibleDefinition()) {
+            return mlir_visibility::Public;
+        }
+        return mlir_visibility::Private;
+    }
+
+    vast_function set_visibility(const clang_function *decl, vast_function fn) {
+        auto visibility = get_function_visibility(decl, fn.getLinkage());
+        mlir::SymbolTable::setSymbolVisibility(fn, visibility);
+        return fn;
+    }
+
     //
     // function generation
     //
