@@ -47,22 +47,25 @@ namespace vast::cg
     }
 
     operation function_generator::emit(const clang_function *decl) {
-        if (auto symbol = visitor.symbol(decl)) {
-            if (auto fn = visitor.scope.lookup_fun(symbol.value())) {
-                return fn;
+        auto prototype = [&] {
+            if (auto symbol = visitor.symbol(decl)) {
+                if (auto fn = visitor.scope.lookup_fun(symbol.value())) {
+                    return fn;
+                }
             }
-        }
 
-        auto prototype = mk_prototype(*this, decl);
+            return mk_prototype(*this, decl);
+        } ();
 
-        if (auto fn = mlir::dyn_cast< vast_function >(prototype)) {
-            if (decl->hasBody()) {
-                defer([parent = *this, decl, fn] () mutable {
-                    parent.declare_function_params(decl, fn);
-                    parent.emit_labels(decl, fn);
-                    parent.emit_body(decl, fn);
-                });
-            }
+
+        if (decl->isThisDeclarationADefinition()) {
+            auto fn = mlir::cast< vast_function >(prototype);
+            defer([parent = *this, decl, fn] () mutable {
+                set_visibility(decl, fn);
+                parent.declare_function_params(decl, fn);
+                parent.emit_labels(decl, fn);
+                parent.emit_body(decl, fn);
+            });
         }
 
         return prototype;
