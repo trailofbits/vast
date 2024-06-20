@@ -126,26 +126,10 @@ namespace vast::cg
     // Function Declaration
     //
 
-    mlir_visibility get_function_visibility(const clang_function *decl, linkage_kind linkage) {
-        if (decl->isThisDeclarationADefinition()) {
-            return core::get_visibility_from_linkage(linkage);
-        }
-        if (decl->doesDeclarationForceExternallyVisibleDefinition()) {
-            return mlir_visibility::Public;
-        }
-        return mlir_visibility::Private;
-    }
-
     operation default_decl_visitor::visit_prototype(const clang_function *decl) {
         if (unsupported(decl)) {
             return {};
         }
-
-        auto set_visibility = [&] (vast_function fn) {
-            auto visibility = get_function_visibility(decl, fn.getLinkage());
-            mlir::SymbolTable::setSymbolVisibility(fn, visibility);
-            return fn;
-        };
 
         return bld.compose< vast_function >()
             .bind(self.location(decl))
@@ -153,7 +137,7 @@ namespace vast::cg
             .bind_dyn_cast< vast_function_type >(visit_function_type(self, mctx, decl->getFunctionType(), decl->isVariadic()))
             .bind_always(core::get_function_linkage(decl))
             .freeze_as_maybe() // construct vast_function
-            .transform(set_visibility)
+            .transform([&] (auto fn) { return set_visibility(decl, fn); })
             .take();
     }
 
