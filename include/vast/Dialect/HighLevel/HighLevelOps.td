@@ -6,18 +6,20 @@
 include "mlir/IR/OpBase.td"
 include "mlir/IR/BuiltinAttributes.td"
 
-include "vast/Interfaces/AggregateTypeDefinitionInterface.td"
 include "mlir/Interfaces/CastInterfaces.td"
+
+include "vast/Interfaces/AggregateTypeDefinitionInterface.td"
 include "vast/Interfaces/SymbolInterface.td"
 
 include "vast/Dialect/HighLevel/HighLevelCF.td"
 
-include "vast/Dialect/Core/Utils.td"
+include "vast/Dialect/Core/CommonAttrConstraints.td"
 include "vast/Dialect/Core/CoreTraits.td"
-include "vast/Interfaces/AST/DeclInterface.td"
-
-include "vast/Dialect/Core/SymbolTable.td"
 include "vast/Dialect/Core/Func.td"
+include "vast/Dialect/Core/SymbolTable.td"
+include "vast/Dialect/Core/Utils.td"
+
+include "vast/Interfaces/AST/DeclInterface.td"
 
 
 def TranslationUnitOp
@@ -339,7 +341,7 @@ def RecordMemberOp
 def CallOp
   : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
   , Arguments<(ins
-      FlatSymbolRefAttr:$callee,
+      FuncSymbolRefAttr:$callee,
       Variadic<AnyType>:$argOperands)>
   , Results<(outs Variadic<AnyType>:$results)>
 {
@@ -348,20 +350,41 @@ def CallOp
 
   let skipDefaultBuilders = 1;
   let builders = [
-    OpBuilder< (ins "FuncOp":$callee, CArg< "mlir::ValueRange", "{}" >:$operands ), [{
+    OpBuilder< (ins
+      "core::FuncSymbolRefAttr":$callee,
+      "mlir::TypeRange":$results,
+      CArg<"mlir::ValueRange", "{}">:$operands
+    ), [{
       $_state.addOperands(operands);
-      $_state.addAttribute("callee", mlir::SymbolRefAttr::get($_builder.getContext(), callee.getName()));
-      $_state.addTypes(callee.getFunctionType().getResults());
-    }]>,
-
-    OpBuilder< (ins "llvm::StringRef":$callee,
-                "mlir::TypeRange":$results,
-                CArg<"mlir::ValueRange", "{}">:$operands),
-    [{
-      $_state.addOperands(operands);
-      $_state.addAttribute("callee", mlir::SymbolRefAttr::get($_builder.getContext(), callee));
+      $_state.addAttribute("callee", callee);
       $_state.addTypes(results);
-    }]>];
+    }]>,
+    OpBuilder< (ins
+      "mlir::FlatSymbolRefAttr":$callee,
+      "mlir::TypeRange":$results,
+      CArg<"mlir::ValueRange", "{}">:$operands
+    ), [{
+      auto symbol = core::FuncSymbolRefAttr::get($_builder.getContext(), callee);
+      build($_builder, $_state, symbol, results, operands);
+    }]>,
+    OpBuilder< (ins
+      "mlir::StringAttr":$callee,
+      "mlir::TypeRange":$results,
+      CArg<"mlir::ValueRange", "{}">:$operands
+    ), [{
+      build($_builder, $_state, mlir::FlatSymbolRefAttr::get($_builder.getContext(), callee), results, operands);
+    }]>,
+    OpBuilder< (ins
+      "llvm::StringRef":$callee,
+      "mlir::TypeRange":$results,
+      CArg<"mlir::ValueRange", "{}">:$operands
+    ), [{
+      build($_builder, $_state, mlir::SymbolRefAttr::get($_builder.getContext(), callee), results, operands);
+    }]>,
+    OpBuilder< (ins "FuncOp":$callee, CArg< "mlir::ValueRange", "{}" >:$operands), [{
+      build($_builder, $_state, callee.getName(), callee.getFunctionType().getResults(), operands);
+    }]>
+  ];
 
   let assemblyFormat = [{
     $callee `(` $argOperands `)` attr-dict `:` functional-type( $argOperands, $results )
