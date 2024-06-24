@@ -16,7 +16,7 @@ namespace vast::abi {
 
     struct mlir_type_info {
         using data_layout_t = mlir::DataLayout;
-        using module_op_t = vast_module;
+        using module_op_t = core::module;
 
       protected:
         const data_layout_t &dl;
