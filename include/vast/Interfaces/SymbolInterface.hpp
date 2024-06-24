@@ -12,5 +12,34 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/StringRef.h>
 VAST_RELAX_WARNINGS
 
+#include "vast/Util/TypeList.hpp"
+
+namespace vast::core {
+
+    // Use TypeID of Interfaces that defines the symbol
+    using symbol_kind = mlir::TypeID;
+
+} // namespace vast::core
+
 /// Include the generated interface declarations.
 #include "vast/Interfaces/SymbolInterface.h.inc"
+
+namespace vast::core {
+
+    using symbol_base = VastSymbolOpInterface;
+    using func_symbol = FuncSymbolOpInterface;
+
+    template< typename interface >
+    concept symbol_op_interface = requires (interface i) {
+        static_cast< symbol_base >(i);
+    };
+
+    template< symbol_op_interface interface >
+    static symbol_kind get_symbol_kind = mlir::TypeID::get< interface >();
+
+    template< symbol_op_interface interface >
+    bool is_symbol_kind(symbol_kind kind) {
+        return kind == get_symbol_kind< interface >;
+    }
+
+} // namespace vast::core

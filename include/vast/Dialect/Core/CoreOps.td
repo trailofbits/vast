@@ -8,7 +8,7 @@ include "mlir/IR/OpBase.td"
 include "mlir/IR/RegionKindInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
-include "vast/Dialect/Core/SymbolTable.td"
+include "vast/Interfaces/SymbolTableInterface.td"
 
 def Core_ModuleOp : Core_Op< "module", [
   IsolatedFromAbove,

@@ -10,6 +10,7 @@ include "mlir/Interfaces/CastInterfaces.td"
 
 include "vast/Interfaces/AggregateTypeDefinitionInterface.td"
 include "vast/Interfaces/SymbolInterface.td"
+include "vast/Interfaces/SymbolTableInterface.td"
 
 include "vast/Dialect/HighLevel/HighLevelCF.td"
 

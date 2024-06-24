@@ -5,6 +5,7 @@
 
 include "mlir/IR/OpBase.td"
 include "vast/Interfaces/Common.td"
+include "vast/Dialect/Core/CoreTraits.td"
 
 def VastSymbol : VastOpInterface< "VastSymbolOpInterface" > {
     let description = [{
