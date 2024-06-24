@@ -4,6 +4,7 @@ set(VAST_OPTIONAL_SOURCES
   DefaultDataLayoutTypeInterface.cpp
   ElementTypeInterface.cpp
   SymbolInterface.cpp
+  SymbolTableInterface.cpp
   SymbolRefInterface.cpp
   TypeQualifiersInterfaces.cpp
 )
@@ -26,6 +27,13 @@ add_vast_interface_library(ElementTypeInterface
 
 add_vast_interface_library(SymbolInterface
   SymbolInterface.cpp
+)
+
+add_vast_interface_library(SymbolTableInterface
+  SymbolTableInterface.cpp
+
+  LINK_LIBS
+    VASTSymbolInterface
 )
 
 add_vast_interface_library(SymbolRefInterface
