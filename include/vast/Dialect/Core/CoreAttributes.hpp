@@ -14,6 +14,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/CoreTraits.hpp"
 
 #include "vast/Interfaces/SymbolInterface.hpp"
+#include "vast/Interfaces/SymbolRefInterface.hpp"
 #include "vast/Interfaces/TypeQualifiersInterfaces.hpp"
 
 #include "vast/Util/Common.hpp"
@@ -21,7 +22,3 @@ VAST_UNRELAX_WARNINGS
 
 #define GET_ATTRDEF_CLASSES
 #include "vast/Dialect/Core/CoreAttributes.h.inc"
-
-namespace vast::core {
-
-} // namespace vast::core
