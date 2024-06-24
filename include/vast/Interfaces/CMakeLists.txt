@@ -1,4 +1,5 @@
 add_vast_op_interface(SymbolInterface)
+add_vast_op_interface(SymbolTableInterface)
 add_vast_op_interface(AggregateTypeDefinitionInterface)
 add_vast_attr_interface(TypeQualifiersInterfaces)
 add_vast_attr_interface(SymbolRefInterface)
