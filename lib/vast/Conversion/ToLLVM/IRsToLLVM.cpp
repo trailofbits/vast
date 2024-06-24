@@ -1047,12 +1047,11 @@ namespace vast::conv::irstollvm
             if (rtys->empty() || rtys->front().isa< mlir::LLVM::LLVMVoidType >())
             {
                 // We cannot pass in void type as some internal check inside `mlir::LLVM`
-                // dialect will fire - it would create a value of void type, which is
-                // not allowed.
-                mk_call(std::vector< mlir::Type >{}, op.getCallee(), ops.getOperands());
+                // dialect will fire - it would create a value of void type, which is not allowed.
+                mk_call(std::vector< mlir::Type >{}, op.getCallee().getSymbol(), ops.getOperands());
                 rewriter.eraseOp(op);
             } else {
-                auto call = mk_call(*rtys, op.getCallee(), ops.getOperands());
+                auto call = mk_call(*rtys, op.getCallee().getSymbol(), ops.getOperands());
                 rewriter.replaceOp(op, call.getResults());
             }
 
