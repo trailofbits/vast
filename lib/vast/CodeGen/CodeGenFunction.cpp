@@ -57,15 +57,16 @@ namespace vast::cg
             return mk_prototype(*this, decl);
         } ();
 
-
         if (decl->isThisDeclarationADefinition()) {
-            auto fn = mlir::cast< vast_function >(prototype);
-            defer([parent = *this, decl, fn] () mutable {
-                set_visibility(decl, fn);
-                parent.declare_function_params(decl, fn);
-                parent.emit_labels(decl, fn);
-                parent.emit_body(decl, fn);
-            });
+            // Unsupported functions might produce unsupported decl
+            if (auto fn = mlir::dyn_cast< vast_function >(prototype)) {
+                defer([parent = *this, decl, fn] () mutable {
+                    set_visibility(decl, fn);
+                    parent.declare_function_params(decl, fn);
+                    parent.emit_labels(decl, fn);
+                    parent.emit_body(decl, fn);
+                });
+            }
         }
 
         return prototype;
