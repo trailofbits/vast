@@ -5,6 +5,7 @@
 
 include "mlir/IR/AttrTypeBase.td"
 include "mlir/IR/BuiltinAttributeInterfaces.td"
+include "vast/Interfaces/SymbolRefInterface.td"
 
 include "mlir/IR/EnumAttr.td"
 
@@ -20,6 +21,7 @@ class Core_I32Enum< string name, string description, list<I32EnumAttrCase> cases
   let genSpecializedAttr = 0;
   let cppNamespace = "::vast::core";
 }
+
 class Core_I32EnumAttr< string mnemonic, Core_I32Enum enumInfo >
   : EnumAttr< Core_Dialect, enumInfo, mnemonic >
 {
