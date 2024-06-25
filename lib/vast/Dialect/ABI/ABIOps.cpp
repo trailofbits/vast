@@ -34,7 +34,7 @@ namespace vast::abi
 
     mlir::CallInterfaceCallable CallOp::getCallableForCallee()
     {
-        return (*this)->getAttrOfType< mlir::SymbolRefAttr >("callee");
+        return core::get_callable_for_callee(*this);
     }
 
     mlir::Operation::operand_range CallOp::getArgOperands()
@@ -94,7 +94,7 @@ namespace vast::abi
 
     mlir::CallInterfaceCallable CallExecutionOp::getCallableForCallee()
     {
-        return (*this)->getAttrOfType< mlir::SymbolRefAttr >("callee");
+        return core::get_callable_for_callee(*this);
     }
 
     mlir::Operation::operand_range CallExecutionOp::getArgOperands()

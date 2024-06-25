@@ -414,7 +414,7 @@ namespace vast::hl
     }
 
     mlir::CallInterfaceCallable CallOp::getCallableForCallee() {
-        return (*this)->getAttrOfType< mlir::SymbolRefAttr >("callee");
+        return core::get_callable_for_callee(*this);
     }
 
     void CallOp::setCalleeFromCallable(mlir::CallInterfaceCallable callee) {
