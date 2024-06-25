@@ -340,7 +340,10 @@ def RecordMemberOp
 }
 
 def CallOp
-  : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
+  : HighLevel_Op< "call", [
+      CallOpInterface,
+      DeclareOpInterfaceMethods<CallOpInterface>
+    ] >
   , Arguments<(ins
       FuncSymbolRefAttr:$callee,
       Variadic<AnyType>:$argOperands)>
@@ -394,7 +397,7 @@ def CallOp
 
 def IndirectCallOp
   : HighLevel_Op< "indirect_call", [
-    DeclareOpInterfaceMethods<CallOpInterface>,
+    CallOpInterface, DeclareOpInterfaceMethods<CallOpInterface>
   ] >
   , Arguments<(ins
       // FIXME: LValueOrType<PointerLikeType>
