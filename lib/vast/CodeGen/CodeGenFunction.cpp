@@ -60,11 +60,15 @@ namespace vast::cg
         if (decl->isThisDeclarationADefinition()) {
             // Unsupported functions might produce unsupported decl
             if (auto fn = mlir::dyn_cast< vast_function >(prototype)) {
-                defer([parent = *this, decl, fn] () mutable {
-                    set_visibility(decl, fn);
-                    parent.declare_function_params(decl, fn);
-                    parent.emit_labels(decl, fn);
-                    parent.emit_body(decl, fn);
+                defer([parent = *this, decl, fn]() mutable {
+                    // If the user implements a function that is also a builtin,
+                    // it might be visited multiple times
+                    if (fn.getBody().empty()) {
+                        set_visibility(decl, fn);
+                        parent.declare_function_params(decl, fn);
+                        parent.emit_labels(decl, fn);
+                        parent.emit_body(decl, fn);
+                    }
                 });
             }
         }
