@@ -5,8 +5,8 @@
 #include "vast/Util/Common.hpp"
 
 VAST_RELAX_WARNINGS
-#include <mlir/Pass/PassManager.h>
 #include <mlir/Pass/Pass.h>
+#include <mlir/Pass/PassManager.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Tower/Handle.hpp"
@@ -19,33 +19,24 @@ namespace vast::tw {
     struct tower
     {
       private:
-        mcontext_t &mctx;
+        [[maybe_unused]] mcontext_t &mctx;
         module_storage storage;
         handle_t top_handle;
 
       public:
-        tower(mcontext_t &mctx, location_info &li, owning_module_ref root)
-            : mctx(mctx)
-        {
+        tower(mcontext_t &mctx, location_info &li, owning_module_ref root) : mctx(mctx) {
             make_root(li, root->getOperation());
             top_handle = storage.store(root_conversion(), std::move(root));
         }
 
-     private:
+      private:
         // TODO: Move somewhere else.
         static conversion_path_t root_conversion() { return {}; }
 
-     public:
-
+      public:
         handle_t top() const { return top_handle; }
 
-        auto apply(handle_t, mlir::PassManager &) -> handle_t {
-            return {};
-        }
-
-        auto apply(handle_t, owning_pass_ptr) -> handle_t {
-            return {};
-        }
+        link_ptr apply(handle_t, location_info &, mlir::PassManager &);
     };
 
     using default_tower = tower;
