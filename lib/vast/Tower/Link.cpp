@@ -114,6 +114,9 @@ namespace vast::tw {
 
     operations fat_link::shared_parents(operations) { VAST_UNIMPLEMENTED_MSG("nyi!"); }
 
+    handle_t fat_link::from() const { return steps.front()->from(); }
+    handle_t fat_link::to() const { return steps.back()->to(); }
+
     fat_link::fat_link(unit_link_vector steps_) : steps(std::move(steps_)) {
         VAST_CHECK(steps.size() >= 1, "Not enough steps=to build a link!");
         auto &li = steps.front()->li();

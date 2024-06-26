@@ -61,6 +61,9 @@ namespace vast::tw {
         virtual operations parents(operations) = 0;
 
         virtual operations shared_parents(operations) = 0;
+
+        virtual handle_t from() const = 0;
+        virtual handle_t to() const = 0;
     };
 
     using link_ptr = std::unique_ptr< link_interface >;
@@ -93,6 +96,9 @@ namespace vast::tw {
         operations parents(operations) override;
 
         operations shared_parents(operations) override;
+
+        handle_t from() const override;
+        handle_t to() const override;
     };
 
 } // namespace vast::tw
