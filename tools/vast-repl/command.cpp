@@ -10,6 +10,16 @@
 namespace vast::repl {
 namespace cmd {
 
+    // TODO: Really naive way to visualize.
+    void render_link(const tw::link_ptr &ptr) {
+        auto render = [&](operation op) {
+            llvm::outs() << *op << "\n";
+            for (auto c : ptr->children(op))
+                llvm::outs() << "\t => " << *c << "\n";
+        };
+        ptr->from().mod->walk< mlir::WalkOrder::PreOrder >(render);
+    }
+
     void check_source(const state_t &state) {
         if (!state.source.has_value()) {
             throw_error("error: missing source");
@@ -95,14 +105,23 @@ namespace cmd {
         }
     }
 
+    void show_link(state_t &state, const std::string &name) {
+        auto it = state.links.find(name);
+        if (it == state.links.end())
+            return throw_error("Link with name: {0} not found!", name);
+        return render_link(it->second);
+    }
+
     void show::run(state_t &state) const {
         auto what = get_param< kind_param >(params);
+        auto name = get_param< name_param >(params).value;
         switch (what) {
             case show_kind::source:    return show_source(state);
             case show_kind::ast:       return show_ast(state);
             case show_kind::module:    return show_module(state);
             case show_kind::symbols:   return show_symbols(state);
             case show_kind::pipelines: return show_pipelines(state);
+            case show_kind::link: return show_link(state, name);
         }
     };
 
