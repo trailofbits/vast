@@ -8,6 +8,7 @@
 #include "vast/repl/pipeline.hpp"
 
 #include <filesystem>
+#include <unordered_map>
 
 namespace vast::repl {
 
@@ -34,6 +35,8 @@ namespace vast::repl {
         //
         tw::location_info li;
         std::optional< tw::default_tower > tower;
+
+        std::unordered_map< std::string, tw::link_ptr > links;
 
         //
         // sticked commands performed after each step

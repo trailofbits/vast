@@ -167,17 +167,20 @@ namespace cmd {
         check_and_emit_module(state);
 
         std::string pipeline = get_param< pipeline_param >(params).value;
+        auto link_name = get_param< link_name_param >(params).value;
+
         llvm::SmallVector< llvm::StringRef, 2 > passes;
         llvm::StringRef(pipeline).split(passes, ',');
 
         mlir::PassManager pm(&state.ctx);
-        auto th = state.tower->top();
+        auto top = state.tower->top();
         for (auto pass : passes) {
             if (mlir::failed(mlir::parsePassPipeline(pass, pm))) {
                 throw_error("failed to parse pass pipeline");
             }
-            th = state.tower->apply(th, pm);
         }
+        auto link = state.tower->apply(top, state.li, pm);
+        state.links.emplace(link_name, std::move(link));
     }
 
     //
