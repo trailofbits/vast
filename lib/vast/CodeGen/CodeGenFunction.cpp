@@ -50,6 +50,15 @@ namespace vast::cg
         auto prototype = [&] {
             if (auto symbol = visitor.symbol(decl)) {
                 if (auto fn = visitor.scope.lookup_fun(symbol.value())) {
+                    // Function declaration that is not a prototype will have zero arguments
+                    // and we need to fix that when we discover them
+                    // This is caused by a deprecated C feature
+                    if (auto fun_interface = mlir::dyn_cast< mlir::FunctionOpInterface >(fn)) {
+                        if (fun_interface.getNumArguments() != decl->getNumParams()) {
+                            auto fun_type = visitor.visit(decl->getFunctionType());
+                            fun_interface.setType(fun_type);
+                        }
+                    }
                     return fn;
                 }
             }
