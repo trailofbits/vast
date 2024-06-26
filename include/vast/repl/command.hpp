@@ -46,7 +46,7 @@ namespace vast::repl
         struct string_param  { std::string value; };
         struct integer_param { std::uint64_t value; };
 
-        enum class show_kind { source, ast, module, symbols, pipelines };
+        enum class show_kind { source, ast, module, symbols, pipelines, link };
 
         template< typename enum_type >
         enum_type from_string(string_ref token) requires(std::is_same_v< enum_type, show_kind >) {
@@ -55,6 +55,7 @@ namespace vast::repl
             if (token == "module")    return enum_type::module;
             if (token == "symbols")   return enum_type::symbols;
             if (token == "pipelines") return enum_type::pipelines;
+            if (token == "link")   return enum_type::link;
             throw_error("uknnown show kind: {0}", token.str());
         }
 
@@ -183,9 +184,11 @@ namespace vast::repl
             static constexpr string_ref name() { return "show"; }
 
             static constexpr inline char kind_param[] = "kind_param_name";
+            static constexpr inline char name_param[] = "name_param";
 
             using command_params = util::type_list<
-                named_param< kind_param, show_kind >
+                named_param< kind_param, show_kind >,
+                named_param< name_param, string_param >
             >;
 
             using params_storage = command_params::as_tuple;
@@ -256,9 +259,11 @@ namespace vast::repl
             static constexpr string_ref name() { return "raise"; }
 
             static constexpr inline char pipeline_param[] = "pipeline_name";
+            static constexpr inline char link_name_param[] = "link_name";
 
             using command_params =
-                util::type_list< named_param< pipeline_param, string_param > >;
+                util::type_list< named_param< pipeline_param, string_param >,
+                                 named_param< link_name_param, string_param > >;
 
             using params_storage = command_params::as_tuple;
 
