@@ -161,7 +161,7 @@ def HighLevel_CondOp : ControlFlowOp< "cond" >
     bool typesMatch(mlir::Type lhs, mlir::Type rhs);
   }];
 
-  let assemblyFormat = [{ $condRegion `?` $thenRegion `:` $elseRegion attr-dict `:` type(results) }];
+  let assemblyFormat = [{ attr-dict `:` type(results) $condRegion `?` $thenRegion `:` $elseRegion }];
 }
 
 def HighLevel_WhileOp : ControlFlowOp< "while", [NoTerminator] >
