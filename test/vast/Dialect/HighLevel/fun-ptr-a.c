@@ -9,7 +9,7 @@ void h(void) {}
 
 int main (void) {
     // CHECK: FunctionToPointerDecay
-    // CHECK: hl.call {{.*}} : (!hl.lvalue<!hl.ptr<!core.fn<() -> (!hl.void)>>>) -> !hl.void
+    // CHECK: hl.call {{.*}} : (!hl.ptr<!core.fn<() -> (!hl.void)>>) -> !hl.void
     f(h);
     return 0;
 }
