@@ -664,7 +664,7 @@ namespace vast::cg
     operation default_stmt_visitor::visit_function_decl_ref(const clang::DeclRefExpr *expr) {
         return bld.compose< hl::FuncRefOp >()
             .bind(self.location(expr))
-            .bind(visit_as_lvalue_type(self, mctx, expr->getType()))
+            .bind(visit_maybe_lvalue_result_type(expr))
             .bind(self.symbol(expr))
             .freeze();
     }
