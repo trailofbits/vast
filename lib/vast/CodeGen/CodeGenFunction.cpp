@@ -49,24 +49,23 @@ namespace vast::cg
     operation function_generator::emit(const clang_function *decl) {
         auto prototype = [&] {
             if (auto symbol = visitor.symbol(decl)) {
-                if (auto fn = visitor.scope.lookup_fun(symbol.value())) {
+                if (auto op = visitor.scope.lookup_fun(symbol.value())) {
                     // Function declaration that is not a prototype will have zero arguments
                     // and we need to fix that when we discover them
                     // This is caused by a deprecated C feature
-                    if (auto fun_interface = mlir::dyn_cast< mlir::FunctionOpInterface >(fn)) {
-                        auto fun_args  = fun_interface.getNumArguments();
+                    if (auto fn = mlir::dyn_cast< mlir::FunctionOpInterface >(op)) {
+                        auto fn_args   = fn.getNumArguments();
                         auto decl_args = decl->getNumParams();
                         VAST_CHECK(
-                            fun_args == decl_args || fun_args == 0 || decl_args == 0,
+                            fn_args == decl_args || fn_args == 0 || decl_args == 0,
                             "Mismatch in number of arguments between function declaration and "
                             "vast function."
                         );
-                        if (fun_args == 0 && decl_args != 0) {
-                            auto fun_type = visitor.visit(decl->getFunctionType());
-                            fun_interface.setType(fun_type);
+                        if (fn_args == 0 && decl_args != 0) {
+                            fn.setType(visitor.visit(decl->getFunctionType()));
                         }
                     }
-                    return fn;
+                    return op;
                 }
             }
 
