@@ -54,7 +54,14 @@ namespace vast::cg
                     // and we need to fix that when we discover them
                     // This is caused by a deprecated C feature
                     if (auto fun_interface = mlir::dyn_cast< mlir::FunctionOpInterface >(fn)) {
-                        if (fun_interface.getNumArguments() != decl->getNumParams()) {
+                        auto fun_args  = fun_interface.getNumArguments();
+                        auto decl_args = decl->getNumParams();
+                        VAST_CHECK(
+                            fun_args == decl_args || fun_args == 0 || decl_args == 0,
+                            "Mismatch in number of arguments between function declaration and "
+                            "vast function."
+                        );
+                        if (fun_args == 0 && decl_args != 0) {
                             auto fun_type = visitor.visit(decl->getFunctionType());
                             fun_interface.setType(fun_type);
                         }
