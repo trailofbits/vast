@@ -1166,7 +1166,7 @@ def LNotOp  : LogicalUnOp< "lnot", [] >;
 def AddressOf
   : HighLevel_Op< "addressof", [] >
   // TODO(Heno): parameter constraints
-  , Arguments<(ins LValueOf<AnyType>:$value)>
+  , Arguments<(ins AnyType:$value)>
   , Results<(outs AnyType:$result)>
 {
     let summary = "VAST addressof operation";
