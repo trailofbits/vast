@@ -182,7 +182,8 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
     // SymbolOpInterface Methods
     //===------------------------------------------------------------------===//
 
-    bool isDeclaration() { return isExternal(); }
+    // TODO(#638): Find better way to mark alias functions as defintiions
+    bool isDeclaration() { return isExternal() && !getOperation()->hasAttr("hl.alias"); }
   }];
 }
 
