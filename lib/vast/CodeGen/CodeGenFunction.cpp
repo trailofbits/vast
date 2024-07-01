@@ -82,7 +82,11 @@ namespace vast::cg
                         set_visibility(decl, fn);
                         parent.declare_function_params(decl, fn);
                         parent.emit_labels(decl, fn);
-                        parent.emit_body(decl, fn);
+
+                        if (!decl->hasAttr< clang::AliasAttr >()) {
+                            parent.emit_body(decl, fn);
+                        }
+
                     }
                 });
             }
@@ -115,12 +119,6 @@ namespace vast::cg
     void function_generator::emit_body(const clang_function *decl, vast_function prototype) {
         auto _ = bld.scoped_insertion_at_end(&prototype.getBody());
         auto body = decl->getBody();
-
-        // Sometimes a function definition does not have a body, but is still a valid
-        // definition. Example of such behaviour would be an `alias` attributed function.
-        if (!decl->doesThisDeclarationHaveABody()) {
-            return;
-        }
 
         if (clang::isa< clang::CoroutineBodyStmt >(body)) {
             VAST_REPORT("coroutines are not supported");
