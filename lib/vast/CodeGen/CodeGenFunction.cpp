@@ -80,10 +80,9 @@ namespace vast::cg
                     // it might be visited multiple times
                     if (fn.getBody().empty()) {
                         set_visibility(decl, fn);
-                        parent.declare_function_params(decl, fn);
-                        parent.emit_labels(decl, fn);
-
                         if (!decl->hasAttr< clang::AliasAttr >()) {
+                            parent.declare_function_params(decl, fn);
+                            parent.emit_labels(decl, fn);
                             parent.emit_body(decl, fn);
                         }
 
