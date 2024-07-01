@@ -116,6 +116,15 @@ namespace vast::cg
         auto _ = bld.scoped_insertion_at_end(&prototype.getBody());
         auto body = decl->getBody();
 
+        // Sometimes a function definition does not have a body, but is still a valid definition.
+        // Example of such behaviour would be an `alias` attributed function.
+        // Since MLIR doesn't allow non-private function declaration without a body, we need to
+        // emit something.
+        if (!decl->doesThisDeclarationHaveABody()) {
+            emit_unreachable(decl);
+            return;
+        }
+
         if (clang::isa< clang::CoroutineBodyStmt >(body)) {
             VAST_REPORT("coroutines are not supported");
             return;
