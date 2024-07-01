@@ -11,7 +11,7 @@ namespace vast::tw {
 
     struct link_builder : mlir::PassInstrumentation
     {
-        location_info &li;
+        location_info_t &li;
         module_storage &storage;
 
         // Start empty and after each callback add to it.
@@ -19,7 +19,7 @@ namespace vast::tw {
 
         std::vector< handle_t > handles;
 
-        explicit link_builder(location_info &li, module_storage &storage, handle_t root)
+        explicit link_builder(location_info_t &li, module_storage &storage, handle_t root)
             : li(li), storage(storage), handles{ root } {}
 
         void runAfterPass(pass_ptr pass, operation op) override {
@@ -53,7 +53,7 @@ namespace vast::tw {
         }
     };
 
-    link_ptr tower::apply(handle_t root, location_info &li, mlir::PassManager &pm) {
+    link_ptr tower::apply(handle_t root, location_info_t &li, mlir::PassManager &pm) {
         auto bld = std::make_unique< link_builder >(li, storage, top());
 
         // We need to access some of the data after passes are ran.

@@ -36,7 +36,7 @@ namespace vast::tw {
         }
     }
 
-    loc_to_op_t gather_map(location_info &li, operation op) {
+    loc_to_op_t gather_map(location_info_t &li, operation op) {
         loc_to_op_t out;
         auto collect = [&](operation op) { out[li.self(op)].push_back(op); };
         op->walk(collect);
@@ -47,9 +47,9 @@ namespace vast::tw {
     {
         std::vector< loc_to_op_t > details;
         const unit_link_vector &raw_link;
-        location_info &li;
+        location_info_t &li;
 
-        continuos_mapping_builder(const unit_link_vector &raw_link, location_info &li)
+        continuos_mapping_builder(const unit_link_vector &raw_link, location_info_t &li)
             : raw_link(raw_link), li(li) {
             for (const auto &l : raw_link) {
                 details.push_back(gather_map(li, l->from().mod));

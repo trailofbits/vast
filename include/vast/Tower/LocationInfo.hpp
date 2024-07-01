@@ -14,7 +14,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::tw {
 
     // Is allowed to have state?
-    struct location_info
+    struct location_info_t
     {
       private:
         // Encoded as `mlir::FusedLocation(original, mlir::OpaqueLocation(pointer_to_self))`
@@ -60,8 +60,8 @@ namespace vast::tw {
     // Since we are going to tie together arbitrary modules, it makes sense to make them
     // have locations in the same shape - therefore root shouldn't be an excuse. It will
     // however require slightly different handling, so we are exposing a hook for that.
-    void make_root(location_info &, operation);
+    void make_root(location_info_t &, operation);
 
-    void transform_locations(location_info &, const conversion_path_t &, operation);
+    void transform_locations(location_info_t &, const conversion_path_t &, operation);
 
 } // namespace vast::tw
