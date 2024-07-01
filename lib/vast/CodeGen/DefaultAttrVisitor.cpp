@@ -14,6 +14,10 @@ namespace vast::cg
         return make< hl::SectionAttr >(attr->getName());
     }
 
+    mlir_attr default_attr_visitor::VisitAliasAttr(const clang::AliasAttr *attr) {
+        return make< hl::AliasAttr >(attr->getAliasee());
+    }
+
     mlir_attr default_attr_visitor::VisitFormatAttr(const clang::FormatAttr *attr) {
         return make< hl::FormatAttr >(attr->getType()->getName());
     }
