@@ -34,6 +34,7 @@ class NameAttr<string name, string attr_mnemonic>
 def AnnotationAttr       : NameAttr< "Annotation", "annotation" >;
 def FormatAttr           : NameAttr< "Format", "format" >;
 def SectionAttr          : NameAttr< "Section", "section" >;
+def AliasAttr            : NameAttr< "Alias", "alias" >;
 // TODO(#595): Make aligned attribute keep the alignment value/expr
 def AlignedAttr          : HighLevel_Attr< "Aligned", "aligned" >;
 def AlwaysInlineAttr     : HighLevel_Attr< "AlwaysInline", "always_inline" >;
