@@ -24,7 +24,7 @@ namespace vast::tw {
         handle_t top_handle;
 
       public:
-        tower(mcontext_t &mctx, location_info &li, owning_module_ref root) : mctx(mctx) {
+        tower(mcontext_t &mctx, location_info_t &li, owning_module_ref root) : mctx(mctx) {
             make_root(li, root->getOperation());
             top_handle = storage.store(root_conversion(), std::move(root));
         }
@@ -36,7 +36,7 @@ namespace vast::tw {
       public:
         handle_t top() const { return top_handle; }
 
-        link_ptr apply(handle_t, location_info &, mlir::PassManager &);
+        link_ptr apply(handle_t, location_info_t &, mlir::PassManager &);
     };
 
     using default_tower = tower;

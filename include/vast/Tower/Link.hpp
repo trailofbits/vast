@@ -22,7 +22,7 @@ namespace vast::tw {
         virtual handle_t from() const = 0;
         virtual handle_t to() const   = 0;
 
-        virtual location_info &li() const = 0;
+        virtual location_info_t &li() const = 0;
     };
 
     struct light_one_step_link : one_step_link_interface
@@ -31,17 +31,17 @@ namespace vast::tw {
         handle_t _from;
         handle_t _to;
 
-        location_info &_li;
+        location_info_t &_li;
 
       public:
-        explicit light_one_step_link(handle_t _from, handle_t _to, location_info &_li)
+        explicit light_one_step_link(handle_t _from, handle_t _to, location_info_t &_li)
             : _from(_from), _to(_to), _li(_li) {}
 
         handle_t from() const override { return _from; }
 
         handle_t to() const override { return _to; }
 
-        location_info &li() const override { return _li; }
+        location_info_t &li() const override { return _li; }
     };
 
     using operations = std::vector< operation >;
