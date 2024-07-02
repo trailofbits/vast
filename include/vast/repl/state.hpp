@@ -33,8 +33,8 @@ namespace vast::repl {
         //
         // Tower related state
         //
-        tw::location_info li;
-        std::optional< tw::default_tower > tower;
+        tw::location_info_t location_info;
+        std::optional< tw::tower > tower;
 
         std::unordered_map< std::string, tw::link_ptr > links;
 

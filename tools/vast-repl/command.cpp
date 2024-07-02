@@ -12,12 +12,21 @@ namespace cmd {
 
     // TODO: Really naive way to visualize.
     void render_link(const tw::link_ptr &ptr) {
-        auto render = [&](operation op) {
-            llvm::outs() << *op << "\n";
-            for (auto c : ptr->children(op))
-                llvm::outs() << "\t => " << *c << "\n";
+        auto flag = mlir::OpPrintingFlags().skipRegions();
+
+        auto render_op = [&](operation op) -> llvm::raw_fd_ostream & {
+            op->print(llvm::outs(), flag);
+            return llvm::outs();
         };
-        ptr->from().mod->walk< mlir::WalkOrder::PreOrder >(render);
+
+        auto render = [&](operation op) {
+            render_op(op) << "\n";
+            for (auto c : ptr->children(op)) {
+                llvm::outs() << "\t => ";
+                render_op(c) << "\n";
+            }
+        };
+        ptr->parent().mod->walk< mlir::WalkOrder::PreOrder >(render);
     }
 
     void check_source(const state_t &state) {
@@ -198,7 +207,7 @@ namespace cmd {
                 throw_error("failed to parse pass pipeline");
             }
         }
-        auto link = state.tower->apply(top, state.li, pm);
+        auto link = state.tower->apply(top, state.location_info, pm);
         state.links.emplace(link_name, std::move(link));
     }
 
