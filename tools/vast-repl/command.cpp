@@ -101,10 +101,10 @@ namespace cmd {
     void show::run(state_t &state) const {
         auto what = get_param< kind_param >(params);
         switch (what) {
-            case show_kind::source:  return show_source(state);
-            case show_kind::ast:     return show_ast(state);
-            case show_kind::module:  return show_module(state);
-            case show_kind::symbols: return show_symbols(state);
+            case show_kind::source:    return show_source(state);
+            case show_kind::ast:       return show_ast(state);
+            case show_kind::module:    return show_module(state);
+            case show_kind::symbols:   return show_symbols(state);
             case show_kind::pipelines: return show_pipelines(state);
         }
     };
