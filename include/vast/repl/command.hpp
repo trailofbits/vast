@@ -67,6 +67,15 @@ namespace vast::repl
             throw_error("uknnown action kind: {0}", token.str());
         }
 
+        enum class analyze_kind { RC, UV };
+
+        template< typename enum_type >
+        enum_type from_string(string_ref token) requires(std::is_same_v< enum_type, analyze_kind >) {
+            if (token == "RC") return enum_type::RC;
+            if (token == "UV") return enum_type::UV;
+            throw_error("uknnown analyze kind: {0}", token.str());
+        }
+
         //
         // named param
         //
@@ -186,6 +195,28 @@ namespace vast::repl
         };
 
         //
+        // analyze command
+        //
+        struct analyze : base {
+            static constexpr string_ref name() { return "analyze"; }
+
+            static constexpr inline char analyzes_param[] = "analyze_name";
+
+            using command_params = util::type_list<
+                named_param< analyzes_param, analyze_kind >
+            >;
+
+            using params_storage = command_params::as_tuple;
+
+            analyze(const params_storage &params) : params(params) {}
+            analyze(params_storage &&params) : params(std::move(params)) {}
+
+            void run(state_t &state) const override;
+
+            params_storage params;
+        };
+
+        //
         // meta command
         //
         struct meta : base {
@@ -255,7 +286,7 @@ namespace vast::repl
 
         void add_sticky_command(string_ref cmd, state_t &state);
 
-        using command_list = util::type_list< exit, help, load, show, meta, raise, sticky >;
+        using command_list = util::type_list< exit, help, load, show, analyze, meta, raise, sticky >;
 
     } // namespace cmd
 

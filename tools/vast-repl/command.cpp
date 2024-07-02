@@ -110,6 +110,25 @@ namespace cmd {
     };
 
     //
+    // analyze command
+    //
+    void analyze_reachable_code(state_t &state) {
+        llvm::outs() << "run reachable code analysis\n";
+    }
+
+    void analyze_uninitialized_variables(state_t &state) {
+        llvm::outs() << "run uninitialized variables analysis\n";
+    }
+
+    void analyze::run(state_t &state) const {
+        auto what = get_param< analyzes_param >(params);
+        switch (what) {
+            case analyze_kind::RC: return analyze_reachable_code(state);
+            case analyze_kind::UV: return analyze_uninitialized_variables(state);
+        }
+    }
+
+    //
     // meta command
     //
     void meta::add(state_t &state) const {
