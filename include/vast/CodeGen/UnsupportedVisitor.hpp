@@ -3,7 +3,8 @@
 #pragma once
 
 #include "vast/Util/Warnings.hpp"
-#include "vast/Util/CRTP.hpp"
+
+#include <gap/core/crtp.hpp>
 
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
 
@@ -19,9 +20,9 @@ namespace vast::cg
     std::string decl_name(const clang_decl *decl);
 
     template< typename derived >
-    struct unsup_decl_visitor : util::crtp< derived, unsup_decl_visitor >
+    struct unsup_decl_visitor : gap::core::crtp< derived, unsup_decl_visitor >
     {
-        using util::crtp< derived, unsup_decl_visitor >::underlying;
+        using gap::core::crtp< derived, unsup_decl_visitor >::underlying;
 
         operation visit(const clang_decl *decl, scope_context &scope) {
             return underlying().builder().template compose< unsup::UnsupportedDecl >()
@@ -33,9 +34,9 @@ namespace vast::cg
 
 
     template< typename derived >
-    struct unsup_stmt_visitor : util::crtp< derived, unsup_stmt_visitor >
+    struct unsup_stmt_visitor : gap::core::crtp< derived, unsup_stmt_visitor >
     {
-        using util::crtp< derived, unsup_stmt_visitor >::underlying;
+        using gap::core::crtp< derived, unsup_stmt_visitor >::underlying;
 
         operation visit(const clang_stmt *stmt, scope_context &scope) {
             return underlying().builder().template compose< unsup::UnsupportedStmt >()
@@ -67,9 +68,9 @@ namespace vast::cg
     };
 
     template< typename derived >
-    struct unsup_type_visitor : util::crtp< derived, unsup_type_visitor >
+    struct unsup_type_visitor : gap::core::crtp< derived, unsup_type_visitor >
     {
-        using util::crtp< derived, unsup_type_visitor >::underlying;
+        using gap::core::crtp< derived, unsup_type_visitor >::underlying;
 
         mlir_type visit(const clang_type *type, scope_context &scope) {
             return unsup::UnsupportedType::get(&underlying().mcontext(), type->getTypeClassName());
@@ -83,9 +84,9 @@ namespace vast::cg
 
 
     template< typename derived >
-    struct unsup_attr_visitor : util::crtp< derived, unsup_attr_visitor >
+    struct unsup_attr_visitor : gap::core::crtp< derived, unsup_attr_visitor >
     {
-        using util::crtp< derived, unsup_attr_visitor >::underlying;
+        using gap::core::crtp< derived, unsup_attr_visitor >::underlying;
 
         std::optional< named_attr > visit(const clang_attr *attr, scope_context &scope) {
             std::string spelling(attr->getSpelling());
