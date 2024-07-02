@@ -6,7 +6,7 @@
 # the LICENSE file found in the root directory of this source tree.
 #
 
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.26)
 
 if (POLICY CMP0025)
   cmake_policy(SET CMP0025 NEW)
@@ -317,7 +317,7 @@ if (VAST_ENABLE_GAP_PACKAGE)
       "GAP_ENABLE_TESTING OFF"
       "GAP_ENABLE_EXAMPLES OFF"
       "GAP_INSTALL ON"
-    )
+  )
 else()
   find_package(gap CONFIG REQUIRED)
 endif()

@@ -322,9 +322,6 @@ function(vast_add_library_impl name)
 
   list(APPEND VAST_COMMON_DEPENDS ${ARG_DEPENDS})
 
-  # link gap by default
-  list(APPEND ARG_LINK_LIBS PRIVATE vast::settings)
-
   if(ARG_ADDITIONAL_HEADERS)
     # Pass through ADDITIONAL_HEADERS.
     set(ARG_ADDITIONAL_HEADERS ADDITIONAL_HEADERS ${ARG_ADDITIONAL_HEADERS})
@@ -409,7 +406,10 @@ function(vast_add_library_impl name)
 
     # Bring in the target link info from our original target.
     target_link_directories(${name_static} PRIVATE $<TARGET_PROPERTY:${name},LINK_DIRECTORIES>)
-    target_link_libraries(${name_static} PRIVATE $<TARGET_PROPERTY:${name},LINK_LIBRARIES>)
+    target_link_libraries(${name_static} PRIVATE
+      $<TARGET_PROPERTY:${name},LINK_LIBRARIES>
+      $<BUILD_LOCAL_INTERFACE:vast::settings>
+    )
 
     # FIXME: Add name_static to anywhere in TARGET ${name}'s PROPERTY.
     set(ARG_STATIC)
@@ -514,6 +514,7 @@ function(vast_add_library_impl name)
       ${ARG_LINK_LIBS}
       ${lib_deps}
       ${llvm_libs}
+      $<BUILD_LOCAL_INTERFACE:vast::settings>
   )
 
   if(VAST_COMMON_DEPENDS)
@@ -606,7 +607,11 @@ function(add_vast_library name)
   vast_add_library_impl(${name} ${LIBTYPE} ${ARG_UNPARSED_ARGUMENTS} ${srcs} DEPENDS ${ARG_DEPENDS} LINK_COMPONENTS ${ARG_LINK_COMPONENTS} LINK_LIBS ${ARG_LINK_LIBS})
 
   if(TARGET ${name})
-    target_link_libraries(${name} INTERFACE ${VAST_COMMON_LIBS})
+    target_link_libraries(${name}
+      INTERFACE
+        ${VAST_COMMON_LIBS}
+        $<BUILD_LOCAL_INTERFACE:vast::settings>
+    )
     if(NOT ARG_DISABLE_INSTALL)
       add_vast_library_install(${name})
     endif()
@@ -802,7 +807,7 @@ function(add_vast_executable target)
       ${VAST_LIBS}
       ${MLIR_LIBS}
       ${ARG_LINK_LIBS}
-      vast::settings
+      $<BUILD_LOCAL_INTERFACE:vast::settings>
   )
 
   install(TARGETS ${target}
