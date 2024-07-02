@@ -316,14 +316,15 @@ if (VAST_ENABLE_GAP_PACKAGE)
       "GAP_ENABLE_VCPKG OFF"
       "GAP_ENABLE_TESTING OFF"
       "GAP_ENABLE_EXAMPLES OFF"
-  )
+      "GAP_INSTALL ON"
+    )
 else()
   find_package(gap CONFIG REQUIRED)
 endif()
 
 target_link_libraries(vast_settings
   INTERFACE
-    gap::gap
+    "$<BUILD_LOCAL_INTERFACE:gap::gap>"
 )
 
 #
@@ -394,39 +395,6 @@ if (VAST_INSTALL)
     NAMESPACE VAST::
     DESTINATION ${VAST_CMAKE_INSTALL_DIR}
   )
-
-  # FIXME: deduplicate from gap repository
-  if (VAST_ENABLE_GAP_SUBMODULE)
-    set(GAP_CMAKE_INSTALL_DIR
-      ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME} CACHE PATH "Path where CMake utilities will be installed"
-    )
-
-    set(GAP_INSTALL_TARGETS gap gap-core gap-coro gap-settings)
-    set(GAP_EXPORT_NAME gapTargets)
-
-    install(TARGETS ${GAP_INSTALL_TARGETS}
-      EXPORT ${GAP_EXPORT_NAME}
-      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        NAMELINK_SKIP
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/gap/core
-    )
-
-    install(EXPORT ${GAP_EXPORT_NAME}
-      FILE ${GAP_EXPORT_NAME}.cmake
-      NAMESPACE gap::
-      DESTINATION ${GAP_CMAKE_INSTALL_DIR}
-    )
-
-    install(TARGETS ${GAP_INSTALL_TARGETS}
-      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        NAMELINK_ONLY
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/gap/core
-    )
-  endif()
 
   #
   # packaging support
