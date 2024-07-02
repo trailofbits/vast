@@ -302,10 +302,23 @@ add_library(vast::settings ALIAS vast_settings)
 #
 # Add external libraries
 #
-add_subdirectory(external)
 
-if (NOT VAST_ENABLE_GAP_SUBMODULE)
-    find_package(gap CONFIG REQUIRED)
+include(cpm)
+
+option(VAST_ENABLE_GAP_PACKAGE "Enable GAP package" ON)
+
+if (VAST_ENABLE_GAP_PACKAGE)
+  CPMAddPackage(
+    NAME gap
+    GIT_TAG main
+    GITHUB_REPOSITORY lifting-bits/gap
+    OPTIONS
+      "GAP_ENABLE_VCPKG OFF"
+      "GAP_ENABLE_TESTING OFF"
+      "GAP_ENABLE_EXAMPLES OFF"
+  )
+else()
+  find_package(gap CONFIG REQUIRED)
 endif()
 
 target_link_libraries(vast_settings
