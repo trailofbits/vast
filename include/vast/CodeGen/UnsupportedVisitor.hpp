@@ -42,7 +42,7 @@ namespace vast::cg
             return underlying().builder().template compose< unsup::UnsupportedStmt >()
                 .bind(underlying().location(stmt))
                 .bind_always(stmt->getStmtClassName())
-                .bind(return_type(stmt, scope))
+                .bind_always(return_type(stmt, scope))
                 .bind_always(make_children(stmt, scope))
                 .freeze();
         }
