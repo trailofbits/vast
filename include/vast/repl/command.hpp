@@ -50,11 +50,11 @@ namespace vast::repl
 
         template< typename enum_type >
         enum_type from_string(string_ref token) requires(std::is_same_v< enum_type, show_kind >) {
-            if (token == "source")  return enum_type::source;
-            if (token == "ast")     return enum_type::ast;
-            if (token == "module")  return enum_type::module;
-            if (token == "symbols") return enum_type::symbols;
-            if (token == "pipelines")   return enum_type::pipelines;
+            if (token == "source")    return enum_type::source;
+            if (token == "ast")       return enum_type::ast;
+            if (token == "module")    return enum_type::module;
+            if (token == "symbols")   return enum_type::symbols;
+            if (token == "pipelines") return enum_type::pipelines;
             throw_error("uknnown show kind: {0}", token.str());
         }
 
