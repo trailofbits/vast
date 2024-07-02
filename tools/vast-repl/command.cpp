@@ -10,6 +10,16 @@
 namespace vast::repl {
 namespace cmd {
 
+    // TODO: Really naive way to visualize.
+    void render_link(const tw::link_ptr &ptr) {
+        auto render = [&](operation op) {
+            llvm::outs() << *op << "\n";
+            for (auto c : ptr->children(op))
+                llvm::outs() << "\t => " << *c << "\n";
+        };
+        ptr->from().mod->walk< mlir::WalkOrder::PreOrder >(render);
+    }
+
     void check_source(const state_t &state) {
         if (!state.source.has_value()) {
             throw_error("error: missing source");
@@ -31,12 +41,9 @@ namespace cmd {
     }
 
     void check_and_emit_module(state_t &state) {
-        if (!state.tower) {
-            check_source(state);
-            auto mod    = codegen::emit_module(state.source.value(), state.ctx);
-            auto [t, _] = tw::default_tower::get(state.ctx, std::move(mod));
-            state.tower = std::move(t);
-        }
+        check_source(state);
+        auto mod = codegen::emit_module(state.source.value(), state.ctx);
+        state.raise_tower(std::move(mod));
     }
 
     //
@@ -77,7 +84,7 @@ namespace cmd {
 
     void show_module(state_t &state) {
         check_and_emit_module(state);
-        llvm::outs() << state.tower->top().mod << "\n";
+        llvm::outs() << state.current_module() << "\n";
     }
 
     void show_symbols(state_t &state) {
@@ -98,14 +105,23 @@ namespace cmd {
         }
     }
 
+    void show_link(state_t &state, const std::string &name) {
+        auto it = state.links.find(name);
+        if (it == state.links.end())
+            return throw_error("Link with name: {0} not found!", name);
+        return render_link(it->second);
+    }
+
     void show::run(state_t &state) const {
         auto what = get_param< kind_param >(params);
+        auto name = get_param< name_param >(params).value;
         switch (what) {
             case show_kind::source:  return show_source(state);
             case show_kind::ast:     return show_ast(state);
             case show_kind::module:  return show_module(state);
             case show_kind::symbols: return show_symbols(state);
             case show_kind::pipelines: return show_pipelines(state);
+            case show_kind::link: return show_link(state, name);
         }
     };
 
@@ -150,17 +166,20 @@ namespace cmd {
         check_and_emit_module(state);
 
         std::string pipeline = get_param< pipeline_param >(params).value;
+        auto link_name = get_param< link_name_param >(params).value;
+
         llvm::SmallVector< llvm::StringRef, 2 > passes;
         llvm::StringRef(pipeline).split(passes, ',');
 
         mlir::PassManager pm(&state.ctx);
-        auto th = state.tower->top();
+        auto top = state.tower->top();
         for (auto pass : passes) {
             if (mlir::failed(mlir::parsePassPipeline(pass, pm))) {
                 throw_error("failed to parse pass pipeline");
             }
-            th = state.tower->apply(th, pm);
         }
+        auto link = state.tower->apply(top, state.li, pm);
+        state.links.emplace(link_name, std::move(link));
     }
 
     //
