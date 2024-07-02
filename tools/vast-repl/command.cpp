@@ -101,13 +101,32 @@ namespace cmd {
     void show::run(state_t &state) const {
         auto what = get_param< kind_param >(params);
         switch (what) {
-            case show_kind::source:  return show_source(state);
-            case show_kind::ast:     return show_ast(state);
-            case show_kind::module:  return show_module(state);
-            case show_kind::symbols: return show_symbols(state);
+            case show_kind::source:    return show_source(state);
+            case show_kind::ast:       return show_ast(state);
+            case show_kind::module:    return show_module(state);
+            case show_kind::symbols:   return show_symbols(state);
             case show_kind::pipelines: return show_pipelines(state);
         }
     };
+
+    //
+    // analyze command
+    //
+    void analyze_reachable_code(state_t &state) {
+        llvm::outs() << "run reachable code analysis\n";
+    }
+
+    void analyze_uninitialized_variables(state_t &state) {
+        llvm::outs() << "run uninitialized variables analysis\n";
+    }
+
+    void analyze::run(state_t &state) const {
+        auto what = get_param< analyzes_param >(params);
+        switch (what) {
+            case analyze_kind::RC: return analyze_reachable_code(state);
+            case analyze_kind::UV: return analyze_uninitialized_variables(state);
+        }
+    }
 
     //
     // meta command
