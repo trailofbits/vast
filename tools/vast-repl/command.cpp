@@ -121,10 +121,11 @@ namespace cmd {
     }
 
     void analyze::run(state_t &state) const {
-        auto what = get_param< analyzes_param >(params);
-        switch (what) {
-            case analyze_kind::RC: return analyze_reachable_code(state);
-            case analyze_kind::UV: return analyze_uninitialized_variables(state);
+        if (auto func = get_param< analysis_param >(params)) {
+            func(state);
+        }
+        else {
+            throw_error("not enough arguments");
         }
     }
 
