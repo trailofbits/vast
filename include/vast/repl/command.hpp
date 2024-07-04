@@ -208,8 +208,8 @@ namespace vast::repl
 
             using params_storage = command_params::as_tuple;
 
-            analyze(const params_storage &params) : params(params) {}
-            analyze(params_storage &&params) : params(std::move(params)) {}
+            explicit analyze(const params_storage &params) : params(params) {}
+            explicit analyze(params_storage &&params) : params(std::move(params)) {}
 
             void run(state_t &state) const override;
 
