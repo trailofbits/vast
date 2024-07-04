@@ -2,14 +2,13 @@
 
 #include "vast/Tower/LocationInfo.hpp"
 
+#include <algorithm>
+#include <numeric>
+
 namespace vast::tw {
 
     std::string location_info_t::fingerprint(const conversion_path_t &path) {
-        std::string out;
-        for (const auto &p : path) {
-            out += p;
-        }
-        return out;
+        return std::accumulate(path.begin(), path.end(), std::string{});
     }
 
     loc_t location_info_t::mk_unique_loc(const conversion_path_t &path, operation op) {

@@ -2,6 +2,8 @@
 
 #include "vast/Tower/Link.hpp"
 
+#include <ranges>
+
 namespace vast::tw {
 
     op_mapping reverse_mapping(const op_mapping &from) {
@@ -60,15 +62,12 @@ namespace vast::tw {
         op_mapping compute_parent_mapping() {
             op_mapping out;
 
-            auto append = [](operations &into, const operations &from) {
-                into.insert(into.end(), from.begin(), from.end());
-            };
-
-            auto handle_level = [&](auto &level) {
+            auto handle_level = [&](const auto &level) {
                 for (auto &[op, todo] : out) {
                     operations parents;
                     for (auto current : todo) {
-                        append(parents, level[li.prev(current)]);
+                        if (auto prev_ops = level.find(li.prev(current)); prev_ops != level.end())
+                            parents.append_range(prev_ops->second);
                     }
                     todo = std::move(parents);
                 }
@@ -80,9 +79,8 @@ namespace vast::tw {
                 out[op.front()] = { op };
             }
 
-            for (std::size_t i = 1; i < details.size(); ++i) {
-                handle_level(details[i]);
-            }
+            for (const auto &level : details | std::views::drop(1))
+                handle_level(level);
 
             return out;
         }
@@ -92,10 +90,8 @@ namespace vast::tw {
 
     operations fat_link::children(operations ops) {
         operations out;
-        for (auto op : ops) {
-            auto res = children(op);
-            out.insert(out.end(), res.begin(), res.end());
-        }
+        for (auto op : ops)
+            out.append_range(children(op));
         return out;
     }
 
@@ -105,10 +101,8 @@ namespace vast::tw {
 
     operations fat_link::parents(operations ops) {
         operations out;
-        for (auto op : ops) {
-            auto res = parents(op);
-            out.insert(out.end(), res.begin(), res.end());
-        }
+        for (auto op : ops)
+            out.append_range(parents(op));
         return out;
     }
 
