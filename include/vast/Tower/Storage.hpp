@@ -11,6 +11,9 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Tower/Handle.hpp"
 
+#include <algorithm>
+#include <numeric>
+
 namespace vast::tw {
 
     struct module_storage
@@ -26,11 +29,7 @@ namespace vast::tw {
 
       private:
         conversion_path_fingerprint_t fingerprint(const conversion_path_t &path) const {
-            std::string out;
-            for (const auto &p : path) {
-                out += p;
-            }
-            return out;
+            return std::accumulate(path.begin(), path.end(), std::string{});
         }
 
         handle_id_t allocate_id(const conversion_path_t &path) {
