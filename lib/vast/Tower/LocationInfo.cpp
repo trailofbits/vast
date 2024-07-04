@@ -23,7 +23,7 @@ namespace vast::tw {
         return mlir::FusedLoc::get({ self, prev }, {}, mctx);
     }
 
-    loc_t location_info_t::get_next(const conversion_path_t &path, operation op) {
+    loc_t location_info_t::get_as_child(const conversion_path_t &path, operation op) {
         return mk_linked_loc(self(op), mk_unique_loc(path, op));
     }
 
@@ -31,8 +31,8 @@ namespace vast::tw {
         return mk_linked_loc(op->getLoc(), mk_unique_loc({}, op));
     }
 
-    bool location_info_t::are_tied(operation high, operation low) {
-        return self(high) == prev(low);
+    bool location_info_t::are_tied(operation parent, operation child) {
+        return self(parent) == prev(child);
     }
 
     void make_root(location_info_t &li, operation root) {
@@ -41,7 +41,7 @@ namespace vast::tw {
     }
 
     void transform_locations(location_info_t &li, const conversion_path_t &path, operation root) {
-        auto set_loc = [&](operation op) { op->setLoc(li.get_next(path, op)); };
+        auto set_loc = [&](operation op) { op->setLoc(li.get_as_child(path, op)); };
         root->walk(set_loc);
     }
 

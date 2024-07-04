@@ -44,7 +44,7 @@ namespace vast::tw {
 
       public:
         // For the given operation return location to be used in this module.
-        loc_t get_next(const conversion_path_t &, operation op);
+        loc_t get_as_child(const conversion_path_t &, operation op);
         loc_t get_root(operation op);
 
         static loc_t self(raw_loc_t raw) { return get< 1 >(raw); }
@@ -55,7 +55,7 @@ namespace vast::tw {
 
         static loc_t prev(operation op) { return prev(raw_loc(op)); }
 
-        static bool are_tied(operation high, operation low);
+        static bool are_tied(operation parent, operation child);
     };
 
     // Since we are going to tie together arbitrary modules, it makes sense to make them
