@@ -55,12 +55,8 @@ namespace vast::tw {
         virtual operations children(operation)  = 0;
         virtual operations children(operations) = 0;
 
-        virtual operations shared_children(operations) = 0;
-
         virtual operations parents(operation)  = 0;
         virtual operations parents(operations) = 0;
-
-        virtual operations shared_parents(operations) = 0;
 
         virtual handle_t from() const = 0;
         virtual handle_t to() const = 0;
@@ -90,12 +86,8 @@ namespace vast::tw {
         operations children(operation) override;
         operations children(operations) override;
 
-        operations shared_children(operations) override;
-
         operations parents(operation) override;
         operations parents(operations) override;
-
-        operations shared_parents(operations) override;
 
         handle_t from() const override;
         handle_t to() const override;
