@@ -67,13 +67,16 @@ namespace vast::repl
             throw_error("uknnown action kind: {0}", token.str());
         }
 
-        enum class analyze_kind { RC, UV };
+        void analyze_reachable_code(state_t &);
+        void analyze_uninitialized_variables(state_t &);
 
-        template< typename enum_type >
-        enum_type from_string(string_ref token) requires(std::is_same_v< enum_type, analyze_kind >) {
-            if (token == "RC") return enum_type::RC;
-            if (token == "UV") return enum_type::UV;
-            throw_error("uknnown analyze kind: {0}", token.str());
+        using analyze_func = llvm::function_ref< void(state_t &) >;
+
+        template< typename func_type >
+        func_type from_string(string_ref token) requires(std::is_same_v< analyze_func, func_type >) {
+            if (token == "reachable") return analyze_reachable_code;
+            if (token == "uninit")    return analyze_uninitialized_variables;
+            throw_error("unknown analyze kind: {0}", token.str());
         }
 
         //
