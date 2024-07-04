@@ -109,7 +109,8 @@ namespace vast::repl
             }
 
             static constexpr bool is_enum_param = std::is_enum_v< base >;
-            static named_param parse(string_ref token) requires(is_enum_param) {
+            static constexpr bool is_func_param = std::is_same_v< base, analyze_func >;
+            static named_param parse(string_ref token) requires(is_enum_param || is_func_param) {
                 return { .value = from_string< base >(token) };
             }
 
