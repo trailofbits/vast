@@ -39,7 +39,8 @@ namespace vast::tw {
         // TODO: These are strictly not needed in this form, but help initial
         //       debugging a lot.
         std::string fingerprint(const conversion_path_t &);
-        loc_t mk_loc(const conversion_path_t &, operation);
+        loc_t mk_unique_loc(const conversion_path_t &, operation);
+        loc_t mk_linked_loc(loc_t self, loc_t prev);
 
       public:
         // For the given operation return location to be used in this module.

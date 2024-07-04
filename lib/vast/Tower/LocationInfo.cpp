@@ -12,24 +12,24 @@ namespace vast::tw {
         return out;
     }
 
-    loc_t location_info_t::mk_loc(const conversion_path_t &path, operation op) {
+    loc_t location_info_t::mk_unique_loc(const conversion_path_t &path, operation op) {
         auto mctx = op->getContext();
         auto raw_id =
             fingerprint(path) + std::to_string(reinterpret_cast< std::uintptr_t >(op));
         return mlir::FileLineColLoc::get(mctx, raw_id, 0, 0);
     }
 
-    loc_t location_info_t::get_next(const conversion_path_t &path, operation op) {
-        auto mctx = op->getContext();
-        auto next = mlir::FusedLoc::get({ self(op), mk_loc(path, op) }, {}, mctx);
+    loc_t location_info_t::mk_linked_loc(loc_t self, loc_t prev) {
+        auto mctx = self->getContext();
+        return mlir::FusedLoc::get({ self, prev }, {}, mctx);
+    }
 
-        return next;
+    loc_t location_info_t::get_next(const conversion_path_t &path, operation op) {
+        return mk_linked_loc(self(op), mk_unique_loc(path, op));
     }
 
     loc_t location_info_t::get_root(operation op) {
-        auto mctx = op->getContext();
-        auto next = mlir::FusedLoc::get({ op->getLoc(), mk_loc({}, op) }, {}, mctx);
-        return next;
+        return mk_linked_loc(op->getLoc(), mk_unique_loc({}, op));
     }
 
     bool location_info_t::are_tied(operation high, operation low) {
