@@ -109,7 +109,7 @@ namespace vast::tw {
 
     fat_link::fat_link(unit_link_vector steps_) : steps(std::move(steps_)) {
         VAST_CHECK(steps.size() >= 1, "Not enough steps to build a link!");
-        auto &li = steps.front()->li();
+        auto &li = steps.front()->location_info();
         auto bld = continuous_mapping_builder(steps, li);
         up       = bld.compute_parent_mapping();
         down     = reverse_mapping(up);
