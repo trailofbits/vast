@@ -25,7 +25,7 @@ namespace vast::tw {
             return { id, it->second.get() };
         }
 
-        void remove(handle_t) { VAST_UNREACHABLE("nyi!"); }
+        void remove(handle_t) { VAST_UNIMPLEMENTED; }
 
       private:
         conversion_path_fingerprint_t fingerprint(const conversion_path_t &path) const {
