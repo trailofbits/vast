@@ -95,8 +95,6 @@ namespace vast::tw {
         return out;
     }
 
-    operations fat_link::shared_children(operations) { VAST_UNIMPLEMENTED_MSG("nyi!"); }
-
     operations fat_link::parents(operation op) { return up[op]; }
 
     operations fat_link::parents(operations ops) {
@@ -105,8 +103,6 @@ namespace vast::tw {
             out.append_range(parents(op));
         return out;
     }
-
-    operations fat_link::shared_parents(operations) { VAST_UNIMPLEMENTED_MSG("nyi!"); }
 
     handle_t fat_link::from() const { return steps.front()->from(); }
     handle_t fat_link::to() const { return steps.back()->to(); }
