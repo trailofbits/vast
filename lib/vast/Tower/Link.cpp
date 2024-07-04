@@ -45,13 +45,13 @@ namespace vast::tw {
         return out;
     }
 
-    struct continuos_mapping_builder
+    struct continuous_mapping_builder
     {
         std::vector< loc_to_op_t > details;
         const unit_link_vector &raw_link;
         location_info_t &li;
 
-        continuos_mapping_builder(const unit_link_vector &raw_link, location_info_t &li)
+        continuous_mapping_builder(const unit_link_vector &raw_link, location_info_t &li)
             : raw_link(raw_link), li(li) {
             for (const auto &l : raw_link) {
                 details.push_back(gather_map(li, l->from().mod));
@@ -112,9 +112,9 @@ namespace vast::tw {
     handle_t fat_link::to() const { return steps.back()->to(); }
 
     fat_link::fat_link(unit_link_vector steps_) : steps(std::move(steps_)) {
-        VAST_CHECK(steps.size() >= 1, "Not enough steps=to build a link!");
+        VAST_CHECK(steps.size() >= 1, "Not enough steps to build a link!");
         auto &li = steps.front()->li();
-        auto bld = continuos_mapping_builder(steps, li);
+        auto bld = continuous_mapping_builder(steps, li);
         up       = bld.compute_parent_mapping();
         down     = reverse_mapping(up);
     }
