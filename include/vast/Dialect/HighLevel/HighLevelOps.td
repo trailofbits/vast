@@ -345,7 +345,7 @@ def CallOp
       DeclareOpInterfaceMethods<CallOpInterface>
     ] >
   , Arguments<(ins
-      FuncSymbolRefAttr:$callee,
+      FlatSymbolRefAttr:$callee,
       Variadic<AnyType>:$argOperands)>
   , Results<(outs Variadic<AnyType>:$results)>
 {
@@ -355,7 +355,7 @@ def CallOp
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder< (ins
-      "core::FuncSymbolRefAttr":$callee,
+      "mlir::FlatSymbolRefAttr":$callee,
       "mlir::TypeRange":$results,
       CArg<"mlir::ValueRange", "{}">:$operands
     ), [{
