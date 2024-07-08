@@ -4,11 +4,6 @@
 
 namespace vast::tw {
 
-    void dbg(operation op) {
-        mlir::OpPrintingFlags flags;
-        op->print(llvm::outs(), flags.enableDebugInfo(true, false));
-    }
-
     struct link_builder : mlir::PassInstrumentation
     {
         location_info_t &li;
@@ -18,6 +13,7 @@ namespace vast::tw {
         conversion_path_t path = {};
 
         std::vector< handle_t > handles;
+        link_vector steps;
 
         explicit link_builder(location_info_t &li, module_storage &storage, handle_t root)
             : li(li), storage(storage), handles{ root } {}
@@ -33,23 +29,14 @@ namespace vast::tw {
 
             owning_module_ref persistent = mlir::dyn_cast< vast_module >(op->clone());
 
+            auto from = handles.back();
             handles.emplace_back(storage.store(path, std::move(persistent)));
-        }
-
-        // From all the handles create a chain of one step transitions.
-        unit_link_vector link_vector() {
-            unit_link_vector out;
-            for (std::size_t i = 1; i < handles.size(); ++i) {
-                auto step =
-                    std::make_unique< light_one_step_link >(handles[i - 1], handles[i], li);
-                out.emplace_back(std::move(step));
-            }
-            return out;
+            steps.emplace_back(std::make_unique< conversion_step >(from, handles.back(), li));
         }
 
         std::unique_ptr< link_interface > extract_link() {
-            auto unit_links = link_vector();
-            return std::make_unique< fat_link >(std::move(unit_links));
+            VAST_CHECK(!steps.empty(), "No conversions happened!");
+            return std::make_unique< fat_link >(std::move(steps));
         }
     };
 
