@@ -9,11 +9,26 @@ include "vast/Dialect/Core/CoreTraits.td"
 
 def SymbolTableOpInterface : VastOpInterface< "SymbolTableOpInterface" > {
     let methods = [
-        InterfaceMethod<"TODO",
-            "bool", "holds_symbol_kind", (ins "core::symbol_kind":$kind), [{
-                return core::holds_symbol_kind<
-                    util::flatten< typename ConcreteOp::recognized_symbols_lists >
-                >(kind);
+        InterfaceMethod<"Returns true if the symbol table holds symbols that have the given symbol kind trait.",
+            "bool", "can_hold_symbol_kind", (ins "core::symbol_kind":$kind), [{
+                return core::can_hold_symbol_kind< typename ConcreteOp::recognized_symbols_lists >(kind);
+            }]
+        >,
+        InterfaceMethod<"Returns true if the symbol table can hold operation (i.e. opetaion declares recognized symbol kind).",
+            "bool", "can_hold_operation", (ins "mlir::Operation *":$op), [{
+                return core::can_hold_operation< typename ConcreteOp::recognized_symbols_lists >(op);
+            }]
+        >,
+        InterfaceMethod<"Returns recognized symbols.",
+            "llvm::SmallVector< vast::core::symbol_kind >", "symbol_kinds", (ins), [{
+                return core::symbol_kinds< typename ConcreteOp::recognized_symbols_lists >();
+            }]
+        >,
+        InterfaceMethod<"Initializes the symbol table based on the recognized symbols lists.",
+            "::vast::core::symbol_table", "materialize", (ins), [{
+                return ::vast::core::symbol_table(std::in_place_type<
+                    typename ConcreteOp::recognized_symbols_lists >, $_op
+                );
             }]
         >
     ];
