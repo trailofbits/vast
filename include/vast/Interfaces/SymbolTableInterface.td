@@ -7,7 +7,7 @@ include "mlir/IR/OpBase.td"
 include "vast/Interfaces/Common.td"
 include "vast/Dialect/Core/CoreTraits.td"
 
-def VastSymbolTable : VastOpInterface< "VastSymbolTable" > {
+def SymbolTableOpInterface : VastOpInterface< "SymbolTableOpInterface" > {
     let methods = [
         InterfaceMethod<"TODO",
             "bool", "holds_symbol_kind", (ins "core::symbol_kind":$kind), [{
@@ -53,7 +53,7 @@ class ShadowingSymbolTableTrait< list< list<Interface> > recognized_symbols_list
 {}
 
 class ShadowingSymbolTable< list< list<Interface> > recognized_symbols_lists >
-    : Interface< "ShadowingSymbolTable", [VastSymbolTable] >
+    : Interface< "ShadowingSymbolTable", [SymbolTableOpInterface] >
     , ShadowingSymbolTableTrait< recognized_symbols_lists >
 {}
 
