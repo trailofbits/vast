@@ -15,38 +15,17 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::tw {
 
-    struct one_step_link_interface
-    {
-        virtual ~one_step_link_interface() = default;
-
-        virtual handle_t from() const = 0;
-        virtual handle_t to() const   = 0;
-
-        virtual location_info_t &location_info() const = 0;
-    };
-
-    struct light_one_step_link : one_step_link_interface
-    {
-      protected:
-        handle_t _from;
-        handle_t _to;
-
-        location_info_t &_li;
-
-      public:
-        explicit light_one_step_link(handle_t _from, handle_t _to, location_info_t &_li)
-            : _from(_from), _to(_to), _li(_li) {}
-
-        handle_t from() const override { return _from; }
-
-        handle_t to() const override { return _to; }
-
-        location_info_t &location_info() const override { return _li; }
-    };
-
     using operations = std::vector< operation >;
 
-    // TODO: Implement.
+    // Maybe we want to abstract this as an interface - then it can be lazy as well, for example
+    // we could pass in only some step chain and location info and it will get computed.
+    // Since if we have `A -> B` we can always construct `B -> A` it may make sense to simply only
+    // export bidirectional mapping?
+    using op_mapping = std::unordered_map< operation, operations >;
+
+    // Generic interface to generalize the connection between any two modules.
+    // There are no performance guarantees in general, but there should be implementations
+    // available that try to be as performant as possible.
     struct link_interface
     {
         virtual ~link_interface() = default;
@@ -58,36 +37,68 @@ namespace vast::tw {
         virtual operations parents(operation)  = 0;
         virtual operations parents(operations) = 0;
 
+        virtual op_mapping parents_to_children() = 0;
+        virtual op_mapping children_to_parents() = 0;
+
         virtual handle_t from() const = 0;
         virtual handle_t to() const = 0;
     };
 
-    using link_ptr = std::unique_ptr< link_interface >;
-
-    using unit_link_ptr    = std::unique_ptr< one_step_link_interface >;
-    using unit_link_vector = std::vector< unit_link_ptr >;
-
-    // This is technically an impl detail but may be handy at multiple placex.
-    using op_mapping = std::unordered_map< operation, operations >;
-
-    // `A -> ... -> E` - each middle link is kept and there pre-computed
-    // mapping for `A -> E` transition.
-    struct fat_link : link_interface
-    {
+    // Represent application of some passes. Invariant is that
+    // `from -> to` are tied by the `location_info`.
+    // TODO: How to enforce this - private ctor and provide a builder interface on the side
+    //       that is a friend and allowed to create these?
+    struct conversion_step : link_interface {
       protected:
-        unit_link_vector steps;
-
-        op_mapping down;
-        op_mapping up;
+        handle_t _from;
+        handle_t _to;
+        location_info_t &_location_info;
 
       public:
-        explicit fat_link(unit_link_vector steps);
+        explicit conversion_step(handle_t from, handle_t to, location_info_t &location_info)
+            : _from(from), _to(to), _location_info(location_info)
+        {}
 
         operations children(operation) override;
         operations children(operations) override;
 
         operations parents(operation) override;
         operations parents(operations) override;
+
+        op_mapping parents_to_children() override;
+        op_mapping children_to_parents() override;
+
+        handle_t from() const override;
+        handle_t to() const override;
+    };
+
+    using link_ptr = std::unique_ptr< link_interface >;
+    using link_vector = std::vector< link_ptr >;
+
+    using conversion_steps = std::vector< conversion_step >;
+
+    // `A -> ... -> E` - each middle link is kept and there is pre-computed
+    // mapping for `A <-> E` transition to make it more performant.
+    struct fat_link : link_interface
+    {
+      protected:
+        link_vector links;
+
+        op_mapping down;
+        op_mapping up;
+
+      public:
+        explicit fat_link(link_vector links);
+        fat_link() = delete;
+
+        operations children(operation) override;
+        operations children(operations) override;
+
+        operations parents(operation) override;
+        operations parents(operations) override;
+
+        op_mapping parents_to_children() override;
+        op_mapping children_to_parents() override;
 
         handle_t from() const override;
         handle_t to() const override;
