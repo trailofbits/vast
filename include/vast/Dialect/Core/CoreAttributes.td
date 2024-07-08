@@ -143,12 +143,4 @@ def Core_SourceLanguageAttr : EnumAttr< Core_Dialect, Core_SourceLanguage, "lang
 
 include "vast/Dialect/Core/Linkage.td"
 
-def Core_FuncSymbolRefAttr : Core_Attr< "FuncSymbolRef", "func_symbol_ref",
-  [VastSymbolRefInterface]
-> {
-  let parameters = (ins "mlir::FlatSymbolRefAttr":$symbol_ref);
-
-  let assemblyFormat = "`<` $symbol_ref `>`";
-}
-
 #endif // VAST_DIALECT_CORE_COREATTRIBUTES
