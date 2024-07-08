@@ -87,7 +87,7 @@ def CallRetsOp : HasBody< "call_rets" >
 def CallExecutionOp
     : ABI_Op< "call_exec", [DeclareOpInterfaceMethods< CallOpInterface >] >
     , Arguments<(ins
-        FuncSymbolRefAttr:$callee,
+        SymbolRefAttr:$callee,
         Variadic<AnyType>:$args)>
     , Results<(outs AnyType:$result)>
 {
@@ -99,7 +99,7 @@ def CallExecutionOp
     let skipDefaultBuilders = 1;
     let builders = [
         OpBuilder< (ins
-            "core::FuncSymbolRefAttr":$callee,
+            "mlir::FlatSymbolRefAttr":$callee,
             "mlir::TypeRange":$results,
             CArg< "mlir::ValueRange", "{}" >:$operands,
             CArg< "maybe_builder_callback_ref", "std::nullopt" >:$body_builder
@@ -108,15 +108,6 @@ def CallExecutionOp
             $_state.addOperands(operands);
             $_state.addAttribute("callee", callee);
             build_op_with_region($_builder, $_state, body_builder);
-        }]>,
-        OpBuilder< (ins
-            "mlir::FlatSymbolRefAttr":$callee,
-            "mlir::TypeRange":$results,
-            CArg<"mlir::ValueRange", "{}">:$operands,
-            CArg< "maybe_builder_callback_ref", "std::nullopt" >:$body_builder
-        ), [{
-            auto symbol = core::FuncSymbolRefAttr::get($_builder.getContext(), callee);
-            build($_builder, $_state, symbol, results, operands, body_builder);
         }]>,
         OpBuilder< (ins
             "mlir::StringAttr":$callee,
@@ -160,7 +151,7 @@ def YieldOp
 def CallOp
   : ABI_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
   , Arguments<(ins
-      FuncSymbolRefAttr:$callee,
+      FlatSymbolRefAttr:$callee,
       Variadic<AnyType>:$args)>
   , Results<(outs Variadic<AnyType>:$results)>
 {
@@ -170,21 +161,13 @@ def CallOp
     let skipDefaultBuilders = 1;
     let builders = [
         OpBuilder< (ins
-            "core::FuncSymbolRefAttr":$callee,
+            "mlir::FlatSymbolRefAttr":$callee,
             "mlir::TypeRange":$results,
             CArg< "mlir::ValueRange", "{}" >:$operands
         ), [{
             $_state.addOperands(operands);
             $_state.addAttribute("callee", callee);
             $_state.addTypes(results);
-        }]>,
-        OpBuilder< (ins
-            "mlir::FlatSymbolRefAttr":$callee,
-            "mlir::TypeRange":$results,
-            CArg<"mlir::ValueRange", "{}">:$operands
-        ), [{
-            auto symbol = core::FuncSymbolRefAttr::get($_builder.getContext(), callee);
-            build($_builder, $_state, symbol, results, operands);
         }]>,
         OpBuilder< (ins
             "mlir::StringAttr":$callee,
