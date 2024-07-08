@@ -302,6 +302,7 @@ find_package(gap CONFIG REQUIRED)
 target_link_libraries(vast_settings
   INTERFACE
     "$<BUILD_LOCAL_INTERFACE:gap::gap>"
+    "$<BUILD_LOCAL_INTERFACE:gap::gap-mlir>"
 )
 
 #
