@@ -364,14 +364,6 @@ def CallOp
       $_state.addTypes(results);
     }]>,
     OpBuilder< (ins
-      "mlir::FlatSymbolRefAttr":$callee,
-      "mlir::TypeRange":$results,
-      CArg<"mlir::ValueRange", "{}">:$operands
-    ), [{
-      auto symbol = core::FuncSymbolRefAttr::get($_builder.getContext(), callee);
-      build($_builder, $_state, symbol, results, operands);
-    }]>,
-    OpBuilder< (ins
       "mlir::StringAttr":$callee,
       "mlir::TypeRange":$results,
       CArg<"mlir::ValueRange", "{}">:$operands

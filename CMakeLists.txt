@@ -313,6 +313,7 @@ if (VAST_ENABLE_GAP_PACKAGE)
       "GAP_ENABLE_VCPKG OFF"
       "GAP_ENABLE_TESTING OFF"
       "GAP_ENABLE_EXAMPLES OFF"
+      "GAP_ENABLE_MLIR ON"
       "GAP_INSTALL ON"
   )
 else()
@@ -322,6 +323,7 @@ endif()
 target_link_libraries(vast_settings
   INTERFACE
     "$<BUILD_LOCAL_INTERFACE:gap::gap>"
+    "$<BUILD_LOCAL_INTERFACE:gap::gap-mlir>"
 )
 
 #
