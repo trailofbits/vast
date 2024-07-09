@@ -28,18 +28,16 @@ namespace vast::core {
     }
 
     auto nested_symbol_tables_with_unrecognized_symbols(operation root) {
-        auto root_table = mlir::cast< symbol_table_op_interface >(root);
-
-        auto can_have_unrecognized_symbols = [&](symbol_table_op_interface st) {
-            return !subsumes(st, root_table);
-        };
-
         return gmw::operations(root)
             | gmw::filter_cast< symbol_table_op_interface >
-            | vws::filter(can_have_unrecognized_symbols);
+            | vws::filter([rt = mlir::cast< symbol_table_op_interface >(root)] (auto st) {
+                // Return true if st can contain symbols not kept in st,
+                // but recognized by the root symbol table.
+                return !subsumes(st, rt);
+            });
     }
 
-    gap::recursive_generator< operation > nested_symbols_unrecognized_by_nested_symbol_tables(operation root) {
+    gap::recursive_generator< operation > symbols_unrecognized_by_nested_symbol_tables(operation root) {
         VAST_ASSERT(mlir::isa< symbol_table_op_interface >(root));
 
         for (auto st : nested_symbol_tables_with_unrecognized_symbols(root)) {
@@ -47,7 +45,7 @@ namespace vast::core {
                 co_yield op;
             }
 
-            for ([[maybe_unused]] auto op : nested_symbols_unrecognized_by_nested_symbol_tables(st)) {
+            for ([[maybe_unused]] auto op : symbols_unrecognized_by_nested_symbol_tables(st)) {
                 VAST_UNIMPLEMENTED_MSG("recursively yield the nested symbol tables of the nested symbol table");
             }
         }
