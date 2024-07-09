@@ -109,8 +109,8 @@ namespace vast::tw {
         return build_map(init, links, transition);
     }
 
-    op_mapping build_map(handle_t from, handle_t to, location_info_t &li) {
-        return build_map({gather_loc_to_op(li, from.mod), gather_loc_to_op(li, to.mod)}, li);
+    op_mapping build_map(handle_t parent, handle_t child, location_info_t &li) {
+        return build_map({gather_loc_to_op(li, parent.mod), gather_loc_to_op(li, child.mod)}, li);
     }
 
     /* conversion_step::link_interface API */
@@ -126,24 +126,24 @@ namespace vast::tw {
     }
 
     op_mapping conversion_step::children_to_parents() {
-        return build_map(from(), to(), _location_info);
+        return build_map(parent(), child(), _location_info);
     }
 
-    handle_t conversion_step::from() const { return _from; }
-    handle_t conversion_step::to() const { return _to; }
+    handle_t conversion_step::parent() const { return _parent; }
+    handle_t conversion_step::child() const { return _child; }
 
     /* fat_link */
 
     fat_link::fat_link(link_vector links)
-        : links(std::move(links)),
-          down(build_map(this->links)),
-          up(reverse_mapping(up))
+        : _links(std::move(links)),
+          _to_children(build_map(_links)),
+          _to_parents(reverse_mapping(_to_children))
       {}
 
     /* fat_link::link_interface API */
 
     operations fat_link::children(operation op) {
-        return down[op];
+        return _to_children[op];
     }
 
     operations fat_link::children(operations ops) {
@@ -153,7 +153,9 @@ namespace vast::tw {
         return out;
     }
 
-    operations fat_link::parents(operation op) { return up[op]; }
+    operations fat_link::parents(operation op) {
+        return _to_parents[op];
+    }
 
     operations fat_link::parents(operations ops) {
         operations out;
@@ -162,10 +164,10 @@ namespace vast::tw {
         return out;
     }
 
-    op_mapping fat_link::parents_to_children() { return down; }
-    op_mapping fat_link::children_to_parents() { return up; }
+    op_mapping fat_link::parents_to_children() { return _to_children; }
+    op_mapping fat_link::children_to_parents() { return _to_parents; }
 
-    handle_t fat_link::from() const { return links.front()->from(); }
-    handle_t fat_link::to() const { return links.back()->to(); }
+    handle_t fat_link::parent() const { return _links.front()->parent(); }
+    handle_t fat_link::child() const { return _links.back()->child(); }
 
 } // namespace vast::tw

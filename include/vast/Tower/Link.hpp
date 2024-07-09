@@ -40,23 +40,23 @@ namespace vast::tw {
         virtual op_mapping parents_to_children() = 0;
         virtual op_mapping children_to_parents() = 0;
 
-        virtual handle_t from() const = 0;
-        virtual handle_t to() const = 0;
+        virtual handle_t parent() const = 0;
+        virtual handle_t child() const = 0;
     };
 
     // Represent application of some passes. Invariant is that
-    // `from -> to` are tied by the `location_info`.
+    // `parent -> child` are tied by the `location_info`.
     // TODO: How to enforce this - private ctor and provide a builder interface on the side
     //       that is a friend and allowed to create these?
     struct conversion_step : link_interface {
       protected:
-        handle_t _from;
-        handle_t _to;
+        handle_t _parent;
+        handle_t _child;
         location_info_t &_location_info;
 
       public:
-        explicit conversion_step(handle_t from, handle_t to, location_info_t &location_info)
-            : _from(from), _to(to), _location_info(location_info)
+        explicit conversion_step(handle_t parent, handle_t child, location_info_t &location_info)
+            : _parent(parent), _child(child), _location_info(location_info)
         {}
 
         operations children(operation) override;
@@ -68,8 +68,8 @@ namespace vast::tw {
         op_mapping parents_to_children() override;
         op_mapping children_to_parents() override;
 
-        handle_t from() const override;
-        handle_t to() const override;
+        handle_t parent() const override;
+        handle_t child() const override;
     };
 
     using link_ptr = std::unique_ptr< link_interface >;
@@ -82,10 +82,10 @@ namespace vast::tw {
     struct fat_link : link_interface
     {
       protected:
-        link_vector links;
+        link_vector _links;
 
-        op_mapping down;
-        op_mapping up;
+        op_mapping _to_children;
+        op_mapping _to_parents;
 
       public:
         explicit fat_link(link_vector links);
@@ -100,8 +100,8 @@ namespace vast::tw {
         op_mapping parents_to_children() override;
         op_mapping children_to_parents() override;
 
-        handle_t from() const override;
-        handle_t to() const override;
+        handle_t child() const override;
+        handle_t parent() const override;
     };
 
 } // namespace vast::tw
