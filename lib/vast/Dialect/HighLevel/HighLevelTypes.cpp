@@ -89,41 +89,44 @@ namespace vast::hl
         return {};
     }
 
-    core::FunctionType getFunctionType(mlir_type type, core::module mod) {
-        if (auto ty = type.dyn_cast< core::FunctionType >())
+    core::FunctionType getFunctionType(mlir_type type, operation from) {
+        if (auto ty = type.dyn_cast< core::FunctionType >()) {
             return ty;
-        if (auto ty = dyn_cast< ElementTypeInterface >(type))
-            return getFunctionType(ty.getElementType(), mod);
-        if (auto ty = type.dyn_cast< TypedefType >())
-            return getFunctionType(getTypedefType(ty, mod), mod);
-
-        return {};
+        } else if (auto ty = dyn_cast< ElementTypeInterface >(type)) {
+            return getFunctionType(ty.getElementType(), from);
+        } else if (auto ty = type.dyn_cast< TypedefType >()) {
+            auto mod = from->getParentOfType< core::module >();
+            return getFunctionType(getTypedefType(ty, mod), from);
+        } else {
+            return {};
+        }
     }
 
     core::FunctionType getFunctionType(mlir_value callee) {
-        auto op  = callee.getDefiningOp();
-        auto mod = op->getParentOfType< core::module >();
-        return getFunctionType(callee.getType(), mod);
+        return getFunctionType(callee.getType(), callee.getDefiningOp());
     }
 
     core::FunctionType getFunctionType(mlir::CallOpInterface call) {
-        auto mod = call->getParentOfType< core::module >();
-        return getFunctionType(call.getCallableForCallee(), mod);
+        return getFunctionType(call.getCallableForCallee(), call.getOperation());
     }
 
-    core::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, core::module mod) {
+    core::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, operation from) {
         if (!callee) {
             return {};
         }
 
         if (auto sym = callee.dyn_cast< mlir::SymbolRefAttr >()) {
-            return mlir::dyn_cast_or_null< FuncOp >(
-                mlir::SymbolTable::lookupSymbolIn(mod, sym)
-            ).getFunctionType();
+            auto st = core::get_effective_symbol_table_for< core::func_symbol >(from);
+            VAST_CHECK(st, "No effective symbol table found for function type resolution.");
+
+            auto fn = st->lookup< core::func_symbol >(sym.getRootReference());
+            VAST_CHECK(fn, "Function {} not present in the symbol table.", sym.getRootReference());
+
+            return mlir::cast< FuncOp >(fn).getFunctionType();
         }
 
         if (auto value = callee.dyn_cast< mlir_value >()) {
-            return getFunctionType(value.getType(), mod);
+            return getFunctionType(value.getType(), from);
         }
 
         return {};
