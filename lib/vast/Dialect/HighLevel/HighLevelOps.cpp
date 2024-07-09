@@ -508,6 +508,13 @@ namespace vast::hl
         setOperand(0, callee.get< mlir_value >());
     }
 
+    mlir::Operation *CallOp::resolveCallable() {
+        return core::symbol_table::lookup< core::func_symbol >(getOperation(), getCallee());
+    }
+
+    mlir::Operation *CallOp::resolveCallableInTable(::mlir::SymbolTableCollection &) {
+        VAST_UNIMPLEMENTED;
+    }
 
     mlir::ParseResult IfOp::parse(mlir::OpAsmParser &parser, mlir::OperationState &result) {
         std::unique_ptr< mlir::Region > condRegion = std::make_unique< mlir::Region >();
