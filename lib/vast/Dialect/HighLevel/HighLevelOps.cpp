@@ -321,6 +321,13 @@ namespace vast::hl
         }
     }
 
+    void OffsetOfExprOp::build(
+        Builder &bld, State &st, Type rty, Type source, mlir::ArrayAttr components,
+        const std::vector< builder_callback > &builders
+    ) {
+        OffsetOfExprOp::build(bld, st, rty, mlir::TypeAttr::get(source), components, builders);
+    }
+
     void StmtExprOp::build(
         Builder &bld, State &st, Type rty,
         builder_callback_ref expr
