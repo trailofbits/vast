@@ -342,7 +342,7 @@ def RecordMemberOp
 def CallOp
   : HighLevel_Op< "call", [
       CallOpInterface,
-      DeclareOpInterfaceMethods<CallOpInterface>
+      DeclareOpInterfaceMethods<CallOpInterface, ["resolveCallable", "resolveCallableInTable"]>
     ] >
   , Arguments<(ins
       FlatSymbolRefAttr:$callee,
