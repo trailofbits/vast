@@ -1019,23 +1019,25 @@ namespace vast::conv::irstollvm
 
     struct call : base_pattern< hl::CallOp >
     {
-        using base = base_pattern< hl::CallOp >;
+        using op_t = hl::CallOp;
+        using base = base_pattern< op_t >;
         using base::base;
 
+        using adaptor_t = typename op_t::Adaptor;
+
         logical_result matchAndRewrite(
-                    hl::CallOp op, typename hl::CallOp::Adaptor ops,
-                    conversion_rewriter &rewriter) const override
-        {
-            auto module = op->getParentOfType< core::module >();
-            if (!module)
+            op_t op, adaptor_t ops, conversion_rewriter &rewriter
+        ) const override {
+            auto caller = mlir::dyn_cast< VastCallOpInterface >(op.getOperation());
+            if (!caller)
                 return logical_result::failure();
 
-            auto callee = module.lookup_symbol< mlir::LLVM::LLVMFuncOp >(op.getCallee());
+            auto callee = caller.resolveCallable();
             if (!callee)
                 return logical_result::failure();
 
             auto rtys = this->type_converter().convert_types_to_types(
-                    callee.getResultTypes());
+                    callee->getResultTypes());
             if (!rtys)
                 return logical_result::failure();
 
@@ -1048,10 +1050,10 @@ namespace vast::conv::irstollvm
             {
                 // We cannot pass in void type as some internal check inside `mlir::LLVM`
                 // dialect will fire - it would create a value of void type, which is not allowed.
-                mk_call(std::vector< mlir::Type >{}, op.getCallee().getSymbol(), ops.getOperands());
+                mk_call(std::vector< mlir::Type >{}, op.getCallee(), ops.getOperands());
                 rewriter.eraseOp(op);
             } else {
-                auto call = mk_call(*rtys, op.getCallee().getSymbol(), ops.getOperands());
+                auto call = mk_call(*rtys, op.getCallee(), ops.getOperands());
                 rewriter.replaceOp(op, call.getResults());
             }
 

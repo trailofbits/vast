@@ -752,7 +752,7 @@ namespace vast::hl
 
     FuncOp getCallee(CallOp call)
     {
-        auto coi = mlir::cast<mlir::CallOpInterface>(call.getOperation());
+        auto coi = mlir::cast< VastCallOpInterface >(call.getOperation());
         return mlir::dyn_cast_or_null<FuncOp>(coi.resolveCallable());
     }
 
