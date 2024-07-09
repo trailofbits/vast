@@ -57,12 +57,12 @@ namespace vast::tw {
         return out;
     }
 
-    std::vector< op_mapping > mk_link_mappings(const auto &links) {
-        std::vector< op_mapping > out;
-        for (const auto &l : links)
-            out.emplace_back(l->parents_to_children());
-        return out;
+    auto mk_link_mappings(const auto &links) {
+        namespace rns = std::ranges;
+        namespace vws = std::ranges::views;
+        return links | vws::transform(views::parents_to_children) | rns::to< std::vector >();
     }
+
 
     // `transition` handles the lookup between levels - we need this as we want to generalise
     // (`levels` can be arbitrary mapping, not just `op -> { op }`).
