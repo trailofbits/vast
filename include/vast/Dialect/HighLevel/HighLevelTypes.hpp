@@ -126,8 +126,6 @@ namespace vast::hl
     }
 
     core::FunctionType getFunctionType(mlir_type function_pointer, operation from);
-    core::FunctionType getFunctionType(Value callee);
-    core::FunctionType getFunctionType(mlir::CallOpInterface call);
     core::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, operation from);
 
     mlir_type getTypedefType(TypedefType type, core::module mod);
