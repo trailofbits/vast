@@ -7,6 +7,23 @@ include "mlir/IR/OpBase.td"
 include "vast/Interfaces/Common.td"
 include "vast/Dialect/Core/CoreTraits.td"
 
+def VastCallOpInterface : VastOpInterface< "VastCallOpInterface" > {
+    let methods = [
+        InterfaceMethod<[{
+            This is temporal interface method. It will be removed
+            when changes of `mlir::CallOpInterface` are upstreamed.
+        }],
+        "::mlir::Operation *", "resolveCallableInTable", (ins "::mlir::SymbolTableCollection &":$symbolTable)
+        >,
+        InterfaceMethod<[{
+            This is temporal interface method. It will be removed
+            when changes of `mlir::CallOpInterface` are upstreamed.
+        }],
+        "::mlir::Operation *", "resolveCallable"
+        >
+    ];
+}
+
 def SymbolTableOpInterface : VastOpInterface< "SymbolTableOpInterface" > {
     let methods = [
         InterfaceMethod<"Returns true if the symbol table holds symbols that have the given symbol kind trait.",
