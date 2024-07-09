@@ -2,10 +2,15 @@
 // RUN: %vast-front -vast-emit-mlir=hl -o - %s > %t && %vast-opt %t | diff -B %t -
 
 int main(void) {
-    int a;
     __typeof__(int) y = 0;
     // CHECK: hl.add {{.*}} (!hl.typeof.type<!hl.int>, !hl.int)
     __typeof__(0) x = y + 0;
     // CHECK: hl.add {{.*}} (!hl.int, !hl.typeof.expr<"(0)">)
-    return 1 + x;
+    1 + x;
+    // CHECK: hl.bin.ashr {{.*}} (!hl.typeof.expr<"(0)">, !hl.int)
+    x >> 0;
+    __typeof__(float) a = 0;
+    __typeof__(a) b = 2;
+    // CHECK: hl.fcmp {{.*}} !hl.typeof.type<!hl.float>, !hl.typeof.expr<"(a)">
+    a == b;
 }
