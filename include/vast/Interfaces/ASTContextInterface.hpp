@@ -13,4 +13,4 @@ VAST_RELAX_WARNINGS
 
 
 /// Include the generated interface declarations.
-#include "vast/Interfaces/ASTExprInterface.h.inc"
+#include "vast/Interfaces/ASTContextInterface.h.inc"
