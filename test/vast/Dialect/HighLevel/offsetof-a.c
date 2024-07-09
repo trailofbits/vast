@@ -14,7 +14,7 @@ struct T {
 };
 
 int main() {
-    // CHECK: hl.offsetof.expr [#hl.offset_of_node<identifier : "s">, #hl.offset_of_node<index : 0>, #hl.offset_of_node<identifier : "d">, #hl.offset_of_node<index : 1>] {{.*}} {
+    // CHECK: hl.offsetof.expr [#hl.offset_of_node<identifier : "T::s">, #hl.offset_of_node<index : 0>, #hl.offset_of_node<identifier : "S::d">, #hl.offset_of_node<index : 1>] {{.*}} {
     // CHECK: hl.value.yield
     // CHECK: }, {
     // CHECK: hl.value.yield
