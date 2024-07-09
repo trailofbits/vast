@@ -189,9 +189,13 @@ class ContainsTypedef< list< string > tl > : PredOpTrait< "contains typedef type
     Or< !foreach(type, tl, IsMaybeWrappedTypedef< type >.predicate) >
 >;
 
+class ContainsTypeOf< list< string > tl > : PredOpTrait< "contains typeof type",
+    Or< !foreach(type, tl, IsTypeOf< type >.predicate) >
+>;
+
 class TypesMatchOrTypedef< list< string > tl > : PredOpTrait<
     "all types match or there is a typedef",
-    Or< [AllTypesMatch< tl >.predicate, ContainsTypedef< tl >.predicate ] >
+    Or< [AllTypesMatch< tl >.predicate, ContainsTypedef< tl >.predicate, ContainsTypeOf< tl >.predicate ] >
 >;
 
 class TypeWithSubType<string name, string mnem> : HighLevelType< name,
