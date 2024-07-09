@@ -44,6 +44,17 @@ namespace vast::tw {
         virtual handle_t child() const = 0;
     };
 
+    namespace views {
+        static inline auto parents_to_children = [](const auto &link) {
+            return link->parents_to_children();
+        };
+
+        static inline auto children_to_parents = [](const auto &link) {
+            return link->children_to_parents();
+        };
+
+    } // namespace views
+
     // Represent application of some passes. Invariant is that
     // `parent -> child` are tied by the `location_info`.
     // TODO: How to enforce this - private ctor and provide a builder interface on the side
