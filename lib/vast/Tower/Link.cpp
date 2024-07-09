@@ -93,7 +93,7 @@ namespace vast::tw {
     op_mapping build_map(const link_vector &links) {
         auto transition = [](operation op) { return op; };
         auto init = links.front()->parents_to_children();
-        return build_map(init, mk_link_mappings(links), transition);
+        return build_map(std::move(init), mk_link_mappings(links), transition);
     }
 
     op_mapping build_map(std::vector< loc_to_op_t > links, location_info_t &li) {
@@ -106,7 +106,7 @@ namespace vast::tw {
         for (auto [_, op] : links.front()) {
             init[op.front()] = { op };
         }
-        return build_map(init, links, transition);
+        return build_map(std::move(init), links, transition);
     }
 
     op_mapping build_map(handle_t parent, handle_t child, location_info_t &li) {
