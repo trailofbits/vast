@@ -1309,7 +1309,7 @@ def OffsetOfNodeAttr
 
 def OffsetOfExprOp
   : HighLevel_Op< "offsetof.expr" >
-  , Arguments< (ins ArrayAttr:$components) >
+  , Arguments< (ins TypeAttr:$source, ArrayAttr:$components) >
   , Results< (outs AnyType:$result) >
 {
   let summary = "VAST expr offsetof operator";
@@ -1324,12 +1324,13 @@ def OffsetOfExprOp
   let builders = [
       OpBuilder< (ins
         "Type":$type,
+        "mlir::TypeAttr":$source,
         "mlir::ArrayAttr":$components,
         "const std::vector< builder_callback > &":$builders
       ) >
   ];
 
-  let assemblyFormat = [{ attr-dict $components `:` type($result) $array_index_exprs }];
+  let assemblyFormat = [{ attr-dict `type` `:` $source `,` `member` `:` $components `:` type($result) $array_index_exprs }];
 }
 
 def StmtExprOp
