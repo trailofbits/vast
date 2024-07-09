@@ -77,11 +77,14 @@ namespace vast::hl
     } // namespace
 
     logical_result FCmpOp::verify() {
+        namespace tt = mlir::TypeTrait;
+
         auto lhs = strip_complex(strip_elaborated(getLhs()));
         auto rhs = strip_complex(strip_elaborated(getRhs()));
         return logical_result::success(
-            lhs == rhs || lhs.hasTrait< mlir::TypeTrait::TypedefTrait >()
-            || rhs.hasTrait< mlir::TypeTrait::TypedefTrait >()
+            lhs == rhs
+            || any_with_trait< tt::TypedefTrait >(lhs, rhs)
+            || any_with_trait< tt::TypeOfTrait >(lhs, rhs)
         );
     }
 
