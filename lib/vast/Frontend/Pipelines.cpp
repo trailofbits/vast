@@ -191,6 +191,8 @@ namespace vast::cc {
             passes->enableCrashReproducerGeneration(reproducer_path.value(), true /* local reproducer */);
         }
 
+        passes->enableVerifier(!vargs.has_option(cc::opt::disable_vast_verifier));
+
         return passes;
     }
 
