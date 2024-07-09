@@ -289,7 +289,8 @@ def HLIntegerType : AnyTypeOf<[
 
 def IntegerLikeType : TypeConstraint<
   Or< [HLIntegerType.predicate, AnyInteger.predicate,
-       IsMaybeWrappedTypedef< "_self" >.predicate] >,
+       IsMaybeWrappedTypedef< "_self" >.predicate,
+       ElaboratedType<EnumType>.predicate] >,
   "integer like type"
 >;
 
