@@ -39,6 +39,4 @@ namespace vast::tw {
         link_ptr apply(handle_t, location_info_t &, mlir::PassManager &);
     };
 
-    using default_tower = tower;
-
 } // namespace vast::tw
