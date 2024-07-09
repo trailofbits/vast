@@ -1,7 +1,6 @@
 // Copyright (c) 2024-present, Trail of Bits, Inc.
 
 #include "vast/CodeGen/AttrVisitorProxy.hpp"
-#include "vast/CodeGen/Util.hpp"
 
 #include "vast/Dialect/Unsupported/UnsupportedDialect.hpp"
 
