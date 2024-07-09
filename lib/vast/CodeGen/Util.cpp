@@ -36,6 +36,7 @@ namespace vast::cg
 
             name += "::";
         }
+        name += get_decl_name(decl);
 
         return name;
     }
