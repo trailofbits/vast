@@ -5,6 +5,7 @@
 
 #include "vast/CodeGen/CodeGenBlock.hpp"
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
+#include "vast/CodeGen/Util.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
@@ -936,7 +937,7 @@ namespace vast::cg
         attrs_t components;
         std::vector< builder_callback > index_exprs;
 
-        for (unsigned int i = 0; i <  expr->getNumComponents(); ++i) {
+        for (unsigned int i = 0; i < expr->getNumComponents(); ++i) {
             auto &component = expr->getComponent(i);
             switch (component.getKind()) {
                 case clang::OffsetOfNode::Kind::Array: {
@@ -945,7 +946,15 @@ namespace vast::cg
                     index_exprs.push_back(mk_value_builder(expr->getIndexExpr(index)));
                     break;
                 }
-                case clang::OffsetOfNode::Kind::Field:
+                case clang::OffsetOfNode::Kind::Field: {
+                    components.push_back(hl::OffsetOfNodeAttr::get(
+                        &mctx,
+                        mlir::StringAttr::get(
+                            &mctx, get_namespaced_decl_name(component.getField())
+                        )
+                    ));
+                    break;
+                }
                 case clang::OffsetOfNode::Kind::Identifier: {
                     components.push_back(hl::OffsetOfNodeAttr::get(
                         &mctx, mlir::StringAttr::get(&mctx, component.getFieldName()->getName())
