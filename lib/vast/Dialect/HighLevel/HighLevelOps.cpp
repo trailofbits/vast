@@ -64,7 +64,8 @@ namespace vast::hl
 
             for (auto t_elab : op->getOperandTypes()) {
                 auto t = strip_elaborated(t_elab);
-                if (t.hasTrait< mlir::TypeTrait::TypedefTrait >()) {
+                if (t.hasTrait< mlir::TypeTrait::TypedefTrait >() ||
+                    t.hasTrait< mlir::TypeTrait::TypeOfTrait >()) {
                     return logical_result::success();
                 }
                 if (strip_complex(t) != res_type) {
