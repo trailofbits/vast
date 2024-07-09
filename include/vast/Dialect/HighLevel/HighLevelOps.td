@@ -753,7 +753,7 @@ class PtrDiffLike< string lhs, string rhs, string res > : PredOpTrait< "is a sub
 >;
 
 class IsAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation (types match or are ptr and integral)", Or<[
-        TypesMatchOrTypedef< [lhs, rhs, res] >.predicate,
+        TypesMatchOrUnresolved< [lhs, rhs, res] >.predicate,
         IsPointerAdditive< lhs, rhs, res >.predicate,
     ]>
 >;
@@ -795,7 +795,7 @@ class ArithBinOp< string mnemonic, list< Trait > traits = [] >
 
 class StandardArithBinOp< string mnemonic, list< Trait > traits = [] >
     : ArithBinOp< mnemonic,
-        !listconcat(traits, [TypesMatchOrTypedef< ["lhs", "rhs", "result"] >])
+        !listconcat(traits, [TypesMatchOrUnresolved< ["lhs", "rhs", "result"] >])
       >;
 
 class FloatArithBinOp< string mnemonic, list< Trait > traits = [] >
@@ -887,7 +887,7 @@ def BinComma
 
 class ShiftOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
-        TypesMatchOrTypedef<["lhs", "result"]>
+        TypesMatchOrUnresolved<["lhs", "result"]>
     ]) >
     , Arguments<(ins IntegerLikeType:$lhs, IntegerLikeType:$rhs)>
     , Results<(outs IntegerLikeType:$result)>
@@ -925,7 +925,7 @@ class IsCompoundAdditive< string lhs, string rhs, string res > : PredOpTrait< "i
     Or<[
         IsCompoundPtrAdditive< lhs, rhs, res >.predicate,
         CPred< "mlir::isa< LValueType >($" # lhs # ".getType()) && mlir::cast< LValueType >($" # lhs # ".getType()).getElementType() == $" # res # ".getType()" >,
-        ContainsTypedef< [lhs, rhs] >.predicate
+        TypesMatchOrUnresolved< [lhs, rhs] >.predicate
     ]>
 >;
 
