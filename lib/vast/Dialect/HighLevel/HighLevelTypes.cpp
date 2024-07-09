@@ -102,14 +102,6 @@ namespace vast::hl
         }
     }
 
-    core::FunctionType getFunctionType(mlir_value callee) {
-        return getFunctionType(callee.getType(), callee.getDefiningOp());
-    }
-
-    core::FunctionType getFunctionType(mlir::CallOpInterface call) {
-        return getFunctionType(call.getCallableForCallee(), call.getOperation());
-    }
-
     core::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, operation from) {
         if (!callee) {
             return {};
