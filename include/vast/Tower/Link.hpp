@@ -21,7 +21,7 @@ namespace vast::tw {
     // we could pass in only some step chain and location info and it will get computed.
     // Since if we have `A -> B` we can always construct `B -> A` it may make sense to simply only
     // export bidirectional mapping?
-    using op_mapping = std::unordered_map< operation, operations >;
+    using op_mapping = llvm::DenseMap< operation, operations >;
 
     // Generic interface to generalize the connection between any two modules.
     // There are no performance guarantees in general, but there should be implementations
