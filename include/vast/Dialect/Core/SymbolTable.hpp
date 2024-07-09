@@ -97,7 +97,7 @@ namespace vast::core {
         return gmw::operations(table) | gmw::filter_cast< symbol_base >;
     }
 
-    gap::recursive_generator< operation > nested_symbols_unrecognized_by_nested_symbol_tables(operation root);
+    gap::recursive_generator< operation > symbols_unrecognized_by_nested_symbol_tables(operation root);
 
 
     struct symbol_table
@@ -111,6 +111,7 @@ namespace vast::core {
             using recognized_symbols_list = util::flatten< symbols_lists >;
             symbol_tables.reserve( recognized_symbols_list::size );
             setup_symbol_tables< recognized_symbols_list >();
+
             insert_nested_symbols< recognized_symbols_list >(symbol_table_op);
         }
 
@@ -177,7 +178,7 @@ namespace vast::core {
 
             // insert all recognized symbols from nested scopes
             // not recognized by the symbol table of nested scope
-            for (auto symbol : nested_symbols_unrecognized_by_nested_symbol_tables(op)) {
+            for (auto symbol : symbols_unrecognized_by_nested_symbol_tables(op)) {
                 try_insert< symbols_list >(symbol);
             }
         }
