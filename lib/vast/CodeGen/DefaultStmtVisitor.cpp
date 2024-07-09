@@ -949,9 +949,7 @@ namespace vast::cg
                 case clang::OffsetOfNode::Kind::Field: {
                     components.push_back(hl::OffsetOfNodeAttr::get(
                         &mctx,
-                        mlir::StringAttr::get(
-                            &mctx, get_namespaced_decl_name(component.getField())
-                        )
+                        mlir::StringAttr::get(&mctx, self.symbol(component.getField()).value())
                     ));
                     break;
                 }
@@ -971,6 +969,7 @@ namespace vast::cg
         return bld.compose< hl::OffsetOfExprOp >()
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
+            .bind(mlir::TypeAttr::get(self.visit(expr->getTypeSourceInfo()->getType())))
             .bind(mlir::ArrayAttr::get(&mctx, components))
             .bind_always(index_exprs)
             .freeze();
