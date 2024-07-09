@@ -309,11 +309,12 @@ namespace vast::hl
     }
 
     void OffsetOfExprOp::build(
-        Builder &bld, State &st, Type rty, mlir::ArrayAttr components,
+        Builder &bld, State &st, Type rty, mlir::TypeAttr source, mlir::ArrayAttr components,
         const std::vector< builder_callback > &builders
     ) {
         InsertionGuard guard(bld);
         st.addTypes(rty);
+        st.addAttribute(getSourceAttrName(st.name), source);
         st.addAttribute(getComponentsAttrName(st.name), components);
         for (const auto &callback : builders) {
             build_region(bld, st, builder_callback_ref(callback));
