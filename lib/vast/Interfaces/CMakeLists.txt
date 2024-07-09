@@ -5,6 +5,11 @@ set(VAST_OPTIONAL_SOURCES
   DefaultDataLayoutTypeInterface.cpp
   ElementTypeInterface.cpp
   AggregateTypeDefinitionInterface.cpp
+  ASTContextInterface.cpp
+  ASTDeclInterface.cpp
+  ASTStmtVisitorInterface.cpp
+  ASTTypeInterface.cpp
+  ASTExprInterface.cpp
 )
 
 add_vast_interface_library(AggregateTypeDefinitionInterface
@@ -29,4 +34,24 @@ add_vast_interface_library(DefaultDataLayoutTypeInterface
 
 add_vast_interface_library(ElementTypeInterface
   ElementTypeInterface.cpp
+)
+
+add_vast_interface_library(ASTContextInterface
+  ASTContextInterface.cpp
+)
+
+add_vast_interface_library(ASTDeclInterface
+  ASTDeclInterface.cpp
+)
+
+add_vast_interface_library(ASTExprInterface
+  ASTExprInterface.cpp
+)
+
+add_vast_interface_library(ASTStmtVisitorInterface
+  ASTStmtVisitorInterface.cpp
+)
+
+add_vast_interface_library(ASTTypeInterface
+  ASTTypeInterface.cpp
 )
