@@ -8,7 +8,7 @@ struct foo {
 };
 
 int main(void) {
-    // CHECK: hl.offsetof.expr {{.*}} "foo::anonymous[{{[0-9]+}}]"{{.*}}"foo::anonymous[{{[0-9]+}}]::bar"
+    // CHECK: hl.offsetof.expr type : !hl.elaborated<!hl.record<"foo">>{{.*}}"anonymous[{{[0-9]+}}]"{{.*}}"bar"
     (void) __builtin_offsetof(struct foo, bar);
     return 0;
 }
