@@ -222,20 +222,6 @@ class LValueOf<TypeConstraint value> : Type< And< [
   "lvalue to " # value.summary
 >;
 
-class LValueOrType<TypeConstraint value> : Type<
-  Or< [
-    And< [
-      LValue.predicate,
-      SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()",
-                   Or< [ value.predicate, TypeOrElaboratedType< TypedefType >.predicate] > >
-    ] >,
-    value.predicate,
-    TypedefType.predicate,
-    TypeOrElaboratedType< TypedefType >.predicate
-  ] >,
-  "lvalue to " # value.summary
->;
-
 class TypesOrLValueTypesMatch<string summary, string lhs, string rhs> : PredOpTrait< summary,
   Or<[
     TypesMatchWith< "underlying lvalue type does not match",
@@ -260,11 +246,6 @@ def BoolType : CVQualifiedType< "Bool", "bool", (ins) > {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
 
-def BoolLikeType : TypeConstraint<
-  Or< [BoolType.predicate, AnyI1.predicate, TypedefType.predicate] >,
-  "bool like type"
->;
-
 //
 // Integer types & traits
 //
@@ -282,22 +263,6 @@ def IntType      : IntegerType< "Int", "int", [IntegerTypeTrait] >;
 def LongType     : IntegerType< "Long", "long", [LongTypeTrait] >;
 def LongLongType : IntegerType< "LongLong", "longlong", [LongLongTypeTrait] >;
 def Int128Type   : IntegerType< "Int128", "int128", [Int128TypeTrait] >;
-
-def HLIntegerType : AnyTypeOf<[
-  CharType, ShortType, IntType, LongType, LongLongType, Int128Type, TypedefType
-]>;
-
-def IntegerLikeType : TypeConstraint<
-  Or< [HLIntegerType.predicate, AnyInteger.predicate,
-       IsMaybeWrappedTypedef< "_self" >.predicate,
-       ElaboratedType<EnumType>.predicate] >,
-  "integer like type"
->;
-
-def IntOrBoolType : TypeConstraint<
-  Or< [IntegerLikeType.predicate, BoolLikeType.predicate] >,
-  "bool or integer like type"
->;
 
 //
 // Floating point types & traits
@@ -327,16 +292,6 @@ def ComplexType : CVRQualifiedType<
   ];
   let assemblyFormat = "`<` $elementType (`,` $quals^)? `>`";
 }
-
-def HLFloatType : AnyTypeOf<[
-  HalfType, BFloat16Type, FloatType, DoubleType, LongDoubleType, Float128Type, TypedefType
-]>;
-
-def FloatLikeType : TypeConstraint<
-  Or< [HLFloatType.predicate, AnyFloat.predicate,
-       IsMaybeWrappedTypedef< "_self" >.predicate] >,
-  "float like type"
->;
 
 //
 // Memory related types & traits
@@ -483,5 +438,58 @@ def Atomic : CVRQualifiedType<
 
   let assemblyFormat = "`<` $elementType (`,` $quals^ )? `>`";
 }
+
+// Utils with multiple dependencies
+
+def UnresolvedType : Type<
+  Or< [
+    TypeOrElaboratedType< TypedefType >.predicate,
+    TypeOrElaboratedType< TypeOfType >.predicate,
+    TypeOrElaboratedType< TypeOfExprType >.predicate
+  ] >
+>;
+
+def BoolLikeType : TypeConstraint<
+  Or< [BoolType.predicate, AnyI1.predicate, UnresolvedType.predicate] >,
+  "bool like type"
+>;
+
+class LValueOrType<TypeConstraint value> : Type<
+  Or< [
+    And< [
+      LValue.predicate,
+      SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()",
+                   Or< [ value.predicate, UnresolvedType.predicate ] > >
+    ] >,
+    value.predicate,
+    UnresolvedType.predicate
+  ] >,
+  "lvalue to " # value.summary
+>;
+
+def HLIntegerType : AnyTypeOf<[
+  CharType, ShortType, IntType, LongType, LongLongType, Int128Type, UnresolvedType
+]>;
+
+def IntegerLikeType : TypeConstraint<
+  Or< [HLIntegerType.predicate, AnyInteger.predicate,
+       UnresolvedType.predicate,
+       ElaboratedType<EnumType>.predicate] >,
+  "integer like type"
+>;
+
+def IntOrBoolType : TypeConstraint<
+  Or< [IntegerLikeType.predicate, BoolLikeType.predicate] >,
+  "bool or integer like type"
+>;
+
+def HLFloatType : AnyTypeOf<[
+  HalfType, BFloat16Type, FloatType, DoubleType, LongDoubleType, Float128Type, UnresolvedType
+]>;
+
+def FloatLikeType : TypeConstraint<
+  Or< [HLFloatType.predicate, AnyFloat.predicate] >,
+  "float like type"
+>;
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES
