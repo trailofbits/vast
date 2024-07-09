@@ -968,7 +968,7 @@ namespace vast::cg
         return bld.compose< hl::OffsetOfExprOp >()
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
-            .bind(mlir::TypeAttr::get(self.visit(expr->getTypeSourceInfo()->getType())))
+            .bind(self.visit(expr->getTypeSourceInfo()->getType()))
             .bind(mlir::ArrayAttr::get(&mctx, components))
             .bind_always(index_exprs)
             .freeze();

@@ -1327,6 +1327,12 @@ def OffsetOfExprOp
         "mlir::TypeAttr":$source,
         "mlir::ArrayAttr":$components,
         "const std::vector< builder_callback > &":$builders
+      ) >,
+      OpBuilder< (ins
+        "Type":$type,
+        "mlir::Type":$source,
+        "mlir::ArrayAttr":$components,
+        "const std::vector< builder_callback > &":$builders
       ) >
   ];
 
