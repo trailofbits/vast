@@ -50,7 +50,7 @@ namespace vast::tw {
         }
     }
 
-    loc_to_op_t gather_map(location_info_t &li, operation op) {
+    loc_to_op_t gather_loc_to_op(location_info_t &li, operation op) {
         loc_to_op_t out;
         auto collect = [&](operation op) { out[li.self(op)].push_back(op); };
         op->walk(collect);
@@ -110,7 +110,7 @@ namespace vast::tw {
     }
 
     op_mapping build_map(handle_t from, handle_t to, location_info_t &li) {
-        return build_map({gather_map(li, from.mod), gather_map(li, to.mod)}, li);
+        return build_map({gather_loc_to_op(li, from.mod), gather_loc_to_op(li, to.mod)}, li);
     }
 
     /* conversion_step::link_interface API */

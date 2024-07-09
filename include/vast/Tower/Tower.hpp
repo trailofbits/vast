@@ -25,7 +25,7 @@ namespace vast::tw {
 
       public:
         tower(mcontext_t &mctx, location_info_t &li, owning_module_ref root) : mctx(mctx) {
-            make_root(li, root->getOperation());
+            mk_root(li, root->getOperation());
             top_handle = storage.store(root_conversion(), std::move(root));
         }
 
