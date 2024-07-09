@@ -47,7 +47,7 @@ Additional customization options include:
   - Prints operations in diagnostics.
   - Prints MLIR stack trace in diagnostics.
 
-- `-vast-disable-vast-verifier`
+- `-vast-disable-verifier`
   - Skips verification of the produced VAST MLIR module.
 
 - `vast-snapshot-at="pass1;...;passN`
