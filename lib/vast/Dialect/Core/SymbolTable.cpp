@@ -27,9 +27,20 @@ namespace vast::core {
         return immediate_nested_symbols(table) | vws::filter(not_recognized);
     }
 
+    auto nested_symbol_tables_view(operation root) {
+        return gmw::operations(root) | gmw::isa< symbol_table_op_interface >;
+    }
+
+    auto addresses = vws::transform([](auto &v) { return std::addressof(v); });
+
+    std::vector< operation > nested_symbol_tables(operation root) {
+        return nested_symbol_tables_view(root) | addresses | rns::to< std::vector >();
+    }
+
+
     auto nested_symbol_tables_with_unrecognized_symbols(operation root) {
-        return gmw::operations(root)
-            | gmw::filter_cast< symbol_table_op_interface >
+        return nested_symbol_tables_view(root)
+            | gmw::cast< symbol_table_op_interface >
             | vws::filter([rt = mlir::cast< symbol_table_op_interface >(root)] (auto st) {
                 // Return true if st can contain symbols not kept in st,
                 // but recognized by the root symbol table.
@@ -49,15 +60,6 @@ namespace vast::core {
                 VAST_UNIMPLEMENTED_MSG("recursively yield the nested symbol tables of the nested symbol table");
             }
         }
-    }
-
-    operation symbol_table::lookup(string_ref symbol) const {
-        VAST_UNIMPLEMENTED;
-    }
-
-
-    operation symbol_table::lookup(string_attr symbol) const {
-        return lookup(symbol.getValue());
     }
 
     void symbol_table::insert(symbol_kind kind, operation op) {
