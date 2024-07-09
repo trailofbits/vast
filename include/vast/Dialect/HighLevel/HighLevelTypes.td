@@ -180,24 +180,6 @@ class TypeOrElaboratedType< TypeConstraint value > : Type<
   ]>
 >;
 
-class IsMaybeWrappedTypedef< string arg > : PredOpTrait<
-    "type is a typedef, maybe wrapped in the elaborated type",
-    CPred< "::vast::hl::strip_elaborated($" # arg # ").hasTrait< mlir::TypeTrait::TypedefTrait >()" >
->;
-
-class ContainsTypedef< list< string > tl > : PredOpTrait< "contains typedef type",
-    Or< !foreach(type, tl, IsMaybeWrappedTypedef< type >.predicate) >
->;
-
-class ContainsTypeOf< list< string > tl > : PredOpTrait< "contains typeof type",
-    Or< !foreach(type, tl, IsTypeOf< type >.predicate) >
->;
-
-class TypesMatchOrTypedef< list< string > tl > : PredOpTrait<
-    "all types match or there is a typedef",
-    Or< [AllTypesMatch< tl >.predicate, ContainsTypedef< tl >.predicate, ContainsTypeOf< tl >.predicate ] >
->;
-
 class TypeWithSubType<string name, string mnem> : HighLevelType< name,
   [ElementTypeInterface]
 > {
@@ -447,6 +429,15 @@ def UnresolvedType : Type<
     TypeOrElaboratedType< TypeOfType >.predicate,
     TypeOrElaboratedType< TypeOfExprType >.predicate
   ] >
+>;
+
+class ContainsUnresolved< list< string > tl > : PredOpTrait< "contains unresolved type",
+    Or< !foreach(type, tl, SubstLeaves< "$_self", "$" # type #".getType()", UnresolvedType.predicate >) >
+>;
+
+class TypesMatchOrUnresolved< list< string > tl > : PredOpTrait<
+    "all types match or there is a typedef",
+    Or< [AllTypesMatch< tl >.predicate, ContainsUnresolved< tl >.predicate] >
 >;
 
 def BoolLikeType : TypeConstraint<
