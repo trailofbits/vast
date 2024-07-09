@@ -8,7 +8,6 @@
 #include "vast/CodeGen/CodeGenFunction.hpp"
 
 #include "vast/Util/Maybe.hpp"
-#include "vast/CodeGen/Util.hpp"
 
 namespace vast::cg
 {

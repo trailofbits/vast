@@ -2,10 +2,6 @@
 
 #include "vast/CodeGen/DefaultVisitor.hpp"
 
-#include "vast/Dialect/Unsupported/UnsupportedDialect.hpp"
-
-#include "vast/CodeGen/Util.hpp"
-
 namespace vast::cg
 {
     operation default_visitor::visit(const clang_decl *decl, scope_context &scope) {

@@ -2,8 +2,6 @@
 
 #include "vast/CodeGen/DefaultTypeVisitor.hpp"
 
-#include "vast/CodeGen/Util.hpp"
-
 namespace vast::cg {
 
     using BuiltinType = clang::BuiltinType;

@@ -5,7 +5,6 @@
 
 #include "vast/CodeGen/CodeGenBlock.hpp"
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
-#include "vast/CodeGen/Util.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
