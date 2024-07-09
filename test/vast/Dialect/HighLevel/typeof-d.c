@@ -13,4 +13,6 @@ int main(void) {
     __typeof__(a) b = 2;
     // CHECK: hl.fcmp {{.*}} !hl.typeof.type<!hl.float>, !hl.typeof.expr<"(a)">
     a == b;
+    // CHECK: hl.fadd {{.*}} (!hl.typeof.expr<"(a)">, !hl.float)
+    b + 3.0f;
 }
