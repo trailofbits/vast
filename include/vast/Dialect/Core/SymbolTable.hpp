@@ -99,7 +99,11 @@ namespace vast::core {
 
     gap::recursive_generator< operation > symbols_unrecognized_by_nested_symbol_tables(operation root);
 
+    std::vector< operation > nested_symbol_tables(operation root);
 
+    //
+    // A symbol table is a collection of recognized symbols, categorized by their kind.
+    //
     struct symbol_table
     {
         using single_symbol_kind_table = llvm::DenseMap< string_ref, operation >;
@@ -115,9 +119,6 @@ namespace vast::core {
             insert_nested_symbols< recognized_symbols_list >(symbol_table_op);
         }
 
-        [[nodiscard]] operation lookup(string_ref symbol) const;
-        [[nodiscard]] operation lookup(string_attr symbol) const;
-
         [[nodiscard]] operation lookup(operation from, string_ref symbol);
 
         template< symbol_op_interface symbol_kind >
@@ -127,7 +128,7 @@ namespace vast::core {
         [[nodiscard]] static operation lookup(operation from, string_ref symbol);
 
         template< symbol_op_interface symbol_kind >
-        [[nodiscard]] operation lookup(string_attr symbol) const;
+        [[nodiscard]] operation lookup(string_ref symbol) const;
 
         template< util::flat_list symbols_list >
         void try_insert(operation op) {
@@ -148,8 +149,6 @@ namespace vast::core {
         bool can_hold_symbol_kind(symbol_kind kind) const {
             return symbol_tables.contains(kind);
         }
-
-        operation symbol_table_op;
 
       protected:
 
@@ -185,6 +184,7 @@ namespace vast::core {
 
         void insert(symbol_kind kind, operation op);
 
+        operation symbol_table_op;
         llvm::DenseMap< symbol_kind, single_symbol_kind_table > symbol_tables;
     };
 
@@ -195,7 +195,7 @@ namespace vast::core {
         VAST_CHECK(table, "No effective symbol table found.");
 
         while (table) {
-            if (auto result = table->lookup(symbol))
+            if (auto result = table->template lookup< symbol_kind >(symbol))
                 return result;
             table = get_next_effective_symbol_table_for< symbol_kind >(table->symbol_table_op);
         }
@@ -209,8 +209,17 @@ namespace vast::core {
     }
 
     template< symbol_op_interface symbol_kind >
-    operation symbol_table::lookup(string_attr symbol) const {
-        return lookup< symbol_kind >(symbol_table_op, symbol);
+    operation symbol_table::lookup(string_ref symbol_name) const {
+        auto it = symbol_tables.find(get_symbol_kind< symbol_kind >);
+        if (it == symbol_tables.end())
+            return {};
+
+        auto &table = it->second;
+        auto symbol = table.find(symbol_name);
+        if (symbol == table.end())
+            return {};
+
+        return symbol->second;
     }
 
     std::optional< symbol_table > get_effective_symbol_table_for(operation from, symbol_kind kind);
