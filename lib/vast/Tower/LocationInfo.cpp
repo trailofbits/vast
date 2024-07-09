@@ -35,7 +35,7 @@ namespace vast::tw {
         return self(parent) == prev(child);
     }
 
-    void make_root(location_info_t &li, operation root) {
+    void mk_root(location_info_t &li, operation root) {
         auto set_loc = [&](operation op) { op->setLoc(li.get_root(op)); };
         root->walk(set_loc);
     }

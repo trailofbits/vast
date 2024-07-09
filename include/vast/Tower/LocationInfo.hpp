@@ -61,7 +61,7 @@ namespace vast::tw {
     // Since we are going to tie together arbitrary modules, it makes sense to make them
     // have locations in the same shape - therefore root shouldn't be an excuse. It will
     // however require slightly different handling, so we are exposing a hook for that.
-    void make_root(location_info_t &, operation);
+    void mk_root(location_info_t &, operation);
 
     void transform_locations(location_info_t &, const conversion_path_t &, operation);
 
