@@ -18,7 +18,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Interfaces/SymbolInterface.hpp"
 #include "vast/Interfaces/AggregateTypeDefinitionInterface.hpp"
-#include "vast/Interfaces/ASTNodesInterface.hpp"
+#include "vast/Interfaces/ClangAST/ASTDeclInterface.hpp"
 
 
 namespace vast::hl
