@@ -1,7 +1,7 @@
 // Copyright (c) 2024-present, Trail of Bits, Inc.
 
-#ifndef VAST_INTERFACES_AST_DECL_INTERFACE
-#define VAST_INTERFACES_AST_DECL_INTERFACE
+#ifndef VAST_INTERFACES_CLANG_AST_DECL_INTERFACE
+#define VAST_INTERFACES_CLANG_AST_DECL_INTERFACE
 
 include "mlir/IR/OpBase.td"
 include "vast/Interfaces/Common.td"
@@ -126,4 +126,4 @@ def ASTRecordDeclInterface : VastOpInterface< "ASTRecordDeclInterface",
 }
 
 
-#endif // VAST_INTERFACES_AST_DECL_INTERFACE
+#endif // VAST_INTERFACES_CLANG_AST_DECL_INTERFACE
