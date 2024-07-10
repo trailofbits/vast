@@ -251,11 +251,35 @@ namespace vast
             }
         };
 
-        using bin_lop_conversions = util::type_list<
+        using lazy_op_conversions = util::type_list<
             lazy_bin_logical< core::BinLAndOp, false >,
             lazy_bin_logical< core::BinLOrOp, true >,
             select
         >;
+
+
+        struct module : operation_conversion_pattern< core::ModuleOp >
+        {
+            using base = operation_conversion_pattern< core::ModuleOp >;
+            using base::base;
+
+            using op_t = core::ModuleOp;
+            using adaptor_t = typename core::ModuleOp::Adaptor;
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t ops, conversion_rewriter &rewriter
+            ) const override {
+                auto mod = rewriter.create< mlir::ModuleOp >(op.getLoc(), op.getName());
+                rewriter.inlineRegionBefore(op.getBody(), mod.getBody());
+
+                // Remove the terminator block that was automatically added by builder
+                rewriter.eraseBlock(&mod.getBodyRegion().back());
+                rewriter.eraseOp(op);
+                return mlir::success();
+            }
+        };
+
+        using core_conversions = util::type_list< module >;
 
     } //namespace pattern
 
@@ -274,7 +298,8 @@ namespace vast
         }
 
         static void populate_conversions(auto &cfg) {
-            base::populate_conversions< pattern::bin_lop_conversions >(cfg);
+            base::populate_conversions_base< pattern::lazy_op_conversions >(cfg);
+            base::populate_conversions_base< pattern::core_conversions >(cfg);
         }
 
         void run_after_conversion() {
