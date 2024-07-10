@@ -274,12 +274,32 @@ namespace vast
 
                 // Remove the terminator block that was automatically added by builder
                 rewriter.eraseBlock(&mod.getBodyRegion().back());
+                rewriter.replaceOp(op, mod);
+                return mlir::success();
+            }
+        };
+
+        // Get rid fo any remaining `llvm.mlir.zero` that are of void type
+        // because they cannot be codegen'ed into LLVM IR.
+        struct zero_void_erasure : operation_conversion_pattern< LLVM::ZeroOp >
+        {
+            using base = operation_conversion_pattern< LLVM::ZeroOp >;
+            using base::base;
+
+            using op_t = LLVM::ZeroOp;
+            using adaptor_t = typename LLVM::ZeroOp::Adaptor;
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t ops, conversion_rewriter &rewriter
+            ) const override {
+                if (!mlir::isa< mlir::LLVM::LLVMVoidType >(op.getType()))
+                    return mlir::failure();
                 rewriter.eraseOp(op);
                 return mlir::success();
             }
         };
 
-        using core_conversions = util::type_list< module >;
+        using core_conversions = util::type_list< module, zero_void_erasure >;
 
     } //namespace pattern
 
@@ -292,6 +312,7 @@ namespace vast
 
             target.addIllegalDialect< vast::core::CoreDialect >();
             target.addLegalOp< core::LazyOp >();
+            target.addLegalOp< mlir::ModuleOp >();
 
             target.addLegalDialect< mlir::LLVM::LLVMDialect >();
             return target;
