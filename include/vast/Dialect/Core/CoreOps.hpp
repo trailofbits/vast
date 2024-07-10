@@ -14,6 +14,10 @@
 #include <mlir/Interfaces/FunctionInterfaces.h>
 #include <mlir/Interfaces/CallInterfaces.h>
 #include <mlir/Interfaces/InferTypeOpInterface.h>
+#include <mlir/Interfaces/DataLayoutInterfaces.h>
+
+#include <mlir/Dialect/DLTI/Traits.h>
+
 
 #define GET_OP_CLASSES
 #include "vast/Dialect/Core/Core.h.inc"
