@@ -524,14 +524,14 @@ namespace vast::conv {
         void run_after_conversion() {
             auto clean_scopes = [&](ll::Scope scope) {
                 mlir::IRRewriter rewriter{ &this->getContext() };
-                // We really don't care if anything ws remove or not.
+                // We really don't care if anything was removed or not.
                 std::ignore = mlir::eraseUnreachableBlocks(rewriter, scope.getBody());
             };
             this->getOperation().walk(clean_scopes);
 
             auto clean_functions = [&](hl::FuncOp fn) {
                 mlir::IRRewriter rewriter{ &this->getContext() };
-                // We really don't care if anything ws remove or not.
+                // We really don't care if anything was removed or not.
                 std::ignore = mlir::eraseUnreachableBlocks(rewriter, fn.getBody());
             };
             this->getOperation().walk(clean_functions);
