@@ -6,6 +6,15 @@
 
 namespace vast::tw {
 
+    namespace {
+
+        // TODO: Reimplement using ranges once we have newer stdlib in CI
+        void append_range(auto &into, const auto &what) {
+            into.insert(into.end(), what.begin(), what.end());
+        }
+
+    } // namespace
+
     op_mapping reverse_mapping(const op_mapping &from) {
         op_mapping out;
         for (const auto &[root, ops] : from) {
@@ -57,10 +66,13 @@ namespace vast::tw {
         return out;
     }
 
+    // TODO: Reimplement using ranges once we have newer stdlib in CI
     auto mk_link_mappings(const auto &links) {
-        namespace rns = std::ranges;
-        namespace vws = std::ranges::views;
-        return links | vws::transform(views::parents_to_children) | rns::to< std::vector >();
+        std::vector< op_mapping > out;
+        for (const auto &l : links) {
+            out.emplace_back(l->parents_to_children());
+        }
+        return out;
     }
 
 
@@ -78,7 +90,7 @@ namespace vast::tw {
             for (auto &[op, todo] : init) {
                 operations parents;
                 for (auto current : todo) {
-                    parents.append_range(handle_element(current));
+                    append_range(parents, handle_element(current));
                 }
                 todo = std::move(parents);
             }
@@ -149,7 +161,7 @@ namespace vast::tw {
     operations fat_link::children(operations ops) {
         operations out;
         for (auto op : ops)
-            out.append_range(children(op));
+            append_range(out, children(op));
         return out;
     }
 
@@ -160,7 +172,7 @@ namespace vast::tw {
     operations fat_link::parents(operations ops) {
         operations out;
         for (auto op : ops)
-            out.append_range(parents(op));
+            append_range(out, parents(op));
         return out;
     }
 
