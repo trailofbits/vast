@@ -1,10 +1,10 @@
 // Copyright (c) 2024-present, Trail of Bits, Inc.
 
-#include "vast/Interfaces/ASTExprInterface.hpp"
+#include "vast/Interfaces/ClangAST/ASTDeclInterface.hpp"
 
 //===----------------------------------------------------------------------===//
 // ASTNodes Op Interface
 //===----------------------------------------------------------------------===//
 
 /// Include the generated interface.
-#include "vast/Interfaces/ASTExprInterface.cpp.inc"
+#include "vast/Interfaces/ClangAST/ASTDeclInterface.cpp.inc"

@@ -36,22 +36,4 @@ add_vast_interface_library(ElementTypeInterface
   ElementTypeInterface.cpp
 )
 
-add_vast_interface_library(ASTContextInterface
-  ASTContextInterface.cpp
-)
-
-add_vast_interface_library(ASTDeclInterface
-  ASTDeclInterface.cpp
-)
-
-add_vast_interface_library(ASTExprInterface
-  ASTExprInterface.cpp
-)
-
-add_vast_interface_library(ASTStmtVisitorInterface
-  ASTStmtVisitorInterface.cpp
-)
-
-add_vast_interface_library(ASTTypeInterface
-  ASTTypeInterface.cpp
-)
+add_subdirectory(ClangAST)
