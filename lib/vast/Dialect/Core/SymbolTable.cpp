@@ -4,6 +4,8 @@
 
 #include <llvm/ADT/SetOperations.h>
 
+#include <gap/core/ranges.hpp>
+
 #include "vast/Interfaces/SymbolInterface.hpp"
 #include "vast/Interfaces/SymbolTableInterface.hpp"
 
@@ -34,7 +36,7 @@ namespace vast::core {
     auto addresses = vws::transform([](auto &v) { return std::addressof(v); });
 
     std::vector< operation > nested_symbol_tables(operation root) {
-        return nested_symbol_tables_view(root) | addresses | rns::to< std::vector >();
+        return nested_symbol_tables_view(root) | addresses | gap::ranges::to< std::vector >;
     }
 
 
