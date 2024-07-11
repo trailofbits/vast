@@ -164,7 +164,7 @@ namespace vast::core {
             if (fn->isMultiVersion() && linkage == clang::GVA_AvailableExternally) {
                 return GlobalLinkageKind::LinkOnceAnyLinkage;
             }
-            if (!fn->isThisDeclarationADefinition()
+            if ((!fn->isThisDeclarationADefinition() || fn->hasDefiningAttr())
                 && decl->hasAttr< clang::WeakAttr >())
             {
                 return GlobalLinkageKind::ExternalWeakLinkage;
