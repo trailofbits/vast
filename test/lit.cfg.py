@@ -18,6 +18,11 @@ from lit.llvm.subst import FindTool
 # name: The name of this test suite.
 config.name = 'VAST'
 
+stdbit_test = subprocess.run(["cc", "-x", "c", "-", "-o", "/dev/null"],
+                             input=b'#include <stdbit.h>\n int main() {}')
+if stdbit_test.returncode == 0:
+    config.available_features.add("stdbit")
+
 config.test_format = lit.formats.ShTest(not llvm_config.use_lit_shell)
 
 # suffixes: A list of file extensions to treat as test files.
