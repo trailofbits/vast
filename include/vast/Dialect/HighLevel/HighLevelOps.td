@@ -748,7 +748,7 @@ class IsPointerAdditive< string lhs, string rhs, string res > : PredOpTrait< "is
 
 class PtrDiffLike< string lhs, string rhs, string res > : PredOpTrait< "is a subtraction of pointers",
     And< [IsPointer< lhs >.predicate, IsPointer< rhs >.predicate,
-          Or< [ IsLong< res >.predicate, IsBuiltinType< res >.predicate] >
+          Or< [ IsIntegral< res >.predicate, IsBuiltinType< res >.predicate] >
          ] >
 >;
 
