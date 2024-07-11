@@ -14,7 +14,7 @@ include "vast/Dialect/HighLevel/HighLevelCF.td"
 
 include "vast/Dialect/Core/Utils.td"
 include "vast/Dialect/Core/CoreTraits.td"
-include "vast/Interfaces/ClangAST/ASTDeclInterface.td"
+include "vast/Interfaces/AST/DeclInterface.td"
 
 include "vast/Dialect/Core/Func.td"
 
@@ -285,7 +285,7 @@ class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
   let assemblyFormat = [{ $name attr-dict `:` $fields }];
 }
 
-def StructDeclOp : RecordLikeDeclOp< "struct", [DeclareOpInterfaceMethods< ASTRecordDeclInterface >] > {
+def StructDeclOp : RecordLikeDeclOp< "struct", [DeclareOpInterfaceMethods< VAST_RecordDeclInterface >] > {
   let summary = "VAST struct declaration";
   let description = [{ VAST struct declaration }];
 }
