@@ -1,5 +1,6 @@
 // RUN: %vast-front -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-front -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
+// REQUIRES: stdbit
 
 // CHECK-DAG: hl.func @stdc_leading_zeros_uc
 // CHECK-DAG: hl.func @stdc_leading_zeros_us
