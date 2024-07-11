@@ -5,4 +5,4 @@ add_vast_type_interface(AliasTypeInterface)
 add_vast_type_interface(DefaultDataLayoutTypeInterface)
 add_vast_type_interface(ElementTypeInterface)
 
-add_subdirectory(ClangAST)
+add_subdirectory(AST)
