@@ -1,5 +1,0 @@
-add_vast_op_interface(ASTDeclInterface)
-add_vast_op_interface(ASTContextInterface)
-add_vast_op_interface(ASTExprInterface)
-add_vast_op_interface(ASTStmtVisitorInterface)
-add_vast_type_interface(ASTTypeInterface)

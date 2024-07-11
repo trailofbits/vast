@@ -1,0 +1,4 @@
+add_vast_op_interface(DeclInterface)
+add_vast_op_interface(ContextInterface)
+add_vast_op_interface(ExprInterface)
+add_vast_type_interface(TypeInterface)

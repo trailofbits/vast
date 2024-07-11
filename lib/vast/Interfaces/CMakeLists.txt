@@ -4,12 +4,6 @@ set(VAST_OPTIONAL_SOURCES
   AliasTypeInterface.cpp
   DefaultDataLayoutTypeInterface.cpp
   ElementTypeInterface.cpp
-  AggregateTypeDefinitionInterface.cpp
-  ASTContextInterface.cpp
-  ASTDeclInterface.cpp
-  ASTStmtVisitorInterface.cpp
-  ASTTypeInterface.cpp
-  ASTExprInterface.cpp
 )
 
 add_vast_interface_library(AggregateTypeDefinitionInterface
@@ -36,4 +30,4 @@ add_vast_interface_library(ElementTypeInterface
   ElementTypeInterface.cpp
 )
 
-add_subdirectory(ClangAST)
+add_subdirectory(AST)
