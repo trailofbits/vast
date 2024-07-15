@@ -343,12 +343,18 @@ jobs:
          && make defconfig
          && bear -- make LLVM=1
 
-     - name: Download the benchmark runner
-       run: wget https://raw.githubusercontent.com/PappasBrent/vast-benchmarks/add-linux-kernel-benchmark/benchmarks/linux_kernel/run_vast_benchmark.py -O run_vast_benchmark.py
+     - name: Clone vast benchmark directory
+       uses: actions/checkout@v4
+       with:
+         repository: trailofbits/vast-benchmarks
+         sparse-checkout: benchmarks/linux_kernel
+         ref: main
+         path: .
+         fetch-depth: 1
 
      - name: Run benchmarks
        run: >
-         python3 run_vast_benchmark.py
+         python3 benchmarks/linux_kernel/run_vast_benchmark.py
          vast-front # TODO: Determine if this is the correct path to vast-front
          linux/compile_commands.json
          vast_linux_kernel_mlir_with_unsup/
