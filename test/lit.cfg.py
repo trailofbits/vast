@@ -23,6 +23,21 @@ stdbit_test = subprocess.run(["cc", "-x", "c", "-", "-o", "/dev/null"],
 if stdbit_test.returncode == 0:
     config.available_features.add("stdbit")
 
+uchar_input = b'''
+#include <uchar.h>
+
+int main() {
+    const char *mbstr = "aa";
+    char8_t c8;
+    mbstate_t state;
+    size_t x = mbrtoc8(&c8, mbstr, 1, &state);
+}
+'''
+uchar_test = subprocess.run(["cc", "-std=c2x", "-x", "c", "-", "-o", "/dev/null"], input=uchar_input)
+if uchar_test.returncode == 0:
+    config.available_features.add("ucharc23")
+
+
 config.test_format = lit.formats.ShTest(not llvm_config.use_lit_shell)
 
 # suffixes: A list of file extensions to treat as test files.
