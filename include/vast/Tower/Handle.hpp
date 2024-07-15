@@ -4,9 +4,14 @@
 
 #include "vast/Util/Common.hpp"
 
-#include "vast/Dialect/Core/CoreOps.hpp"
+VAST_RELAX_WARNINGS
+#include <mlir/Pass/PassManager.h>
+VAST_UNRELAX_WARNINGS
 
 namespace vast::tw {
+    // These two should most likely be unified as one type.
+    using conversion_passes_t           = std::vector< mlir::Pass * >;
+
     using conversion_path_t             = std::vector< std::string >;
     using conversion_path_fingerprint_t = std::string;
 
