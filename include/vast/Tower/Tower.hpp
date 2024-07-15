@@ -31,9 +31,11 @@ namespace vast::tw {
             top_handle = storage.store(root_conversion(), std::move(root));
         }
 
-      private:
+      protected:
         // TODO: Move somewhere else.
-        static conversion_path_t root_conversion() { return {}; }
+        static conversion_passes_t root_conversion() { return {}; }
+
+        link_vector mk_full_path(handle_t, location_info_t &, mlir::PassManager &);
 
       public:
         handle_t top() const { return top_handle; }
