@@ -360,7 +360,7 @@ jobs:
          vast_linux_kernel_mlir_with_unsup/
          --num_processes=8
          --vast_option="-xc"
-         --vast_option="-vast-emit-mlir=hl"
+         --vast_option="-vast-emit-mlir=${{ matrix.vast-target }}"
          > vast_linux_kernel_times_hl_with_unsup.tsv
 
 #
