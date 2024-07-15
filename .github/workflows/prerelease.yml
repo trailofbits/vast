@@ -336,12 +336,17 @@ jobs:
      - name: Export vast binaries
        run: echo "${PWD}/vast/bin/" >> $GITHUB_PATH
 
+     - name: Install benchmark dependencies
+       run: |
+          apt-get update
+          apt-get -y install bear
+
      - name: Clone the Linux kernel and build it to create compiliation database
-       run: >
+       run: |
          git clone --depth=1 https://github.com/torvalds/linux.git linux
-         && cd linux
-         && make defconfig
-         && bear -- make LLVM=1
+         cd linux
+         make defconfig
+         bear -- make LLVM=1
 
      - name: Clone vast benchmark directory
        uses: actions/checkout@v4
