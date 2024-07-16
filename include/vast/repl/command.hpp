@@ -36,8 +36,6 @@ namespace vast::repl
 
         maybe_memory_buffer get_source_buffer(const state_t &state);
 
-        void check_and_emit_module(state_t &state);
-
         //
         // params
         //
