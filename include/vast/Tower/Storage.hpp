@@ -20,7 +20,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::tw {
 
     template< typename module_key_t >
-    struct conversion_pass_trie
+    struct conversion_tree
     {
         using node_key_t = std::size_t;
         using maybe_node_key_t = std::optional< node_key_t >;
@@ -205,6 +205,6 @@ namespace vast::tw {
       private:
         module_key_t next_id = 0;
         llvm::DenseMap< handle_id_t, owning_module_ref > storage;
-        conversion_pass_trie< module_key_t > trie;
+        conversion_tree< module_key_t > trie;
     };
 } // namespace vast::tw
