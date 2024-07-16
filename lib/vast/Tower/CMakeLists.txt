@@ -4,4 +4,5 @@ add_vast_library(Tower
     Link.cpp
     LocationInfo.cpp
     Tower.cpp
+    PassUtils.cpp
 )

@@ -10,6 +10,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Tower/Handle.hpp"
+#include "vast/Tower/PassUtils.hpp"
 
 #include "vast/Dialect/Core/CoreOps.hpp"
 
@@ -20,24 +21,6 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::tw {
 
-    // `mlir::Pass::printAsTextualPipeline` is not `const` so we cannot accept `const`
-    // argument.
-    static inline std::string to_string(mlir::Pass *pass) {
-        std::string buffer;
-        llvm::raw_string_ostream os(buffer);
-        pass->printAsTextualPipeline(os);
-        return os.str();
-    }
-
-    static inline std::string to_string(const conversion_passes_t &passes) {
-        std::string out;
-        for (auto p : passes) {
-            out += to_string(p) + ",";
-        }
-        if (!out.empty())
-            out.pop_back();
-        return out;
-    }
 
     template< typename module_key_t >
     struct conversion_pass_trie {
