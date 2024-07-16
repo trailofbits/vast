@@ -6,22 +6,6 @@
 
 namespace vast::tw {
 
-    namespace {
-
-        std::string to_string_pipeline(const std::vector< mlir::Pass * > &passes) {
-            std::string buffer;
-            llvm::raw_string_ostream os(buffer);
-            for (auto pass : passes) {
-                pass->printAsTextualPipeline(os);
-                os << ",";
-            }
-            auto str = os.str();
-            if (!str.empty())
-                str.pop_back();
-            return str;
-        }
-    } // namespace
-
     struct link_builder : mlir::PassInstrumentation
     {
         location_info_t &li;
@@ -104,13 +88,7 @@ namespace vast::tw {
             return std::make_unique< fat_link >(std::move(as_steps));
 
         auto pm = mlir::PassManager(requested_pm.getContext());
-
-        // Sadly I didn't find any better public API to clone passes between `mlir::PassManager`
-        // instances. Pass does have a `clonePass` method but it is `protected` and same holds
-        // for other utilities as well.
-        auto str_pipeline = to_string_pipeline(suffix);
-        auto status = mlir::parsePassPipeline(str_pipeline, pm);
-        VAST_CHECK(mlir::succeeded(status), "Failed to parse pipeline string: {0}", str_pipeline);
+        copy_passes(pm, suffix);
 
         auto new_steps = mk_full_path(handles.back(), li, pm);
         // TODO: Update with newer stdlib
