@@ -22,7 +22,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::tw {
 
     template< typename module_key_t >
-    struct conversion_pass_trie
+    struct conversion_tree
     {
         using node_key_t = std::size_t;
         using maybe_node_key_t = std::optional< node_key_t >;
