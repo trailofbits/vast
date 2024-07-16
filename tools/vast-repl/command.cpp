@@ -49,10 +49,9 @@ namespace cmd {
         return file_buffer;
     }
 
-    void check_and_emit_module(state_t &state) {
+    auto check_and_emit_module(state_t &state) {
         check_source(state);
-        auto mod = codegen::emit_module(state.source.value(), state.ctx);
-        state.raise_tower(std::move(mod));
+        return codegen::emit_module(state.source.value(), state.ctx);
     }
 
     //
@@ -92,12 +91,15 @@ namespace cmd {
     }
 
     void show_module(state_t &state) {
-        check_and_emit_module(state);
-        llvm::outs() << state.current_module() << "\n";
+        auto mod = check_and_emit_module(state);
+        llvm::outs() << mod.get() << "\n";
     }
 
     void show_symbols(state_t &state) {
-        check_and_emit_module(state);
+        if (!state.tower) {
+            auto root = check_and_emit_module(state);
+            state.raise_tower(std::move(root));
+        }
 
         util::symbols(state.current_module(), [&] (auto symbol) {
             llvm::outs() << util::show_symbol_value(symbol) << "\n";
@@ -192,7 +194,10 @@ namespace cmd {
     // raise command
     //
     void raise::run(state_t &state) const {
-        check_and_emit_module(state);
+        if (!state.tower) {
+            auto root = check_and_emit_module(state);
+            state.raise_tower(std::move(root));
+        }
 
         std::string pipeline = get_param< pipeline_param >(params).value;
         auto link_name = get_param< link_name_param >(params).value;
