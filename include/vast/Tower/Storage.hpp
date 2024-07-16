@@ -24,6 +24,9 @@ namespace vast::tw {
     template< typename module_key_t >
     struct conversion_pass_trie
     {
+        using node_key_t = std::size_t;
+        using maybe_node_key_t = std::optional< node_key_t >;
+
         struct node
         {
             // So `mlir::Pass` does not expose an api to query its options. However,
@@ -36,17 +39,17 @@ namespace vast::tw {
             // piece of data..
             module_key_t module_key;
 
-            std::unordered_map< std::string, std::size_t > next;
+            std::unordered_map< pass_key_t, node_key_t > next;
 
             node(module_key_t module_key) : module_key(std::move(module_key)) {}
 
-            void add_edge(pass_key_t pass_key, std::size_t idx) { next.emplace(pass_key, idx); }
+            void add_edge(pass_key_t pass_key, node_key_t idx) { next.emplace(pass_key, idx); }
 
-            void add_edge(mlir::Pass *pass, std::size_t idx) {
+            void add_edge(mlir::Pass *pass, node_key_t idx) {
                 return add_edge(to_string(pass), idx);
             }
 
-            std::optional< std::size_t > get_next(const pass_key_t &key) const {
+            maybe_node_key_t get_next(const pass_key_t &key) const {
                 auto it = next.find(key);
                 if (it == next.end()) {
                     return {};
@@ -62,7 +65,7 @@ namespace vast::tw {
         std::deque< node > nodes;
 
       protected:
-        std::optional< std::size_t > lookup_node(handle_t handle) const {
+        maybe_node_key_t lookup_node(handle_t handle) const {
             for (std::size_t i = 0; i < nodes.size(); ++i) {
                 if (nodes[i].module_key == handle.id) {
                     return { i };
@@ -71,9 +74,9 @@ namespace vast::tw {
             return {};
         }
 
-        std::size_t lookup(
-            conversion_passes_t &prefix, conversion_passes_t &suffix, std::size_t root,
-            auto on_visit
+        node_key_t lookup(
+            conversion_passes_t &prefix, conversion_passes_t &suffix,
+            node_key_t root, auto on_visit
         ) const {
             if (suffix.empty()) {
                 return root;
@@ -96,8 +99,8 @@ namespace vast::tw {
             return lookup(prefix, suffix, *maybe_next, on_visit);
         }
 
-        std::tuple< std::size_t, conversion_passes_t >
-        lookup_prefix_(conversion_passes_t path, std::size_t start_at, auto on_visit) const {
+        std::tuple< node_key_t, conversion_passes_t >
+        lookup_prefix_(conversion_passes_t path, node_key_t start_at, auto on_visit) const {
             conversion_passes_t prefix;
 
             // We will pop from front, so we reverse go get the cheaper `pop_back()`.
@@ -108,7 +111,7 @@ namespace vast::tw {
             return std::make_tuple(last, std::move(path));
         }
 
-        std::size_t mk_node(module_key_t key) {
+        node_key_t mk_node(module_key_t key) {
             nodes.emplace_back(std::move(key));
             return nodes.size() - 1;
         }
@@ -116,11 +119,12 @@ namespace vast::tw {
       public:
         // Return key to the last module and the remainder of the path that needs to applied on
         // it.
-        std::tuple< module_key_t, conversion_passes_t >
-        lookup_prefix(conversion_passes_t path, handle_t start_at_handle, auto on_visit) const {
-            auto start_idx = lookup_node(start_at_handle);
-            auto [idx, suffix] =
-                lookup_prefix_(std::move(path), (start_idx) ? *start_idx : 0, on_visit);
+        auto lookup_prefix(
+            conversion_passes_t path, handle_t start_at_handle, auto on_visit
+        ) const -> std::tuple< module_key_t, conversion_passes_t > {
+            auto maybe_start_idx = lookup_node(start_at_handle);
+            auto start_idx = (maybe_start_idx) ? *maybe_start_idx : 0;
+            auto [idx, suffix] = lookup_prefix_(std::move(path), start_idx, on_visit);
             return std::make_tuple(nodes[idx].module_key, std::move(suffix));
         }
 
