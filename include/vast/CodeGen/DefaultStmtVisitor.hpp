@@ -20,6 +20,10 @@ namespace vast::cg {
         using base = stmt_visitor_base< default_stmt_visitor >;
         using base::base;
 
+        default_stmt_visitor(mcontext_t &mctx, acontext_t &actx, codegen_builder &bld, visitor_view self, scope_context &scope)
+            : base(mctx, bld, self, scope), actx(actx)
+        {}
+
         operation visit(const clang_stmt *stmt) {return Visit(stmt); }
 
         using base::Visit;
@@ -273,6 +277,8 @@ namespace vast::cg {
 
         operation VisitInitListExpr(const clang::InitListExpr *expr);
         operation VisitImplicitValueInitExpr(const clang::ImplicitValueInitExpr *expr);
+        protected:
+            acontext_t &actx;
     };
 
     template< typename Op >

@@ -12,7 +12,7 @@ namespace vast::cg
     }
 
     operation default_visitor::visit(const clang_stmt *stmt, scope_context &scope) {
-        default_stmt_visitor visitor(mctx, bld, self, scope);
+        default_stmt_visitor visitor(mctx, actx, bld, self, scope);
         return visitor.visit(stmt);
     }
 

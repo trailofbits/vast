@@ -133,7 +133,7 @@ namespace vast::cg {
             | as_node_with_list_ref< attr_visitor_proxy >()
             | as_node< type_caching_proxy >()
             | as_node_with_list_ref< default_visitor >(
-                mctx, *bld, std::move(mg), std::move(sg), strict_return, missing_return_policy
+                mctx, actx, *bld, std::move(mg), std::move(sg), strict_return, missing_return_policy
             )
             | optional(enable_unsupported, as_node_with_list_ref< unsup_visitor >(mctx, *bld))
             | as_node< unreach_visitor >();
