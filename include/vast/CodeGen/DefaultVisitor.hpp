@@ -18,6 +18,7 @@ namespace vast::cg
         default_visitor(
               visitor_base &head
             , mcontext_t &mctx
+            , acontext_t &actx
             , codegen_builder &bld
             , std::shared_ptr< meta_generator > mg
             , std::shared_ptr< symbol_generator > sg
@@ -25,6 +26,7 @@ namespace vast::cg
             , missing_return_policy policy
         )
             : mctx(mctx)
+            , actx(actx)
             , bld(bld)
             , self(head)
             , mg(std::move(mg))
@@ -50,6 +52,7 @@ namespace vast::cg
         std::optional< symbol_name > symbol(const clang_decl_ref_expr *decl) override;
 
         mcontext_t &mctx;
+        acontext_t &actx;
         codegen_builder &bld;
         visitor_view self;
 
