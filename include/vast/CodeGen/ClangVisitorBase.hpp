@@ -51,12 +51,31 @@ namespace vast::cg {
             };
         }
 
+        template< typename yield_type >
+        auto mk_stmt_builder_with_args(const clang_stmt *stmt, const mlir_type &types...) {
+            return [&, this, stmt] (auto &state, auto loc) {
+                state.getBlock()->getParent()->addArgument(types, loc);
+                self.visit(stmt);
+                auto &op = state.getBlock()->back();
+                VAST_ASSERT(op.getNumResults() == 1);
+                bld.create< yield_type >(loc, op.getResult(0));
+            };
+        }
+
         auto mk_value_builder(const clang_stmt *stmt) {
             return mk_stmt_builder< hl::ValueYieldOp >(stmt);
         }
 
+        auto mk_value_builder_with_args(const clang_stmt *stmt, const mlir_type &types...) {
+            return mk_stmt_builder_with_args< hl::ValueYieldOp >(stmt, types);
+        }
+
         auto mk_cond_builder(const clang_stmt *stmt) {
             return mk_stmt_builder< hl::CondYieldOp >(stmt);
+        }
+
+        auto mk_cond_builder_with_args(const clang_stmt *stmt, const mlir_type &types...) {
+            return mk_stmt_builder_with_args< hl::CondYieldOp >(stmt, types);
         }
 
         auto mk_true_yielder() {
