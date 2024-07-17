@@ -1,5 +1,11 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
+#include "vast/Util/Warnings.hpp"
+
+VAST_RELAX_WARNINGS
+#include <clang/AST/ParentMapContext.h>
+VAST_UNRELAX_WARNINGS
+
 #include "vast/CodeGen/DefaultStmtVisitor.hpp"
 #include "vast/CodeGen/DefaultTypeVisitor.hpp"
 
@@ -974,7 +980,29 @@ namespace vast::cg
             .freeze();
     }
 
-    // operation default_stmt_visitor::VisitOpaqueValueExpr(const clang::OpaqueValueExpr *expr)
+    operation default_stmt_visitor::VisitOpaqueValueExpr(const clang::OpaqueValueExpr *expr) {
+        const auto parents = actx.getParents< clang_stmt >(*expr);
+        // In C++ an AST stmt can have multiple parents
+        for (const auto &parent : parents) {
+
+            if (mlir::isa< clang::BinaryConditionalOperator >(parent.get< clang_stmt >())) {
+                //These arguments should be constructed when creating the BinaryCondOp
+                auto args = bld.getBlock()->getParent()->getArguments();
+                return bld.compose< hl::OpaqueValueExpr >()
+                    .bind(self.location(expr))
+                    .bind(self.visit(expr->getType()))
+                    .bind(args)
+                    .freeze();
+            }
+
+        }
+        // Right now we will handle the OpaqueValueExpr in case-to-case basis
+        // This expression seems to have very "free" semantics and without
+        // analysing all the cases it might produce wrong mlir otherwise
+        return {};
+
+
+    }
     // operation default_stmt_visitor::VisitOverloadExpr(const clang::OverloadExpr *expr)
 
     operation default_stmt_visitor::VisitParenExpr(const clang::ParenExpr *expr) {
