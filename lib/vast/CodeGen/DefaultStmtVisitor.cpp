@@ -850,6 +850,18 @@ namespace vast::cg
             .freeze();
     }
 
+    operation default_stmt_visitor::VisitBinaryConditionalOperator(const clang::BinaryConditionalOperator *op) {
+        auto common_type = self.visit(op->getCommon()->getType());
+        return bld.compose< hl::BinaryCondOp >()
+            .bind(self.location(op))
+            .bind(self.visit(op->getType()))
+            .bind_always(mk_value_builder(op->getCommon()))
+            .bind_always(mk_cond_builder_with_args(op->getCond(), common_type))
+            .bind_always(mk_value_builder_with_args(op->getTrueExpr(), common_type))
+            .bind_always(mk_value_builder(op->getFalseExpr()))
+            .freeze();
+    }
+
     operation default_stmt_visitor::VisitAddrLabelExpr(const clang::AddrLabelExpr *expr) {
         return bld.compose< hl::AddrLabelExpr >()
             .bind(self.location(expr))
