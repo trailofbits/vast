@@ -19,7 +19,7 @@ class ControlFlowOp< string mnemonic, list< Trait > traits = [] >
 
 def HighLevel_CondYieldOp : HighLevel_Op< "cond.yield", [
   // TODO(Heno): add ReturnLike trait
-  Terminator, ParentOneOf<["IfOp", "WhileOp", "ForOp", "DoOp", "CondOp"]>
+  Terminator, ParentOneOf<["IfOp", "WhileOp", "ForOp", "DoOp", "CondOp", "BinaryCondOp"]>
 ] > {
   let summary = "condition yield operation";
   let description = [{
@@ -162,6 +162,39 @@ def HighLevel_CondOp : ControlFlowOp< "cond" >
   }];
 
   let assemblyFormat = [{ attr-dict `:` type(results) $condRegion `?` $thenRegion `:` $elseRegion }];
+}
+
+def HighLevel_BinaryCondOp
+  : HighLevel_Op<
+        "binary_cond",
+        [NoTerminator, DeclareOpInterfaceMethods<RegionKindInterface>]
+    >
+    , Results<(outs AnyType:$result)>
+{
+  let summary = "VAST binary conditional statement";
+  let description = [{
+    TODO
+  }];
+
+  let regions = (region
+    ValueRegion:$opaqRegion,
+    CondRegion:$condRegion,
+    ValueRegion:$thenRegion,
+    ValueRegion:$elseRegion
+  );
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "Type":$type,
+      "builder_callback_ref":$opaqBuilder,
+      "builder_callback_ref":$condBuilder,
+      "builder_callback_ref":$thenBuilder,
+      "builder_callback_ref":$elseBuilder
+    )>
+  ];
+
+  let assemblyFormat = [{ attr-dict `:` type(results) $opaqRegion `,` $condRegion `?` $thenRegion `:` $elseRegion }];
 }
 
 def HighLevel_WhileOp : ControlFlowOp< "while", [NoTerminator] >
