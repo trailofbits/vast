@@ -1,16 +1,17 @@
-// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt --vast-hl-dce --vast-hl-lower-types --vast-hl-to-ll-cf | %file-check %s
+// RUN: %check-hl-to-ll-cf %s | %file-check %s -check-prefix=LL_CF
+
+// LL_CF: ll.scope {
+// LL_CF:   ll.br ^bb1
+// LL_CF: ^bb1:  // 2 preds: ^bb0, ^bb2
+// LL_CF:   ll.cond_scope_ret {{.*}} : i1, ^bb2
+// LL_CF: ^bb2:  // pred: ^bb1
+// LL_CF:   ll.br ^bb1
+// LL_CF: }
+// LL_CF: ll.return %0 : none
+
 
 void fn(int a)
 {
-    // CHECK: ll.scope {
-    // CHECK:   ll.br ^bb2
-    // CHECK: ^bb1:  // pred: ^bb2
-    // CHECK:   ll.br ^bb2
-    // CHECK: ^bb2:  // 2 preds: ^bb0, ^bb1
-    // CHECK:   ll.cond_scope_ret {{.*}} : i1, ^bb1
-    // CHECK: }
-    // CHECK: ll.return %0 : none
-
     while (a)
         --a;
 }
