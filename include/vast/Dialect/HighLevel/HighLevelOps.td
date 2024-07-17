@@ -1471,4 +1471,20 @@ def VAArgExpr
   let assemblyFormat = "$arg_list `:` functional-type(operands, $result) attr-dict";
 }
 
+def OpaqueValueExpr
+  : HighLevel_Op< "opaque_expr" >
+  , Arguments< (ins Variadic< AnyType >: $arg) >
+  , Results< (outs AnyType: $result) >
+{
+  let summary = "Opaque value expression from clang AST.";
+  let description = [{
+    This op takes an argument and returns it. According to clang documentation
+    it is "usually" a copy operation with no special semantings.
+    The current use in VAST is to have the opaque value computed in some region and
+    then using this op to extract the computed value from region argument (see BinaryCondOp).
+  }];
+
+  let assemblyFormat = "$arg `:` functional-type(operands, $result) attr-dict";
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
