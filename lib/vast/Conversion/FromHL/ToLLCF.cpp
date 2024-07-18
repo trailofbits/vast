@@ -316,18 +316,17 @@ namespace vast::conv
 
         };
 
-        struct while_op : base_pattern< hl::WhileOp >
-        {
-            using parent_t = base_pattern< hl::WhileOp >;
+        template< typename op_t >
+        struct while_like_op : base_pattern< op_t > {
+            using parent_t = base_pattern< op_t >;
             using parent_t::parent_t;
 
-            mlir::LogicalResult matchAndRewrite(
-                hl::WhileOp op,
-                hl::WhileOp::Adaptor ops,
-                conversion_rewriter &rewriter) const override
-            {
+            // Returns `[scope_entry, body_block, cond_block]`. It is up to called to
+            // fix the control flow between these.
+            auto flatten(
+                op_t op, typename op_t::Adaptor ops, conversion_rewriter &rewriter
+            ) const -> std::optional< std::tuple< mlir::Block *, mlir::Block *, mlir::Block * > > {
                 auto bld = rewriter_wrapper_t( rewriter );
-
                 auto scope = rewriter.create< ll::Scope >( op.getLoc() );
                 auto scope_entry = rewriter.createBlock( &scope.getBody() );
 
@@ -338,7 +337,7 @@ namespace vast::conv
                                                        nullptr,
                                                        nullptr ).run( op.getBodyRegion() ) ) )
                 {
-                    return mlir::failure();
+                    return {};
                 }
 
                 auto body_block = inline_region( rewriter,
@@ -348,12 +347,35 @@ namespace vast::conv
                 // predecessors and body block will jump to it.
                 auto cond_block = inline_region( rewriter, cond_region, scope.getBody() );
 
-                auto [ cond_yield, value ] = fetch_cond_yield( bld, *cond_block );
+                auto [ cond_yield, value ] = this->fetch_cond_yield( bld, *cond_block );
                 VAST_CHECK( value, "Condition region yield unexpected type" );
 
                 bld.make_at_end< ll::CondScopeRet >( cond_block,
                                                      op.getLoc(), *value, body_block );
                 rewriter.eraseOp( cond_yield );
+
+                return { std::make_tuple(scope_entry, body_block, cond_block) };
+            }
+
+        };
+
+        struct while_op : while_like_op< hl::WhileOp >
+        {
+            using op_t = hl::WhileOp;
+            using parent_t = while_like_op< op_t >;
+            using parent_t::parent_t;
+
+            mlir::LogicalResult matchAndRewrite(
+                op_t op,
+                typename op_t::Adaptor ops,
+                conversion_rewriter &rewriter) const override
+            {
+                auto blocks = parent_t::flatten(op, ops, rewriter);
+                if (!blocks)
+                    return mlir::failure();
+
+                auto [ scope_entry, body_block, cond_block ] = *blocks;
+                auto bld = rewriter_wrapper_t( rewriter );
 
                 VAST_PATTERN_CHECK(parent_t::tie(bld, op.getLoc(),
                                                  *scope_entry, *cond_block),
@@ -372,6 +394,42 @@ namespace vast::conv
                 trg.addIllegalOp< hl::WhileOp >();
             }
         };
+
+        struct do_op : while_like_op< hl::DoOp >
+        {
+            using op_t = hl::DoOp;
+            using parent_t = while_like_op< op_t >;
+            using parent_t::parent_t;
+
+            mlir::LogicalResult matchAndRewrite(
+                op_t op,
+                typename op_t::Adaptor ops,
+                conversion_rewriter &rewriter) const override
+            {
+                auto blocks = parent_t::flatten(op, ops, rewriter);
+                if (!blocks)
+                    return mlir::failure();
+
+                auto [ scope_entry, body_block, cond_block ] = *blocks;
+                auto bld = rewriter_wrapper_t( rewriter );
+                VAST_PATTERN_CHECK(parent_t::tie(bld, op.getLoc(),
+                                                 *scope_entry, *body_block),
+                                   tie_fail);
+
+                VAST_PATTERN_CHECK(parent_t::tie(bld, op.getLoc(),
+                                                 *body_block, *cond_block),
+                                   tie_fail);
+
+                rewriter.eraseOp( op );
+                return mlir::success();
+            }
+
+            static void legalize( conversion_target &trg )
+            {
+                trg.addIllegalOp< op_t >();
+            }
+        };
+
 
         struct for_op : base_pattern< hl::ForOp >
         {
@@ -488,6 +546,7 @@ namespace vast::conv
               if_op
             , while_op
             , for_op
+            , do_op
             , replace< hl::ReturnOp, ll::ReturnOp >
             , replace< core::ImplicitReturnOp, ll::ReturnOp >
             , replace_scope< core::ScopeOp, ll::Scope >
