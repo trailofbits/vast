@@ -323,9 +323,11 @@ namespace vast::conv
 
             // Returns `[scope_entry, body_block, cond_block]`. It is up to called to
             // fix the control flow between these.
-            auto flatten(
-                op_t op, typename op_t::Adaptor ops, conversion_rewriter &rewriter
-            ) const -> std::optional< std::tuple< mlir::Block *, mlir::Block *, mlir::Block * > > {
+            logical_result lower(
+                op_t op, typename op_t::Adaptor ops,
+                conversion_rewriter &rewriter,
+                auto &&finish_control_flow
+            ) const {
                 auto bld = rewriter_wrapper_t( rewriter );
                 auto scope = rewriter.create< ll::Scope >( op.getLoc() );
                 auto scope_entry = rewriter.createBlock( &scope.getBody() );
@@ -333,11 +335,8 @@ namespace vast::conv
                 auto &cond_region = op.getCondRegion();
                 auto &body_region = op.getBodyRegion();
 
-                if ( mlir::failed( handle_terminators( rewriter,
-                                                       nullptr,
-                                                       nullptr ).run( op.getBodyRegion() ) ) )
-                {
-                    return {};
+                if (mlir::failed(handle_terminators(rewriter, nullptr, nullptr).run(op.getBodyRegion()))) {
+                    return mlir::failure();
                 }
 
                 auto body_block = inline_region( rewriter,
@@ -354,9 +353,20 @@ namespace vast::conv
                                                      op.getLoc(), *value, body_block );
                 rewriter.eraseOp( cond_yield );
 
-                return { std::make_tuple(scope_entry, body_block, cond_block) };
+                // No matter the type of operation, we will always have this edge.
+                if (mlir::failed(parent_t::tie(bld, op.getLoc(), *body_block, *cond_block)))
+                    return mlir::failure();
+
+                if (mlir::failed(finish_control_flow(*scope_entry, *body_block, *cond_block)))
+                    return mlir::failure();
+
+                rewriter.eraseOp( op );
+                return mlir::success();
             }
 
+            static void legalize( conversion_target &trg ) {
+                trg.addIllegalOp< op_t >();
+            }
         };
 
         struct while_op : while_like_op< hl::WhileOp >
@@ -366,32 +376,15 @@ namespace vast::conv
             using parent_t::parent_t;
 
             mlir::LogicalResult matchAndRewrite(
-                op_t op,
-                typename op_t::Adaptor ops,
-                conversion_rewriter &rewriter) const override
-            {
-                auto blocks = parent_t::flatten(op, ops, rewriter);
-                if (!blocks)
-                    return mlir::failure();
-
-                auto [ scope_entry, body_block, cond_block ] = *blocks;
+                op_t op, typename op_t::Adaptor ops,
+                conversion_rewriter &rewriter
+            ) const override {
                 auto bld = rewriter_wrapper_t( rewriter );
+                auto tie_blocks = [&](mlir::Block &scope_entry, mlir::Block &body, mlir::Block &cond) {
+                    return parent_t::tie(bld, op.getLoc(), scope_entry, cond);
+                };
 
-                VAST_PATTERN_CHECK(parent_t::tie(bld, op.getLoc(),
-                                                 *scope_entry, *cond_block),
-                                   tie_fail);
-
-                VAST_PATTERN_CHECK(parent_t::tie(bld, op.getLoc(),
-                                                 *body_block, *cond_block),
-                                   tie_fail);
-
-                rewriter.eraseOp( op );
-                return mlir::success();
-            }
-
-            static void legalize( conversion_target &trg )
-            {
-                trg.addIllegalOp< hl::WhileOp >();
+                return parent_t::lower(op, ops, rewriter, tie_blocks);
             }
         };
 
@@ -402,31 +395,15 @@ namespace vast::conv
             using parent_t::parent_t;
 
             mlir::LogicalResult matchAndRewrite(
-                op_t op,
-                typename op_t::Adaptor ops,
-                conversion_rewriter &rewriter) const override
-            {
-                auto blocks = parent_t::flatten(op, ops, rewriter);
-                if (!blocks)
-                    return mlir::failure();
-
-                auto [ scope_entry, body_block, cond_block ] = *blocks;
+                op_t op, typename op_t::Adaptor ops,
+                conversion_rewriter &rewriter
+            ) const override {
                 auto bld = rewriter_wrapper_t( rewriter );
-                VAST_PATTERN_CHECK(parent_t::tie(bld, op.getLoc(),
-                                                 *scope_entry, *body_block),
-                                   tie_fail);
+                auto tie_blocks = [&](mlir::Block &scope_entry, mlir::Block &body, mlir::Block &cond) {
+                    return parent_t::tie(bld, op.getLoc(), scope_entry, body);
+                };
 
-                VAST_PATTERN_CHECK(parent_t::tie(bld, op.getLoc(),
-                                                 *body_block, *cond_block),
-                                   tie_fail);
-
-                rewriter.eraseOp( op );
-                return mlir::success();
-            }
-
-            static void legalize( conversion_target &trg )
-            {
-                trg.addIllegalOp< op_t >();
+                return parent_t::lower(op, ops, rewriter, tie_blocks);
             }
         };
 
