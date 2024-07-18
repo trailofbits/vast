@@ -162,7 +162,7 @@ namespace vast::conv {
             bool starts_cf_scope(mlir::Operation *op) {
                 // TODO( conv:hltollcf ): Define & use some trait instead.
                 // TODO( conv:hltollcf ): Missing ops.
-                return mlir::isa< hl::ForOp >(op) || mlir::isa< hl::WhileOp >(op);
+                return mlir::isa< hl::ForOp, hl::WhileOp, hl::DoOp >(op);
             }
 
             // TODO( conv:hltollcf ): Refactor using wrapper once we have it finalized.
