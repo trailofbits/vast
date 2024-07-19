@@ -319,15 +319,15 @@ namespace vast::conv {
                 auto &cond_region = op.getCondRegion();
                 auto &body_region = op.getBodyRegion();
 
-                if (mlir::failed(handle_terminators(rewriter, nullptr, nullptr).run(op.getBodyRegion()))) {
+                // Condition block cannot be entry because entry block cannot have
+                // predecessors and body block will jump to it.
+                auto cond_block = inline_region(rewriter, cond_region, scope.getBody());
+
+                if (mlir::failed(handle_terminators(rewriter, cond_block, nullptr).run(body_region))) {
                     return mlir::failure();
                 }
 
                 auto body_block = inline_region(rewriter, body_region, scope.getBody());
-
-                // Condition block cannot be entry because entry block cannot have
-                // predecessors and body block will jump to it.
-                auto cond_block = inline_region(rewriter, cond_region, scope.getBody());
 
                 auto [cond_yield, value] = this->fetch_cond_yield(bld, *cond_block);
                 VAST_CHECK(value, "Condition region yield unexpected type");
