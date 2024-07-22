@@ -336,10 +336,13 @@ jobs:
      - name: Export vast binaries
        run: echo "${PWD}/vast/bin/" >> $GITHUB_PATH
 
-     - name: Install benchmark dependencies
-       run: |
+    - name: Install benchmark dependencies
+      run: |
           apt-get update
-          apt-get -y install bear
+          apt-get -y install git fakeroot build-essential \
+            ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison \
+            bear \
+            apt-get -y install lld-${{ matrix.llvm-version }}
 
      - name: Clone the Linux kernel and build it to create compiliation database
        run: |
