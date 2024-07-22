@@ -355,11 +355,11 @@ jobs:
      - name: Clone vast benchmark directory
        uses: actions/checkout@v4
        with:
-         repository: trailofbits/vast-benchmarks
-         sparse-checkout: benchmarks/linux_kernel
-         ref: main
-         path: .
-         fetch-depth: 1
+          repository: trailofbits/vast-benchmarks
+          sparse-checkout: benchmarks/linux_kernel
+          ref: linux-benchmark-make-output-optional
+          path: vast-benchmarks/
+          fetch-depth: 1
 
      - name: Run benchmarks
        run: >
