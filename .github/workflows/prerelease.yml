@@ -342,7 +342,7 @@ jobs:
           apt-get -y install git fakeroot build-essential \
             ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison \
             bear \
-            apt-get -y install lld-${{ matrix.llvm-version }}
+            lld-${{ matrix.llvm-version }}
 
      - name: Clone and build the Linux kernel to create a compilation database
        run: |
