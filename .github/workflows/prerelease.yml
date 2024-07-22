@@ -344,12 +344,13 @@ jobs:
             bear \
             apt-get -y install lld-${{ matrix.llvm-version }}
 
-     - name: Clone the Linux kernel and build it to create compiliation database
+     - name: Clone and build the Linux kernel to create a compilation database
        run: |
-         git clone --depth=1 https://github.com/torvalds/linux.git linux
-         cd linux
-         make defconfig
-         bear -- make LLVM=1
+          git clone --depth=1 https://github.com/torvalds/linux.git linux
+          cd linux
+          bear -- make defconfig
+          bear -- make LLVM=-${{ matrix.llvm-version }} -j $(nproc)
+          cd ../
 
      - name: Clone vast benchmark directory
        uses: actions/checkout@v4
