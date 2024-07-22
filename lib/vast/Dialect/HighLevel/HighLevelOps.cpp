@@ -536,34 +536,45 @@ namespace vast::hl
         st.addTypes(type);
     }
 
-    bool CondOp::typesMatch(mlir::Type lhs, mlir::Type rhs)
-    {
-        namespace tt = mlir::TypeTrait;
+    namespace {
+        bool typesMatch(Type lhs, Type rhs) {
+            namespace tt = mlir::TypeTrait;
 
-        if (auto e = mlir::dyn_cast< hl::ElaboratedType >(lhs))
-            return typesMatch(e.getElementType(), rhs);
-        if (auto e = mlir::dyn_cast< hl::ElaboratedType >(rhs))
-            return typesMatch(lhs, e.getElementType());
+            if (auto e = mlir::dyn_cast< hl::ElaboratedType >(lhs)) {
+                return typesMatch(e.getElementType(), rhs);
+            }
+            if (auto e = mlir::dyn_cast< hl::ElaboratedType >(rhs)) {
+                return typesMatch(lhs, e.getElementType());
+            }
 
-        return lhs == rhs
-            || all_with_trait< tt::IntegralTypeTrait >(lhs, rhs)
-            || any_with_trait< tt::TypedefTrait >(lhs, rhs)
-            || any_with_trait< tt::TypeOfTrait >(lhs, rhs)
-            || all_with_trait< tt::PointerTypeTrait >(lhs, rhs);
+            return lhs == rhs || all_with_trait< tt::IntegralTypeTrait >(lhs, rhs)
+                || any_with_trait< tt::TypedefTrait >(lhs, rhs)
+                || any_with_trait< tt::TypeOfTrait >(lhs, rhs)
+                || all_with_trait< tt::PointerTypeTrait >(lhs, rhs);
+        }
+
+        logical_result verify_condop_yields(Region &lhs, Region &rhs, Location loc) {
+            auto then_type = get_maybe_yielded_type(lhs);
+            auto else_type = get_maybe_yielded_type(rhs);
+
+            bool compatible = typesMatch(then_type, else_type);
+            if (!compatible) {
+                VAST_REPORT(
+                    "Failed to verify that return types {0}, {1} in conditional operation "
+                    "regions match. See location {2}",
+                    then_type, else_type, loc
+                );
+            }
+            return mlir::success(compatible);
+        }
+    } // namespace
+
+    logical_result CondOp::verifyRegions() {
+        return verify_condop_yields(getThenRegion(), getElseRegion(), getLoc());
     }
 
-    logical_result CondOp::verifyRegions()
-    {
-        auto then_type = get_maybe_yielded_type(getThenRegion());
-        auto else_type = get_maybe_yielded_type(getElseRegion());
-
-        bool compatible = typesMatch(then_type, else_type);
-        if (!compatible)
-        {
-            VAST_REPORT("Failed to verify that return types {0}, {1} in CondOp regions match. See location {2}",
-                then_type, else_type, getLoc());
-        }
-        return mlir::success(compatible);
+    logical_result BinaryCondOp::verifyRegions() {
+        return verify_condop_yields(getThenRegion(), getElseRegion(), getLoc());
     }
 
     void WhileOp::build(
