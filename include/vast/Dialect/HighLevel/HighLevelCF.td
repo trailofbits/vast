@@ -157,10 +157,6 @@ def HighLevel_CondOp : ControlFlowOp< "cond" >
     )>
   ];
 
-  let extraClassDeclaration = [{
-    bool typesMatch(mlir::Type lhs, mlir::Type rhs);
-  }];
-
   let assemblyFormat = [{ attr-dict `:` type(results) $condRegion `?` $thenRegion `:` $elseRegion }];
 }
 
@@ -189,6 +185,8 @@ def HighLevel_BinaryCondOp
     ValueRegion:$thenRegion,
     ValueRegion:$elseRegion
   );
+
+  let hasRegionVerifier = 1;
 
   let skipDefaultBuilders = 1;
   let builders = [
