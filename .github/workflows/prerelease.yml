@@ -325,45 +325,45 @@ jobs:
         ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
 
     steps:
-     - name: Fetch VAST artifact
-       uses: actions/download-artifact@v4
-       with:
-         name: VAST
+      - name: Fetch VAST artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: VAST
 
-     - name: Unpack VAST
-       run: mkdir vast && tar -xf VAST-* -C vast --strip-components=1
+      - name: Unpack VAST
+        run: mkdir vast && tar -xf VAST-* -C vast --strip-components=1
 
-     - name: Export vast binaries
-       run: echo "${PWD}/vast/bin/" >> $GITHUB_PATH
+      - name: Export vast binaries
+        run: echo "${PWD}/vast/bin/" >> $GITHUB_PATH
 
-    - name: Install benchmark dependencies
-      run: |
+      - name: Install benchmark dependencies
+        run: |
           apt-get update
           apt-get -y install git fakeroot build-essential \
             ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison \
             bear \
             lld-${{ matrix.llvm-version }}
 
-     - name: Clone and build the Linux kernel to create a compilation database
-       run: |
+      - name: Clone and build the Linux kernel to create a compilation database
+        run: |
           git clone --depth=1 https://github.com/torvalds/linux.git linux
           cd linux
           bear -- make defconfig
           bear -- make LLVM=-${{ matrix.llvm-version }} -j $(nproc)
           cd ../
 
-     - name: Clone vast benchmark directory
-       uses: actions/checkout@v4
-       with:
+      - name: Clone vast benchmark directory
+        uses: actions/checkout@v4
+        with:
           repository: trailofbits/vast-benchmarks
           sparse-checkout: benchmarks/linux_kernel
           ref: linux-benchmark-make-output-optional
           path: vast-benchmarks/
           fetch-depth: 1
 
-     - name: Run benchmarks
-       run: >
-         python3 ${PWD}/vast-benchmarks/benchmarks/linux_kernel/run_vast_benchmark.py
+      - name: Run benchmarks
+        run: >
+          python3 ${PWD}/vast-benchmarks/benchmarks/linux_kernel/run_vast_benchmark.py
           vast-front
           ${PWD}/linux/compile_commands.json
           --num_processes=$(nproc)
