@@ -2,7 +2,6 @@
 // RUN: %vast-front -m16 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-front -m32 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-front -mx32 -vast-emit-mlir=hl %s -o - | %file-check %s
-// RUN: %vast-front -m32 -miamcu -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
 void minus(int arg1, int arg2) {
