@@ -363,14 +363,14 @@ jobs:
 
      - name: Run benchmarks
        run: >
-         python3 benchmarks/linux_kernel/run_vast_benchmark.py
-         vast-front # TODO: Determine if this is the correct path to vast-front
-         linux/compile_commands.json
-         vast_linux_kernel_mlir_with_unsup/
-         --num_processes=8
-         --vast_option="-xc"
-         --vast_option="-vast-emit-mlir=${{ matrix.vast-target }}"
-         > vast_linux_kernel_times_hl_with_unsup.tsv
+         python3 ${PWD}/vast-benchmarks/benchmarks/linux_kernel/run_vast_benchmark.py
+          vast-front
+          ${PWD}/linux/compile_commands.json
+          --num_processes=$(nproc)
+          --vast_option="-xc"
+          --vast_option="-vast-emit-mlir=${{ matrix.vast-target }}"
+          --print_errors
+          > vast_linux_kernel_times_hl_with_unsup.tsv
 
 #
 #     Webpage build
