@@ -173,11 +173,18 @@ def HighLevel_BinaryCondOp
 {
   let summary = "VAST binary conditional statement";
   let description = [{
-    TODO
+    Binary Conditional operator defined by the GNU extension of C.
+    This operation holds in total 4 regions:
+    1) The `common` region holds the common subexpression of the condition and result
+    2) The `cond` region takes an argument, which should be the result of `common`,
+       and yields the condition result.
+    2) The `then` region takes an argument, which should be the result of `common`,
+       and yields the result (it may potentially contain implicit casts).
+    3) The `else` region contains the right hand side expression and yields the result.
   }];
 
   let regions = (region
-    ValueRegion:$opaqRegion,
+    ValueRegion:$commonRegion,
     CondRegion:$condRegion,
     ValueRegion:$thenRegion,
     ValueRegion:$elseRegion
@@ -187,14 +194,14 @@ def HighLevel_BinaryCondOp
   let builders = [
     OpBuilder<(ins
       "Type":$type,
-      "builder_callback_ref":$opaqBuilder,
+      "builder_callback_ref":$commonBuilder,
       "builder_callback_ref":$condBuilder,
       "builder_callback_ref":$thenBuilder,
       "builder_callback_ref":$elseBuilder
     )>
   ];
 
-  let assemblyFormat = [{ attr-dict `:` type(results) $opaqRegion `,` $condRegion `?` $thenRegion `:` $elseRegion }];
+  let assemblyFormat = [{ attr-dict `:` type(results) $commonRegion `,` $condRegion `?` $thenRegion `:` $elseRegion }];
 }
 
 def HighLevel_WhileOp : ControlFlowOp< "while", [NoTerminator] >
