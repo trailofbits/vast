@@ -18,31 +18,6 @@ from lit.llvm.subst import FindTool
 # name: The name of this test suite.
 config.name = 'VAST'
 
-stdbit_test = subprocess.run(["cc", "-x", "c", "-", "-o", "/dev/null"],
-                             input=b'#include <stdbit.h>\n int main() {}')
-if stdbit_test.returncode == 0:
-    config.available_features.add("stdbit")
-
-uchar_input = b'''
-#include <uchar.h>
-
-int main() {
-    const char *mbstr = "aa";
-    char8_t c8;
-    mbstate_t state;
-    size_t x = mbrtoc8(&c8, mbstr, 1, &state);
-}
-'''
-uchar_test = subprocess.run(["cc", "-std=c2x", "-x", "c", "-", "-o", "/dev/null"], input=uchar_input)
-if uchar_test.returncode == 0:
-    config.available_features.add("ucharc23")
-
-miamcu_test = subprocess.run(["vast-front", "-vast-emit-mlir=hl", "-x", "c", "-", "-o", "/dev/null", "-m32", "-miamcu"],
-                             input=b'int main() {}')
-if miamcu_test.returncode == 0:
-    config.available_features.add("miamcu")
-
-
 config.test_format = lit.formats.ShTest(not llvm_config.use_lit_shell)
 
 # suffixes: A list of file extensions to treat as test files.
@@ -167,3 +142,27 @@ for tool in tools:
         path = [config.vast_tools_dir, tool.command, config.vast_build_type]
         tool.command = os.path.join(*path, tool.command)
     llvm_config.add_tool_substitutions([tool])
+
+stdbit_test = subprocess.run(["cc", "-x", "c", "-", "-o", "/dev/null"],
+                             input=b'#include <stdbit.h>\n int main() {}')
+if stdbit_test.returncode == 0:
+    config.available_features.add("stdbit")
+
+uchar_input = b'''
+#include <uchar.h>
+
+int main() {
+    const char *mbstr = "aa";
+    char8_t c8;
+    mbstate_t state;
+    size_t x = mbrtoc8(&c8, mbstr, 1, &state);
+}
+'''
+uchar_test = subprocess.run(["cc", "-std=c2x", "-x", "c", "-", "-o", "/dev/null"], input=uchar_input)
+if uchar_test.returncode == 0:
+    config.available_features.add("ucharc23")
+
+miamcu_test = subprocess.run(["vast-front", "-vast-emit-mlir=hl", "-x", "c", "-", "-o", "/dev/null", "-m32", "-miamcu"],
+                             input=b'int main() {}')
+if miamcu_test.returncode == 0:
+    config.available_features.add("miamcu")
