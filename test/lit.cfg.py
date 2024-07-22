@@ -37,6 +37,11 @@ uchar_test = subprocess.run(["cc", "-std=c2x", "-x", "c", "-", "-o", "/dev/null"
 if uchar_test.returncode == 0:
     config.available_features.add("ucharc23")
 
+miamcu_test = subprocess.run(["vast-front", "-vast-emit-mlir=hl", "-x", "c", "-", "-o", "/dev/null", "-m32", "-miamcu"],
+                             input=b'int main() {}')
+if miamcu_test.returncode == 0:
+    config.available_features.add("miamcu")
+
 
 config.test_format = lit.formats.ShTest(not llvm_config.use_lit_shell)
 
