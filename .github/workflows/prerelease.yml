@@ -400,6 +400,43 @@ jobs:
           path: .
           name: vast_linux_kernel_times_${{ matrix.vast-target }}${{ env.VAST_RESULTS_SUFFIX }}.tsv
 
+  convert_linux_kernel_bench:
+    name: "Convert Linux Kernel benchmark results to Markdown"
+    needs: run_linux_kernel_bench
+    strategy:
+      matrix:
+        image-version: [22.04]
+    runs-on: ubuntu-${{ matrix.image-version }}
+    steps:
+      - name: Fetch result artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: vast_linux_kernel_times_*
+
+      - name: Install converter dependencies
+        run: pip3 install pandas scipy tabulate
+
+      - name: Clone vast benchmark directory
+        uses: actions/checkout@v4
+        with:
+          repository: trailofbits/vast-benchmarks
+          sparse-checkout: utils/
+          ref: extend_converter_to_multiple_files
+          path: vast-benchmarks/
+          fetch-depth: 1
+
+      - name: Generate the results
+        run: >
+          python3 vast-benchmarks/utils/to_markdown.py \
+          '{ "VAST with unsupported": "vast_linux_kernel_times_with_unsup.tsv", "VAST without unsupported" : "vast_linux_kernel_times_without_unsup.tsv" }'
+          --output_filepath linux_kernel_times.md
+
+      - name: Post results as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux_kernel_times.md
+          path: ./linux_kernel_times.md
+
 #
 #     Webpage build
 #
