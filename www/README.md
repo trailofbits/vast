@@ -20,4 +20,4 @@ automatically be refreshed by the local mkdocs server.
 
 A large part of the documentation is auto-generated from the VAST source code.
 See the workflow `.github/workflows/prerelease.yml` for the instructions to reproduce
-the entirety of https://trailofbits.github.io/vast-www/ locally.
+the entirety of https://trailofbits.github.io/vast/ locally.
