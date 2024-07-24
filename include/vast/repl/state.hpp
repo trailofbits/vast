@@ -53,8 +53,8 @@ namespace vast::repl {
         //
         bool verbose_pipeline = true;
 
-        void raise_tower(owning_module_ref mod);
-        vast_module current_module();
+        void raise_tower(core::owning_module_ref mod);
+        core::module current_module();
     };
 
 } // namespace vast::repl
