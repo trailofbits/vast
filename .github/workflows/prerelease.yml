@@ -357,7 +357,7 @@ jobs:
         with:
           repository: trailofbits/vast-benchmarks
           sparse-checkout: benchmarks/linux_kernel
-          ref: linux-benchmark-make-output-optional
+          ref: main
           path: vast-benchmarks/
           fetch-depth: 1
 
