@@ -19,7 +19,7 @@ namespace vast::tw {
             : li(li), storage(storage), handles{ root } {}
 
         void runAfterPass(pass_ptr pass, operation op) override {
-            auto mod = mlir::dyn_cast< vast_module >(op);
+            auto mod = mlir::dyn_cast< core::module >(op);
             VAST_CHECK(mod, "Pass inside tower was not run on module!");
 
             // Update locations so each operation now has a unique loc that also
@@ -27,7 +27,7 @@ namespace vast::tw {
             path.emplace_back(pass->getArgument().str());
             transform_locations(li, path, mod);
 
-            owning_module_ref persistent = mlir::dyn_cast< vast_module >(op->clone());
+            core::owning_module_ref persistent = mlir::dyn_cast< core::module >(op->clone());
 
             auto from = handles.back();
             handles.emplace_back(storage.store(path, std::move(persistent)));

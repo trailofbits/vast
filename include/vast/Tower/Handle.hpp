@@ -4,8 +4,7 @@
 
 #include "vast/Util/Common.hpp"
 
-VAST_RELAX_WARNINGS
-VAST_UNRELAX_WARNINGS
+#include "vast/Dialect/Core/CoreOps.hpp"
 
 namespace vast::tw {
     using conversion_path_t             = std::vector< std::string >;
@@ -16,7 +15,7 @@ namespace vast::tw {
     struct handle_t
     {
         handle_id_t id;
-        vast_module mod;
+        core::module mod;
     };
 
 } // namespace vast::tw

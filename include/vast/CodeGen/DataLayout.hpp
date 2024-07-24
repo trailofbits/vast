@@ -9,6 +9,6 @@
 
 namespace vast::cg
 {
-    void emit_data_layout(mcontext_t &ctx, core::owning_module_ref &mod, const dl::DataLayoutBlueprint &dl);
+    void emit_data_layout(mcontext_t &ctx, core::module mod, const dl::DataLayoutBlueprint &dl);
 
 } // namespace vast::cg

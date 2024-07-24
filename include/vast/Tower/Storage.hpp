@@ -11,6 +11,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Tower/Handle.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include <algorithm>
 #include <numeric>
 
@@ -19,7 +21,7 @@ namespace vast::tw {
     struct module_storage
     {
         // TODO: API-wise, we probably want to accept any type that is `mlir::OwningOpRef< T >`?
-        handle_t store(const conversion_path_t &path, owning_module_ref mod) {
+        handle_t store(const conversion_path_t &path, core::owning_module_ref mod) {
             auto id      = allocate_id(path);
             auto [it, _] = storage.insert({id, std::move(mod)});
             return { id, it->second.get() };
@@ -45,7 +47,7 @@ namespace vast::tw {
         }
 
         std::size_t next_id = 0;
-        llvm::DenseMap< handle_id_t, owning_module_ref > storage;
+        llvm::DenseMap< handle_id_t, core::owning_module_ref > storage;
         // TODO: This is just a prototyping shortcut, we may want something smarter here.
         std::unordered_map< conversion_path_fingerprint_t, handle_id_t > conversion_tree;
     };
