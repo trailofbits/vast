@@ -36,11 +36,13 @@ namespace vast::cg {
 
     std::unique_ptr< mcontext_t > mk_mcontext();
 
-    void set_target_triple(core::owning_module_ref &mod, std::string triple);
-    void set_source_language(core::owning_module_ref &mod, cc::source_language lang);
+    void set_target_triple(core::module mod, std::string triple);
+    void set_source_language(core::module mod, cc::source_language lang);
 
-    core::owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
-    core::owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, cc::source_language lang);
+    mlir::OwningOpRef< mlir::ModuleOp > mk_wrapping_module(mcontext_t &mctx);
+
+    core::module mk_module(acontext_t &actx, mlir::ModuleOp top);
+    core::module mk_module_with_attrs(acontext_t &actx, mlir::ModuleOp top, cc::source_language lang);
 
     struct driver
     {
@@ -54,14 +56,15 @@ namespace vast::cg {
             , mctx(_mctx)
             , bld(std::move(_bld))
             , visitor(std::move(_visitor))
+            , top(mk_wrapping_module(mctx))
             , mod(mk_module_with_attrs(
-                actx, mctx, cc::get_source_language(actx.getLangOpts())
+                actx, top.get(), cc::get_source_language(actx.getLangOpts())
             ))
             , scope(symbols)
             , generator(*bld, scoped_visitor_view(*visitor, scope))
         {
-            bld->module = mod.get();
-            bld->set_insertion_point_to_start(&mod->getBodyRegion());
+            bld->module = mod;
+            bld->set_insertion_point_to_start(&mod.getBodyRegion());
         }
 
         virtual ~driver() = default;
@@ -74,7 +77,7 @@ namespace vast::cg {
         virtual void emit_data_layout();
         virtual void finalize();
 
-        core::owning_module_ref freeze();
+        core::module freeze();
 
         mcontext_t &mcontext() { return mctx; }
         acontext_t &acontext() { return actx; }
@@ -104,7 +107,8 @@ namespace vast::cg {
         //
         // module generation state
         //
-        core::owning_module_ref mod;
+        mlir::OwningOpRef< mlir::ModuleOp > top;
+        core::module mod;
         module_scope scope;
 
         module_generator generator;

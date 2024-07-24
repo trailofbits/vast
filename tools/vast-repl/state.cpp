@@ -7,11 +7,11 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::repl {
 
-    void state_t::raise_tower(owning_module_ref mod) {
+    void state_t::raise_tower(core::owning_module_ref mod) {
         tower.emplace(ctx, location_info, std::move(mod));
     }
 
-    vast_module state_t::current_module() {
+    core::module state_t::current_module() {
         return tower->top().mod;
     }
 } // namespace vast::repl::codegen

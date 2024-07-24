@@ -33,7 +33,7 @@ namespace vast::cg {
 
     void driver::emit(clang::Decl *decl) { generator.emit(decl); }
 
-    core::owning_module_ref driver::freeze() { return std::move(mod); }
+    core::module driver::freeze() { return std::move(mod); }
 
     // TODO this should not be needed the data layout should be emitted from cached types directly
     dl::DataLayoutBlueprint emit_data_layout_blueprint(
@@ -90,7 +90,7 @@ namespace vast::cg {
     }
 
     bool driver::verify() {
-        return mlir::verify(mod.get()).succeeded();
+        return mlir::verify(mod).succeeded();
     }
 
     std::unique_ptr< codegen_builder > mk_codegen_builder(mcontext_t &mctx) {
@@ -149,16 +149,16 @@ namespace vast::cg {
         return drv;
     }
 
-    void set_target_triple(core::owning_module_ref &mod, std::string triple) {
-        mlir::OpBuilder bld(mod.get());
+    void set_target_triple(core::module mod, std::string triple) {
+        mlir::OpBuilder bld(mod);
         auto attr = bld.getAttr< mlir::StringAttr >(triple);
-        mod.get()->setAttr(core::CoreDialect::getTargetTripleAttrName(), attr);
+        mod->setAttr(core::CoreDialect::getTargetTripleAttrName(), attr);
     }
 
-    void set_source_language(core::owning_module_ref &mod, cc::source_language lang) {
-        mlir::OpBuilder bld(mod.get());
+    void set_source_language(core::module mod, cc::source_language lang) {
+        mlir::OpBuilder bld(mod);
         auto attr = bld.getAttr< core::SourceLanguageAttr >(lang);
-        mod.get()->setAttr(core::CoreDialect::getLanguageAttrName(), attr);
+        mod->setAttr(core::CoreDialect::getLanguageAttrName(), attr);
     }
 
     string_ref get_path_to_source(acontext_t &actx) {
@@ -181,15 +181,24 @@ namespace vast::cg {
         }
     } // namespace detail
 
-    core::owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx) {
-        // TODO use symbol generator
-        auto [loc, name] = detail::module_loc_name(mctx, actx);
-        auto mod = core::owning_module_ref(core::module::create(loc, name));
-        return mod;
+    mlir::OwningOpRef< mlir::ModuleOp > mk_wrapping_module(mcontext_t &mctx) {
+        return mlir::ModuleOp::create(mlir::UnknownLoc::get(&mctx));
     }
 
-    core::owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, cc::source_language lang) {
-        auto mod = mk_module(actx, mctx);
+    core::module mk_module(acontext_t &actx, mlir::ModuleOp top) {
+        mlir::OpBuilder bld(top);
+
+        // TODO use symbol generator
+        auto mctx = top.getContext();
+        auto [loc, name] = detail::module_loc_name(*mctx, actx);
+        return bld.create< core::module >(loc, name);
+    }
+
+    core::module mk_module_with_attrs(
+        acontext_t &actx, mlir::ModuleOp top,
+        cc::source_language lang
+    ) {
+        auto mod = mk_module(actx, top);
 
         set_target_triple(mod, actx.getTargetInfo().getTriple().str());
         set_source_language(mod, lang);
