@@ -998,7 +998,7 @@ namespace vast::cg
         for (const auto &parent : parents) {
 
             if (mlir::isa< clang::BinaryConditionalOperator >(parent.get< clang_stmt >())) {
-                //These arguments should be constructed when creating the BinaryCondOp
+                // These arguments should be constructed when creating the BinaryCondOp
                 auto args = bld.getBlock()->getParent()->getArguments();
                 return bld.compose< hl::OpaqueValueExpr >()
                     .bind(self.location(expr))
