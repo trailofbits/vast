@@ -306,7 +306,7 @@ namespace vast::conv {
             using parent_t = base_pattern< op_t >;
             using parent_t::parent_t;
 
-            // Returns `[scope_entry, body_block, cond_block]`. It is up to called to
+            // Returns `[scope_entry, body_block, cond_block]`. It is up to the caller to
             // fix the control flow between these.
             logical_result lower(
                 op_t op, typename op_t::Adaptor ops, conversion_rewriter &rewriter,
