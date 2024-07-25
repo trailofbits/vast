@@ -49,6 +49,7 @@ fi
 
 cp -rv $(pwd)/llvm-test-suite-results/single-source-results.md $dst/docs/Benchmarks/
 cp -rv $(pwd)/sv-comp-results/sv-comp-results.md $dst/docs/Benchmarks/
+cp -rv $(pwd)/linux_kernel_times/linux_kernel_times.md $dst/docs/Benchmarks/
 
 # Setup site assets
 cp -rv $(pwd)/www/assets $dst
