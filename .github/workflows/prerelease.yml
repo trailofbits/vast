@@ -447,7 +447,7 @@ jobs:
         image-version: [22.04]
     name: "Build VAST doc"
     runs-on: ubuntu-${{ matrix.image-version }}
-    needs: [eval_llvm_ts, eval_svcomp]
+    needs: [eval_llvm_ts, eval_svcomp, convert_linux_kernel_bench]
     timeout-minutes: 60
     container:
       image:
@@ -482,6 +482,12 @@ jobs:
         with:
           name: sv-comp-results
           path: sv-comp-results
+
+      - name: Fetch Linux kernel benchmark results
+        uses: actions/download-artifact@v4
+        with:
+          name: linux_kernel_times.md
+          path: linux_kernel_times
 
       - name: Build Pages
         run: |
