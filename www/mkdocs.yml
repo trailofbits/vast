@@ -28,6 +28,7 @@ nav:
   - Benchmarks:
     - LLVM Single Source: Benchmarks/single-source-results.md
     - SV-Comp: Benchmarks/sv-comp-results.md
+    - Linux Kernel: Benchmarks/linux_kernel_times.md
   - About:
     - 'License': 'statement.md'
 
