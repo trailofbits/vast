@@ -421,7 +421,7 @@ jobs:
         with:
           repository: trailofbits/vast-benchmarks
           sparse-checkout: utils/
-          ref: extend_converter_to_multiple_files
+          ref: main
           path: vast-benchmarks/
           fetch-depth: 1
 
