@@ -429,7 +429,7 @@ jobs:
       - name: Generate the results
         run: >
           python3 vast-benchmarks/utils/to_markdown.py \
-          '{ "VAST with unsupported": "vast_linux_kernel_times_hl_with_unsup.tsv", "VAST without unsupported" : "vast_linux_kernel_times_hl_without_unsup.tsv" }'
+          '{ "HighLevel with unsupported": "vast_linux_kernel_times_hl_with_unsup.tsv", "HighLevel" : "vast_linux_kernel_times_hl_without_unsup.tsv" }'
           --output_filepath linux_kernel_times.md
 
       - name: Post results as artifacts
