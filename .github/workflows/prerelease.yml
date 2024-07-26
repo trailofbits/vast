@@ -365,8 +365,8 @@ jobs:
         run: |
           if [ "${{ matrix.disable-unsup }}" = "false" ]; then
             echo "VAST_RESULTS_SUFFIX=with_unsup" >> $GITHUB_ENV
-            echo "VAST_DISABLE_UNSUPPORTED=-vast-disable-unsupported" >> $GITHUB_ENV
           else
+            echo "VAST_DISABLE_UNSUPPORTED=-vast-disable-unsupported" >> $GITHUB_ENV
             echo "VAST_RESULTS_SUFFIX=without_unsup" >> $GITHUB_ENV
           fi
 
