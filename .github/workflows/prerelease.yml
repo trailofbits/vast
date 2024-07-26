@@ -413,6 +413,7 @@ jobs:
         with:
           pattern: vast_linux_kernel_times_*
           merge-multiple: true
+
       - name: Install converter dependencies
         run: pip3 install pandas scipy tabulate
 
