@@ -462,9 +462,9 @@ namespace vast::hl
         detail::build_record_like_decl(bld, st, name, fields);
     }
 
-    std::vector< vast::ast::VAST_FieldDeclInterface > StructDeclOp::fields()
+    std::vector< vast::ast::FieldDeclInterface > StructDeclOp::fields()
     {
-        std::vector< vast::ast::VAST_FieldDeclInterface > result;
+        std::vector< vast::ast::FieldDeclInterface > result;
         return result;
     }
 
