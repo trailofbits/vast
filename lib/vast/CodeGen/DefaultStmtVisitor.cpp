@@ -851,10 +851,10 @@ namespace vast::cg
     }
 
     operation default_stmt_visitor::VisitBinaryConditionalOperator(const clang::BinaryConditionalOperator *op) {
-        auto common_type = self.visit(op->getCommon()->getType());
+        auto common_type = visit_maybe_lvalue_result_type(op->getCommon());
         return bld.compose< hl::BinaryCondOp >()
             .bind(self.location(op))
-            .bind(self.visit(op->getType()))
+            .bind(visit_maybe_lvalue_result_type(op))
             .bind_always(mk_value_builder(op->getCommon()))
             .bind_always(mk_cond_builder_with_args(op->getCond(), common_type))
             .bind_always(mk_value_builder_with_args(op->getTrueExpr(), common_type))
@@ -925,7 +925,7 @@ namespace vast::cg
         return bld.compose< hl::CallOp >()
             .bind(self.location(expr))
             .bind(self.symbol(expr->getDirectCallee()))
-            .bind(self.visit(expr->getType()))
+            .bind(visit_maybe_lvalue_result_type(expr))
             .bind_always(visit_values_range(expr->arguments()))
             .freeze();
     }
@@ -1002,7 +1002,7 @@ namespace vast::cg
                 auto args = bld.getBlock()->getParent()->getArguments();
                 return bld.compose< hl::OpaqueValueExpr >()
                     .bind(self.location(expr))
-                    .bind(self.visit(expr->getType()))
+                    .bind(visit_maybe_lvalue_result_type(expr))
                     .bind(args)
                     .freeze();
             }
