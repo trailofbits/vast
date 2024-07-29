@@ -50,20 +50,42 @@ namespace vast::cg
         auto prototype = [&] {
             if (auto symbol = visitor.symbol(decl)) {
                 if (auto op = visitor.scope.lookup_fun(symbol.value())) {
+                    auto fn        = mlir::cast< vast_function >(op);
                     // Function declaration that is not a prototype will have zero arguments
                     // and we need to fix that when we discover them
                     // This is caused by a deprecated C feature
-                    if (auto fn = mlir::dyn_cast< mlir::FunctionOpInterface >(op)) {
-                        auto fn_args   = fn.getNumArguments();
-                        auto decl_args = decl->getNumParams();
-                        VAST_CHECK(
-                            fn_args == decl_args || fn_args == 0 || decl_args == 0,
-                            "Mismatch in number of arguments between function declaration and "
-                            "vast function."
+                    auto fn_args   = fn.getNumArguments();
+                    auto decl_args = decl->getNumParams();
+                    VAST_CHECK(
+                        fn_args == decl_args || fn_args == 0 || decl_args == 0,
+                        "Mismatch in number of arguments between function declaration and "
+                        "vast function."
+                    );
+                    if (fn_args == 0 && decl_args != 0) {
+                        fn.setType(visitor.visit(decl->getFunctionType()));
+                    }
+
+                    auto linkage = fn->getAttrOfType< core::GlobalLinkageKindAttr >("linkage");
+                    if (linkage.getValue() == core::GlobalLinkageKind::UnknownLinkage) {
+                        fn->setAttr(
+                            "linkage",
+                            core::GlobalLinkageKindAttr::get(
+                                fn.getContext(), core::get_function_linkage(decl)
+                            )
                         );
-                        if (fn_args == 0 && decl_args != 0) {
-                            fn.setType(visitor.visit(decl->getFunctionType()));
-                        }
+                        set_visibility(decl, fn);
+                    }
+                    // The query function triggers an assert on declarations with a body…
+                    if (!decl->doesThisDeclarationHaveABody()
+                        && decl->doesDeclarationForceExternallyVisibleDefinition())
+                    {
+                        fn->setAttr(
+                            "linkage",
+                            core::GlobalLinkageKindAttr::get(
+                                fn.getContext(), core::GlobalLinkageKind::ExternalLinkage
+                            )
+                        );
+                        set_visibility(decl, fn);
                     }
                     return op;
                 }
