@@ -143,8 +143,9 @@ for tool in tools:
         tool.command = os.path.join(*path, tool.command)
     llvm_config.add_tool_substitutions([tool])
 
-stdbit_test = subprocess.run(["cc", "-x", "c", "-", "-o", "/dev/null"],
-                             input=b'#include <stdbit.h>\n int main() {}')
+stdbit_test = subprocess.run(["cc", "-x", "c", "-", "-o", "-"],
+                             input=b'#include <stdbit.h>\n int main() {}',
+                             capture_output=True)
 if stdbit_test.returncode == 0:
     config.available_features.add("stdbit")
 
@@ -158,12 +159,15 @@ int main() {
     size_t x = mbrtoc8(&c8, mbstr, 1, &state);
 }
 '''
-uchar_test = subprocess.run(["cc", "-std=c2x", "-x", "c", "-", "-o", "/dev/null"], input=uchar_input)
+uchar_test = subprocess.run(["cc", "-std=c2x", "-x", "c", "-", "-o", "-"],
+                            input=uchar_input,
+                            capture_output=True)
 if uchar_test.returncode == 0:
     config.available_features.add("ucharc23")
 
 vast_front = os.path.join(config.vast_tools_dir,'vast-front', config.vast_build_type, 'vast-front')
-miamcu_test = subprocess.run([vast_front, "-vast-emit-mlir=hl", "-x", "c", "-", "-o", "/dev/null", "-m32", "-miamcu"],
-                             input=b'int main() {}')
+miamcu_test = subprocess.run([vast_front, "-vast-emit-mlir=hl", "-x", "c", "-", "-o", "-", "-m32", "-miamcu"],
+                             input=b'int main() {}',
+                             capture_output=True)
 if miamcu_test.returncode == 0:
     config.available_features.add("miamcu")
