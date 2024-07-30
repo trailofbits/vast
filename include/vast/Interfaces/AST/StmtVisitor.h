@@ -15,12 +15,8 @@
 
 #include "vast/Interfaces/AST/ExprInterface.hpp"
 
-#include "clang/AST/OperationKinds.h"
-#include "clang/AST/Stmt.h"
-
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/ErrorHandling.h"
+#include <clang/AST/OperationKinds.h>
+#include <clang/AST/Stmt.h>
 #include <utility>
 
 namespace vast::ast {
@@ -110,7 +106,7 @@ public:
 #define ABSTRACT_STMT(STMT)
 #define STMT(CLASS, PARENT)                              \
     case clang::Stmt::CLASS ## Class: DISPATCH(CLASS, CLASS);
-#include "clang/AST/StmtNodes.inc"
+#include <clang/AST/StmtNodes.inc>
     }
   }
 
@@ -119,7 +115,7 @@ public:
   // CLASS je Interface... upravit vhodne nazov
 #define STMT(CLASS, PARENT)                                   \
   RetTy Visit ## CLASS(PTR(CLASS) S, ParamTys... P) { DISPATCH(PARENT, PARENT); }
-#include "clang/AST/StmtNodes.inc"
+#include <clang/AST/StmtNodes.inc>
 
   // If the implementation doesn't implement binary operator methods, fall back
   // on VisitBinaryOperator.
