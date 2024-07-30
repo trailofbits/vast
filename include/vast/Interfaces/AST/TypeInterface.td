@@ -31,7 +31,7 @@ def VAST_QualTypeInterface : VAST_ASTTypeInterface< "QualTypeInterface",
     }];
     
     let methods = [
-        InterfaceMethod< "clang::QualType::getTypePtr", "vast::ast::TypeInterface", "getTypePtr", (ins) >,
+        InterfaceMethod< "clang::QualType::getTypePtr", "::vast::ast::TypeInterface", "getTypePtr", (ins) >,
     ];
 
     let extraClassDeclaration = [{
