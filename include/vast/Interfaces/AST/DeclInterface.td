@@ -15,7 +15,7 @@ def VAST_DeclContextInterface : VAST_ASTOpInterface< "DeclContextInterface" > {
 
     let methods = [
         InterfaceMethod< "clang::DeclContext::getParentASTContext",
-                         "vast::ast::ASTContextInterface", "getParentASTContext", (ins) >
+                         "::vast::ast::ASTContextInterface", "getParentASTContext", (ins) >
     ];
 }
 
@@ -28,8 +28,11 @@ def VAST_DeclInterface : VAST_ASTOpInterface< "DeclInterface" > {
 
     let methods = [
         InterfaceMethod< "clang::Decl::isImplicit", "bool", "isImplicit", (ins) >,
-        InterfaceMethod< "clang::Decl::getDeclContext", "vast::ast::DeclContextInterface", "getDeclContext", (ins) >,
+        InterfaceMethod< "clang::Decl::getDeclContext", "::vast::ast::DeclContextInterface", "getDeclContext", (ins) >,
+        InterfaceMethod< "clang::Decl::getASTContext", "::vast::ast::ASTContextInterface", "getASTContext", (ins) >
     ];
+
+    // let extraClassDeclaration = [];
 }
 
 def VAST_TagDeclInterface : VAST_ASTOpInterface< "TagDeclInterface" > {
@@ -62,7 +65,7 @@ def VAST_ValueDeclInterface : VAST_ASTOpInterface< "ValueDeclInterface",
     }];
 
     let methods = [
-        InterfaceMethod< "clang::ValueDecl::getType", "vast::ast::QualTypeInterface", "getType", (ins) >
+        InterfaceMethod< "clang::ValueDecl::getType", "::vast::ast::QualTypeInterface", "getType", (ins) >
     ];
 }
 
@@ -104,8 +107,7 @@ def VAST_VarDeclInterface : VAST_ASTOpInterface< "VarDeclInterface",
         InterfaceMethod< "clang::VarDecl::hasGlobalStorage", "bool", "hasGlobalStorage", (ins) >,
         InterfaceMethod< "clang::VarDecl::isExceptionVariable", "bool", "isExceptionVariable", (ins) >,
         InterfaceMethod< "clang::VarDecl::isInitCapture", "bool", "isInitCapture", (ins) >,
-        InterfaceMethod< "clang::VarDecl::getInit", "vast::ast::ExprInterface", "getInit", (ins) >,
-        InterfaceMethod< "clang::VarDecl::getASTContext", "vast::ast::ASTContextInterface", "getASTContext", (ins) >
+        InterfaceMethod< "clang::VarDecl::getInit", "::vast::ast::ExprInterface", "getInit", (ins) >,
     ];
 }
 
@@ -118,7 +120,7 @@ def VAST_RecordDeclInterface : VAST_ASTOpInterface< "RecordDeclInterface",
     }];
 
     let methods = [
-        InterfaceMethod< "clang::RecordDecl::fields", "std::vector< vast::ast::FieldDeclInterface >",
+        InterfaceMethod< "clang::RecordDecl::fields", "std::vector< ::vast::ast::FieldDeclInterface >",
                          "fields", (ins) >
     ];
 }
