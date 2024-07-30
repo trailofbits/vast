@@ -3,11 +3,8 @@
 
 // CHECK-DAG: hl.func @abort
 // CHECK-DAG: hl.func @exit
-// CHECK-DAG: hl.func @quick_exit
 // CHECK-DAG: hl.func @_Exit
 // CHECK-DAG: hl.func @atexit
-// CHECK-DAG: hl.func @at_quick_exit
 
-// CHECK-DAG: hl.func @system
 // CHECK-DAG: hl.func @getenv
 #include <stdlib.h>

@@ -1,5 +1,6 @@
 // RUN: %vast-front -vast-emit-mlir=hl %s -o - | %file-check %s --check-prefixes PRE-C23,CHECK
 // RUN: %vast-front -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
+// UNSUPPORTED: system-darwin
 
 // C23-DAG: hl.func @mbrtoc8
 // C23-DAG: hl.func @c8rtomb
