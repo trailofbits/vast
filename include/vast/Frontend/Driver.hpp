@@ -319,10 +319,14 @@ namespace vast::cc {
 
             if (std::ranges::count_if(ccargs, is_resource_dir) == 0) {
                 all_args.push_back("-resource-dir");
-                auto &res_arg = cached_strings.emplace_back(
-                    clang_driver::GetResourcesPath(CLANG_BINARY_PATH, "")
-                );
-                all_args.push_back(res_arg.data());
+                if (!default_resource_dir.empty()) {
+                    all_args.push_back(default_resource_dir.data());
+                } else {
+                    auto &res_arg = cached_strings.emplace_back(
+                        clang_driver::GetResourcesPath(CLANG_BINARY_PATH, "")
+                    );
+                    all_args.push_back(res_arg.data());
+                }
             }
 
             if (!default_sysroot.empty()) {
