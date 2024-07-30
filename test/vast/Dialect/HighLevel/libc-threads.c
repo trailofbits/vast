@@ -1,5 +1,6 @@
 // RUN: %vast-front -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-front -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
+// UNSUPPORTED: system-darwin
 
 // CHECK-DAG: hl.typedef "thrd_t"
 // CHECK-DAG: hl.func @thrd_create
