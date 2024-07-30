@@ -126,15 +126,15 @@ namespace vast::analyses {
         
         using ValueVector = llvm::PackedVector<Value, 2, llvm::SmallBitVector>;
 
-        template< typename CFG_T, typename CFGBlock_T >
-        class CFGBlockValues_T {
-            CFG_T &cfg;
+        template< typename CFGT, typename CFGBlockT >
+        class CFGBlockValuesT {
+            CFGT &cfg;
             clang::SmallVector< ValueVector, 8 > vals;
             ValueVector scratch;
             DeclToIndex declToIndex;
 
         public:
-            CFGBlockValues_T(CFG_T &c) : cfg(c), vals(0) {}
+            CFGBlockValuesT(CFGT &c) : cfg(c), vals(0) {}
 
             void computeSetOfDeclarations(ast::DeclContextInterface dc) {
                 declToIndex.computeMap(dc);
@@ -158,7 +158,7 @@ namespace vast::analyses {
                 return declToIndex.size();
             }
 
-            ValueVector &getValueVector(const CFGBlock_T *block) {
+            ValueVector &getValueVector(const CFGBlockT *block) {
                 return vals[block->getBlockID()];
             }
 
@@ -174,7 +174,7 @@ namespace vast::analyses {
                 }
             }
 
-            bool updateValueVectorWithScratch(const CFGBlock_T *block) {
+            bool updateValueVectorWithScratch(const CFGBlockT *block) {
                 ValueVector &dst = getValueVector(block);
                 bool changed = (dst != scratch);
                 if (changed)
@@ -195,12 +195,12 @@ namespace vast::analyses {
 
     namespace {
     
-        class FindVarResult_T {
+        class FindVarResultT {
             ast::VarDeclInterface vd;
             ast::DeclRefExprInterface dr;
 
         public:
-            FindVarResult_T(ast::VarDeclInterface vd, ast::DeclRefExprInterface dr) : vd(vd), dr(dr) {}
+            FindVarResultT(ast::VarDeclInterface vd, ast::DeclRefExprInterface dr) : vd(vd), dr(dr) {}
 
             ast::DeclRefExprInterface getDeclRefExpr() {
                 return dr;
@@ -262,9 +262,10 @@ namespace vast::analyses {
         /// Classify each DeclRefExpr as an initialization or a use. Any
         /// DeclRefExpr which isn't explicitly classified will be assumed to have
         /// escaped the analysis and will be treated as an initialization.
-        template< typename AnalysisDeclContext_T >
-        class ClassifyRefs_T : public clang::StmtVisitor<
-                               ClassifyRefs_T< AnalysisDeclContext_T > > {
+        template< typename AnalysisDeclContextT >
+        class ClassifyRefsT : public ast::StmtVisitor<
+                               ClassifyRefsT< AnalysisDeclContextT > > {
+        using base = ast::StmtVisitor< ClassifyRefsT< AnalysisDeclContextT > >;
         public:
             enum class Class {
                 Init,
@@ -333,7 +334,7 @@ namespace vast::analyses {
         template< typename CFGBlockValuesT, typename CFGT, typename AnalysisDeclContextT,
                   typename ClassifyRefsT, typename ObjCNoReturnT, typename UninitVariablesHandlerT,
                   typename CFGBlockT >
-        class TransferFunctionsT : public clang::StmtVisitor<
+        class TransferFunctionsT : public ast::StmtVisitor<
                                    TransferFunctionsT< CFGBlockValuesT, CFGT, AnalysisDeclContextT,
                                                        ClassifyRefsT, ObjCNoReturnT, UninitVariablesHandlerT,
                                                        CFGBlockT >
@@ -416,7 +417,7 @@ namespace vast::analyses {
     };
 
 
-    struct UninitVariablesAnalysisStats_T {
+    struct UninitVariablesAnalysisStatsT {
         unsigned NumVariablesAnalyzed;
         unsigned NumBlockVisits;
     };
@@ -459,16 +460,16 @@ namespace vast::analyses {
         }
     };
 
-    template< typename CFG_T, typename AnalysisDeclContext_T,
-              typename CFGBlock_T, typename CFGBlockValues_T >
+    template< typename CFGT, typename AnalysisDeclContextT,
+              typename CFGBlockT, typename CFGBlockValuesT >
     void runUninitializedVariablesAnalysis(
             ast::DeclContextInterface dc,
-            const CFG_T &cfg,
-            AnalysisDeclContext_T &ac,
+            const CFGT &cfg,
+            AnalysisDeclContextT &ac,
             UninitVariablesHandler &handler, 
-            UninitVariablesAnalysisStats_T &stats) {
+            UninitVariablesAnalysisStatsT &stats) {
 
-        CFGBlockValues_T vals(cfg);
+        CFGBlockValuesT vals(cfg);
         vals.computeSetOfDeclarations(dc);
 
         if (vals.hasNoDeclarations())
@@ -477,11 +478,11 @@ namespace vast::analyses {
         stats.NumVariablesAnalyzed = vals.getNumEntries();
 
         // Precompute which expressions are uses and which are initializations.
-        ClassifyRefs_T classification(ac);
+        ClassifyRefsT classification(ac);
         cfg.VisitBlockStmts(classification);
 
         // Mark all variables uninitialized at the entry.
-        const CFGBlock_T &entry = cfg.getEntry();
+        const CFGBlockT &entry = cfg.getEntry();
         ValueVector &vec = vals.getValueVector(&entry);
         const unsigned n = vals.getNumEntries();
         for (unsigned j = 0; j < n; ++j) {
@@ -496,7 +497,7 @@ namespace vast::analyses {
         wasAnalyzed[cfg.getEntry().getBlockID()] = true;
         PruneBlocksHandler PBH(cfg.getNumBlockIDs());
 
-        while (const CFGBlock_T *block = worklist.dequeue()) {
+        while (const CFGBlockT *block = worklist.dequeue()) {
             PBH.currentBlock = block->getBlockID();
             
             ++stats.NumBlockVisits;
