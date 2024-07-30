@@ -71,6 +71,7 @@ namespace vast::analyses {
 
                 /// Compute the actual mapping from declarations to bits.
                 void computeMap(ast::DeclContextInterface dc) {
+                    VAST_UNIMPLEMENTED;
                 /*
                     unsigned count = 0;
                     typename ast::DeclContextInterface:: template specific_decl_iterator
@@ -213,19 +214,16 @@ namespace vast::analyses {
 
     } // namespace
 
-    // TODO
     static mlir::Operation *getDecl(ast::DeclRefExprInterface) {
-        return {};
+        VAST_UNIMPLEMENTED;
     }
 
-    // TODO
     static bool compare(ast::ValueDeclInterface, ast::VarDeclInterface) {
-        return false;
+        VAST_UNIMPLEMENTED;
     }
 
-    // TODO
     static mlir::Operation *stripCasts(ast::ASTContextInterface AC, ast::ExprInterface) {
-        return nullptr;
+        VAST_UNIMPLEMENTED;
     }
 
     static ast::DeclRefExprInterface getSelfInitExpr(ast::VarDeclInterface VD) {
@@ -284,11 +282,11 @@ namespace vast::analyses {
             }
 
             void classify(ast::ExprInterface E, Class C) {
-            
+                VAST_UNIMPLEMENTED; 
             }
 
             std::vector< ast::DeclInterface > decls(ast::DeclStmtInterface DS) {
-                return {};
+                VAST_UNIMPLEMENTED;
             }
 
         public:
@@ -356,8 +354,9 @@ namespace vast::analyses {
                 classification(classification), objCNoReturn(ac.getASTContext()),
                 handler(handler) {}
 
-            // TODO
             void VisitDeclRefExpr(ast::DeclRefExprInterface dr) {
+                VAST_UNIMPLEMENTED;
+                /*
                 switch (&classification.get(dr)) {
                     case ClassifyRefsT::Class::Ignore:
                         return;
@@ -374,13 +373,17 @@ namespace vast::analyses {
                     case ClassifyRefsT::Class::ConstRefUse:
                         return;
                 }
+                */
             }
 
             void reportUse(ast::ExprInterface ex, ast::VarDeclInterface vd) {
+                VAST_UNIMPLEMENTED;
+                /*
                 Value v = vals[vd];
                 if (isUninitialized(v)) {
                 // handler.handleUseOfUninitVariable(vd, getUninitUse(ex, vd, v));
                 }
+                */
             }
         };
     
