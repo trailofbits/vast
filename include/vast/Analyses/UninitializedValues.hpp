@@ -2,31 +2,28 @@
 
 #pragma once
 
+#include "vast/Analyses/Clang/CFG.hpp"
+#include "vast/Analyses/Clang/FlowSensitive/DataflowWorklist.hpp"
 #include "vast/Interfaces/AST/DeclInterface.hpp"
 #include "vast/Interfaces/AST/TypeInterface.hpp"
 #include "vast/Interfaces/AST/StmtInterface.hpp"
 #include "vast/Interfaces/AST/ExprInterface.hpp"
+#include "vast/Interfaces/AST/StmtVisitor.h"
 
-#include "vast/Analyses/CFG.hpp"
-#include "clang/AST/StmtVisitor.h"
-#include "llvm/ADT/BitVector.h"
-#include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/PackedVector.h"
-#include "llvm/ADT/SmallVector.h"
-#include "vast/Analyses/FlowSensitive/DataflowWorklist.hpp"
-
+#include <llvm/ADT/BitVector.h>
+#include <llvm/ADT/DenseMap.h>
+#include <llvm/ADT/PackedVector.h>
+#include <llvm/ADT/SmallVector.h>
 #include <optional>
 
 namespace vast::analyses {
 
-    // TODO
     static ast::RecordDeclInterface getAsRecordDecl(ast::QualTypeInterface) {
-        return {};
+        VAST_UNIMPLEMENTED;
     }
 
-    // TODO
     static bool isZeroSize(ast::FieldDeclInterface FD) {
-        return false;
+        VAST_UNIMPLEMENTED;
     }
 
     static bool recordIsNotEmpty(ast::RecordDeclInterface RD) {
