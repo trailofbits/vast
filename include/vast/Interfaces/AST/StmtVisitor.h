@@ -186,7 +186,8 @@ public:
 template <typename ImplClass, typename RetTy = void, typename... ParamTys>
 class StmtVisitor
     : public StmtVisitorBase<std::add_pointer, ImplClass, RetTy, ParamTys...> {
-        using base = StmtVisitorBase<std::add_pointer, ImplClass, RetTy, ParamTys...>;
+public:
+    using base = StmtVisitorBase<std::add_pointer, ImplClass, RetTy, ParamTys...>;
 };
 
 /// ConstStmtVisitor - This class implements a simple visitor for Stmt
