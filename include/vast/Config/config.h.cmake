@@ -21,6 +21,8 @@ namespace vast {
 
     constexpr std::string_view bug_report_url = "${BUG_REPORT_URL}";
 
+    constexpr std::string_view default_resource_dir = "${VAST_DEFAULT_RESOURCE_DIR}";
+
     constexpr std::string_view default_sysroot = "${VAST_DEFAULT_SYSROOT}";
 
 } // namespace vast

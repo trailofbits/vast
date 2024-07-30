@@ -48,6 +48,11 @@ having to specify additional flags, use the `VAST_DEFAULT_SYSROOT` CMake flag, e
 -DVAST_DEFAULT_SYSROOT="$(xcrun --show-sdk-path)"
 ```
 
+Same holds for default resource directory. Vast's cmake allows to specify `VAST_DEFAULT_RESOURCE_DIR`:
+```
+-DVAST_DEFAULT_RESOURCE_DIR="$(clang --print-resource-dir)"
+```
+
 ## Run
 
 To run mlir codegen of highlevel dialect use.
