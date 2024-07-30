@@ -42,6 +42,12 @@ cmake --build --preset release
 
 Use `debug` preset for debug build.
 
+On Darwin, to make vast able to link binaries with the default sysroot without
+having to specify additional flags, use the `VAST_DEFAULT_SYSROOT` CMake flag, e.g.
+```
+-DVAST_DEFAULT_SYSROOT="$(xcrun --show-sdk-path)"
+```
+
 ## Run
 
 To run mlir codegen of highlevel dialect use.
