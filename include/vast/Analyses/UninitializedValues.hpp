@@ -290,11 +290,10 @@ namespace vast::analyses {
             }
 
         public:
-            ClassifyRefs_T(AnalysisDeclContext_T &AC) : DC(cast< ast::DeclContextInterface >(AC.getDecl())) {}
+            ClassifyRefsT(AnalysisDeclContextT &AC) : DC(cast< ast::DeclContextInterface >(AC.getDecl())) {}
 
             void operator()(ast::StmtInterface S) {
-                // TODO: Najst, co za Visit to vobec je.
-                // Visit(S);
+                base::base::Visit(S);
             }
 
             void VisitDeclStmt(ast::DeclStmtInterface DS) {
