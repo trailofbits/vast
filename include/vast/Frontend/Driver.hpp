@@ -324,6 +324,13 @@ namespace vast::cc {
                 );
                 all_args.push_back(res_arg.data());
             }
+
+            if (!default_sysroot.empty()) {
+                auto &sysroot_option = cached_strings.emplace_back(
+                    llvm::formatv("--sysroot={0}", default_sysroot)
+                );
+                all_args.push_back(sysroot_option.data());
+            }
         }
 
         void set_install_dir(argv_storage_base &argv, bool canonical_prefixes) {

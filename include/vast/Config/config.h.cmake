@@ -20,8 +20,9 @@ namespace vast {
     constexpr std::string_view version = "${VAST_VERSION}";
 
     constexpr std::string_view bug_report_url = "${BUG_REPORT_URL}";
+
+    constexpr std::string_view default_sysroot = "${VAST_DEFAULT_SYSROOT}";
+
 } // namespace vast
 
 #endif
-
-
