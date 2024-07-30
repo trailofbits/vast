@@ -9,6 +9,7 @@
 #include "vast/Interfaces/AST/StmtInterface.hpp"
 #include "vast/Interfaces/AST/ExprInterface.hpp"
 #include "vast/Interfaces/AST/StmtVisitor.h"
+#include "vast/Interfaces/Analyses/AnalysisDeclContextInterface.hpp"
 
 #include <llvm/ADT/BitVector.h>
 #include <llvm/ADT/DenseMap.h>
@@ -260,10 +261,8 @@ namespace vast::analyses {
         /// Classify each DeclRefExpr as an initialization or a use. Any
         /// DeclRefExpr which isn't explicitly classified will be assumed to have
         /// escaped the analysis and will be treated as an initialization.
-        template< typename AnalysisDeclContextT >
-        class ClassifyRefsT : public ast::StmtVisitor<
-                               ClassifyRefsT< AnalysisDeclContextT > > {
-        using base = ast::StmtVisitor< ClassifyRefsT< AnalysisDeclContextT > >;
+        class ClassifyRefsT : public ast::StmtVisitor< ClassifyRefsT > {
+        using base = ast::StmtVisitor< ClassifyRefsT >;
         public:
             enum class Class {
                 Init,
@@ -278,7 +277,7 @@ namespace vast::analyses {
             llvm::DenseMap< ast::DeclRefExprInterface, Class > Classification;
 
             bool isTrackedVar(ast::VarDeclInterface VD) const {
-                return isTrackedVar(VD, DC);
+                return vast::analyses::isTrackedVar(VD, DC);
             }
 
             void classify(ast::ExprInterface E, Class C) {
@@ -290,7 +289,8 @@ namespace vast::analyses {
             }
 
         public:
-            ClassifyRefsT(AnalysisDeclContextT &AC) : DC(cast< ast::DeclContextInterface >(AC.getDecl())) {}
+            ClassifyRefsT(AnalysisDeclContextInterface AC)
+                : DC(cast< ast::DeclContextInterface >(AC.getDecl().getOperation())) {}
 
             void operator()(ast::StmtInterface S) {
                 base::base::Visit(S);
@@ -462,12 +462,11 @@ namespace vast::analyses {
         }
     };
 
-    template< typename CFGT, typename AnalysisDeclContextT,
-              typename CFGBlockT, typename CFGBlockValuesT >
+    template< typename CFGT, typename CFGBlockT, typename CFGBlockValuesT >
     void runUninitializedVariablesAnalysis(
             ast::DeclContextInterface dc,
             const CFGT &cfg,
-            AnalysisDeclContextT &ac,
+            AnalysisDeclContextInterface &ac,
             UninitVariablesHandler &handler, 
             UninitVariablesAnalysisStatsT &stats) {
 
