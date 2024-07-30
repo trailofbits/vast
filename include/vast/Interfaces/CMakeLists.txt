@@ -6,3 +6,4 @@ add_vast_type_interface(DefaultDataLayoutTypeInterface)
 add_vast_type_interface(ElementTypeInterface)
 
 add_subdirectory(AST)
+add_subdirectory(Analyses)
