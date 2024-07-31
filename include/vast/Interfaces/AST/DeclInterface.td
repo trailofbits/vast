@@ -6,6 +6,16 @@
 include "mlir/IR/OpBase.td"
 include "vast/Interfaces/AST/Common.td"
 
+def VAST_TagDeclInterface : VAST_ASTOpInterface< "VAST_TagDeclInterface" > {
+
+    let description = [{
+        An interface to provide [`clang::TagDecl`]
+        (https://clang.llvm.org/doxygen/classclang_1_1TagDecl.html) functionality.
+    }];
+
+    let methods = [];
+}
+
 def VAST_DeclContextInterface : VAST_ASTOpInterface< "DeclContextInterface" > {
 
     let description = [{
@@ -15,7 +25,9 @@ def VAST_DeclContextInterface : VAST_ASTOpInterface< "DeclContextInterface" > {
 
     let methods = [
         InterfaceMethod< "clang::DeclContext::getParentASTContext",
-                         "::vast::ast::ASTContextInterface", "getParentASTContext", (ins) >
+                         "::vast::ast::ASTContextInterface", "getParentASTContext", (ins) >,
+        InterfaceMethod< "clang::DeclContext::decls_begin", "::vast::analyses::decl_interface_iterator", "decls_begin", (ins) >,
+        InterfaceMethod< "clang::DeclContext::decls_end", "::vast::analyses::decl_interface_iterator", "decls_end", (ins) >
     ];
 }
 
@@ -29,20 +41,11 @@ def VAST_DeclInterface : VAST_ASTOpInterface< "DeclInterface" > {
     let methods = [
         InterfaceMethod< "clang::Decl::isImplicit", "bool", "isImplicit", (ins) >,
         InterfaceMethod< "clang::Decl::getDeclContext", "::vast::ast::DeclContextInterface", "getDeclContext", (ins) >,
-        InterfaceMethod< "clang::Decl::getASTContext", "::vast::ast::ASTContextInterface", "getASTContext", (ins) >
+        InterfaceMethod< "clang::Decl::getASTContext", "::vast::ast::ASTContextInterface", "getASTContext", (ins) >,
+        InterfaceMethod< "clang::Decl::getNextDeclInContext", "::vast::ast::DeclInterface *", "getNextDeclInContext", (ins) >
     ];
 
     // let extraClassDeclaration = [];
-}
-
-def VAST_TagDeclInterface : VAST_ASTOpInterface< "TagDeclInterface" > {
-
-    let description = [{
-        An interface to provide [`clang::TagDecl`]
-        (https://clang.llvm.org/doxygen/classclang_1_1TagDecl.html) functionality.
-    }];
-
-    let methods = [];
 }
 
 def VAST_NamedDeclInterface : VAST_ASTOpInterface< "NamedDeclInterface",

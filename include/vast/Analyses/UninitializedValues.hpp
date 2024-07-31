@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "vast/Analyses/Iterators.hpp"
 #include "vast/Analyses/Clang/CFG.hpp"
 #include "vast/Analyses/Clang/FlowSensitive/DataflowWorklist.hpp"
 #include "vast/Interfaces/AST/DeclInterface.hpp"
@@ -67,40 +68,36 @@ namespace vast::analyses {
         class DeclToIndex {
             llvm::DenseMap< ast::VarDeclInterface, unsigned > map;
 
-            public:
-                DeclToIndex() = default;
+        public:
+            DeclToIndex() = default;
 
-                /// Compute the actual mapping from declarations to bits.
-                void computeMap(ast::DeclContextInterface dc) {
-                    VAST_UNIMPLEMENTED;
-                /*
-                    unsigned count = 0;
-                    typename ast::DeclContextInterface:: template specific_decl_iterator
-                        < ast::VarDeclInterface > I(dc.decls_begin()),
-                                                  E(dc.decls_end());
-                    for ( ; I != E; ++I) {
-                        ast::VarDeclInterface vd = I;
-                        if (isTrackedVar(vd, &dc)) {
-                            map[vd] = count++;
-                        }
+            /// Compute the actual mapping from declarations to bits.
+            void computeMap(ast::DeclContextInterface dc) {
+                unsigned count = 0;
+                specific_decl_interface_iterator< ast::VarDeclInterface > I(dc.decls_begin()),
+                                                                          E(dc.decls_end());
+                for ( ; I != E; ++I) {
+                    ast::VarDeclInterface vd = *I;
+                    if (isTrackedVar(vd, dc)) {
+                        map[vd] = count++;
                     }
-                */
                 }
-                
-                /// Return the number of declarations in the map.
-                unsigned size() const {
-                    return map.size();
-                }
+            }
+            
+            /// Return the number of declarations in the map.
+            unsigned size() const {
+                return map.size();
+            }
 
-                /// Returns the bit vector index for a given declaration.
-                std::optional< unsigned > getValueIndex(ast::VarDeclInterface d) const {
-                    llvm::DenseMap< ast::VarDeclInterface, unsigned >::const_iterator I = map.find(d);
+            /// Returns the bit vector index for a given declaration.
+            std::optional< unsigned > getValueIndex(ast::VarDeclInterface d) const {
+                llvm::DenseMap< ast::VarDeclInterface, unsigned >::const_iterator I = map.find(d);
 
-                    if (I == map.end()) {
-                        return std::nullopt;
-                    }
-                    return I->second;
+                if (I == map.end()) {
+                    return std::nullopt;
                 }
+                return I->second;
+            }
         };
     
     } // namespace
