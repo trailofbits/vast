@@ -65,6 +65,8 @@ namespace vast::cg
                         fn.setType(visitor.visit(decl->getFunctionType()));
                     }
 
+                    // inline function declarations (without definition) are unknown
+                    // because clang can not provide the information for them
                     auto linkage = fn->getAttrOfType< core::GlobalLinkageKindAttr >("linkage");
                     if (linkage.getValue() == core::GlobalLinkageKind::UnknownLinkage) {
                         fn->setAttr(
@@ -75,7 +77,19 @@ namespace vast::cg
                         );
                         set_visibility(decl, fn);
                     }
-                    // The query function triggers an assert on declarations with a body…
+
+                    // Some later declaration might cause an inline function to become
+                    // externally available.
+                    // Section 6.7.4 of C99 standard provides information on this
+                    // Summary is avaialble on https://www.greenend.org.uk/rjk/tech/inline.html
+
+                    // Sadly, we can not use the standard query mechanism because clang does not
+                    // allow to query about linkage on inline specified function declaration
+                    // that does not have a body. To make things even uglier the
+                    // "...ForceExternallyVisible..." query does not allow to ask when the
+                    // declaration does have a body for some reason which is beyond me
+                    // The linakge querrying is full of asserts some of which are very
+                    // questionable
                     if (!decl->doesThisDeclarationHaveABody()
                         && decl->doesDeclarationForceExternallyVisibleDefinition())
                     {
