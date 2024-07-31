@@ -21,9 +21,12 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::cg
 {
-    mlir_visibility get_function_visibility(const clang_function *decl, linkage_kind linkage) {
+    mlir_visibility get_function_visibility(const clang_function *decl, std::optional< linkage_kind > linkage) {
+        if (!linkage) {
+            return mlir_visibility::Private;
+        }
         if (decl->isThisDeclarationADefinition()) {
-            return core::get_visibility_from_linkage(linkage);
+            return core::get_visibility_from_linkage(linkage.value());
         }
         if (decl->doesDeclarationForceExternallyVisibleDefinition()) {
             return mlir_visibility::Public;
@@ -68,13 +71,11 @@ namespace vast::cg
                     // inline function declarations (without definition) are unknown
                     // because clang can not provide the information for them
                     auto linkage = fn->getAttrOfType< core::GlobalLinkageKindAttr >("linkage");
-                    if (linkage.getValue() == core::GlobalLinkageKind::UnknownLinkage) {
-                        fn->setAttr(
-                            "linkage",
-                            core::GlobalLinkageKindAttr::get(
-                                fn.getContext(), core::get_function_linkage(decl)
-                            )
-                        );
+                    if (!linkage) {
+                        if (auto new_linkage = core::get_function_linkage(decl)) {
+                            auto attr = core::GlobalLinkageKindAttr::get(fn.getContext(), new_linkage.value());
+                            fn->setAttr("linkage", attr);
+                        }
                         set_visibility(decl, fn);
                     }
 
