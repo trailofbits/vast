@@ -26,7 +26,11 @@ namespace vast::core {
     logical_result verifyFuncOp(FuncOp op) {
         using core::GlobalLinkageKind;
 
-        auto linkage = op.getLinkage();
+        auto optional_linkage = op.getLinkage();
+        if (!optional_linkage) {
+            return op.emitOpError() << "function without a linkage";
+        }
+        auto linkage = optional_linkage.value();
         constexpr auto common = GlobalLinkageKind::CommonLinkage;
         if (linkage == common) {
             return op.emitOpError() << "functions cannot have '"
@@ -63,7 +67,9 @@ namespace vast::core {
         Printer &printer, FuncOp op,
         Attribute /* funcion_type */, mlir::DictionaryAttr, Region &body
     ) {
-        printer << stringifyGlobalLinkageKind(op.getLinkage()) << ' ';
+        if (auto linkage = op.getLinkage()) {
+            printer << stringifyGlobalLinkageKind(linkage.value()) << ' ';
+        }
 
         auto fty = op.getFunctionType();
         mlir::function_interface_impl::printFunctionSignature(
@@ -111,7 +117,7 @@ namespace vast::core {
         };
 
         auto dst = rewriter.template create< DstFuncOp >(
-            src.getLoc(), name, fty, src.getLinkage(), filter_src_attrs(src), arg_attrs, res_attrs
+            src.getLoc(), name, fty, src.getLinkage().value(), filter_src_attrs(src), arg_attrs, res_attrs
         );
 
         body_builder(rewriter, dst);
