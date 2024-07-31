@@ -45,7 +45,7 @@ def HighLevel_FuncOp
   let builders = [OpBuilder< (ins
     "llvm::StringRef":$name,
     "core::FunctionType":$type,
-    CArg< "core::GlobalLinkageKind", "core::GlobalLinkageKind::ExternalLinkage" >:$linkage,
+    CArg< "std::optional< core::GlobalLinkageKind >", "{ core::GlobalLinkageKind::ExternalLinkage }" >:$linkage,
     CArg< "llvm::ArrayRef<mlir::NamedAttribute>", "{}" >:$attrs,
     CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$arg_attrs,
     CArg< "llvm::ArrayRef<mlir::DictionaryAttr>", "{}" >:$res_attrs,
@@ -57,9 +57,11 @@ def HighLevel_FuncOp
         mlir::SymbolTable::getSymbolAttrName(), $_builder.getStringAttr(name)
       );
       $_state.addAttribute(getFunctionTypeAttrName($_state.name), mlir::TypeAttr::get(type));
-      $_state.addAttribute(
-        "linkage", core::GlobalLinkageKindAttr::get($_builder.getContext(), linkage)
-      );
+      if (linkage) {
+        $_state.addAttribute(
+          "linkage", core::GlobalLinkageKindAttr::get($_builder.getContext(), linkage.value())
+        );
+      }
       $_state.attributes.append(attrs.begin(), attrs.end());
 
       mlir::function_interface_impl::addArgAndResultAttrs(
