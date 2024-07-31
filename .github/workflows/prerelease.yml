@@ -341,15 +341,15 @@ jobs:
           apt-get update
           apt-get -y install git fakeroot build-essential \
             ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison \
-            bear \
             lld-${{ matrix.llvm-version }}
 
-      - name: Clone and build the Linux kernel to create a compilation database
+      - name: Clone, configure, and build the Linux kernel
         run: |
           git clone --depth=1 https://github.com/torvalds/linux.git linux
           cd linux
-          bear -- make defconfig
-          bear -- make LLVM=-${{ matrix.llvm-version }} -j $(nproc)
+          make defconfig
+          make LLVM=-${{ matrix.llvm-version }} -j $(nproc)
+          python3 ./scripts/clang-tools/gen_compile_commands.py
           cd ../
 
       - name: Clone vast benchmark directory
