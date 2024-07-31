@@ -60,7 +60,7 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
   let arguments =(ins
     SymbolNameAttr:$sym_name,
     TypeAttrOf<CoreFunctionType>:$function_type,
-    DefaultValuedAttr<GlobalLinkageKind, "core::GlobalLinkageKind::ExternalLinkage">:$linkage,
+    OptionalAttr<GlobalLinkageKind>:$linkage,
     OptionalAttr<StrAttr>:$sym_visibility,
     OptionalAttr<DictArrayAttr>:$arg_attrs,
     OptionalAttr<DictArrayAttr>:$res_attrs
