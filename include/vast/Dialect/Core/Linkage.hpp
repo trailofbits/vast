@@ -19,6 +19,6 @@ namespace vast::core {
         const clang::DeclaratorDecl *decl, clang::GVALinkage linkage, bool is_constant
     );
 
-    core::GlobalLinkageKind get_function_linkage(clang::GlobalDecl glob);
+    std::optional< core::GlobalLinkageKind > get_function_linkage(clang::GlobalDecl glob);
 
 } // namespace vast::core

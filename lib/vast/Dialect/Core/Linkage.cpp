@@ -145,7 +145,6 @@ namespace vast::core {
             case GlobalLinkageKind::AppendingLinkage:
             case GlobalLinkageKind::ExternalWeakLinkage:
                 return Visibility::Public;
-            case GlobalLinkageKind::UnknownLinkage:
             case GlobalLinkageKind::InternalLinkage:
             case GlobalLinkageKind::PrivateLinkage:
                 return Visibility::Private;
@@ -252,13 +251,13 @@ namespace vast::core {
         return GlobalLinkageKind::ExternalLinkage;
     }
 
-    GlobalLinkageKind get_function_linkage(clang::GlobalDecl glob) {
+    std::optional< GlobalLinkageKind > get_function_linkage(clang::GlobalDecl glob) {
         const auto *decl = clang::cast< clang::FunctionDecl >(glob.getDecl());
 
         // inline decl without definition triggers assert in clang,
         // so we can not ask directly. Set unknown linkage to resolve later
         if (!decl->isThisDeclarationADefinition() && decl->isInlineSpecified()) {
-            return GlobalLinkageKind::UnknownLinkage;
+            return std::nullopt;
         }
 
         auto &actx = decl->getASTContext();
