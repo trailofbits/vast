@@ -29,3 +29,13 @@ inline extern void grault(void);
 
 // CHECK: hl.func @graply internal
 static inline void graply(void) {}
+
+// CHECK: hl.func @waldo external
+inline void waldo(void);
+void waldo(void);
+inline void waldo(void) {}
+
+// CHECK: hl.func @fred external
+inline void fred(void);
+inline extern void fred(void);
+inline void fred(void) {}
