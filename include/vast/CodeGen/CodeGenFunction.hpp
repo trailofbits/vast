@@ -19,6 +19,7 @@ namespace vast::cg {
 
     mlir_visibility get_function_visibility(const clang_function *decl, linkage_kind linkage);
     vast_function set_visibility(const clang_function *decl, vast_function fn);
+    vast_function set_linkage_and_visibility(vast_function fn, std::optional< core::GlobalLinkageKind > linkage);
 
     //
     // function generation
