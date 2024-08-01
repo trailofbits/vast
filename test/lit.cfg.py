@@ -143,6 +143,9 @@ for tool in tools:
         tool.command = os.path.join(*path, tool.command)
     llvm_config.add_tool_substitutions([tool])
 
+if config.host_cc.find('clang') != -1:
+    config.available_features.add("clang")
+
 stdbit_test = subprocess.run(["cc", "-x", "c", "-", "-o", "/dev/null"],
                              input=b'#include <stdbit.h>\n int main() {}',
                              capture_output=True)

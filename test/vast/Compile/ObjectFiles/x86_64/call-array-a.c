@@ -1,4 +1,5 @@
 // RUN: %vast-front -target x86_64 -c -vast-pipeline=with-abi -S -emit-llvm -o %t.vast.ll %s && %cc -c -S -emit-llvm -xc %s.driver -o %t.clang.ll  && %cc %t.vast.ll %t.clang.ll -o %t && (%t; test $? -eq 0)
+// REQUIRES: clang
 
 int sum(int array[2])
 {
