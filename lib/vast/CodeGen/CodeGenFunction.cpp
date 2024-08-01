@@ -40,6 +40,18 @@ namespace vast::cg
         return fn;
     }
 
+    vast_function set_linkage_and_visibility(
+        const clang_function *decl, vast_function fn,
+        std::optional< core::GlobalLinkageKind > linkage
+    ) {
+        if (linkage) {
+            auto attr = core::GlobalLinkageKindAttr::get(fn.getContext(), linkage.value());
+            fn->setAttr("linkage", attr);
+        }
+        set_visibility(decl, fn);
+        return fn;
+    }
+
     //
     // function generation
     //
@@ -72,11 +84,7 @@ namespace vast::cg
                     // because clang can not provide the information for them
                     auto linkage = fn->getAttrOfType< core::GlobalLinkageKindAttr >("linkage");
                     if (!linkage) {
-                        if (auto new_linkage = core::get_function_linkage(decl)) {
-                            auto attr = core::GlobalLinkageKindAttr::get(fn.getContext(), new_linkage.value());
-                            fn->setAttr("linkage", attr);
-                        }
-                        set_visibility(decl, fn);
+                        set_linkage_and_visibility(decl, fn, core::get_function_linkage(decl));
                     }
 
                     // Some later declaration might cause an inline function to become
@@ -94,13 +102,9 @@ namespace vast::cg
                     if (!decl->doesThisDeclarationHaveABody()
                         && decl->doesDeclarationForceExternallyVisibleDefinition())
                     {
-                        fn->setAttr(
-                            "linkage",
-                            core::GlobalLinkageKindAttr::get(
-                                fn.getContext(), core::GlobalLinkageKind::ExternalLinkage
-                            )
+                        set_linkage_and_visibility(
+                            decl, fn, core::GlobalLinkageKind::ExternalLinkage
                         );
-                        set_visibility(decl, fn);
                     }
                     return op;
                 }
