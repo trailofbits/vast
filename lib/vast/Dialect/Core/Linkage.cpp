@@ -256,7 +256,7 @@ namespace vast::core {
 
         // inline decl without definition triggers assert in clang,
         // so we can not ask directly. Set unknown linkage to resolve later
-        if (!decl->isThisDeclarationADefinition() && decl->isInlineSpecified()) {
+        if (!decl->isThisDeclarationADefinition() && decl->isInlined()) {
             return std::nullopt;
         }
 
