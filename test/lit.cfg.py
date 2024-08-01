@@ -102,7 +102,7 @@ tools = [
         ]
     ),
     ToolSubst('%file-check', command = 'FileCheck'),
-    ToolSubst('%cc', command = 'cc')
+    ToolSubst('%cc', command = config.host_cc)
 ]
 
 passes = [
