@@ -15,16 +15,164 @@
 #include <llvm/ADT/BitVector.h>
 #include <llvm/ADT/DenseMap.h>
 #include <llvm/ADT/PackedVector.h>
+#include <llvm/ADT/PointerIntPair.h>
 #include <llvm/ADT/SmallVector.h>
 #include <optional>
 
 namespace vast::analyses {
 
+    /// A use of a variable, which might be uninitialized.
+    class UninitUseT {
+    public:
+        struct Branch {
+            ast::StmtInterface Terminator;
+            unsigned Output;
+        };
+
+    private:
+        /// The expression which uses this variable.
+        ast::ExprInterface User;
+
+        /// Is this use uninitialized whenever the function is called?
+        bool UninitAfterCall = false;
+
+        /// Is this use uninitialized whenever the variable declaration is reached?
+        bool UninitAfterDecl = false;
+
+        /// Does this use always see an uninitialized value?
+        bool AlwaysUninit;
+
+        /// This use is always uninitialized if it occurs after any of these branches
+        /// is taken.
+        llvm::SmallVector< Branch, 2 > UninitBranches;
+
+    public:
+        UninitUseT(ast::ExprInterface User, bool AlwaysUninit)
+            : User(User), AlwaysUninit(AlwaysUninit) {}
+
+        void addUninitBranch(Branch B) {
+            UninitBranches.push_back(B);
+        }
+
+        void setUninitAfterCall() { UninitAfterCall = true; }
+        void setUninitAfterDecl() { UninitAfterDecl = true; }
+
+        /// Get the expression containing the uninitialized use.
+        ast::ExprInterface getUser() const { return User; }
+
+        /// The kind of uninitialized use.
+        enum class Kind {
+            /// The use might be uninitialized.
+            Maybe,
+
+            /// The use is uninitialized whenever a certain branch is taken.
+            Sometimes,
+
+            /// The use is uninitialized the first time it is reached after we reach
+            /// the variable's declaration.
+            AfterDecl,
+
+            /// The use is uninitialized the first time it is reached after the function
+            /// is called.
+            AfterCall,
+
+            /// The use is always uninitialized.
+            Always
+        };
+
+        using branch_iterator = llvm::SmallVectorImpl< Branch >::const_iterator;
+
+        /// Branches which inevitably result in the variable being used uninitialized.
+        branch_iterator branch_begin() const { return UninitBranches.begin(); }
+        branch_iterator branch_end() const { return UninitBranches.end(); }
+        bool branch_empty() const { return UninitBranches.empty(); }
+
+        /// Get the kind of uninitialized use.
+        Kind getKind() const {
+            return AlwaysUninit ? Kind::Always :
+                UninitAfterCall ? Kind::AfterCall :
+                UninitAfterDecl ? Kind::AfterDecl :
+                !branch_empty() ? Kind::Sometimes : Kind::Maybe;
+        }
+    };
+
+    class Capture {
+        enum {
+            flag_isByRef = 0x1,
+            flag_isNested = 0x2
+        };
+
+        /// The variable being captured.
+        llvm::PointerIntPair< ast::VarDeclInterface *, 2 > VariableAndFlags;
+
+        /// The copy expression, expressed in terms of a DeclRef (or
+        /// BlockDeclRef) to the captured variable.  Only required if the
+        /// variable has a C++ class type.
+        ast::ExprInterface CopyExpr;
+
+    public:
+        Capture(ast::VarDeclInterface *variable, bool byRef, bool nested, ast::ExprInterface copy)
+            : VariableAndFlags(variable,
+                        (byRef ? flag_isByRef : 0) | (nested ? flag_isNested : 0)),
+              CopyExpr(copy) {}
+
+        /// The variable being captured.
+        ast::VarDeclInterface *getVariable() const { return VariableAndFlags.getPointer(); }
+
+        /// Whether this is a "by ref" capture, i.e. a capture of a __block
+        /// variable.
+        bool isByRef() const { return VariableAndFlags.getInt() & flag_isByRef; }
+
+        bool isEscapingByref() const {
+          return getVariable()->isEscapingByref();
+        }
+
+        bool isNonEscapingByref() const {
+          return getVariable()->isNonEscapingByref();
+        }
+
+        /// Whether this is a nested capture, i.e. the variable captured
+        /// is not from outside the immediately enclosing function/block.
+        bool isNested() const { return VariableAndFlags.getInt() & flag_isNested; }
+
+        bool hasCopyExpr() const { return CopyExpr != nullptr; }
+        ast::ExprInterface getCopyExpr() const { return CopyExpr; }
+        void setCopyExpr(ast::ExprInterface e) { CopyExpr = e; }
+    };
+
+    static mlir::Operation *getDecl(ast::DeclRefExprInterface) {
+        VAST_UNIMPLEMENTED;
+    }
+
+    static ast::DeclInterface getSingleDecl(ast::DeclStmtInterface) {
+        VAST_UNIMPLEMENTED;
+    }
+
+    static ast::BlockDeclInterface getBlockDecl(ast::BlockExprInterface) {
+        VAST_UNIMPLEMENTED;
+    }
+
     static ast::RecordDeclInterface getAsRecordDecl(ast::QualTypeInterface) {
         VAST_UNIMPLEMENTED;
     }
 
-    static bool isZeroSize(ast::FieldDeclInterface FD) {
+    static bool isZeroSize(ast::FieldDeclInterface) {
+        VAST_UNIMPLEMENTED;
+    }
+
+    static ast::DeclInterface getCalleeDecl(ast::CallExprInterface) {
+        VAST_UNIMPLEMENTED;
+    }
+
+    static llvm::ArrayRef< Capture > captures(ast::BlockDeclInterface) {
+        VAST_UNIMPLEMENTED;
+    }
+
+    static std::vector< ast::DeclInterface > decls(ast::DeclStmtInterface) {
+        VAST_UNIMPLEMENTED;
+    }
+
+    static ast::FunctionDeclInterface getDirectCallee(ast::CallExprInterface) {
         VAST_UNIMPLEMENTED;
     }
 
@@ -392,8 +540,6 @@ namespace vast::analyses {
     static bool runOnBlock() {
         return false; 
     }
-
-    class UninitUseT {};
 
     // osablonovat triedu
     class UninitVariablesHandler {
