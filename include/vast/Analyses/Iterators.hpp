@@ -14,12 +14,13 @@ namespace vast::analyses {
         decl_interface_iterator() = default;
         explicit decl_interface_iterator(ast::DeclInterface *C) : Current(C) {}
 
-        ast::DeclInterface operator*() const;
+        ast::DeclInterface &operator*() const;
         ast::DeclInterface *operator->() const;
         decl_interface_iterator &operator++();
         decl_interface_iterator operator++(int);
         friend bool operator==(decl_interface_iterator, decl_interface_iterator);
         friend bool operator!=(decl_interface_iterator, decl_interface_iterator);
+        mlir::Operation *get_current_op() const;
     };
 
     template< typename SpecificDecl >
@@ -27,7 +28,11 @@ namespace vast::analyses {
         using decl_interface_iterator = vast::analyses::decl_interface_iterator;
         decl_interface_iterator Current;
 
-        void SkipToNextDecl();
+        void SkipToNextDecl() {
+            while (*Current && !isa< SpecificDecl >(Current.get_current_op())) {
+                ++Current;
+            }
+        }
 
     public:
         specific_decl_interface_iterator() = default;
@@ -35,7 +40,7 @@ namespace vast::analyses {
             SkipToNextDecl();
         }
 
-        SpecificDecl operator*() const;
+        SpecificDecl operator*() const { return dyn_cast< SpecificDecl >(Current.get_current_op()); }
         SpecificDecl operator->() const { return **this; }
 
         specific_decl_interface_iterator &operator++() {
