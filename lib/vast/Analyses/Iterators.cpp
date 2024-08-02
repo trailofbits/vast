@@ -16,6 +16,10 @@ namespace vast::analyses {
         return tmp;
     }
 
+    mlir::Operation *get_current_op() const {
+        return Current->getOperation();
+    }
+
     friend bool decl_interface_iterator::operator==(decl_interface_iterator x, decl_interface_iterator y) {
         return x.Current == y.Current;
     }
@@ -23,13 +27,5 @@ namespace vast::analyses {
     friend bool decl_interface_iterator::operator!=(decl_interface_iterator x, decl_interface_iterator y) {
         return x.Current != y.Current;
     }
-
-    template< typename SpecificDecl >
-    void specific_decl_interface_iterator< SpecificDecl >::SkipToNextDecl() {
-        while (*Current && !isa< SpecificDecl >(*Current)) {
-            ++Current;
-        }
-    }
-
-    SpecificDecl operator*() const { return cast< SpecificDelc >(*Current); }
 } // namespace vast::analyses
+

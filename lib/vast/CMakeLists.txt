@@ -16,3 +16,4 @@ endif()
 
 add_subdirectory(Tower)
 add_subdirectory(Util)
+add_subdirectory(Analyses)
