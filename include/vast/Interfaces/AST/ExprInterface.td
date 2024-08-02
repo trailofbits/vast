@@ -16,7 +16,10 @@ def VAST_ExprInterface : VAST_ASTOpInterface< "ExprInterface",
     }];
 
     let methods = [
-        InterfaceMethod< "clang::Expr::getType", "::vast::ast::QualTypeInterface", "getType" >
+        InterfaceMethod< "clang::Expr::getType", "::vast::ast::QualTypeInterface", "getType" >,
+        InterfaceMethod< "clang::Expr::IgnoreParenNoopCasts", "::vast::ast::ExprInterface",
+                         "IgnoreParenNoopCasts", (ins "::vast::ast::ASTContextInterface":$Ctx) >,
+        InterfaceMethod< "clang::Expr::IgnoreParens", "::vast::ast::ExprInterface", "IgnoreParens" >
     ];
 }
 
@@ -139,7 +142,9 @@ def VAST_UnaryOperatorInterface : VAST_ASTOpInterface< "UnaryOperatorInterface",
     }];
 
     let methods = [
-        InterfaceMethod< "clang::UnaryOperator::getOpcode", "::clang::UnaryOperatorKind", "getOpcode" >
+        InterfaceMethod< "clang::UnaryOperator::getOpcode", "::clang::UnaryOperatorKind", "getOpcode" >,
+        InterfaceMethod< "clang::UnaryOperator::getSubExpr", "::vast::ast::ExprInterface", "getSubExpr" >,
+        InterfaceMethod< "clang::UnaryOperator::isIncrementDecrementOp", "bool", "isIncrementDecrementOp" >
     ];
 }
 
@@ -217,7 +222,10 @@ def VAST_CallExprInterface : VAST_ASTOpInterface< "CallExprInterface",
         (https://clang.llvm.org/doxygen/classclang_1_1CallExpr.html) functionality.
     }];
 
-    let methods = [];
+    let methods = [
+        InterfaceMethod< "clang::CallExpr::isCallToStdMove", "bool", "isCallToStdMove" >,
+        InterfaceMethod< "clang::CallExpr::getArg", "::vast::ast::ExprInterface", "getArg", (ins "unsigned":$arg) > 
+    ];
 }
 
 def VAST_MemberExprInterface : VAST_ASTOpInterface< "MemberExprInterface",
@@ -228,7 +236,9 @@ def VAST_MemberExprInterface : VAST_ASTOpInterface< "MemberExprInterface",
         (https://clang.llvm.org/doxygen/classclang_1_1MemberExpr.html) functionality.
     }];
 
-    let methods = [];
+    let methods = [
+        InterfaceMethod< "clang::MemberExpr::getBase", "::vast::ast::ExprInterface", "getBase" >
+    ];
 }
 
 def VAST_CastExprInterface : VAST_ASTOpInterface< "CastExprInterface",
@@ -254,7 +264,10 @@ def VAST_BinaryOperatorInterface : VAST_ASTOpInterface< "BinaryOperatorInterface
     }];
 
     let methods = [
-        InterfaceMethod< "clang::BinaryOperator::getOpcode", "::clang::BinaryOperatorKind", "getOpcode" >
+        InterfaceMethod< "clang::BinaryOperator::getOpcode", "::clang::BinaryOperatorKind", "getOpcode" >,
+        InterfaceMethod< "clang::BinaryOperator::getLHS", "::vast::ast::ExprInterface", "getLHS" >,
+        InterfaceMethod< "clang::BinaryOperator::getRHS", "::vast::ast::ExprInterface", "getRHS" >,
+        InterfaceMethod< "clang::BinaryOperator::isCompoundAssignmentOp", "bool", "isCompoundAssignmentOp" >
     ];
 }
 
@@ -288,7 +301,10 @@ def VAST_ConditionalOperatorInterface : VAST_ASTOpInterface< "ConditionalOperato
         (https://clang.llvm.org/doxygen/classclang_1_1ConditionalOperator.html) functionality.
     }];
 
-    let methods = [];
+    let methods = [
+        InterfaceMethod< "clang::ConditionalOperator::getTrueExpr", "::vast::ast::ExprInterface", "getTrueExpr" >,
+        InterfaceMethod< "clang::ConditionalOperator::getFalseExpr", "::vast::ast::ExprInterface", "getFalseExpr" >
+    ];
 }
 
 def VAST_BinaryConditionalOperatorInterface : VAST_ASTOpInterface< "BinaryConditionalOperatorInterface",
@@ -299,7 +315,10 @@ def VAST_BinaryConditionalOperatorInterface : VAST_ASTOpInterface< "BinaryCondit
         (https://clang.llvm.org/doxygen/classclang_1_1BinaryConditionalOperator.html) functionality.
     }];
 
-    let methods = [];
+    let methods = [
+        InterfaceMethod< "clang::BinaryConditionalOperator::getTrueExpr", "::vast::ast::ExprInterface", "getTrueExpr" >,
+        InterfaceMethod< "clang::BinaryConditionalOperator::getFalseExpr", "::vast::ast::ExprInterface", "getFalseExpr" >
+    ];
 }
 
 def VAST_ImplicitCastExprInterface : VAST_ASTOpInterface< "ImplicitCastExprInterface",
@@ -1408,7 +1427,9 @@ def VAST_OpaqueValueExprInterface : VAST_ASTOpInterface< "OpaqueValueExprInterfa
         (https://clang.llvm.org/doxygen/classclang_1_1OpaqueValueExpr.html) functionality.
     }];
 
-    let methods = [];
+    let methods = [
+        InterfaceMethod< "clang::OpaqueValueExpr", "::vast::ast::ExprInterface", "getSourceExpr" >
+    ];
 }
 
 def VAST_TypoExprInterface : VAST_ASTOpInterface< "TypoExprInterface",
