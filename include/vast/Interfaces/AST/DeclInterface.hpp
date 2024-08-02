@@ -17,4 +17,9 @@ VAST_RELAX_WARNINGS
 #include "vast/Interfaces/AST/ASTContextInterface.hpp"
 
 /// Include the generated interface declarations.
+
+namespace vast::ast {
+    class FunctionDeclInterface;
+}
+
 #include "vast/Interfaces/AST/DeclInterface.h.inc"

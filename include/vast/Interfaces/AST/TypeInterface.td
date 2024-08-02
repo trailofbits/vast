@@ -19,11 +19,12 @@ def VAST_TypeInterface : VAST_ASTTypeInterface< "TypeInterface" > {
         InterfaceMethod< "clang::Type::isRecordType", "bool", "isRecordType", (ins) >,
         InterfaceMethod< "clang::Type::isVoidType", "bool", "isVoidType", (ins) >,
         InterfaceMethod< "clang::Type::isRVVSizelessBuiltinType", "bool", "isRVVSizelessBuiltinType", (ins) >,
+        InterfaceMethod< "clang::Type::isAnyPointerType", "bool", "isAnyPointerType", (ins) >,
+        InterfaceMethod< "clang::Type::getPointeeType", "::vast::ast::QualTypeInterface", "getPointeeType" >
     ];
 }
 
-def VAST_QualTypeInterface : VAST_ASTTypeInterface< "QualTypeInterface",
-    [VAST_TypeInterface] > {
+def VAST_QualTypeInterface : VAST_ASTTypeInterface< "QualTypeInterface" > {
 
     let description = [{
         An interface to provide [`clang::QualType`]
@@ -32,6 +33,7 @@ def VAST_QualTypeInterface : VAST_ASTTypeInterface< "QualTypeInterface",
     
     let methods = [
         InterfaceMethod< "clang::QualType::getTypePtr", "::vast::ast::TypeInterface", "getTypePtr", (ins) >,
+        InterfaceMethod< "clang::QualType::isConstQualified", "bool", "isConstQualified", (ins) >
     ];
 
     let extraClassDeclaration = [{

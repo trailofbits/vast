@@ -257,7 +257,9 @@ def VAST_GCCAsmStmtInterface : VAST_ASTOpInterface< "GCCAsmStmtInterface",
         (https://clang.llvm.org/doxygen/classclang_1_1GCCAsmStmt.html) functionality.
     }];
 
-    let methods = [];
+    let methods = [
+        InterfaceMethod< "clang::GCCAsmStmt::isAsmGoto", "bool", "isAsmGoto" >
+    ];
 }
 
 def VAST_MSAsmStmtInterface : VAST_ASTOpInterface< "MSAsmStmtInterface",
@@ -334,7 +336,9 @@ def VAST_ObjCForCollectionStmtInterface : VAST_ASTOpInterface< "ObjCForCollectio
         (https://clang.llvm.org/doxygen/classclang_1_1ObjCForCollectionStmt.html) functionality.
     }];
 
-    let methods = [];
+    let methods = [
+        InterfaceMethod< "clang::ObjCForCollectionStmt", "::vast::ast::StmtInterface", "getElement" >
+    ];
 }
 
 def VAST_ObjCAutoreleasePoolStmtInterface : VAST_ASTOpInterface< "ObjCAutoreleasePoolStmtInterface",
