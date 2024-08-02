@@ -200,9 +200,12 @@ namespace vast::analyses {
             !vd.isExceptionVariable() && !vd.isInitCapture() && !vd.isImplicit() &&
             vd.getDeclContext() == dc) {
             ast::QualTypeInterface ty = vd.getType();
-            if (auto RD = getAsRecordDecl(ty))
+            if (auto RD = getAsRecordDecl(ty)) {
                 return recordIsNotEmpty(RD);
-            return ty.isScalarType() || ty.isVectorType() || ty.isRVVSizelessBuiltinType();
+            }
+
+            ast::TypeInterface T = ty.getTypePtr();
+            return T.isScalarType() || T.isVectorType() || T.isRVVSizelessBuiltinType();
         }
         return false;
     }
@@ -313,6 +316,12 @@ namespace vast::analyses {
                 scratch.reset();
             }
 
+            void setAllScratchValues(Value v) {
+                for (unsigned I = 0, E = scratch.size(); I != E; ++I ) {
+                    scratch[I] = v;
+                }
+            }
+
             void mergeIntoScratch(const ValueVector &source, bool isFirst) {
                 if (isFirst) {
                     scratch = source;
@@ -331,6 +340,12 @@ namespace vast::analyses {
 
             ValueVector::reference operator[](ast::VarDeclInterface vd) {
                 return scratch[*declToIndex.getValueIndex(vd)];
+            }
+
+            Value getValue(const CFGBlockT *block, const CFGBlockT *dstBlock,
+                           ast::VarDeclInterface vd) {
+                std::optional< unsigned > idx = declToIndex.getValueIndex(vd);
+                return getValueVector(block)[*idx];
             }
         };
     
@@ -359,17 +374,19 @@ namespace vast::analyses {
         };
 
     } // namespace
-
-    static mlir::Operation *getDecl(ast::DeclRefExprInterface) {
-        VAST_UNIMPLEMENTED;
-    }
-
-    static bool compare(ast::ValueDeclInterface, ast::VarDeclInterface) {
-        VAST_UNIMPLEMENTED;
-    }
-
-    static mlir::Operation *stripCasts(ast::ASTContextInterface AC, ast::ExprInterface) {
-        VAST_UNIMPLEMENTED;
+    
+    static mlir::Operation *stripCasts(ast::ASTContextInterface C, ast::ExprInterface Ex) {
+        while (Ex) {
+            Ex = Ex.IgnoreParenNoopCasts(C);
+            if (auto CE = dyn_cast< ast::CastExprInterface >(Ex.getOperation())) {
+                if (CE.getCastKind() == clang::CK_LValueBitCast) {
+                    Ex = CE.getSubExpr();
+                    continue;
+                }
+            }
+            break;
+        }
+        return Ex.getOperation();
     }
 
     static ast::DeclRefExprInterface getSelfInitExpr(ast::VarDeclInterface VD) {
@@ -400,8 +417,27 @@ namespace vast::analyses {
         }
         return FindVarResultT({}, {});
     }
+
+    static bool isPointerToConst(ast::QualTypeInterface QT) {
+        ast::TypeInterface T = QT.getTypePtr();
+        return T.isAnyPointerType() && T.getPointeeType().isConstQualified();
+    }
+
+    static bool hasTrivialBody(ast::CallExprInterface CE) {
+        if (ast::FunctionDeclInterface FD = getDirectCallee(CE)) {
+            if (ast::FunctionTemplateDeclInterface FTD = FD.getPrimaryTemplate()) {
+                return FTD.getTemplatedDecl().hasTrivialBody();
+            }
+            return FD.hasTrivialBody();
+        }
+        return false;
+    }
     
     namespace {
+
+        static mlir::Operation *getMemberDecl(ast::MemberExprInterface) {
+            VAST_UNIMPLEMENTED;
+        }
         
         /// Classify each DeclRefExpr as an initialization or a use. Any
         /// DeclRefExpr which isn't explicitly classified will be assumed to have
@@ -426,12 +462,54 @@ namespace vast::analyses {
             }
 
             void classify(ast::ExprInterface E, Class C) {
-                VAST_UNIMPLEMENTED; 
+                E = E.IgnoreParens();
+                if (auto CO = dyn_cast< ast::ConditionalOperatorInterface >(E.getOperation())) {
+                    classify(CO.getTrueExpr(), C);
+                    classify(CO.getFalseExpr(), C);
+                    return;
+                }
+
+                if (auto BCO = dyn_cast< ast::BinaryConditionalOperatorInterface >(E.getOperation())) {
+                    classify(BCO.getFalseExpr(), C);
+                    return;
+                }
+
+                if (auto OVE = dyn_cast< ast::OpaqueValueExprInterface >(E.getOperation())) {
+                    classify(OVE.getSourceExpr(), C);
+                    return;
+                }
+
+                if (auto ME = dyn_cast< ast::MemberExprInterface >(E.getOperation())) {
+                    if (auto VD = dyn_cast< ast::VarDeclInterface >(getMemberDecl(ME))) {
+                        if (!VD.isStaticDataMember()) {
+                            classify(ME.getBase(), C);
+                        }
+                    }
+                    return;
+                }
+
+                if (auto BO = dyn_cast< ast::BinaryOperatorInterface >(E.getOperation())) {
+                    switch (BO.getOpcode()) {
+                        case clang::BO_PtrMemD:
+                        case clang::BO_PtrMemI:
+                            classify(BO.getLHS(), C);
+                            return;
+
+                        case clang::BO_Comma:
+                            classify(BO.getRHS(), C);
+                            return;
+
+                        default:
+                            return;
+                    }
+                }
+
+                FindVarResultT Var = findVar< FindVarResultT >(E, DC);
+                if (ast::DeclRefExprInterface DRE = Var.getDeclRefExpr()) {
+                    Classification[DRE] = std::max(Classification[DRE], C);
+                }
             }
 
-            std::vector< ast::DeclInterface > decls(ast::DeclStmtInterface DS) {
-                VAST_UNIMPLEMENTED;
-            }
 
         public:
             ClassifyRefsT(AnalysisDeclContextInterface AC)
@@ -439,6 +517,20 @@ namespace vast::analyses {
 
             void operator()(ast::StmtInterface S) {
                 base::base::Visit(S);
+            }
+
+            Class get(ast::DeclRefExprInterface DRE) const {
+                llvm::DenseMap< ast::DeclRefExprInterface, Class >::const_iterator I = Classification.find(DRE);
+                if (I != Classification.end()) {
+                    return I->second;
+                }
+
+                auto VD = dyn_cast< ast::VarDeclInterface >(getDecl(DRE));
+                if (!VD || !isTrackedVar(VD)) {
+                    return Class::Ignore;
+                }
+
+                return Class::Init;
             }
 
             void VisitDeclStmt(ast::DeclStmtInterface DS) {
@@ -452,6 +544,64 @@ namespace vast::analyses {
                 }
             }
 
+            void VisitUnaryOperator(ast::UnaryOperatorInterface UO) {
+                // Increment and decrement are uses despite there being no lvalue-to-rvalue
+                // conversion.
+                if (UO.isIncrementDecrementOp()) {
+                    classify(UO.getSubExpr(), Class::Use);
+                }
+            }
+
+            void VisitBinaryOperator(ast::BinaryOperatorInterface BO) {
+                // Ignore the evaluation of a DeclRefExpr on the LHS of an assignment. If this
+                // is not a compound-assignment, we will treat it as initializing the variable
+                // when TransferFunctions visits it. A compound-assignment does not affect
+                // whether a variable is uninitialized, and there's no point counting it as a
+                // use.
+                if (BO.isCompoundAssignmentOp()) {
+                    classify(BO.getLHS(), Class::Use);
+                }
+                else if (BO.getOpcode() == clang::BO_Assign || BO.getOpcode() == clang::BO_Comma) {
+                    classify(BO.getLHS(), Class::Ignore);
+                }
+            }
+
+            void VisitCallExpr(ast::CallExprInterface CE) {
+                VAST_UNIMPLEMENTED;
+                /*
+                // Classify arguments to std::move as used.
+                if (CE.isCallToStdMove()) {
+                    // RecordTypes are handled in SemaDeclCXX.cpp.
+                    if (!CE.getArg(0).getType().getTypePtr().isRecordType()) {
+                        classify(CE.getArg(0), Class::Use);
+                    }
+                    return;
+                }
+                bool isTrivialBody = hasTrivialBody(CE);
+                // If a value is passed by const pointer to a function,
+                // we should not assume that it is initialized by the call, and we
+                // conservatively do not assume that it is used.
+                // If a value is passed by const reference to a function,
+                // it should already be initialized.
+                for (call_expr_arg_iterator I = CE.arg_begin(), E = CE.arg_end();
+                     I != E; ++I) {
+                    if ((*I)->isGLValue()) {
+                        if ((*I)->getType().isConstQualified()) {
+                            classify((*I), isTrivialBody ? Class::Ignore : Class::ConstRefUse);  
+                        }
+                    }
+                    else if (isPointerToConst((*I)->getType())) {
+                        ast::ExprInterface Ex = stripCasts(DC.getParentASTContext(), *I);
+                        auto UO = dyn_cast< ast::UnaryOperatorInterface >(Ex);
+                        if (UO && UO.getOpcode() == clang::UO_AddrOf) {
+                            Ex = UO.getSubExpr();
+                        }
+                        classify(Ex, Class::Ignore);
+                    }
+                }
+                */
+            }
+
             void VisitCastExpr(ast::CastExprInterface CE) {
                 if (CE.getCastKind() == clang::CastKind::CK_LValueToRValue) {
                     classify(CE.getSubExpr(), Class::Use);
@@ -463,6 +613,10 @@ namespace vast::analyses {
                         classify(CSE.getSubExpr(), Class::Ignore);
                     }
                 }
+            }
+
+            void VisitOMPExecutableDirective(ast::OMPExecutableDirectiveInterface ED) {
+                VAST_UNIMPLEMENTED;
             }
         };
     } // namespace
@@ -486,7 +640,7 @@ namespace vast::analyses {
             const CFGBlockT *block;
             AnalysisDeclContextT &ac;
             const ClassifyRefsT &classification;
-            ObjCNoReturnT objCNoReturn;
+            ObjCNoReturnT objCNoRet;
             UninitVariablesHandlerT &handler;
 
         public:
@@ -495,39 +649,339 @@ namespace vast::analyses {
                     const ClassifyRefsT &classification,
                     UninitVariablesHandlerT &handler)
               : vals(vals), cfg(cfg), block(block), ac(ac),
-                classification(classification), objCNoReturn(ac.getASTContext()),
+                classification(classification), objCNoRet(ac.getASTContext()),
                 handler(handler) {}
 
+            bool isTrackedVar(ast::VarDeclInterface vd) {
+                return isTrackedVar(vd, cast< ast::DeclContextInterface >(ac.getDecl()));
+            }
+
+            FindVarResultT findVar(ast::ExprInterface ex) {
+                return findVar(ex, cast< ast::DeclContextInterface >(ac.getDecl()));
+            }
+
             void VisitDeclRefExpr(ast::DeclRefExprInterface dr) {
-                VAST_UNIMPLEMENTED;
-                /*
-                switch (&classification.get(dr)) {
+                switch (classification.get(dr)) {
                     case ClassifyRefsT::Class::Ignore:
                         return;
                     
                     case ClassifyRefsT::Class::Use:
-                        return;
+                        reportUse(dr, cast< ast::VarDeclInterface >(getDecl(dr)));
+                        break;
 
                     case ClassifyRefsT::Class::Init:
-                        return;
+                        vals[cast< ast::VarDeclInterface >(getDecl(dr))] = ClassifyRefsT::Value::Initialized;
+                        break;
 
                     case ClassifyRefsT::Class::SelfInit:
-                        return;
+                        handler.handleSelfInit(cast< ast::VarDeclInterface >(getDecl(dr)));
+                        break;
 
                     case ClassifyRefsT::Class::ConstRefUse:
-                        return;
+                        reportConstRefUse(dr, cast< ast::VarDeclInterface >(getDecl(dr)));
+                        break;
+                }
+            }
+
+            void reportUse(ast::ExprInterface ex, ast::VarDeclInterface vd) {
+                Value v = vals[vd];
+                if (isUninitialized(v)) {
+                    handler.handleUseOfUninitVariable(vd, getUninitUse(ex, vd, v));
+                }
+            }
+
+            void reportConstRefUse(ast::ExprInterface ex, ast::VarDeclInterface vd) {
+                Value v = vals[vd];
+                if (isAlwaysUninit(v)) {
+                    handler.handleConstRefUseOfUninitVariable(vd, getUninitUse(ex, vd, v));
+                }
+            }
+
+            UninitUseT getUninitUse(ast::ExprInterface ex, ast::VarDeclInterface vd, Value v) {
+                UninitUseT Use(ex, isAlwaysUninit(v));
+
+                assert(isUninitialized(v));
+                if (Use.getKind() == UninitUseT::Kind::Always) {
+                    return Use;
+                }
+
+                // If an edge which leads unconditionally to this use did not initialize
+                // the variable, we can say something stronger than 'may be uninitialized':
+                // we can say 'either it's used uninitialized or you have dead code'.
+                //
+                // We track the number of successors of a node which have been visited, and
+                // visit a node once we have visited all of its successors. Only edges where
+                // the variable might still be uninitialized are followed. Since a variable
+                // can't transfer from being initialized to being uninitialized, this will
+                // trace out the subgraph which inevitably leads to the use and does not
+                // initialize the variable. We do not want to skip past loops, since their
+                // non-termination might be correlated with the initialization condition.
+                //
+                // For example:
+                //
+                //         void f(bool a, bool b) {
+                // block1:   int n;
+                //           if (a) {
+                // block2:     if (b)
+                // block3:       n = 1;
+                // block4:   } else if (b) {
+                // block5:     while (!a) {
+                // block6:       do_work(&a);
+                //               n = 2;
+                //             }
+                //           }
+                // block7:   if (a)
+                // block8:     g();
+                // block9:   return n;
+                //         }
+                //
+                // Starting from the maybe-uninitialized use in block 9:
+                //  * Block 7 is not visited because we have only visited one of its two
+                //    successors.
+                //  * Block 8 is visited because we've visited its only successor.
+                // From block 8:
+                //  * Block 7 is visited because we've now visited both of its successors.
+                // From block 7:
+                //  * Blocks 1, 2, 4, 5, and 6 are not visited because we didn't visit all
+                //    of their successors (we didn't visit 4, 3, 5, 6, and 5, respectively).
+                //  * Block 3 is not visited because it initializes 'n'.
+                // Now the algorithm terminates, having visited blocks 7 and 8, and having
+                // found the frontier is blocks 2, 4, and 5.
+                //
+                // 'n' is definitely uninitialized for two edges into block 7 (from blocks 2
+                // and 4), so we report that any time either of those edges is taken (in
+                // each case when 'b == false'), 'n' is used uninitialized.
+                llvm::SmallVector< const CFGBlockT *, 32 > Queue;
+                llvm::SmallVector< unsigned, 32 > SuccsVisited(cfg.getNumBlockIDs(), 0);
+                Queue.push_back(block);
+                // Specify that we've already visited all successors of the starting block.
+                // This has the dual purpose of ensuring we never add it to the queue, and
+                // of marking it as not being a candidate element of the frontier.
+                SuccsVisited[block->getBlockID()] = block->succ_size();
+                while (!Queue.empty()) {
+                    const CFGBlockT *B = Queue.pop_back_val();
+
+                    // If the use is always reached from the entry block, make a note of that.
+                    if (B == &cfg.getEntry()) {
+                        Use.setUninitAfterCall();
+                    }
+
+                    for (typename CFGBlockT::const_pred_iterator I = B->pred_begin(),
+                         E = B->pred_end(); I != E; ++I) {
+                        const CFGBlockT *Pred = *I;
+                        if (!Pred) {
+                            continue;
+                        }
+
+                        Value AtPredExit = vals.getValue(Pred, B, vd);
+                        if (AtPredExit == Value::Initialized) {
+                            // This block initializes the variable.
+                            continue;
+                        }
+                        if (AtPredExit == Value::MayUninitialized &&
+                            vals.getValue(B, nullptr, vd) == Value::Uninitialized) {
+                            // This block declares the variable (uninitialized), and is reachable
+                            // from a block that initializes the variable. We can't guarantee to
+                            // give an earlier location for the diagnostic (and it appears that
+                            // this code is intended to be reachable) so give a diagnostic here
+                            // and go no further down this path.
+                            Use.setUninitAfterDecl();
+                            continue; 
+                        }
+
+                        unsigned &SV = SuccsVisited[Pred->getBlockID()];
+                        if (!SV) {
+                            // When visiting the first successor of a block, mark all NULL
+                            // successors as having been visited.
+                            for (typename CFGBlockT::const_succ_iterator SI = Pred->succ_begin(),
+                                 SE = Pred->succ_end(); SI != SE; ++SI) {
+                                if (!*SI) {
+                                    ++SV;
+                                }
+                            }
+                        }
+
+                        if (++SV == Pred->succ_size()) {
+                            // All paths from this block lead to the use and don't initialize the variable.
+                            Queue.push_back(Pred);
+                        }
+                    }
+
+                    // Scan the frontier, looking for blocks where the variable was uninitialized.
+                    for (const auto *Block :cfg) {
+                        unsigned BlockID = Block->getBlockID();
+                        ast::StmtInterface Term = Block->getTerminatorStmt();
+                        if (SuccsVisited[BlockID] && SuccsVisited[BlockID] < Block->succ_size() && Term) {
+                            // This block inevitably leads to the use. If we have an edge from here
+                            // to a post-dominator block, and the variable is uninitialized on that
+                            // edge, we have found a bug.
+                            for (typename CFGBlockT::const_succ_iterator I = Block->succ_begin(),
+                                 E = Block->succ_end(); I != E; ++I) {
+                                const CFGBlockT *Succ = *I;
+                                if (Succ && SuccsVisited[Succ->getBlockId()] >= Succ->succ_size() &&
+                                    vals.getValue(Block, Succ, vd) == Value::Uninitialized) {
+                                    // Switch cases are a special case: report the label to the caller
+                                    // as the 'terminator', not the switch statement itself. Suppress
+                                    // situations where no label matched: we can't be sure that's possible.
+                                    if (isa< ast::SwitchStmtInterface >(Term)) {
+                                        ast::StmtInterface Label = Succ->getLabel();
+                                        if (!Label || !isa< ast::SwitchCaseInterface >(Label)) {
+                                            // Might not be possible.
+                                            continue;
+                                        }
+                                        UninitUseT::Branch Branch;
+                                        Branch.Terminator = Label;
+                                        Branch.Output = 0; // Ingored.
+                                        Use.addUninitBranch(Branch);
+                                    }
+                                    else {
+                                        UninitUseT::Branch Branch;
+                                        Branch.Terminator = Term;
+                                        Branch.Output = I - Block->succ_begin();
+                                        Use.addUninitBranch(Branch);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return Use;
+            }
+
+            void VisitObjCForCollectionStmt(ast::ObjCForCollectionStmtInterface FS) {
+                if (auto DS = dyn_cast< ast::DeclStmtInterface >(FS.getElement().getOperation())) {
+                    auto VD = cast< ast::VarDeclInterface >(getSingleDecl(DS).getOperation());
+                    if (isTrackedVar(VD)) {
+                        vals[VD] = Value::Initialized;
+                    }
+                }
+            }
+
+            void VisitOMPExecutableDirective(ast::OMPExecutableDirectiveInterface ED) {
+                VAST_UNIMPLEMENTED;
+            }
+
+            void VisitBlockExpr(ast::BlockExprInterface be) {
+                ast::BlockDeclInterface bd = getBlockDecl(be);
+                for (auto I : captures(bd)) {
+                    ast::VarDeclInterface *vd = I.getVariable();
+                    if (!isTrackedVar(*vd)) {
+                        continue;
+                    }
+                    if (I.isByRef()) {
+                        vals[*vd] = Value::Initialized;
+                        continue;
+                    }
+                    reportUse(be, *vd);
+                }
+            }
+
+            void VisitCallExpr(ast::CallExprInterface ce) {
+                if (ast::DeclInterface Callee = getCalleeDecl(ce)) {
+                    /*
+                    if (Callee.hasAttr< ReturnsTwiceAttr >()) {
+                        // After a call to a function like setjmp or vfork, any variable which is
+                        // initialized anywhere within this function may now be initialized. For
+                        // now, just assume such a call initializes all variables. FIXME: Only
+                        // mark variables as initialized if they have an initializer which is
+                        // reachable from here.
+                        vals.setAllScratchValues(Value::Initialized);
+                    }
+                    else if (Callee.hasAttr< AnalyzerNoReturnAttr >()) {
+                        // Functions labeled like "analyzer_noreturn" are often used to denote
+                        // "panic" functions that in special debug situations can still return,
+                        // but for the most part should not be treated as returning.  This is a
+                        // useful annotation borrowed from the static analyzer that is useful for
+                        // suppressing branch-specific false positives when we call one of these
+                        // functions but keep pretending the path continues (when in reality the
+                        // user doesn't care).
+                        vals.setAllScratchValues(Value::Unknown);
+                    }
+                    */
+                }
+            }
+
+            void VisitBinaryOperator(ast::BinaryOperatorInterface BO) {
+                if (BO.getOpcode() == clang::BO_Assign) {
+                    FindVarResultT Var = findVar(BO.getLHS());
+                    if (ast::VarDeclInterface VD = Var.getDecl()) {
+                        vals[VD] = Value::Initialized;
+                    }
+                }
+            }
+
+            void VisitDeclStmt(ast::DeclStmtInterface DS) {
+                for (auto DI : decls(DS)) {
+                    auto VD = dyn_cast< ast::VarDeclInterface >(DI.getOperation());
+                    if (VD && isTrackedVar(VD)) {
+                        if (getSelfInitExpr(VD)) {
+                            // If the initializer consists solely of a reference to itself, we
+                            // explicitly mark the variable as uninitialized. This allows code
+                            // like the following:
+                            //
+                            //   int x = x;
+                            //
+                            // to deliberately leave a variable uninitialized. Different analysis
+                            // clients can detect this pattern and adjust their reporting
+                            // appropriately, but we need to continue to analyze subsequent uses
+                            // of the variable.
+                            vals[VD] = Value::Uninitialized;
+                        }
+                        else if (VD.getInit()) {
+                            // Treat the new variable as initialized.
+                            vals[VD] = Value::Initialized;
+                        }
+                        else {
+                            // No initializer: the variable is now uninitialized. This matters
+                            // for cases like:
+                            //   while (...) {
+                            //     int n;
+                            //     use(n);
+                            //     n = 0;
+                            //   }
+                            // FIXME: Mark the variable as uninitialized whenever its scope is
+                            // left, since its scope could be re-entered by a jump over the
+                            // declaration.
+                            vals[VD] = Value::Uninitialized;
+                        }
+                    }
+                }
+            }
+
+            void VisitGCCAsmStmt(ast::GCCAsmStmtInterface as) {
+                // An "asm goto" statement is a terminator that may initialize some variables.
+                if (!as.isAsmGoto()) {
+                    return;
+                }
+
+                ast::ASTContextInterface C = ac.getASTContext();
+                /*
+                for (ast::ExprInterface O : as.outputs()) {
+                    ast::ExprInterface Ex = dyn_cast< ast::ExprInterface >(stripCasts(C, O));
+
+                    // Strip away any unary operators. Invalid l-values are reported by other
+                    // semantic analysis passes.
+                    while (auto UO = dyn_cast< ast::UnaryOperatorInterface >(Ex.getOperation())) {
+                        Ex = stripCasts(C, UO.getSubExpr());
+                    }
+                    
+                    // Mark the variable as potentially uninitialized for those cases where
+                    // it's used on an indirect path, where it's not guaranteed to be defined.
+                    if (ast::VarDeclInterface VD = findVar(Ex).getDecl()) {
+                        if (vals[VD] != Value::Initialized) {
+                            vals[VD] = Value::MayUninitialized;
+                        }
+                    }
                 }
                 */
             }
 
-            void reportUse(ast::ExprInterface ex, ast::VarDeclInterface vd) {
-                VAST_UNIMPLEMENTED;
-                /*
-                Value v = vals[vd];
-                if (isUninitialized(v)) {
-                // handler.handleUseOfUninitVariable(vd, getUninitUse(ex, vd, v));
+            void VisitObjCMessageExpr(ast::ObjCMessageExprInterface ME) {
+                // If the Objective-C message expression is an implicit no-return that
+                // is not modeled in the CFG, set the tracked dataflow values to Unknown.
+                if (objCNoRet.isImplicitNoReturn(ME)) {
+                     vals.setAllScratchValues(Value::Unknown);
                 }
-                */
             }
         };
     
