@@ -15,4 +15,4 @@ namespace vast {
     using conversion_rewriter = mlir::ConversionPatternRewriter;
 
     using conversion_target = mlir::ConversionTarget;
-}
+} // namespace vast

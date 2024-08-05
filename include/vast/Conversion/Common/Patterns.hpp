@@ -2,54 +2,54 @@
 
 #pragma once
 
-#include "vast/Util/Warnings.hpp"
 #include "vast/Util/Common.hpp"
+#include "vast/Util/Warnings.hpp"
 
 #include "vast/Conversion/Common/Types.hpp"
 
 VAST_RELAX_WARNINGS
-#include "mlir/Transforms/DialectConversion.h"
-#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
 #include "mlir/Conversion/LLVMCommon/Pattern.h"
+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
+#include "mlir/Transforms/DialectConversion.h"
 VAST_UNRELAX_WARNINGS
 
 namespace vast {
 
-    namespace detail
-    {
-        static inline bool is_ok( const auto &v ) { return static_cast< bool >( v ); }
-        static inline bool is_ok( logical_result r ) { return mlir::succeeded( r ); }
+    namespace detail {
+        static inline bool is_ok(const auto &v) { return static_cast< bool >(v); }
+
+        static inline bool is_ok(logical_result r) { return mlir::succeeded(r); }
     } // namespace detail
 
-    // TODO(conv): In non-debug mode return `mlir::failure()` and do not log
-    //             anything.
-    // If this header is ever exported, probably remove this.
-    #define VAST_PATTERN_CHECK(cond, fmt, ...) do { \
+// TODO(conv): In non-debug mode return `mlir::failure()` and do not log
+//             anything.
+// If this header is ever exported, probably remove this.
+#define VAST_PATTERN_CHECK(cond, fmt, ...) \
+    do { \
         if (!::vast::detail::is_ok(cond)) { \
-            VAST_PATTERN_FAIL(fmt __VA_OPT__(,) __VA_ARGS__); \
+            VAST_PATTERN_FAIL(fmt __VA_OPT__(, ) __VA_ARGS__); \
         } \
-    } while (0) \
+    } while (0)
 
-    #define VAST_PATTERN_FAIL(...) do { \
+#define VAST_PATTERN_FAIL(...) \
+    do { \
         VAST_UNREACHABLE(__VA_ARGS__); \
         return mlir::failure(); \
-    } while(0) \
-
-
+    } while (0)
 
     template< typename T >
-    concept has_legalize = requires ( T a )
-    {
-        a.legalize( std::declval< conversion_target & >() );
-    };
+    concept has_legalize = requires(T a) { a.legalize(std::declval< conversion_target & >()); };
 
     template< typename derived_pattern >
-    struct mlir_pattern_mixin {
-
+    struct mlir_pattern_mixin
+    {
         using integer_attr_t = mlir::IntegerAttr;
 
-        derived_pattern& self() { return static_cast< derived_pattern& >(this); }
-        const derived_pattern& self() const { return static_cast< const derived_pattern& >(this); }
+        derived_pattern &self() { return static_cast< derived_pattern & >(this); }
+
+        const derived_pattern &self() const {
+            return static_cast< const derived_pattern & >(this);
+        }
 
         template< typename T >
         mlir_type bitwidth_type() const {
@@ -58,16 +58,24 @@ namespace vast {
         }
 
         template< typename T >
-        integer_attr_t interger_attr(T v) const { return integer_attr_t::get(bitwidth_type< T >(), v); }
+        integer_attr_t interger_attr(T v) const {
+            return integer_attr_t::get(bitwidth_type< T >(), v);
+        }
 
-        integer_attr_t  u8(uint8_t  v) const { return interger_attr(v); }
+        integer_attr_t u8(uint8_t v) const { return interger_attr(v); }
+
         integer_attr_t u16(uint16_t v) const { return interger_attr(v); }
+
         integer_attr_t u32(uint32_t v) const { return interger_attr(v); }
+
         integer_attr_t u64(uint64_t v) const { return interger_attr(v); }
 
-        integer_attr_t  i8(int8_t  v) const { return interger_attr(v); }
+        integer_attr_t i8(int8_t v) const { return interger_attr(v); }
+
         integer_attr_t i16(int16_t v) const { return interger_attr(v); }
+
         integer_attr_t i32(int32_t v) const { return interger_attr(v); }
+
         integer_attr_t i64(int64_t v) const { return interger_attr(v); }
     };
 
@@ -85,13 +93,10 @@ namespace vast {
         using base = mlir::ConversionPattern;
 
         generic_conversion_pattern(mcontext_t *mctx)
-            : base(mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx)
-        {}
+            : base(mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx) {}
 
-        generic_conversion_pattern(mlir::TypeConverter &tc,
-                                   mcontext_t &mctx)
-            : base(tc, mlir::Pattern::MatchAnyOpTypeTag{}, 1, &mctx)
-        {}
+        generic_conversion_pattern(mlir::TypeConverter &tc, mcontext_t &mctx)
+            : base(tc, mlir::Pattern::MatchAnyOpTypeTag{}, 1, &mctx) {}
     };
 
     template< typename op_t >
@@ -102,10 +107,7 @@ namespace vast {
         using base = mlir::OpConversionPattern< op_t >;
         using base::base;
 
-        static void legalize( conversion_target &trg )
-        {
-            trg.addIllegalOp< op_t >();
-        }
+        static void legalize(conversion_target &trg) { trg.addIllegalOp< op_t >(); }
     };
 
     struct llvm_pattern_utils
@@ -137,19 +139,22 @@ namespace vast {
             }
         }
 
-        mlir_value constant(auto &rewriter, auto loc, mlir_type type, auto val) const
-        {
-            if (type.isIntOrIndex())
+        mlir_value constant(auto &rewriter, auto loc, mlir_type type, auto val) const {
+            if (type.isIntOrIndex()) {
                 return iN(rewriter, loc, type, val);
-            if (mlir::isa< mlir::FloatType >(type))
+            }
+            if (mlir::isa< mlir::FloatType >(type)) {
                 return fN(rewriter, loc, type, val);
-            if (mlir::isa< mlir::LLVM::LLVMPointerType >(type))
+            }
+            if (mlir::isa< mlir::LLVM::LLVMPointerType >(type)) {
                 return ptr(rewriter, loc, type, val);
+            }
             VAST_UNREACHABLE("not an integer or float type");
         }
 
-        static auto insert_trunc_or_ext(mlir_value val, mlir_type dst_type, auto &rewriter)
-            -> mlir_value {
+        static auto insert_trunc_or_ext(
+            mlir_value val, mlir_type dst_type, auto &rewriter
+        ) -> mlir_value{
             auto val_type = val.getType();
             auto val_bw   = val_type.getIntOrFloatBitWidth();
             auto dst_bw   = dst_type.getIntOrFloatBitWidth();
@@ -181,12 +186,18 @@ namespace vast {
             auto dst_bw = dst_type.getIntOrFloatBitWidth();
 
             if (src_bw > dst_bw) {
-                return rewriter.template replaceOpWithNewOp< mlir::LLVM::TruncOp >(op, dst_type, src);
+                return rewriter.template replaceOpWithNewOp< mlir::LLVM::TruncOp >(
+                    op, dst_type, src
+                );
             } else if (src_bw < dst_bw) {
                 if (orig_src_type.isSignedInteger()) {
-                    return rewriter.template replaceOpWithNewOp< mlir::LLVM::SExtOp >(op, dst_type, src);
+                    return rewriter.template replaceOpWithNewOp< mlir::LLVM::SExtOp >(
+                        op, dst_type, src
+                    );
                 } else {
-                    return rewriter.template replaceOpWithNewOp< mlir::LLVM::ZExtOp >(op, dst_type, src);
+                    return rewriter.template replaceOpWithNewOp< mlir::LLVM::ZExtOp >(
+                        op, dst_type, src
+                    );
                 }
             } else {
                 // src_bw == dst_bw
@@ -198,19 +209,16 @@ namespace vast {
 
     template< typename op_t >
     struct operation_to_llvm_conversion_pattern
-        : mlir::ConvertOpToLLVMPattern< op_t >, llvm_pattern_utils
+        : mlir::ConvertOpToLLVMPattern< op_t >
+        , llvm_pattern_utils
     {
-            using base = mlir::ConvertOpToLLVMPattern< op_t >;
-            using base::base;
+        using base = mlir::ConvertOpToLLVMPattern< op_t >;
+        using base::base;
 
-            using llvm_util = llvm_pattern_utils;
-            using llvm_util::llvm_util;
+        using llvm_util = llvm_pattern_utils;
+        using llvm_util::llvm_util;
 
-
-            static void legalize( conversion_target &trg )
-            {
-                trg.addIllegalOp< op_t >();
-            }
+        static void legalize(conversion_target &trg) { trg.addIllegalOp< op_t >(); }
     };
 
     template< typename op_t >
