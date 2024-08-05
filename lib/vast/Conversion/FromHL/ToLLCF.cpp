@@ -499,7 +499,7 @@ namespace vast::conv {
     struct HLToLLCF : ModuleConversionPassMixin< HLToLLCF, HLToLLCFBase >
     {
         using base     = ModuleConversionPassMixin< HLToLLCF, HLToLLCFBase >;
-        using config_t = typename base::config_t;
+        using config = typename base::config;
 
         static auto create_conversion_target(mcontext_t &mctx) {
             mlir::ConversionTarget trg(mctx);
@@ -517,8 +517,8 @@ namespace vast::conv {
             return trg;
         }
 
-        static void populate_conversions(config_t &config) {
-            base::populate_conversions_base< pattern::cf_patterns >(config);
+        static void populate_conversions(config &cfg) {
+            base::populate_conversions_base< pattern::cf_patterns >(cfg);
         }
 
         void after_operation() override {
