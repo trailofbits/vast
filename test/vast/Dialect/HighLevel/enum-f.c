@@ -1,4 +1,5 @@
 // RUN: %vast-front -vast-emit-mlir=hl -o - %s | %file-check %s
+// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
 // CHECK: hl.enum "kobj_ns_type" : !hl.int< unsigned >
 // CHECK:   hl.enum.const "KOBJ_NS_TYPE_NONE"
