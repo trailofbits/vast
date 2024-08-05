@@ -12,37 +12,37 @@ namespace vast::analyses {
 
     /// A worklist implementation where the enqueued blocks will be dequeued based
     /// on the order defined by 'Comp'.
-    template< typename Comp, unsigned QueueSize, typename CFGT, typename CFGBlockT >
+    template< typename Comp, unsigned QueueSize, typename CFG, typename CFGBlock >
     class DataflowWorklistBase {
         llvm::BitVector EnqueuedBlocks;
-        llvm::PriorityQueue< const CFGBlockT *,
-                             llvm::SmallVector< const CFGBlockT *, QueueSize >,
+        llvm::PriorityQueue< const CFGBlock *,
+                             llvm::SmallVector< const CFGBlock *, QueueSize >,
                              Comp > WorkList;
     public:
-        DataflowWorklistBase(const CFGT &Cfg, Comp C) : EnqueuedBlocks(Cfg.getNumBlockIDs()), WorkList(C) {}
+        DataflowWorklistBase(const CFG &Cfg, Comp C) : EnqueuedBlocks(Cfg.getNumBlockIDs()), WorkList(C) {}
 
-        void enqueueBlock(const CFGBlockT *Block) {
+        void enqueueBlock(const CFGBlock *Block) {
             if (Block && !EnqueuedBlocks[Block->getBlockID()]) {
                 EnqueuedBlocks[Block->getBlockID()] = true;
                 WorkList.push(Block);
             }
         }
 
-        const CFGBlockT *dequeue() {
+        const CFGBlock *dequeue() {
             if (WorkList.empty()) {
                 return nullptr;
             }
-            const CFGBlockT *B = WorkList.top();
+            const CFGBlock *B = WorkList.top();
             WorkList.pop();
             EnqueuedBlocks[B->getBlockID()] = false;
             return B;
         }
     };
 
-    template< typename CFGBlockT >
+    template< typename CFGBlock >
     struct ReversePostOrderCompare {
         clang::PostOrderCFGView::BlockOrderCompare Cmp;
-        bool operator()(const CFGBlockT *lhs, const CFGBlockT *rhs) const {
+        bool operator()(const CFGBlock *lhs, const CFGBlock *rhs) const {
             return Cmp(rhs, lhs);
         }
     };
@@ -50,20 +50,20 @@ namespace vast::analyses {
     /// A worklist implementation for forward dataflow analysis. The enqueued
     /// blocks will be dequeued in reverse post order. The worklist cannot contain
     /// the same block multiple times at once.
-    template< typename CFGT, typename CFGBlockT, typename AnalysisDeclContextT >
+    template< typename CFG, typename CFGBlock, typename AnalysisDeclContext >
     struct ForwardDataflowWorklist
-        : DataflowWorklistBase< ReversePostOrderCompare< CFGBlockT >, 20, CFGT, CFGBlockT > {
+        : DataflowWorklistBase< ReversePostOrderCompare< CFGBlock >, 20, CFG, CFGBlock > {
 
         /*
-        ForwardDataflowWorklist(const CFGT &Cfg, PostOrderCFGView *POV)
+        ForwardDataflowWorklist(const CFG &Cfg, PostOrderCFGView *POV)
         : DataflowWorklistBase(Cfg,
             ReversePostOrderCompare{POV->getComparator()}) {}
         */
 
-        ForwardDataflowWorklist(const CFGT &Cfg, AnalysisDeclContextT &Ctx)
+        ForwardDataflowWorklist(const CFG &Cfg, AnalysisDeclContext &Ctx)
             : ForwardDataflowWorklist(Cfg, Ctx. template getAnalysis< clang::PostOrderCFGView >()) {}
 
-        void enqueueSuccessors(const CFGBlockT *Block) {
+        void enqueueSuccessors(const CFGBlock *Block) {
             for (auto B : Block->succs()) {
                 enqueueBlock(B);
             }

@@ -2,7 +2,7 @@
 
 namespace vast::analyses {
 
-    class CFGBlockT {
+    class CFGBlock {
     public:
         unsigned BlockID;
 
@@ -10,7 +10,7 @@ namespace vast::analyses {
             return BlockID;
         }
 
-        explicit CFGBlockT(unsigned blockid) : BlockID(blockid) {}
+        explicit CFGBlock(unsigned blockid) : BlockID(blockid) {}
     };
 
 } // namespace vast::analyses

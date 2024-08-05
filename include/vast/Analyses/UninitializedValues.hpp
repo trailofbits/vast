@@ -22,7 +22,7 @@
 namespace vast::analyses {
 
     /// A use of a variable, which might be uninitialized.
-    class UninitUseT {
+    class UninitUse {
     public:
         struct Branch {
             ast::StmtInterface Terminator;
@@ -47,7 +47,7 @@ namespace vast::analyses {
         llvm::SmallVector< Branch, 2 > UninitBranches;
 
     public:
-        UninitUseT(ast::ExprInterface User, bool AlwaysUninit)
+        UninitUse(ast::ExprInterface User, bool AlwaysUninit)
             : User(User), AlwaysUninit(AlwaysUninit) {}
 
         void addUninitBranch(Branch B) {
@@ -276,15 +276,15 @@ namespace vast::analyses {
         
         using ValueVector = llvm::PackedVector<Value, 2, llvm::SmallBitVector>;
 
-        template< typename CFGT, typename CFGBlockT >
-        class CFGBlockValuesT {
-            CFGT &cfg;
+        template< typename CFG, typename CFGBlock >
+        class CFGBlockValues {
+            CFG &cfg;
             clang::SmallVector< ValueVector, 8 > vals;
             ValueVector scratch;
             DeclToIndex declToIndex;
 
         public:
-            CFGBlockValuesT(CFGT &c) : cfg(c), vals(0) {}
+            CFGBlockValues(CFG &c) : cfg(c), vals(0) {}
 
             void computeSetOfDeclarations(ast::DeclContextInterface dc) {
                 declToIndex.computeMap(dc);
@@ -308,7 +308,7 @@ namespace vast::analyses {
                 return declToIndex.size();
             }
 
-            ValueVector &getValueVector(const CFGBlockT *block) {
+            ValueVector &getValueVector(const CFGBlock *block) {
                 return vals[block->getBlockID()];
             }
 
@@ -330,7 +330,7 @@ namespace vast::analyses {
                 }
             }
 
-            bool updateValueVectorWithScratch(const CFGBlockT *block) {
+            bool updateValueVectorWithScratch(const CFGBlock *block) {
                 ValueVector &dst = getValueVector(block);
                 bool changed = (dst != scratch);
                 if (changed)
@@ -342,7 +342,7 @@ namespace vast::analyses {
                 return scratch[*declToIndex.getValueIndex(vd)];
             }
 
-            Value getValue(const CFGBlockT *block, const CFGBlockT *dstBlock,
+            Value getValue(const CFGBlock *block, const CFGBlock *dstBlock,
                            ast::VarDeclInterface vd) {
                 std::optional< unsigned > idx = declToIndex.getValueIndex(vd);
                 return getValueVector(block)[*idx];
@@ -357,12 +357,12 @@ namespace vast::analyses {
 
     namespace {
     
-        class FindVarResultT {
+        class FindVarResult {
             ast::VarDeclInterface vd;
             ast::DeclRefExprInterface dr;
 
         public:
-            FindVarResultT(ast::VarDeclInterface vd, ast::DeclRefExprInterface dr) : vd(vd), dr(dr) {}
+            FindVarResult(ast::VarDeclInterface vd, ast::DeclRefExprInterface dr) : vd(vd), dr(dr) {}
 
             ast::DeclRefExprInterface getDeclRefExpr() {
                 return dr;
@@ -404,18 +404,18 @@ namespace vast::analyses {
 
     /// If E is an expression comprising a reference to a single variable, find that
     /// variable.
-    template< typename FindVarResultT >
-    static FindVarResultT findVar(ast::ExprInterface E, ast::DeclContextInterface DC) {
+    template< typename FindVarResult >
+    static FindVarResult findVar(ast::ExprInterface E, ast::DeclContextInterface DC) {
         auto DRE = dyn_cast< ast::DeclRefExprInterface >(stripCasts(DC.getParentASTContext(), E));
         if (DRE) {
             auto VD = dyn_cast< ast::VarDeclInterface >(getDecl(DRE));
             if (VD) {
                 if (isTrackedVar(VD, DC)) {
-                    return FindVarResultT(VD, DRE);
+                    return FindVarResult(VD, DRE);
                 }
             }
         }
-        return FindVarResultT({}, {});
+        return FindVarResult({}, {});
     }
 
     static bool isPointerToConst(ast::QualTypeInterface QT) {
@@ -442,8 +442,8 @@ namespace vast::analyses {
         /// Classify each DeclRefExpr as an initialization or a use. Any
         /// DeclRefExpr which isn't explicitly classified will be assumed to have
         /// escaped the analysis and will be treated as an initialization.
-        class ClassifyRefsT : public ast::StmtVisitor< ClassifyRefsT > {
-        using base = ast::StmtVisitor< ClassifyRefsT >;
+        class ClassifyRefs : public ast::StmtVisitor< ClassifyRefs > {
+        using base = ast::StmtVisitor< ClassifyRefs >;
         public:
             enum class Class {
                 Init,
@@ -504,7 +504,7 @@ namespace vast::analyses {
                     }
                 }
 
-                FindVarResultT Var = findVar< FindVarResultT >(E, DC);
+                FindVarResult Var = findVar< FindVarResult >(E, DC);
                 if (ast::DeclRefExprInterface DRE = Var.getDeclRefExpr()) {
                     Classification[DRE] = std::max(Classification[DRE], C);
                 }
@@ -512,7 +512,7 @@ namespace vast::analyses {
 
 
         public:
-            ClassifyRefsT(AnalysisDeclContextInterface AC)
+            ClassifyRefs(AnalysisDeclContextInterface AC)
                 : DC(cast< ast::DeclContextInterface >(AC.getDecl().getOperation())) {}
 
             void operator()(ast::StmtInterface S) {
@@ -627,27 +627,27 @@ namespace vast::analyses {
     
     namespace {
     
-        template< typename CFGBlockValuesT, typename CFGT, typename AnalysisDeclContextT,
-                  typename ClassifyRefsT, typename ObjCNoReturnT, typename UninitVariablesHandlerT,
-                  typename CFGBlockT >
-        class TransferFunctionsT : public ast::StmtVisitor<
-                                   TransferFunctionsT< CFGBlockValuesT, CFGT, AnalysisDeclContextT,
-                                                       ClassifyRefsT, ObjCNoReturnT, UninitVariablesHandlerT,
-                                                       CFGBlockT >
+        template< typename CFGBlockValues, typename CFG, typename AnalysisDeclContext,
+                  typename ClassifyRefs, typename ObjCNoReturn, typename UninitVariablesHandler,
+                  typename CFGBlock >
+        class TransferFunctions : public ast::StmtVisitor<
+                                   TransferFunctions< CFGBlockValues, CFG, AnalysisDeclContext,
+                                                       ClassifyRefs, ObjCNoReturn, UninitVariablesHandler,
+                                                       CFGBlock >
                                    > {
-            CFGBlockValuesT &vals;
-            const CFGT &cfg;
-            const CFGBlockT *block;
-            AnalysisDeclContextT &ac;
-            const ClassifyRefsT &classification;
-            ObjCNoReturnT objCNoRet;
-            UninitVariablesHandlerT &handler;
+            CFGBlockValues &vals;
+            const CFG &cfg;
+            const CFGBlock *block;
+            AnalysisDeclContext &ac;
+            const ClassifyRefs &classification;
+            ObjCNoReturn objCNoRet;
+            UninitVariablesHandler &handler;
 
         public:
-            TransferFunctionsT(CFGBlockValuesT &vals, const CFGT &cfg,
-                    const CFGBlockT *block, AnalysisDeclContextT &ac,
-                    const ClassifyRefsT &classification,
-                    UninitVariablesHandlerT &handler)
+            TransferFunctions(CFGBlockValues &vals, const CFG &cfg,
+                    const CFGBlock *block, AnalysisDeclContext &ac,
+                    const ClassifyRefs &classification,
+                    UninitVariablesHandler &handler)
               : vals(vals), cfg(cfg), block(block), ac(ac),
                 classification(classification), objCNoRet(ac.getASTContext()),
                 handler(handler) {}
@@ -656,28 +656,28 @@ namespace vast::analyses {
                 return isTrackedVar(vd, cast< ast::DeclContextInterface >(ac.getDecl()));
             }
 
-            FindVarResultT findVar(ast::ExprInterface ex) {
+            FindVarResult findVar(ast::ExprInterface ex) {
                 return findVar(ex, cast< ast::DeclContextInterface >(ac.getDecl()));
             }
 
             void VisitDeclRefExpr(ast::DeclRefExprInterface dr) {
                 switch (classification.get(dr)) {
-                    case ClassifyRefsT::Class::Ignore:
+                    case ClassifyRefs::Class::Ignore:
                         return;
                     
-                    case ClassifyRefsT::Class::Use:
+                    case ClassifyRefs::Class::Use:
                         reportUse(dr, cast< ast::VarDeclInterface >(getDecl(dr)));
                         break;
 
-                    case ClassifyRefsT::Class::Init:
-                        vals[cast< ast::VarDeclInterface >(getDecl(dr))] = ClassifyRefsT::Value::Initialized;
+                    case ClassifyRefs::Class::Init:
+                        vals[cast< ast::VarDeclInterface >(getDecl(dr))] = ClassifyRefs::Value::Initialized;
                         break;
 
-                    case ClassifyRefsT::Class::SelfInit:
+                    case ClassifyRefs::Class::SelfInit:
                         handler.handleSelfInit(cast< ast::VarDeclInterface >(getDecl(dr)));
                         break;
 
-                    case ClassifyRefsT::Class::ConstRefUse:
+                    case ClassifyRefs::Class::ConstRefUse:
                         reportConstRefUse(dr, cast< ast::VarDeclInterface >(getDecl(dr)));
                         break;
                 }
@@ -697,11 +697,11 @@ namespace vast::analyses {
                 }
             }
 
-            UninitUseT getUninitUse(ast::ExprInterface ex, ast::VarDeclInterface vd, Value v) {
-                UninitUseT Use(ex, isAlwaysUninit(v));
+            UninitUse getUninitUse(ast::ExprInterface ex, ast::VarDeclInterface vd, Value v) {
+                UninitUse Use(ex, isAlwaysUninit(v));
 
                 assert(isUninitialized(v));
-                if (Use.getKind() == UninitUseT::Kind::Always) {
+                if (Use.getKind() == UninitUse::Kind::Always) {
                     return Use;
                 }
 
@@ -751,7 +751,7 @@ namespace vast::analyses {
                 // 'n' is definitely uninitialized for two edges into block 7 (from blocks 2
                 // and 4), so we report that any time either of those edges is taken (in
                 // each case when 'b == false'), 'n' is used uninitialized.
-                llvm::SmallVector< const CFGBlockT *, 32 > Queue;
+                llvm::SmallVector< const CFGBlock *, 32 > Queue;
                 llvm::SmallVector< unsigned, 32 > SuccsVisited(cfg.getNumBlockIDs(), 0);
                 Queue.push_back(block);
                 // Specify that we've already visited all successors of the starting block.
@@ -759,16 +759,16 @@ namespace vast::analyses {
                 // of marking it as not being a candidate element of the frontier.
                 SuccsVisited[block->getBlockID()] = block->succ_size();
                 while (!Queue.empty()) {
-                    const CFGBlockT *B = Queue.pop_back_val();
+                    const CFGBlock *B = Queue.pop_back_val();
 
                     // If the use is always reached from the entry block, make a note of that.
                     if (B == &cfg.getEntry()) {
                         Use.setUninitAfterCall();
                     }
 
-                    for (typename CFGBlockT::const_pred_iterator I = B->pred_begin(),
+                    for (typename CFGBlock::const_pred_iterator I = B->pred_begin(),
                          E = B->pred_end(); I != E; ++I) {
-                        const CFGBlockT *Pred = *I;
+                        const CFGBlock *Pred = *I;
                         if (!Pred) {
                             continue;
                         }
@@ -793,7 +793,7 @@ namespace vast::analyses {
                         if (!SV) {
                             // When visiting the first successor of a block, mark all NULL
                             // successors as having been visited.
-                            for (typename CFGBlockT::const_succ_iterator SI = Pred->succ_begin(),
+                            for (typename CFGBlock::const_succ_iterator SI = Pred->succ_begin(),
                                  SE = Pred->succ_end(); SI != SE; ++SI) {
                                 if (!*SI) {
                                     ++SV;
@@ -815,9 +815,9 @@ namespace vast::analyses {
                             // This block inevitably leads to the use. If we have an edge from here
                             // to a post-dominator block, and the variable is uninitialized on that
                             // edge, we have found a bug.
-                            for (typename CFGBlockT::const_succ_iterator I = Block->succ_begin(),
+                            for (typename CFGBlock::const_succ_iterator I = Block->succ_begin(),
                                  E = Block->succ_end(); I != E; ++I) {
-                                const CFGBlockT *Succ = *I;
+                                const CFGBlock *Succ = *I;
                                 if (Succ && SuccsVisited[Succ->getBlockId()] >= Succ->succ_size() &&
                                     vals.getValue(Block, Succ, vd) == Value::Uninitialized) {
                                     // Switch cases are a special case: report the label to the caller
@@ -829,13 +829,13 @@ namespace vast::analyses {
                                             // Might not be possible.
                                             continue;
                                         }
-                                        UninitUseT::Branch Branch;
+                                        UninitUse::Branch Branch;
                                         Branch.Terminator = Label;
                                         Branch.Output = 0; // Ingored.
                                         Use.addUninitBranch(Branch);
                                     }
                                     else {
-                                        UninitUseT::Branch Branch;
+                                        UninitUse::Branch Branch;
                                         Branch.Terminator = Term;
                                         Branch.Output = I - Block->succ_begin();
                                         Use.addUninitBranch(Branch);
@@ -903,7 +903,7 @@ namespace vast::analyses {
 
             void VisitBinaryOperator(ast::BinaryOperatorInterface BO) {
                 if (BO.getOpcode() == clang::BO_Assign) {
-                    FindVarResultT Var = findVar(BO.getLHS());
+                    FindVarResult Var = findVar(BO.getLHS());
                     if (ast::VarDeclInterface VD = Var.getDecl()) {
                         vals[VD] = Value::Initialized;
                     }
@@ -1003,11 +1003,11 @@ namespace vast::analyses {
 
         /// Called when the uninitialized variable is used at the given expression.
         virtual void handleUseOfUninitVariable(ast::VarDeclInterface vd,
-                                               const UninitUseT &use) {}
+                                               const UninitUse &use) {}
 
         /// Called when the uninitialized variable is used as const refernce argument.
         virtual void handleConstRefUseOfUninitVariable(ast::VarDeclInterface vd,
-                                                       const UninitUseT &use) {}
+                                                       const UninitUse &use) {}
 
         /// Called when the uninitialized variable analysis detects the
         /// idiom 'int x = x'.  All other uses of 'x' within the initializer
@@ -1016,7 +1016,7 @@ namespace vast::analyses {
     };
 
 
-    struct UninitVariablesAnalysisStatsT {
+    struct UninitVariablesAnalysisStats {
         unsigned NumVariablesAnalyzed;
         unsigned NumBlockVisits;
     };
@@ -1039,13 +1039,13 @@ namespace vast::analyses {
         ~PruneBlocksHandler() override = default;
 
         void handleUseOfUninitVariable(ast::VarDeclInterface vd,
-                                       const UninitUseT &use) override {
+                                       const UninitUse &use) override {
             hadUse[currentBlock] = true;
             hadAnyUse = true;
         }
 
         void handleConstRefUseOfUninitVariable(ast::VarDeclInterface vd,
-                                               const UninitUseT &use) override {
+                                               const UninitUse &use) override {
             hadUse[currentBlock] = true;
             hadAnyUse = true;
         }
@@ -1059,15 +1059,15 @@ namespace vast::analyses {
         }
     };
 
-    template< typename CFGT, typename CFGBlockT, typename CFGBlockValuesT >
+    template< typename CFG, typename CFGBlock, typename CFGBlockValues >
     void runUninitializedVariablesAnalysis(
             ast::DeclContextInterface dc,
-            const CFGT &cfg,
+            const CFG &cfg,
             AnalysisDeclContextInterface &ac,
             UninitVariablesHandler &handler, 
-            UninitVariablesAnalysisStatsT &stats) {
+            UninitVariablesAnalysisStats &stats) {
 
-        CFGBlockValuesT vals(cfg);
+        CFGBlockValues vals(cfg);
         vals.computeSetOfDeclarations(dc);
 
         if (vals.hasNoDeclarations())
@@ -1076,11 +1076,11 @@ namespace vast::analyses {
         stats.NumVariablesAnalyzed = vals.getNumEntries();
 
         // Precompute which expressions are uses and which are initializations.
-        ClassifyRefsT classification(ac);
+        ClassifyRefs classification(ac);
         cfg.VisitBlockStmts(classification);
 
         // Mark all variables uninitialized at the entry.
-        const CFGBlockT &entry = cfg.getEntry();
+        const CFGBlock &entry = cfg.getEntry();
         ValueVector &vec = vals.getValueVector(&entry);
         const unsigned n = vals.getNumEntries();
         for (unsigned j = 0; j < n; ++j) {
@@ -1095,7 +1095,7 @@ namespace vast::analyses {
         wasAnalyzed[cfg.getEntry().getBlockID()] = true;
         PruneBlocksHandler PBH(cfg.getNumBlockIDs());
 
-        while (const CFGBlockT *block = worklist.dequeue()) {
+        while (const CFGBlock *block = worklist.dequeue()) {
             PBH.currentBlock = block->getBlockID();
             
             ++stats.NumBlockVisits;
