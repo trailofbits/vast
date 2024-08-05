@@ -370,6 +370,67 @@ namespace vast::hl
         build_empty_region(bld, st);
     }
 
+    // The following printer and parser are stolen from tablegen generated code
+    // apart from adding the empty block to the constants region
+    ParseResult EnumDeclOp::parse(Parser &parser, State &result) {
+        mlir::StringAttr nameAttr;
+        mlir::TypeAttr typeAttr;
+        std::unique_ptr< Region > constantsRegion = std::make_unique< Region >();
+
+        if (parser.parseCustomAttributeWithFallback(
+                nameAttr, parser.getBuilder().getType< mlir::NoneType >()
+            ))
+        {
+            return mlir::failure();
+        }
+        if (nameAttr) {
+            result.attributes.append("name", nameAttr);
+        }
+        {
+            parser.getCurrentLocation();
+            if (parser.parseOptionalAttrDict(result.attributes)) {
+                return mlir::failure();
+            }
+        }
+        if (mlir::succeeded(parser.parseOptionalColon())) {
+            if (parser.parseCustomAttributeWithFallback(
+                    typeAttr, parser.getBuilder().getType< mlir::NoneType >()
+                ))
+            {
+                return mlir::failure();
+            }
+            if (typeAttr) {
+                result.attributes.append("type", typeAttr);
+            }
+
+            if (parser.parseRegion(*constantsRegion)) {
+                return mlir::failure();
+            }
+        }
+        // Here is the addition
+        if (constantsRegion->empty()) {
+            constantsRegion->emplaceBlock();
+        }
+        result.addRegion(std::move(constantsRegion));
+        return mlir::success();
+    }
+
+    void EnumDeclOp::print(Printer &odsPrinter) {
+        odsPrinter << ' ';
+        odsPrinter.printAttributeWithoutType(getNameAttr());
+        llvm::SmallVector< llvm::StringRef, 2 > elidedAttrs;
+        elidedAttrs.push_back("name");
+        elidedAttrs.push_back("type");
+        odsPrinter.printOptionalAttrDict((*this)->getAttrs(), elidedAttrs);
+        if (getTypeAttr()) {
+            odsPrinter << ' ' << ":";
+            odsPrinter << ' ';
+            odsPrinter.printAttributeWithoutType(getTypeAttr());
+            odsPrinter << ' ';
+            odsPrinter.printRegion(getConstants());
+        }
+    }
+
     namespace detail {
         void build_record_like_decl(
             Builder &bld, State &st, llvm::StringRef name,

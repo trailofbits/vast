@@ -218,6 +218,8 @@ def EnumDeclOp
     )>
   ];
 
+  let hasCustomAssemblyFormat = 1;
+
   let extraClassDeclaration = [{
     bool isComplete();
     mlir::Block& getConstantsBlock();
@@ -228,8 +230,6 @@ def EnumDeclOp
 
     mlir::Block& $cppClass::getConstantsBlock() { return getConstants().front(); }
   }];
-
-  let assemblyFormat = [{ $name attr-dict (`:` $type^ $constants)? }];
 }
 
 class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
