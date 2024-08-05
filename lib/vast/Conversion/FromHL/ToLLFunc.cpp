@@ -37,17 +37,18 @@ namespace vast::conv::hltollfunc
     } // namespace pattern
 
     struct HLToLLFunc : ModuleConversionPassMixin< HLToLLFunc, HLToLLFuncBase > {
-        using base = ModuleConversionPassMixin< HLToLLFunc, HLToLLFuncBase >;
+        using base   = ModuleConversionPassMixin< HLToLLFunc, HLToLLFuncBase >;
+        using config = base::config;
 
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
             return target;
         }
 
-        static void populate_conversions(config_t &config) {
+        static void populate_conversions(config &cfg) {
             base::populate_conversions_base<
-                util::type_list< pattern::func_op>
-            >(config);
+                util::type_list< pattern::func_op >
+            >(cfg);
         }
     };
 } // namespace vast::conv::hltollfunc

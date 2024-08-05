@@ -560,7 +560,7 @@ namespace vast
     {
 
         using base = ModuleConversionPassMixin< LowerABI, LowerABIBase >;
-        using config_t = typename base::config_t;
+        using config = typename base::config;
 
         static conversion_target create_conversion_target(mcontext_t &context)
         {
@@ -570,58 +570,61 @@ namespace vast
             return target;
         }
 
-        void add_patterns(auto &config, const auto &dl)
+        void add_patterns(config &cfg, const auto &dl)
         {
-            config.patterns.template add< pattern::prologue >(dl, config.getContext());
-            config.patterns.template add< pattern::epilogue >(dl, config.getContext());
+            cfg.patterns.template add< pattern::prologue >(dl, cfg.getContext());
+            cfg.patterns.template add< pattern::epilogue >(dl, cfg.getContext());
 
-            config.patterns.template add< pattern::call_args >(dl, config.getContext());
-            config.patterns.template add< pattern::call_rets >(dl, config.getContext());
+            cfg.patterns.template add< pattern::call_args >(dl, cfg.getContext());
+            cfg.patterns.template add< pattern::call_rets >(dl, cfg.getContext());
 
-            config.patterns.template add< pattern::call >(config.getContext());
-            config.patterns.template add< pattern::call_exec >(config.getContext());
+            cfg.patterns.template add< pattern::call >(cfg.getContext());
+            cfg.patterns.template add< pattern::call_exec >(cfg.getContext());
 
-            config.patterns.template add< pattern::function >(config.getContext());
+            cfg.patterns.template add< pattern::function >(cfg.getContext());
 
-            config.target.template addIllegalOp< abi::PrologueOp >();
-            config.target.template addIllegalOp< abi::EpilogueOp >();
+            cfg.target.template addIllegalOp< abi::PrologueOp >();
+            cfg.target.template addIllegalOp< abi::EpilogueOp >();
 
-            config.target.template addIllegalOp< abi::CallArgsOp >();
-            config.target.template addIllegalOp< abi::CallRetsOp >();
+            cfg.target.template addIllegalOp< abi::CallArgsOp >();
+            cfg.target.template addIllegalOp< abi::CallRetsOp >();
 
-            config.target.template addIllegalOp< abi::CallOp >();
-            config.target.template addIllegalOp< abi::CallExecutionOp >();
+            cfg.target.template addIllegalOp< abi::CallOp >();
+            cfg.target.template addIllegalOp< abi::CallExecutionOp >();
 
-            config.target.template addIllegalOp< abi::FuncOp >();
+            cfg.target.template addIllegalOp< abi::FuncOp >();
         }
 
         // TODO(conv:abi): Neeeded hack for this to compile.
         template< typename pattern >
-        static void add_pattern(config_t &config) {}
+        static void add_pattern(config &cfg) {}
 
         // There is no helper we can use.
         void runOnOperation() override
         {
             auto &ctx   = getContext();
-            auto config = config_t { rewrite_pattern_set(&ctx),
-                                     create_conversion_target(ctx) };
+            config cfg = config {
+                rewrite_pattern_set(&ctx),
+                create_conversion_target(ctx)
+            };
+
             auto op     = this->getOperation();
 
             const auto &dl_analysis = this->template getAnalysis< mlir::DataLayoutAnalysis >();
             auto dl = dl_analysis.getAtOrAbove(op);
 
-            add_patterns(config, dl);
+            add_patterns(cfg, dl);
 
-            if (mlir::failed(base::apply_conversions(std::move(config))))
+            if (mlir::failed(base::apply_conversions(std::move(cfg))))
                 return signalPassFailure();
 
             this->after_operation();
         }
 
 
-        void populate_conversions(config_t &config)
+        void populate_conversions(config &cfg)
         {
-            base::populate_conversions_base< pattern::wrappers >(config);
+            base::populate_conversions_base< pattern::wrappers >(cfg);
         }
     };
 
