@@ -28,8 +28,12 @@ namespace vast::core {
 
         auto optional_linkage = op.getLinkage();
         if (!optional_linkage) {
-            return op.emitOpError() << "function without a linkage";
+            // Definiton might be in other TU, we do not have linkage
+            return op.isDeclaration() ? mlir::success()
+                                      : op.emitOpError() <<
+                                        "function definition with unknown linkage";
         }
+
         auto linkage = optional_linkage.value();
         constexpr auto common = GlobalLinkageKind::CommonLinkage;
         if (linkage == common) {
@@ -54,7 +58,6 @@ namespace vast::core {
         }
         return mlir::success();
     }
-
 
     ParseResult parseFunctionSignatureAndBody(
         Parser &parser, Attribute &funcion_type,
