@@ -208,6 +208,10 @@ namespace vast::cg {
             return VisitAtomicType(t, quals);
         }
 
+        if (auto t = llvm::dyn_cast< clang::AutoType >(underlying)) {
+            return VisitAutoType(t, quals);
+        }
+
         return {};
     }
 
@@ -449,6 +453,23 @@ namespace vast::cg {
     mlir_type default_type_visitor::VisitTypeOfType(const clang::TypeOfType *ty, clang_qualifiers quals) {
         auto type = self.visit(ty->getUnmodifiedType());
         return with_cvr_qualifiers(compose_type< hl::TypeOfTypeType >().bind(type), quals).freeze();
+    }
+
+    mlir_type default_type_visitor::VisitAutoType(const clang::AutoType *ty) {
+        return VisitAutoType(ty, ty->desugar().getLocalQualifiers());
+    }
+
+    mlir_type default_type_visitor::VisitAutoType(const clang::AutoType *ty, clang_qualifiers quals) {
+        if (ty->isConstrained()) {
+            VAST_REPORT("Unsupported constrained auto type");
+            return {};
+        }
+        auto deduced = ty->getDeducedType();
+        return with_cvr_qualifiers(
+                    compose_type< hl::AutoType >()
+                        .bind_if(!deduced.isNull(), self.visit(deduced)),
+                    quals)
+                .freeze();
     }
 
     mlir_type default_type_visitor::VisitComplexType(const clang::ComplexType *ty) {
