@@ -91,6 +91,9 @@ namespace vast::cg {
         mlir_type VisitTypeOfType(const clang::TypeOfType *ty);
         mlir_type VisitTypeOfType(const clang::TypeOfType *ty, clang_qualifiers quals);
 
+        mlir_type VisitAutoType(const clang::AutoType *ty);
+        mlir_type VisitAutoType(const clang::AutoType *ty, clang_qualifiers quals);
+
         mlir_type VisitComplexType(const clang::ComplexType *ty);
         mlir_type VisitComplexType(const clang::ComplexType *ty, clang_qualifiers quals);
 
