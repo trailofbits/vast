@@ -48,6 +48,10 @@ namespace vast::cg {
         mlir_attr VisitTransparentUnionAttr(const clang::TransparentUnionAttr *attr);
         mlir_attr VisitReturnsTwiceAttr(const clang::ReturnsTwiceAttr *attr);
         mlir_attr VisitMayAliasAttr(const clang::MayAliasAttr *attr);
+        mlir_attr VisitUnusedAttr(const clang::UnusedAttr *attr);
+        mlir_attr VisitUsedAttr(const clang::UsedAttr *attr);
+        mlir_attr VisitGNUInlineAttr(const clang::GNUInlineAttr *attr);
+        mlir_attr VisitAnyX86NoCfCheckAttr(const clang::AnyX86NoCfCheckAttr *attr);
         mlir_attr VisitMaxFieldAlignmentAttr(const clang::MaxFieldAlignmentAttr *attr);
         mlir_attr VisitAvailableOnlyInDefaultEvalMethodAttr(const clang::AvailableOnlyInDefaultEvalMethodAttr *attr);
         mlir_attr VisitAvailabilityAttr(const clang::AvailabilityAttr *attr);
