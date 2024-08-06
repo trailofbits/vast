@@ -120,6 +120,22 @@ namespace vast::cg
         return make< hl::MayAliasAttr >();
     }
 
+    mlir_attr default_attr_visitor::VisitUnusedAttr(const clang::UnusedAttr *attr) {
+        return make< hl::UnusedAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitUsedAttr(const clang::UsedAttr *attr) {
+        return make< hl::UsedAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitGNUInlineAttr(const clang::GNUInlineAttr *attr) {
+        return make< hl::GNUInlineAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitAnyX86NoCfCheckAttr(const clang::AnyX86NoCfCheckAttr *attr) {
+        return make< hl::NoCfCheckAttr >();
+    }
+
     mlir_attr default_attr_visitor::VisitAvailableOnlyInDefaultEvalMethodAttr(const clang::AvailableOnlyInDefaultEvalMethodAttr *attr) {
         return make< hl::AvailableOnlyInDefaultEvalMethodAttr >();
     }
