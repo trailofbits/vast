@@ -53,6 +53,10 @@ def ColdAttr             : HighLevel_Attr< "Cold", "cold" >;
 def TransparentUnionAttr : HighLevel_Attr< "TransparentUnion", "transparent_union" >;
 def ReturnsTwiceAttr     : HighLevel_Attr< "ReturnsTwice", "returns_twice" >;
 def MayAliasAttr         : HighLevel_Attr< "MayAlias", "may_alias" >;
+def UnusedAttr           : HighLevel_Attr< "Unused", "unused" >;
+def UsedAttr             : HighLevel_Attr< "Used", "used" >;
+def GNUInlineAttr        : HighLevel_Attr< "GNUInline", "gnu_inline" >;
+def NoCfCheckAttr        : HighLevel_Attr< "NoCfCheck", "nocf_check" >;
 def AvailableOnlyInDefaultEvalMethodAttr
   : HighLevel_Attr< "AvailableOnlyInDefaultEvalMethod", "available_only_in_default_eval_method" >;
 def AvailabilityAttr     : HighLevel_Attr< "AvailabilityAttr", "availability" >;
