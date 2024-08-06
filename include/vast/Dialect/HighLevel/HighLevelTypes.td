@@ -407,6 +407,24 @@ def TypeOfType : CVRQualifiedType<
   let assemblyFormat = "`<` $unmodifiedType (`,` $quals^ )? `>`";
 }
 
+def AutoType : CVRQualifiedType<
+  "Auto", "auto",
+  (ins OptionalParameter<"Type">:$deducedType), [MemRefElementTypeInterface]
+> {
+  let builders = [
+    TypeBuilder<(ins "Type":$deducedType), [{
+      return $_get($_ctxt, deducedType, CVRQualifiersAttr());
+    }]>,
+    TypeBuilder<(ins), [{
+      return $_get($_ctxt, ::mlir::Type(), CVRQualifiersAttr());
+    }]>,
+    TypeBuilder<(ins "CVRQualifiersAttr":$quals), [{
+      return $_get($_ctxt, ::mlir::Type(), std::move(quals));
+    }]>
+  ];
+  let assemblyFormat = "`<` ( $deducedType^ )? (`,` $quals^ )? `>`";
+}
+
 def Atomic : CVRQualifiedType<
   "Atomic", "atomic"
   , (ins "Type":$elementType)
@@ -427,7 +445,8 @@ def UnresolvedType : Type<
   Or< [
     TypeOrElaboratedType< TypedefType >.predicate,
     TypeOrElaboratedType< TypeOfType >.predicate,
-    TypeOrElaboratedType< TypeOfExprType >.predicate
+    TypeOrElaboratedType< TypeOfExprType >.predicate,
+    TypeOrElaboratedType< AutoType >.predicate
   ] >
 >;
 
