@@ -11,7 +11,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "PassesDetails.hpp"
 #include "vast/Conversion/Common/Block.hpp"
-#include "vast/Conversion/Common/Passes.hpp"
+#include "vast/Conversion/Common/Mixins.hpp"
 #include "vast/Conversion/Common/Patterns.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"

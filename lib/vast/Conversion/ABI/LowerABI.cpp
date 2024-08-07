@@ -40,7 +40,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/ABI/ABIOps.hpp"
 
-#include "vast/Conversion/Common/Passes.hpp"
+#include "vast/Conversion/Common/Mixins.hpp"
 
 #include <iostream>
 #include <unordered_map>

@@ -12,7 +12,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Transforms/RegionUtils.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Conversion/Common/Passes.hpp"
+#include "vast/Conversion/Common/Mixins.hpp"
 #include "vast/Conversion/Common/Patterns.hpp"
 
 #include "vast/Util/Common.hpp"

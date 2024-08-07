@@ -3,7 +3,7 @@
 
 #include "PassesDetails.hpp"
 
-#include "vast/Conversion/Common/Passes.hpp"
+#include "vast/Conversion/Common/Mixins.hpp"
 #include "vast/Conversion/Common/Patterns.hpp"
 
 #include "vast/Dialect/Core/Func.hpp"
