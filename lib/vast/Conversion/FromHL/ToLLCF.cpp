@@ -519,7 +519,7 @@ namespace vast::conv {
             populate_conversions_base< pattern::cf_patterns >(cfg);
         }
 
-        void after_operation() {
+        void run_after_conversion() {
             auto clean_scopes = [&](ll::Scope scope) {
                 mlir::IRRewriter rewriter{ &this->getContext() };
                 // We really don't care if anything ws remove or not.

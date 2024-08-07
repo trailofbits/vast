@@ -52,7 +52,7 @@ namespace vast {
     concept has_populate_conversions = requires(T a) { a.populate_conversions(); };
 
     template< typename T >
-    concept has_after_operation = requires(T a) { a.after_operation(); };
+    concept has_run_after_conversion = requires(T a) { a.run_after_conversion(); };
 
     template< typename T >
     concept has_lower_to_llvm_options = requires(T a) {
@@ -129,8 +129,8 @@ namespace vast {
 
         void runOnOperation() override {
             if (mlir::succeeded(self().run_on_operation())) {
-                if constexpr (has_after_operation< derived >) {
-                    self().after_operation();
+                if constexpr (has_run_after_conversion< derived >) {
+                    self().run_after_conversion();
                 }
             }
         }

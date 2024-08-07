@@ -275,7 +275,7 @@ namespace vast
             populate_conversions_base< pattern::bin_lop_conversions >(cfg);
         }
 
-        void after_operation() {
+        void run_after_conversion() {
             // Now we know that we need to get rid fo any remaining `llvm.mlir.zero` that
             // are of void type because they cannot be codegen'ed into LLVM IR.
             auto exec = [&](mlir::LLVM::ZeroOp op) {
