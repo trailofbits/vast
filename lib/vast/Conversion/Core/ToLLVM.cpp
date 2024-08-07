@@ -270,8 +270,7 @@ namespace vast
             return target;
         }
 
-        template< typename config >
-        static void populate_conversions(config &cfg) {
+        static void populate_conversions(auto &cfg) {
             populate_conversions_base< pattern::bin_lop_conversions >(cfg);
         }
 

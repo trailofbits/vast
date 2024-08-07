@@ -134,11 +134,8 @@ namespace vast
             return target;
         }
 
-        template< typename config >
-        static void populate_conversions(config &cfg) {
-            populate_conversions_base<
-                bin_lop_conversions
-            >(cfg);
+        static void populate_conversions(auto &cfg) {
+            populate_conversions_base< bin_lop_conversions >(cfg);
         }
     };
 

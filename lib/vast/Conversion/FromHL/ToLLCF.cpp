@@ -492,7 +492,8 @@ namespace vast::conv {
         using cf_patterns = util::make_list<
             if_op, while_op, for_op, do_op, replace< hl::ReturnOp, ll::ReturnOp >,
             replace< core::ImplicitReturnOp, ll::ReturnOp >,
-            replace_scope< core::ScopeOp, ll::Scope > >;
+            replace_scope< core::ScopeOp, ll::Scope >
+        >;
 
     } // namespace pattern
 
@@ -514,8 +515,7 @@ namespace vast::conv {
             return trg;
         }
 
-        template< typename config >
-        static void populate_conversions(config &cfg) {
+        static void populate_conversions(auto &cfg) {
             populate_conversions_base< pattern::cf_patterns >(cfg);
         }
 
