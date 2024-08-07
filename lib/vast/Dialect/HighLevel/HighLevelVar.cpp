@@ -32,7 +32,7 @@ namespace vast::hl
         auto st = mlir::SymbolTable::getNearestSymbolTable(*this);
         if (mlir::isa< FuncOp >(st))
             return DeclContextKind::dc_function;
-        if (mlir::isa< mlir::ModuleOp >(st))
+        if (mlir::isa< core::ModuleOp >(st))
             return DeclContextKind::dc_translation_unit;
         if (mlir::isa< StructDeclOp >(st))
             return DeclContextKind::dc_record;

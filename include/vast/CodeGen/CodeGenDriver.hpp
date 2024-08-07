@@ -9,6 +9,8 @@ VAST_RELAX_WARNINGS
 #include <clang/AST/GlobalDecl.h>
 VAST_UNRELAX_WARNINGS
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
@@ -32,11 +34,15 @@ namespace vast::cg {
         acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs
     );
 
-    void set_target_triple(owning_module_ref &mod, std::string triple);
-    void set_source_language(owning_module_ref &mod, cc::source_language lang);
+    std::unique_ptr< mcontext_t > mk_mcontext();
 
-    owning_module_ref mk_module(acontext_t &actx, mcontext_t &mctx);
-    owning_module_ref mk_module_with_attrs(acontext_t &actx, mcontext_t &mctx, cc::source_language lang);
+    void set_target_triple(core::module mod, std::string triple);
+    void set_source_language(core::module mod, cc::source_language lang);
+
+    owning_mlir_module_ref mk_wrapping_module(mcontext_t &mctx);
+
+    core::module mk_module(acontext_t &actx, mlir_module top);
+    core::module mk_module_with_attrs(acontext_t &actx, mlir_module top, cc::source_language lang);
 
     struct driver
     {
@@ -50,14 +56,15 @@ namespace vast::cg {
             , mctx(_mctx)
             , bld(std::move(_bld))
             , visitor(std::move(_visitor))
+            , top(mk_wrapping_module(mctx))
             , mod(mk_module_with_attrs(
-                actx, mctx, cc::get_source_language(actx.getLangOpts())
+                actx, top.get(), cc::get_source_language(actx.getLangOpts())
             ))
             , scope(symbols)
             , generator(*bld, scoped_visitor_view(*visitor, scope))
         {
-            bld->module = mod.get();
-            bld->set_insertion_point_to_start(&mod->getBodyRegion());
+            bld->module = mod;
+            bld->set_insertion_point_to_start(&mod.getBodyRegion());
         }
 
         virtual ~driver() = default;
@@ -70,7 +77,7 @@ namespace vast::cg {
         virtual void emit_data_layout();
         virtual void finalize();
 
-        owning_module_ref freeze();
+        owning_mlir_module_ref freeze();
 
         mcontext_t &mcontext() { return mctx; }
         acontext_t &acontext() { return actx; }
@@ -100,7 +107,8 @@ namespace vast::cg {
         //
         // module generation state
         //
-        owning_module_ref mod;
+        mlir::OwningOpRef< mlir_module > top;
+        core::module mod;
         module_scope scope;
 
         module_generator generator;

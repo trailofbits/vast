@@ -11,6 +11,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "PassesDetails.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelUtils.hpp"
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
@@ -36,7 +38,7 @@ namespace vast {
                     return type;
                 }();
 
-                auto mod = op->getParentOfType< vast_module >();
+                auto mod = op->getParentOfType< core::module >();
                 if (!mod) {
                     return mlir::failure();
                 }

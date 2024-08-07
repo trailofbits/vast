@@ -22,6 +22,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
 #include "vast/Dialect/Core/CoreAttributes.hpp"
+#include "vast/Dialect/Core/CoreOps.hpp"
 
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
@@ -416,7 +417,7 @@ namespace vast::conv::irstollvm
                     // TODO(conv:irstollvm): Constant.
                     true,
                     LLVM::Linkage::Internal,
-                    op.getName(), create_dummy_value());
+                    op.getSymbolName(), create_dummy_value());
 
             // If we want the global to have a body it cannot have value attribute.
             gop.removeValueAttr();
@@ -538,7 +539,7 @@ namespace vast::conv::irstollvm
 
         static inline constexpr const char *strlit_global_var_prefix = "vast.strlit.constant_";
 
-        std::string next_strlit_name(vast_module mod) const
+        std::string next_strlit_name(core::module mod) const
         {
             std::size_t current = 0;
             for (auto &op : mod.getOps())
@@ -637,7 +638,7 @@ namespace vast::conv::irstollvm
                                                       str_lit.getValue().size() + 1));
             auto converted_attr = mlir::StringAttr::get(op->getContext(), twine);
 
-            auto mod = op->getParentOfType< mlir::ModuleOp >();
+            auto mod = op->getParentOfType< core::module >();
             auto name = next_strlit_name(mod);
 
             auto et = converted_element_type(original_type);
@@ -1018,23 +1019,25 @@ namespace vast::conv::irstollvm
 
     struct call : base_pattern< hl::CallOp >
     {
-        using base = base_pattern< hl::CallOp >;
+        using op_t = hl::CallOp;
+        using base = base_pattern< op_t >;
         using base::base;
 
+        using adaptor_t = typename op_t::Adaptor;
+
         logical_result matchAndRewrite(
-                    hl::CallOp op, typename hl::CallOp::Adaptor ops,
-                    conversion_rewriter &rewriter) const override
-        {
-            auto module = op->getParentOfType< mlir::ModuleOp >();
-            if (!module)
+            op_t op, adaptor_t ops, conversion_rewriter &rewriter
+        ) const override {
+            auto caller = mlir::dyn_cast< VastCallOpInterface >(op.getOperation());
+            if (!caller)
                 return logical_result::failure();
 
-            auto callee = module.lookupSymbol< mlir::LLVM::LLVMFuncOp >(op.getCallee());
+            auto callee = caller.resolveCallable();
             if (!callee)
                 return logical_result::failure();
 
             auto rtys = this->type_converter().convert_types_to_types(
-                    callee.getResultTypes());
+                    callee->getResultTypes());
             if (!rtys)
                 return logical_result::failure();
 
@@ -1046,8 +1049,7 @@ namespace vast::conv::irstollvm
             if (rtys->empty() || rtys->front().isa< mlir::LLVM::LLVMVoidType >())
             {
                 // We cannot pass in void type as some internal check inside `mlir::LLVM`
-                // dialect will fire - it would create a value of void type, which is
-                // not allowed.
+                // dialect will fire - it would create a value of void type, which is not allowed.
                 mk_call(std::vector< mlir::Type >{}, op.getCallee(), ops.getOperands());
                 rewriter.eraseOp(op);
             } else {
@@ -1451,6 +1453,27 @@ namespace vast::conv::irstollvm
         }
     };
 
+    struct module_conversion : base_pattern< core::ModuleOp >
+    {
+        using base      = base_pattern< core::ModuleOp >;
+        using base::base;
+
+        using op_t      = core::ModuleOp;
+        using adaptor_t = core::ModuleOp::Adaptor;
+
+        logical_result matchAndRewrite(
+            op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+        ) const override {
+            auto mod = rewriter.create< mlir::ModuleOp >(op.getLoc(), op.getName());
+            rewriter.inlineRegionBefore(op.getBody(), mod.getBody());
+
+            // Remove the terminator block that was automatically added by builder
+            rewriter.eraseBlock(&mod.getBodyRegion().back());
+            rewriter.eraseOp(op);
+            return mlir::success();
+        }
+    };
+
     using lazy_op_type_conversions = util::type_list<
         lazy_op_type< core::LazyOp >,
         lazy_op_type< core::BinLAndOp >,
@@ -1520,8 +1543,6 @@ namespace vast::conv::irstollvm
         ll_alloca
     >;
 
-
-
     struct IRsToLLVMPass : ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >
     {
         using base = ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >;
@@ -1551,12 +1572,26 @@ namespace vast::conv::irstollvm
             });
 
             target.addIllegalOp< mlir::func::FuncOp >();
-            target.addLegalOp< mlir::ModuleOp >();
 
             auto is_legal = tc->get_is_type_conversion_legal();
             target.markUnknownOpDynamicallyLegal(is_legal);
 
             return target;
+        }
+
+        void run_after_conversion() {
+            mcontext_t &mctx = getContext();
+            conversion_target target(mctx);
+
+            target.addIllegalOp< core::ModuleOp >();
+            target.addLegalOp< mlir::ModuleOp >();
+
+            rewrite_pattern_set patterns(&mctx);
+            patterns.add< module_conversion >(*tc);
+
+            if (mlir::failed(mlir::applyPartialConversion(getOperation(), target, std::move(patterns)))) {
+                return signalPassFailure();
+            }
         }
 
         static void populate_conversions(auto &cfg) {

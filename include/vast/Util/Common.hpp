@@ -47,9 +47,6 @@ namespace vast {
     using acontext_t = clang::ASTContext;
     using mcontext_t = mlir::MLIRContext;
 
-    using vast_module       = mlir::ModuleOp;
-    using owning_module_ref = mlir::OwningOpRef< vast_module >;
-
     using mlir_type  = mlir::Type;
 
     using operation  = mlir::Operation *;
@@ -88,6 +85,9 @@ namespace vast {
     using region_ptr    = region_t*;
     using block_t       = mlir::Block;
     using block_ptr     = block_t*;
+
+    using mlir_module   = mlir::ModuleOp;
+    using owning_mlir_module_ref = mlir::OwningOpRef< mlir_module >;
 
     using walk_result = mlir::WalkResult;
 

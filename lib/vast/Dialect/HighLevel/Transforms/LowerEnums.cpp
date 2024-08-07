@@ -14,6 +14,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "PassesDetails.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelUtils.hpp"
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
@@ -34,11 +36,11 @@ namespace vast::hl {
         llvm::DenseMap< llvm::StringRef, const_decl > id_to_value;
         llvm::DenseMap< llvm::StringRef, enum_decl > name_to_decl;
 
-        enums_info(vast_module mod) {
+        enums_info(core::module mod) {
             collect_enum_values(mod);
         }
 
-        void collect_enum_values(vast_module root) {
+        void collect_enum_values(core::module root) {
             auto walker = [&](operation op) {
                 if (auto decl = mlir::dyn_cast< const_decl >(op)) {
                     VAST_ASSERT(!id_to_value.count(decl.getName()));

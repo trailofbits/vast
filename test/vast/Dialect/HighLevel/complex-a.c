@@ -3,7 +3,7 @@
 #include <complex.h>
 
 void fun() {
-// CHECK: "x" : !hl.lvalue<!hl.complex<!hl.double>>
+// CHECK: @x : !hl.lvalue<!hl.complex<!hl.double>>
 // CHECK: hl.const.init : !hl.complex<!hl.float>
     double complex x = I;
 // CHECK: hl.fadd {{.*}} : (!hl.complex<!hl.double>, !hl.complex<!hl.double>)

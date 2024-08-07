@@ -5,15 +5,80 @@
 
 include "mlir/IR/OpBase.td"
 
+include "mlir/Dialect/DLTI/DLTIBase.td"
+include "mlir/Interfaces/DataLayoutInterfaces.td"
 include "mlir/IR/RegionKindInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
+include "vast/Interfaces/SymbolTableInterface.td"
 
-def Core_ScopeOp : Core_Op< "scope", [NoTerminator, DeclareOpInterfaceMethods<RegionKindInterface>] >
-{
+def Core_ModuleOp : Core_Op< "module", [
+  IsolatedFromAbove,
+  DataLayoutOpInterface,
+  HasDefaultDLTIDataLayout,
+  NoTerminator, NoRegionArguments, SingleBlock, VastSymbol,
+  ShadowingSymbolTable< [[FuncSymbol, VarSymbol, TypeSymbol], [ElaboratedTypeSymbol]] >,
+] > {
+  let summary = "VAST top level container operation";
+  let description = [{
+    A `module` represents a top-level container operation. We provide custom
+    module operation to allow for custom symbol table management.
+  }];
+
+  let arguments = (ins
+    OptionalAttr<SymbolNameAttr>:$sym_name
+  );
+
+  let regions = (region SizedRegion<1>:$body);
+
+  let builders = [OpBuilder<(ins CArg<"std::optional<string_ref>", "{}">:$name)>];
+
+  let extraClassDeclaration = [{
+    /// Construct a module from the given location with an optional name.
+    static ModuleOp create(mlir::Location loc, std::optional<llvm::StringRef> name = std::nullopt);
+
+    /// Return the name of this module if present.
+    std::optional<llvm::StringRef> getName() { return getSymName(); }
+
+    //===------------------------------------------------------------------===//
+    // SymbolOpInterface Methods
+    //===------------------------------------------------------------------===//
+
+    /// A ModuleOp may optionally define a symbol.
+    bool isOptionalSymbol() { return true; }
+
+    //===------------------------------------------------------------------===//
+    // DataLayoutOpInterface Methods
+    //===------------------------------------------------------------------===//
+
+    mlir::DataLayoutSpecInterface getDataLayoutSpec();
+
+    //===------------------------------------------------------------------===//
+    // OpAsmOpInterface Methods
+    //===------------------------------------------------------------------===//
+
+    static ::llvm::StringRef getDefaultDialect() {
+      return "core";
+    }
+  }];
+
+  let assemblyFormat = "($sym_name^)? attr-dict-with-keyword $body";
+
+  let hasVerifier = 1;
+
+  // We need to ensure the block inside the region is properly terminated;
+  // the auto-generated builders do not guarantee that.
+  let skipDefaultBuilders = 1;
+}
+
+def Core_ScopeOp : Core_Op< "scope", [
+  NoTerminator,
+  ShadowingSymbolTable< [[VarSymbol, TypeSymbol], [ElaboratedTypeSymbol]] >,
+  DeclareOpInterfaceMethods<RegionKindInterface>
+] > {
   let summary = "VAST scope declaration";
   let description = [{
-    Scope operation servers to represent explicitly high-level code scope.
+    Scope operation serves to represent explicitly high-level code scope.
     Other control flow operations represent scopes implicitly.  It is a
     single-region operation.
   }];

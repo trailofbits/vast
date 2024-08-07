@@ -28,8 +28,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/CoreAttributes.hpp"
 #include "vast/Dialect/Core/CoreDialect.hpp"
 #include "vast/Dialect/Core/CoreTypes.hpp"
-#include "vast/Dialect/Core/Linkage.hpp"
 #include "vast/Dialect/Core/Func.hpp"
+#include "vast/Dialect/Core/Linkage.hpp"
+#include "vast/Dialect/Core/SymbolTable.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Dialect.hpp"
@@ -346,7 +347,7 @@ namespace vast::hl
         maybe_builder_callback_ref init,
         maybe_builder_callback_ref alloc
     ) {
-        st.addAttribute("name", bld.getStringAttr(name));
+        st.addAttribute(core::symbol_attr_name(), bld.getStringAttr(name));
         InsertionGuard guard(bld);
 
         build_region(bld, st, init);
@@ -492,7 +493,7 @@ namespace vast::hl
     }
 
     mlir::CallInterfaceCallable CallOp::getCallableForCallee() {
-        return (*this)->getAttrOfType< mlir::SymbolRefAttr >("callee");
+        return core::get_callable_for_callee(*this);
     }
 
     void CallOp::setCalleeFromCallable(mlir::CallInterfaceCallable callee) {
@@ -507,6 +508,13 @@ namespace vast::hl
         setOperand(0, callee.get< mlir_value >());
     }
 
+    mlir::Operation *CallOp::resolveCallable() {
+        return core::symbol_table::lookup< core::func_symbol >(getOperation(), getCallee());
+    }
+
+    mlir::Operation *CallOp::resolveCallableInTable(::mlir::SymbolTableCollection &) {
+        VAST_UNIMPLEMENTED;
+    }
 
     mlir::ParseResult IfOp::parse(mlir::OpAsmParser &parser, mlir::OperationState &result) {
         std::unique_ptr< mlir::Region > condRegion = std::make_unique< mlir::Region >();
@@ -744,7 +752,7 @@ namespace vast::hl
 
     FuncOp getCallee(CallOp call)
     {
-        auto coi = mlir::cast<mlir::CallOpInterface>(call.getOperation());
+        auto coi = mlir::cast< VastCallOpInterface >(call.getOperation());
         return mlir::dyn_cast_or_null<FuncOp>(coi.resolveCallable());
     }
 

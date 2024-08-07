@@ -84,7 +84,7 @@ namespace vast::conv::abi {
             hl::RecordType record_type, mlir_value value,
             auto loc, auto &bld
         ) const {
-            vast_module mod = value.getDefiningOp()->getParentOfType< vast_module >();
+            core::module mod = value.getDefiningOp()->getParentOfType< core::module >();
             VAST_ASSERT(mod);
 
             auto def        = hl::definition_of(record_type, mod);
@@ -128,7 +128,7 @@ namespace vast::conv::abi {
         }
 
         // This is different than a generic walker, because we want to "unpack" array types.
-        auto fields(mlir_type t, vast_module mod) const {
+        auto fields(mlir_type t, core::module mod) const {
             if (auto array_type = mlir::dyn_cast< hl::ArrayType >(t)) {
                 return fields(array_type);
             }
@@ -179,7 +179,7 @@ namespace vast::conv::abi {
         };
 
         state_t &state;
-        vast_module mod;
+        core::module mod;
         std::vector< mlir::Value > partials;
 
         mlir::Value run_on(mlir_type root_type, auto &rewriter) {
@@ -211,7 +211,7 @@ namespace vast::conv::abi {
         }
 
       public:
-        aggregate_reconstructor(state_t &state, vast_module mod) : state(state), mod(mod) {}
+        aggregate_reconstructor(state_t &state, core::module mod) : state(state), mod(mod) {}
 
         static state_t mk_state(const pattern &parent, op_t abi_op) {
             return state_t(parent, abi_op);
@@ -315,7 +315,7 @@ namespace vast::conv::abi {
         };
 
         state_t &state;
-        vast_module mod;
+        core::module mod;
         std::vector< mlir::Value > partials;
 
         void run_on(operation root, auto &rewriter) {
@@ -349,7 +349,7 @@ namespace vast::conv::abi {
         }
 
       public:
-        aggregate_deconstructor(state_t &state, vast_module mod) : state(state), mod(mod) {}
+        aggregate_deconstructor(state_t &state, core::module mod) : state(state), mod(mod) {}
 
         auto run(operation root, auto &rewriter) && {
             run_on(root, rewriter);
@@ -379,7 +379,7 @@ namespace vast::conv::abi {
         using deconstructor_t = aggregate_deconstructor< pattern_t, abi_op_t >;
         auto state            = deconstructor_t::mk_state(pattern, op);
 
-        auto module_op = op->template getParentOfType< vast_module >();
+        auto module_op = op->template getParentOfType< core::module >();
         VAST_ASSERT(module_op);
         return deconstructor_t(state, module_op).run(value, rewriter);
     }
@@ -396,7 +396,7 @@ namespace vast::conv::abi {
         using reconstructor_t = aggregate_reconstructor< pattern_t, abi_op_t >;
         auto state            = reconstructor_t::mk_state(pattern, op);
 
-        auto module_op = op->template getParentOfType< vast_module >();
+        auto module_op = op->template getParentOfType< core::module >();
         VAST_ASSERT(module_op);
         return reconstructor_t(state, module_op).run(record_type, rewriter);
     }

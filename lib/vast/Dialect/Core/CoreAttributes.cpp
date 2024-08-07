@@ -77,4 +77,8 @@ namespace vast::core
         >();
     }
 
+    mlir::CallInterfaceCallable get_callable_for_callee(operation op) {
+        return op->getAttrOfType< mlir::FlatSymbolRefAttr >("callee");
+    }
+
 } // namespace vast::core

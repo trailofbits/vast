@@ -251,11 +251,35 @@ namespace vast
             }
         };
 
-        using bin_lop_conversions = util::type_list<
+        using lazy_op_conversions = util::type_list<
             lazy_bin_logical< core::BinLAndOp, false >,
             lazy_bin_logical< core::BinLOrOp, true >,
             select
         >;
+
+
+
+        // Get rid fo any remaining `llvm.mlir.zero` that are of void type
+        // because they cannot be codegen'ed into LLVM IR.
+        struct zero_void_erasure : operation_conversion_pattern< LLVM::ZeroOp >
+        {
+            using base = operation_conversion_pattern< LLVM::ZeroOp >;
+            using base::base;
+
+            using op_t = LLVM::ZeroOp;
+            using adaptor_t = typename LLVM::ZeroOp::Adaptor;
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t ops, conversion_rewriter &rewriter
+            ) const override {
+                if (!mlir::isa< mlir::LLVM::LLVMVoidType >(op.getType()))
+                    return mlir::failure();
+                rewriter.eraseOp(op);
+                return mlir::success();
+            }
+        };
+
+        using core_conversions = util::type_list< zero_void_erasure >;
 
     } //namespace pattern
 
@@ -268,13 +292,15 @@ namespace vast
 
             target.addIllegalDialect< vast::core::CoreDialect >();
             target.addLegalOp< core::LazyOp >();
+            target.addLegalOp< core::ModuleOp >();
 
             target.addLegalDialect< mlir::LLVM::LLVMDialect >();
             return target;
         }
 
         static void populate_conversions(auto &cfg) {
-            base::populate_conversions< pattern::bin_lop_conversions >(cfg);
+            base::populate_conversions< pattern::lazy_op_conversions >(cfg);
+            base::populate_conversions< pattern::core_conversions >(cfg);
         }
 
         void run_after_conversion() {

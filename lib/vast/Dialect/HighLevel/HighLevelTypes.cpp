@@ -12,6 +12,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/DialectImplementation.h>
 VAST_RELAX_WARNINGS
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 namespace vast::hl
 {
     mlir_type strip_elaborated(mlir_value v)
@@ -50,19 +52,19 @@ namespace vast::hl
         return t;
     }
 
-    mlir_type getBottomTypedefType(TypedefType def, vast_module mod)
+    mlir_type getBottomTypedefType(TypedefType def, core::module mod)
     {
         return getBottomTypedefType(getTypedefType(def, mod), mod);
     }
 
-    mlir_type getBottomTypedefType(mlir_type type, vast_module mod)
+    mlir_type getBottomTypedefType(mlir_type type, core::module mod)
     {
         if (auto def = mlir::dyn_cast_or_null< TypedefType >(strip_elaborated(type)))
             return getBottomTypedefType(def, mod);
         return type;
     }
 
-    mlir_type getTypedefType(TypedefType type, vast_module mod)
+    mlir_type getTypedefType(TypedefType type, core::module mod)
     {
         auto name = type.getName();
         mlir_type result;
@@ -87,41 +89,36 @@ namespace vast::hl
         return {};
     }
 
-    core::FunctionType getFunctionType(mlir_type type, vast_module mod) {
-        if (auto ty = type.dyn_cast< core::FunctionType >())
+    core::FunctionType getFunctionType(mlir_type type, operation from) {
+        if (auto ty = type.dyn_cast< core::FunctionType >()) {
             return ty;
-        if (auto ty = dyn_cast< ElementTypeInterface >(type))
-            return getFunctionType(ty.getElementType(), mod);
-        if (auto ty = type.dyn_cast< TypedefType >())
-            return getFunctionType(getTypedefType(ty, mod), mod);
-
-        return {};
+        } else if (auto ty = dyn_cast< ElementTypeInterface >(type)) {
+            return getFunctionType(ty.getElementType(), from);
+        } else if (auto ty = type.dyn_cast< TypedefType >()) {
+            auto mod = from->getParentOfType< core::module >();
+            return getFunctionType(getTypedefType(ty, mod), from);
+        } else {
+            return {};
+        }
     }
 
-    core::FunctionType getFunctionType(mlir_value callee) {
-        auto op  = callee.getDefiningOp();
-        auto mod = op->getParentOfType< vast_module >();
-        return getFunctionType(callee.getType(), mod);
-    }
-
-    core::FunctionType getFunctionType(mlir::CallOpInterface call) {
-        auto mod = call->getParentOfType< vast_module >();
-        return getFunctionType(call.getCallableForCallee(), mod);
-    }
-
-    core::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, vast_module mod) {
+    core::FunctionType getFunctionType(mlir::CallInterfaceCallable callee, operation from) {
         if (!callee) {
             return {};
         }
 
         if (auto sym = callee.dyn_cast< mlir::SymbolRefAttr >()) {
-            return mlir::dyn_cast_or_null< FuncOp >(
-                mlir::SymbolTable::lookupSymbolIn(mod, sym)
-            ).getFunctionType();
+            auto st = core::get_effective_symbol_table_for< core::func_symbol >(from);
+            VAST_CHECK(st, "No effective symbol table found for function type resolution.");
+
+            auto fn = st->lookup< core::func_symbol >(sym.getRootReference());
+            VAST_CHECK(fn, "Function {} not present in the symbol table.", sym.getRootReference());
+
+            return mlir::cast< FuncOp >(fn).getFunctionType();
         }
 
         if (auto value = callee.dyn_cast< mlir_value >()) {
-            return getFunctionType(value.getType(), mod);
+            return getFunctionType(value.getType(), from);
         }
 
         return {};

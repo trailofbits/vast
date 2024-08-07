@@ -6,6 +6,9 @@
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include "vast/Interfaces/SymbolInterface.hpp"
 
 #include "vast/Util/Common.hpp"
@@ -86,7 +89,7 @@ namespace vast::hl {
     auto generate_ptrs_to_record_members(operation root, auto loc, auto &bld)
         ->  gap::generator< hl::RecordMemberOp >
     {
-        auto scope = root->getParentOfType< vast_module >();
+        auto scope = root->getParentOfType< core::module >();
         VAST_ASSERT(scope);
         VAST_ASSERT(root->getNumResults() == 1);
         auto def = definition_of(root->getResultTypes()[0], scope);
@@ -159,7 +162,7 @@ namespace vast::hl {
     walk_result users(hl::VarDeclOp var, auto scope, auto &&yield) {
         VAST_CHECK(var.hasGlobalStorage(), "Only global variables are supported");
         return scope.walk([&](GlobalRefOp op) {
-            return op.getGlobal() == var.getName() ? yield(op) : walk_result::advance();
+            return op.getGlobal() == var.getSymbolName() ? yield(op) : walk_result::advance();
         });
     }
 

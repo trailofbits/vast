@@ -34,7 +34,7 @@ namespace vast::abi
 
     mlir::CallInterfaceCallable CallOp::getCallableForCallee()
     {
-        return (*this)->getAttrOfType< mlir::SymbolRefAttr >("callee");
+        return core::get_callable_for_callee(*this);
     }
 
     mlir::Operation::operand_range CallOp::getArgOperands()
@@ -92,20 +92,9 @@ namespace vast::abi
         return build_op_with_region(bld, st, body);
     }
 
-    void CallExecutionOp::build(
-        Builder &bld, State &st, llvm::StringRef callee,
-        mlir::TypeRange types, mlir::ValueRange operands,
-        maybe_builder_callback_ref body
-    ) {
-        st.addTypes(types);
-        build_op_with_region(bld, st, body);
-        st.addOperands(operands);
-        st.addAttribute("callee", mlir::SymbolRefAttr::get(bld.getContext(), callee));
-    }
-
     mlir::CallInterfaceCallable CallExecutionOp::getCallableForCallee()
     {
-        return (*this)->getAttrOfType< mlir::SymbolRefAttr >("callee");
+        return core::get_callable_for_callee(*this);
     }
 
     mlir::Operation::operand_range CallExecutionOp::getArgOperands()

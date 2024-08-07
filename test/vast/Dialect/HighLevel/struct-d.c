@@ -3,7 +3,7 @@
 // REQUIRES: locally-scoped-structs
 
 // tag naming an unknown struct declares it
-// CHECK: hl.var "p" : !hl.lvalue<!hl.ptr<!hl.elaborated<!hl.record<"s">>>> = {
+// CHECK: hl.var @p : !hl.lvalue<!hl.ptr<!hl.elaborated<!hl.record<"s">>>> = {
 // CHECK:  [[V1:%[0-9]+]] = hl.const #core.integer<0> : !hl.int
 // CHECK:  [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] NullToPointer : !hl.int -> !hl.ptr<!hl.elaborated<!hl.record<"s">>>
 

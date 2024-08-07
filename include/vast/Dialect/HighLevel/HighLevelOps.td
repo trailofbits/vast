@@ -6,21 +6,28 @@
 include "mlir/IR/OpBase.td"
 include "mlir/IR/BuiltinAttributes.td"
 
-include "vast/Interfaces/AggregateTypeDefinitionInterface.td"
 include "mlir/Interfaces/CastInterfaces.td"
+
+include "vast/Interfaces/AggregateTypeDefinitionInterface.td"
 include "vast/Interfaces/SymbolInterface.td"
+include "vast/Interfaces/SymbolTableInterface.td"
 
 include "vast/Dialect/HighLevel/HighLevelCF.td"
 
-include "vast/Dialect/Core/Utils.td"
+include "vast/Dialect/Core/CommonAttrConstraints.td"
 include "vast/Dialect/Core/CoreTraits.td"
-include "vast/Interfaces/AST/DeclInterface.td"
-
 include "vast/Dialect/Core/Func.td"
+include "vast/Dialect/Core/Utils.td"
+
+include "vast/Interfaces/AST/DeclInterface.td"
 
 
 def TranslationUnitOp
-  : HighLevel_Op< "translation_unit", [NoTerminator, SymbolTable, IsolatedFromAbove] >
+  : HighLevel_Op< "translation_unit", [
+      NoTerminator,
+      ShadowingSymbolTable< [[FuncSymbol, VarSymbol, TypeSymbol], [ElaboratedTypeSymbol]] >,
+      IsolatedFromAbove
+  ] >
 {
   let summary = "VAST translation unit";
   let description = [{ VAST tranaslation unit }];
@@ -38,7 +45,11 @@ def TranslationUnitOp
 }
 
 def HighLevel_FuncOp
-  : Core_FuncBaseOp< HighLevel_Dialect, "func" >
+  : Core_FuncBaseOp< HighLevel_Dialect, "func", [
+    FuncSymbol,
+    ShadowingSymbolTable< [[VarSymbol, TypeSymbol], [ElaboratedTypeSymbol]] >,
+    IsolatedFromAbove
+  ] >
 {
   let skipDefaultBuilders = 1;
 
@@ -328,7 +339,12 @@ def RecordMemberOp
 }
 
 def CallOp
-  : HighLevel_Op< "call", [DeclareOpInterfaceMethods<CallOpInterface>] >
+  : HighLevel_Op< "call", [
+      CallOpInterface,
+      DeclareOpInterfaceMethods<CallOpInterface, ["resolveCallable", "resolveCallableInTable"]>,
+      VastCallOpInterface,
+      DeclareOpInterfaceMethods<VastCallOpInterface, ["resolveCallable", "resolveCallableInTable"]>
+    ] >
   , Arguments<(ins
       FlatSymbolRefAttr:$callee,
       Variadic<AnyType>:$argOperands)>
@@ -339,20 +355,33 @@ def CallOp
 
   let skipDefaultBuilders = 1;
   let builders = [
-    OpBuilder< (ins "FuncOp":$callee, CArg< "mlir::ValueRange", "{}" >:$operands ), [{
+    OpBuilder< (ins
+      "mlir::FlatSymbolRefAttr":$callee,
+      "mlir::TypeRange":$results,
+      CArg<"mlir::ValueRange", "{}">:$operands
+    ), [{
       $_state.addOperands(operands);
-      $_state.addAttribute("callee", mlir::SymbolRefAttr::get($_builder.getContext(), callee.getName()));
-      $_state.addTypes(callee.getFunctionType().getResults());
-    }]>,
-
-    OpBuilder< (ins "llvm::StringRef":$callee,
-                "mlir::TypeRange":$results,
-                CArg<"mlir::ValueRange", "{}">:$operands),
-    [{
-      $_state.addOperands(operands);
-      $_state.addAttribute("callee", mlir::SymbolRefAttr::get($_builder.getContext(), callee));
+      $_state.addAttribute("callee", callee);
       $_state.addTypes(results);
-    }]>];
+    }]>,
+    OpBuilder< (ins
+      "mlir::StringAttr":$callee,
+      "mlir::TypeRange":$results,
+      CArg<"mlir::ValueRange", "{}">:$operands
+    ), [{
+      build($_builder, $_state, mlir::FlatSymbolRefAttr::get($_builder.getContext(), callee), results, operands);
+    }]>,
+    OpBuilder< (ins
+      "llvm::StringRef":$callee,
+      "mlir::TypeRange":$results,
+      CArg<"mlir::ValueRange", "{}">:$operands
+    ), [{
+      build($_builder, $_state, mlir::SymbolRefAttr::get($_builder.getContext(), callee), results, operands);
+    }]>,
+    OpBuilder< (ins "FuncOp":$callee, CArg< "mlir::ValueRange", "{}" >:$operands), [{
+      build($_builder, $_state, callee.getName(), callee.getFunctionType().getResults(), operands);
+    }]>
+  ];
 
   let assemblyFormat = [{
     $callee `(` $argOperands `)` attr-dict `:` functional-type( $argOperands, $results )
@@ -361,7 +390,7 @@ def CallOp
 
 def IndirectCallOp
   : HighLevel_Op< "indirect_call", [
-    DeclareOpInterfaceMethods<CallOpInterface>,
+    CallOpInterface, DeclareOpInterfaceMethods<CallOpInterface>
   ] >
   , Arguments<(ins
       // FIXME: LValueOrType<PointerLikeType>

@@ -48,7 +48,11 @@ config.test_exec_root = os.path.join(config.vast_obj_root, 'test')
 config.vast_test_util = os.path.join(config.vast_src_root, 'test/utils')
 config.vast_tools_dir = os.path.join(config.vast_obj_root, 'tools')
 tools = [
-    ToolSubst('%vast-opt', command = 'vast-opt'),
+    ToolSubst('%vast-opt', command = 'vast-opt',
+        extra_args=[
+            "--no-implicit-module"
+        ]
+    ),
     ToolSubst('%vast-opt-irs-to-llvm', command = 'vast-opt',
         extra_args=[
             "--vast-hl-lower-elaborated-types",

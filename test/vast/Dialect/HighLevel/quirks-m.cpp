@@ -5,19 +5,19 @@
 
 // CHECK: hl.func @_Z3foov
 int foo() {
-    // CHECK: hl.var "a" : !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK: hl.var @a : !hl.lvalue<!hl.ptr<!hl.int>>
     int* a;
-    // CHECK: hl.var "b" : !hl.lvalue<!hl.ptr<!hl.int>>
+    // CHECK: hl.var @b : !hl.lvalue<!hl.ptr<!hl.int>>
     int* b;
     // CHECK: core.scope
     {
-        // CHECK: hl.var "foo" sc_static : !hl.lvalue<!hl.int>
+        // CHECK: hl.var @foo sc_static : !hl.lvalue<!hl.int>
         static int foo;
         a = &foo;
     }
     // CHECK: core.scope
     {
-        // CHECK: hl.var "foo" sc_static : !hl.lvalue<!hl.int>
+        // CHECK: hl.var @foo sc_static : !hl.lvalue<!hl.int>
         static int foo;
         b = &foo;
     }
