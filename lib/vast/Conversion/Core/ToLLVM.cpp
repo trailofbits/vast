@@ -258,26 +258,6 @@ namespace vast
         >;
 
 
-        struct module : operation_conversion_pattern< core::ModuleOp >
-        {
-            using base = operation_conversion_pattern< core::ModuleOp >;
-            using base::base;
-
-            using op_t = core::ModuleOp;
-            using adaptor_t = typename core::ModuleOp::Adaptor;
-
-            logical_result matchAndRewrite(
-                op_t op, adaptor_t ops, conversion_rewriter &rewriter
-            ) const override {
-                auto mod = rewriter.create< mlir::ModuleOp >(op.getLoc(), op.getName());
-                rewriter.inlineRegionBefore(op.getBody(), mod.getBody());
-
-                // Remove the terminator block that was automatically added by builder
-                rewriter.eraseBlock(&mod.getBodyRegion().back());
-                rewriter.replaceOp(op, mod);
-                return mlir::success();
-            }
-        };
 
         // Get rid fo any remaining `llvm.mlir.zero` that are of void type
         // because they cannot be codegen'ed into LLVM IR.
@@ -299,7 +279,7 @@ namespace vast
             }
         };
 
-        using core_conversions = util::type_list< module, zero_void_erasure >;
+        using core_conversions = util::type_list< zero_void_erasure >;
 
     } //namespace pattern
 
@@ -312,15 +292,15 @@ namespace vast
 
             target.addIllegalDialect< vast::core::CoreDialect >();
             target.addLegalOp< core::LazyOp >();
-            target.addLegalOp< mlir::ModuleOp >();
+            target.addLegalOp< core::ModuleOp >();
 
             target.addLegalDialect< mlir::LLVM::LLVMDialect >();
             return target;
         }
 
         static void populate_conversions(auto &cfg) {
-            base::populate_conversions_base< pattern::lazy_op_conversions >(cfg);
-            base::populate_conversions_base< pattern::core_conversions >(cfg);
+            base::populate_conversions< pattern::lazy_op_conversions >(cfg);
+            base::populate_conversions< pattern::core_conversions >(cfg);
         }
 
         void run_after_conversion() {

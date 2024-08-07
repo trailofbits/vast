@@ -39,10 +39,10 @@ namespace vast::cg {
     void set_target_triple(core::module mod, std::string triple);
     void set_source_language(core::module mod, cc::source_language lang);
 
-    mlir::OwningOpRef< mlir::ModuleOp > mk_wrapping_module(mcontext_t &mctx);
+    owning_mlir_module_ref mk_wrapping_module(mcontext_t &mctx);
 
-    core::module mk_module(acontext_t &actx, mlir::ModuleOp top);
-    core::module mk_module_with_attrs(acontext_t &actx, mlir::ModuleOp top, cc::source_language lang);
+    core::module mk_module(acontext_t &actx, mlir_module top);
+    core::module mk_module_with_attrs(acontext_t &actx, mlir_module top, cc::source_language lang);
 
     struct driver
     {
@@ -77,7 +77,7 @@ namespace vast::cg {
         virtual void emit_data_layout();
         virtual void finalize();
 
-        core::module freeze();
+        owning_mlir_module_ref freeze();
 
         mcontext_t &mcontext() { return mctx; }
         acontext_t &acontext() { return actx; }
@@ -107,7 +107,7 @@ namespace vast::cg {
         //
         // module generation state
         //
-        mlir::OwningOpRef< mlir::ModuleOp > top;
+        mlir::OwningOpRef< mlir_module > top;
         core::module mod;
         module_scope scope;
 

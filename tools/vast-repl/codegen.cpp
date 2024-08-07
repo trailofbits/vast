@@ -40,7 +40,7 @@ namespace vast::repl::codegen {
         llvm::sys::RunInterruptHandlers();
     }
 
-    core::owning_module_ref emit_module(const std::filesystem::path &source, mcontext_t &mctx ) {
+    owning_mlir_module_ref emit_module(const std::filesystem::path &source, mcontext_t &mctx ) {
         // TODO setup args from repl state
         std::vector< const char * > ccargs = { source.c_str() };
         vast::cc::buffered_diagnostics diags(ccargs);

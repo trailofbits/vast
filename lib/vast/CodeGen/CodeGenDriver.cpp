@@ -33,7 +33,7 @@ namespace vast::cg {
 
     void driver::emit(clang::Decl *decl) { generator.emit(decl); }
 
-    core::module driver::freeze() { return std::move(mod); }
+    owning_mlir_module_ref driver::freeze() { return std::move(top); }
 
     // TODO this should not be needed the data layout should be emitted from cached types directly
     dl::DataLayoutBlueprint emit_data_layout_blueprint(
@@ -181,12 +181,13 @@ namespace vast::cg {
         }
     } // namespace detail
 
-    mlir::OwningOpRef< mlir::ModuleOp > mk_wrapping_module(mcontext_t &mctx) {
+    owning_mlir_module_ref mk_wrapping_module(mcontext_t &mctx) {
         return mlir::ModuleOp::create(mlir::UnknownLoc::get(&mctx));
     }
 
-    core::module mk_module(acontext_t &actx, mlir::ModuleOp top) {
+    core::module mk_module(acontext_t &actx, mlir_module top) {
         mlir::OpBuilder bld(top);
+        bld.setInsertionPointToStart(top.getBody());
 
         // TODO use symbol generator
         auto mctx = top.getContext();
@@ -195,7 +196,7 @@ namespace vast::cg {
     }
 
     core::module mk_module_with_attrs(
-        acontext_t &actx, mlir::ModuleOp top,
+        acontext_t &actx, mlir_module top,
         cc::source_language lang
     ) {
         auto mod = mk_module(actx, top);

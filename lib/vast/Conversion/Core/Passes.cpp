@@ -20,7 +20,7 @@ namespace vast::conv::pipeline {
         // This is necessary to have line tables emitted and basic debugger
         // working. In the future we will add proper debug information emission
         // directly from our frontend.
-        return nested< core::module >(mlir::LLVM::createDIScopeForLLVMFuncOpPass)
+        return nested< mlir::ModuleOp >(mlir::LLVM::createDIScopeForLLVMFuncOpPass)
             .depends_on(core_to_llvm);
     }
 
