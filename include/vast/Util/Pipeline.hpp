@@ -14,6 +14,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include <gap/coro/generator.hpp>
 
 namespace vast {
@@ -62,7 +64,8 @@ namespace vast {
 
             seen.insert(id);
             VAST_PIPELINE_DEBUG("scheduling nested pass: {0}", pass->getArgument());
-            base::addNestedPass< parent_t >(std::move(pass));
+            auto &pm = this->nest< parent_t >();
+            pm.addPass(std::move(pass));
         }
 
         virtual schedule_result schedule(pipeline_step_ptr step) = 0;
@@ -164,6 +167,17 @@ namespace vast {
         cached_pass_builder pass_builder;
     };
 
+    struct top_level_pass_pipeline_step : pass_pipeline_step
+    {
+        explicit top_level_pass_pipeline_step(pass_builder_t builder)
+            : pass_pipeline_step(builder)
+        {}
+
+        virtual ~top_level_pass_pipeline_step() = default;
+
+        schedule_result schedule_on(pipeline_t &ppl) override;
+    };
+
     template< typename parent_t >
     struct nested_pass_pipeline_step : pass_pipeline_step
     {
@@ -204,6 +218,13 @@ namespace vast {
     template< typename... args_t >
     decltype(auto) pass(args_t &&... args) {
         return pipeline_step_init< pass_pipeline_step >(
+            std::forward< args_t >(args)...
+        );
+    }
+
+    template< typename... args_t >
+    decltype(auto) top_level_pass(args_t &&... args) {
+        return pipeline_step_init< top_level_pass_pipeline_step >(
             std::forward< args_t >(args)...
         );
     }
