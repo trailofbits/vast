@@ -11,7 +11,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Transforms/GreedyPatternRewriteDriver.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Conversion/Common/Passes.hpp"
+#include "vast/Conversion/Common/Mixins.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/DialectConversion.hpp"

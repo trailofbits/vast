@@ -16,7 +16,7 @@ VAST_UNRELAX_WARNINGS
 #include <vast/Dialect/HighLevel/HighLevelUtils.hpp>
 #include <vast/Interfaces/AggregateTypeDefinitionInterface.hpp>
 
-#include <vast/Conversion/Common/Passes.hpp>
+#include <vast/Conversion/Common/Mixins.hpp>
 
 #include <vast/Util/Attribute.hpp>
 #include <vast/Util/TypeUtils.hpp>

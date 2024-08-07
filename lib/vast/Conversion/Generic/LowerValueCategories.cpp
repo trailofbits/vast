@@ -20,7 +20,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Terminator.hpp"
 
-#include "vast/Conversion/Common/Passes.hpp"
+#include "vast/Conversion/Common/Mixins.hpp"
 #include "vast/Conversion/TypeConverters/TypeConvertingPattern.hpp"
 
 namespace vast::conv {
