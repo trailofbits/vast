@@ -14,49 +14,133 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast {
 
-    // Inject basic api shared by other mixins:
-    //  - iterating over lists of patterns.
-    //  - applying the conversion.
-    //  Since we cannot easily do `using config = self::config` the type is instead
-    //  taken as a template.
-    template< typename self >
-    struct populate_patterns
-    {
-        template< typename list, typename config >
-        static void populate_conversions_impl(config &cfg) {
+    template<typename self>
+    struct populate_patterns {
+        template<typename list>
+        static void populate_conversions_impl(auto &cfg) {
             if constexpr (!list::empty) {
-                self::template add_pattern< typename list::head >(cfg);
-                self::template legalize< typename list::head >(cfg);
-                return self::template populate_conversions_impl< typename list::tail >(cfg);
+                self::template add_pattern<typename list::head>(cfg);
+                self::template legalize<typename list::head>(cfg);
+                self::template populate_conversions_impl<typename list::tail>(cfg);
             }
         }
 
-        template< typename pattern, typename config >
-        static void legalize(config &cfg) {
-            if constexpr (has_legalize< pattern >) {
+        template<typename pattern>
+        static void legalize(auto &cfg) {
+            if constexpr (has_legalize<pattern>) {
                 pattern::legalize(cfg.target);
             }
         }
 
-        auto &underlying() { return static_cast< self & >(*this); }
+        auto &underlying() { return static_cast<self &>(*this); }
 
-        // It is expected to move into this method, as it consumes & runs a configuration.
-        template< typename config >
-        auto apply_conversions(config cfg) {
+        auto apply_conversions(auto &&cfg) {
             return mlir::applyPartialConversion(
                 underlying().getOperation(), cfg.target, std::move(cfg.patterns)
             );
         }
 
-        template< typename... lists, typename config >
-        static void populate_conversions_base(config &cfg) {
-            (self::template populate_conversions_impl< lists >(cfg), ...);
+        template<typename... lists>
+        static void populate_conversions_base(auto &cfg) {
+            (self::template populate_conversions_impl<lists>(cfg), ...);
+        }
+    };
+
+    using lower_to_llvm_options = mlir::LowerToLLVMOptions;
+
+    template< typename T >
+    concept has_populate_conversions = requires(T a) { a.populate_conversions(); };
+
+    template< typename T >
+    concept has_after_operation = requires(T a) { a.after_operation(); };
+
+    template< typename T >
+    concept has_lower_to_llvm_options = requires(T a) {
+        T::set_lower_to_llvm_options(std::declval< lower_to_llvm_options & >());
+    };
+
+    using rewrite_pattern_set = mlir::RewritePatternSet;
+
+    // base configuration class
+    struct base_conversion_config {
+        rewrite_pattern_set patterns;
+        conversion_target target;
+
+        template<typename pattern>
+        void add_pattern() {
+            patterns.template add<pattern>(patterns.getContext());
+        }
+    };
+
+    // Configuration class for LLVM conversion
+    using llvm_type_converter = conv::tc::FullLLVMTypeConverter;
+
+    struct llvm_conversion_config : base_conversion_config {
+        llvm_type_converter &tc;
+
+        llvm_conversion_config(
+            rewrite_pattern_set patterns, conversion_target target, llvm_type_converter &tc
+        )
+            : base_conversion_config{std::move(patterns), std::move(target)}, tc(tc) {}
+
+        llvm_conversion_config(llvm_conversion_config &&other)
+            : base_conversion_config{std::move(other.patterns), std::move(other.target)}, tc(other.tc) {}
+
+        template<typename pattern>
+        void add_pattern() {
+            patterns.template add<pattern>(tc);
         }
     };
 
     //
+    // base class for module conversion passes providing common functionality
+    //
+    template< typename derived, template< typename > typename base >
+    struct ModuleConversionPassMixinBase
+        : base< derived >
+        , populate_patterns< derived >
+    {
+        using base_type = base<derived>;
+        using patterns = populate_patterns<derived>;
+
+        using base_type::getContext;
+        using base_type::getOperation;
+        using base_type::signalPassFailure;
+
+        auto &self() { return static_cast< derived & >(*this); }
+
+        template< typename pattern >
+        static void add_pattern(auto &cfg) {
+            cfg.template add_pattern< pattern >();
+        }
+
+        logical_result run_on_operation(auto &&cfg) {
+            if (mlir::failed(patterns::apply_conversions(std::move(cfg)))) {
+                return signalPassFailure(), mlir::failure();
+            }
+            return mlir::success();
+        }
+
+        logical_result run_on_operation() {
+            auto cfg = self().make_config();
+            self().populate_conversions(cfg);
+            return run_on_operation(std::move(cfg));
+        }
+
+        void runOnOperation() override {
+            if (mlir::succeeded(self().run_on_operation())) {
+                if constexpr (has_after_operation< derived >) {
+                    self().after_operation();
+                }
+            }
+        }
+
+    };
+
+    //
     // Mixin to define simple module conversion passes. It requires the derived
-    // pass to define two static methods.
+    // pass to define static methods for specifying conversion targets
+    // and populating rewrite patterns.
     //
     // To specify the legalization and illegalization of operations:
     //
@@ -64,17 +148,12 @@ namespace vast {
     //
     // To populate rewrite patterns:
     //
-    // `static void populate_conversions(config &cfg)`
-    //
-    // The mixin provides to the derived pass `populate_conversions` helper, which
-    // takes lists of rewrite patterns.
-    // Aside from populating collection of patterns, this method also calls `legalize` method
-    // of every pattern being added.
+    // `static void populate_conversions(base_conversion_config &cfg)`
     //
     // Example usage:
     //
-    // struct ExamplePass : ModuleConversionPassMixin< ExamplePass, ExamplePassBase > {
-    //     using base = ModuleConversionPassMixin< ExamplePass, ExamplePassBase >;
+    // struct ExamplePass : ModuleConversionPassMixin<ExamplePass, ExamplePassBase> {
+    //     using base = ModuleConversionPassMixin<ExamplePass, ExamplePassBase>;
     //
     //     static conversion_target create_conversion_target(mcontext_t &context) {
     //         conversion_target target(context);
@@ -82,168 +161,67 @@ namespace vast {
     //         return target;
     //     }
     //
-    //     static void populate_conversions(rewrite_pattern_set &patterns) {
+    //     static void populate_conversions(base_conversion_config &cfg) {
     //         base::populate_conversions_base<
     //             // pass conversion type_lists here
-    //         >(patterns);
+    //         >(cfg);
     //     }
     // }
     //
     template< typename derived, template< typename > typename base >
-    struct ModuleConversionPassMixin
-        : base< derived >
-        , populate_patterns< derived >
+    struct ModuleConversionPassMixin : ModuleConversionPassMixinBase< derived, base >
     {
-        using base_type = base< derived >;
-        using populate  = populate_patterns< derived >;
+        void populate_conversions(base_conversion_config &cfg) {}
 
-        using base_type::getContext;
-        using base_type::getOperation;
-        using base_type::signalPassFailure;
-
-        using rewrite_pattern_set = mlir::RewritePatternSet;
-
-        struct config
-        {
-            rewrite_pattern_set patterns;
-            conversion_target target;
-
-            mlir::MLIRContext *getContext() { return patterns.getContext(); }
-        };
-
-        template< typename pattern >
-        static void add_pattern(config &config) {
-            config.patterns.template add< pattern >(config.getContext());
+        base_conversion_config make_config() {
+            auto &ctx = this->getContext();
+            return { rewrite_pattern_set(&ctx), derived::create_conversion_target(ctx) };
         }
-
-        auto &self() { return static_cast< derived & >(*this); }
-
-        void populate_conversions(config &) {}
-
-        logical_result run_on_operation() {
-            auto &ctx = getContext();
-            config cfg = {
-                rewrite_pattern_set(&ctx), derived::create_conversion_target(ctx)
-            };
-
-            self().populate_conversions(cfg);
-
-            if (mlir::failed(populate::apply_conversions(std::move(cfg)))) {
-                return signalPassFailure(), mlir::failure();
-            }
-
-            return mlir::success();
-        }
-
-        void runOnOperation() override {
-            if (mlir::succeeded(run_on_operation())) {
-                this->after_operation();
-            }
-        }
-
-        // Override to specify what is supposed to run after `run_on_operation` is finished.
-        // This will run *only if the `run_on_operation* was successful.
-        virtual void after_operation() {};
     };
 
-    // Sibling of the above module for passes that go to the LLVM dialect.
+    //
+    // Mixin for conversion passes that target the LLVM dialect.
+    // Requires the derived pass to specify LLVM-specific conversion logic.
+    //
     // Example usage:
     //
-    // struct ExamplePass : ModuleLLVMConversionPassMixin< ExamplePass, ExamplePassBase > {
-    //     using base_type = ModuleLLVMConversionPassMixin< ExamplePass, ExamplePassBase >;
+    // struct ExamplePass : ModuleLLVMConversionPassMixin<ExamplePass, ExamplePassBase> {
+    //     using base = ModuleLLVMConversionPassMixin<ExamplePass, ExamplePassBase>;
     //
-    //     static conversion_target create_conversion_target(MContext &context) {
+    //     static conversion_target create_conversion_target(mcontest_t &context) {
     //         conversion_target target(context);
     //         // setup target here
     //         return target;
     //     }
     //
-    //     static void populate_conversions(rewrite_pattern_set &patterns) {
+    //     static void populate_conversions(llvm_conversion_config &patterns) {
     //         base::populate_conversions_base<
     //             // pass conversion type_lists here
-    //         >(patterns);
-    //     }
-    //     static void set_llvm_options(mlir::LowerToLLVMOptions &llvm_options) {
-    //          llvm_options.myOption = my_value;
+    //         >(cfg);
     //     }
     // }
     //
     template< typename derived, template< typename > typename base >
     struct ModuleLLVMConversionPassMixin
-        : base< derived >
-        , populate_patterns< derived >
+        : ModuleConversionPassMixinBase< derived, base >
     {
-        using base_type = base< derived >;
-        using populate  = populate_patterns< derived >;
+        std::shared_ptr< llvm_type_converter > tc;
 
-        using base_type::getContext;
-        using base_type::getOperation;
-        using base_type::signalPassFailure;
-
-        using rewrite_pattern_set = mlir::RewritePatternSet;
-
-        using llvm_type_converter = conv::tc::FullLLVMTypeConverter;
-
-        struct config
-        {
-            rewrite_pattern_set patterns;
-            conversion_target target;
-            // Type converter cannot be moved!
-            llvm_type_converter &tc;
-
-            mcontext_t *getContext() { return patterns.getContext(); }
-
-            config(
-                rewrite_pattern_set patterns, conversion_target target, llvm_type_converter &tc
-            )
-                : patterns(std::move(patterns)), target(std::move(target)), tc(tc)
-            {}
-
-            config(config &&other)
-                : patterns(std::move(other.patterns))
-                , target(std::move(other.target))
-                , tc(other.tc)
-            {}
-        };
-
-        auto &self() { return static_cast< derived & >(*this); }
-
-        void populate_conversions(config &) {}
-
-        template< typename pattern >
-        static void add_pattern(config &cfg) {
-            cfg.patterns.template add< pattern >(cfg.tc);
-        }
-
-        logical_result run_on_operation() {
-            auto &ctx               = getContext();
+        llvm_conversion_config make_config() {
+            auto &ctx = this->getContext();
             const auto &dl_analysis = this->template getAnalysis< mlir::DataLayoutAnalysis >();
 
-            mlir::LowerToLLVMOptions llvm_options{ &ctx };
-            derived::set_llvm_opts(llvm_options);
-
-            auto tc  = llvm_type_converter(getOperation(), &ctx, llvm_options, &dl_analysis);
-            config cfg = {
-                rewrite_pattern_set(&ctx), derived::create_conversion_target(ctx, tc), tc
-            };
-
-            // populate all patterns
-            self().populate_conversions(cfg);
-
-            if (failed(populate::apply_conversions(std::move(cfg)))) {
-                return signalPassFailure(), mlir::failure();
+            lower_to_llvm_options llvm_options{&ctx};
+            if constexpr (has_lower_to_llvm_options< derived >) {
+                derived::set_lower_to_llvm_options(llvm_options);
             }
 
-            return mlir::success();
-        }
+            tc = std::make_unique< llvm_type_converter >(
+                this->getOperation(), &ctx, llvm_options, &dl_analysis
+            );
 
-        void runOnOperation() override {
-            if (mlir::succeeded(run_on_operation())) {
-                this->after_operation();
-            }
+            return { rewrite_pattern_set(&ctx), derived::create_conversion_target(ctx, tc), *tc };
         }
-
-        virtual void after_operation() {};
     };
 
 } // namespace vast

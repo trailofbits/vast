@@ -1525,7 +1525,6 @@ namespace vast::conv::irstollvm
     struct IRsToLLVMPass : ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >
     {
         using base = ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >;
-        using config = typename base::config;
 
         static conversion_target create_conversion_target(mcontext_t &context, auto &tc) {
             conversion_target target(context);
@@ -1537,7 +1536,7 @@ namespace vast::conv::irstollvm
 
             auto legal_with_llvm_ret_type = [&]< typename T >( T && )
             {
-                auto query = tc.template get_has_legal_return_type< T >();
+                auto query = tc->template get_has_legal_return_type< T >();
                 target.addDynamicallyLegalOp< T >(std::move(query));
             };
 
@@ -1548,19 +1547,19 @@ namespace vast::conv::irstollvm
 
             target.addDynamicallyLegalOp< hl::ValueYieldOp >([&](hl::ValueYieldOp op) {
                 return mlir::isa< core::LazyOp >(op->getParentOp()) &&
-                       tc.template get_has_legal_operand_types< hl::ValueYieldOp >()(op);
+                       tc->template get_has_legal_operand_types< hl::ValueYieldOp >()(op);
             });
 
             target.addIllegalOp< mlir::func::FuncOp >();
             target.addLegalOp< mlir::ModuleOp >();
 
-            auto is_legal = tc.get_is_type_conversion_legal();
+            auto is_legal = tc->get_is_type_conversion_legal();
             target.markUnknownOpDynamicallyLegal(is_legal);
 
             return target;
         }
 
-        static void populate_conversions(config &cfg) {
+        static void populate_conversions(auto &cfg) {
             base::populate_conversions_base<
                 one_to_one_conversions,
                 shift_conversions,
@@ -1579,7 +1578,7 @@ namespace vast::conv::irstollvm
             >(cfg);
         }
 
-        static void set_llvm_opts(mlir::LowerToLLVMOptions &llvm_options) {
+        static void set_lower_to_llvm_options(lower_to_llvm_options &llvm_options) {
             llvm_options.useBarePtrCallConv = true;
         }
 

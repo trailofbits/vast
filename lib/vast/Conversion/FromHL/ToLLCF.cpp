@@ -498,9 +498,6 @@ namespace vast::conv {
 
     struct HLToLLCF : ModuleConversionPassMixin< HLToLLCF, HLToLLCFBase >
     {
-        using base     = ModuleConversionPassMixin< HLToLLCF, HLToLLCFBase >;
-        using config = typename base::config;
-
         static auto create_conversion_target(mcontext_t &mctx) {
             mlir::ConversionTarget trg(mctx);
             trg.addLegalDialect< ll::LowLevelDialect >();
@@ -517,11 +514,12 @@ namespace vast::conv {
             return trg;
         }
 
+        template< typename config >
         static void populate_conversions(config &cfg) {
-            base::populate_conversions_base< pattern::cf_patterns >(cfg);
+            populate_conversions_base< pattern::cf_patterns >(cfg);
         }
 
-        void after_operation() override {
+        void after_operation() {
             auto clean_scopes = [&](ll::Scope scope) {
                 mlir::IRRewriter rewriter{ &this->getContext() };
                 // We really don't care if anything ws remove or not.
