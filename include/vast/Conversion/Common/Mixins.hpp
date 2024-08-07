@@ -12,20 +12,30 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Conversion/Common/Types.hpp"
 #include "vast/Conversion/TypeConverters/LLVMTypeConverter.hpp"
 
+#include "vast/Util/TypeList.hpp"
+
 namespace vast {
 
-    template<typename self>
-    struct populate_patterns {
-        template<typename list>
+    template< typename self >
+    struct populate_patterns
+    {
+        template< typename conversion >
+        requires ( !util::is_type_list_v< conversion > )
+        static void populate_conversions_impl(auto &cfg) {
+            self::template add_pattern< conversion >(cfg);
+            self::template legalize< conversion >(cfg);
+        }
+
+        template< typename list >
+        requires util::is_type_list_v< list >
         static void populate_conversions_impl(auto &cfg) {
             if constexpr (!list::empty) {
-                self::template add_pattern<typename list::head>(cfg);
-                self::template legalize<typename list::head>(cfg);
-                self::template populate_conversions_impl<typename list::tail>(cfg);
+                populate_conversions_impl< typename list::head >(cfg);
+                self::template populate_conversions_impl< typename list::tail >(cfg);
             }
         }
 
-        template<typename pattern>
+        template< typename pattern >
         static void legalize(auto &cfg) {
             if constexpr (has_legalize<pattern>) {
                 pattern::legalize(cfg.target);
@@ -40,9 +50,9 @@ namespace vast {
             );
         }
 
-        template<typename... lists>
+        template< typename... lists >
         static void populate_conversions_base(auto &cfg) {
-            (self::template populate_conversions_impl<lists>(cfg), ...);
+            (self::template populate_conversions_impl< lists >(cfg), ...);
         }
     };
 
@@ -66,9 +76,9 @@ namespace vast {
         rewrite_pattern_set patterns;
         conversion_target target;
 
-        template<typename pattern>
+        template< typename pattern >
         void add_pattern() {
-            patterns.template add<pattern>(patterns.getContext());
+            patterns.template add< pattern >(patterns.getContext());
         }
     };
 
@@ -79,16 +89,20 @@ namespace vast {
         llvm_type_converter &tc;
 
         llvm_conversion_config(
-            rewrite_pattern_set patterns, conversion_target target, llvm_type_converter &tc
+            rewrite_pattern_set patterns,
+            conversion_target target,
+            llvm_type_converter &tc
         )
-            : base_conversion_config{std::move(patterns), std::move(target)}, tc(tc) {}
+            : base_conversion_config{std::move(patterns), std::move(target)}, tc(tc)
+        {}
 
         llvm_conversion_config(llvm_conversion_config &&other)
-            : base_conversion_config{std::move(other.patterns), std::move(other.target)}, tc(other.tc) {}
+            : base_conversion_config{std::move(other.patterns), std::move(other.target)}, tc(other.tc)
+        {}
 
-        template<typename pattern>
+        template< typename pattern >
         void add_pattern() {
-            patterns.template add<pattern>(tc);
+            patterns.template add< pattern >(tc);
         }
     };
 

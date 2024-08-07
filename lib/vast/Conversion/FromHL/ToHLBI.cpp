@@ -415,8 +415,7 @@ namespace vast::conv {
             return target;
         }
 
-        template< typename config >
-        static void populate_conversions(config &cfg) {
+        static void populate_conversions(auto &cfg) {
             populate_conversions_base<
                 util::type_list<
                     convert_builtin_operation< hl::CallOp >

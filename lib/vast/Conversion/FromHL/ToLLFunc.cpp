@@ -45,9 +45,7 @@ namespace vast::conv::hltollfunc
         }
 
         static void populate_conversions(auto &cfg) {
-            base::populate_conversions_base<
-                util::type_list< pattern::func_op >
-            >(cfg);
+            base::populate_conversions_base< util::type_list< pattern::func_op > >(cfg);
         }
     };
 } // namespace vast::conv::hltollfunc
