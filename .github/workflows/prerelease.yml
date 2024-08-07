@@ -347,7 +347,7 @@ jobs:
         run: |
           git clone --depth=1 https://github.com/torvalds/linux.git linux
           cd linux
-          make defconfig
+          make defconfig LLVM=-${{ matrix.llvm-version }}
           make LLVM=-${{ matrix.llvm-version }} -j $(nproc)
           python3 ./scripts/clang-tools/gen_compile_commands.py
           cd ../
