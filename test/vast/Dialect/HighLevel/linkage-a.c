@@ -39,3 +39,6 @@ inline void waldo(void) {}
 inline void fred(void);
 inline extern void fred(void);
 inline void fred(void) {}
+
+// CHECK: hl.func @plugh unknown{{.*}}{sym_visibility = "private"}
+inline extern void plugh(void);
