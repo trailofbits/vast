@@ -127,6 +127,8 @@ namespace vast
     struct HLEmitLazyRegionsPass
         : ModuleConversionPassMixin< HLEmitLazyRegionsPass, HLEmitLazyRegionsBase >
     {
+        using base = ModuleConversionPassMixin< HLEmitLazyRegionsPass, HLEmitLazyRegionsBase >;
+
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
             target.addLegalDialect< vast::core::CoreDialect >();
@@ -135,7 +137,7 @@ namespace vast
         }
 
         static void populate_conversions(auto &cfg) {
-            populate_conversions_base< bin_lop_conversions >(cfg);
+            base::populate_conversions< bin_lop_conversions >(cfg);
         }
     };
 
