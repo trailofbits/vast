@@ -12,8 +12,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast::conv::pipeline {
 
     pipeline_step_ptr irs_to_llvm() {
-        return pass(createIRsToLLVMPass)
-            .depends_on(abi);
+        return top_level_pass(createIRsToLLVMPass).depends_on(abi);
     }
 
 } // namespace vast::conv::pipeline
