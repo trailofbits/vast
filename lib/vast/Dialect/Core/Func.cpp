@@ -40,7 +40,10 @@ namespace vast::core
         llvm::SmallVector< Type, 4 > result_types;
 
         // Default to external linkage if no keyword is provided.
-        if (!attr_dict.getNamed(getLinkageAttrNameString())) {
+        // If linkage is unknown, skip adding the attribute
+        if (!attr_dict.getNamed(getLinkageAttrNameString()) &&
+            mlir::failed(parser.parseOptionalKeyword("unknown")))
+        {
             attr_dict.append(
                 getLinkageAttrNameString(),
                 core::GlobalLinkageKindAttr::get(
