@@ -23,6 +23,5 @@
 #include "vast/Dialect/Core/Core.h.inc"
 
 namespace vast::core {
-    using module            = core::ModuleOp;
-    using owning_module_ref = mlir::OwningOpRef< module >;
-}
+    using module      = core::ModuleOp;
+} // namespace vast::core

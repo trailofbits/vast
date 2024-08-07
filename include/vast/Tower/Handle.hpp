@@ -15,7 +15,7 @@ namespace vast::tw {
     struct handle_t
     {
         handle_id_t id;
-        core::module mod;
+        mlir_module mod;
     };
 
 } // namespace vast::tw

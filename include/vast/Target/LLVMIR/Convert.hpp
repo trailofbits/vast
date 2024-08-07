@@ -31,7 +31,7 @@ namespace vast::target::llvmir
     // lowered as much as possible by vast (for example by calling the `prepare_module`
     // function).
     std::unique_ptr< llvm::Module > translate(
-        core::module mlir_module, llvm::LLVMContext &llvm_ctx
+        mlir_module mod, llvm::LLVMContext &llvm_ctx
     );
 
     void register_vast_to_llvm_ir(mlir::DialectRegistry &registry);

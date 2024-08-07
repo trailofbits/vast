@@ -135,7 +135,7 @@ namespace vast::cc {
         _mod = consumer->result();
     }
 
-    core::owning_module_ref vast_module_action::result() {
+    owning_mlir_module_ref vast_module_action::result() {
         return consumer->result();
     }
 

@@ -101,7 +101,7 @@ namespace vast::cc {
 
     void vast_consumer::HandleVTable(clang::CXXRecordDecl * /* decl */) { VAST_UNIMPLEMENTED; }
 
-    core::owning_module_ref vast_consumer::result() {
+    owning_mlir_module_ref vast_consumer::result() {
         return driver->freeze();
     }
 
@@ -147,7 +147,7 @@ namespace vast::cc {
     }
 
     void vast_stream_consumer::emit_backend_output(
-        backend backend_action, core::owning_module_ref mod
+        backend backend_action, owning_mlir_module_ref mod
     ) {
         llvm::LLVMContext llvm_context;
 
@@ -163,7 +163,7 @@ namespace vast::cc {
     }
 
     void vast_stream_consumer::process_mlir_module(
-        target_dialect target, core::module mod
+        target_dialect target, mlir_module mod
     ) {
         // Handle source manager properly given that lifetime analysis
         // might emit warnings and remarks.
@@ -213,7 +213,7 @@ namespace vast::cc {
     }
 
     void vast_stream_consumer::emit_mlir_output(
-        target_dialect target, core::owning_module_ref mod
+        target_dialect target, owning_mlir_module_ref mod
     ) {
         if (!output_stream || !mod) {
             return;
@@ -228,14 +228,14 @@ namespace vast::cc {
         }
     }
 
-    void vast_stream_consumer::print_mlir_bytecode(core::owning_module_ref mod) {
+    void vast_stream_consumer::print_mlir_bytecode(owning_mlir_module_ref mod) {
         mlir::BytecodeWriterConfig config("VAST");
         if (mlir::failed(mlir::writeBytecodeToFile(mod.get(), *output_stream, config))) {
             VAST_FATAL("Could not generate mlir bytecode");
         }
     }
 
-    void vast_stream_consumer::print_mlir_string_format(core::owning_module_ref mod) {
+    void vast_stream_consumer::print_mlir_string_format(owning_mlir_module_ref mod) {
         // FIXME: we cannot roundtrip prettyForm=true right now.
         mlir::OpPrintingFlags flags;
         flags.enableDebugInfo(vargs.has_option(opt::show_locs), /* prettyForm */ true);

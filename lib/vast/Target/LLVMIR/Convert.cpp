@@ -52,12 +52,12 @@ namespace vast::target::llvmir
     };
 
     // TODO: move to translation passes that erase specific types from module
-    void clean_up_data_layout(core::module mlir_module) {
+    void clean_up_data_layout(mlir_module mod) {
         // If the old data layout with high level types is left in the module,
         // some parsing functionality inside the `mlir::translateModuleToLLVMIR`
         // will fail and no conversion translation happens, even in case these
         // entries are not used at all.
-        auto dl = mlir_module.getDataLayoutSpec();
+        auto dl = mod.getDataLayoutSpec();
 
         auto is_llvm_compatible_entry = [] (auto entry) {
             return mlir::LLVM::isCompatibleType(entry.getKey().template get< mlir_type >());
@@ -69,28 +69,28 @@ namespace vast::target::llvmir
             );
         } ();
 
-        mlir_module->setAttr(
+        mod->setAttr(
             mlir::DLTIDialect::kDataLayoutAttrName,
-            mlir::DataLayoutSpecAttr::get(mlir_module.getContext(), filtered_entries)
+            mlir::DataLayoutSpecAttr::get(mod.getContext(), filtered_entries)
         );
     }
 
     std::unique_ptr< llvm::Module > translate(
-        core::module mlir_module, llvm::LLVMContext &llvm_ctx
+        mlir_module mod, llvm::LLVMContext &llvm_ctx
     ) {
-        clean_up_data_layout(mlir_module);
+        clean_up_data_layout(mod);
 
         // TODO move to LLVM conversion and use attr replacer
-        if (auto target = mlir_module->getAttr(core::CoreDialect::getTargetTripleAttrName())) {
+        if (auto target = mod->getAttr(core::CoreDialect::getTargetTripleAttrName())) {
             auto triple = mlir::cast< mlir::StringAttr>(target);
-            mlir_module->setAttr(mlir::LLVM::LLVMDialect::getTargetTripleAttrName(), triple);
-            mlir_module->removeAttr(core::CoreDialect::getTargetTripleAttrName());
+            mod->setAttr(mlir::LLVM::LLVMDialect::getTargetTripleAttrName(), triple);
+            mod->removeAttr(core::CoreDialect::getTargetTripleAttrName());
         }
 
-        mlir::registerBuiltinDialectTranslation(*mlir_module.getContext());
-        mlir::registerLLVMDialectTranslation(*mlir_module.getContext());
+        mlir::registerBuiltinDialectTranslation(*mod.getContext());
+        mlir::registerLLVMDialectTranslation(*mod.getContext());
 
-        return mlir::translateModuleToLLVMIR(mlir_module, llvm_ctx);
+        return mlir::translateModuleToLLVMIR(mod, llvm_ctx);
     }
 
     void register_vast_to_llvm_ir(mlir::DialectRegistry &registry)

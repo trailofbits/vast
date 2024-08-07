@@ -58,7 +58,7 @@ namespace vast::cc {
 
         void HandleVTable(clang::CXXRecordDecl * /* decl */) override;
 
-        core::owning_module_ref result();
+        owning_mlir_module_ref result();
 
       protected:
 
@@ -96,14 +96,14 @@ namespace vast::cc {
         void HandleTranslationUnit(acontext_t &acontext) override;
 
       private:
-        void emit_backend_output(backend backend_action, core::owning_module_ref mod);
+        void emit_backend_output(backend backend_action, owning_mlir_module_ref mod);
 
-        void emit_mlir_output(target_dialect target, core::owning_module_ref mod);
+        void emit_mlir_output(target_dialect target, owning_mlir_module_ref mod);
 
-        void process_mlir_module(target_dialect target, core::module mod);
+        void process_mlir_module(target_dialect target, mlir_module mod);
 
-        void print_mlir_bytecode(core::owning_module_ref mod);
-        void print_mlir_string_format(core::owning_module_ref mod);
+        void print_mlir_bytecode(owning_mlir_module_ref mod);
+        void print_mlir_string_format(owning_mlir_module_ref mod);
 
         output_type action;
         output_stream_ptr output_stream;

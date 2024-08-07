@@ -86,6 +86,9 @@ namespace vast {
     using block_t       = mlir::Block;
     using block_ptr     = block_t*;
 
+    using mlir_module   = mlir::ModuleOp;
+    using owning_mlir_module_ref = mlir::OwningOpRef< mlir_module >;
+
     using walk_result = mlir::WalkResult;
 
     using mlir_pass = mlir::Pass;
