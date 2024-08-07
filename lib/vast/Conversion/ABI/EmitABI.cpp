@@ -400,7 +400,7 @@ namespace vast
             using values_t = std::vector< mlir::Value >;
 
             auto get_callee() -> mlir::FunctionOpInterface {
-                auto caller = mlir::dyn_cast< mlir::CallOpInterface >(*op);
+                auto caller = mlir::dyn_cast< VastCallOpInterface >(*op);
                 auto callee = mlir::dyn_cast< mlir::FunctionOpInterface >(
                     caller.resolveCallable());
                 VAST_ASSERT(callee);
