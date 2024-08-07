@@ -57,7 +57,7 @@ namespace vast::conv {
 
     template< typename visitor_t >
     auto visit_builtin_op(operation op, auto operands, visitor_t &&visitor) {
-        auto caller = mlir::dyn_cast< mlir::CallOpInterface >(op);
+        auto caller = mlir::dyn_cast< VastCallOpInterface >(op);
         if (!caller) {
             return mlir::failure();
         }
