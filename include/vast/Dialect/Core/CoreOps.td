@@ -16,7 +16,7 @@ def Core_ModuleOp : Core_Op< "module", [
   IsolatedFromAbove,
   DataLayoutOpInterface,
   HasDefaultDLTIDataLayout,
-  NoTerminator, NoTerminator, SingleBlock, VastSymbol,
+  NoTerminator, NoRegionArguments, SingleBlock, VastSymbol,
   ShadowingSymbolTable< [[FuncSymbol, VarSymbol, TypeSymbol], [ElaboratedTypeSymbol]] >,
 ] > {
   let summary = "VAST top level container operation";
