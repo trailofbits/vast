@@ -99,7 +99,7 @@ namespace cmd {
     void show_symbols(state_t &state) {
         check_and_emit_module(state);
 
-        util::symbols(state.tower->top().mod, [&] (auto symbol) {
+        util::symbols(state.current_module(), [&] (auto symbol) {
             llvm::outs() << util::show_symbol_value(symbol) << "\n";
         });
     }
@@ -161,7 +161,7 @@ namespace cmd {
         using ::vast::meta::add_identifier;
 
         auto name_param = get_param< symbol_param >(params);
-        util::symbols(state.tower->top().mod, [&] (auto symbol) {
+        util::symbols(state.current_module(), [&] (auto symbol) {
             if (util::symbol_name(symbol) == name_param.value) {
                 auto id = get_param< identifier_param >(params);
                 add_identifier(symbol, id.value);
@@ -173,7 +173,7 @@ namespace cmd {
     void meta::get(state_t &state) const {
         using ::vast::meta::get_with_identifier;
         auto id = get_param< identifier_param >(params);
-        for (auto op : get_with_identifier(state.tower->top().mod, id.value)) {
+        for (auto op : get_with_identifier(state.current_module(), id.value)) {
             llvm::outs() << *op << "\n";
         }
     }
