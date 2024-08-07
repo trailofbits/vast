@@ -38,14 +38,13 @@ namespace vast::conv::hltollfunc
 
     struct HLToLLFunc : ModuleConversionPassMixin< HLToLLFunc, HLToLLFuncBase > {
         using base   = ModuleConversionPassMixin< HLToLLFunc, HLToLLFuncBase >;
-        using config = base::config;
 
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
             return target;
         }
 
-        static void populate_conversions(config &cfg) {
+        static void populate_conversions(auto &cfg) {
             base::populate_conversions_base<
                 util::type_list< pattern::func_op >
             >(cfg);

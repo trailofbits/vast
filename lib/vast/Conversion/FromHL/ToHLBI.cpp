@@ -409,15 +409,13 @@ namespace vast::conv {
 
     struct HLToHLBIPass : ModuleConversionPassMixin< HLToHLBIPass, HLToHLBIBase >
     {
-        using base   = ModuleConversionPassMixin< HLToHLBIPass, HLToHLBIBase >;
-        using config = typename base::config;
-
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
             target.addLegalDialect< hlbi::HLBuiltinDialect >();
             return target;
         }
 
+        template< typename config >
         static void populate_conversions(config &cfg) {
             populate_conversions_base<
                 util::type_list<

@@ -558,30 +558,27 @@ namespace vast
 
     struct LowerABI : ModuleConversionPassMixin< LowerABI, LowerABIBase >
     {
-
         using base = ModuleConversionPassMixin< LowerABI, LowerABIBase >;
-        using config = typename base::config;
 
-        static conversion_target create_conversion_target(mcontext_t &context)
-        {
+        static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
-
-            target.markUnknownOpDynamicallyLegal([](auto) { return true; } );
+            target.markUnknownOpDynamicallyLegal([](auto) { return true; });
             return target;
         }
 
-        void add_patterns(config &cfg, const auto &dl)
+        void add_patterns(base_conversion_config &cfg, const auto &dl)
         {
-            cfg.patterns.template add< pattern::prologue >(dl, cfg.getContext());
-            cfg.patterns.template add< pattern::epilogue >(dl, cfg.getContext());
+            auto ctx = cfg.patterns.getContext();
+            cfg.patterns.template add< pattern::prologue >(dl, ctx);
+            cfg.patterns.template add< pattern::epilogue >(dl, ctx);
 
-            cfg.patterns.template add< pattern::call_args >(dl, cfg.getContext());
-            cfg.patterns.template add< pattern::call_rets >(dl, cfg.getContext());
+            cfg.patterns.template add< pattern::call_args >(dl, ctx);
+            cfg.patterns.template add< pattern::call_rets >(dl, ctx);
 
-            cfg.patterns.template add< pattern::call >(cfg.getContext());
-            cfg.patterns.template add< pattern::call_exec >(cfg.getContext());
+            cfg.patterns.template add< pattern::call >(ctx);
+            cfg.patterns.template add< pattern::call_exec >(ctx);
 
-            cfg.patterns.template add< pattern::function >(cfg.getContext());
+            cfg.patterns.template add< pattern::function >(ctx);
 
             cfg.target.template addIllegalOp< abi::PrologueOp >();
             cfg.target.template addIllegalOp< abi::EpilogueOp >();
@@ -595,15 +592,10 @@ namespace vast
             cfg.target.template addIllegalOp< abi::FuncOp >();
         }
 
-        // TODO(conv:abi): Neeeded hack for this to compile.
-        template< typename pattern >
-        static void add_pattern(config &cfg) {}
-
-        // There is no helper we can use.
         void runOnOperation() override
         {
             auto &ctx   = getContext();
-            config cfg = config {
+            base_conversion_config cfg = {
                 rewrite_pattern_set(&ctx),
                 create_conversion_target(ctx)
             };
@@ -615,16 +607,9 @@ namespace vast
 
             add_patterns(cfg, dl);
 
-            if (mlir::failed(base::apply_conversions(std::move(cfg))))
+            if (mlir::failed(base::apply_conversions(std::move(cfg)))) {
                 return signalPassFailure();
-
-            this->after_operation();
-        }
-
-
-        void populate_conversions(config &cfg)
-        {
-            base::populate_conversions_base< pattern::wrappers >(cfg);
+            }
         }
     };
 
