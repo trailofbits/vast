@@ -1453,6 +1453,27 @@ namespace vast::conv::irstollvm
         }
     };
 
+    struct module_conversion : base_pattern< core::ModuleOp >
+    {
+        using base      = base_pattern< core::ModuleOp >;
+        using base::base;
+
+        using op_t      = core::ModuleOp;
+        using adaptor_t = core::ModuleOp::Adaptor;
+
+        logical_result matchAndRewrite(
+            op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+        ) const override {
+            auto mod = rewriter.create< mlir::ModuleOp >(op.getLoc(), op.getName());
+            rewriter.inlineRegionBefore(op.getBody(), mod.getBody());
+
+            // Remove the terminator block that was automatically added by builder
+            rewriter.eraseBlock(&mod.getBodyRegion().back());
+            rewriter.eraseOp(op);
+            return mlir::success();
+        }
+    };
+
     using lazy_op_type_conversions = util::type_list<
         lazy_op_type< core::LazyOp >,
         lazy_op_type< core::BinLAndOp >,
@@ -1522,8 +1543,6 @@ namespace vast::conv::irstollvm
         ll_alloca
     >;
 
-
-
     struct IRsToLLVMPass : ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >
     {
         using base = ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >;
@@ -1553,12 +1572,26 @@ namespace vast::conv::irstollvm
             });
 
             target.addIllegalOp< mlir::func::FuncOp >();
-            target.addLegalOp< core::module >();
 
             auto is_legal = tc->get_is_type_conversion_legal();
             target.markUnknownOpDynamicallyLegal(is_legal);
 
             return target;
+        }
+
+        void run_after_conversion() {
+            mcontext_t &mctx = getContext();
+            conversion_target target(mctx);
+
+            target.addIllegalOp< core::ModuleOp >();
+            target.addLegalOp< mlir::ModuleOp >();
+
+            rewrite_pattern_set patterns(&mctx);
+            patterns.add< module_conversion >(*tc);
+
+            if (mlir::failed(mlir::applyPartialConversion(getOperation(), target, std::move(patterns)))) {
+                return signalPassFailure();
+            }
         }
 
         static void populate_conversions(auto &cfg) {
