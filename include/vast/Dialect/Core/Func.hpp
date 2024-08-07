@@ -72,6 +72,8 @@ namespace vast::core {
     ) {
         if (auto linkage = op.getLinkage()) {
             printer << stringifyGlobalLinkageKind(linkage.value()) << ' ';
+        } else {
+            printer << "unknown ";
         }
 
         auto fty = op.getFunctionType();
