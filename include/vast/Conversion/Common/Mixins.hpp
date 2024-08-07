@@ -50,9 +50,9 @@ namespace vast {
             );
         }
 
-        template< typename... lists >
-        static void populate_conversions_base(auto &cfg) {
-            (self::template populate_conversions_impl< lists >(cfg), ...);
+        template< typename... conversions >
+        static void populate_conversions(auto &cfg) {
+            (self::template populate_conversions_impl< conversions >(cfg), ...);
         }
     };
 
@@ -176,7 +176,7 @@ namespace vast {
     //     }
     //
     //     static void populate_conversions(base_conversion_config &cfg) {
-    //         base::populate_conversions_base<
+    //         base::populate_conversions<
     //             // pass conversion type_lists here
     //         >(cfg);
     //     }
@@ -185,8 +185,6 @@ namespace vast {
     template< typename derived, template< typename > typename base >
     struct ModuleConversionPassMixin : ModuleConversionPassMixinBase< derived, base >
     {
-        void populate_conversions(base_conversion_config &cfg) {}
-
         base_conversion_config make_config() {
             auto &ctx = this->getContext();
             return { rewrite_pattern_set(&ctx), derived::create_conversion_target(ctx) };
@@ -209,7 +207,7 @@ namespace vast {
     //     }
     //
     //     static void populate_conversions(llvm_conversion_config &patterns) {
-    //         base::populate_conversions_base<
+    //         base::populate_conversions<
     //             // pass conversion type_lists here
     //         >(cfg);
     //     }

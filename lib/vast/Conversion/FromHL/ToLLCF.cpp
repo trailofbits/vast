@@ -499,6 +499,8 @@ namespace vast::conv {
 
     struct HLToLLCF : ModuleConversionPassMixin< HLToLLCF, HLToLLCFBase >
     {
+        using base = ModuleConversionPassMixin< HLToLLCF, HLToLLCFBase >;
+
         static auto create_conversion_target(mcontext_t &mctx) {
             mlir::ConversionTarget trg(mctx);
             trg.addLegalDialect< ll::LowLevelDialect >();
@@ -516,7 +518,7 @@ namespace vast::conv {
         }
 
         static void populate_conversions(auto &cfg) {
-            populate_conversions_base< pattern::cf_patterns >(cfg);
+            base::populate_conversions< pattern::cf_patterns >(cfg);
         }
 
         void run_after_conversion() {

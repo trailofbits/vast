@@ -1560,7 +1560,7 @@ namespace vast::conv::irstollvm
         }
 
         static void populate_conversions(auto &cfg) {
-            base::populate_conversions_base<
+            base::populate_conversions<
                 one_to_one_conversions,
                 shift_conversions,
                 inline_region_from_op_conversions,
@@ -1581,7 +1581,6 @@ namespace vast::conv::irstollvm
         static void set_lower_to_llvm_options(lower_to_llvm_options &llvm_options) {
             llvm_options.useBarePtrCallConv = true;
         }
-
     };
 } // namespace vast::conv
 

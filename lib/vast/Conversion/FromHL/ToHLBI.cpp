@@ -409,6 +409,8 @@ namespace vast::conv {
 
     struct HLToHLBIPass : ModuleConversionPassMixin< HLToHLBIPass, HLToHLBIBase >
     {
+        using base = ModuleConversionPassMixin< HLToHLBIPass, HLToHLBIBase >;
+
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
             target.addLegalDialect< hlbi::HLBuiltinDialect >();
@@ -416,11 +418,7 @@ namespace vast::conv {
         }
 
         static void populate_conversions(auto &cfg) {
-            populate_conversions_base<
-                util::type_list<
-                    convert_builtin_operation< hl::CallOp >
-                >
-            >(cfg);
+            base::populate_conversions< convert_builtin_operation< hl::CallOp > >(cfg);
         }
     };
 } // namespace vast::conv
