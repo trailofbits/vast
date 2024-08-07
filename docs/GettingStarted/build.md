@@ -14,6 +14,7 @@ or an equivalent command for your operating system of choice.
 ## Instructions
 
 To configure project run `cmake` with following default options.
+The presets assume `vcpkg` will be used for dependency management: download and bootstrap [vcpkg](https://github.com/microsoft/vcpkg), then set the `VCPKG_ROOT` environment variable to the directory it has been downloaded in.
 In case `clang` isn't your default compiler prefix the command with `CC=clang CXX=clang++`.
 If you want to use system installed `llvm` and `mlir` (on Ubuntu) use:
 
