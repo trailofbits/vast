@@ -77,6 +77,40 @@ namespace vast::util {
             using type = typename concat_list< list, typename concat< rest... >::type >::type;
         };
 
+        template< typename list, typename type >
+        constexpr std::size_t index_of()
+        {
+            if constexpr ( list::empty ) {
+                VAST_FATAL( "type not present in the list" );
+            } else {
+                using head = typename list::head;
+
+                if (std::is_same_v< head, type >) {
+                    return 0;
+                }
+                return 1 + index_of< typename list::tail, type >();
+            }
+        }
+
+        template< typename list >
+        constexpr bool is_unique() {
+            if constexpr ( list::empty ) {
+                return true;
+            } else {
+                using head = typename list::head;
+                return !list::tail::template contains< head > && is_unique< typename list::tail >();
+            }
+        }
+
+        template< typename list >
+        struct flatten;
+
+        template< typename ...types >
+        struct flatten< type_list< types... > >
+        {
+            using type = concat< types... >::type;
+        };
+
     } // namespace detail
 
     //
@@ -117,8 +151,11 @@ namespace vast::util {
         template< template< typename > typename pred >
         static constexpr bool none_of = !any_of<pred>;
 
-        template< typename T >
-        static constexpr bool contains = (std::is_same_v< types, T > || ...);
+        template< typename type >
+        static constexpr bool contains = (std::is_same_v< types, type > || ...);
+
+        template< typename type >
+        static constexpr std::size_t index_of = detail::index_of< self, type >();
     };
 
     template< typename list >
@@ -150,6 +187,12 @@ namespace vast::util {
 
     template< typename ...types >
     using make_list = type_list< types... >;
+
+    template< typename list >
+    constexpr bool is_unique = detail::is_unique< list >();
+
+    template< list_of_lists list >
+    using flatten = detail::flatten< list >::type;
 
     namespace detail
     {
@@ -254,6 +297,27 @@ namespace vast::util {
 
         static_assert( type_list< int, double >::contains< int > );
         static_assert( !type_list< char, double >::contains< int > );
+
+        static_assert( is_list_of_lists< type_list< type_list<> > > );
+        static_assert( is_list_of_lists< type_list< type_list<>, type_list<> > > );
+        static_assert( !is_list_of_lists< type_list< int > > );
+        static_assert( !is_list_of_lists< type_list< int, type_list<> > > );
+        static_assert( !is_list_of_lists< type_list< type_list<>, int > > );
+        static_assert( !is_list_of_lists< type_list< int, int > > );
+        static_assert( is_list_of_lists< type_list< type_list< int >, type_list< char, int > > > );
+
+        using test_list = type_list< int, char, double >;
+        static_assert( test_list::index_of< int > == 0 );
+        static_assert( test_list::index_of< char > == 1 );
+        static_assert( test_list::index_of< double > == 2 );
+
+        static_assert( is_unique< type_list<> > );
+        static_assert( is_unique< type_list< int > > );
+        static_assert( is_unique< type_list< int, char > > );
+        static_assert( !is_unique< type_list< int, char, int > > );
+        static_assert( !is_unique< type_list< char, int, int > > );
+
+        static_assert( std::is_same_v< flatten< type_list< type_list< int > > >, type_list< int > > );
     } // namespace test
 
 } // namespace vast::util
