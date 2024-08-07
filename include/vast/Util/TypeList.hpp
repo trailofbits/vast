@@ -121,6 +121,27 @@ namespace vast::util {
         static constexpr bool contains = (std::is_same_v< types, T > || ...);
     };
 
+    template< typename list >
+    concept empty_list = list::empty;
+
+    template< typename type >
+    struct is_type_list : std::false_type {};
+
+    template< typename ...types >
+    struct is_type_list< type_list< types... > > : std::true_type {};
+
+    template< typename list >
+    constexpr bool is_type_list_v = is_type_list< list >::value;
+
+    template< typename list >
+    constexpr bool is_list_of_lists = is_type_list_v< list > && !list::empty && list::template all_of< is_type_list >;
+
+    template< typename list >
+    concept list_of_lists = is_list_of_lists< list >;
+
+    template< typename list >
+    concept flat_list = !is_list_of_lists< list >;
+
     template< typename ...lists >
     using concat = typename detail::concat< lists... >::type;
 
