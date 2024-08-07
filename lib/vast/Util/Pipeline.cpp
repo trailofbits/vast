@@ -3,6 +3,8 @@
 
 #include "vast/Util/Pipeline.hpp"
 
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 namespace vast {
 
     void pipeline_t::addPass(owning_pass_ptr pass) {
@@ -13,6 +15,7 @@ namespace vast {
 
         seen.insert(id);
         VAST_PIPELINE_DEBUG("scheduling pass: {0}", pass->getArgument());
+
         base::addPass(std::move(pass));
     }
 
@@ -47,7 +50,7 @@ namespace vast {
     }
 
     schedule_result pass_pipeline_step::schedule_on(pipeline_t &ppl) {
-        ppl.addPass(take_pass());
+        ppl.addNestedPass< core::module >(take_pass());
         return schedule_result::advance;
     }
 
@@ -58,6 +61,12 @@ namespace vast {
     string_ref pass_pipeline_step::cli_name() const {
         return pass()->getArgument();
     }
+
+    schedule_result top_level_pass_pipeline_step::schedule_on(pipeline_t &ppl) {
+        ppl.addPass(take_pass());
+        return schedule_result::advance;
+    }
+
 
     schedule_result compound_pipeline_step::schedule_on(pipeline_t &ppl) {
         VAST_PIPELINE_DEBUG("scheduling compound step: {0}", pipeline_name);
