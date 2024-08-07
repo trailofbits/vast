@@ -69,7 +69,7 @@ namespace vast::cc {
     struct vast_module_action : frontend_action {
         virtual ~vast_module_action() = default;
 
-        core::owning_module_ref result();
+        owning_mlir_module_ref result();
 
         vast_consumer *consumer;
     protected:
@@ -91,7 +91,7 @@ namespace vast::cc {
 
         // Once we are done result is stored here. We cannot pull it from the internals,
         // because by that point they may be dead (and this is outside our control).
-        core::owning_module_ref _mod;
+        owning_mlir_module_ref _mod;
     };
 
     //

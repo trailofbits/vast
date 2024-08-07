@@ -190,5 +190,5 @@ if (!drv.verify()) {
 }
 
 // Retrieve the finalized module
-owning_module_ref mod = drv.freeze();
+owning_mlir_module_ref mod = drv.freeze();
 ```

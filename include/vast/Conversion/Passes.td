@@ -47,7 +47,7 @@ def HLToLLCF : Pass<"vast-hl-to-ll-cf", "core::ModuleOp"> {
 }
 
 
-def IRsToLLVM : Pass<"vast-irs-to-llvm", "core::ModuleOp"> {
+def IRsToLLVM : Pass<"vast-irs-to-llvm", "mlir::ModuleOp"> {
   let summary = "VAST to LLVM Dialect conversion";
   let description = [{
     Converts lowest level VAST operations to LLVM dialect. It is expected
@@ -97,7 +97,7 @@ def CoreToLLVM : Pass<"vast-core-to-llvm", "core::ModuleOp"> {
   let summary = "VAST Core dialect to LLVM Dialect conversion";
   let description = [{
     Converts core dialect operations to LLVM dialect.
-    }];
+  }];
 
   let constructor = "vast::createCoreToLLVMPass()";
   let dependentDialects = [

@@ -330,10 +330,10 @@ namespace vast::conv::tc {
     {
         using base = LLVMTypeConverter;
 
-        core::module mod;
+        mlir_module mod;
 
         template< typename... Args >
-        FullLLVMTypeConverter(core::module mod, Args &&...args)
+        FullLLVMTypeConverter(mlir_module mod, Args &&...args)
             : base(std::forward< Args >(args)...), mod(mod)
         {
             addConversion(convert_recordlike< hl::RecordType >());
