@@ -14,8 +14,15 @@ def VAST_AnalysisDeclContextInterface : VAST_AnalysesOpInterface< "AnalysisDeclC
     }];
 
     let methods = [
-        InterfaceMethod< "clang::AnalysisDeclContext::getDecl", "::vast::ast::DeclInterface", "getDecl" >
+        InterfaceMethod< "clang::AnalysisDeclContext::getDecl", "::vast::ast::DeclInterface", "getDecl" >,
+        InterfaceMethod< "clang::AnalysisDeclContext::getCFG", "::vast::cfg::CFGInterface", "getCFG" >,
+        InterfaceMethod< "clang::AnalysisDeclContext::getASTContext", "::vast::ast::ASTContextInterface", "getASTContext" >
     ];
+
+    let extraClassDeclaration = [{
+        template< typename T >
+        T *getAnalysis();
+    }];
 }
 
 #endif // VAST_INTERFACES_ANALYSES_ANALYSES_DECL_INTERFACE
