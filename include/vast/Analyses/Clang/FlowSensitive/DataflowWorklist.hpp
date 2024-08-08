@@ -12,60 +12,57 @@ namespace vast::analyses {
 
     /// A worklist implementation where the enqueued blocks will be dequeued based
     /// on the order defined by 'Comp'.
-    template< typename Comp, unsigned QueueSize, typename CFG, typename CFGBlock >
+    template< typename Comp, unsigned QueueSize >
     class DataflowWorklistBase {
         llvm::BitVector EnqueuedBlocks;
-        llvm::PriorityQueue< const CFGBlock *,
-                             llvm::SmallVector< const CFGBlock *, QueueSize >,
+        llvm::PriorityQueue< cfg::CFGBlockInterface,
+                             llvm::SmallVector< cfg::CFGBlockInterface, QueueSize >,
                              Comp > WorkList;
     public:
-        DataflowWorklistBase(const CFG &Cfg, Comp C) : EnqueuedBlocks(Cfg.getNumBlockIDs()), WorkList(C) {}
+        DataflowWorklistBase(cfg::CFGInterface Cfg, Comp C)
+            : EnqueuedBlocks(Cfg.getNumBlockIDs()), WorkList(C) {}
 
-        void enqueueBlock(const CFGBlock *Block) {
-            if (Block && !EnqueuedBlocks[Block->getBlockID()]) {
-                EnqueuedBlocks[Block->getBlockID()] = true;
+        void enqueueBlock(cfg::CFGBlockInterface Block) {
+            if (Block && !EnqueuedBlocks[Block.getBlockID()]) {
+                EnqueuedBlocks[Block.getBlockID()] = true;
                 WorkList.push(Block);
             }
         }
 
-        const CFGBlock *dequeue() {
+        cfg::CFGBlockInterface dequeue() {
             if (WorkList.empty()) {
-                return nullptr;
+                return {};
             }
-            const CFGBlock *B = WorkList.top();
+            cfg::CFGBlockInterface B = WorkList.top();
             WorkList.pop();
-            EnqueuedBlocks[B->getBlockID()] = false;
+            EnqueuedBlocks[B.getBlockID()] = false;
             return B;
         }
     };
 
-    template< typename CFGBlock >
     struct ReversePostOrderCompare {
         clang::PostOrderCFGView::BlockOrderCompare Cmp;
-        bool operator()(const CFGBlock *lhs, const CFGBlock *rhs) const {
-            return Cmp(rhs, lhs);
+        bool operator()(cfg::CFGBlockInterface lhs, cfg::CFGBlockInterface rhs) const {
+            VAST_UNIMPLEMENTED;
+            // return Cmp(rhs, lhs);
         }
     };
 
     /// A worklist implementation for forward dataflow analysis. The enqueued
     /// blocks will be dequeued in reverse post order. The worklist cannot contain
     /// the same block multiple times at once.
-    template< typename CFG, typename CFGBlock, typename AnalysisDeclContext >
     struct ForwardDataflowWorklist
-        : DataflowWorklistBase< ReversePostOrderCompare< CFGBlock >, 20, CFG, CFGBlock > {
+        : DataflowWorklistBase< ReversePostOrderCompare, 20 > {
 
-        /*
-        ForwardDataflowWorklist(const CFG &Cfg, PostOrderCFGView *POV)
-        : DataflowWorklistBase(Cfg,
-            ReversePostOrderCompare{POV->getComparator()}) {}
-        */
+        ForwardDataflowWorklist(cfg::CFGInterface Cfg, clang::PostOrderCFGView *POV)
+        : DataflowWorklistBase(Cfg, ReversePostOrderCompare{POV->getComparator()}) {}
 
-        ForwardDataflowWorklist(const CFG &Cfg, AnalysisDeclContext &Ctx)
+        ForwardDataflowWorklist(cfg::CFGInterface Cfg, AnalysisDeclContextInterface Ctx)
             : ForwardDataflowWorklist(Cfg, Ctx. template getAnalysis< clang::PostOrderCFGView >()) {}
 
-        void enqueueSuccessors(const CFGBlock *Block) {
-            for (auto B : Block->succs()) {
-                enqueueBlock(B);
+        void enqueueSuccessors(cfg::CFGBlockInterface Block) {
+            for (auto B : Block.succs()) {
+                enqueueBlock(mlir::dyn_cast< cfg::CFGBlockInterface >(*B));
             }
         }
     };

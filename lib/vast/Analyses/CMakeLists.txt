@@ -1,3 +1,3 @@
-set(VAST_OPTIONAL_SOURCES
-    Iterators.cpp
+add_vast_library(Analyses
+  Iterators.cpp
 )

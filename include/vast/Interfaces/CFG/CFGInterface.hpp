@@ -12,10 +12,17 @@ VAST_RELAX_WARNINGS
 VAST_RELAX_WARNINGS
 
 #include "vast/Analyses/Iterators.hpp"
-#include "vast/Interfaces/AST/ASTContextInterface.hpp"
 #include "vast/Interfaces/AST/StmtInterface.hpp"
-#include "vast/Interfaces/AST/TypeInterface.hpp"
-#include <clang/AST/Expr.h>
+#include <optional>
 
 /// Include the generated interface declarations.
-#include "vast/Interfaces/AST/ExprInterface.h.inc"
+#include "vast/Interfaces/CFG/CFGInterface.h.inc"
+
+namespace vast::cfg {
+
+    template< typename Callback >
+    void CFGInterface::VisitBlockStmts(Callback &) {
+
+    }
+
+} // namespace vast::cfg
