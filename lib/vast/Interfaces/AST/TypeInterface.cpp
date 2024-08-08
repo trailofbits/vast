@@ -8,3 +8,11 @@
 
 /// Include the generated interface.
 #include "vast/Interfaces/AST/TypeInterface.cpp.inc"
+
+namespace vast::ast {
+
+    TypeInterface *QualTypeInterface::operator->() {
+        return nullptr;
+    }
+
+} // namespace vast::ast
