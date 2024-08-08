@@ -32,3 +32,4 @@ add_vast_interface_library(ElementTypeInterface
 
 add_subdirectory(AST)
 add_subdirectory(Analyses)
+add_subdirectory(CFG)
