@@ -19,7 +19,8 @@ def VAST_ExprInterface : VAST_ASTOpInterface< "ExprInterface",
         InterfaceMethod< "clang::Expr::getType", "::vast::ast::QualTypeInterface", "getType" >,
         InterfaceMethod< "clang::Expr::IgnoreParenNoopCasts", "::vast::ast::ExprInterface",
                          "IgnoreParenNoopCasts", (ins "::vast::ast::ASTContextInterface":$Ctx) >,
-        InterfaceMethod< "clang::Expr::IgnoreParens", "::vast::ast::ExprInterface", "IgnoreParens" >
+        InterfaceMethod< "clang::Expr::IgnoreParens", "::vast::ast::ExprInterface", "IgnoreParens" >,
+        InterfaceMethod< "clang::Expr::isGLValue", "bool", "isGLValue" >
     ];
 }
 
@@ -53,7 +54,9 @@ def VAST_DeclRefExprInterface : VAST_ASTOpInterface< "DeclRefExprInterface",
         (https://clang.llvm.org/doxygen/classclang_1_1DeclRefExpr.html) functionality.
     }];
 
-    let methods = [];
+    let methods = [
+        InterfaceMethod< "clang::DeclRefExpr::getDecl", "mlir::Operation *", "getDecl" >
+    ];
 }
 
 def VAST_IntegerLiteralInterface : VAST_ASTOpInterface< "IntegerLiteralInterface",
@@ -224,7 +227,9 @@ def VAST_CallExprInterface : VAST_ASTOpInterface< "CallExprInterface",
 
     let methods = [
         InterfaceMethod< "clang::CallExpr::isCallToStdMove", "bool", "isCallToStdMove" >,
-        InterfaceMethod< "clang::CallExpr::getArg", "::vast::ast::ExprInterface", "getArg", (ins "unsigned":$arg) > 
+        InterfaceMethod< "clang::CallExpr::getArg", "::vast::ast::ExprInterface", "getArg", (ins "unsigned":$arg) >,
+        InterfaceMethod< "clang::CallExpr::arg_begin", "::vast::analyses::call_expr_arg_iterator", "arg_begin" >, 
+        InterfaceMethod< "clang::CallExpr::arg_end", "::vast::analyses::call_expr_arg_iterator", "arg_end" >
     ];
 }
 
