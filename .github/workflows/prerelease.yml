@@ -351,7 +351,6 @@ jobs:
           make prepare LLVM=-${{ matrix.llvm-version }}
           make LLVM=-${{ matrix.llvm-version }} -j $(nproc)
           python3 ./scripts/clang-tools/gen_compile_commands.py
-          cd ../
 
       - name: Clone vast benchmark directory
         uses: actions/checkout@v4
