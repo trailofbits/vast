@@ -11,5 +11,6 @@ endif()
 
 add_subdirectory(Tower)
 add_subdirectory(Util)
+add_subdirectory(Analyses)
 
 configure_file(Version.hpp.in Version.hpp @ONLY)

@@ -254,6 +254,30 @@ namespace vast::hl
         return core::verifyFuncOp(*this);
     }
 
+    vast::ast::DeclInterface FuncOp::getDecl() {
+        return {};
+    }
+
+    vast::cfg::CFGInterface FuncOp::getCFG() {
+        return {};
+    }
+
+    vast::ast::ASTContextInterface FuncOp::getParentASTContext() {
+        return {};
+    }
+
+    vast::analyses::decl_interface_iterator FuncOp::decls_begin() {
+        return {};
+    }
+
+    vast::analyses::decl_interface_iterator FuncOp::decls_end() {
+        return {};
+    }
+
+    vast::ast::ASTContextInterface FuncOp::getASTContext() {
+        return {};
+    }
+
     ParseResult parseFunctionSignatureAndBody(
         Parser &parser, Attribute &funcion_type, mlir::NamedAttrList &attr_dict, Region &body
     ) {
@@ -462,9 +486,9 @@ namespace vast::hl
         detail::build_record_like_decl(bld, st, name, fields);
     }
 
-    std::vector< vast::ast::VAST_FieldDeclInterface > StructDeclOp::fields()
+    std::vector< vast::ast::FieldDeclInterface > StructDeclOp::fields()
     {
-        std::vector< vast::ast::VAST_FieldDeclInterface > result;
+        std::vector< vast::ast::FieldDeclInterface > result;
         return result;
     }
 
