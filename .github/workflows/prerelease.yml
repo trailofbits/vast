@@ -345,7 +345,7 @@ jobs:
 
       - name: Clone, configure, and build the Linux kernel
         run: |
-          git clone --depth=1 https://github.com/torvalds/linux.git linux
+          git clone https://github.com/torvalds/linux.git --depth=1 --branch=v6.10 linux
           cd linux
           make defconfig LLVM=-${{ matrix.llvm-version }}
           make prepare LLVM=-${{ matrix.llvm-version }}
