@@ -9,12 +9,8 @@
 name: "Pre Release"
 
 on:
-  workflow_run:
-    workflows: ["Build"]
-    types:
-      - completed
-    branches:
-      - "master"
+  push:
+    tags: 'v*.*.*'
 
 permissions: write-all
 
@@ -30,7 +26,6 @@ jobs:
 
     name: "Pre Release"
     runs-on: ubuntu-${{ matrix.image-version }}
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     timeout-minutes: 60
     container:
       image:
@@ -67,8 +62,8 @@ jobs:
       - name: Publish Pre-Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "latest"
-          prerelease: true
+          name: "latest"
+          # tag_name should not be needed as that defaults to `github.ref`
           generate_release_notes: true
           files: |
             ./LICENSE
