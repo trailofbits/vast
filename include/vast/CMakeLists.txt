@@ -11,5 +11,3 @@ endif()
 
 add_subdirectory(Tower)
 add_subdirectory(Util)
-
-configure_file(Version.hpp.in Version.hpp @ONLY)

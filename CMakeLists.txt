@@ -76,9 +76,6 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/include/vast/Version.inc
 )
 
-# Configure Vast version info header file.
-
-
 #
 # Clang
 #
