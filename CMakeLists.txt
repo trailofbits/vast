@@ -426,7 +426,7 @@ if (VAST_INSTALL)
 
   write_basic_package_version_file(
     ${VAST_PACKAGE_CONFIG_VERSION_FILE}
-    VERSION ${PACKAGE_VERSION}
+    VERSION ${CPACK_PACKAGE_VERSION}
     COMPATIBILITY SameMajorVersion
   )
 
