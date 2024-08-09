@@ -29,21 +29,10 @@ function(set_project_warnings project_name)
     set(CLANG_WARNINGS ${CLANG_WARNINGS} -Werror)
   endif()
 
-  set(GCC_WARNINGS
-    ${CLANG_WARNINGS}
-    -Wmisleading-indentation # warn if indentation implies blocks where blocks
-                             # do not exist
-    -Wduplicated-cond # warn if if / else chain has duplicated conditions
-    -Wduplicated-branches # warn if if / else branches have duplicated code
-    -Wlogical-op # warn about logical operations being used where bitwise were
-                 # probably wanted
-    -Wuseless-cast # warn if you perform a cast to the same type
-  )
-
+  message(WARNING "Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
   if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+    message(WARNING "Chosen Clang")
     set(PROJECT_WARNINGS ${CLANG_WARNINGS})
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(PROJECT_WARNINGS ${GCC_WARNINGS})
   else()
     message(AUTHOR_WARNING "No compiler warnings set for '${CMAKE_CXX_COMPILER_ID}' compiler.")
   endif()
