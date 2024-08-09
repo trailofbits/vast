@@ -454,10 +454,25 @@ namespace vast::cg
     }
 
     mlir_type default_stmt_visitor::cast_result_type(const clang::CastExpr *cast, mlir_type from) {
-        auto to_rvalue_cast     = [&] { return self.visit(cast->getType()); };
-        auto lvalue_cast        = [&] { return visit_as_lvalue_type(self, mctx, cast->getType()); };
-        auto non_lvalue_cast    = [&] { return self.visit(cast->getType()); };
-        auto array_to_ptr_cast  = [&] { return self.visit(cast->getType()); };
+        // In some cases, the AST throws away the (mostly useless) `ParenType` in the cast result type
+        // while in other it does not.
+        // E.g.:
+        // int (a) = 0;
+        // a + 0;                   <- a is casted to RValue `ParenType`
+        // vs:
+        // const int (a) = 0;
+        // a + 0;                   <- a is casted to RValue `int`
+        auto getType = [&] {
+            auto type = cast->getType();
+            if (auto paren = mlir::dyn_cast< clang::ParenType >(type))
+                type = paren->getInnerType();
+            return type;
+        };
+
+        auto to_rvalue_cast     = [&] { return self.visit(getType()); };
+        auto lvalue_cast        = [&] { return visit_as_lvalue_type(self, mctx, getType()); };
+        auto non_lvalue_cast    = [&] { return self.visit(getType()); };
+        auto array_to_ptr_cast  = [&] { return self.visit(getType()); };
         auto keep_category_cast = [&] {
             if (mlir::isa< hl::LValueType >(from))
                 return lvalue_cast();
