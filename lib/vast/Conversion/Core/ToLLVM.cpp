@@ -292,7 +292,6 @@ namespace vast
 
             target.addIllegalDialect< vast::core::CoreDialect >();
             target.addLegalOp< core::LazyOp >();
-            target.addLegalOp< core::ModuleOp >();
 
             target.addLegalDialect< mlir::LLVM::LLVMDialect >();
             return target;
