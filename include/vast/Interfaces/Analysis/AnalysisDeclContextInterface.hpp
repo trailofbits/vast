@@ -16,13 +16,13 @@ VAST_RELAX_WARNINGS
 #include "vast/Interfaces/CFG/CFGInterface.hpp"
 
 /// Include the generated interface declarations.
-#include "vast/Interfaces/Analyses/AnalysisDeclContextInterface.h.inc"
+#include "vast/Interfaces/Analysis/AnalysisDeclContextInterface.h.inc"
 
-namespace vast::analyses {
+namespace vast::analysis {
 
     template< typename T >
     T *AnalysisDeclContextInterface::getAnalysis() {
         return nullptr;
     }
 
-} // namespace vast::analyses
+} // namespace vast::analysis

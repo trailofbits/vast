@@ -1,8 +1,8 @@
-#include "vast/Analyses/Iterators.hpp"
+#include "vast/Analysis/Iterators.hpp"
 #include "vast/Interfaces/AST/DeclInterface.hpp"
 #include "vast/Interfaces/CFG/CFGInterface.hpp"
 
-namespace vast::analyses {
+namespace vast::analysis {
 
     mlir::Operation *decl_interface_iterator::operator*()  const { return Current; }
     mlir::Operation *decl_interface_iterator::operator->() const { return Current; }
@@ -27,7 +27,7 @@ namespace vast::analyses {
     bool operator!=(decl_interface_iterator x, decl_interface_iterator y) {
         return x.Current != y.Current;
     }
-} // namespace vast::analyses
+} // namespace vast::analysis
 
 namespace vast::cfg {
 

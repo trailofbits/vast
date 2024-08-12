@@ -228,8 +228,8 @@ def VAST_CallExprInterface : VAST_ASTOpInterface< "CallExprInterface",
     let methods = [
         InterfaceMethod< "clang::CallExpr::isCallToStdMove", "bool", "isCallToStdMove" >,
         InterfaceMethod< "clang::CallExpr::getArg", "::vast::ast::ExprInterface", "getArg", (ins "unsigned":$arg) >,
-        InterfaceMethod< "clang::CallExpr::arg_begin", "::vast::analyses::call_expr_arg_iterator", "arg_begin" >, 
-        InterfaceMethod< "clang::CallExpr::arg_end", "::vast::analyses::call_expr_arg_iterator", "arg_end" >
+        InterfaceMethod< "clang::CallExpr::arg_begin", "::vast::analysis::call_expr_arg_iterator", "arg_begin" >, 
+        InterfaceMethod< "clang::CallExpr::arg_end", "::vast::analysis::call_expr_arg_iterator", "arg_end" >
     ];
 }
 

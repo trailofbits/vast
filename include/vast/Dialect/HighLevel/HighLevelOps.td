@@ -15,7 +15,7 @@ include "vast/Dialect/HighLevel/HighLevelCF.td"
 include "vast/Dialect/Core/Utils.td"
 include "vast/Dialect/Core/CoreTraits.td"
 include "vast/Interfaces/AST/DeclInterface.td"
-include "vast/Interfaces/Analyses/AnalysisDeclContextInterface.td"
+include "vast/Interfaces/Analysis/AnalysisDeclContextInterface.td"
 
 include "vast/Dialect/Core/Func.td"
 

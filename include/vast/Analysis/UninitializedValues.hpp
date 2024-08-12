@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "vast/Analyses/Iterators.hpp"
-#include "vast/Analyses/Clang/CFG.hpp"
-#include "vast/Analyses/Clang/FlowSensitive/DataflowWorklist.hpp"
+#include "vast/Analysis/Iterators.hpp"
+#include "vast/Analysis/Clang/CFG.hpp"
+#include "vast/Analysis/Clang/FlowSensitive/DataflowWorklist.hpp"
 #include "vast/Interfaces/CFG/CFGInterface.hpp"
-#include "vast/Interfaces/Analyses/AnalysisDeclContextInterface.hpp"
+#include "vast/Interfaces/Analysis/AnalysisDeclContextInterface.hpp"
 #include "vast/Interfaces/AST/DeclInterface.hpp"
 #include "vast/Interfaces/AST/TypeInterface.hpp"
 #include "vast/Interfaces/AST/StmtInterface.hpp"
@@ -20,7 +20,7 @@
 #include <llvm/ADT/SmallVector.h>
 #include <optional>
 
-namespace vast::analyses {
+namespace vast::analysis {
 
     /// A use of a variable, which might be uninitialized.
     class UninitUse {
@@ -482,7 +482,7 @@ namespace vast::analyses {
             llvm::DenseMap< ast::DeclRefExprInterface, Class > Classification;
 
             bool isTrackedVar(ast::VarDeclInterface VD) const {
-                return vast::analyses::isTrackedVar(VD, DC);
+                return vast::analysis::isTrackedVar(VD, DC);
             }
 
             void classify(ast::ExprInterface E, Class C) {
@@ -528,7 +528,7 @@ namespace vast::analyses {
                     }
                 }
 
-                FindVarResult Var = ::vast::analyses::findVar(E, DC);
+                FindVarResult Var = ::vast::analysis::findVar(E, DC);
                 if (ast::DeclRefExprInterface DRE = Var.getDeclRefExpr()) {
                     Classification[DRE] = std::max(Classification[DRE], C);
                 }
@@ -662,11 +662,11 @@ namespace vast::analyses {
                 classification(classification), handler(handler) {}
 
             bool isTrackedVar(ast::VarDeclInterface vd) {
-                return ::vast::analyses::isTrackedVar(vd, cast< ast::DeclContextInterface >(ac.getDecl().getOperation()));
+                return ::vast::analysis::isTrackedVar(vd, cast< ast::DeclContextInterface >(ac.getDecl().getOperation()));
             }
 
             FindVarResult findVar(ast::ExprInterface ex) {
-                return ::vast::analyses::findVar(ex, cast< ast::DeclContextInterface >(ac.getDecl().getOperation()));
+                return ::vast::analysis::findVar(ex, cast< ast::DeclContextInterface >(ac.getDecl().getOperation()));
             }
 
             void VisitDeclRefExpr(ast::DeclRefExprInterface dr) {
@@ -1117,4 +1117,4 @@ namespace vast::analyses {
     }
 
     UninitVariablesHandler::~UninitVariablesHandler() = default;
-} // namespace vast::analyses
+} // namespace vast::analysis

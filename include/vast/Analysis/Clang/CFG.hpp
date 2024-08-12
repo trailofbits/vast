@@ -1,6 +1,6 @@
 #pragma once
 
-namespace vast::analyses {
+namespace vast::analysis {
 
     class CFGBlock {
     public:
@@ -13,4 +13,4 @@ namespace vast::analyses {
         explicit CFGBlock(unsigned blockid) : BlockID(blockid) {}
     };
 
-} // namespace vast::analyses
+} // namespace vast::analysis

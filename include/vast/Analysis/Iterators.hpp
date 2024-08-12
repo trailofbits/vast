@@ -18,7 +18,7 @@ namespace vast::ast {
     class StmtInterface;
 }
 
-namespace vast::analyses {
+namespace vast::analysis {
 
     class decl_interface_iterator {
         mlir::Operation *Current = nullptr;
@@ -38,7 +38,7 @@ namespace vast::analyses {
 
     template< typename SpecificDecl >
     class specific_decl_interface_iterator {
-        using decl_interface_iterator = vast::analyses::decl_interface_iterator;
+        using decl_interface_iterator = vast::analysis::decl_interface_iterator;
         decl_interface_iterator Current;
 
         void SkipToNextDecl() {
@@ -95,7 +95,7 @@ namespace vast::analyses {
 
     using ExprInterfaceIterator = CastIterator< ast::ExprInterface >;
     using call_expr_arg_iterator = ExprInterfaceIterator;
-} // namespace vast::analyses
+} // namespace vast::analysis
 
 namespace vast::cfg {
 

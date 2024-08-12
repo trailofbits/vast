@@ -26,8 +26,8 @@ def VAST_DeclContextInterface : VAST_ASTOpInterface< "DeclContextInterface" > {
     let methods = [
         InterfaceMethod< "clang::DeclContext::getParentASTContext",
                          "::vast::ast::ASTContextInterface", "getParentASTContext", (ins) >,
-        InterfaceMethod< "clang::DeclContext::decls_begin", "::vast::analyses::decl_interface_iterator", "decls_begin", (ins) >,
-        InterfaceMethod< "clang::DeclContext::decls_end", "::vast::analyses::decl_interface_iterator", "decls_end", (ins) >,
+        InterfaceMethod< "clang::DeclContext::decls_begin", "::vast::analysis::decl_interface_iterator", "decls_begin", (ins) >,
+        InterfaceMethod< "clang::DeclContext::decls_end", "::vast::analysis::decl_interface_iterator", "decls_end", (ins) >,
         InterfaceMethod< "clang::DeclContext::hasExternalLexicalStorage", "bool", "hasExternalLexicalStorage" >
     ];
 }

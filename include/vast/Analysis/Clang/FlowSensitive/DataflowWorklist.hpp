@@ -2,13 +2,13 @@
 
 #pragma once
 
-#include "vast/Analyses/Clang/CFG.hpp"
+#include "vast/Analysis/Clang/CFG.hpp"
 
 #include <clang/Analysis/Analyses/IntervalPartition.h>
 #include <clang/Analysis/Analyses/PostOrderCFGView.h>
 #include <llvm/ADT/PriorityQueue.h>
 
-namespace vast::analyses {
+namespace vast::analysis {
 
     /// A worklist implementation where the enqueued blocks will be dequeued based
     /// on the order defined by 'Comp'.
@@ -66,4 +66,4 @@ namespace vast::analyses {
             }
         }
     };
-} // namespace vast::analyses
+} // namespace vast::analysis

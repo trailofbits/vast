@@ -7,7 +7,7 @@
 #include "vast/repl/common.hpp"
 #include <optional>
 
-#include "vast/Analyses/UninitializedValues.hpp"
+#include "vast/Analysis/UninitializedValues.hpp"
 
 namespace vast::repl {
 namespace cmd {
@@ -149,14 +149,14 @@ namespace cmd {
 
         auto render = [&](hl::FuncOp op) {
             for (auto &c : op) {
-                analyses::UninitVariablesHandler handler{};
-                analyses::UninitVariablesAnalysisStats stats{};
+                analysis::UninitVariablesHandler handler{};
+                analysis::UninitVariablesAnalysisStats stats{};
 
                 auto func_op = dyn_cast< hl::FuncOp >(c.getParentOp());
                 auto dc = dyn_cast< ast::DeclContextInterface >(func_op.getOperation());
-                auto adc = dyn_cast< analyses::AnalysisDeclContextInterface >(func_op.getOperation());
+                auto adc = dyn_cast< analysis::AnalysisDeclContextInterface >(func_op.getOperation());
 
-                analyses::runUninitializedVariablesAnalysis(dc, adc.getCFG(), adc, handler, stats);
+                analysis::runUninitializedVariablesAnalysis(dc, adc.getCFG(), adc, handler, stats);
             }
         };
 

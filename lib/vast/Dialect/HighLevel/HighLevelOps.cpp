@@ -270,20 +270,20 @@ namespace vast::hl
         return false;
     }
 
-    vast::analyses::decl_interface_iterator FuncOp::decls_begin() {
+    vast::analysis::decl_interface_iterator FuncOp::decls_begin() {
         for (auto &region : this->getOperation()->getRegions()) {
             for (auto &block : region.getBlocks()) {
                 for (auto &operation : block.getOperations()) {
                     if (isa< ast::DeclInterface >(operation)) {
-                        return analyses::decl_interface_iterator{dyn_cast< ast::DeclInterface >(operation)};
+                        return analysis::decl_interface_iterator{dyn_cast< ast::DeclInterface >(operation)};
                     }
                 }
             }
         }
-        return analyses::decl_interface_iterator{nullptr};
+        return analysis::decl_interface_iterator{nullptr};
     }
 
-    vast::analyses::decl_interface_iterator FuncOp::decls_end() {
+    vast::analysis::decl_interface_iterator FuncOp::decls_end() {
         return {};
     }
 

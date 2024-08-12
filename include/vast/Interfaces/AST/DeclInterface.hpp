@@ -11,7 +11,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/OperationSupport.h>
 VAST_RELAX_WARNINGS
 
-#include "vast/Analyses/Iterators.hpp"
+#include "vast/Analysis/Iterators.hpp"
 #include "vast/Interfaces/AST/TypeInterface.hpp"
 #include "vast/Interfaces/AST/ExprInterface.hpp"
 #include "vast/Interfaces/AST/ASTContextInterface.hpp"
