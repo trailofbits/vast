@@ -100,6 +100,8 @@ namespace vast::cc
         constexpr option_t vast_verify_diags = "verify-diags";
         constexpr option_t disable_emit_cxx_default = "disable-emit-cxx-default";
 
+        constexpr option_t output_sarif = "output-sarif";
+
         bool emit_only_mlir(const vast_args &vargs);
         bool emit_only_llvm(const vast_args &vargs);
     } // namespace opt
