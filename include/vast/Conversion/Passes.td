@@ -93,7 +93,7 @@ def LowerValueCategories : Pass<"vast-lower-value-categories", "core::ModuleOp">
   ];
 }
 
-def CoreToLLVM : Pass<"vast-core-to-llvm", "core::ModuleOp"> {
+def CoreToLLVM : Pass<"vast-core-to-llvm", "mlir::ModuleOp"> {
   let summary = "VAST Core dialect to LLVM Dialect conversion";
   let description = [{
     Converts core dialect operations to LLVM dialect.
