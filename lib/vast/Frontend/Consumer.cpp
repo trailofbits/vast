@@ -1,6 +1,8 @@
 // Copyright (c) 2023-present, Trail of Bits, Inc.
 
 #include "vast/Frontend/Consumer.hpp"
+#include "mlir/IR/Diagnostics.h"
+#include "mlir/IR/Location.h"
 
 VAST_RELAX_WARNINGS
 #include <llvm/Support/Signals.h>
@@ -17,6 +19,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include <filesystem>
+#include <fstream>
 
 #include "vast/CodeGen/CodeGenDriver.hpp"
 
@@ -28,6 +31,12 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Target/LLVMIR/Convert.hpp"
 
 #include "vast/Dialect/Core/CoreOps.hpp"
+
+#include "vast/Config/config.h"
+
+#ifdef VAST_ENABLE_SARIF
+    #include <gap/sarif/sarif.hpp>
+#endif // VAST_ENABLE_SARIF
 
 namespace vast::cc {
 
@@ -162,6 +171,64 @@ namespace vast::cc {
         );
     }
 
+#ifdef VAST_ENABLE_SARIF
+    gap::sarif::physical_location get_physical_loc(mlir::FileLineColLoc loc) {
+        std::filesystem::path file_path{ loc.getFilename().str() };
+        auto abs_path = std::filesystem::absolute(file_path);
+        return {
+            .artifactLocation{ { .uri{ "file://" + abs_path.string() } } },
+            .region{ {
+                .startLine   = loc.getLine(),
+                .startColumn = loc.getColumn(),
+            } },
+        };
+    }
+
+    struct sarif_diag_handler {
+        gap::sarif::run& sarif_run;
+
+        void operator()(mlir::Diagnostic &diag) const {
+            gap::sarif::result result{
+                .ruleId{ "mlir-diag" },
+                .message{ .text = diag.str() },
+            };
+
+            auto loc = diag.getLocation();
+            if (auto flc_loc = loc.dyn_cast< mlir::FileLineColLoc >()) {
+                result.locations.push_back({
+                    .physicalLocation{ get_physical_loc(flc_loc) },
+                });
+            } else if (auto name_loc = loc.dyn_cast< mlir::NameLoc >()) {
+                if (auto flc_child_loc =
+                        name_loc.getChildLoc().dyn_cast< mlir::FileLineColLoc >())
+                {
+                    result.locations.push_back(
+                        { .physicalLocation{ get_physical_loc(flc_child_loc) },
+                            .logicalLocations{ { .name = name_loc.getName().str() } } }
+                    );
+                }
+            }
+
+            switch (diag.getSeverity()) {
+                using enum gap::sarif::level;
+                case mlir::DiagnosticSeverity::Note:
+                    result.level = kNote;
+                    break;
+                case mlir::DiagnosticSeverity::Warning:
+                    result.level = kWarning;
+                    break;
+                case mlir::DiagnosticSeverity::Error:
+                    result.level = kError;
+                    break;
+                case mlir::DiagnosticSeverity::Remark:
+                    result.level = kNote;
+                    break;
+            }
+            sarif_run.results.push_back(result);
+        }
+    };
+#endif // VAST_ENABLE_SARIF
+
     void vast_stream_consumer::process_mlir_module(
         target_dialect target, mlir_module mod
     ) {
@@ -171,9 +238,8 @@ namespace vast::cc {
         auto &mctx        = driver->mcontext();
         auto main_file_id = src_mgr.getMainFileID();
 
-        auto file_buff = llvm::MemoryBuffer::getMemBuffer(
-            src_mgr.getBufferOrFake(main_file_id)
-        );
+        auto file_buff =
+            llvm::MemoryBuffer::getMemBuffer(src_mgr.getBufferOrFake(main_file_id));
 
         llvm::SourceMgr mlir_src_mgr;
         mlir_src_mgr.AddNewSourceBuffer(std::move(file_buff), llvm::SMLoc());
@@ -188,16 +254,61 @@ namespace vast::cc {
             llvm::DebugFlag = true;
         }
 
+#ifdef VAST_ENABLE_SARIF
+        gap::sarif::run sarif_run{
+            .tool{
+                  .driver{
+                  .name           = "vast-front",
+                  .organization   = "Trail of Bits, inc.",
+                  .product        = "VAST",
+                  .version        = std::string{ vast::version },
+                  .informationUri = std::string{ vast::homepage_url },
+                  }, },
+            .invocations{
+                  {
+                  .arguments{ vargs.args.begin(), vargs.args.end() },
+                  .executionSuccessful = true,
+                  }, },
+        };
+        sarif_diag_handler diag_handler{sarif_run};
+#endif // VAST_ENABLE_SARIF
+
         // Setup and execute vast pipeline
         auto file_entry = src_mgr.getFileEntryRefForID(main_file_id);
         VAST_CHECK(file_entry, "failed to recover file entry ref");
-        auto snapshot_prefix = std::filesystem::path(file_entry->getName().str()).stem().string();
+        auto snapshot_prefix =
+            std::filesystem::path(file_entry->getName().str()).stem().string();
 
-        auto pipeline = setup_pipeline(pipeline_source::ast, target, mctx, vargs, snapshot_prefix);
+        auto pipeline =
+            setup_pipeline(pipeline_source::ast, target, mctx, vargs, snapshot_prefix);
         VAST_CHECK(pipeline, "failed to setup pipeline");
 
+#ifdef VAST_ENABLE_SARIF
+        if (auto sarif_path = vargs.get_option(opt::output_sarif)) {
+            mctx.getDiagEngine().registerHandler(diag_handler);
+        }
+#endif // VAST_ENABLE_SARIF
+
         auto result = pipeline->run(mod);
-        VAST_CHECK(mlir::succeeded(result), "MLIR pass manager failed when running vast passes");
+
+#ifdef VAST_ENABLE_SARIF
+        sarif_run.invocations[0].executionSuccessful = mlir::succeeded(result);
+
+        gap::sarif::root sarif_report{
+            .version = gap::sarif::version::k2_1_0,
+            .runs{ sarif_run },
+        };
+
+        if (auto sarif_path = vargs.get_option(opt::output_sarif)) {
+            std::ofstream os{ sarif_path.value().str() };
+            nlohmann::json j = sarif_report;
+            os << j.dump(2);
+        }
+#endif // VAST_ENABLE_SARIF
+
+        VAST_CHECK(
+            mlir::succeeded(result), "MLIR pass manager failed when running vast passes"
+        );
 
         // Verify the diagnostic handler to make sure that each of the
         // diagnostics matched.

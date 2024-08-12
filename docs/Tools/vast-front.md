@@ -54,6 +54,9 @@ Additional customization options include:
   - After each pass that was specified as an option store MLIR into a file (format is `src.pass_name`).
   - `"*"` stores snapshot after every conversion.
 
+- `-vast-output-sarif="report.sarif"`
+  - Outputs diagnostics as a SARIF report file.
+
 ## Pipelines
 
 WIP pipelines documentation

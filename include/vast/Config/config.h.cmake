@@ -19,6 +19,8 @@ namespace vast {
 
     constexpr std::string_view version = "${VAST_VERSION}";
 
+    constexpr std::string_view homepage_url = "${PROJECT_HOMEPAGE_URL}";
+
     constexpr std::string_view bug_report_url = "${BUG_REPORT_URL}";
 
     constexpr std::string_view default_resource_dir = "${VAST_DEFAULT_RESOURCE_DIR}";
