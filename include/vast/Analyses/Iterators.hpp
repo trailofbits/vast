@@ -21,20 +21,19 @@ namespace vast::ast {
 namespace vast::analyses {
 
     class decl_interface_iterator {
-        ast::DeclInterface *Current = nullptr;
+        mlir::Operation *Current = nullptr;
 
     public:
         decl_interface_iterator() = default;
-        explicit decl_interface_iterator(ast::DeclInterface *C) : Current(C) {}
+        explicit decl_interface_iterator(mlir::Operation *C) : Current(C) {}
 
-        ast::DeclInterface &operator*() const; 
-        ast::DeclInterface *operator->() const;
+        mlir::Operation *operator*() const; 
+        mlir::Operation *operator->() const;
         decl_interface_iterator &operator++();
-        decl_interface_iterator operator++(int);
+        decl_interface_iterator  operator++(int);
 
-        friend bool operator==(const decl_interface_iterator &, const decl_interface_iterator &);
-        friend bool operator!=(const decl_interface_iterator &, const decl_interface_iterator &);
-        mlir::Operation *get_current_op() const;
+        friend bool operator==(decl_interface_iterator, decl_interface_iterator);
+        friend bool operator!=(decl_interface_iterator, decl_interface_iterator);
     };
 
     template< typename SpecificDecl >
@@ -43,7 +42,7 @@ namespace vast::analyses {
         decl_interface_iterator Current;
 
         void SkipToNextDecl() {
-            while (*Current && !isa< SpecificDecl >(Current.get_current_op())) {
+            while (*Current && !isa< SpecificDecl >(*Current)) {
                 ++Current;
             }
         }
@@ -54,8 +53,8 @@ namespace vast::analyses {
             SkipToNextDecl();
         }
 
-        SpecificDecl operator*() const { return dyn_cast< SpecificDecl >(Current.get_current_op()); }
-        SpecificDecl operator->() const { return **this; }
+        SpecificDecl operator*() const { return dyn_cast< SpecificDecl >(*Current); }
+        SpecificDecl operator->() const { return *this; }
 
         specific_decl_interface_iterator &operator++() {
             ++Current;

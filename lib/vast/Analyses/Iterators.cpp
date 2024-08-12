@@ -4,11 +4,13 @@
 
 namespace vast::analyses {
 
-    ast::DeclInterface &decl_interface_iterator::operator*() const { return *Current; }
-    ast::DeclInterface *decl_interface_iterator::operator->() const { return Current; }
+    mlir::Operation *decl_interface_iterator::operator*()  const { return Current; }
+    mlir::Operation *decl_interface_iterator::operator->() const { return Current; }
 
     decl_interface_iterator &decl_interface_iterator::operator++() {
-        Current = Current->getNextDeclInContext();
+        auto dc = dyn_cast< ast::DeclInterface >( Current );
+        if ( dc )
+            Current = dc.getNextDeclInContext().getOperation();
         return *this;
     }
 
@@ -18,15 +20,11 @@ namespace vast::analyses {
         return tmp;
     }
 
-    mlir::Operation *decl_interface_iterator::get_current_op() const {
-        return Current->getOperation();
-    }
-
-    bool operator==(const decl_interface_iterator &x, const decl_interface_iterator &y) {
+    bool operator==(decl_interface_iterator x, decl_interface_iterator y) {
         return x.Current == y.Current;
     }
 
-    bool operator!=(const decl_interface_iterator &x, const decl_interface_iterator &y) {
+    bool operator!=(decl_interface_iterator x, decl_interface_iterator y) {
         return x.Current != y.Current;
     }
 } // namespace vast::analyses
