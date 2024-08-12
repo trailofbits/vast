@@ -13,4 +13,9 @@ VAST_RELAX_WARNINGS
 
 
 /// Include the generated interface declarations.
+
+namespace vast::ast {
+    class QualTypeInterface;
+}
+
 #include "vast/Interfaces/AST/TypeInterface.h.inc"

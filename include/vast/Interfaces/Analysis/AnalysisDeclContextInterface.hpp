@@ -11,15 +11,18 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/OperationSupport.h>
 VAST_RELAX_WARNINGS
 
-#include "vast/Analysis/Iterators.hpp"
-#include "vast/Interfaces/AST/TypeInterface.hpp"
-#include "vast/Interfaces/AST/ExprInterface.hpp"
 #include "vast/Interfaces/AST/ASTContextInterface.hpp"
+#include "vast/Interfaces/AST/DeclInterface.hpp"
+#include "vast/Interfaces/CFG/CFGInterface.hpp"
 
 /// Include the generated interface declarations.
+#include "vast/Interfaces/Analysis/AnalysisDeclContextInterface.h.inc"
 
-namespace vast::ast {
-    class FunctionDeclInterface;
-}
+namespace vast::analysis {
 
-#include "vast/Interfaces/AST/DeclInterface.h.inc"
+    template< typename T >
+    T *AnalysisDeclContextInterface::getAnalysis() {
+        return nullptr;
+    }
+
+} // namespace vast::analysis

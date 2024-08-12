@@ -16,7 +16,23 @@ def VAST_TagDeclInterface : VAST_ASTOpInterface< "VAST_TagDeclInterface" > {
     let methods = [];
 }
 
-def VAST_DeclInterface : VAST_ASTOpInterface< "VAST_DeclInterface" > {
+def VAST_DeclContextInterface : VAST_ASTOpInterface< "DeclContextInterface" > {
+
+    let description = [{
+        An interface to provide [`clang::DeclContext`]
+        (https://clang.llvm.org/doxygen/classclang_1_1DeclContext.html) functionality.
+    }];
+
+    let methods = [
+        InterfaceMethod< "clang::DeclContext::getParentASTContext",
+                         "::vast::ast::ASTContextInterface", "getParentASTContext", (ins) >,
+        InterfaceMethod< "clang::DeclContext::decls_begin", "::vast::analysis::decl_interface_iterator", "decls_begin", (ins) >,
+        InterfaceMethod< "clang::DeclContext::decls_end", "::vast::analysis::decl_interface_iterator", "decls_end", (ins) >,
+        InterfaceMethod< "clang::DeclContext::hasExternalLexicalStorage", "bool", "hasExternalLexicalStorage" >
+    ];
+}
+
+def VAST_DeclInterface : VAST_ASTOpInterface< "DeclInterface" > {
 
     let description = [{
         An interface to provide [`clang::Decl`]
@@ -25,12 +41,15 @@ def VAST_DeclInterface : VAST_ASTOpInterface< "VAST_DeclInterface" > {
 
     let methods = [
         InterfaceMethod< "clang::Decl::isImplicit", "bool", "isImplicit", (ins) >,
-        InterfaceMethod< "clang::Decl::getDeclContext", "void", "getDeclContext", (ins) >,
-        InterfaceMethod< "clang::Decl::getASTContext", "void", "getASTContext", (ins) >
+        InterfaceMethod< "clang::Decl::getDeclContext", "::vast::ast::DeclContextInterface", "getDeclContext", (ins) >,
+        InterfaceMethod< "clang::Decl::getASTContext", "::vast::ast::ASTContextInterface", "getASTContext", (ins) >,
+        InterfaceMethod< "clang::Decl::getNextDeclInContext", "::vast::ast::DeclInterface", "getNextDeclInContext", (ins) >
     ];
+
+    // let extraClassDeclaration = [];
 }
 
-def VAST_NamedDeclInterface : VAST_ASTOpInterface< "VAST_NamedDeclInterface",
+def VAST_NamedDeclInterface : VAST_ASTOpInterface< "NamedDeclInterface",
     [VAST_DeclInterface] > {
 
     let description = [{
@@ -41,7 +60,7 @@ def VAST_NamedDeclInterface : VAST_ASTOpInterface< "VAST_NamedDeclInterface",
     let methods = [];
 }
 
-def VAST_ValueDeclInterface : VAST_ASTOpInterface< "VAST_ValueDeclInterface",
+def VAST_ValueDeclInterface : VAST_ASTOpInterface< "ValueDeclInterface",
     [VAST_NamedDeclInterface] > {
 
     let description = [{
@@ -50,11 +69,11 @@ def VAST_ValueDeclInterface : VAST_ASTOpInterface< "VAST_ValueDeclInterface",
     }];
 
     let methods = [
-        InterfaceMethod< "clang::ValueDecl::getType", "void", "getType", (ins) >
+        InterfaceMethod< "clang::ValueDecl::getType", "::vast::ast::QualTypeInterface", "getType", (ins) >
     ];
 }
 
-def VAST_DeclaratorDeclInterface : VAST_ASTOpInterface< "VAST_DeclaratorDeclInterface",
+def VAST_DeclaratorDeclInterface : VAST_ASTOpInterface< "DeclaratorDeclInterface",
     [VAST_ValueDeclInterface] > {
     
     let description = [{
@@ -65,7 +84,7 @@ def VAST_DeclaratorDeclInterface : VAST_ASTOpInterface< "VAST_DeclaratorDeclInte
     let methods = [];
 }
 
-def VAST_FieldDeclInterface : VAST_ASTOpInterface< "VAST_FieldDeclInterface",
+def VAST_FieldDeclInterface : VAST_ASTOpInterface< "FieldDeclInterface",
     [VAST_DeclaratorDeclInterface] > {
 
     let description = [{
@@ -79,7 +98,7 @@ def VAST_FieldDeclInterface : VAST_ASTOpInterface< "VAST_FieldDeclInterface",
     ];
 }
 
-def VAST_VarDeclInterface : VAST_ASTOpInterface< "VAST_VarDeclInterface",
+def VAST_VarDeclInterface : VAST_ASTOpInterface< "VarDeclInterface",
     [VAST_DeclaratorDeclInterface] > {
 
     let description = [{
@@ -92,11 +111,14 @@ def VAST_VarDeclInterface : VAST_ASTOpInterface< "VAST_VarDeclInterface",
         InterfaceMethod< "clang::VarDecl::hasGlobalStorage", "bool", "hasGlobalStorage", (ins) >,
         InterfaceMethod< "clang::VarDecl::isExceptionVariable", "bool", "isExceptionVariable", (ins) >,
         InterfaceMethod< "clang::VarDecl::isInitCapture", "bool", "isInitCapture", (ins) >,
-        InterfaceMethod< "clang::VarDecl::getInit", "void", "getInit", (ins) >
+        InterfaceMethod< "clang::VarDecl::getInit", "::vast::ast::ExprInterface", "getInit", (ins) >,
+        InterfaceMethod< "clang::VarDecl::isStaticDataMember", "bool", "isStaticDataMember" >,
+        InterfaceMethod< "clang::VarDecl::isEscapingByref", "bool", "isEscapingByref" >,
+        InterfaceMethod< "clang::VarDecl::isNonEscapingByref", "bool", "isNonEscapingByref" >
     ];
 }
 
-def VAST_RecordDeclInterface : VAST_ASTOpInterface< "VAST_RecordDeclInterface",
+def VAST_RecordDeclInterface : VAST_ASTOpInterface< "RecordDeclInterface",
     [VAST_TagDeclInterface] > {
 
     let description = [{
@@ -105,8 +127,70 @@ def VAST_RecordDeclInterface : VAST_ASTOpInterface< "VAST_RecordDeclInterface",
     }];
 
     let methods = [
-        InterfaceMethod< "clang::RecordDecl::fields", "std::vector< vast::ast::VAST_FieldDeclInterface >",
+        InterfaceMethod< "clang::RecordDecl::fields", "std::vector< ::vast::ast::FieldDeclInterface >",
                          "fields", (ins) >
+    ];
+}
+
+def VAST_BlockDeclInterface : VAST_ASTOpInterface< "BlockDeclInterface",
+    [VAST_DeclInterface, VAST_DeclContextInterface] > {
+
+    let description = [{
+        An interface to provide [`clang::BlockDecl`]
+        (https://clang.llvm.org/doxygen/classclang_1_1BlockDecl.html) functionality.
+    }];
+
+    let methods = [];
+}
+
+def VAST_TemplateDeclInterface : VAST_ASTOpInterface< "TemplateDeclInterface",
+    [VAST_NamedDeclInterface] > {
+
+    let description = [{
+        An interface to provide [`clang::TemplateDecl`]
+        (https://clang.llvm.org/doxygen/classclang_1_1TemplateDecl.html) functionality.
+    }];
+
+    let methods = [];
+}
+
+def VAST_RedeclarableTemplateDeclInterface : VAST_ASTOpInterface< "RedeclarableTemplateDeclInterface",
+    [VAST_TemplateDeclInterface] > {
+
+    let description = [{
+        An interface to provide [`clang::RedeclarableTemplateDecl`]
+        (https://clang.llvm.org/doxygen/classclang_1_1RedeclarableTemplateDecl.html) functionality.
+    }];
+
+    let methods = [];
+}
+
+def VAST_FunctionTemplateDeclInterface : VAST_ASTOpInterface< "FunctionTemplateDeclInterface",
+    [VAST_RedeclarableTemplateDeclInterface] > {
+
+    let description = [{
+        An interface to provide [`clang::FunctionTemplateDecl`]
+        (https://clang.llvm.org/doxygen/classclang_1_1FunctionTemplateDecl.html) functionality.
+    }];
+
+    let methods = [
+        InterfaceMethod< "clang::FunctionTemplateDecl::getTemplatedDecl", "::vast::ast::FunctionDeclInterface",
+                         "getTemplatedDecl" >
+    ];
+}
+
+def VAST_FunctionDeclInterface : VAST_ASTOpInterface< "FunctionDeclInterface",
+    [VAST_DeclaratorDeclInterface, VAST_DeclContextInterface] > {
+    
+    let description = [{
+        An interface to provide [`clang::FunctionDecl`]
+        (https://clang.llvm.org/doxygen/classclang_1_1FunctionDecl.html) functionality.
+    }];
+
+    let methods = [
+        InterfaceMethod< "clang::FunctionDecl::getPrimaryTemplate", "::vast::ast::FunctionTemplateDeclInterface",
+                         "getPrimaryTemplate" >,
+        InterfaceMethod< "clang::FunctionDecl::hasTrivialBody", "bool", "hasTrivialBody" >
     ];
 }
 

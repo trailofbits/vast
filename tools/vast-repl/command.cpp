@@ -7,6 +7,8 @@
 #include "vast/repl/common.hpp"
 #include <optional>
 
+#include "vast/Analysis/UninitializedValues.hpp"
+
 namespace vast::repl {
 namespace cmd {
 
@@ -143,6 +145,22 @@ namespace cmd {
 
     void analyze_uninitialized_variables(state_t &state) {
         llvm::outs() << "run uninitialized variables analysis\n";
+        check_and_emit_module(state);
+
+        auto render = [&](hl::FuncOp op) {
+            for (auto &c : op) {
+                analysis::UninitVariablesHandler handler{};
+                analysis::UninitVariablesAnalysisStats stats{};
+
+                auto func_op = dyn_cast< hl::FuncOp >(c.getParentOp());
+                auto dc = dyn_cast< ast::DeclContextInterface >(func_op.getOperation());
+                auto adc = dyn_cast< analysis::AnalysisDeclContextInterface >(func_op.getOperation());
+
+                analysis::runUninitializedVariablesAnalysis(dc, adc.getCFG(), adc, handler, stats);
+            }
+        };
+
+        state.tower->top().mod->walk< mlir::WalkOrder::PreOrder >(render);
     }
 
     void analyze::run(state_t &state) const {
