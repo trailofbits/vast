@@ -27,7 +27,8 @@ def VAST_DeclContextInterface : VAST_ASTOpInterface< "DeclContextInterface" > {
         InterfaceMethod< "clang::DeclContext::getParentASTContext",
                          "::vast::ast::ASTContextInterface", "getParentASTContext", (ins) >,
         InterfaceMethod< "clang::DeclContext::decls_begin", "::vast::analyses::decl_interface_iterator", "decls_begin", (ins) >,
-        InterfaceMethod< "clang::DeclContext::decls_end", "::vast::analyses::decl_interface_iterator", "decls_end", (ins) >
+        InterfaceMethod< "clang::DeclContext::decls_end", "::vast::analyses::decl_interface_iterator", "decls_end", (ins) >,
+        InterfaceMethod< "clang::DeclContext::hasExternalLexicalStorage", "bool", "hasExternalLexicalStorage" >
     ];
 }
 
@@ -42,7 +43,7 @@ def VAST_DeclInterface : VAST_ASTOpInterface< "DeclInterface" > {
         InterfaceMethod< "clang::Decl::isImplicit", "bool", "isImplicit", (ins) >,
         InterfaceMethod< "clang::Decl::getDeclContext", "::vast::ast::DeclContextInterface", "getDeclContext", (ins) >,
         InterfaceMethod< "clang::Decl::getASTContext", "::vast::ast::ASTContextInterface", "getASTContext", (ins) >,
-        InterfaceMethod< "clang::Decl::getNextDeclInContext", "::vast::ast::DeclInterface *", "getNextDeclInContext", (ins) >
+        InterfaceMethod< "clang::Decl::getNextDeclInContext", "::vast::ast::DeclInterface", "getNextDeclInContext", (ins) >
     ];
 
     // let extraClassDeclaration = [];
