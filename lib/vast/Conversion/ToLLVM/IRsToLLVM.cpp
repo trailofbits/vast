@@ -1469,6 +1469,7 @@ namespace vast::conv::irstollvm
 
             // Remove the terminator block that was automatically added by builder
             rewriter.eraseBlock(&mod.getBodyRegion().back());
+            mod->setAttrs(op->getAttrs());
             rewriter.eraseOp(op);
             return mlir::success();
         }
