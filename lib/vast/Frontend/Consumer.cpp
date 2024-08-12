@@ -150,10 +150,10 @@ namespace vast::cc {
         backend backend_action, owning_mlir_module_ref mod
     ) {
         llvm::LLVMContext llvm_context;
-
         process_mlir_module(target_dialect::llvm, mod.get());
 
-        auto llvm_mod = target::llvmir::translate(mod.get(), llvm_context);
+        auto final_mlir_module = mlir::cast< mlir_module >(mod->getBody()->front());
+        auto llvm_mod = target::llvmir::translate(final_mlir_module, llvm_context);
         auto dl  = driver->acontext().getTargetInfo().getDataLayoutString();
 
         clang::EmitBackendOutput(
