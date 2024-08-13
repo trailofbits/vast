@@ -257,30 +257,6 @@ namespace vast
             select
         >;
 
-
-
-        // Get rid fo any remaining `llvm.mlir.zero` that are of void type
-        // because they cannot be codegen'ed into LLVM IR.
-        struct zero_void_erasure : operation_conversion_pattern< LLVM::ZeroOp >
-        {
-            using base = operation_conversion_pattern< LLVM::ZeroOp >;
-            using base::base;
-
-            using op_t = LLVM::ZeroOp;
-            using adaptor_t = typename LLVM::ZeroOp::Adaptor;
-
-            logical_result matchAndRewrite(
-                op_t op, adaptor_t ops, conversion_rewriter &rewriter
-            ) const override {
-                if (!mlir::isa< mlir::LLVM::LLVMVoidType >(op.getType()))
-                    return mlir::failure();
-                rewriter.eraseOp(op);
-                return mlir::success();
-            }
-        };
-
-        using core_conversions = util::type_list< zero_void_erasure >;
-
     } //namespace pattern
 
     struct CoreToLLVMPass : ModuleConversionPassMixin< CoreToLLVMPass, CoreToLLVMBase >
@@ -299,7 +275,6 @@ namespace vast
 
         static void populate_conversions(auto &cfg) {
             base::populate_conversions< pattern::lazy_op_conversions >(cfg);
-            base::populate_conversions< pattern::core_conversions >(cfg);
         }
 
         void run_after_conversion() {
