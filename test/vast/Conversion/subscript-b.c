@@ -28,10 +28,7 @@ int arr1[] = { 0, 2, 4 };
 
 
 // C_LLVM: [[V0:%[0-9]+]] = llvm.mlir.addressof @arr1 : !llvm.ptr
-// C_LLVM: [[V1:%[0-9]+]] = llvm.getelementptr [[V0]][0] : (!llvm.ptr) -> !llvm.ptr, i32
-// C_LLVM: [[V2:%[0-9]+]] = llvm.mlir.constant(0 : i32) : i32
-// C_LLVM: [[V3:%[0-9]+]] = llvm.getelementptr [[V1]][[[V2]]] : (!llvm.ptr, i32) -> !llvm.ptr, i32
-// C_LLVM: [[V4:%[0-9]+]] = llvm.load [[V3]] : !llvm.ptr -> i32
+// C_LLVM: [[V1:%[0-9]+]] = llvm.load [[V0]] : !llvm.ptr -> i32
 
 void fn()
 {

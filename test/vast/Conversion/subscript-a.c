@@ -17,12 +17,7 @@
 // VAL_CAT: [[V8:%[0-9]+]] = ll.load [[V7]] : (!hl.ptr<si32>) -> si32
 
 // C_LLVM: [[V1:%[0-9]+]] = llvm.alloca {{.*}} x !llvm.array<3 x i32> : (i64) -> !llvm.ptr
-
-// C_LLVM: [[V9:%[0-9]+]] = llvm.getelementptr [[V1]][0] : (!llvm.ptr) -> !llvm.ptr, i32
-// C_LLVM: [[V10:%[0-9]+]] = llvm.mlir.constant(0 : i32) : i32
-// C_LLVM: [[V11:%[0-9]+]] = llvm.getelementptr [[V9]][[[V10]]] : (!llvm.ptr, i32) -> !llvm.ptr, i32
-// C_LLVM: [[V12:%[0-9]+]] = llvm.load [[V11]] : !llvm.ptr -> i32
-
+// C_LLVM: [[V2:%[0-9]+]] = llvm.load [[V1]] : !llvm.ptr -> i32
 
 void fn()
 {
