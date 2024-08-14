@@ -9,7 +9,7 @@ void * malloc ( unsigned long __size );
 
 curl_malloc_callback Curl_cmalloc = ( curl_malloc_callback ) malloc ;
 
-// LTYPES: hl.typedef "curl_malloc_callback" : !hl.ptr<!core.fn<(!hl.lvalue<ui64>) -> (!hl.ptr<ui8>)>>
+// LTYPES: hl.typedef @curl_malloc_callback : !hl.ptr<!core.fn<(!hl.lvalue<ui64>) -> (!hl.ptr<ui8>)>>
 // LTYPES: {{.*}} = hl.var @Curl_cmalloc : !hl.lvalue<!hl.elaborated<!hl.typedef<"curl_malloc_callback">>> = {
 
 // LTYPEDEFS: {{.*}} = hl.var @Curl_cmalloc sc_extern : !hl.lvalue<!hl.ptr<!core.fn<(!hl.lvalue<ui64>) -> (!hl.ptr<ui8>)>>>

@@ -3,9 +3,9 @@
 
 // adapted from https://gist.github.com/fay59/5ccbe684e6e56a7df8815c3486568f01
 
-// CHECK: hl.typedef "array_t" : !hl.array<10, !hl.int>
+// CHECK: hl.typedef @array_t : !hl.array<10, !hl.int>
 typedef int array_t[10];
-// CHECK: hl.typedef "array_ptr_t" : !hl.ptr<!hl.elaborated<!hl.typedef<"array_t">>>
+// CHECK: hl.typedef @array_ptr_t : !hl.ptr<!hl.elaborated<!hl.typedef<"array_t">>>
 typedef array_t* array_ptr_t;
 
 // CHECK: hl.func @foo {{.*}} (%arg0: !hl.lvalue<!hl.elaborated<!hl.typedef<"array_ptr_t">>>)

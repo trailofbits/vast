@@ -3,5 +3,5 @@
 
 // CHECK-DAG: hl.func @setjmp
 // CHECK-DAG: hl.func @longjmp
-// CHECK-DAG: hl.typedef "jmp_buf"
+// CHECK-DAG: hl.typedef @jmp_buf
 #include <setjmp.h>

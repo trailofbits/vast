@@ -9,11 +9,11 @@
 // CHECK-DAG: hl.func @mbrtoc32
 // CHECK-DAG: hl.func @c32rtomb
 
-// C23-DAG: hl.typedef "char8_t"
-// CHECK-DAG: hl.typedef "char16_t"
-// CHECK-DAG: hl.typedef "char32_t"
+// C23-DAG: hl.typedef @char8_t
+// CHECK-DAG: hl.typedef @char16_t
+// CHECK-DAG: hl.typedef @char32_t
 
-// PRE-C23-NOT: hl.typedef "char8_t"
+// PRE-C23-NOT: hl.typedef @char8_t
 // PRE-C23-NOT: hl.func @mbrtoc8
 // PRE-C23-NOT: hl.func @c8rtomb
 #include <uchar.h>

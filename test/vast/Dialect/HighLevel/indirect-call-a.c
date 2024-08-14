@@ -1,18 +1,18 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.typedef "ck_rv_t" : !hl.long< unsigned >
+// CHECK: hl.typedef @ck_rv_t : !hl.long< unsigned >
 typedef unsigned long ck_rv_t;
 // CHECK: hl.var @global_lock sc_static : !hl.lvalue<!hl.ptr<!hl.void>>
 static void *global_lock = 0;
 
-// CHECK: hl.typedef "ck_createmutex_t" : !hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.ptr<!hl.ptr<!hl.void>>>) -> (!hl.elaborated<!hl.typedef<"ck_rv_t">>)>>>
+// CHECK: hl.typedef @ck_createmutex_t : !hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.ptr<!hl.ptr<!hl.void>>>) -> (!hl.elaborated<!hl.typedef<"ck_rv_t">>)>>>
 typedef ck_rv_t (*ck_createmutex_t) (void **mutex);
-// CHECK: hl.typedef "ck_destroymutex_t" : !hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.ptr<!hl.void>>) -> (!hl.elaborated<!hl.typedef<"ck_rv_t">>)>>>
+// CHECK: hl.typedef @ck_destroymutex_t : !hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.ptr<!hl.void>>) -> (!hl.elaborated<!hl.typedef<"ck_rv_t">>)>>>
 typedef ck_rv_t (*ck_destroymutex_t) (void *mutex);
-// CHECK: hl.typedef "ck_lockmutex_t" : !hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.ptr<!hl.void>>) -> (!hl.elaborated<!hl.typedef<"ck_rv_t">>)>>>
+// CHECK: hl.typedef @ck_lockmutex_t : !hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.ptr<!hl.void>>) -> (!hl.elaborated<!hl.typedef<"ck_rv_t">>)>>>
 typedef ck_rv_t (*ck_lockmutex_t) (void *mutex);
-// CHECK: hl.typedef "ck_unlockmutex_t" : !hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.ptr<!hl.void>>) -> (!hl.elaborated<!hl.typedef<"ck_rv_t">>)>>>
+// CHECK: hl.typedef @ck_unlockmutex_t : !hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.ptr<!hl.void>>) -> (!hl.elaborated<!hl.typedef<"ck_rv_t">>)>>>
 typedef ck_rv_t (*ck_unlockmutex_t) (void *mutex);
 
 // CHECK: hl.struct "ck_c_initialize_args"
@@ -30,7 +30,7 @@ struct ck_c_initialize_args
     void *reserved;
 };
 
-// CHECK: hl.typedef "CK_C_INITIALIZE_ARGS_PTR" : !hl.ptr<!hl.elaborated<!hl.record<"ck_c_initialize_args">>>
+// CHECK: hl.typedef @CK_C_INITIALIZE_ARGS_PTR : !hl.ptr<!hl.elaborated<!hl.record<"ck_c_initialize_args">>>
 typedef struct ck_c_initialize_args *CK_C_INITIALIZE_ARGS_PTR;
 
 // CHECK: hl.var @global_locking sc_static : !hl.lvalue<!hl.elaborated<!hl.typedef<"CK_C_INITIALIZE_ARGS_PTR">>>

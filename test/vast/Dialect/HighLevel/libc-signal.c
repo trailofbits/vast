@@ -4,5 +4,5 @@
 
 // CHECK-DAG: hl.func @signal
 // CHECK-DAG: hl.func @raise
-// CHECK-DAG: hl.typedef "sig_atomic_t"
+// CHECK-DAG: hl.typedef @sig_atomic_t
 #include <signal.h>

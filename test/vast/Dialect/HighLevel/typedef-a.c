@@ -1,8 +1,8 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.typedef "INT" : !hl.int
-// CHECK: hl.typedef "SHORT" : !hl.short
+// CHECK: hl.typedef @INT : !hl.int
+// CHECK: hl.typedef @SHORT : !hl.short
 typedef int INT;
 typedef short SHORT;
 // CHECK: hl.func @arithemtic_int_short {{.*}} ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.elaborated<!hl.typedef<"INT">>>, [[A2:%arg[0-9]+]]: !hl.lvalue<!hl.elaborated<!hl.typedef<"SHORT">>>)

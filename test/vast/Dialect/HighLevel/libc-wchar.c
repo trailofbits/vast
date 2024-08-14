@@ -25,6 +25,6 @@
 // CHECK-DAG: hl.func @wmemchr
 // CHECK-DAG: hl.func @wmemset
 
-// CHECK-DAG: hl.typedef "wchar_t"
-// CHECK-DAG: hl.typedef "wint_t"
+// CHECK-DAG: hl.typedef @wchar_t
+// CHECK-DAG: hl.typedef @wint_t
 #include <wchar.h>

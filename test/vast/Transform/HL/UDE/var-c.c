@@ -3,7 +3,7 @@
 // CHECK-NOT: hl.typedecl "unused_struct"
 struct unused_struct;
 
-// CHECK-NOT: hl.typedef "unused_t"
+// CHECK-NOT: hl.typedef @unused_t
 typedef struct unused_struct unused_t;
 
 // CHECK-NOT: hl.var @unused

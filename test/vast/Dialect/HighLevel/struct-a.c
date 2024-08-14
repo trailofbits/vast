@@ -28,7 +28,7 @@ struct forward {
 // CHECK:  hl.field "v" : !hl.int
 // CHECK: }
 
-// CHECK: hl.typedef "wrap_t" : !hl.elaborated<!hl.record<"wrap">>
+// CHECK: hl.typedef @wrap_t : !hl.elaborated<!hl.record<"wrap">>
 typedef struct wrap {
   int v;
 } wrap_t;

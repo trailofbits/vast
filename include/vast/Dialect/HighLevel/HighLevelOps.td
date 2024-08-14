@@ -101,7 +101,7 @@ def TypeDeclOp
 
 def TypeDefOp
   : HighLevel_Op< "typedef", [TypeSymbol] >
-  , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
+  , Arguments<(ins SymbolNameAttr:$sym_name, TypeAttr:$type)>
 {
   let summary = "VAST typedef operation";
   let description = [{
@@ -116,7 +116,7 @@ def TypeDefOp
     mlir_type getDefinedType();
   }];
 
-  let assemblyFormat = [{ $name attr-dict `:` $type }];
+  let assemblyFormat = [{ $sym_name attr-dict `:` $type }];
 }
 
 def TypeAliasOp

@@ -13,7 +13,7 @@ const enum e cv;
 // CHECK: hl.var @cvv : !hl.lvalue<!hl.elaborated<!hl.enum<"e">,  const, volatile >>
 const volatile enum e cvv;
 
-// CHECK: hl.typedef "def" : !hl.elaborated<!hl.enum<"e">>
+// CHECK: hl.typedef @def : !hl.elaborated<!hl.enum<"e">>
 typedef enum e def;
 
 // CHECK: hl.var @d : !hl.lvalue<!hl.elaborated<!hl.typedef<"def">>>

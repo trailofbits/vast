@@ -747,7 +747,7 @@ namespace vast::hl
     }
 
     mlir_type TypeDefOp::getDefinedType() {
-        return hl::TypedefType::get(getContext(), getName());
+        return hl::TypedefType::get(getContext(), getSymName());
     }
 
     FuncOp getCallee(CallOp call)

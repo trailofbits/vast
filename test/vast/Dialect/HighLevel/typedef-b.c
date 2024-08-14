@@ -1,8 +1,8 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.typedef "INT" : !hl.int
-// CHECK: hl.typedef "INT2" : !hl.long
+// CHECK: hl.typedef @INT : !hl.int
+// CHECK: hl.typedef @INT2 : !hl.long
 typedef int INT;
 typedef long INT2;
 // CHECK: hl.func @fun {{.*}} ([[A0:%arg[0-9]+]]: !hl.lvalue<!hl.elaborated<!hl.typedef<"INT">>>, [[A1:%arg[0-9]+]]: !hl.lvalue<!hl.elaborated<!hl.typedef<"INT2">>>) -> !hl.elaborated<!hl.typedef<"INT">>
