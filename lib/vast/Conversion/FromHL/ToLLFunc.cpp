@@ -16,23 +16,18 @@ namespace vast::conv::hltollfunc
 {
     namespace pattern
     {
-        struct func_op : operation_conversion_pattern< hl::FuncOp >
+        struct func_op : one_to_one_conversion_pattern< hl::FuncOp, ll::FuncOp >
         {
-            using base = operation_conversion_pattern< hl::FuncOp >;
+            using base = one_to_one_conversion_pattern< hl::FuncOp, ll::FuncOp >;
             using base::base;
+
             using adaptor_t = hl::FuncOp::Adaptor;
 
             logical_result matchAndRewrite(
-                hl::FuncOp op, adaptor_t adaptor, conversion_rewriter &rewriter) const override
-            {
+                hl::FuncOp op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
                 return core::convert_and_replace_function< ll::FuncOp >(op, rewriter);
             }
-
-            static void legalize(conversion_target &target) {
-                target.addLegalOp< ll::FuncOp >();
-                target.addIllegalOp< hl::FuncOp >();
-            }
-
         };
     } // namespace pattern
 
@@ -41,8 +36,7 @@ namespace vast::conv::hltollfunc
         using base = ModuleConversionPassMixin< HLToLLFunc, HLToLLFuncBase >;
 
         static conversion_target create_conversion_target(mcontext_t &context) {
-            conversion_target target(context);
-            return target;
+            return { context };
         }
 
         static void populate_conversions(auto &cfg) {

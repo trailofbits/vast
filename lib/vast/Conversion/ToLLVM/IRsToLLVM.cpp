@@ -464,24 +464,23 @@ namespace vast::conv::irstollvm
         global_ref
     >;
 
-    template< typename Op >
-    struct func_op : base_pattern< Op >
+    template< typename op_t >
+    struct func_op : base_pattern< op_t >
     {
-        using op_t = Op;
         using base = base_pattern< op_t >;
         using base::base;
 
+        using adaptor_t = typename op_t::Adaptor;
+
+        using llvm_func_op = mlir::LLVM::LLVMFuncOp;
 
         logical_result matchAndRewrite(
-                op_t func_op, typename op_t::Adaptor ops,
-                conversion_rewriter &rewriter) const override
-        {
+            op_t func_op, adaptor_t ops, conversion_rewriter &rewriter
+        ) const override {
             auto &tc = this->type_converter();
-
             auto maybe_target_type = tc.convert_fn_t(func_op.getFunctionType());
             // TODO(irs-to-llvm): Handle varargs.
-            auto maybe_signature =
-                tc.get_conversion_signature(func_op, /* variadic */ true);
+            auto maybe_signature = tc.get_conversion_signature(func_op, /* variadic */ true);
 
             // Type converter failed.
             if (!maybe_target_type || !*maybe_target_type || !maybe_signature) {
@@ -500,25 +499,26 @@ namespace vast::conv::irstollvm
 
             // TODO(lukas): Linkage?
             auto linkage = LLVM::Linkage::External;
-            auto new_func = rewriter.create< LLVM::LLVMFuncOp >(
+            auto new_func = rewriter.create< llvm_func_op >(
                 func_op.getLoc(), func_op.getName(),
                 target_type, linkage,
                 func_op.isVarArg(), LLVM::CConv::C
             );
+
             rewriter.inlineRegionBefore(func_op.getBody(), new_func.getBody(), new_func.end());
             tc::convert_region_types(func_op, new_func, signature);
 
             if (mlir::failed(args_to_allocas(new_func, rewriter))) {
                 VAST_PATTERN_FAIL("Failed to convert func arguments");
             }
+
             rewriter.eraseOp(func_op);
             return logical_result::success();
         }
 
         logical_result args_to_allocas(
-                mlir::LLVM::LLVMFuncOp fn,
-                conversion_rewriter &rewriter) const
-        {
+            llvm_func_op fn, conversion_rewriter &rewriter
+        ) const {
             if (fn.empty())
                 return logical_result::success();
 
@@ -1029,28 +1029,31 @@ namespace vast::conv::irstollvm
             op_t op, adaptor_t ops, conversion_rewriter &rewriter
         ) const override {
             auto caller = mlir::dyn_cast< VastCallOpInterface >(op.getOperation());
-            if (!caller)
+            if (!caller) {
                 return logical_result::failure();
+            }
 
             auto callee = caller.resolveCallable();
-            if (!callee)
+            if (!callee && !mlir::isa< mlir::FunctionOpInterface >(callee)) {
                 return logical_result::failure();
+            }
 
-            auto rtys = this->type_converter().convert_types_to_types(
-                    callee->getResultTypes());
-            if (!rtys)
+            auto fn = mlir::cast< mlir::FunctionOpInterface >(callee);
+            auto rtys = type_converter().convert_types_to_types(fn.getResultTypes());
+
+            if (!rtys) {
                 return logical_result::failure();
+            }
 
-            auto mk_call = [&](auto ... args)
-            {
-                return rewriter.create< mlir::LLVM::CallOp >(op.getLoc(), args ...);
+            auto mk_call = [&](auto... args) {
+                return rewriter.create< mlir::LLVM::CallOp >(op.getLoc(), args...);
             };
 
-            if (rtys->empty() || rtys->front().isa< mlir::LLVM::LLVMVoidType >())
-            {
+            if (rtys->empty() || rtys->front().isa< mlir::LLVM::LLVMVoidType >()) {
                 // We cannot pass in void type as some internal check inside `mlir::LLVM`
-                // dialect will fire - it would create a value of void type, which is not allowed.
-                mk_call(std::vector< mlir::Type >{}, op.getCallee(), ops.getOperands());
+                // dialect will fire - it would create a value of void type, which is not
+                // allowed.
+                mk_call(types_t{}, op.getCallee(), ops.getOperands());
                 rewriter.eraseOp(op);
             } else {
                 auto call = mk_call(*rtys, op.getCallee(), ops.getOperands());
