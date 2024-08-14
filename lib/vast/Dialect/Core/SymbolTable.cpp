@@ -68,8 +68,7 @@ namespace vast::core {
         VAST_ASSERT(can_hold_symbol_kind(kind));
         auto symbol_name = mlir::cast< symbol_base >(op).getSymbolName();
         VAST_ASSERT(symbol_tables.contains(kind));
-        VAST_ASSERT(!symbol_tables[kind].contains(symbol_name));
-        symbol_tables[kind][symbol_name] = op;
+        symbol_tables[kind][symbol_name].push_back(op);
     }
 
     string_ref symbol_attr_name() {
