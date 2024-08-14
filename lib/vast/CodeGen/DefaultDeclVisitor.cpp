@@ -8,6 +8,7 @@
 #include "vast/CodeGen/CodeGenFunction.hpp"
 
 #include "vast/Util/Maybe.hpp"
+#include <utility>
 
 namespace vast::cg
 {
@@ -268,8 +269,7 @@ namespace vast::cg
 
     operation default_decl_visitor::VisitFunctionDecl(const clang::FunctionDecl *decl) {
         auto gen = mk_scoped_generator< function_generator >(self.scope, bld, self);
-        gen.emit_strict_function_return = emit_strict_function_return;
-        gen.missing_return_policy = missing_return_policy;
+        gen.policy = policy;
         return gen.emit(decl);
     }
 
