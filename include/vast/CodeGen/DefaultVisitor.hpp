@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "vast/CodeGen/CodeGenPolicy.hpp"
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
 #include "vast/CodeGen/ClangVisitorBase.hpp"
 #include "vast/CodeGen/DefaultAttrVisitor.hpp"
@@ -9,7 +10,7 @@
 #include "vast/CodeGen/DefaultStmtVisitor.hpp"
 #include "vast/CodeGen/DefaultTypeVisitor.hpp"
 
-#include "vast/CodeGen/CodeGenFunction.hpp"
+#include <memory>
 
 namespace vast::cg
 {
@@ -22,8 +23,7 @@ namespace vast::cg
             , codegen_builder &bld
             , std::shared_ptr< meta_generator > mg
             , std::shared_ptr< symbol_generator > sg
-            , bool emit_strict_function_return
-            , missing_return_policy policy
+            , std::shared_ptr< policy_base > policy
         )
             : mctx(mctx)
             , actx(actx)
@@ -31,8 +31,7 @@ namespace vast::cg
             , self(head)
             , mg(std::move(mg))
             , sg(std::move(sg))
-            , emit_strict_function_return(emit_strict_function_return)
-            , missing_return_policy(policy)
+            , policy(std::move(policy))
         {}
 
         operation visit(const clang_decl *decl, scope_context &scope) override;
@@ -58,10 +57,7 @@ namespace vast::cg
 
         std::shared_ptr< meta_generator > mg;
         std::shared_ptr< symbol_generator > sg;
-
-        // FIXME: This should be store on single location
-        bool emit_strict_function_return;
-        missing_return_policy missing_return_policy;
+        std::shared_ptr< policy_base > policy;
     };
 
 

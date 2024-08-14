@@ -6,8 +6,7 @@ namespace vast::cg
 {
     operation default_visitor::visit(const clang_decl *decl, scope_context &scope) {
         default_decl_visitor visitor(mctx, bld, self, scope);
-        visitor.emit_strict_function_return = emit_strict_function_return;
-        visitor.missing_return_policy = missing_return_policy;
+        visitor.policy = policy;
         return visitor.visit(decl);
     }
 
