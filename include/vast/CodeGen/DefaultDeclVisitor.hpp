@@ -2,14 +2,15 @@
 
 #pragma once
 
+#include "vast/CodeGen/CodeGenPolicy.hpp"
 #include "vast/Util/Warnings.hpp"
+#include <memory>
 
 VAST_RELAX_WARNINGS
 #include <clang/AST/DeclVisitor.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/ClangVisitorBase.hpp"
-#include "vast/CodeGen/CodeGenFunction.hpp"
 
 #include "vast/CodeGen/CodeGenMetaGenerator.hpp"
 #include "vast/CodeGen/SymbolGenerator.hpp"
@@ -54,8 +55,7 @@ namespace vast::cg {
         template< typename RecordDeclOp >
         operation mk_record_decl(const clang::RecordDecl *decl);
 
-        bool emit_strict_function_return;
-        missing_return_policy missing_return_policy;
+        std::shared_ptr< policy_base > policy;
     };
 
     template< typename RecordDeclOp >
