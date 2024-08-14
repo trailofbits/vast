@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "vast/CodeGen/CodeGenPolicy.hpp"
 #include "vast/Util/Common.hpp"
 
 #include "vast/CodeGen/CodeGenBuilder.hpp"
@@ -10,12 +11,11 @@
 #include "vast/CodeGen/ScopeContext.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+#include <memory>
 
 namespace vast::cg {
 
     struct module_context;
-
-    enum class missing_return_policy { emit_unreachable, emit_trap };
 
     mlir_visibility get_function_visibility(const clang_function *decl, linkage_kind linkage);
     vast_function set_visibility(const clang_function *decl, vast_function fn);
@@ -46,8 +46,7 @@ namespace vast::cg {
         void emit_implicit_return_zero(const clang_function *decl);
         void emit_implicit_void_return(const clang_function *decl);
 
-        bool emit_strict_function_return;
-        missing_return_policy missing_return_policy;
+        std::shared_ptr< policy_base > policy;
     };
 
     //
