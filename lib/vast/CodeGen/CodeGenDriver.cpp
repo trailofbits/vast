@@ -1,6 +1,8 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
 #include "vast/CodeGen/CodeGenDriver.hpp"
+#include "vast/CodeGen/CodeGenPolicy.hpp"
+#include "vast/CodeGen/DefaultCodeGenPolicy.hpp"
 
 VAST_RELAX_WARNINGS
 #include <clang/AST/GlobalDecl.h>
@@ -25,7 +27,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/CoreOps.hpp"
 
 #include "vast/CodeGen/CodeGenModule.hpp"
-#include "vast/CodeGen/CodeGenFunction.hpp"
 
 namespace vast::cg {
 
@@ -109,12 +110,8 @@ namespace vast::cg {
         return std::make_shared< default_symbol_generator >(actx.createMangleContext());
     }
 
-    missing_return_policy get_missing_return_policy(cc::action_options &opts) {
-        if (opts.codegen.OptimizationLevel == 0) {
-            return missing_return_policy::emit_trap;
-        } else {
-            return missing_return_policy::emit_unreachable;
-        }
+    std::shared_ptr< policy_base > mk_policy(cc::action_options &opts) {
+        return std::make_shared< default_policy >(opts);
     }
 
     std::unique_ptr< driver > mk_default_driver(
@@ -127,15 +124,13 @@ namespace vast::cg {
 
         auto mg = mk_meta_generator(&actx, &mctx, vargs);
         auto sg = mk_symbol_generator(actx);
-
-        const bool strict_return = opts.codegen.StrictReturn;
-        const auto missing_return_policy = get_missing_return_policy(opts);
+        auto policy = mk_policy(opts);
 
         auto visitors = std::make_shared< visitor_list >()
             | as_node_with_list_ref< attr_visitor_proxy >()
             | as_node< type_caching_proxy >()
             | as_node_with_list_ref< default_visitor >(
-                mctx, actx, *bld, std::move(mg), std::move(sg), strict_return, missing_return_policy
+                mctx, actx, *bld, std::move(mg), std::move(sg), std::move(policy)
             )
             | optional(enable_unsupported, as_node_with_list_ref< unsup_visitor >(mctx, *bld))
             | as_node< unreach_visitor >();
