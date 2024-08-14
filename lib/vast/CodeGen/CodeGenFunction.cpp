@@ -213,7 +213,7 @@ namespace vast::cg
     bool function_generator::should_final_emit_unreachable(const clang_function *decl) const {
         auto rty  = decl->getReturnType();
         auto &actx = decl->getASTContext();
-        return emit_strict_function_return || may_drop_function_return(rty, actx);
+        return policy->emit_strict_function_return(decl) || may_drop_function_return(rty, actx);
     }
 
     void function_generator::deal_with_missing_return(const clang_function *decl, vast_function fn) {
@@ -234,7 +234,7 @@ namespace vast::cg
             //   function call is used by the caller, the behavior is undefined.
 
             // TODO: skip if SawAsmBlock
-            switch (missing_return_policy) {
+            switch (policy->missing_return_policy(decl)) {
                 case missing_return_policy::emit_trap:
                     emit_trap(decl);
                     break;
