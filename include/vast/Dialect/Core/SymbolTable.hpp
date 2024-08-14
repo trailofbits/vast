@@ -106,7 +106,7 @@ namespace vast::core {
     //
     struct symbol_table
     {
-        using single_symbol_kind_table = llvm::DenseMap< string_ref, operation >;
+        using single_symbol_kind_table = llvm::DenseMap< string_ref, llvm::SmallVector< operation > >;
 
         template< util::list_of_lists symbols_lists >
         explicit symbol_table(std::in_place_type_t< symbols_lists >, operation symbol_table_op)
@@ -211,15 +211,18 @@ namespace vast::core {
     template< symbol_op_interface symbol_kind >
     operation symbol_table::lookup(string_ref symbol_name) const {
         auto it = symbol_tables.find(get_symbol_kind< symbol_kind >);
-        if (it == symbol_tables.end())
+        if (it == symbol_tables.end()) {
             return {};
+        }
 
         auto &table = it->second;
         auto symbol = table.find(symbol_name);
-        if (symbol == table.end())
+        if (symbol == table.end()) {
             return {};
+        }
 
-        return symbol->second;
+        // FIXME: resolve redeclarations
+        return symbol->second.back();
     }
 
     std::optional< symbol_table > get_effective_symbol_table_for(operation from, symbol_kind kind);
