@@ -110,6 +110,19 @@ namespace vast {
         static void legalize(conversion_target &trg) { trg.addIllegalOp< op_t >(); }
     };
 
+    template< typename src_op, typename dst_op >
+    struct one_to_one_conversion_pattern
+        : operation_conversion_pattern< src_op >
+    {
+        using base = operation_conversion_pattern< src_op >;
+        using base::base;
+
+        static void legalize(conversion_target &trg) {
+            trg.addIllegalOp< src_op >();
+            trg.addLegalOp< dst_op >();
+        }
+    };
+
     struct llvm_pattern_utils
     {
         mlir_value iN(auto &rewriter, auto loc, mlir_type type, auto val) const {
