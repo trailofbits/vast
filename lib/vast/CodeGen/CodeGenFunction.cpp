@@ -120,13 +120,17 @@ namespace vast::cg
                     // If the user implements a function that is also a builtin,
                     // it might be visited multiple times
                     if (fn.getBody().empty()) {
-                        set_visibility(decl, fn);
-                        if (!decl->hasDefiningAttr()) {
-                            parent.declare_function_params(decl, fn);
-                            parent.emit_labels(decl, fn);
-                            parent.emit_body(decl, fn);
+                        if (!parent.policy->skip_function_body(decl)) {
+                            set_visibility(decl, fn);
+                            if (!decl->hasDefiningAttr()) {
+                                parent.declare_function_params(decl, fn);
+                                parent.emit_labels(decl, fn);
+                                parent.emit_body(decl, fn);
+                            }
+                        } else {
+                            auto visibility = mlir_visibility::Private;
+                            mlir::SymbolTable::setSymbolVisibility(fn, visibility);
                         }
-
                     }
                 });
             }
