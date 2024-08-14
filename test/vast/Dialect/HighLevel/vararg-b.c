@@ -8,8 +8,8 @@ typedef __builtin_va_list va_list;
 #define va_arg(ap, type)    __builtin_va_arg(ap, type)
 #define va_copy(dst, src)   __builtin_va_copy(dst, src)
 
-// CHECK: hl.typedef "__builtin_va_list"
-// CHECK: hl.typedef "va_list" : !hl.elaborated<!hl.typedef<"__builtin_va_list">>
+// CHECK: hl.typedef @__builtin_va_list
+// CHECK: hl.typedef @va_list : !hl.elaborated<!hl.typedef<"__builtin_va_list">>
 
 int average(int count, ...) {
 // CHECK: hl.func @{{.*}}average{{.*}}(%arg0: !hl.lvalue<!hl.int>, ...) -> !hl.int

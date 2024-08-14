@@ -229,6 +229,6 @@
 // CHECK-DAG: hl.func @copysignf external
 // CHECK-DAG: hl.func @copysignl external
 
-// CHECK-DAG: hl.typedef "float_t"
-// CHECK-DAG: hl.typedef "double_t"
+// CHECK-DAG: hl.typedef @float_t
+// CHECK-DAG: hl.typedef @double_t
 #include <math.h>

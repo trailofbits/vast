@@ -14,7 +14,7 @@ enum color { RED, GREEN, BLUE };
 // CHECK: hl.value.yield [[V2]] : !hl.elaborated<!hl.enum<"color">>
 enum color c = GREEN;
 
-// CHECK: hl.typedef "color" : !hl.elaborated<!hl.enum<"color">>
+// CHECK: hl.typedef @color : !hl.elaborated<!hl.enum<"color">>
 typedef enum color color;
 
 // CHECK: hl.var @tc : !hl.lvalue<!hl.elaborated<!hl.typedef<"color">>>

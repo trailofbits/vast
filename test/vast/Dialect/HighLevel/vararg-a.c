@@ -5,7 +5,7 @@
 
 // CHECK: hl.func @__builtin_va_end
 // CHECK: hl.func @__builtin_va_start
-// CHECK: hl.typedef "va_list"
+// CHECK: hl.typedef @va_list
 
 // CHECK: hl.func @format {{.*}} ({{%.*}}: !hl.lvalue<!hl.ptr<!hl.char< const >>>, ...) -> !hl.void
 void format(const char *fmt, ...) {

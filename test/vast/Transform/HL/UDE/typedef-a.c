@@ -3,7 +3,7 @@
 // CHECK: hl.struct "used"
 struct used {};
 
-// CHECK-NOT: hl.typedef "unused_typedef"
+// CHECK-NOT: hl.typedef @unused_typedef
 typedef struct used unused_typedef;
 
 int main() {

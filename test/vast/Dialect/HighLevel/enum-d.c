@@ -7,7 +7,7 @@ enum color { RED, GREEN, BLUE };
 // CHECK:  hl.enumref "RED" : !hl.int
 enum color r = RED;
 
-// CHECK: hl.typedef "color_t" : !hl.elaborated<!hl.enum<"color">>
+// CHECK: hl.typedef @color_t : !hl.elaborated<!hl.enum<"color">>
 // CHECK: hl.var @x : !hl.lvalue<!hl.elaborated<!hl.typedef<"color_t">>>
 // CHECK:  hl.enumref "GREEN" : !hl.int
 typedef enum color color_t;

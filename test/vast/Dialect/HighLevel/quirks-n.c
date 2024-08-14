@@ -3,13 +3,13 @@
 
 // adapted from https://gist.github.com/fay59/5ccbe684e6e56a7df8815c3486568f01
 
-// CHECK: hl.typedef "s16" : !hl.short
+// CHECK: hl.typedef @s16 : !hl.short
 short typedef signed s16;
-// CHECK: hl.typedef "u32" : !hl.int< unsigned >
+// CHECK: hl.typedef @u32 : !hl.int< unsigned >
 unsigned int typedef u32;
 // CHECK: hl.struct "foo"
 // CHECK:   hl.field "bar" : !hl.int
-// CHECK: hl.typedef "baz" : !hl.elaborated<!hl.record<"foo">,  const >
+// CHECK: hl.typedef @baz : !hl.elaborated<!hl.record<"foo">,  const >
 struct foo { int bar; } const typedef baz;
 
 // CHECK: hl.var @a : !hl.lvalue<!hl.elaborated<!hl.typedef<"s16">>>

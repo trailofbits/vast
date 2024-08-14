@@ -1,7 +1,7 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.typedef "INT" : !hl.int
+// CHECK: hl.typedef @INT : !hl.int
 typedef int INT;
 void fun(INT a, int b) {
     // CHECK: hl.assign.add [[X:%[0-9]+]] to [[Y:%[0-9]+]] : !hl.int, !hl.lvalue<[[LHS_T:!hl.elaborated<!hl.typedef<"INT">>]]> -> [[LHS_T]]
@@ -34,4 +34,3 @@ void fun(INT a, int b) {
     // CHECK: hl.assign [[X:%[0-9]+]] to [[Y:%[0-9]+]] : !hl.elaborated<!hl.typedef<"INT">>, !hl.lvalue<[[LHS_T:!hl.int]]> -> [[LHS_T]]
     b = a;
 }
-

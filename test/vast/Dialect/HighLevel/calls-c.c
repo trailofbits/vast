@@ -2,7 +2,7 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 // REQUIRES: typedef-pointer-like-inference
 
-// CHECK: hl.typedef "operation" : !hl.ptr<(!hl.int, !hl.int) -> !hl.int>
+// CHECK: hl.typedef @operation : !hl.ptr<(!hl.int, !hl.int) -> !hl.int>
 typedef int ( *operation ) ( int, int );
 
 int apply( operation op, int a, int b )

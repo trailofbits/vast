@@ -8,8 +8,7 @@ enum E : int {
     E_b = 1
 };
 
-// ENUM: module{{.*}}
-// ENUM-NEXT: hl.func{{.*}}
+// ENUM: hl.func{{.*}}
 int main() {
 
     // ENUM: {{.*}} = hl.var @a : !hl.lvalue<!hl.int> = {

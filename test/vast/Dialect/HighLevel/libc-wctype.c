@@ -21,7 +21,7 @@
 // CHECK-DAG: hl.func @towctrans
 // CHECK-DAG: hl.func @wctrans
 
-// CHECK-DAG: hl.typedef "wctrans_t"
-// CHECK-DAG: hl.typedef "wctype_t"
+// CHECK-DAG: hl.typedef @wctrans_t
+// CHECK-DAG: hl.typedef @wctype_t
 
 #include <wctype.h>

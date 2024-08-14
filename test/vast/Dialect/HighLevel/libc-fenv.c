@@ -1,8 +1,8 @@
 // RUN: %vast-front -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-front -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK-DAG: hl.typedef "fenv_t"
-// CHECK-DAG: hl.typedef "fexcept_t"
+// CHECK-DAG: hl.typedef @fenv_t
+// CHECK-DAG: hl.typedef @fexcept_t
 // CHECK-DAG: hl.func @feclearexcept
 // CHECK-DAG: hl.func @fetestexcept
 // CHECK-DAG: hl.func @feraiseexcept

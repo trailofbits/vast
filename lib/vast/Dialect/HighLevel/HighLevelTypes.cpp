@@ -71,7 +71,7 @@ namespace vast::hl
 
         // TODO: probably needs scope
         mod.walk([&] (TypeDefOp op) {
-            if (op.getName() == name) { result = op.getType(); }
+            if (op.getSymName() == name) { result = op.getType(); }
         });
 
         if (result) {

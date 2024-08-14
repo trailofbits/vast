@@ -13,7 +13,7 @@
 
 // CHECK-DAG: hl.struct "tm"
 // CHECK-DAG: hl.struct "timespec"
-// CHECK-DAG: hl.typedef "time_t"
-// CHECK-DAG: hl.typedef "clock_t"
+// CHECK-DAG: hl.typedef @time_t
+// CHECK-DAG: hl.typedef @clock_t
 
 #include <time.h>

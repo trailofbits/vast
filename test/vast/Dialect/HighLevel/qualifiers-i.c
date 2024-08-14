@@ -13,7 +13,7 @@ const union u cv;
 // CHECK: hl.var @cvv : !hl.lvalue<!hl.elaborated<!hl.record<"u">,  const, volatile >>
 const volatile union u cvv;
 
-// CHECK: hl.typedef "e" : !hl.elaborated<!hl.record<"u">>
+// CHECK: hl.typedef @e : !hl.elaborated<!hl.record<"u">>
 typedef union u e;
 
 // CHECK: hl.var @v : !hl.lvalue<!hl.elaborated<!hl.typedef<"e">>>
