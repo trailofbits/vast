@@ -197,6 +197,8 @@ namespace vast::cg
 
         bool has_allocator = decl->getType()->isVariableArrayType();
         bool has_init = decl->getInit();
+        bool is_global     = !decl->isLocalVarDeclOrParm();
+        bool emit_init     = has_init && !(is_global && policy->skip_global_initializer(decl));
 
         auto array_allocator = [this, decl](auto &state, auto loc) {
             if (auto type = clang::dyn_cast< clang::VariableArrayType >(decl->getType())) {
@@ -224,14 +226,14 @@ namespace vast::cg
                 // The initializer region is filled later as it might
                 // have references to the VarDecl we are currently
                 // visiting - int *x = malloc(sizeof(*x))
-                .bind_choose(has_init, [](auto, auto){}, std::nullopt)
+                .bind_choose(emit_init, [](auto, auto) {}, std::nullopt)
                 .bind_choose(has_allocator, std::move(array_allocator), std::nullopt)
                 .freeze_as_maybe() // construct global
                 .transform(set_storage_classes)
                 .take();
         });
 
-        if (decl->hasInit()) {
+        if (emit_init) {
             fill_init(decl->getInit(), var);
         }
 
