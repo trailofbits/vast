@@ -19,6 +19,9 @@ namespace vast::cg {
         missing_return_policy([[maybe_unused]] const clang_function *decl) const = 0;
 
         virtual bool skip_function_body([[maybe_unused]] const clang_function *decl) const = 0;
+
+        virtual bool skip_global_initializer([[maybe_unused]] const clang_var_decl *decl
+        ) const = 0;
     };
 
 } // namespace vast::cg
