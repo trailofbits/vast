@@ -3,6 +3,7 @@
 #include "vast/CodeGen/CodeGenDriver.hpp"
 #include "vast/CodeGen/CodeGenPolicy.hpp"
 #include "vast/CodeGen/DefaultCodeGenPolicy.hpp"
+#include "vast/CodeGen/InvalidMetaGenerator.hpp"
 
 VAST_RELAX_WARNINGS
 #include <clang/AST/GlobalDecl.h>
@@ -16,6 +17,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/CodeGen/AttrVisitorProxy.hpp"
 #include "vast/CodeGen/DataLayout.hpp"
 #include "vast/CodeGen/DefaultVisitor.hpp"
+#include "vast/CodeGen/CodeGenDriver.hpp"
+#include "vast/CodeGen/InvalidMetaGenerator.hpp"
 #include "vast/CodeGen/TypeCachingProxy.hpp"
 #include "vast/CodeGen/UnreachableVisitor.hpp"
 #include "vast/CodeGen/UnsupportedVisitor.hpp"
@@ -106,6 +109,10 @@ namespace vast::cg {
         return std::make_shared< default_meta_gen >(actx, mctx);
     }
 
+    std::shared_ptr< meta_generator > mk_invalid_meta_generator(mcontext_t *mctx) {
+        return std::make_shared< invalid_meta_gen >(mctx);
+    }
+
     std::shared_ptr< symbol_generator > mk_symbol_generator(acontext_t &actx) {
         return std::make_shared< default_symbol_generator >(actx.createMangleContext());
     }
@@ -123,6 +130,7 @@ namespace vast::cg {
         const bool enable_unsupported = !vargs.has_option(cc::opt::disable_unsupported);
 
         auto mg = mk_meta_generator(&actx, &mctx, vargs);
+        auto invalid_mg = mk_invalid_meta_generator(&mctx);
         auto sg = mk_symbol_generator(actx);
         auto policy = mk_codegen_policy(opts);
 
@@ -132,7 +140,7 @@ namespace vast::cg {
             | as_node_with_list_ref< default_visitor >(
                 mctx, actx, *bld, std::move(mg), std::move(sg), std::move(policy)
             )
-            | optional(enable_unsupported, as_node_with_list_ref< unsup_visitor >(mctx, *bld))
+            | optional(enable_unsupported, as_node_with_list_ref< unsup_visitor >(mctx, *bld, std::move(invalid_mg)))
             | as_node< unreach_visitor >();
 
         // setup driver
