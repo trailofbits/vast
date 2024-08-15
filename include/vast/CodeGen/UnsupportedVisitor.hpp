@@ -2,9 +2,11 @@
 
 #pragma once
 
+#include "vast/CodeGen/CodeGenMetaGenerator.hpp"
 #include "vast/Util/Warnings.hpp"
 
 #include <gap/core/crtp.hpp>
+#include <memory>
 
 #include "vast/CodeGen/CodeGenVisitorBase.hpp"
 
@@ -107,9 +109,11 @@ namespace vast::cg
         , unsup_type_visitor< unsup_visitor >
         , unsup_attr_visitor< unsup_visitor >
     {
-        unsup_visitor(visitor_base &head, mcontext_t &mctx, codegen_builder &bld)
-            : mctx(mctx), bld(bld), visitors_head(head)
-        {}
+        unsup_visitor(
+            visitor_base &head, mcontext_t &mctx, codegen_builder &bld,
+            std::shared_ptr< meta_generator > mg
+        )
+            : mctx(mctx), bld(bld), mg(std::move(mg)), visitors_head(head) {}
 
         operation visit(const clang_decl *decl, scope_context &scope) override {
             return unsup_decl_visitor::visit(decl, scope);
@@ -135,16 +139,16 @@ namespace vast::cg
             return unsup_decl_visitor::visit(decl, scope);
         }
 
-        std::optional< loc_t > location(const clang_decl *) override {
-            return mlir::UnknownLoc::get(&mctx);
+        std::optional< loc_t > location(const clang_decl *decl) override {
+            return mg->location(decl);
         }
 
-        std::optional< loc_t > location(const clang_stmt *) override {
-            return mlir::UnknownLoc::get(&mctx);
+        std::optional< loc_t > location(const clang_stmt *stmt) override {
+            return mg->location(stmt);
         }
 
-        std::optional< loc_t > location(const clang_expr *) override {
-            return mlir::UnknownLoc::get(&mctx);
+        std::optional< loc_t > location(const clang_expr *expr) override {
+            return mg->location(expr);
         }
 
         std::optional< symbol_name > symbol(clang_global decl) override {
@@ -163,6 +167,7 @@ namespace vast::cg
       protected:
         mcontext_t &mctx;
         codegen_builder &bld;
+        std::shared_ptr< meta_generator > mg;
         visitor_view visitors_head;
     };
 
