@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vast/CodeGen/CodeGenPolicy.hpp"
+#include "vast/CodeGen/Common.hpp"
 #include "vast/Frontend/Options.hpp"
 
 namespace vast::cg {
@@ -29,6 +30,11 @@ namespace vast::cg {
         bool skip_function_body([[maybe_unused]] const clang_function *decl) const override {
             return opts.front.SkipFunctionBodies;
         }
+
+        bool skip_global_initializer([[maybe_unused]] const clang_var_decl *decl
+        ) const override {
+            return false;
+        };
 
       protected:
         cc::action_options &opts;
