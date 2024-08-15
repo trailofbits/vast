@@ -128,6 +128,10 @@ namespace vast::cg
                                 parent.emit_body(decl, fn);
                             }
                         } else {
+                            // If we skip the function body, then we must set
+                            // the visibility to private because the verifier
+                            // will fail it it sees a public function
+                            // declaration without a body.
                             auto visibility = mlir_visibility::Private;
                             mlir::SymbolTable::setSymbolVisibility(fn, visibility);
                         }
