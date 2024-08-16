@@ -1,17 +1,13 @@
 // Copyright (c) 2024, Trail of Bits, Inc.
 
 #include "vast/CodeGen/DefaultDeclVisitor.hpp"
-#include "vast/CodeGen/DefaultTypeVisitor.hpp"
-
-#include "vast/Dialect/Core/Linkage.hpp"
-
 #include "vast/CodeGen/CodeGenFunction.hpp"
-
+#include "vast/CodeGen/DefaultTypeVisitor.hpp"
+#include "vast/Dialect/Core/Linkage.hpp"
 #include "vast/Util/Maybe.hpp"
 #include <utility>
 
-namespace vast::cg
-{
+namespace vast::cg {
     bool unsupported(const clang_function *decl) {
         if (clang::isa< clang::CXXConstructorDecl >(decl)) {
             VAST_REPORT("Unsupported constructor declaration");
@@ -86,7 +82,9 @@ namespace vast::cg
         auto &actx = decl->getASTContext();
         auto &lang = actx.getLangOpts();
 
-        if (lang.OpenCL || lang.OpenMPIsTargetDevice || lang.CUDA || lang.CUDAIsDevice || lang.OpenMP) {
+        if (lang.OpenCL || lang.OpenMPIsTargetDevice || lang.CUDA || lang.CUDAIsDevice
+            || lang.OpenMP)
+        {
             VAST_REPORT("Unsupported function declaration in the language");
             return true;
         }
@@ -118,7 +116,6 @@ namespace vast::cg
             }
         }
 
-
         return false;
     }
 
@@ -134,13 +131,14 @@ namespace vast::cg
         return bld.compose< vast_function >()
             .bind(self.location(decl))
             .bind(self.symbol(decl))
-            .bind_dyn_cast< vast_function_type >(visit_function_type(self, mctx, decl->getFunctionType(), decl->isVariadic()))
+            .bind_dyn_cast< vast_function_type >(
+                visit_function_type(self, mctx, decl->getFunctionType(), decl->isVariadic())
+            )
             .bind_always(core::get_function_linkage(decl))
             .freeze_as_maybe() // construct vast_function
-            .transform([&] (auto fn) { return set_visibility(decl, fn); })
+            .transform([&](auto fn) { return set_visibility(decl, fn); })
             .take();
     }
-
 
     //
     // Variable Declaration
@@ -148,29 +146,39 @@ namespace vast::cg
 
     hl::StorageClass storage_class(const clang_var_decl *decl) {
         switch (decl->getStorageClass()) {
-            case clang::SC_None: return hl::StorageClass::sc_none;
-            case clang::SC_Auto: return hl::StorageClass::sc_auto;
-            case clang::SC_Static: return hl::StorageClass::sc_static;
-            case clang::SC_Extern: return hl::StorageClass::sc_extern;
-            case clang::SC_PrivateExtern: return hl::StorageClass::sc_private_extern;
-            case clang::SC_Register: return hl::StorageClass::sc_register;
+            case clang::SC_None:
+                return hl::StorageClass::sc_none;
+            case clang::SC_Auto:
+                return hl::StorageClass::sc_auto;
+            case clang::SC_Static:
+                return hl::StorageClass::sc_static;
+            case clang::SC_Extern:
+                return hl::StorageClass::sc_extern;
+            case clang::SC_PrivateExtern:
+                return hl::StorageClass::sc_private_extern;
+            case clang::SC_Register:
+                return hl::StorageClass::sc_register;
         }
         VAST_UNIMPLEMENTED_MSG("unknown storage class");
     }
 
     hl::TSClass thread_storage_class(const clang_var_decl *decl) {
         switch (decl->getTSCSpec()) {
-            case clang::TSCS_unspecified: return hl::TSClass::tsc_none;
-            case clang::TSCS___thread: return hl::TSClass::tsc_gnu_thread;
-            case clang::TSCS_thread_local: return hl::TSClass::tsc_cxx_thread;
-            case clang::TSCS__Thread_local: return hl::TSClass::tsc_c_thread;
+            case clang::TSCS_unspecified:
+                return hl::TSClass::tsc_none;
+            case clang::TSCS___thread:
+                return hl::TSClass::tsc_gnu_thread;
+            case clang::TSCS_thread_local:
+                return hl::TSClass::tsc_cxx_thread;
+            case clang::TSCS__Thread_local:
+                return hl::TSClass::tsc_c_thread;
         }
         VAST_UNIMPLEMENTED_MSG("unknown thread storage class");
     }
 
     bool unsupported(const clang_var_decl *decl) {
         auto &actx = decl->getASTContext();
-        auto lang = actx.getLangOpts();
+        auto lang  = actx.getLangOpts();
 
         if (decl->hasInit() && lang.CPlusPlus) {
             VAST_REPORT("Unsupported variable declaration with initializer in C++");
@@ -196,7 +204,7 @@ namespace vast::cg
         }
 
         bool has_allocator = decl->getType()->isVariableArrayType();
-        bool has_init = decl->getInit();
+        bool has_init      = decl->getInit();
         bool is_global     = !decl->isLocalVarDeclOrParm();
         bool emit_init     = has_init && !(is_global && policy->skip_global_initializer(decl));
 
@@ -206,7 +214,7 @@ namespace vast::cg
             }
         };
 
-        auto set_storage_classes = [&] (auto var) {
+        auto set_storage_classes = [&](auto var) {
             if (auto sc = storage_class(decl); sc != hl::StorageClass::sc_none) {
                 var.setStorageClass(sc);
             }
@@ -226,7 +234,9 @@ namespace vast::cg
                 // The initializer region is filled later as it might
                 // have references to the VarDecl we are currently
                 // visiting - int *x = malloc(sizeof(*x))
-                .bind_choose(emit_init, [](auto, auto) {}, std::nullopt)
+                .bind_choose(
+                    emit_init, [](auto, auto) {}, std::nullopt
+                )
                 .bind_choose(has_allocator, std::move(array_allocator), std::nullopt)
                 .freeze_as_maybe() // construct global
                 .transform(set_storage_classes)
@@ -261,21 +271,24 @@ namespace vast::cg
         return {};
     }
 
-    operation default_decl_visitor::VisitImplicitParamDecl(const clang::ImplicitParamDecl */* decl */) {
+    operation
+    default_decl_visitor::VisitImplicitParamDecl(const clang::ImplicitParamDecl * /* decl */) {
         return {};
     }
 
-    operation default_decl_visitor::VisitLinkageSpecDecl(const clang::LinkageSpecDecl */* decl */) {
+    operation
+    default_decl_visitor::VisitLinkageSpecDecl(const clang::LinkageSpecDecl * /* decl */) {
         return {};
     }
 
     operation default_decl_visitor::VisitFunctionDecl(const clang::FunctionDecl *decl) {
-        auto gen = mk_scoped_generator< function_generator >(self.scope, bld, self);
+        auto gen   = mk_scoped_generator< function_generator >(self.scope, bld, self);
         gen.policy = policy;
         return gen.emit(decl);
     }
 
-    operation default_decl_visitor::VisitTranslationUnitDecl(const clang::TranslationUnitDecl *decl) {
+    operation
+    default_decl_visitor::VisitTranslationUnitDecl(const clang::TranslationUnitDecl *decl) {
         return bld.compose< hl::TranslationUnitOp >()
             .bind(self.location(decl))
             .bind_always(mk_decl_context_builder(decl))
@@ -363,9 +376,7 @@ namespace vast::cg
                     .freeze();
             }
 
-            auto constants = [&] (auto &bld, auto loc) {
-                fill_enum_constants(decl);
-            };
+            auto constants = [&](auto &bld, auto loc) { fill_enum_constants(decl); };
 
             return bld.compose< hl::EnumDeclOp >()
                 .bind(self.location(decl))
@@ -378,7 +389,7 @@ namespace vast::cg
 
     operation default_decl_visitor::VisitEnumConstantDecl(const clang::EnumConstantDecl *decl) {
         return maybe_declare([&] {
-            auto initializer = [&] (auto & /* bld */, auto loc) {
+            auto initializer = [&](auto & /* bld */, auto loc) {
                 bld.compose< hl::ValueYieldOp >()
                     .bind_always(loc)
                     .bind_transform(self.visit(decl->getInitExpr()), first_result)
@@ -400,8 +411,9 @@ namespace vast::cg
         // TODO deduplicate lookup mechanism
         for (auto *decl : decl->decls()) {
             // FIXME: Handle IndirectFieldDecl.
-            if (clang::isa< clang::IndirectFieldDecl >(decl))
+            if (clang::isa< clang::IndirectFieldDecl >(decl)) {
                 continue;
+            }
             self.visit(decl);
         }
     }
@@ -422,7 +434,7 @@ namespace vast::cg
         return {};
     }
 
-    operation default_decl_visitor::VisitFieldDecl(const clang::FieldDecl *decl)  {
+    operation default_decl_visitor::VisitFieldDecl(const clang::FieldDecl *decl) {
         // define field type if the field defines a new nested type
         if (auto tag = decl->getType()->getAsTagDecl()) {
             if (tag->isThisDeclarationADefinition()) {
@@ -449,8 +461,9 @@ namespace vast::cg
         });
     }
 
-    operation default_decl_visitor::VisitIndirectFieldDecl(const clang::IndirectFieldDecl *decl) {
+    operation default_decl_visitor::VisitIndirectFieldDecl(const clang::IndirectFieldDecl *decl
+    ) {
         return {};
     }
 
-} // namespace vast::hl
+} // namespace vast::cg
