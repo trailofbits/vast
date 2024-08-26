@@ -81,7 +81,9 @@ namespace vast::repl
 } // namespace vast::repl
 
 int main(int argc, char **argv) try {
-    mlir::registerAllPasses();
+    mlir::LLVM::registerLLVMPasses();
+    mlir::registerTransformsPasses();
+
     // Register VAST passes here
     vast::hl::registerHighLevelPasses();
     vast::registerConversionPasses();

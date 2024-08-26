@@ -26,7 +26,8 @@ VAST_UNRELAX_WARNINGS
 
 int main(int argc, char **argv)
 {
-    mlir::registerAllPasses();
+    mlir::LLVM::registerLLVMPasses();
+
     // Register VAST passes here
     vast::hl::registerHighLevelPasses();
     vast::registerConversionPasses();
