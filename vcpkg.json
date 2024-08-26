@@ -1,11 +1,19 @@
 {
     "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-    "dependencies": [
-        {
-            "name": "gap",
-            "features": [
-                "sarif"
+    "features": {
+        "sarif": {
+            "description": "Enables SARIF output support",
+            "dependencies": [
+                {
+                    "name": "gap",
+                    "features": [
+                        "sarif"
+                    ]
+                }
             ]
         }
+    },
+    "dependencies": [
+        "gap"
     ]
 }

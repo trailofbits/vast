@@ -305,6 +305,20 @@ target_link_libraries(vast_settings
     "$<BUILD_LOCAL_INTERFACE:gap::gap-mlir>"
 )
 
+if (sarif IN_LIST VCPKG_MANIFEST_FEATURES)
+  option(VAST_ENABLE_SARIF "Enable SARIF export" ON)
+else()
+  option(VAST_ENABLE_SARIF "Enable SARIF export" OFF)
+endif()
+
+if (VAST_ENABLE_SARIF)
+  target_link_libraries(vast_settings
+    INTERFACE
+      "$<BUILD_LOCAL_INTERFACE:gap::gap-sarif>"
+  )
+  target_compile_definitions(vast_settings INTERFACE VAST_ENABLE_SARIF)
+endif()
+
 #
 # VAST libraries
 #

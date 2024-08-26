@@ -110,9 +110,7 @@ namespace vast::cc {
 
     void vast_consumer::HandleVTable(clang::CXXRecordDecl * /* decl */) { VAST_UNIMPLEMENTED; }
 
-    owning_mlir_module_ref vast_consumer::result() {
-        return driver->freeze();
-    }
+    owning_mlir_module_ref vast_consumer::result() { return driver->freeze(); }
 
     //
     // vast stream consumer
@@ -162,8 +160,8 @@ namespace vast::cc {
         process_mlir_module(target_dialect::llvm, mod.get());
 
         auto final_mlir_module = mlir::cast< mlir_module >(mod->getBody()->front());
-        auto llvm_mod = target::llvmir::translate(final_mlir_module, llvm_context);
-        auto dl  = driver->acontext().getTargetInfo().getDataLayoutString();
+        auto llvm_mod          = target::llvmir::translate(final_mlir_module, llvm_context);
+        auto dl                = driver->acontext().getTargetInfo().getDataLayoutString();
 
         clang::EmitBackendOutput(
             opts.diags, opts.headers, opts.codegen, opts.target, opts.lang, dl, llvm_mod.get(),
@@ -184,8 +182,9 @@ namespace vast::cc {
         };
     }
 
-    struct sarif_diag_handler {
-        gap::sarif::run& sarif_run;
+    struct sarif_diag_handler
+    {
+        gap::sarif::run &sarif_run;
 
         void operator()(mlir::Diagnostic &diag) const {
             gap::sarif::result result{
@@ -204,7 +203,7 @@ namespace vast::cc {
                 {
                     result.locations.push_back(
                         { .physicalLocation{ get_physical_loc(flc_child_loc) },
-                            .logicalLocations{ { .name = name_loc.getName().str() } } }
+                          .logicalLocations{ { .name = name_loc.getName().str() } } }
                     );
                 }
             }
@@ -229,9 +228,7 @@ namespace vast::cc {
     };
 #endif // VAST_ENABLE_SARIF
 
-    void vast_stream_consumer::process_mlir_module(
-        target_dialect target, mlir_module mod
-    ) {
+    void vast_stream_consumer::process_mlir_module(target_dialect target, mlir_module mod) {
         // Handle source manager properly given that lifetime analysis
         // might emit warnings and remarks.
         auto &src_mgr     = driver->acontext().getSourceManager();
@@ -270,7 +267,7 @@ namespace vast::cc {
                   .executionSuccessful = true,
                   }, },
         };
-        sarif_diag_handler diag_handler{sarif_run};
+        sarif_diag_handler diag_handler{ sarif_run };
 #endif // VAST_ENABLE_SARIF
 
         // Setup and execute vast pipeline
@@ -323,9 +320,8 @@ namespace vast::cc {
         // }
     }
 
-    void vast_stream_consumer::emit_mlir_output(
-        target_dialect target, owning_mlir_module_ref mod
-    ) {
+    void
+    vast_stream_consumer::emit_mlir_output(target_dialect target, owning_mlir_module_ref mod) {
         if (!output_stream || !mod) {
             return;
         }
