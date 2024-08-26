@@ -8,7 +8,6 @@ add_vast_library(Frontend
     Targets.cpp
 
     LINK_LIBS PUBLIC
-    gap::gap-sarif
     MLIRBytecodeWriter
     VASTCodeGen
 )

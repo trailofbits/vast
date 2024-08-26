@@ -31,6 +31,19 @@
             }
         },
         {
+            "name": "ci-nosarif",
+            "displayName": "Configure VAST for CI withour SARIF support",
+            "inherits": "ci"
+        },
+        {
+            "name": "ci-sarif",
+            "displayName": "Configure VAST for CI withour SARIF support",
+            "inherits": "ci",
+            "cacheVariables": {
+                "VCPKG_MANIFEST_FEATURES": "sarif"
+            }
+        },
+        {
             "name": "compiler-explorer",
             "displayName": "Configure VAST for Compiler Explorer",
             "binaryDir": "${sourceDir}/builds/${presetName}",
@@ -85,8 +98,12 @@
             "configuration": "RelWithDebInfo"
         },
         {
-            "name": "ci",
-            "configurePreset": "ci"
+            "name": "ci-nosarif",
+            "configurePreset": "ci-nosarif"
+        },
+        {
+            "name": "ci-sarif",
+            "configurePreset": "ci-sarif"
         },
         {
             "name": "ci-release",
@@ -157,8 +174,13 @@
             "configuration": "RelWithDebInfo"
         },
         {
-            "name": "ci",
-            "configurePreset": "ci",
+            "name": "ci-nosarif",
+            "configurePreset": "ci-nosarif",
+            "inherits": "test-base"
+        },
+        {
+            "name": "ci-sarif",
+            "configurePreset": "ci-sarif",
             "inherits": "test-base"
         }
     ],
