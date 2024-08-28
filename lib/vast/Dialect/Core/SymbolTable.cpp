@@ -20,9 +20,8 @@ namespace vast::core {
     }
 
     auto immediate_unrecognized_nested_symbols(operation table) {
-        auto self = mlir::cast< symbol_table_op_interface >(table);
-
-        auto not_recognized = [&](operation op) {
+        auto not_recognized = [table](operation op) {
+            auto self = mlir::cast< symbol_table_op_interface >(table);
             return !self.can_hold_operation(op);
         };
 
