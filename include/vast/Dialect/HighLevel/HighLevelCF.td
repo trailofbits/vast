@@ -8,7 +8,7 @@ include "mlir/Interfaces/ControlFlowInterfaces.td"
 include "vast/Dialect/Core/CoreTraits.td"
 include "vast/Interfaces/SymbolInterface.td"
 
-class ControlFlowOp< string mnemonic, list< Trait > traits = [] >
+class HighLevel_ControlFlowOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits,
         [NoTerminator, NoRegionArguments, DeclareOpInterfaceMethods<RegionKindInterface>]
       ) >
@@ -17,10 +17,12 @@ class ControlFlowOp< string mnemonic, list< Trait > traits = [] >
     let description = [{ VAST control flow operation }];
 }
 
-def HighLevel_CondYieldOp : HighLevel_Op< "cond.yield", [
-  // TODO(Heno): add ReturnLike trait
-  Terminator, ParentOneOf<["IfOp", "WhileOp", "ForOp", "DoOp", "CondOp", "BinaryCondOp"]>
-] > {
+def HighLevel_CondYieldOp
+  : HighLevel_Op< "cond.yield", [
+    // TODO(Heno): add ReturnLike trait
+    Terminator, ParentOneOf<["IfOp", "WhileOp", "ForOp", "DoOp", "CondOp", "BinaryCondOp"]>
+  ] >
+{
   let summary = "condition yield operation";
   let description = [{
       A condition yield operation is used to terminate the region representing
@@ -38,10 +40,12 @@ def HighLevel_CondYieldOp : HighLevel_Op< "cond.yield", [
   let assemblyFormat = [{ attr-dict $result `:` type($result) }];
 }
 
-def HighLevel_ValueYieldOp : HighLevel_Op< "value.yield", [
-  // TODO(Heno): add ReturnLike trait
-  Terminator
-] > {
+def HighLevel_ValueYieldOp
+  : HighLevel_Op< "value.yield", [
+    // TODO(Heno): add ReturnLike trait
+    Terminator
+  ] >
+{
   let summary = "value yield operation";
   let description = [{
       A value yield operation is used to terminate the case region of a switch
@@ -58,10 +62,12 @@ def HighLevel_ValueYieldOp : HighLevel_Op< "value.yield", [
   let assemblyFormat = [{ attr-dict $result `:` type($result) }];
 }
 
-def HighLevel_TypeYieldOp : HighLevel_Op< "type.yield", [
-  // TODO(Heno): add ReturnLike trait
-  Terminator
-] > {
+def HighLevel_TypeYieldOp
+  : HighLevel_Op< "type.yield", [
+    // TODO(Heno): add ReturnLike trait
+    Terminator
+  ] >
+{
   let summary = "type yield operation";
   let description = [{
       A type yield operation is used to terminate the underlying expression
@@ -80,7 +86,8 @@ def HighLevel_TypeYieldOp : HighLevel_Op< "type.yield", [
   let assemblyFormat = [{ attr-dict $result `:` type($result) }];
 }
 
-def HighLevel_IfOp : ControlFlowOp< "if" >
+def HighLevel_IfOp
+  : HighLevel_ControlFlowOp< "if" >
 {
   let summary = "VAST if statement";
   let description = [{
@@ -119,8 +126,9 @@ def HighLevel_IfOp : ControlFlowOp< "if" >
   let hasCustomAssemblyFormat = 1;
 }
 
-def HighLevel_CondOp : ControlFlowOp< "cond" >
-    , Results<(outs AnyType:$result)>
+def HighLevel_CondOp
+  : HighLevel_ControlFlowOp< "cond" >
+  , Results<(outs AnyType:$result)>
 {
   let summary = "VAST conditional statement";
   let description = [{
@@ -202,7 +210,8 @@ def HighLevel_BinaryCondOp
   let assemblyFormat = [{ attr-dict `:` type(results) $commonRegion `,` $condRegion `?` $thenRegion `:` $elseRegion }];
 }
 
-def HighLevel_WhileOp : ControlFlowOp< "while", [NoTerminator] >
+def HighLevel_WhileOp
+  : HighLevel_ControlFlowOp< "while", [NoTerminator] >
 {
   let summary = "VAST while statement";
   let description = [{
@@ -233,7 +242,8 @@ def HighLevel_WhileOp : ControlFlowOp< "while", [NoTerminator] >
 }
 
 
-def HighLevel_ForOp : ControlFlowOp< "for" >
+def HighLevel_ForOp
+  : HighLevel_ControlFlowOp< "for" >
 {
   let summary = "VAST for statement";
   let description = [{
@@ -271,7 +281,8 @@ def HighLevel_ForOp : ControlFlowOp< "for" >
   }];
 }
 
-def HighLevel_DoOp : ControlFlowOp< "do" >
+def HighLevel_DoOp
+  : HighLevel_ControlFlowOp< "do" >
 {
   let summary = "VAST do-while statement";
   let description = [{
@@ -302,7 +313,8 @@ def HighLevel_DoOp : ControlFlowOp< "do" >
   }];
 }
 
-def HighLevel_BreakOp : ControlFlowOp< "break", [SoftTerminatorTrait] >
+def HighLevel_BreakOp
+  : HighLevel_ControlFlowOp< "break", [SoftTerminatorTrait] >
 {
   let summary = "VAST break statement";
   let description = [{ VAST break statement }];
@@ -310,7 +322,8 @@ def HighLevel_BreakOp : ControlFlowOp< "break", [SoftTerminatorTrait] >
   let assemblyFormat = [{ attr-dict }];
 }
 
-def HighLevel_ContinueOp : ControlFlowOp< "continue", [SoftTerminatorTrait] >
+def HighLevel_ContinueOp
+  : HighLevel_ControlFlowOp< "continue", [SoftTerminatorTrait] >
 {
   let summary = "VAST continue statement";
   let description = [{ VAST continue statement }];
@@ -318,7 +331,8 @@ def HighLevel_ContinueOp : ControlFlowOp< "continue", [SoftTerminatorTrait] >
   let assemblyFormat = [{ attr-dict }];
 }
 
-def HighLevel_SwitchOp : ControlFlowOp< "switch" >
+def HighLevel_SwitchOp
+  : HighLevel_ControlFlowOp< "switch" >
 {
   let summary = "VAST switch statement";
   let description = [{
@@ -349,7 +363,8 @@ def HighLevel_SwitchOp : ControlFlowOp< "switch" >
   }];
 }
 
-def HighLevel_CaseOp : ControlFlowOp< "case" >
+def HighLevel_CaseOp
+  : HighLevel_ControlFlowOp< "case" >
 {
   let summary = "VAST case statement";
   let description = [{
@@ -380,7 +395,8 @@ def HighLevel_CaseOp : ControlFlowOp< "case" >
   let assemblyFormat = [{ $lhs $body attr-dict }];
 }
 
-def HighLevel_DefaultOp : ControlFlowOp< "default" >
+def HighLevel_DefaultOp
+  : HighLevel_ControlFlowOp< "default" >
 {
   let summary = "VAST default statement";
   let description = [{ VAST default statement }];
@@ -400,14 +416,14 @@ def HighLevel_DefaultOp : ControlFlowOp< "default" >
 def HighLevel_LabelDeclOp
   : HighLevel_Op< "label.decl", [LabelSymbol] >
   , Arguments<(ins StrAttr:$name)>
-  , Results<(outs LabelType:$result)>
+  , Results<(outs HighLevel_LabelType:$result)>
 {
   let assemblyFormat = [{ $name attr-dict `:` type($result) }];
 }
 
 def HighLevel_LabelStmt
-  : ControlFlowOp< "label" >
-  , Arguments<(ins LabelType:$label)>
+  : HighLevel_ControlFlowOp< "label" >
+  , Arguments<(ins HighLevel_LabelType:$label)>
 {
   let regions = (region AnyRegion:$body);
 
@@ -424,7 +440,7 @@ def HighLevel_LabelStmt
 
 def HighLevel_GotoStmt
   : HighLevel_Op< "goto", [] >
-  , Arguments<(ins LabelType:$label)>
+  , Arguments<(ins HighLevel_LabelType:$label)>
 {
   let assemblyFormat = [{ $label attr-dict }];
 }

@@ -18,7 +18,7 @@ include "vast/Dialect/Core/Utils.td"
 //
 // Generic high-level type
 //
-class HighLevelType< string name, list<Trait> traits = []>
+class HighLevel_Type< string name, list<Trait> traits = []>
   : TypeDef< HighLevel_Dialect, name,
     !listconcat(traits, [
       DataLayoutTypeInterface,
@@ -31,7 +31,9 @@ class HighLevelType< string name, list<Trait> traits = []>
 // Type qualifiers
 //
 
-class QualifierParam< string name, string desc > : OptionalParameter<"bool", desc> {
+class HighLevel_QualifierParam< string name, string desc >
+  : OptionalParameter< "bool", desc >
+{
   let printer = [{ $_printer << ($_self ? "}] # name # [{" : ""); }];
   let parser = [{ [&] () -> mlir::FailureOr<bool> {
     return succeeded($_parser.parseOptionalKeyword( "}] # name # [{" )); } ()
@@ -41,36 +43,47 @@ class QualifierParam< string name, string desc > : OptionalParameter<"bool", des
 //
 // high-level language qualifiers
 //
-def ConstParam    : QualifierParam<    "const", "const qualifier" >;
-def VolatileParam : QualifierParam< "volatile", "volatile qualifier" >;
-def RestrictParam : QualifierParam< "restrict", "restrict qualifier" >;
+def HighLevel_ConstParam    : HighLevel_QualifierParam<    "const", "const qualifier" >;
+def HighLevel_VolatileParam : HighLevel_QualifierParam< "volatile", "volatile qualifier" >;
+def HighLevel_RestrictParam : HighLevel_QualifierParam< "restrict", "restrict qualifier" >;
 
-def UnsignedParam : QualifierParam< "unsigned", "unsigned qualifier" >;
+def HighLevel_UnsignedParam : HighLevel_QualifierParam< "unsigned", "unsigned qualifier" >;
 
-class Qualifier< dag qualifier, list<Trait> traits > {
+class HighLevel_Qualifier< dag qualifier, list<Trait> traits > {
   dag param = qualifier;
 
   list<Trait> interface = traits;
 }
 
-def ConstQualifier    : Qualifier< (ins ConstParam:$is_const), [ConstQualifierInterface] > {}
-def VolatileQualifier : Qualifier< (ins VolatileParam:$is_volatile), [VolatileQualifierInterface] > {}
-def RestrictQualifier : Qualifier< (ins RestrictParam:$is_restrict), [RestrictQualifierInterface] > {}
+def HighLevel_ConstQualifier    : HighLevel_Qualifier<
+  (ins HighLevel_ConstParam:$is_const), [ConstQualifierInterface]
+> {}
 
-def UnsignedQualifier : Qualifier< (ins UnsignedParam:$is_unsigned), [UnsignedQualifierInterface] > {}
+def HighLevel_VolatileQualifier : HighLevel_Qualifier<
+  (ins HighLevel_VolatileParam:$is_volatile), [VolatileQualifierInterface]
+> {}
 
-class FlattenList< list<list<Trait>> traits > {
+def HighLevel_RestrictQualifier : HighLevel_Qualifier<
+  (ins HighLevel_RestrictParam:$is_restrict), [RestrictQualifierInterface]
+> {}
+
+def HighLevel_UnsignedQualifier : HighLevel_Qualifier<
+  (ins HighLevel_UnsignedParam:$is_unsigned), [UnsignedQualifierInterface]
+> {}
+
+// TODO move to tablegen utilities
+class VAST_FlattenList< list<list<Trait>> traits > {
   list<Trait> result = !foldl([]<Trait>, traits, res, trait, !listconcat(res, trait));
 }
 
-class FlattenInsList< list<dag> dags > {
+class VAST_FlattenInsList< list<dag> dags > {
   dag result = !foldl((ins), dags, res, elem, !con(res, elem));
 }
 
-class QualfiersParams< string name, list<Qualifier> qualifiers>
-  : HighLevel_Attr< name, "quals", FlattenList< !foreach(qual, qualifiers, qual.interface) >.result >
+class HighLevel_QualfiersParams< string name, list< HighLevel_Qualifier > qualifiers>
+  : HighLevel_Attr< name, "quals", VAST_FlattenList< !foreach(qual, qualifiers, qual.interface) >.result >
 {
-  let parameters = FlattenInsList< !foreach(qual, qualifiers, qual.param) >.result;
+  let parameters = VAST_FlattenInsList< !foreach(qual, qualifiers, qual.param) >.result;
 
   // See commit `3dbac2c007c11` in the upstream.
   string attrName = name;
@@ -78,12 +91,20 @@ class QualfiersParams< string name, list<Qualifier> qualifiers>
   let assemblyFormat = "params ` `";
 }
 
-def CVQualifiers  : QualfiersParams< "CVQualifiers",  [ConstQualifier, VolatileQualifier] > {}
-def UCVQualifiers : QualfiersParams< "UCVQualifiers", [UnsignedQualifier, ConstQualifier, VolatileQualifier] > {}
-def CVRQualifiers : QualfiersParams< "CVRQualifiers", [ConstQualifier, VolatileQualifier, RestrictQualifier] > {}
+def HighLevel_CVQualifiers  : HighLevel_QualfiersParams< "CVQualifiers",
+  [HighLevel_ConstQualifier, HighLevel_VolatileQualifier]
+> {}
 
-class QualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
-  : HighLevelType< name, traits >
+def HighLevel_UCVQualifiers : HighLevel_QualfiersParams< "UCVQualifiers",
+  [HighLevel_UnsignedQualifier, HighLevel_ConstQualifier, HighLevel_VolatileQualifier]
+> {}
+
+def HighLevel_CVRQualifiers : HighLevel_QualfiersParams< "CVRQualifiers",
+  [HighLevel_ConstQualifier, HighLevel_VolatileQualifier, HighLevel_RestrictQualifier]
+> {}
+
+class HighLevel_QualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
+  : HighLevel_Type< name, traits >
 {
   let mnemonic = mnem;
 
@@ -92,22 +113,22 @@ class QualifiedType< string name, string mnem, dag params = (ins), list<Trait> t
   let assemblyFormat = "(`<` $quals^ `>`)?";
 }
 
-class CVQualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
-  : QualifiedType< name, mnem, !con(params, (ins OptionalParameter< "CVQualifiersAttr" >:$quals)), traits >
+class HighLevel_CVQualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
+  : HighLevel_QualifiedType< name, mnem, !con(params, (ins OptionalParameter< "CVQualifiersAttr" >:$quals)), traits >
 {}
 
-class UCVQualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
-  : QualifiedType< name, mnem, !con(params, (ins OptionalParameter< "UCVQualifiersAttr" >:$quals)), traits >
+class HighLevel_UCVQualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
+  : HighLevel_QualifiedType< name, mnem, !con(params, (ins OptionalParameter< "UCVQualifiersAttr" >:$quals)), traits >
 {}
 
-class CVRQualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
-  : QualifiedType< name, mnem, !con(params, (ins OptionalParameter< "CVRQualifiersAttr" >:$quals)), traits >
+class HighLevel_CVRQualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
+  : HighLevel_QualifiedType< name, mnem, !con(params, (ins OptionalParameter< "CVRQualifiersAttr" >:$quals)), traits >
 {}
 
 //
 // Tagged types and utils
 //
-def RecordType : CVQualifiedType<
+def HighLevel_RecordType : HighLevel_CVQualifiedType<
   "Record", "record", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
 > {
 
@@ -120,7 +141,7 @@ def RecordType : CVQualifiedType<
   let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
 }
 
-def EnumType : CVQualifiedType<
+def HighLevel_EnumType : HighLevel_CVQualifiedType<
   "Enum", "enum", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
 > {
   let builders = [
@@ -132,7 +153,7 @@ def EnumType : CVQualifiedType<
   let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
 }
 
-def TypedefType : CVRQualifiedType<
+def HighLevel_TypedefType : HighLevel_CVRQualifiedType<
   "Typedef", "typedef", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface, TypedefTrait]
 > {
   let builders = [
@@ -144,7 +165,7 @@ def TypedefType : CVRQualifiedType<
   let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
 }
 
-def ElaboratedType : CVRQualifiedType<
+def HighLevel_ElaboratedType : HighLevel_CVRQualifiedType<
   "Elaborated", "elaborated", (ins "Type":$elementType), [ElementTypeInterface, MemRefElementTypeInterface]
 > {
   let builders = [
@@ -156,33 +177,33 @@ def ElaboratedType : CVRQualifiedType<
   let assemblyFormat = "`<` $elementType (`,` $quals^ )? `>`";
 }
 
-def LabelType : HighLevelType< "Label" > {
+def HighLevel_LabelType : HighLevel_Type< "Label" > {
   let mnemonic = "label";
 }
 
-def ParenType : HighLevelType< "Paren", [ElementTypeInterface, MemRefElementTypeInterface] > {
+def HighLevel_ParenType : HighLevel_Type< "Paren", [ElementTypeInterface, MemRefElementTypeInterface] > {
   let mnemonic = "paren";
   let parameters = (ins "Type":$elementType);
   let assemblyFormat = "`<` $elementType `>`";
 }
 
-class ElaboratedType< TypeConstraint value > : Type<
+class HighLevel_ElaboratedType< TypeConstraint value > : Type<
   And< [
-    ElaboratedType.predicate,
+    HighLevel_ElaboratedType.predicate,
     SubstLeaves< "$_self", "$_self.cast< ElaboratedType >().getElementType()", value.predicate >
   ] >
 >;
 
-class TypeOrElaboratedType< TypeConstraint value > : Type<
+class HighLevel_TypeOrElaboratedType< TypeConstraint value > : Type<
   Or< [
     value.predicate,
-    ElaboratedType< value >.predicate
+    HighLevel_ElaboratedType< value >.predicate
   ]>
 >;
 
-class TypeWithSubType<string name, string mnem> : HighLevelType< name,
-  [ElementTypeInterface]
-> {
+class HighLevel_TypeWithSubType<string name, string mnem>
+  : HighLevel_Type< name, [ElementTypeInterface] >
+{
   let mnemonic = mnem;
 
   let parameters = (ins
@@ -195,16 +216,16 @@ class TypeWithSubType<string name, string mnem> : HighLevelType< name,
 //
 // LValue high-level type and its utilities
 //
-def LValue : TypeWithSubType< "LValue", "lvalue" > { }
+def HighLevel_LValue : HighLevel_TypeWithSubType< "LValue", "lvalue" > { }
 
-class LValueOf<TypeConstraint value> : Type< And< [
-    LValue.predicate,
+class HighLevel_LValueOf<TypeConstraint value> : Type< And< [
+    HighLevel_LValue.predicate,
     SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()", value.predicate >
   ] >,
   "lvalue to " # value.summary
 >;
 
-class TypesOrLValueTypesMatch<string summary, string lhs, string rhs> : PredOpTrait< summary,
+class HighLevel_TypesOrLValueTypesMatch<string summary, string lhs, string rhs> : PredOpTrait< summary,
   Or<[
     TypesMatchWith< "underlying lvalue type does not match",
       lhs, rhs, "LValueType::get( $_ctxt, $_self )"
@@ -215,56 +236,60 @@ class TypesOrLValueTypesMatch<string summary, string lhs, string rhs> : PredOpTr
 //
 // RValue high-level type
 //
-def RValue : TypeWithSubType< "RValue", "rvalue" > { }
+def HighLevel_RValue : HighLevel_TypeWithSubType< "RValue", "rvalue" > { }
 
 //
 // Basic types
 //
-def VoidType : CVQualifiedType< "Void", "void", (ins), [VoidTrait] > {
+def HighLevel_VoidType
+  : HighLevel_CVQualifiedType< "Void", "void", (ins), [VoidTrait] >
+{
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
 
-def BoolType : CVQualifiedType< "Bool", "bool", (ins) > {
+def HighLevel_BoolType
+  : HighLevel_CVQualifiedType< "Bool", "bool", (ins) >
+{
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
 
 //
 // Integer types & traits
 //
-class IntegerType< string name, string mnemonic, list<Trait> traits = []>
-  : UCVQualifiedType< name, mnemonic, (ins),
+class HighLevel_IntegerType< string name, string mnemonic, list<Trait> traits = []>
+  : HighLevel_UCVQualifiedType< name, mnemonic, (ins),
     !listconcat(traits, [IntegralTypeTrait])
   >
 {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
 
-def CharType     : IntegerType< "Char", "char", [CharTypeTrait] >;
-def ShortType    : IntegerType< "Short", "short", [ShortTypeTrait] >;
-def IntType      : IntegerType< "Int", "int", [IntegerTypeTrait] >;
-def LongType     : IntegerType< "Long", "long", [LongTypeTrait] >;
-def LongLongType : IntegerType< "LongLong", "longlong", [LongLongTypeTrait] >;
-def Int128Type   : IntegerType< "Int128", "int128", [Int128TypeTrait] >;
+def HighLevel_CharType     : HighLevel_IntegerType< "Char", "char", [CharTypeTrait] >;
+def HighLevel_ShortType    : HighLevel_IntegerType< "Short", "short", [ShortTypeTrait] >;
+def HighLevel_IntType      : HighLevel_IntegerType< "Int", "int", [IntegerTypeTrait] >;
+def HighLevel_LongType     : HighLevel_IntegerType< "Long", "long", [LongTypeTrait] >;
+def HighLevel_LongLongType : HighLevel_IntegerType< "LongLong", "longlong", [LongLongTypeTrait] >;
+def HighLevel_Int128Type   : HighLevel_IntegerType< "Int128", "int128", [Int128TypeTrait] >;
 
 //
 // Floating point types & traits
 //
-class FloatingType< string name, string mnem, list<Trait> traits = []>
-  : CVQualifiedType< name, mnem, (ins),
+class HighLevel_FloatingType< string name, string mnem, list<Trait> traits = []>
+  : HighLevel_CVQualifiedType< name, mnem, (ins),
     !listconcat(traits, [FloatingTypeTrait])
   >
 {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
 
-def HalfType       : FloatingType< "Half", "half" >;
-def BFloat16Type   : FloatingType< "BFloat16", "bfloat16" >;
-def FloatType      : FloatingType< "Float", "float" >;
-def DoubleType     : FloatingType< "Double", "double" >;
-def LongDoubleType : FloatingType< "LongDouble", "longdouble" >;
-def Float128Type   : FloatingType< "Float128", "float128" >;
+def HighLevel_HalfType       : HighLevel_FloatingType< "Half", "half" >;
+def HighLevel_BFloat16Type   : HighLevel_FloatingType< "BFloat16", "bfloat16" >;
+def HighLevel_FloatType      : HighLevel_FloatingType< "Float", "float" >;
+def HighLevel_DoubleType     : HighLevel_FloatingType< "Double", "double" >;
+def HighLevel_LongDoubleType : HighLevel_FloatingType< "LongDouble", "longdouble" >;
+def HighLevel_Float128Type   : HighLevel_FloatingType< "Float128", "float128" >;
 
-def ComplexType : CVRQualifiedType<
+def HighLevel_ComplexType : HighLevel_CVRQualifiedType<
   "Complex", "complex"
   , (ins "Type":$elementType) > {
   let builders = [
@@ -278,7 +303,7 @@ def ComplexType : CVRQualifiedType<
 //
 // Memory related types & traits
 //
-def PointerType : CVRQualifiedType< "Pointer", "ptr",
+def HighLevel_PointerType : HighLevel_CVRQualifiedType< "Pointer", "ptr",
     (ins "Type":$elementType),
     [MemRefElementTypeInterface, PointerTypeTrait, ElementTypeInterface]
   >
@@ -293,12 +318,12 @@ def PointerType : CVRQualifiedType< "Pointer", "ptr",
   let assemblyFormat = "`<` $elementType (`,` $quals^ )? `>`";
 }
 
-def PointerLikeType : TypeConstraint< PointerType.predicate, "pointer like type" >;
+def HighLevel_PointerLikeType : TypeConstraint< HighLevel_PointerType.predicate, "pointer like type" >;
 
 //
 // Array types
 //
-class WithDimensionsClass
+class HighLevel_WithDimensionsClass
 {
   code default_dimensions_impl = [{
     using dimensions_t = std::vector< SizeParam >;
@@ -309,7 +334,9 @@ class WithDimensionsClass
   }];
 }
 
-def SizeParam : TypeParameter<"SizeParam", "size parameter for arrays"> {
+def HighLevel_SizeParam
+  : TypeParameter< "SizeParam", "size parameter for arrays" >
+{
   let printer = [{
     if ($_self.has_value())
       $_printer << $_self.value();
@@ -331,12 +358,12 @@ def SizeParam : TypeParameter<"SizeParam", "size parameter for arrays"> {
   }() }];
 }
 
-class ArrayLikeType< string name, string mnem, list<Trait> traits = [] >
-    : CVRQualifiedType< name, mnem,
-    (ins SizeParam:$size, "Type":$elementType),
+class HighLevel_ArrayLikeType< string name, string mnem, list<Trait> traits = [] >
+    : HighLevel_CVRQualifiedType< name, mnem,
+    (ins HighLevel_SizeParam:$size, "Type":$elementType),
     !listconcat(traits, [MemRefElementTypeInterface])
   >
-  , WithDimensionsClass
+  , HighLevel_WithDimensionsClass
 {
   let extraClassDeclaration = default_dimensions_impl;
 
@@ -349,10 +376,10 @@ class ArrayLikeType< string name, string mnem, list<Trait> traits = [] >
   let assemblyFormat = "`<` $size `,` $elementType (`,` $quals^ )? `>`";
 }
 
-def ArrayType  : ArrayLikeType< "Array", "array" >;
-def VectorType : ArrayLikeType< "Vector", "vector" >;
+def HighLevel_ArrayType  : HighLevel_ArrayLikeType< "Array", "array" >;
+def HighLevel_VectorType : HighLevel_ArrayLikeType< "Vector", "vector" >;
 
-def DecayedType : HighLevelType< "Decayed",
+def HighLevel_DecayedType : HighLevel_Type< "Decayed",
   [MemRefElementTypeInterface, ElementTypeInterface, PointerTypeTrait]
 > {
   let mnemonic = "decayed";
@@ -360,26 +387,27 @@ def DecayedType : HighLevelType< "Decayed",
   let assemblyFormat = "`<` $elementType `>`";
 }
 
-def SubscriptableType : TypeConstraint<
-  Or< [ArrayType.predicate, PointerType.predicate, DecayedType.predicate] >, "subscriptable type"
+// FIXME this should be trait of the type
+def HighLevel_SubscriptableType : TypeConstraint<
+  Or< [HighLevel_ArrayType.predicate, HighLevel_PointerType.predicate, HighLevel_DecayedType.predicate] >, "subscriptable type"
 >;
 
-def AttributedType : HighLevelType< "Attributed" > {
+def HighLevel_AttributedType : HighLevel_Type< "Attributed" > {
   let mnemonic = "attributed";
   // TODO: add attribute field
   let parameters = (ins "Type":$elementType);
   let assemblyFormat = "`<` $elementType `>`";
 }
 
-def AdjustedType : HighLevelType< "Adjusted" > {
+def HighLevel_AdjustedType : HighLevel_Type< "Adjusted" > {
   let mnemonic = "adjusted";
   let parameters = (ins "Type":$original, "Type":$adjusted);
   let assemblyFormat = "`<` $original `,` $adjusted `>`";
 }
 
-def ReferenceType : TypeWithSubType< "Reference", "reference" > { }
+def HighLevel_ReferenceType : HighLevel_TypeWithSubType< "Reference", "reference" > { }
 
-def TypeOfExprType : CVRQualifiedType<
+def HighLevel_TypeOfExprType : HighLevel_CVRQualifiedType<
   "TypeOfExpr", "typeof.expr"
   , (ins StringRefParameter<>:$name)
   , [MemRefElementTypeInterface, TypeOfTrait]
@@ -393,7 +421,7 @@ def TypeOfExprType : CVRQualifiedType<
   let assemblyFormat = "`<` $name (`,` $quals^ )? `>`";
 }
 
-def TypeOfType : CVRQualifiedType<
+def HighLevel_TypeOfType : HighLevel_CVRQualifiedType<
   "TypeOfType", "typeof.type"
   , (ins "Type":$unmodifiedType)
   , [MemRefElementTypeInterface, TypeOfTrait]
@@ -407,7 +435,7 @@ def TypeOfType : CVRQualifiedType<
   let assemblyFormat = "`<` $unmodifiedType (`,` $quals^ )? `>`";
 }
 
-def AutoType : CVRQualifiedType<
+def HighLevel_AutoType : HighLevel_CVRQualifiedType<
   "Auto", "auto",
   (ins OptionalParameter<"Type">:$deducedType), [MemRefElementTypeInterface]
 > {
@@ -425,7 +453,7 @@ def AutoType : CVRQualifiedType<
   let assemblyFormat = "`<` ( $deducedType^ )? (`,` $quals^ )? `>`";
 }
 
-def Atomic : CVRQualifiedType<
+def HighLevel_Atomic : HighLevel_CVRQualifiedType<
   "Atomic", "atomic"
   , (ins "Type":$elementType)
   , [MemRefElementTypeInterface]
@@ -441,64 +469,89 @@ def Atomic : CVRQualifiedType<
 
 // Utils with multiple dependencies
 
-def UnresolvedType : Type<
+// FIXME this should be trait of the type
+def HighLevel_UnresolvedType : Type<
   Or< [
-    TypeOrElaboratedType< TypedefType >.predicate,
-    TypeOrElaboratedType< TypeOfType >.predicate,
-    TypeOrElaboratedType< TypeOfExprType >.predicate,
-    TypeOrElaboratedType< AutoType >.predicate
+    HighLevel_TypeOrElaboratedType< HighLevel_TypedefType >.predicate,
+    HighLevel_TypeOrElaboratedType< HighLevel_TypeOfType >.predicate,
+    HighLevel_TypeOrElaboratedType< HighLevel_TypeOfExprType >.predicate,
+    HighLevel_TypeOrElaboratedType< HighLevel_AutoType >.predicate
   ] >
 >;
 
-class ContainsUnresolved< list< string > tl > : PredOpTrait< "contains unresolved type",
-    Or< !foreach(type, tl, SubstLeaves< "$_self", "$" # type #".getType()", UnresolvedType.predicate >) >
+class HighLevel_ContainsUnresolved< list< string > tl > : PredOpTrait< "contains unresolved type",
+    Or< !foreach(type, tl, SubstLeaves< "$_self", "$" # type #".getType()", HighLevel_UnresolvedType.predicate >) >
 >;
 
-class TypesMatchOrUnresolved< list< string > tl > : PredOpTrait<
+class HighLevel_TypesMatchOrUnresolved< list< string > tl > : PredOpTrait<
     "all types match or there is a typedef",
-    Or< [AllTypesMatch< tl >.predicate, ContainsUnresolved< tl >.predicate] >
+    Or< [AllTypesMatch< tl >.predicate, HighLevel_ContainsUnresolved< tl >.predicate] >
 >;
 
-def BoolLikeType : TypeConstraint<
-  Or< [BoolType.predicate, AnyI1.predicate, UnresolvedType.predicate] >,
+def HighLevel_BoolLikeType : TypeConstraint<
+  Or< [HighLevel_BoolType.predicate, AnyI1.predicate, HighLevel_UnresolvedType.predicate] >,
   "bool like type"
 >;
 
-class LValueOrType<TypeConstraint value> : Type<
+class HighLevel_LValueOrType<TypeConstraint value> : Type<
   Or< [
     And< [
-      LValue.predicate,
+      HighLevel_LValue.predicate,
       SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()",
-                   Or< [ value.predicate, UnresolvedType.predicate ] > >
+        Or< [ value.predicate, HighLevel_UnresolvedType.predicate ] >
+      >
     ] >,
     value.predicate,
-    UnresolvedType.predicate
+    HighLevel_UnresolvedType.predicate
   ] >,
   "lvalue to " # value.summary
 >;
 
-def HLIntegerType : AnyTypeOf<[
-  CharType, ShortType, IntType, LongType, LongLongType, Int128Type, UnresolvedType
+// FIXME this should be trait of the type
+def HighLevel_AnyIntegerType : AnyTypeOf<[
+  HighLevel_CharType,
+  HighLevel_ShortType,
+  HighLevel_IntType,
+  HighLevel_LongType,
+  HighLevel_LongLongType,
+  HighLevel_Int128Type,
+  HighLevel_UnresolvedType
 ]>;
 
-def IntegerLikeType : TypeConstraint<
-  Or< [HLIntegerType.predicate, AnyInteger.predicate,
-       UnresolvedType.predicate,
-       ElaboratedType<EnumType>.predicate] >,
+def HighLevel_IntegerLikeType : TypeConstraint<
+  Or< [
+    HighLevel_AnyIntegerType.predicate,
+    AnyInteger.predicate,
+    HighLevel_UnresolvedType.predicate,
+    HighLevel_ElaboratedType<HighLevel_EnumType>.predicate
+  ] >,
   "integer like type"
 >;
 
-def IntOrBoolType : TypeConstraint<
-  Or< [IntegerLikeType.predicate, BoolLikeType.predicate] >,
+def HighLevel_IntOrBoolType : TypeConstraint<
+  Or< [
+    HighLevel_IntegerLikeType.predicate,
+    HighLevel_BoolLikeType.predicate
+  ] >,
   "bool or integer like type"
 >;
 
-def HLFloatType : AnyTypeOf<[
-  HalfType, BFloat16Type, FloatType, DoubleType, LongDoubleType, Float128Type, UnresolvedType
+// FIXME this should be trait of the type
+def HighLevel_AnyFloatType : AnyTypeOf<[
+  HighLevel_HalfType,
+  HighLevel_BFloat16Type,
+  HighLevel_FloatType,
+  HighLevel_DoubleType,
+  HighLevel_LongDoubleType,
+  HighLevel_Float128Type,
+  HighLevel_UnresolvedType
 ]>;
 
-def FloatLikeType : TypeConstraint<
-  Or< [HLFloatType.predicate, AnyFloat.predicate] >,
+def HighLevel_FloatLikeType : TypeConstraint<
+  Or< [
+    HighLevel_AnyFloatType.predicate,
+    AnyFloat.predicate
+  ] >,
   "float like type"
 >;
 

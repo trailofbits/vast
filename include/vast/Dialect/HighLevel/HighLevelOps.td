@@ -22,7 +22,7 @@ include "vast/Dialect/Core/Utils.td"
 include "vast/Interfaces/AST/DeclInterface.td"
 
 
-def TranslationUnitOp
+def HighLevel_TranslationUnitOp
   : HighLevel_Op< "translation_unit", [
       NoTerminator,
       ShadowingSymbolTable< [[FuncSymbol, VarSymbol, TypeSymbol], [ElaboratedTypeSymbol]] >,
@@ -85,7 +85,7 @@ def HighLevel_FuncOp
   let hasVerifier = 1;
 }
 
-def TypeDeclOp
+def HighLevel_TypeDeclOp
   : HighLevel_Op< "type", [TypeSymbol] >
   , Arguments<(ins StrAttr:$name)>
 {
@@ -99,7 +99,7 @@ def TypeDeclOp
   let assemblyFormat = [{ $name attr-dict }];
 }
 
-def TypeDefOp
+def HighLevel_TypeDefOp
   : HighLevel_Op< "typedef", [TypeSymbol] >
   , Arguments<(ins SymbolNameAttr:$sym_name, TypeAttr:$type)>
 {
@@ -119,7 +119,7 @@ def TypeDefOp
   let assemblyFormat = [{ $sym_name attr-dict `:` $type }];
 }
 
-def TypeAliasOp
+def HighLevel_TypeAliasOp
   : HighLevel_Op< "alias", [TypeSymbol] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
 {
@@ -135,7 +135,7 @@ def TypeAliasOp
   let assemblyFormat = [{ $name attr-dict `:` $type }];
 }
 
-def TypeOfExprOp
+def HighLevel_TypeOfExprOp
   : HighLevel_Op< "typeof.expr", [SingleBlock] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
 {
@@ -161,7 +161,7 @@ def TypeOfExprOp
   let assemblyFormat = [{ $name $expr `:` $type attr-dict }];
 }
 
-def EnumConstantOp
+def HighLevel_EnumConstantOp
   : HighLevel_Op< "enum.const", [EnumConstantSymbol] >
   , Arguments<(ins StrAttr:$name, TypedAttrInterface:$value)>
 {
@@ -205,9 +205,9 @@ def EnumConstantOp
   let assemblyFormat = [{ $name `=` $value attr-dict (`init` $init^)? }];
 }
 
-def EnumRegion : Region< HasOneBlock, "enum constants region" >;
+def HighLevel_EnumRegion : Region< HasOneBlock, "enum constants region" >;
 
-def EnumDeclOp
+def HighLevel_EnumDeclOp
   : HighLevel_Op< "enum", [NoTerminator, TypeSymbol] >
   , Arguments<(ins StrAttr:$name, OptionalAttr<TypeAttr>:$type)>
 {
@@ -217,7 +217,7 @@ def EnumDeclOp
     It also defines an underlying type.
   }];
 
-  let regions = (region EnumRegion:$constants);
+  let regions = (region HighLevel_EnumRegion:$constants);
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -245,7 +245,7 @@ def EnumDeclOp
   }];
 }
 
-class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
+class HighLevel_RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic,
         !listconcat(traits, [
           NoTerminator, TypeSymbol,
@@ -298,17 +298,23 @@ class RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
   let assemblyFormat = [{ $name attr-dict `:` $fields }];
 }
 
-def StructDeclOp : RecordLikeDeclOp< "struct", [DeclareOpInterfaceMethods< VAST_RecordDeclInterface >] > {
+def HighLevel_StructDeclOp
+  : HighLevel_RecordLikeDeclOp< "struct", [
+    DeclareOpInterfaceMethods< VAST_RecordDeclInterface >
+  ] >
+{
   let summary = "VAST struct declaration";
   let description = [{ VAST struct declaration }];
 }
 
-def UnionDeclOp : RecordLikeDeclOp< "union" > {
+def HighLevel_UnionDeclOp
+  : HighLevel_RecordLikeDeclOp< "union" >
+{
   let summary = "VAST record declaration";
   let description = [{ VAST record declaration }];
 }
 
-def FieldDeclOp
+def HighLevel_FieldDeclOp
   : HighLevel_Op< "field", [MemberVarSymbol] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type, OptionalAttr<I32Attr>:$bits)>
 {
@@ -324,9 +330,8 @@ def FieldDeclOp
   let assemblyFormat = [{ $name attr-dict (`bw` $bits^)? `:` $type }];
 }
 
-def RecordMemberOp
+def HighLevel_RecordMemberOp
   : HighLevel_Op< "member" >
-  // TODO(Heno): add type constraints
   , Arguments<(ins AnyType:$record, StrAttr:$name)>
   , Results<(outs AnyType:$element)>
 {
@@ -338,7 +343,7 @@ def RecordMemberOp
   }];
 }
 
-def CallOp
+def HighLevel_CallOp
   : HighLevel_Op< "call", [
       CallOpInterface,
       DeclareOpInterfaceMethods<CallOpInterface, ["resolveCallable", "resolveCallableInTable"]>,
@@ -388,7 +393,7 @@ def CallOp
   }];
 }
 
-def IndirectCallOp
+def HighLevel_IndirectCallOp
   : HighLevel_Op< "indirect_call", [
     CallOpInterface, DeclareOpInterfaceMethods<CallOpInterface>
   ] >
@@ -408,7 +413,7 @@ def IndirectCallOp
   // TODO: add verifiers to check that callee type matches arg operands
 }
 
-def ExprOp
+def HighLevel_ExprOp
   : HighLevel_Op< "expr", [SingleBlock] >
   , Results<(outs AnyType:$result)>
 {
@@ -430,7 +435,7 @@ def ExprOp
   }];
 }
 
-def ReturnOp
+def HighLevel_ReturnOp
   : HighLevel_Op< "return", [SoftTerminatorTrait, ReturnLikeTrait] >
   , Arguments<(ins Variadic<AnyType>:$result)>
 {
@@ -443,10 +448,10 @@ def ReturnOp
 }
 
 // use InferTypeOpInterface
-def DeclRefOp
+def HighLevel_DeclRefOp
   : HighLevel_Op< "ref" >
   , Arguments<(ins AnyType:$decl)>
-  , Results<(outs LValueOf<AnyType>:$result)>
+  , Results<(outs HighLevel_LValueOf<AnyType>:$result)>
 {
   let summary = "VAST variable reference declaration";
   let description = [{ VAST variable reference declaration }];
@@ -454,7 +459,7 @@ def DeclRefOp
   let assemblyFormat = "$decl attr-dict `:` functional-type(operands, results)";
 }
 
-def FuncRefOp
+def HighLevel_FuncRefOp
   : HighLevel_Op< "funcref" >
   , Arguments<(ins FlatSymbolRefAttr:$function)>
   , Results<(outs AnyType:$result)>
@@ -465,7 +470,7 @@ def FuncRefOp
   let assemblyFormat = "$function attr-dict `:` type($result)";
 }
 
-def GlobalRefOp
+def HighLevel_GlobalRefOp
   : HighLevel_Op< "globref" >
   , Arguments<(ins StrAttr:$global)>
   , Results<(outs AnyType:$result)>
@@ -476,7 +481,7 @@ def GlobalRefOp
   let assemblyFormat = "$global attr-dict `:` type($result)";
 }
 
-def EnumRefOp
+def HighLevel_EnumRefOp
   : HighLevel_Op< "enumref" >
   , Arguments<(ins StrAttr:$value)>
   , Results<(outs AnyType:$result)>
@@ -487,7 +492,7 @@ def EnumRefOp
   let assemblyFormat = "$value attr-dict `:` type($result)";
 }
 
-def ConstantOp
+def HighLevel_ConstantOp
   : HighLevel_Op< "const", [ConstantLike, Pure, AllTypesMatch< ["value", "result"] >] >
   , Arguments<(ins TypedAttrInterface:$value)>
   , Results<(outs AnyType:$result)>
@@ -522,7 +527,8 @@ def ConstantOp
   let assemblyFormat = "$value attr-dict";
 }
 
-def InitializedConstantOp : HighLevel_Op< "const.init", [ConstantLike, Pure] >
+def HighLevel_InitializedConstantOp
+  : HighLevel_Op< "const.init", [ConstantLike, Pure] >
   , Results< (outs AnyType:$result) >
 {
   let summary = "VAST constant with non-trivial initialization";
@@ -545,13 +551,16 @@ def InitializedConstantOp : HighLevel_Op< "const.init", [ConstantLike, Pure] >
   let assemblyFormat = [{ attr-dict `:` type($result) `=` $init }];
 }
 
-def UnreachableOp : HighLevel_Op<"unreachable", [Terminator]> {
+def HighLevel_UnreachableOp
+  : HighLevel_Op< "unreachable", [Terminator] >
+{
   let summary = "VAST unreachable operation";
   let description = [{ VAST unreachable operation }];
   let assemblyFormat = "attr-dict";
 }
 
-def CompoundLiteralOp : HighLevel_Op< "compound_literal" >
+def HighLevel_CompoundLiteralOp
+  : HighLevel_Op< "compound_literal" >
   , Results< (outs AnyType:$result) >
 {
   let summary = "VAST compound literals operation";
@@ -575,177 +584,177 @@ def CompoundLiteralOp : HighLevel_Op< "compound_literal" >
   let assemblyFormat = [{ attr-dict `:` type($result) `=` $init }];
 }
 
-class CastKindAttr< string name, int val > : I64EnumAttrCase< name, val > {}
+class HighLevel_CastKindAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
-class CastKindList< string name, string summary, list< CastKindAttr > cases >
+class HighLevel_CastKindList< string name, string summary, list< HighLevel_CastKindAttr > cases >
   : I64EnumAttr< name, summary, cases > {}
 
-def Dependent : CastKindAttr<"Dependent", 0>;
-def BitCast : CastKindAttr<"BitCast", 1>;
-def LValueBitCast : CastKindAttr<"LValueBitCast", 2>;
-def LValueToRValueBitCast : CastKindAttr<"LValueToRValueBitCast", 3>;
-def LValueToRValue : CastKindAttr<"LValueToRValue", 4>;
+def HighLevel_Dependent : HighLevel_CastKindAttr<"Dependent", 0>;
+def HighLevel_BitCast : HighLevel_CastKindAttr<"BitCast", 1>;
+def HighLevel_LValueBitCast : HighLevel_CastKindAttr<"LValueBitCast", 2>;
+def HighLevel_LValueToRValueBitCast : HighLevel_CastKindAttr<"LValueToRValueBitCast", 3>;
+def HighLevel_LValueToRValue : HighLevel_CastKindAttr<"LValueToRValue", 4>;
 
-def NoOp : CastKindAttr<"NoOp", 5>;
+def HighLevel_NoOp : HighLevel_CastKindAttr<"NoOp", 5>;
 
-def BaseToDerived : CastKindAttr<"BaseToDerived", 6>;
-def DerivedToBase : CastKindAttr<"DerivedToBase", 7>;
-def UncheckedDerivedToBase : CastKindAttr<"UncheckedDerivedToBase", 8>;
-def Dynamic : CastKindAttr<"Dynamic", 9>;
-def ToUnion : CastKindAttr<"ToUnion", 10>;
+def HighLevel_BaseToDerived : HighLevel_CastKindAttr<"BaseToDerived", 6>;
+def HighLevel_DerivedToBase : HighLevel_CastKindAttr<"DerivedToBase", 7>;
+def HighLevel_UncheckedDerivedToBase : HighLevel_CastKindAttr<"UncheckedDerivedToBase", 8>;
+def HighLevel_Dynamic : HighLevel_CastKindAttr<"Dynamic", 9>;
+def HighLevel_ToUnion : HighLevel_CastKindAttr<"ToUnion", 10>;
 
-def ArrayToPointerDecay : CastKindAttr<"ArrayToPointerDecay", 11>;
-def FunctionToPointerDecay : CastKindAttr<"FunctionToPointerDecay", 12>;
-def NullToPointer : CastKindAttr<"NullToPointer", 13>;
-def NullToMemberPointer : CastKindAttr<"NullToMemberPointer", 14>;
-def BaseToDerivedMemberPointer : CastKindAttr<"BaseToDerivedMemberPointer", 15>;
-def DerivedToBaseMemberPointer : CastKindAttr<"DerivedToBaseMemberPointer", 16>;
-def MemberPointerToBoolean : CastKindAttr<"MemberPointerToBoolean", 17>;
-def ReinterpretMemberPointer : CastKindAttr<"ReinterpretMemberPointer", 18>;
-def UserDefinedConversion : CastKindAttr<"UserDefinedConversion", 19>;
-def ConstructorConversion : CastKindAttr<"ConstructorConversion", 20>;
+def HighLevel_ArrayToPointerDecay : HighLevel_CastKindAttr<"ArrayToPointerDecay", 11>;
+def HighLevel_FunctionToPointerDecay : HighLevel_CastKindAttr<"FunctionToPointerDecay", 12>;
+def HighLevel_NullToPointer : HighLevel_CastKindAttr<"NullToPointer", 13>;
+def HighLevel_NullToMemberPointer : HighLevel_CastKindAttr<"NullToMemberPointer", 14>;
+def HighLevel_BaseToDerivedMemberPointer : HighLevel_CastKindAttr<"BaseToDerivedMemberPointer", 15>;
+def HighLevel_DerivedToBaseMemberPointer : HighLevel_CastKindAttr<"DerivedToBaseMemberPointer", 16>;
+def HighLevel_MemberPointerToBoolean : HighLevel_CastKindAttr<"MemberPointerToBoolean", 17>;
+def HighLevel_ReinterpretMemberPointer : HighLevel_CastKindAttr<"ReinterpretMemberPointer", 18>;
+def HighLevel_UserDefinedConversion : HighLevel_CastKindAttr<"UserDefinedConversion", 19>;
+def HighLevel_ConstructorConversion : HighLevel_CastKindAttr<"ConstructorConversion", 20>;
 
-def IntegralToPointer : CastKindAttr<"IntegralToPointer", 21>;
-def PointerToIntegral : CastKindAttr<"PointerToIntegral", 22>;
-def PointerToBoolean  : CastKindAttr<"PointerToBoolean", 23>;
+def HighLevel_IntegralToPointer : HighLevel_CastKindAttr<"IntegralToPointer", 21>;
+def HighLevel_PointerToIntegral : HighLevel_CastKindAttr<"PointerToIntegral", 22>;
+def HighLevel_PointerToBoolean  : HighLevel_CastKindAttr<"PointerToBoolean", 23>;
 
-def ToVoid : CastKindAttr<"ToVoid", 24>;
+def HighLevel_ToVoid : HighLevel_CastKindAttr<"ToVoid", 24>;
 
-def VectorSplat : CastKindAttr<"VectorSplat", 25>;
+def HighLevel_VectorSplat : HighLevel_CastKindAttr<"VectorSplat", 25>;
 
-def IntegralCast : CastKindAttr<"IntegralCast", 26>;
-def IntegralToBoolean : CastKindAttr<"IntegralToBoolean", 27>;
-def IntegralToFloating : CastKindAttr<"IntegralToFloating", 28>;
-def FloatingToFixedPoint : CastKindAttr<"FloatingToFixedPoint", 29>;
-def FixedPointToFloating : CastKindAttr<"FixedPointToFloating", 30>;
-def FixedPointCast : CastKindAttr<"FixedPointCast", 31>;
-def FixedPointToIntegral : CastKindAttr<"FixedPointToIntegral", 32>;
-def IntegralToFixedPoint : CastKindAttr<"IntegralToFixedPoint", 33>;
-def FixedPointToBoolean : CastKindAttr<"FixedPointToBoolean", 34>;
-def FloatingToIntegral : CastKindAttr<"FloatingToIntegral", 35>;
-def FloatingToBoolean : CastKindAttr<"FloatingToBoolean", 36>;
-def BooleanToSignedIntegral : CastKindAttr<"BooleanToSignedIntegral", 37>;
-def FloatingCast : CastKindAttr<"FloatingCast", 38>;
+def HighLevel_IntegralCast : HighLevel_CastKindAttr<"IntegralCast", 26>;
+def HighLevel_IntegralToBoolean : HighLevel_CastKindAttr<"IntegralToBoolean", 27>;
+def HighLevel_IntegralToFloating : HighLevel_CastKindAttr<"IntegralToFloating", 28>;
+def HighLevel_FloatingToFixedPoint : HighLevel_CastKindAttr<"FloatingToFixedPoint", 29>;
+def HighLevel_FixedPointToFloating : HighLevel_CastKindAttr<"FixedPointToFloating", 30>;
+def HighLevel_FixedPointCast : HighLevel_CastKindAttr<"FixedPointCast", 31>;
+def HighLevel_FixedPointToIntegral : HighLevel_CastKindAttr<"FixedPointToIntegral", 32>;
+def HighLevel_IntegralToFixedPoint : HighLevel_CastKindAttr<"IntegralToFixedPoint", 33>;
+def HighLevel_FixedPointToBoolean : HighLevel_CastKindAttr<"FixedPointToBoolean", 34>;
+def HighLevel_FloatingToIntegral : HighLevel_CastKindAttr<"FloatingToIntegral", 35>;
+def HighLevel_FloatingToBoolean : HighLevel_CastKindAttr<"FloatingToBoolean", 36>;
+def HighLevel_BooleanToSignedIntegral : HighLevel_CastKindAttr<"BooleanToSignedIntegral", 37>;
+def HighLevel_FloatingCast : HighLevel_CastKindAttr<"FloatingCast", 38>;
 
-def CPointerToObjCPointerCast : CastKindAttr<"CPointerToObjCPointerCast", 39>;
-def BlockPointerToObjCPointerCast : CastKindAttr<"BlockPointerToObjCPointerCast", 40>;
-def AnyPointerToBlockPointerCast : CastKindAttr<"AnyPointerToBlockPointerCast", 41>;
-def ObjCObjectLValueCast : CastKindAttr<"ObjCObjectLValueCast", 42>;
+def HighLevel_CPointerToObjCPointerCast : HighLevel_CastKindAttr<"CPointerToObjCPointerCast", 39>;
+def HighLevel_BlockPointerToObjCPointerCast : HighLevel_CastKindAttr<"BlockPointerToObjCPointerCast", 40>;
+def HighLevel_AnyPointerToBlockPointerCast : HighLevel_CastKindAttr<"AnyPointerToBlockPointerCast", 41>;
+def HighLevel_ObjCObjectLValueCast : HighLevel_CastKindAttr<"ObjCObjectLValueCast", 42>;
 
-def FloatingRealToComplex : CastKindAttr<"FloatingRealToComplex", 43>;
-def FloatingComplexToReal : CastKindAttr<"FloatingComplexToReal", 44>;
-def FloatingComplexToBoolean : CastKindAttr<"FloatingComplexToBoolean", 45>;
-def FloatingComplexCast : CastKindAttr<"FloatingComplexCast", 46>;
-def FloatingComplexToIntegralComplex : CastKindAttr<"FloatingComplexToIntegralComplex", 47>;
-def IntegralRealToComplex : CastKindAttr<"IntegralRealToComplex", 48>;
-def IntegralComplexToReal : CastKindAttr<"IntegralComplexToReal", 49>;
-def IntegralComplexToBoolean : CastKindAttr<"IntegralComplexToBoolean", 50>;
-def IntegralComplexCast : CastKindAttr<"IntegralComplexCast", 51>;
-def IntegralComplexToFloatingComplex : CastKindAttr<"IntegralComplexToFloatingComplex", 52>;
+def HighLevel_FloatingRealToComplex : HighLevel_CastKindAttr<"FloatingRealToComplex", 43>;
+def HighLevel_FloatingComplexToReal : HighLevel_CastKindAttr<"FloatingComplexToReal", 44>;
+def HighLevel_FloatingComplexToBoolean : HighLevel_CastKindAttr<"FloatingComplexToBoolean", 45>;
+def HighLevel_FloatingComplexCast : HighLevel_CastKindAttr<"FloatingComplexCast", 46>;
+def HighLevel_FloatingComplexToIntegralComplex : HighLevel_CastKindAttr<"FloatingComplexToIntegralComplex", 47>;
+def HighLevel_IntegralRealToComplex : HighLevel_CastKindAttr<"IntegralRealToComplex", 48>;
+def HighLevel_IntegralComplexToReal : HighLevel_CastKindAttr<"IntegralComplexToReal", 49>;
+def HighLevel_IntegralComplexToBoolean : HighLevel_CastKindAttr<"IntegralComplexToBoolean", 50>;
+def HighLevel_IntegralComplexCast : HighLevel_CastKindAttr<"IntegralComplexCast", 51>;
+def HighLevel_IntegralComplexToFloatingComplex : HighLevel_CastKindAttr<"IntegralComplexToFloatingComplex", 52>;
 
-def ARCProduceObject : CastKindAttr<"ARCProduceObject", 53>;
-def ARCConsumeObject : CastKindAttr<"ARCConsumeObject", 54>;
-def ARCReclaimReturnedObject : CastKindAttr<"ARCReclaimReturnedObject", 55>;
-def ARCExtendBlockObject : CastKindAttr<"ARCExtendBlockObject", 56>;
+def HighLevel_ARCProduceObject : HighLevel_CastKindAttr<"ARCProduceObject", 53>;
+def HighLevel_ARCConsumeObject : HighLevel_CastKindAttr<"ARCConsumeObject", 54>;
+def HighLevel_ARCReclaimReturnedObject : HighLevel_CastKindAttr<"ARCReclaimReturnedObject", 55>;
+def HighLevel_ARCExtendBlockObject : HighLevel_CastKindAttr<"ARCExtendBlockObject", 56>;
 
-def AtomicToNonAtomic : CastKindAttr<"AtomicToNonAtomic", 57>;
-def NonAtomicToAtomic : CastKindAttr<"NonAtomicToAtomic", 58>;
+def HighLevel_AtomicToNonAtomic : HighLevel_CastKindAttr<"AtomicToNonAtomic", 57>;
+def HighLevel_NonAtomicToAtomic : HighLevel_CastKindAttr<"NonAtomicToAtomic", 58>;
 
-def CopyAndAutoreleaseBlockObject : CastKindAttr<"CopyAndAutoreleaseBlockObject", 59>;
-def BuiltinFnToFnPtr : CastKindAttr<"BuiltinFnToFnPtr", 60>;
+def HighLevel_CopyAndAutoreleaseBlockObject : HighLevel_CastKindAttr<"CopyAndAutoreleaseBlockObject", 59>;
+def HighLevel_BuiltinFnToFnPtr : HighLevel_CastKindAttr<"BuiltinFnToFnPtr", 60>;
 
-def ZeroToOCLOpaqueType : CastKindAttr<"ZeroToOCLOpaqueType", 61>;
-def AddressSpaceConversion : CastKindAttr<"AddressSpaceConversion", 62>;
-def IntToOCLSampler : CastKindAttr<"IntToOCLSampler", 63>;
+def HighLevel_ZeroToOCLOpaqueType : HighLevel_CastKindAttr<"ZeroToOCLOpaqueType", 61>;
+def HighLevel_AddressSpaceConversion : HighLevel_CastKindAttr<"AddressSpaceConversion", 62>;
+def HighLevel_IntToOCLSampler : HighLevel_CastKindAttr<"IntToOCLSampler", 63>;
 
-def MatrixCast : CastKindAttr<"MatrixCast", 64>;
+def HighLevel_MatrixCast : HighLevel_CastKindAttr<"MatrixCast", 64>;
 
 let cppNamespace = "::vast::hl" in
-def CastKind : CastKindList< "CastKind", "cast kind", [
-  Dependent,
-  BitCast,
-  LValueBitCast,
-  LValueToRValueBitCast,
-  LValueToRValue,
+def HighLevel_CastKind : HighLevel_CastKindList< "CastKind", "cast kind", [
+  HighLevel_Dependent,
+  HighLevel_BitCast,
+  HighLevel_LValueBitCast,
+  HighLevel_LValueToRValueBitCast,
+  HighLevel_LValueToRValue,
 
-  NoOp,
+  HighLevel_NoOp,
 
-  BaseToDerived,
-  DerivedToBase,
-  UncheckedDerivedToBase,
-  Dynamic,
-  ToUnion,
+  HighLevel_BaseToDerived,
+  HighLevel_DerivedToBase,
+  HighLevel_UncheckedDerivedToBase,
+  HighLevel_Dynamic,
+  HighLevel_ToUnion,
 
-  ArrayToPointerDecay,
-  FunctionToPointerDecay,
-  NullToPointer,
-  NullToMemberPointer,
-  BaseToDerivedMemberPointer,
-  DerivedToBaseMemberPointer,
-  MemberPointerToBoolean,
-  ReinterpretMemberPointer,
-  UserDefinedConversion,
-  ConstructorConversion,
+  HighLevel_ArrayToPointerDecay,
+  HighLevel_FunctionToPointerDecay,
+  HighLevel_NullToPointer,
+  HighLevel_NullToMemberPointer,
+  HighLevel_BaseToDerivedMemberPointer,
+  HighLevel_DerivedToBaseMemberPointer,
+  HighLevel_MemberPointerToBoolean,
+  HighLevel_ReinterpretMemberPointer,
+  HighLevel_UserDefinedConversion,
+  HighLevel_ConstructorConversion,
 
-  IntegralToPointer,
-  PointerToIntegral,
-  PointerToBoolean ,
+  HighLevel_IntegralToPointer,
+  HighLevel_PointerToIntegral,
+  HighLevel_PointerToBoolean,
 
-  ToVoid,
+  HighLevel_ToVoid,
 
-  VectorSplat,
+  HighLevel_VectorSplat,
 
-  IntegralCast,
-  IntegralToBoolean,
-  IntegralToFloating,
-  FloatingToFixedPoint,
-  FixedPointToFloating,
-  FixedPointCast,
-  FixedPointToIntegral,
-  IntegralToFixedPoint,
-  FixedPointToBoolean,
-  FloatingToIntegral,
-  FloatingToBoolean,
-  BooleanToSignedIntegral,
-  FloatingCast,
+  HighLevel_IntegralCast,
+  HighLevel_IntegralToBoolean,
+  HighLevel_IntegralToFloating,
+  HighLevel_FloatingToFixedPoint,
+  HighLevel_FixedPointToFloating,
+  HighLevel_FixedPointCast,
+  HighLevel_FixedPointToIntegral,
+  HighLevel_IntegralToFixedPoint,
+  HighLevel_FixedPointToBoolean,
+  HighLevel_FloatingToIntegral,
+  HighLevel_FloatingToBoolean,
+  HighLevel_BooleanToSignedIntegral,
+  HighLevel_FloatingCast,
 
-  CPointerToObjCPointerCast,
-  BlockPointerToObjCPointerCast,
-  AnyPointerToBlockPointerCast,
-  ObjCObjectLValueCast,
+  HighLevel_CPointerToObjCPointerCast,
+  HighLevel_BlockPointerToObjCPointerCast,
+  HighLevel_AnyPointerToBlockPointerCast,
+  HighLevel_ObjCObjectLValueCast,
 
-  FloatingRealToComplex,
-  FloatingComplexToReal,
-  FloatingComplexToBoolean,
-  FloatingComplexCast,
-  FloatingComplexToIntegralComplex,
-  IntegralRealToComplex,
-  IntegralComplexToReal,
-  IntegralComplexToBoolean,
-  IntegralComplexCast,
-  IntegralComplexToFloatingComplex,
+  HighLevel_FloatingRealToComplex,
+  HighLevel_FloatingComplexToReal,
+  HighLevel_FloatingComplexToBoolean,
+  HighLevel_FloatingComplexCast,
+  HighLevel_FloatingComplexToIntegralComplex,
+  HighLevel_IntegralRealToComplex,
+  HighLevel_IntegralComplexToReal,
+  HighLevel_IntegralComplexToBoolean,
+  HighLevel_IntegralComplexCast,
+  HighLevel_IntegralComplexToFloatingComplex,
 
-  ARCProduceObject,
-  ARCConsumeObject,
-  ARCReclaimReturnedObject,
-  ARCExtendBlockObject,
+  HighLevel_ARCProduceObject,
+  HighLevel_ARCConsumeObject,
+  HighLevel_ARCReclaimReturnedObject,
+  HighLevel_ARCExtendBlockObject,
 
-  AtomicToNonAtomic,
-  NonAtomicToAtomic,
+  HighLevel_AtomicToNonAtomic,
+  HighLevel_NonAtomicToAtomic,
 
-  CopyAndAutoreleaseBlockObject,
-  BuiltinFnToFnPtr,
+  HighLevel_CopyAndAutoreleaseBlockObject,
+  HighLevel_BuiltinFnToFnPtr,
 
-  ZeroToOCLOpaqueType,
-  AddressSpaceConversion,
-  IntToOCLSampler,
+  HighLevel_ZeroToOCLOpaqueType,
+  HighLevel_AddressSpaceConversion,
+  HighLevel_IntToOCLSampler,
 
-  MatrixCast
+  HighLevel_MatrixCast
 ] >;
 
-class CastOp< string mnemonic, list< Trait > traits = [] >
+class HighLevel_CastOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, traits >
-    , Arguments< (ins AnyType:$value, CastKind:$kind) >
+    , Arguments< (ins AnyType:$value, HighLevel_CastKind:$kind) >
     , Results< (outs AnyType:$result) >
 {
     let summary = "VAST cast operation";
@@ -754,49 +763,72 @@ class CastOp< string mnemonic, list< Trait > traits = [] >
     let assemblyFormat = "$value $kind attr-dict `:` type($value) `->` type($result)";
 }
 
-def ImplicitCastOp   : CastOp< "implicit_cast" > {
+def HighLevel_ImplicitCastOp   : HighLevel_CastOp< "implicit_cast" > {
     let hasFolder = 1;
 }
 
-def CStyleCastOp     : CastOp< "cstyle_cast" >;
-def BuiltinBitCastOp : CastOp< "builtin_bitcast" >;
+def HighLevel_CStyleCastOp     : HighLevel_CastOp< "cstyle_cast" >;
+def HighLevel_BuiltinBitCastOp : HighLevel_CastOp< "builtin_bitcast" >;
 
-class IsPointerCompatible< string arg > : PredTypeTrait< "type can be added/subtracted to a pointer",
-   Or < [And< [IsIntegral< arg >.predicate,
-           Neg< IsShort< arg >.predicate >,
-           Neg< IsChar< arg >.predicate >,
-           Neg< IsBool< arg >.predicate >
-              ] >,
-         IsBuiltinType< arg >.predicate
-        ] >
+class HighLevel_IsPointerCompatible< string arg >
+  : PredTypeTrait< "type can be added/subtracted to a pointer",
+   Or < [
+    And< [
+      IsIntegral< arg >.predicate,
+      Neg< IsShort< arg >.predicate >,
+      Neg< IsChar< arg >.predicate >,
+      Neg< IsBool< arg >.predicate >
+    ] >,
+    IsBuiltinType< arg >.predicate
+  ] >
 >;
 
-class IsPointerAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation on pointers",
-    And< [Or< [And< [IsPointer< lhs >.predicate, IsPointerCompatible< rhs >.predicate] >,
-               And< [IsPointerCompatible< lhs >.predicate, IsPointer< rhs >.predicate] >] >,
-         IsPointer< res >.predicate
+class HighLevel_IsPointerAdditive< string lhs, string rhs, string res >
+  : PredOpTrait< "is an additive operation on pointers",
+    And< [
+      Or< [
+        And< [
+          IsPointer< lhs >.predicate,
+          HighLevel_IsPointerCompatible< rhs >.predicate
+        ] >,
+        And< [
+          HighLevel_IsPointerCompatible< lhs >.predicate,
+          IsPointer< rhs >.predicate
+        ] >
+      ] >,
+      IsPointer< res >.predicate
     ] >
 >;
 
-class PtrDiffLike< string lhs, string rhs, string res > : PredOpTrait< "is a subtraction of pointers",
-    And< [IsPointer< lhs >.predicate, IsPointer< rhs >.predicate,
-          Or< [ IsIntegral< res >.predicate, IsBuiltinType< res >.predicate] >
-         ] >
+class HighLevel_PtrDiffLike< string lhs, string rhs, string res >
+  : PredOpTrait< "is a subtraction of pointers",
+    And< [
+      IsPointer< lhs >.predicate,
+      IsPointer< rhs >.predicate,
+      Or< [
+        IsIntegral< res >.predicate,
+        IsBuiltinType< res >.predicate
+      ] >
+    ] >
 >;
 
-class IsAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation (types match or are ptr and integral)", Or<[
-        TypesMatchOrUnresolved< [lhs, rhs, res] >.predicate,
-        IsPointerAdditive< lhs, rhs, res >.predicate,
+class HighLevel_IsAdditive< string lhs, string rhs, string res >
+  : PredOpTrait< "is an additive operation (types match or are ptr and integral)",
+    Or< [
+        HighLevel_TypesMatchOrUnresolved< [lhs, rhs, res] >.predicate,
+        HighLevel_IsPointerAdditive< lhs, rhs, res >.predicate,
     ]>
 >;
 
-class IsSub< string lhs, string rhs, string res > : PredOpTrait< "is a subtraction operation (types match or are ptr and integral)",
+class HighLevel_IsSub< string lhs, string rhs, string res >
+: PredOpTrait< "is a subtraction operation (types match or are ptr and integral)",
     Or< [
-        IsAdditive< lhs, rhs, res >.predicate, PtrDiffLike< lhs, rhs, res >.predicate
+        HighLevel_IsAdditive< lhs, rhs, res >.predicate,
+        HighLevel_PtrDiffLike< lhs, rhs, res >.predicate
     ] >
 >;
 
-class ArithBinOp< string mnemonic, list< Trait > traits = [] >
+class HighLevel_ArithBinOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, traits >
     , Arguments<(ins AnyType:$lhs, AnyType:$rhs)>
     , Results<(outs AnyType:$result)>
@@ -825,13 +857,13 @@ class ArithBinOp< string mnemonic, list< Trait > traits = [] >
     let hasFolder = 1;
 }
 
-class StandardArithBinOp< string mnemonic, list< Trait > traits = [] >
-    : ArithBinOp< mnemonic,
-        !listconcat(traits, [TypesMatchOrUnresolved< ["lhs", "rhs", "result"] >])
+class HighLevel_StandardArithBinOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_ArithBinOp< mnemonic,
+        !listconcat(traits, [HighLevel_TypesMatchOrUnresolved< ["lhs", "rhs", "result"] >])
       >;
 
-class FloatArithBinOp< string mnemonic, list< Trait > traits = [] >
-    : ArithBinOp< mnemonic, traits >
+class HighLevel_FloatArithBinOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_ArithBinOp< mnemonic, traits >
 {
     let hasVerifier = 1;
     let extraClassDefinition = [{
@@ -841,26 +873,26 @@ class FloatArithBinOp< string mnemonic, list< Trait > traits = [] >
     }];
 }
 
-def AddIOp : ArithBinOp< "add", [Commutative, IsAdditive< "lhs", "rhs", "result" >] >;
-def SubIOp : ArithBinOp< "sub", [IsSub< "lhs", "rhs", "result" >] >;
+def HighLevel_AddIOp : HighLevel_ArithBinOp< "add", [Commutative, HighLevel_IsAdditive< "lhs", "rhs", "result" >] >;
+def HighLevel_SubIOp : HighLevel_ArithBinOp< "sub", [HighLevel_IsSub< "lhs", "rhs", "result" >] >;
 
-def MulIOp : StandardArithBinOp<  "mul", [Commutative] >;
-def DivSOp : StandardArithBinOp< "sdiv" >;
-def DivUOp : StandardArithBinOp< "udiv" >;
-def RemSOp : StandardArithBinOp< "srem" >;
-def RemUOp : StandardArithBinOp< "urem" >;
+def HighLevel_MulIOp : HighLevel_StandardArithBinOp<  "mul", [Commutative] >;
+def HighLevel_DivSOp : HighLevel_StandardArithBinOp< "sdiv" >;
+def HighLevel_DivUOp : HighLevel_StandardArithBinOp< "udiv" >;
+def HighLevel_RemSOp : HighLevel_StandardArithBinOp< "srem" >;
+def HighLevel_RemUOp : HighLevel_StandardArithBinOp< "urem" >;
 
-def BinXorOp : StandardArithBinOp< "bin.xor" >;
-def BinOrOp  : StandardArithBinOp<  "bin.or" >;
-def BinAndOp : StandardArithBinOp< "bin.and" >;
+def HighLevel_BinXorOp : HighLevel_StandardArithBinOp< "bin.xor" >;
+def HighLevel_BinOrOp  : HighLevel_StandardArithBinOp<  "bin.or" >;
+def HighLevel_BinAndOp : HighLevel_StandardArithBinOp< "bin.and" >;
 
-def AddFOp : FloatArithBinOp< "fadd" >;
-def SubFOp : FloatArithBinOp< "fsub" >;
-def MulFOp : FloatArithBinOp< "fmul" >;
-def DivFOp : FloatArithBinOp< "fdiv" >;
-def RemFOp : FloatArithBinOp< "frem" >;
+def HighLevel_AddFOp : HighLevel_FloatArithBinOp< "fadd" >;
+def HighLevel_SubFOp : HighLevel_FloatArithBinOp< "fsub" >;
+def HighLevel_MulFOp : HighLevel_FloatArithBinOp< "fmul" >;
+def HighLevel_DivFOp : HighLevel_FloatArithBinOp< "fdiv" >;
+def HighLevel_RemFOp : HighLevel_FloatArithBinOp< "frem" >;
 
-class ComplexUnaryOp< string mnemonic, list< Trait > traits = [] >
+class HighLevel_ComplexUnaryOp< string mnemonic, list< Trait > traits = [] >
   : HighLevel_Op< mnemonic, traits >
   , Arguments< (ins AnyType:$arg) >
   , Results< (outs AnyType:$result) >
@@ -868,10 +900,10 @@ class ComplexUnaryOp< string mnemonic, list< Trait > traits = [] >
   let assemblyFormat = [{ $arg attr-dict `:` functional-type(operands, results) }];
 }
 
-def RealOp : ComplexUnaryOp< "real" >;
-def ImagOp : ComplexUnaryOp< "imag" >;
+def HighLevel_RealOp : HighLevel_ComplexUnaryOp< "real" >;
+def HighLevel_ImagOp : HighLevel_ComplexUnaryOp< "imag" >;
 
-class LogicBinOp< string mnemonic, list< Trait > traits = [] >
+class HighLevel_LogicBinOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, traits >
     , Results<(outs AnyType:$result)>
 {
@@ -902,10 +934,10 @@ class LogicBinOp< string mnemonic, list< Trait > traits = [] >
     let hasFolder = 1;
 }
 
-def BinLAndOp : LogicBinOp< "bin.land" >;
-def BinLOrOp  : LogicBinOp<  "bin.lor" >;
+def HighLevel_BinLAndOp : HighLevel_LogicBinOp< "bin.land" >;
+def HighLevel_BinLOrOp  : HighLevel_LogicBinOp<  "bin.lor" >;
 
-def BinComma
+def HighLevel_BinComma
   : HighLevel_Op< "bin.comma" >
   , Arguments< (ins AnyType:$lhs, AnyType:$rhs) >
   , Results< (outs AnyType:$result) >
@@ -917,12 +949,12 @@ def BinComma
     let hasFolder = 1;
 }
 
-class ShiftOp< string mnemonic, list< Trait > traits = [] >
+class HighLevel_ShiftOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
-        TypesMatchOrUnresolved<["lhs", "result"]>
+        HighLevel_TypesMatchOrUnresolved<["lhs", "result"]>
     ]) >
-    , Arguments<(ins IntegerLikeType:$lhs, IntegerLikeType:$rhs)>
-    , Results<(outs IntegerLikeType:$result)>
+    , Arguments<(ins HighLevel_IntegerLikeType:$lhs, HighLevel_IntegerLikeType:$rhs)>
+    , Results<(outs HighLevel_IntegerLikeType:$result)>
 {
     let summary = "VAST binary shift operation";
     let description = [{
@@ -939,29 +971,32 @@ class ShiftOp< string mnemonic, list< Trait > traits = [] >
     let hasFolder = 1;
 }
 
-def BinShlOp : ShiftOp<"bin.shl" >;
-def BinLShrOp : ShiftOp<"bin.lshr" >;
-def BinAShrOp : ShiftOp<"bin.ashr" >;
+def HighLevel_BinShlOp : HighLevel_ShiftOp<"bin.shl" >;
+def HighLevel_BinLShrOp : HighLevel_ShiftOp<"bin.lshr" >;
+def HighLevel_BinAShrOp : HighLevel_ShiftOp<"bin.ashr" >;
 
-class IsLValuePointer< string arg > : PredOpTrait< "lvalue is of an integer type",
+class HighLevel_IsLValuePointer< string arg >
+  : PredOpTrait< "lvalue is of an integer type",
     CPred< "mlir::isa< LValueType >($" # arg # ".getType()) && mlir::isa< hl::PointerType >(mlir::cast< LValueType >($" # arg # ".getType()).getElementType())" >
 >;
 
-class IsCompoundPtrAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation on pointers",
-    And< [IsLValuePointer< lhs >.predicate,
+class HighLevel_IsCompoundPtrAdditive< string lhs, string rhs, string res >
+  : PredOpTrait< "is an additive operation on pointers",
+    And< [HighLevel_IsLValuePointer< lhs >.predicate,
           IsInteger< rhs>.predicate,
           IsPointer< res >.predicate ] >
 >;
 
-class IsCompoundAdditive< string lhs, string rhs, string res > : PredOpTrait< "is an additive operation (types match or are ptr and integral)",
+class HighLevel_IsCompoundAdditive< string lhs, string rhs, string res >
+  : PredOpTrait< "is an additive operation (types match or are ptr and integral)",
     Or<[
-        IsCompoundPtrAdditive< lhs, rhs, res >.predicate,
+        HighLevel_IsCompoundPtrAdditive< lhs, rhs, res >.predicate,
         CPred< "mlir::isa< LValueType >($" # lhs # ".getType()) && mlir::cast< LValueType >($" # lhs # ".getType()).getElementType() == $" # res # ".getType()" >,
-        TypesMatchOrUnresolved< [lhs, rhs] >.predicate
+        HighLevel_TypesMatchOrUnresolved< [lhs, rhs] >.predicate
     ]>
 >;
 
-class CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< Trait > traits = [] >
+class HighLevel_CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
         TypesMatchWith<
           "underlying destination type match result type",
@@ -970,7 +1005,7 @@ class CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< Trai
         >
     ])>
     // FIXME: add argument constraints and infer return type
-    , Arguments<(ins LValueOrType< Type >:$src, AnyType:$dst)>
+    , Arguments<(ins HighLevel_LValueOrType< Type >:$src, AnyType:$dst)>
     , Results<(outs Type:$result)>
 {
     let summary = "VAST compound assign operation";
@@ -1002,78 +1037,89 @@ class CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, list< Trai
     }];
 }
 
-class CompoundAssignOp< string mnemonic, list< Trait > traits = [] >
-    : CompoundAssignOpTemplate< mnemonic, AnyType, traits > {}
+class HighLevel_CompoundAssignOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_CompoundAssignOpTemplate< mnemonic, AnyType, traits > {}
 
-def AssignOp     : CompoundAssignOp< "assign" >;
-def AddIAssignOp : CompoundAssignOp< "assign.add", [IsCompoundAdditive< "dst", "src", "result" >] >;
-def AddFAssignOp : CompoundAssignOp< "assign.fadd" >;
-def SubIAssignOp : CompoundAssignOp< "assign.sub", [IsCompoundAdditive< "dst", "src", "result" >] >;
-def SubFAssignOp : CompoundAssignOp< "assign.fsub" >;
-def MulIAssignOp : CompoundAssignOp< "assign.mul"  >;
-def MulFAssignOp : CompoundAssignOp< "assign.fmul" >;
-def DivSAssignOp : CompoundAssignOp< "assign.sdiv" >;
-def DivUAssignOp : CompoundAssignOp< "assign.udiv" >;
-def DivFAssignOp : CompoundAssignOp< "assign.fdiv" >;
-def RemSAssignOp : CompoundAssignOp< "assign.srem" >;
-def RemUAssignOp : CompoundAssignOp< "assign.urem" >;
-def RemFAssignOp : CompoundAssignOp< "assign.frem" >;
+def HighLevel_AssignOp     : HighLevel_CompoundAssignOp< "assign" >;
+def HighLevel_AddIAssignOp : HighLevel_CompoundAssignOp< "assign.add", [HighLevel_IsCompoundAdditive< "dst", "src", "result" >] >;
+def HighLevel_AddFAssignOp : HighLevel_CompoundAssignOp< "assign.fadd" >;
+def HighLevel_SubIAssignOp : HighLevel_CompoundAssignOp< "assign.sub", [HighLevel_IsCompoundAdditive< "dst", "src", "result" >] >;
+def HighLevel_SubFAssignOp : HighLevel_CompoundAssignOp< "assign.fsub" >;
+def HighLevel_MulIAssignOp : HighLevel_CompoundAssignOp< "assign.mul"  >;
+def HighLevel_MulFAssignOp : HighLevel_CompoundAssignOp< "assign.fmul" >;
+def HighLevel_DivSAssignOp : HighLevel_CompoundAssignOp< "assign.sdiv" >;
+def HighLevel_DivUAssignOp : HighLevel_CompoundAssignOp< "assign.udiv" >;
+def HighLevel_DivFAssignOp : HighLevel_CompoundAssignOp< "assign.fdiv" >;
+def HighLevel_RemSAssignOp : HighLevel_CompoundAssignOp< "assign.srem" >;
+def HighLevel_RemUAssignOp : HighLevel_CompoundAssignOp< "assign.urem" >;
+def HighLevel_RemFAssignOp : HighLevel_CompoundAssignOp< "assign.frem" >;
 
-def BinAndAssignOp : CompoundAssignOp< "assign.bin.and" >;
-def BinOrAssignOp  : CompoundAssignOp< "assign.bin.or"  >;
-def BinXorAssignOp : CompoundAssignOp< "assign.bin.xor" >;
+def HighLevel_BinAndAssignOp : HighLevel_CompoundAssignOp< "assign.bin.and" >;
+def HighLevel_BinOrAssignOp  : HighLevel_CompoundAssignOp< "assign.bin.or"  >;
+def HighLevel_BinXorAssignOp : HighLevel_CompoundAssignOp< "assign.bin.xor" >;
 
-class ShiftAssignOp< string mnemonic, list< Trait > traits = [] >
-    : CompoundAssignOpTemplate< mnemonic, IntegerLikeType, traits > {}
+class HighLevel_ShiftAssignOp< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_CompoundAssignOpTemplate< mnemonic, HighLevel_IntegerLikeType, traits > {}
 
-def BinShlAssignOp : ShiftAssignOp< "assign.bin.shl" >;
+def HighLevel_BinShlAssignOp : HighLevel_ShiftAssignOp< "assign.bin.shl" >;
 
-def BinLShrAssignOp : ShiftAssignOp< "assign.bin.lshr" >;
-def BinAShrAssignOp : ShiftAssignOp< "assign.bin.ashr" >;
+def HighLevel_BinLShrAssignOp : HighLevel_ShiftAssignOp< "assign.bin.lshr" >;
+def HighLevel_BinAShrAssignOp : HighLevel_ShiftAssignOp< "assign.bin.ashr" >;
 
-class PredicateAttr< string name, int val > : I64EnumAttrCase< name, val > {}
+class HighLevel_PredicateAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
-class PredicateList< string name, string summary, list<PredicateAttr> cases >
+class HighLevel_PredicateList< string name, string summary, list< HighLevel_PredicateAttr > cases >
   : I64EnumAttr< name, summary, cases > {}
 
-def ICmpPredicateEQ  : PredicateAttr< "eq", 0>;
-def ICmpPredicateNE  : PredicateAttr< "ne", 1>;
-def ICmpPredicateSLT : PredicateAttr<"slt", 2>;
-def ICmpPredicateSLE : PredicateAttr<"sle", 3>;
-def ICmpPredicateSGT : PredicateAttr<"sgt", 4>;
-def ICmpPredicateSGE : PredicateAttr<"sge", 5>;
-def ICmpPredicateULT : PredicateAttr<"ult", 6>;
-def ICmpPredicateULE : PredicateAttr<"ule", 7>;
-def ICmpPredicateUGT : PredicateAttr<"ugt", 8>;
-def ICmpPredicateUGE : PredicateAttr<"uge", 9>;
+def HighLevel_ICmpPredicateEQ  : HighLevel_PredicateAttr< "eq", 0>;
+def HighLevel_ICmpPredicateNE  : HighLevel_PredicateAttr< "ne", 1>;
+def HighLevel_ICmpPredicateSLT : HighLevel_PredicateAttr<"slt", 2>;
+def HighLevel_ICmpPredicateSLE : HighLevel_PredicateAttr<"sle", 3>;
+def HighLevel_ICmpPredicateSGT : HighLevel_PredicateAttr<"sgt", 4>;
+def HighLevel_ICmpPredicateSGE : HighLevel_PredicateAttr<"sge", 5>;
+def HighLevel_ICmpPredicateULT : HighLevel_PredicateAttr<"ult", 6>;
+def HighLevel_ICmpPredicateULE : HighLevel_PredicateAttr<"ule", 7>;
+def HighLevel_ICmpPredicateUGT : HighLevel_PredicateAttr<"ugt", 8>;
+def HighLevel_ICmpPredicateUGE : HighLevel_PredicateAttr<"uge", 9>;
 
 let cppNamespace = "::vast::hl" in
-def Predicate : PredicateList< "Predicate", "comparison predicate", [
-  ICmpPredicateEQ,  ICmpPredicateNE,  ICmpPredicateSLT, ICmpPredicateSLE,
-  ICmpPredicateSGT, ICmpPredicateSGE, ICmpPredicateULT, ICmpPredicateULE,
-  ICmpPredicateUGT, ICmpPredicateUGE
+def HighLevel_Predicate : HighLevel_PredicateList< "Predicate", "comparison predicate", [
+  HighLevel_ICmpPredicateEQ,  HighLevel_ICmpPredicateNE,
+  HighLevel_ICmpPredicateSLT, HighLevel_ICmpPredicateSLE,
+  HighLevel_ICmpPredicateSGT, HighLevel_ICmpPredicateSGE,
+  HighLevel_ICmpPredicateULT, HighLevel_ICmpPredicateULE,
+  HighLevel_ICmpPredicateUGT, HighLevel_ICmpPredicateUGE
 ] >;
 
-class IsPointerCmp< string lhs, string rhs > : PredOpTrait< "is an additive operation on pointers",
-    And< [IsPointer< lhs >.predicate, IsPointer< rhs >.predicate] >
+class HighLevel_IsPointerCmp< string lhs, string rhs >
+  : PredOpTrait< "is an additive operation on pointers",
+    And< [
+      IsPointer< lhs >.predicate,
+      IsPointer< rhs >.predicate
+    ] >
 >;
 
-class IsIntegralCmp< string lhs, string rhs > : PredOpTrait< "is an additive operation on pointers",
-    And< [IsIntegral< lhs >.predicate, IsIntegral< rhs >.predicate] >
+class HighLevel_IsIntegralCmp< string lhs, string rhs >
+  : PredOpTrait< "is an additive operation on pointers",
+    And< [
+      IsIntegral< lhs >.predicate,
+      IsIntegral< rhs >.predicate
+    ] >
 >;
 
-class IsCmp< string lhs, string rhs > : PredOpTrait< "is an additive operation (types match or are ptr and integral)",
+class HighLevel_IsCmp< string lhs, string rhs >
+  : PredOpTrait< "is an additive operation (types match or are ptr and integral)",
     Or<[
-        IsIntegralCmp< lhs, rhs >.predicate,
-        IsPointerCmp< lhs, rhs >.predicate
+        HighLevel_IsIntegralCmp< lhs, rhs >.predicate,
+        HighLevel_IsPointerCmp< lhs, rhs >.predicate
     ]>
 >;
 
-def CmpOp
+def HighLevel_CmpOp
   : HighLevel_Op< "cmp" >
-  , Arguments<(ins Predicate:$predicate, AnyType:$lhs, AnyType:$rhs)>
-  , Results<(outs IntOrBoolType:$result)>
-  , IsCmp< "lhs", "rhs" >
+  , Arguments<(ins HighLevel_Predicate:$predicate, AnyType:$lhs, AnyType:$rhs)>
+  , Results<(outs HighLevel_IntOrBoolType:$result)>
+  , HighLevel_IsCmp< "lhs", "rhs" >
 {
   let summary = "VAST comparison operation";
   let description = [{ VAST comparison operation }];
@@ -1081,40 +1127,40 @@ def CmpOp
   let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type(operands) `->` type($result)";
 }
 
-class FPredicateAttr< string name, int val > : I64EnumAttrCase< name, val > {}
+class HighLevel_FPredicateAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
-class FPredicateList< string name, string summary, list<FPredicateAttr> cases >
+class HighLevel_FPredicateList< string name, string summary, list< HighLevel_FPredicateAttr > cases >
   : I64EnumAttr< name, summary, cases > {}
 
-def FPredicateFalse : FPredicateAttr<"ffalse", 0>;
-def FPredicateOEQ   : FPredicateAttr<"oeq",    1>;
-def FPredicateOGT   : FPredicateAttr<"ogt",    2>;
-def FPredicateOGE   : FPredicateAttr<"oge",    3>;
-def FPredicateOLT   : FPredicateAttr<"olt",    4>;
-def FPredicateOLE   : FPredicateAttr<"ole",    5>;
-def FPredicateONE   : FPredicateAttr<"one",    6>;
-def FPredicateORD   : FPredicateAttr<"ord",    7>;
-def FPredicateUNO   : FPredicateAttr<"uno",    8>;
-def FPredicateUEQ   : FPredicateAttr<"ueq",    9>;
-def FPredicateUGT   : FPredicateAttr<"ugt",   10>;
-def FPredicateUGE   : FPredicateAttr<"uge",   11>;
-def FPredicateULT   : FPredicateAttr<"ult",   12>;
-def FPredicateULE   : FPredicateAttr<"ule",   13>;
-def FPredicateUNE   : FPredicateAttr<"une",   14>;
-def FPredicateTrue  : FPredicateAttr<"ftrue", 15>;
+def HighLevel_FPredicateFalse : HighLevel_FPredicateAttr<"ffalse", 0>;
+def HighLevel_FPredicateOEQ   : HighLevel_FPredicateAttr<"oeq",    1>;
+def HighLevel_FPredicateOGT   : HighLevel_FPredicateAttr<"ogt",    2>;
+def HighLevel_FPredicateOGE   : HighLevel_FPredicateAttr<"oge",    3>;
+def HighLevel_FPredicateOLT   : HighLevel_FPredicateAttr<"olt",    4>;
+def HighLevel_FPredicateOLE   : HighLevel_FPredicateAttr<"ole",    5>;
+def HighLevel_FPredicateONE   : HighLevel_FPredicateAttr<"one",    6>;
+def HighLevel_FPredicateORD   : HighLevel_FPredicateAttr<"ord",    7>;
+def HighLevel_FPredicateUNO   : HighLevel_FPredicateAttr<"uno",    8>;
+def HighLevel_FPredicateUEQ   : HighLevel_FPredicateAttr<"ueq",    9>;
+def HighLevel_FPredicateUGT   : HighLevel_FPredicateAttr<"ugt",   10>;
+def HighLevel_FPredicateUGE   : HighLevel_FPredicateAttr<"uge",   11>;
+def HighLevel_FPredicateULT   : HighLevel_FPredicateAttr<"ult",   12>;
+def HighLevel_FPredicateULE   : HighLevel_FPredicateAttr<"ule",   13>;
+def HighLevel_FPredicateUNE   : HighLevel_FPredicateAttr<"une",   14>;
+def HighLevel_FPredicateTrue  : HighLevel_FPredicateAttr<"ftrue", 15>;
 
 let cppNamespace = "::vast::hl" in
-def FPredicate : FPredicateList< "FPredicate", "floating point comparison predicate", [
-  FPredicateFalse, FPredicateOEQ, FPredicateOGT, FPredicateOGE,
-  FPredicateOLT, FPredicateOLE, FPredicateONE, FPredicateORD,
-  FPredicateUNO, FPredicateUEQ, FPredicateUGT, FPredicateUGE,
-  FPredicateULT, FPredicateULE, FPredicateUNE, FPredicateTrue
+def HighLevel_FPredicate : HighLevel_FPredicateList< "FPredicate", "floating point comparison predicate", [
+  HighLevel_FPredicateFalse, HighLevel_FPredicateOEQ, HighLevel_FPredicateOGT, HighLevel_FPredicateOGE,
+  HighLevel_FPredicateOLT, HighLevel_FPredicateOLE, HighLevel_FPredicateONE, HighLevel_FPredicateORD,
+  HighLevel_FPredicateUNO, HighLevel_FPredicateUEQ, HighLevel_FPredicateUGT, HighLevel_FPredicateUGE,
+  HighLevel_FPredicateULT, HighLevel_FPredicateULE, HighLevel_FPredicateUNE, HighLevel_FPredicateTrue
 ] >;
 
-def FCmpOp
+def HighLevel_FCmpOp
   : HighLevel_Op< "fcmp" >
-  , Arguments<(ins FPredicate:$predicate, AnyType:$lhs, AnyType:$rhs)>
-  , Results<(outs IntOrBoolType:$result)>
+  , Arguments<(ins HighLevel_FPredicate:$predicate, AnyType:$lhs, AnyType:$rhs)>
+  , Results<(outs HighLevel_IntOrBoolType:$result)>
 {
   let summary = "VAST flaoting point comparison operation";
   let description = [{ VAST floating point comparison operation }];
@@ -1124,7 +1170,7 @@ def FCmpOp
   let assemblyFormat = "$predicate $lhs `,` $rhs  attr-dict `:` type(operands) `->` type($result)";
 }
 
-class UnInplaceOp< string mnemonic, list< Trait > traits = [] >
+class HighLevel_UnInplaceOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [
         TypesMatchWith<
           "underlying argument type match result type",
@@ -1132,7 +1178,7 @@ class UnInplaceOp< string mnemonic, list< Trait > traits = [] >
           "$_self.cast< LValueType >().getElementType()"
         >
       ]) >
-    , Arguments<(ins LValueOf<AnyType>:$arg)>
+    , Arguments<(ins HighLevel_LValueOf<AnyType>:$arg)>
     , Results<(outs AnyType:$result)>
 {
     let summary = "VAST unary inplace operation";
@@ -1148,12 +1194,12 @@ class UnInplaceOp< string mnemonic, list< Trait > traits = [] >
     let assemblyFormat = [{ $arg attr-dict `:` type($arg) `->` type($result) }];
 }
 
-def PostIncOp : UnInplaceOp< "post.inc" >;
-def PostDecOp : UnInplaceOp< "post.dec" >;
-def PreIncOp  : UnInplaceOp<  "pre.inc" >;
-def PreDecOp  : UnInplaceOp<  "pre.dec" >;
+def HighLevel_PostIncOp : HighLevel_UnInplaceOp< "post.inc" >;
+def HighLevel_PostDecOp : HighLevel_UnInplaceOp< "post.dec" >;
+def HighLevel_PreIncOp  : HighLevel_UnInplaceOp<  "pre.inc" >;
+def HighLevel_PreDecOp  : HighLevel_UnInplaceOp<  "pre.dec" >;
 
-class TypePreservingUnOp< string mnemonic, list< Trait > traits = [] >
+class HighLevel_TypePreservingUnOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits, [SameOperandsAndResultType]) >
     , Arguments<(ins AnyType:$arg)>
     , Results<(outs AnyType:$result)>
@@ -1171,14 +1217,14 @@ class TypePreservingUnOp< string mnemonic, list< Trait > traits = [] >
     let assemblyFormat = [{ $arg attr-dict `:` type($result) }];
 }
 
-def PlusOp  : TypePreservingUnOp< "plus" >;
-def MinusOp : TypePreservingUnOp< "minus" >;
-def NotOp   : TypePreservingUnOp< "not" >;
+def HighLevel_PlusOp  : HighLevel_TypePreservingUnOp< "plus" >;
+def HighLevel_MinusOp : HighLevel_TypePreservingUnOp< "minus" >;
+def HighLevel_NotOp   : HighLevel_TypePreservingUnOp< "not" >;
 
-class LogicalUnOp< string mnemonic, list< Trait > traits = [] >
+class HighLevel_LogicalUnOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, traits >
     , Arguments< (ins AnyType:$arg) >
-    , Results< (outs IntOrBoolType:$res) >
+    , Results< (outs HighLevel_IntOrBoolType:$res) >
 {
     let summary = "VAST unary logical operation";
     let description = [{
@@ -1193,11 +1239,10 @@ class LogicalUnOp< string mnemonic, list< Trait > traits = [] >
     let assemblyFormat = [{ $arg attr-dict `:` type($arg) `->` type($res) }];
 }
 
-def LNotOp  : LogicalUnOp< "lnot", [] >;
+def HighLevel_LNotOp  : HighLevel_LogicalUnOp< "lnot", [] >;
 
-def AddressOf
-  : HighLevel_Op< "addressof", [] >
-  // TODO(Heno): parameter constraints
+def HighLevel_AddressOf
+  : HighLevel_Op< "addressof" >
   , Arguments<(ins AnyType:$value)>
   , Results<(outs AnyType:$result)>
 {
@@ -1207,11 +1252,10 @@ def AddressOf
     let assemblyFormat = [{ $value attr-dict `:` type($value) `->` type($result) }];
 }
 
-def Deref
+def HighLevel_Deref
   : HighLevel_Op< "deref" >
-  // TODO(Heno): check dereferencable
   , Arguments<(ins AnyType:$addr)>
-  , Results<(outs LValueOf<AnyType>:$result)>
+  , Results<(outs HighLevel_LValueOf<AnyType>:$result)>
 {
     let summary = "VAST deref operation";
     let description = [{ VAST deref operation }];
@@ -1219,10 +1263,10 @@ def Deref
     let assemblyFormat = [{ $addr attr-dict `:` type($addr) `->` type($result) }];
 }
 
-def AddrLabelExpr
+def HighLevel_AddrLabelExpr
   : HighLevel_Op< "labeladdr" >
-  , Arguments<(ins LabelType:$label)>
-  , Results<(outs PointerLikeType:$result)>
+  , Arguments<(ins HighLevel_LabelType:$label)>
+  , Results<(outs HighLevel_PointerLikeType:$result)>
 {
     let summary = "VAST address of label extension";
     let description = [{ VAST address of label extension }];
@@ -1230,7 +1274,7 @@ def AddrLabelExpr
     let assemblyFormat = [{ $label attr-dict `:` type($result) }];
 }
 
-def InitListExpr
+def HighLevel_InitListExpr
   : HighLevel_Op< "initlist" >
   , Arguments<(ins Variadic<AnyType>:$elements)>
   , Results<(outs Variadic<AnyType>)>
@@ -1241,12 +1285,12 @@ def InitListExpr
   let assemblyFormat = "$elements attr-dict `:` functional-type($elements, results)";
 }
 
-def SubscriptOp
+def HighLevel_SubscriptOp
   : HighLevel_Op< "subscript" >
   , Arguments<(ins
-      LValueOrType<SubscriptableType>:$array,
-      IntegerLikeType:$index)>
-  , Results<(outs LValueOf<AnyType>:$result)>
+      HighLevel_LValueOrType<HighLevel_SubscriptableType>:$array,
+      HighLevel_IntegerLikeType:$index)>
+  , Results<(outs HighLevel_LValueOf<AnyType>:$result)>
 {
   let summary = "VAST array subscript operator";
   let description = [{ VAST array subscript operator }];
@@ -1257,15 +1301,17 @@ def SubscriptOp
   }];
 }
 
-class TypeTraitOp< string mnemonic, list< Trait > traits = [] >
+class HighLevel_TypeTraitOp< string mnemonic, list< Trait > traits = [] >
   : HighLevel_Op< mnemonic, !listconcat([Pure], traits) >
   , Arguments<(ins TypeAttr:$arg)>
-  , Results<(outs IntegerLikeType:$result)>
+  , Results<(outs HighLevel_IntegerLikeType:$result)>
 {
   let assemblyFormat = [{ $arg attr-dict `->` type($result) }];
 }
 
-def SizeOfTypeOp : TypeTraitOp< "sizeof.type", [Pure] > {
+def HighLevel_SizeOfTypeOp
+  : HighLevel_TypeTraitOp< "sizeof.type", [Pure] >
+{
   let summary = "VAST type sizeof operator";
   let description = [{ Corresponds to sizeof(<type>) expression. }];
 
@@ -1274,18 +1320,19 @@ def SizeOfTypeOp : TypeTraitOp< "sizeof.type", [Pure] > {
   let hasFolder = 1;
 }
 
-class AlignOfTypeOpBase< string mnemonic, list< Trait > traits = [] >
-    : TypeTraitOp< mnemonic, traits >  {
+class HighLevel_AlignOfTypeOpBase< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_TypeTraitOp< mnemonic, traits >
+{
   let summary = "VAST type alignof operator";
   let description = [{ VAST type alignof operator }];
 }
 
-def AlignOfTypeOp          : AlignOfTypeOpBase< "alignof.type" >;
-def PreferredAlignOfTypeOp : AlignOfTypeOpBase< "preferred_alignof.type" >;
+def HighLevel_AlignOfTypeOp          : HighLevel_AlignOfTypeOpBase< "alignof.type" >;
+def HighLevel_PreferredAlignOfTypeOp : HighLevel_AlignOfTypeOpBase< "preferred_alignof.type" >;
 
-class ExprTraitOp< string mnemonic, list< Trait > traits = [] >
+class HighLevel_ExprTraitOp< string mnemonic, list< Trait > traits = [] >
   : HighLevel_Op< mnemonic, !listconcat([Pure], traits) >
-  , Results<(outs IntegerLikeType:$result)>
+  , Results<(outs HighLevel_IntegerLikeType:$result)>
 {
   let regions = (region SizedRegion<1>:$expr);
 
@@ -1300,7 +1347,9 @@ class ExprTraitOp< string mnemonic, list< Trait > traits = [] >
   let assemblyFormat = [{ attr-dict `->` type($result) $expr }];
 }
 
-def SizeOfExprOp : ExprTraitOp< "sizeof.expr" > {
+def HighLevel_SizeOfExprOp
+  : HighLevel_ExprTraitOp< "sizeof.expr" >
+{
   let summary = "VAST expr sizeof operator";
   let description = [{ VAST expr sizeof operator }];
 
@@ -1308,16 +1357,17 @@ def SizeOfExprOp : ExprTraitOp< "sizeof.expr" > {
   let hasFolder = 1;
 }
 
-class AlignOfExprOpBase< string mnemonic, list< Trait > traits = [] >
-    : ExprTraitOp< mnemonic, traits > {
+class HighLevel_AlignOfExprOpBase< string mnemonic, list< Trait > traits = [] >
+    : HighLevel_ExprTraitOp< mnemonic, traits >
+{
   let summary = "VAST expr alignof operator";
   let description = [{ VAST expr alignof operator }];
 }
 
-def AlignOfExprOp          : AlignOfExprOpBase< "alignof.expr" >;
-def PreferredAlignOfExprOp : AlignOfExprOpBase< "preferred_alignof.expr" >;
+def HighLevel_AlignOfExprOp          : HighLevel_AlignOfExprOpBase< "alignof.expr" >;
+def HighLevel_PreferredAlignOfExprOp : HighLevel_AlignOfExprOpBase< "preferred_alignof.expr" >;
 
-def OffsetOfNodeAttr
+def HighLevel_OffsetOfNodeAttr
   : HighLevel_Attr< "OffsetOfNode", "offset_of_node" > {
     let parameters = (ins
       "std::variant< unsigned int, ::mlir::StringAttr >":$value
@@ -1339,7 +1389,7 @@ def OffsetOfNodeAttr
   let hasCustomAssemblyFormat = 1;
 }
 
-def OffsetOfExprOp
+def HighLevel_OffsetOfExprOp
   : HighLevel_Op< "offsetof.expr" >
   , Arguments< (ins TypeAttr:$source, ArrayAttr:$components) >
   , Results< (outs AnyType:$result) >
@@ -1371,7 +1421,7 @@ def OffsetOfExprOp
   let assemblyFormat = [{ attr-dict `type` `:` $source `,` `member` `:` $components `:` type($result) $array_index_exprs }];
 }
 
-def StmtExprOp
+def HighLevel_StmtExprOp
   : HighLevel_Op< "stmt.expr", [SingleBlock, DeclareOpInterfaceMethods<RegionKindInterface>] >
   , Results<(outs AnyType:$result)>
 {
@@ -1393,35 +1443,35 @@ def StmtExprOp
   }];
 }
 
-class IdentKindAttr< string name, int val > : I64EnumAttrCase< name, val > {}
+class HighLevel_IdentKindAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
-class IdentKindList< string name, string summary, list< IdentKindAttr > cases >
+class HighLevel_IdentKindList< string name, string summary, list< HighLevel_IdentKindAttr > cases >
   : I64EnumAttr< name, summary, cases > {}
 
-def Func : IdentKindAttr<"Func", 0>;
-def Function : IdentKindAttr<"Function", 1>;
-def LFunction : IdentKindAttr<"LFunction", 2>;
-def FuncDName : IdentKindAttr<"FuncDName", 3>;
-def FuncSig : IdentKindAttr<"FuncSig", 4>;
-def LFuncSig : IdentKindAttr<"LFuncSig", 5>;
-def PrettyFunction : IdentKindAttr<"PrettyFunction", 6>;
-def PrettyFunctionNoVirtual : IdentKindAttr<"PrettyFunctionNoVirtual", 7>;
+def HighLevel_Func : HighLevel_IdentKindAttr<"Func", 0>;
+def HighLevel_Function : HighLevel_IdentKindAttr<"Function", 1>;
+def HighLevel_LFunction : HighLevel_IdentKindAttr<"LFunction", 2>;
+def HighLevel_FuncDName : HighLevel_IdentKindAttr<"FuncDName", 3>;
+def HighLevel_FuncSig : HighLevel_IdentKindAttr<"FuncSig", 4>;
+def HighLevel_LFuncSig : HighLevel_IdentKindAttr<"LFuncSig", 5>;
+def HighLevel_PrettyFunction : HighLevel_IdentKindAttr<"PrettyFunction", 6>;
+def HighLevel_PrettyFunctionNoVirtual : HighLevel_IdentKindAttr<"PrettyFunctionNoVirtual", 7>;
 
 let cppNamespace = "::vast::hl" in
-def IdentKind : IdentKindList< "IdentKind", "ident kind", [
-    Func,
-    Function,
-    LFunction,
-    FuncDName,
-    FuncSig,
-    LFuncSig,
-    PrettyFunction,
-    PrettyFunctionNoVirtual
+def HighLevel_IdentKind : HighLevel_IdentKindList< "IdentKind", "ident kind", [
+    HighLevel_Func,
+    HighLevel_Function,
+    HighLevel_LFunction,
+    HighLevel_FuncDName,
+    HighLevel_FuncSig,
+    HighLevel_LFuncSig,
+    HighLevel_PrettyFunction,
+    HighLevel_PrettyFunctionNoVirtual
 ] >;
 
-def PredefinedExpr
+def HighLevel_PredefinedExpr
   : HighLevel_Op< "predefined.expr" >
-  , Arguments<(ins AnyType:$value, IdentKind:$kind)>
+  , Arguments<(ins AnyType:$value, HighLevel_IdentKind:$kind)>
   , Results<(outs AnyType:$result)>
 {
     let summary = "VAT predefined expr ( such as __func__ )";
@@ -1430,7 +1480,7 @@ def PredefinedExpr
     let assemblyFormat = "$value $kind attr-dict `:` type($value) `->` type($result)";
 }
 
-def ExtensionOp
+def HighLevel_ExtensionOp
   : HighLevel_Op< "gnu.extension" >
   , Arguments<(ins AnyType:$value)>
   , Results<(outs AnyType:$result)>
@@ -1447,7 +1497,7 @@ def HighLevel_EmptyDeclOp
   let assemblyFormat = [{ attr-dict }];
 }
 
-def AsmOp
+def HighLevel_AsmOp
   : HighLevel_Op< "asm", [AttrSizedOperandSegments] >
   , Arguments<(ins
       StrAttr:$asm_template,
@@ -1492,7 +1542,7 @@ def AsmOp
   }];
 }
 
-def VAArgExpr
+def HighLevel_VAArgExpr
   : HighLevel_Op< "va_arg_expr" >
   , Arguments< (ins AnyType: $arg_list) >
   , Results< (outs AnyType: $result) >
@@ -1502,7 +1552,7 @@ def VAArgExpr
   let assemblyFormat = "$arg_list `:` functional-type(operands, $result) attr-dict";
 }
 
-def OpaqueValueExpr
+def HighLevel_OpaqueValueExpr
   : HighLevel_Op< "opaque_expr" >
   , Arguments< (ins Variadic< AnyType >: $arg) >
   , Results< (outs AnyType: $result) >
