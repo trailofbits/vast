@@ -14,7 +14,7 @@
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
             "cacheVariables": {
                 "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/lld.toolchain.cmake",
-                "CMAKE_CONFIGURATION_TYPES": "Release;RelWithDebInfo;Debug",
+                "CMAKE_CONFIGURATION_TYPES": "Release;Debug",
                 "VAST_ENABLE_TESTING": "ON",
                 "LLVM_EXTERNAL_LIT": "$env{LLVM_EXTERNAL_LIT}",
                 "CMAKE_PREFIX_PATH": "$env{CMAKE_PREFIX_PATH}"
