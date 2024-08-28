@@ -156,6 +156,9 @@ stdbit_test = subprocess.run(["cc", "-x", "c", "-", "-o", "/dev/null"],
 if stdbit_test.returncode == 0:
     config.available_features.add("stdbit")
 
+if config.enable_sarif:
+    config.available_features.add("sarif")
+
 uchar_input = b'''
 #include <uchar.h>
 
