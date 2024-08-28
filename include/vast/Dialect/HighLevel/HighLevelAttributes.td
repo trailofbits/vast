@@ -14,7 +14,7 @@ class HighLevel_Attr<string name, string attr_mnemonic, list<Trait> traits = []>
   let mnemonic = attr_mnemonic;
 }
 
-class NameAttr<string name, string attr_mnemonic>
+class HighLevel_NameAttr<string name, string attr_mnemonic>
   : HighLevel_Attr< name, attr_mnemonic >
 {
   let parameters = (ins "::mlir::StringAttr":$name);
@@ -31,37 +31,39 @@ class NameAttr<string name, string attr_mnemonic>
   let assemblyFormat = "`<` $name `>`";
 }
 
-def AnnotationAttr       : NameAttr< "Annotation", "annotation" >;
-def FormatAttr           : NameAttr< "Format", "format" >;
-def SectionAttr          : NameAttr< "Section", "section" >;
-def AliasAttr            : NameAttr< "Alias", "alias" >;
+def HighLevel_AnnotationAttr       : HighLevel_NameAttr< "Annotation", "annotation" >;
+def HighLevel_FormatAttr           : HighLevel_NameAttr< "Format", "format" >;
+def HighLevel_SectionAttr          : HighLevel_NameAttr< "Section", "section" >;
+def HighLevel_AliasAttr            : HighLevel_NameAttr< "Alias", "alias" >;
 // TODO(#595): Make aligned attribute keep the alignment value/expr
-def AlignedAttr          : HighLevel_Attr< "Aligned", "aligned" >;
-def AlwaysInlineAttr     : HighLevel_Attr< "AlwaysInline", "always_inline" >;
-def NoInlineAttr         : HighLevel_Attr< "NoInline", "noinline" >;
-def ConstAttr            : HighLevel_Attr< "Const", "const" >;
-def LoaderUninitAttr     : HighLevel_Attr< "LoaderUninitialized", "loader_uninitialized" >;
-def NoInstrumentAttr     : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
-def PackedAttr           : HighLevel_Attr< "Packed", "packed" >;
-def PureAttr             : HighLevel_Attr< "Pure", "pure" >;
-def WarnUnusedResAttr    : HighLevel_Attr< "WarnUnusedResult", "warn_unused_result" >;
-def RestrictAttr         : HighLevel_Attr< "Restrict", "restrict" >;
-def NoThrowAttr          : HighLevel_Attr< "NoThrow", "nothrow" >;
-def NonNullAttr          : HighLevel_Attr< "NonNull", "nonnull" >;
-def LeafAttr             : HighLevel_Attr< "Leaf", "leaf" >;
-def ColdAttr             : HighLevel_Attr< "Cold", "cold" >;
-def TransparentUnionAttr : HighLevel_Attr< "TransparentUnion", "transparent_union" >;
-def ReturnsTwiceAttr     : HighLevel_Attr< "ReturnsTwice", "returns_twice" >;
-def MayAliasAttr         : HighLevel_Attr< "MayAlias", "may_alias" >;
-def UnusedAttr           : HighLevel_Attr< "Unused", "unused" >;
-def UsedAttr             : HighLevel_Attr< "Used", "used" >;
-def GNUInlineAttr        : HighLevel_Attr< "GNUInline", "gnu_inline" >;
-def NoCfCheckAttr        : HighLevel_Attr< "NoCfCheck", "nocf_check" >;
-def AvailableOnlyInDefaultEvalMethodAttr
+def HighLevel_AlignedAttr          : HighLevel_Attr< "Aligned", "aligned" >;
+def HighLevel_AlwaysInlineAttr     : HighLevel_Attr< "AlwaysInline", "always_inline" >;
+def HighLevel_NoInlineAttr         : HighLevel_Attr< "NoInline", "noinline" >;
+def HighLevel_ConstAttr            : HighLevel_Attr< "Const", "const" >;
+def HighLevel_LoaderUninitAttr     : HighLevel_Attr< "LoaderUninitialized", "loader_uninitialized" >;
+def HighLevel_NoInstrumentAttr     : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
+def HighLevel_PackedAttr           : HighLevel_Attr< "Packed", "packed" >;
+def HighLevel_PureAttr             : HighLevel_Attr< "Pure", "pure" >;
+def HighLevel_WarnUnusedResAttr    : HighLevel_Attr< "WarnUnusedResult", "warn_unused_result" >;
+def HighLevel_RestrictAttr         : HighLevel_Attr< "Restrict", "restrict" >;
+def HighLevel_NoThrowAttr          : HighLevel_Attr< "NoThrow", "nothrow" >;
+def HighLevel_NonNullAttr          : HighLevel_Attr< "NonNull", "nonnull" >;
+def HighLevel_LeafAttr             : HighLevel_Attr< "Leaf", "leaf" >;
+def HighLevel_ColdAttr             : HighLevel_Attr< "Cold", "cold" >;
+def HighLevel_TransparentUnionAttr : HighLevel_Attr< "TransparentUnion", "transparent_union" >;
+def HighLevel_ReturnsTwiceAttr     : HighLevel_Attr< "ReturnsTwice", "returns_twice" >;
+def HighLevel_MayAliasAttr         : HighLevel_Attr< "MayAlias", "may_alias" >;
+def HighLevel_UnusedAttr           : HighLevel_Attr< "Unused", "unused" >;
+def HighLevel_UsedAttr             : HighLevel_Attr< "Used", "used" >;
+def HighLevel_GNUInlineAttr        : HighLevel_Attr< "GNUInline", "gnu_inline" >;
+def HighLevel_NoCfCheckAttr        : HighLevel_Attr< "NoCfCheck", "nocf_check" >;
+def HighLevel_AvailableOnlyInDefaultEvalMethodAttr
   : HighLevel_Attr< "AvailableOnlyInDefaultEvalMethod", "available_only_in_default_eval_method" >;
-def AvailabilityAttr     : HighLevel_Attr< "AvailabilityAttr", "availability" >;
+def HighLevel_AvailabilityAttr     : HighLevel_Attr< "AvailabilityAttr", "availability" >;
 
-def AsmLabelAttr : HighLevel_Attr< "AsmLabel", "asm" > {
+def HighLevel_AsmLabelAttr
+  : HighLevel_Attr< "AsmLabel", "asm" >
+{
   let parameters = (ins "::mlir::StringAttr":$label, "bool":$isLiteral);
 
   let builders = [
@@ -76,7 +78,9 @@ def AsmLabelAttr : HighLevel_Attr< "AsmLabel", "asm" > {
   let assemblyFormat = "`<` $label `,` $isLiteral `>`";
 }
 
-def ModeAttr : HighLevel_Attr< "Mode", "mode" > {
+def HighLevel_ModeAttr
+  : HighLevel_Attr< "Mode", "mode" >
+{
   let parameters = (ins "::mlir::StringAttr":$mode);
 
   let builders = [
@@ -91,25 +95,30 @@ def ModeAttr : HighLevel_Attr< "Mode", "mode" > {
   let assemblyFormat = "`<` $mode `>`";
 }
 
-def BuiltinAttr : HighLevel_Attr< "Builtin", "builtin" > {
+def HighLevel_BuiltinAttr
+  : HighLevel_Attr< "Builtin", "builtin" >
+{
   let parameters = (ins "unsigned":$ID);
-
   let assemblyFormat = "`<` $ID `>`";
 }
 
-def AllocAlignAttr : HighLevel_Attr< "AllocAlign", "alloc_align" > {
+def HighLevel_AllocAlignAttr
+  : HighLevel_Attr< "AllocAlign", "alloc_align" >
+{
   let parameters = (ins "int":$alignment);
-
   let assemblyFormat = "`<` $alignment `>`";
 }
 
-def AllocSizeAttr : HighLevel_Attr< "AllocSize", "alloc_size" > {
+def HighLevel_AllocSizeAttr
+  : HighLevel_Attr< "AllocSize", "alloc_size" >
+{
   let parameters = (ins "int":$size_arg_pos, OptionalParameter< "int" >:$num_arg_pos);
-
   let assemblyFormat = "`<` `size_pos` `:` $size_arg_pos (`,` `num_pos` `:` $num_arg_pos^)? `>`";
 }
 
-def DeprecatedAttr : HighLevel_Attr< "Deprecated", "deprecated" > {
+def HighLevel_DeprecatedAttr
+  : HighLevel_Attr< "Deprecated", "deprecated" >
+{
   let parameters = (ins
     "::mlir::StringAttr":$message,
     "::mlir::StringAttr":$fixit
@@ -124,9 +133,10 @@ def DeprecatedAttr : HighLevel_Attr< "Deprecated", "deprecated" > {
   let assemblyFormat = "`<` `msg` `:` $message `,` `fix` `:` $fixit `>`";
 }
 
-def MaxFieldAlignmentAttr : HighLevel_Attr< "MaxFieldAlignment", "max_field_alignment" > {
+def HighLevel_MaxFieldAlignmentAttr
+  : HighLevel_Attr< "MaxFieldAlignment", "max_field_alignment" >
+{
   let parameters = (ins "unsigned": $alignment);
-
   let assemblyFormat = "`<` $alignment `>`";
 }
 

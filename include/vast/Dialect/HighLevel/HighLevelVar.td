@@ -5,27 +5,32 @@
 
 include "vast/Dialect/Core/CoreTraits.td"
 
-class StorageClassAttr< string name, int val >
+class HighLevel_StorageClassAttr< string name, int val >
   : I64EnumAttrCase< name, val >
 {}
 
-class StorageClassList< string name, string summary, list<StorageClassAttr> cases >
+class HighLevel_StorageClassList< string name, string summary, list<HighLevel_StorageClassAttr> cases >
   : I64EnumAttr< name, summary, cases >
 {}
 
-def SC_None          : StorageClassAttr< "sc_none", 0 >;
-def SC_Auto          : StorageClassAttr< "sc_auto", 1 >;
-def SC_Static        : StorageClassAttr< "sc_static", 2 >;
-def SC_Extern        : StorageClassAttr< "sc_extern", 3 >;
-def SC_PrivateExtern : StorageClassAttr< "sc_private_extern", 4 >;
-def SC_Register      : StorageClassAttr< "sc_register", 5 >;
+def HighLevel_SC_None          : HighLevel_StorageClassAttr< "sc_none", 0 >;
+def HighLevel_SC_Auto          : HighLevel_StorageClassAttr< "sc_auto", 1 >;
+def HighLevel_SC_Static        : HighLevel_StorageClassAttr< "sc_static", 2 >;
+def HighLevel_SC_Extern        : HighLevel_StorageClassAttr< "sc_extern", 3 >;
+def HighLevel_SC_PrivateExtern : HighLevel_StorageClassAttr< "sc_private_extern", 4 >;
+def HighLevel_SC_Register      : HighLevel_StorageClassAttr< "sc_register", 5 >;
 
 let cppNamespace = "::vast::hl" in
-def StorageClass : StorageClassList< "StorageClass", "storage class", [
-  SC_None, SC_Auto, SC_Static, SC_Extern, SC_PrivateExtern, SC_Register
+def HighLevel_StorageClass : HighLevel_StorageClassList< "StorageClass", "storage class", [
+  HighLevel_SC_None,
+  HighLevel_SC_Auto,
+  HighLevel_SC_Static,
+  HighLevel_SC_Extern,
+  HighLevel_SC_PrivateExtern,
+  HighLevel_SC_Register
 ] >;
 
-class StorageClassImpl
+class HighLevel_StorageClassImpl
 {
   code storageClassImpl = [{
     constexpr static auto storage_class = "storageClass";
@@ -36,24 +41,27 @@ class StorageClassImpl
 
 // thread storage class
 
-class TSCAttr< string name, int val > : I64EnumAttrCase< name, val > {}
+class HighLevel_TSCAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
-class TSCList< string name, string summary, list<TSCAttr> cases >
+class HighLevel_TSCList< string name, string summary, list<HighLevel_TSCAttr> cases >
   : I64EnumAttr< name, summary, cases >
 {}
 
-def TSC_None       : TSCAttr< "tsc_none", 0 >;
-def TSC_GNU_Thread : TSCAttr< "tsc_gnu_thread", 1 >;
-def TSC_CXX_Thread : TSCAttr< "tsc_cxx_thread", 2 >;
-def TSC_C_Thread   : TSCAttr< "tsc_c_thread", 3 >;
+def HighLevel_TSC_None       : HighLevel_TSCAttr< "tsc_none", 0 >;
+def HighLevel_TSC_GNU_Thread : HighLevel_TSCAttr< "tsc_gnu_thread", 1 >;
+def HighLevel_TSC_CXX_Thread : HighLevel_TSCAttr< "tsc_cxx_thread", 2 >;
+def HighLevel_TSC_C_Thread   : HighLevel_TSCAttr< "tsc_c_thread", 3 >;
 
 let cppNamespace = "::vast::hl" in
-def ThreadStorage : TSCList< "TSClass", "thread storage class",
+def HighLevel_ThreadStorage : HighLevel_TSCList< "TSClass", "thread storage class",
 [
-  TSC_None, TSC_GNU_Thread, TSC_CXX_Thread, TSC_C_Thread
+  HighLevel_TSC_None,
+  HighLevel_TSC_GNU_Thread,
+  HighLevel_TSC_CXX_Thread,
+  HighLevel_TSC_C_Thread
 ] >;
 
-class ThreadStorageClassImpl
+class HighLevel_ThreadStorageClassImpl
 {
   code threadStorageClassImpl = [{
     constexpr static auto thread_storage_class = "threadStorageClass";
@@ -64,25 +72,30 @@ class ThreadStorageClassImpl
 
 // Storage Duration
 
-class StorageDurationAttr< string name, int val > : I64EnumAttrCase< name, val > {}
+class HighLevel_StorageDurationAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
-class StorageDurationList< string name, string summary, list<StorageDurationAttr> cases >
+class HighLevel_StorageDurationList< string name, string summary, list<HighLevel_StorageDurationAttr> cases >
   : I64EnumAttr< name, summary, cases >
 {}
 
-def SD_FullExpression : StorageDurationAttr< "sd_none", 0 >;
-def SD_Automatic      : StorageDurationAttr< "sd_automatic", 1 >;
-def SD_Thread 	      : StorageDurationAttr< "sd_thread", 2 >;
-def SD_Static         : StorageDurationAttr< "sd_static", 3 >;
-def SD_Dynamic        : StorageDurationAttr< "sd_dynamic", 4 >;
+def HighLevel_SD_FullExpression : HighLevel_StorageDurationAttr< "sd_none", 0 >;
+def HighLevel_SD_Automatic      : HighLevel_StorageDurationAttr< "sd_automatic", 1 >;
+def HighLevel_SD_Thread 	      : HighLevel_StorageDurationAttr< "sd_thread", 2 >;
+def HighLevel_SD_Static         : HighLevel_StorageDurationAttr< "sd_static", 3 >;
+def HighLevel_SD_Dynamic        : HighLevel_StorageDurationAttr< "sd_dynamic", 4 >;
 
 let cppNamespace = "::vast::hl" in
-def StorageDuration : StorageDurationList< "StorageDuration", "storage duration",
+def HighLevel_StorageDuration
+  : HighLevel_StorageDurationList< "StorageDuration", "storage duration",
 [
-  SD_FullExpression, SD_Automatic, SD_Thread, SD_Static, SD_Dynamic
+  HighLevel_SD_FullExpression,
+  HighLevel_SD_Automatic,
+  HighLevel_SD_Thread,
+  HighLevel_SD_Static,
+  HighLevel_SD_Dynamic
 ] >;
 
-class StorageDurationImpl
+class HighLevel_StorageDurationImpl
 {
   code storageDurationImpl = [{
     bool hasLocalStorage();
@@ -100,29 +113,36 @@ class StorageDurationImpl
 }
 
 // declaration context kinds
-class DeclContextAttr< string name, int val > : I64EnumAttrCase< name, val > {}
+class HighLevel_DeclContextAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
-class DeclContextList< string name, string summary, list<DeclContextAttr> cases >
+class HighLevel_DeclContextList< string name, string summary, list<HighLevel_DeclContextAttr> cases >
   : I64EnumAttr< name, summary, cases >
 {}
 
-def DC_Function        : DeclContextAttr< "dc_function", 0 >;
-def DC_Method          : DeclContextAttr< "dc_method", 1 >;
-def DC_Block           : DeclContextAttr< "dc_block", 2 >;
-def DC_Capture         : DeclContextAttr< "dc_capture", 3 >;
-def DC_TranslationUnit : DeclContextAttr< "dc_translation_unit", 4 >;
-def DC_Record          : DeclContextAttr< "dc_record", 5 >;
-def DC_Enum            : DeclContextAttr< "dc_enum", 6 >;
-def DC_Namespace       : DeclContextAttr< "dc_namespace", 7 >;
+def HighLevel_DC_Function        : HighLevel_DeclContextAttr< "dc_function", 0 >;
+def HighLevel_DC_Method          : HighLevel_DeclContextAttr< "dc_method", 1 >;
+def HighLevel_DC_Block           : HighLevel_DeclContextAttr< "dc_block", 2 >;
+def HighLevel_DC_Capture         : HighLevel_DeclContextAttr< "dc_capture", 3 >;
+def HighLevel_DC_TranslationUnit : HighLevel_DeclContextAttr< "dc_translation_unit", 4 >;
+def HighLevel_DC_Record          : HighLevel_DeclContextAttr< "dc_record", 5 >;
+def HighLevel_DC_Enum            : HighLevel_DeclContextAttr< "dc_enum", 6 >;
+def HighLevel_DC_Namespace       : HighLevel_DeclContextAttr< "dc_namespace", 7 >;
 
 let cppNamespace = "::vast::hl" in
-def DeclContextKind : DeclContextList< "DeclContextKind", "declaration context kind",
+def HighLevel_DeclContextKind
+  : HighLevel_DeclContextList< "DeclContextKind", "declaration context kind",
 [
-  DC_Function, DC_Method, DC_Block, DC_Capture,
-  DC_TranslationUnit, DC_Record, DC_Enum, DC_Namespace
+  HighLevel_DC_Function,
+  HighLevel_DC_Method,
+  HighLevel_DC_Block,
+  HighLevel_DC_Capture,
+  HighLevel_DC_TranslationUnit,
+  HighLevel_DC_Record,
+  HighLevel_DC_Enum,
+  HighLevel_DC_Namespace
 ] >;
 
-class DeclContextImpl
+class HighLevel_DeclContextImpl
 {
   code declContextImpl = [{
     DeclContextKind getDeclContextKind();
@@ -139,8 +159,11 @@ class DeclContextImpl
   }];
 }
 
-class StorageSpecifiers :
-  StorageClassImpl, ThreadStorageClassImpl, StorageDurationImpl, DeclContextImpl
+class HighLevel_StorageSpecifiers :
+  HighLevel_StorageClassImpl,
+  HighLevel_ThreadStorageClassImpl,
+  HighLevel_StorageDurationImpl,
+  HighLevel_DeclContextImpl
 {
   code storageSpecifiersImpl =
     storageClassImpl #
@@ -151,15 +174,15 @@ class StorageSpecifiers :
 
 // Variable Operation
 def HighLevel_VarDeclOp : HighLevel_Op< "var", [VarSymbol] >
-  , StorageSpecifiers
+  , HighLevel_StorageSpecifiers
 {
   let summary = "VAST variable declaration";
   let description = [{ VAST variable declaration }];
 
   let arguments = (ins
     SymbolNameAttr:$sym_name,
-    OptionalAttr<StorageClass>:$storageClass,
-    OptionalAttr<ThreadStorage>:$threadStorageClass
+    OptionalAttr<HighLevel_StorageClass>:$storageClass,
+    OptionalAttr<HighLevel_ThreadStorage>:$threadStorageClass
   );
 
   let results = (outs AnyType:$result);
