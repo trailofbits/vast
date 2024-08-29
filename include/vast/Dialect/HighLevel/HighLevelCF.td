@@ -107,7 +107,11 @@ def HighLevel_IfOp
     }
   }];
 
-  let regions = (region CondRegion:$condRegion, AnyRegion:$thenRegion, AnyRegion:$elseRegion);
+  let regions = (region
+    Core_CondRegion:$condRegion,
+    AnyRegion:$thenRegion,
+    AnyRegion:$elseRegion
+  );
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -148,9 +152,9 @@ def HighLevel_CondOp
   }];
 
   let regions = (region
-    CondRegion:$condRegion,
-    ValueRegion:$thenRegion,
-    ValueRegion:$elseRegion
+    Core_CondRegion:$condRegion,
+    Core_ValueRegion:$thenRegion,
+    Core_ValueRegion:$elseRegion
   );
 
   let hasRegionVerifier = 1;
@@ -188,10 +192,10 @@ def HighLevel_BinaryCondOp
   }];
 
   let regions = (region
-    ValueRegion:$commonRegion,
-    CondRegion:$condRegion,
-    ValueRegion:$thenRegion,
-    ValueRegion:$elseRegion
+    Core_ValueRegion:$commonRegion,
+    Core_CondRegion:$condRegion,
+    Core_ValueRegion:$thenRegion,
+    Core_ValueRegion:$elseRegion
   );
 
   let hasRegionVerifier = 1;
@@ -228,7 +232,10 @@ def HighLevel_WhileOp
     }
   }];
 
-  let regions = (region CondRegion:$condRegion, AnyRegion:$bodyRegion);
+  let regions = (region
+    Core_CondRegion:$condRegion,
+    AnyRegion:$bodyRegion
+  );
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -262,7 +269,7 @@ def HighLevel_ForOp
   }];
 
   let regions = (region
-    CondRegion:$condRegion,
+    Core_CondRegion:$condRegion,
     AnyRegion:$incrRegion,
     AnyRegion:$bodyRegion
   );
@@ -298,7 +305,10 @@ def HighLevel_DoOp
     }
   }];
 
-  let regions = (region AnyRegion:$bodyRegion, CondRegion:$condRegion);
+  let regions = (region
+    AnyRegion:$bodyRegion,
+    Core_CondRegion:$condRegion
+  );
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -314,7 +324,7 @@ def HighLevel_DoOp
 }
 
 def HighLevel_BreakOp
-  : HighLevel_ControlFlowOp< "break", [SoftTerminatorTrait] >
+  : HighLevel_ControlFlowOp< "break", [Core_SoftTerminatorTrait] >
 {
   let summary = "VAST break statement";
   let description = [{ VAST break statement }];
@@ -323,7 +333,7 @@ def HighLevel_BreakOp
 }
 
 def HighLevel_ContinueOp
-  : HighLevel_ControlFlowOp< "continue", [SoftTerminatorTrait] >
+  : HighLevel_ControlFlowOp< "continue", [Core_SoftTerminatorTrait] >
 {
   let summary = "VAST continue statement";
   let description = [{ VAST continue statement }];
@@ -348,7 +358,10 @@ def HighLevel_SwitchOp
     }
   }];
 
-  let regions = (region ValueRegion:$condRegion, VariadicRegion<AnyRegion>:$cases);
+  let regions = (region
+    Core_ValueRegion:$condRegion,
+    VariadicRegion<AnyRegion>:$cases
+  );
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -382,7 +395,10 @@ def HighLevel_CaseOp
     It represents a C statement of form `case lhs: body;`.
   }];
 
-  let regions = (region ValueRegion:$lhs, SizedRegion<1>:$body);
+  let regions = (region
+    Core_ValueRegion:$lhs,
+    SizedRegion<1>:$body
+  );
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -448,7 +464,9 @@ def HighLevel_GotoStmt
 def HighLevel_IndirectGotoStmt
   : HighLevel_Op< "indirect_goto", [] >
 {
-  let regions = (region ValueRegion:$target);
+  let regions = (region
+    Core_ValueRegion:$target
+  );
 
   let skipDefaultBuilders = 1;
   let builders = [

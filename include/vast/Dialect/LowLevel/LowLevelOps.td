@@ -296,7 +296,7 @@ def CondScopeRet
     }];}
 
 def ReturnOp
-    : LowLevel_Op< "return", [Terminator, ReturnLikeTrait] >
+    : LowLevel_Op< "return", [Terminator, Core_ReturnLikeTrait] >
     , Arguments<(ins Variadic<AnyType>:$result)>
 {
     // Allow building a ReturnOp with no return operand.

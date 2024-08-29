@@ -205,7 +205,7 @@ def HighLevel_EnumConstantOp
   let assemblyFormat = [{ $name `=` $value attr-dict (`init` $init^)? }];
 }
 
-def HighLevel_EnumRegion : Region< HasOneBlock, "enum constants region" >;
+def HighLevel_EnumRegion : Region< Core_HasOneBlock, "enum constants region" >;
 
 def HighLevel_EnumDeclOp
   : HighLevel_Op< "enum", [NoTerminator, TypeSymbol] >
@@ -436,7 +436,7 @@ def HighLevel_ExprOp
 }
 
 def HighLevel_ReturnOp
-  : HighLevel_Op< "return", [SoftTerminatorTrait, ReturnLikeTrait] >
+  : HighLevel_Op< "return", [Core_SoftTerminatorTrait, Core_ReturnLikeTrait] >
   , Arguments<(ins Variadic<AnyType>:$result)>
 {
   let assemblyFormat = "($result^ `:` type($result))? attr-dict";
@@ -538,7 +538,9 @@ def HighLevel_InitializedConstantOp
     represents initialization expression.
   }];
 
-  let regions = (region ValueRegion:$init);
+  let regions = (region
+    Core_ValueRegion:$init
+  );
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -571,7 +573,9 @@ def HighLevel_CompoundLiteralOp
     Is used to represetnt `clang::CompoundLiteralExpr`.
   }];
 
-  let regions = (region ValueRegion:$init);
+  let regions = (region
+    Core_ValueRegion:$init
+  );
 
   let skipDefaultBuilders = 1;
   let builders = [
@@ -774,10 +778,10 @@ class HighLevel_IsPointerCompatible< string arg >
   : PredTypeTrait< "type can be added/subtracted to a pointer",
    Or < [
     And< [
-      IsIntegral< arg >.predicate,
-      Neg< IsShort< arg >.predicate >,
-      Neg< IsChar< arg >.predicate >,
-      Neg< IsBool< arg >.predicate >
+      Core_IsIntegral< arg >.predicate,
+      Neg< Core_IsShort< arg >.predicate >,
+      Neg< Core_IsChar< arg >.predicate >,
+      Neg< Core_IsBool< arg >.predicate >
     ] >,
     IsBuiltinType< arg >.predicate
   ] >
@@ -788,25 +792,25 @@ class HighLevel_IsPointerAdditive< string lhs, string rhs, string res >
     And< [
       Or< [
         And< [
-          IsPointer< lhs >.predicate,
+          Core_IsPointer< lhs >.predicate,
           HighLevel_IsPointerCompatible< rhs >.predicate
         ] >,
         And< [
           HighLevel_IsPointerCompatible< lhs >.predicate,
-          IsPointer< rhs >.predicate
+          Core_IsPointer< rhs >.predicate
         ] >
       ] >,
-      IsPointer< res >.predicate
+      Core_IsPointer< res >.predicate
     ] >
 >;
 
 class HighLevel_PtrDiffLike< string lhs, string rhs, string res >
   : PredOpTrait< "is a subtraction of pointers",
     And< [
-      IsPointer< lhs >.predicate,
-      IsPointer< rhs >.predicate,
+      Core_IsPointer< lhs >.predicate,
+      Core_IsPointer< rhs >.predicate,
       Or< [
-        IsIntegral< res >.predicate,
+        Core_IsIntegral< res >.predicate,
         IsBuiltinType< res >.predicate
       ] >
     ] >
@@ -918,7 +922,10 @@ class HighLevel_LogicBinOp< string mnemonic, list< Trait > traits = [] >
         %result = <op> %lhs, %rhs  : type
     }];
 
-    let regions = (region ValueRegion:$lhs, ValueRegion:$rhs);
+    let regions = (region
+      Core_ValueRegion:$lhs,
+      Core_ValueRegion:$rhs
+    );
 
     let skipDefaultBuilders = 1;
     let builders = [
@@ -983,8 +990,9 @@ class HighLevel_IsLValuePointer< string arg >
 class HighLevel_IsCompoundPtrAdditive< string lhs, string rhs, string res >
   : PredOpTrait< "is an additive operation on pointers",
     And< [HighLevel_IsLValuePointer< lhs >.predicate,
-          IsInteger< rhs>.predicate,
-          IsPointer< res >.predicate ] >
+      Core_IsInteger< rhs>.predicate,
+      Core_IsPointer< res >.predicate
+    ] >
 >;
 
 class HighLevel_IsCompoundAdditive< string lhs, string rhs, string res >
@@ -1094,16 +1102,16 @@ def HighLevel_Predicate : HighLevel_PredicateList< "Predicate", "comparison pred
 class HighLevel_IsPointerCmp< string lhs, string rhs >
   : PredOpTrait< "is an additive operation on pointers",
     And< [
-      IsPointer< lhs >.predicate,
-      IsPointer< rhs >.predicate
+      Core_IsPointer< lhs >.predicate,
+      Core_IsPointer< rhs >.predicate
     ] >
 >;
 
 class HighLevel_IsIntegralCmp< string lhs, string rhs >
   : PredOpTrait< "is an additive operation on pointers",
     And< [
-      IsIntegral< lhs >.predicate,
-      IsIntegral< rhs >.predicate
+      Core_IsIntegral< lhs >.predicate,
+      Core_IsIntegral< rhs >.predicate
     ] >
 >;
 
@@ -1400,7 +1408,10 @@ def HighLevel_OffsetOfExprOp
       The operation holds an array of components - identifiers or indexes of array indexing expressions
       and an array of regions - each corresponding to one indexing expression.
   }];
-  let regions = (region VariadicRegion< ValueRegion >:$array_index_exprs);
+
+  let regions = (region
+    VariadicRegion< Core_ValueRegion >:$array_index_exprs
+  );
 
   let skipDefaultBuilders = 1;
   let builders = [

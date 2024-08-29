@@ -12,7 +12,7 @@ include "vast/Interfaces/SymbolInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
 
-def GlobalLinkageKind : Attr<
+def Core_GlobalLinkageKind : Attr<
     CPred<"::llvm::isa<::vast::core::GlobalLinkageKindAttr>($_self)">,
     "global linkage kind"
 > {
@@ -24,7 +24,7 @@ def GlobalLinkageKind : Attr<
     }];
 }
 
-def CoreFunctionType : Type<
+def Core_FunctionType : Type<
     CPred<"::llvm::isa<::vast::core::FunctionType>($_self)">,
     "function type",
     "::vast::core::FunctionType"
@@ -59,8 +59,8 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
 
   let arguments =(ins
     SymbolNameAttr:$sym_name,
-    TypeAttrOf<CoreFunctionType>:$function_type,
-    OptionalAttr<GlobalLinkageKind>:$linkage,
+    TypeAttrOf<Core_FunctionType>:$function_type,
+    OptionalAttr<Core_GlobalLinkageKind>:$linkage,
     OptionalAttr<StrAttr>:$sym_visibility,
     OptionalAttr<DictArrayAttr>:$arg_attrs,
     OptionalAttr<DictArrayAttr>:$res_attrs
@@ -182,7 +182,7 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
     // SymbolOpInterface Methods
     //===------------------------------------------------------------------===//
 
-    // TODO(#638): Find better way to mark alias functions as defintiions
+    // TODO(#638): Find better way to mark alias functions as definitions
     bool isDeclaration() { return isExternal() && !getOperation()->hasAttr("hl.alias"); }
   }];
 }

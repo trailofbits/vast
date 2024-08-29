@@ -89,7 +89,7 @@ def Core_ScopeOp : Core_Op< "scope", [
 }
 
 def Core_ImplicitReturnOp
-  : Core_Op< "implicit.return", [SoftTerminatorTrait, ReturnLikeTrait] >
+  : Core_Op< "implicit.return", [Core_SoftTerminatorTrait, Core_ReturnLikeTrait] >
   , Arguments<(ins Variadic<AnyType>:$result)>
 {
   let summary = "VAST implicit return";

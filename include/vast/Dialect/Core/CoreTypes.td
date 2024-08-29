@@ -9,7 +9,7 @@ class Core_Type< string name, string _mnemonic, list<Trait> traits = [] >
     let mnemonic = _mnemonic;
 }
 
-def TypeArrayRefParameter : ArrayRefParameter<"Type"> {
+def Core_TypeArrayRefParameter : ArrayRefParameter<"Type"> {
   let printer = [{
     llvm::interleaveComma($_self, $_printer, [&$_printer](mlir::Type type) {
       $_printer.printType(type);
@@ -58,7 +58,7 @@ def Core_FunctionType : Core_Type< "Function", "fn" > {
 
   let parameters = (ins
     ArrayRefParameter<"Type">:$inputs,
-    TypeArrayRefParameter:$results,
+    Core_TypeArrayRefParameter:$results,
     "bool":$varArg
   );
 

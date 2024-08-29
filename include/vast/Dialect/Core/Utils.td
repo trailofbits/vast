@@ -6,12 +6,12 @@
 include "mlir/IR/BuiltinTypes.td"
 include "mlir/IR/DialectBase.td"
 
-def HasOneBlock   : CPred<"$_self.hasOneBlock()">;
+def Core_HasOneBlock   : CPred<"$_self.hasOneBlock()">;
 
 // TODO(Heno): constraints on regions
-def CondRegion  : Region< HasOneBlock, "condition region" >;
-def CasesRegion : Region< HasOneBlock, "cases region" >;
-def ValueRegion : Region< HasOneBlock, "value region" >;
+def Core_CondRegion  : Region< Core_HasOneBlock, "condition region" >;
+def Core_CasesRegion : Region< Core_HasOneBlock, "cases region" >;
+def Core_ValueRegion : Region< Core_HasOneBlock, "value region" >;
 
 //
 // Type traits
@@ -20,72 +20,72 @@ def ValueRegion : Region< HasOneBlock, "value region" >;
 // Adding new traits requires class definition in vast/Dialect/Core/TypeTraits.hpp
 //
 
-def IntegralTypeTrait : NativeTypeTrait< "IntegralTypeTrait" >;
-def BoolTypeTrait     : NativeTypeTrait< "BoolTypeTrait" >;
-def CharTypeTrait     : NativeTypeTrait< "CharTypeTrait" >;
-def ShortTypeTrait    : NativeTypeTrait< "ShortTypeTrait" >;
-def IntegerTypeTrait  : NativeTypeTrait< "IntegerTypeTrait" >;
-def LongTypeTrait     : NativeTypeTrait< "LongTypeTrait" >;
-def LongLongTypeTrait : NativeTypeTrait< "LongLongTypeTrait" >;
-def Int128TypeTrait   : NativeTypeTrait< "Int128TypeTrait" >;
+def Core_IntegralTypeTrait : NativeTypeTrait< "IntegralTypeTrait" >;
+def Core_BoolTypeTrait     : NativeTypeTrait< "BoolTypeTrait" >;
+def Core_CharTypeTrait     : NativeTypeTrait< "CharTypeTrait" >;
+def Core_ShortTypeTrait    : NativeTypeTrait< "ShortTypeTrait" >;
+def Core_IntegerTypeTrait  : NativeTypeTrait< "IntegerTypeTrait" >;
+def Core_LongTypeTrait     : NativeTypeTrait< "LongTypeTrait" >;
+def Core_LongLongTypeTrait : NativeTypeTrait< "LongLongTypeTrait" >;
+def Core_Int128TypeTrait   : NativeTypeTrait< "Int128TypeTrait" >;
 
-def FloatingTypeTrait : NativeTypeTrait< "FloatingTypeTrait" >;
+def Core_FloatingTypeTrait : NativeTypeTrait< "FloatingTypeTrait" >;
 
-def PointerTypeTrait  : NativeTypeTrait< "PointerTypeTrait" >;
+def Core_PointerTypeTrait  : NativeTypeTrait< "PointerTypeTrait" >;
 
-def TypedefTrait      : NativeTypeTrait< "TypedefTrait" >;
+def Core_TypedefTrait      : NativeTypeTrait< "TypedefTrait" >;
 
-def TypeOfTrait       : NativeTypeTrait< "TypeOfTrait" >;
+def Core_TypeOfTrait       : NativeTypeTrait< "TypeOfTrait" >;
 
-def VoidTrait         : NativeTypeTrait< "VoidTrait" >;
+def Core_VoidTrait         : NativeTypeTrait< "VoidTrait" >;
 
 //
 // Type trait predicates
 //
 
-class IsIntegral< string arg > : PredOpTrait< "value is of an integral type",
+class Core_IsIntegral< string arg > : PredOpTrait< "value is of an integral type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::IntegralTypeTrait >()" >
 >;
 
-class IsBool< string arg > : PredOpTrait< "value is of a bool type",
+class Core_IsBool< string arg > : PredOpTrait< "value is of a bool type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::BoolTypeTrait >()" >
 >;
 
-class IsChar< string arg > : PredOpTrait< "value is of a char type",
+class Core_IsChar< string arg > : PredOpTrait< "value is of a char type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::CharTypeTrait >()" >
 >;
 
-class IsShort< string arg > : PredOpTrait< "value is of a short type",
+class Core_IsShort< string arg > : PredOpTrait< "value is of a short type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::ShortTypeTrait >()" >
 >;
 
-class IsInteger< string arg > : PredOpTrait< "value is of an integer type",
+class Core_IsInteger< string arg > : PredOpTrait< "value is of an integer type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::IntegerTypeTrait >()" >
 >;
 
-class IsLong< string arg > : PredOpTrait< "value is of a long type",
+class Core_IsLong< string arg > : PredOpTrait< "value is of a long type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::LongTypeTrait >()" >
 >;
 
-class IsLongLong< string arg > : PredOpTrait< "value is of a long long type",
+class Core_IsLongLong< string arg > : PredOpTrait< "value is of a long long type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::LongLongTypeTrait >()" >
 >;
 
-class IsInt128< string arg > : PredOpTrait< "value is of a int128 type",
+class Core_IsInt128< string arg > : PredOpTrait< "value is of a int128 type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::Int128TypeTrait >()" >
 >;
 
 
-class IsPointer< string arg > : PredOpTrait< "value is of a pointer type",
+class Core_IsPointer< string arg > : PredOpTrait< "value is of a pointer type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::PointerTypeTrait >()" >
 >;
 
 
-class IsTypedef< string arg > : PredOpTrait< "value is of a typedefed type",
+class Core_IsTypedef< string arg > : PredOpTrait< "value is of a typedefed type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::TypedefTrait >()" >
 >;
 
-class IsTypeOf< string arg > : PredOpTrait< "value is of a typeofed type",
+class Core_IsTypeOf< string arg > : PredOpTrait< "value is of a typeofed type",
     CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::TypeOfTrait >()" >
 >;
 
@@ -93,11 +93,11 @@ class IsBuiltinType< string arg > : PredOpTrait< "is a type from the builtin dia
     CPred< "mlir::isa< mlir::BuiltinDialect >($" # arg # ".getType().getDialect())" >
 >;
 
-class IsVoid< string arg > : PredOpTrait< "value is of a void type",
+class Core_IsVoid< string arg > : PredOpTrait< "value is of a void type",
   CPred< "$" # arg # ".getType().hasTrait< mlir::TypeTrait::VoidTrait >()" >
 >;
 
-def VoidLikeType : Type<
+def Core_VoidLikeType : Type<
     CPred<"$_self.hasTrait< mlir::TypeTrait::VoidTrait >()">,
     "Type with VoidTrit"
 >;
