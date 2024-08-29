@@ -242,7 +242,7 @@ namespace vast::cg
             //   function call is used by the caller, the behavior is undefined.
 
             // TODO: skip if SawAsmBlock
-            switch (policy->missing_return_policy(decl)) {
+            switch (policy->get_missing_return_policy(decl)) {
                 case missing_return_policy::emit_trap:
                     emit_trap(decl);
                     break;

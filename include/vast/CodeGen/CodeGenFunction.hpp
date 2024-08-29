@@ -46,7 +46,7 @@ namespace vast::cg {
         void emit_implicit_return_zero(const clang_function *decl);
         void emit_implicit_void_return(const clang_function *decl);
 
-        std::shared_ptr< policy_base > policy;
+        std::shared_ptr< codegen_policy > policy;
     };
 
     //

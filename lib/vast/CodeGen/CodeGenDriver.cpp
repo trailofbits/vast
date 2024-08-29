@@ -110,7 +110,7 @@ namespace vast::cg {
         return std::make_shared< default_symbol_generator >(actx.createMangleContext());
     }
 
-    std::shared_ptr< policy_base > mk_policy(cc::action_options &opts) {
+    std::shared_ptr< codegen_policy > mk_codegen_policy(cc::action_options &opts) {
         return std::make_shared< default_policy >(opts);
     }
 
@@ -124,7 +124,7 @@ namespace vast::cg {
 
         auto mg = mk_meta_generator(&actx, &mctx, vargs);
         auto sg = mk_symbol_generator(actx);
-        auto policy = mk_policy(opts);
+        auto policy = mk_codegen_policy(opts);
 
         auto visitors = std::make_shared< visitor_list >()
             | as_node_with_list_ref< attr_visitor_proxy >()

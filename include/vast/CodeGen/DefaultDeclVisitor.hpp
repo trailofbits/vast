@@ -55,7 +55,7 @@ namespace vast::cg {
         template< typename RecordDeclOp >
         operation mk_record_decl(const clang::RecordDecl *decl);
 
-        std::shared_ptr< policy_base > policy;
+        std::shared_ptr< codegen_policy > policy;
     };
 
     template< typename RecordDeclOp >
