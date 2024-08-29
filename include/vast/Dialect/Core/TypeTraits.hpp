@@ -3,11 +3,10 @@
 
 #include "mlir/IR/Types.h"
 
-namespace mlir {
-namespace TypeTrait {
+namespace vast::core {
 
 #define CORE_TRAIT( trait ) template < typename type > \
-class trait : public TypeTrait::TraitBase< type, trait > {};
+class trait : public mlir::TypeTrait::TraitBase< type, trait > {};
 
 CORE_TRAIT(IntegralTypeTrait);
 CORE_TRAIT(BoolTypeTrait);
@@ -28,6 +27,5 @@ CORE_TRAIT(TypeOfTrait);
 
 CORE_TRAIT(VoidTrait);
 
-} // namespace TypeTrait
-} // namespace mlir
-#endif //CORE_TRAITS_H
+} // namespace vast::core
+#endif // CORE_TRAITS_H

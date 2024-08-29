@@ -783,7 +783,7 @@ class HighLevel_IsPointerCompatible< string arg >
       Neg< Core_IsChar< arg >.predicate >,
       Neg< Core_IsBool< arg >.predicate >
     ] >,
-    IsBuiltinType< arg >.predicate
+    Core_IsBuiltinType< arg >.predicate
   ] >
 >;
 
@@ -811,7 +811,7 @@ class HighLevel_PtrDiffLike< string lhs, string rhs, string res >
       Core_IsPointer< rhs >.predicate,
       Or< [
         Core_IsIntegral< res >.predicate,
-        IsBuiltinType< res >.predicate
+        Core_IsBuiltinType< res >.predicate
       ] >
     ] >
 >;

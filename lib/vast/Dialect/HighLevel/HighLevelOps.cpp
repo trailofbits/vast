@@ -65,8 +65,7 @@ namespace vast::hl
 
             for (auto t_elab : op->getOperandTypes()) {
                 auto t = strip_elaborated(t_elab);
-                if (t.hasTrait< mlir::TypeTrait::TypedefTrait >() ||
-                    t.hasTrait< mlir::TypeTrait::TypeOfTrait >()) {
+                if (t.hasTrait< core::TypedefTrait >() || t.hasTrait< core::TypeOfTrait >()) {
                     return logical_result::success();
                 }
                 if (strip_complex(t) != res_type) {
@@ -79,14 +78,12 @@ namespace vast::hl
     } // namespace
 
     logical_result FCmpOp::verify() {
-        namespace tt = mlir::TypeTrait;
-
         auto lhs = strip_complex(strip_elaborated(getLhs()));
         auto rhs = strip_complex(strip_elaborated(getRhs()));
         return logical_result::success(
             lhs == rhs
-            || any_with_trait< tt::TypedefTrait >(lhs, rhs)
-            || any_with_trait< tt::TypeOfTrait >(lhs, rhs)
+            || any_with_trait< core::TypedefTrait >(lhs, rhs)
+            || any_with_trait< core::TypeOfTrait >(lhs, rhs)
         );
     }
 
@@ -607,8 +604,6 @@ namespace vast::hl
 
     namespace {
         bool typesMatch(Type lhs, Type rhs) {
-            namespace tt = mlir::TypeTrait;
-
             if (auto e = mlir::dyn_cast< hl::ElaboratedType >(lhs)) {
                 return typesMatch(e.getElementType(), rhs);
             }
@@ -616,10 +611,11 @@ namespace vast::hl
                 return typesMatch(lhs, e.getElementType());
             }
 
-            return lhs == rhs || all_with_trait< tt::IntegralTypeTrait >(lhs, rhs)
-                || any_with_trait< tt::TypedefTrait >(lhs, rhs)
-                || any_with_trait< tt::TypeOfTrait >(lhs, rhs)
-                || all_with_trait< tt::PointerTypeTrait >(lhs, rhs);
+            return lhs == rhs
+                || all_with_trait< core::IntegralTypeTrait >(lhs, rhs)
+                || any_with_trait< core::TypedefTrait >(lhs, rhs)
+                || any_with_trait< core::TypeOfTrait >(lhs, rhs)
+                || all_with_trait< core::PointerTypeTrait >(lhs, rhs);
         }
 
         logical_result verify_condop_yields(Region &lhs, Region &rhs, Location loc) {
@@ -842,7 +838,7 @@ namespace vast::hl
     std::size_t handle_size_of(auto op, mlir_type type) {
         auto eval = [op] (mlir_type ty) -> std::size_t {
             // sizeof(void), sizeof(function) = 1 as a gcc extension
-            if (ty.hasTrait< mlir::TypeTrait::VoidTrait >()) {
+            if (ty.hasTrait< core::VoidTrait >()) {
                 return 1;
             }
 
