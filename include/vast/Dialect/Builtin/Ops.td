@@ -9,7 +9,7 @@ include "vast/Dialect/Core/Utils.td"
 
 def HLBuiltin_VAStartOp : HLBuiltin_Op< "va_start" >
   , Arguments< (ins AnyType: $arg_list, AnyType: $count) >
-  , Results< (outs VoidLikeType: $result) >
+  , Results< (outs Core_VoidLikeType: $result) >
 {
   let summary = "Start of the variable argument list";
 
@@ -18,7 +18,7 @@ def HLBuiltin_VAStartOp : HLBuiltin_Op< "va_start" >
 
 def HLBuiltin_VAEndOp : HLBuiltin_Op< "va_end" >
   , Arguments< (ins AnyType: $arg_list) >
-  , Results< (outs VoidLikeType: $result) >
+  , Results< (outs Core_VoidLikeType: $result) >
 {
   let summary = "End of the variable argument list";
 
@@ -27,7 +27,7 @@ def HLBuiltin_VAEndOp : HLBuiltin_Op< "va_end" >
 
 def HLBuiltin_VACopyOp : HLBuiltin_Op< "va_copy" >
   , Arguments< (ins AnyType: $src_list, AnyType: $trg_list) >
-  , Results< (outs VoidLikeType: $result) >
+  , Results< (outs Core_VoidLikeType: $result) >
 {
   let summary = "Start of the variable argument list";
 
@@ -35,7 +35,7 @@ def HLBuiltin_VACopyOp : HLBuiltin_Op< "va_copy" >
 }
 
 def HLBuiltin_TrapOp : HLBuiltin_Op< "trap" >
-  , Results< (outs VoidLikeType: $result) >
+  , Results< (outs Core_VoidLikeType: $result) >
 {
   let summary = "Builtin trap op";
   let assemblyFormat = " `:` type($result) attr-dict";
@@ -43,7 +43,7 @@ def HLBuiltin_TrapOp : HLBuiltin_Op< "trap" >
 }
 
 def HLBuiltin_DebugTrapOp : HLBuiltin_Op< "dbgtrap" >
-  , Results< (outs VoidLikeType: $result) >
+  , Results< (outs Core_VoidLikeType: $result) >
 {
   let summary = "Builtin debug trap op";
   let assemblyFormat = " `:` type($result) attr-dict";

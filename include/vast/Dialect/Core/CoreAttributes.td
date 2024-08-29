@@ -28,7 +28,7 @@ class Core_I32EnumAttr< string mnemonic, Core_I32Enum enumInfo >
   let assemblyFormat = "`<` $value `>`";
 }
 
-class APSIntParameter< string desc >
+class Core_APSIntParameter< string desc >
     : AttrOrTypeParameter< "::llvm::APSInt", desc >
 {
   let comparator = [{
@@ -39,7 +39,7 @@ class APSIntParameter< string desc >
 }
 
 def Core_BooleanAttr : Core_Attr< "Boolean", "bool",
-  [ConstantLikeAttrTrait, TypedAttrInterface]
+  [Core_ConstantLikeAttrTrait, TypedAttrInterface]
 > {
   let summary = "An Attribute containing a boolean value";
 
@@ -61,7 +61,7 @@ def Core_BooleanAttr : Core_Attr< "Boolean", "bool",
 }
 
 def Core_IntegerAttr : Core_Attr< "Integer", "integer",
-  [ConstantLikeAttrTrait, TypedAttrInterface]
+  [Core_ConstantLikeAttrTrait, TypedAttrInterface]
 > {
   let summary = "An Attribute containing a integer value";
 
@@ -70,7 +70,7 @@ def Core_IntegerAttr : Core_Attr< "Integer", "integer",
     value of the specified integer type.
   }];
 
-  let parameters = (ins AttributeSelfTypeParameter<"">:$type, APSIntParameter<"">:$value);
+  let parameters = (ins AttributeSelfTypeParameter<"">:$type, Core_APSIntParameter<"">:$value);
 
   let builders = [
     AttrBuilderWithInferredContext<(ins "Type":$type, "const llvm::APSInt &":$value), [{
@@ -84,7 +84,7 @@ def Core_IntegerAttr : Core_Attr< "Integer", "integer",
 }
 
 def Core_FloatAttr : Core_Attr< "Float", "float",
-  [ConstantLikeAttrTrait, TypedAttrInterface]
+  [Core_ConstantLikeAttrTrait, TypedAttrInterface]
 > {
   let summary = "An Attribute containing a floating point value";
 
@@ -107,7 +107,7 @@ def Core_FloatAttr : Core_Attr< "Float", "float",
 }
 
 def Core_VoidAttr : Core_Attr< "Void", "void",
-  [ConstantLikeAttrTrait, TypedAttrInterface]
+  [Core_ConstantLikeAttrTrait, TypedAttrInterface]
 > {
   let summary = "Attribute to represent void value.";
   let description = [{

@@ -12,47 +12,53 @@ include "mlir/IR/EnumAttr.td"
 // lowering, specially useful for C++ support.
 
 // Externally visible function
-def Global_ExternalLinkage :
+def Core_GlobalExternalLinkage :
   I32EnumAttrCase<"ExternalLinkage", 0, "external">;
 // Available for inspection, not emission.
-def Global_AvailableExternallyLinkage :
+def Core_GlobalAvailableExternallyLinkage :
   I32EnumAttrCase<"AvailableExternallyLinkage", 1, "available_externally">;
 // Keep one copy of function when linking (inline)
-def Global_LinkOnceAnyLinkage :
+def Core_GlobalLinkOnceAnyLinkage :
   I32EnumAttrCase<"LinkOnceAnyLinkage", 2, "linkonce">;
 // Same, but only replaced by something equivalent.
-def Global_LinkOnceODRLinkage :
+def Core_GlobalLinkOnceODRLinkage :
   I32EnumAttrCase<"LinkOnceODRLinkage", 3, "linkonce_odr">;
 // Keep one copy of named function when linking (weak)
-def Global_WeakAnyLinkage :
+def Core_GlobalWeakAnyLinkage :
   I32EnumAttrCase<"WeakAnyLinkage", 4, "weak">;
 // Same, but only replaced by something equivalent.
-def Global_WeakODRLinkage :
+def Core_GlobalWeakODRLinkage :
   I32EnumAttrCase<"WeakODRLinkage", 5, "weak_odr">;
 // Special purpose, only applies to global arrays
-def Global_AppendingLinkage :
+def Core_GlobalAppendingLinkage :
     I32EnumAttrCase<"AppendingLinkage", 6, "appending">;
 // Rename collisions when linking (static functions).
-def Global_InternalLinkage :
+def Core_GlobalInternalLinkage :
   I32EnumAttrCase<"InternalLinkage", 7, "internal">;
 // Like Internal, but omit from symbol table.
-def Global_PrivateLinkage :
+def Core_GlobalPrivateLinkage :
   I32EnumAttrCase<"PrivateLinkage", 8, "private">;
 // ExternalWeak linkage description.
-def Global_ExternalWeakLinkage :
+def Core_GlobalExternalWeakLinkage :
   I32EnumAttrCase<"ExternalWeakLinkage", 9, "extern_weak">;
 // Tentative definitions.
-def Global_CommonLinkage :
+def Core_GlobalCommonLinkage :
   I32EnumAttrCase<"CommonLinkage", 10, "common">;
 
 def Core_GlobalLinkageKind : Core_I32Enum<
     "GlobalLinkageKind", "Linkage type/kind",
     [
-        Global_ExternalLinkage, Global_AvailableExternallyLinkage,
-        Global_LinkOnceAnyLinkage, Global_LinkOnceODRLinkage,
-        Global_WeakAnyLinkage, Global_WeakODRLinkage, Global_InternalLinkage,
-        Global_PrivateLinkage, Global_ExternalWeakLinkage, Global_CommonLinkage,
-        Global_AppendingLinkage
+        Core_GlobalExternalLinkage,
+        Core_GlobalAvailableExternallyLinkage,
+        Core_GlobalLinkOnceAnyLinkage,
+        Core_GlobalLinkOnceODRLinkage,
+        Core_GlobalWeakAnyLinkage,
+        Core_GlobalWeakODRLinkage,
+        Core_GlobalInternalLinkage,
+        Core_GlobalPrivateLinkage,
+        Core_GlobalExternalWeakLinkage,
+        Core_GlobalCommonLinkage,
+        Core_GlobalAppendingLinkage
     ]>
 {}
 

@@ -79,7 +79,7 @@ class RecognizedSymbols< list< list<Interface> > recognized_symbols_lists > {
 }
 
 class ShadowingSymbolTableTrait< list< list<Interface> > recognized_symbols_lists >
-    : CoreNativeOpTrait< "ShadowingSymbolTable", [],
+    : Core_NativeOpTrait< "ShadowingSymbolTable", [],
         RecognizedSymbols< recognized_symbols_lists >.result
     >
 {}

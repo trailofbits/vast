@@ -23,7 +23,7 @@ def Core_LazyOp : Core_LazyEval< "lazy.op", [NoTerminator] > {
         The operation serves to encapsulate delayed evaluation in its region.
     }];
 
-    let regions = (region ValueRegion:$lazy);
+    let regions = (region Core_ValueRegion:$lazy);
 
     let assemblyFormat = [{ $lazy attr-dict `:` type(results) }];
 }

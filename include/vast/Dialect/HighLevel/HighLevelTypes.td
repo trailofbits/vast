@@ -154,7 +154,8 @@ def HighLevel_EnumType : HighLevel_CVQualifiedType<
 }
 
 def HighLevel_TypedefType : HighLevel_CVRQualifiedType<
-  "Typedef", "typedef", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface, TypedefTrait]
+  "Typedef", "typedef", (ins StringRefParameter<>:$name),
+  [MemRefElementTypeInterface, Core_TypedefTrait]
 > {
   let builders = [
     TypeBuilder<(ins "llvm::StringRef":$name), [{
@@ -242,13 +243,13 @@ def HighLevel_RValue : HighLevel_TypeWithSubType< "RValue", "rvalue" > { }
 // Basic types
 //
 def HighLevel_VoidType
-  : HighLevel_CVQualifiedType< "Void", "void", (ins), [VoidTrait] >
+  : HighLevel_CVQualifiedType< "Void", "void", (ins), [Core_VoidTrait] >
 {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
 
 def HighLevel_BoolType
-  : HighLevel_CVQualifiedType< "Bool", "bool", (ins) >
+  : HighLevel_CVQualifiedType< "Bool", "bool", (ins), [Core_BoolTypeTrait] >
 {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
@@ -258,25 +259,25 @@ def HighLevel_BoolType
 //
 class HighLevel_IntegerType< string name, string mnemonic, list<Trait> traits = []>
   : HighLevel_UCVQualifiedType< name, mnemonic, (ins),
-    !listconcat(traits, [IntegralTypeTrait])
+    !listconcat(traits, [Core_IntegralTypeTrait])
   >
 {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
 
-def HighLevel_CharType     : HighLevel_IntegerType< "Char", "char", [CharTypeTrait] >;
-def HighLevel_ShortType    : HighLevel_IntegerType< "Short", "short", [ShortTypeTrait] >;
-def HighLevel_IntType      : HighLevel_IntegerType< "Int", "int", [IntegerTypeTrait] >;
-def HighLevel_LongType     : HighLevel_IntegerType< "Long", "long", [LongTypeTrait] >;
-def HighLevel_LongLongType : HighLevel_IntegerType< "LongLong", "longlong", [LongLongTypeTrait] >;
-def HighLevel_Int128Type   : HighLevel_IntegerType< "Int128", "int128", [Int128TypeTrait] >;
+def HighLevel_CharType     : HighLevel_IntegerType< "Char", "char", [Core_CharTypeTrait] >;
+def HighLevel_ShortType    : HighLevel_IntegerType< "Short", "short", [Core_ShortTypeTrait] >;
+def HighLevel_IntType      : HighLevel_IntegerType< "Int", "int", [Core_IntegerTypeTrait] >;
+def HighLevel_LongType     : HighLevel_IntegerType< "Long", "long", [Core_LongTypeTrait] >;
+def HighLevel_LongLongType : HighLevel_IntegerType< "LongLong", "longlong", [Core_LongLongTypeTrait] >;
+def HighLevel_Int128Type   : HighLevel_IntegerType< "Int128", "int128", [Core_Int128TypeTrait] >;
 
 //
 // Floating point types & traits
 //
 class HighLevel_FloatingType< string name, string mnem, list<Trait> traits = []>
   : HighLevel_CVQualifiedType< name, mnem, (ins),
-    !listconcat(traits, [FloatingTypeTrait])
+    !listconcat(traits, [Core_FloatingTypeTrait])
   >
 {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
@@ -305,7 +306,7 @@ def HighLevel_ComplexType : HighLevel_CVRQualifiedType<
 //
 def HighLevel_PointerType : HighLevel_CVRQualifiedType< "Pointer", "ptr",
     (ins "Type":$elementType),
-    [MemRefElementTypeInterface, PointerTypeTrait, ElementTypeInterface]
+    [MemRefElementTypeInterface, Core_PointerTypeTrait, ElementTypeInterface]
   >
 {
   let builders = [
@@ -380,7 +381,7 @@ def HighLevel_ArrayType  : HighLevel_ArrayLikeType< "Array", "array" >;
 def HighLevel_VectorType : HighLevel_ArrayLikeType< "Vector", "vector" >;
 
 def HighLevel_DecayedType : HighLevel_Type< "Decayed",
-  [MemRefElementTypeInterface, ElementTypeInterface, PointerTypeTrait]
+  [MemRefElementTypeInterface, ElementTypeInterface, Core_PointerTypeTrait]
 > {
   let mnemonic = "decayed";
   let parameters = (ins "Type":$elementType);
@@ -389,7 +390,11 @@ def HighLevel_DecayedType : HighLevel_Type< "Decayed",
 
 // FIXME this should be trait of the type
 def HighLevel_SubscriptableType : TypeConstraint<
-  Or< [HighLevel_ArrayType.predicate, HighLevel_PointerType.predicate, HighLevel_DecayedType.predicate] >, "subscriptable type"
+  Or< [
+    HighLevel_ArrayType.predicate,
+    HighLevel_PointerType.predicate,
+    HighLevel_DecayedType.predicate
+  ] >, "subscriptable type"
 >;
 
 def HighLevel_AttributedType : HighLevel_Type< "Attributed" > {
@@ -410,7 +415,7 @@ def HighLevel_ReferenceType : HighLevel_TypeWithSubType< "Reference", "reference
 def HighLevel_TypeOfExprType : HighLevel_CVRQualifiedType<
   "TypeOfExpr", "typeof.expr"
   , (ins StringRefParameter<>:$name)
-  , [MemRefElementTypeInterface, TypeOfTrait]
+  , [MemRefElementTypeInterface, Core_TypeOfTrait]
 > {
   let builders = [
     TypeBuilder<(ins "llvm::StringRef":$name), [{
@@ -424,7 +429,7 @@ def HighLevel_TypeOfExprType : HighLevel_CVRQualifiedType<
 def HighLevel_TypeOfType : HighLevel_CVRQualifiedType<
   "TypeOfType", "typeof.type"
   , (ins "Type":$unmodifiedType)
-  , [MemRefElementTypeInterface, TypeOfTrait]
+  , [MemRefElementTypeInterface, Core_TypeOfTrait]
 > {
   let builders = [
     TypeBuilder<(ins "Type":$unmodifiedType), [{
@@ -436,8 +441,9 @@ def HighLevel_TypeOfType : HighLevel_CVRQualifiedType<
 }
 
 def HighLevel_AutoType : HighLevel_CVRQualifiedType<
-  "Auto", "auto",
-  (ins OptionalParameter<"Type">:$deducedType), [MemRefElementTypeInterface]
+  "Auto", "auto"
+  , (ins OptionalParameter<"Type">:$deducedType)
+  , [MemRefElementTypeInterface]
 > {
   let builders = [
     TypeBuilder<(ins "Type":$deducedType), [{

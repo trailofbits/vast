@@ -5,7 +5,7 @@
 
 include "mlir/IR/DialectBase.td"
 
-class CoreNativeOpTrait<
+class Core_NativeOpTrait<
     string name, list<Trait> traits = [],
     code extraOpDeclaration = [{}],
     code extraOpDefinition = [{}]
@@ -13,14 +13,14 @@ class CoreNativeOpTrait<
     let cppNamespace = "::vast::core";
 }
 
-class CoreParamNativeOpTrait<
+class Core_ParamNativeOpTrait<
     string name, string params,
     list<Trait> traits = []
 > : ParamNativeOpTrait< name, params, traits > {
     let cppNamespace = "::vast::core";
 }
 
-class CoreNativeAttrTrait<
+class Core_NativeAttrTrait<
     string name,
     code extraAttrDeclaration = [{}],
     code extraAttrDefinition = [{}]
@@ -28,9 +28,9 @@ class CoreNativeAttrTrait<
     let cppNamespace = "::vast::core";
 }
 
-def SoftTerminatorTrait : CoreNativeOpTrait< "SoftTerminatorTrait" >, StructuralOpTrait;
-def ReturnLikeTrait : CoreNativeOpTrait< "ReturnLikeTrait" >, StructuralOpTrait;
+def Core_SoftTerminatorTrait : Core_NativeOpTrait< "SoftTerminatorTrait" >, StructuralOpTrait;
+def Core_ReturnLikeTrait : Core_NativeOpTrait< "ReturnLikeTrait" >, StructuralOpTrait;
 
-def ConstantLikeAttrTrait : CoreNativeAttrTrait<"ConstantLikeAttrTrait">;
+def Core_ConstantLikeAttrTrait : Core_NativeAttrTrait<"ConstantLikeAttrTrait">;
 
 #endif //VAST_DIALECT_CORE_CORETRAITS
