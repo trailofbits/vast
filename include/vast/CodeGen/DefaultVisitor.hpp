@@ -17,7 +17,7 @@ namespace vast::cg {
         default_visitor(
             visitor_base &head, mcontext_t &mctx, acontext_t &actx, codegen_builder &bld,
             std::shared_ptr< meta_generator > mg, std::shared_ptr< symbol_generator > sg,
-            std::shared_ptr< policy_base > policy
+            std::shared_ptr< codegen_policy > policy
         )
             : mctx(mctx)
             , actx(actx)
@@ -32,8 +32,7 @@ namespace vast::cg {
         mlir_type visit(const clang_type *type, scope_context &scope) override;
         mlir_type visit(clang_qual_type type, scope_context &scope) override;
 
-        std::optional< named_attr >
-        visit(const clang_attr *attr, scope_context &scope) override;
+        std::optional< named_attr > visit(const clang_attr *attr, scope_context &scope) override;
 
         operation visit_prototype(const clang_function *decl, scope_context &scope) override;
 
@@ -51,7 +50,7 @@ namespace vast::cg {
 
         std::shared_ptr< meta_generator > mg;
         std::shared_ptr< symbol_generator > sg;
-        std::shared_ptr< policy_base > policy;
+        std::shared_ptr< codegen_policy > policy;
     };
 
 } // namespace vast::cg

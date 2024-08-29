@@ -6,41 +6,34 @@
 
 namespace vast::cg {
 
-    struct default_policy : policy_base
+    struct default_policy : codegen_policy
     {
         default_policy(cc::action_options &opts)
             : opts(opts)
-            , default_missing_return(
-                  opts.codegen.OptimizationLevel == 0 ? missing_return_policy::emit_trap
-                                                      : missing_return_policy::emit_unreachable
-              ) {}
+        {}
 
         ~default_policy() = default;
 
-        bool emit_strict_function_return([[maybe_unused]] const clang_function *decl
-        ) const override {
+        bool emit_strict_function_return(const clang_function * /* decl */) const override {
             return opts.codegen.StrictReturn;
         };
 
-        enum missing_return_policy
-        missing_return_policy([[maybe_unused]] const clang_function *decl) const override {
-            return default_missing_return;
+        missing_return_policy get_missing_return_policy(const clang_function * /* decl */) const override {
+            return opts.codegen.OptimizationLevel == 0
+                ? missing_return_policy::emit_trap
+                : missing_return_policy::emit_unreachable;
         }
 
-        bool skip_function_body([[maybe_unused]] const clang_function *decl) const override {
+        bool skip_function_body(const clang_function * /* decl */) const override {
             return opts.front.SkipFunctionBodies;
         }
 
-        bool skip_global_initializer([[maybe_unused]] const clang_var_decl *decl
-        ) const override {
+        bool skip_global_initializer(const clang_var_decl * /* decl */) const override {
             return false;
         };
 
       protected:
         cc::action_options &opts;
-
-      private:
-        enum missing_return_policy default_missing_return;
     };
 
 } // namespace vast::cg
