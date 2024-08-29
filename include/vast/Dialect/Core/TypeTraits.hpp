@@ -25,6 +25,8 @@ CORE_TRAIT(TypedefTrait);
 
 CORE_TRAIT(TypeOfTrait);
 
+CORE_TRAIT(AutoTrait);
+
 CORE_TRAIT(VoidTrait);
 
 } // namespace vast::core
