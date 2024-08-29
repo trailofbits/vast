@@ -41,6 +41,8 @@ def Core_TypedefTrait      : Core_NativeTypeTrait< "TypedefTrait" >;
 
 def Core_TypeOfTrait       : Core_NativeTypeTrait< "TypeOfTrait" >;
 
+def Core_AutoTrait         : Core_NativeTypeTrait< "AutoTrait" >;
+
 def Core_VoidTrait         : Core_NativeTypeTrait< "VoidTrait" >;
 
 //
