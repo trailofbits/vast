@@ -615,6 +615,7 @@ namespace vast::hl
                 || all_with_trait< core::IntegralTypeTrait >(lhs, rhs)
                 || any_with_trait< core::TypedefTrait >(lhs, rhs)
                 || any_with_trait< core::TypeOfTrait >(lhs, rhs)
+                || any_with_trait< core::AutoTrait >(lhs, rhs)
                 || all_with_trait< core::PointerTypeTrait >(lhs, rhs);
         }
 
