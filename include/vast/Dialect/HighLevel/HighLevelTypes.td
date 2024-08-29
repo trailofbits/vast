@@ -443,7 +443,7 @@ def HighLevel_TypeOfType : HighLevel_CVRQualifiedType<
 def HighLevel_AutoType : HighLevel_CVRQualifiedType<
   "Auto", "auto"
   , (ins OptionalParameter<"Type">:$deducedType)
-  , [MemRefElementTypeInterface]
+  , [MemRefElementTypeInterface, Core_AutoTrait]
 > {
   let builders = [
     TypeBuilder<(ins "Type":$deducedType), [{
