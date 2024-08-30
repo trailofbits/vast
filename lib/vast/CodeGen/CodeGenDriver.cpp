@@ -1,9 +1,6 @@
 // Copyright (c) 2022-present, Trail of Bits, Inc.
 
-#include "vast/CodeGen/CodeGenDriver.hpp"
-#include "vast/CodeGen/CodeGenPolicy.hpp"
-#include "vast/CodeGen/DefaultCodeGenPolicy.hpp"
-#include "vast/CodeGen/InvalidMetaGenerator.hpp"
+#include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
 #include <clang/AST/GlobalDecl.h>
@@ -12,24 +9,22 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/Verifier.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Frontend/Options.hpp"
-
 #include "vast/CodeGen/AttrVisitorProxy.hpp"
-#include "vast/CodeGen/DataLayout.hpp"
-#include "vast/CodeGen/DefaultVisitor.hpp"
 #include "vast/CodeGen/CodeGenDriver.hpp"
+#include "vast/CodeGen/CodeGenFunction.hpp"
+#include "vast/CodeGen/CodeGenModule.hpp"
+#include "vast/CodeGen/CodeGenVisitorList.hpp"
+#include "vast/CodeGen/DataLayout.hpp"
+#include "vast/CodeGen/DefaultCodeGenPolicy.hpp"
+#include "vast/CodeGen/DefaultMetaGenerator.hpp"
+#include "vast/CodeGen/DefaultVisitor.hpp"
+#include "vast/CodeGen/IdMetaGenerator.hpp"
 #include "vast/CodeGen/InvalidMetaGenerator.hpp"
 #include "vast/CodeGen/TypeCachingProxy.hpp"
 #include "vast/CodeGen/UnreachableVisitor.hpp"
 #include "vast/CodeGen/UnsupportedVisitor.hpp"
-#include "vast/CodeGen/CodeGenVisitorList.hpp"
-
-#include "vast/CodeGen/DefaultMetaGenerator.hpp"
-#include "vast/CodeGen/IdMetaGenerator.hpp"
 
 #include "vast/Dialect/Core/CoreOps.hpp"
-
-#include "vast/CodeGen/CodeGenModule.hpp"
 
 namespace vast::cg {
 
@@ -93,9 +88,7 @@ namespace vast::cg {
         }
     }
 
-    bool driver::verify() {
-        return mlir::verify(mod).succeeded();
-    }
+    bool driver::verify() { return mlir::verify(mod).succeeded(); }
 
     std::unique_ptr< codegen_builder > mk_codegen_builder(mcontext_t &mctx) {
         return std::make_unique< codegen_builder >(&mctx);
@@ -104,8 +97,9 @@ namespace vast::cg {
     std::shared_ptr< meta_generator > mk_meta_generator(
         acontext_t *actx, mcontext_t *mctx, const cc::vast_args &vargs
     ) {
-        if (vargs.has_option(cc::opt::locs_as_meta_ids))
+        if (vargs.has_option(cc::opt::locs_as_meta_ids)) {
             return std::make_shared< id_meta_gen >(actx, mctx);
+        }
         return std::make_shared< default_meta_gen >(actx, mctx);
     }
 
@@ -124,7 +118,7 @@ namespace vast::cg {
     std::unique_ptr< driver > mk_default_driver(
         cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx, mcontext_t &mctx
     ) {
-        auto bld  = mk_codegen_builder(mctx);
+        auto bld = mk_codegen_builder(mctx);
 
         // setup visitor list
         const bool enable_unsupported = !vargs.has_option(cc::opt::disable_unsupported);
@@ -140,7 +134,11 @@ namespace vast::cg {
             | as_node_with_list_ref< default_visitor >(
                 mctx, actx, *bld, std::move(mg), std::move(sg), std::move(policy)
             )
-            | optional(enable_unsupported, as_node_with_list_ref< unsup_visitor >(mctx, *bld, std::move(invalid_mg)))
+            | optional(enable_unsupported,
+                as_node_with_list_ref< unsup_visitor >(
+                    mctx, *bld, std::move(invalid_mg)
+                )
+            )
             | as_node< unreach_visitor >();
 
         // setup driver
@@ -168,13 +166,12 @@ namespace vast::cg {
         // Set the module name to be the name of the main file. TranslationUnitDecl
         // often contains invalid source locations and isn't a reliable source for the
         // module location.
-        auto main_file_id = actx.getSourceManager().getMainFileID();
+        auto main_file_id     = actx.getSourceManager().getMainFileID();
         const auto &main_file = *actx.getSourceManager().getFileEntryForID(main_file_id);
         return main_file.tryGetRealPathName();
     }
 
-    namespace detail
-    {
+    namespace detail {
         std::pair< loc_t, std::string > module_loc_name(mcontext_t &mctx, acontext_t &actx) {
             // TODO use meta generator
             if (auto path = get_path_to_source(actx); !path.empty()) {
