@@ -142,4 +142,18 @@ def HighLevel_MaxFieldAlignmentAttr
   let assemblyFormat = "`<` $alignment `>`";
 }
 
+def HighLevel_Visibility : I32EnumAttr< "Visibility", "visibility",
+  [
+    I32EnumAttrCase<"Default", 0, "default">,
+    I32EnumAttrCase<"Hidden", 1, "hidden">,
+    I32EnumAttrCase<"Protected", 2, "protected">
+] > {
+  let cppNamespace = "::vast::hl";
+  let genSpecializedAttr = 0;
+}
+
+def HighLevel_VisibilityAttr : EnumAttr< HighLevel_Dialect, HighLevel_Visibility, "visibility" > {
+  let summary = "Visibility attribute";
+  }
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
