@@ -35,6 +35,7 @@ def HighLevel_AnnotationAttr       : HighLevel_NameAttr< "Annotation", "annotati
 def HighLevel_FormatAttr           : HighLevel_NameAttr< "Format", "format" >;
 def HighLevel_SectionAttr          : HighLevel_NameAttr< "Section", "section" >;
 def HighLevel_AliasAttr            : HighLevel_NameAttr< "Alias", "alias" >;
+def HighLevel_ErrorAttr            : HighLevel_NameAttr< "Error", "error" >;
 // TODO(#595): Make aligned attribute keep the alignment value/expr
 def HighLevel_AlignedAttr          : HighLevel_Attr< "Aligned", "aligned" >;
 def HighLevel_AlwaysInlineAttr     : HighLevel_Attr< "AlwaysInline", "always_inline" >;
