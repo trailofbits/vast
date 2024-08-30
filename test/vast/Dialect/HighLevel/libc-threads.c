@@ -11,11 +11,11 @@
 // CHECK-DAG: hl.func @thrd_detach
 // CHECK-DAG: hl.func @thrd_join
 
-// CHECK-DAG: hl.enum.const "thrd_success"
-// CHECK-DAG: hl.enum.const "thrd_busy"
-// CHECK-DAG: hl.enum.const "thrd_error"
-// CHECK-DAG: hl.enum.const "thrd_nomem"
-// CHECK-DAG: hl.enum.const "thrd_timedout"
+// CHECK-DAG: hl.enum.const @thrd_success
+// CHECK-DAG: hl.enum.const @thrd_busy
+// CHECK-DAG: hl.enum.const @thrd_error
+// CHECK-DAG: hl.enum.const @thrd_nomem
+// CHECK-DAG: hl.enum.const @thrd_timedout
 
 // CHECK-DAG: hl.typedef @mtx_t
 // CHECK-DAG: hl.func @mtx_init
@@ -25,9 +25,9 @@
 // CHECK-DAG: hl.func @mtx_unlock
 // CHECK-DAG: hl.func @mtx_destroy
 
-// CHECK-DAG: hl.enum.const "mtx_plain"
-// CHECK-DAG: hl.enum.const "mtx_recursive"
-// CHECK-DAG: hl.enum.const "mtx_timed"
+// CHECK-DAG: hl.enum.const @mtx_plain
+// CHECK-DAG: hl.enum.const @mtx_recursive
+// CHECK-DAG: hl.enum.const @mtx_timed
 
 // CHECK-DAG: hl.func @call_once
 

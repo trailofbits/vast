@@ -175,13 +175,13 @@ def HighLevel_EnumConstantOp
     It is required to be scoped in Enum operation. For example:
 
     ```
-    hl.enum.const "F" = 2 : !hl.int
+    hl.enum.const @F = 2 : !hl.int
     ```
 
     A constant can have a constant expression initializer:
 
     ```
-    hl.enum.const "G" = #core.integer<12> : !hl.int init  {
+    hl.enum.const @G = #core.integer<12> : !hl.int init  {
       %0 = hl.enumref "F" : !hl.int
       %1 = hl.enumref "C" : !hl.int
       %2 = hl.add %0, %1 : !hl.int
