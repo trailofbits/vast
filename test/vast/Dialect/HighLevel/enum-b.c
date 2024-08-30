@@ -4,7 +4,7 @@
 int puts(const char *str);
 
 int main() {
-    // CHECK: hl.enum "color" : !hl.int< unsigned >  {
+    // CHECK: hl.enum @color : !hl.int< unsigned >  {
     // CHECK:  hl.enum.const @RED = #core.integer<0> : !hl.int
     // CHECK:  hl.enum.const @GREEN = #core.integer<1> : !hl.int
     // CHECK:  hl.enum.const @BLUE = #core.integer<2> : !hl.int

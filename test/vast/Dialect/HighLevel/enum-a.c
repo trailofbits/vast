@@ -1,7 +1,7 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.enum "color" : !hl.int< unsigned > {
+// CHECK: hl.enum @color : !hl.int< unsigned > {
 // CHECK:  hl.enum.const @RED = #core.integer<0> : !hl.int
 // CHECK:  hl.enum.const @GREEN = #core.integer<1> : !hl.int
 // CHECK:  hl.enum.const @BLUE = #core.integer<2> : !hl.int

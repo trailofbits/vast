@@ -3,7 +3,7 @@
 
 // CHECK: hl.struct "Element"
 // CHECK:  hl.field "z" : !hl.int
-// CHECK:  hl.enum "State" : !hl.int< unsigned >
+// CHECK:  hl.enum @State : !hl.int< unsigned >
 // CHECK:   hl.enum.const @SOLID
 // CHECK:   hl.enum.const @LIQUID
 // CHECK:   hl.enum.const @GAS
