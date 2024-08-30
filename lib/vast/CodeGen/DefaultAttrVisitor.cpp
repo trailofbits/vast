@@ -18,6 +18,11 @@ namespace vast::cg
         return make< hl::AliasAttr >(attr->getAliasee());
     }
 
+    mlir_attr default_attr_visitor::VisitErrorAttr(const clang::ErrorAttr *attr) {
+        return make< hl::ErrorAttr >(attr->getUserDiagnostic());
+    }
+
+
     mlir_attr default_attr_visitor::VisitFormatAttr(const clang::FormatAttr *attr) {
         return make< hl::FormatAttr >(attr->getType()->getName());
     }
