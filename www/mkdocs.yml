@@ -35,7 +35,9 @@ nav:
 theme:
   name: material
   language: en
-  favicon: assets/img/favicon.ico
+  custom_dir: assets
+  favicon: img/favicon.ico
+  logo: img/logo.png
 
   palette:
     # Palette toggle for automatic mode
