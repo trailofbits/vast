@@ -12,8 +12,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Tower/Handle.hpp"
 #include "vast/Tower/PassUtils.hpp"
 
-#include "vast/Dialect/Core/CoreOps.hpp"
-
 #include <algorithm>
 #include <deque>
 #include <numeric>
@@ -163,9 +161,9 @@ namespace vast::tw {
 
       protected:
         // TODO: API-wise, we probably want to accept any type that is `mlir::OwningOpRef< T >`?
-        handle_t store(const conversion_path_t &path, owning_module_ref mod) {
-            auto id      = allocate_id(path);
-            auto [it, _] = storage.insert({id, std::move(mod)});
+        handle_t store_module(owning_mlir_module_ref mod) {
+            auto id      = next_id++;
+            auto [it, _] = storage.insert({ id, std::move(mod) });
             return { id, it->second.get() };
         }
 
@@ -193,7 +191,7 @@ namespace vast::tw {
             return std::make_tuple(std::move(handles), std::move(suffix));
         }
 
-        handle_t store(const conversion_passes_t &path, owning_module_ref mod) {
+        handle_t store(const conversion_passes_t &path, owning_mlir_module_ref mod) {
             // Just store the module, so it gets assigned id.
             auto handle = store_module(std::move(mod));
             // Now add it to the trie.
@@ -205,22 +203,8 @@ namespace vast::tw {
         void remove(handle_t) { VAST_UNIMPLEMENTED; }
 
       private:
-
-        handle_id_t allocate_id(const conversion_path_t &path) {
-            return allocate_id(fingerprint(path));
-        }
-
-        handle_id_t allocate_id(const conversion_path_fingerprint_t &fp) {
-            // Later here we want to return the cached module?
-            VAST_CHECK(!conversion_tree.count(fp), "For now cannot do caching!");
-            auto id = next_id++;
-            conversion_tree.emplace(fp, id);
-            return id;
-        }
-
-        std::size_t next_id = 0;
+        module_key_t next_id = 0;
         llvm::DenseMap< handle_id_t, owning_mlir_module_ref > storage;
-        // TODO: This is just a prototyping shortcut, we may want something smarter here.
-        std::unordered_map< conversion_path_fingerprint_t, handle_id_t > conversion_tree;
+        conversion_tree< module_key_t > trie;
     };
 } // namespace vast::tw
