@@ -10,7 +10,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::tw {
     // These two should most likely be unified as one type.
-    using conversion_passes_t           = std::vector< mlir::Pass * >;
+    using conversion_passes_t           = std::vector< pass_ptr >;
 
     using conversion_path_t             = std::vector< std::string >;
     using conversion_path_fingerprint_t = std::string;
