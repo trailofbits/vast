@@ -4,7 +4,7 @@
 
 namespace vast::tw {
 
-    std::string to_string(mlir::Pass *pass) {
+    std::string to_string(pass_ptr pass) {
         std::string buffer;
         llvm::raw_string_ostream os(buffer);
         pass->printAsTextualPipeline(os);

@@ -15,14 +15,33 @@ VAST_UNRELAX_WARNINGS
 #include <algorithm>
 #include <deque>
 #include <numeric>
+#include <optional>
+#include <unordered_map>
 #include <vector>
+
+// Workaround to allow ABI breaking changes in join_view
+#ifdef _LIBCPP_ENABLE_EXPERIMENTAL
+    #define _LIBCPP_ENABLE_EXPERIMENTAL_WAS_DEFINED
+#endif
+
+#if _LIBCPP_VERSION
+    #define _LIBCPP_ENABLE_EXPERIMENTAL
+#endif
+
+#include <ranges>
+
+#ifndef _LIBCPP_ENABLE_EXPERIMENTAL_WAS_DEFINED
+    #if _LIBCPP_VERSION
+        #undef _LIBCPP_ENABLE_EXPERIMENTAL
+    #endif
+#endif
 
 namespace vast::tw {
 
     template< typename module_key_t >
     struct conversion_tree
     {
-        using node_key_t = std::size_t;
+        using node_key_t       = std::size_t;
         using maybe_node_key_t = std::optional< node_key_t >;
 
         struct node
@@ -39,23 +58,22 @@ namespace vast::tw {
 
             std::unordered_map< pass_key_t, node_key_t > next;
 
-            node(module_key_t module_key) : module_key(std::move(module_key)) {}
+            explicit node(module_key_t key) : module_key(std::move(key)) {}
 
-            void add_edge(pass_key_t pass_key, node_key_t idx) { next.emplace(pass_key, idx); }
-
-            void add_edge(mlir::Pass *pass, node_key_t idx) {
-                return add_edge(to_string(pass), idx);
+            void add_edge(pass_key_t pass_name, node_key_t idx) {
+                next.emplace(std::move(pass_name), idx);
             }
+
+            void add_edge(pass_ptr pass, node_key_t idx) { add_edge(to_string(pass), idx); }
 
             maybe_node_key_t get_next(const pass_key_t &key) const {
-                auto it = next.find(key);
-                if (it == next.end()) {
-                    return {};
+                if (auto it = next.find(key); it != next.end()) {
+                    return it->second;
                 }
-                return { it->second };
+                return std::nullopt;
             }
 
-            auto get_next(mlir::Pass *pass) const { return get_next(to_string(pass)); }
+            maybe_node_key_t get_next(pass_ptr pass) const { return get_next(to_string(pass)); }
         };
 
         // Using a `std::vector` leads to a weird bug caught by asan even though we do not use
@@ -64,12 +82,14 @@ namespace vast::tw {
 
       protected:
         maybe_node_key_t lookup_node(handle_t handle) const {
-            for (std::size_t i = 0; i < nodes.size(); ++i) {
-                if (nodes[i].module_key == handle.id) {
-                    return { i };
-                }
+            auto it = std::ranges::find_if(nodes, [&](const node &n) {
+                return n.module_key == handle.id;
+            });
+
+            if (it != nodes.end()) {
+                return maybe_node_key_t { std::distance(nodes.begin(), it) };
             }
-            return {};
+            return std::nullopt;
         }
 
         node_key_t lookup(
@@ -97,14 +117,15 @@ namespace vast::tw {
             return lookup(prefix, suffix, *maybe_next, on_visit);
         }
 
-        std::tuple< node_key_t, conversion_passes_t >
-        lookup_prefix_(conversion_passes_t path, node_key_t start_at, auto on_visit) const {
+        auto lookup_prefix_(conversion_passes_t path, node_key_t start_at, auto on_visit) const
+            -> std::tuple< node_key_t, conversion_passes_t >
+        {
             conversion_passes_t prefix;
 
             // We will pop from front, so we reverse go get the cheaper `pop_back()`.
-            std::reverse(path.begin(), path.end());
+            std::ranges::reverse(path);
             auto last = lookup(prefix, path, start_at, on_visit);
-            std::reverse(path.begin(), path.end());
+            std::ranges::reverse(path);
 
             return std::make_tuple(last, std::move(path));
         }
@@ -117,12 +138,11 @@ namespace vast::tw {
       public:
         // Return key to the last module and the remainder of the path that needs to applied on
         // it.
-        auto lookup_prefix(
-            conversion_passes_t path, handle_t start_at_handle, auto on_visit
-        ) const -> std::tuple< module_key_t, conversion_passes_t > {
+        auto lookup_prefix(conversion_passes_t path, handle_t start_at_handle, auto on_visit)
+            const -> std::tuple< module_key_t, conversion_passes_t > {
             auto maybe_start_idx = lookup_node(start_at_handle);
-            auto start_idx = (maybe_start_idx) ? *maybe_start_idx : 0;
-            auto [idx, suffix] = lookup_prefix_(std::move(path), start_idx, on_visit);
+            auto start_idx       = maybe_start_idx ? *maybe_start_idx : 0;
+            auto [idx, suffix]   = lookup_prefix_(std::move(path), start_idx, on_visit);
             return std::make_tuple(nodes[idx].module_key, std::move(suffix));
         }
 
@@ -175,15 +195,15 @@ namespace vast::tw {
 
       public:
         std::optional< handle_t > get(const conversion_passes_t &path, handle_t root) {
-            auto [module_key, suffix] = trie.lookup_prefix(path, root);
-            if (suffix.empty()) {
+            if (auto [module_key, suffix] = trie.lookup_prefix(path, root); suffix.empty()) {
                 return { get(module_key) };
             }
-            return {};
+            return std::nullopt;
         }
 
         auto get_maximum_prefix_path(const conversion_passes_t &path, handle_t root) const
-            -> std::tuple< std::vector< handle_t >, conversion_passes_t > {
+            -> std::tuple< std::vector< handle_t >, conversion_passes_t >
+        {
             std::vector< handle_t > handles;
             auto yield = [&](module_key_t module_key) { handles.push_back(get(module_key)); };
 

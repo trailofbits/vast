@@ -14,7 +14,7 @@ namespace vast::tw {
 
     // `mlir::Pass::printAsTextualPipeline` is not `const` so we cannot accept `const`
     // argument.
-    std::string to_string(mlir::Pass *pass);
+    std::string to_string(pass_ptr pass);
 
     std::string to_string(const conversion_passes_t &passes);
 
