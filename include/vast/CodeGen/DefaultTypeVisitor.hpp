@@ -28,7 +28,9 @@ namespace vast::cg {
         }
 
         mlir_type visit(const clang_type *type) { return Visit(type); }
-        mlir_type visit(clang_qual_type type) { return Visit(type); }
+        mlir_type visit(clang_qual_type type) {
+            return type.isNull() ? compose_type< mlir::NoneType >().freeze() : Visit(type);
+        }
 
         mlir_type Visit(clang_qual_type ty);
 

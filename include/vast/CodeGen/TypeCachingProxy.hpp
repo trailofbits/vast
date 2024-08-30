@@ -13,6 +13,10 @@ namespace vast::cg {
         }
 
         mlir_type visit(clang_qual_type type, scope_context &scope) override {
+            // Can't lookup Empty value
+            if (type.isNull()) {
+                return next->visit(type, scope);
+            }
             return visit_type(type, qual_cache, scope);
         }
 
