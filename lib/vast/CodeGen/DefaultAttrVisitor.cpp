@@ -152,4 +152,8 @@ namespace vast::cg
     mlir_attr default_attr_visitor::VisitFallThroughAttr(const clang::FallThroughAttr *attr) {
         return make< hl::FallthroughAttr >();
     }
+
+    mlir_attr default_attr_visitor::VisitVisibilityAttr(const clang::VisibilityAttr *attr) {
+        return make< hl::VisibilityAttr >(hl::Visibility(attr->getVisibility()));
+    }
 } // namespace vast::hcg
