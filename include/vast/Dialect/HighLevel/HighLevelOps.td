@@ -1579,4 +1579,34 @@ def HighLevel_OpaqueValueExpr
   let assemblyFormat = "$arg `:` functional-type(operands, $result) attr-dict";
 }
 
+def HighLevel_StaticAssertDecl
+  : HighLevel_Op< "static_assert" >
+  , Arguments< (ins BoolAttr: $failed) >
+{
+  let summary = "Static assert declaration";
+
+  let regions = (region Core_ValueRegion:$assert, AnyRegion:$message);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+  OpBuilder< (ins
+        "bool":$failed,
+        CArg< "builder_callback_ref" >:$assertBuilder,
+        CArg< "maybe_builder_callback_ref", "std::nullopt" >:$messageBuilder
+    ),
+     [{
+      $_state.addAttribute("failed", $_builder.getBoolAttr(failed));
+
+      InsertionGuard guard($_builder);
+      build_region($_builder, $_state, assertBuilder);
+      if (messageBuilder)
+          build_region($_builder, $_state, messageBuilder.value());
+      else
+          $_state.addRegion();
+    }] >
+  ];
+
+  let assemblyFormat = "`failed` `:` $failed $assert (`,` $message^)? attr-dict";
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
