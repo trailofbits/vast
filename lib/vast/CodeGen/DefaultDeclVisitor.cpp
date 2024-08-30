@@ -466,4 +466,13 @@ namespace vast::cg {
         return {};
     }
 
+    operation default_decl_visitor::VisitStaticAssertDecl(const clang::StaticAssertDecl *decl) {
+        return bld.compose< hl::StaticAssertDecl >()
+            .bind(self.location(decl))
+            .bind_always(decl->isFailed())
+            .bind_always(mk_value_builder(decl->getAssertExpr()))
+            .bind_if(decl->getMessage(), mk_value_builder(decl->getMessage()))
+            .freeze();
+    }
+
 } // namespace vast::cg
