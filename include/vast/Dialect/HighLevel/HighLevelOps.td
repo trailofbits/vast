@@ -167,7 +167,7 @@ def HighLevel_TypeOfExprOp
 
 def HighLevel_EnumConstantOp
   : HighLevel_Op< "enum.const", [Core_EnumConstantSymbol] >
-  , Arguments<(ins StrAttr:$name, TypedAttrInterface:$value)>
+  , Arguments<(ins SymbolNameAttr:$name, TypedAttrInterface:$value)>
 {
   let summary = "VAST enum constant declaration";
   let description = [{
@@ -487,7 +487,7 @@ def HighLevel_GlobalRefOp
 
 def HighLevel_EnumRefOp
   : HighLevel_Op< "enumref" >
-  , Arguments<(ins StrAttr:$value)>
+  , Arguments<(ins FlatSymbolRefAttr:$value)>
   , Results<(outs AnyType:$result)>
 {
   let summary = "VAST variable reference declaration";
