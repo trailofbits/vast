@@ -156,4 +156,25 @@ namespace vast::cg
     mlir_attr default_attr_visitor::VisitVisibilityAttr(const clang::VisibilityAttr *attr) {
         return make< hl::VisibilityAttr >(hl::Visibility(attr->getVisibility()));
     }
+
+    mlir_attr default_attr_visitor::VisitAssumeAlignedAttr(const clang::AssumeAlignedAttr *attr) {
+        llvm::APInt alignment, offset;
+        if (auto alignment_literal = mlir::dyn_cast< clang::IntegerLiteral >(attr->getAlignment())) {
+            alignment = alignment_literal->getValue();
+        } else {
+            VAST_REPORT("assume_aligned attribute with non-trivial expression is not supported");
+            return {};
+        }
+        auto offset_expr = attr->getOffset();
+        if (offset_expr) {
+            if (auto offset_literal = mlir::dyn_cast< clang::IntegerLiteral >(offset_expr)) {
+                offset = offset_literal->getValue();
+            } else {
+                VAST_REPORT("assume_aligned attribute with non-trivial expression is not supported");
+            return {};
+            }
+        }
+        return make< hl::AssumeAlignedAttr >(alignment, offset);
+    }
+
 } // namespace vast::hcg
