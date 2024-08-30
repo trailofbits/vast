@@ -156,4 +156,12 @@ def HighLevel_VisibilityAttr : EnumAttr< HighLevel_Dialect, HighLevel_Visibility
   let summary = "Visibility attribute";
   }
 
+def HighLevel_Attr
+  : HighLevel_Attr< "AssumeAligned", "assume_aligned" >
+{
+  // TODO: Add support for arbitrary subexpressions
+  let parameters = (ins "llvm::APInt": $alignment, "llvm::APInt": $offset);
+  let assemblyFormat = "`<` $alignment`,` $offset `>`";
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELATTRIBUTES
