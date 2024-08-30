@@ -1033,7 +1033,7 @@ namespace vast::cg
 
     operation last_effective_operation(mlir::Block *block) {
         auto last = std::prev(block->end());
-        while (last != block->begin() && mlir::isa< hl::SkipStmt >(&*last)) {
+        while (last != block->begin() && mlir::isa< hl::NullStmt >(&*last)) {
             last = std::prev(last);
         }
         return &*last;
@@ -1090,7 +1090,7 @@ namespace vast::cg
     }
 
     operation default_stmt_visitor::VisitNullStmt(const clang::NullStmt *stmt) {
-        return bld.compose< hl::SkipStmt >().bind(self.location(stmt)).freeze();
+        return bld.compose< hl::NullStmt >().bind(self.location(stmt)).freeze();
     }
 
     operation default_stmt_visitor::VisitCXXThisExpr(const clang::CXXThisExpr *expr) {

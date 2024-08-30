@@ -478,10 +478,10 @@ def HighLevel_IndirectGotoStmt
   let assemblyFormat = [{ attr-dict `:` $target }];
 }
 
-def HighLevel_SkipStmt : HighLevel_Op< "skip", [] >
+def HighLevel_NullStmt : HighLevel_Op< "null", [] >
 {
-  let summary = "VAST skip statement";
-  let description = [{ VAST skip statement }];
+  let summary = "VAST null statement";
+  let description = [{ VAST null statement }];
 
   let assemblyFormat = [{ attr-dict }];
 }
