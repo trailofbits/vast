@@ -10,14 +10,16 @@ include "mlir/Interfaces/DataLayoutInterfaces.td"
 include "mlir/IR/RegionKindInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
-include "vast/Interfaces/SymbolTableInterface.td"
+include "vast/Dialect/Core/Interfaces/SymbolTableInterface.td"
 
 def Core_ModuleOp : Core_Op< "module", [
   IsolatedFromAbove,
   DataLayoutOpInterface,
   HasDefaultDLTIDataLayout,
-  NoTerminator, NoRegionArguments, SingleBlock, VastSymbol,
-  ShadowingSymbolTable< [[FuncSymbol, VarSymbol, TypeSymbol], [ElaboratedTypeSymbol]] >,
+  NoTerminator, NoRegionArguments, SingleBlock, Core_Symbol,
+  ShadowingSymbolTable< [
+    [Core_FuncSymbol, Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
+  ] >,
 ] > {
   let summary = "VAST top level container operation";
   let description = [{
@@ -73,7 +75,9 @@ def Core_ModuleOp : Core_Op< "module", [
 
 def Core_ScopeOp : Core_Op< "scope", [
   NoTerminator,
-  ShadowingSymbolTable< [[VarSymbol, TypeSymbol], [ElaboratedTypeSymbol]] >,
+  ShadowingSymbolTable< [
+    [Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
+  ] >,
   DeclareOpInterfaceMethods<RegionKindInterface>
 ] > {
   let summary = "VAST scope declaration";

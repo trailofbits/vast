@@ -22,7 +22,7 @@ namespace vast::core {
 } // namespace vast::core
 
 /// Include the generated interface declarations.
-#include "vast/Interfaces/SymbolInterface.h.inc"
+#include "vast/Dialect/Core/Interfaces/SymbolInterface.h.inc"
 
 namespace vast::core {
 

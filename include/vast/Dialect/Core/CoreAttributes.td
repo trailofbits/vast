@@ -5,7 +5,7 @@
 
 include "mlir/IR/AttrTypeBase.td"
 include "mlir/IR/BuiltinAttributeInterfaces.td"
-include "vast/Interfaces/SymbolRefInterface.td"
+include "vast/Dialect/Core/Interfaces/SymbolRefInterface.td"
 
 include "mlir/IR/EnumAttr.td"
 

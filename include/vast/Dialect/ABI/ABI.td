@@ -10,7 +10,7 @@ include "mlir/Interfaces/SideEffectInterfaces.td"
 include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/IR/RegionKindInterface.td"
 
-include "vast/Interfaces/SymbolInterface.td"
+include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 
 def ABI_Dialect : Dialect {
     let name = "abi";

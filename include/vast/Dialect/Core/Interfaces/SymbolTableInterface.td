@@ -53,7 +53,7 @@ def SymbolTableOpInterface : VastOpInterface< "SymbolTableOpInterface" > {
 
 class GetCppTraitName< list<Interface> interfaces >
 {
-    defvar cppInterfaceNames = !foreach(interface, interfaces, interface.cppInterfaceName);
+    defvar cppInterfaceNames = !foreach(interface, interfaces, interface.cppNamespace # "::" # interface.cppInterfaceName);
     string result = [{ util::type_list< }] # !interleave(cppInterfaceNames, ", ") # [{ > }];
 }
 

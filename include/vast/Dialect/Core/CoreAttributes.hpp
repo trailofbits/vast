@@ -14,9 +14,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/CoreDialect.hpp"
 #include "vast/Dialect/Core/CoreTraits.hpp"
 
-#include "vast/Interfaces/SymbolInterface.hpp"
-#include "vast/Interfaces/SymbolRefInterface.hpp"
 #include "vast/Interfaces/TypeQualifiersInterfaces.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolRefInterface.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/TypeList.hpp"

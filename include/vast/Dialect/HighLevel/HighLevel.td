@@ -11,7 +11,7 @@ include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/IR/RegionKindInterface.td"
 include "mlir/IR/BuiltinAttributeInterfaces.td"
 
-include "vast/Interfaces/SymbolInterface.td"
+include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 
 include "vast/Dialect/Core/Utils.td"
 

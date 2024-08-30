@@ -5,8 +5,8 @@
 #include "vast/Dialect/Core/CoreDialect.hpp"
 #include "vast/Dialect/Core/CoreTraits.hpp"
 #include "vast/Dialect/Core/SymbolTable.hpp"
-#include "vast/Interfaces/SymbolInterface.hpp"
-#include "vast/Interfaces/SymbolTableInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolTableInterface.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/TypeList.hpp"

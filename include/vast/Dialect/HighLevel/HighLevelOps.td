@@ -9,8 +9,8 @@ include "mlir/IR/BuiltinAttributes.td"
 include "mlir/Interfaces/CastInterfaces.td"
 
 include "vast/Interfaces/AggregateTypeDefinitionInterface.td"
-include "vast/Interfaces/SymbolInterface.td"
-include "vast/Interfaces/SymbolTableInterface.td"
+include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
+include "vast/Dialect/Core/Interfaces/SymbolTableInterface.td"
 
 include "vast/Dialect/HighLevel/HighLevelCF.td"
 
@@ -25,7 +25,9 @@ include "vast/Interfaces/AST/DeclInterface.td"
 def HighLevel_TranslationUnitOp
   : HighLevel_Op< "translation_unit", [
       NoTerminator,
-      ShadowingSymbolTable< [[FuncSymbol, VarSymbol, TypeSymbol], [ElaboratedTypeSymbol]] >,
+      ShadowingSymbolTable< [
+        [Core_FuncSymbol, Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
+      ] >,
       IsolatedFromAbove
   ] >
 {
@@ -46,8 +48,10 @@ def HighLevel_TranslationUnitOp
 
 def HighLevel_FuncOp
   : Core_FuncBaseOp< HighLevel_Dialect, "func", [
-    FuncSymbol,
-    ShadowingSymbolTable< [[VarSymbol, TypeSymbol], [ElaboratedTypeSymbol]] >,
+    Core_FuncSymbol,
+    ShadowingSymbolTable< [
+      [Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
+    ] >,
     IsolatedFromAbove
   ] >
 {
@@ -86,7 +90,7 @@ def HighLevel_FuncOp
 }
 
 def HighLevel_TypeDeclOp
-  : HighLevel_Op< "type", [TypeSymbol] >
+  : HighLevel_Op< "type", [Core_TypeSymbol] >
   , Arguments<(ins StrAttr:$name)>
 {
   let summary = "VAST type declaration";
@@ -100,7 +104,7 @@ def HighLevel_TypeDeclOp
 }
 
 def HighLevel_TypeDefOp
-  : HighLevel_Op< "typedef", [TypeSymbol] >
+  : HighLevel_Op< "typedef", [Core_TypeSymbol] >
   , Arguments<(ins SymbolNameAttr:$sym_name, TypeAttr:$type)>
 {
   let summary = "VAST typedef operation";
@@ -120,7 +124,7 @@ def HighLevel_TypeDefOp
 }
 
 def HighLevel_TypeAliasOp
-  : HighLevel_Op< "alias", [TypeSymbol] >
+  : HighLevel_Op< "alias", [Core_TypeSymbol] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
 {
   let summary = "VAST type alias operation";
@@ -162,7 +166,7 @@ def HighLevel_TypeOfExprOp
 }
 
 def HighLevel_EnumConstantOp
-  : HighLevel_Op< "enum.const", [EnumConstantSymbol] >
+  : HighLevel_Op< "enum.const", [Core_EnumConstantSymbol] >
   , Arguments<(ins StrAttr:$name, TypedAttrInterface:$value)>
 {
   let summary = "VAST enum constant declaration";
@@ -208,7 +212,7 @@ def HighLevel_EnumConstantOp
 def HighLevel_EnumRegion : Region< Core_HasOneBlock, "enum constants region" >;
 
 def HighLevel_EnumDeclOp
-  : HighLevel_Op< "enum", [NoTerminator, TypeSymbol] >
+  : HighLevel_Op< "enum", [NoTerminator, Core_TypeSymbol] >
   , Arguments<(ins StrAttr:$name, OptionalAttr<TypeAttr>:$type)>
 {
   let summary = "VAST enum declaration";
@@ -248,7 +252,7 @@ def HighLevel_EnumDeclOp
 class HighLevel_RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic,
         !listconcat(traits, [
-          NoTerminator, TypeSymbol,
+          NoTerminator, Core_TypeSymbol,
           DeclareOpInterfaceMethods< AggregateTypeDefinition >
         ])
       >
@@ -315,7 +319,7 @@ def HighLevel_UnionDeclOp
 }
 
 def HighLevel_FieldDeclOp
-  : HighLevel_Op< "field", [MemberVarSymbol] >
+  : HighLevel_Op< "field", [Core_MemberVarSymbol] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type, OptionalAttr<I32Attr>:$bits)>
 {
   let summary = "VAST record field declaration";

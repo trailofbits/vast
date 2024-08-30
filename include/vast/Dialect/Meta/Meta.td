@@ -10,7 +10,7 @@ include "mlir/Interfaces/SideEffectInterfaces.td"
 include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/IR/RegionKindInterface.td"
 
-include "vast/Interfaces/SymbolInterface.td"
+include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 
 def Meta_Dialect : Dialect {
     let name = "meta";
@@ -34,4 +34,3 @@ def Meta_Dialect : Dialect {
 include "MetaAttributes.td"
 
 #endif // VAST_DIALECT_META
-

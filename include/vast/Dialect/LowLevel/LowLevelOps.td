@@ -8,7 +8,7 @@ include "mlir/IR/BuiltinAttributes.td"
 
 include "mlir/Interfaces/ControlFlowInterfaces.td"
 
-include "vast/Interfaces/SymbolInterface.td"
+include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 include "vast/Interfaces/ElementTypeInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
@@ -94,7 +94,7 @@ def Store
 }
 
 def UninitializedVar
-    : LowLevel_Op< "uninitialized_var", [VarSymbol] >
+    : LowLevel_Op< "uninitialized_var", [Core_VarSymbol] >
     , Results<(outs AnyType:$result)>
 {
     let summary = "Declaration of variable that have not been initialized yet.";

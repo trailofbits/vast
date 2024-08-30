@@ -3,7 +3,7 @@
 #ifndef VAST_DIALECT_CORE
 #define VAST_DIALECT_CORE
 
-include "vast/Interfaces/SymbolInterface.td"
+include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 
 include "vast/Dialect/Core/Utils.td"
 
