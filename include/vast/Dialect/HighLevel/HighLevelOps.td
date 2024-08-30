@@ -213,7 +213,7 @@ def HighLevel_EnumRegion : Region< Core_HasOneBlock, "enum constants region" >;
 
 def HighLevel_EnumDeclOp
   : HighLevel_Op< "enum", [NoTerminator, Core_TypeSymbol] >
-  , Arguments<(ins StrAttr:$name, OptionalAttr<TypeAttr>:$type)>
+  , Arguments<(ins SymbolNameAttr:$name, OptionalAttr<TypeAttr>:$type)>
 {
   let summary = "VAST enum declaration";
   let description = [{

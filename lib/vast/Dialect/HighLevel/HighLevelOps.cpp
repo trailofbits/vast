@@ -375,21 +375,15 @@ namespace vast::hl
         mlir::TypeAttr typeAttr;
         std::unique_ptr< Region > constantsRegion = std::make_unique< Region >();
 
-        if (parser.parseCustomAttributeWithFallback(
-                nameAttr, parser.getBuilder().getType< mlir::NoneType >()
-            ))
-        {
+        if (parser.parseSymbolName(nameAttr))
+            return mlir::failure();
+        if (nameAttr) result.attributes.append("name", nameAttr);
+
+        parser.getCurrentLocation();
+        if (parser.parseOptionalAttrDict(result.attributes)) {
             return mlir::failure();
         }
-        if (nameAttr) {
-            result.attributes.append("name", nameAttr);
-        }
-        {
-            parser.getCurrentLocation();
-            if (parser.parseOptionalAttrDict(result.attributes)) {
-                return mlir::failure();
-            }
-        }
+
         if (mlir::succeeded(parser.parseOptionalColon())) {
             if (parser.parseCustomAttributeWithFallback(
                     typeAttr, parser.getBuilder().getType< mlir::NoneType >()
@@ -415,7 +409,7 @@ namespace vast::hl
 
     void EnumDeclOp::print(Printer &odsPrinter) {
         odsPrinter << ' ';
-        odsPrinter.printAttributeWithoutType(getNameAttr());
+        odsPrinter.printSymbolName(getNameAttr().getValue());
         llvm::SmallVector< llvm::StringRef, 2 > elidedAttrs;
         elidedAttrs.push_back("name");
         elidedAttrs.push_back("type");
