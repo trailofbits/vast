@@ -13,4 +13,4 @@ VAST_RELAX_WARNINGS
 VAST_RELAX_WARNINGS
 
 /// Include the generated interface declarations.
-#include "vast/Interfaces/SymbolRefInterface.h.inc"
+#include "vast/Dialect/Core/Interfaces/SymbolRefInterface.h.inc"

@@ -56,7 +56,7 @@ def VAST_ValueDeclInterface : VAST_ASTOpInterface< "VAST_ValueDeclInterface",
 
 def VAST_DeclaratorDeclInterface : VAST_ASTOpInterface< "VAST_DeclaratorDeclInterface",
     [VAST_ValueDeclInterface] > {
-    
+
     let description = [{
         An interface to provide [`clang::DeclaratorDecl`]
         (https://clang.llvm.org/doxygen/classclang_1_1DeclaratorDecl.html) functionality.

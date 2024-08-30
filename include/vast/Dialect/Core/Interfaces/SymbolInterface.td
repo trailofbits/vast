@@ -6,10 +6,11 @@
 include "mlir/IR/OpBase.td"
 include "vast/Interfaces/Common.td"
 include "vast/Dialect/Core/CoreTraits.td"
+include "vast/Dialect/Core/Interfaces/Common.td"
 
-def VastSymbol : VastOpInterface< "VastSymbolOpInterface" > {
+def Core_Symbol : Core_OpInterface< "VastSymbolOpInterface" > {
     let description = [{
-        This interface describes an operation that may define a `VastSymbol`.
+        This interface describes an operation that may define a `Symbol`.
     }];
 
     let methods = [
@@ -40,12 +41,12 @@ def VastSymbol : VastOpInterface< "VastSymbolOpInterface" > {
     ];
 }
 
-def VarSymbol            : VastOpInterface< "VarSymbolOpInterface",  [VastSymbol] >;
-def MemberVarSymbol      : VastOpInterface< "MemberVarSymbolOpInterface", [VastSymbol] >;
-def FuncSymbol           : VastOpInterface< "FuncSymbolOpInterface", [VastSymbol] >;
-def TypeSymbol           : VastOpInterface< "TypeSymbolOpInterface", [VastSymbol] >;
-def ElaboratedTypeSymbol : VastOpInterface< "ElaboratedTypeSymbolOpInterface", [VastSymbol] >;
-def LabelSymbol          : VastOpInterface< "LabelSymbolOpInterface", [VastSymbol] >;
-def EnumConstantSymbol   : VastOpInterface< "EnumConstantSymbolOpInterface", [VastSymbol] >;
+def Core_VarSymbol            : Core_OpInterface< "VarSymbolOpInterface",  [Core_Symbol] >;
+def Core_MemberVarSymbol      : Core_OpInterface< "MemberVarSymbolOpInterface", [Core_Symbol] >;
+def Core_FuncSymbol           : Core_OpInterface< "FuncSymbolOpInterface", [Core_Symbol] >;
+def Core_TypeSymbol           : Core_OpInterface< "TypeSymbolOpInterface", [Core_Symbol] >;
+def Core_ElaboratedTypeSymbol : Core_OpInterface< "ElaboratedTypeSymbolOpInterface", [Core_Symbol] >;
+def Core_LabelSymbol          : Core_OpInterface< "LabelSymbolOpInterface", [Core_Symbol] >;
+def Core_EnumConstantSymbol   : Core_OpInterface< "EnumConstantSymbolOpInterface", [Core_Symbol] >;
 
 #endif // VAST_INTERFACES_SYMBOL_INTERFACE

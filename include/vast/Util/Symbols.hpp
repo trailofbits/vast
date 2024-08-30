@@ -12,11 +12,11 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Common.hpp"
 
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
-#include "vast/Interfaces/SymbolInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
 
 namespace vast::util
 {
-    using vast_symbol_interface   = vast::VastSymbolOpInterface;
+    using vast_symbol_interface   = core::VastSymbolOpInterface;
     using mlir_symbol_interface   = mlir::SymbolOpInterface;
 
     void symbols(mlir::Operation *op, auto &&yield) {

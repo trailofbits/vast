@@ -8,8 +8,7 @@
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
 #include "vast/Dialect/Core/CoreOps.hpp"
-
-#include "vast/Interfaces/SymbolInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
 
 #include "vast/Util/Common.hpp"
 #include <vast/Util/Symbols.hpp>
@@ -166,7 +165,7 @@ namespace vast::hl {
         });
     }
 
-    walk_result users(FuncSymbolOpInterface fn, auto scope, auto &&yield) {
+    walk_result users(core::FuncSymbolOpInterface fn, auto scope, auto &&yield) {
         return scope.walk([&](operation op) {
             if (auto call = mlir::dyn_cast< hl::CallOp >(op)) {
                 return call.getCallee() == fn.getSymbolName() ? yield(op) : walk_result::advance();

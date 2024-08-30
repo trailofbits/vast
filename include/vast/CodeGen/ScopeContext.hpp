@@ -12,7 +12,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/TypeList.hpp"
 #include "vast/Util/Symbols.hpp"
 
-#include "vast/Interfaces/SymbolInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
 
 #include <functional>
 #include <queue>
@@ -56,22 +56,22 @@ namespace vast::cg
 
         operation declare(operation op) {
             llvm::TypeSwitch< operation >(op)
-                .Case< VarSymbolOpInterface >([&] (auto &op) {
+                .Case< core::VarSymbolOpInterface >([&] (auto &op) {
                     symbols.vars.insert(op.getSymbolName(), op->getResult(0));
                 })
-                .Case< TypeSymbolOpInterface >([&] (auto &op) {
+                .Case< core::TypeSymbolOpInterface >([&] (auto &op) {
                     symbols.types.insert(op.getSymbolName(), op);
                 })
-                .Case< FuncSymbolOpInterface >([&] (auto &op) {
+                .Case< core::FuncSymbolOpInterface >([&] (auto &op) {
                     symbols.funs.insert(op.getSymbolName(), op);
                 })
-                .Case< MemberVarSymbolOpInterface >([&] (auto &op) {
+                .Case< core::MemberVarSymbolOpInterface >([&] (auto &op) {
                     symbols.members.insert(op.getSymbolName(), op);
                 })
-                .Case< LabelSymbolOpInterface >([&] (auto &op) {
+                .Case< core::LabelSymbolOpInterface >([&] (auto &op) {
                     symbols.labels.insert(op.getSymbolName(), op);
                 })
-                .Case< EnumConstantSymbolOpInterface >([&] (auto &op) {
+                .Case< core::EnumConstantSymbolOpInterface >([&] (auto &op) {
                     symbols.enum_constants.insert(op.getSymbolName(), op);
                 })
                 .Default([] (auto &op){

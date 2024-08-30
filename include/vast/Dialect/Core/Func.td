@@ -8,7 +8,7 @@ include "mlir/IR/RegionKindInterface.td"
 
 include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/Interfaces/FunctionInterfaces.td"
-include "vast/Interfaces/SymbolInterface.td"
+include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
 
@@ -37,7 +37,7 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
       CallableOpInterface,
       FunctionOpInterface,
       IsolatedFromAbove,
-      FuncSymbol,
+      Core_FuncSymbol,
       NoTerminator,
       DeclareOpInterfaceMethods< RegionKindInterface >
     ])

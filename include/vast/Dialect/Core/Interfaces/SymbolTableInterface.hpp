@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "vast/Interfaces/SymbolInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
 
 #include "vast/Dialect/Core/CoreTraits.hpp"
 #include "vast/Dialect/Core/SymbolTable.hpp"
@@ -15,7 +15,7 @@ namespace vast::core {
 } // namespace vast::core
 
 /// Include the generated interface declarations.
-#include "vast/Interfaces/SymbolTableInterface.h.inc"
+#include "vast/Dialect/Core/Interfaces/SymbolTableInterface.h.inc"
 
 namespace vast::core {
 

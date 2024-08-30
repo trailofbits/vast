@@ -14,7 +14,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Common.hpp"
 #include "vast/Util/TypeList.hpp"
 
-#include "vast/Interfaces/SymbolInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
 
 #include <gap/coro/generator.hpp>
 #include <gap/coro/recursive_generator.hpp>

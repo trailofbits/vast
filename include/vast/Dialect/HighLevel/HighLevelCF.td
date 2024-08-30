@@ -6,7 +6,7 @@
 include "mlir/Interfaces/ControlFlowInterfaces.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
-include "vast/Interfaces/SymbolInterface.td"
+include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 
 class HighLevel_ControlFlowOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits,
@@ -430,7 +430,7 @@ def HighLevel_DefaultOp
 }
 
 def HighLevel_LabelDeclOp
-  : HighLevel_Op< "label.decl", [LabelSymbol] >
+  : HighLevel_Op< "label.decl", [Core_LabelSymbol] >
   , Arguments<(ins StrAttr:$name)>
   , Results<(outs HighLevel_LabelType:$result)>
 {

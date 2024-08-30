@@ -4,7 +4,7 @@
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS_CXX
 
 class HighLevel_CxxRecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
-    : HighLevel_Op< mnemonic, !listconcat(traits, [NoTerminator, TypeSymbol]) >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [NoTerminator, Core_TypeSymbol]) >
     , Arguments<(ins StrAttr:$name)>
 {
   // TODO(hl:cxx): Add region constraints.

@@ -11,7 +11,7 @@ include "mlir/IR/SymbolInterfaces.td"
 include "mlir/Interfaces/DataLayoutInterfaces.td"
 include "vast/Interfaces/DefaultDataLayoutTypeInterface.td"
 
-include "vast/Interfaces/SymbolInterface.td"
+include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 
 def Unsupported_Dialect : Dialect {
     let name = "unsup";

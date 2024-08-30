@@ -6,8 +6,8 @@
 
 #include <gap/core/ranges.hpp>
 
-#include "vast/Interfaces/SymbolInterface.hpp"
-#include "vast/Interfaces/SymbolTableInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolTableInterface.hpp"
 
 namespace vast::core {
 

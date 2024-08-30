@@ -18,7 +18,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Core/SymbolTable.hpp"
 
-#include "vast/Interfaces/SymbolInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
 #include "vast/Interfaces/AggregateTypeDefinitionInterface.hpp"
 #include "vast/Interfaces/AST/DeclInterface.hpp"
 
