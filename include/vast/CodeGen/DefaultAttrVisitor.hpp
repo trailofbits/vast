@@ -58,6 +58,7 @@ namespace vast::cg {
         mlir_attr VisitAvailabilityAttr(const clang::AvailabilityAttr *attr);
         mlir_attr VisitFallThroughAttr(const clang::FallThroughAttr *attr);
         mlir_attr VisitVisibilityAttr(const clang::VisibilityAttr *attr);
+        mlir_attr VisitAssumeAlignedAttr(const clang::AssumeAlignedAttr *attr);
 
       private:
         template< typename attr_t, typename... args_t >
