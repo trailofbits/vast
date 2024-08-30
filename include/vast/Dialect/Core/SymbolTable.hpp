@@ -94,7 +94,7 @@ namespace vast::core {
     }
 
     static inline auto immediate_nested_symbols(operation table) {
-        return gmw::operations(table) | gmw::filter_cast< symbol_base >;
+        return gmw::operations(table) | gmw::filter_cast< symbol >;
     }
 
     gap::recursive_generator< operation > symbols_unrecognized_by_nested_symbol_tables(operation root);

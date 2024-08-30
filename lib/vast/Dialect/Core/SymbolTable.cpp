@@ -65,7 +65,7 @@ namespace vast::core {
 
     void symbol_table::insert(symbol_kind kind, operation op) {
         VAST_ASSERT(can_hold_symbol_kind(kind));
-        auto symbol_name = mlir::cast< symbol_base >(op).getSymbolName();
+        auto symbol_name = mlir::cast< symbol >(op).getSymbolName();
         VAST_ASSERT(symbol_tables.contains(kind));
         symbol_tables[kind][symbol_name].push_back(op);
     }

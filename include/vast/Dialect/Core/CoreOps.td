@@ -17,7 +17,7 @@ def Core_ModuleOp : Core_Op< "module", [
   DataLayoutOpInterface,
   HasDefaultDLTIDataLayout,
   NoTerminator, NoRegionArguments, SingleBlock, Core_Symbol,
-  ShadowingSymbolTable< [
+  Core_ShadowingSymbolTable< [
     [Core_FuncSymbol, Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
   ] >,
 ] > {
@@ -75,7 +75,7 @@ def Core_ModuleOp : Core_Op< "module", [
 
 def Core_ScopeOp : Core_Op< "scope", [
   NoTerminator,
-  ShadowingSymbolTable< [
+  Core_ShadowingSymbolTable< [
     [Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
   ] >,
   DeclareOpInterfaceMethods<RegionKindInterface>

@@ -4,7 +4,7 @@
 #define VAST_INTERFACES_SYMBOL_INTERFACE
 
 include "mlir/IR/OpBase.td"
-include "vast/Interfaces/Common.td"
+
 include "vast/Dialect/Core/CoreTraits.td"
 include "vast/Dialect/Core/Interfaces/Common.td"
 

@@ -26,12 +26,12 @@ namespace vast::core {
 
 namespace vast::core {
 
-    using symbol_base = VastSymbolOpInterface;
+    using symbol = VastSymbolOpInterface;
     using func_symbol = FuncSymbolOpInterface;
 
     template< typename interface >
     concept symbol_op_interface = requires (interface i) {
-        static_cast< symbol_base >(i);
+        static_cast< symbol >(i);
     };
 
     template< symbol_op_interface interface >

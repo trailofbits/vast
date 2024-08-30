@@ -25,7 +25,7 @@ include "vast/Interfaces/AST/DeclInterface.td"
 def HighLevel_TranslationUnitOp
   : HighLevel_Op< "translation_unit", [
       NoTerminator,
-      ShadowingSymbolTable< [
+      Core_ShadowingSymbolTable< [
         [Core_FuncSymbol, Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
       ] >,
       IsolatedFromAbove
@@ -49,7 +49,7 @@ def HighLevel_TranslationUnitOp
 def HighLevel_FuncOp
   : Core_FuncBaseOp< HighLevel_Dialect, "func", [
     Core_FuncSymbol,
-    ShadowingSymbolTable< [
+    Core_ShadowingSymbolTable< [
       [Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
     ] >,
     IsolatedFromAbove

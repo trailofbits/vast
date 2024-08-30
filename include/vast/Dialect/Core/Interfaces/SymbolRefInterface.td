@@ -4,10 +4,10 @@
 #define VAST_INTERFACES_SYMBOL_REF_INTERFACE
 
 include "mlir/IR/OpBase.td"
-include "vast/Interfaces/Common.td"
+include "vast/Dialect/Core/Interfaces/Common.td"
 
-def VastSymbolRefInterface : VastAttrInterface< "VastSymbolRefInterface" > {
-    let description = [{ This attribute represents a reference to a symbol. }];
+def Core_SymbolRefInterface : Core_AttrInterface< "VastSymbolRefInterface" > {
+    let description = [{ This attribute represents a reference to a VAST symbol. }];
 }
 
 #endif // VAST_INTERFACES_SYMBOL_REF_INTERFACE
