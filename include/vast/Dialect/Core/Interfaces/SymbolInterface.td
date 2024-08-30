@@ -8,7 +8,7 @@ include "mlir/IR/OpBase.td"
 include "vast/Dialect/Core/CoreTraits.td"
 include "vast/Dialect/Core/Interfaces/Common.td"
 
-def Core_Symbol : Core_OpInterface< "VastSymbolOpInterface" > {
+def Core_Symbol : Core_OpInterface< "SymbolOpInterface" > {
     let description = [{
         This interface describes an operation that may define a `Symbol`.
     }];

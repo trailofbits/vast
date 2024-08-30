@@ -26,7 +26,7 @@ namespace vast::core {
 
 namespace vast::core {
 
-    using symbol = VastSymbolOpInterface;
+    using symbol = SymbolOpInterface;
     using func_symbol = FuncSymbolOpInterface;
 
     template< typename interface >

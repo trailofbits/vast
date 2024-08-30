@@ -6,7 +6,7 @@
 include "mlir/IR/OpBase.td"
 include "vast/Dialect/Core/Interfaces/Common.td"
 
-def Core_SymbolRefInterface : Core_AttrInterface< "VastSymbolRefInterface" > {
+def Core_SymbolRefInterface : Core_AttrInterface< "SymbolRefInterface" > {
     let description = [{ This attribute represents a reference to a VAST symbol. }];
 }
 

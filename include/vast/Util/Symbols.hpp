@@ -16,7 +16,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::util
 {
-    using vast_symbol_interface   = core::VastSymbolOpInterface;
+    using vast_symbol_interface   = core::SymbolOpInterface;
     using mlir_symbol_interface   = mlir::SymbolOpInterface;
 
     void symbols(mlir::Operation *op, auto &&yield) {
