@@ -431,10 +431,10 @@ def HighLevel_DefaultOp
 
 def HighLevel_LabelDeclOp
   : HighLevel_Op< "label.decl", [Core_LabelSymbol] >
-  , Arguments<(ins StrAttr:$name)>
+  , Arguments<(ins SymbolNameAttr:$sym_name)>
   , Results<(outs HighLevel_LabelType:$result)>
 {
-  let assemblyFormat = [{ $name attr-dict `:` type($result) }];
+  let assemblyFormat = [{ $sym_name attr-dict `:` type($result) }];
 }
 
 def HighLevel_LabelStmt
