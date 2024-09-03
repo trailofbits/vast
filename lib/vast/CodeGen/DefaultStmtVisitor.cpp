@@ -853,7 +853,8 @@ namespace vast::cg
     operation default_stmt_visitor::VisitChooseExpr(const clang::ChooseExpr *expr) {
         return bld.compose< hl::ChooseExprOp >()
             .bind(self.location(expr))
-            .bind(self.visit(expr->getType()))
+            // ChooseExpr conserves everything including lvalue-ness
+            .bind(visit_maybe_lvalue_result_type(expr))
             .bind_always(mk_cond_builder(expr->getCond()))
             .bind_always(mk_value_builder(expr->getLHS()))
             .bind_always(mk_value_builder(expr->getRHS()))
