@@ -98,6 +98,8 @@ def HighLevel_AvailableOnlyInDefaultEvalMethodAttr
   : HighLevel_Attr< "AvailableOnlyInDefaultEvalMethod", "available_only_in_default_eval_method" >;
 def HighLevel_AvailabilityAttr     : HighLevel_Attr< "AvailabilityAttr", "availability" >;
 def HighLevel_FallthroughAttr      : HighLevel_Attr< "Fallthrough", "fallthrough" >;
+def HighLevel_NoProfileInstrumentFunctionAttr
+  : HighLevel_Attr< "NoProfileInstrumentFunction", "no_profile_instrument_function" >;
 
 def HighLevel_AsmLabelAttr
   : HighLevel_Attr< "AsmLabel", "asm" >
