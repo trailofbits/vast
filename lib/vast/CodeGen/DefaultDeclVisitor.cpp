@@ -59,11 +59,6 @@ namespace vast::cg {
             return true;
         }
 
-        if (decl->hasAttr< clang::NoProfileFunctionAttr >()) {
-            VAST_REPORT("Unsupported function with no profile function attribute");
-            return true;
-        }
-
         if (decl->hasAttr< clang::MinVectorWidthAttr >()) {
             VAST_REPORT("Unsupported function with min vector width attribute");
             return true;
