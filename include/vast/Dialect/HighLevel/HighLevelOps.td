@@ -1613,4 +1613,23 @@ def HighLevel_StaticAssertDecl
   let assemblyFormat = "`failed` `:` $failed $assert (`,` $message^)? attr-dict";
 }
 
+def HighLevel_AttributedStmt
+  : HighLevel_Op< "attributed_stmt", [NoTerminator] >
+{
+  let summary = "Attributed stmt operation.";
+
+  let regions = (region AnyRegion:$body);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+  OpBuilder< (ins CArg< "builder_callback_ref" >:$bodyBuilder),
+     [{
+      InsertionGuard guard($_builder);
+      build_region($_builder, $_state, bodyBuilder);
+    }] >
+  ];
+
+  let assemblyFormat = [{ attr-dict `:` $body }];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
