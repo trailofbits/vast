@@ -20,7 +20,7 @@ class HighLevel_ControlFlowOp< string mnemonic, list< Trait > traits = [] >
 def HighLevel_CondYieldOp
   : HighLevel_Op< "cond.yield", [
     // TODO(Heno): add ReturnLike trait
-    Terminator, ParentOneOf<["IfOp", "WhileOp", "ForOp", "DoOp", "CondOp", "BinaryCondOp"]>
+    Terminator, ParentOneOf<["IfOp", "WhileOp", "ForOp", "DoOp", "CondOp", "ChooseExprOp", "BinaryCondOp"]>
   ] >
 {
   let summary = "condition yield operation";
@@ -180,6 +180,11 @@ class HighLevel_CondOpBase< string mnemonic, list< Trait > traits = [] >
 
 def HighLevel_CondOp       : HighLevel_CondOpBase< "cond" > {
   let summary = "VAST conditional statement";
+}
+
+// TODO: Add missing methods from clang API
+def HighLevel_ChooseExprOp : HighLevel_CondOpBase< "choose_expr" > {
+  let summary = "Representation of GNU __builtin_choose_expr";
 }
 
 def HighLevel_BinaryCondOp
