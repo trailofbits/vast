@@ -621,6 +621,10 @@ namespace vast::hl
         return verify_condop_yields(getThenRegion(), getElseRegion(), getLoc());
     }
 
+    logical_result ChooseExprOp::verifyRegions() {
+        return verify_condop_yields(getThenRegion(), getElseRegion(), getLoc());
+    }
+
     logical_result BinaryCondOp::verifyRegions() {
         return verify_condop_yields(getThenRegion(), getElseRegion(), getLoc());
     }
@@ -815,6 +819,7 @@ namespace vast::hl
     GRAPH_REGION_OP(LabelStmt);
     GRAPH_REGION_OP(BreakOp);
     GRAPH_REGION_OP(CondOp);
+    GRAPH_REGION_OP(ChooseExprOp);
     GRAPH_REGION_OP(BinaryCondOp);
     GRAPH_REGION_OP(ContinueOp);
 
