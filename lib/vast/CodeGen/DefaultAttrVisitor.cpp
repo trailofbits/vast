@@ -149,4 +149,7 @@ namespace vast::cg
         return make< hl::AvailabilityAttrAttr >();
     }
 
+    mlir_attr default_attr_visitor::VisitFallThroughAttr(const clang::FallThroughAttr *attr) {
+        return make< hl::FallthroughAttr >();
+    }
 } // namespace vast::hcg

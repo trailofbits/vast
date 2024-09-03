@@ -56,6 +56,7 @@ namespace vast::cg {
         mlir_attr VisitMaxFieldAlignmentAttr(const clang::MaxFieldAlignmentAttr *attr);
         mlir_attr VisitAvailableOnlyInDefaultEvalMethodAttr(const clang::AvailableOnlyInDefaultEvalMethodAttr *attr);
         mlir_attr VisitAvailabilityAttr(const clang::AvailabilityAttr *attr);
+        mlir_attr VisitFallThroughAttr(const clang::FallThroughAttr *attr);
 
       private:
         template< typename attr_t, typename... args_t >
