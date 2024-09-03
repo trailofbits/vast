@@ -2,7 +2,7 @@
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
-#include "vast/Util/FieldAdditions.hpp"
+#include "vast/Util/FieldParser.hpp"
 #include "vast/Util/Warnings.hpp"
 #include <gap/core/overloads.hpp>
 
