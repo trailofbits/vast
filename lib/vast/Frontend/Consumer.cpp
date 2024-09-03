@@ -170,7 +170,7 @@ namespace vast::cc {
     }
 
 #ifdef VAST_ENABLE_SARIF
-    gap::sarif::physical_location get_physical_loc(mlir::FileLineColLoc loc) {
+    gap::sarif::physical_location get_physical_loc(file_loc_t loc) {
         std::filesystem::path file_path{ loc.getFilename().str() };
         auto abs_path = std::filesystem::absolute(file_path);
         return {
@@ -184,46 +184,61 @@ namespace vast::cc {
 
     struct sarif_diag_handler
     {
-        gap::sarif::run &sarif_run;
+        gap::sarif::run &run;
 
         void operator()(mlir::Diagnostic &diag) const {
-            gap::sarif::result result{
-                .ruleId{ "mlir-diag" },
-                .message{ .text = diag.str() },
+            auto result = mk_result(diag);
+
+            if (auto loc = mk_location(diag.getLocation()); loc.physicalLocation.has_value()) {
+                result.locations.push_back(std::move(loc));
+            }
+
+            result.level = severity_to_sarif(diag.getSeverity());
+            run.results.push_back(std::move(result));
+        }
+
+      private:
+        gap::sarif::location mk_location(file_loc_t loc) const {
+            return {
+                .physicalLocation{ get_physical_loc(loc) },
             };
+        }
 
-            auto loc = diag.getLocation();
-            if (auto flc_loc = loc.dyn_cast< mlir::FileLineColLoc >()) {
-                result.locations.push_back({
-                    .physicalLocation{ get_physical_loc(flc_loc) },
-                });
-            } else if (auto name_loc = loc.dyn_cast< mlir::NameLoc >()) {
-                if (auto flc_child_loc =
-                        name_loc.getChildLoc().dyn_cast< mlir::FileLineColLoc >())
-                {
-                    result.locations.push_back(
-                        { .physicalLocation{ get_physical_loc(flc_child_loc) },
-                          .logicalLocations{ { .name = name_loc.getName().str() } } }
-                    );
-                }
+        gap::sarif::location mk_location(name_loc_t loc) const {
+            return {
+                .physicalLocation{
+                    get_physical_loc(mlir::cast< file_loc_t >(loc.getChildLoc()))
+                },
+                .logicalLocations{ { .name = loc.getName().str() } },
+            };
+        }
+
+        gap::sarif::location mk_location(loc_t loc) const {
+            if (auto file_loc = mlir::dyn_cast< file_loc_t >(loc)) {
+                return mk_location(file_loc);
+            } else if (auto name_loc = mlir::dyn_cast< name_loc_t >(loc)) {
+                return mk_location(name_loc);
             }
 
-            switch (diag.getSeverity()) {
-                using enum gap::sarif::level;
-                case mlir::DiagnosticSeverity::Note:
-                    result.level = kNote;
-                    break;
-                case mlir::DiagnosticSeverity::Warning:
-                    result.level = kWarning;
-                    break;
-                case mlir::DiagnosticSeverity::Error:
-                    result.level = kError;
-                    break;
-                case mlir::DiagnosticSeverity::Remark:
-                    result.level = kNote;
-                    break;
+            return {};
+        }
+
+        gap::sarif::result mk_result(mlir::Diagnostic &diag) const {
+            return {
+                .ruleId = "mlir-diag",
+                .message = { .text = diag.str() }
+            };
+        }
+
+        gap::sarif::level severity_to_sarif(mlir::DiagnosticSeverity severity) const {
+            using enum gap::sarif::level;
+            using enum mlir::DiagnosticSeverity;
+            switch (severity) {
+                case Note: return kNote;
+                case Warning: return kWarning;
+                case Error: return kError;
+                case Remark: return kNote;
             }
-            sarif_run.results.push_back(result);
         }
     };
 #endif // VAST_ENABLE_SARIF
@@ -235,8 +250,9 @@ namespace vast::cc {
         auto &mctx        = driver->mcontext();
         auto main_file_id = src_mgr.getMainFileID();
 
-        auto file_buff =
-            llvm::MemoryBuffer::getMemBuffer(src_mgr.getBufferOrFake(main_file_id));
+        auto file_buff = llvm::MemoryBuffer::getMemBuffer(
+            src_mgr.getBufferOrFake(main_file_id)
+        );
 
         llvm::SourceMgr mlir_src_mgr;
         mlir_src_mgr.AddNewSourceBuffer(std::move(file_buff), llvm::SMLoc());
@@ -320,8 +336,9 @@ namespace vast::cc {
         // }
     }
 
-    void
-    vast_stream_consumer::emit_mlir_output(target_dialect target, owning_mlir_module_ref mod) {
+    void vast_stream_consumer::emit_mlir_output(
+        target_dialect target, owning_mlir_module_ref mod
+    ) {
         if (!output_stream || !mod) {
             return;
         }
