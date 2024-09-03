@@ -1116,4 +1116,24 @@ namespace vast::cg
             .freeze();
     }
 
+    operation default_stmt_visitor::VisitAttributedStmt(const clang::AttributedStmt *stmt) {
+        auto attr_stmt = bld.compose< hl::AttributedStmt >()
+            .bind(self.location(stmt))
+            .bind(mk_region_builder(stmt->getSubStmt()))
+            .freeze();
+
+        mlir_attr_list attrs;
+
+        // This is not handled by default, because statements usually do not have attributes
+        for (auto attr : stmt->getAttrs()) {
+            if (auto visited = self.visit(attr)) {
+                attrs.set(visited->getName(), visited->getValue());
+            }
+        }
+
+        attr_stmt->setAttrs(attrs);
+
+        return attr_stmt;
+    }
+
 } // namespace vast::cg
