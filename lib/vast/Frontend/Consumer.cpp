@@ -26,6 +26,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Common.hpp"
 
 #include "vast/Frontend/Pipelines.hpp"
+#include "vast/Frontend/Sarif.hpp"
 #include "vast/Frontend/Targets.hpp"
 
 #include "vast/Target/LLVMIR/Convert.hpp"
@@ -33,10 +34,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/CoreOps.hpp"
 
 #include "vast/Config/config.h"
-
-#ifdef VAST_ENABLE_SARIF
-    #include <gap/sarif/sarif.hpp>
-#endif // VAST_ENABLE_SARIF
 
 namespace vast::cc {
 
@@ -169,79 +166,40 @@ namespace vast::cc {
         );
     }
 
-#ifdef VAST_ENABLE_SARIF
-    gap::sarif::physical_location get_physical_loc(file_loc_t loc) {
-        std::filesystem::path file_path{ loc.getFilename().str() };
-        auto abs_path = std::filesystem::absolute(file_path);
-        return {
-            .artifactLocation{ { .uri{ "file://" + abs_path.string() } } },
-            .region{ {
-                .startLine   = loc.getLine(),
-                .startColumn = loc.getColumn(),
-            } },
-        };
+    namespace sarif {
+        struct diagnostics;
+    } // namespace sarif
+
+    #ifdef VAST_ENABLE_SARIF
+    std::unique_ptr< vast::cc::sarif::diagnostics > setup_sarif_diagnostics(
+        const vast_args &vargs, mcontext_t &mctx
+    ) {
+        if (vargs.get_option(opt::output_sarif)) {
+                auto diags = std::make_unique< vast::cc::sarif::diagnostics >(vargs);
+                mctx.getDiagEngine().registerHandler(diags->handler());
+                return diags;
+        } else {
+            return nullptr;
+        }
     }
+    #endif // VAST_ENABLE_SARIF
 
-    struct sarif_diag_handler
-    {
-        gap::sarif::run &run;
-
-        void operator()(mlir::Diagnostic &diag) const {
-            auto result = mk_result(diag);
-
-            if (auto loc = mk_location(diag.getLocation()); loc.physicalLocation.has_value()) {
-                result.locations.push_back(std::move(loc));
+    void emit_sarif_diagnostics(
+        vast::cc::sarif::diagnostics &&sarif_diagnostics, logical_result result, string_ref path
+    ) {
+        #ifdef VAST_ENABLE_SARIF
+            std::error_code ec;
+            llvm::raw_fd_ostream os(path, ec, llvm::sys::fs::OF_None);
+            if (ec) {
+                VAST_FATAL("Failed to open file for SARIF output: {}", ec.message());
             }
 
-            result.level = severity_to_sarif(diag.getSeverity());
-            run.results.push_back(std::move(result));
-        }
-
-      private:
-        gap::sarif::location mk_location(file_loc_t loc) const {
-            return {
-                .physicalLocation{ get_physical_loc(loc) },
-            };
-        }
-
-        gap::sarif::location mk_location(name_loc_t loc) const {
-            return {
-                .physicalLocation{
-                    get_physical_loc(mlir::cast< file_loc_t >(loc.getChildLoc()))
-                },
-                .logicalLocations{ { .name = loc.getName().str() } },
-            };
-        }
-
-        gap::sarif::location mk_location(loc_t loc) const {
-            if (auto file_loc = mlir::dyn_cast< file_loc_t >(loc)) {
-                return mk_location(file_loc);
-            } else if (auto name_loc = mlir::dyn_cast< name_loc_t >(loc)) {
-                return mk_location(name_loc);
-            }
-
-            return {};
-        }
-
-        gap::sarif::result mk_result(mlir::Diagnostic &diag) const {
-            return {
-                .ruleId = "mlir-diag",
-                .message = { .text = diag.str() }
-            };
-        }
-
-        gap::sarif::level severity_to_sarif(mlir::DiagnosticSeverity severity) const {
-            using enum gap::sarif::level;
-            using enum mlir::DiagnosticSeverity;
-            switch (severity) {
-                case Note: return kNote;
-                case Warning: return kWarning;
-                case Error: return kError;
-                case Remark: return kNote;
-            }
-        }
-    };
-#endif // VAST_ENABLE_SARIF
+            nlohmann::json report = std::move(sarif_diagnostics).emit(result);
+            os << report.dump(2);
+        #else
+            VAST_REPORT("SARIF support is disabled");
+        #endif // VAST_ENABLE_SARIF
+    }
 
     void vast_stream_consumer::process_mlir_module(target_dialect target, mlir_module mod) {
         // Handle source manager properly given that lifetime analysis
@@ -267,57 +225,19 @@ namespace vast::cc {
             llvm::DebugFlag = true;
         }
 
-#ifdef VAST_ENABLE_SARIF
-        gap::sarif::run sarif_run{
-            .tool{
-                  .driver{
-                  .name           = "vast-front",
-                  .organization   = "Trail of Bits, inc.",
-                  .product        = "VAST",
-                  .version        = std::string{ vast::version },
-                  .informationUri = std::string{ vast::homepage_url },
-                  }, },
-            .invocations{
-                  {
-                  .arguments{ vargs.args.begin(), vargs.args.end() },
-                  .executionSuccessful = true,
-                  }, },
-        };
-        sarif_diag_handler diag_handler{ sarif_run };
-#endif // VAST_ENABLE_SARIF
-
         // Setup and execute vast pipeline
         auto file_entry = src_mgr.getFileEntryRefForID(main_file_id);
         VAST_CHECK(file_entry, "failed to recover file entry ref");
-        auto snapshot_prefix =
-            std::filesystem::path(file_entry->getName().str()).stem().string();
+        auto snapshot_prefix = std::filesystem::path(file_entry->getName().str()).stem().string();
 
-        auto pipeline =
-            setup_pipeline(pipeline_source::ast, target, mctx, vargs, snapshot_prefix);
+        auto pipeline = setup_pipeline(pipeline_source::ast, target, mctx, vargs, snapshot_prefix);
         VAST_CHECK(pipeline, "failed to setup pipeline");
 
-#ifdef VAST_ENABLE_SARIF
-        if (auto sarif_path = vargs.get_option(opt::output_sarif)) {
-            mctx.getDiagEngine().registerHandler(diag_handler);
-        }
-#endif // VAST_ENABLE_SARIF
+        #ifdef VAST_ENABLE_SARIF
+        auto sarif_diagnostics = setup_sarif_diagnostics(vargs, mctx);
+        #endif // VAST_ENABLE_SARIF
 
         auto result = pipeline->run(mod);
-
-#ifdef VAST_ENABLE_SARIF
-        sarif_run.invocations[0].executionSuccessful = mlir::succeeded(result);
-
-        gap::sarif::root sarif_report{
-            .version = gap::sarif::version::k2_1_0,
-            .runs{ sarif_run },
-        };
-
-        if (auto sarif_path = vargs.get_option(opt::output_sarif)) {
-            std::ofstream os{ sarif_path.value().str() };
-            nlohmann::json j = sarif_report;
-            os << j.dump(2);
-        }
-#endif // VAST_ENABLE_SARIF
 
         VAST_CHECK(
             mlir::succeeded(result), "MLIR pass manager failed when running vast passes"
@@ -328,6 +248,20 @@ namespace vast::cc {
         if (verify_diagnostics && src_mgr_handler.verify().failed()) {
             llvm::sys::RunInterruptHandlers();
             VAST_FATAL("failed mlir codegen");
+        }
+
+        if (auto path = vargs.get_option(opt::output_sarif)) {
+            #ifdef VAST_ENABLE_SARIF
+            if (sarif_diagnostics) {
+                emit_sarif_diagnostics(
+                    std::move(*sarif_diagnostics), result, path.value().str()
+                );
+            } else {
+                VAST_REPORT("SARIF diagnostics are missing");
+            }
+            #else
+                VAST_REPORT("SARIF support is disabled");
+            #endif // VAST_ENABLE_SARIF
         }
 
         // Emit remaining defaulted C++ methods
