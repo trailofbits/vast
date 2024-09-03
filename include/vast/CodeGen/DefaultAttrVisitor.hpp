@@ -61,6 +61,7 @@ namespace vast::cg {
         mlir_attr VisitAssumeAlignedAttr(const clang::AssumeAlignedAttr *attr);
         mlir_attr VisitCountedByAttr(const clang::CountedByAttr *attr);
         mlir_attr VisitCleanupAttr(const clang::CleanupAttr *attr);
+        mlir_attr VisitNoProfileFunctionAttr(const clang::NoProfileFunctionAttr *attr);
 
       private:
         template< typename attr_t, typename... args_t >

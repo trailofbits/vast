@@ -184,4 +184,8 @@ namespace vast::cg
     mlir_attr default_attr_visitor::VisitCleanupAttr(const clang::CleanupAttr *attr) {
         return make< hl::CleanupAttr >(attr->getFunctionDecl()->getName());
     }
+
+    mlir_attr default_attr_visitor::VisitNoProfileFunctionAttr(const clang::NoProfileFunctionAttr *attr) {
+        return make< hl::NoProfileInstrumentFunctionAttr >();
+    }
 } // namespace vast::cg
