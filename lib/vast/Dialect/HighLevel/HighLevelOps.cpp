@@ -569,18 +569,6 @@ namespace vast::hl
         build_region(bld, st, else_builder);
     }
 
-    void CondOp::build(
-        Builder &bld, State &st, Type type,
-        builder_callback_ref cond,
-        builder_callback_ref then_builder,
-        builder_callback_ref else_builder
-    ) {
-        InsertionGuard guard(bld);
-        build_region(bld, st, cond);
-        build_region(bld, st, then_builder);
-        build_region(bld, st, else_builder);
-        st.addTypes(type);
-    }
     void BinaryCondOp::build(
         Builder &bld, State &st, Type type,
         builder_callback_ref common_builder,

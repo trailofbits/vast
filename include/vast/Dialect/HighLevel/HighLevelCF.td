@@ -130,11 +130,11 @@ def HighLevel_IfOp
   let hasCustomAssemblyFormat = 1;
 }
 
-def HighLevel_CondOp
-  : HighLevel_ControlFlowOp< "cond" >
+class HighLevel_CondOpBase< string mnemonic, list< Trait > traits = [] >
+
+  : HighLevel_ControlFlowOp< mnemonic, traits >
   , Results<(outs AnyType:$result)>
 {
-  let summary = "VAST conditional statement";
   let description = [{
     The operation takes builders of three regions -- condition, true branch and false branch.
     Builders, given the location, build a particular region.
@@ -166,10 +166,20 @@ def HighLevel_CondOp
       "builder_callback_ref":$condBuilder,
       "builder_callback_ref":$thenBuilder,
       "builder_callback_ref":$elseBuilder
-    )>
+    ), [{
+        InsertionGuard guard($_builder);
+        build_region($_builder, $_state, condBuilder);
+        build_region($_builder, $_state, thenBuilder);
+        build_region($_builder, $_state, elseBuilder);
+        $_state.addTypes(type);
+    }] >
   ];
 
   let assemblyFormat = [{ attr-dict `:` type(results) $condRegion `?` $thenRegion `:` $elseRegion }];
+}
+
+def HighLevel_CondOp       : HighLevel_CondOpBase< "cond" > {
+  let summary = "VAST conditional statement";
 }
 
 def HighLevel_BinaryCondOp
