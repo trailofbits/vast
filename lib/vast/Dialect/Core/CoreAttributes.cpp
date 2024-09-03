@@ -3,7 +3,7 @@
 #include "vast/Dialect/Core/CoreDialect.hpp"
 #include "vast/Dialect/Core/CoreTypes.hpp"
 #include "vast/Dialect/Core/CoreAttributes.hpp"
-#include "vast/Util/FieldAdditions.hpp"
+#include "vast/Util/FieldParser.hpp"
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
