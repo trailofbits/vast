@@ -11,7 +11,6 @@ namespace vast::analysis::sarif {
 
     class sarif_analysis
     {
-      private:
         std::vector< gap::sarif::result > sarif_results;
 
       public:
