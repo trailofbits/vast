@@ -177,4 +177,11 @@ namespace vast::cg
         return make< hl::AssumeAlignedAttr >(alignment, offset);
     }
 
-} // namespace vast::hcg
+    mlir_attr default_attr_visitor::VisitCountedByAttr(const clang::CountedByAttr *attr) {
+        return make< hl::CountedByAttr >(attr->getCountedByField()->getName());
+    }
+
+    mlir_attr default_attr_visitor::VisitCleanupAttr(const clang::CleanupAttr *attr) {
+        return make< hl::CleanupAttr >(attr->getFunctionDecl()->getName());
+    }
+} // namespace vast::cg
