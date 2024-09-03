@@ -90,6 +90,12 @@ namespace vast::cg {
             };
         }
 
+        auto mk_region_builder(const clang_stmt *stmt) {
+            return [this, stmt] (auto &bld, auto) {
+                self.visit(stmt);
+            };
+        }
+
         auto mk_optional_region_builder(const clang_stmt *stmt) {
             return [this, stmt] (auto &bld, auto) {
                 if (stmt) self.visit(stmt);
