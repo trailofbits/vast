@@ -74,7 +74,9 @@ namespace vast {
 
     using values_t      = mlir::SmallVector< mlir_value >;
 
-    using loc_t         = mlir::Location;
+    using loc_t      = mlir::Location;
+    using name_loc_t = mlir::NameLoc;
+    using file_loc_t = mlir::FileLineColLoc;
 
     using mlir_builder    = mlir::OpBuilder;
     using op_state        = mlir::OperationState;
