@@ -278,6 +278,8 @@ namespace vast::cg {
 
         operation VisitInitListExpr(const clang::InitListExpr *expr);
         operation VisitImplicitValueInitExpr(const clang::ImplicitValueInitExpr *expr);
+
+        operation VisitAttributedStmt(const clang::AttributedStmt *stmt);
         protected:
             acontext_t &actx;
     };
