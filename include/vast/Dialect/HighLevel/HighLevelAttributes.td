@@ -61,6 +61,7 @@ def HighLevel_NoCfCheckAttr        : HighLevel_Attr< "NoCfCheck", "nocf_check" >
 def HighLevel_AvailableOnlyInDefaultEvalMethodAttr
   : HighLevel_Attr< "AvailableOnlyInDefaultEvalMethod", "available_only_in_default_eval_method" >;
 def HighLevel_AvailabilityAttr     : HighLevel_Attr< "AvailabilityAttr", "availability" >;
+def HighLevel_FallthroughAttr      : HighLevel_Attr< "Fallthrough", "fallthrough" >;
 
 def HighLevel_AsmLabelAttr
   : HighLevel_Attr< "AsmLabel", "asm" >
