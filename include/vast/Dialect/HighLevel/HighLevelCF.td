@@ -182,14 +182,33 @@ def HighLevel_CondOp       : HighLevel_CondOpBase< "cond" > {
   let summary = "VAST conditional statement";
 }
 
-def HighLevel_ChooseExprOp : HighLevel_CondOpBase< "choose_expr" > {
+def HighLevel_ChooseExprOp : HighLevel_ControlFlowOp< "choose_expr" >
+  , Arguments<(ins OptionalAttr< BoolAttr >:$condTrue)>
+  , Results<(outs AnyType:$result)>
+{
   let summary = "Representation of GNU __builtin_choose_expr";
 
-  let arguments = (ins OptionalAttr< BoolAttr >:$condTrue);
+  let description = [{
+    The operation takes builders of three regions -- condition, true branch and false branch.
+    Builders, given the location, build a particular region.
 
-  // ChooseExpr can have different types.
-  // Often used as __builtin_choose_expr(static_cond, 1, (void)0)
-  let hasRegionVerifier = 0;
+    The generic form of the operation is as follows:
+
+    hl.cond {
+      ... /* condition region */
+      hl.cond.yield %cond : !hl.bool
+    } ? {
+      ... /* true region */
+    } : {
+      ... /* false region */
+    }
+  }];
+
+  let regions = (region
+    Core_CondRegion:$condRegion,
+    Core_ValueRegion:$thenRegion,
+    Core_ValueRegion:$elseRegion
+  );
 
   let skipDefaultBuilders = 1;
   let builders = [
