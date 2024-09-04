@@ -621,10 +621,6 @@ namespace vast::hl
         return verify_condop_yields(getThenRegion(), getElseRegion(), getLoc());
     }
 
-    logical_result ChooseExprOp::verifyRegions() {
-        return verify_condop_yields(getThenRegion(), getElseRegion(), getLoc());
-    }
-
     logical_result BinaryCondOp::verifyRegions() {
         return verify_condop_yields(getThenRegion(), getElseRegion(), getLoc());
     }

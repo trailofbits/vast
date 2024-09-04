@@ -187,6 +187,10 @@ def HighLevel_ChooseExprOp : HighLevel_CondOpBase< "choose_expr" > {
 
   let arguments = (ins OptionalAttr< BoolAttr >:$condTrue);
 
+  // ChooseExpr can have different types.
+  // Often used as __builtin_choose_expr(static_cond, 1, (void)0)
+  let hasRegionVerifier = 0;
+
   let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
