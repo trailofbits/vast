@@ -7,6 +7,7 @@ set(VAST_OPTIONAL_SOURCES
   SymbolTableInterface.cpp
   SymbolRefInterface.cpp
   TypeQualifiersInterfaces.cpp
+  TypeTraitExprInterface.cpp
 )
 
 add_vast_interface_library(AggregateTypeDefinitionInterface
@@ -42,6 +43,10 @@ add_vast_interface_library(SymbolRefInterface
 
 add_vast_interface_library(TypeQualifiersInterfaces
   TypeQualifiersInterfaces.cpp
+)
+
+add_vast_interface_library(TypeTraitExprInterface
+  TypeTraitExprInterface.cpp
 )
 
 add_subdirectory(AST)
