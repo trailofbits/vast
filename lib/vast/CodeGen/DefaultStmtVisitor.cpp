@@ -858,6 +858,7 @@ namespace vast::cg
             .bind_always(mk_cond_builder(expr->getCond()))
             .bind_always(mk_value_builder(expr->getLHS()))
             .bind_always(mk_value_builder(expr->getRHS()))
+            .bind_always(expr->isConditionDependent() ? std::nullopt : std::optional(expr->isConditionTrue()))
             .freeze();
     }
 
