@@ -1409,6 +1409,15 @@ class HighLevel_TypeTraitExprOp< string mnemonic, list< Trait > traits = [] >
  ];
 }
 
+def HighLevel_BuiltinTypesCompatiblePOp
+  : HighLevel_TypeTraitExprOp< "builtin_types_compatible_p.type" >
+  , Arguments<(ins TypeAttr:$Type1, TypeAttr:$Type2, BoolAttr:$compatible)>
+  , Results<(outs HighLevel_IntegerLikeType:$result)>
+{
+  let summary = "VAST representation of __builtin_types_compatible_p";
+  let assemblyFormat = [{ $Type1`,` $Type2 `compatible` $compatible attr-dict `->` type($result) }];
+}
+
 def HighLevel_OffsetOfNodeAttr
   : HighLevel_Attr< "OffsetOfNode", "offset_of_node" > {
     let parameters = (ins
