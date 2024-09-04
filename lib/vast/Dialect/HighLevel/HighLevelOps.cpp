@@ -864,6 +864,17 @@ namespace vast::hl
         return core::IntegerAttr::get(getType(), apsint(getValue()));
     }
 
+    //
+    // BuiltinTypesCompatiblePOp
+    //
+    types_t BuiltinTypesCompatiblePOp::getArgs() {
+        return types_t{getType1(), getType2()};
+    }
+
+    std::optional< bool > BuiltinTypesCompatiblePOp::getValue() {
+        return std::optional(getCompatibleAttr().getValue());
+    }
+
 }
 
 //===----------------------------------------------------------------------===//
