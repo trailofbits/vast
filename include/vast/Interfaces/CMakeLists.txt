@@ -1,4 +1,5 @@
 add_vast_op_interface(AggregateTypeDefinitionInterface)
+add_vast_op_interface(TypeTraitExprInterface)
 add_vast_attr_interface(TypeQualifiersInterfaces)
 add_vast_type_interface(AliasTypeInterface)
 add_vast_type_interface(DefaultDataLayoutTypeInterface)
