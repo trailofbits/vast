@@ -9,6 +9,7 @@ include "mlir/IR/BuiltinAttributes.td"
 include "mlir/Interfaces/CastInterfaces.td"
 
 include "vast/Interfaces/AggregateTypeDefinitionInterface.td"
+include "vast/Interfaces/TypeTraitExprInterface.td"
 include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 include "vast/Dialect/Core/Interfaces/SymbolTableInterface.td"
 
@@ -1378,6 +1379,35 @@ class HighLevel_AlignOfExprOpBase< string mnemonic, list< Trait > traits = [] >
 
 def HighLevel_AlignOfExprOp          : HighLevel_AlignOfExprOpBase< "alignof.expr" >;
 def HighLevel_PreferredAlignOfExprOp : HighLevel_AlignOfExprOpBase< "preferred_alignof.expr" >;
+
+class HighLevel_TypeTraitExprOp< string mnemonic, list< Trait > traits = [] >
+  : HighLevel_Op< mnemonic, !listconcat([Pure, DeclareOpInterfaceMethods<TypeTraitExprInterface>], traits) >
+{
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder< (ins
+      "Type":$resultType,
+      "llvm::ArrayRef< mlir::Type >":$types,
+      CArg< "std::optional< bool >", "std::nullopt" >:$result
+   ), [{
+      auto attr_names = getAttributeNames();
+      for (auto [type, attr_name] : llvm::zip_first(types, attr_names)) {
+          $_state.addAttribute(attr_name, mlir::TypeAttr::get(type));
+      }
+      if (result) {
+        $_state.addAttribute(attr_names.back(), $_builder.getBoolAttr(result.value()));
+      }
+      $_state.addTypes(resultType);
+   }] >,
+    OpBuilder< (ins
+      "Type":$resultType,
+      "clang::ArrayRef< mlir::Type >":$types,
+      "bool":$result
+   ), [{
+     build($_builder, $_state, resultType, types, std::optional(result));
+   }] >
+ ];
+}
 
 def HighLevel_OffsetOfNodeAttr
   : HighLevel_Attr< "OffsetOfNode", "offset_of_node" > {
