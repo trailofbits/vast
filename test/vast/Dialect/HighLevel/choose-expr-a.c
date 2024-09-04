@@ -9,5 +9,19 @@ void fn() {
     // CHECK: hl.value.yield {{%.*}} : !hl.lvalue<!hl.int>
     int z = __builtin_choose_expr(0, x, y);
     // CHECK: hl.choose_expr cond true : !hl.lvalue<!hl.int> {
-    int w = __builtin_choose_expr(1, x, y);
+    z = __builtin_choose_expr(1, x, y);
+
+    // CHECK: hl.choose_expr cond true : !hl.lvalue<!hl.int> {
+    // CHECK: hl.value.yield {{%.*}} : !hl.lvalue<!hl.int>
+    // CHECK: hl.value.yield {{%.*}} : !hl.void
+    z = __builtin_choose_expr(1, x, (void) 0);
+    // CHECK: hl.choose_expr cond false : !hl.lvalue<!hl.int> {
+    // CHECK: hl.value.yield {{%.*}} : !hl.void
+    // CHECK: hl.value.yield {{%.*}} : !hl.lvalue<!hl.int>
+    z = __builtin_choose_expr(0, (void) 0, x);
+
+    // CHECK: hl.choose_expr cond true : !hl.lvalue<!hl.int> {
+    // CHECK: hl.value.yield {{%.*}} : !hl.lvalue<!hl.int>
+    // CHECK: hl.value.yield {{%.*}} : !hl.char
+    z = __builtin_choose_expr(1, x, (char) 0);
 }
