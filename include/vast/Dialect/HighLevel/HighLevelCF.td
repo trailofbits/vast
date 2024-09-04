@@ -182,9 +182,50 @@ def HighLevel_CondOp       : HighLevel_CondOpBase< "cond" > {
   let summary = "VAST conditional statement";
 }
 
-// TODO: Add missing methods from clang API
 def HighLevel_ChooseExprOp : HighLevel_CondOpBase< "choose_expr" > {
   let summary = "Representation of GNU __builtin_choose_expr";
+
+  let arguments = (ins OptionalAttr< BoolAttr >:$condTrue);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+    OpBuilder<(ins
+      "Type":$type,
+      "builder_callback_ref":$condBuilder,
+      "builder_callback_ref":$thenBuilder,
+      "builder_callback_ref":$elseBuilder,
+      CArg<"std::optional< bool >", "std::nullopt">:$condTrue
+    ), [{
+        InsertionGuard guard($_builder);
+        build_region($_builder, $_state, condBuilder);
+        build_region($_builder, $_state, thenBuilder);
+        build_region($_builder, $_state, elseBuilder);
+        if (condTrue) {
+            $_state.addAttribute("condTrue", $_builder.getBoolAttr(condTrue.value()));
+        }
+        $_state.addTypes(type);
+    }] >
+  ];
+
+  let extraClassDeclaration = [{
+    std::optional< bool > isConditionTrue() {
+        if (auto cond = getCondTrue()) {
+            return cond.value();
+        }
+        return {};
+    }
+
+    bool isConditionDependent() { return (bool) getCondTrueAttr(); }
+
+    region_ptr getChosenSubExpr() {
+        if (auto cond = isConditionTrue()) {
+            return cond.value() ? &getThenRegion() : &getElseRegion();
+        }
+        return {};
+    }
+  }];
+
+  let assemblyFormat = [{ attr-dict (`cond` $condTrue^)? `:` type(results) $condRegion `?` $thenRegion `:` $elseRegion }];
 }
 
 def HighLevel_BinaryCondOp
