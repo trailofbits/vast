@@ -245,6 +245,9 @@ namespace vast::cg {
         operation VisitStmtExpr(const clang::StmtExpr *expr);
 
         template< typename op_t >
+        operation mk_type_trait_expr(const clang::TypeTraitExpr *expr);
+
+        template< typename op_t >
         operation mk_type_trait_expr(const clang::UnaryExprOrTypeTraitExpr *expr);
 
         template< typename op_t >
@@ -254,6 +257,7 @@ namespace vast::cg {
         operation mk_trait_expr(const clang::UnaryExprOrTypeTraitExpr *expr);
 
         operation VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *expr);
+        operation VisitTypeTraitExpr(const clang::TypeTraitExpr *expr);
         operation VisitVAArgExpr(const clang::VAArgExpr *expr);
         operation VisitNullStmt(const clang::NullStmt *stmt);
         operation VisitCXXThisExpr(const clang::CXXThisExpr *expr);
@@ -474,6 +478,20 @@ namespace vast::cg {
         }
 
         return {};
+    }
+
+    template< typename op_t >
+    operation default_stmt_visitor::mk_type_trait_expr(const clang::TypeTraitExpr *expr) {
+        types_t types;
+        for (auto type_info : expr->getArgs()) {
+            types.push_back(self.visit(type_info->getType()));
+        }
+        return bld.compose< op_t >()
+            .bind(self.location(expr))
+            .bind(self.visit(expr->getType()))
+            .bind(types)
+            .bind_always(expr->isValueDependent() ? std::nullopt : std::optional(expr->getValue()))
+            .freeze();
     }
 
     template< typename op_t >

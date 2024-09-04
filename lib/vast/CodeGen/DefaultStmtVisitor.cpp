@@ -1093,6 +1093,16 @@ namespace vast::cg
         }
     }
 
+    operation default_stmt_visitor::VisitTypeTraitExpr(const clang::TypeTraitExpr *expr) {
+        switch (expr->getTrait()) {
+            case clang::BTT_TypeCompatible:
+                return mk_type_trait_expr< hl::BuiltinTypesCompatiblePOp >(expr);
+            default:
+                return {};
+        }
+        return {};
+    }
+
     operation default_stmt_visitor::VisitVAArgExpr(const clang::VAArgExpr *expr) {
         return bld.compose< hl::VAArgExpr >()
             .bind(self.location(expr))
