@@ -1,10 +1,10 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.struct "X"
+// CHECK: hl.struct @X
 struct X {};
 
-// CHECK: hl.struct "Y"
+// CHECK: hl.struct @Y
 // CHECK: hl.typedef @X : !hl.elaborated<!hl.record<"Y">>
 typedef struct Y {} X;
 

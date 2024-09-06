@@ -3,5 +3,5 @@
 
 // CHECK-DAG: hl.func @setlocale
 // CHECK-DAG: hl.func @localeconv
-// CHECK-DAG: hl.struct "lconv"
+// CHECK-DAG: hl.struct @lconv
 #include <locale.h>

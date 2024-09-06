@@ -15,7 +15,7 @@ typedef ck_rv_t (*ck_lockmutex_t) (void *mutex);
 // CHECK: hl.typedef @ck_unlockmutex_t : !hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.ptr<!hl.void>>) -> (!hl.elaborated<!hl.typedef<"ck_rv_t">>)>>>
 typedef ck_rv_t (*ck_unlockmutex_t) (void *mutex);
 
-// CHECK: hl.struct "ck_c_initialize_args"
+// CHECK: hl.struct @ck_c_initialize_args
 struct ck_c_initialize_args
 {
     // CHECK: hl.field "create_mutex" : !hl.elaborated<!hl.typedef<"ck_createmutex_t">>

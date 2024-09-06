@@ -257,7 +257,7 @@ class HighLevel_RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
           DeclareOpInterfaceMethods< AggregateTypeDefinition >
         ])
       >
-    , Arguments<(ins StrAttr:$name)>
+    , Arguments<(ins SymbolNameAttr:$sym_name)>
 {
   let regions = (region AnyRegion:$fields);
 
@@ -293,14 +293,14 @@ class HighLevel_RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
         return hl::get_nested_declarations(*this);
     }
 
-    llvm::StringRef $cppClass::getDefinedName() { return this->getName(); }
+    llvm::StringRef $cppClass::getDefinedName() { return this->getSymName(); }
 
     mlir::Type $cppClass::getDefinedType() {
       return hl::RecordType::get(getContext(), getDefinedName());
     }
   }];
 
-  let assemblyFormat = [{ $name attr-dict `:` $fields }];
+  let assemblyFormat = [{ $sym_name attr-dict `:` $fields }];
 }
 
 def HighLevel_StructDeclOp
