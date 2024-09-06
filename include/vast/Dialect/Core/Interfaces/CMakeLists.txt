@@ -2,3 +2,4 @@
 add_vast_op_interface(SymbolInterface)
 add_vast_op_interface(SymbolTableInterface)
 add_vast_attr_interface(SymbolRefInterface)
+add_vast_op_interface(TypeDefinition)
