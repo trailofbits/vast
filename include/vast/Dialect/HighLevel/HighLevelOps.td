@@ -92,7 +92,7 @@ def HighLevel_FuncOp
 
 def HighLevel_TypeDeclOp
   : HighLevel_Op< "type", [Core_TypeSymbol] >
-  , Arguments<(ins SymbolNameAttr:$sym_name)>
+  , Arguments<(ins SymbolNameAttr:$sym_name, TypeAttr:$type)>
 {
   let summary = "VAST type declaration";
   let description = [{ VAST type declaration }];
@@ -101,7 +101,7 @@ def HighLevel_TypeDeclOp
     mlir_type getDefinedType();
   }];
 
-  let assemblyFormat = [{ $sym_name attr-dict }];
+  let assemblyFormat = [{ $sym_name attr-dict `:` $type}];
 }
 
 def HighLevel_TypeDefOp
