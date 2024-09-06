@@ -126,7 +126,7 @@ def HighLevel_TypeDefOp
 
 def HighLevel_TypeAliasOp
   : HighLevel_Op< "alias", [Core_TypeSymbol] >
-  , Arguments<(ins StrAttr:$name, TypeAttr:$type)>
+  , Arguments<(ins SymbolNameAttr:$sym_name, TypeAttr:$type)>
 {
   let summary = "VAST type alias operation";
   let description = [{
@@ -137,7 +137,7 @@ def HighLevel_TypeAliasOp
     mlir_type getDefinedType();
   }];
 
-  let assemblyFormat = [{ $name attr-dict `:` $type }];
+  let assemblyFormat = [{ $sym_name attr-dict `:` $type }];
 }
 
 def HighLevel_TypeOfExprOp
