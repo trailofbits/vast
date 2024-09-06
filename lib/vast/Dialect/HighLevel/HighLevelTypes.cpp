@@ -204,4 +204,87 @@ namespace vast::hl
         return PointerType::get(element_type.getContext(), element_type);
     }
 
+    bool RecordType::isRecordType() const {
+        return true;
+    }
+
+    bool VoidType::isVoidType() const {
+        return true;
+    }
+
+    bool BoolType::isScalarType() const {
+        return true;
+    }
+
+    bool CharType::isScalarType() const {
+        return true;
+    }
+
+    bool ShortType::isScalarType() const {
+        return true;
+    }
+
+    bool IntType::isScalarType() const {
+        return true;
+    }
+
+    bool LongType::isScalarType() const {
+        return true;
+    }
+
+    bool LongLongType::isScalarType() const {
+        return true;
+    }
+
+    bool Int128Type::isScalarType() const {
+        return true;
+    }
+
+    bool HalfType::isScalarType() const {
+        return true;
+    }
+
+    bool BFloat16Type::isScalarType() const {
+        return true;
+    }
+
+    bool FloatType::isScalarType() const {
+        return true;
+    }
+
+    bool DoubleType::isScalarType() const {
+        return true;
+    }
+
+    bool LongDoubleType::isScalarType() const {
+        return true;
+    }
+
+    bool Float128Type::isScalarType() const {
+        return true;
+    }
+
+    bool ComplexType::isScalarType() const {
+        return true;
+    }
+
+    bool PointerType::isScalarType() const {
+        return true;
+    }
+
+    bool VectorType::isVectorType() const {
+        return true;
+    }
+
+    bool LValueType::isScalarType() const {
+        return mlir::dyn_cast< ast::TypeInterface >(getElementType()).isScalarType();
+    }
+
+    bool RValueType::isScalarType() const {
+        return mlir::dyn_cast< ast::TypeInterface >(getElementType()).isScalarType();
+    }
+
+    bool ReferenceType::isScalarType() const {
+        return false;
+    }
 } // namespace vast::hl

@@ -271,11 +271,15 @@ namespace vast::hl
     }
 
     vast::analysis::decl_interface_iterator FuncOp::decls_begin() {
-        for (auto &region : this->getOperation()->getRegions()) {
-            for (auto &block : region.getBlocks()) {
-                for (auto &operation : block.getOperations()) {
-                    if (isa< ast::DeclInterface >(operation)) {
-                        return analysis::decl_interface_iterator{dyn_cast< ast::DeclInterface >(operation)};
+        for (auto &block : getBody()) {
+            for (auto &operation : block) {
+                for (auto &region : operation.getRegions()) {
+                    for (auto &blck : region) {
+                        for (auto &op : blck) {
+                            if (isa< ast::DeclInterface >(op)) {
+                                return analysis::decl_interface_iterator{&op};
+                            }
+                        }
                     }
                 }
             }
@@ -288,6 +292,102 @@ namespace vast::hl
     }
 
     vast::ast::ASTContextInterface FuncOp::getASTContext() {
+        return {};
+    }
+
+    vast::cfg::CFGBlockInterface FuncOp::getEntry() {
+        return dyn_cast< cfg::CFGBlockInterface >(getOperation());
+    }
+
+    unsigned FuncOp::getNumBlockIDs() {
+        return 1;
+    }
+
+    void FuncOp::VisitBlockStmts(llvm::function_ref< void(ast::StmtInterface) >) {
+
+    }
+
+    vast::cfg::CFGIterator FuncOp::cfg_begin() {
+        return {};
+    }
+
+    vast::cfg::CFGIterator FuncOp::cfg_end() {
+        return {};
+    }
+
+    unsigned FuncOp::getBlockID() {
+        return 0;
+    }
+
+    ast::StmtInterface FuncOp::getLabel() {
+        return {};
+    }
+
+    cfg::pred_iterator FuncOp::pred_begin() {
+        return {};
+    }
+
+    cfg::pred_iterator FuncOp::pred_end() {
+        return {};
+    }
+
+    unsigned FuncOp::succ_size() {
+        return 0;
+    }
+
+    cfg::succ_iterator FuncOp::succ_begin() {
+        return {};
+    }
+
+    cfg::succ_iterator FuncOp::succ_end() {
+        return {};
+    }
+
+    cfg::succ_range FuncOp::succs() {
+        return {succ_begin(), succ_end()};
+    }
+
+    ast::StmtInterface FuncOp::getTerminatorStmt() {
+        return {};
+    }
+
+    cfg::CFGBlockIterator FuncOp::block_begin() {
+        return {};
+    }
+
+    cfg::CFGBlockIterator FuncOp::block_end() {
+        return {};
+    }
+
+    cfg::CFGTerminatorInterface FuncOp::getTerminator() {
+        return {};
+    }
+
+    bool FieldDeclOp::isUnnamedBitField() {
+        return false;
+    }
+
+    bool FieldDeclOp::isZeroSize() {
+        return false; 
+    }
+
+    bool FieldDeclOp::isImplicit() {
+        return false; 
+    }
+
+    ast::DeclContextInterface FieldDeclOp::getDeclContext() {
+        return {}; 
+    }
+
+    ast::ASTContextInterface FieldDeclOp::getASTContext() {
+        return {}; 
+    }
+
+    ast::DeclInterface FieldDeclOp::getNextDeclInContext() {
+        return {}; 
+    }
+
+    mlir::Type FieldDeclOp::getValueType() {
         return {};
     }
 

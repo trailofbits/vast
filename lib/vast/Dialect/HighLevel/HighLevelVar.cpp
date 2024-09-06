@@ -90,4 +90,59 @@ namespace vast::hl
             return StorageDuration::sd_thread;
         return StorageDuration::sd_static;
     }
+
+    bool VarDeclOp::isVarLocalDecl() {
+        return isLocalVarDecl();
+    }
+
+    bool VarDeclOp::hasVarGlobalStorage() {
+        return false; // hasGlobalStorage();
+    }
+
+    // TODO: Temporary solution valid for the C language.
+    bool VarDeclOp::isExceptionVariable() {
+        return false;
+    }
+
+    // TODO: Temporary solution valid for the C language.
+    bool VarDeclOp::isInitCapture() {
+        return false;
+    }
+
+    ast::ExprInterface VarDeclOp::getInit() {
+        return {};
+    }
+
+    bool VarDeclOp::isVarStaticDataMember() {
+        return false;
+    }
+
+    bool VarDeclOp::isEscapingByref() {
+        return false;
+    }
+
+    bool VarDeclOp::isNonEscapingByref() {
+        return false;
+    }
+
+    // TODO: Temporary solution (required for C, too).
+    bool VarDeclOp::isImplicit() {
+        return false;
+    }
+
+    ast::DeclContextInterface VarDeclOp::getDeclContext() {
+        return dyn_cast< ast::DeclContextInterface >(getOperation());
+    }
+
+    ast::ASTContextInterface VarDeclOp::getASTContext() {
+        return {};
+    }
+
+    ast::DeclInterface VarDeclOp::getNextDeclInContext() {
+        return dyn_cast< ast::DeclInterface >(getOperation()->getNextNode());
+    }
+
+    mlir::Type VarDeclOp::getValueType() {
+        return getType();
+    }
 } // namespace vast::hl
