@@ -6,10 +6,11 @@
 include "mlir/IR/OpBase.td"
 
 include "mlir/IR/RegionKindInterface.td"
+include "vast/Interfaces/CFG/CFGInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
 
-def Core_ScopeOp : Core_Op< "scope", [NoTerminator, DeclareOpInterfaceMethods<RegionKindInterface>] >
+def Core_ScopeOp : Core_Op< "scope", [NoTerminator, DeclareOpInterfaceMethods< RegionKindInterface >] >
 {
   let summary = "VAST scope declaration";
   let description = [{

@@ -6,6 +6,7 @@
 #include "vast/Dialect/Core/CoreTraits.hpp"
 #include "vast/Interfaces/SymbolInterface.hpp"
 #include "vast/Util/Common.hpp"
+#include "vast/Interfaces/CFG/CFGInterface.hpp"
 
 #include <mlir/Interfaces/FunctionInterfaces.h>
 #include <mlir/Interfaces/CallInterfaces.h>
