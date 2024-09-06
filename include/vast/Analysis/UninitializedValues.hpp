@@ -12,6 +12,9 @@
 #include "vast/Interfaces/AST/ExprInterface.hpp"
 #include "vast/Interfaces/AST/StmtVisitor.h"
 
+#include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
+#include "vast/Dialect/Core/CoreOps.hpp"
+
 #include <llvm/ADT/BitVector.h>
 #include <llvm/ADT/DenseMap.h>
 #include <llvm/ADT/PackedVector.h>
@@ -177,8 +180,8 @@ namespace vast::analysis {
         VAST_UNIMPLEMENTED;
     }
 
-    static ast::RecordDeclInterface getAsRecordDecl(ast::QualTypeInterface) {
-        VAST_UNIMPLEMENTED;
+    static ast::RecordDeclInterface getAsRecordDecl(ast::QualTypeInterface qt) {
+        return {};
     }
 
     static bool isZeroSize(ast::FieldDeclInterface) {
@@ -213,23 +216,23 @@ namespace vast::analysis {
             
             // The only case remaining to check is for a field declaration of record
             // type and whether that record itself is empty.
-            if (auto FieldRD = getAsRecordDecl(FD.getType());
+            if (auto FieldRD = getAsRecordDecl(mlir::dyn_cast< ast::QualTypeInterface >(FD.getValueType()));
                 !FieldRD || recordIsNotEmpty(FieldRD))
                 return true;
         }
         return false;
     }
 
-    static bool isTrackedVar(ast::VarDeclInterface vd, ast::DeclContextInterface dc) {
-        if (vd.isLocalVarDecl() && !vd.hasGlobalStorage() &&
+    template< typename DeclContextInterface, typename VarDecl >
+    static bool isTrackedVar(VarDecl vd, DeclContextInterface dc) {
+        if (vd.isVarLocalDecl() && !vd.hasVarGlobalStorage() &&
             !vd.isExceptionVariable() && !vd.isInitCapture() && !vd.isImplicit() &&
-            vd.getDeclContext() == dc) {
-            ast::QualTypeInterface ty = vd.getType();
-            if (auto RD = getAsRecordDecl(ty)) {
-                return recordIsNotEmpty(RD);
-            }
-
-            ast::TypeInterface T = ty.getTypePtr();
+            vd.getContext() == dc.getContext()) {
+            // auto ty = mlir::dyn_cast< ast::QualTypeInterface >(vd.getValueType());
+            // if (auto RD = getAsRecordDecl(ty)) {
+            //     return recordIsNotEmpty(RD);
+            // }
+            auto T = mlir::cast< ast::TypeInterface >(vd.getValueType());
             return T.isScalarType() || T.isVectorType() || T.isRVVSizelessBuiltinType();
         }
         return false;
@@ -248,12 +251,12 @@ namespace vast::analysis {
             DeclToIndex() = default;
 
             /// Compute the actual mapping from declarations to bits.
-            void computeMap(ast::DeclContextInterface dc) {
+            template< typename DeclContextInterface >
+            void computeMap(DeclContextInterface dc) {
                 unsigned count = 0;
-                specific_decl_interface_iterator< ast::VarDeclInterface > I(dc.decls_begin()),
-                                                                          E(dc.decls_end());
+                specific_decl_interface_iterator< hl::VarDeclOp > I(dc.decls_begin()), E(dc.decls_end());
                 for ( ; I != E; ++I) {
-                    ast::VarDeclInterface vd = *I;
+                    hl::VarDeclOp vd = *I;
                     if (isTrackedVar(vd, dc)) {
                         map[vd] = count++;
                     }
@@ -301,16 +304,18 @@ namespace vast::analysis {
         
         using ValueVector = llvm::PackedVector<Value, 2, llvm::SmallBitVector>;
 
+        template< typename CFGInterface >
         class CFGBlockValues {
-            cfg::CFGInterface &cfg;
+            CFGInterface cfg;
             clang::SmallVector< ValueVector, 8 > vals;
             ValueVector scratch;
             DeclToIndex declToIndex;
 
         public:
-            CFGBlockValues(cfg::CFGInterface &c) : cfg(c), vals(0) {}
+            CFGBlockValues(CFGInterface c) : cfg(c), vals(0) {}
 
-            void computeSetOfDeclarations(ast::DeclContextInterface dc) {
+            template< typename DeclContextInterface >
+            void computeSetOfDeclarations(DeclContextInterface dc) {
                 declToIndex.computeMap(dc);
                 unsigned decls = declToIndex.size();
                 scratch.resize(decls);
@@ -414,7 +419,7 @@ namespace vast::analysis {
     }
 
     static ast::DeclRefExprInterface getSelfInitExpr(ast::VarDeclInterface VD) {
-        if (VD.getType()->isRecordType()) {
+        if (mlir::dyn_cast< ast::TypeInterface >(VD.getValueType()).isRecordType()) {
             return {};
         }
         if (ast::ExprInterface Init = VD.getInit()) {
@@ -428,7 +433,8 @@ namespace vast::analysis {
 
     /// If E is an expression comprising a reference to a single variable, find that
     /// variable.
-    static FindVarResult findVar(ast::ExprInterface E, ast::DeclContextInterface DC) {
+    template< typename DeclContextInterface > 
+    static FindVarResult findVar(ast::ExprInterface E, DeclContextInterface DC) {
         auto DRE = dyn_cast< ast::DeclRefExprInterface >(stripCasts(DC.getParentASTContext(), E));
         if (DRE) {
             auto VD = dyn_cast< ast::VarDeclInterface >(getDecl(DRE));
@@ -443,7 +449,7 @@ namespace vast::analysis {
 
     static bool isPointerToConst(ast::QualTypeInterface QT) {
         ast::TypeInterface T = QT.getTypePtr();
-        return T.isAnyPointerType() && T.getPointeeType().isConstQualified();
+        return T.isAnyPointerType() && T.getPointeeType()->isConstQualified();
     }
 
     static bool hasTrivialBody(ast::CallExprInterface CE) {
@@ -465,7 +471,8 @@ namespace vast::analysis {
         /// Classify each DeclRefExpr as an initialization or a use. Any
         /// DeclRefExpr which isn't explicitly classified will be assumed to have
         /// escaped the analysis and will be treated as an initialization.
-        class ClassifyRefs : public ast::StmtVisitor< ClassifyRefs > {
+        template< typename DeclContextInterface >
+        class ClassifyRefs : public ast::StmtVisitor< ClassifyRefs< DeclContextInterface > > {
         using base = ast::StmtVisitor< ClassifyRefs >;
         public:
             enum class Class {
@@ -477,7 +484,7 @@ namespace vast::analysis {
             };
 
         private:
-            ast::DeclContextInterface DC;
+            DeclContextInterface DC;
             llvm::DenseMap< ast::DeclRefExprInterface, Class > Classification;
 
             bool isTrackedVar(ast::VarDeclInterface VD) const {
@@ -504,7 +511,7 @@ namespace vast::analysis {
 
                 if (auto ME = dyn_cast< ast::MemberExprInterface >(E.getOperation())) {
                     if (auto VD = dyn_cast< ast::VarDeclInterface >(getMemberDecl(ME))) {
-                        if (!VD.isStaticDataMember()) {
+                        if (!VD.isVarStaticDataMember()) {
                             classify(ME.getBase(), C);
                         }
                     }
@@ -536,14 +543,14 @@ namespace vast::analysis {
 
         public:
             ClassifyRefs(AnalysisDeclContextInterface AC)
-                : DC(cast< ast::DeclContextInterface >(AC.getDecl().getOperation())) {}
+                : DC(cast< DeclContextInterface >(AC.getOperation())) {}
 
             void operator()(ast::StmtInterface S) {
                 base::base::Visit(S);
             }
 
             Class get(ast::DeclRefExprInterface DRE) const {
-                llvm::DenseMap< ast::DeclRefExprInterface, Class >::const_iterator I = Classification.find(DRE);
+                typename llvm::DenseMap< ast::DeclRefExprInterface, Class >::const_iterator I = Classification.find(DRE);
                 if (I != Classification.end()) {
                     return I->second;
                 }
@@ -647,12 +654,15 @@ namespace vast::analysis {
     
     namespace {
     
-        class TransferFunctions : public ast::StmtVisitor< TransferFunctions > {
-            CFGBlockValues &vals;
-            cfg::CFGInterface cfg;
+        template< typename CFGInterface, typename DeclContextInterface >
+        class TransferFunctions : public ast::StmtVisitor< TransferFunctions< CFGInterface, DeclContextInterface > > {
+            using Class = ClassifyRefs< DeclContextInterface >::Class;
+
+            CFGBlockValues< CFGInterface > &vals;
+            CFGInterface cfg;
             cfg::CFGBlockInterface block;
             AnalysisDeclContextInterface ac;
-            const ClassifyRefs &classification;
+            const ClassifyRefs< DeclContextInterface > &classification;
             UninitVariablesHandler &handler;
 
         public:
@@ -661,31 +671,31 @@ namespace vast::analysis {
                 classification(classification), handler(handler) {}
 
             bool isTrackedVar(ast::VarDeclInterface vd) {
-                return ::vast::analysis::isTrackedVar(vd, cast< ast::DeclContextInterface >(ac.getDecl().getOperation()));
+                return ::vast::analysis::isTrackedVar(vd, cast< DeclContextInterface >(ac.getDecl().getOperation()));
             }
 
             FindVarResult findVar(ast::ExprInterface ex) {
-                return ::vast::analysis::findVar(ex, cast< ast::DeclContextInterface >(ac.getDecl().getOperation()));
+                return ::vast::analysis::findVar(ex, cast< DeclContextInterface >(ac.getDecl().getOperation()));
             }
 
             void VisitDeclRefExpr(ast::DeclRefExprInterface dr) {
                 switch (classification.get(dr)) {
-                    case ClassifyRefs::Class::Ignore:
+                    case Class::Ignore:
                         return;
                     
-                    case ClassifyRefs::Class::Use:
+                    case Class::Use:
                         reportUse(dr, cast< ast::VarDeclInterface >(getDecl(dr)));
                         break;
 
-                    case ClassifyRefs::Class::Init:
+                    case Class::Init:
                         vals[cast< ast::VarDeclInterface >(getDecl(dr))] = Value::Initialized;
                         break;
 
-                    case ClassifyRefs::Class::SelfInit:
+                    case Class::SelfInit:
                         handler.handleSelfInit(cast< ast::VarDeclInterface >(getDecl(dr)));
                         break;
 
-                    case ClassifyRefs::Class::ConstRefUse:
+                    case Class::ConstRefUse:
                         reportConstRefUse(dr, cast< ast::VarDeclInterface >(getDecl(dr)));
                         break;
                 }
@@ -814,7 +824,8 @@ namespace vast::analysis {
                     }
 
                     // Scan the frontier, looking for blocks where the variable was uninitialized.
-                    for (auto Block : cfg) {
+                    for (auto it = cfg.cfg_begin(); it != cfg.cfg_end(); ++it) {
+                        auto Block = *it;
                         unsigned BlockID = Block.getBlockID();
                         ast::StmtInterface Term = Block.getTerminatorStmt();
                         if (SuccsVisited[BlockID] && SuccsVisited[BlockID] < Block.succ_size() && Term) {
@@ -984,26 +995,26 @@ namespace vast::analysis {
     /// variable.  It is mainly used to prune out work during the final
     struct PruneBlocksHandler : public UninitVariablesHandler {
         /// Records if a CFGBlock had a potential use of an uninitialized variable.
-        llvm::BitVector hadUse;
+        llvm::DenseMap< cfg::CFGBlockInterface, bool > hadUse;
 
         /// Records if any CFGBlock had a potential use of an uninitialized variable.
         bool hadAnyUse = false;
 
         /// The current block to scribble use information.
-        unsigned currentBlock = 0;
+        cfg::CFGBlockInterface currentBlock;
 
-        PruneBlocksHandler(unsigned numBlocks) : hadUse(numBlocks, false) {}
+        PruneBlocksHandler(cfg::CFGBlockInterface CB) : currentBlock(CB) {}
 
         ~PruneBlocksHandler() override = default;
 
         void handleUseOfUninitVariable(ast::VarDeclInterface vd,
-                                       const UninitUse &use) override {
+                                       const UninitUse &) override {
             hadUse[currentBlock] = true;
             hadAnyUse = true;
         }
 
         void handleConstRefUseOfUninitVariable(ast::VarDeclInterface vd,
-                                               const UninitUse &use) override {
+                                               const UninitUse &) override {
             hadUse[currentBlock] = true;
             hadAnyUse = true;
         }
@@ -1017,9 +1028,10 @@ namespace vast::analysis {
         }
     };
 
-    static bool runOnBlock(auto block, auto cfg, auto ac, auto &vals, const auto &classification,
+    template< typename CFGInterface, typename DeclContextInterface >
+    static bool runOnBlock(auto block, CFGInterface cfg, auto ac, auto &vals, const auto &classification,
                            auto &wasAnalyzed, auto &handler) {
-        wasAnalyzed[block.getBlockID()] = true;
+        wasAnalyzed[block] = true;
         vals.resetScratch();
         // Merge in values of predecessor blocks.
         bool isFirst = true;
@@ -1029,16 +1041,16 @@ namespace vast::analysis {
             if (!pred) {
                 continue;
             }
-            if (wasAnalyzed[pred.getBlockID()]) {
+            if (wasAnalyzed[pred]) {
                 vals.mergeIntoScratch(vals.getValueVector(pred), isFirst);
                 isFirst = false;
             }
         }
         
         // Apply the transfer function.
-        TransferFunctions tf(vals, cfg, block, ac, classification, handler);
-        for (auto I : block) {
-            if (std::optional< cfg::CFGStmtInterface > cs = I. template getAs< cfg::CFGStmtInterface >()) {
+        TransferFunctions< CFGInterface, DeclContextInterface > tf(vals, cfg, block, ac, classification, handler);
+        for (auto I = block.block_begin(); I != block.block_end(); ++I) {
+            if (std::optional< cfg::CFGStmtInterface > cs = I-> template getAs< cfg::CFGStmtInterface >()) {
                 tf.Visit(cs->getStmt());
             }
         }
@@ -1053,23 +1065,23 @@ namespace vast::analysis {
     }
 
 
+    template< typename DeclContextInterface, typename CFGInterface >
     void runUninitializedVariablesAnalysis(
-            ast::DeclContextInterface dc,
-            cfg::CFGInterface cfg,
+            DeclContextInterface dc,
+            CFGInterface cfg,
             AnalysisDeclContextInterface ac,
             UninitVariablesHandler &handler, 
             UninitVariablesAnalysisStats &stats) {
-
-        CFGBlockValues vals(cfg);
+        
+        CFGBlockValues< CFGInterface > vals(cfg);
         vals.computeSetOfDeclarations(dc);
-
         if (vals.hasNoDeclarations())
            return;
 
         stats.NumVariablesAnalyzed = vals.getNumEntries();
 
         // Precompute which expressions are uses and which are initializations.
-        ClassifyRefs classification(ac);
+        ClassifyRefs< DeclContextInterface > classification(ac);
         cfg.VisitBlockStmts(classification);
 
         // Mark all variables uninitialized at the entry.
@@ -1082,24 +1094,24 @@ namespace vast::analysis {
 
         // Proceed with the worklist.
         ForwardDataflowWorklist worklist(cfg, ac);
-        llvm::BitVector previouslyVisited(cfg.getNumBlockIDs());
+        llvm::DenseMap< cfg::CFGBlockInterface, bool > previouslyVisited;
         worklist.enqueueSuccessors(cfg.getEntry());
-        llvm::BitVector wasAnalyzed(cfg.getNumBlockIDs(), false);
-        wasAnalyzed[cfg.getEntry().getBlockID()] = true;
-        PruneBlocksHandler PBH(cfg.getNumBlockIDs());
-
+        llvm::DenseMap< cfg::CFGBlockInterface, bool > wasAnalyzed;
+        wasAnalyzed[cfg.getEntry()] = true;
+        PruneBlocksHandler PBH(cfg.getEntry());
+        
         while (cfg::CFGBlockInterface block = worklist.dequeue()) {
-            PBH.currentBlock = block.getBlockID();
+            PBH.currentBlock = block;
             
             // Did the block change?
-            bool changed = runOnBlock(block, cfg, ac, vals, classification, wasAnalyzed, PBH);
+            bool changed = runOnBlock< CFGInterface, DeclContextInterface >(block, cfg, ac, vals, classification, wasAnalyzed, PBH);
             ++stats.NumBlockVisits;
             
-            if (changed || !previouslyVisited[block.getBlockID()]) {
+            if (changed || !previouslyVisited[block]) {
                 worklist.enqueueSuccessors(block);
             }
 
-            previouslyVisited[block.getBlockID()] = true;
+            previouslyVisited[block] = true;
         }
 
         if (!PBH.hadAnyUse) {
@@ -1107,9 +1119,10 @@ namespace vast::analysis {
         }
 
         // Run through the blocks one more time, and report uninitialized variables.
-        for (auto block : cfg) {
-            if (PBH.hadUse[block.getBlockID()]) {
-                runOnBlock(block, cfg, ac, vals, classification, wasAnalyzed, handler);
+        for (auto it = cfg.cfg_begin(); it != cfg.cfg_end(); ++it) {
+            auto block = *it;
+            if (PBH.hadUse[block]) {
+                runOnBlock< CFGInterface, DeclContextInterface >(block, cfg, ac, vals, classification, wasAnalyzed, handler);
                 ++stats.NumBlockVisits;
             }
         }
