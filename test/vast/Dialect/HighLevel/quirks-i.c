@@ -3,14 +3,14 @@
 
 // adapted from https://gist.github.com/fay59/5ccbe684e6e56a7df8815c3486568f01
 
-// CHECK: hl.struct "foo"
+// CHECK: hl.struct @foo
 struct foo {
     // CHECK: hl.field "x" : !hl.int
     // CHECK: hl.field "y" : !hl.int
     int x, y;
 };
 
-// CHECK: hl.struct "lots_of_inits"
+// CHECK: hl.struct @lots_of_inits
 struct lots_of_inits {
     // CHECK: hl.field "z" : !hl.array<2, !hl.elaborated<!hl.record<"foo">>>
     struct foo z[2];

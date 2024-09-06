@@ -428,7 +428,7 @@ namespace vast::hl
             Builder &bld, State &st, llvm::StringRef name,
             maybe_builder_callback_ref fields
         ) {
-            st.addAttribute("name", bld.getStringAttr(name));
+            st.addAttribute("sym_name", bld.getStringAttr(name));
 
             InsertionGuard guard(bld);
             build_region(bld, st, fields);
@@ -439,7 +439,7 @@ namespace vast::hl
             maybe_builder_callback_ref bases,
             maybe_builder_callback_ref fields
         ) {
-            st.addAttribute("name", bld.getStringAttr(name));
+            st.addAttribute("sym_name", bld.getStringAttr(name));
 
             InsertionGuard guard(bld);
             build_region(bld, st, bases);

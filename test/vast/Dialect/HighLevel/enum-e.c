@@ -1,7 +1,7 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.struct "Element"
+// CHECK: hl.struct @Element
 // CHECK:  hl.field "z" : !hl.int
 // CHECK:  hl.enum @State : !hl.int< unsigned >
 // CHECK:   hl.enum.const @SOLID

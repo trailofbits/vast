@@ -1,7 +1,7 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.union "u"
+// CHECK: hl.union @u
 union u { int i; double d; };
 
 // CHECK: hl.var @v : !hl.lvalue<!hl.elaborated<!hl.record<"u">>>

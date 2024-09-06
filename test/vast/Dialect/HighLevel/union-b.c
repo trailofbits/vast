@@ -1,16 +1,16 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl -std=c11 %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl -std=c11 %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.struct "v"
+// CHECK: hl.struct @v
 struct v {
-   // CHECK: hl.union "[[N1:anonymous\[[0-9]+\]]]"
+   // CHECK: hl.union @"[[N1:anonymous\[[0-9]+\]]]"
    union { // anonymous union
-      // CHECK: hl.struct "[[N2:anonymous\[[0-9]+\]]]"
+      // CHECK: hl.struct @"[[N2:anonymous\[[0-9]+\]]]"
       // CHECK:    hl.field "i" : !hl.int
       // CHECK:    hl.field "j" : !hl.int
       // CHECK: hl.field "[[N3:anonymous\[[0-9]+\]]]" : !hl.record<"[[N2]]">
       struct { int i, j; }; // anonymous structure
-      // CHECK: hl.struct "[[N4:anonymous\[[0-9]+\]]]"
+      // CHECK: hl.struct @"[[N4:anonymous\[[0-9]+\]]]"
       // CHECK:   hl.field "k" : !hl.long
       // CHECK:   hl.field "l" : !hl.long
       // CHECK: hl.field "w" : !hl.elaborated<!hl.record<"[[N4]]">>
