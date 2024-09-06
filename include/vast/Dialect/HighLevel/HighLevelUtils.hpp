@@ -145,7 +145,7 @@ namespace vast::hl {
     walk_result users(hl::TypeDeclOp op, auto scope, auto &&yield) {
         return type_users([&](mlir_type ty) {
             if (auto rt = mlir::dyn_cast< RecordType >(ty))
-                return rt.getName() == op.getName();
+                return rt.getName() == op.getSymName();
             return false;
         }, scope, std::forward< decltype(yield) >(yield));
     }
