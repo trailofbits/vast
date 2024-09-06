@@ -7,6 +7,7 @@
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Dialect.hpp"
+#include "vast/Analysis/Iterators.hpp"
 
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
