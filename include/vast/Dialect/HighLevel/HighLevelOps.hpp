@@ -20,6 +20,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Interfaces/AggregateTypeDefinitionInterface.hpp"
 #include "vast/Interfaces/AST/DeclInterface.hpp"
 #include "vast/Interfaces/Analysis/AnalysisDeclContextInterface.hpp"
+#include "vast/Interfaces/CFG/CFGInterface.hpp"
 
 
 namespace vast::hl

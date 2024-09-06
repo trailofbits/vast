@@ -16,6 +16,7 @@ include "vast/Dialect/Core/Utils.td"
 include "vast/Dialect/Core/CoreTraits.td"
 include "vast/Interfaces/AST/DeclInterface.td"
 include "vast/Interfaces/Analysis/AnalysisDeclContextInterface.td"
+include "vast/Interfaces/CFG/CFGInterface.td"
 
 include "vast/Dialect/Core/Func.td"
 
@@ -39,8 +40,10 @@ def TranslationUnitOp
 }
 
 def HighLevel_FuncOp
-  : Core_FuncBaseOp< HighLevel_Dialect, "func", [DeclareOpInterfaceMethods< VAST_DeclContextInterface >,
-                                                 DeclareOpInterfaceMethods< VAST_AnalysisDeclContextInterface >]>
+  : Core_FuncBaseOp< HighLevel_Dialect, "func", [SymbolTable, DeclareOpInterfaceMethods< VAST_DeclContextInterface >,
+                                                 DeclareOpInterfaceMethods< VAST_AnalysisDeclContextInterface >,
+                                                 DeclareOpInterfaceMethods< VAST_CFGInterface >,
+                                                 DeclareOpInterfaceMethods< VAST_CFGBlockInterface > ] >
 {
   let skipDefaultBuilders = 1;
 
@@ -300,7 +303,7 @@ def UnionDeclOp : RecordLikeDeclOp< "union" > {
 }
 
 def FieldDeclOp
-  : HighLevel_Op< "field", [MemberVarSymbol] >
+  : HighLevel_Op< "field", [MemberVarSymbol, DeclareOpInterfaceMethods< VAST_FieldDeclInterface >] >
   , Arguments<(ins StrAttr:$name, TypeAttr:$type, OptionalAttr<I32Attr>:$bits)>
 {
   let summary = "VAST record field declaration";

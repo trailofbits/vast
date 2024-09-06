@@ -12,6 +12,7 @@ include "vast/Interfaces/TypeQualifiersInterfaces.td"
 include "vast/Interfaces/AliasTypeInterface.td"
 include "vast/Interfaces/DefaultDataLayoutTypeInterface.td"
 include "vast/Interfaces/ElementTypeInterface.td"
+include "vast/Interfaces/AST/TypeInterface.td"
 
 include "vast/Dialect/Core/Utils.td"
 
@@ -22,7 +23,8 @@ class HighLevelType< string name, list<Trait> traits = []>
   : TypeDef< HighLevel_Dialect, name,
     !listconcat(traits, [
       DataLayoutTypeInterface,
-      DefaultDataLayoutTypeInterface
+      DefaultDataLayoutTypeInterface,
+      DeclareTypeInterfaceMethods< VAST_TypeInterface >
     ])
   >
 {}
@@ -83,7 +85,7 @@ def UCVQualifiers : QualfiersParams< "UCVQualifiers", [UnsignedQualifier, ConstQ
 def CVRQualifiers : QualfiersParams< "CVRQualifiers", [ConstQualifier, VolatileQualifier, RestrictQualifier] > {}
 
 class QualifiedType< string name, string mnem, dag params = (ins), list<Trait> traits = [] >
-  : HighLevelType< name, traits >
+  : HighLevelType< name, !listconcat(traits, [DeclareTypeInterfaceMethods< VAST_QualTypeInterface >]) >
 {
   let mnemonic = mnem;
 
@@ -108,7 +110,8 @@ class CVRQualifiedType< string name, string mnem, dag params = (ins), list<Trait
 // Tagged types and utils
 //
 def RecordType : CVQualifiedType<
-  "Record", "record", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
+  "Record", "record", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface,
+    DeclareTypeInterfaceMethods< VAST_TypeInterface, ["isRecordType"] >]
 > {
 
   let builders = [
@@ -133,7 +136,7 @@ def EnumType : CVQualifiedType<
 }
 
 def TypedefType : CVRQualifiedType<
-  "Typedef", "typedef", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface, TypedefTrait]
+  "Typedef", "typedef", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface, TypedefTrait, DeclareTypeInterfaceMethods< VAST_TypeInterface >]
 > {
   let builders = [
     TypeBuilder<(ins "llvm::StringRef":$name), [{
@@ -181,7 +184,7 @@ class TypeOrElaboratedType< TypeConstraint value > : Type<
 >;
 
 class TypeWithSubType<string name, string mnem> : HighLevelType< name,
-  [ElementTypeInterface]
+  [ElementTypeInterface, DeclareTypeInterfaceMethods< VAST_TypeInterface, ["isScalarType"] >]
 > {
   let mnemonic = mnem;
 
@@ -220,11 +223,13 @@ def RValue : TypeWithSubType< "RValue", "rvalue" > { }
 //
 // Basic types
 //
-def VoidType : CVQualifiedType< "Void", "void", (ins), [VoidTrait] > {
+def VoidType : CVQualifiedType< "Void", "void", (ins), [VoidTrait,
+    DeclareTypeInterfaceMethods< VAST_TypeInterface, ["isVoidType"] >] > {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
 
-def BoolType : CVQualifiedType< "Bool", "bool", (ins) > {
+def BoolType : CVQualifiedType< "Bool", "bool", (ins),
+    [DeclareTypeInterfaceMethods< VAST_TypeInterface, ["isScalarType"] >]> {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
 }
 
@@ -233,7 +238,7 @@ def BoolType : CVQualifiedType< "Bool", "bool", (ins) > {
 //
 class IntegerType< string name, string mnemonic, list<Trait> traits = []>
   : UCVQualifiedType< name, mnemonic, (ins),
-    !listconcat(traits, [IntegralTypeTrait])
+    !listconcat(traits, [IntegralTypeTrait, DeclareTypeInterfaceMethods< VAST_TypeInterface, ["isScalarType"] >])
   >
 {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
@@ -251,7 +256,7 @@ def Int128Type   : IntegerType< "Int128", "int128", [Int128TypeTrait] >;
 //
 class FloatingType< string name, string mnem, list<Trait> traits = []>
   : CVQualifiedType< name, mnem, (ins),
-    !listconcat(traits, [FloatingTypeTrait])
+    !listconcat(traits, [FloatingTypeTrait, DeclareTypeInterfaceMethods< VAST_TypeInterface, ["isScalarType"] >])
   >
 {
   let builders = [ TypeBuilder<(ins), [{ return $_get($_ctxt); }]> ];
@@ -266,7 +271,7 @@ def Float128Type   : FloatingType< "Float128", "float128" >;
 
 def ComplexType : CVRQualifiedType<
   "Complex", "complex"
-  , (ins "Type":$elementType) > {
+  , (ins "Type":$elementType), [DeclareTypeInterfaceMethods< VAST_TypeInterface, ["isScalarType"] >] > {
   let builders = [
     TypeBuilder<(ins "Type":$elementType), [{
       return $_get($_ctxt, elementType, CVRQualifiersAttr());
@@ -280,7 +285,8 @@ def ComplexType : CVRQualifiedType<
 //
 def PointerType : CVRQualifiedType< "Pointer", "ptr",
     (ins "Type":$elementType),
-    [MemRefElementTypeInterface, PointerTypeTrait, ElementTypeInterface]
+    [MemRefElementTypeInterface, PointerTypeTrait, ElementTypeInterface,
+    DeclareTypeInterfaceMethods< VAST_TypeInterface, ["isScalarType"] >]
   >
 {
   let builders = [
@@ -350,7 +356,8 @@ class ArrayLikeType< string name, string mnem, list<Trait> traits = [] >
 }
 
 def ArrayType  : ArrayLikeType< "Array", "array" >;
-def VectorType : ArrayLikeType< "Vector", "vector" >;
+def VectorType : ArrayLikeType< "Vector", "vector",
+                [DeclareTypeInterfaceMethods< VAST_TypeInterface, ["isVectorType"]> ] >;
 
 def DecayedType : HighLevelType< "Decayed",
   [MemRefElementTypeInterface, ElementTypeInterface, PointerTypeTrait]

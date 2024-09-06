@@ -4,6 +4,7 @@
 #define VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELVAR
 
 include "vast/Dialect/Core/CoreTraits.td"
+include "vast/Interfaces/AST/DeclInterface.td"
 
 class StorageClassAttr< string name, int val >
   : I64EnumAttrCase< name, val >
@@ -150,7 +151,7 @@ class StorageSpecifiers :
 }
 
 // Variable Operation
-def HighLevel_VarDeclOp : HighLevel_Op< "var", [VarSymbol] >
+def HighLevel_VarDeclOp : HighLevel_Op< "var", [VarSymbol, DeclareOpInterfaceMethods< VAST_VarDeclInterface >] >
   , StorageSpecifiers
 {
   let summary = "VAST variable declaration";
