@@ -31,7 +31,7 @@ def VAST_CFGStmtInterface : VAST_CFGOpInterface< "CFGStmtInterface",
     }];
 
     let methods = [
-        InterfaceMethod< "clang:;CFGElement::getStmt", "::vast::ast::StmtInterface", "getStmt" >
+        InterfaceMethod< "clang::CFGElement::getStmt", "::vast::ast::StmtInterface", "getStmt" >
     ];
 }
 
@@ -64,8 +64,8 @@ def VAST_CFGBlockInterface : VAST_CFGOpInterface< "CFGBlockInterface" > {
         InterfaceMethod< "clang::CFGBlock::succ_begin", "::vast::cfg::succ_iterator", "succ_begin" >,
         InterfaceMethod< "clang::CFGBlock::succ_end", "::vast::cfg::succ_iterator", "succ_end" >,
         InterfaceMethod< "clang::CFGBlock::getTerminatorStmt", "::vast::ast::StmtInterface", "getTerminatorStmt" >,
-        InterfaceMethod< "clang::CFGBlock::begin", "::vast::cfg::CFGBlockIterator", "begin" >,
-        InterfaceMethod< "clang::CFGBlock::end", "::vast::cfg::CFGBlockIterator", "end" >,
+        InterfaceMethod< "clang::CFGBlock::begin", "::vast::cfg::CFGBlockIterator", "block_begin" >,
+        InterfaceMethod< "clang::CFGBlock::end", "::vast::cfg::CFGBlockIterator", "block_end" >,
         InterfaceMethod< "clang::CFGBlock::getTerminator", "::vast::cfg::CFGTerminatorInterface", "getTerminator" >
     ];
 }
@@ -80,15 +80,11 @@ def VAST_CFGInterface : VAST_CFGOpInterface< "CFGInterface" > {
     let methods = [
         InterfaceMethod< "clang::CFG::getEntry", "::vast::cfg::CFGBlockInterface", "getEntry" >,
         InterfaceMethod< "clang::CFG::getNumBlockIDs", "unsigned", "getNumBlockIDs" >,
-        InterfaceMethod< "clang::CFG::begin", "::vast::cfg::CFGIterator", "begin" >,
-        InterfaceMethod< "clang::CFG::end", "::vast::cfg::CFGIterator", "end" >
+        InterfaceMethod< "clang::CFG::begin", "::vast::cfg::CFGIterator", "cfg_begin" >,
+        InterfaceMethod< "clang::CFG::end", "::vast::cfg::CFGIterator", "cfg_end" >,
+        InterfaceMethod< "clang::CFG::VisitBlockStmts", "void", "VisitBlockStmts",
+                         (ins "::llvm::function_ref< void(::vast::ast::StmtInterface) >":$O) >
     ];
-
-    let extraClassDeclaration = [{
-        // clang::CFG::VisitBlockStmts
-        template< typename Callback >
-        void VisitBlockStmts(Callback &);
-    }];
 }
 
 #endif // VAST_INTERFACES_CFG_CFG_DECL_INTERFACE

@@ -13,17 +13,13 @@ VAST_RELAX_WARNINGS
 
 #include "vast/Analysis/Iterators.hpp"
 #include "vast/Interfaces/AST/StmtInterface.hpp"
+#include <llvm/IR/Function.h>
 #include <optional>
 
 /// Include the generated interface declarations.
 #include "vast/Interfaces/CFG/CFGInterface.h.inc"
 
 namespace vast::cfg {
-
-    template< typename Callback >
-    void CFGInterface::VisitBlockStmts(Callback &) {
-
-    }
 
     template< typename T >
     std::optional< T > CFGElementInterface::getAs() {
