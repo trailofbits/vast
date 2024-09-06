@@ -14,13 +14,20 @@ def VAST_TypeInterface : VAST_ASTTypeInterface< "TypeInterface" > {
     }];
 
     let methods = [
-        InterfaceMethod< "clang::Type::isScalarType", "bool", "isScalarType", (ins) >,
-        InterfaceMethod< "clang::Type::isVectorType", "bool", "isVectorType", (ins) >,
-        InterfaceMethod< "clang::Type::isRecordType", "bool", "isRecordType", (ins) >,
-        InterfaceMethod< "clang::Type::isVoidType", "bool", "isVoidType", (ins) >,
-        InterfaceMethod< "clang::Type::isRVVSizelessBuiltinType", "bool", "isRVVSizelessBuiltinType", (ins) >,
-        InterfaceMethod< "clang::Type::isAnyPointerType", "bool", "isAnyPointerType", (ins) >,
-        InterfaceMethod< "clang::Type::getPointeeType", "::vast::ast::QualTypeInterface", "getPointeeType" >
+        InterfaceMethod< "clang::Type::isScalarType", "bool", "isScalarType", (ins),
+                         [{}], [{ return false; }] >,
+        InterfaceMethod< "clang::Type::isVectorType", "bool", "isVectorType", (ins),
+                         [{}], [{ return false; }] >,
+        InterfaceMethod< "clang::Type::isRecordType", "bool", "isRecordType", (ins),
+                         [{}], [{ return false; }] >,
+        InterfaceMethod< "clang::Type::isVoidType", "bool", "isVoidType", (ins),
+                         [{}], [{ return false; }] >,
+        InterfaceMethod< "clang::Type::isRVVSizelessBuiltinType", "bool", "isRVVSizelessBuiltinType", (ins),
+                         [{}], [{ return false; }] >,
+        InterfaceMethod< "clang::Type::isAnyPointerType", "bool", "isAnyPointerType", (ins),
+                         [{}], [{ return false; }] >,
+        InterfaceMethod< "clang::Type::getPointeeType", "::vast::ast::QualTypeInterface *", "getPointeeType", (ins),
+                         [{}], [{ return nullptr; }] >
     ];
 }
 
@@ -32,8 +39,10 @@ def VAST_QualTypeInterface : VAST_ASTTypeInterface< "QualTypeInterface" > {
     }];
     
     let methods = [
-        InterfaceMethod< "clang::QualType::getTypePtr", "::vast::ast::TypeInterface", "getTypePtr", (ins) >,
-        InterfaceMethod< "clang::QualType::isConstQualified", "bool", "isConstQualified", (ins) >
+        InterfaceMethod< "clang::QualType::getTypePtr", "::vast::ast::TypeInterface", "getTypePtr", (ins),
+                         [{}], [{ return {}; }] >,
+        InterfaceMethod< "clang::QualType::isConstQualified", "bool", "isConstQualified", (ins),
+                         [{}], [{ return false; }]  >
     ];
 
     let extraClassDeclaration = [{

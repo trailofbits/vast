@@ -50,7 +50,7 @@ def VAST_DeclInterface : VAST_ASTOpInterface< "DeclInterface" > {
 }
 
 def VAST_NamedDeclInterface : VAST_ASTOpInterface< "NamedDeclInterface",
-    [VAST_DeclInterface] > {
+    [DeclareOpInterfaceMethods< VAST_DeclInterface >] > {
 
     let description = [{
         An interface to provide [`clang::NamedDecl`]
@@ -61,7 +61,7 @@ def VAST_NamedDeclInterface : VAST_ASTOpInterface< "NamedDeclInterface",
 }
 
 def VAST_ValueDeclInterface : VAST_ASTOpInterface< "ValueDeclInterface",
-    [VAST_NamedDeclInterface] > {
+    [DeclareOpInterfaceMethods< VAST_NamedDeclInterface >] > {
 
     let description = [{
         An interface to provide [`clang::ValueDecl`]
@@ -69,12 +69,12 @@ def VAST_ValueDeclInterface : VAST_ASTOpInterface< "ValueDeclInterface",
     }];
 
     let methods = [
-        InterfaceMethod< "clang::ValueDecl::getType", "::vast::ast::QualTypeInterface", "getType", (ins) >
+        InterfaceMethod< "clang::ValueDecl::getType", "::mlir::Type", "getValueType", (ins) >
     ];
 }
 
 def VAST_DeclaratorDeclInterface : VAST_ASTOpInterface< "DeclaratorDeclInterface",
-    [VAST_ValueDeclInterface] > {
+    [DeclareOpInterfaceMethods< VAST_ValueDeclInterface >] > {
     
     let description = [{
         An interface to provide [`clang::DeclaratorDecl`]
@@ -85,7 +85,7 @@ def VAST_DeclaratorDeclInterface : VAST_ASTOpInterface< "DeclaratorDeclInterface
 }
 
 def VAST_FieldDeclInterface : VAST_ASTOpInterface< "FieldDeclInterface",
-    [VAST_DeclaratorDeclInterface] > {
+    [DeclareOpInterfaceMethods< VAST_DeclaratorDeclInterface >] > {
 
     let description = [{
         An interface to provide [`clang::FieldDecl`]
@@ -99,7 +99,7 @@ def VAST_FieldDeclInterface : VAST_ASTOpInterface< "FieldDeclInterface",
 }
 
 def VAST_VarDeclInterface : VAST_ASTOpInterface< "VarDeclInterface",
-    [VAST_DeclaratorDeclInterface] > {
+    [DeclareOpInterfaceMethods< VAST_DeclaratorDeclInterface >] > {
 
     let description = [{
         An interface to provide [`clang::VarDecl`]
@@ -107,19 +107,19 @@ def VAST_VarDeclInterface : VAST_ASTOpInterface< "VarDeclInterface",
     }];
 
     let methods = [
-        InterfaceMethod< "clang::VarDecl::isLocalVarDecl", "bool", "isLocalVarDecl", (ins) >,
-        InterfaceMethod< "clang::VarDecl::hasGlobalStorage", "bool", "hasGlobalStorage", (ins) >,
+        InterfaceMethod< "clang::VarDecl::isLocalVarDecl", "bool", "isVarLocalDecl", (ins) >,
+        InterfaceMethod< "clang::VarDecl::hasGlobalStorage", "bool", "hasVarGlobalStorage", (ins) >,
         InterfaceMethod< "clang::VarDecl::isExceptionVariable", "bool", "isExceptionVariable", (ins) >,
         InterfaceMethod< "clang::VarDecl::isInitCapture", "bool", "isInitCapture", (ins) >,
         InterfaceMethod< "clang::VarDecl::getInit", "::vast::ast::ExprInterface", "getInit", (ins) >,
-        InterfaceMethod< "clang::VarDecl::isStaticDataMember", "bool", "isStaticDataMember" >,
+        InterfaceMethod< "clang::VarDecl::isStaticDataMember", "bool", "isVarStaticDataMember" >,
         InterfaceMethod< "clang::VarDecl::isEscapingByref", "bool", "isEscapingByref" >,
-        InterfaceMethod< "clang::VarDecl::isNonEscapingByref", "bool", "isNonEscapingByref" >
+        InterfaceMethod< "clang::VarDecl::isNonEscapingByref", "bool", "isNonEscapingByref" >,
     ];
 }
 
 def VAST_RecordDeclInterface : VAST_ASTOpInterface< "RecordDeclInterface",
-    [VAST_TagDeclInterface] > {
+    [DeclareOpInterfaceMethods< VAST_TagDeclInterface >] > {
 
     let description = [{
         An interface to provide [`clang::RecordDecl`]
@@ -133,7 +133,7 @@ def VAST_RecordDeclInterface : VAST_ASTOpInterface< "RecordDeclInterface",
 }
 
 def VAST_BlockDeclInterface : VAST_ASTOpInterface< "BlockDeclInterface",
-    [VAST_DeclInterface, VAST_DeclContextInterface] > {
+    [DeclareOpInterfaceMethods< VAST_DeclInterface>, DeclareOpInterfaceMethods< VAST_DeclContextInterface >] > {
 
     let description = [{
         An interface to provide [`clang::BlockDecl`]
@@ -144,7 +144,7 @@ def VAST_BlockDeclInterface : VAST_ASTOpInterface< "BlockDeclInterface",
 }
 
 def VAST_TemplateDeclInterface : VAST_ASTOpInterface< "TemplateDeclInterface",
-    [VAST_NamedDeclInterface] > {
+    [DeclareOpInterfaceMethods< VAST_NamedDeclInterface >] > {
 
     let description = [{
         An interface to provide [`clang::TemplateDecl`]
@@ -155,7 +155,7 @@ def VAST_TemplateDeclInterface : VAST_ASTOpInterface< "TemplateDeclInterface",
 }
 
 def VAST_RedeclarableTemplateDeclInterface : VAST_ASTOpInterface< "RedeclarableTemplateDeclInterface",
-    [VAST_TemplateDeclInterface] > {
+    [DeclareOpInterfaceMethods< VAST_TemplateDeclInterface >] > {
 
     let description = [{
         An interface to provide [`clang::RedeclarableTemplateDecl`]
@@ -166,7 +166,7 @@ def VAST_RedeclarableTemplateDeclInterface : VAST_ASTOpInterface< "RedeclarableT
 }
 
 def VAST_FunctionTemplateDeclInterface : VAST_ASTOpInterface< "FunctionTemplateDeclInterface",
-    [VAST_RedeclarableTemplateDeclInterface] > {
+    [DeclareOpInterfaceMethods< VAST_RedeclarableTemplateDeclInterface >] > {
 
     let description = [{
         An interface to provide [`clang::FunctionTemplateDecl`]
@@ -180,7 +180,7 @@ def VAST_FunctionTemplateDeclInterface : VAST_ASTOpInterface< "FunctionTemplateD
 }
 
 def VAST_FunctionDeclInterface : VAST_ASTOpInterface< "FunctionDeclInterface",
-    [VAST_DeclaratorDeclInterface, VAST_DeclContextInterface] > {
+    [DeclareOpInterfaceMethods< VAST_DeclaratorDeclInterface >, DeclareOpInterfaceMethods< VAST_DeclContextInterface >] > {
     
     let description = [{
         An interface to provide [`clang::FunctionDecl`]
