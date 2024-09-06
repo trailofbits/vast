@@ -722,7 +722,7 @@ namespace vast::hl
     }
 
     mlir_type TypeDeclOp::getDefinedType() {
-        return hl::RecordType::get(getContext(), getName());
+        return hl::RecordType::get(getContext(), getSymName());
     }
 
     mlir_type TypeDefOp::getDefinedType() {
