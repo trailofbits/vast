@@ -3,7 +3,6 @@
 #pragma once
 
 #include "vast/Analysis/Iterators.hpp"
-#include "vast/Analysis/Clang/CFG.hpp"
 #include "vast/Analysis/Clang/FlowSensitive/DataflowWorklist.hpp"
 #include "vast/Interfaces/CFG/CFGInterface.hpp"
 #include "vast/Interfaces/Analysis/AnalysisDeclContextInterface.hpp"

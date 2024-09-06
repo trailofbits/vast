@@ -1,8 +1,7 @@
 // Copyright (c) 2024-present, Trail of Bits, Inc.
-
 #pragma once
 
-#include "vast/Analysis/Clang/CFG.hpp"
+#include "vast/Interfaces/CFG/CFGInterface.hpp"
 
 #include <clang/Analysis/Analyses/IntervalPartition.h>
 #include <clang/Analysis/Analyses/PostOrderCFGView.h>
