@@ -148,16 +148,9 @@ namespace cmd {
         check_and_emit_module(state);
 
         auto render = [&](hl::FuncOp op) {
-            for (auto &c : op) {
-                analysis::UninitVariablesHandler handler{};
-                analysis::UninitVariablesAnalysisStats stats{};
-
-                auto func_op = dyn_cast< hl::FuncOp >(c.getParentOp());
-                auto dc = dyn_cast< ast::DeclContextInterface >(func_op.getOperation());
-                auto adc = dyn_cast< analysis::AnalysisDeclContextInterface >(func_op.getOperation());
-
-                analysis::runUninitializedVariablesAnalysis(dc, adc.getCFG(), adc, handler, stats);
-            }
+            analysis::UninitVariablesHandler handler{};
+            analysis::UninitVariablesAnalysisStats stats{};
+            analysis::runUninitializedVariablesAnalysis(op, op, op, handler, stats);
         };
 
         state.tower->top().mod->walk< mlir::WalkOrder::PreOrder >(render);
