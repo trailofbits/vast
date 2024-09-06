@@ -8,9 +8,8 @@ namespace vast::analysis {
     mlir::Operation *decl_interface_iterator::operator->() const { return Current; }
 
     decl_interface_iterator &decl_interface_iterator::operator++() {
-        auto dc = dyn_cast< ast::DeclInterface >( Current );
-        if ( dc )
-            Current = dc.getNextDeclInContext().getOperation();
+        auto dc = dyn_cast< ast::DeclInterface >(Current);
+        Current = dc ? dc.getNextDeclInContext().getOperation() : nullptr;
         return *this;
     }
 
