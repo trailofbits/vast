@@ -1704,7 +1704,7 @@ def HighLevel_GenericAssocExpr
 
 def HighLevel_GenericSelectionExpr
   : HighLevel_Op< "generic_expr", [NoTerminator] >
-  , Arguments< (ins OptionalAttr< TypeAttr >:$controlType) >
+  , Arguments< (ins OptionalAttr< TypeAttr >:$controlType, OptionalAttr< TypedAttrInterface >:$selected) >
   , Results< (outs AnyType:$result) >
 {
   let summary = "C11 _Generic expression.";
@@ -1714,20 +1714,26 @@ def HighLevel_GenericSelectionExpr
   let builders = [
   OpBuilder< (ins "Type":$type,
                   CArg< "builder_callback_ref" >:$controlBuilder,
-                  CArg< "builder_callback_ref" >:$bodyBuilder),
+                  CArg< "builder_callback_ref" >:$bodyBuilder,
+                  CArg< "std::optional< unsigned >", "std::nullopt" >:$selected),
      [{
       $_state.addTypes(type);
       InsertionGuard guard($_builder);
+      if (selected)
+        $_state.addAttribute("selected", $_builder.getIndexAttr(selected.value()));
       build_region($_builder, $_state, controlBuilder);
       build_region($_builder, $_state, bodyBuilder);
     }] >,
   OpBuilder< (ins "Type":$type,
                   "mlir::Type":$controlType,
-                  CArg< "builder_callback_ref" >:$bodyBuilder),
+                  CArg< "builder_callback_ref" >:$bodyBuilder,
+                  CArg< "std::optional< unsigned >", "std::nullopt" >:$selected),
      [{
       $_state.addTypes(type);
       InsertionGuard guard($_builder);
       $_state.addAttribute("controlType", mlir::TypeAttr::get(controlType));
+      if (selected)
+        $_state.addAttribute("selected", $_builder.getIndexAttr(selected.value()));
       $_state.addRegion();
       build_region($_builder, $_state, bodyBuilder);
     }] >
