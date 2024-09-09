@@ -1739,6 +1739,12 @@ def HighLevel_GenericSelectionExpr
     }] >
   ];
 
+  let extraClassDeclaration = [{
+    std::optional< mlir::Region *> getResultRegion();
+    bool isExprPredicate();
+    bool isTypePredicate();
+  }];
+
   let assemblyFormat = [{ attr-dict `match` `:` ($control^)? ($controlType^)? $body `->` type($result)}];
 }
 
