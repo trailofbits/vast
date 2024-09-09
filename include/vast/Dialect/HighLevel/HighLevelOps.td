@@ -1642,7 +1642,7 @@ def HighLevel_StaticAssertDecl
         CArg< "builder_callback_ref" >:$assertBuilder,
         CArg< "maybe_builder_callback_ref", "std::nullopt" >:$messageBuilder
     ),
-     [{
+    [{
       $_state.addAttribute("failed", $_builder.getBoolAttr(failed));
 
       InsertionGuard guard($_builder);
@@ -1674,6 +1674,66 @@ def HighLevel_AttributedStmt
   ];
 
   let assemblyFormat = [{ attr-dict `:` $body }];
+}
+
+def HighLevel_GenericAssocExpr
+  : HighLevel_Op< "generic_asoc" >
+  , Arguments< (ins OptionalAttr< TypeAttr >:$matchType) >
+  , Results< (outs AnyType:$result) >
+{
+  let summary = "Op representing single case of _Generic expression.";
+  let regions = (region AnyRegion:$body);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+  OpBuilder< (ins "Type":$type,
+                  CArg< "builder_callback_ref" >:$bodyBuilder,
+                  CArg< "mlir::Type", "mlir::Type()" >:$matchType),
+     [{
+      $_state.addTypes(type);
+      InsertionGuard guard($_builder);
+      if (matchType) {
+        $_state.addAttribute("matchType", mlir::TypeAttr::get(matchType));
+      }
+      build_region($_builder, $_state, bodyBuilder);
+    }] >
+  ];
+
+  let assemblyFormat = [{ attr-dict (`match` $matchType^)? `:` $body `->` type($result) }];
+}
+
+def HighLevel_GenericSelectionExpr
+  : HighLevel_Op< "generic_expr", [NoTerminator] >
+  , Arguments< (ins OptionalAttr< TypeAttr >:$controlType) >
+  , Results< (outs AnyType:$result) >
+{
+  let summary = "C11 _Generic expression.";
+  let regions = (region AnyRegion:$control, AnyRegion:$values);
+
+  let skipDefaultBuilders = 1;
+  let builders = [
+  OpBuilder< (ins "Type":$type,
+                  CArg< "builder_callback_ref" >:$controlBuilder,
+                  CArg< "builder_callback_ref" >:$bodyBuilder),
+     [{
+      $_state.addTypes(type);
+      InsertionGuard guard($_builder);
+      build_region($_builder, $_state, controlBuilder);
+      build_region($_builder, $_state, bodyBuilder);
+    }] >,
+  OpBuilder< (ins "Type":$type,
+                  "mlir::Type":$controlType,
+                  CArg< "builder_callback_ref" >:$bodyBuilder),
+     [{
+      $_state.addTypes(type);
+      InsertionGuard guard($_builder);
+      $_state.addAttribute("controlType", mlir::TypeAttr::get(controlType));
+      $_state.addRegion();
+      build_region($_builder, $_state, bodyBuilder);
+    }] >
+  ];
+
+  let assemblyFormat = [{ attr-dict `match` `:` ($control^)? ($controlType^)? $values `->` type($result)}];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
