@@ -454,12 +454,6 @@ namespace vast::hl
         detail::build_record_like_decl(bld, st, name, fields);
     }
 
-    std::vector< vast::ast::VAST_FieldDeclInterface > StructDeclOp::fields()
-    {
-        std::vector< vast::ast::VAST_FieldDeclInterface > result;
-        return result;
-    }
-
     void UnionDeclOp::build(
         Builder &bld, State &st, llvm::StringRef name,
         maybe_builder_callback_ref fields

@@ -12,3 +12,5 @@ add_vast_dialect_library(Core
     LINK_LIBS PRIVATE
         VASTAliasTypeInterface
 )
+
+add_subdirectory(Interfaces)
