@@ -19,7 +19,7 @@ namespace vast::core {
 
     struct field_info_t
     {
-        std::string name;
+        mlir::FlatSymbolRefAttr name;
         mlir_type type;
     };
 

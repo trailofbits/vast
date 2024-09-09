@@ -35,9 +35,9 @@ namespace vast::hl {
                 continue;
             }
 
-            auto field_decl = mlir::dyn_cast< hl::FieldDeclOp >(maybe_field);
-            VAST_ASSERT(field_decl);
-            co_yield { field_decl.getSymName().str(), field_decl.getType() };
+            auto fld = mlir::dyn_cast< hl::FieldDeclOp >(maybe_field);
+            VAST_ASSERT(fld);
+            co_yield { mlir::SymbolRefAttr::get(fld), fld.getType() };
         }
     }
 
@@ -123,9 +123,9 @@ namespace vast::hl {
     static inline auto field_index(string_ref name, core::aggregate_interface agg)
         -> std::optional< std::size_t >
     {
-        for (const auto &field : llvm::enumerate(detail::to_vector(agg.getFieldsInfo()))) {
-            if (field.value().name == name) {
-                return field.index();
+        for (const auto &[index, value] : llvm::enumerate(detail::to_vector(agg.getFieldsInfo()))) {
+            if (value.name.getValue() == name) {
+                return index;
             }
         }
 

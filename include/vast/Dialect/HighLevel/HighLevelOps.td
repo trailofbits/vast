@@ -317,7 +317,7 @@ def HighLevel_FieldDeclOp
       SymbolNameAttr:$sym_name,
       TypeAttr:$type,
       OptionalAttr<I32Attr>:$bits
-    )>
+    ) >
 {
   let summary = "VAST record field declaration";
   let description = [{ VAST record field declaration }];
@@ -333,14 +333,14 @@ def HighLevel_FieldDeclOp
 
 def HighLevel_RecordMemberOp
   : HighLevel_Op< "member" >
-  , Arguments<(ins AnyType:$record, StrAttr:$name)>
+  , Arguments<(ins AnyType:$record, FlatSymbolRefAttr:$field)>
   , Results<(outs AnyType:$element)>
 {
   let summary = "VAST record element access operation";
   let description = [{ VAST record element access operation }];
 
   let assemblyFormat = [{
-    $record `at` $name attr-dict `:` type($record) `->` type($element)
+    $record `at` $field attr-dict `:` type($record) `->` type($element)
   }];
 }
 
@@ -353,7 +353,8 @@ def HighLevel_CallOp
     ] >
   , Arguments<(ins
       FlatSymbolRefAttr:$callee,
-      Variadic<AnyType>:$argOperands)>
+      Variadic<AnyType>:$argOperands
+    ) >
   , Results<(outs Variadic<AnyType>:$results)>
 {
   let summary = "VAST call operation";

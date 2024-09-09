@@ -18,7 +18,7 @@ include "vast/Dialect/Core/Func.td"
 // TODO(lukas): Add type constraints.
 def LowLevel_StructGEPOp
   : LowLevel_Op< "gep", [] >
-  , Arguments<(ins AnyType:$record, I32Attr:$idx, StrAttr:$name)>
+  , Arguments<(ins AnyType:$record, I32Attr:$idx, FlatSymbolRefAttr:$field)>
   , Results<(outs AnyType:$element)>
 {
     let summary = "VAST struct gep  operation";
