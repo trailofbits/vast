@@ -1708,7 +1708,7 @@ def HighLevel_GenericSelectionExpr
   , Results< (outs AnyType:$result) >
 {
   let summary = "C11 _Generic expression.";
-  let regions = (region AnyRegion:$control, AnyRegion:$values);
+  let regions = (region AnyRegion:$control, AnyRegion:$body);
 
   let skipDefaultBuilders = 1;
   let builders = [
