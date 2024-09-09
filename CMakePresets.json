@@ -49,6 +49,9 @@
             "binaryDir": "${sourceDir}/builds/${presetName}",
             "generator": "Ninja Multi-Config",
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "environment": {
+                "CMAKE_PREFIX_PATH": "/usr/lib/llvm-18"
+            },
             "cacheVariables": {
                 "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/lld.toolchain.cmake",
                 "CMAKE_CONFIGURATION_TYPES": "Release",
@@ -56,8 +59,7 @@
                 "CMAKE_C_COMPILER": "/usr/bin/clang-18",
                 "CMAKE_CXX_COMPILER": "/usr/bin/clang++-18",
                 "CMAKE_INSTALL_PREFIX": "$env{STAGING_DIR}",
-                "CMAKE_INSTALL_RPATH": "$env{ORIGIN}/../lib",
-                "CMAKE_PREFIX_PATH": "/usr/lib/llvm-18;/usr/lib/llvm-18/lib/cmake/mlir;/usr/lib/llvm-18/lib/cmake/clang"
+                "CMAKE_INSTALL_RPATH": "$env{ORIGIN}/../lib"
             }
         },
         {
