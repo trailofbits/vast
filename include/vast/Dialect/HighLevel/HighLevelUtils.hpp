@@ -22,18 +22,16 @@
 
 namespace vast::hl {
 
-    using aggregate_interface = AggregateTypeDefinitionInterface;
-
     static inline gap::generator< mlir_type > get_field_types(auto op) {
         for (auto &&[_, type] : get_fields_info(op)) {
             co_yield type;
         }
     }
 
-    gap::generator< field_info_t > get_fields_info(auto op) {
+    gap::generator< core::field_info_t > get_fields_info(auto op) {
         for (auto &maybe_field : op.getOps()) {
             // Definition of nested structure, we ignore not a field.
-            if (mlir::isa< aggregate_interface >(maybe_field)) {
+            if (mlir::isa< core::aggregate_interface >(maybe_field)) {
                 continue;
             }
 
@@ -43,9 +41,9 @@ namespace vast::hl {
         }
     }
 
-    gap::generator< aggregate_interface > get_nested_declarations(auto op) {
+    gap::generator< core::aggregate_interface > get_nested_declarations(auto op) {
         for (auto &maybe_field : op.getOps()) {
-            if (auto casted = mlir::dyn_cast< aggregate_interface >(maybe_field)) {
+            if (auto casted = mlir::dyn_cast< core::aggregate_interface >(maybe_field)) {
                 co_yield casted;
             }
         }
@@ -54,12 +52,12 @@ namespace vast::hl {
     // TODO(hl): This is a placeholder that works in our test cases so far.
     //           In general, we will need generic resolution for scoping that
     //           will be used instead of this function.
-    aggregate_interface definition_of(mlir_type ty, auto scope) {
+    core::aggregate_interface definition_of(mlir_type ty, auto scope) {
         auto type_name = hl::name_of_record(ty);
         VAST_CHECK(type_name, "hl::name_of_record failed with {0}", ty);
 
-        aggregate_interface out;
-        auto walker = [&](aggregate_interface op) {
+        core::aggregate_interface out;
+        auto walker = [&](core::aggregate_interface op) {
             if (op.getDefinedName() == type_name) {
                 out = op;
                 return walk_result::interrupt();
@@ -122,7 +120,7 @@ namespace vast::hl {
         }
     } // namespace detail
 
-    static inline auto field_index(string_ref name, aggregate_interface agg)
+    static inline auto field_index(string_ref name, core::aggregate_interface agg)
         -> std::optional< std::size_t >
     {
         for (const auto &field : llvm::enumerate(detail::to_vector(agg.getFieldsInfo()))) {
@@ -150,7 +148,7 @@ namespace vast::hl {
         }, scope, std::forward< decltype(yield) >(yield));
     }
 
-    walk_result users(aggregate_interface op, auto scope, auto &&yield) {
+    walk_result users(core::aggregate_interface op, auto scope, auto &&yield) {
         return type_users([&](mlir_type ty) {
             if (auto rt = mlir::dyn_cast< RecordType >(ty))
                 return rt.getName() == op.getDefinedName();

@@ -1,4 +1,4 @@
-// Copyright (c) 2024-present, Trail of Bits, Inc.
+// Copyright (c) 2024, Trail of Bits, Inc.
 
 #pragma once
 
@@ -9,13 +9,13 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/BuiltinTypes.h>
 #include <mlir/IR/Dialect.h>
 #include <mlir/IR/OperationSupport.h>
+#include <llvm/ADT/StringRef.h>
 VAST_RELAX_WARNINGS
 
 #include "vast/Util/Common.hpp"
-
 #include <gap/coro/generator.hpp>
 
-namespace vast {
+namespace vast::core {
 
     struct field_info_t
     {
@@ -23,8 +23,14 @@ namespace vast {
         mlir_type type;
     };
 
-} // namespace vast
-
+} // namespace vast::core
 
 /// Include the generated interface declarations.
-#include "vast/Interfaces/AggregateTypeDefinitionInterface.h.inc"
+#include "vast/Dialect/Core/Interfaces/TypeDefinitionInterface.h.inc"
+
+namespace vast::core {
+
+    using type_definition_interface = TypeDefinitionInterface;
+    using aggregate_interface = AggregateTypeDefinitionInterface;
+
+} // namespace vast::core

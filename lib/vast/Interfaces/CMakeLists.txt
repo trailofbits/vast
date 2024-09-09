@@ -1,5 +1,4 @@
 set(VAST_OPTIONAL_SOURCES
-  AggregateTypeDefinitionInterface.cpp
   AliasTypeInterface.cpp
   DefaultDataLayoutTypeInterface.cpp
   ElementTypeInterface.cpp
@@ -8,10 +7,6 @@ set(VAST_OPTIONAL_SOURCES
   SymbolRefInterface.cpp
   TypeQualifiersInterfaces.cpp
   TypeTraitExprInterface.cpp
-)
-
-add_vast_interface_library(AggregateTypeDefinitionInterface
-  AggregateTypeDefinitionInterface.cpp
 )
 
 add_vast_interface_library(AliasTypeInterface

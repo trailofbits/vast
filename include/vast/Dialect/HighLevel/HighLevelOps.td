@@ -8,10 +8,10 @@ include "mlir/IR/BuiltinAttributes.td"
 
 include "mlir/Interfaces/CastInterfaces.td"
 
-include "vast/Interfaces/AggregateTypeDefinitionInterface.td"
 include "vast/Interfaces/TypeTraitExprInterface.td"
 include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 include "vast/Dialect/Core/Interfaces/SymbolTableInterface.td"
+include "vast/Dialect/Core/Interfaces/TypeDefinitionInterface.td"
 
 include "vast/Dialect/HighLevel/HighLevelCF.td"
 
@@ -105,7 +105,10 @@ def HighLevel_TypeDeclOp
 }
 
 def HighLevel_TypeDefOp
-  : HighLevel_Op< "typedef", [Core_TypeSymbol] >
+  : HighLevel_Op< "typedef", [
+      Core_TypeSymbol, Core_TypeDefinition,
+      DeclareOpInterfaceMethods< Core_TypeDefinition, ["getDefinedType"] >
+    ] >
   , Arguments<(ins SymbolNameAttr:$sym_name, TypeAttr:$type)>
 {
   let summary = "VAST typedef operation";
@@ -117,24 +120,16 @@ def HighLevel_TypeDefOp
     This operation corresponds to `clang::TypedefDecl`.
   }];
 
-  let extraClassDeclaration = [{
-    mlir_type getDefinedType();
-  }];
-
   let assemblyFormat = [{ $sym_name attr-dict `:` $type }];
 }
 
 def HighLevel_TypeAliasOp
-  : HighLevel_Op< "alias", [Core_TypeSymbol] >
+  : HighLevel_Op< "alias", [Core_TypeSymbol, Core_TypeDefinition] >
   , Arguments<(ins SymbolNameAttr:$sym_name, TypeAttr:$type)>
 {
   let summary = "VAST type alias operation";
   let description = [{
     This operation corresponds to `clang::TypeAliasDecl`.
-  }];
-
-  let extraClassDeclaration = [{
-    mlir_type getDefinedType();
   }];
 
   let assemblyFormat = [{ $sym_name attr-dict `:` $type }];
@@ -213,7 +208,7 @@ def HighLevel_EnumConstantOp
 def HighLevel_EnumRegion : Region< Core_HasOneBlock, "enum constants region" >;
 
 def HighLevel_EnumDeclOp
-  : HighLevel_Op< "enum", [NoTerminator, Core_TypeSymbol] >
+  : HighLevel_Op< "enum", [NoTerminator, Core_TypeSymbol, Core_TypeDefinition] >
   , Arguments<(ins SymbolNameAttr:$name, OptionalAttr<TypeAttr>:$type)>
 {
   let summary = "VAST enum declaration";
@@ -253,8 +248,9 @@ def HighLevel_EnumDeclOp
 class HighLevel_RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic,
         !listconcat(traits, [
-          NoTerminator, Core_TypeSymbol,
-          DeclareOpInterfaceMethods< AggregateTypeDefinition >
+          NoTerminator, Core_TypeSymbol, Core_AggregateTypeDefinition,
+          DeclareOpInterfaceMethods< Core_AggregateTypeDefinition >,
+          DeclareOpInterfaceMethods< Core_TypeDefinition, ["getDefinedType"] >,
         ])
       >
     , Arguments<(ins SymbolNameAttr:$sym_name)>
@@ -285,15 +281,13 @@ class HighLevel_RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
         return hl::get_field_types(*this);
     }
 
-    gap::generator< vast::field_info_t > $cppClass::getFieldsInfo() {
+    gap::generator< vast::core::field_info_t > $cppClass::getFieldsInfo() {
         return hl::get_fields_info(*this);
     }
 
-    gap::generator< vast::AggregateTypeDefinitionInterface > $cppClass::getNestedDeclarations() {
+    gap::generator< vast::core::aggregate_interface > $cppClass::getNestedDeclarations() {
         return hl::get_nested_declarations(*this);
     }
-
-    llvm::StringRef $cppClass::getDefinedName() { return this->getSymName(); }
 
     mlir::Type $cppClass::getDefinedType() {
       return hl::RecordType::get(getContext(), getDefinedName());
@@ -304,9 +298,7 @@ class HighLevel_RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
 }
 
 def HighLevel_StructDeclOp
-  : HighLevel_RecordLikeDeclOp< "struct", [
-    DeclareOpInterfaceMethods< VAST_RecordDeclInterface >
-  ] >
+  : HighLevel_RecordLikeDeclOp< "struct" >
 {
   let summary = "VAST struct declaration";
   let description = [{ VAST struct declaration }];
@@ -327,8 +319,8 @@ def HighLevel_FieldDeclOp
   let description = [{ VAST record field declaration }];
 
   let extraClassDeclaration = [{
-    vast::AggregateTypeDefinitionInterface getParentAggregate() {
-        return mlir::dyn_cast< vast::AggregateTypeDefinitionInterface >((*this)->getParentOp());
+    vast::core::aggregate_interface getAggregate() {
+        return mlir::dyn_cast< vast::core::aggregate_interface >((*this)->getParentOp());
     }
   }];
 

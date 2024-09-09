@@ -14,7 +14,7 @@ VAST_UNRELAX_WARNINGS
 #include <gap/coro/generator.hpp>
 
 #include <vast/Dialect/HighLevel/HighLevelUtils.hpp>
-#include <vast/Interfaces/AggregateTypeDefinitionInterface.hpp>
+#include <vast/Dialect/Core/Interfaces/TypeDefinitionInterface.hpp>
 
 #include <vast/Conversion/Common/Mixins.hpp>
 
@@ -38,7 +38,7 @@ namespace vast::hl {
 
     template< typename yield_t >
     walk_result users(hl::FieldDeclOp decl, auto scope, yield_t &&yield) {
-        return hl::users(decl.getParentAggregate(), scope, std::forward< yield_t >(yield));
+        return hl::users(decl.getAggregate(), scope, std::forward< yield_t >(yield));
     }
 
     struct UDE : UDEBase< UDE >
@@ -47,12 +47,15 @@ namespace vast::hl {
 
         std::unordered_set< operation > unused_cached;
 
-        bool keep(aggregate_interface op, auto scope) const { return keep_only_if_used; }
+        bool keep(core::aggregate_interface op, auto scope) const {
+            return keep_only_if_used;
+        }
+
         bool keep(hl::TypeDefOp op, auto scope)       const { return keep_only_if_used; }
         bool keep(hl::TypeDeclOp op, auto scope)      const { return keep_only_if_used; }
 
         // Mark field to be kept if the parent aggregate is kept
-        bool keep(hl::FieldDeclOp op, auto scope) const { return keep(op.getParentAggregate(), scope); }
+        bool keep(hl::FieldDeclOp op, auto scope) const { return keep(op.getAggregate(), scope); }
 
         bool keep(hl::FuncOp op, auto scope) const {
             return !op.isDeclaration() && !util::has_attr< hl::AlwaysInlineAttr >(op);
@@ -114,7 +117,9 @@ namespace vast::hl {
 
             VAST_UDE_DEBUG("processing: {0}", *op);
             bool result = llvm::TypeSwitch< operation, bool >(op)
-                .Case([&](aggregate_interface op) { return is_unused_impl(op, scope, seen); })
+                .Case([&](core::aggregate_interface op) {
+                    return is_unused_impl(op, scope, seen);
+                })
                 .Case([&](hl::FieldDeclOp op)     { return is_unused_impl(op, scope, seen); })
                 .Case([&](hl::TypeDefOp op)       { return is_unused_impl(op, scope, seen); })
                 .Case([&](hl::TypeDeclOp op)      { return is_unused_impl(op, scope, seen); })
@@ -151,7 +156,7 @@ namespace vast::hl {
                     unused_types.insert(td.getDefinedType());
                 }
 
-                if (auto agg = mlir::dyn_cast< aggregate_interface >(op)) {
+                if (auto agg = mlir::dyn_cast< core::aggregate_interface >(op)) {
                     unused_types.insert(agg.getDefinedType());
                 }
 
