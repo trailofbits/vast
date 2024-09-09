@@ -93,8 +93,7 @@ namespace vast::conv::abi {
                 auto ptr_type = hl::PointerType::get(type);
                 auto idx_attr = bld.getI32IntegerAttr(idx++);
                 auto gep      = bld.template create< ll::StructGEPOp >(
-                    loc, ptr_type, value, idx_attr,
-                    bld.getStringAttr(name)
+                    loc, ptr_type, value, idx_attr, name
                 );
                 co_yield gep;
             }
