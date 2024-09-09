@@ -23,7 +23,7 @@ struct v {
 } v1;
 
 int main() {
-   // CHECK: [[V1:%[0-9]+]] = hl.globref "v1" : !hl.lvalue<!hl.elaborated<!hl.record<"v">>>
+   // CHECK: [[V1:%[0-9]+]] = hl.globref @v1 : !hl.lvalue<!hl.elaborated<!hl.record<"v">>>
 
    // CHECK: [[V2:%[0-9]+]] = hl.member [[V1]] at @"[[N5]]" : !hl.lvalue<!hl.elaborated<!hl.record<"v">>> -> !hl.lvalue<!hl.record<"[[N1]]">>
    // CHECK: [[V3:%[0-9]+]] = hl.member [[V2]] at @"[[N3]]" : !hl.lvalue<!hl.record<"[[N1]]">> -> !hl.lvalue<!hl.record<"[[N2]]">>
@@ -32,7 +32,7 @@ int main() {
    // CHECK: hl.assign [[C]] to [[V4]] : !hl.int, !hl.lvalue<!hl.int> -> !hl.int
    v1.i = 2;
 
-   // CHECK: [[V1:%[0-9]+]] = hl.globref "v1" : !hl.lvalue<!hl.elaborated<!hl.record<"v">>>
+   // CHECK: [[V1:%[0-9]+]] = hl.globref @v1 : !hl.lvalue<!hl.elaborated<!hl.record<"v">>>
    // CHECK: [[V2:%[0-9]+]] = hl.member [[V1]] at @"[[N5]]" : !hl.lvalue<!hl.elaborated<!hl.record<"v">>> -> !hl.lvalue<!hl.record<"[[N1]]">>
    // CHECK: [[V3:%[0-9]+]] = hl.member [[V2]] at @w : !hl.lvalue<!hl.record<"[[N1]]">> -> !hl.lvalue<!hl.elaborated<!hl.record<"[[N4]]">>>
    // CHECK: [[V4:%[0-9]+]] = hl.member [[V3]] at @k : !hl.lvalue<!hl.elaborated<!hl.record<"[[N4]]">>> -> !hl.lvalue<!hl.long>
