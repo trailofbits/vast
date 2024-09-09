@@ -862,6 +862,46 @@ namespace vast::cg
             .freeze();
     }
 
+    operation default_stmt_visitor::VisitGenericSelectionExpr(const clang::GenericSelectionExpr *expr) {
+        auto mk_assoc = [&](const clang::GenericSelectionExpr::ConstAssociation &assoc
+                        ) -> operation {
+            auto assoc_type = assoc.getType();
+            auto assoc_expr = assoc.getAssociationExpr();
+            auto type       = assoc_type.isNull() ? mlir::Type() : self.visit(assoc_type);
+            return bld.compose< hl::GenericAssocExpr >()
+                .bind(self.location(expr))
+                .bind(visit_as_maybe_lvalue_type(self, mctx, assoc_expr->getType()))
+                .bind(mk_value_builder(assoc_expr))
+                .bind_if_valid(type)
+                .freeze();
+        };
+        auto mk_body = [&](auto &state, auto loc) {
+            for (const auto &assoc : expr->associations()) {
+                mk_assoc(assoc);
+            }
+        };
+
+        if (expr->isExprPredicate()) {
+            return bld.compose< hl::GenericSelectionExpr >()
+                .bind(self.location(expr))
+                .bind(visit_maybe_lvalue_result_type(expr))
+                .bind(mk_value_builder(expr->getControllingExpr()))
+                .bind(mk_body)
+                .freeze();
+        }
+        if (expr->isTypePredicate()) {
+            return bld.compose< hl::GenericSelectionExpr >()
+                .bind(self.location(expr))
+                .bind(visit_maybe_lvalue_result_type(expr))
+                .bind(self.visit(expr->getControllingType()->getType()))
+                .bind(mk_body)
+                .freeze();
+        }
+        VAST_REPORT("Generic expr didn't match any predicate type. Is it valid?");
+        expr->dump();
+        return {};
+    }
+
     operation default_stmt_visitor::VisitBinaryConditionalOperator(const clang::BinaryConditionalOperator *op) {
         auto common_type = self.visit(op->getCommon()->getType());
         return bld.compose< hl::BinaryCondOp >()
