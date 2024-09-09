@@ -27,7 +27,7 @@ void foo() {
     // CHECK: hl.ref [[J]]
     j;
     // CHECK: [[R:%[0-9]+]] = hl.ref [[BF]]
-    // CHECK: hl.member [[R]] at "x" : !hl.lvalue<!hl.elaborated<!hl.record<"bitfield">>> -> !hl.lvalue<!hl.int< unsigned >>
+    // CHECK: hl.member [[R]] at @x : !hl.lvalue<!hl.elaborated<!hl.record<"bitfield">>> -> !hl.lvalue<!hl.int< unsigned >>
     bf.x;
 
     // CHECK: [[F:%[0-9]+]] = hl.funcref @foo : !core.fn<() -> (!hl.void)>
