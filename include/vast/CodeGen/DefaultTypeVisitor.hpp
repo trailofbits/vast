@@ -176,4 +176,6 @@ namespace vast::cg {
 
     mlir_type visit_as_lvalue_type(scoped_visitor_view visitor, mcontext_t &mctx, clang_qual_type ty);
 
+    mlir_type visit_as_maybe_lvalue_type(scoped_visitor_view visitor, mcontext_t &mctx, clang_qual_type ty);
+
 } // namespace vast::cg

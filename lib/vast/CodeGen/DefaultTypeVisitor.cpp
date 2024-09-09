@@ -512,6 +512,12 @@ namespace vast::cg {
         return hl::LValueType::get(&mctx, element_type);
     }
 
+    mlir_type visit_as_maybe_lvalue_type(scoped_visitor_view visitor, mcontext_t &mctx, clang_qual_type ty) {
+        if (ty->isLValueReferenceType()) {
+            return visit_as_lvalue_type(visitor, mctx, ty);
+        }
+        return visitor.visit(ty);
+    }
 
 
 } // namespace vast::hl
