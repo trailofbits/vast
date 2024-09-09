@@ -43,7 +43,7 @@ long sc_pkcs11_lock(void)
     // CHECK: [[V2:%[0-9]+]] = hl.implicit_cast [[V1]] LValueToRValue : !hl.lvalue<!hl.elaborated<!hl.typedef<"CK_C_INITIALIZE_ARGS_PTR">>> -> !hl.elaborated<!hl.typedef<"CK_C_INITIALIZE_ARGS_PTR">>
     // CHECK: hl.cond.yield [[V2]] : !hl.elaborated<!hl.typedef<"CK_C_INITIALIZE_ARGS_PTR">>
 	if (global_locking)  {
-        // CHECK: [[M:%[0-9]+]] = hl.member [[X:%[0-9]+]] at "lock_mutex"
+        // CHECK: [[M:%[0-9]+]] = hl.member [[X:%[0-9]+]] at @lock_mutex
         // CHECK: [[C:%[0-9]+]] = hl.implicit_cast [[M]] LValueToRValue : !hl.lvalue<!hl.elaborated<!hl.typedef<"ck_lockmutex_t">>> -> !hl.elaborated<!hl.typedef<"ck_lockmutex_t">>
         // CHECK: [[G:%[0-9]+]] = hl.globref "global_lock" : !hl.lvalue<!hl.ptr<!hl.void>>
         // CHECK: [[A:%[0-9]+]] = hl.implicit_cast [[G]] LValueToRValue : !hl.lvalue<!hl.ptr<!hl.void>> -> !hl.ptr<!hl.void>
