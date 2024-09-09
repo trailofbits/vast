@@ -6,18 +6,18 @@ struct v {
    // CHECK: hl.union @"[[N1:anonymous\[[0-9]+\]]]"
    union { // anonymous union
       // CHECK: hl.struct @"[[N2:anonymous\[[0-9]+\]]]"
-      // CHECK:    hl.field "i" : !hl.int
-      // CHECK:    hl.field "j" : !hl.int
-      // CHECK: hl.field "[[N3:anonymous\[[0-9]+\]]]" : !hl.record<"[[N2]]">
+      // CHECK:    hl.field @i : !hl.int
+      // CHECK:    hl.field @j : !hl.int
+      // CHECK: hl.field @"[[N3:anonymous\[[0-9]+\]]]" : !hl.record<"[[N2]]">
       struct { int i, j; }; // anonymous structure
       // CHECK: hl.struct @"[[N4:anonymous\[[0-9]+\]]]"
-      // CHECK:   hl.field "k" : !hl.long
-      // CHECK:   hl.field "l" : !hl.long
-      // CHECK: hl.field "w" : !hl.elaborated<!hl.record<"[[N4]]">>
+      // CHECK:   hl.field @k : !hl.long
+      // CHECK:   hl.field @l : !hl.long
+      // CHECK: hl.field @w : !hl.elaborated<!hl.record<"[[N4]]">>
       struct { long k, l; } w;
    };
-   // CHECK: hl.field "[[N5:anonymous\[[0-9]+\]]]" : !hl.record<"[[N1]]">
-   // CHECK: hl.field "m" : !hl.int
+   // CHECK: hl.field @"[[N5:anonymous\[[0-9]+\]]]" : !hl.record<"[[N1]]">
+   // CHECK: hl.field @m : !hl.int
    int m;
 // CHECK: hl.var @v1 : !hl.lvalue<!hl.elaborated<!hl.record<"v">>>
 } v1;

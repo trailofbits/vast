@@ -4,7 +4,7 @@ typedef int INT;
 
 struct X
 {
-    // CHECK: hl.field "a" : si32
+    // CHECK: hl.field @a : si32
     INT a;
 };
 

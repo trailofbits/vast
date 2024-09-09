@@ -5,16 +5,16 @@
 
 // CHECK: hl.struct @foo
 struct foo {
-    // CHECK: hl.field "x" : !hl.int
-    // CHECK: hl.field "y" : !hl.int
+    // CHECK: hl.field @x : !hl.int
+    // CHECK: hl.field @y : !hl.int
     int x, y;
 };
 
 // CHECK: hl.struct @lots_of_inits
 struct lots_of_inits {
-    // CHECK: hl.field "z" : !hl.array<2, !hl.elaborated<!hl.record<"foo">>>
+    // CHECK: hl.field @z : !hl.array<2, !hl.elaborated<!hl.record<"foo">>>
     struct foo z[2];
-    // CHECK: hl.field "w" : !hl.array<3, !hl.int>
+    // CHECK: hl.field @w : !hl.array<3, !hl.int>
     int w[3];
 };
 
