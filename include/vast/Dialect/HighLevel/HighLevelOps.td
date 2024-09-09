@@ -474,7 +474,7 @@ def HighLevel_FuncRefOp
 
 def HighLevel_GlobalRefOp
   : HighLevel_Op< "globref" >
-  , Arguments<(ins StrAttr:$global)>
+  , Arguments<(ins FlatSymbolRefAttr:$global)>
   , Results<(outs AnyType:$result)>
 {
   let summary = "VAST global variable reference declaration";
