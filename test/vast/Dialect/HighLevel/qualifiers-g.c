@@ -10,9 +10,9 @@ void f(int n, float * restrict a, float * const b);
 
 struct t {
    int n;
-   // CHECK: hl.field "p" : !hl.ptr<!hl.float,  restrict >
+   // CHECK: hl.field @p : !hl.ptr<!hl.float,  restrict >
    float * restrict p;
-   // CHECK: hl.field "q" : !hl.ptr<!hl.float,  restrict >
+   // CHECK: hl.field @q : !hl.ptr<!hl.float,  restrict >
    float * restrict q;
 };
 

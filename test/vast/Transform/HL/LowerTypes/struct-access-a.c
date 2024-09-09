@@ -1,8 +1,8 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt --vast-hl-lower-types | %file-check %s
 
 // CHECK:  hl.struct @X : {
-// CHECK:    hl.field "member_x" : si32
-// CHECK:    hl.field "member_y" : si32
+// CHECK:    hl.field @member_x : si32
+// CHECK:    hl.field @member_y : si32
 // CHECK:  }
 
 struct X

@@ -16,7 +16,7 @@ class C : public A, protected virtual B {
 
 // CHECK: hl.access public
 public:
-    // CHECK: hl.field "x" : !hl.int
+    // CHECK: hl.field @x : !hl.int
     int x;
 
     // CHECK: %0 = hl.var @C::y sc_static : !hl.lvalue<!hl.int>

@@ -5,7 +5,7 @@
 
 // CHECK: hl.struct @bitfield
 struct bitfield {
-    // CHECK: hl.field "x" bw 3 : !hl.int< unsigned >
+    // CHECK: hl.field @x bw 3 : !hl.int< unsigned >
     unsigned x: 3;
 };
 

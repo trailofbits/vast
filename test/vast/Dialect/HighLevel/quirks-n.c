@@ -8,7 +8,7 @@ short typedef signed s16;
 // CHECK: hl.typedef @u32 : !hl.int< unsigned >
 unsigned int typedef u32;
 // CHECK: hl.struct @foo
-// CHECK:   hl.field "bar" : !hl.int
+// CHECK:   hl.field @bar : !hl.int
 // CHECK: hl.typedef @baz : !hl.elaborated<!hl.record<"foo">,  const >
 struct foo { int bar; } const typedef baz;
 

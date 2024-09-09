@@ -18,15 +18,15 @@ typedef ck_rv_t (*ck_unlockmutex_t) (void *mutex);
 // CHECK: hl.struct @ck_c_initialize_args
 struct ck_c_initialize_args
 {
-    // CHECK: hl.field "create_mutex" : !hl.elaborated<!hl.typedef<"ck_createmutex_t">>
+    // CHECK: hl.field @create_mutex : !hl.elaborated<!hl.typedef<"ck_createmutex_t">>
     ck_createmutex_t create_mutex;
-    // CHECK: hl.field "destroy_mutex" : !hl.elaborated<!hl.typedef<"ck_destroymutex_t">>
+    // CHECK: hl.field @destroy_mutex : !hl.elaborated<!hl.typedef<"ck_destroymutex_t">>
     ck_destroymutex_t destroy_mutex;
-    // CHECK: hl.field "lock_mutex" : !hl.elaborated<!hl.typedef<"ck_lockmutex_t">>
+    // CHECK: hl.field @lock_mutex : !hl.elaborated<!hl.typedef<"ck_lockmutex_t">>
     ck_lockmutex_t lock_mutex;
-    // CHECK: hl.field "unlock_mutex" : !hl.elaborated<!hl.typedef<"ck_unlockmutex_t">>
+    // CHECK: hl.field @unlock_mutex : !hl.elaborated<!hl.typedef<"ck_unlockmutex_t">>
     ck_unlockmutex_t unlock_mutex;
-    // CHECK: hl.field "reserved" : !hl.ptr<!hl.void>
+    // CHECK: hl.field @reserved : !hl.ptr<!hl.void>
     void *reserved;
 };
 

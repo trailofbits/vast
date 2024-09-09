@@ -2,13 +2,13 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
 // CHECK: hl.struct @Element
-// CHECK:  hl.field "z" : !hl.int
+// CHECK:  hl.field @z : !hl.int
 // CHECK:  hl.enum @State : !hl.int< unsigned >
 // CHECK:   hl.enum.const @SOLID
 // CHECK:   hl.enum.const @LIQUID
 // CHECK:   hl.enum.const @GAS
 // CHECK:   hl.enum.const @PLASMA
-// CHECK:  hl.field "state" : !hl.elaborated<!hl.enum<"State">>
+// CHECK:  hl.field @state : !hl.elaborated<!hl.enum<"State">>
 struct Element {
     int z;
     enum State { SOLID, LIQUID, GAS, PLASMA } state;
