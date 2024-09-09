@@ -313,7 +313,11 @@ def HighLevel_UnionDeclOp
 
 def HighLevel_FieldDeclOp
   : HighLevel_Op< "field", [Core_MemberVarSymbol] >
-  , Arguments<(ins StrAttr:$name, TypeAttr:$type, OptionalAttr<I32Attr>:$bits)>
+  , Arguments<(ins
+      SymbolNameAttr:$sym_name,
+      TypeAttr:$type,
+      OptionalAttr<I32Attr>:$bits
+    )>
 {
   let summary = "VAST record field declaration";
   let description = [{ VAST record field declaration }];
@@ -324,7 +328,7 @@ def HighLevel_FieldDeclOp
     }
   }];
 
-  let assemblyFormat = [{ $name attr-dict (`bw` $bits^)? `:` $type }];
+  let assemblyFormat = [{ $sym_name attr-dict (`bw` $bits^)? `:` $type }];
 }
 
 def HighLevel_RecordMemberOp

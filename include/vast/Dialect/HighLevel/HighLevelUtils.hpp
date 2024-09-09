@@ -37,7 +37,7 @@ namespace vast::hl {
 
             auto field_decl = mlir::dyn_cast< hl::FieldDeclOp >(maybe_field);
             VAST_ASSERT(field_decl);
-            co_yield { field_decl.getName().str(), field_decl.getType() };
+            co_yield { field_decl.getSymName().str(), field_decl.getType() };
         }
     }
 
