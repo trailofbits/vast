@@ -869,6 +869,27 @@ namespace vast::hl
         return std::optional(getCompatibleAttr().getValue());
     }
 
+    //
+    // GenericSelectionExpr
+    //
+
+    std::optional< region_t *> GenericSelectionExpr::getResultRegion() {
+        if (auto selected = getSelected()) {
+            auto op_it = getBody().op_begin();
+            std::advance(op_it, selected.value().getZExtValue());
+            if (auto assoc = mlir::dyn_cast< hl::GenericAssocExpr >(*op_it))
+            return { &assoc.getBody() };
+        }
+        return std::nullopt;
+    }
+
+    bool GenericSelectionExpr::isExprPredicate() {
+        return !getControl().empty();
+    }
+
+    bool GenericSelectionExpr::isTypePredicate() {
+        return (*this)->hasAttr("matchType");
+    }
 }
 
 //===----------------------------------------------------------------------===//
