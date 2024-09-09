@@ -7,16 +7,22 @@
     },
     "configurePresets": [
         {
-            "name": "default",
-            "displayName": "Default",
+            "name": "base",
+            "hidden": true,
             "binaryDir": "${sourceDir}/builds/${presetName}",
             "generator": "Ninja Multi-Config",
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
             "cacheVariables": {
-                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/lld.toolchain.cmake",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/lld.toolchain.cmake"
+            }
+        },
+        {
+            "name": "default",
+            "displayName": "Default",
+            "inherits": "base",
+            "cacheVariables": {
                 "CMAKE_CONFIGURATION_TYPES": "Release;Debug",
                 "VAST_ENABLE_TESTING": "ON",
-                "LLVM_EXTERNAL_LIT": "$env{LLVM_EXTERNAL_LIT}",
                 "CMAKE_PREFIX_PATH": "$env{CMAKE_PREFIX_PATH}"
             }
         },
@@ -46,14 +52,11 @@
         {
             "name": "compiler-explorer",
             "displayName": "Configure VAST for Compiler Explorer",
-            "binaryDir": "${sourceDir}/builds/${presetName}",
-            "generator": "Ninja Multi-Config",
-            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "inherits": "base",
             "environment": {
                 "CMAKE_PREFIX_PATH": "/usr/lib/llvm-18"
             },
             "cacheVariables": {
-                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/lld.toolchain.cmake",
                 "CMAKE_CONFIGURATION_TYPES": "Release",
                 "VAST_ENABLE_TESTING": "OFF",
                 "CMAKE_C_COMPILER": "/usr/bin/clang-18",
