@@ -197,6 +197,7 @@ namespace vast::cg {
         operation VisitMemberExpr(const clang::MemberExpr *expr);
         operation VisitConditionalOperator(const clang::ConditionalOperator *op);
         operation VisitChooseExpr(const clang::ChooseExpr *expr);
+        operation VisitGenericSelectionExpr(const clang::GenericSelectionExpr *expr);
         operation VisitBinaryConditionalOperator(const clang::BinaryConditionalOperator *op);
         operation VisitAddrLabelExpr(const clang::AddrLabelExpr *expr);
         operation VisitConstantExpr(const clang::ConstantExpr *expr);
