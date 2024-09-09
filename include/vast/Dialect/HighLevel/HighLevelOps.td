@@ -163,7 +163,7 @@ def HighLevel_TypeOfExprOp
 
 def HighLevel_EnumConstantOp
   : HighLevel_Op< "enum.const", [Core_EnumConstantSymbol] >
-  , Arguments<(ins SymbolNameAttr:$name, TypedAttrInterface:$value)>
+  , Arguments<(ins SymbolNameAttr:$sym_name, TypedAttrInterface:$value)>
 {
   let summary = "VAST enum constant declaration";
   let description = [{
@@ -194,7 +194,7 @@ def HighLevel_EnumConstantOp
       "Type":$type, "llvm::APSInt":$value,
       CArg< "maybe_builder_callback_ref", "std::nullopt" >:$init
     ), [{
-      $_state.addAttribute("name", $_builder.getStringAttr(name));
+      $_state.addAttribute("sym_name", $_builder.getStringAttr(name));
       $_state.addAttribute("value", core::IntegerAttr::get(type, value));
 
       InsertionGuard guard($_builder);
@@ -202,14 +202,14 @@ def HighLevel_EnumConstantOp
     }]>,
   ];
 
-  let assemblyFormat = [{ $name `=` $value attr-dict (`init` $init^)? }];
+  let assemblyFormat = [{ $sym_name `=` $value attr-dict (`init` $init^)? }];
 }
 
 def HighLevel_EnumRegion : Region< Core_HasOneBlock, "enum constants region" >;
 
 def HighLevel_EnumDeclOp
   : HighLevel_Op< "enum", [NoTerminator, Core_TypeSymbol, Core_TypeDefinition] >
-  , Arguments<(ins SymbolNameAttr:$name, OptionalAttr<TypeAttr>:$type)>
+  , Arguments<(ins SymbolNameAttr:$sym_name, OptionalAttr<TypeAttr>:$type)>
 {
   let summary = "VAST enum declaration";
   let description = [{

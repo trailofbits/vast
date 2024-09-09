@@ -357,14 +357,14 @@ namespace vast::hl
         Builder &bld, State &st, llvm::StringRef name, Type type,
         builder_callback_ref constants
     ) {
-        st.addAttribute("name", bld.getStringAttr(name));
+        st.addAttribute("sym_name", bld.getStringAttr(name));
         st.addAttribute("type", mlir::TypeAttr::get(type));
         InsertionGuard guard(bld);
         build_region(bld, st, constants);
     }
 
     void EnumDeclOp::build(Builder &bld, State &st, llvm::StringRef name) {
-        st.addAttribute("name", bld.getStringAttr(name));
+        st.addAttribute("sym_name", bld.getStringAttr(name));
         build_empty_region(bld, st);
     }
 
@@ -377,7 +377,7 @@ namespace vast::hl
 
         if (parser.parseSymbolName(nameAttr))
             return mlir::failure();
-        if (nameAttr) result.attributes.append("name", nameAttr);
+        if (nameAttr) result.attributes.append("sym_name", nameAttr);
 
         parser.getCurrentLocation();
         if (parser.parseOptionalAttrDict(result.attributes)) {
@@ -409,9 +409,9 @@ namespace vast::hl
 
     void EnumDeclOp::print(Printer &odsPrinter) {
         odsPrinter << ' ';
-        odsPrinter.printSymbolName(getNameAttr().getValue());
+        odsPrinter.printSymbolName(getSymName());
         llvm::SmallVector< llvm::StringRef, 2 > elidedAttrs;
-        elidedAttrs.push_back("name");
+        elidedAttrs.push_back("sym_name");
         elidedAttrs.push_back("type");
         odsPrinter.printOptionalAttrDict((*this)->getAttrs(), elidedAttrs);
         if (getTypeAttr()) {

@@ -43,10 +43,10 @@ namespace vast::hl {
         void collect_enum_values(core::module root) {
             auto walker = [&](operation op) {
                 if (auto decl = mlir::dyn_cast< const_decl >(op)) {
-                    VAST_ASSERT(!id_to_value.count(decl.getName()));
-                    id_to_value[decl.getName()] = decl;
+                    VAST_ASSERT(!id_to_value.count(decl.getSymName()));
+                    id_to_value[decl.getSymName()] = decl;
                 } else if (auto decl = mlir::dyn_cast< enum_decl >(op)) {
-                    name_to_decl[decl.getName()] = decl;
+                    name_to_decl[decl.getSymName()] = decl;
                 }
             };
 
