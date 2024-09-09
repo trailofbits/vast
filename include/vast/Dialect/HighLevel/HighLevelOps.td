@@ -1704,7 +1704,7 @@ def HighLevel_GenericAssocExpr
 
 def HighLevel_GenericSelectionExpr
   : HighLevel_Op< "generic_expr", [NoTerminator] >
-  , Arguments< (ins OptionalAttr< TypeAttr >:$controlType, OptionalAttr< TypedAttrInterface >:$selected) >
+  , Arguments< (ins OptionalAttr< TypeAttr >:$controlType, OptionalAttr< IndexAttr >:$selected) >
   , Results< (outs AnyType:$result) >
 {
   let summary = "C11 _Generic expression.";
@@ -1739,7 +1739,7 @@ def HighLevel_GenericSelectionExpr
     }] >
   ];
 
-  let assemblyFormat = [{ attr-dict `match` `:` ($control^)? ($controlType^)? $values `->` type($result)}];
+  let assemblyFormat = [{ attr-dict `match` `:` ($control^)? ($controlType^)? $body `->` type($result)}];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
