@@ -885,7 +885,7 @@ namespace vast::cg
             return bld.compose< hl::GenericSelectionExpr >()
                 .bind(self.location(expr))
                 .bind(visit_maybe_lvalue_result_type(expr))
-                .bind(mk_value_builder(expr->getControllingExpr()))
+                .bind(mk_type_yield_builder(expr->getControllingExpr()))
                 .bind(mk_body)
                 .bind(expr->isValueDependent() ? std::nullopt : std::optional(expr->getResultIndex()))
                 .freeze();
