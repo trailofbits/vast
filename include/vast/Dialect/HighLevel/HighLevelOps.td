@@ -1638,11 +1638,10 @@ def HighLevel_StaticAssertDecl
   let skipDefaultBuilders = 1;
   let builders = [
   OpBuilder< (ins
-        "bool":$failed,
-        CArg< "builder_callback_ref" >:$assertBuilder,
-        CArg< "maybe_builder_callback_ref", "std::nullopt" >:$messageBuilder
-    ),
-    [{
+      "bool":$failed,
+      CArg< "builder_callback_ref" >:$assertBuilder,
+      CArg< "maybe_builder_callback_ref", "std::nullopt" >:$messageBuilder
+    ), [{
       $_state.addAttribute("failed", $_builder.getBoolAttr(failed));
 
       InsertionGuard guard($_builder);
@@ -1686,10 +1685,11 @@ def HighLevel_GenericAssocExpr
 
   let skipDefaultBuilders = 1;
   let builders = [
-  OpBuilder< (ins "Type":$type,
-                  CArg< "builder_callback_ref" >:$bodyBuilder,
-                  CArg< "mlir::Type", "mlir::Type()" >:$matchType),
-     [{
+    OpBuilder< (ins
+      "Type":$type,
+      CArg< "builder_callback_ref" >:$bodyBuilder,
+      CArg< "mlir::Type", "mlir::Type()" >:$matchType
+    ), [{
       $_state.addTypes(type);
       InsertionGuard guard($_builder);
       if (matchType) {
@@ -1712,11 +1712,12 @@ def HighLevel_GenericSelectionExpr
 
   let skipDefaultBuilders = 1;
   let builders = [
-  OpBuilder< (ins "Type":$type,
-                  CArg< "builder_callback_ref" >:$controlBuilder,
-                  CArg< "builder_callback_ref" >:$bodyBuilder,
-                  CArg< "std::optional< unsigned >", "std::nullopt" >:$selected),
-     [{
+    OpBuilder< (ins
+      "Type":$type,
+      CArg< "builder_callback_ref" >:$controlBuilder,
+      CArg< "builder_callback_ref" >:$bodyBuilder,
+      CArg< "std::optional< unsigned >", "std::nullopt" >:$selected
+    ), [{
       $_state.addTypes(type);
       InsertionGuard guard($_builder);
       if (selected)
@@ -1724,11 +1725,12 @@ def HighLevel_GenericSelectionExpr
       build_region($_builder, $_state, controlBuilder);
       build_region($_builder, $_state, bodyBuilder);
     }] >,
-  OpBuilder< (ins "Type":$type,
-                  "mlir::Type":$controlType,
-                  CArg< "builder_callback_ref" >:$bodyBuilder,
-                  CArg< "std::optional< unsigned >", "std::nullopt" >:$selected),
-     [{
+    OpBuilder< (ins
+      "Type":$type,
+      "mlir::Type":$controlType,
+      CArg< "builder_callback_ref" >:$bodyBuilder,
+      CArg< "std::optional< unsigned >", "std::nullopt" >:$selected
+    ), [{
       $_state.addTypes(type);
       InsertionGuard guard($_builder);
       $_state.addAttribute("controlType", mlir::TypeAttr::get(controlType));
