@@ -470,4 +470,11 @@ namespace vast::cg {
             .freeze();
     }
 
+    operation default_decl_visitor::VisitFileScopeAsmDecl(const clang::FileScopeAsmDecl *decl) {
+        return bld.compose< hl::FileScopeAsmOp >()
+            .bind(self.location(decl))
+            .bind(decl->getAsmString()->getString())
+            .freeze();
+    }
+
 } // namespace vast::cg
