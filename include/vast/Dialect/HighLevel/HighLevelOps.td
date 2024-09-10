@@ -1595,10 +1595,10 @@ def HighLevel_AsmOp
 
 def HighLevel_FileScopeAsmOp
   : HighLevel_Op< "file_scope_asm" >
-  , Arguments<( ins StrAttr:$asmString) >
+  , Arguments<(ins StrAttr:$asm_string) >
 {
   let summary = "VAST operation for file scope assembly";
-  let assemblyFormat = [{attr-dict $asmString}];
+  let assemblyFormat = [{ attr-dict $asm_string }];
 }
 
 def HighLevel_VAArgExpr
