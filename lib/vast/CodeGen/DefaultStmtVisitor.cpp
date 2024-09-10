@@ -863,8 +863,7 @@ namespace vast::cg
     }
 
     operation default_stmt_visitor::VisitGenericSelectionExpr(const clang::GenericSelectionExpr *expr) {
-        auto mk_assoc = [&](const clang::GenericSelectionExpr::ConstAssociation &assoc
-                        ) -> operation {
+        auto mk_assoc = [&] (const clang::GenericSelectionExpr::ConstAssociation &assoc) -> operation {
             auto assoc_type = assoc.getType();
             auto assoc_expr = assoc.getAssociationExpr();
             auto type       = assoc_type.isNull() ? mlir::Type() : self.visit(assoc_type);
@@ -875,7 +874,7 @@ namespace vast::cg
                 .bind_if_valid(type)
                 .freeze();
         };
-        auto mk_body = [&](auto &state, auto loc) {
+        auto mk_body = [&] (auto &state, auto loc) {
             for (const auto &assoc : expr->associations()) {
                 mk_assoc(assoc);
             }
