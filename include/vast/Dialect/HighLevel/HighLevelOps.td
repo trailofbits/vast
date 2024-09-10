@@ -1745,7 +1745,7 @@ def HighLevel_GenericSelectionExpr
     bool isTypePredicate();
   }];
 
-  let assemblyFormat = [{ attr-dict `match` `:` ($control^)? ($controlType^)? $body `->` type($result)}];
+  let assemblyFormat = [{ attr-dict `match` (`region` `:` $control^)? (`type` `:` $controlType^)? $body `->` type($result)}];
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
