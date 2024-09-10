@@ -887,7 +887,7 @@ namespace vast::cg
                 .bind(visit_maybe_lvalue_result_type(expr))
                 .bind(mk_type_yield_builder(expr->getControllingExpr()))
                 .bind(mk_body)
-                .bind(expr->isValueDependent() ? std::nullopt : std::optional(expr->getResultIndex()))
+                .bind_always(expr->isValueDependent() ? std::nullopt : std::optional(expr->getResultIndex()))
                 .freeze();
         }
         if (expr->isTypePredicate()) {
@@ -896,7 +896,7 @@ namespace vast::cg
                 .bind(visit_maybe_lvalue_result_type(expr))
                 .bind(self.visit(expr->getControllingType()->getType()))
                 .bind(mk_body)
-                .bind(expr->isValueDependent() ? std::nullopt : std::optional(expr->getResultIndex()))
+                .bind_always(expr->isValueDependent() ? std::nullopt : std::optional(expr->getResultIndex()))
                 .freeze();
         }
         VAST_REPORT("Generic expr didn't match any predicate type. Is it valid?");
