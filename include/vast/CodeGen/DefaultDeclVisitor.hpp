@@ -48,6 +48,7 @@ namespace vast::cg {
         operation VisitFieldDecl(const clang::FieldDecl *decl);
         operation VisitIndirectFieldDecl(const clang::IndirectFieldDecl *decl);
         operation VisitStaticAssertDecl(const clang::StaticAssertDecl *decl);
+        operation VisitFileScopeAsmDecl(const clang::FileScopeAsmDecl *decl);
 
         void fill_enum_constants(const clang::EnumDecl *decl);
 
