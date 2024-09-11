@@ -449,16 +449,15 @@ def HighLevel_ReturnOp
   ];
 }
 
-// use InferTypeOpInterface
 def HighLevel_DeclRefOp
   : HighLevel_Op< "ref" >
-  , Arguments<(ins AnyType:$decl)>
+  , Arguments<(ins FlatSymbolRefAttr:$decl)>
   , Results<(outs HighLevel_LValueOf<AnyType>:$result)>
 {
   let summary = "VAST variable reference declaration";
   let description = [{ VAST variable reference declaration }];
 
-  let assemblyFormat = "$decl attr-dict `:` functional-type(operands, results)";
+  let assemblyFormat = "$decl attr-dict `:` type($result)";
 }
 
 def HighLevel_FuncRefOp
@@ -1547,6 +1546,18 @@ def HighLevel_EmptyDeclOp
 {
   let assemblyFormat = [{ attr-dict }];
 }
+
+
+def HighLevel_ParmVarDeclOp
+  : HighLevel_Op< "param", [Core_VarSymbol] >
+  , Arguments<(ins SymbolNameAttr:$sym_name, AnyType:$param)>
+{
+  let summary = "VAST parameter declaration";
+  let description = [{ VAST parameter declaration }];
+
+  let assemblyFormat = "$sym_name `=` $param `:` type($param) attr-dict";
+}
+
 
 def HighLevel_AsmOp
   : HighLevel_Op< "asm", [AttrSizedOperandSegments] >

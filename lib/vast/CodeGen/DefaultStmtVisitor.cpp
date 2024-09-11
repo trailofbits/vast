@@ -660,7 +660,7 @@ namespace vast::cg
             return bld.compose< hl::DeclRefOp >()
                 .bind(self.location(expr))
                 .bind(visit_as_lvalue_type(self, mctx, expr->getType()))
-                .bind(self.scope.lookup_var(name.value()))
+                .bind(self.symbol(expr))
                 .freeze();
         }
 
