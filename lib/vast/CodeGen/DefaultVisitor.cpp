@@ -26,7 +26,7 @@ namespace vast::cg
     }
 
     std::optional< named_attr > default_visitor::visit(const clang_attr *attr, scope_context &scope) {
-        default_attr_visitor visitor(mctx, bld, self, scope);
+        default_attr_visitor visitor(mctx, actx, bld, self, scope);
         if (auto visited = visitor.visit(attr)) {
             auto name = visited.getAbstractAttribute().getName();
             return std::make_optional< named_attr >(

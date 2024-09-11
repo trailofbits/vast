@@ -17,6 +17,9 @@ namespace vast::cg {
         using base = attr_visitor_base< default_attr_visitor >;
         using base::base;
 
+        default_attr_visitor(mcontext_t &mctx, acontext_t &actx, codegen_builder &bld, visitor_view self, scope_context &scope)
+            : base(mctx, bld, self, scope), actx(actx) {}
+
         using attr_visitor_base< default_attr_visitor >::Visit;
 
         mlir_attr visit(const clang_attr *attr) { return Visit(attr); }
@@ -68,6 +71,8 @@ namespace vast::cg {
         auto make(args_t &&...args) {
             return bld.getAttr< attr_t >(std::forward< args_t >(args)...);
         }
+
+        acontext_t &actx;
     };
 
 } // namespace vast::cg
