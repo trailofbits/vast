@@ -345,12 +345,11 @@ namespace vast::hl
         maybe_builder_callback_ref alloc
     ) {
         st.addAttribute(core::symbol_attr_name(), bld.getStringAttr(name));
+        st.addAttribute("type", mlir::TypeAttr::get(type));
         InsertionGuard guard(bld);
 
         build_region(bld, st, init);
         build_region(bld, st, alloc);
-
-        st.addTypes(type);
     }
 
     void EnumDeclOp::build(

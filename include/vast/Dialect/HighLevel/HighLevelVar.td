@@ -182,11 +182,11 @@ def HighLevel_VarDeclOp
 
   let arguments = (ins
     SymbolNameAttr:$sym_name,
+    TypeAttr:$type,
     OptionalAttr<HighLevel_StorageClass>:$storageClass,
     OptionalAttr<HighLevel_ThreadStorage>:$threadStorageClass
   );
 
-  let results = (outs AnyType:$result);
   let regions = (region
     AnyRegion:$initializer,
     AnyRegion:$allocation_size
@@ -203,7 +203,8 @@ def HighLevel_VarDeclOp
   ];
 
   let assemblyFormat = [{
-    $sym_name attr-dict ($storageClass^)? ($threadStorageClass^)? `:` type($result)
+    $sym_name attr-dict ($storageClass^)? ($threadStorageClass^)?
+      `:` $type
       (`=` $initializer^)?
       (`allocation_size` $allocation_size^)?
   }];
