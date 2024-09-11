@@ -32,7 +32,7 @@ namespace vast::cg
     };
 
     using funs_scope_table     = scoped_table< string_ref, operation >;
-    using vars_scope_table     = scoped_table< string_ref, mlir_value >;
+    using vars_scope_table     = scoped_table< string_ref, operation >;
     using types_scope_table    = scoped_table< string_ref, operation >;
     using members_scope_table  = scoped_table< string_ref, operation >;
     using labels_scope_table   = scoped_table< string_ref, operation >;
@@ -57,7 +57,7 @@ namespace vast::cg
         operation declare(operation op) {
             llvm::TypeSwitch< operation >(op)
                 .Case< core::VarSymbolOpInterface >([&] (auto &op) {
-                    symbols.vars.insert(op.getSymbolName(), op->getResult(0));
+                    symbols.vars.insert(op.getSymbolName(), op);
                 })
                 .Case< core::TypeSymbolOpInterface >([&] (auto &op) {
                     symbols.types.insert(op.getSymbolName(), op);
@@ -90,11 +90,7 @@ namespace vast::cg
             }
         }
 
-        auto declare_function_param(string_ref name, mlir_value value) {
-            return symbols.vars.insert(name, value), value;
-        }
-
-        mlir_value lookup_var(string_ref name) const {
+        operation lookup_var(string_ref name) const {
             return symbols.vars.lookup(name);
         }
 
@@ -190,8 +186,7 @@ namespace vast::cg
 
         virtual ~block_scope() = default;
 
-        symbol_table_scope< string_ref, mlir_value > vars;
-
+        symbol_table_scope< string_ref, operation > vars;
         symbol_table_scope< string_ref, operation > types;
         symbol_table_scope< string_ref, operation > enum_constants;
     };
@@ -239,7 +234,7 @@ namespace vast::cg
 
         symbol_table_scope< string_ref, operation >  functions;
         symbol_table_scope< string_ref, operation >  types;
-        symbol_table_scope< string_ref, mlir_value > globals;
+        symbol_table_scope< string_ref, operation > globals;
         symbol_table_scope< string_ref, operation >  enum_constants;
     };
 
