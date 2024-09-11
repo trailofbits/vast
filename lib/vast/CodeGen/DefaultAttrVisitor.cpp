@@ -158,23 +158,20 @@ namespace vast::cg
     }
 
     mlir_attr default_attr_visitor::VisitAssumeAlignedAttr(const clang::AssumeAlignedAttr *attr) {
-        llvm::APInt alignment, offset;
-        if (auto alignment_literal = mlir::dyn_cast< clang::IntegerLiteral >(attr->getAlignment())) {
-            alignment = alignment_literal->getValue();
-        } else {
-            VAST_REPORT("assume_aligned attribute with non-trivial expression is not supported");
+        auto alignment = attr->getAlignment()->getIntegerConstantExpr(actx);
+        if (!alignment) {
+            VAST_REPORT("could not evaluate assume aligned attribute alignment value.");
             return {};
         }
-        auto offset_expr = attr->getOffset();
-        if (offset_expr) {
-            if (auto offset_literal = mlir::dyn_cast< clang::IntegerLiteral >(offset_expr)) {
-                offset = offset_literal->getValue();
-            } else {
-                VAST_REPORT("assume_aligned attribute with non-trivial expression is not supported");
-            return {};
+        if (auto offset_expr = attr->getOffset()) {
+            auto offset = offset_expr->getIntegerConstantExpr(actx);
+            if (!offset) {
+                VAST_REPORT("could not evaluate assume aligned attribute offest value.");
+                return {};
             }
+            return make< hl::AssumeAlignedAttr >(alignment.value(), offset.value());
         }
-        return make< hl::AssumeAlignedAttr >(alignment, offset);
+        return make< hl::AssumeAlignedAttr >(alignment.value(), llvm::APInt());
     }
 
     mlir_attr default_attr_visitor::VisitCountedByAttr(const clang::CountedByAttr *attr) {
