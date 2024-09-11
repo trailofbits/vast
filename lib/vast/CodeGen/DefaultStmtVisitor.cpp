@@ -832,7 +832,7 @@ namespace vast::cg
     }
 
     operation default_stmt_visitor::VisitMemberExpr(const clang::MemberExpr *expr) {
-        return bld.compose< hl::RecordMemberOp >()
+        return bld.compose< hl::MemberRefOp >()
             .bind(self.location(expr))
             .bind(visit_maybe_lvalue_result_type(expr))
             .bind_transform(self.visit(expr->getBase()), first_result)

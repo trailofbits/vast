@@ -331,7 +331,7 @@ def HighLevel_FieldDeclOp
   let assemblyFormat = [{ $sym_name attr-dict (`bw` $bits^)? `:` $type }];
 }
 
-def HighLevel_RecordMemberOp
+def HighLevel_MemberRefOp
   : HighLevel_Op< "member" >
   , Arguments<(ins AnyType:$record, FlatSymbolRefAttr:$field)>
   , Results<(outs AnyType:$element)>

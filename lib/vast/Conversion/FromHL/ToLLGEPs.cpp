@@ -22,9 +22,9 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast {
     namespace {
-        struct record_member_op : mlir::OpConversionPattern< hl::RecordMemberOp >
+        struct member_ref_op : mlir::OpConversionPattern< hl::MemberRefOp >
         {
-            using op_t = hl::RecordMemberOp;
+            using op_t = hl::MemberRefOp;
             using base = mlir::OpConversionPattern< op_t >;
             using base::base;
 
@@ -96,11 +96,11 @@ namespace vast {
 
             mlir::ConversionTarget trg(mctx);
             trg.markUnknownOpDynamicallyLegal([](auto) { return true; });
-            trg.addIllegalOp< hl::RecordMemberOp >();
+            trg.addIllegalOp< hl::MemberRefOp >();
 
             mlir::RewritePatternSet patterns(&mctx);
 
-            patterns.add< record_member_op >(&mctx);
+            patterns.add< member_ref_op >(&mctx);
 
             if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns)))) {
                 return signalPassFailure();

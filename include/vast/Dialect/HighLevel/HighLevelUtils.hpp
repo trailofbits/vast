@@ -82,9 +82,9 @@ namespace vast::hl {
         );
     }
 
-    // Given record `root` emit `hl::RecordMemberOp` for each its member.
+    // Given record `root` emit `hl::MemberRefOp` for each its member.
     auto generate_ptrs_to_record_members(operation root, auto loc, auto &bld)
-        ->  gap::generator< hl::RecordMemberOp >
+        ->  gap::generator< hl::MemberRefOp >
     {
         auto scope = root->getParentOfType< core::module >();
         VAST_ASSERT(scope);
@@ -96,11 +96,11 @@ namespace vast::hl {
             auto as_val = root->getResult(0);
             // `hl.member` requires type to be an lvalue.
             auto wrap_type = hl::LValueType::get(scope.getContext(), type);
-            co_yield bld.template create< hl::RecordMemberOp >(loc, wrap_type, as_val, name);
+            co_yield bld.template create< hl::MemberRefOp >(loc, wrap_type, as_val, name);
         }
     }
 
-    // Given record `root` emit `hl::RecordMemberOp` casted as rvalue for each
+    // Given record `root` emit `hl::MemberRefOp` casted as rvalue for each
     // its member.
     auto generate_values_of_record_members(operation root, auto &bld)
         -> gap::generator< hl::ImplicitCastOp >
