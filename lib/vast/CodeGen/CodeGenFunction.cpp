@@ -146,13 +146,13 @@ namespace vast::cg
     void function_generator::declare_function_params(const clang_function *decl, vast_function fn) {
         auto *entry_block = fn.addEntryBlock();
         auto params = llvm::zip(decl->parameters(), entry_block->getArguments());
+        auto _ = bld.scoped_insertion_at_start(entry_block);
         for (const auto &[param, earg] : params) {
             // TODO set alignment
 
             earg.setLoc(visitor.location(param).value());
             if (auto name = visitor.symbol(param)) {
-                // TODO set name
-                scope().declare_function_param(name.value(), earg);
+                visitor.visit(param);
             }
         }
     }

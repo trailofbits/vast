@@ -257,22 +257,28 @@ namespace vast::cg {
     }
 
     operation default_decl_visitor::VisitParmVarDecl(const clang::ParmVarDecl *decl) {
-        if (auto name = self.symbol(decl)) {
-            if (auto var = self.scope.lookup_var(name.value())) {
-                return var.getDefiningOp();
-            }
+        auto blk = bld.getInsertionBlock();
+        if (auto fn = mlir::dyn_cast< mlir::FunctionOpInterface >(blk->getParentOp())) {
+            auto param_index = decl->getFunctionScopeIndex();
+            return bld.compose< hl::ParmVarDeclOp >()
+                .bind(self.location(decl))
+                .bind(self.symbol(decl))
+                .bind(fn.getArgument(param_index))
+                .freeze();
         }
 
         return {};
     }
 
-    operation
-    default_decl_visitor::VisitImplicitParamDecl(const clang::ImplicitParamDecl * /* decl */) {
+    operation default_decl_visitor::VisitImplicitParamDecl(
+        const clang::ImplicitParamDecl * /* decl */
+    ) {
         return {};
     }
 
-    operation
-    default_decl_visitor::VisitLinkageSpecDecl(const clang::LinkageSpecDecl * /* decl */) {
+    operation default_decl_visitor::VisitLinkageSpecDecl(
+        const clang::LinkageSpecDecl * /* decl */
+    ) {
         return {};
     }
 
