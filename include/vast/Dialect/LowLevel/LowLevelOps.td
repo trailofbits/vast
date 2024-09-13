@@ -335,7 +335,13 @@ def LowLevel_ReturnOp
 }
 
 def LowLevel_Scope
-    : LowLevel_Op< "scope", [NoRegionArguments, NoTerminator] >
+    : LowLevel_Op< "scope", [
+        NoRegionArguments,
+        NoTerminator,
+        Core_ShadowingSymbolTable< [
+            [Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
+        ] >
+    ] >
 {
     let summary = "Scope, holds one region.";
     let description = [{ Scope that holds one region, each block should be terminated
