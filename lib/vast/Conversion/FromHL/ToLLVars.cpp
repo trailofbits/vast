@@ -75,24 +75,6 @@ namespace vast
                     return mlir::success();
                 }
 
-                // This deals with cases where the initializer references
-                // the variable itself - int *x = malloc(sizeof(*x));
-                // We can't reference the initialized value so we use the
-                // initialized one
-                auto fix_init_refs = [&](){
-                    auto var = op.getResult();
-                    for (auto user : op->getUsers()) {
-                        if (op->isAncestor(user)) {
-                            for (op_operand& operand : user->getOpOperands()) {
-                                if (operand.is(var)) {
-                                    user->setOperand(operand.getOperandNumber(), uninit_var);
-                                }
-                            }
-                        }
-                    }
-                };
-                rewriter.modifyOpInPlace(op, fix_init_refs);
-
                 auto yield = inline_init_region< hl::ValueYieldOp >(op, rewriter);
                 rewriter.setInsertionPointAfter(yield);
                 auto initialize = rewriter.create< ll::InitializeVar >(
