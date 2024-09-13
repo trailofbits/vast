@@ -57,8 +57,6 @@ namespace vast
 
     std::unique_ptr< mlir::Pass > createHLToHLBI();
 
-    std::unique_ptr< mlir::Pass > createFnArgsToAllocaPass();
-
     std::unique_ptr< mlir::Pass > createLowerValueCategoriesPass();
 
     // ToMem
