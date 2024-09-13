@@ -451,13 +451,13 @@ def HighLevel_ReturnOp
 
 def HighLevel_DeclRefOp
   : HighLevel_Op< "ref" >
-  , Arguments<(ins FlatSymbolRefAttr:$decl)>
+  , Arguments<(ins FlatSymbolRefAttr:$name)>
   , Results<(outs HighLevel_LValueOf<AnyType>:$result)>
 {
   let summary = "VAST variable reference declaration";
   let description = [{ VAST variable reference declaration }];
 
-  let assemblyFormat = "$decl attr-dict `:` type($result)";
+  let assemblyFormat = "$name attr-dict `:` type($result)";
 }
 
 def HighLevel_FuncRefOp
