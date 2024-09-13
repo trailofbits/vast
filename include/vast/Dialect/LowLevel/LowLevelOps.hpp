@@ -18,6 +18,8 @@ VAST_RELAX_WARNINGS
 VAST_RELAX_WARNINGS
 
 #include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolTableInterface.hpp"
+
 #include "vast/Interfaces/ElementTypeInterface.hpp"
 
 #include "vast/Dialect/Core/CoreTypes.hpp"

@@ -12,6 +12,7 @@ include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 include "vast/Interfaces/ElementTypeInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
+include "vast/Dialect/Core/Interfaces/SymbolTableInterface.td"
 
 include "vast/Dialect/Core/Func.td"
 
@@ -94,7 +95,7 @@ def LowLevel_Store
 }
 
 def LowLevel_Cell
-    : LowLevel_Op< "cell" >
+    : LowLevel_Op< "cell", [Core_VarSymbol] >
     , Arguments<(ins SymbolNameAttr:$sym_name)>
     , Results<(outs AnyType:$result)>
 {
