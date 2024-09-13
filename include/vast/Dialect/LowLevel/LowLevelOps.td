@@ -101,7 +101,7 @@ def Cell
     let summary = "Cell that holds the value and is accessible trhough SSA result.";
 
     let assemblyFormat = [{
-        operands attr-dict `:` functional-type(operands, results)
+        $sym_name attr-dict `:` type($result)
     }];
 }
 
