@@ -157,24 +157,6 @@ namespace vast::conv {
                 auto type = this->tc.convert_type_to_type(op.getType());
                 return rewriter.template create< ll::Alloca >(op.getLoc(), *type);
             }
-
-            auto initialize(auto allocation, mlir_value value, auto &rewriter) const {
-                return rewriter.template create< ll::Store >(
-                    allocation.getLoc(), value, allocation
-                );
-            }
-        };
-
-        template< typename op_t >
-        struct allocate_and_propagate : memory_allocation< op_t >
-        {
-            using base = memory_allocation< op_t >;
-
-            VAST_DEFINE_REWRITE {
-                auto ptr = this->allocate(op, rewriter);
-                rewriter.replaceOp(op, ptr);
-                return mlir::success();
-            }
         };
 
         template< typename op_t >
@@ -507,13 +489,13 @@ namespace vast::conv {
             auto trg = mlir::ConversionTarget(mctx);
 
             patterns.add< fallback >(tc, mctx);
-            patterns.add< store_and_forward_ptr< ll::InitializeVar > >(mctx, tc);
+            patterns.add< store_and_forward_ptr< ll::CellInit > >(mctx, tc);
             patterns
                 .add< ignore< hl::DeclRefOp >, ignore< hl::Deref >, ignore< hl::AddressOf > >(
                     mctx, tc
                 );
 
-            patterns.add< memory_allocation< ll::UninitializedVar > >(mctx, tc);
+            patterns.add< memory_allocation< ll::Cell > >(mctx, tc);
             patterns.add< subscript >(mctx, tc);
 
             // implicit casts
@@ -541,8 +523,7 @@ namespace vast::conv {
                 return op.getKind() != hl::CastKind::LValueToRValue && is_legal(op);
             });
 
-            trg.addIllegalOp<
-                ll::InitializeVar, hl::PreIncOp, hl::PreDecOp, hl::PostIncOp, hl::PreIncOp >();
+            trg.addIllegalOp< hl::PreIncOp, hl::PreDecOp, hl::PostIncOp, hl::PreIncOp >();
 
             // This will never have correct types but we want to have it legal.
             trg.addLegalOp< mlir::UnrealizedConversionCastOp >();
