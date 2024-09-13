@@ -51,8 +51,6 @@ namespace vast
 
     std::unique_ptr< mlir::Pass > createHLToLLGEPsPass();
 
-    std::unique_ptr< mlir::Pass > createHLToLLVarsPass();
-
     std::unique_ptr< mlir::Pass > createHLEmitLazyRegionsPass();
 
     std::unique_ptr< mlir::Pass > createHLToLLFuncPass();

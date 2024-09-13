@@ -7,5 +7,4 @@ add_vast_conversion_library(HighLevelConversionPasses
     ToLLCF.cpp
     ToLLFunc.cpp
     ToLLGEPs.cpp
-    ToLLVars.cpp
 )

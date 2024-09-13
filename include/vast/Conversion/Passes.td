@@ -168,20 +168,6 @@ def HLToLLGEPs : Pass<"vast-hl-to-ll-geps", "core::ModuleOp"> {
   ];
 }
 
-def HLToLLVars : Pass<"vast-hl-to-ll-vars", "core::ModuleOp"> {
-  let summary = "Convert hl variables into ll versions.";
-  let description = [{
-    This pass is still a work in progress.
-  }];
-
-  let constructor = "vast::createHLToLLVarsPass()";
-  let dependentDialects = [
-    "mlir::LLVM::LLVMDialect",
-    "vast::ll::LowLevelDialect",
-    "vast::core::CoreDialect"
-  ];
-}
-
 def HLToLLFunc : Pass<"vast-hl-to-ll-func", "core::ModuleOp"> {
   let summary = "Convert hl functions into ll versions.";
   let description = [{
