@@ -19,13 +19,66 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::conv {
 
+    namespace pattern {
+
+        struct var_to_cell : operation_conversion_pattern< hl::VarDeclOp >
+        {
+            using base = operation_conversion_pattern< hl::VarDeclOp >;
+            using base::base;
+
+            using adaptor_t = hl::VarDeclOp::Adaptor;
+
+            // Inline the region that is responsible for initialization
+            //  * `rewriter` insert point is invalidated (although documentation of called
+            //    methods does not state it, experimentally it is corrupted)
+            //  * terminator is returned to be used & erased by caller.
+            operation inline_init_region(auto src, auto &rewriter) const {
+                auto &init_region = src.getInitializer();
+                auto &init_block  = init_region.back();
+
+                auto terminator = init_block.getTerminator();
+                rewriter.inlineRegionBefore(init_region, src->getBlock());
+                rewriter.inlineBlockBefore(&init_block, src.getOperation());
+                return terminator;
+            }
+
+            logical_result matchAndRewrite(
+                hl::VarDeclOp op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                auto cell = rewriter.create< ll::Cell >(op.getLoc(), op.getType(), op.getSymName());
+
+                if (auto &init = op.getInitializer(); !init.empty()) {
+                    auto yield = inline_init_region(op, rewriter);
+                    rewriter.setInsertionPointAfter(yield);
+                    rewriter.create< ll::CellInit >(
+                        yield->getLoc(), op.getType(), cell, yield->getOperand(0)
+                    );
+                    rewriter.eraseOp(yield);
+                }
+
+                rewriter.replaceOp(op, cell);
+                return mlir::success();
+            }
+
+            static void legalize(conversion_target &trg) {
+                base::legalize(trg);
+                trg.addLegalOp< ll::Cell >();
+                trg.addLegalOp< ll::CellInit >();
+            }
+        };
+
+    } // namespace pattern
+
     struct VarsToCellsPass : ModuleConversionPassMixin< VarsToCellsPass, VarsToCellsBase >
     {
         using base = ModuleConversionPassMixin< VarsToCellsPass, VarsToCellsBase >;
 
         static conversion_target create_conversion_target(mcontext_t &mctx) {
-            conversion_target target(mctx);
-            return target;
+            return conversion_target(mctx);
+        }
+
+        static void populate_conversions(auto &cfg) {
+            base::populate_conversions< pattern::var_to_cell >(cfg);
         }
     };
 
