@@ -194,20 +194,6 @@ namespace vast::conv {
         };
 
         template< typename op_t >
-        struct with_store : memory_allocation< op_t >
-        {
-            using base = memory_allocation< op_t >;
-
-            VAST_DEFINE_REWRITE {
-                auto allocation = this->allocate(op, rewriter);
-                this->initialize(allocation, ops.getOperands()[0], rewriter);
-                rewriter.replaceOp(op, allocation);
-
-                return mlir::success();
-            }
-        };
-
-        template< typename op_t >
         struct as_load : base_pattern< op_t >
         {
             using base = base_pattern< op_t >;
@@ -521,7 +507,6 @@ namespace vast::conv {
             auto trg = mlir::ConversionTarget(mctx);
 
             patterns.add< fallback >(tc, mctx);
-            patterns.add< with_store< ll::ArgAlloca > >(mctx, tc);
             patterns.add< store_and_forward_ptr< ll::InitializeVar > >(mctx, tc);
             patterns
                 .add< ignore< hl::DeclRefOp >, ignore< hl::Deref >, ignore< hl::AddressOf > >(
