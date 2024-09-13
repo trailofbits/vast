@@ -67,6 +67,32 @@ namespace vast::conv {
             }
         };
 
+        struct param_to_cell : operation_conversion_pattern< hl::ParmVarDeclOp >
+        {
+            using base = operation_conversion_pattern< hl::ParmVarDeclOp >;
+            using base::base;
+
+            using adaptor_t = hl::ParmVarDeclOp::Adaptor;
+
+            logical_result matchAndRewrite(
+                hl::ParmVarDeclOp op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                auto param = op.getParam();
+                auto type  = param.getType();
+                auto loc   = op.getLoc();
+                auto cell = rewriter.create< ll::Cell >(loc, type, op.getSymName());
+                rewriter.create< ll::CellInit >(loc, type, cell, param);
+                rewriter.replaceOp(op, cell);
+                return mlir::success();
+            }
+
+            static void legalize(conversion_target &trg) {
+                base::legalize(trg);
+                trg.addLegalOp< ll::Cell >();
+                trg.addLegalOp< ll::CellInit >();
+            }
+        };
+
     } // namespace pattern
 
     struct VarsToCellsPass : ModuleConversionPassMixin< VarsToCellsPass, VarsToCellsBase >
@@ -78,7 +104,9 @@ namespace vast::conv {
         }
 
         static void populate_conversions(auto &cfg) {
+            // TODO: Deal only with local variables
             base::populate_conversions< pattern::var_to_cell >(cfg);
+            base::populate_conversions< pattern::param_to_cell >(cfg);
         }
     };
 
