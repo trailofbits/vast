@@ -35,10 +35,6 @@ namespace vast::conv::pipeline {
         return pass(createHLToLLFuncPass);
     }
 
-    pipeline_step_ptr fn_args_to_alloca() {
-        return pass(createFnArgsToAllocaPass);
-    }
-
     // FIXME: move to ToMem/Passes.cpp eventually
     pipeline_step_ptr vars_to_cells() {
         return pass(createVarsToCellsPass);
@@ -67,7 +63,6 @@ namespace vast::conv::pipeline {
             hl_to_ll_func,
             hl_to_ll_cf,
             hl_to_ll_geps,
-            fn_args_to_alloca,
             lower_value_categories,
             lazy_regions
         );
