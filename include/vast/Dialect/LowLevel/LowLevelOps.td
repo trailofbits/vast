@@ -42,18 +42,6 @@ def LowLevel_Subscript
   }];
 }
 
-def LowLevel_ArgAlloca
-    : LowLevel_Op< "arg_alloca" >
-    , Arguments<(ins AnyType:$fn_arg)>
-    , Results<(outs AnyType:$result)>
-{
-    let summary = "Alloca that holds the function argument.";
-
-    let assemblyFormat = [{
-        operands attr-dict `:` functional-type(operands, results)
-    }];
-}
-
 def LowLevel_Alloca
     : LowLevel_Op< "alloca" >,
       Results<(outs AnyType:$result)>
