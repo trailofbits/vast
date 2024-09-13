@@ -64,6 +64,8 @@ namespace vast
     std::unique_ptr< mlir::Pass > createLowerValueCategoriesPass();
 
     // ToMem
+    std::unique_ptr< mlir::Pass > createRefsToSSAPass();
+
     std::unique_ptr< mlir::Pass > createVarsToCellsPass();
 
     // Generate the code for registering passes.

@@ -90,6 +90,17 @@ def VarsToCells : Pass<"vast-vars-to-cells", "core::ModuleOp"> {
   ];
 }
 
+def RefsToSSA : Pass<"vast-refs-to-ssa", "core::ModuleOp"> {
+  let summary = "Lower `hl.ref` into ssa-based `ll.cell`.";
+  let description = [{ TBD }];
+
+  let constructor = "vast::createRefsToSSAPass()";
+  let dependentDialects = [
+    "vast::ll::LowLevelDialect",
+    "vast::hl::HighLevelDialect",
+  ];
+}
+
 def LowerValueCategories : Pass<"vast-lower-value-categories", "core::ModuleOp"> {
   let summary = "Lower `hl.lvalue` into explicit pointers and loads.";
   let description = [{
