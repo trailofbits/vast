@@ -93,6 +93,32 @@ def Store
     }];
 }
 
+def Cell
+    : LowLevel_Op< "cell" >
+    , Arguments<(ins SymbolNameAttr:$sym_name)>
+    , Results<(outs AnyType:$result)>
+{
+    let summary = "Cell that holds the value and is accessible trhough SSA result.";
+
+    let assemblyFormat = [{
+        operands attr-dict `:` functional-type(operands, results)
+    }];
+}
+
+def CellInit
+    : LowLevel_Op< "cell_init" >
+    , Arguments<(ins AnyType:$var, Variadic<AnyType>:$elements)>
+    , Results<(outs AnyType:$result)>
+{
+    let summary = "Cell initialization.";
+
+    let assemblyFormat = [{
+        operands attr-dict `:` functional-type(operands, results)
+    }];
+
+}
+
+// FIXME: This is to be removed once cells are properly implemented.
 def UninitializedVar
     : LowLevel_Op< "uninitialized_var", [Core_VarSymbol] >
     , Results<(outs AnyType:$result)>
@@ -107,6 +133,7 @@ def UninitializedVar
     }];
 }
 
+// FIXME: This is to be removed once cells are properly implemented.
 def InitializeVar
     : LowLevel_Op< "initialize" >
     , Arguments<(ins AnyType:$var, Variadic<AnyType>:$elements)>
