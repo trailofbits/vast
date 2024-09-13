@@ -12,14 +12,14 @@
 // REQUIRES: vast-query
 
 
-// FOO: hl.ref %0
+// FOO: hl.ref @a
 int foo() {
     int a;
     return a;
 }
 
-// MAIN: hl.ref %0
-// MAIN: hl.ref %0
+// MAIN: hl.ref @a
+// MAIN: hl.ref @b
 int main()
 {
     int a = 1, b = 1;

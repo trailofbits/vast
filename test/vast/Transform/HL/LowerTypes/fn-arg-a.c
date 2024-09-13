@@ -10,11 +10,10 @@ static const char base64encdec [] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq
 CURLcode Curl_base64_encode (const char *inputbuff, unsigned long insize,
                              char **outptr, unsigned long *outlen)
 {
-    // CHECK: {{.*}} = hl.ref %arg0 : (!hl.lvalue<!hl.ptr<si8>>) -> !hl.lvalue<!hl.ptr<si8>>
-    // CHECK: {{.*}} = hl.ref %arg1 : (!hl.lvalue<ui64>) -> !hl.lvalue<ui64>
-    // CHECK: {{.*}} = hl.ref %arg2 : (!hl.lvalue<!hl.ptr<!hl.ptr<si8>>>) -> !hl.lvalue<!hl.ptr<!hl.ptr<si8>>>
-    // CHECK: {{.*}} = hl.ref %arg3 : (!hl.lvalue<!hl.ptr<ui64>>) -> !hl.lvalue<!hl.ptr<ui64>>
-
+    // CHECK: hl.param @inputbuff = %arg0 : !hl.lvalue<!hl.ptr<si8>>
+    // CHECK: hl.param @insize = %arg1 : !hl.lvalue<ui64>
+    // CHECK: hl.param @outptr = %arg2 : !hl.lvalue<!hl.ptr<!hl.ptr<si8>>>
+    // CHECK: hl.param @outlen = %arg3 : !hl.lvalue<!hl.ptr<ui64>>
 
     return base64_encode(base64encdec, inputbuff, insize, outptr, outlen) ;
 }

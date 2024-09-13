@@ -6,7 +6,7 @@
 int switch_init(int num)
 {
     // CHECK: core.scope {
-    // CHECK:   [[V:%[0-9]+]] = hl.var @v : !hl.lvalue<!hl.int>
+    // CHECK: hl.var @v : !hl.lvalue<!hl.int>
     // CHECK:   hl.switch {
     // CHECK:       [[V2:%[0-9]+]] = hl.ref [[V]]
     // CHECK:       [[V3:%[0-9]+]] = hl.implicit_cast [[V2]]

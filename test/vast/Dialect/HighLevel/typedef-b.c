@@ -7,7 +7,7 @@ typedef int INT;
 typedef long INT2;
 // CHECK: hl.func @fun {{.*}} ([[A0:%arg[0-9]+]]: !hl.lvalue<!hl.elaborated<!hl.typedef<"INT">>>, [[A1:%arg[0-9]+]]: !hl.lvalue<!hl.elaborated<!hl.typedef<"INT2">>>) -> !hl.elaborated<!hl.typedef<"INT">>
 INT fun(INT a, INT2 b) {
-    // CHECK: [[V0:%[0-9]+]] = hl.ref [[A0]]
+    // CHECK: [[V0:%[0-9]+]] = hl.ref @a
     // CHECK: [[V1:%[0-9]+]] = hl.post.inc [[V0]] : !hl.lvalue<!hl.elaborated<!hl.typedef<"INT">>> -> !hl.elaborated<!hl.typedef<"INT">>
     a++;
     // CHECK: [[LOR:%[0-9]+]] = hl.bin.lor {
@@ -19,16 +19,16 @@ INT fun(INT a, INT2 b) {
         // CHECK: } : !hl.int
     // CHECK! hl.cond.yield [[LOR]] : hl.int
     if(a == b || !b)
-    // CHECK: [[V0:%[0-9]+]] = hl.ref [[A1]]
+    // CHECK: [[V0:%[0-9]+]] = hl.ref @b
     // CHECK: [[V1:%[0-9]+]] = hl.post.inc [[V0]] : !hl.lvalue<!hl.elaborated<!hl.typedef<"INT2">>> -> !hl.elaborated<!hl.typedef<"INT2">>
         b++;
-    // CHECK: [[C:%[0-9]+]] = hl.var @c : !hl.lvalue<!hl.int> = {
+    // CHECK: hl.var @c : !hl.lvalue<!hl.int> = {
         // CHECK: [[SHL:%[0-9]+]] = hl.bin.shl [[X:%[0-9]+]], [[Y:%[0-9]+]] : (!hl.elaborated<!hl.typedef<"INT2">>, !hl.int) -> !hl.elaborated<!hl.typedef<"INT2">>
     // CHECK: }
     int c = b<<1;
     // CHECK: [[SHR:%[0-9]+]] = hl.bin.ashr [[X:%[0-9]+]], [[Y:%[0-9]+]] : (!hl.elaborated<!hl.typedef<"INT">>, !hl.int) -> !hl.elaborated<!hl.typedef<"INT">>
     c = a>>1;
-    // CHECK: [[PTR:%[0-9]+]] = hl.var @ptr : !hl.lvalue<!hl.ptr<!hl.elaborated<!hl.typedef<"INT">>>> = {
+    // CHECK: hl.var @ptr : !hl.lvalue<!hl.ptr<!hl.elaborated<!hl.typedef<"INT">>>> = {
         // CHECK: hl.addressof [[X:%[0-9]+]] : !hl.lvalue<!hl.elaborated<!hl.typedef<"INT">>> -> !hl.ptr<!hl.elaborated<!hl.typedef<"INT">>>
     // CHECK: }
     INT *ptr = &a;

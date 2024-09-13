@@ -3,6 +3,6 @@ typedef int INT;
 
 // CHECK: hl.func @fn {{.*}} ([[A1:%arg[0-9]+]]: !hl.lvalue<!hl.int>) -> !hl.int
 int fn(INT x) {
-    // CHECK: hl.ref [[A1]] : (!hl.lvalue<!hl.int>) -> !hl.lvalue<!hl.int>
+    // CHECK: hl.ref @x : !hl.lvalue<!hl.int>
     return x;
 }

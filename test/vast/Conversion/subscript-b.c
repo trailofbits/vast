@@ -2,10 +2,10 @@
 // RUN: %check-lower-value-categories %s | %file-check %s -check-prefix=VAL_CAT
 // RUN: %check-core-to-llvm %s | %file-check %s -check-prefix=C_LLVM
 
-// STD_TYPES: {{.*}} = hl.var @arr1 : !hl.lvalue<!hl.array<3, si32>> = {
+// STD_TYPES: hl.var @arr1 : !hl.lvalue<!hl.array<3, si32>> = {
 
 
-// VAL_CAT: {{.*}} = hl.var @arr1 : !hl.ptr<!hl.array<3, si32>> = {
+// VAL_CAT: hl.var @arr1 : !hl.ptr<!hl.array<3, si32>> = {
 // VAL_CAT:    hl.value.yield {{.*}} : !hl.array<3, si32>
 
 

@@ -3,9 +3,8 @@
 
 int load(int* p) {
     // CHECK: unsup.stmt "AtomicExpr"
-    // CHECK: hl.ref %arg0
+    // CHECK: hl.ref @p
     // CHECK: hl.const #core.integer<5>
     int q = __atomic_load_n (p, __ATOMIC_SEQ_CST);
     return q;
 }
-

@@ -7,9 +7,9 @@ int main() {
 
     int v;
 
-    // CHECK: [[V:%[0-9]+]] = hl.var @v : !hl.lvalue<!hl.int>
-    // CHECK: [[SV:%[0-9]+]] = hl.var @sv : !hl.lvalue<!hl.long< unsigned >>
+    // CHECK: hl.var @v : !hl.lvalue<!hl.int>
+    // CHECK: hl.var @sv : !hl.lvalue<!hl.long< unsigned >>
     // CHECK: hl.sizeof.expr -> !hl.long< unsigned >
-    // CHECK:  hl.ref [[V]]
+    // CHECK:  hl.ref @v
     unsigned long sv = sizeof v;
 }

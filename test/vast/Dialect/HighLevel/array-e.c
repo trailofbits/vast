@@ -3,7 +3,7 @@
 
 void foo(int size) {
     // CHECK: hl.var @arr : !hl.lvalue<!hl.array<?, !hl.int>> allocation_size {
-    // CHECK:   hl.ref %arg0
+    // CHECK:   hl.ref @size
     int arr[size];
 }
 
@@ -17,10 +17,10 @@ void bar() {
 
 void baz(int x) {
     // CHECK: hl.var @Y : !hl.lvalue<!hl.array<?, !hl.int>> allocation_size
-    // CHECK:   hl.ref %arg0
+    // CHECK:   hl.ref @x
     int Y[x];
     ++x;
     // CHECK: hl.var @Z : !hl.lvalue<!hl.array<?, !hl.int>> allocation_size
-    // CHECK:   hl.ref %arg0
+    // CHECK:   hl.ref @x
     int Z[x];
 }
