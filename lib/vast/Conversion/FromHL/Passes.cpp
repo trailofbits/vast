@@ -25,11 +25,6 @@ namespace vast::conv::pipeline {
         return pass(createHLToLLGEPsPass);
     }
 
-    pipeline_step_ptr hl_to_ll_vars() {
-        // TODO add dependencies
-        return pass(createHLToLLVarsPass);
-    }
-
     pipeline_step_ptr lazy_regions() {
         // TODO add dependencies
         return pass(createHLEmitLazyRegionsPass);
@@ -70,7 +65,6 @@ namespace vast::conv::pipeline {
     pipeline_step_ptr to_ll() {
         return compose( "to-ll",
             hl_to_ll_func,
-            hl_to_ll_vars,
             hl_to_ll_cf,
             hl_to_ll_geps,
             fn_args_to_alloca,
