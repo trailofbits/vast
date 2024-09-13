@@ -44,8 +44,21 @@ namespace vast::conv::pipeline {
         return pass(createFnArgsToAllocaPass);
     }
 
+    // FIXME: move to ToMem/Passes.cpp eventually
+    pipeline_step_ptr vars_to_cells() {
+        return pass(createVarsToCellsPass);
+    }
+
+    pipeline_step_ptr to_mem() {
+        return compose("to-mem",
+            vars_to_cells
+        );
+    }
+
+
     pipeline_step_ptr lower_value_categories() {
-        return pass(createLowerValueCategoriesPass);
+        return pass(createLowerValueCategoriesPass)
+            .depends_on(to_mem);
     }
 
     pipeline_step_ptr to_ll() {

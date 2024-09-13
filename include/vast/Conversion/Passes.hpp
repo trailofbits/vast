@@ -63,6 +63,9 @@ namespace vast
 
     std::unique_ptr< mlir::Pass > createLowerValueCategoriesPass();
 
+    // ToMem
+    std::unique_ptr< mlir::Pass > createVarsToCellsPass();
+
     // Generate the code for registering passes.
     #define GEN_PASS_REGISTRATION
     #include "vast/Conversion/Passes.h.inc"
@@ -75,6 +78,8 @@ namespace vast
         pipeline_step_ptr core_to_llvm();
 
         pipeline_step_ptr to_ll();
+
+        pipeline_step_ptr to_mem();
 
         pipeline_step_ptr to_llvm();
 
