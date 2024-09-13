@@ -49,9 +49,15 @@ namespace vast::conv::pipeline {
         return pass(createVarsToCellsPass);
     }
 
+    pipeline_step_ptr refs_to_ssa() {
+        return pass(createRefsToSSAPass)
+            .depends_on(vars_to_cells);
+    }
+
     pipeline_step_ptr to_mem() {
         return compose("to-mem",
-            vars_to_cells
+            vars_to_cells,
+            refs_to_ssa
         );
     }
 
