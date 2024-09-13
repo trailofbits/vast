@@ -10,23 +10,23 @@ struct bitfield {
 };
 
 void foo() {
-    // CHECK: [[A:%[0-9]+]] = hl.var @a : !hl.lvalue<!hl.array<2, !hl.int>>
+    // CHECK: hl.var @a : !hl.lvalue<!hl.array<2, !hl.int>>
     int a[2];
-    // CHECK: [[I:%[0-9]+]] = hl.var @i : !hl.lvalue<!hl.int>
+    // CHECK: hl.var @i : !hl.lvalue<!hl.int>
     int i;
-    // CHECK: [[J:%[0-9]+]] = hl.var @j : !hl.lvalue<!hl.int< const >>
+    // CHECK: hl.var @j : !hl.lvalue<!hl.int< const >>
     const int j;
-    //CHECK: [[BF:%[0-9]+]] = hl.var @bf : !hl.lvalue<!hl.elaborated<!hl.record<"bitfield">>>
+    // CHECK: hl.var @bf : !hl.lvalue<!hl.elaborated<!hl.record<"bitfield">>>
     struct bitfield bf;
 
     // these are all lvalues
-    // CHECK: hl.ref [[A]]
+    // CHECK: hl.ref @a
     a;
-    // CHECK: hl.ref [[I]]
+    // CHECK: hl.ref @i
     i;
-    // CHECK: hl.ref [[J]]
+    // CHECK: hl.ref @j
     j;
-    // CHECK: [[R:%[0-9]+]] = hl.ref [[BF]]
+    // CHECK: [[R:%[0-9]+]] = hl.ref @bf
     // CHECK: hl.member [[R]] at @x : !hl.lvalue<!hl.elaborated<!hl.record<"bitfield">>> -> !hl.lvalue<!hl.int< unsigned >>
     bf.x;
 

@@ -4,7 +4,7 @@
 // CHECK: hl.func @foo external ([[ARG1:%[a-z0-9]+]]: !hl.lvalue<!hl.int>)
 int foo();
 int foo(int x) {
-// CHECK: hl.ref [[ARG1]]
+// CHECK: hl.ref @x
     if (x != 0) {
         return 1;
     }

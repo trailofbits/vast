@@ -12,7 +12,7 @@
 // LL_CF:        [[B1V8:%[0-9]+]] = hl.implicit_cast [[B1V7]] IntegralCast : si32 -> i1
 // LL_CF:        ll.cond_scope_ret [[B1V8]] : i1, ^bb2
 // LL_CF:      ^bb2:  // 2 preds: ^bb0, ^bb1
-// LL_CF:        [[V4:%[0-9]+]] = hl.ref [[ARG0]] : (!hl.lvalue<si32>) -> !hl.lvalue<si32>
+// LL_CF:        [[V4:%[0-9]+]] = hl.ref [[ARG0]] : !hl.lvalue<si32>
 // LL_CF:        [[V5:%[0-9]+]] = hl.implicit_cast [[V4]] LValueToRValue : !hl.lvalue<si32> -> si32
 // LL_CF:        [[V6:%[0-9]+]] = hl.const #core.integer<42> : si32
 // LL_CF:        [[V7:%[0-9]+]] = hl.cmp eq [[V5]], [[V6]] : si32, si32 -> si32
@@ -21,7 +21,7 @@
 // LL_CF:      ^bb3:  // pred: ^bb2
 // LL_CF:        ll.scope_ret
 // LL_CF:      ^bb4:  // pred: ^bb2
-// LL_CF:        [[V9:%[0-9]+]] = hl.ref [[V3]] : (!hl.lvalue<si32>) -> !hl.lvalue<si32>
+// LL_CF:        [[V9:%[0-9]+]] = hl.ref [[V3]] : !hl.lvalue<si32>
 // LL_CF:        [[V10:%[0-9]+]] = hl.post.inc [[V9]] : !hl.lvalue<si32> -> si32
 // LL_CF:        ll.br ^bb1
 // LL_CF:      }

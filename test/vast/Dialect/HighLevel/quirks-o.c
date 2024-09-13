@@ -7,16 +7,16 @@
 int foo(int* ptr, int index) {
     // When indexing, the pointer and integer parts
     // of the subscript expression are interchangeable.
-    // CHECK: [[P:%[0-9]+]] = hl.ref %arg0
+    // CHECK: [[P:%[0-9]+]] = hl.ref @ptr
     // CHECK: [[PC:%[0-9]+]] = hl.implicit_cast [[P]] LValueToRValue : !hl.lvalue<!hl.ptr<!hl.int>> -> !hl.ptr<!hl.int>
-    // CHECK: [[I:%[0-9]+]] = hl.ref %arg1
+    // CHECK: [[I:%[0-9]+]] = hl.ref @index
     // CHECK: [[IC:%[0-9]+]] = hl.implicit_cast [[I]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int
 
     // CHECK: hl.subscript [[PC]] at [{{%.*}} : !hl.int] : !hl.ptr<!hl.int> -> !hl.lvalue<!hl.int>
 
-    // CHECK: [[P:%[0-9]+]] = hl.ref %arg0
+    // CHECK: [[P:%[0-9]+]] = hl.ref @ptr
     // CHECK: [[PC:%[0-9]+]] = hl.implicit_cast [[P]] LValueToRValue : !hl.lvalue<!hl.ptr<!hl.int>> -> !hl.ptr<!hl.int>
-    // CHECK: [[I:%[0-9]+]] = hl.ref %arg1
+    // CHECK: [[I:%[0-9]+]] = hl.ref @index
     // CHECK: [[IC:%[0-9]+]] = hl.implicit_cast [[I]] LValueToRValue : !hl.lvalue<!hl.int> -> !hl.int
     // CHECK: hl.subscript [[PC]] at [{{%.*}} : !hl.int] : !hl.ptr<!hl.int> -> !hl.lvalue<!hl.int>
     return ptr[index] + index[ptr];

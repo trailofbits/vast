@@ -3,7 +3,7 @@
 
 void foo(int test) {
 
-    // CHECK: [[PTR:%[0-9]+]] = hl.var
+    // CHECK: hl.var
     void *ptr;
 
     if (test)
@@ -14,7 +14,7 @@ void foo(int test) {
         ptr = &&bar;
 
     // CHECK: hl.indirect_goto : {
-    // CHECK: hl.ref [[PTR]]
+    // CHECK: hl.ref @ptr
     // CHECK: }
     goto *ptr;
 
