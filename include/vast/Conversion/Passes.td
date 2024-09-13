@@ -79,6 +79,17 @@ def FnArgsToAlloca : Pass<"vast-fn-args-to-alloca", "core::ModuleOp"> {
   ];
 }
 
+def VarsToCells : Pass<"vast-vars-to-cells", "core::ModuleOp"> {
+  let summary = "Lower `hl.var` into ssa-based `ll.cell`.";
+  let description = [{ TBD }];
+
+  let constructor = "vast::createVarsToCellsPass()";
+  let dependentDialects = [
+    "vast::ll::LowLevelDialect",
+    "vast::hl::HighLevelDialect",
+  ];
+}
+
 def LowerValueCategories : Pass<"vast-lower-value-categories", "core::ModuleOp"> {
   let summary = "Lower `hl.lvalue` into explicit pointers and loads.";
   let description = [{
