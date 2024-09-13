@@ -324,49 +324,6 @@ namespace vast::conv::irstollvm
         }
     };
 
-
-    struct uninit_var : base_pattern< ll::UninitializedVar >
-    {
-        using op_t = ll::UninitializedVar;
-        using base = base_pattern< op_t >;
-        using base::base;
-
-        logical_result matchAndRewrite(
-                op_t op, typename op_t::Adaptor ops,
-                conversion_rewriter &rewriter) const override
-        {
-            auto et = converted_element_type(op.getType());
-            auto alloca = mk_alloca(rewriter, convert(op.getType()), et, op.getLoc());
-            rewriter.replaceOp(op, alloca);
-
-            return logical_result::success();
-        }
-    };
-
-    struct initialize_var : base_pattern< ll::InitializeVar >,
-                            value_builder< initialize_var >
-    {
-        using op_t = ll::InitializeVar;
-        using base = base_pattern< op_t >;
-        using base::base;
-
-        logical_result matchAndRewrite(
-                op_t op, typename op_t::Adaptor ops,
-                conversion_rewriter &rewriter) const override
-        {
-            auto element = this->construct_value(rewriter, ops.getElements()[0]);
-            auto ptr = ops.getVar();
-
-            rewriter.template create< LLVM::StoreOp >(
-                    element.getLoc(),
-                    element,
-                    ptr);
-            rewriter.replaceOp(op, ptr);
-
-            return logical_result::success();
-        }
-    };
-
     struct init_list_expr : base_pattern< hl::InitListExpr >,
                             value_builder< init_list_expr >
     {
@@ -457,8 +414,6 @@ namespace vast::conv::irstollvm
     };
 
     using init_conversions = util::type_list<
-        uninit_var,
-        initialize_var,
         init_list_expr,
         vardecl,
         global_ref
