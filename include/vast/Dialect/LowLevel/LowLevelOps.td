@@ -12,6 +12,7 @@ include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 include "vast/Interfaces/ElementTypeInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
+include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 include "vast/Dialect/Core/Interfaces/SymbolTableInterface.td"
 
 include "vast/Dialect/Core/Func.td"
@@ -362,6 +363,12 @@ def LowLevel_InlineScope
     let regions = (region AnyRegion:$body);
 }
 
-def LowLevel_FuncOp : Core_FuncBaseOp< LowLevel_Dialect, "func", [] > {}
+def LowLevel_FuncOp : Core_FuncBaseOp< LowLevel_Dialect, "func", [
+    Core_FuncSymbol,
+    Core_ShadowingSymbolTable< [
+      [Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
+    ] >,
+    IsolatedFromAbove
+] > {}
 
 #endif // VAST_DIALECT_IR_LOWLEVELOPS
