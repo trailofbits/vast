@@ -108,12 +108,8 @@ namespace vast::hl
         }
 
         if (auto sym = callee.dyn_cast< mlir::SymbolRefAttr >()) {
-            auto st = core::get_effective_symbol_table_for< core::func_symbol >(from);
-            VAST_CHECK(st, "No effective symbol table found for function type resolution.");
-
-            auto fn = st->lookup< core::func_symbol >(sym.getRootReference());
+            auto fn = core::symbol_table::lookup< core::func_symbol >(from, sym.getRootReference());
             VAST_CHECK(fn, "Function {} not present in the symbol table.", sym.getRootReference());
-
             return mlir::cast< FuncOp >(fn).getFunctionType();
         }
 
