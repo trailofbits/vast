@@ -65,6 +65,27 @@ def IRsToLLVM : Pass<"vast-irs-to-llvm", "mlir::ModuleOp"> {
   ];
 }
 
+def RefsToSSA : Pass<"vast-refs-to-ssa", "core::ModuleOp"> {
+  let summary = "Lower `hl.ref` into ssa-based `ll.cell`.";
+  let description = [{ TBD }];
+
+  let constructor = "vast::createRefsToSSAPass()";
+  let dependentDialects = [
+    "vast::ll::LowLevelDialect",
+    "vast::hl::HighLevelDialect",
+  ];
+}
+
+def StripParamLValues : Pass<"vast-strip-param-lvalues", "core::ModuleOp"> {
+  let summary = "Strip `hl.lvalue` from types in the module.";
+  let description = [{ TBD }];
+
+  let constructor = "vast::createStripParamLValuesPass()";
+  let dependentDialects = [
+    "vast::hl::HighLevelDialect",
+  ];
+}
+
 def VarsToCells : Pass<"vast-vars-to-cells", "core::ModuleOp"> {
   let summary = "Lower `hl.var` into ssa-based `ll.cell`.";
   let description = [{ TBD }];
@@ -76,16 +97,6 @@ def VarsToCells : Pass<"vast-vars-to-cells", "core::ModuleOp"> {
   ];
 }
 
-def RefsToSSA : Pass<"vast-refs-to-ssa", "core::ModuleOp"> {
-  let summary = "Lower `hl.ref` into ssa-based `ll.cell`.";
-  let description = [{ TBD }];
-
-  let constructor = "vast::createRefsToSSAPass()";
-  let dependentDialects = [
-    "vast::ll::LowLevelDialect",
-    "vast::hl::HighLevelDialect",
-  ];
-}
 
 def LowerValueCategories : Pass<"vast-lower-value-categories", "core::ModuleOp"> {
   let summary = "Lower `hl.lvalue` into explicit pointers and loads.";

@@ -62,6 +62,8 @@ namespace vast
     // ToMem
     std::unique_ptr< mlir::Pass > createRefsToSSAPass();
 
+    std::unique_ptr< mlir::Pass > createStripParamLValuesPass();
+
     std::unique_ptr< mlir::Pass > createVarsToCellsPass();
 
     // Generate the code for registering passes.
