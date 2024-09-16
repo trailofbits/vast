@@ -92,7 +92,7 @@ namespace vast::hl {
         } // namespace pattern
     } // namespace
 
-    struct LowerTypeDefs : ModuleConversionPassMixin< LowerTypeDefs, LowerTypeDefsBase >
+    struct LowerTypeDefs : ConversionPassMixin< LowerTypeDefs, LowerTypeDefsBase >
     {
         static auto create_conversion_target(mcontext_t &mctx) {
             mlir::ConversionTarget trg(mctx);

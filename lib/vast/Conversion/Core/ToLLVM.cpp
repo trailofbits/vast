@@ -259,9 +259,9 @@ namespace vast
 
     } //namespace pattern
 
-    struct CoreToLLVMPass : ModuleConversionPassMixin< CoreToLLVMPass, CoreToLLVMBase >
+    struct CoreToLLVMPass : ConversionPassMixin< CoreToLLVMPass, CoreToLLVMBase >
     {
-        using base = ModuleConversionPassMixin< CoreToLLVMPass, CoreToLLVMBase >;
+        using base = ConversionPassMixin< CoreToLLVMPass, CoreToLLVMBase >;
 
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);

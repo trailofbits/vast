@@ -407,9 +407,9 @@ namespace vast::conv {
         }
     };
 
-    struct HLToHLBIPass : ModuleConversionPassMixin< HLToHLBIPass, HLToHLBIBase >
+    struct HLToHLBIPass : ConversionPassMixin< HLToHLBIPass, HLToHLBIBase >
     {
-        using base = ModuleConversionPassMixin< HLToHLBIPass, HLToHLBIBase >;
+        using base = ConversionPassMixin< HLToHLBIPass, HLToHLBIBase >;
 
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);

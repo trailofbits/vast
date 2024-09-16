@@ -110,7 +110,7 @@ namespace vast {
     // base class for module conversion passes providing common functionality
     //
     template< typename derived, template< typename > typename base >
-    struct ModuleConversionPassMixinBase
+    struct ConversionPassMixinBase
         : base< derived >
         , populate_patterns< derived >
     {
@@ -165,8 +165,8 @@ namespace vast {
     //
     // Example usage:
     //
-    // struct ExamplePass : ModuleConversionPassMixin<ExamplePass, ExamplePassBase> {
-    //     using base = ModuleConversionPassMixin<ExamplePass, ExamplePassBase>;
+    // struct ExamplePass : ConversionPassMixin<ExamplePass, ExamplePassBase> {
+    //     using base = ConversionPassMixin<ExamplePass, ExamplePassBase>;
     //
     //     static conversion_target create_conversion_target(mcontext_t &context) {
     //         conversion_target target(context);
@@ -182,7 +182,7 @@ namespace vast {
     // }
     //
     template< typename derived, template< typename > typename base >
-    struct ModuleConversionPassMixin : ModuleConversionPassMixinBase< derived, base >
+    struct ConversionPassMixin : ConversionPassMixinBase< derived, base >
     {
         base_conversion_config make_config() {
             auto &ctx = this->getContext();
@@ -196,8 +196,8 @@ namespace vast {
     //
     // Example usage:
     //
-    // struct ExamplePass : ModuleLLVMConversionPassMixin<ExamplePass, ExamplePassBase> {
-    //     using base = ModuleLLVMConversionPassMixin<ExamplePass, ExamplePassBase>;
+    // struct ExamplePass : LLVMConversionPassMixin<ExamplePass, ExamplePassBase> {
+    //     using base = LLVMConversionPassMixin<ExamplePass, ExamplePassBase>;
     //
     //     static conversion_target create_conversion_target(mcontest_t &context) {
     //         conversion_target target(context);
@@ -213,8 +213,8 @@ namespace vast {
     // }
     //
     template< typename derived, template< typename > typename base >
-    struct ModuleLLVMConversionPassMixin
-        : ModuleConversionPassMixinBase< derived, base >
+    struct LLVMConversionPassMixin
+        : ConversionPassMixinBase< derived, base >
     {
         std::shared_ptr< llvm_type_converter > tc;
 

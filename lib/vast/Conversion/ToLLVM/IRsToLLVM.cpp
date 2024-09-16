@@ -1502,9 +1502,9 @@ namespace vast::conv::irstollvm
         ll_alloca
     >;
 
-    struct IRsToLLVMPass : ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >
+    struct IRsToLLVMPass : LLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >
     {
-        using base = ModuleLLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >;
+        using base = LLVMConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >;
 
         static conversion_target create_conversion_target(mcontext_t &context, auto &tc) {
             conversion_target target(context);

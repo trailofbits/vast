@@ -47,9 +47,9 @@ namespace vast::conv {
 
     } // namespace pattern
 
-    struct RefsToSSAPass : ModuleConversionPassMixin< RefsToSSAPass, RefsToSSABase >
+    struct RefsToSSAPass : ConversionPassMixin< RefsToSSAPass, RefsToSSABase >
     {
-        using base = ModuleConversionPassMixin< RefsToSSAPass, RefsToSSABase >;
+        using base = ConversionPassMixin< RefsToSSAPass, RefsToSSABase >;
 
         static conversion_target create_conversion_target(mcontext_t &mctx) {
             return conversion_target(mctx);

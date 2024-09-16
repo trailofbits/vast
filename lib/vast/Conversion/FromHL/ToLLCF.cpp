@@ -497,9 +497,9 @@ namespace vast::conv {
 
     } // namespace pattern
 
-    struct HLToLLCF : ModuleConversionPassMixin< HLToLLCF, HLToLLCFBase >
+    struct HLToLLCF : ConversionPassMixin< HLToLLCF, HLToLLCFBase >
     {
-        using base = ModuleConversionPassMixin< HLToLLCF, HLToLLCFBase >;
+        using base = ConversionPassMixin< HLToLLCF, HLToLLCFBase >;
 
         static auto create_conversion_target(mcontext_t &mctx) {
             mlir::ConversionTarget trg(mctx);

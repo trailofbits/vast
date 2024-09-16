@@ -556,9 +556,9 @@ namespace vast
     } // namespace
     } // namespace pattern
 
-    struct LowerABI : ModuleConversionPassMixin< LowerABI, LowerABIBase >
+    struct LowerABI : ConversionPassMixin< LowerABI, LowerABIBase >
     {
-        using base = ModuleConversionPassMixin< LowerABI, LowerABIBase >;
+        using base = ConversionPassMixin< LowerABI, LowerABIBase >;
 
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);
