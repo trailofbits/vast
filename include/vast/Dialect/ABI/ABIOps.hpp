@@ -22,6 +22,7 @@ VAST_RELAX_WARNINGS
 #include "vast/Dialect/Core/CoreAttributes.hpp"
 #include "vast/Dialect/Core/Func.hpp"
 #include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolTableInterface.hpp"
 
 #define GET_OP_CLASSES
 #include "vast/Dialect/ABI/ABI.h.inc"
