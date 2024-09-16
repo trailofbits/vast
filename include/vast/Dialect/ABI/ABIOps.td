@@ -10,6 +10,9 @@ include "mlir/IR/OpBase.td"
 include "vast/Dialect/Core/CommonAttrConstraints.td"
 include "vast/Dialect/Core/Func.td"
 
+include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
+include "vast/Dialect/Core/Interfaces/SymbolTableInterface.td"
+
 def DirectOp
     : ABI_Op< "direct" >
     , Arguments<(ins Variadic<AnyType>:$value)>
@@ -196,7 +199,13 @@ class ABIFuncBase< string mnemonic, list< Trait> traits = [] >
   : Core_FuncBaseOp< ABI_Dialect, mnemonic, traits >
 {}
 
-def FuncOp : ABIFuncBase< "func" >
+def FuncOp : ABIFuncBase< "func", [
+    Core_FuncSymbol,
+    Core_ShadowingSymbolTable< [
+      [Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
+    ] >,
+    IsolatedFromAbove
+] >
 {
     let summary = [{ Function with transformed type. }];
 }
