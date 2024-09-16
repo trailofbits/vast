@@ -82,6 +82,25 @@ namespace vast {
         }
     };
 
+
+    template< typename type_converter >
+    struct type_converting_conversion_config : base_conversion_config {
+        type_converter &tc;
+
+        type_converting_conversion_config(
+            rewrite_pattern_set patterns,
+            conversion_target target,
+            type_converter &tc
+        )
+            : base_conversion_config{std::move(patterns), std::move(target)}, tc(tc)
+        {}
+
+        template< typename pattern >
+        void add_pattern() {
+            patterns.template add< pattern >(tc, patterns.getContext());
+        }
+    };
+
     // Configuration class for LLVM conversion
     using llvm_type_converter = conv::tc::FullLLVMTypeConverter;
 
@@ -187,6 +206,18 @@ namespace vast {
         base_conversion_config make_config() {
             auto &ctx = this->getContext();
             return { rewrite_pattern_set(&ctx), derived::create_conversion_target(ctx) };
+        }
+    };
+
+    template< typename derived, template< typename > typename base, typename type_converter >
+    struct TypeConvertingConversionPassMixin : ConversionPassMixinBase< derived, base >
+    {
+        std::shared_ptr< type_converter > tc;
+
+        type_converting_conversion_config< type_converter > make_config() {
+            auto &ctx = this->getContext();
+            tc = std::make_shared< type_converter >(ctx);
+            return { rewrite_pattern_set(&ctx), derived::create_conversion_target(ctx), *tc };
         }
     };
 

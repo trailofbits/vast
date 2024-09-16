@@ -97,6 +97,9 @@ namespace vast {
 
         generic_conversion_pattern(mlir::TypeConverter &tc, mcontext_t &mctx)
             : base(tc, mlir::Pattern::MatchAnyOpTypeTag{}, 1, &mctx) {}
+
+        generic_conversion_pattern(mlir::TypeConverter &tc, mcontext_t *mctx)
+            : base(tc, mlir::Pattern::MatchAnyOpTypeTag{}, 1, mctx) {}
     };
 
     template< typename op_t >
