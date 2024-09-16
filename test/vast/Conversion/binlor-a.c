@@ -1,4 +1,4 @@
-// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt-irs-to-llvm | %file-check %s
+// RUN: %vast-cc1 -vast-emit-mlir=llvm %s -o - | %file-check %s
 
 int fun(int arg1, int arg2) {
     int res = arg1 || arg2;
