@@ -30,10 +30,8 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 hl::DeclRefOp op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                auto st = core::get_effective_symbol_table_for< core::var_symbol >(op);
-                VAST_CHECK(st, "No effective symbol table found for variable reference resolution.");
+                auto var = core::symbol_table::lookup< core::var_symbol >(op, op.getName());
 
-                auto var = st->lookup< core::var_symbol >(op.getName());
                 VAST_CHECK(var, "Variable {} not present in the symbol table.", op.getName());
                 VAST_CHECK(mlir::isa< ll::Cell >(var), "Variable {} is not a cell."
                     "Lower variable to cells before lowering of references.",
