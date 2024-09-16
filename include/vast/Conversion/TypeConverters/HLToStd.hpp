@@ -28,27 +28,25 @@ namespace vast::conv::tc {
     // Requires of `self_t`
     // * inherits/implements `mixins`
     // * implements `int_type()`
-    template< typename self_t >
-    struct HLAggregates
+    template< typename derived >
+    struct aggregates_type_converter
+        : gap::core::crtp< derived, aggregates_type_converter >
     {
-      private:
-        const self_t &self() const { return static_cast< const self_t & >(*this); }
-        self_t &self() { return static_cast< self_t & >(*this); }
-
-      public:
+        using base = gap::core::crtp< derived, aggregates_type_converter >;
+        using base::underlying;
         // This is not a ctor so that users can position it as they want
         // in their initialization.
         void init() {
-            self().addConversion(convert_decayed_type());
-            self().addConversion(convert_lvalue_type());
-            self().addConversion(convert_pointer_type());
-            self().addConversion(convert_paren_type());
+            underlying().addConversion(convert_decayed_type());
+            underlying().addConversion(convert_lvalue_type());
+            underlying().addConversion(convert_pointer_type());
+            underlying().addConversion(convert_paren_type());
         }
 
         auto convert_decayed_type() {
             return [&](hl::DecayedType type) {
                 return Maybe(type.getElementType())
-                    .and_then(self().convert_type_to_type())
+                    .and_then(underlying().convert_type_to_type())
                     .unwrap()
                     .template take_wrapped< maybe_type_t >();
             };
@@ -57,9 +55,9 @@ namespace vast::conv::tc {
         auto convert_lvalue_type() {
             return [&](hl::LValueType type) {
                 return Maybe(type.getElementType())
-                    .and_then(self().convert_type_to_type())
+                    .and_then(underlying().convert_type_to_type())
                     .unwrap()
-                    .and_then(self().template make_aggregate_type< hl::LValueType >())
+                    .and_then(underlying().template make_aggregate_type< hl::LValueType >())
                     .template take_wrapped< maybe_type_t >();
             };
         }
@@ -69,9 +67,9 @@ namespace vast::conv::tc {
                 using raw = hl::PointerType;
 
                 return Maybe(type.getElementType())
-                    .and_then(self().convert_pointer_element_type())
+                    .and_then(underlying().convert_pointer_element_type())
                     .unwrap()
-                    .and_then(self().template make_aggregate_type< raw >(type.getQuals()))
+                    .and_then(underlying().template make_aggregate_type< raw >(type.getQuals()))
                     .template take_wrapped< maybe_type_t >();
             };
         }
@@ -79,7 +77,7 @@ namespace vast::conv::tc {
         auto convert_paren_type() {
             return [&](hl::ParenType type) {
                 return Maybe(type.getElementType())
-                    .and_then(self().convert_type_to_type())
+                    .and_then(underlying().convert_type_to_type())
                     .unwrap()
                     .template take_wrapped< maybe_type_t >();
             };
@@ -90,9 +88,9 @@ namespace vast::conv::tc {
             return [&](auto t) -> maybe_type_t {
                 if (t.template isa< hl::VoidType >()) {
                     auto sign = mlir::IntegerType::SignednessSemantics::Signless;
-                    return self().int_type(8u, sign);
+                    return underlying().int_type(8u, sign);
                 }
-                return self().convert_type_to_type(t);
+                return underlying().convert_type_to_type(t);
             };
         }
 
@@ -105,33 +103,23 @@ namespace vast::conv::tc {
         }
     };
 
-    template< typename self_t >
-    struct CoreToStd : ConvertFunctionType< self_t >
-    {
-      private:
-        const self_t &self() const { return static_cast< const self_t & >(*this); }
-        self_t &self() { return static_cast< self_t & >(*this); }
-
-      public:
-        void init() { self().addConversion(this->template convert_fn_type< core::FunctionType >()); }
-    };
-
-    struct HLToStd
+    struct high_level_to_std_type_converter
         : base_type_converter
-        , mixins< HLToStd >
-        , HLAggregates< HLToStd >
-        , CoreToStd< HLToStd >
+        , mixins< high_level_to_std_type_converter >
+        , aggregates_type_converter< high_level_to_std_type_converter >
+        , function_type_converter< high_level_to_std_type_converter >
     {
-        using Base = mixins< HLToStd >;
-        using Base::convert_type;
-        using Base::convert_type_to_type;
-        using Base::convert_type_to_types;
+        using base = mixins< high_level_to_std_type_converter >;
+        using base::convert_type;
+        using base::convert_type_to_type;
+        using base::convert_type_to_types;
 
         const mlir::DataLayout &dl;
         mlir::MLIRContext &mctx;
 
-        HLToStd(const mlir::DataLayout &dl, mcontext_t &mctx)
-            : base_type_converter(), dl(dl), mctx(mctx) {
+        high_level_to_std_type_converter(const mlir::DataLayout &dl, mcontext_t &mctx)
+            : base_type_converter(), dl(dl), mctx(mctx)
+        {
             // Fallthrough option - we define it first as it seems the framework
             // goes from the last added conversion.
             addConversion([&](mlir_type t) -> maybe_type_t {
@@ -148,8 +136,7 @@ namespace vast::conv::tc {
                 return { mlir::NoneType::get(&mctx) };
             });
 
-            HLAggregates< HLToStd >::init();
-            CoreToStd< HLToStd >::init();
+            aggregates_type_converter< high_level_to_std_type_converter >::init();
         }
 
         maybe_types_t convert_type(mlir_type t) {

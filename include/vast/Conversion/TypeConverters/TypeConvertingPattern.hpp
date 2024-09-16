@@ -33,9 +33,10 @@ namespace vast::conv::tc {
 
         // TODO(conv:tc): This should probably be some interface instead, since
         //                 we are only updating the root?
-        logical_result replace(mlir::FunctionOpInterface fn,
-                               auto &rewriter) const
-        {
+        logical_result replace(
+            mlir::FunctionOpInterface fn,
+            auto &rewriter
+        ) const {
             auto old_type = fn.getFunctionType();
             auto trg_type = get_type_converter().convert_type_to_type(old_type);
             VAST_CHECK(trg_type, "Type conversion failed for {0}", old_type);
@@ -65,8 +66,7 @@ namespace vast::conv::tc {
                 replacer.addReplacement(conv::tc::convert_data_layout_attrs(tc));
                 replacer.addReplacement(conv::tc::convert_string_attr(tc));
 
-                replacer.addReplacement([&](mlir_type t) { return tc.convert_type_to_type(t); }
-                );
+                replacer.addReplacement([&](mlir_type t) { return tc.convert_type_to_type(t); });
 
                 replacer.recursivelyReplaceElementsIn(
                     op
@@ -82,7 +82,6 @@ namespace vast::conv::tc {
             };
 
             rewriter.modifyOpInPlace(op, update);
-
             return mlir::success();
         }
 

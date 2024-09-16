@@ -34,7 +34,7 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    using type_converter_t = conv::tc::HLToStd;
+    using type_converter_t = conv::tc::high_level_to_std_type_converter;
 
     namespace pattern {
         using lower_type = conv::tc::generic_type_converting_pattern< type_converter_t >;

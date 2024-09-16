@@ -26,51 +26,21 @@ VAST_UNRELAX_WARNINGS
 namespace vast::conv {
     namespace {
         struct value_category_type_converter
-            : tc::base_type_converter
+            : tc::identity_type_converter
             , tc::mixins< value_category_type_converter >
-            , tc::ConvertFunctionType< value_category_type_converter >
+            , tc::function_type_converter< value_category_type_converter >
         {
             mlir::MLIRContext &mctx;
 
             // Do we need data layout? Probably not as everything should be explicit
             // type size wise.
             value_category_type_converter(mcontext_t &mctx) : mctx(mctx) {
-                init();
-
-                addConversion(this->template convert_fn_type< core::FunctionType >());
-            }
-
-            using mixin_base = tc::mixins< value_category_type_converter >;
-            using mixin_base::convert_type_to_type;
-            using mixin_base::convert_type_to_types;
-
-            template< typename T, typename... Args >
-            auto make_aggregate_type(Args... args) {
-                return [=](mlir_type elem) { return T::get(elem.getContext(), elem, args...); };
-            }
-
-            auto convert_lvalue_type() {
-                return [&](hl::LValueType type) {
-                    return Maybe(type.getElementType())
-                        .and_then(convert_type_to_type())
-                        .unwrap()
-                        .and_then(make_aggregate_type< hl::PointerType >())
-                        .template take_wrapped< maybe_type_t >();
-                };
-            }
-
-            template< typename T >
-            auto pointerlike_as_memref() {
-                return [&](T type) {
+                addConversion([&](mlir_type t) { return t; });
+                addConversion([&](hl::LValueType type) {
                     // It should never happen that we have nested lvalues?
                     auto element_type = this->convert_type_to_type(type.getElementType());
                     return hl::PointerType::get(&mctx, *element_type);
-                };
-            }
-
-            void init() {
-                addConversion([&](mlir_type t) { return t; });
-                addConversion(pointerlike_as_memref< hl::LValueType >());
+                });
                 addTargetMaterialization(
                     [&](mlir::OpBuilder &builder, mlir::Type resultType,
                         mlir::ValueRange inputs, mlir::Location loc) -> std::optional< Value > {
@@ -95,6 +65,25 @@ namespace vast::conv {
                             .getResult(0);
                     }
                 );
+            }
+
+            using mixin_base = tc::mixins< value_category_type_converter >;
+            using mixin_base::convert_type_to_type;
+            using mixin_base::convert_type_to_types;
+
+            template< typename T, typename... Args >
+            auto make_aggregate_type(Args... args) {
+                return [=](mlir_type elem) { return T::get(elem.getContext(), elem, args...); };
+            }
+
+            auto convert_lvalue_type() {
+                return [&](hl::LValueType type) {
+                    return Maybe(type.getElementType())
+                        .and_then(convert_type_to_type())
+                        .unwrap()
+                        .and_then(make_aggregate_type< hl::PointerType >())
+                        .template take_wrapped< maybe_type_t >();
+                };
             }
         };
 
