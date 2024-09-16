@@ -10,6 +10,8 @@ VAST_RELAX_WARNINGS
 #include <mlir/Transforms/DialectConversion.h>
 VAST_UNRELAX_WARNINGS
 
+#include <gap/core/crtp.hpp>
+
 #include "vast/Dialect/Core/CoreTypes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 
@@ -19,8 +21,11 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/TypeUtils.hpp"
 
 namespace vast::conv::tc {
+
     using signature_conversion_t       = mlir::TypeConverter::SignatureConversion;
     using maybe_signature_conversion_t = std::optional< signature_conversion_t >;
+
+    using core_function_type = core::FunctionType;
 
     struct base_type_converter : mlir::TypeConverter
     {
@@ -45,6 +50,31 @@ namespace vast::conv::tc {
         template< typename... args_t >
         identity_type_converter(args_t &&...args) : base(std::forward< args_t >(args)...) {
             addConversion([&](mlir_type t) { return t; });
+        }
+    };
+
+    template< typename derived >
+    struct function_type_converter : gap::core::crtp< derived, function_type_converter >
+    {
+        using base = gap::core::crtp< derived, function_type_converter >;
+        using base::underlying;
+
+        function_type_converter() {
+            underlying().addConversion([&](core_function_type t) -> maybe_type_t {
+                auto [sig, results] = std::make_tuple(
+                    underlying().signature_conversion(t.getInputs()),
+                    underlying().convert_types_to_types(t.getResults())
+                );
+
+                if (!sig || !results) {
+                    return std::nullopt;
+                }
+
+                return core_function_type::get(
+                    t.getContext(), sig->getConvertedTypes(), *results,
+                    t.isVarArg()
+                );
+            });
         }
     };
 
@@ -222,33 +252,4 @@ namespace vast::conv::tc {
         };
     }
 
-    template< typename self_t >
-    struct ConvertFunctionType
-    {
-      private:
-        const self_t &self() const { return static_cast< const self_t & >(*this); }
-        self_t &self() { return static_cast< self_t & >(*this); }
-
-      public:
-        template< typename fn_t >
-        auto convert_fn_type() {
-            return [&](fn_t t) -> maybe_type_t {
-                // To be consistent with how others use the conversion, we
-                // do not convert input types directly.
-                auto signature_conversion = self().signature_conversion(t.getInputs());
-
-                auto results = self().convert_types_to_types(t.getResults());
-
-                if (!signature_conversion || !results) {
-                    return {};
-                }
-
-                return { fn_t::get(
-                    t.getContext(), signature_conversion->getConvertedTypes(), *results,
-                    t.isVarArg()
-                ) };
-            };
-        }
-
-    };
 } // namespace vast::conv::tc
