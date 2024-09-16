@@ -125,9 +125,9 @@ namespace vast
     >;
 
     struct HLEmitLazyRegionsPass
-        : ModuleConversionPassMixin< HLEmitLazyRegionsPass, HLEmitLazyRegionsBase >
+        : ConversionPassMixin< HLEmitLazyRegionsPass, HLEmitLazyRegionsBase >
     {
-        using base = ModuleConversionPassMixin< HLEmitLazyRegionsPass, HLEmitLazyRegionsBase >;
+        using base = ConversionPassMixin< HLEmitLazyRegionsPass, HLEmitLazyRegionsBase >;
 
         static conversion_target create_conversion_target(mcontext_t &context) {
             conversion_target target(context);

@@ -95,9 +95,9 @@ namespace vast::conv {
 
     } // namespace pattern
 
-    struct VarsToCellsPass : ModuleConversionPassMixin< VarsToCellsPass, VarsToCellsBase >
+    struct VarsToCellsPass : ConversionPassMixin< VarsToCellsPass, VarsToCellsBase >
     {
-        using base = ModuleConversionPassMixin< VarsToCellsPass, VarsToCellsBase >;
+        using base = ConversionPassMixin< VarsToCellsPass, VarsToCellsBase >;
 
         static conversion_target create_conversion_target(mcontext_t &mctx) {
             return conversion_target(mctx);

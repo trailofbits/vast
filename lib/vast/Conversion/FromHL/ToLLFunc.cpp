@@ -31,9 +31,9 @@ namespace vast::conv::hltollfunc
         };
     } // namespace pattern
 
-    struct HLToLLFunc : ModuleConversionPassMixin< HLToLLFunc, HLToLLFuncBase >
+    struct HLToLLFunc : ConversionPassMixin< HLToLLFunc, HLToLLFuncBase >
     {
-        using base = ModuleConversionPassMixin< HLToLLFunc, HLToLLFuncBase >;
+        using base = ConversionPassMixin< HLToLLFunc, HLToLLFuncBase >;
 
         static conversion_target create_conversion_target(mcontext_t &context) {
             return { context };
