@@ -68,7 +68,7 @@ tools = [
     ToolSubst('%cc', command = config.host_cc)
 ]
 
-passes = [
+passes: list[str] = [
       "vast-hl-splice-trailing-scopes"
     , "vast-hl-to-hl-builtin"
     , "vast-hl-ude"
@@ -78,10 +78,11 @@ passes = [
     , "vast-hl-lower-enums"
     , "vast-hl-lower-types"
     , "vast-hl-to-ll-func"
-    , "vast-hl-to-ll-vars"
     , "vast-hl-to-ll-cf"
     , "vast-hl-to-ll-geps"
-    , "vast-fn-args-to-alloca"
+    , "vast-vars-to-cells"
+    , "vast-refs-to-ssa"
+    , "vast-strip-param-lvalues"
     , "vast-lower-value-categories"
     , "vast-hl-to-lazy-regions"
     , "vast-emit-abi"

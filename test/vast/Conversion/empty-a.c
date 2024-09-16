@@ -1,4 +1,4 @@
-// RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %vast-opt --vast-hl-to-ll-func --vast-fn-args-to-alloca | %file-check %s
+// RUN: %vast-cc1 -vast-emit-mlir-after=vast-strip-param-lvalues %s -o - | %file-check %s
 
 // No new operations should be emitted since the args are not used.
 // CHECK:  ll.func {{.*}}
