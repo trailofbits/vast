@@ -1,4 +1,4 @@
-// RUN: %vast-front -vast-emit-mlir=llvm -o - %s | %file-check %s
+// RUN: %vast-front -vast-emit-mlir=llvm %s -o - %s | %file-check %s
 
 #include <stdint.h>
 #undef KEY
@@ -49,4 +49,3 @@ int main(int argc, char *argv[])
   (void)argv;
   return require;
 }
-

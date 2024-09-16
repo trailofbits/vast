@@ -53,47 +53,6 @@ tools = [
             "--no-implicit-module"
         ]
     ),
-    ToolSubst('%vast-opt-irs-to-llvm', command = 'vast-opt',
-        extra_args=[
-            "--vast-hl-lower-elaborated-types",
-            "--vast-hl-lower-typedefs",
-            "--vast-hl-lower-types",
-            "--vast-hl-to-ll-func",
-            "--vast-hl-to-ll-vars",
-            "--vast-hl-to-ll-cf",
-            "--vast-hl-to-ll-geps",
-            "--vast-fn-args-to-alloca",
-            "--vast-lower-value-categories",
-            "--vast-hl-to-lazy-regions",
-            "--vast-irs-to-llvm",
-            "--vast-core-to-llvm",
-        ]
-    ),
-    ToolSubst('%vast-opt-lower-value-categories', command = 'vast-opt',
-        extra_args=[
-            "--vast-hl-lower-elaborated-types",
-            "--vast-hl-lower-typedefs",
-            "--vast-hl-lower-types",
-            "--vast-hl-to-ll-func",
-            "--vast-hl-to-ll-vars",
-            "--vast-hl-to-ll-cf",
-            "--vast-hl-to-ll-geps",
-            "--vast-fn-args-to-alloca",
-            "--vast-lower-value-categories",
-        ]
-    ),
-    ToolSubst('%vast-opt-core-to-llvm', command = 'vast-opt',
-        extra_args=[
-            "--vast-hl-lower-types",
-            "--vast-hl-to-ll-cf",
-            "--vast-hl-to-ll-vars",
-            "--vast-hl-lower-elaborated-types",
-            "--vast-hl-lower-typedefs",
-            "--vast-hl-to-lazy-regions",
-            "--vast-irs-to-llvm",
-            "--vast-core-to-llvm"
-        ]
-    ),
     ToolSubst('%vast-cc', command = 'vast-cc'),
     ToolSubst('%vast-query', command = 'vast-query'),
     ToolSubst('%vast-front', command = 'vast-front'),

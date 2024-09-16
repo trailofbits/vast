@@ -2,7 +2,7 @@
 // RUN: %check-lower-value-categories %s | %file-check %s -check-prefix=VAL_CAT
 // RUN: %check-core-to-llvm %s | %file-check %s -check-prefix=C_LLVM
 
-// STD_TYPES:  [[V2:%[0-9]+]] = hl.ref {{.*}} : (!hl.lvalue<!hl.array<3, si32>>) -> !hl.lvalue<!hl.array<3, si32>>
+// STD_TYPES:  [[V2:%[0-9]+]] = hl.ref @arr1 : !hl.lvalue<!hl.array<3, si32>>
 // STD_TYPES:  [[V3:%[0-9]+]] = hl.implicit_cast [[V2]] ArrayToPointerDecay : !hl.lvalue<!hl.array<3, si32>> -> !hl.ptr<si32>
 // STD_TYPES:  [[V4:%[0-9]+]] = hl.const #core.integer<0> : si32
 // STD_TYPES:  [[V5:%[0-9]+]] = hl.subscript [[V3]] at [[[V4]] : si32] : !hl.ptr<si32> -> !hl.lvalue<si3
