@@ -2,5 +2,6 @@
 
 add_vast_conversion_library(ToMemConversionPasses
     RefsToSSA.cpp
+    StripParamLValues.cpp
     VarsToCells.cpp
 )

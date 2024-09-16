@@ -9,6 +9,8 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Conversion/Passes.hpp"
 
+#include "vast/Dialect/LowLevel/LowLevelOps.hpp"
+
 namespace vast::conv::pipeline {
 
     pipeline_step_ptr to_hlbi() {
@@ -45,10 +47,16 @@ namespace vast::conv::pipeline {
             .depends_on(vars_to_cells);
     }
 
+    // FIXME: run on hl.FuncOp. Once we remove graph regions ll::FuncOp is no longer needed
+    pipeline_step_ptr strip_param_lvalues() {
+        return pass(createStripParamLValuesPass);
+    }
+
     pipeline_step_ptr to_mem() {
         return compose("to-mem",
             vars_to_cells,
-            refs_to_ssa
+            refs_to_ssa,
+            strip_param_lvalues
         );
     }
 
