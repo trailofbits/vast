@@ -35,7 +35,6 @@ namespace vast::conv {
             // Do we need data layout? Probably not as everything should be explicit
             // type size wise.
             value_category_type_converter(mcontext_t &mctx) : mctx(mctx) {
-                addConversion([&](mlir_type t) { return t; });
                 addConversion([&](hl::LValueType type) {
                     // It should never happen that we have nested lvalues?
                     auto element_type = this->convert_type_to_type(type.getElementType());
@@ -70,21 +69,6 @@ namespace vast::conv {
             using mixin_base = tc::mixins< value_category_type_converter >;
             using mixin_base::convert_type_to_type;
             using mixin_base::convert_type_to_types;
-
-            template< typename T, typename... Args >
-            auto make_aggregate_type(Args... args) {
-                return [=](mlir_type elem) { return T::get(elem.getContext(), elem, args...); };
-            }
-
-            auto convert_lvalue_type() {
-                return [&](hl::LValueType type) {
-                    return Maybe(type.getElementType())
-                        .and_then(convert_type_to_type())
-                        .unwrap()
-                        .and_then(make_aggregate_type< hl::PointerType >())
-                        .template take_wrapped< maybe_type_t >();
-                };
-            }
         };
 
 #define VAST_DEFINE_REWRITE \
