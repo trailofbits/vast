@@ -33,4 +33,9 @@ def Core_ReturnLikeTrait : Core_NativeOpTrait< "ReturnLikeTrait" >, StructuralOp
 
 def Core_ConstantLikeAttrTrait : Core_NativeAttrTrait<"ConstantLikeAttrTrait">;
 
+//
+// Trait to generalize scope lookups, can be removed once we have single scope operation
+//
+def Core_ScopeLikeTrait : Core_NativeOpTrait< "ScopeLikeTrait" >;
+
 #endif //VAST_DIALECT_CORE_CORETRAITS
