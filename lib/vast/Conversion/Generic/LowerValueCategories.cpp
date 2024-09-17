@@ -482,11 +482,16 @@ namespace vast::conv {
             populate(unary_in_place_conversions{}, patterns, trg, mctx, tc);
             populate(assign_conversions{}, patterns, trg, mctx, tc);
 
-            auto is_legal = [&](auto op) {
+            auto is_legal = [&](operation op) {
                 return tc.template get_has_legal_return_type< operation >()(op)
                     && tc.template get_has_legal_operand_types< operation >()(op);
             };
+
             trg.markUnknownOpDynamicallyLegal(is_legal);
+
+            trg.addDynamicallyLegalOp< hl::VarDeclOp >([&](hl::VarDeclOp op) {
+                return !mlir::isa< hl::LValueType >(op.getType());
+            });
 
             // As we go and replace operands, sometimes it can happen that this cast
             // already will be in form `hl.ptr< T > -> T` instead of `hl.lvalue< T > -> T`.
