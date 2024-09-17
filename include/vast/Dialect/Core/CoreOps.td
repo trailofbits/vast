@@ -74,7 +74,7 @@ def Core_ModuleOp : Core_Op< "module", [
 }
 
 def Core_ScopeOp : Core_Op< "scope", [
-  NoTerminator,
+  NoTerminator, Core_ScopeLikeTrait,
   Core_ShadowingSymbolTable< [
     [Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
   ] >,
