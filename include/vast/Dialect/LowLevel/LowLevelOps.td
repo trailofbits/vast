@@ -328,6 +328,7 @@ def LowLevel_Scope
     : LowLevel_Op< "scope", [
         NoRegionArguments,
         NoTerminator,
+        Core_ScopeLikeTrait,
         Core_ShadowingSymbolTable< [
             [Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
         ] >
