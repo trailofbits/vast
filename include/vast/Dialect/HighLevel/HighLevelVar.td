@@ -30,15 +30,6 @@ def HighLevel_StorageClass : HighLevel_StorageClassList< "StorageClass", "storag
   HighLevel_SC_Register
 ] >;
 
-class HighLevel_StorageClassImpl
-{
-  code storageClassImpl = [{
-    constexpr static auto storage_class = "storageClass";
-
-    void setStorageClass(StorageClass spec) { setAttr< StorageClassAttr >(storage_class, spec); }
-  }];
-}
-
 // thread storage class
 
 class HighLevel_TSCAttr< string name, int val > : I64EnumAttrCase< name, val > {}
@@ -60,15 +51,6 @@ def HighLevel_ThreadStorage : HighLevel_TSCList< "TSClass", "thread storage clas
   HighLevel_TSC_CXX_Thread,
   HighLevel_TSC_C_Thread
 ] >;
-
-class HighLevel_ThreadStorageClassImpl
-{
-  code threadStorageClassImpl = [{
-    constexpr static auto thread_storage_class = "threadStorageClass";
-
-    void setThreadStorageClass(TSClass spec) { setAttr< TSClassAttr >(thread_storage_class, spec); }
-  }];
-}
 
 // Storage Duration
 
@@ -160,14 +142,10 @@ class HighLevel_DeclContextImpl
 }
 
 class HighLevel_StorageSpecifiers :
-  HighLevel_StorageClassImpl,
-  HighLevel_ThreadStorageClassImpl,
   HighLevel_StorageDurationImpl,
   HighLevel_DeclContextImpl
 {
   code storageSpecifiersImpl =
-    storageClassImpl #
-    threadStorageClassImpl #
     storageDurationImpl #
     declContextImpl;
 }
@@ -183,8 +161,8 @@ def HighLevel_VarDeclOp
   let arguments = (ins
     SymbolNameAttr:$sym_name,
     TypeAttr:$type,
-    OptionalAttr<HighLevel_StorageClass>:$storageClass,
-    OptionalAttr<HighLevel_ThreadStorage>:$threadStorageClass
+    HighLevel_StorageClass:$storageClass,
+    HighLevel_ThreadStorage:$threadStorageClass
   );
 
   let regions = (region
@@ -197,24 +175,21 @@ def HighLevel_VarDeclOp
     OpBuilder<(ins
       "Type":$type,
       "llvm::StringRef":$sym_name,
+      "StorageClass":$storageClass,
+      "TSClass":$threadStorageClass,
       CArg< "maybe_builder_callback_ref", "std::nullopt" >:$initBuilder,
       CArg< "maybe_builder_callback_ref", "std::nullopt" >:$allocaBuilder
     )>
   ];
 
   let assemblyFormat = [{
-    $sym_name attr-dict ($storageClass^)? ($threadStorageClass^)?
+    $sym_name attr-dict custom< StorageClasses >($storageClass, $threadStorageClass)
       `:` $type
       (`=` $initializer^)?
       (`allocation_size` $allocation_size^)?
   }];
 
-  let extraClassDeclaration = [{
-    template< typename Attr, typename Value >
-    void setAttr(llvm::StringRef name, Value value) {
-      (*this)->setAttr(name, Attr::get(getContext(), value));
-    }
-  }] # storageSpecifiersImpl;
+  let extraClassDeclaration = storageSpecifiersImpl;
 }
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELVAR

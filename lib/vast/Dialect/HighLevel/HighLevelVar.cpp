@@ -5,6 +5,8 @@
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 
+#include "vast/Dialect/Core/CoreTraits.hpp"
+
 namespace vast::hl
 {
     bool isFileContext(DeclContextKind kind) {
@@ -29,8 +31,10 @@ namespace vast::hl
     bool VarDeclOp::isInRecordContext() { return isRecordContext(getDeclContextKind()); }
 
     DeclContextKind VarDeclOp::getDeclContextKind() {
-        auto st = mlir::SymbolTable::getNearestSymbolTable(*this);
-        if (mlir::isa< FuncOp >(st))
+        auto st = core::get_effective_symbol_table_for< core::var_symbol >(*this)->get_defining_operation();
+        if (mlir::isa< mlir::FunctionOpInterface >(st))
+            return DeclContextKind::dc_function;
+        if (st->hasTrait< core::ScopeLikeTrait >())
             return DeclContextKind::dc_function;
         if (mlir::isa< core::ModuleOp >(st))
             return DeclContextKind::dc_translation_unit;
@@ -53,7 +57,7 @@ namespace vast::hl
     bool VarDeclOp::isLocalVarDecl() { return isInFunctionOrMethodContext(); }
 
     bool VarDeclOp::hasLocalStorage() {
-        switch (getStorageClass().value()) {
+        switch (getStorageClass()) {
             case StorageClass::sc_none:
                 return !isFileVarDecl() && getThreadStorageClass() == TSClass::tsc_none;
             case StorageClass::sc_register: return isLocalVarDecl();

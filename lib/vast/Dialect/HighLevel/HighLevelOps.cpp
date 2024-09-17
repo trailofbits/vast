@@ -340,16 +340,67 @@ namespace vast::hl
     }
 
     void VarDeclOp::build(
-        Builder &bld, State &st, Type type, llvm::StringRef name,
+        Builder &bld, State &st,
+        Type type,
+        llvm::StringRef name,
+        StorageClass storage_class,
+        TSClass thread_storage_class,
         maybe_builder_callback_ref init,
         maybe_builder_callback_ref alloc
     ) {
+        auto ctx = bld.getContext();
         st.addAttribute(core::symbol_attr_name(), bld.getStringAttr(name));
         st.addAttribute("type", mlir::TypeAttr::get(type));
+        st.addAttribute("storageClass", StorageClassAttr::get(ctx, storage_class));
+        st.addAttribute("threadStorageClass", TSClassAttr::get(ctx, thread_storage_class));
         InsertionGuard guard(bld);
 
         build_region(bld, st, init);
         build_region(bld, st, alloc);
+    }
+
+    ParseResult parseStorageClasses(
+        Parser &parser, Attribute &storage_class, Attribute &thread_storage_class
+    ) {
+        std::string keyword;
+        auto parse_result = parser.parseOptionalKeywordOrString(&keyword);
+
+        if (mlir::failed(parse_result)) {
+            storage_class = StorageClassAttr::get(parser.getContext(), StorageClass::sc_none);
+            thread_storage_class = TSClassAttr::get(parser.getContext(), TSClass::tsc_none);
+            return mlir::success();
+        } else if (auto attr = symbolizeEnum< StorageClass >(keyword)) {
+            storage_class = StorageClassAttr::get(parser.getContext(), attr.value());
+        } else if (auto attr = symbolizeEnum< TSClass >(keyword)) {
+            storage_class = StorageClassAttr::get(parser.getContext(), StorageClass::sc_none);
+            thread_storage_class = TSClassAttr::get(parser.getContext(), attr.value());
+            return mlir::success();
+        } else {
+            return mlir::failure();
+        }
+
+        parse_result = parser.parseOptionalKeywordOrString(&keyword);
+        if (mlir::failed(parse_result)) {
+            thread_storage_class = TSClassAttr::get(parser.getContext(), TSClass::tsc_none);
+        } else if (auto attr = symbolizeEnum< TSClass >(keyword)) {
+            thread_storage_class = TSClassAttr::get(parser.getContext(), attr.value());
+        } else {
+            return mlir::failure();
+        }
+
+        return mlir::success();
+    }
+
+    void printStorageClasses(
+        Printer &printer, mlir::Operation *op, StorageClassAttr storage_class, TSClassAttr thread_storage_class
+    ) {
+        if (storage_class.getValue() != StorageClass::sc_none) {
+            printer << ' ' << storage_class.getValue();
+        }
+
+        if (thread_storage_class.getValue() != TSClass::tsc_none) {
+            printer << ' ' << thread_storage_class.getValue();
+        }
     }
 
     void EnumDeclOp::build(
