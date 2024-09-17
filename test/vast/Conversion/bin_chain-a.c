@@ -1,4 +1,4 @@
-// RUN: %vast-front -vast-emit-mlir=llvm %s -o - %s | %file-check %s
+// RUN: %vast-front -vast-emit-mlir=llvm %s -o - | %file-check %s
 
 int main() {
     int a = 5;
