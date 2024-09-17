@@ -209,16 +209,11 @@ namespace vast::cg {
             }
         };
 
-        auto set_storage_classes = [&](auto var) {
-            if (auto sc = storage_class(decl); sc != hl::StorageClass::sc_none) {
-                var.setStorageClass(sc);
-            }
-
-            if (auto tsc = thread_storage_class(decl); tsc != hl::TSClass::tsc_none) {
-                var.setThreadStorageClass(tsc);
-            }
-
-            return var;
+        auto initializer_builder = [this, decl](auto &state, auto loc) {
+            bld.compose< hl::ValueYieldOp >()
+                .bind_always(loc)
+                .bind_transform(self.visit(decl->getInit()), first_result)
+                .freeze();
         };
 
         auto var = maybe_declare([&] {
@@ -226,21 +221,15 @@ namespace vast::cg {
                 .bind(self.location(decl))
                 .bind(visit_as_lvalue_type(self, mctx, decl->getType()))
                 .bind(self.symbol(decl))
-                // The initializer region is filled later as it might
+                .bind_always(storage_class(decl))
+                .bind_always(thread_storage_class(decl))
+                // FIXME: The initializer region is filled later as it might
                 // have references to the VarDecl we are currently
                 // visiting - int *x = malloc(sizeof(*x))
-                .bind_choose(
-                    emit_init, [](auto, auto) {}, std::nullopt
-                )
+                .bind_choose(emit_init, std::move(initializer_builder), std::nullopt)
                 .bind_choose(has_allocator, std::move(array_allocator), std::nullopt)
-                .freeze_as_maybe() // construct global
-                .transform(set_storage_classes)
-                .take();
+                .freeze();
         });
-
-        if (emit_init) {
-            fill_init(decl->getInit(), var);
-        }
 
         return var;
     }
