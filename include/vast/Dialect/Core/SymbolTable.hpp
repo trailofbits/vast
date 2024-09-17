@@ -150,6 +150,8 @@ namespace vast::core {
             return symbol_tables.contains(kind);
         }
 
+        operation get_defining_operation() { return symbol_table_op; }
+
       protected:
 
         template< util::flat_list symbols_list >
