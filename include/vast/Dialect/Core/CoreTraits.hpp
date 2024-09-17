@@ -44,4 +44,10 @@ namespace vast::core
     template< typename ConcreteType >
     struct ConstantLikeAttrTrait : attr_trait_base< ConcreteType, ConstantLikeAttrTrait > {};
 
+    //
+    // ScopeLikeTrait
+    //
+    template< typename ConcreteType >
+    struct ScopeLikeTrait : op_trait_base< ConcreteType, ScopeLikeTrait > {};
+
 } // namespace vast::core
