@@ -61,7 +61,9 @@ namespace vast::conv {
             }
 
             static void legalize(conversion_target &trg) {
-                base::legalize(trg);
+                trg.addDynamicallyLegalOp< hl::VarDeclOp >([] (hl::VarDeclOp op) {
+                    return !op.hasLocalStorage();
+                });
                 trg.addLegalOp< ll::Cell >();
                 trg.addLegalOp< ll::CellInit >();
             }
