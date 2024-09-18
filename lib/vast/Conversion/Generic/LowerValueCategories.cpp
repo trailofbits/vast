@@ -28,7 +28,6 @@ namespace vast::conv {
         struct value_category_type_converter
             : tc::identity_type_converter
             , tc::mixins< value_category_type_converter >
-            , tc::function_type_converter< value_category_type_converter >
         {
             mlir::MLIRContext &mctx;
 
@@ -463,10 +462,11 @@ namespace vast::conv {
 
             patterns.add< fallback >(tc, mctx);
             patterns.add< store_and_forward_ptr< ll::CellInit > >(mctx, tc);
-            patterns
-                .add< ignore< hl::DeclRefOp >, ignore< hl::Deref >, ignore< hl::AddressOf > >(
-                    mctx, tc
-                );
+            patterns.add<
+                ignore< hl::DeclRefOp >,
+                ignore< hl::Deref >,
+                ignore< hl::AddressOf >
+            >(mctx, tc);
 
             patterns.add< memory_allocation< ll::Cell > >(mctx, tc);
             patterns.add< subscript >(mctx, tc);
@@ -506,21 +506,9 @@ namespace vast::conv {
             // This will never have correct types but we want to have it legal.
             trg.addLegalOp< mlir::UnrealizedConversionCastOp >();
 
-            convert_function_types(tc);
             if (mlir::failed(mlir::applyPartialConversion(root, trg, std::move(patterns)))) {
                 return signalPassFailure();
             }
-        }
-
-        void convert_function_types(value_category_type_converter &tc) {
-            auto root    = getOperation();
-            auto pattern = fn< ll::FuncOp >(getContext(), tc);
-            auto walker  = [&](mlir::FunctionOpInterface op) {
-                type_rewriter bld(&getContext());
-                [[maybe_unused]] auto status = pattern.replace(op, bld);
-            };
-
-            root->walk(walker);
         }
     };
 } // namespace vast::conv
