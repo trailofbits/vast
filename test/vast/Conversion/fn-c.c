@@ -1,4 +1,4 @@
-// RUN: %check-vast-vars-to-cells %s | %file-check %s -check-prefix=CELLS
+// RUN: %check-vars-to-cells %s | %file-check %s -check-prefix=CELLS
 // RUN: %check-strip-param-lvalues %s | %file-check %s -check-prefix=PARAMS
 // RUN: %check-lower-value-categories %s | %file-check %s -check-prefix=VAL_CAT
 // RUN: %check-core-to-llvm %s | %file-check %s -check-prefix=C_LLVM

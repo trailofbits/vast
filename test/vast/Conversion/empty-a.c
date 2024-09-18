@@ -2,5 +2,9 @@
 
 // No new operations should be emitted since the args are not used.
 // CHECK:  ll.func {{.*}}
-// CHECK-NEXT:    %0 = hl.const #void_value
+// CHECK-NEXT: ll.cell @arg0
+// CHECK-NEXT: ll.cell_init
+// CHECK-NEXT: ll.cell @arg1
+// CHECK-NEXT: ll.cell_init
+// CHECK-NEXT: hl.const #void_value
 void empty(int arg0, int arg1) {}

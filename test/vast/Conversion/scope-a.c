@@ -4,12 +4,13 @@
 void fn(int arg)
 {
     // LL_CF: ll.scope {
-    // LL_CF:   [[V3:%[0-9]+]] = ll.initialize {{.*}} : (!hl.lvalue<si32>, si32) -> !hl.lvalue<si32>
+    // LL_CF:   hl.var @a
     // LL_CF:   ll.scope {
-    // LL_CF:     ll.cond_br {{.8}} : i1, ^bb1, ^bb2
+    // LL_CF:     ll.cond_br {{.*}} : i1, ^bb1, ^bb2
     // LL_CF:   ^bb1:  // pred: ^bb0
-    // LL_CF:     [[V9:%[0-9]+]] = hl.ref [[V3]] : (!hl.lvalue<si32>) -> !hl.lvalue<si32>
-    // LL_CF:     {{.*}} = hl.assign {{.*}} to [[V9]] : si32, !hl.lvalue<si32> -> si32
+    // LL_CF:     hl.ref @a
+    // LL_CF:     hl.ref @arg
+    // LL_CF:     hl.assign
     // LL_CF:     ll.br ^bb2
     // LL_CF:   ^bb2:  // 2 preds: ^bb0, ^bb1
     // LL_CF:     ll.scope_ret
