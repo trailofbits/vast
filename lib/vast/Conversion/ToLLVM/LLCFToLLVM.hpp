@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "vast/Util/Warnings.hpp"
+
 VAST_RELAX_WARNINGS
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/Conversion/LLVMCommon/TypeConverter.h>
