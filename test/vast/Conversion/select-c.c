@@ -27,8 +27,8 @@ int main(int argc, char** argv)
 
     // C_LLVM:  llvm.cond_br {{.*}}, ^bb1, ^bb5
     // C_LLVM: ^bb1:  // pred: ^bb0
-    // C_LLVM:  {{.*}} = llvm.mlir.constant(3 : i32) : i32
-    // C_LLVM:  llvm.cond_br %13, ^bb2, ^bb3
+    // C_LLVM:  llvm.mlir.constant(3 : i32) : i32
+    // C_LLVM:  llvm.cond_br {{.*}}, ^bb2, ^bb3
     // C_LLVM: ^bb2:  // pred: ^bb1
     // C_LLVM:  [[V14:%[0-9]+]] = llvm.mlir.constant(0 : i32) : i32
     // C_LLVM:  llvm.br ^bb4([[V14]] : i32)
@@ -43,7 +43,5 @@ int main(int argc, char** argv)
     // C_LLVM: ^bb6([[V18:%[0-9]+]]: i32):  // 2 preds: ^bb4, ^bb5
     // C_LLVM:  llvm.return [[V18]] : i32
 
-
-    return (argc >= 3) ? ( ( argc == 3) ? 0 : 1 )
-                       : 2;
+    return (argc >= 3) ? ((argc == 3) ? 0 : 1) : 2;
 }

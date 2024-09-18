@@ -35,7 +35,7 @@ int sum( struct data d )
 // ABI-NEXT:     [[V28:%[0-9]+]] = abi.direct [[V15]] : si32 -> si32
 // ABI-NEXT:     {{.*}} = abi.yield [[V28]] : si32 -> si32
 // ABI-NEXT:   } : si32
-// ABI-NEXT:   %7 = abi.yield [[V16]] : si32 -> si32
+// ABI-NEXT:   abi.yield [[V16]] : si32 -> si32
 // ABI-NEXT: } : (!hl.elaborated<!hl.record<"data">>) -> si32
 // ABI-NEXT: hl.return [[V13]] : si32
 

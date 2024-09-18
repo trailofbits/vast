@@ -1,7 +1,7 @@
 // RUN: %vast-cc1 -vast-emit-mlir=llvm %s -o - | %file-check %s
 
-// CHECK: llvm.func @count([[ARG:%arg[0-9]+]]: i32)
-void count(int arg)
+// CHECK: llvm.func @count
+void count()
 {
     // CHECK: [[V0:%[0-9]+]] = llvm.mlir.constant(1 : index) : i64
     // CHECK: [[V1:%[0-9]+]] = llvm.alloca [[V0]] x i32 : (i64) -> !llvm.ptr
