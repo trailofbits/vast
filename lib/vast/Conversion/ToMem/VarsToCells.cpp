@@ -102,7 +102,10 @@ namespace vast::conv {
         using base = ConversionPassMixin< VarsToCellsPass, VarsToCellsBase >;
 
         static conversion_target create_conversion_target(mcontext_t &mctx) {
-            return conversion_target(mctx);
+            auto trg = conversion_target(mctx);
+            // Block inlining might trigger legalization on some operations
+            trg.addLegalDialect< ll::LowLevelDialect >();
+            return trg;
         }
 
         static void populate_conversions(auto &cfg) {
