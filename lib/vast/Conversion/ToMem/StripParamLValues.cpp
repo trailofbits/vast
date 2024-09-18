@@ -58,16 +58,18 @@ namespace vast::conv {
     {
         using base = ConversionPassMixin< StripParamLValuesPass, StripParamLValuesBase >;
 
-        static bool is_lvalue_type(mlir_value val) {
-            return !mlir::isa< hl::LValueType >(val.getType());
+        static bool is_not_lvalue_type(mlir_type ty) {
+            return !mlir::isa< hl::LValueType >(ty);
         }
 
         static conversion_target create_conversion_target(mcontext_t &mctx) {
             conversion_target trg(mctx);
 
             trg.markUnknownOpDynamicallyLegal([] (operation op) {
-                if (auto fn = mlir::dyn_cast< mlir::FunctionOpInterface >(op))
-                    return rns::all_of(fn.getArguments(), is_lvalue_type);
+                if (auto fn = mlir::dyn_cast< mlir::FunctionOpInterface >(op)) {
+                    auto fty = mlir::cast< core::FunctionType >(fn.getFunctionType());
+                    return rns::all_of(fty.getInputs(), is_not_lvalue_type);
+                }
                 return true;
             });
 
