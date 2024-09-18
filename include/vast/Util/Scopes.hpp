@@ -5,17 +5,20 @@
 #include <vast/Util/Common.hpp>
 
 #include "vast/Dialect/Core/CoreOps.hpp"
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
 namespace vast
 {
-    static inline bool is_trailing_scope(operation op) {
-        if (!mlir::isa< core::ScopeOp >(op))
-            return false;
+    static inline bool is_trailing_scope(core::ScopeOp op) {
         if (auto parent = op->getParentRegion()) {
             if(parent->hasOneBlock()) {
                 auto &block = parent->back();
                 auto last = std::prev(block.end());
-                return block.begin() == last;
+                auto begin = block.begin();
+                while (mlir::isa< hl::ParmVarDeclOp, hl::LabelDeclOp >(begin)) {
+                    begin = std::next(begin);
+                }
+                return begin == last;
             }
         }
         return false;
