@@ -56,7 +56,7 @@ namespace vast::conv {
                     rewriter.eraseOp(yield);
                 }
 
-                rewriter.replaceOp(op, cell);
+                rewriter.eraseOp(op);
                 return mlir::success();
             }
 
@@ -84,7 +84,7 @@ namespace vast::conv {
                 auto loc   = op.getLoc();
                 auto cell = rewriter.create< ll::Cell >(loc, type, op.getSymName());
                 rewriter.create< ll::CellInit >(loc, type, cell, param);
-                rewriter.replaceOp(op, cell);
+                rewriter.eraseOp(op);
                 return mlir::success();
             }
 
