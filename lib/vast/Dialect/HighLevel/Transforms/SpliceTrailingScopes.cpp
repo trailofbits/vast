@@ -51,30 +51,10 @@ namespace vast::hl
             scope.erase();
         }
 
-        void find(block_t &block)
-        {
-            for (auto &op : block.getOperations())
-                find(&op);
-        }
-
-        void find(Region &region)
-        {
-            for (auto &block : region.getBlocks())
-                find(block);
-        }
-
-        void find(operation op)
-        {
-            if (is_trailing_scope(op))
-                to_splice.emplace_back(op);
-            for (auto &region : op->getRegions())
-                find(region);
-        }
-
         void runOnOperation() override
         {
             auto op = getOperation();
-            find(op);
+            op->walk([&](core::ScopeOp op){ if (is_trailing_scope(op)) { to_splice.emplace_back(op); } });
             std::reverse(to_splice.begin(), to_splice.end());
             for (auto op : to_splice)
                 splice_trailing_scope(op);
