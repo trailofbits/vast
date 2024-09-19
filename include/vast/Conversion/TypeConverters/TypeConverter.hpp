@@ -59,7 +59,10 @@ namespace vast::conv::tc {
         using base = gap::core::crtp< derived, function_type_converter >;
         using base::underlying;
 
-        function_type_converter() {
+        // These can not be moved to the constructor, because we would be downcasting
+        // to the dervied class while it not yet exists, resulting in UB
+        // Calling this in the derived class constructor should be safe
+        void init() {
             underlying().addConversion([&](core_function_type t) -> maybe_type_t {
                 auto [sig, results] = std::make_tuple(
                     underlying().signature_conversion(t.getInputs()),
