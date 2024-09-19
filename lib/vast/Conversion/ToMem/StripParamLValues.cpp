@@ -34,6 +34,7 @@ namespace vast::conv {
         explicit strip_param_lvalue_type_converter(mcontext_t &mctx)
             : mctx(mctx)
         {
+            tc::function_type_converter< strip_param_lvalue_type_converter >::init();
             addConversion([&](hl::LValueType type) {
                 return Maybe(type.getElementType())
                     .and_then(convert_type_to_type())

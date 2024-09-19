@@ -36,6 +36,9 @@ namespace vast::conv::tc {
         using base::underlying;
         // This is not a ctor so that users can position it as they want
         // in their initialization.
+        // These can not be moved to the constructor, because we would be downcasting
+        // to the dervied class while it not yet exists, resulting in UB
+        // Calling this in the derived class constructor should be safe
         void init() {
             underlying().addConversion(convert_decayed_type());
             underlying().addConversion(convert_lvalue_type());
@@ -137,6 +140,7 @@ namespace vast::conv::tc {
             });
 
             aggregates_type_converter< high_level_to_std_type_converter >::init();
+            function_type_converter< high_level_to_std_type_converter >::init();
         }
 
         maybe_types_t convert_type(mlir_type t) {
