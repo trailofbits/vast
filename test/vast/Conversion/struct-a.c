@@ -3,7 +3,7 @@
 
 struct X { int x; };
 
-// VAL_CAT: {{.*}} = ll.alloca : !hl.ptr<!hl.record<"X">>
+// VAL_CAT: {{.*}} = ll.alloca : !hl.ptr<!hl.record<@X>>
 
 // C_LLVM: {{.*}} = llvm.alloca {{.*}} x !llvm.struct<"X", (i32)> : (i64) -> !llvm.ptr
 int main()

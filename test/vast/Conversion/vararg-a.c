@@ -8,7 +8,7 @@
 
 // CHECK: hl.func @format {{.*}} ({{%.*}}: !hl.lvalue<!hl.ptr<!hl.char< const >>>, ...) -> !hl.void
 void format(const char *fmt, ...) {
-    // CHECK: hl.var @args : !hl.lvalue<!hl.elaborated<!hl.typedef<"va_list">>>
+    // CHECK: hl.var @args : !hl.lvalue<!hl.elaborated<!hl.typedef<@va_list>>>
     va_list args;
     // CHECK: hlbi.va_start
     va_start(args, fmt);

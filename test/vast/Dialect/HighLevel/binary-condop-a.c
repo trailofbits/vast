@@ -43,18 +43,18 @@ int fun1(int arg1, double arg2) {
 
 // CHECK: @fun2
 INT2 fun2(INT2 arg1, INT arg2) {
-    // CHECK: hl.binary_cond : !hl.elaborated<!hl.typedef<"INT">> {
-    // CHECK: hl.value.yield {{%[0-9]+}} : [[type:!hl.elaborated<!hl.typedef<"INT2">>]]
+    // CHECK: hl.binary_cond : !hl.elaborated<!hl.typedef<@INT>> {
+    // CHECK: hl.value.yield {{%[0-9]+}} : [[type:!hl.elaborated<!hl.typedef<@INT2>>]]
     // CHECK: }, {
     // CHECK: ^bb0([[arg:%[a-z0-9]+]]: [[type]])
     // CHECK: [[opaq:%[0-9]+]] = hl.opaque_expr [[arg]]
-    // CHECK: hl.cond.yield [[opaq]] : !hl.elaborated<!hl.typedef<"INT2">>
+    // CHECK: hl.cond.yield [[opaq]] : !hl.elaborated<!hl.typedef<@INT2>>
     // CHECK: } ? {
     // CHECK: ^bb0([[arg:%[a-z0-9]+]]: [[type]])
     // CHECK: [[opaq:%[0-9]+]] = hl.opaque_expr [[arg]]
-    // CHECK: hl.value.yield [[opaq]] : !hl.elaborated<!hl.typedef<"INT2">>
+    // CHECK: hl.value.yield [[opaq]] : !hl.elaborated<!hl.typedef<@INT2>>
     // CHECK: } : {
-    // CHECK: hl.value.yield {{%[0-9]+}} : !hl.elaborated<!hl.typedef<"INT">>
+    // CHECK: hl.value.yield {{%[0-9]+}} : !hl.elaborated<!hl.typedef<@INT>>
     // CHECK: }
     INT res = arg1 ? : arg2;
     return res;
@@ -62,19 +62,19 @@ INT2 fun2(INT2 arg1, INT arg2) {
 
 // CHECK: @fun3
 void* fun3(INT2 arg1, INT arg2) {
-    // CHECK: hl.binary_cond : !hl.ptr<!hl.elaborated<!hl.typedef<"INT">>> {
-    // CHECK: hl.value.yield {{%[0-9]+}} : [[type:!hl.elaborated<!hl.typedef<"INT2">>]]
+    // CHECK: hl.binary_cond : !hl.ptr<!hl.elaborated<!hl.typedef<@INT>>> {
+    // CHECK: hl.value.yield {{%[0-9]+}} : [[type:!hl.elaborated<!hl.typedef<@INT2>>]]
     // CHECK: }, {
     // CHECK: ^bb0([[arg:%[a-z0-9]+]]: [[type]])
     // CHECK: [[opaq:%[0-9]+]] = hl.opaque_expr [[arg]]
-    // CHECK: hl.cond.yield [[opaq]] : !hl.elaborated<!hl.typedef<"INT2">>
+    // CHECK: hl.cond.yield [[opaq]] : !hl.elaborated<!hl.typedef<@INT2>>
     // CHECK: } ? {
     // CHECK: ^bb0([[arg:%[a-z0-9]+]]: [[type]])
     // CHECK: [[opaq:%[0-9]+]] = hl.opaque_expr [[arg]]
     // CHECK: [[X:%[0-9]+]] = hl.implicit_cast [[opaq]]
-    // CHECK: hl.value.yield [[X]] : !hl.ptr<!hl.elaborated<!hl.typedef<"INT">>>
+    // CHECK: hl.value.yield [[X]] : !hl.ptr<!hl.elaborated<!hl.typedef<@INT>>>
     // CHECK: } : {
-    // CHECK: hl.value.yield {{%[0-9]+}} : !hl.ptr<!hl.elaborated<!hl.typedef<"INT">>>
+    // CHECK: hl.value.yield {{%[0-9]+}} : !hl.ptr<!hl.elaborated<!hl.typedef<@INT>>>
     // CHECK: }
     void* res = arg1 ? : &arg2;
     return res;

@@ -12,6 +12,6 @@ struct foo {
 };
 
 void frob() {
-    // CHECK: hl.var @b : !hl.lvalue<!hl.elaborated<!hl.record<"bar">>>
+    // CHECK: hl.var @b : !hl.lvalue<!hl.elaborated<!hl.record<@bar>>>
     struct bar b;
 }

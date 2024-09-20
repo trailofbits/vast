@@ -11,8 +11,8 @@ class B {};
 
 // CHECK: hl.class "C" :
 class C : public A, protected virtual B {
-    // CHECK: hl.base !hl.elaborated<!hl.record<"A">> public
-    // CHECK: hl.base !hl.elaborated<!hl.record<"B">> protected virtual
+    // CHECK: hl.base !hl.elaborated<!hl.record<@A>> public
+    // CHECK: hl.base !hl.elaborated<!hl.record<@B>> protected virtual
 
 // CHECK: hl.access public
 public:

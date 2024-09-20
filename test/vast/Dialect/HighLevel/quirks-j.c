@@ -16,7 +16,7 @@ void foo() {
     int i;
     // CHECK: hl.var @j : !hl.lvalue<!hl.int< const >>
     const int j;
-    // CHECK: hl.var @bf : !hl.lvalue<!hl.elaborated<!hl.record<"bitfield">>>
+    // CHECK: hl.var @bf : !hl.lvalue<!hl.elaborated<!hl.record<@bitfield>>>
     struct bitfield bf;
 
     // these are all lvalues
@@ -27,7 +27,7 @@ void foo() {
     // CHECK: hl.ref @j
     j;
     // CHECK: [[R:%[0-9]+]] = hl.ref @bf
-    // CHECK: hl.member [[R]] at @x : !hl.lvalue<!hl.elaborated<!hl.record<"bitfield">>> -> !hl.lvalue<!hl.int< unsigned >>
+    // CHECK: hl.member [[R]] at @x : !hl.lvalue<!hl.elaborated<!hl.record<@bitfield>>> -> !hl.lvalue<!hl.int< unsigned >>
     bf.x;
 
     // CHECK: [[F:%[0-9]+]] = hl.funcref @foo : !core.fn<() -> (!hl.void)>

@@ -7,6 +7,6 @@ int main() {
     __builtin_types_compatible_p(int, char);
     // CHECK: hl.builtin_types_compatible_p.type !hl.int, !hl.int compatible true -> !hl.int
     __builtin_types_compatible_p(int, int);
-    // CHECK: hl.builtin_types_compatible_p.type !hl.int, !hl.elaborated<!hl.typedef<"INT">> compatible true -> !hl.int
+    // CHECK: hl.builtin_types_compatible_p.type !hl.int, !hl.elaborated<!hl.typedef<@INT>> compatible true -> !hl.int
     __builtin_types_compatible_p(int, INT);
 }
