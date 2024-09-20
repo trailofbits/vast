@@ -60,22 +60,19 @@ namespace vast::conv::tc {
         using base::underlying;
 
         // These can not be moved to the constructor, because we would be downcasting
-        // to the dervied class while it not yet exists, resulting in UB
+        // to the derived class while it not yet exists, resulting in UB
         // Calling this in the derived class constructor should be safe
         void init() {
             underlying().addConversion([&](core_function_type t) -> maybe_type_t {
-                auto [sig, results] = std::make_tuple(
-                    underlying().signature_conversion(t.getInputs()),
-                    underlying().convert_types_to_types(t.getResults())
-                );
+                auto sig = underlying().signature_conversion(t.getInputs());
+                auto results = underlying().convert_types_to_types(t.getResults());
 
                 if (!sig || !results) {
                     return std::nullopt;
                 }
 
                 return core_function_type::get(
-                    t.getContext(), sig->getConvertedTypes(), *results,
-                    t.isVarArg()
+                    t.getContext(), sig->getConvertedTypes(), *results, t.isVarArg()
                 );
             });
         }
