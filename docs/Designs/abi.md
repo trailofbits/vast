@@ -32,7 +32,7 @@ requiring users to implement & provide interface that specifies various details
 about used types; algorithm will be same when talking about `hl` or `LLVM` types
 after all.
 
-_Currently, we only provide support for x86 target to assess the approach's 
+_Currently, we only provide support for x86 target to assess the approach's
 applicability._
 
 ## ABI Dialect (`-vast-emit-abi`)
@@ -73,9 +73,9 @@ returned value are passed directly. Therefore we encode it as follows:
 abi.func size(i64 %arg0_0, i32 %arg0_1 ) -> i32
 {
     %arg = abi.prologue {
-      %4 = abi.direct %arg0, %arg1 : i64, i32 -> !hl.record<"Point">
-      %5 = abi.yield %4 : !hl.record<"Point"> -> !hl.record<"Point">
-    } : !hl.record<"Point">
+      %4 = abi.direct %arg0, %arg1 : i64, i32 -> !hl.record<@Point>
+      %5 = abi.yield %4 : !hl.record<@Point> -> !hl.record<@Point>
+    } : !hl.record<@Point>
 
     // Computation can continue as before, because %arg has a correct type
 
@@ -133,30 +133,30 @@ complicated due to nested regions):
 
 If we had an argument passed as `MEMORY` class, we would encode it in a similar manner.
 ```
-  ll.func @foo external (%arg0: !hl.record<"data">) -> si32 {
+  ll.func @foo external (%arg0: !hl.record<@data>) -> si32 {
 ```
 Gets transformed to:
 ```
-  abi.func @vast.abi.foo external (%arg0: !hl.ptr<!hl.record<"data">>) -> si32 {
+  abi.func @vast.abi.foo external (%arg0: !hl.ptr<!hl.record<@data>>) -> si32 {
     %0 = abi.prologue {
-      %5 = abi.indirect %arg0 : !hl.ptr<!hl.record<"data">> -> !hl.record<"data">
-      %6 = abi.yield %5 : !hl.record<"data"> -> !hl.record<"data">
-    } : !hl.record<"data">
+      %5 = abi.indirect %arg0 : !hl.ptr<!hl.record<@data>> -> !hl.record<@data>
+      %6 = abi.yield %5 : !hl.record<@data> -> !hl.record<@data>
+    } : !hl.record<@data>
 ```
 Call site:
 ```
     %2 = abi.call_exec @da(%1) {
       %3 = abi.call_args {
-        %7 = abi.indirect %1 : !hl.record<"data"> -> !hl.ptr<!hl.record<"data">>
-        %8 = abi.yield %7 : !hl.ptr<!hl.record<"data">> -> !hl.ptr<!hl.record<"data">>
-      } : !hl.ptr<!hl.record<"data">>
-      %4 = abi.call @da(%3) : (!hl.ptr<!hl.record<"data">>) -> si32
+        %7 = abi.indirect %1 : !hl.record<@data> -> !hl.ptr<!hl.record<@data>>
+        %8 = abi.yield %7 : !hl.ptr<!hl.record<@data>> -> !hl.ptr<!hl.record<@data>>
+      } : !hl.ptr<!hl.record<@data>>
+      %4 = abi.call @da(%3) : (!hl.ptr<!hl.record<@data>>) -> si32
       %5 = abi.call_rets {
         %7 = abi.direct %4 : si32 -> si32
         %8 = abi.yield %7 : si32 -> si32
       } : si32
       %6 = abi.yield %5 : si32 -> si32
-    } : (!hl.record<"data">) -> si32
+    } : (!hl.record<@data>) -> si32
 ```
 
 For now, same `abi` operations are used to encode transformation in callsite and
@@ -182,18 +182,18 @@ after lowering the prologue:
   ll.func @size external (%arg0: i64, %arg1: i32) -> si32 {
     %0 = ll.extract %arg0 {from = 0 : ui64, to = 32 : ui64} : (i64) -> si32
     %1 = ll.extract %arg0 {from = 32 : ui64, to = 64 : ui64} : (i64) -> si32
-    %2 = hl.initlist %0, %1, %arg1 : (si32, si32, i32) -> !hl.record<"Point">
-    %3 = ll.alloca : !hl.ptr<!hl.record<"Point">>
-    ll.store %3, %2 : !hl.ptr<!hl.record<"Point">>, !hl.record<"Point">
+    %2 = hl.initlist %0, %1, %arg1 : (si32, si32, i32) -> !hl.record<@Point>
+    %3 = ll.alloca : !hl.ptr<!hl.record<@Point>>
+    ll.store %3, %2 : !hl.ptr<!hl.record<@Point>>, !hl.record<@Point>
 ```
 And the callsite:
 ```
-    %9 = "ll.gep"(%8) <{idx = 0 : i32, name = "a"}> : (!hl.ptr<!hl.record<"Point">>) -> !hl.ptr<si32>
+    %9 = "ll.gep"(%8) <{idx = 0 : i32, name = "a"}> : (!hl.ptr<!hl.record<@Point>>) -> !hl.ptr<si32>
     %10 = ll.load %9 : (!hl.ptr<si32>) -> si32
-    %11 = "ll.gep"(%8) <{idx = 1 : i32, name = "b"}> : (!hl.ptr<!hl.record<"Point">>) -> !hl.ptr<si32>
+    %11 = "ll.gep"(%8) <{idx = 1 : i32, name = "b"}> : (!hl.ptr<!hl.record<@Point>>) -> !hl.ptr<si32>
     %12 = ll.load %11 : (!hl.ptr<si32>) -> si32
     %13 = ll.concat %10, %12 : (si32, si32) -> i64
-    %14 = "ll.gep"(%8) <{idx = 2 : i32, name = "c"}> : (!hl.ptr<!hl.record<"Point">>) -> !hl.ptr<si32>
+    %14 = "ll.gep"(%8) <{idx = 2 : i32, name = "c"}> : (!hl.ptr<!hl.record<@Point>>) -> !hl.ptr<si32>
     %15 = ll.load %14 : (!hl.ptr<si32>) -> si32
     %16 = ll.concat %15 : (si32) -> i32
     %17 = hl.call @size(%13, %16) : (i64, i32) -> si32
