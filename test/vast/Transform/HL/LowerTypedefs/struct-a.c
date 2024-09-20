@@ -9,5 +9,5 @@ struct X
 };
 
 // CHECK: [[V1:%[0-9]+]] = hl.const #core.integer<0> : si32
-// CHECK: [[V2:%[0-9]+]] = hl.initlist [[V1]] : (si32) -> !hl.record<"X">
+// CHECK: [[V2:%[0-9]+]] = hl.initlist [[V1]] : (si32) -> !hl.record<@X>
 struct X x = { 0 };

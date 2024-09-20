@@ -41,12 +41,12 @@ int int_long_cmp(int a, long b) {
 }
 
 int int_ptr_cmp(unsigned long a, void* b) {
-    // CHECK: hl.cmp eq [[A:%[0-9]+]], [[B:%[0-9]+]] : !hl.long< unsigned >, !hl.elaborated<!hl.typedef<"uintptr_t">> -> !hl.int
+    // CHECK: hl.cmp eq [[A:%[0-9]+]], [[B:%[0-9]+]] : !hl.long< unsigned >, !hl.elaborated<!hl.typedef<@uintptr_t>> -> !hl.int
     return a == (uintptr_t)b;
 }
 
 int ptr_int_cmp(void *a, unsigned b) {
-    // CHECK: hl.cmp eq [[A:%[0-9]+]], [[B:%[0-9]+]] : !hl.elaborated<!hl.typedef<"uintptr_t">>, !hl.elaborated<!hl.typedef<"uintptr_t">> -> !hl.int
+    // CHECK: hl.cmp eq [[A:%[0-9]+]], [[B:%[0-9]+]] : !hl.elaborated<!hl.typedef<@uintptr_t>>, !hl.elaborated<!hl.typedef<@uintptr_t>> -> !hl.int
     return (uintptr_t)a == b;
 }
 

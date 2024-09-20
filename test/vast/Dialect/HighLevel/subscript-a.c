@@ -6,6 +6,6 @@ enum FOO { BAR };
 int main(void) {
     int a[1]   = { 0 };
     enum FOO b = BAR;
-    // CHECK: hl.subscript {{%[0-9]+}} at [{{%[0-9]+}} : !hl.elaborated<!hl.enum<"FOO">>]
+    // CHECK: hl.subscript {{%[0-9]+}} at [{{%[0-9]+}} : !hl.elaborated<!hl.enum<@FOO>>]
     return a[b];
 }

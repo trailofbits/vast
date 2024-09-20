@@ -5,7 +5,6 @@ typedef float V __attribute__((vector_size (4 * sizeof (float))));
 
 void fun() {
     V x;
-    // CHECK: hl.subscript {{.*}} !hl.lvalue<!hl.elaborated<!hl.typedef<"V">>>
+    // CHECK: hl.subscript {{.*}} !hl.lvalue<!hl.elaborated<!hl.typedef<@V>>>
     float a = x[0];
 }
-

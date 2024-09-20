@@ -6,10 +6,10 @@ struct X { int x; struct Y *y; };
 
 int main()
 {
-    // VAL_CAT: [[V0:%[0-9]+]] = ll.alloca : !hl.ptr<!hl.record<"X">>
-    // VAL_CAT: [[V3:%[0-9]+]] = hl.implicit_cast {{.*}} NullToPointer : si32 -> !hl.ptr<!hl.record<"Y">>
-    // VAL_CAT: [[V4:%[0-9]+]] = hl.initlist {{.*}}, [[V3]] : (si32, !hl.ptr<!hl.record<"Y">>) -> !hl.record<"X">
-    // VAL_CAT: ll.store [[V0]], [[V4]] : !hl.ptr<!hl.record<"X">>, !hl.record<"X">
+    // VAL_CAT: [[V0:%[0-9]+]] = ll.alloca : !hl.ptr<!hl.record<@X>>
+    // VAL_CAT: [[V3:%[0-9]+]] = hl.implicit_cast {{.*}} NullToPointer : si32 -> !hl.ptr<!hl.record<@Y>>
+    // VAL_CAT: [[V4:%[0-9]+]] = hl.initlist {{.*}}, [[V3]] : (si32, !hl.ptr<!hl.record<@Y>>) -> !hl.record<@X>
+    // VAL_CAT: ll.store [[V0]], [[V4]] : !hl.ptr<!hl.record<@X>>, !hl.record<@X>
 
     // C_LLVM: [[V1:%[0-9]+]] = llvm.alloca {{.*}} x !llvm.struct<"X", (i32, ptr)> : (i64) -> !llvm.ptr
     // C_LLVM: [[V2:%[0-9]+]] = llvm.mlir.constant(2 : i32) : i32

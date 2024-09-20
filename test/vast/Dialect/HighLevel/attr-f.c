@@ -13,13 +13,13 @@ void fun(union u x) {
 
 int main() {
     int x;
-// CHECK: hl.call @fun({{.*}}) : (!hl.elaborated<!hl.record<"u">>) -> !hl.void
+// CHECK: hl.call @fun({{.*}}) : (!hl.elaborated<!hl.record<@u>>) -> !hl.void
     fun(&x);
     char y;
-// CHECK: hl.compound_literal : !hl.elaborated<!hl.record<"u">>
-// CHECK: hl.call @fun({{.*}}) : (!hl.elaborated<!hl.record<"u">>) -> !hl.void
+// CHECK: hl.compound_literal : !hl.elaborated<!hl.record<@u>>
+// CHECK: hl.call @fun({{.*}}) : (!hl.elaborated<!hl.record<@u>>) -> !hl.void
     fun(&y);
     union u z;
-// CHECK: hl.call @fun({{.*}}) : (!hl.elaborated<!hl.record<"u">>) -> !hl.void
+// CHECK: hl.call @fun({{.*}}) : (!hl.elaborated<!hl.record<@u>>) -> !hl.void
     fun(z);
 }
