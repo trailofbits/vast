@@ -13,6 +13,7 @@ include "vast/Interfaces/AliasTypeInterface.td"
 include "vast/Interfaces/DefaultDataLayoutTypeInterface.td"
 include "vast/Interfaces/ElementTypeInterface.td"
 
+include "vast/Dialect/Core/CoreAttrTypeBase.td"
 include "vast/Dialect/Core/Utils.td"
 
 //
@@ -129,7 +130,7 @@ class HighLevel_CVRQualifiedType< string name, string mnem, dag params = (ins), 
 // Tagged types and utils
 //
 def HighLevel_RecordType : HighLevel_CVQualifiedType<
-  "Record", "record", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
+  "Record", "record", (ins Core_SymbolRefParameter<>:$name), [MemRefElementTypeInterface]
 > {
 
   let builders = [
@@ -142,7 +143,7 @@ def HighLevel_RecordType : HighLevel_CVQualifiedType<
 }
 
 def HighLevel_EnumType : HighLevel_CVQualifiedType<
-  "Enum", "enum", (ins StringRefParameter<>:$name), [MemRefElementTypeInterface]
+  "Enum", "enum", (ins Core_SymbolRefParameter<>:$name), [MemRefElementTypeInterface]
 > {
   let builders = [
     TypeBuilder<(ins "llvm::StringRef":$name), [{
@@ -154,7 +155,7 @@ def HighLevel_EnumType : HighLevel_CVQualifiedType<
 }
 
 def HighLevel_TypedefType : HighLevel_CVRQualifiedType<
-  "Typedef", "typedef", (ins StringRefParameter<>:$name),
+  "Typedef", "typedef", (ins Core_SymbolRefParameter<>:$name),
   [MemRefElementTypeInterface, Core_TypedefTrait]
 > {
   let builders = [
