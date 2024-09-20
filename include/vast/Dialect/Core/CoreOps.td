@@ -7,7 +7,6 @@ include "mlir/IR/OpBase.td"
 
 include "mlir/Dialect/DLTI/DLTIBase.td"
 include "mlir/Interfaces/DataLayoutInterfaces.td"
-include "mlir/IR/RegionKindInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
 include "vast/Dialect/Core/Interfaces/SymbolTableInterface.td"
@@ -77,8 +76,7 @@ def Core_ScopeOp : Core_Op< "scope", [
   NoTerminator, Core_ScopeLikeTrait,
   Core_ShadowingSymbolTable< [
     [Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
-  ] >,
-  DeclareOpInterfaceMethods<RegionKindInterface>
+  ] >
 ] > {
   let summary = "VAST scope declaration";
   let description = [{

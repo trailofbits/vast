@@ -1472,7 +1472,7 @@ def HighLevel_OffsetOfExprOp
 }
 
 def HighLevel_StmtExprOp
-  : HighLevel_Op< "stmt.expr", [SingleBlock, DeclareOpInterfaceMethods<RegionKindInterface>] >
+  : HighLevel_Op< "stmt.expr", [SingleBlock] >
   , Results<(outs AnyType:$result)>
 {
   let summary = "VAST statement expression";

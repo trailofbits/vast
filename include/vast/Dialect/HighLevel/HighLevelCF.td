@@ -10,7 +10,7 @@ include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 
 class HighLevel_ControlFlowOp< string mnemonic, list< Trait > traits = [] >
     : HighLevel_Op< mnemonic, !listconcat(traits,
-        [NoTerminator, NoRegionArguments, DeclareOpInterfaceMethods<RegionKindInterface>]
+        [NoTerminator, NoRegionArguments]
       ) >
 {
     let summary = "VAST control flow operation";
@@ -254,7 +254,7 @@ def HighLevel_ChooseExprOp : HighLevel_ControlFlowOp< "choose_expr" >
 def HighLevel_BinaryCondOp
   : HighLevel_Op<
         "binary_cond",
-        [NoTerminator, DeclareOpInterfaceMethods<RegionKindInterface>]
+        [NoTerminator]
     >
     , Results<(outs AnyType:$result)>
 {
