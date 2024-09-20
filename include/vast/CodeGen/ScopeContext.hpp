@@ -232,10 +232,10 @@ namespace vast::cg
 
         virtual ~module_scope() = default;
 
-        symbol_table_scope< string_ref, operation >  functions;
-        symbol_table_scope< string_ref, operation >  types;
+        symbol_table_scope< string_ref, operation > functions;
+        symbol_table_scope< string_ref, operation > types;
         symbol_table_scope< string_ref, operation > globals;
-        symbol_table_scope< string_ref, operation >  enum_constants;
+        symbol_table_scope< string_ref, operation > enum_constants;
     };
 
     // Scope of member names for structures and unions

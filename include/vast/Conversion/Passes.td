@@ -67,7 +67,6 @@ def IRsToLLVM : Pass<"vast-irs-to-llvm", "mlir::ModuleOp"> {
 
 def RefsToSSA : Pass<"vast-refs-to-ssa", "core::ModuleOp"> {
   let summary = "Lower `hl.ref` into ssa-based `ll.cell`.";
-  let description = [{ TBD }];
 
   let constructor = "vast::createRefsToSSAPass()";
   let dependentDialects = [
@@ -78,7 +77,6 @@ def RefsToSSA : Pass<"vast-refs-to-ssa", "core::ModuleOp"> {
 
 def StripParamLValues : Pass<"vast-strip-param-lvalues", "core::ModuleOp"> {
   let summary = "Strip `hl.lvalue` from types in the module.";
-  let description = [{ TBD }];
 
   let constructor = "vast::createStripParamLValuesPass()";
   let dependentDialects = [
@@ -88,7 +86,6 @@ def StripParamLValues : Pass<"vast-strip-param-lvalues", "core::ModuleOp"> {
 
 def VarsToCells : Pass<"vast-vars-to-cells", "core::ModuleOp"> {
   let summary = "Lower `hl.var` into ssa-based `ll.cell`.";
-  let description = [{ TBD }];
 
   let constructor = "vast::createVarsToCellsPass()";
   let dependentDialects = [
