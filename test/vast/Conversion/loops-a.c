@@ -1,7 +1,7 @@
 // RUN: %check-hl-to-ll-cf %s | %file-check %s -check-prefix=LL_CF
 // RUN: %check-core-to-llvm %s | %file-check %s -check-prefix=C_LLVM
 
-// LL_CF: ll.scope {
+// LL_CF: core.scope {
 // LL_CF:   ll.br ^bb1
 // LL_CF: ^bb1:  // 2 preds: ^bb0, ^bb2
 // LL_CF:   [[W1:%[0-9]+]] = hl.const #core.integer<0> : si32
@@ -27,7 +27,7 @@ void fn_while() {
     while (0) {}
 }
 
-// LL_CF: ll.scope {
+// LL_CF: core.scope {
 // LL_CF:   ll.br ^bb2
 // LL_CF: ^bb1:  // pred: ^bb2
 // LL_CF:   [[DW1:%[0-9]+]] = hl.const #core.integer<0> : si32
@@ -53,7 +53,7 @@ void fn_do_while() {
     do {} while(0);
 }
 
-// LL_CF: ll.scope {
+// LL_CF: core.scope {
 // LL_CF:   ll.br ^bb2
 // LL_CF: ^bb1:  // pred: ^bb3
 // LL_CF:   ll.br ^bb2

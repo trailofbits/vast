@@ -324,37 +324,6 @@ def LowLevel_ReturnOp
     let assemblyFormat = "($result^ `:` type($result))? attr-dict";
 }
 
-def LowLevel_Scope
-    : LowLevel_Op< "scope", [
-        NoRegionArguments,
-        NoTerminator,
-        Core_ScopeLikeTrait,
-        Core_ShadowingSymbolTable< [
-            [Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
-        ] >
-    ] >
-{
-    let summary = "Scope, holds one region.";
-    let description = [{ Scope that holds one region, each block should be terminated
-                         with either branch, scope return or their conditional variants. }];
-
-    let regions = (region AnyRegion:$body);
-
-    let extraClassDeclaration = [{
-        mlir::Block *start_block()
-        {
-            auto size = std::distance(getBody().begin(), getBody().end());
-            if (size < 2)
-                return nullptr;
-            return &*std::next(getBody().begin());
-        }
-    }];
-
-    let assemblyFormat = [{
-        $body attr-dict
-    }];
-}
-
 def LowLevel_InlineScope
     : LowLevel_Op< "inline_scope", [NoRegionArguments] >
 {

@@ -1,6 +1,6 @@
 // RUN: %check-hl-to-ll-cf %s | %file-check %s -check-prefix=LL_CF
 
-// LL_CF:   ll.scope {
+// LL_CF:   core.scope {
 // LL_CF:     ll.br ^bb2
 // LL_CF:   ^bb1:  // pred: ^bb4
 // LL_CF:     ll.br ^bb2
