@@ -291,7 +291,7 @@ namespace vast::conv::irstollvm
     };
 
     using label_stmt = hl_scopelike< hl::LabelStmt >;
-    using scope_op   = hl_scopelike< ll::Scope >;
+    using scope_op   = hl_scopelike< core::ScopeOp >;
 
     using label_patterns = util::type_list< erase_pattern< hl::LabelDeclOp >, label_stmt >;
 

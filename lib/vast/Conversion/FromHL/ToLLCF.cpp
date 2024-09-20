@@ -313,7 +313,7 @@ namespace vast::conv {
                 auto &&finish_control_flow
             ) const {
                 auto bld         = rewriter_wrapper_t(rewriter);
-                auto scope       = rewriter.create< ll::Scope >(op.getLoc());
+                auto scope       = rewriter.create< core::ScopeOp >(op.getLoc());
                 auto scope_entry = rewriter.createBlock(&scope.getBody());
 
                 auto &cond_region = op.getCondRegion();
@@ -401,7 +401,7 @@ namespace vast::conv {
                 op_t op, typename op_t::Adaptor ops, conversion_rewriter &rewriter
             ) const override {
                 auto bld         = rewriter_wrapper_t(rewriter);
-                auto scope       = rewriter.create< ll::Scope >(op.getLoc());
+                auto scope       = rewriter.create< core::ScopeOp >(op.getLoc());
                 auto scope_entry = rewriter.createBlock(&scope.getBody());
 
                 auto make_inline_region = [&](auto &&reg) {
@@ -466,33 +466,9 @@ namespace vast::conv {
             }
         };
 
-        template< typename op_t, typename trg_t >
-        struct replace_scope : base_pattern< op_t >
-        {
-            using parent_t = base_pattern< op_t >;
-            using parent_t::parent_t;
-
-            mlir::LogicalResult matchAndRewrite(
-                op_t op, typename op_t::Adaptor ops, conversion_rewriter &rewriter
-            ) const override {
-                auto new_scope    = rewriter.create< trg_t >(op.getLoc(), ops.getOperands());
-                auto &front_block = new_scope.getBody().emplaceBlock();
-                rewriter.inlineRegionBefore(op.getBody(), &front_block);
-
-                rewriter.replaceOp(op, new_scope);
-                return mlir::success();
-            }
-
-            static void legalize(conversion_target &trg) {
-                trg.addIllegalOp< op_t >();
-                trg.addLegalOp< trg_t >();
-            }
-        };
-
         using cf_patterns = util::make_list<
             if_op, while_op, for_op, do_op, replace< hl::ReturnOp, ll::ReturnOp >,
-            replace< core::ImplicitReturnOp, ll::ReturnOp >,
-            replace_scope< core::ScopeOp, ll::Scope >
+            replace< core::ImplicitReturnOp, ll::ReturnOp >
         >;
 
     } // namespace pattern
@@ -522,7 +498,7 @@ namespace vast::conv {
         }
 
         void run_after_conversion() {
-            auto clean_scopes = [&](ll::Scope scope) {
+            auto clean_scopes = [&](core::ScopeOp scope) {
                 mlir::IRRewriter rewriter{ &this->getContext() };
                 // We really don't care if anything was removed or not.
                 std::ignore = mlir::eraseUnreachableBlocks(rewriter, scope.getBody());

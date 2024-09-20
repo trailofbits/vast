@@ -3,9 +3,9 @@
 
 // LL_CF:  ll.func @fn external ([[ARG0:%.*]]: !hl.lvalue<si32>) -> none
 // LL_CF:    hl.param @a
-// LL_CF:    ll.scope {
+// LL_CF:    core.scope {
 // LL_CF:       hl.var @sum
-// LL_CF:      ll.scope {
+// LL_CF:      core.scope {
 // LL_CF:        ll.br ^bb2
 // LL_CF:      ^bb1:  // pred: ^bb2
 // LL_CF:        [[V8:%[0-9]+]] = hl.ref @a : !hl.lvalue<si32>

@@ -3,9 +3,9 @@
 
 void fn(int arg)
 {
-    // LL_CF: ll.scope {
+    // LL_CF: core.scope {
     // LL_CF:   hl.var @a
-    // LL_CF:   ll.scope {
+    // LL_CF:   core.scope {
     // LL_CF:     ll.cond_br {{.*}} : i1, ^bb1, ^bb2
     // LL_CF:   ^bb1:  // pred: ^bb0
     // LL_CF:     hl.ref @a
