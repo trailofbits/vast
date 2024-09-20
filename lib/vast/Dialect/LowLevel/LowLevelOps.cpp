@@ -13,7 +13,6 @@ VAST_RELAX_WARNINGS
 #include <mlir/Interfaces/FunctionImplementation.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Util/Dialect.hpp"
 #include "vast/Util/Region.hpp"
 
 namespace vast::ll
@@ -48,8 +47,6 @@ namespace vast::ll
     ) {
         return core::printFunctionSignatureAndBodyImpl(printer, op, function_type, dict_attr, body);
     }
-
-    SSACFG_REGION_OP( FuncOp );
 
 } // namespace vast::ll
 

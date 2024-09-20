@@ -11,8 +11,6 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/Builders.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Util/Dialect.hpp"
-
 #include "vast/Dialect/Core/Func.hpp"
 
 namespace vast::abi
@@ -111,8 +109,6 @@ namespace vast::abi
     {
         setOperand(0, callee.get< mlir_value >());
     }
-
-    SSACFG_REGION_OP( FuncOp );
 
     logical_result FuncOp::verify() {
         return core::verifyFuncOp(*this);

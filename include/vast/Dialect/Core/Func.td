@@ -4,7 +4,6 @@
 #define VAST_DIALECT_CORE_FUNC
 
 include "mlir/IR/OpBase.td"
-include "mlir/IR/RegionKindInterface.td"
 
 include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/Interfaces/FunctionInterfaces.td"
@@ -38,8 +37,7 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
       FunctionOpInterface,
       IsolatedFromAbove,
       Core_FuncSymbol,
-      NoTerminator,
-      DeclareOpInterfaceMethods< RegionKindInterface >
+      NoTerminator
     ])
 > {
   let summary = "VAST function template";

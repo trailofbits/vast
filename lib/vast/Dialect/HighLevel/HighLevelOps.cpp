@@ -33,7 +33,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/SymbolTable.hpp"
 
 #include "vast/Util/Common.hpp"
-#include "vast/Util/Dialect.hpp"
 #include "vast/Util/Region.hpp"
 #include "vast/Util/TypeUtils.hpp"
 #include "vast/Util/Enum.hpp"
@@ -845,23 +844,6 @@ namespace vast::hl
         build_region(bld, st, builder_callback_ref(init));
         st.addTypes(type);
     }
-
-    GRAPH_REGION_OP(FuncOp);
-    GRAPH_REGION_OP(StmtExprOp);
-
-    GRAPH_REGION_OP(IfOp);
-    GRAPH_REGION_OP(WhileOp);
-    GRAPH_REGION_OP(ForOp);
-    GRAPH_REGION_OP(DoOp);
-    GRAPH_REGION_OP(SwitchOp);
-    GRAPH_REGION_OP(CaseOp);
-    GRAPH_REGION_OP(DefaultOp);
-    GRAPH_REGION_OP(LabelStmt);
-    GRAPH_REGION_OP(BreakOp);
-    GRAPH_REGION_OP(CondOp);
-    GRAPH_REGION_OP(ChooseExprOp);
-    GRAPH_REGION_OP(BinaryCondOp);
-    GRAPH_REGION_OP(ContinueOp);
 
     std::size_t handle_size_of(auto op, mlir_type type) {
         auto eval = [op] (mlir_type ty) -> std::size_t {

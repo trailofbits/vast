@@ -6,7 +6,6 @@
 #include "vast/Dialect/Core/CoreAttributes.hpp"
 
 #include "vast/Util/Common.hpp"
-#include "vast/Util/Dialect.hpp"
 
 #include <mlir/Support/LLVM.h>
 #include <mlir/Support/LogicalResult.h>
@@ -25,8 +24,6 @@
 
 namespace vast::core
 {
-    GRAPH_REGION_OP(ScopeOp);
-
     //
     // ModuleOp
     //

@@ -18,7 +18,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/Linkage.hpp"
 
 #include "vast/Util/Common.hpp"
-#include "vast/Util/Dialect.hpp"
 #include "vast/Util/Region.hpp"
 
 namespace vast::core
