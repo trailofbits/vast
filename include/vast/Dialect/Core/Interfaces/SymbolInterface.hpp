@@ -28,9 +28,13 @@ namespace vast::core {
 
     using symbol = SymbolOpInterface;
 
-    using func_symbol = FuncSymbolOpInterface;
-
-    using var_symbol = VarSymbolOpInterface;
+    using func_symbol            = FuncSymbolOpInterface;
+    using var_symbol             = VarSymbolOpInterface;
+    using type_symbol            = TypeSymbolOpInterface;
+    using member_symbol          = MemberVarSymbolOpInterface;
+    using label_symbol           = LabelSymbolOpInterface;
+    using enum_constant_symbol   = EnumConstantSymbolOpInterface;
+    using elaborated_type_symbol = ElaboratedTypeSymbolOpInterface;
 
     template< typename interface >
     concept symbol_op_interface = requires (interface i) {
