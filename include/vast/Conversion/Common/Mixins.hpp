@@ -217,7 +217,7 @@ namespace vast {
         type_converting_conversion_config< type_converter > make_config() {
             auto &ctx = this->getContext();
             tc = std::make_shared< type_converter >(ctx);
-            return { rewrite_pattern_set(&ctx), derived::create_conversion_target(ctx), *tc };
+            return { rewrite_pattern_set(&ctx), derived::create_conversion_target(ctx, *tc), *tc };
         }
     };
 

@@ -100,7 +100,7 @@ namespace vast::hl {
             LowerEnumDeclsPass, LowerEnumDeclsBase, EnumTypeConverter
         >;
 
-        static conversion_target create_conversion_target(mcontext_t &mctx) {
+        static conversion_target create_conversion_target(mcontext_t &mctx, auto &tc) {
             auto trg = conversion_target(mctx);
             return trg;
         }

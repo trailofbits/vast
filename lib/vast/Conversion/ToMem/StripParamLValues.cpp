@@ -65,7 +65,7 @@ namespace vast::conv {
             return !mlir::isa< hl::LValueType >(ty);
         }
 
-        static conversion_target create_conversion_target(mcontext_t &mctx) {
+        static conversion_target create_conversion_target(mcontext_t &mctx, auto &tc) {
             conversion_target trg(mctx);
 
             trg.markUnknownOpDynamicallyLegal([] (operation op) {
