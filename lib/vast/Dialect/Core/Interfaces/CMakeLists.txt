@@ -1,10 +1,14 @@
 set(VAST_OPTIONAL_SOURCES
+  DeclStorageInterface.cpp
   SymbolInterface.cpp
   SymbolTableInterface.cpp
   SymbolRefInterface.cpp
   TypeDefinitionInterface.cpp
 )
 
+add_vast_interface_library(DeclStorageInterface
+    DeclStorageInterface.cpp
+)
 
 add_vast_interface_library(SymbolInterface
   SymbolInterface.cpp
