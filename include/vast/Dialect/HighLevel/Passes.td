@@ -131,4 +131,19 @@ def LowerEnumRefs : Pass<"vast-hl-lower-enum-refs", "core::ModuleOp"> {
     "vast::hl::HighLevelDialect"
   ];
 }
+
+def LowerEnumDecls : Pass<"vast-hl-lower-enum-decls", "core::ModuleOp"> {
+  let summary = "Lower high level representation of enums.";
+  let description = [{
+    Lower enum types to integer types.
+
+    Note: This pass requires that all enum references are lowered.
+  }];
+
+  let constructor = "vast::hl::createLowerEnumDeclsPass()";
+  let dependentDialects = [
+    "vast::hl::HighLevelDialect"
+  ];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_PASSES_TD
