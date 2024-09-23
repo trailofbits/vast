@@ -21,29 +21,29 @@ namespace vast::conv::tc {
     template< typename derived, typename type_converter >
     struct op_type_conversion
     {
+        logical_result replace(operation op, auto &rewriter, const type_converter &tc) const {
+            if (auto func_op = mlir::dyn_cast< mlir::FunctionOpInterface >(op))
+                return replace_impl(func_op, rewriter, tc);
+            return replace_impl(op, rewriter, tc);
+        }
+
+        logical_result replace(operation op, auto &rewriter) const {
+            auto tc = static_cast< const type_converter & >(*self().getTypeConverter());
+            return replace(op, rewriter, tc);
+        }
+
       private:
         const auto &self() const { return static_cast< const derived & >(*this); }
 
-      public:
-
-        auto &get_type_converter() const {
-            return static_cast< const type_converter & >(*self().getTypeConverter());
-        }
-
-        // TODO(conv:tc): This should probably be some interface instead, since
-        //                 we are only updating the root?
-        logical_result replace(
-            core::function_op_interface fn,
-            auto &rewriter
-        ) const {
+        logical_result replace_impl(core::function_op_interface fn, auto &rewriter, const type_converter &tc) const {
             auto old_type = fn.getFunctionType();
-            auto trg_type = get_type_converter().convert_type_to_type(old_type);
+            auto trg_type = tc.convert_type_to_type(old_type);
             VAST_CHECK(trg_type, "Type conversion failed for {0}", old_type);
 
             auto update = [&]() {
                 fn.setType(*trg_type);
                 if (!fn.empty() && fn->getNumRegions() != 0) {
-                    fixup_entry_block(fn.front());
+                    fixup_entry_block(fn.front(), tc);
                 }
             };
 
@@ -51,11 +51,7 @@ namespace vast::conv::tc {
             return mlir::success();
         }
 
-        logical_result replace(
-            mlir::Operation *op,
-            auto &rewriter
-        ) const {
-            auto &tc = get_type_converter();
+        logical_result replace_impl(operation op, auto &rewriter, const type_converter &tc) const {
 
             auto update = [&]() {
                 // TODO(conv:tc): This is pretty ad-hoc as it seems detection
@@ -76,7 +72,7 @@ namespace vast::conv::tc {
 
                 // TODO(conv:tc): Is this still needed with the `replacer`?
                 if (op->getNumRegions() != 0) {
-                    fixup_entry_block(op->getRegion(0));
+                    fixup_entry_block(op->getRegion(0), tc);
                 }
             };
 
@@ -84,20 +80,20 @@ namespace vast::conv::tc {
             return mlir::success();
         }
 
-        void fixup_entry_block(mlir::Block &block) const {
+        void fixup_entry_block(mlir::Block &block, const type_converter &tc) const {
             for (auto arg : block.getArguments()) {
-                auto trg = get_type_converter().convert_type_to_type(arg.getType());
+                auto trg = tc.convert_type_to_type(arg.getType());
                 VAST_CHECK(trg, "Type conversion failed: {0}", arg);
                 arg.setType(*trg);
             }
         }
 
-        void fixup_entry_block(mlir::Region &region) const {
+        void fixup_entry_block(mlir::Region &region, const type_converter &tc) const {
             if (region.empty()) {
                 return;
             }
 
-            return fixup_entry_block(region.front());
+            return fixup_entry_block(region.front(), tc);
         }
     };
 
@@ -111,13 +107,14 @@ namespace vast::conv::tc {
         using base = generic_conversion_pattern;
         using base::base;
 
+        using conversion = op_type_conversion< type_converting_pattern, type_converter >;
+        using conversion::replace;
+
         logical_result matchAndRewrite(
             operation op, mlir::ArrayRef< mlir::Value >,
             conversion_rewriter &rewriter
         ) const override {
-            if (auto func_op = mlir::dyn_cast< core::function_op_interface >(op))
-                return this->replace(func_op, rewriter);
-            return this->replace(op, rewriter);
+            return replace(op, rewriter);
         }
     };
 } // namespace vast::conv::tc

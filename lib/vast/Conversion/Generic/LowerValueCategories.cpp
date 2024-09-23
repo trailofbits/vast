@@ -412,8 +412,12 @@ namespace vast::conv {
                     return mlir::failure();
                 }
 
+                auto get_type_converter = [&] {
+                    return static_cast< const value_category_type_converter & >(*getTypeConverter());
+                };
+
                 auto convert = [&](auto t) {
-                    auto mt = this->get_type_converter().convert_type_to_type(t);
+                    auto mt = get_type_converter().convert_type_to_type(t);
                     VAST_ASSERT(mt);
                     return *mt;
                 };
