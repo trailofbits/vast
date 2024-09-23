@@ -32,6 +32,8 @@ namespace vast::hl {
 
     std::unique_ptr< mlir::Pass > createLowerEnumRefsPass();
 
+    std::unique_ptr< mlir::Pass > createLowerEnumDeclsPass();
+
 /// Generate the code for registering passes.
 #define GEN_PASS_REGISTRATION
 #include "vast/Dialect/HighLevel/Passes.h.inc"
