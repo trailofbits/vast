@@ -109,7 +109,6 @@ namespace vast::conv {
         }
 
         static void populate_conversions(auto &cfg) {
-            // TODO: Deal only with local variables
             base::populate_conversions< pattern::var_to_cell >(cfg);
             base::populate_conversions< pattern::param_to_cell >(cfg);
         }
