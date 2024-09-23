@@ -117,4 +117,30 @@ namespace vast::conv::tc {
             return replace(op, rewriter);
         }
     };
+
+    template< typename type_converter >
+    struct scope_aware_type_converting_pattern
+        : generic_conversion_pattern,
+          op_type_conversion<
+            scope_aware_type_converting_pattern< type_converter >,
+            type_converter
+          >
+    {
+        using base = generic_conversion_pattern;
+        using base::base;
+
+        using conversion = op_type_conversion<
+            scope_aware_type_converting_pattern, type_converter
+        >;
+
+        using conversion::replace;
+
+        logical_result matchAndRewrite(
+            operation op, mlir::ArrayRef< mlir::Value >,
+            conversion_rewriter &rewriter
+        ) const override {
+            type_converter tc(*op->getContext(), op);
+            return replace(op, rewriter, tc);
+        }
+    };
 } // namespace vast::conv::tc
