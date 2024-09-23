@@ -9,8 +9,11 @@ include "vast/Dialect/Core/Interfaces/DeclStorageInterface.td"
 
 // Variable Operation
 def HighLevel_VarDeclOp
-  : HighLevel_Op< "var", [Core_VarSymbol] >
-  , HighLevel_StorageSpecifiers
+  : HighLevel_Op< "var", [
+      Core_VarSymbol,
+      Core_DeclStorageInterface,
+      DeclareOpInterfaceMethods< Core_DeclStorageInterface >
+  ] >
 {
   let summary = "VAST variable declaration";
   let description = [{ VAST variable declaration }];

@@ -24,6 +24,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Interfaces/TypeTraitExprInterface.hpp"
 #include "vast/Interfaces/AST/DeclInterface.hpp"
 
+#include "vast/Dialect/Core/Interfaces/DeclStorageInterface.hpp"
 
 #define GET_OP_CLASSES
 #include "vast/Dialect/HighLevel/HighLevel.h.inc"
