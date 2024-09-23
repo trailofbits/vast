@@ -24,17 +24,17 @@ namespace rns = std::ranges;
 
 namespace vast::conv {
 
-    struct strip_param_lvalue_type_converter
+    struct StripParamLValueTypeConverter
         : tc::identity_type_converter
-        , tc::mixins< strip_param_lvalue_type_converter >
-        , tc::function_type_converter< strip_param_lvalue_type_converter >
+        , tc::mixins< StripParamLValueTypeConverter >
+        , tc::function_type_converter< StripParamLValueTypeConverter >
     {
         mcontext_t &mctx;
 
-        explicit strip_param_lvalue_type_converter(mcontext_t &mctx)
+        explicit StripParamLValueTypeConverter(mcontext_t &mctx)
             : mctx(mctx)
         {
-            tc::function_type_converter< strip_param_lvalue_type_converter >::init();
+            tc::function_type_converter< StripParamLValueTypeConverter >::init();
             addConversion([&](hl::LValueType type) {
                 return Maybe(type.getElementType())
                     .and_then(convert_type_to_type())
@@ -46,7 +46,7 @@ namespace vast::conv {
 
     namespace pattern {
         using strip_param_lvalue = tc::generic_type_converting_pattern<
-            strip_param_lvalue_type_converter
+            StripParamLValueTypeConverter
         >;
     } // namespace pattern
 
@@ -54,10 +54,12 @@ namespace vast::conv {
         : TypeConvertingConversionPassMixin<
             StripParamLValuesPass,
             StripParamLValuesBase,
-            strip_param_lvalue_type_converter
+            StripParamLValueTypeConverter
         >
     {
-        using base = ConversionPassMixin< StripParamLValuesPass, StripParamLValuesBase >;
+        using base = TypeConvertingConversionPassMixin<
+            StripParamLValuesPass, StripParamLValuesBase, StripParamLValueTypeConverter
+        >;
 
         static bool is_not_lvalue_type(mlir_type ty) {
             return !mlir::isa< hl::LValueType >(ty);
