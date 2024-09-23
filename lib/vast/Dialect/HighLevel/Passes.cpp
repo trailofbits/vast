@@ -47,8 +47,12 @@ namespace vast::hl::pipeline {
         return pass(hl::createUDEPass).depends_on(splice_trailing_scopes);
     }
 
+    static pipeline_step_ptr lower_enum_refs() {
+        return pass(hl::createLowerEnumRefsPass).depends_on(desugar);
+    }
+
     static pipeline_step_ptr lower_enums() {
-        return pass(hl::createLowerEnumsPass).depends_on(desugar);
+        return compose("lower_enums", lower_enum_refs);
     }
 
     pipeline_step_ptr simplify() {

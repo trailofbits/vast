@@ -120,14 +120,13 @@ def SpliceTrailingScopes : Pass<"vast-hl-splice-trailing-scopes", "core::ModuleO
   let constructor = "vast::hl::createSpliceTrailingScopes()";
 }
 
-def LowerEnums : Pass<"vast-hl-lower-enums", "core::ModuleOp"> {
+def LowerEnumRefs : Pass<"vast-hl-lower-enum-refs", "core::ModuleOp"> {
   let summary = "Lower high level representation of enums.";
   let description = [{
-    Lower enum values and types into their underlying representations. Definition of enum
-    types are erased once conversion is finished.
+    Lower enum references to integer values.
   }];
 
-  let constructor = "vast::hl::createLowerEnumsPass()";
+  let constructor = "vast::hl::createLowerEnumRefsPass()";
   let dependentDialects = [
     "vast::hl::HighLevelDialect"
   ];
