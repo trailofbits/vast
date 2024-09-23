@@ -139,34 +139,34 @@ namespace vast::cg {
     // Variable Declaration
     //
 
-    hl::StorageClass storage_class(const clang_var_decl *decl) {
+    core::StorageClass storage_class(const clang_var_decl *decl) {
         switch (decl->getStorageClass()) {
             case clang::SC_None:
-                return hl::StorageClass::sc_none;
+                return core::StorageClass::sc_none;
             case clang::SC_Auto:
-                return hl::StorageClass::sc_auto;
+                return core::StorageClass::sc_auto;
             case clang::SC_Static:
-                return hl::StorageClass::sc_static;
+                return core::StorageClass::sc_static;
             case clang::SC_Extern:
-                return hl::StorageClass::sc_extern;
+                return core::StorageClass::sc_extern;
             case clang::SC_PrivateExtern:
-                return hl::StorageClass::sc_private_extern;
+                return core::StorageClass::sc_private_extern;
             case clang::SC_Register:
-                return hl::StorageClass::sc_register;
+                return core::StorageClass::sc_register;
         }
         VAST_UNIMPLEMENTED_MSG("unknown storage class");
     }
 
-    hl::TSClass thread_storage_class(const clang_var_decl *decl) {
+    core::TSClass thread_storage_class(const clang_var_decl *decl) {
         switch (decl->getTSCSpec()) {
             case clang::TSCS_unspecified:
-                return hl::TSClass::tsc_none;
+                return core::TSClass::tsc_none;
             case clang::TSCS___thread:
-                return hl::TSClass::tsc_gnu_thread;
+                return core::TSClass::tsc_gnu_thread;
             case clang::TSCS_thread_local:
-                return hl::TSClass::tsc_cxx_thread;
+                return core::TSClass::tsc_cxx_thread;
             case clang::TSCS__Thread_local:
-                return hl::TSClass::tsc_c_thread;
+                return core::TSClass::tsc_c_thread;
         }
         VAST_UNIMPLEMENTED_MSG("unknown thread storage class");
     }

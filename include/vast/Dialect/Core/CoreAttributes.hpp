@@ -28,4 +28,12 @@ namespace vast::core {
 
     mlir::CallInterfaceCallable get_callable_for_callee(operation op);
 
+    ParseResult parseStorageClasses(
+        Parser &parser, Attribute &storage_class, Attribute &thread_storage_class
+    );
+
+    void printStorageClasses(
+        Printer &printer, mlir::Operation *op, core::StorageClassAttr storage_class, core::TSClassAttr thread_storage_class
+    );
+
 } // namespace vast::core

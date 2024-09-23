@@ -33,4 +33,48 @@ namespace vast::core
         return op->getAttrOfType< mlir::FlatSymbolRefAttr >("callee");
     }
 
+    ParseResult parseStorageClasses(
+        Parser &parser, Attribute &storage_class, Attribute &thread_storage_class
+    ) {
+        std::string keyword;
+        auto parse_result = parser.parseOptionalKeywordOrString(&keyword);
+
+        if (mlir::failed(parse_result)) {
+            storage_class = core::StorageClassAttr::get(parser.getContext(), core::StorageClass::sc_none);
+            thread_storage_class = core::TSClassAttr::get(parser.getContext(), core::TSClass::tsc_none);
+            return mlir::success();
+        } else if (auto attr = symbolizeEnum< core::StorageClass >(keyword)) {
+            storage_class = core::StorageClassAttr::get(parser.getContext(), attr.value());
+        } else if (auto attr = symbolizeEnum< core::TSClass >(keyword)) {
+            storage_class = core::StorageClassAttr::get(parser.getContext(), core::StorageClass::sc_none);
+            thread_storage_class = core::TSClassAttr::get(parser.getContext(), attr.value());
+            return mlir::success();
+        } else {
+            return mlir::failure();
+        }
+
+        parse_result = parser.parseOptionalKeywordOrString(&keyword);
+        if (mlir::failed(parse_result)) {
+            thread_storage_class = core::TSClassAttr::get(parser.getContext(), core::TSClass::tsc_none);
+        } else if (auto attr = symbolizeEnum< core::TSClass >(keyword)) {
+            thread_storage_class = core::TSClassAttr::get(parser.getContext(), attr.value());
+        } else {
+            return mlir::failure();
+        }
+
+        return mlir::success();
+    }
+
+    void printStorageClasses(
+        Printer &printer, mlir::Operation *op, core::StorageClassAttr storage_class, core::TSClassAttr thread_storage_class
+    ) {
+        if (storage_class.getValue() != core::StorageClass::sc_none) {
+            printer << ' ' << storage_class.getValue();
+        }
+
+        if (thread_storage_class.getValue() != core::TSClass::tsc_none) {
+            printer << ' ' << thread_storage_class.getValue();
+        }
+    }
+
 } // namespace vast::core

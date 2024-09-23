@@ -31,13 +31,4 @@ VAST_UNRELAX_WARNINGS
 namespace vast::hl
 {
     FuncOp getCallee(CallOp call);
-
-    ParseResult parseStorageClasses(
-        Parser &parser, Attribute &storage_class, Attribute &thread_storage_class
-    );
-
-    void printStorageClasses(
-        Printer &printer, mlir::Operation *op, StorageClassAttr storage_class, TSClassAttr thread_storage_class
-    );
-
 } // namespace vast::hl
