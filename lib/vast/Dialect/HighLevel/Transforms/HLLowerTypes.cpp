@@ -34,10 +34,10 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::hl
 {
-    using type_converter_t = conv::tc::high_level_to_std_type_converter;
+    using type_converter = conv::tc::high_level_to_std_type_converter;
 
     namespace pattern {
-        using lower_type = conv::tc::generic_type_converting_pattern< type_converter_t >;
+        using lower_type = conv::tc::type_converting_pattern< type_converter >;
     } // namespace pattern
 
     struct HLLowerTypesPass : HLLowerTypesBase< HLLowerTypesPass >
@@ -47,15 +47,15 @@ namespace vast::hl
             auto &mctx = this->getContext();
 
             const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
-            type_converter_t type_converter(dl_analysis.getAtOrAbove(op), mctx);
+            type_converter tc(dl_analysis.getAtOrAbove(op), mctx);
 
             mlir::ConversionTarget trg(mctx);
-            auto is_legal = type_converter.get_is_type_conversion_legal();
+            auto is_legal = tc.get_is_type_conversion_legal();
             trg.markUnknownOpDynamicallyLegal(is_legal);
 
             mlir::RewritePatternSet patterns(&mctx);
 
-            patterns.add< pattern::lower_type >(type_converter, mctx);
+            patterns.add< pattern::lower_type >(tc, mctx);
 
             if (mlir::failed(mlir::applyPartialConversion(op, trg, std::move(patterns)))) {
                 return signalPassFailure();

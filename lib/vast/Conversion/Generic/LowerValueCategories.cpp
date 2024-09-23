@@ -134,7 +134,7 @@ namespace vast::conv {
         template< typename op_t >
         struct fn
             : base_pattern< op_t >
-            , tc::do_type_conversion_on_op< fn< op_t >, value_category_type_converter >
+            , tc::op_type_conversion< fn< op_t >, value_category_type_converter >
         {
             using base = base_pattern< op_t >;
 
@@ -400,9 +400,9 @@ namespace vast::conv {
             }
         };
 
-        struct fallback : tc::generic_type_converting_pattern< value_category_type_converter >
+        struct fallback : tc::type_converting_pattern< value_category_type_converter >
         {
-            using base = tc::generic_type_converting_pattern< value_category_type_converter >;
+            using base = tc::type_converting_pattern< value_category_type_converter >;
             using base::base;
 
             logical_result matchAndRewrite(
