@@ -45,7 +45,7 @@ namespace vast::conv {
     };
 
     namespace pattern {
-        using strip_param_lvalue = tc::generic_type_converting_pattern<
+        using strip_param_lvalue = tc::type_converting_pattern<
             StripParamLValueTypeConverter
         >;
     } // namespace pattern

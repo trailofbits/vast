@@ -18,12 +18,11 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::conv::tc {
 
-    // Of `self_t` only `getTypeConverter` is required.
-    template< typename self_t, typename type_converter >
-    struct do_type_conversion_on_op
+    template< typename derived, typename type_converter >
+    struct op_type_conversion
     {
       private:
-        const auto &self() const { return static_cast< const self_t & >(*this); }
+        const auto &self() const { return static_cast< const derived & >(*this); }
 
       public:
 
@@ -103,10 +102,11 @@ namespace vast::conv::tc {
     };
 
     template< typename type_converter >
-    struct generic_type_converting_pattern
+    struct type_converting_pattern
         : generic_conversion_pattern,
-          do_type_conversion_on_op< generic_type_converting_pattern< type_converter >,
-                                    type_converter >
+          op_type_conversion<
+            type_converting_pattern< type_converter >, type_converter
+          >
     {
         using base = generic_conversion_pattern;
         using base::base;

@@ -27,7 +27,7 @@ namespace vast::hl {
 
     namespace pattern {
 
-        using lower_enum_types = conv::tc::generic_type_converting_pattern<
+        using lower_enum_types = conv::tc::type_converting_pattern<
             EnumTypeConverter
         >;
 
@@ -79,9 +79,7 @@ namespace vast::hl {
         using base = ConversionPassMixin< LowerEnumRefsPass, LowerEnumRefsBase >;
 
         static conversion_target create_conversion_target(mcontext_t &mctx) {
-            auto trg = conversion_target(mctx);
-            trg.addIllegalOp< hl::EnumRefOp >();
-            return trg;
+            return conversion_target(mctx);
         }
 
         static void populate_conversions(base_conversion_config &cfg) {
