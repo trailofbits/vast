@@ -17,7 +17,8 @@ def Core_ModuleOp : Core_Op< "module", [
   HasDefaultDLTIDataLayout,
   NoTerminator, NoRegionArguments, SingleBlock, Core_Symbol,
   Core_ShadowingSymbolTable< [
-    [Core_FuncSymbol, Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
+    [Core_FuncSymbol, Core_VarSymbol, Core_TypeSymbol, Core_EnumConstantSymbol],
+    [Core_ElaboratedTypeSymbol]
   ] >,
 ] > {
   let summary = "VAST top level container operation";
@@ -75,7 +76,8 @@ def Core_ModuleOp : Core_Op< "module", [
 def Core_ScopeOp : Core_Op< "scope", [
   NoTerminator, Core_ScopeLikeTrait,
   Core_ShadowingSymbolTable< [
-    [Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
+    [Core_VarSymbol, Core_TypeSymbol, Core_EnumConstantSymbol],
+    [Core_ElaboratedTypeSymbol]
   ] >
 ] > {
   let summary = "VAST scope declaration";

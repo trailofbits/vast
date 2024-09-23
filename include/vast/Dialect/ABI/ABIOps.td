@@ -202,7 +202,8 @@ class ABIFuncBase< string mnemonic, list< Trait> traits = [] >
 def FuncOp : ABIFuncBase< "func", [
     Core_FuncSymbol,
     Core_ShadowingSymbolTable< [
-      [Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
+      [Core_VarSymbol, Core_TypeSymbol, Core_EnumConstantSymbol],
+      [Core_ElaboratedTypeSymbol]
     ] >,
     IsolatedFromAbove
 ] >
