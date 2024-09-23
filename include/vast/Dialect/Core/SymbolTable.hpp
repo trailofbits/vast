@@ -85,6 +85,11 @@ namespace vast::core {
         }
     } // namespace detail
 
+    template< util::empty_list symbols_list >
+    llvm::SmallVector< symbol_kind > symbol_kinds() {
+        return {};
+    }
+
     template< util::list_of_lists symbols_lists >
     llvm::SmallVector< symbol_kind > symbol_kinds() {
         constexpr auto size = util::flatten< symbols_lists >::size;
@@ -107,6 +112,11 @@ namespace vast::core {
     struct symbol_table
     {
         using single_symbol_kind_table = llvm::DenseMap< string_ref, llvm::SmallVector< operation > >;
+
+        template< util::empty_list symbols_list >
+        explicit symbol_table(std::in_place_type_t< symbols_list >, operation symbol_table_op)
+            : symbol_table_op(symbol_table_op)
+        {}
 
         template< util::list_of_lists symbols_lists >
         explicit symbol_table(std::in_place_type_t< symbols_lists >, operation symbol_table_op)

@@ -10,6 +10,9 @@
 namespace vast::core {
 
     template< typename concrete_type >
+    struct EmptySymbolTable : op_trait_base< concrete_type, EmptySymbolTable > {};
+
+    template< typename concrete_type >
     struct ShadowingSymbolTable : op_trait_base< concrete_type, ShadowingSymbolTable > {};
 
 } // namespace vast::core
