@@ -27,7 +27,8 @@ def HighLevel_TranslationUnitOp
   : HighLevel_Op< "translation_unit", [
       NoTerminator,
       Core_ShadowingSymbolTable< [
-        [Core_FuncSymbol, Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
+        [Core_FuncSymbol, Core_VarSymbol, Core_TypeSymbol, Core_EnumConstantSymbol],
+        [Core_ElaboratedTypeSymbol]
       ] >,
       IsolatedFromAbove
   ] >
@@ -51,7 +52,8 @@ def HighLevel_FuncOp
   : Core_FuncBaseOp< HighLevel_Dialect, "func", [
     Core_FuncSymbol,
     Core_ShadowingSymbolTable< [
-      [Core_VarSymbol, Core_TypeSymbol], [Core_ElaboratedTypeSymbol]
+      [Core_VarSymbol, Core_TypeSymbol, Core_EnumConstantSymbol],
+      [Core_ElaboratedTypeSymbol]
     ] >,
     IsolatedFromAbove
   ] >
@@ -178,8 +180,8 @@ def HighLevel_EnumConstantOp
 
     ```
     hl.enum.const @G = #core.integer<12> : !hl.int init  {
-      %0 = hl.enumref "F" : !hl.int
-      %1 = hl.enumref "C" : !hl.int
+      %0 = hl.enumref @F : !hl.int
+      %1 = hl.enumref @C : !hl.int
       %2 = hl.add %0, %1 : !hl.int
       hl.value.yield %2 : !hl.int
     }
@@ -208,7 +210,10 @@ def HighLevel_EnumConstantOp
 def HighLevel_EnumRegion : Region< Core_HasOneBlock, "enum constants region" >;
 
 def HighLevel_EnumDeclOp
-  : HighLevel_Op< "enum", [NoTerminator, Core_TypeSymbol, Core_TypeDefinition] >
+  : HighLevel_Op< "enum", [
+      NoTerminator, Core_TypeSymbol, Core_TypeDefinition,
+      Core_EmptySymbolTable
+    ] >
   , Arguments<(ins SymbolNameAttr:$sym_name, OptionalAttr<TypeAttr>:$type)>
 {
   let summary = "VAST enum declaration";
@@ -473,13 +478,13 @@ def HighLevel_FuncRefOp
 
 def HighLevel_EnumRefOp
   : HighLevel_Op< "enumref" >
-  , Arguments<(ins FlatSymbolRefAttr:$value)>
+  , Arguments<(ins FlatSymbolRefAttr:$name)>
   , Results<(outs AnyType:$result)>
 {
-  let summary = "VAST variable reference declaration";
-  let description = [{ VAST variable reference declaration }];
+  let summary = "VAST enum constant reference declaration";
+  let description = [{ VAST enum constant reference declaration }];
 
-  let assemblyFormat = "$value attr-dict `:` type($result)";
+  let assemblyFormat = "$name attr-dict `:` type($result)";
 }
 
 def HighLevel_ConstantOp
