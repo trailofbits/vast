@@ -80,6 +80,17 @@ class Core_RecognizedSymbols< list< list<Interface> > recognized_symbols_lists >
     }];
 }
 
+class Core_EmptySymbolTableTrait
+    : Core_NativeOpTrait< "EmptySymbolTable", [], [{
+        using recognized_symbols_lists = util::type_list<>;
+    }] >
+{}
+
+def Core_EmptySymbolTable
+    : Interface< "EmptySymbolTable", [Core_SymbolTableOpInterface] >
+    , Core_EmptySymbolTableTrait
+{}
+
 class Core_ShadowingSymbolTableTrait< list< list<Interface> > recognized_symbols_lists >
     : Core_NativeOpTrait< "ShadowingSymbolTable", [],
         Core_RecognizedSymbols< recognized_symbols_lists >.result
