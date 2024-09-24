@@ -42,6 +42,10 @@ namespace vast::conv::pipeline {
         return pass(createVarsToCellsPass);
     }
 
+    pipeline_step_ptr evict_static_locals() {
+        return pass(createEvictStaticLocalsPass);
+    }
+
     pipeline_step_ptr refs_to_ssa() {
         return pass(createRefsToSSAPass)
             .depends_on(vars_to_cells);
@@ -56,6 +60,7 @@ namespace vast::conv::pipeline {
         return compose("to-mem",
             vars_to_cells,
             refs_to_ssa,
+            evict_static_locals,
             strip_param_lvalues
         );
     }
