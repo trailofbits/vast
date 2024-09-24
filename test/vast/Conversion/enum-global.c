@@ -1,4 +1,4 @@
-// RUN: %vast-front -vast-emit-mlir-after=vast-hl-lower-enums %s -o %t.mlir
+// RUN: %vast-front -vast-emit-mlir-after=vast-hl-lower-enum-decls %s -o %t.mlir
 // RUN: %file-check --input-file=%t.mlir %s -check-prefix=ENUM
 
 // RUN: %vast-front -vast-emit-mlir-after=vast-irs-to-llvm %s -o %t.mlir

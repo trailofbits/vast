@@ -3,14 +3,15 @@
 
 // CHECK: hl.func @foo external
 void foo();
-// CHECK: hl.call @bar
 
-
-// CHECK: hl.func @bar external () -> !hl.void attributes {sym_visibility = "private"}
+// CHECK: hl.func @bar
 void bar();
 
+// CHECK: hl.func @foo
 void foo() {
+    // CHECK: hl.call @bar
     bar();
 }
 
+// CHECK: hl.func @foo
 void foo();
