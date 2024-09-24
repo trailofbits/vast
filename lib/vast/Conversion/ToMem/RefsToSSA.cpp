@@ -41,6 +41,17 @@ namespace vast::conv {
                 rewriter.replaceOp(op, var);
                 return mlir::success();
             }
+
+            static void legalize(conversion_target &trg) {
+                trg.addDynamicallyLegalOp< hl::DeclRefOp >([] (hl::DeclRefOp op) {
+                    auto var = core::symbol_table::lookup< core::var_symbol >(op, op.getName());
+                    // Declarations with global storage are not cells to keep their init region
+                    if (auto decl_storage = mlir::dyn_cast< core::DeclStorageInterface >(var)) {
+                        return decl_storage.hasGlobalStorage();
+                    }
+                    return false;
+                });
+            }
         };
 
     } // namespace pattern
