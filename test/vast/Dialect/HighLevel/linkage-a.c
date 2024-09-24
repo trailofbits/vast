@@ -15,7 +15,7 @@ inline void baz(void) {}
 inline void qux(void) {}
 inline void qux(void);
 
-// CHECK: hl.func @quux external
+// CHECK: hl.func @quux available_externally
 inline void quux(void) {}
 void quux(void);
 
@@ -23,7 +23,7 @@ void quux(void);
 inline extern void corge(void);
 inline void corge(void) {}
 
-// CHECK: hl.func @grault external
+// CHECK: hl.func @grault available_externally
 inline void grault(void) {}
 inline extern void grault(void);
 
