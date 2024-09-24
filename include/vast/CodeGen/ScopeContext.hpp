@@ -31,12 +31,12 @@ namespace vast::cg
         using base::insert;
     };
 
-    using funs_scope_table     = scoped_table< string_ref, operation >;
-    using vars_scope_table     = scoped_table< string_ref, operation >;
-    using types_scope_table    = scoped_table< string_ref, operation >;
-    using members_scope_table  = scoped_table< string_ref, operation >;
-    using labels_scope_table   = scoped_table< string_ref, operation >;
-    using enum_constants_table = scoped_table< string_ref, operation >;
+    using funs_scope_table     = scoped_table< const clang_named_decl *, operation >;
+    using vars_scope_table     = scoped_table< const clang_named_decl *, operation >;
+    using types_scope_table    = scoped_table< const clang_named_decl *, operation >;
+    using members_scope_table  = scoped_table< const clang_named_decl *, operation >;
+    using labels_scope_table   = scoped_table< const clang_named_decl *, operation >;
+    using enum_constants_table = scoped_table< const clang_named_decl *, operation >;
 
     struct symbol_tables {
         funs_scope_table funs;
@@ -54,25 +54,25 @@ namespace vast::cg
             : symbols(symbols)
         {}
 
-        operation declare(operation op) {
+        operation declare(const clang_named_decl *decl, operation op) {
             llvm::TypeSwitch< operation >(op)
                 .Case< core::VarSymbolOpInterface >([&] (auto &op) {
-                    symbols.vars.insert(op.getSymbolName(), op);
+                    symbols.vars.insert(decl, op);
                 })
                 .Case< core::TypeSymbolOpInterface >([&] (auto &op) {
-                    symbols.types.insert(op.getSymbolName(), op);
+                    symbols.types.insert(decl, op);
                 })
                 .Case< core::FuncSymbolOpInterface >([&] (auto &op) {
-                    symbols.funs.insert(op.getSymbolName(), op);
+                    symbols.funs.insert(decl, op);
                 })
                 .Case< core::MemberVarSymbolOpInterface >([&] (auto &op) {
-                    symbols.members.insert(op.getSymbolName(), op);
+                    symbols.members.insert(decl, op);
                 })
                 .Case< core::LabelSymbolOpInterface >([&] (auto &op) {
-                    symbols.labels.insert(op.getSymbolName(), op);
+                    symbols.labels.insert(decl, op);
                 })
                 .Case< core::EnumConstantSymbolOpInterface >([&] (auto &op) {
-                    symbols.enum_constants.insert(op.getSymbolName(), op);
+                    symbols.enum_constants.insert(decl, op);
                 })
                 .Default([] (auto &op){
                     VAST_UNREACHABLE("Unknown operation declaration type");
@@ -82,36 +82,36 @@ namespace vast::cg
         }
 
         template< typename builder_t >
-        auto maybe_declare(builder_t &&bld) -> decltype(bld()) {
+        auto maybe_declare(const clang_named_decl *decl, builder_t &&bld) -> decltype(bld()) {
             if (auto val = bld()) {
-                return mlir::dyn_cast< decltype(bld()) >(declare(val));
+                return mlir::dyn_cast< decltype(bld()) >(declare(decl, val));
             } else {
                 return val;
             }
         }
 
-        operation lookup_var(string_ref name) const {
-            return symbols.vars.lookup(name);
+        operation lookup_var(const clang_named_decl  *decl) const {
+            return symbols.vars.lookup(decl);
         }
 
-        operation lookup_fun(string_ref name) const {
-            return symbols.funs.lookup(name);
+        operation lookup_fun(const clang_named_decl *decl) const {
+            return symbols.funs.lookup(decl);
         }
 
-        operation lookup_type(string_ref name) const {
-            return symbols.types.lookup(name);
+        operation lookup_type(const clang_named_decl *decl) const {
+            return symbols.types.lookup(decl);
         }
 
-        operation lookup_label(string_ref name) const {
-            return symbols.labels.lookup(name);
+        operation lookup_label(const clang_named_decl *decl) const {
+            return symbols.labels.lookup(decl);
         }
 
-        bool is_declared_fun(string_ref name) const {
-            return lookup_fun(name);
+        bool is_declared_fun(const clang_named_decl *decl) const {
+            return lookup_fun(decl);
         }
 
-        bool is_declared_type(string_ref name) const {
-            return lookup_type(name);
+        bool is_declared_type(const clang_named_decl *decl) const {
+            return lookup_type(decl);
         }
 
         symbol_tables &symbols;
@@ -186,9 +186,9 @@ namespace vast::cg
 
         virtual ~block_scope() = default;
 
-        symbol_table_scope< string_ref, operation > vars;
-        symbol_table_scope< string_ref, operation > types;
-        symbol_table_scope< string_ref, operation > enum_constants;
+        symbol_table_scope< const clang_named_decl *, operation > vars;
+        symbol_table_scope< const clang_named_decl *, operation > types;
+        symbol_table_scope< const clang_named_decl *, operation > enum_constants;
     };
 
 
@@ -202,7 +202,7 @@ namespace vast::cg
 
         virtual ~function_scope() = default;
 
-        symbol_table_scope< string_ref, operation > labels;
+        symbol_table_scope< const clang_named_decl *, operation > labels;
     };
 
     // Refers to function prototype scope §6.2.1 of C standard
@@ -232,10 +232,10 @@ namespace vast::cg
 
         virtual ~module_scope() = default;
 
-        symbol_table_scope< string_ref, operation > functions;
-        symbol_table_scope< string_ref, operation > types;
-        symbol_table_scope< string_ref, operation > globals;
-        symbol_table_scope< string_ref, operation > enum_constants;
+        symbol_table_scope< const clang_named_decl *, operation > functions;
+        symbol_table_scope< const clang_named_decl *, operation > types;
+        symbol_table_scope< const clang_named_decl *, operation > globals;
+        symbol_table_scope< const clang_named_decl *, operation > enum_constants;
     };
 
     // Scope of member names for structures and unions
@@ -249,7 +249,7 @@ namespace vast::cg
 
         virtual ~members_scope() = default;
 
-        symbol_table_scope< string_ref, operation > members;
+        symbol_table_scope< const clang_named_decl *, operation > members;
     };
 
 } // namespace vast::cg
