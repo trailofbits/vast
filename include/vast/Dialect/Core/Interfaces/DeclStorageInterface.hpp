@@ -12,9 +12,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/IR/OperationSupport.h>
 VAST_RELAX_WARNINGS
 
-#include "vast/Dialect/Core/CoreAttributes.hpp"
 #include "vast/Dialect/Core/CoreOps.hpp"
-#include "vast/Dialect/Core/SymbolTable.hpp"
 
 #define GET_OP_FWD_DEFINES
 #include "vast/Dialect/HighLevel/HighLevel.h.inc"
