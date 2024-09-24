@@ -628,12 +628,8 @@ namespace vast::cg
         auto underlying = expr->getDecl()->getUnderlyingDecl();
         return llvm::TypeSwitch< const clang::NamedDecl *, operation >(underlying)
             .Case< clang::EnumConstantDecl >([&] (auto /* e */) { return visit_enum_decl_ref(expr); })
-            .Case< clang::VarDecl  >([&] (auto v) {
-                if (v->isFileVarDecl()) {
-                    return visit_file_var_decl_ref(expr);
-                } else {
-                    return visit_var_decl_ref(expr);
-                }
+            .Case< clang::VarDecl >([&] (auto v) {
+                return visit_var_decl_ref(expr);
             })
             .Case< clang::FunctionDecl >([&] (auto) { return visit_function_decl_ref(expr); })
             .Default([](const clang::NamedDecl *) { return operation{}; });
@@ -643,14 +639,6 @@ namespace vast::cg
         return bld.compose< hl::EnumRefOp >()
             .bind(self.location(expr))
             .bind(self.visit(expr->getType()))
-            .bind(self.symbol(expr))
-            .freeze();
-    }
-
-    operation default_stmt_visitor::visit_file_var_decl_ref(const clang::DeclRefExpr *expr) {
-        return bld.compose< hl::GlobalRefOp >()
-            .bind(self.location(expr))
-            .bind(visit_as_lvalue_type(self, mctx, expr->getType()))
             .bind(self.symbol(expr))
             .freeze();
     }

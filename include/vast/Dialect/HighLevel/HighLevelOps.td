@@ -452,7 +452,7 @@ def HighLevel_ReturnOp
 def HighLevel_DeclRefOp
   : HighLevel_Op< "ref" >
   , Arguments<(ins FlatSymbolRefAttr:$name)>
-  , Results<(outs HighLevel_LValueOf<AnyType>:$result)>
+  , Results<(outs AnyType:$result)>
 {
   let summary = "VAST variable reference declaration";
   let description = [{ VAST variable reference declaration }];
@@ -469,17 +469,6 @@ def HighLevel_FuncRefOp
   let description = [{ VAST function reference declaration }];
 
   let assemblyFormat = "$function attr-dict `:` type($result)";
-}
-
-def HighLevel_GlobalRefOp
-  : HighLevel_Op< "globref" >
-  , Arguments<(ins FlatSymbolRefAttr:$global)>
-  , Results<(outs AnyType:$result)>
-{
-  let summary = "VAST global variable reference declaration";
-  let description = [{ VAST global variable reference declaration }];
-
-  let assemblyFormat = "$global attr-dict `:` type($result)";
 }
 
 def HighLevel_EnumRefOp
