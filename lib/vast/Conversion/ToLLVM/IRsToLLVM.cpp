@@ -355,17 +355,6 @@ namespace vast::conv::irstollvm
             auto t = mlir::dyn_cast< hl::PointerType >(op.getType());
             auto target_type = this->convert(t.getElementType());
 
-            // Sadly, we cannot build `mlir::LLVM::GlobalOp` without
-            // providing a value attribute.
-            auto create_dummy_value = [&] () -> mlir::Attribute {
-                if (auto trg_arr = mlir::dyn_cast< mlir::LLVM::LLVMArrayType >(target_type)) {
-                    attrs_t arr(trg_arr.getNumElements(),
-                                rewriter.getIntegerAttr(rewriter.getIndexType(), 0));
-                    return rewriter.getArrayAttr(arr);
-                }
-                return rewriter.getIntegerAttr(rewriter.getIndexType(), 0);
-            };
-
             // So we know this is a global, otherwise it would be in `ll:`.
             auto gop = rewriter.create< mlir::LLVM::GlobalOp >(
                     op.getLoc(),
@@ -373,10 +362,7 @@ namespace vast::conv::irstollvm
                     // TODO(conv:irstollvm): Constant.
                     true,
                     LLVM::Linkage::Internal,
-                    op.getSymbolName(), create_dummy_value());
-
-            // If we want the global to have a body it cannot have value attribute.
-            gop.removeValueAttr();
+                    op.getSymbolName(), mlir::Attribute());
 
             // We could probably try to analyze the region to see if it isn't
             // a case where we can just do an attribute, but for now let's
