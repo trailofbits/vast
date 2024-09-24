@@ -64,7 +64,7 @@ namespace vast::cg
     operation function_generator::emit(const clang_function *decl) {
         auto prototype = [&] {
             if (auto symbol = visitor.symbol(decl)) {
-                if (auto op = visitor.scope.lookup_fun(symbol.value())) {
+                if (auto op = visitor.scope.lookup_fun(decl)) {
                     auto fn        = mlir::cast< vast_function >(op);
                     // Function declaration that is not a prototype will have zero arguments
                     // and we need to fix that when we discover them
@@ -296,7 +296,7 @@ namespace vast::cg
         // TODO create a new function prototype scope here
         if (auto op = visitor.visit_prototype(decl)) {
             if (auto fn = mlir::dyn_cast< vast_function >(op)) {
-                scope().declare(fn);
+                scope().declare(decl, fn);
             }
 
             return op;

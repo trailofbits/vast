@@ -63,7 +63,7 @@ namespace vast::cg {
     template< typename RecordDeclOp >
     operation default_decl_visitor::mk_record_decl(const clang::RecordDecl *decl) {
         if (auto name = self.symbol(decl)) {
-            if (auto op = self.scope.lookup_type(name.value())) {
+            if (auto op = self.scope.lookup_type(decl)) {
                 auto record_decl = mlir::cast< RecordDeclOp >(op);
                 // Fill in the record members if the record was predeclared
                 if (decl->isCompleteDefinition() && !record_decl.isCompleteDefinition()) {
@@ -78,7 +78,7 @@ namespace vast::cg {
             fill_decl_members(decl);
         };
 
-        return maybe_declare([&] {
+        return maybe_declare(decl, [&] {
             return bld.compose< RecordDeclOp >()
                 .bind(self.location(decl))
                 .bind(self.symbol(decl))

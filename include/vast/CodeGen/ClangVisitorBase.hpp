@@ -23,12 +23,12 @@ namespace vast::cg {
         {}
 
         template< typename builder_t >
-        auto maybe_declare(builder_t &&bld) -> decltype(bld()) {
-            return self.scope.maybe_declare(std::forward< builder_t >(bld));
+        auto maybe_declare(const clang_named_decl *decl, builder_t &&bld) -> decltype(bld()) {
+            return self.scope.maybe_declare(decl, std::forward< builder_t >(bld));
         }
 
-        bool is_declared_type(string_ref name) const {
-            return self.scope.is_declared_type(name);
+        bool is_declared_type(const clang_named_decl *decl) const {
+            return self.scope.is_declared_type(decl);
         }
 
         // expects a range of values (operations returning a single value)
