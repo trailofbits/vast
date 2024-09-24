@@ -30,7 +30,6 @@ def HighLevel_VarDeclOp
     AnyRegion:$allocation_size
   );
 
-  let skipDefaultBuilders = 1;
   let builders = [
     OpBuilder<(ins
       "Type":$type,
