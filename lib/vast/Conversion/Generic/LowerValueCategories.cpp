@@ -463,7 +463,6 @@ namespace vast::conv {
             patterns.add< fallback >(tc, mctx);
             patterns.add< store_and_forward_ptr< ll::CellInit > >(mctx, tc);
             patterns.add<
-                ignore< hl::DeclRefOp >,
                 ignore< hl::Deref >,
                 ignore< hl::AddressOf >
             >(mctx, tc);

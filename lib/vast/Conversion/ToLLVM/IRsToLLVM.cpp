@@ -43,7 +43,6 @@ VAST_UNRELAX_WARNINGS
 namespace vast::conv::irstollvm
 {
     using ignore_patterns = util::type_list<
-        ignore_pattern< hl::DeclRefOp >,
         ignore_pattern< hl::PredefinedExpr >,
         ignore_pattern< hl::AddressOf >,
         ignore_pattern< hl::NullStmt >,
@@ -391,9 +390,9 @@ namespace vast::conv::irstollvm
 
     };
 
-    struct global_ref : base_pattern< hl::GlobalRefOp >
+    struct global_ref : base_pattern< hl::DeclRefOp >
     {
-        using op_t = hl::GlobalRefOp;
+        using op_t = hl::DeclRefOp;
         using base = base_pattern< op_t >;
         using base::base;
 
@@ -406,7 +405,7 @@ namespace vast::conv::irstollvm
             auto addr_of = rewriter.template create< mlir::LLVM::AddressOfOp >(
                     op.getLoc(),
                     target_type,
-                    op.getGlobal());
+                    op.getName());
             rewriter.replaceOp(op, addr_of);
             return logical_result::success();
         }
