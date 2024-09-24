@@ -12,6 +12,8 @@ include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 include "vast/Interfaces/ElementTypeInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
+include "vast/Dialect/Core/StorageInfo.td"
+include "vast/Dialect/Core/Interfaces/DeclStorageInterface.td"
 include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 include "vast/Dialect/Core/Interfaces/SymbolTableInterface.td"
 
@@ -84,14 +86,23 @@ def LowLevel_Store
 }
 
 def LowLevel_Cell
-    : LowLevel_Op< "cell", [Core_VarSymbol] >
-    , Arguments<(ins SymbolNameAttr:$sym_name)>
+    : LowLevel_Op< "cell", [
+        Core_VarSymbol,
+        Core_DeclStorageInterface,
+        DeclareOpInterfaceMethods< Core_DeclStorageInterface >
+      ] >
+    , Arguments<(ins
+        SymbolNameAttr:$sym_name,
+        Core_StorageClass:$storageClass,
+        Core_ThreadStorage:$threadStorageClass
+      )>
     , Results<(outs AnyType:$result)>
 {
     let summary = "Cell that holds the value and is accessible trhough SSA result.";
 
     let assemblyFormat = [{
-        $sym_name attr-dict `:` type($result)
+        $sym_name attr-dict custom< StorageClasses >($storageClass, $threadStorageClass)
+        `:` type($result)
     }];
 }
 
