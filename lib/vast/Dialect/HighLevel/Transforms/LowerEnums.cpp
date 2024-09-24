@@ -18,16 +18,23 @@ namespace vast::hl {
     {
         mcontext_t &mctx;
 
-        explicit EnumTypeConverter(mcontext_t &mctx)
+        explicit EnumTypeConverter(mcontext_t &mctx, operation op)
             : mctx(mctx)
         {
             conv::tc::function_type_converter< EnumTypeConverter >::init();
+            addConversion([&](hl::EnumType ty) {
+                auto ts = core::symbol_table::lookup< core::type_symbol >(op, ty.getName());
+                VAST_CHECK(ts, "Enum type {} not present in the symbol table.", ty.getName());
+                auto ec = mlir::dyn_cast_if_present< hl::EnumDeclOp >(ts);
+                VAST_CHECK(ec, "Enum type symbol is not an hl::EnumDeclOp.");
+                return ec.getType();
+            });
         }
     };
 
     namespace pattern {
 
-        using lower_enum_types = conv::tc::type_converting_pattern<
+        using lower_enum_types = conv::tc::scope_aware_type_converting_pattern<
             EnumTypeConverter
         >;
 
@@ -58,8 +65,8 @@ namespace vast::hl {
                     ref, ref.getName()
                 );
 
-                auto ec = mlir::dyn_cast< hl::EnumConstantOp >(op);
-                VAST_CHECK(ec, "Enum constant symbol is not anhl::EnumConstantOp.");
+                auto ec = mlir::dyn_cast_if_present< hl::EnumConstantOp >(op);
+                VAST_CHECK(ec, "Enum constant symbol is not an hl::EnumConstantOp.");
 
                 auto bld = mlir::OpBuilder(ref);
                 auto con = bld.create< hl::ConstantOp >(
@@ -88,22 +95,19 @@ namespace vast::hl {
     };
 
     struct LowerEnumDeclsPass
-        : TypeConvertingConversionPassMixin<
-            LowerEnumDeclsPass,
-            LowerEnumDeclsBase,
-            EnumTypeConverter
-        >
+        : ConversionPassMixin< LowerEnumDeclsPass, LowerEnumDeclsBase >
     {
-        using base = TypeConvertingConversionPassMixin<
-            LowerEnumDeclsPass, LowerEnumDeclsBase, EnumTypeConverter
-        >;
+        using base = ConversionPassMixin< LowerEnumDeclsPass, LowerEnumDeclsBase >;
 
-        static conversion_target create_conversion_target(mcontext_t &mctx, auto &tc) {
+        static conversion_target create_conversion_target(mcontext_t &mctx) {
             auto trg = conversion_target(mctx);
+            trg.markUnknownOpDynamicallyLegal([](operation op) {
+                return !has_type_somewhere< hl::EnumType >(op);
+            });
             return trg;
         }
 
-        static void populate_conversions(base_conversion_config &cfg) {
+        static void populate_conversions(auto &cfg) {
             base::populate_conversions< pattern::lower_enum_types >(cfg);
             base::populate_conversions< pattern::erase_enum_decl >(cfg);
         }
