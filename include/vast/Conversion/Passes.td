@@ -84,6 +84,16 @@ def StripParamLValues : Pass<"vast-strip-param-lvalues", "core::ModuleOp"> {
   ];
 }
 
+def EvictStaticLocals : Pass<"vast-evict-static-locals", "core::ModuleOp"> {
+  let summary = "Evict hl.var declarations with static storage to global scope.";
+
+  let constructor = "vast::createEvictStaticLocalsPass()";
+  let dependentDialects = [
+    "vast::hl::HighLevelDialect",
+    "vast::core::CoreDialect"
+  ];
+}
+
 def VarsToCells : Pass<"vast-vars-to-cells", "core::ModuleOp"> {
   let summary = "Lower `hl.var` into ssa-based `ll.cell`.";
 
