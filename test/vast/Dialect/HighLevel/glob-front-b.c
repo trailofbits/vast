@@ -2,6 +2,6 @@
 
 // CHECK: hl.var @NUM
 short NUM;
-//CHECK: hl.globref @NUM
+//CHECK: hl.ref @NUM
 //CHECK: hl.assign
 int main() {NUM = 10;}
