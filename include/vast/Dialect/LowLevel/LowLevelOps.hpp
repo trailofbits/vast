@@ -24,6 +24,8 @@ VAST_RELAX_WARNINGS
 
 #include "vast/Dialect/Core/CoreTypes.hpp"
 #include "vast/Dialect/Core/CoreAttributes.hpp"
+#include "vast/Dialect/HighLevel/HighLevelOps.hpp"
+#include "vast/Dialect/Core/Interfaces/DeclStorageInterface.hpp"
 #include "vast/Util/Common.hpp"
 
 #define GET_OP_CLASSES

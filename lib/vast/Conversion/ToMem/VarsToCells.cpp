@@ -45,7 +45,7 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 hl::VarDeclOp op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                auto cell = rewriter.create< ll::Cell >(op.getLoc(), op.getType(), op.getSymName());
+                auto cell = rewriter.create< ll::Cell >(op.getLoc(), op.getType(), op.getSymName(), op.getStorageClass(), op.getThreadStorageClass());
 
                 if (auto &init = op.getInitializer(); !init.empty()) {
                     auto yield = inline_init_region(op, rewriter);
@@ -82,7 +82,7 @@ namespace vast::conv {
                 auto param = op.getParam();
                 auto type  = param.getType();
                 auto loc   = op.getLoc();
-                auto cell = rewriter.create< ll::Cell >(loc, type, op.getSymName());
+                auto cell = rewriter.create< ll::Cell >(loc, type, op.getSymName(), core::StorageClass::sc_none, core::TSClass::tsc_none);
                 rewriter.create< ll::CellInit >(loc, type, cell, param);
                 rewriter.eraseOp(op);
                 return mlir::success();

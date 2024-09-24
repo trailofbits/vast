@@ -50,5 +50,8 @@ namespace vast::ll
 
 } // namespace vast::ll
 
+using vast::core::parseStorageClasses;
+using vast::core::printStorageClasses;
+
 #define GET_OP_CLASSES
 #include "vast/Dialect/LowLevel/LowLevel.cpp.inc"
