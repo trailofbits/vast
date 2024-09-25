@@ -82,6 +82,7 @@ passes: list[str] = [
     , "vast-hl-to-ll-geps"
     , "vast-vars-to-cells"
     , "vast-refs-to-ssa"
+    , "vast-evict-static-locals"
     , "vast-strip-param-lvalues"
     , "vast-lower-value-categories"
     , "vast-hl-to-lazy-regions"
