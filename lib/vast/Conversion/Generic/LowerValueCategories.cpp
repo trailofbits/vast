@@ -178,17 +178,6 @@ namespace vast::conv {
             }
         };
 
-        template< typename op_t >
-        struct ignore : base_pattern< op_t >
-        {
-            using base = base_pattern< op_t >;
-
-            VAST_DEFINE_REWRITE {
-                rewriter.replaceOp(op, ops.getOperands()[0]);
-                return mlir::success();
-            }
-        };
-
         struct array_to_pointer_decay_cast : base_pattern< hl::ImplicitCastOp >
         {
             using op_t = hl::ImplicitCastOp;
@@ -467,9 +456,9 @@ namespace vast::conv {
             patterns.add< fallback >(tc, mctx);
             patterns.add< store_and_forward_ptr< ll::CellInit > >(mctx, tc);
             patterns.add<
-                ignore< hl::Deref >,
-                ignore< hl::AddressOf >
-            >(mctx, tc);
+                operands_forwarding_pattern< hl::Deref >,
+                operands_forwarding_pattern< hl::AddressOf >
+            >(mctx);
 
             patterns.add< memory_allocation< ll::Cell > >(mctx, tc);
             patterns.add< subscript >(mctx, tc);

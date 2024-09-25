@@ -142,6 +142,23 @@ namespace vast {
         }
     };
 
+    template< typename op_t >
+    struct operands_forwarding_pattern : operation_conversion_pattern< op_t >
+    {
+        using base = operation_conversion_pattern< op_t >;
+        using base::base;
+
+        using adaptor_t = typename op_t::Adaptor;
+
+        logical_result matchAndRewrite(
+            op_t op, adaptor_t ops, conversion_rewriter &rewriter
+        ) const override {
+            rewriter.replaceOp(op, ops.getOperands());
+            return mlir::success();
+        }
+    };
+
+    template< template< typename > typename pattern_kind, typename ... ops >
     struct llvm_pattern_utils
     {
         mlir_value iN(auto &rewriter, auto loc, mlir_type type, auto val) const {
