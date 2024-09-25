@@ -276,4 +276,31 @@ namespace vast::core {
         return get_declarator_linkage(decl, linkage, /* is const variable */ false);
     }
 
+    mlir::LLVM::Linkage convert_linkage_to_llvm(core::GlobalLinkageKind linkage) {
+        switch (linkage) {
+            case core::GlobalLinkageKind::ExternalLinkage:
+                return mlir::LLVM::Linkage::External;
+            case core::GlobalLinkageKind::AvailableExternallyLinkage:
+                return mlir::LLVM::Linkage::AvailableExternally;
+            case core::GlobalLinkageKind::LinkOnceAnyLinkage:
+                return mlir::LLVM::Linkage::Linkonce;
+            case core::GlobalLinkageKind::LinkOnceODRLinkage:
+                return mlir::LLVM::Linkage::LinkonceODR;
+            case core::GlobalLinkageKind::WeakAnyLinkage:
+                return mlir::LLVM::Linkage::Weak;
+            case core::GlobalLinkageKind::WeakODRLinkage:
+                return mlir::LLVM::Linkage::WeakODR;
+            case core::GlobalLinkageKind::InternalLinkage:
+                return mlir::LLVM::Linkage::Internal;
+            case core::GlobalLinkageKind::PrivateLinkage:
+                return mlir::LLVM::Linkage::Private;
+            case core::GlobalLinkageKind::ExternalWeakLinkage:
+                return mlir::LLVM::Linkage::ExternWeak;
+            case core::GlobalLinkageKind::CommonLinkage:
+                return mlir::LLVM::Linkage::Common;
+            case core::GlobalLinkageKind::AppendingLinkage:
+                return mlir::LLVM::Linkage::Appending;
+        }
+    }
+
 } // namespace vast::core

@@ -6,6 +6,7 @@
 
 VAST_RELAX_WARNINGS
 #include <clang/AST/GlobalDecl.h>
+#include <mlir/Dialect/LLVMIR/LLVMAttrs.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
@@ -20,5 +21,7 @@ namespace vast::core {
     );
 
     std::optional< core::GlobalLinkageKind > get_function_linkage(clang::GlobalDecl glob);
+
+    mlir::LLVM::Linkage convert_linkage_to_llvm(core::GlobalLinkageKind linkage);
 
 } // namespace vast::core
