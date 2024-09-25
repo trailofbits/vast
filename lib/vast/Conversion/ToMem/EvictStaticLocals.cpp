@@ -38,10 +38,11 @@ namespace vast::conv {
 
                 auto new_decl = rewriter.create< hl::VarDeclOp >(
                         op.getLoc(),
-                        (parent_fn.getName() + "." + op.getSymName()).str(),
                         op.getType(),
+                        (parent_fn.getName() + "." + op.getSymName()).str(),
                         op.getStorageClass(),
-                        op.getThreadStorageClass()
+                        op.getThreadStorageClass(),
+                        std::optional(core::GlobalLinkageKind::InternalLinkage)
                 );
 
                 // Save current context informationinto the op to make sure the information stays valid
