@@ -28,26 +28,43 @@ namespace vast {
             using base = mlir::OpConversionPattern< op_t >;
             using base::base;
 
-            logical_result matchAndRewrite(
-                op_t op, typename op_t::Adaptor ops, conversion_rewriter &rewriter
-            ) const override {
-                auto parent_type = [&] {
-                    auto type = ops.getRecord().getType();
-                    if (auto ptr = mlir::dyn_cast< hl::PointerType >(type))
-                        return ptr.getElementType();
-                    return type;
-                }();
+            using adaptor_t = typename op_t::Adaptor;
 
-                auto mod = op->getParentOfType< core::module >();
-                if (!mod) {
-                    return mlir::failure();
+
+            static inline mlir_type strip_lvalue(mlir_type ty) {
+                if (auto ref = mlir::dyn_cast< hl::LValueType >(ty)) {
+                    return ref.getElementType();
                 }
+                return ty;
+            }
 
-                auto def = hl::definition_of(parent_type, mod);
-                if (auto struct_decl = mlir::dyn_cast_or_null< hl::StructDeclOp >(*def)) {
+            static inline mlir_type strip_pointer(mlir_type ty) {
+                if (auto ptr = mlir::dyn_cast< hl::PointerType >(ty)) {
+                    return ptr.getElementType();
+                }
+                return ty;
+            }
+
+            static inline mlir_type strip_elaborated(mlir_type ty) {
+                if (auto elab = mlir::dyn_cast< hl::ElaboratedType >(ty)) {
+                    return elab.getElementType();
+                }
+                return ty;
+            }
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t ops, conversion_rewriter &rewriter
+            ) const override {
+                auto record_type = strip_elaborated(strip_lvalue(strip_pointer(ops.getRecord().getType())));
+                auto type = mlir::dyn_cast< hl::RecordType >(record_type);
+                VAST_CHECK(type, "Source type of RecordMemberOp is not a record type.");
+                auto def = core::symbol_table::lookup< core::type_symbol >(op, type.getName());
+                VAST_CHECK(def, "Record type {} not present in the symbol table.", type.getName());
+
+                if (auto struct_decl = mlir::dyn_cast_or_null< hl::StructDeclOp >(def)) {
                     return lower(op, ops, rewriter, struct_decl);
                 }
-                if (auto union_decl = mlir::dyn_cast_or_null< hl::UnionDeclOp >(*def)) {
+                if (auto union_decl = mlir::dyn_cast_or_null< hl::UnionDeclOp >(def)) {
                     return lower(op, ops, rewriter, union_decl);
                 }
 
