@@ -120,20 +120,4 @@ namespace vast::conv::irstollvm {
         }
     };
 
-    template< typename src_t >
-    struct erase_pattern : base_pattern< src_t >
-    {
-        using base = base_pattern< src_t >;
-        using base::base;
-
-        using adaptor_t = typename src_t::Adaptor;
-
-        logical_result
-        matchAndRewrite(src_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
-            rewriter.eraseOp(op);
-            return mlir::success();
-        }
-
-        static void legalize(auto &trg) { trg.template addIllegalOp< src_t >(); }
-    };
 } // namespace vast::conv::irstollvm
