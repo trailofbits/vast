@@ -8,7 +8,7 @@ struct X {};
 // CHECK: hl.typedef @X : !hl.elaborated<!hl.record<@Y>>
 typedef struct Y {} X;
 
-// CHECK: hl.var @x : !hl.lvalue<!hl.elaborated<!hl.record<@X>>>
+// CHECK: hl.var @x, <common> : !hl.lvalue<!hl.elaborated<!hl.record<@X>>>
 // TODO: this is elaborated "X"
 struct X x;
 

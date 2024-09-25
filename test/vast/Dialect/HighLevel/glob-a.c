@@ -1,7 +1,7 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.var @a : !hl.lvalue<!hl.int>
+// CHECK: hl.var @a, <external> : !hl.lvalue<!hl.int>
 int a = 0;
 
 // CHECK-LABEL: hl.func @main

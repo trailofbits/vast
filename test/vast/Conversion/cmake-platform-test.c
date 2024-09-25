@@ -24,7 +24,7 @@
 
 #define SIZE (sizeof(unsigned short))
 
-// CHECK: constant @info_size() {{.*}} !llvm.array
+// CHECK: @info_size() {{.*}} !llvm.array
 static char info_size[] =  {'I', 'N', 'F', 'O', ':', 's','i','z','e','[',
   ('0' + ((SIZE / 10000)%10)),
   ('0' + ((SIZE / 1000)%10)),

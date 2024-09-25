@@ -18,7 +18,7 @@ struct lots_of_inits {
     int w[3];
 };
 
-// CHECK: hl.var @init : !hl.lvalue<!hl.elaborated<!hl.record<@lots_of_inits>>>
+// CHECK: hl.var @init, <external> : !hl.lvalue<!hl.elaborated<!hl.record<@lots_of_inits>>>
 struct lots_of_inits init = {
     // CHECK: [[A:%[0-9]+]] = hl.const #core.integer<1> : !hl.int
     // CHECK: [[B:%[0-9]+]] = hl.const #core.integer<2> : !hl.int
@@ -34,7 +34,7 @@ struct lots_of_inits init = {
     {{1, 2}, {3, 4}}, {5, 6, 7}
 };
 
-// CHECK: hl.var @flat_init : !hl.lvalue<!hl.elaborated<!hl.record<@lots_of_inits>>>
+// CHECK: hl.var @flat_init, <external> : !hl.lvalue<!hl.elaborated<!hl.record<@lots_of_inits>>>
 struct lots_of_inits flat_init = {
 
     // CHECK: [[A:%[0-9]+]] = hl.const #core.integer<1> : !hl.int

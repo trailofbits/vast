@@ -2,14 +2,14 @@
 // RUN: %check-lower-value-categories %s | %file-check %s -check-prefix=VAL_CAT
 // RUN: %check-core-to-llvm %s | %file-check %s -check-prefix=C_LLVM
 
-// STD_TYPES: hl.var @arr1 : !hl.lvalue<!hl.array<3, si32>> = {
+// STD_TYPES: hl.var @arr1, <external> : !hl.lvalue<!hl.array<3, si32>> = {
 
 
-// VAL_CAT: hl.var @arr1 : !hl.ptr<!hl.array<3, si32>> = {
+// VAL_CAT: hl.var @arr1, <external> : !hl.ptr<!hl.array<3, si32>> = {
 // VAL_CAT:    hl.value.yield {{.*}} : !hl.array<3, si32>
 
 
-// C_LLVM:  llvm.mlir.global internal constant @arr1() {addr_space = 0 : i32} : !llvm.array<3 x i32> {
+// C_LLVM:  llvm.mlir.global external @arr1() {addr_space = 0 : i32} : !llvm.array<3 x i32> {
 
 int arr1[] = { 0, 2, 4 };
 

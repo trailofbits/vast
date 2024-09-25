@@ -4,7 +4,7 @@
 // CHECK: hl.typedef @function_type : !core.fn<(!hl.lvalue<!hl.int>, !hl.lvalue<!hl.int>) -> (!hl.int)>
 typedef int function_type(int a, int b);
 
-// CHECK: hl.var @p : !hl.lvalue<!hl.array<2, !hl.ptr<!hl.elaborated<!hl.typedef<@function_type>>>>>
+// CHECK: hl.var @p, <common> : !hl.lvalue<!hl.array<2, !hl.ptr<!hl.elaborated<!hl.typedef<@function_type>>>>>
 function_type *p[2];
 
 int test_func(void) {

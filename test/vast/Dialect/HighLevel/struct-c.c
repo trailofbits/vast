@@ -4,7 +4,7 @@
 // CHECK: hl.struct @"[[N:anonymous\[[0-9]+\]]]" : {
 // CHECK:  hl.field @data : !hl.int
 // CHECK: }
-// CHECK: hl.var @named : !hl.lvalue<!hl.elaborated<!hl.record<@"[[N]]">>>
+// CHECK: hl.var @named, <common> : !hl.lvalue<!hl.elaborated<!hl.record<@"[[N]]">>>
 struct {
   int data;
 } named;

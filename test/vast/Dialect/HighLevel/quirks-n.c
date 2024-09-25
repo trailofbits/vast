@@ -12,9 +12,9 @@ unsigned int typedef u32;
 // CHECK: hl.typedef @baz : !hl.elaborated<!hl.record<@foo>,  const >
 struct foo { int bar; } const typedef baz;
 
-// CHECK: hl.var @a : !hl.lvalue<!hl.elaborated<!hl.typedef<@s16>>>
+// CHECK: hl.var @a, <common> : !hl.lvalue<!hl.elaborated<!hl.typedef<@s16>>>
 s16 a;
-// CHECK: hl.var @b : !hl.lvalue<!hl.elaborated<!hl.typedef<@u32>>>
+// CHECK: hl.var @b, <common> : !hl.lvalue<!hl.elaborated<!hl.typedef<@u32>>>
 u32 b;
-// CHECK: hl.var @c : !hl.lvalue<!hl.elaborated<!hl.typedef<@baz>>>
+// CHECK: hl.var @c, <common> : !hl.lvalue<!hl.elaborated<!hl.typedef<@baz>>>
 baz c;

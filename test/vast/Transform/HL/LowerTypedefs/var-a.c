@@ -2,15 +2,15 @@
 
 typedef int INT;
 
-// CHECK: hl.var @a : !hl.lvalue<si32>
+// CHECK: hl.var @a, <external> : !hl.lvalue<si32>
 INT a = 0;
 
 typedef INT IINT;
 
-// CHECK: hl.var @b : !hl.lvalue<si32>
+// CHECK: hl.var @b, <external> : !hl.lvalue<si32>
 IINT b = 0;
 
 typedef IINT IIINT;
 
-// CHECK: hl.var @c : !hl.lvalue<si32>
+// CHECK: hl.var @c, <external> : !hl.lvalue<si32>
 IIINT c = 0;
