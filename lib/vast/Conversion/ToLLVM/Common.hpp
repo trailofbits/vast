@@ -104,20 +104,4 @@ namespace vast::conv::irstollvm {
         }
     };
 
-    // Ignore `src_t` and instead just us its operands.
-    template< typename src_t >
-    struct ignore_pattern : base_pattern< src_t >
-    {
-        using base = base_pattern< src_t >;
-        using base::base;
-
-        using adaptor_t = typename src_t::Adaptor;
-
-        logical_result
-        matchAndRewrite(src_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
-            rewriter.replaceOp(op, ops.getOperands());
-            return mlir::success();
-        }
-    };
-
 } // namespace vast::conv::irstollvm
