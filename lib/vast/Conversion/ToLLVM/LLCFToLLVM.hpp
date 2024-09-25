@@ -21,40 +21,35 @@ VAST_UNRELAX_WARNINGS
 
 #include "Common.hpp"
 
-namespace vast::conv::irstollvm::ll_cf
+namespace vast::conv::irstollvm::cf
 {
-    struct br : base_pattern< ll::Br >
+    struct br : operation_conversion_pattern< ll::Br >
     {
-        using base = base_pattern< ll::Br >;
+        using base = operation_conversion_pattern< ll::Br >;
         using base::base;
 
-        using op_t = ll::Br;
-        using adaptor_t = typename op_t::Adaptor;
+        using adaptor_t = typename ll::Br::Adaptor;
 
-        mlir::LogicalResult matchAndRewrite(
-                    op_t op, adaptor_t ops,
-                    conversion_rewriter &rewriter) const override
-        {
+        logical_result matchAndRewrite(
+            ll::Br op, adaptor_t ops, conversion_rewriter &rewriter
+        ) const override {
             rewriter.create< LLVM::BrOp >(op.getLoc(), ops.getOperands(), op.getDest());
             rewriter.eraseOp(op);
-
             return mlir::success();
         }
-
     };
 
-    struct cond_br : base_pattern< ll::CondBr >
+    struct cond_br : operation_conversion_pattern< ll::CondBr >
     {
-        using base = base_pattern< ll::CondBr >;
+        using base = operation_conversion_pattern< ll::CondBr >;
         using base::base;
 
         using op_t = ll::CondBr;
         using adaptor_t = typename op_t::Adaptor;
 
         logical_result matchAndRewrite(
-            op_t op, adaptor_t ops,
-            conversion_rewriter &rewriter) const override
-        {
+            ll::CondBr op, adaptor_t ops, conversion_rewriter &rewriter
+        ) const override {
             rewriter.create< LLVM::CondBrOp >(
                 op.getLoc(),
                 ops.getCond(),
@@ -62,41 +57,43 @@ namespace vast::conv::irstollvm::ll_cf
                 op.getFalseDest(), ops.getFalseOperands()
             );
             rewriter.eraseOp( op );
-
             return mlir::success();
         }
 
     };
 
-    template< typename Op >
-    struct scope_like : base_pattern< Op >
+    template< typename op_t >
+    struct region_to_block_conversion_pattern
+        : operation_conversion_pattern< op_t >
     {
-        using op_t = Op;
-        using base = base_pattern< op_t >;
+        using base = operation_conversion_pattern< op_t >;
         using base::base;
 
         using adaptor_t = typename op_t::Adaptor;
 
         // TODO(conv:irstollvm): Should be handled on the operation api level.
-        virtual mlir::Block *start_block(Op op) const = 0;
+        virtual block_t *start_block(op_t op) const = 0;
 
         // TODO(conv:irstollvm): Separate terminator types should be CRTP hookable.
-        mlir::LogicalResult replace_terminator(auto &rewriter, mlir::Block &block,
-                                               mlir::Block &start, mlir::Block &end) const
-        {
+        logical_result replace_terminator(
+            auto &rewriter, block_t &block, block_t &start, block_t &end
+        ) const {
             auto &last = block.back();
             std::vector< mlir::Value > no_vals;
 
             if (mlir::isa< ll::ScopeRet >(last)) {
                 make_after_op< LLVM::BrOp >(rewriter, &last, last.getLoc(), no_vals, &end);
             } else if (mlir::isa< ll::ScopeRecurse >(last)) {
-                make_after_op< LLVM::BrOp >(rewriter, &last, last.getLoc(),
-                                            no_vals, &start);
+                make_after_op< LLVM::BrOp >(
+                    rewriter, &last, last.getLoc(),no_vals, &start
+                );
             } else if (auto ret = mlir::dyn_cast< ll::CondScopeRet >(last)) {
-                make_after_op< LLVM::CondBrOp >(rewriter, &last, last.getLoc(),
-                                                ret.getCond(),
-                                                ret.getDest(), ret.getDestOperands(),
-                                                &end, no_vals);
+                make_after_op< LLVM::CondBrOp >(
+                    rewriter, &last, last.getLoc(),
+                    ret.getCond(),
+                    ret.getDest(), ret.getDestOperands(),
+                    &end, no_vals
+                );
             } else {
                 // Nothing to do (do not erase, since it is a standard branching).
                 return mlir::success();
@@ -108,9 +105,8 @@ namespace vast::conv::irstollvm::ll_cf
 
 
         logical_result handle_multiblock(
-            op_t op, adaptor_t ops,
-            conversion_rewriter &rewriter) const
-        {
+            op_t op, adaptor_t ops, conversion_rewriter &rewriter
+        ) const {
             auto [head_block, tail_block] = split_at_op(op, rewriter);
 
             if (!start_block(op))
@@ -125,8 +121,10 @@ namespace vast::conv::irstollvm::ll_cf
 
             auto op_entry_block = &*op.getBody().begin();
             rewriter.setInsertionPointToEnd(head_block);
-            rewriter.create< mlir::LLVM::BrOp >(op.getLoc(), std::vector< mlir::Value >{},
-                                                op_entry_block);
+            rewriter.create< mlir::LLVM::BrOp >(
+                op.getLoc(), std::vector< mlir::Value >{}, op_entry_block
+            );
+
             inline_region_blocks(rewriter, op.getBody(), mlir::Region::iterator(tail_block));
 
             rewriter.eraseOp(op);
@@ -134,9 +132,8 @@ namespace vast::conv::irstollvm::ll_cf
         }
 
         logical_result handle_singleblock(
-            op_t op, adaptor_t ops,
-            conversion_rewriter &rewriter) const
-        {
+            op_t op, adaptor_t ops, conversion_rewriter &rewriter
+        ) const {
             auto parent = op->getParentRegion();
 
             rewriter.inlineRegionBefore(op.getBody(), *parent, parent->end());
@@ -150,9 +147,6 @@ namespace vast::conv::irstollvm::ll_cf
         }
     };
 
-    using conversions = util::type_list<
-          cond_br
-        , br
-    >;
+    using patterns = util::type_list< cond_br, br >;
 
 } // namespace vast::conv::irstollvm::ll_cf
