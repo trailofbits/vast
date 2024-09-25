@@ -262,18 +262,19 @@ namespace vast::conv::irstollvm
     };
 
     template< typename op_t >
-    struct hl_scopelike : ll_cf::scope_like< op_t >
+    struct structured_cf_conversion_pattern
+        : cf::region_to_block_conversion_pattern< op_t >
     {
-        using base = ll_cf::scope_like< op_t >;
+        using base = cf::region_to_block_conversion_pattern< op_t >;
         using base::base;
 
         using adaptor_t = typename op_t::Adaptor;
 
-        mlir::Block *start_block(op_t op) const override { return &op.getBody().front(); }
+        block_t *start_block(op_t op) const override { return &op.getBody().front(); }
 
-        auto matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const
-            -> logical_result override
-        {
+        logical_result matchAndRewrite(
+            op_t op, adaptor_t ops, conversion_rewriter &rewriter
+        ) override {
             if (op.getBody().empty()) {
                 rewriter.eraseOp(op);
                 return logical_result::success();
@@ -286,21 +287,17 @@ namespace vast::conv::irstollvm
 
             return base::handle_multiblock(op, ops, rewriter);
         }
-
-        static void legalize(conversion_target &trg)
-        {
-            trg.addIllegalOp< op_t >();
-        }
     };
 
-    using label_stmt = hl_scopelike< hl::LabelStmt >;
-    using scope_op   = hl_scopelike< core::ScopeOp >;
+    using label_stmt = structured_cf_conversion_pattern< hl::LabelStmt >;
+    using scope_op   = structured_cf_conversion_pattern< core::ScopeOp >;
 
     using label_patterns = util::type_list< erase_pattern< hl::LabelDeclOp >, label_stmt >;
 
     // TODO(conv): Figure out if these can be somehow unified.
-    using inline_region_from_op_conversions =
-        util::type_list< inline_region_from_op< hl::TranslationUnitOp >, scope_op >;
+    using inline_region_from_op_conversions = util::type_list<
+        inline_region_from_op< hl::TranslationUnitOp >, scope_op
+    >;
 
     template< typename op_t >
     struct subscript_like : base_pattern< op_t >
@@ -1568,7 +1565,7 @@ namespace vast::conv::irstollvm
                 label_patterns,
                 lazy_op_type_conversions,
                 ll_generic_patterns,
-                ll_cf::conversions,
+                cf::patterns,
                 ll_memory_ops
             >(cfg);
         }
