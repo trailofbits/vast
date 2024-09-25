@@ -68,7 +68,10 @@ def Core_DeclStorageInterface : Core_OpInterface< "DeclStorageInterface" > {
         InterfaceMethod<"",
             "::vast::core::DeclContextKind", "getDeclContextKind", (ins), [{}],
             /*defaultImplementation=*/[{
-                auto st = core::get_effective_symbol_table_for< core::var_symbol >(this->getOperation())->get_defining_operation();
+                if (auto kind_attr = $_op->template getAttrOfType< core::DeclContextKindAttr >("context")) {
+                    return kind_attr.getValue();
+                }
+                auto st = core::get_effective_symbol_table_for< core::var_symbol >($_op)->get_defining_operation();
                 if (mlir::isa< mlir::FunctionOpInterface >(st))
                     return DeclContextKind::dc_function;
                 if (st->template hasTrait< core::ScopeLikeTrait >())

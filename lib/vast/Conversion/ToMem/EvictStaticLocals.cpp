@@ -44,6 +44,9 @@ namespace vast::conv {
                         op.getThreadStorageClass()
                 );
 
+                // Save current context informationinto the op to make sure the information stays valid
+                new_decl->setAttr("context", core::DeclContextKindAttr::get(op.getContext(), op.getDeclContextKind()));
+
                 new_decl.getInitializer().takeBody(op.getInitializer());
                 new_decl.getAllocationSize().takeBody(op.getAllocationSize());
 
@@ -54,7 +57,7 @@ namespace vast::conv {
 
             static void legalize(conversion_target &trg) {
                 trg.addDynamicallyLegalOp< hl::VarDeclOp >([] (hl::VarDeclOp op) {
-                    return !(op.isStaticLocal() && op.isInFunctionOrMethodContext());
+                    return !(op.isStaticLocal() && op->getParentOfType< mlir::FunctionOpInterface >());
                 });
             }
         };
@@ -90,7 +93,7 @@ namespace vast::conv {
                 trg.addDynamicallyLegalOp< hl::DeclRefOp >([&](hl::DeclRefOp op) {
                     auto var = core::symbol_table::lookup< core::var_symbol >(op, op.getName());
                     if (auto decl_storage = mlir::dyn_cast< core::DeclStorageInterface>(var)) {
-                        return !(decl_storage.isStaticLocal());
+                        return !(decl_storage.isStaticLocal() && var->getParentOfType< mlir::FunctionOpInterface >());
                     }
                     return (bool)var;
                 });
