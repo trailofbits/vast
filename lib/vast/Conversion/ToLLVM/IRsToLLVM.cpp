@@ -23,6 +23,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Core/CoreAttributes.hpp"
 #include "vast/Dialect/Core/CoreOps.hpp"
+#include "vast/Dialect/Core/Linkage.hpp"
 
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
@@ -356,13 +357,25 @@ namespace vast::conv::irstollvm
             auto target_type = this->convert(t.getElementType());
 
             // So we know this is a global, otherwise it would be in `ll:`.
+            auto linkage = op.getLinkage();
+            if (!linkage) {
+                if (op.isStaticLocal()) {
+                    linkage = core::GlobalLinkageKind::InternalLinkage;
+                } else {
+                    VAST_REPORT("Global var without linkage information.");
+                    return mlir::failure();
+                }
+            }
+
             auto gop = rewriter.create< mlir::LLVM::GlobalOp >(
                     op.getLoc(),
                     target_type,
                     // TODO(conv:irstollvm): Constant.
-                    true,
-                    LLVM::Linkage::Internal,
-                    op.getSymbolName(), mlir::Attribute());
+                    false,
+                    core::convert_linkage_to_llvm(linkage.value()),
+                    op.getSymbolName(),
+                    mlir::Attribute()
+            );
 
             // We could probably try to analyze the region to see if it isn't
             // a case where we can just do an attribute, but for now let's
@@ -437,11 +450,13 @@ namespace vast::conv::irstollvm
             //                    want to lower them all.
 
 
-            // TODO(lukas): Linkage?
-            auto linkage = LLVM::Linkage::External;
+            auto linkage = func_op.getLinkage();
+            VAST_CHECK(linkage, "Attempting lower function without set linkage {0}", func_op);
             auto new_func = rewriter.create< llvm_func_op >(
-                func_op.getLoc(), func_op.getName(),
-                target_type, linkage,
+                func_op.getLoc(),
+                func_op.getName(),
+                target_type,
+                core::convert_linkage_to_llvm(linkage.value()),
                 func_op.isVarArg(), LLVM::CConv::C
             );
 
