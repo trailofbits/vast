@@ -219,23 +219,6 @@ def Core_StorageDuration
   Core_SD_Dynamic
 ] >;
 
-class Core_StorageDurationImpl
-{
-  code storageDurationImpl = [{
-    bool hasLocalStorage();
-
-    bool isLocalVarDecl();
-
-    bool isStaticLocal();
-
-    bool hasExternalStorage();
-
-    bool hasGlobalStorage();
-
-    StorageDuration getStorageDuration();
-  }];
-}
-
 // declaration context kinds
 class Core_DeclContextAttr< string name, int val > : I64EnumAttrCase< name, val > {}
 
@@ -265,32 +248,5 @@ def Core_DeclContextKind
   Core_DC_Enum,
   Core_DC_Namespace
 ] >;
-
-class Core_DeclContextImpl
-{
-  code declContextImpl = [{
-    DeclContextKind getDeclContextKind();
-
-    bool isStaticDataMember();
-
-    bool isInFileContext();
-
-    bool isInFunctionOrMethodContext();
-
-    bool isInRecordContext();
-
-    bool isFileVarDecl();
-  }];
-}
-
-class Core_StorageSpecifiers :
-  Core_StorageDurationImpl,
-  Core_DeclContextImpl
-{
-  code storageSpecifiersImpl =
-    storageDurationImpl #
-    declContextImpl;
-}
-
 
 #endif // VAST_DIALECT_CORE_COREATTRIBUTES
