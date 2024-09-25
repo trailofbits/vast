@@ -126,6 +126,22 @@ namespace vast {
         }
     };
 
+    template< typename op_t >
+    struct erase_pattern : operation_conversion_pattern< op_t >
+    {
+        using base = operation_conversion_pattern< op_t >;
+        using base::base;
+
+        using adaptor_t = typename op_t::Adaptor;
+
+        logical_result matchAndRewrite(
+            op_t op, adaptor_t ops, conversion_rewriter &rewriter
+        ) const override {
+            rewriter.eraseOp(op);
+            return mlir::success();
+        }
+    };
+
     struct llvm_pattern_utils
     {
         mlir_value iN(auto &rewriter, auto loc, mlir_type type, auto val) const {
