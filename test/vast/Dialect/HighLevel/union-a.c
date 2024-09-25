@@ -6,7 +6,7 @@
 // CHECK:   hl.field @u16 : !hl.array<2, !hl.short< unsigned >>
 // CHECK:   hl.field @u8 : !hl.char< unsigned >
 // CHECK: }
-// CHECK: hl.var @u : !hl.lvalue<!hl.elaborated<!hl.record<@u>>
+// CHECK: hl.var @u, <common> : !hl.lvalue<!hl.elaborated<!hl.record<@u>>
 union u {
     unsigned int   u32;
     unsigned short u16[2];

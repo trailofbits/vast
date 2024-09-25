@@ -13,7 +13,7 @@ struct Element {
     int z;
     enum State { SOLID, LIQUID, GAS, PLASMA } state;
 
-// CHECK: hl.var @oxygen : !hl.lvalue<!hl.elaborated<!hl.record<@Element>>>
+// CHECK: hl.var @oxygen, <external> : !hl.lvalue<!hl.elaborated<!hl.record<@Element>>>
 // CHECK:  [[V1:%[0-9]+]] = hl.const #core.integer<8> : !hl.int
 // CHECK:  [[V2:%[0-9]+]] = hl.enumref @GAS : !hl.int
 // CHECK:  [[V3:%[0-9]+]] = hl.implicit_cast [[V2]] IntegralCast : !hl.int -> !hl.elaborated<!hl.enum<@State>>

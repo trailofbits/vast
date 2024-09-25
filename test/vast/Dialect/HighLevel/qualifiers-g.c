@@ -1,8 +1,8 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.var @a : !hl.lvalue<!hl.ptr<!hl.float,  restrict >>
-// CHECK: hl.var @b : !hl.lvalue<!hl.ptr<!hl.float,  restrict >>
+// CHECK: hl.var @a, <common> : !hl.lvalue<!hl.ptr<!hl.float,  restrict >>
+// CHECK: hl.var @b, <common> : !hl.lvalue<!hl.ptr<!hl.float,  restrict >>
 float * restrict a, * restrict b;
 
 // CHECK: @f {{.*}} (!hl.lvalue<!hl.int>, !hl.lvalue<!hl.ptr<!hl.float,  restrict >>, !hl.lvalue<!hl.ptr<!hl.float,  const >>)
