@@ -6,6 +6,7 @@
 include "vast/Dialect/Core/CoreTraits.td"
 include "vast/Dialect/Core/StorageInfo.td"
 include "vast/Dialect/Core/Interfaces/DeclStorageInterface.td"
+include "vast/Dialect/Core/LinkageHelper.td"
 
 // Variable Operation
 def HighLevel_VarDeclOp
