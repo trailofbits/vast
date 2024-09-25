@@ -216,6 +216,16 @@ namespace vast::cg {
                 .freeze();
         };
 
+        auto linkage_builder = [](const clang::VarDecl *decl) {
+            auto gva_linkage = decl->getASTContext().GetGVALinkageForVariable(decl);
+            return core::get_declarator_linkage(
+                decl,
+                gva_linkage,
+                decl->getType().isConstQualified()
+            );
+        };
+
+
         auto var = maybe_declare([&] {
             return bld.compose< hl::VarDeclOp >()
                 .bind(self.location(decl))
@@ -223,6 +233,7 @@ namespace vast::cg {
                 .bind(self.symbol(decl))
                 .bind_always(storage_class(decl))
                 .bind_always(thread_storage_class(decl))
+                .bind_choose(is_global, std::optional(linkage_builder(decl)), std::nullopt)
                 // FIXME: The initializer region is filled later as it might
                 // have references to the VarDecl we are currently
                 // visiting - int *x = malloc(sizeof(*x))

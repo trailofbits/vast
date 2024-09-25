@@ -23,7 +23,8 @@ def HighLevel_VarDeclOp
     SymbolNameAttr:$sym_name,
     TypeAttr:$type,
     Core_StorageClass:$storageClass,
-    Core_ThreadStorage:$threadStorageClass
+    Core_ThreadStorage:$threadStorageClass,
+    OptionalAttr<Core_GlobalLinkageKind>:$linkage
   );
 
   let regions = (region
@@ -37,13 +38,14 @@ def HighLevel_VarDeclOp
       "llvm::StringRef":$sym_name,
       "core::StorageClass":$storageClass,
       "core::TSClass":$threadStorageClass,
+      CArg< "std::optional< core::GlobalLinkageKind >", "std::nullopt">:$linkage,
       CArg< "maybe_builder_callback_ref", "std::nullopt" >:$initBuilder,
       CArg< "maybe_builder_callback_ref", "std::nullopt" >:$allocaBuilder
     )>
   ];
 
   let assemblyFormat = [{
-    $sym_name attr-dict custom< StorageClasses >($storageClass, $threadStorageClass)
+    $sym_name attr-dict (`,`$linkage^)? custom< StorageClasses >($storageClass, $threadStorageClass)
       `:` $type
       (`=` $initializer^)?
       (`allocation_size` $allocation_size^)?
