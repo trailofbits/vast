@@ -10,18 +10,7 @@ include "mlir/Interfaces/FunctionInterfaces.td"
 include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
-
-def Core_GlobalLinkageKind : Attr<
-    CPred<"::llvm::isa<::vast::core::GlobalLinkageKindAttr>($_self)">,
-    "global linkage kind"
-> {
-    let storageType = "::vast::core::GlobalLinkageKindAttr";
-    let returnType  = "::vast::core::GlobalLinkageKind";
-    let convertFromStorage = "$_self.getValue()";
-    let constBuilderCall = [{
-        ::vast::core::GlobalLinkageKindAttr::get($_builder.getContext(), $0)
-    }];
-}
+include "vast/Dialect/Core/LinkageHelper.td"
 
 def Core_FunctionType : Type<
     CPred<"::llvm::isa<::vast::core::FunctionType>($_self)">,
