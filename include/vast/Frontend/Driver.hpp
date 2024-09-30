@@ -103,8 +103,6 @@ namespace vast::cc {
             : cc1_entry_point(cc1), cmd_args(cmd_args), diag(cmd_args, path)
             , drv(path, llvm::sys::getDefaultTargetTriple(), diag.engine, "vast compiler")
         {
-            set_install_dir(cmd_args, canonical_prefixes);
-
             auto target_and_mode = toolchain::getTargetAndModeFromProgramName(cmd_args[0]);
             drv.setTargetAndMode(target_and_mode);
 
@@ -336,31 +334,6 @@ namespace vast::cc {
                 all_args.push_back(sysroot_option.data());
             }
         }
-
-        void set_install_dir(argv_storage_base &argv, bool canonical_prefixes) {
-            // Attempt to find the original path used to invoke the driver, to determine
-            // the installed path. We do this manually, because we want to support that
-            // path being a symlink.
-            llvm::SmallString< 128 > installed_path(argv[0]);
-
-            // Do a PATH lookup, if there are no directory components.
-            if (llvm::sys::path::filename(installed_path) == installed_path) {
-                if (auto tmp = llvm::sys::findProgramByName(llvm::sys::path::filename(installed_path.str()))) {
-                    installed_path = *tmp;
-                }
-            }
-
-            // FIXME: We don't actually canonicalize this, we just make it absolute.
-            if (canonical_prefixes) {
-                llvm::sys::fs::make_absolute(installed_path);
-            }
-
-            string_ref installed_path_parent(llvm::sys::path::parent_path(installed_path));
-            if (llvm::sys::fs::exists(installed_path_parent)) {
-                drv.setInstalledDir(installed_path_parent);
-            }
-        }
-
 
         exec_compile_t cc1_entry_point;
         argv_storage_base &cmd_args;
