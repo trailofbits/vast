@@ -3,11 +3,11 @@
 
 Currently, it is necessary to use `clang` (due to `gcc` bug) to build VAST. On Linux it is also necessary to use `lld` at the moment.
 
-VAST uses `llvm-18` which can be obtained from the [repository](https://apt.llvm.org/) provided by LLVM.
+VAST uses `llvm-19` which can be obtained from the [repository](https://apt.llvm.org/) provided by LLVM.
 
 Before building (for Ubuntu) get all the necessary dependencies by running
 ```
-apt-get install build-essential cmake ninja-build libstdc++-12-dev llvm-18 libmlir-18 libmlir-18-dev mlir-18-tools libclang-18-dev
+apt-get install build-essential cmake ninja-build libstdc++-12-dev llvm-19 libmlir-19 libmlir-19-dev mlir-19-tools libclang-19-dev
 ```
 or an equivalent command for your operating system of choice.
 

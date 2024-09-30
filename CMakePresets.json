@@ -54,13 +54,13 @@
             "displayName": "Configure VAST for Compiler Explorer",
             "inherits": "base",
             "environment": {
-                "CMAKE_PREFIX_PATH": "/usr/lib/llvm-18"
+                "CMAKE_PREFIX_PATH": "/usr/lib/llvm-19"
             },
             "cacheVariables": {
                 "CMAKE_CONFIGURATION_TYPES": "Release",
                 "VAST_ENABLE_TESTING": "OFF",
-                "CMAKE_C_COMPILER": "/usr/bin/clang-18",
-                "CMAKE_CXX_COMPILER": "/usr/bin/clang++-18",
+                "CMAKE_C_COMPILER": "/usr/bin/clang-19",
+                "CMAKE_CXX_COMPILER": "/usr/bin/clang++-19",
                 "CMAKE_INSTALL_PREFIX": "$env{STAGING_DIR}",
                 "CMAKE_INSTALL_RPATH": "$env{ORIGIN}/../lib"
             }

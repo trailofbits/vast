@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set default LLVM version if not specified
-LLVM_VERSION=${LLVM_VERSION:-18}
+LLVM_VERSION=${LLVM_VERSION:-19}
 
 # Install LLVM tools and libraries
 bash -c "$(curl -s -o - https://apt.llvm.org/llvm.sh)" llvm.sh $LLVM_VERSION

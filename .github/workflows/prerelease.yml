@@ -25,7 +25,7 @@ jobs:
   build:
     strategy:
       matrix:
-        llvm-version: [18]
+        llvm-version: [19]
         image-version: [22.04]
 
     name: "Pre Release"
@@ -89,7 +89,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        llvm-version: [18]
+        llvm-version: [19]
         image-version: [22.04]
         vast-target: ['hl', 'llvm', 'bin']
         disable-unsup: ['ON','OFF']
@@ -217,7 +217,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        llvm-version: [18]
+        llvm-version: [19]
         image-version: [22.04]
         vast-target: ['hl']
         disable-unsup: [true, false]
@@ -321,7 +321,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        llvm-version: [18]
+        llvm-version: [19]
         image-version: [22.04]
         vast-target: ['hl']
         disable-unsup: [true, false]
@@ -440,7 +440,7 @@ jobs:
   build_doc:
     strategy:
       matrix:
-        llvm-version: [18]
+        llvm-version: [19]
         image-version: [22.04]
     name: "Build VAST doc"
     runs-on: ubuntu-${{ matrix.image-version }}
