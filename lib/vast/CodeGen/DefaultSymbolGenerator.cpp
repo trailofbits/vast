@@ -81,7 +81,7 @@ namespace vast::cg
         };
 
         if (const auto *field = clang::dyn_cast< clang::FieldDecl >(decl)) {
-            if (field->isUnnamedBitfield() || field->isAnonymousStructOrUnion()) {
+            if (field->isUnnamedBitField() || field->isAnonymousStructOrUnion()) {
                 return anonoymous_mangle();
             }
         }
