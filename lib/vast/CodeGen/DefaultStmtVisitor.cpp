@@ -98,6 +98,9 @@ namespace vast::cg
             case clang::CastKind::CK_IntToOCLSampler: return CastKind::IntToOCLSampler;
 
             case clang::CastKind::CK_MatrixCast: return CastKind::MatrixCast;
+
+            case clang::CastKind::CK_HLSLVectorTruncation: return CastKind::HLSLVectorTruncation;
+            case clang::CastKind::CK_HLSLArrayRValue: return CastKind::HLSLArrayRValue;
         }
 
         VAST_UNIMPLEMENTED_MSG( "unsupported cast kind" );
