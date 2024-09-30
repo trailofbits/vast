@@ -24,7 +24,7 @@
 		"python": "os-provided"
 	},
 	"containerEnv": {
-		"CMAKE_PREFIX_PATH": "/usr/lib/llvm-18/lib/cmake/mlir/;/usr/lib/llvm-18/lib/cmake/clang/",
+		"CMAKE_PREFIX_PATH": "/usr/lib/llvm-19/lib/cmake/mlir/;/usr/lib/llvm-19/lib/cmake/clang/",
 		"LLVM_EXTERNAL_LIT": "/usr/local/bin/lit"
 	}
 
