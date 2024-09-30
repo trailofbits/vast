@@ -662,6 +662,8 @@ def HighLevel_AddressSpaceConversion : HighLevel_CastKindAttr<"AddressSpaceConve
 def HighLevel_IntToOCLSampler : HighLevel_CastKindAttr<"IntToOCLSampler", 63>;
 
 def HighLevel_MatrixCast : HighLevel_CastKindAttr<"MatrixCast", 64>;
+def HighLevel_HLSLVectorTruncation : HighLevel_CastKindAttr<"HLSLVectorTruncation", 65>;
+def HighLevel_HLSLArrayRValue : HighLevel_CastKindAttr<"HLSLArrayRValue", 66>;
 
 let cppNamespace = "::vast::hl" in
 def HighLevel_CastKind : HighLevel_CastKindList< "CastKind", "cast kind", [
@@ -743,7 +745,9 @@ def HighLevel_CastKind : HighLevel_CastKindList< "CastKind", "cast kind", [
   HighLevel_AddressSpaceConversion,
   HighLevel_IntToOCLSampler,
 
-  HighLevel_MatrixCast
+  HighLevel_MatrixCast,
+  HighLevel_HLSLVectorTruncation,
+  HighLevel_HLSLArrayRValue
 ] >;
 
 class HighLevel_CastOp< string mnemonic, list< Trait > traits = [] >
