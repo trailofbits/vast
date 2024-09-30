@@ -52,8 +52,6 @@ namespace vast::cc {
 
         void CompleteTentativeDefinition(clang::VarDecl *decl) override;
 
-        void CompleteExternalDeclaration(clang::VarDecl * /* decl */) override;
-
         void AssignInheritanceModel(clang::CXXRecordDecl * /* decl */) override;
 
         void HandleVTable(clang::CXXRecordDecl * /* decl */) override;
