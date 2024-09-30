@@ -175,7 +175,7 @@ namespace vast::cg
     }
 
     mlir_attr default_attr_visitor::VisitCountedByAttr(const clang::CountedByAttr *attr) {
-        return make< hl::CountedByAttr >(attr->getCountedByField()->getName());
+        return make< hl::CountedByAttr >();
     }
 
     mlir_attr default_attr_visitor::VisitCleanupAttr(const clang::CleanupAttr *attr) {
