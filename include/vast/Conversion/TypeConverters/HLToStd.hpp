@@ -89,7 +89,7 @@ namespace vast::conv::tc {
       protected:
         auto convert_pointer_element_type() {
             return [&](auto t) -> maybe_type_t {
-                if (t.template isa< hl::VoidType >()) {
+                if (mlir::isa< hl::VoidType >(t)) {
                     auto sign = mlir::IntegerType::SignednessSemantics::Signless;
                     return underlying().int_type(8u, sign);
                 }

@@ -322,7 +322,7 @@ namespace vast::conv {
                 auto rhs = ops.getSrc();
 
                 // TODO(lukas): This should not happen?
-                if (rhs.getType().template isa< hl::LValueType >()) {
+                if (mlir::isa< hl::LValueType >(rhs.getType())) {
                     return logical_result::failure();
                 }
 

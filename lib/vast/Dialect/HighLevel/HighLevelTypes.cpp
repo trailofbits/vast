@@ -90,11 +90,11 @@ namespace vast::hl
     }
 
     core::FunctionType getFunctionType(mlir_type type, operation from) {
-        if (auto ty = type.dyn_cast< core::FunctionType >()) {
+        if (auto ty = mlir::dyn_cast< core::FunctionType >(type)) {
             return ty;
         } else if (auto ty = dyn_cast< ElementTypeInterface >(type)) {
             return getFunctionType(ty.getElementType(), from);
-        } else if (auto ty = type.dyn_cast< TypedefType >()) {
+        } else if (auto ty = mlir::dyn_cast< TypedefType >(type)) {
             auto mod = from->getParentOfType< core::module >();
             return getFunctionType(getTypedefType(ty, mod), from);
         } else {
@@ -107,13 +107,13 @@ namespace vast::hl
             return {};
         }
 
-        if (auto sym = callee.dyn_cast< mlir::SymbolRefAttr >()) {
+        if (auto sym = mlir::dyn_cast< mlir::SymbolRefAttr >(callee)) {
             auto fn = core::symbol_table::lookup< core::func_symbol >(from, sym.getRootReference());
             VAST_CHECK(fn, "Function {} not present in the symbol table.", sym.getRootReference());
             return mlir::cast< FuncOp >(fn).getFunctionType();
         }
 
-        if (auto value = callee.dyn_cast< mlir_value >()) {
+        if (auto value = mlir::dyn_cast< mlir_value >(callee)) {
             return getFunctionType(value.getType(), from);
         }
 
@@ -130,7 +130,7 @@ namespace vast::hl
 
     bool isBoolType(mlir_type type)
     {
-        return type.isa< BoolType >();
+        return mlir::isa< BoolType >(type);
     }
 
     bool isIntegerType(mlir_type type)
@@ -149,8 +149,9 @@ namespace vast::hl
             return false;
         }
 
-        if (auto builtin_type = type.dyn_cast< mlir::IntegerType >())
+        if (auto builtin_type = mlir::dyn_cast< mlir::IntegerType >(type)) {
             return builtin_type.isSigned();
+        }
 
         VAST_ASSERT(isIntegerType(type));
         return util::dispatch< integer_types, bool >(type, [] (auto ty) {
@@ -186,8 +187,9 @@ namespace vast::hl
         // do this recursion?
         auto collect = [&](ArrayType arr, auto &self) -> mlir_type {
             dims.push_back(arr.getSize());
-            if (auto nested = arr.getElementType().dyn_cast< ArrayType >())
+            if (auto nested = mlir::dyn_cast< ArrayType >(arr.getElementType())) {
                 return self(nested, self);
+            }
             return arr.getElementType();
         };
         return { std::move(dims), collect(*this, collect) };

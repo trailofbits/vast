@@ -31,9 +31,7 @@ namespace vast::meta
 
     bool has_identifier(mlir::Operation *op, identifier_t id) {
         if (auto attr = op->getAttr(identifier_name)) {
-            if (attr.cast< IdentifierAttr >().getValue() == id) {
-                return true;
-            }
+            return mlir::cast< IdentifierAttr >(attr).getValue() == id;
         }
 
         return false;
@@ -52,7 +50,7 @@ namespace vast::meta
     std::vector< mlir::Operation * > get_with_meta_location(mlir::Operation *scope, IdentifierAttr id) {
         std::vector< mlir::Operation * > result;
         scope->walk([&](mlir::Operation *op) {
-            if (auto loc = op->getLoc().dyn_cast< mlir::FusedLoc >()) {
+            if (auto loc = mlir::dyn_cast< mlir::FusedLoc >(op->getLoc())) {
                 if (id == loc.getMetadata()) {
                     result.push_back(op);
                 }

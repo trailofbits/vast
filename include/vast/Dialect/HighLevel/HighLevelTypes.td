@@ -192,7 +192,7 @@ def HighLevel_ParenType : HighLevel_Type< "Paren", [ElementTypeInterface, MemRef
 class HighLevel_ElaboratedType< TypeConstraint value > : Type<
   And< [
     HighLevel_ElaboratedType.predicate,
-    SubstLeaves< "$_self", "$_self.cast< ElaboratedType >().getElementType()", value.predicate >
+    SubstLeaves< "$_self", "mlir::cast< ElaboratedType >($_self).getElementType()", value.predicate >
   ] >
 >;
 
@@ -222,7 +222,7 @@ def HighLevel_LValue : HighLevel_TypeWithSubType< "LValue", "lvalue" > { }
 
 class HighLevel_LValueOf<TypeConstraint value> : Type< And< [
     HighLevel_LValue.predicate,
-    SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()", value.predicate >
+    SubstLeaves< "$_self", "mlir::cast< LValueType >($_self).getElementType()", value.predicate >
   ] >,
   "lvalue to " # value.summary
 >;
@@ -504,7 +504,7 @@ class HighLevel_LValueOrType<TypeConstraint value> : Type<
   Or< [
     And< [
       HighLevel_LValue.predicate,
-      SubstLeaves< "$_self", "$_self.cast< LValueType >().getElementType()",
+      SubstLeaves< "$_self", "mlir::cast< LValueType >($_self).getElementType()",
         Or< [ value.predicate, HighLevel_UnresolvedType.predicate ] >
       >
     ] >,

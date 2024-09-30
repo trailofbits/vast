@@ -60,7 +60,7 @@ namespace vast::hl
         using Base = TypeEntryBase;
         DialectTypeEntry(DialectType type) : Base(type) {}
 
-        DialectType in_dialect() { return type.cast< DialectType >(); }
+        DialectType in_dialect() { return mlir::cast< DialectType >(type); }
 
         DialectTypeEntry &name() {
             raw["type"] = in_dialect().getMnemonic();

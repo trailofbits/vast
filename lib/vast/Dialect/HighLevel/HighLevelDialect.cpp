@@ -34,7 +34,7 @@ namespace vast::hl
 
         AliasResult getAlias(mlir_type type, llvm::raw_ostream &os) const final {
             if (mlir::isa< HighLevelDialect >(type.getDialect())) {
-                if (auto ty = type.dyn_cast< AliasTypeInterface >()) {
+                if (auto ty = mlir::dyn_cast< AliasTypeInterface >(type)) {
                     os << ty.getAlias();
                     return ty.getAliasResultKind();
                 }

@@ -226,8 +226,8 @@ namespace vast::util {
             } else {
                 using head = typename list::head;
 
-                if (type.isa< head >()) {
-                    return f(type.cast< head >());
+                if (auto ty = mlir::dyn_cast< head >(type)) {
+                    return f(ty);
                 }
 
                 return dispatch< typename list::tail, ret >(type, std::forward< fn >(f));

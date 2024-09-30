@@ -100,9 +100,10 @@ namespace vast::util
         auto loc = value.getLoc();
         std::string buff;
         llvm::raw_string_ostream ss(buff);
-        if (auto file_loc = loc.template dyn_cast< mlir::FileLineColLoc >()) {
-            ss << " : " << file_loc.getFilename().getValue() << ":" << file_loc.getLine()
-                         << ":" << file_loc.getColumn();
+        if (auto file_loc = mlir::dyn_cast< mlir::FileLineColLoc >(loc)) {
+            ss << " : " << file_loc.getFilename().getValue()
+               << ":" << file_loc.getLine()
+               << ":" << file_loc.getColumn();
         } else {
             ss << " : " << loc;
         }
