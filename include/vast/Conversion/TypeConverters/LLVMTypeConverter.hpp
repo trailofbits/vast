@@ -99,7 +99,7 @@ namespace vast::conv::tc {
 
         auto make_ptr_type() {
             return [&](auto t) {
-                VAST_ASSERT(!t.template isa< mlir::NoneType >());
+                VAST_ASSERT(!mlir::isa< mlir::NoneType >(t));
                 return LLVM::LLVMPointerType::get(&this->getContext(), 0);
             };
         }
@@ -141,7 +141,7 @@ namespace vast::conv::tc {
         maybe_signature_conversion_t
         get_conversion_signature(mlir::FunctionOpInterface fn, bool variadic) {
             signature_conversion_t conversion(fn.getNumArguments());
-            auto fn_type = fn.getFunctionType().dyn_cast< core::FunctionType >();
+            auto fn_type = mlir::dyn_cast< core::FunctionType >(fn.getFunctionType());
             VAST_ASSERT(fn_type);
             for (auto arg : llvm::enumerate(fn_type.getInputs())) {
                 auto cty = convert_arg_t(arg.value());
@@ -186,14 +186,14 @@ namespace vast::conv::tc {
         }
 
         maybe_types_t convert_arg_t(mlir::Type t) {
-            if (auto lvalue = t.dyn_cast< hl::LValueType >()) {
+            if (auto lvalue = mlir::dyn_cast< hl::LValueType >(t)) {
                 return this->convert_type_to_types(lvalue.getElementType());
             }
             return this->convert_type_to_types(t);
         }
 
         maybe_types_t convert_ret_t(mlir::Type t) {
-            if (auto lvalue = t.dyn_cast< hl::LValueType >()) {
+            if (auto lvalue = mlir::dyn_cast< hl::LValueType >(t))  {
                 return this->convert_type_to_types(lvalue.getElementType());
             }
             return this->convert_type_to_types(t);

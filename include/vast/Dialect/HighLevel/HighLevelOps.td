@@ -1025,7 +1025,7 @@ class HighLevel_CompoundAssignOpTemplate< string mnemonic, TypeConstraint Type, 
     let builders = [ OpBuilder<(ins "Value":$dst, "Value":$src), [{
         $_state.addOperands(src);
         $_state.addOperands(dst);
-        auto type = dst.getType().cast< LValueType >();
+        auto type = mlir::cast< LValueType >(dst.getType());
         $_state.addTypes(type.getElementType());
       }]>
     ];
@@ -1173,7 +1173,7 @@ class HighLevel_UnInplaceOp< string mnemonic, list< Trait > traits = [] >
         TypesMatchWith<
           "underlying argument type match result type",
           "arg", "result",
-          "$_self.cast< LValueType >().getElementType()"
+          "mlir::cast< LValueType >($_self).getElementType()"
         >
       ]) >
     , Arguments<(ins HighLevel_LValueOf<AnyType>:$arg)>

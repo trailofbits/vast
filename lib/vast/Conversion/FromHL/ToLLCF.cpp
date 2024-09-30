@@ -36,7 +36,7 @@ namespace vast::conv {
 
         auto coerce_condition(auto op, conversion_rewriter &rewriter)
             -> std::optional< mlir::Value > {
-            auto int_type = op.getType().template dyn_cast< mlir::IntegerType >();
+            auto int_type = mlir::dyn_cast< mlir::IntegerType >(op.getType());
             if (!int_type) {
                 return {};
             }
@@ -63,7 +63,7 @@ namespace vast::conv {
         }
 
         auto cond_yield(mlir::Block *block) {
-            auto cond_yield = hard_terminator_t::get(*block).cast< hl::CondYieldOp >();
+            auto cond_yield = mlir::cast< hl::CondYieldOp >(hard_terminator_t::get(*block).value());
             VAST_CHECK(cond_yield, "Block does not have a hl::CondYieldOp as terminator.");
             return cond_yield;
         }

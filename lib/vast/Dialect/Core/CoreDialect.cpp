@@ -28,7 +28,7 @@ namespace vast::core
 
         AliasResult getAlias(mlir_type type, llvm::raw_ostream &os) const final {
             if (mlir::isa< CoreDialect >(type.getDialect())) {
-                if (auto ty = type.dyn_cast< AliasTypeInterface >()) {
+                if (auto ty = mlir::dyn_cast< AliasTypeInterface >(type)) {
                     os << ty.getAlias();
                     return ty.getAliasResultKind();
                 }
@@ -38,12 +38,12 @@ namespace vast::core
         }
 
         AliasResult getAlias(mlir_attr attr, llvm::raw_ostream &os) const final {
-            if (auto at = attr.dyn_cast< core::VoidAttr >()) {
+            if (auto at = mlir::dyn_cast< core::VoidAttr >(attr)) {
                 os << "void_value";
                 return AliasResult::FinalAlias;
             }
 
-            if (auto at = attr.dyn_cast< core::BooleanAttr >()) {
+            if (auto at = mlir::dyn_cast< core::BooleanAttr >(attr)) {
                 os << (at.getValue() ? "true" : "false");
                 return AliasResult::FinalAlias;
             }

@@ -551,8 +551,7 @@ namespace vast::conv::irstollvm
             return logical_result::success();
         }
 
-        mlir::Attribute convert_attr(auto attr, auto op,
-                                     conversion_rewriter &rewriter) const
+        mlir::Attribute convert_attr(auto attr, auto op, conversion_rewriter &rewriter) const
         {
             auto target_type = this->convert(attr.getType());
             const auto &dl = this->type_converter().getDataLayoutAnalysis()
@@ -560,8 +559,7 @@ namespace vast::conv::irstollvm
             if (!target_type)
                 return {};
 
-            if (auto float_attr = attr.template dyn_cast< core::FloatAttr >())
-            {
+            if (auto float_attr = mlir::dyn_cast< core::FloatAttr >(attr)) {
                 // NOTE(lukas): We cannot simply forward the return value of `getValue()`
                 //              because it can have different semantics than one expected
                 //              by `FloatAttr`.
@@ -571,15 +569,16 @@ namespace vast::conv::irstollvm
                 return rewriter.getFloatAttr(target_type, raw_value);
             }
 
-            if (auto int_attr = attr.template dyn_cast< core::IntegerAttr >())
-            {
+            if (auto int_attr = mlir::dyn_cast< core::IntegerAttr >(attr)) {
                 auto size = dl.getTypeSizeInBits(target_type);
                 auto coerced = int_attr.getValue().sextOrTrunc(size);
                 return rewriter.getIntegerAttr(target_type, coerced);
             }
 
             VAST_UNREACHABLE("Trying to convert attr that is not supported, {0} in op {1}",
-                             attr, op);
+                attr, op
+            );
+
             return {};
         }
 
@@ -1004,7 +1003,7 @@ namespace vast::conv::irstollvm
                 return rewriter.create< mlir::LLVM::CallOp >(op.getLoc(), args...);
             };
 
-            if (rtys->empty() || rtys->front().isa< mlir::LLVM::LLVMVoidType >()) {
+            if (rtys->empty() || mlir::isa< mlir::LLVM::LLVMVoidType >(rtys->front())) {
                 // We cannot pass in void type as some internal check inside `mlir::LLVM`
                 // dialect will fire - it would create a value of void type, which is not
                 // allowed.
@@ -1021,7 +1020,7 @@ namespace vast::conv::irstollvm
 
     bool is_lvalue(auto op)
     {
-        return op && op.getType().template isa< hl::LValueType >();
+        return op && mlir::isa< hl::LValueType >(op.getType());
     }
 
     struct logical_not : base_pattern< hl::LNotOp >
@@ -1399,8 +1398,7 @@ namespace vast::conv::irstollvm
 
             // Some operations need to keep it even with void value.
             if (!mlir::isa< core::LazyOp >(op->getParentOp())) {
-                if (ops.getResult().getType().template isa< mlir::LLVM::LLVMVoidType >())
-                {
+                if (mlir::isa< mlir::LLVM::LLVMVoidType >(ops.getResult().getType())) {
                     rewriter.eraseOp(op);
                     return logical_result::success();
                 }
