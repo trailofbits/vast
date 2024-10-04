@@ -170,6 +170,13 @@ namespace vast::core {
                 return GlobalLinkageKind::ExternalWeakLinkage;
             }
         }
+        if (const auto *var = llvm::dyn_cast< clang::VarDecl >(decl)) {
+            if (!var->hasDefinition() && var->isExternallyVisible()
+                && (var->hasAttr< clang::WeakAttr >() || var->isWeakImported()))
+            {
+                return core::GlobalLinkageKind::ExternalWeakLinkage;
+            }
+        }
 
         if (decl->hasAttr< clang::WeakAttr >()) {
             if (is_constant)
