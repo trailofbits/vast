@@ -12,7 +12,7 @@ struct pair {
   int a, b;
 };
 
-// CHECK: hl.var @p, <common> : !hl.lvalue<!hl.elaborated<!hl.record<@pair>>>
+// CHECK: hl.var @p, <external> : !hl.lvalue<!hl.elaborated<!hl.record<@pair>>>
 struct pair p;
 
 struct forward;
@@ -33,7 +33,7 @@ typedef struct wrap {
   int v;
 } wrap_t;
 
-// CHECK: hl.var @w, <common> : !hl.lvalue<!hl.elaborated<!hl.typedef<@wrap_t>>>
+// CHECK: hl.var @w, <external> : !hl.lvalue<!hl.elaborated<!hl.typedef<@wrap_t>>>
 wrap_t w;
 
 // CHECK: hl.struct @compound : {

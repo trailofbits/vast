@@ -19,7 +19,7 @@ struct v {
    // CHECK: hl.field @"[[N5:anonymous\[[0-9]+\]]]" : !hl.record<@"[[N1]]">
    // CHECK: hl.field @m : !hl.int
    int m;
-// CHECK: hl.var @v1, <common> : !hl.lvalue<!hl.elaborated<!hl.record<@v>>>
+// CHECK: hl.var @v1, <external> : !hl.lvalue<!hl.elaborated<!hl.record<@v>>>
 } v1;
 
 int main() {

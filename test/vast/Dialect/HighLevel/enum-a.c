@@ -17,5 +17,5 @@ enum color c = GREEN;
 // CHECK: hl.typedef @color : !hl.elaborated<!hl.enum<@color>>
 typedef enum color color;
 
-// CHECK: hl.var @tc, <common> : !hl.lvalue<!hl.elaborated<!hl.typedef<@color>>>
+// CHECK: hl.var @tc, <external> : !hl.lvalue<!hl.elaborated<!hl.typedef<@color>>>
 color tc;
