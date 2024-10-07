@@ -42,11 +42,8 @@ namespace vast::core {
         VAST_FATAL("No such linkage");
     }
 
-    bool is_vardecl_strong_definition(const clang::VarDecl* decl) {
+    bool is_vardecl_strong_definition(const clang::VarDecl* decl, bool nocommon) {
         auto &actx = decl->getASTContext();
-
-        // TODO: auto nocommon = actx.getCodeGenOpts().NoCommon;
-        bool nocommon = false;
 
         // Don't give variables common linkage if -fno-common was specified unless it
         // was overridden by a NoCommon attribute.
@@ -154,7 +151,7 @@ namespace vast::core {
     }
 
     GlobalLinkageKind get_declarator_linkage(
-        const clang::DeclaratorDecl *decl, clang::GVALinkage linkage, bool is_constant
+        const clang::DeclaratorDecl *decl, clang::GVALinkage linkage, bool is_constant, bool no_common
     ) {
         if (linkage == clang::GVA_Internal) {
             return GlobalLinkageKind::InternalLinkage;
@@ -239,7 +236,7 @@ namespace vast::core {
         // linkage.
         if (!opts.CPlusPlus) {
             if (auto var = clang::dyn_cast< clang::VarDecl >(decl)) {
-                if (!is_vardecl_strong_definition(var)) {
+                if (!is_vardecl_strong_definition(var, no_common)) {
                     return GlobalLinkageKind::CommonLinkage;
                 }
             }
@@ -280,7 +277,7 @@ namespace vast::core {
             }
         }
 
-        return get_declarator_linkage(decl, linkage, /* is const variable */ false);
+        return get_declarator_linkage(decl, linkage, /* is const variable */ false, /*no common linkage */ true);
     }
 
     mlir::LLVM::Linkage convert_linkage_to_llvm(core::GlobalLinkageKind linkage) {
