@@ -17,7 +17,7 @@ namespace vast::core {
     mlir::SymbolTable::Visibility get_visibility_from_linkage(core::GlobalLinkageKind linkage);
 
     core::GlobalLinkageKind get_declarator_linkage(
-        const clang::DeclaratorDecl *decl, clang::GVALinkage linkage, bool is_constant
+        const clang::DeclaratorDecl *decl, clang::GVALinkage linkage, bool is_constant, bool no_common
     );
 
     std::optional< core::GlobalLinkageKind > get_function_linkage(clang::GlobalDecl glob);

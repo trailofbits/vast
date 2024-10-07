@@ -32,6 +32,10 @@ namespace vast::cg {
             return false;
         };
 
+        bool get_no_common() const override {
+            return opts.codegen.NoCommon;
+        }
+
       protected:
         cc::action_options &opts;
     };

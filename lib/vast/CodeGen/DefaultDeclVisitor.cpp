@@ -216,12 +216,13 @@ namespace vast::cg {
                 .freeze();
         };
 
-        auto linkage_builder = [](const clang::VarDecl *decl) {
+        auto linkage_builder = [&](const clang::VarDecl *decl) {
             auto gva_linkage = decl->getASTContext().GetGVALinkageForVariable(decl);
             return core::get_declarator_linkage(
                 decl,
                 gva_linkage,
-                decl->getType().isConstQualified()
+                decl->getType().isConstQualified(),
+                this->policy->get_no_common()
             );
         };
 
