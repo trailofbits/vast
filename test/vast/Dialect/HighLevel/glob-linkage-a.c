@@ -10,7 +10,7 @@ int __attribute__((weak)) wdef = 5;
 extern int __attribute__((weak)) ewdef = 5;
 // CHECK: hl.var @edef, <external>
 extern int edef = 5;
-// CHECK: hl.var @undef, <common>
+// CHECK: hl.var @undef, <external>
 int undef;
 // CHECK: hl.var @def, <external>
 int def = 5;

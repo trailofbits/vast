@@ -1,12 +1,12 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o - | %file-check %s
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && %vast-opt %t | diff -B %t -
 
-// CHECK: hl.var @p, <common> : !hl.lvalue<!hl.ptr<!hl.float>>
-// CHECK: hl.var @pp, <common> : !hl.lvalue<!hl.ptr<!hl.ptr<!hl.float>>>
+// CHECK: hl.var @p, <external> : !hl.lvalue<!hl.ptr<!hl.float>>
+// CHECK: hl.var @pp, <external> : !hl.lvalue<!hl.ptr<!hl.ptr<!hl.float>>>
 float *p, **pp; // p is a pointer to float
                 // pp is a pointer to a pointer to float
 
-// CHECK: hl.var @fp, <common> : !hl.lvalue<!hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.int>) -> (!hl.int)>>>>
+// CHECK: hl.var @fp, <external> : !hl.lvalue<!hl.ptr<!hl.paren<!core.fn<(!hl.lvalue<!hl.int>) -> (!hl.int)>>>>
 int (*fp)(int); // fp is a pointer to function with type int(int)
 
 // CHECK: hl.var @pc, <external> : !hl.lvalue<!hl.ptr<!hl.int< const >>>
