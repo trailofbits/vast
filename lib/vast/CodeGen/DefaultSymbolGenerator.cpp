@@ -25,7 +25,7 @@ namespace vast::cg
 
         // Some ABIs don't have constructor variants. Make sure that base and
         // complete constructors get mangled the same.
-        if (const auto *ctor = clang::dyn_cast< clang::CXXConstructorDecl >(decl)) {
+        if (clang::isa< clang::CXXConstructorDecl >(decl)) {
             if (!actx.getTargetInfo().getCXXABI().hasConstructorVariants()) {
                 return std::nullopt;
             }
