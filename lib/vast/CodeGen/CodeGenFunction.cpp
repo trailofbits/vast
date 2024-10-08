@@ -211,7 +211,7 @@ namespace vast::cg
     bool may_drop_function_return(clang_qual_type rty, acontext_t &actx) {
         // We can't just discard the return value for a record type with a
         // complex destructor or a non-trivially copyable type.
-        if (const auto *recorrd_type = rty.getCanonicalType()->getAs< clang::RecordType >()) {
+        if (rty.getCanonicalType()->getAs< clang::RecordType >()) {
             VAST_UNIMPLEMENTED;
         }
 
