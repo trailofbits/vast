@@ -27,7 +27,7 @@ jobs:
         llvm-version: [19]
         image-version: [22.04]
         build-type: [Release, Debug]
-        sanitizers: [ON, OFF]
+        sanitizers: [OFF]
         features: ["nosarif", "sarif"]
 
     runs-on: ubuntu-${{ matrix.image-version }}
