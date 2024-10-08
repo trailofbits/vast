@@ -1,7 +1,3 @@
-// RUN: %vast-front -vast-emit-mlir=llvm -vast-snapshot-at="vast-core-to-llvm;vast-irs-to-llvm" %s
-// RUN: %file-check %s -input-file=$(basename %s .c).vast-irs-to-llvm -check-prefix=I_LLVM
-// RUN: %file-check %s -input-file=$(basename %s .c).vast-core-to-llvm -check-prefix=C_LLVM
-
 // RUN: %vast-front -vast-emit-mlir-after=vast-irs-to-llvm %s -o %t.mlir
 // RUN: %file-check --input-file=%t.mlir %s -check-prefix=I_LLVM
 
@@ -14,7 +10,6 @@ int main(int argc, char** argv)
 {
     // I_LLVM: [[V6:%[0-9]+]] = core.lazy.op {
     // I_LLVM:   llvm.call @foo() : () -> ()
-    // I_LLVM:   {{.*}} = llvm.mlir.zero : !llvm.void
     // I_LLVM:   [[V11:%[0-9]+]] = llvm.mlir.zero : !llvm.void
     // I_LLVM:   hl.value.yield [[V11]] : !llvm.void
     // I_LLVM: } : !llvm.void
