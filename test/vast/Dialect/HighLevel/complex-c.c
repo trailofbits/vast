@@ -10,12 +10,12 @@ void fun(void) {
 
 // CHECK: hl.add {{.*}} : (!hl.complex<!hl.int>, !hl.complex<!hl.int>)
     int complex y = x + z;
-// CHEKC: hl.real {{.*}} : {{.*}}!hl.complex<!hl.int>{{.*}} -> !hl.int
+// CHEKC: hl.real {{.*}} : !hl.lvalue<!hl.complex<!hl.int>> -> !hl.int
     int u = __real__ y;
-// CHEKC: hl.imag {{.*}} : {{.*}}!hl.complex<!hl.int>{{.*}} -> !hl.int
+// CHEKC: hl.imag {{.*}} : !hl.lvalue<!hl.complex<!hl.int>> -> !hl.int
     int v = __imag__ y;
-// CHEKC: hl.real {{.*}} : {{.*}}!hl.complex<!hl.int>{{.*}} -> !hl.lvalue<!hl.int>
+// CHEKC: hl.real {{.*}} : !hl.lvalue<!hl.complex<!hl.int>> -> !hl.lvalue<!hl.int>
     __real__ y = 5;
-// CHEKC: hl.imag {{.*}} : {{.*}}!hl.complex<!hl.int>{{.*}} -> !hl.lvalue<!hl.int>
+// CHEKC: hl.imag {{.*}} : !hl.lvalue<!hl.complex<!hl.int>> -> !hl.lvalue<!hl.int>
     __imag__ y = 6;
 }
