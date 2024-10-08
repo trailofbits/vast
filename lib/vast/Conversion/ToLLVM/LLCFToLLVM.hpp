@@ -87,9 +87,9 @@ namespace vast::conv::irstollvm::ll_cf
             auto &last = block.back();
             std::vector< mlir::Value > no_vals;
 
-            if (auto ret = mlir::dyn_cast< ll::ScopeRet >(last)) {
+            if (mlir::isa< ll::ScopeRet >(last)) {
                 make_after_op< LLVM::BrOp >(rewriter, &last, last.getLoc(), no_vals, &end);
-            } else if (auto ret = mlir::isa< ll::ScopeRecurse >(last)) {
+            } else if (mlir::isa< ll::ScopeRecurse >(last)) {
                 make_after_op< LLVM::BrOp >(rewriter, &last, last.getLoc(),
                                             no_vals, &start);
             } else if (auto ret = mlir::dyn_cast< ll::CondScopeRet >(last)) {
