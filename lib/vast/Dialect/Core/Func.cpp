@@ -17,6 +17,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/CoreDialect.hpp"
 #include "vast/Dialect/Core/Linkage.hpp"
 
+#include "vast/Dialect/Core/Interfaces/FunctionInterface.hpp"
+
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Region.hpp"
 
@@ -55,7 +57,7 @@ namespace vast::core
         }
 
         bool is_variadic = false;
-        if (mlir::failed(mlir::function_interface_impl::parseFunctionSignature(
+        if (mlir::failed(vast::core::function_interface_impl::parseFunctionSignature(
             parser, /*allowVariadic=*/true, arguments, is_variadic, result_types, result_attrs
         ))) {
             return mlir::failure();
@@ -79,7 +81,7 @@ namespace vast::core
 
         // TODO: Add the attributes to the function arguments.
         // VAST_ASSERT(result_attrs.size() == result_types.size());
-        // return mlir::function_interface_impl::addArgAndResultAttrs(
+        // return vast::core::function_interface_impl::addArgAndResultAttrs(
         //     builder, state, arguments, result_attrs
         // );
 

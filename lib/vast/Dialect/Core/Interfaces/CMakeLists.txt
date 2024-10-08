@@ -1,5 +1,7 @@
 set(VAST_OPTIONAL_SOURCES
   DeclStorageInterface.cpp
+  FunctionInterface.cpp
+  FunctionImplementation.cpp
   SymbolInterface.cpp
   SymbolTableInterface.cpp
   SymbolRefInterface.cpp
@@ -8,6 +10,11 @@ set(VAST_OPTIONAL_SOURCES
 
 add_vast_interface_library(DeclStorageInterface
     DeclStorageInterface.cpp
+)
+
+add_vast_interface_library(FunctionInterface
+    FunctionInterface.cpp
+    FunctionImplementation.cpp
 )
 
 add_vast_interface_library(SymbolInterface

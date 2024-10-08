@@ -80,7 +80,7 @@ def HighLevel_FuncOp
       }
       $_state.attributes.append(attrs.begin(), attrs.end());
 
-      mlir::function_interface_impl::addArgAndResultAttrs(
+      vast::core::function_interface_impl::addArgAndResultAttrs(
         $_builder, $_state, arg_attrs, res_attrs,
         getArgAttrsAttrName($_state.name), getResAttrsAttrName($_state.name)
       );
@@ -386,7 +386,7 @@ def HighLevel_CallOp
       build($_builder, $_state, mlir::SymbolRefAttr::get($_builder.getContext(), callee), results, operands);
     }]>,
     OpBuilder< (ins "FuncOp":$callee, CArg< "mlir::ValueRange", "{}" >:$operands), [{
-      build($_builder, $_state, callee.getName(), callee.getFunctionType().getResults(), operands);
+      build($_builder, $_state, callee.getSymName(), callee.getFunctionType().getResults(), operands);
     }]>
   ];
 

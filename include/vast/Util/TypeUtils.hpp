@@ -2,12 +2,6 @@
 
 #pragma once
 
-#include <vast/Util/Warnings.hpp>
-
-VAST_RELAX_WARNINGS
-#include <mlir/Interfaces/FunctionInterfaces.h>
-VAST_UNRELAX_WARNINGS
-
 #include <vast/Util/Functions.hpp>
 #include <vast/Util/Common.hpp>
 
@@ -86,7 +80,7 @@ namespace vast
     bool has_type_somewhere(operation op, auto &&accept)
     {
         auto contains_in_function_type = [&] {
-            if (auto fn = mlir::dyn_cast< mlir::FunctionOpInterface >(op)) {
+            if (auto fn = mlir::dyn_cast< core::function_op_interface >(op)) {
                 return contains_subtype(fn.getResultTypes(), accept)
                     || contains_subtype(fn.getArgumentTypes(), accept);
             }

@@ -16,7 +16,6 @@ VAST_RELAX_WARNINGS
 
 #include <mlir/Interfaces/CallInterfaces.h>
 #include <mlir/Interfaces/FunctionImplementation.h>
-#include <mlir/Interfaces/FunctionInterfaces.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"

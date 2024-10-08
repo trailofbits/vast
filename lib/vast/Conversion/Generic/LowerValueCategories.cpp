@@ -139,7 +139,7 @@ namespace vast::conv {
             using base = base_pattern< op_t >;
 
             VAST_DEFINE_REWRITE {
-                auto func_op = mlir::dyn_cast< mlir::FunctionOpInterface >(op.getOperation());
+                auto func_op = mlir::dyn_cast< core::function_op_interface >(op.getOperation());
                 if (!func_op) {
                     return mlir::failure();
                 }

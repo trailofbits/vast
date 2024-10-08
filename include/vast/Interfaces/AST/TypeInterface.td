@@ -6,6 +6,4 @@
 include "mlir/IR/OpBase.td"
 include "vast/Interfaces/AST/Common.td"
 
-
-
 #endif // VAST_INTERFACES_AST_TYPE_INTERFACE

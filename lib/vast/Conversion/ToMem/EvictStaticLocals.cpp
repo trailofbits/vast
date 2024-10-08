@@ -28,21 +28,23 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 hl::VarDeclOp op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                auto parent_fn = op->getParentOfType< mlir::FunctionOpInterface >();
-                if (!parent_fn)
+                auto fn = op->getParentOfType< core::function_op_interface >();
+                if (!fn)
                     return mlir::failure();
 
                 auto guard = insertion_guard(rewriter);
-                auto &module_block = parent_fn->getParentOfType< core::ModuleOp >().getBody().front();
+                auto &module_block = fn->getParentOfType< core::ModuleOp >().getBody().front();
                 rewriter.setInsertionPoint(&module_block, module_block.begin());
 
+                auto fn_symbol = mlir::dyn_cast< core::func_symbol >(fn.getOperation());
+
                 auto new_decl = rewriter.create< hl::VarDeclOp >(
-                        op.getLoc(),
-                        op.getType(),
-                        (parent_fn.getName() + "." + op.getSymName()).str(),
-                        op.getStorageClass(),
-                        op.getThreadStorageClass(),
-                        std::optional(core::GlobalLinkageKind::InternalLinkage)
+                    op.getLoc(),
+                    op.getType(),
+                    (fn_symbol.getSymbolName() + "." + op.getSymName()).str(),
+                    op.getStorageClass(),
+                    op.getThreadStorageClass(),
+                    std::optional(core::GlobalLinkageKind::InternalLinkage)
                 );
 
                 // Save current context informationinto the op to make sure the information stays valid
@@ -58,7 +60,7 @@ namespace vast::conv {
 
             static void legalize(conversion_target &trg) {
                 trg.addDynamicallyLegalOp< hl::VarDeclOp >([] (hl::VarDeclOp op) {
-                    return !(op.isStaticLocal() && op->getParentOfType< mlir::FunctionOpInterface >());
+                    return !(op.isStaticLocal() && op->getParentOfType< core::function_op_interface >());
                 });
             }
         };
@@ -75,15 +77,16 @@ namespace vast::conv {
             ) const override {
                 auto var = core::symbol_table::lookup< core::var_symbol >(op, op.getName());
                 if (auto decl_storage = mlir::dyn_cast< core::DeclStorageInterface>(var)) {
-                    auto parent_fn = op->getParentOfType< mlir::FunctionOpInterface >();
+                    auto fn = op->getParentOfType< core::function_op_interface >();
 
-                    if (!parent_fn || !decl_storage.isStaticLocal())
+                    if (!fn || !decl_storage.isStaticLocal())
                         return mlir::failure();
 
+                    auto fn_symbol = mlir::dyn_cast< core::func_symbol >(fn.getOperation());
+
                     rewriter.replaceOpWithNewOp< hl::DeclRefOp >(
-                            op,
-                            op.getType(),
-                            (parent_fn.getName() + "." + op.getName()).str()
+                        op, op.getType(),
+                        (fn_symbol.getSymbolName() + "." + op.getName()).str()
                     );
                     return mlir::success();
                 }
@@ -93,8 +96,8 @@ namespace vast::conv {
             static void legalize(conversion_target &trg) {
                 trg.addDynamicallyLegalOp< hl::DeclRefOp >([&](hl::DeclRefOp op) {
                     auto var = core::symbol_table::lookup< core::var_symbol >(op, op.getName());
-                    if (auto decl_storage = mlir::dyn_cast< core::DeclStorageInterface>(var)) {
-                        return !(decl_storage.isStaticLocal() && var->getParentOfType< mlir::FunctionOpInterface >());
+                    if (auto storage = mlir::dyn_cast< core::DeclStorageInterface >(var)) {
+                        return !(storage.isStaticLocal() && var->getParentOfType< core::function_op_interface >());
                     }
                     return (bool)var;
                 });

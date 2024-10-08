@@ -9,7 +9,6 @@
 
 VAST_RELAX_WARNINGS
 #include <mlir/IR/Builders.h>
-#include <mlir/Interfaces/FunctionInterfaces.h>
 #include <mlir/Interfaces/FunctionImplementation.h>
 VAST_UNRELAX_WARNINGS
 

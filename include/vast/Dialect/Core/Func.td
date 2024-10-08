@@ -6,8 +6,8 @@
 include "mlir/IR/OpBase.td"
 
 include "mlir/Interfaces/CallInterfaces.td"
-include "mlir/Interfaces/FunctionInterfaces.td"
 include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
+include "vast/Dialect/Core/Interfaces/FunctionInterface.td"
 
 include "vast/Dialect/Core/CoreTraits.td"
 include "vast/Dialect/Core/LinkageHelper.td"
@@ -22,9 +22,8 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
   : Op< dialect, mnemonic,
     !listconcat(traits, [
       AutomaticAllocationScope,
-      CallableOpInterface,
-      FunctionOpInterface,
       IsolatedFromAbove,
+      Core_FunctionOpInterface,
       Core_FuncSymbol,
       NoTerminator
     ])
@@ -86,7 +85,7 @@ class Core_FuncBaseOp< Dialect dialect, string mnemonic, list< Trait > traits = 
       if (arg_attrs.empty())
         return;
 
-      mlir::function_interface_impl::addArgAndResultAttrs(
+      vast::core::function_interface_impl::addArgAndResultAttrs(
         $_builder, $_state, arg_attrs, res_attrs,
         getArgAttrsAttrName($_state.name), getResAttrsAttrName($_state.name)
       );

@@ -67,7 +67,7 @@ namespace vast::conv {
             conversion_target trg(mctx);
 
             trg.markUnknownOpDynamicallyLegal([] (operation op) {
-                if (auto fn = mlir::dyn_cast< mlir::FunctionOpInterface >(op)) {
+                if (auto fn = mlir::dyn_cast< core::function_op_interface >(op)) {
                     auto fty = mlir::cast< core::FunctionType >(fn.getFunctionType());
                     return rns::all_of(fty.getInputs(), is_not_lvalue_type);
                 }

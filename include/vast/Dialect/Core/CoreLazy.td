@@ -7,7 +7,6 @@ include "mlir/IR/OpBase.td"
 
 include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/Interfaces/CastInterfaces.td"
-include "mlir/Interfaces/FunctionInterfaces.td"
 include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 
 class Core_LazyEval< string mnemonic, list < Trait > traits = [] >

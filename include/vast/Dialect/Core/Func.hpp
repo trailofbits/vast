@@ -13,6 +13,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/Linkage.hpp"
 #include "vast/Dialect/Core/CoreTypes.hpp"
 
+#include "vast/Dialect/Core/Interfaces/FunctionInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/FunctionImplementation.hpp"
+
 namespace vast::core {
 
     llvm::StringRef getLinkageAttrNameString();
@@ -77,11 +80,11 @@ namespace vast::core {
         }
 
         auto fty = op.getFunctionType();
-        mlir::function_interface_impl::printFunctionSignature(
+        vast::core::function_interface_impl::printFunctionSignature(
             printer, op, fty.getInputs(), fty.isVarArg(), fty.getResults()
         );
 
-        mlir::function_interface_impl::printFunctionAttributes(
+        vast::core::function_interface_impl::printFunctionAttributes(
             printer, op, { getLinkageAttrNameString(), op.getFunctionTypeAttrName() }
         );
 
@@ -160,7 +163,7 @@ namespace vast::core {
 
     template< typename DstFuncOp >
     logical_result convert_and_replace_function(auto src, auto &rewriter) {
-        return convert_and_replace_function< DstFuncOp >(src, rewriter, src.getName());
+        return convert_and_replace_function< DstFuncOp >(src, rewriter, src.getSymbolName());
     }
 
 } // namespace vast::core
