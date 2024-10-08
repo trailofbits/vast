@@ -68,7 +68,7 @@ namespace vast
         abi_info_map_t< R > out;
         auto gather = [&](R op, const mlir::WalkStage &)
         {
-            auto name = op.getName();
+            auto name = mlir::cast< core::func_symbol >(op.getOperation()).getSymbolName();
             out.emplace( name.str(), abi::make_x86_64(op, dl) );
 
             return mlir::WalkResult::advance();
@@ -78,7 +78,7 @@ namespace vast
         return out;
     }
 
-    using func_abi_info_t = abi_info_map_t< mlir::FunctionOpInterface >;
+    using func_abi_info_t = abi_info_map_t< core::function_op_interface >;
 
     // TODO(conv:abi): Remove as we most likely do not need this.
     struct TypeConverter : conv::tc::mixins< TypeConverter >,
@@ -98,7 +98,7 @@ namespace vast
         struct abi_info_utils
         {
             using types_t = std::vector< mlir::Type >;
-            using abi_info_t = abi::func_info< mlir::FunctionOpInterface >;
+            using abi_info_t = abi::func_info< core::function_op_interface >;
 
             const auto &self() const { return static_cast< const Self & >(*this); }
             auto &self() { return static_cast< Self & >(*this); }
@@ -224,7 +224,7 @@ namespace vast
 
             abi::FuncOp make() {
                 auto wrapper = core::convert_function_without_body< abi::FuncOp >(
-                    op, rewriter, conv::abi::abi_func_name_prefix + op.getName().str(),
+                    op, rewriter, conv::abi::abi_func_name_prefix + op.getSymbolName().str(),
                     this->abified_type(op.isVarArg())
                 );
 
@@ -399,9 +399,9 @@ namespace vast
 
             using values_t = std::vector< mlir::Value >;
 
-            auto get_callee() -> mlir::FunctionOpInterface {
+            auto get_callee() -> core::function_op_interface {
                 auto caller = mlir::dyn_cast< VastCallOpInterface >(*op);
-                auto callee = mlir::dyn_cast< mlir::FunctionOpInterface >(
+                auto callee = mlir::dyn_cast< core::function_op_interface >(
                     caller.resolveCallable());
                 VAST_ASSERT(callee);
                 return callee;
@@ -689,10 +689,11 @@ namespace vast
 
         };
 
-        template< typename Op >
-        struct func_type : mlir::OpConversionPattern< Op >
+        template< typename op_t >
+        struct func_type : mlir::OpConversionPattern< op_t >
         {
-            using Base = mlir::OpConversionPattern< Op >;
+            using base = mlir::OpConversionPattern< op_t >;
+            using adaptor_t = typename op_t::Adaptor;
 
             TypeConverter &tc;
             const func_abi_info_t &abi_info_map;
@@ -700,19 +701,18 @@ namespace vast
             func_type(TypeConverter &tc,
                       const func_abi_info_t &abi_info_map,
                       mcontext_t &mctx)
-                : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
+                : base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
             {}
 
-            mlir::LogicalResult matchAndRewrite(
-                    Op op, typename Op::Adaptor ops,
-                    conversion_rewriter &rewriter) const override
-            {
-                auto abi_map_it = abi_info_map.find(op.getName().str());
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t ops, conversion_rewriter &rewriter
+            ) const override {
+                auto abi_map_it = abi_info_map.find(op.getSymbolName().str());
                 if (abi_map_it == abi_info_map.end())
                     return mlir::failure();
 
                 const auto &abi_info = abi_map_it->second;
-                abi_transform< Op >({ op, ops, rewriter }, abi_info).make();
+                abi_transform< op_t >({ op, ops, rewriter }, abi_info).make();
                 rewriter.eraseOp(op);
                 return mlir::success();
             }
@@ -768,7 +768,7 @@ namespace vast
                 if (!func)
                     return mlir::failure();
 
-                auto name = func.getName();
+                auto name = func.getSymbolName();
                 if (!name.consume_front(conv::abi::abi_func_name_prefix))
                     return mlir::failure();
 
@@ -818,8 +818,8 @@ namespace vast
             auto should_transform = [&](operation op)
             {
                 // TODO(conv:abi): We should always emit main with a fixed type.
-                if (auto fn = mlir::dyn_cast< mlir::FunctionOpInterface >(op))
-                    return fn.getName() == "main";
+                if (auto fn = mlir::dyn_cast< core::func_symbol >(op))
+                    return fn.getSymbolName() == "main";
                 return true;
             };
 
@@ -875,7 +875,7 @@ namespace vast
 
             const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
             auto tc = TypeConverter(dl_analysis.getAtOrAbove(op), mctx);
-            auto abi_info_map = collect_abi_info< mlir::FunctionOpInterface >(
+            auto abi_info_map = collect_abi_info< core::function_op_interface >(
                     op, dl_analysis.getAtOrAbove(op));
 
             if (mlir::failed(run(first_phase(tc, abi_info_map))))

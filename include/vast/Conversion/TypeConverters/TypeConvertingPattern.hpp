@@ -34,7 +34,7 @@ namespace vast::conv::tc {
         // TODO(conv:tc): This should probably be some interface instead, since
         //                 we are only updating the root?
         logical_result replace(
-            mlir::FunctionOpInterface fn,
+            core::function_op_interface fn,
             auto &rewriter
         ) const {
             auto old_type = fn.getFunctionType();
@@ -115,7 +115,7 @@ namespace vast::conv::tc {
             operation op, mlir::ArrayRef< mlir::Value >,
             conversion_rewriter &rewriter
         ) const override {
-            if (auto func_op = mlir::dyn_cast< mlir::FunctionOpInterface >(op))
+            if (auto func_op = mlir::dyn_cast< core::function_op_interface >(op))
                 return this->replace(func_op, rewriter);
             return this->replace(op, rewriter);
         }

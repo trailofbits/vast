@@ -5,7 +5,6 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-#include <mlir/Interfaces/FunctionInterfaces.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/BuiltinTypes.h>
 #include <mlir/IR/Dialect.h>
@@ -13,6 +12,7 @@ VAST_RELAX_WARNINGS
 VAST_RELAX_WARNINGS
 
 #include "vast/Dialect/Core/CoreOps.hpp"
+#include "vast/Dialect/Core/Interfaces/FunctionInterface.hpp"
 
 #define GET_OP_FWD_DEFINES
 #include "vast/Dialect/HighLevel/HighLevel.h.inc"

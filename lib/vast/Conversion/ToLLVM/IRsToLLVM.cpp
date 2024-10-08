@@ -454,7 +454,7 @@ namespace vast::conv::irstollvm
             VAST_CHECK(linkage, "Attempting lower function without set linkage {0}", func_op);
             auto new_func = rewriter.create< llvm_func_op >(
                 func_op.getLoc(),
-                func_op.getName(),
+                func_op.getSymbolName(),
                 target_type,
                 core::convert_linkage_to_llvm(linkage.value()),
                 func_op.isVarArg(), LLVM::CConv::C
@@ -988,11 +988,11 @@ namespace vast::conv::irstollvm
             }
 
             auto callee = caller.resolveCallable();
-            if (!callee && !mlir::isa< mlir::FunctionOpInterface >(callee)) {
+            if (!callee && !mlir::isa< core::function_op_interface >(callee)) {
                 return logical_result::failure();
             }
 
-            auto fn = mlir::cast< mlir::FunctionOpInterface >(callee);
+            auto fn = mlir::cast< core::function_op_interface >(callee);
             auto rtys = type_converter().convert_types_to_types(fn.getResultTypes());
 
             if (!rtys) {

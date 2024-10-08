@@ -259,7 +259,7 @@ namespace vast::cg {
 
     operation default_decl_visitor::VisitParmVarDecl(const clang::ParmVarDecl *decl) {
         auto blk = bld.getInsertionBlock();
-        if (auto fn = mlir::dyn_cast< mlir::FunctionOpInterface >(blk->getParentOp())) {
+        if (auto fn = mlir::dyn_cast< core::function_op_interface >(blk->getParentOp())) {
             auto param_index = decl->getFunctionScopeIndex();
             return bld.compose< hl::ParmVarDeclOp >()
                 .bind(self.location(decl))

@@ -40,7 +40,7 @@ namespace vast::util
 
     template< typename Yield >
     void functions(mlir::Operation *op, Yield &&yield) {
-        // TODO use mlir::FunctionOpInterface?
+        // TODO use core::function_op_interface?
         op->walk([yield = std::forward< Yield >(yield)](hl::FuncOp fn, const mlir::WalkStage &stage) {
             yield(fn);
         });

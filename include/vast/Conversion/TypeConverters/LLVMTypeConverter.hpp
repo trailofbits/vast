@@ -139,7 +139,7 @@ namespace vast::conv::tc {
         maybe_type_t convert_memref_type(mlir::UnrankedMemRefType t) { return {}; }
 
         maybe_signature_conversion_t
-        get_conversion_signature(mlir::FunctionOpInterface fn, bool variadic) {
+        get_conversion_signature(core::function_op_interface fn, bool variadic) {
             signature_conversion_t conversion(fn.getNumArguments());
             auto fn_type = mlir::dyn_cast< core::FunctionType >(fn.getFunctionType());
             VAST_ASSERT(fn_type);

@@ -214,7 +214,7 @@ namespace vast::hl
 
             llvm::json::Object top;
 
-            // TODO use FunctionOpInterface instead of specific operation
+            // TODO use core::function_op_interface instead of specific operation
             util::functions(mod, [&](FuncOp fn) {
                 const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
                 const auto &dl          = dl_analysis.getAtOrAbove(mod);
@@ -233,7 +233,7 @@ namespace vast::hl
                 current["rets"] = std::move(rets);
                 current["args"] = std::move(args);
 
-                top[fn.getName().str()] = std::move(current);
+                top[fn.getSymName().str()] = std::move(current);
             });
 
             auto value = llvm::formatv("{0:2}", llvm::json::Value(std::move(top)));

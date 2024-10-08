@@ -13,6 +13,8 @@ VAST_UNRELAX_WARNINGS
 #include <gap/core/crtp.hpp>
 
 #include "vast/Dialect/Core/CoreTypes.hpp"
+#include "vast/Dialect/Core/Interfaces/FunctionInterface.hpp"
+
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 
 #include "vast/Util/Common.hpp"

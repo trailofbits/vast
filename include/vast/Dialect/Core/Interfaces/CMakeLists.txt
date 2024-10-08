@@ -1,4 +1,5 @@
 add_vast_op_interface(DeclStorageInterface)
+add_vast_op_interface(FunctionInterface)
 add_vast_op_interface(TypeDefinitionInterface)
 
 add_vast_op_interface(SymbolInterface)

@@ -72,7 +72,7 @@ def Core_DeclStorageInterface : Core_OpInterface< "DeclStorageInterface" > {
                     return kind_attr.getValue();
                 }
                 auto st = core::get_effective_symbol_table_for< core::var_symbol >($_op)->get_defining_operation();
-                if (mlir::isa< mlir::FunctionOpInterface >(st))
+                if (mlir::isa< core::function_op_interface >(st))
                     return DeclContextKind::dc_function;
                 if (st->template hasTrait< core::ScopeLikeTrait >())
                     return DeclContextKind::dc_function;

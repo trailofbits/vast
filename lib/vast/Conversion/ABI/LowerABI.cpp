@@ -543,7 +543,7 @@ namespace vast
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter) const override
             {
-                auto name = op.getName();
+                auto name = op.getSymbolName();
                 if (!name.consume_front(conv::abi::abi_func_name_prefix))
                     return mlir::failure();
 
