@@ -992,36 +992,31 @@ namespace vast::conv::irstollvm
                 return logical_result::failure();
             }
 
-            auto fn = mlir::cast< core::function_op_interface >(callee);
+            auto fn   = mlir::cast< core::function_op_interface >(callee);
+            auto fty  = mlir::cast< core::FunctionType >(fn.getFunctionType());
             auto rtys = type_converter().convert_types_to_types(fn.getResultTypes());
+            auto atys = type_converter().convert_types_to_types(fn.getArgumentTypes());
 
             if (!rtys) {
                 return logical_result::failure();
             }
 
-            auto mk_call = [&](auto... args) {
-                return rewriter.create< mlir::LLVM::CallOp >(op.getLoc(), args...);
+            auto mk_fty = [&] {
+                mlir_type rty = rtys->empty()
+                    ? mlir::LLVM::LLVMVoidType::get(op.getContext())
+                    : rtys->front();
+
+                return mlir::LLVM::LLVMFunctionType::get(rty, atys.value(), fty.isVarArg());
             };
 
-            if (rtys->empty() || mlir::isa< mlir::LLVM::LLVMVoidType >(rtys->front())) {
-                // We cannot pass in void type as some internal check inside `mlir::LLVM`
-                // dialect will fire - it would create a value of void type, which is not
-                // allowed.
-                mk_call(types_t{}, op.getCallee(), ops.getOperands());
-                rewriter.eraseOp(op);
-            } else {
-                auto call = mk_call(*rtys, op.getCallee(), ops.getOperands());
-                rewriter.replaceOp(op, call.getResults());
-            }
+            auto call = rewriter.create< mlir::LLVM::CallOp >(
+                op.getLoc(), mk_fty(), op.getCallee(), ops.getOperands()
+            );
+            rewriter.replaceOp(op, call.getResults());
 
             return logical_result::success();
         }
     };
-
-    bool is_lvalue(auto op)
-    {
-        return op && mlir::isa< hl::LValueType >(op.getType());
-    }
 
     struct logical_not : base_pattern< hl::LNotOp >
     {
@@ -1105,8 +1100,6 @@ namespace vast::conv::irstollvm
                     conversion_rewriter &rewriter) const override
         {
             auto arg = adaptor.getArg();
-            if (is_lvalue(arg))
-                return logical_result::failure();
             auto arg_type = convert(arg.getType());
 
             auto zero = this->constant(rewriter, op.getLoc(), arg_type, 0);
