@@ -1012,7 +1012,14 @@ namespace vast::conv::irstollvm
             auto call = rewriter.create< mlir::LLVM::CallOp >(
                 op.getLoc(), mk_fty(), op.getCallee(), ops.getOperands()
             );
-            rewriter.replaceOp(op, call.getResults());
+
+            // the result gets removed when return type is void
+            // because the number of results is mismatched, we can't use replace (triggers assert)
+            // removing the op is ok, since in llvm dialect a void value can't be used anyway
+            if (call.getResult())
+                rewriter.replaceOp(op, call.getResults());
+            else
+                rewriter.eraseOp(op);
 
             return logical_result::success();
         }
