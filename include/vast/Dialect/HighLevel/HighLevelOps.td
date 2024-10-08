@@ -895,7 +895,7 @@ class HighLevel_ComplexUnaryOp< string mnemonic, list< Trait > traits = [] >
   , Arguments< (ins AnyType:$arg) >
   , Results< (outs AnyType:$result) >
 {
-  let assemblyFormat = [{ $arg attr-dict `:` functional-type(operands, results) }];
+  let assemblyFormat = [{ $arg attr-dict `:` type($arg) `->` type($result) }];
 }
 
 def HighLevel_RealOp : HighLevel_ComplexUnaryOp< "real" >;
