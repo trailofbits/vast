@@ -59,7 +59,7 @@ namespace vast::repl
 
             while (!cli.exit()) {
                 std::string cmd;
-                if (auto quit = linenoise::Readline("> ", cmd)) {
+                if (linenoise::Readline("> ", cmd)) {
                     break;
                 }
 
