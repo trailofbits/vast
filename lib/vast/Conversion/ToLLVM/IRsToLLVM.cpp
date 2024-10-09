@@ -382,6 +382,15 @@ namespace vast::conv::irstollvm
             auto &region = gop.getInitializerRegion();
             rewriter.inlineRegionBefore(op.getInitializer(),
                                         region, region.begin());
+
+            auto &gop_init = gop.getInitializer();
+            if (gop_init.empty() && op.getStorageDuration() == core::StorageDuration::sd_static) {
+                auto guard = insertion_guard(rewriter);
+                auto &init_block = gop_init.emplaceBlock();
+                rewriter.setInsertionPoint(&init_block, init_block.begin());
+                auto zero_init = rewriter.create< mlir::LLVM::ZeroOp >(op.getLoc(), gop.getType());
+                rewriter.create< mlir::LLVM::ReturnOp >(op.getLoc(), zero_init);
+            }
             rewriter.eraseOp(op);
             return logical_result::success();
         }
