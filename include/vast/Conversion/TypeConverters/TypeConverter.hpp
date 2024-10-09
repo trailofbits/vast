@@ -187,11 +187,23 @@ namespace vast::conv::tc {
             return [&](mlir_type t) { return !self().isLegal(t); };
         }
 
+        auto get_is_legal() const {
+            return [&](mlir_type t) { return self().isLegal(t); };
+        }
+
         template< typename op_t >
         auto get_has_only_legal_types() const {
             return [&](op_t op) -> bool {
                 return !has_type_somewhere(op, get_is_illegal());
             };
+        }
+
+        bool has_legal_return_type(auto op) const {
+            return all_of_subtypes(op->getResults().getTypes(), get_is_legal());
+        }
+
+        bool has_legal_operand_types(auto op) const {
+            return all_of_subtypes(op->getOperands().getTypes(), get_is_legal());
         }
 
         template< typename op_t >

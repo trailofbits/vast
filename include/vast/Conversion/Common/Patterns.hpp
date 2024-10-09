@@ -158,7 +158,7 @@ namespace vast {
         }
     };
 
-    template< template< typename > typename pattern_kind, typename ... ops >
+    // FIXME: make freestanding functions
     struct llvm_pattern_utils
     {
         mlir_value iN(auto &rewriter, auto loc, mlir_type type, auto val) const {

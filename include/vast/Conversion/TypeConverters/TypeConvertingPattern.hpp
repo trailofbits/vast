@@ -22,7 +22,7 @@ namespace vast::conv::tc {
     struct op_type_conversion
     {
         logical_result replace(operation op, auto &rewriter, const type_converter &tc) const {
-            if (auto func_op = mlir::dyn_cast< mlir::FunctionOpInterface >(op))
+            if (auto func_op = mlir::dyn_cast< core::function_op_interface >(op))
                 return replace_impl(func_op, rewriter, tc);
             return replace_impl(op, rewriter, tc);
         }

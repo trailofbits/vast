@@ -46,8 +46,8 @@ namespace vast::hl
             auto op    = this->getOperation();
             auto &mctx = this->getContext();
 
-            const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
-            type_converter tc(dl_analysis.getAtOrAbove(op), mctx);
+            const auto &dl = this->getAnalysis< mlir::DataLayoutAnalysis >();
+            type_converter tc(dl.getAtOrAbove(op), mctx);
 
             mlir::ConversionTarget trg(mctx);
             auto is_legal = tc.get_is_type_conversion_legal();

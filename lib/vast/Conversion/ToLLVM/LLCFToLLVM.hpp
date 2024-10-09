@@ -19,10 +19,10 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Conversion/Common/Block.hpp"
 #include "vast/Conversion/Common/Rewriter.hpp"
 
-#include "Common.hpp"
-
 namespace vast::conv::irstollvm::cf
 {
+    namespace LLVM = mlir::LLVM;
+
     struct br : operation_conversion_pattern< ll::Br >
     {
         using base = operation_conversion_pattern< ll::Br >;
@@ -70,9 +70,6 @@ namespace vast::conv::irstollvm::cf
         using base::base;
 
         using adaptor_t = typename op_t::Adaptor;
-
-        // TODO(conv:irstollvm): Should be handled on the operation api level.
-        virtual block_t *start_block(op_t op) const = 0;
 
         // TODO(conv:irstollvm): Separate terminator types should be CRTP hookable.
         logical_result replace_terminator(
@@ -144,6 +141,25 @@ namespace vast::conv::irstollvm::cf
 
             rewriter.eraseOp(op);
             return mlir::success();
+        }
+
+        // TODO(conv:irstollvm): Should be handled on the operation api level.
+        block_t *start_block(op_t op) const { return &op.getBody().front(); }
+
+        logical_result matchAndRewrite(
+            op_t op, adaptor_t ops, conversion_rewriter &rewriter
+        ) const override {
+            if (op.getBody().empty()) {
+                rewriter.eraseOp(op);
+                return logical_result::success();
+            }
+
+            // If we do not have any branching inside, we can just "inline" the op.
+            if (op.getBody().hasOneBlock()) {
+                return handle_singleblock(op, ops, rewriter);
+            }
+
+            return handle_multiblock(op, ops, rewriter);
         }
     };
 

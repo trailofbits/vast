@@ -21,7 +21,7 @@ struct data {
 // C_LLVM:    [[V0:%[0-9]+]] = llvm.mlir.undef : !llvm.struct<"data", (f64, f64)>
 // C_LLVM:    [[V1:%[0-9]+]] = llvm.insertvalue [[A0]], [[V0]][0] : !llvm.struct<"data", (f64, f64)>
 // C_LLVM:    [[V2:%[0-9]+]] = llvm.insertvalue [[A1]], [[V1]][1] : !llvm.struct<"data", (f64, f64)>
-// C_LLVM:    [[V3:%[0-9]+]] = llvm.mlir.constant(1 : index) : i64
+// C_LLVM:    [[V3:%[0-9]+]] = llvm.mlir.constant(1 : i64) : i64
 // C_LLVM:    [[V4:%[0-9]+]] = llvm.alloca [[V3]] x !llvm.struct<"data", (f64, f64)> : (i64) -> !llvm.ptr
 // C_LLVM:    llvm.store [[V2]], [[V4]] : !llvm.struct<"data", (f64, f64)>, !llvm.ptr
 
