@@ -24,6 +24,7 @@ def HighLevel_VarDeclOp
     TypeAttr:$type,
     Core_StorageClass:$storageClass,
     Core_ThreadStorage:$threadStorageClass,
+    UnitAttr:$constant,
     OptionalAttr<Core_GlobalLinkageKind>:$linkage
   );
 
@@ -38,6 +39,7 @@ def HighLevel_VarDeclOp
       "llvm::StringRef":$sym_name,
       "core::StorageClass":$storageClass,
       "core::TSClass":$threadStorageClass,
+      "bool":$constant,
       CArg< "std::optional< core::GlobalLinkageKind >", "std::nullopt">:$linkage,
       CArg< "maybe_builder_callback_ref", "std::nullopt" >:$initBuilder,
       CArg< "maybe_builder_callback_ref", "std::nullopt" >:$allocaBuilder
@@ -45,7 +47,7 @@ def HighLevel_VarDeclOp
   ];
 
   let assemblyFormat = [{
-    $sym_name attr-dict (`,`$linkage^)? custom< StorageClasses >($storageClass, $threadStorageClass)
+    $sym_name attr-dict (`,`$linkage^)? (`constant` $constant^):(``)? custom< StorageClasses >($storageClass, $threadStorageClass)
       `:` $type
       (`=` $initializer^)?
       (`allocation_size` $allocation_size^)?
