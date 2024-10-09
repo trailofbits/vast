@@ -87,7 +87,6 @@ namespace vast
                     loc, LLVM::ICmpPredicate::ne, value, zero);
             }
 
-
             auto tie_block(
                 auto &rewriter, auto loc, auto current_block, auto target_block, auto arg
             ) const {
@@ -106,7 +105,9 @@ namespace vast
                 };
             }
 
-            bool is_void(mlir_type t) const { return mlir::isa< mlir::LLVM::LLVMVoidType >(t); }
+            bool is_void(mlir_type t) const {
+                return mlir::isa< mlir::LLVM::LLVMVoidType >(t);
+            }
 
             auto add_argument(
                 mlir::Block *block, auto type, auto loc

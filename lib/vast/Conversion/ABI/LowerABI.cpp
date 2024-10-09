@@ -105,6 +105,12 @@ namespace vast
             virtual values match_on(abi::DirectOp direct, state_capture state) const = 0;
             virtual values match_on(abi::IndirectOp indirect, state_capture state) const = 0;
 
+            virtual values match_on(abi::YieldOp yield, state_capture state) const
+            {
+                if (mlir::isa< mlir::NoneType >(yield.getOperand(0).getType()))
+                    co_yield yield.getOperand(0);
+            }
+
             virtual values match_on(mlir::Operation *op, state_capture state) const
             {
                 co_return;
@@ -116,6 +122,8 @@ namespace vast
                     return this->match_on(direct, state);
                 if (auto indirect = mlir::dyn_cast< abi::IndirectOp >(op))
                     return this->match_on(indirect, state);
+                if (auto yield = mlir::dyn_cast< abi::YieldOp >(op))
+                    return this->match_on(yield, state);
                 return this->match_on(op, state);
             }
 
@@ -143,19 +151,19 @@ namespace vast
             using base::base;
 
 
-            logical_result rewrite(state_capture state) const
-            {
+            logical_result rewrite(state_capture state) const {
                 std::vector< mlir::Value > to_replace;
-                for (auto &nested : state.op.getBody().getOps())
-                {
+                for (auto &nested : state.op.getBody().getOps()) {
                     for (auto converted : base::dispatch(&nested, state))
                         to_replace.push_back(converted);
 
                 }
 
                 VAST_PATTERN_CHECK(state.op.getNumResults() == to_replace.size(),
-                                   "Incorrect replacement: {0} != {1} of op {2}.",
-                                   state.op.getNumResults(), to_replace.size(), state.op);
+                    "Incorrect replacement: {0} != {1} of op {2}.",
+                    state.op.getNumResults(), to_replace.size(), state.op
+                );
+
                 state.rewriter.replaceOp(state.op, to_replace);
                 return mlir::success();
             }
