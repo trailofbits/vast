@@ -343,6 +343,7 @@ namespace vast::hl
         llvm::StringRef name,
         core::StorageClass storage_class,
         core::TSClass thread_storage_class,
+        bool constant,
         std::optional< core::GlobalLinkageKind > linkage,
         maybe_builder_callback_ref init,
         maybe_builder_callback_ref alloc
@@ -352,6 +353,9 @@ namespace vast::hl
         st.addAttribute("type", mlir::TypeAttr::get(type));
         st.addAttribute("storageClass", core::StorageClassAttr::get(ctx, storage_class));
         st.addAttribute("threadStorageClass", core::TSClassAttr::get(ctx, thread_storage_class));
+        if (constant) {
+            st.addAttribute(getConstantAttrName(st.name), bld.getUnitAttr());
+        }
         if (linkage) {
             st.addAttribute("linkage", core::GlobalLinkageKindAttr::get(ctx, linkage.value()));
         }

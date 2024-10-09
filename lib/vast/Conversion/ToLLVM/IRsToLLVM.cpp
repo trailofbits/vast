@@ -370,8 +370,7 @@ namespace vast::conv::irstollvm
             auto gop = rewriter.create< mlir::LLVM::GlobalOp >(
                     op.getLoc(),
                     target_type,
-                    // TODO(conv:irstollvm): Constant.
-                    false,
+                    op.getConstant(),
                     core::convert_linkage_to_llvm(linkage.value()),
                     op.getSymbolName(),
                     mlir::Attribute()
