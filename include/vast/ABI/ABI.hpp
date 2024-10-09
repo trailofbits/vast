@@ -252,7 +252,7 @@ namespace vast::abi {
     template< typename Fn, typename TypeInfo, typename Classifier >
     func_info< Fn > make(Fn fn, const TypeInfo &type_info) {
         auto info = func_info(fn);
-        return Classifier(info, type_info).compute_abi().take();
+        return Classifier(info, type_info).compute_abi(fn).take();
         return info;
     }
 

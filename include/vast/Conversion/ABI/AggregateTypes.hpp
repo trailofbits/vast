@@ -84,12 +84,13 @@ namespace vast::conv::abi {
             hl::RecordType record_type, mlir_value value,
             auto loc, auto &bld
         ) const {
-            core::module mod = value.getDefiningOp()->getParentOfType< core::module >();
-            VAST_ASSERT(mod);
+            auto def = core::symbol_table::lookup< core::type_symbol >(value.getDefiningOp(), record_type.getName());
+            VAST_CHECK(def, "Record type {} not present in the symbol table.", record_type.getName());
+            auto agg = mlir::dyn_cast_if_present< core::aggregate_interface >(def);
+            VAST_CHECK(agg, "Record type symbol is not an aggregate.");
 
-            auto def        = hl::definition_of(record_type, mod);
             std::size_t idx = 0;
-            for (const auto &[name, type] : def.getFieldsInfo()) {
+            for (const auto &[name, type] : agg.getFieldsInfo()) {
                 auto ptr_type = hl::PointerType::get(type);
                 auto idx_attr = bld.getI32IntegerAttr(idx++);
                 auto gep      = bld.template create< ll::StructGEPOp >(
@@ -131,7 +132,12 @@ namespace vast::conv::abi {
             if (auto array_type = mlir::dyn_cast< hl::ArrayType >(t)) {
                 return fields(array_type);
             }
-            return vast::hl::field_types(t, mod);
+
+            if (auto record_type = mlir::dyn_cast< hl::RecordType >(t)) {
+                return vast::hl::field_types(record_type, mod);
+            }
+
+            VAST_UNREACHABLE("Unsupported type: {0}", t);
         }
     };
 

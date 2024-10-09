@@ -458,7 +458,7 @@ namespace vast::conv {
             patterns.add<
                 operands_forwarding_pattern< hl::Deref >,
                 operands_forwarding_pattern< hl::AddressOf >
-            >(mctx);
+            >(&mctx);
 
             patterns.add< memory_allocation< ll::Cell > >(mctx, tc);
             patterns.add< subscript >(mctx, tc);

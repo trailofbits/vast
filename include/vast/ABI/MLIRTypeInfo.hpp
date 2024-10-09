@@ -16,19 +16,16 @@ namespace vast::abi {
 
     struct mlir_type_info {
         using data_layout_t = mlir::DataLayout;
-        using module_op_t = core::module;
 
       protected:
+        mcontext_t &mctx;
         const data_layout_t &dl;
-        module_op_t module_op;
 
       public:
-        mlir_type_info(const data_layout_t &dl, module_op_t module_op)
-            : dl(dl), module_op(module_op)
+        explicit mlir_type_info(mcontext_t &mctx, const data_layout_t &dl)
+            : mctx(mctx), dl(dl)
         {}
 
-        // Rough draft of the interface (or concept) to implement by any IR that wants
-        // to use the ABI classification.
         static bool is_void(mlir_type t);
         static bool is_complex(mlir_type t);
 
@@ -44,7 +41,6 @@ namespace vast::abi {
         static bool can_be_passed_in_regs(mlir_type t);
         static bool has_unaligned_field(mlir_type t);
 
-        // Pointers, references etc
         static bool represents_pointer(mlir_type t);
         static bool is_pointer(mlir_type t);
 
@@ -63,14 +59,14 @@ namespace vast::abi {
 
         static mlir_type as_pointer(mlir_type t);
 
-        mlir_type type_at_offset(mlir_type t, std::size_t offset, const auto &accept);
+        mlir_type type_at_offset(mlir_type t, std::size_t offset, const auto &accept, operation from);
 
-        auto field_containing_offset(mlir_type t, std::size_t offset)
+        auto field_containing_offset(mlir_type t, std::size_t offset, operation from)
             -> std::optional< std::tuple< mlir_type, std::size_t > >;
 
         gap::generator< mlir_type > mock_array_fields(hl::ArrayType array_type);
 
-        auto fields(mlir_type type);
+        gap::generator< mlir_type > fields(mlir_type type, operation from);
 
         using array_info_t = std::tuple< std::optional< std::size_t >, mlir_type >;
         array_info_t array_info(mlir_type t);
@@ -168,62 +164,63 @@ namespace vast::abi {
     }
 
     mlir_type mlir_type_info::iN(std::size_t s) {
-        return mlir::IntegerType::get(module_op.getContext(), s);
+        return mlir::IntegerType::get(&mctx, s);
     }
 
     mlir_type mlir_type_info::fN(std::size_t s) {
-        auto mctx = module_op.getContext();
         if (s == 16) {
-            return mlir::Float16Type::get(mctx);
+            return mlir::Float16Type::get(&mctx);
         }
         if (s == 32) {
-            return mlir::Float32Type::get(mctx);
+            return mlir::Float32Type::get(&mctx);
         }
         if (s == 64) {
-            return mlir::Float64Type::get(mctx);
+            return mlir::Float64Type::get(&mctx);
         }
         if (s == 80) {
-            return mlir::Float80Type::get(mctx);
+            return mlir::Float80Type::get(&mctx);
         }
         if (s == 128) {
-            return mlir::Float128Type::get(mctx);
+            return mlir::Float128Type::get(&mctx);
         }
         VAST_UNREACHABLE("Cannot create floating type of size: {0}", s);
     }
 
-    auto mlir_type_info::fields(mlir_type type) {
+    gap::generator< mlir_type > mlir_type_info::fields(mlir_type type, operation from) {
         if (auto array_type = mlir::dyn_cast< hl::ArrayType >(type))
             return mock_array_fields(array_type);
-        return vast::hl::field_types(type, module_op);
+        if (auto record_type = mlir::dyn_cast< hl::RecordType >(type))
+            return field_types(record_type, from);
+        VAST_UNREACHABLE("Unsupported type: {0}", type);
     }
 
-    mlir_type mlir_type_info::type_at_offset(mlir_type t, std::size_t offset, const auto &accept) {
+    mlir_type mlir_type_info::type_at_offset(mlir_type t, std::size_t offset, const auto &accept, operation from) {
         if (offset == 0 && accept(t)) {
             return t;
         }
 
         if (is_struct(t)) {
-            auto field_info = field_containing_offset(t, offset);
+            auto field_info = field_containing_offset(t, offset, from);
             if (!field_info)
                 return {};
             auto [field, field_start] = *field_info;
-            return type_at_offset(field, field_start, accept);
+            return type_at_offset(field, field_start, accept, from);
         }
 
         if (is_array(t)) {
             auto [_, element_type] = array_info(t);
             const auto element_size = size(element_type);
             const auto element_offset = offset / element_size * element_size;
-            return type_at_offset(element_type, offset - element_offset, accept);
+            return type_at_offset(element_type, offset - element_offset, accept, from);
         }
         return {};
     }
 
-    auto mlir_type_info::field_containing_offset(mlir_type t, std::size_t offset)
-    -> std::optional< std::tuple< mlir_type, std::size_t > >
+    auto mlir_type_info::field_containing_offset(mlir_type t, std::size_t offset, operation from)
+        -> std::optional< std::tuple< mlir_type, std::size_t > >
     {
         auto curr = 0;
-        for (auto field : fields(t)) {
+        for (auto field : fields(t, from)) {
             if (curr + size(field) > offset) {
                 return { std::make_tuple(field, curr) };
             }

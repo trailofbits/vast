@@ -80,18 +80,6 @@ namespace vast
 
     using func_abi_info_t = abi_info_map_t< core::function_op_interface >;
 
-    // TODO(conv:abi): Remove as we most likely do not need this.
-    struct TypeConverter : conv::tc::mixins< TypeConverter >,
-                           conv::tc::identity_type_converter
-    {
-        TypeConverter(const mlir::DataLayout &dl, mcontext_t &mctx)
-            : conv::tc::identity_type_converter(), dl(dl), mctx(mctx)
-        {}
-
-        const mlir::DataLayout &dl;
-        mcontext_t &mctx;
-    };
-
     namespace
     {
         template< typename Self >
@@ -415,10 +403,9 @@ namespace vast
             }
 
             template< typename Impl >
-            auto mk_direct(auto &bld, auto loc,
-                           const abi::direct &arg, values_t concrete_args)
-                -> values_t
-            {
+            values_t mk_direct(
+                auto &bld, auto loc, const abi::direct &arg, values_t concrete_args
+            ) {
                 auto vals = rewriter.template create< Impl >(
                         op.getLoc(),
                         arg.target_types,
@@ -426,12 +413,12 @@ namespace vast
                 return { vals.begin(), vals.end() };
             }
 
-            auto mk_ret(auto &bld, auto loc,
-                        const abi::direct &arg,
-                        mlir::Value result,
-                        values_t concrete_args)
-                -> values_t
-            {
+            values_t mk_ret(
+                auto &bld, auto loc,
+                const abi::direct &arg,
+                mlir::Value result,
+                values_t concrete_args
+            ) {
                 auto vals = rewriter.template create< abi::DirectOp >(
                         loc,
                         result.getType(),
@@ -439,12 +426,12 @@ namespace vast
                 return { vals.begin(), vals.end() };
             }
 
-            auto mk_ret(auto &, auto loc,
-                        const abi::ignore &,
-                        mlir::Value,
-                        values_t concrete_args)
-                -> values_t
-            {
+            values_t mk_ret(
+                auto &, auto loc,
+                const abi::ignore &,
+                mlir::Value,
+                values_t concrete_args
+            ) {
                 return concrete_args;
             }
 
@@ -598,8 +585,9 @@ namespace vast
 
 
         template< typename op_t >
-        struct return_wrapper : abi_info_utils< return_wrapper< op_t > >,
-                                match_and_rewrite_state_capture< op_t >
+        struct return_wrapper
+            : abi_info_utils< return_wrapper< op_t > >
+            , match_and_rewrite_state_capture< op_t >
         {
             using state_t = match_and_rewrite_state_capture< op_t >;
 
@@ -633,6 +621,12 @@ namespace vast
             auto mk_ret(auto &bld, auto loc, const abi::direct &arg, mlir::Value concrete_arg)
             {
                 return mk_direct< abi::DirectOp >(bld, loc, arg, concrete_arg);
+            }
+
+            auto mk_ret(auto &, auto, const abi::ignore &, mlir::Value concrete_arg)
+                -> values_t
+            {
+                return { concrete_arg };
             }
 
             auto mk_ret(auto &, auto, const auto &abi_arg, const mlir::Value &)
@@ -675,16 +669,17 @@ namespace vast
                 };
             }
 
-            hl::ReturnOp make()
-            {
+            op_t make() {
                 auto wrapped = rewriter.template create< abi::EpilogueOp >(
-                        op.getLoc(),
-                        this->abified_rets(),
-                        wrap_return(op.getResult()));
+                    op.getLoc(),
+                    this->abified_rets(),
+                    wrap_return(op.getResult())
+                );
 
-                return rewriter.template create< hl::ReturnOp >(
-                        op.getLoc(),
-                        wrapped.getResults());
+                return rewriter.template create< op_t >(
+                    op.getLoc(),
+                    wrapped.getResults()
+                );
             }
 
         };
@@ -695,13 +690,10 @@ namespace vast
             using base = mlir::OpConversionPattern< op_t >;
             using adaptor_t = typename op_t::Adaptor;
 
-            TypeConverter &tc;
             const func_abi_info_t &abi_info_map;
 
-            func_type(TypeConverter &tc,
-                      const func_abi_info_t &abi_info_map,
-                      mcontext_t &mctx)
-                : base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
+            func_type(const func_abi_info_t &abi_info_map, mcontext_t &mctx)
+                : base(&mctx), abi_info_map(abi_info_map)
             {}
 
             logical_result matchAndRewrite(
@@ -720,51 +712,46 @@ namespace vast
 
         struct call_op : mlir::OpConversionPattern< hl::CallOp >
         {
-            using Base = mlir::OpConversionPattern< hl::CallOp >;
-            using Op = hl::CallOp;
+            using op_t = hl::CallOp;
+            using base = mlir::OpConversionPattern< op_t >;
+            using adaptor_t = typename op_t::Adaptor;
 
-            TypeConverter &tc;
             const func_abi_info_t &abi_info_map;
 
-            call_op(TypeConverter &tc, const func_abi_info_t &abi_info_map,
-                    mcontext_t &mctx)
-                : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
+            call_op(const func_abi_info_t &abi_info_map, mcontext_t &mctx)
+                : base(&mctx), abi_info_map(abi_info_map)
             {}
 
-            mlir::LogicalResult matchAndRewrite(
-                    Op op, typename Op::Adaptor ops,
-                    conversion_rewriter &rewriter) const override
-            {
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t ops, conversion_rewriter &rewriter
+            ) const override {
                 auto abi_map_it = abi_info_map.find(op.getCallee().str());
                 if (abi_map_it == abi_info_map.end())
                     return mlir::failure();
 
                 const auto &abi_info = abi_map_it->second;
-                auto call = call_wrapper< Op >({op, ops, rewriter}, abi_info).make();
+                auto call = call_wrapper< op_t >({op, ops, rewriter}, abi_info).make();
                 rewriter.replaceOp(op, call);
                 return mlir::success();
             }
         };
 
-        struct return_op : mlir::OpConversionPattern< hl::ReturnOp >
+        template< typename op_t >
+        struct return_op : mlir::OpConversionPattern< op_t >
         {
-            using Base = mlir::OpConversionPattern< hl::ReturnOp >;
-            using Op = hl::ReturnOp;
+            using base = mlir::OpConversionPattern< op_t >;
+            using adaptor_t = typename op_t::Adaptor;
 
-            TypeConverter &tc;
             const func_abi_info_t &abi_info_map;
 
-            return_op(TypeConverter &tc,
-                      const func_abi_info_t &abi_info_map,
-                      mcontext_t &mctx)
-                : Base(tc, &mctx), tc(tc), abi_info_map(abi_info_map)
+            return_op(const func_abi_info_t &abi_info_map, mcontext_t &mctx)
+                : base(&mctx), abi_info_map(abi_info_map)
             {}
 
-            mlir::LogicalResult matchAndRewrite(
-                    Op op, typename Op::Adaptor ops,
-                    conversion_rewriter &rewriter) const override
-            {
-                auto func = op->getParentOfType< abi::FuncOp >();
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t ops, conversion_rewriter &rewriter
+            ) const override {
+                auto func = op->template getParentOfType< abi::FuncOp >();
                 if (!func)
                     return mlir::failure();
 
@@ -777,7 +764,7 @@ namespace vast
                     return mlir::failure();
 
                 const auto &abi_info = abi_map_it->second;
-                return_wrapper< Op >({op, ops, rewriter}, abi_info).make();
+                return_wrapper< op_t >({op, ops, rewriter}, abi_info).make();
 
                 rewriter.eraseOp(op);
                 return mlir::success();
@@ -793,7 +780,7 @@ namespace vast
         using patterns_t = mlir::RewritePatternSet;
         using phase_t = std::tuple< target_t, patterns_t >;
 
-        phase_t first_phase(auto &tc, const auto &abi_info_map)
+        phase_t first_phase(const auto &abi_info_map)
         {
             auto &mctx = this->getContext();
 
@@ -802,12 +789,12 @@ namespace vast
             target.addIllegalOp< hl::CallOp >();
 
             mlir::RewritePatternSet patterns(&mctx);
-            patterns.add< call_op >(tc, abi_info_map, mctx);
+            patterns.add< call_op >(abi_info_map, mctx);
 
             return { std::move(target), std::move(patterns) };
         }
 
-        phase_t second_phase(auto &tc, const auto &abi_info_map)
+        phase_t second_phase(const auto &abi_info_map)
         {
 
             auto &mctx = this->getContext();
@@ -827,13 +814,27 @@ namespace vast
             target.addLegalOp< abi::FuncOp >();
 
             mlir::RewritePatternSet patterns(&mctx);
-            patterns.add< func_type< hl::FuncOp > >(tc, abi_info_map, mctx);
-            patterns.add< func_type< ll::FuncOp > >(tc, abi_info_map, mctx);
+            patterns.add< func_type< hl::FuncOp > >(abi_info_map, mctx);
+            patterns.add< func_type< ll::FuncOp > >(abi_info_map, mctx);
 
             return { std::move(target), std::move(patterns) };
         }
 
-        phase_t third_phase(auto &tc, const auto &abi_info_map)
+        template< typename ret_op_t >
+        auto get_is_legal_return() {
+            return [] (ret_op_t op) -> bool {
+                auto func = op->template getParentOfType< abi::FuncOp >();
+                if (!func)
+                    return true;
+
+                for (auto val : op.getResult())
+                    if (!val.template getDefiningOp< abi::EpilogueOp >())
+                        return false;
+                return true;
+            };
+        }
+
+        phase_t third_phase(const auto &abi_info_map)
         {
             auto &mctx = this->getContext();
 
@@ -842,22 +843,13 @@ namespace vast
 
             // Plan is to still leave `hl.return` but it should return values
             // yielded by `abi.epilogue`.
-            auto is_return_legal = [&](hl::ReturnOp op)
-            {
-                auto func = op->getParentOfType< abi::FuncOp >();
-                if (!func)
-                    return true;
-
-                for (auto val : op.getResult())
-                    if (!val.getDefiningOp< abi::EpilogueOp >())
-                        return false;
-                return true;
-            };
-
-            target.addDynamicallyLegalOp< hl::ReturnOp >(is_return_legal);
+            // FIXME: use some return op interface
+            target.addDynamicallyLegalOp< hl::ReturnOp >(get_is_legal_return< hl::ReturnOp >());
+            target.addDynamicallyLegalOp< ll::ReturnOp >(get_is_legal_return< ll::ReturnOp >());
 
             mlir::RewritePatternSet patterns(&mctx);
-            patterns.add< return_op >(tc, abi_info_map, mctx);
+            patterns.add< return_op< hl::ReturnOp > >(abi_info_map, mctx);
+            patterns.add< return_op< ll::ReturnOp > >(abi_info_map, mctx);
 
             return { std::move(target), std::move(patterns) };
         }
@@ -870,21 +862,20 @@ namespace vast
 
         void runOnOperation() override
         {
-            auto &mctx = this->getContext();
             auto op = this->getOperation();
 
-            const auto &dl_analysis = this->getAnalysis< mlir::DataLayoutAnalysis >();
-            auto tc = TypeConverter(dl_analysis.getAtOrAbove(op), mctx);
+            const auto &dl = this->getAnalysis< mlir::DataLayoutAnalysis >();
             auto abi_info_map = collect_abi_info< core::function_op_interface >(
-                    op, dl_analysis.getAtOrAbove(op));
+                op, dl.getAtOrAbove(op)
+            );
 
-            if (mlir::failed(run(first_phase(tc, abi_info_map))))
+            if (mlir::failed(run(first_phase(abi_info_map))))
                 return signalPassFailure();
 
-            if (mlir::failed(run(second_phase(tc, abi_info_map))))
+            if (mlir::failed(run(second_phase(abi_info_map))))
                 return signalPassFailure();
 
-            if (mlir::failed(run(third_phase(tc, abi_info_map))))
+            if (mlir::failed(run(third_phase(abi_info_map))))
                 return signalPassFailure();
         }
     };

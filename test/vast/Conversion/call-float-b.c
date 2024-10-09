@@ -4,13 +4,13 @@
 
 // EMIT_ABI:  abi.func @vast.abi.f_float{{.*}}() -> f32 {
 // EMIT_ABI:    [[V0:%[0-9]+]] = hl.const #core.float<1.000000e-01> : f32
-// EMIT_ABI:    ll.return [[V0]] : f32
+// EMIT_ABI:    ll.return {{.*}} : f32
 // EMIT_ABI:  }
 float f_float() { return 0.1f; }
 
 // EMIT_ABI:  abi.func @vast.abi.f_double{{.*}}() -> f64 {
 // EMIT_ABI:    [[V0:%[0-9]+]] = hl.const #core.float<5.000000e+00> : f64
-// EMIT_ABI:    ll.return [[V0]] : f64
+// EMIT_ABI:    ll.return {{.*}} : f64
 // EMIT_ABI:  }
 double f_double() { return 5.0; }
 

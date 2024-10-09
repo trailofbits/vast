@@ -2,7 +2,7 @@
 
 void count()
 {
-    // CHECK: [[V0:%[0-9]+]] = llvm.mlir.constant(1 : index) : i64
+    // CHECK: [[V0:%[0-9]+]] = llvm.mlir.constant(1 : i64) : i64
     // CHECK: [[V1:%[0-9]+]] = llvm.alloca [[V0]] x i32 : (i64) -> !llvm.ptr
     // CHECK: [[V2:%[0-9]+]] = llvm.mlir.constant(1 : i32) : i32
     // CHECK: llvm.store [[V2]], [[V1]] : i32, !llvm.ptr

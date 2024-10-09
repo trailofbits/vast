@@ -56,18 +56,11 @@ namespace vast {
         }
     };
 
-    using lower_to_llvm_options = mlir::LowerToLLVMOptions;
-
     template< typename T >
     concept has_populate_conversions = requires(T a) { a.populate_conversions(); };
 
     template< typename T >
     concept has_run_after_conversion = requires(T a) { a.run_after_conversion(); };
-
-    template< typename T >
-    concept has_lower_to_llvm_options = requires(T a) {
-        T::set_lower_to_llvm_options(std::declval< lower_to_llvm_options & >());
-    };
 
     using rewrite_pattern_set = mlir::RewritePatternSet;
 
@@ -75,6 +68,25 @@ namespace vast {
     struct base_conversion_config {
         rewrite_pattern_set patterns;
         conversion_target target;
+
+        template< typename pattern >
+        void add_pattern() {
+            patterns.template add< pattern >(patterns.getContext());
+        }
+    };
+
+    template< typename pattern >
+    concept requires_data_layout = std::is_constructible_v<
+        pattern, mcontext_t *, const mlir::DataLayoutAnalysis &
+    >;
+
+    struct config_with_data_layout : base_conversion_config {
+        const mlir::DataLayoutAnalysis &dl;
+
+        template< requires_data_layout pattern >
+        void add_pattern() {
+            patterns.template add< pattern >(patterns.getContext(), dl);
+        }
 
         template< typename pattern >
         void add_pattern() {
@@ -98,30 +110,6 @@ namespace vast {
         template< typename pattern >
         void add_pattern() {
             patterns.template add< pattern >(tc, patterns.getContext());
-        }
-    };
-
-    // Configuration class for LLVM conversion
-    using llvm_type_converter = conv::tc::FullLLVMTypeConverter;
-
-    struct llvm_conversion_config : base_conversion_config {
-        llvm_type_converter &tc;
-
-        llvm_conversion_config(
-            rewrite_pattern_set patterns,
-            conversion_target target,
-            llvm_type_converter &tc
-        )
-            : base_conversion_config{std::move(patterns), std::move(target)}, tc(tc)
-        {}
-
-        llvm_conversion_config(llvm_conversion_config &&other)
-            : base_conversion_config{std::move(other.patterns), std::move(other.target)}, tc(other.tc)
-        {}
-
-        template< typename pattern >
-        void add_pattern() {
-            patterns.template add< pattern >(tc);
         }
     };
 
@@ -218,51 +206,6 @@ namespace vast {
             auto &ctx = this->getContext();
             tc = std::make_shared< type_converter >(ctx);
             return { rewrite_pattern_set(&ctx), derived::create_conversion_target(ctx, *tc), *tc };
-        }
-    };
-
-    //
-    // Mixin for conversion passes that target the LLVM dialect.
-    // Requires the derived pass to specify LLVM-specific conversion logic.
-    //
-    // Example usage:
-    //
-    // struct ExamplePass : LLVMConversionPassMixin<ExamplePass, ExamplePassBase> {
-    //     using base = LLVMConversionPassMixin<ExamplePass, ExamplePassBase>;
-    //
-    //     static conversion_target create_conversion_target(mcontest_t &context) {
-    //         conversion_target target(context);
-    //         // setup target here
-    //         return target;
-    //     }
-    //
-    //     static void populate_conversions(llvm_conversion_config &patterns) {
-    //         base::populate_conversions<
-    //             // pass conversion type_lists here
-    //         >(cfg);
-    //     }
-    // }
-    //
-    template< typename derived, template< typename > typename base >
-    struct LLVMConversionPassMixin
-        : ConversionPassMixinBase< derived, base >
-    {
-        std::shared_ptr< llvm_type_converter > tc;
-
-        llvm_conversion_config make_config() {
-            auto &ctx = this->getContext();
-            const auto &dl_analysis = this->template getAnalysis< mlir::DataLayoutAnalysis >();
-
-            lower_to_llvm_options llvm_options{&ctx};
-            if constexpr (has_lower_to_llvm_options< derived >) {
-                derived::set_lower_to_llvm_options(llvm_options);
-            }
-
-            tc = std::make_unique< llvm_type_converter >(
-                this->getOperation(), &ctx, llvm_options, &dl_analysis
-            );
-
-            return { rewrite_pattern_set(&ctx), derived::create_conversion_target(ctx, tc), *tc };
         }
     };
 

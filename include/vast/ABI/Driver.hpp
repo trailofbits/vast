@@ -22,9 +22,7 @@ namespace vast::abi {
         using out        = func_info< FnOp >;
         using classifier = classifier_base< out, mlir_type_info >;
 
-        auto module_op = fn->template getParentOfType< core::module >();
-        VAST_ASSERT(module_op);
-        auto type_info = mlir_type_info(dl, module_op);
+        auto type_info = mlir_type_info(*fn.getContext(), dl);
         return make< FnOp, mlir_type_info, classifier >(fn, type_info);
     }
 } // namespace vast::abi

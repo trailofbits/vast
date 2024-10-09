@@ -49,72 +49,18 @@ namespace vast::hl {
         }
     }
 
-    // TODO(hl): This is a placeholder that works in our test cases so far.
-    //           In general, we will need generic resolution for scoping that
-    //           will be used instead of this function.
-    core::aggregate_interface definition_of(mlir_type ty, auto scope) {
-        auto type_name = hl::name_of_record(ty);
-        VAST_CHECK(type_name, "hl::name_of_record failed with {0}", ty);
-
-        core::aggregate_interface out;
-        auto walker = [&](core::aggregate_interface op) {
-            if (op.getDefinedName() == type_name) {
-                out = op;
-                return walk_result::interrupt();
-            }
-            return mlir::WalkResult::advance();
-        };
-        scope->walk(walker);
-        return out;
+    static inline gap::generator< mlir_type > field_types(hl::RecordType ty, operation op) {
+        auto def = core::symbol_table::lookup< core::type_symbol >(op, ty.getName());
+        VAST_CHECK(def, "Record type {} not present in the symbol table.", ty.getName());
+        auto agg = mlir::dyn_cast_if_present< core::aggregate_interface >(def);
+        VAST_CHECK(agg, "Record type symbol is not an aggregate.");
+        return agg.getFieldTypes();
     }
 
-    gap::generator< mlir_type >  field_types(mlir_type ty, auto scope) {
-        auto def = definition_of(ty, scope);
-        VAST_CHECK(def, "Was not able to fetch definition of type: {0}", ty);
-        return def.getFieldTypes();
-    }
-
-    hl::ImplicitCastOp implicit_cast_lvalue_to_rvalue(auto &rewriter, auto loc, auto lvalue_op) {
-        auto value_type = mlir::dyn_cast< hl::LValueType >(lvalue_op.getType());
-        VAST_ASSERT(value_type);
-        return rewriter.template create< hl::ImplicitCastOp >(
-            loc, value_type.getElementType(), lvalue_op, hl::CastKind::LValueToRValue
-        );
-    }
-
-    // Given record `root` emit `hl::RecordMemberOp` for each its member.
-    auto generate_ptrs_to_record_members(operation root, auto loc, auto &bld)
-        ->  gap::generator< hl::RecordMemberOp >
-    {
-        auto scope = root->getParentOfType< core::module >();
-        VAST_ASSERT(scope);
-        VAST_ASSERT(root->getNumResults() == 1);
-        auto def = definition_of(root->getResultTypes()[0], scope);
-        VAST_CHECK(def, "Was not able to fetch definition of type from: {0}", *root);
-
-        for (const auto &[name, type] : def.getFieldsInfo()) {
-            auto as_val = root->getResult(0);
-            // `hl.member` requires type to be an lvalue.
-            auto wrap_type = hl::LValueType::get(scope.getContext(), type);
-            co_yield bld.template create< hl::RecordMemberOp >(loc, wrap_type, as_val, name);
-        }
-    }
-
-    // Given record `root` emit `hl::RecordMemberOp` casted as rvalue for each
-    // its member.
-    auto generate_values_of_record_members(operation root, auto &bld)
-        -> gap::generator< hl::ImplicitCastOp >
-    {
-        for (auto member_ptr : generate_ptrs_to_members(root, bld)) {
-            co_yield implicit_cast_lvalue_to_rvalue(bld, member_ptr->getLoc(), member_ptr);
-        }
-    }
-
-    namespace detail
-    {
-        template <typename T>
-        std::vector<T> to_vector(gap::generator<T> &&gen) {
-            std::vector<T> result;
+    namespace detail {
+        template< typename T >
+        std::vector< T > to_vector(gap::generator< T > &&gen) {
+            std::vector< T > result;
             std::ranges::copy(gen, std::back_inserter(result));
             return result;
         }
