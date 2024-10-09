@@ -233,6 +233,7 @@ namespace vast::cg {
                 .bind(self.symbol(decl))
                 .bind_always(storage_class(decl))
                 .bind_always(thread_storage_class(decl))
+                .bind_always(decl->getType().isConstQualified())
                 .bind_choose(is_global, std::optional(linkage_builder(decl)), std::nullopt)
                 // FIXME: The initializer region is filled later as it might
                 // have references to the VarDecl we are currently

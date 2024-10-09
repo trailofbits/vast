@@ -44,6 +44,7 @@ namespace vast::conv {
                     (fn_symbol.getSymbolName() + "." + op.getSymName()).str(),
                     op.getStorageClass(),
                     op.getThreadStorageClass(),
+                    op.getConstant(),
                     std::optional(core::GlobalLinkageKind::InternalLinkage)
                 );
 
