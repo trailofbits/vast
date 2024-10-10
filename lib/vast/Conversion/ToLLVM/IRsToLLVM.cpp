@@ -699,9 +699,12 @@ namespace vast::conv::irstollvm
 
         std::vector< mlir_value > filter_out_void(const auto &values) const {
             std::vector< mlir_value > out;
-            for (auto v : values)
-                if (!mlir::isa< LLVM::LLVMVoidType >(v.getType()))
+            for (auto v : values) {
+                auto ty = v.getType();
+                if (!mlir::isa< mlir::NoneType >(ty) && !mlir::isa< LLVM::LLVMVoidType >(ty)) {
                     out.push_back(v);
+                }
+            }
             return out;
         }
 
@@ -1070,9 +1073,9 @@ namespace vast::conv::irstollvm
                 op.getLoc(), mk_fty(), op.getCallee(), ops.getOperands()
             );
 
-            // the result gets removed when return type is void
+            // The result gets removed when return type is void,
             // because the number of results is mismatched, we can't use replace (triggers assert)
-            // removing the op is ok, since in llvm dialect a void value can't be used anyway
+            // Removing the op is ok, since in llvm dialect a void value can't be used anyway
             if (call.getResult())
                 rewriter.replaceOp(op, call.getResults());
             else
