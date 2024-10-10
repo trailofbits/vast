@@ -90,6 +90,16 @@ namespace vast::conv::irstollvm
         }
     };
 
+    template< typename op_t >
+    struct non_legalizing_llvm_conversion_pattern : llvm_conversion_pattern< op_t >
+    {
+        using base = llvm_conversion_pattern< op_t >;
+        using base::base;
+        using adaptor_t = typename op_t::Adaptor;
+
+        static void legalize(conversion_target &){}
+    };
+
     template< typename src_t, typename trg_t >
     struct llvm_one_to_one_conversion_pattern : llvm_conversion_pattern< src_t >
     {
@@ -1317,9 +1327,9 @@ namespace vast::conv::irstollvm
     };
 
     template< typename op_t, typename yield_op_t >
-    struct propagate_yield : operation_conversion_pattern< op_t >
+    struct propagate_yield : non_legalizing_llvm_conversion_pattern< op_t >
     {
-        using base = operation_conversion_pattern< op_t >;
+        using base = non_legalizing_llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
@@ -1342,11 +1352,11 @@ namespace vast::conv::irstollvm
     };
 
     struct value_yield_in_global_var
-        : llvm_conversion_pattern< hl::ValueYieldOp >
+        : non_legalizing_llvm_conversion_pattern< hl::ValueYieldOp >
         , value_builder< value_yield_in_global_var >
     {
         using op_t = hl::ValueYieldOp;
-        using base = llvm_conversion_pattern< op_t >;
+        using base = non_legalizing_llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
@@ -1414,10 +1424,10 @@ namespace vast::conv::irstollvm
 
     // Drop types of operations that will be processed by pass for core(lazy) operations.
     template< typename LazyOp >
-    struct lazy_op_type : llvm_conversion_pattern< LazyOp >
+    struct lazy_op_type : non_legalizing_llvm_conversion_pattern< LazyOp >
     {
         using op_t = LazyOp;
-        using base = llvm_conversion_pattern< op_t >;
+        using base = non_legalizing_llvm_conversion_pattern< op_t >;
         using adaptor_t = typename LazyOp::Adaptor;
         using base::base;
 
@@ -1447,10 +1457,10 @@ namespace vast::conv::irstollvm
     };
 
     template< typename yield_like >
-    struct fixup_yield_types : llvm_conversion_pattern< yield_like >
+    struct fixup_yield_types : non_legalizing_llvm_conversion_pattern< yield_like >
     {
         using op_t = yield_like;
-        using base = llvm_conversion_pattern< yield_like >;
+        using base = non_legalizing_llvm_conversion_pattern< yield_like >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
