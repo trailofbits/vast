@@ -3,16 +3,16 @@
 // CHECK: hl.var @ai, <external> : !hl.lvalue<!hl.array<10, si32>>
 int ai[10];
 
-// CHECK: hl.var @aci, <external> : !hl.lvalue<!hl.array<5, si32>>
+// CHECK: hl.var @aci, <external> constant : !hl.lvalue<!hl.array<5, si32>>
 const int aci[5];
 
 // CHECK: hl.var @avi, <external> : !hl.lvalue<!hl.array<5, si32>>
 volatile int avi[5];
 
-// CHECK: hl.var @acvi, <external> : !hl.lvalue<!hl.array<5, si32>>
+// CHECK: hl.var @acvi, <external> constant : !hl.lvalue<!hl.array<5, si32>>
 const volatile int acvi[5];
 
-// CHECK: hl.var @acvui, <external> : !hl.lvalue<!hl.array<5, ui32>>
+// CHECK: hl.var @acvui, <external> constant : !hl.lvalue<!hl.array<5, ui32>>
 const volatile unsigned int acvui[5];
 
 // CHECK: hl.var @af, <external> : !hl.lvalue<!hl.array<10, f32>>
