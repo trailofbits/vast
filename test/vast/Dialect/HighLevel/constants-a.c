@@ -25,7 +25,7 @@ double d = 0.0;
 // CHECK: hl.const "hello" : !hl.lvalue<!hl.array<6, !hl.char>>
 const char *str = "hello";
 
-// CHECK: hl.var @arr, <external> : !hl.lvalue<!hl.array<3, !hl.int< const >>>
+// CHECK: hl.var @arr, <external> constant : !hl.lvalue<!hl.array<3, !hl.int< const >>>
 // CHECK:   hl.const #core.integer<1> : !hl.int
 // CHECK:   hl.const #core.integer<2> : !hl.int
 // CHECK:   hl.const #core.integer<3> : !hl.int

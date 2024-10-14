@@ -10,10 +10,10 @@ int i = 0;
 // CHECK:   }
 // CHECK:   hl.type.yield {{.*}} : !hl.lvalue<!hl.int>
 // CHECK: } : !hl.int
-// CHECK: hl.var @j : !hl.lvalue<!hl.typeof.expr<"(i)", const >>
+// CHECK: hl.var @j constant : !hl.lvalue<!hl.typeof.expr<"(i)", const >>
 // CHECK: hl.const #core.integer<0> : !hl.int
 const typeof(i) j = 0;
-// CHECK: hl.var @k : !hl.lvalue<!hl.typeof.type<!hl.int, const >>
+// CHECK: hl.var @k constant : !hl.lvalue<!hl.typeof.type<!hl.int, const >>
 const typeof(int) k = 0;
 return 0;
 }

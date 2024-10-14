@@ -13,7 +13,7 @@ int (*fp)(int); // fp is a pointer to function with type int(int)
 int n;
 const int * pc = &n; // pc is a non-const pointer to a const int
 
-// CHECK: hl.var @cp, <external> : !hl.lvalue<!hl.ptr<!hl.int,  const >>
+// CHECK: hl.var @cp, <external> constant : !hl.lvalue<!hl.ptr<!hl.int,  const >>
 int * const cp = &n; // cp is a const pointer to a non-const int
 
 // CHECK: hl.var @pcp, <external> : !hl.lvalue<!hl.ptr<!hl.ptr<!hl.int,  const >>>

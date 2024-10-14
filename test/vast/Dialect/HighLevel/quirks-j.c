@@ -14,7 +14,7 @@ void foo() {
     int a[2];
     // CHECK: hl.var @i : !hl.lvalue<!hl.int>
     int i;
-    // CHECK: hl.var @j : !hl.lvalue<!hl.int< const >>
+    // CHECK: hl.var @j constant : !hl.lvalue<!hl.int< const >>
     const int j;
     // CHECK: hl.var @bf : !hl.lvalue<!hl.elaborated<!hl.record<@bitfield>>>
     struct bitfield bf;
