@@ -100,7 +100,7 @@ jobs:
               disable-unsup: 'ON'
 
     runs-on: ubuntu-${{ matrix.image-version }}
-    timeout-minutes: 60
+    timeout-minutes: 360
     container:
       image:
         ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
