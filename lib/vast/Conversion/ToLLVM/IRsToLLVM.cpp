@@ -44,8 +44,8 @@ namespace vast::conv::irstollvm
 {
     namespace LLVM = mlir::LLVM;
 
-    tc::lower_to_llvm_options mk_default_opts(mcontext_t *mctx, const auto &dl) {
-        tc::lower_to_llvm_options opts(mctx, dl);
+    tc::lower_to_llvm_options mk_default_opts(mcontext_t *mctx) {
+        tc::lower_to_llvm_options opts(mctx);
         opts.useBarePtrCallConv = true;
         return opts;
     }
@@ -56,14 +56,12 @@ namespace vast::conv::irstollvm
         , llvm_pattern_utils
     {
         using base = operation_conversion_pattern< op_t >;
+        using base::base;
 
-        explicit llvm_conversion_pattern(mcontext_t *mctx, const mlir::DataLayoutAnalysis &dl)
-            : base(mctx), dl(dl)
-        {}
-
-        const mlir::DataLayoutAnalysis &dl;
+        // const mlir::DataLayoutAnalysis &dl;
 
         tc::llvm_type_converter tc(operation from) const {
+            auto dl = mlir::DataLayoutAnalysis(from);
             tc::lower_to_llvm_options opts(from->getContext(), dl.getAtOrAbove(from));
             return tc::llvm_type_converter(from->getContext(), dl, opts, from);
         }
@@ -286,6 +284,7 @@ namespace vast::conv::irstollvm
 
         std::size_t bw(operation op) const {
             VAST_ASSERT(op->getNumResults() == 1);
+            auto dl = mlir::DataLayoutAnalysis(op);
             return dl.getAtOrAbove(op).getTypeSizeInBits(
                 convert_type_to_type(op, op->getResult(0).getType())
             );
@@ -630,7 +629,8 @@ namespace vast::conv::irstollvm
             auto attr, auto op, conversion_rewriter &rewriter
         ) const {
             auto target_type = convert_type_to_type(op, attr.getType());
-            const auto &dl   = this->dl.getAtOrAbove(op);
+            auto dla = mlir::DataLayoutAnalysis(op);
+            const auto &dl = dla.getAtOrAbove(op);
             if (!target_type)
                 return {};
 
@@ -1401,7 +1401,8 @@ namespace vast::conv::irstollvm
             // TODO mimic: clang/lib/CodeGen/CGExprScalar.cpp:VisitUnaryExprOrTypeTraitExpr
             // This does not consider type alignment and VLA types
             auto target_type = convert_type_to_type(op, op.getType());
-            const auto &dl = this->dl.getAtOrAbove(op);
+            auto dla = mlir::DataLayoutAnalysis(op);
+            const auto &dl = dla.getAtOrAbove(op);
             auto attr = rewriter.getIntegerAttr(
                 target_type, dl.getTypeSize(op.getArg())
             );
@@ -1595,13 +1596,7 @@ namespace vast::conv::irstollvm
     {
         using base = ConversionPassMixin< IRsToLLVMPass, IRsToLLVMBase >;
 
-        config_with_data_layout make_config() {
-            auto &ctx = this->getContext();
-            const auto &dl = this->getAnalysis< mlir::DataLayoutAnalysis >();
-            return { { rewrite_pattern_set(&ctx), create_conversion_target(ctx, dl) }, dl };
-        }
-
-        static conversion_target create_conversion_target(mcontext_t &mctx, const mlir::DataLayoutAnalysis &dl) {
+        static conversion_target create_conversion_target(mcontext_t &mctx) {
             conversion_target target(mctx);
 
             target.addIllegalDialect< hl::HighLevelDialect >();
@@ -1609,15 +1604,16 @@ namespace vast::conv::irstollvm
             target.addLegalDialect< core::CoreDialect >();
             target.addLegalDialect< mlir::LLVM::LLVMDialect >();
 
-
-            auto has_legal_return_type = [&](auto op) {
-                auto opts = mk_default_opts(&mctx, dl.getAtOrAbove(op));
-                return tc::llvm_type_converter(op->getContext(), dl, opts, op).has_legal_return_type(op);
+            auto has_legal_return_type = [](auto op) {
+                auto dla = mlir::DataLayoutAnalysis(op);
+                auto opts = mk_default_opts(op->getContext());
+                return tc::llvm_type_converter(op->getContext(), dla, opts, op).has_legal_return_type(op);
             };
 
-            auto has_legal_operand_types = [&](auto op) {
-                auto opts = mk_default_opts(&mctx, dl.getAtOrAbove(op));
-                return tc::llvm_type_converter(op->getContext(), dl, opts, op).has_legal_operand_types(op);
+            auto has_legal_operand_types = [](auto op) {
+                auto dla = mlir::DataLayoutAnalysis(op);
+                auto opts = mk_default_opts(op->getContext());
+                return tc::llvm_type_converter(op->getContext(), dla, opts, op).has_legal_operand_types(op);
             };
 
             target.addDynamicallyLegalOp< core::LazyOp    >(has_legal_return_type);
@@ -1632,8 +1628,9 @@ namespace vast::conv::irstollvm
             target.addIllegalOp< mlir::func::FuncOp >();
 
             target.markUnknownOpDynamicallyLegal([&] (auto op) {
-                auto opts = mk_default_opts(&mctx, dl.getAtOrAbove(op));
-                tc::llvm_type_converter tc(op->getContext(), dl, opts, op);
+                auto dla = mlir::DataLayoutAnalysis(op);
+                auto opts = mk_default_opts(&mctx);
+                tc::llvm_type_converter tc(op->getContext(), dla, opts, op);
                 return tc.get_is_type_conversion_legal()(op);
             });
 
