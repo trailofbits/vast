@@ -16,6 +16,8 @@ include "vast/Interfaces/ElementTypeInterface.td"
 include "vast/Dialect/Core/CoreAttrTypeBase.td"
 include "vast/Dialect/Core/Utils.td"
 
+include "vast/Dialect/Core/Interfaces/DesugarTypeInterface.td"
+
 //
 // Generic high-level type
 //
@@ -23,7 +25,8 @@ class HighLevel_Type< string name, list<Trait> traits = []>
   : TypeDef< HighLevel_Dialect, name,
     !listconcat(traits, [
       DataLayoutTypeInterface,
-      DefaultDataLayoutTypeInterface
+      DefaultDataLayoutTypeInterface,
+      Core_DesugarTypeInterface
     ])
   >
 {}
@@ -129,6 +132,16 @@ class HighLevel_CVRQualifiedType< string name, string mnem, dag params = (ins), 
 //
 // Tagged types and utils
 //
+
+
+class HighLevel_DesugaredType<TypeConstraint value > : TypeConstraint <
+  SubstLeaves<
+      "$_self",
+      "::vast::core::desugar_type($_self)",
+      value.predicate
+  >
+>;
+
 def HighLevel_RecordType : HighLevel_CVQualifiedType<
   "Record", "record", (ins Core_SymbolRefParameter<>:$name), [MemRefElementTypeInterface]
 > {
@@ -170,6 +183,16 @@ def HighLevel_TypedefType : HighLevel_CVRQualifiedType<
 def HighLevel_ElaboratedType : HighLevel_CVRQualifiedType<
   "Elaborated", "elaborated", (ins "Type":$elementType), [ElementTypeInterface, MemRefElementTypeInterface]
 > {
+  let extraClassDeclaration = [{
+      mlir::Type getSingleLevelDesugaredType() { return getElementType(); }
+      mlir::Type getDesugaredType() {
+        if (auto elem = ::mlir::dyn_cast< ::vast::core::DesugarTypeInterface >(getElementType()))
+            return elem.getDesugaredType();
+        else
+            return elem;
+      }
+  }];
+
   let builders = [
     TypeBuilder<(ins "Type":$element), [{
       return $_get($_ctxt, element, CVRQualifiersAttr());
