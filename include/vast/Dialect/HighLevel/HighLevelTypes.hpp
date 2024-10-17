@@ -30,6 +30,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Interfaces/DefaultDataLayoutTypeInterface.hpp"
 #include "vast/Interfaces/ElementTypeInterface.hpp"
 
+#include "vast/Dialect/Core/Interfaces/DesugarTypeInterface.hpp"
+
 #include "vast/Dialect/Core/CoreOps.hpp"
 #include "vast/Dialect/Core/CoreTypes.hpp"
 #include "vast/Dialect/Core/TypeTraits.hpp"
