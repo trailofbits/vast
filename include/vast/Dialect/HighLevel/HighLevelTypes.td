@@ -238,7 +238,16 @@ class HighLevel_TypeWithSubType<string name, string mnem>
 //
 // LValue high-level type and its utilities
 //
-def HighLevel_LValue : HighLevel_TypeWithSubType< "LValue", "lvalue" > { }
+def HighLevel_LValue : HighLevel_TypeWithSubType< "LValue", "lvalue" > {
+    let extraClassDeclaration = [{
+        mlir::Type getDesugaredType() {
+          if (auto elem = ::mlir::dyn_cast< ::vast::core::DesugarTypeInterface >(getElementType()))
+              return ::vast::hl::LValueType::get(elem.getContext(), elem.getDesugaredType());
+          else
+              return ::vast::hl::LValueType::get(getElementType().getContext(), getElementType());
+        }
+    }];
+}
 
 class HighLevel_LValueOf<TypeConstraint value> : Type< And< [
     HighLevel_LValue.predicate,
@@ -528,24 +537,22 @@ def HighLevel_BoolLikeType : TypeConstraint<
 >;
 
 class HighLevel_LValueOrType<TypeConstraint value> : TypeConstraint <
-  Or< [
-    And< [
-      HighLevel_LValue.predicate,
-      SubstLeaves<
-          "$_self",
-          "mlir::cast< LValueType >($_self).getElementType()",
-          HighLevel_DesugaredType<
-              TypeConstraint<Or< [ value.predicate, HighLevel_UnresolvedType.predicate ] > >
-          >.predicate
-      >
-    ] >,
-    HighLevel_DesugaredType<
-        TypeConstraint< Or< [
-            value.predicate,
-            HighLevel_UnresolvedType.predicate
-        ] > >
-    >.predicate
-  ] >,
+  HighLevel_DesugaredType<
+    TypeConstraint<
+      Or< [
+        And< [
+          HighLevel_LValue.predicate,
+          SubstLeaves<
+              "$_self",
+              "mlir::cast< LValueType >($_self).getElementType()",
+              Or< [ value.predicate, HighLevel_UnresolvedType.predicate ] >
+          >
+        ] >,
+        value.predicate,
+        HighLevel_UnresolvedType.predicate
+      ] >
+    >
+  >.predicate,
   "lvalue to " # value.summary
 >;
 
