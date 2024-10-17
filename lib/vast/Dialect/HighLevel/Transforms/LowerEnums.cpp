@@ -22,7 +22,7 @@ namespace vast::hl {
             : mctx(mctx)
         {
             conv::tc::function_type_converter< EnumTypeConverter >::init();
-            addConversion([&](hl::EnumType ty) {
+            addConversion([op](hl::EnumType ty) {
                 auto ts = core::symbol_table::lookup< core::type_symbol >(op, ty.getName());
                 VAST_CHECK(ts, "Enum type {0} not present in the symbol table.", ty.getName());
                 auto ec = mlir::dyn_cast_if_present< hl::EnumDeclOp >(ts);
