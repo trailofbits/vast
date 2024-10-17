@@ -209,22 +209,19 @@ def HighLevel_LabelType : HighLevel_Type< "Label" > {
 def HighLevel_ParenType : HighLevel_Type< "Paren", [ElementTypeInterface, MemRefElementTypeInterface] > {
   let mnemonic = "paren";
   let parameters = (ins "Type":$elementType);
+
+  let extraClassDeclaration = [{
+      mlir::Type getSingleLevelDesugaredType() { return getElementType(); }
+      mlir::Type getDesugaredType() {
+        if (auto elem = ::mlir::dyn_cast< ::vast::core::DesugarTypeInterface >(getElementType()))
+            return elem.getDesugaredType();
+        else
+            return elem;
+      }
+  }];
+
   let assemblyFormat = "`<` $elementType `>`";
 }
-
-class HighLevel_ElaboratedType< TypeConstraint value > : Type<
-  And< [
-    HighLevel_ElaboratedType.predicate,
-    SubstLeaves< "$_self", "mlir::cast< ElaboratedType >($_self).getElementType()", value.predicate >
-  ] >
->;
-
-class HighLevel_TypeOrElaboratedType< TypeConstraint value > : Type<
-  Or< [
-    value.predicate,
-    HighLevel_ElaboratedType< value >.predicate
-  ]>
->;
 
 class HighLevel_TypeWithSubType<string name, string mnem>
   : HighLevel_Type< name, [ElementTypeInterface] >
@@ -250,14 +247,6 @@ class HighLevel_LValueOf<TypeConstraint value> : Type< And< [
   "lvalue to " # value.summary
 >;
 
-class HighLevel_TypesOrLValueTypesMatch<string summary, string lhs, string rhs> : PredOpTrait< summary,
-  Or<[
-    TypesMatchWith< "underlying lvalue type does not match",
-      lhs, rhs, "LValueType::get( $_ctxt, $_self )"
-    >.predicate,
-    AllTypesMatch< ["src", "dst"] >.predicate
-  ]>
->;
 //
 // RValue high-level type
 //
@@ -343,7 +332,7 @@ def HighLevel_PointerType : HighLevel_CVRQualifiedType< "Pointer", "ptr",
   let assemblyFormat = "`<` $elementType (`,` $quals^ )? `>`";
 }
 
-def HighLevel_PointerLikeType : TypeConstraint< HighLevel_PointerType.predicate, "pointer like type" >;
+def HighLevel_PointerLikeType : TypeConstraint< HighLevel_DesugaredType< TypeConstraint< HighLevel_PointerType.predicate > >.predicate, "pointer like type" >;
 
 //
 // Array types
@@ -411,15 +400,6 @@ def HighLevel_DecayedType : HighLevel_Type< "Decayed",
   let parameters = (ins "Type":$elementType);
   let assemblyFormat = "`<` $elementType `>`";
 }
-
-// FIXME this should be trait of the type
-def HighLevel_SubscriptableType : TypeConstraint<
-  Or< [
-    HighLevel_ArrayType.predicate,
-    HighLevel_PointerType.predicate,
-    HighLevel_DecayedType.predicate
-  ] >, "subscriptable type"
->;
 
 def HighLevel_AttributedType : HighLevel_Type< "Attributed" > {
   let mnemonic = "attributed";
@@ -502,37 +482,69 @@ def HighLevel_Atomic : HighLevel_CVRQualifiedType<
 // FIXME this should be trait of the type
 def HighLevel_UnresolvedType : Type<
   Or< [
-    HighLevel_TypeOrElaboratedType< HighLevel_TypedefType >.predicate,
-    HighLevel_TypeOrElaboratedType< HighLevel_TypeOfType >.predicate,
-    HighLevel_TypeOrElaboratedType< HighLevel_TypeOfExprType >.predicate,
-    HighLevel_TypeOrElaboratedType< HighLevel_AutoType >.predicate
+    HighLevel_TypedefType.predicate,
+    HighLevel_TypeOfType.predicate,
+    HighLevel_TypeOfExprType.predicate,
+    HighLevel_AutoType.predicate
   ] >
 >;
 
+// FIXME this should be trait of the type
+def HighLevel_SubscriptableType : TypeConstraint<
+  HighLevel_DesugaredType<
+    TypeConstraint< Or< [
+      HighLevel_ArrayType.predicate,
+      HighLevel_PointerType.predicate,
+      HighLevel_DecayedType.predicate,
+      HighLevel_UnresolvedType.predicate
+    ] >>
+  >.predicate
+  , "subscriptable type"
+>;
+
+
+class HighLevel_DesugarTypeList< list< string > tl > {
+    defvar desugared = !foreach(
+        type,
+        tl,
+        "::vast::core::desugar_type($"#type#".getType())"
+        );
+    list< string > result = desugared;
+}
+
 class HighLevel_ContainsUnresolved< list< string > tl > : PredOpTrait< "contains unresolved type",
-    Or< !foreach(type, tl, SubstLeaves< "$_self", "$" # type #".getType()", HighLevel_UnresolvedType.predicate >) >
+    Or< !foreach(type, tl, SubstLeaves< "$_self", type, HighLevel_UnresolvedType.predicate >) >
 >;
 
 class HighLevel_TypesMatchOrUnresolved< list< string > tl > : PredOpTrait<
     "all types match or there is a typedef",
-    Or< [AllTypesMatch< tl >.predicate, HighLevel_ContainsUnresolved< tl >.predicate] >
+    Or< [AllMatchPred< HighLevel_DesugarTypeList< tl >.result >, HighLevel_ContainsUnresolved< HighLevel_DesugarTypeList< tl >.result >.predicate] >
 >;
 
 def HighLevel_BoolLikeType : TypeConstraint<
-  Or< [HighLevel_BoolType.predicate, AnyI1.predicate, HighLevel_UnresolvedType.predicate] >,
+  HighLevel_DesugaredType<
+  TypeConstraint< Or< [HighLevel_BoolType.predicate, AnyI1.predicate, HighLevel_UnresolvedType.predicate] >> >.predicate,
   "bool like type"
 >;
 
-class HighLevel_LValueOrType<TypeConstraint value> : Type<
+class HighLevel_LValueOrType<TypeConstraint value> : TypeConstraint <
   Or< [
     And< [
       HighLevel_LValue.predicate,
-      SubstLeaves< "$_self", "mlir::cast< LValueType >($_self).getElementType()",
-        Or< [ value.predicate, HighLevel_UnresolvedType.predicate ] >
+      SubstLeaves<
+          "$_self",
+          "mlir::cast< LValueType >($_self).getElementType()",
+          HighLevel_DesugaredType<
+              TypeConstraint<Or< [ value.predicate, HighLevel_UnresolvedType.predicate ] > >
+          >.predicate
       >
     ] >,
-    value.predicate,
-    HighLevel_UnresolvedType.predicate
+    HighLevel_DesugaredType<
+        TypeConstraint< Or< [
+            value.predicate,
+            HighLevel_UnresolvedType.predicate
+        ] > >
+    >.predicate
   ] >,
   "lvalue to " # value.summary
 >;
@@ -549,21 +561,25 @@ def HighLevel_AnyIntegerType : AnyTypeOf<[
 ]>;
 
 def HighLevel_IntegerLikeType : TypeConstraint<
-  Or< [
-    HighLevel_AnyIntegerType.predicate,
-    AnyInteger.predicate,
-    HighLevel_UnresolvedType.predicate,
-    HighLevel_ElaboratedType<HighLevel_EnumType>.predicate
-  ] >,
-  "integer like type"
+  HighLevel_DesugaredType<
+    TypeConstraint< Or< [
+      HighLevel_AnyIntegerType.predicate,
+      AnyInteger.predicate,
+      HighLevel_UnresolvedType.predicate,
+      HighLevel_EnumType.predicate
+    ] >,
+    "integer like type"
+  >>.predicate
 >;
 
 def HighLevel_IntOrBoolType : TypeConstraint<
-  Or< [
-    HighLevel_IntegerLikeType.predicate,
-    HighLevel_BoolLikeType.predicate
-  ] >,
-  "bool or integer like type"
+  HighLevel_DesugaredType<
+    TypeConstraint< Or< [
+      HighLevel_IntegerLikeType.predicate,
+      HighLevel_BoolLikeType.predicate
+    ] >,
+    "bool or integer like type"
+  >>.predicate
 >;
 
 // FIXME this should be trait of the type
@@ -578,11 +594,13 @@ def HighLevel_AnyFloatType : AnyTypeOf<[
 ]>;
 
 def HighLevel_FloatLikeType : TypeConstraint<
-  Or< [
-    HighLevel_AnyFloatType.predicate,
-    AnyFloat.predicate
-  ] >,
-  "float like type"
+  HighLevel_DesugaredType<
+    TypeConstraint< Or< [
+      HighLevel_AnyFloatType.predicate,
+      AnyFloat.predicate
+    ] >,
+    "float like type"
+  >>.predicate
 >;
 
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELTYPES

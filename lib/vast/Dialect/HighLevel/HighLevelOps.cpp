@@ -30,6 +30,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/Func.hpp"
 #include "vast/Dialect/Core/Linkage.hpp"
 #include "vast/Dialect/Core/SymbolTable.hpp"
+#include "vast/Dialect/Core/Interfaces/DesugarTypeInterface.hpp"
 
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Region.hpp"
@@ -61,8 +62,8 @@ namespace vast::hl
             VAST_ASSERT(op -> getNumResults() == 1);
             auto res_type = strip_complex(op->getResult(0).getType());
 
-            for (auto t_elab : op->getOperandTypes()) {
-                auto t = strip_elaborated(t_elab);
+            for (auto sugared_type : op->getOperandTypes()) {
+                auto t = core::desugar_type(sugared_type);
                 if (t.hasTrait< core::TypedefTrait >() || t.hasTrait< core::TypeOfTrait >()) {
                     return logical_result::success();
                 }
