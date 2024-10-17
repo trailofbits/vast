@@ -312,7 +312,8 @@ namespace vast::conv::tc {
             }
 
             if (auto union_decl = mlir::dyn_cast< hl::UnionDeclOp >(*def)) {
-                auto dl     = this->getDataLayoutAnalysis()->getAtOrAbove(union_decl);
+                auto dla    = mlir::DataLayoutAnalysis(union_decl);
+                auto dl     = dla.getAtOrAbove(union_decl);
                 auto fields = union_lowering{ dl, union_decl }.compute_lowering().fields;
                 return { union_lowering::final_fields(std::move(fields)) };
             } else {
