@@ -51,9 +51,20 @@ namespace vast
                 }();
 
                 // Last block should have hl.value.yield with the final value
-                auto &yield = lazy_region.back().back();
-                auto res = mlir::dyn_cast< hl::ValueYieldOp >(yield).getResult();
-                rewriter.eraseOp(&yield);
+                auto res = [&] () -> mlir_value {
+                    auto &maybe_yield = lazy_region.back().back();
+
+                    if (auto yield = mlir::dyn_cast< hl::ValueYieldOp >(maybe_yield)) {
+                        rewriter.eraseOp(&maybe_yield);
+                        // If the result is casted to void, we don't return anything
+                        if (mlir::isa< mlir::LLVM::LLVMVoidType >(lazy_op->getResult(0).getType())) {
+                            return {};
+                        }
+                        return yield.getResult();
+                    } else {
+                        return {};
+                    }
+                } ();
 
                 auto &first_block = lazy_region.front();
                 // The rewriter API doesn't provide a call to insert into a selected block
@@ -103,18 +114,6 @@ namespace vast
                 return [=, &rewriter](auto current_block, auto arg) {
                     return tie_block(rewriter, loc, current_block, target_block, arg);
                 };
-            }
-
-            bool is_void(mlir_type t) const {
-                return mlir::isa< mlir::LLVM::LLVMVoidType >(t);
-            }
-
-            auto add_argument(
-                mlir::Block *block, auto type, auto loc
-            ) const -> std::optional< mlir::BlockArgument > {
-                if (is_void(type))
-                    return std::nullopt;
-                return std::make_optional(block->addArgument(type, loc));
             }
         };
 
@@ -221,15 +220,17 @@ namespace vast
                 auto cmp = mk_icmp_ne(rewriter, op.getLoc(), ops.getCond());
 
                 // Block argument that receives the result value. Can be nothing in case of `void`.
-                auto end_arg = add_argument(end_block, true_res.getType(), op.getLoc());
+                if (true_res) {
+                    end_block->addArgument(true_res.getType(), op.getLoc());
+                }
 
                 rewriter.create< LLVM::CondBrOp >(
                     op.getLoc(), cmp, true_block, std::nullopt, false_block, std::nullopt);
 
                 // Redirect control flow and if needed pass the argument along
                 auto tie = get_tie_block(rewriter, op.getLoc(), end_block);
-                tie(false_end, (end_arg) ? false_res : mlir_value{});
-                tie(true_end, (end_arg) ? true_res : mlir_value{});
+                tie(false_end, false_res);
+                tie(true_end, true_res);
 
                 rewriter.setInsertionPointToStart(end_block);
 
@@ -237,16 +238,16 @@ namespace vast
                 auto trg_type = op.getResult(0).getType();
                 // We may need to insert a cast.
                 if (mlir::isa< mlir::IntegerType >(trg_type)) {
-                    VAST_ASSERT(end_arg);
+                    auto end_arg = end_block->getArgument(0);
                     replace_with_trunc_or_ext(
-                        op, *end_arg, end_arg->getType(), op.getResult(0).getType(), rewriter);
+                        op, end_arg, end_arg.getType(), op.getResult(0).getType(), rewriter
+                    );
                 // `void` value cannot be replaced, simply erase.
-                } else if (is_void(trg_type)) {
+                } else if (mlir::isa< mlir::LLVM::LLVMVoidType >(trg_type)) {
                     rewriter.eraseOp(op);
                 // Default - simply replace.
                 } else {
-                    VAST_ASSERT(end_arg);
-                    rewriter.replaceOp(op, *end_arg);
+                    rewriter.replaceOp(op, end_block->getArgument(0));
                 }
                 return mlir::success();
             }

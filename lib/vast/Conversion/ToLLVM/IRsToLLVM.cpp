@@ -95,7 +95,7 @@ namespace vast::conv::irstollvm
         using base::base;
         using adaptor_t = typename op_t::Adaptor;
 
-        static void legalize(conversion_target &){}
+        static void legalize(conversion_target &) {}
     };
 
     template< typename src_t, typename trg_t >
@@ -120,9 +120,9 @@ namespace vast::conv::irstollvm
         }
     };
 
-    logical_result update_via_clone(auto &rewriter, auto op, auto new_operands, auto &tc) {
+    logical_result update_via_clone(auto &rewriter, auto op, auto operands, auto &tc) {
         auto new_op = rewriter.clone(*op);
-        new_op->setOperands(new_operands);
+        new_op->setOperands(operands);
         for (auto v : new_op->getResults()) {
             v.setType(tc.convert_type_to_type(v.getType()).value());
         }
@@ -1083,7 +1083,6 @@ namespace vast::conv::irstollvm
                 mlir_type rty = rtys->empty()
                     ? mlir::LLVM::LLVMVoidType::get(op.getContext())
                     : rtys->front();
-
                 return mlir::LLVM::LLVMFunctionType::get(rty, atys.value(), fty.isVarArg());
             };
 
@@ -1485,10 +1484,16 @@ namespace vast::conv::irstollvm
 
             // Some operations need to keep it even with void value.
             if (!mlir::isa< core::LazyOp >(op->getParentOp())) {
-                if (mlir::isa< mlir::LLVM::LLVMVoidType >(ops.getResult().getType())) {
+                auto ty = ops.getResult().getType();
+                if (mlir::isa< LLVM::LLVMVoidType >(ty)) {
                     rewriter.eraseOp(op);
                     return logical_result::success();
                 }
+            }
+
+            if (mlir::isa< mlir::NoneType >(ops.getResult().getType())) {
+                rewriter.eraseOp(op);
+                return logical_result::success();
             }
 
             // TODO: What would it take to make this work `updateRootInPlace`?
