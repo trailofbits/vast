@@ -303,7 +303,7 @@ class HighLevel_RecordLikeDeclOp< string mnemonic, list< Trait > traits = [] >
 }
 
 def HighLevel_StructDeclOp
-  : HighLevel_RecordLikeDeclOp< "struct" >
+  : HighLevel_RecordLikeDeclOp< "struct", [Core_EmptySymbolTable] >
 {
   let summary = "VAST struct declaration";
   let description = [{ VAST struct declaration }];
