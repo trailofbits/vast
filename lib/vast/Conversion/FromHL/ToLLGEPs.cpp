@@ -59,7 +59,7 @@ namespace vast {
                 auto type = mlir::dyn_cast< hl::RecordType >(record_type);
                 VAST_CHECK(type, "Source type of RecordMemberOp is not a record type.");
                 auto def = core::symbol_table::lookup< core::type_symbol >(op, type.getName());
-                VAST_CHECK(def, "Record type {} not present in the symbol table.", type.getName());
+                VAST_CHECK(def, "Record type {0} not present in the symbol table.", type.getName());
 
                 if (auto struct_decl = mlir::dyn_cast_or_null< hl::StructDeclOp >(def)) {
                     return lower(op, ops, rewriter, struct_decl);

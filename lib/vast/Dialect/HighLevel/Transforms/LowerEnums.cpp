@@ -24,7 +24,7 @@ namespace vast::hl {
             conv::tc::function_type_converter< EnumTypeConverter >::init();
             addConversion([&](hl::EnumType ty) {
                 auto ts = core::symbol_table::lookup< core::type_symbol >(op, ty.getName());
-                VAST_CHECK(ts, "Enum type {} not present in the symbol table.", ty.getName());
+                VAST_CHECK(ts, "Enum type {0} not present in the symbol table.", ty.getName());
                 auto ec = mlir::dyn_cast_if_present< hl::EnumDeclOp >(ts);
                 VAST_CHECK(ec, "Enum type symbol is not an hl::EnumDeclOp.");
                 return ec.getType();
