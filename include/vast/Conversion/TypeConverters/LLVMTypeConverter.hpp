@@ -303,7 +303,7 @@ namespace vast::conv::tc {
             }
 
             auto ts = core::symbol_table::lookup< core::type_symbol >(op, t.getName());
-            VAST_CHECK(ts, "Record type {} not present in the symbol table.", t.getName());
+            VAST_CHECK(ts, "Record type {0} not present in the symbol table.", t.getName());
             auto def = mlir::dyn_cast_if_present< core::aggregate_interface >(ts);
 
             // Nothing found, leave the structure opaque.

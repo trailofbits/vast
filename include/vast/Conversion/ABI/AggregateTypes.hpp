@@ -85,7 +85,7 @@ namespace vast::conv::abi {
             auto loc, auto &bld
         ) const {
             auto def = core::symbol_table::lookup< core::type_symbol >(value.getDefiningOp(), record_type.getName());
-            VAST_CHECK(def, "Record type {} not present in the symbol table.", record_type.getName());
+            VAST_CHECK(def, "Record type {0} not present in the symbol table.", record_type.getName());
             auto agg = mlir::dyn_cast_if_present< core::aggregate_interface >(def);
             VAST_CHECK(agg, "Record type symbol is not an aggregate.");
 

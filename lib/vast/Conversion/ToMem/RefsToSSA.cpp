@@ -32,8 +32,8 @@ namespace vast::conv {
             ) const override {
                 auto var = core::symbol_table::lookup< core::var_symbol >(op, op.getName());
 
-                VAST_CHECK(var, "Variable {} not present in the symbol table.", op.getName());
-                VAST_CHECK(mlir::isa< ll::Cell >(var), "Variable {} is not a cell."
+                VAST_CHECK(var, "Variable {0} not present in the symbol table.", op.getName());
+                VAST_CHECK(mlir::isa< ll::Cell >(var), "Variable {0} is not a cell."
                     "Lower variable to cells before lowering of references.",
                     op.getName()
                 );

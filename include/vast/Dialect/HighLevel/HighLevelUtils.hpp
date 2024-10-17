@@ -51,7 +51,7 @@ namespace vast::hl {
 
     static inline gap::generator< mlir_type > field_types(hl::RecordType ty, operation op) {
         auto def = core::symbol_table::lookup< core::type_symbol >(op, ty.getName());
-        VAST_CHECK(def, "Record type {} not present in the symbol table.", ty.getName());
+        VAST_CHECK(def, "Record type {0} not present in the symbol table.", ty.getName());
         auto agg = mlir::dyn_cast_if_present< core::aggregate_interface >(def);
         VAST_CHECK(agg, "Record type symbol is not an aggregate.");
         return agg.getFieldTypes();

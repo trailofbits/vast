@@ -109,7 +109,7 @@ namespace vast::hl
 
         if (auto sym = mlir::dyn_cast< mlir::SymbolRefAttr >(callee)) {
             auto fn = core::symbol_table::lookup< core::func_symbol >(from, sym.getRootReference());
-            VAST_CHECK(fn, "Function {} not present in the symbol table.", sym.getRootReference());
+            VAST_CHECK(fn, "Function {0} not present in the symbol table.", sym.getRootReference());
             return mlir::cast< FuncOp >(fn).getFunctionType();
         }
 
