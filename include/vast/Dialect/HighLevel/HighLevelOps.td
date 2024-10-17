@@ -310,7 +310,7 @@ def HighLevel_StructDeclOp
 }
 
 def HighLevel_UnionDeclOp
-  : HighLevel_RecordLikeDeclOp< "union" >
+  : HighLevel_RecordLikeDeclOp< "union", [Core_EmptySymbolTable] >
 {
   let summary = "VAST record declaration";
   let description = [{ VAST record declaration }];
