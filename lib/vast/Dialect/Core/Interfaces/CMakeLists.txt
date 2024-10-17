@@ -1,5 +1,6 @@
 set(VAST_OPTIONAL_SOURCES
   DeclStorageInterface.cpp
+  DesugarTypeInterface.cpp
   FunctionInterface.cpp
   FunctionImplementation.cpp
   SymbolInterface.cpp
@@ -10,6 +11,10 @@ set(VAST_OPTIONAL_SOURCES
 
 add_vast_interface_library(DeclStorageInterface
     DeclStorageInterface.cpp
+)
+
+add_vast_interface_library(DesugarTypeInterface
+    DesugarTypeInterface.cpp
 )
 
 add_vast_interface_library(FunctionInterface
