@@ -80,21 +80,6 @@ namespace vast {
         pattern, mcontext_t *, const mlir::DataLayoutAnalysis &
     >;
 
-    struct config_with_data_layout : base_conversion_config {
-        const mlir::DataLayoutAnalysis &dl;
-
-        template< requires_data_layout pattern >
-        void add_pattern() {
-            patterns.template add< pattern >(patterns.getContext(), dl);
-        }
-
-        template< typename pattern >
-        void add_pattern() {
-            patterns.template add< pattern >(patterns.getContext());
-        }
-    };
-
-
     template< typename type_converter >
     struct type_converting_conversion_config : base_conversion_config {
         type_converter &tc;
