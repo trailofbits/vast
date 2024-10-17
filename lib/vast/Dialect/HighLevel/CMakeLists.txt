@@ -10,6 +10,7 @@ add_vast_dialect_library(HighLevel
 
     LINK_LIBS PRIVATE
         VASTAliasTypeInterface
+        VASTDesugarTypeInterface
         VASTElementTypeInterface
 )
 
