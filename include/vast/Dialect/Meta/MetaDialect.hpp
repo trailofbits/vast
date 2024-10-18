@@ -16,16 +16,18 @@ VAST_RELAX_WARNINGS
 // Pull in the dialect definition.
 #include "vast/Dialect/Meta/MetaDialect.h.inc"
 
+#include "vast/Util/Common.hpp"
+
 namespace vast::meta
 {
     using identifier_t = std::uint64_t;
 
-    void add_identifier(mlir::Operation *op, identifier_t id);
+    void add_identifier(operation op, identifier_t id);
 
-    void remove_identifier(mlir::Operation *op);
+    void remove_identifier(operation op);
 
-    std::vector< mlir::Operation * > get_with_identifier(mlir::Operation *scope, identifier_t id);
+    std::vector< operation  > get_with_identifier(operation scope, identifier_t id);
 
-    std::vector< mlir::Operation * > get_with_meta_location(mlir::Operation *scope, identifier_t id);
+    std::vector< operation  > get_with_meta_location(operation scope, identifier_t id);
 
 } // namespace vast::meta
