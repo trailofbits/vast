@@ -10,7 +10,6 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/DefaultSymbolGenerator.hpp"
 #include "vast/Util/TypeList.hpp"
-#include "vast/Util/Symbols.hpp"
 
 #include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
 

@@ -13,7 +13,6 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
-#include "vast/Util/Symbols.hpp"
 #include "vast/Util/TypeList.hpp"
 
 #include "vast/Conversion/Common/Block.hpp"

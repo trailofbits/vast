@@ -16,10 +16,6 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
-#include "vast/Util/Symbols.hpp"
-
-#include <iostream>
-
 namespace vast::ll
 {
     using mctx_t = mlir::MLIRContext;

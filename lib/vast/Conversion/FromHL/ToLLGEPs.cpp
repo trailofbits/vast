@@ -18,7 +18,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/LowLevel/LowLevelOps.hpp"
 
 #include "vast/Util/DialectConversion.hpp"
-#include "vast/Util/Symbols.hpp"
 
 namespace vast {
     namespace {
