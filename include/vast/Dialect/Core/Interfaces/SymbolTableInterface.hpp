@@ -24,4 +24,12 @@ namespace vast::core {
 
     using symbol_table_op_interface = SymbolTableOpInterface;
 
+    void symbol_tables(operation root, auto &&yield) {
+        root->walk([&] (operation child) {
+            if (mlir::isa< symbol_table_op_interface >(child)) {
+                yield(child);
+            }
+        });
+    }
+
 } // namespace vast::core

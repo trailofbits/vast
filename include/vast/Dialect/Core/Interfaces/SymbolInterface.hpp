@@ -49,4 +49,13 @@ namespace vast::core {
         return kind == get_symbol_kind< interface >;
     }
 
+    template< typename symbol_kind >
+    void symbols(operation scope, auto &&yield) {
+        scope->walk([&] (operation child) {
+            if (auto symbol = mlir::dyn_cast< symbol_kind >(child)) {
+                yield(symbol);
+            }
+        });
+    }
+
 } // namespace vast::core
