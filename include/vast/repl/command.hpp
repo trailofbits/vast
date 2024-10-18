@@ -8,7 +8,6 @@ VAST_RELAX_WARNINGS
 #include <llvm/ADT/StringExtras.h>
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Util/Symbols.hpp"
 #include "vast/Util/Tuple.hpp"
 #include "vast/Util/TypeList.hpp"
 

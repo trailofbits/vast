@@ -3,8 +3,6 @@
 #include "vast/Dialect/Meta/MetaDialect.hpp"
 #include "vast/Dialect/Meta/MetaAttributes.hpp"
 
-#include "vast/Util/Symbols.hpp"
-
 namespace vast::meta
 {
     void MetaDialect::initialize() {

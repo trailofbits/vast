@@ -31,7 +31,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/Core/TypeTraits.hpp"
 
 #include "vast/Util/Common.hpp"
-#include "vast/Util/Symbols.hpp"
 #include "vast/Util/Terminator.hpp"
 #include "vast/Util/TypeList.hpp"
 

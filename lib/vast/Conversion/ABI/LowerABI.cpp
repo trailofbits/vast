@@ -34,7 +34,6 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Common.hpp"
 #include "vast/Util/Functions.hpp"
 #include "vast/Util/DialectConversion.hpp"
-#include "vast/Util/Symbols.hpp"
 #include "vast/Util/TypeSwitch.hpp"
 #include "vast/Util/TypeUtils.hpp"
 
