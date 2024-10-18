@@ -206,8 +206,8 @@ def HighLevel_LabelType : HighLevel_Type< "Label" > {
   let mnemonic = "label";
 }
 
-def HighLevel_ParenType : HighLevel_Type< "Paren", [ElementTypeInterface, MemRefElementTypeInterface] > {
-  let mnemonic = "paren";
+class HighLevel_SugarType< string name, string mnem > : HighLevel_Type< name, [ElementTypeInterface, MemRefElementTypeInterface] > {
+  let mnemonic = mnem;
   let parameters = (ins "Type":$elementType);
 
   let extraClassDeclaration = [{
@@ -221,6 +221,35 @@ def HighLevel_ParenType : HighLevel_Type< "Paren", [ElementTypeInterface, MemRef
   }];
 
   let assemblyFormat = "`<` $elementType `>`";
+}
+
+def HighLevel_ParenType           : HighLevel_SugarType< "Paren", "paren" >;
+def HighLevel_MacroQualifiedType  : HighLevel_SugarType< "MacroQualified", "macro_qualified" >;
+
+class HighLevel_CountTypeAttr< string name, int val > : I64EnumAttrCase< name, val > {}
+
+class HighLevel_CountTypeList< string name, string summary, list< HighLevel_CountTypeAttr > cases >
+  : I64EnumAttr< name, summary, cases > {}
+
+def HighLevel_CountedBy : HighLevel_CountTypeAttr<"CountedBy", 0>;
+def HighLevel_SizedBy : HighLevel_CountTypeAttr<"SizedBy", 1>;
+def HighLevel_CountedByOrNull : HighLevel_CountTypeAttr<"CountedByOrNull", 2>;
+def HighLevel_SizedByOrNull : HighLevel_CountTypeAttr<"SizedByOrNull", 3>;
+
+let cppNamespace = "::vast::hl" in
+def HighLevel_CountType : HighLevel_CountTypeList< "CountType", "count type", [
+  HighLevel_CountedBy,
+  HighLevel_SizedBy,
+  HighLevel_CountedByOrNull,
+  HighLevel_SizedByOrNull
+] >;
+
+def HighLevel_CountAttributedType : HighLevel_SugarType< "CountAttributed", "count_attributed" > {
+  let parameters = (ins
+      EnumParameter< HighLevel_CountType >:$type,
+      "Type":$elementType
+  );
+  let assemblyFormat = "`<`$type `,` $elementType `>`";
 }
 
 class HighLevel_TypeWithSubType<string name, string mnem>
