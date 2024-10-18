@@ -11,7 +11,6 @@
 #include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
 
 #include "vast/Util/Common.hpp"
-#include <vast/Util/Symbols.hpp>
 #include "vast/Util/TypeUtils.hpp"
 
 #include <gap/coro/generator.hpp>
