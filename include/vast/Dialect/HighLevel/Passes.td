@@ -5,25 +5,6 @@
 
 include "mlir/Pass/PassBase.td"
 
-def ExportFnInfo : Pass<"vast-export-fn-info", "core::ModuleOp"> {
-  let summary = "Create JSON that exports information about function arguments.";
-  let description = [{
-    Lowers module into llvm IR and dumps it on stderr.
-  }];
-
-  let dependentDialects = [
-    "vast::hl::HighLevelDialect",
-    "vast::core::CoreDialect"
-  ];
-
-  let constructor = "vast::hl::createExportFnInfoPass()";
-
-  let options = [
-    Option< "o", "o", "std::string", "",
-            "Output JSON file to be created." >
-  ];
-}
-
 def DCE : Pass<"vast-hl-dce", "core::ModuleOp"> {
   let summary = "Trim dead code";
   let description = [{
