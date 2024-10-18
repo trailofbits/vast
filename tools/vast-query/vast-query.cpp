@@ -25,8 +25,11 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 #include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
 #include "vast/Dialect/HighLevel/Passes.hpp"
+
+#include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
+#include "vast/Dialect/Core/Interfaces/SymbolTableInterface.hpp"
+
 #include "vast/Util/Common.hpp"
-#include "vast/Util/Symbols.hpp"
 
 using memory_buffer  = std::unique_ptr< llvm::MemoryBuffer >;
 
@@ -36,7 +39,7 @@ namespace vast::cl
 
     // clang-format off
     enum class show_symbol_type {
-        none, function, type, record, var, global, all
+        none, function, var, type, all
     };
 
     cl::OptionCategory generic("Vast Generic Options");
@@ -53,10 +56,8 @@ namespace vast::cl
             cl::desc("Show MLIR symbols"),
             cl::values(
                 clEnumValN(show_symbol_type::function, "functions", "show function symbols"),
-                clEnumValN(show_symbol_type::type, "types", "show type symbols"),
-                clEnumValN(show_symbol_type::record, "records", "show record symbols"),
                 clEnumValN(show_symbol_type::var, "vars", "show variable symbols"),
-                clEnumValN(show_symbol_type::global, "globs", "show global variable symbols"),
+                clEnumValN(show_symbol_type::type, "types", "show type symbols"),
                 clEnumValN(show_symbol_type::all, "all", "show all symbols")
             ),
             cl::init(show_symbol_type::none),
@@ -92,75 +93,88 @@ namespace vast::query
 
     template< typename... Ts >
     auto is_one_of() {
-        return [](mlir::Operation *op) { return (mlir::isa< Ts >(op) || ...); };
+        return [](operation op) { return (mlir::isa< Ts >(op) || ...); };
     }
 
     template< typename T >
     auto is_global() {
-        return [](mlir::Operation *op) {
+        return [](operation op) {
             auto parent = op->getParentOp();
             return mlir::isa< T >(op) && is_one_of< core::ModuleOp, hl::TranslationUnitOp >()(parent);
         };
     }
 
+    std::string show_location(auto &value) {
+        auto loc = value.getLoc();
+        std::string buff;
+        llvm::raw_string_ostream ss(buff);
+        if (auto file_loc = mlir::dyn_cast< mlir::FileLineColLoc >(loc)) {
+            ss << " : " << file_loc.getFilename().getValue()
+               << ":"   << file_loc.getLine()
+               << ":"   << file_loc.getColumn();
+        } else {
+            ss << " : " << loc;
+        }
+
+        return ss.str();
+    }
+
+    std::string show_symbol_value(auto value) {
+        std::string buff;
+        llvm::raw_string_ostream ss(buff);
+        ss << value->getName() << " : " << value.getSymbolName() << " " << show_location(value);
+        return ss.str();
+    }
+
     void show_value(auto value) {
-        llvm::outs() << util::show_symbol_value(value) << "\n";
+        llvm::outs() << show_symbol_value(value) << "\n";
     }
 
     logical_result do_show_symbols(auto scope) {
-        auto &show_kind = cl::options->show_symbols;
+        auto show = [&] (auto symbol) { show_value(symbol); };
 
-        auto show_if = [=](auto symbol, auto pred) {
-            if (pred(symbol))
-                show_value(symbol);
-        };
+        switch (cl::options->show_symbols) {
+            case cl::show_symbol_type::function:
+                core::symbols< core::func_symbol >(scope, show);
+                break;
+            case cl::show_symbol_type::var:
+                core::symbols< core::var_symbol >(scope, show);
+                break;
+            case cl::show_symbol_type::type:
+                core::symbols< core::type_symbol >(scope, show);
+                break;
+            case cl::show_symbol_type::all:
+                core::symbols< core::symbol >(scope, show);
+                break;
+            case cl::show_symbol_type::none: break;
+        }
 
-        auto filter_kind = [=](cl::show_symbol_type kind) {
-            return [=](auto symbol) {
-                switch (kind) {
-                    case cl::show_symbol_type::all: show_value(symbol); break;
-                    case cl::show_symbol_type::type:
-                        show_if(symbol, is_one_of< hl::TypeDefOp, hl::TypeDeclOp >());
-                        break;
-                    case cl::show_symbol_type::record:
-                        show_if(symbol, is_one_of< hl::StructDeclOp >());
-                        break;
-                    case cl::show_symbol_type::var:
-                        show_if(symbol, is_one_of< hl::VarDeclOp >());
-                        break;
-                    case cl::show_symbol_type::global:
-                        show_if(symbol, is_global< hl::VarDeclOp >());
-                        break;
-                    case cl::show_symbol_type::function:
-                        show_if(symbol, is_one_of< hl::FuncOp >());
-                        break;
-                    case cl::show_symbol_type::none: break;
-                }
-            };
-        };
-
-        util::symbols(scope, filter_kind(show_kind));
         return mlir::success();
     }
 
     logical_result do_show_users(auto scope) {
-        auto &name = cl::options->show_symbol_users;
-        util::yield_users(name.getValue(), scope, [](auto user) {
-            user->print(llvm::outs());
-            llvm::outs() << util::show_location(*user) << "\n";
-        });
+        VAST_UNIMPLEMENTED;
+        // auto &name = cl::options->show_symbol_users;
+        // util::yield_users(name.getValue(), scope, [](auto user) {
+        //     user->print(llvm::outs());
+        //     llvm::outs() << util::show_location(*user) << "\n";
+        // });
 
-        return mlir::success();
+        // return mlir::success();
     }
 } // namespace vast::query
 
 namespace vast
 {
-    logical_result get_scope_operation(auto parent, std::string_view scope_name, auto yield) {
-        auto result =mlir::success();
-        util::symbol_tables(parent, [&](mlir::Operation *op) {
-            if (failed(yield(mlir::SymbolTable::lookupSymbolIn(op, scope_name)))) {
-                result = mlir::failure();
+    logical_result process_named_scope(auto root, string_ref scope_name, auto &&process) {
+        auto result = mlir::success();
+        core::symbol_tables(root, [&] (operation op) {
+            if (auto symbol = mlir::dyn_cast< core::symbol >(op)) {
+                if (symbol.getSymbolName() == scope_name) {
+                    if (mlir::failed(process(op))) {
+                        result = mlir::failure();
+                    }
+                }
             }
         });
 
@@ -197,9 +211,9 @@ namespace vast
             return mlir::success();
         };
 
-        mlir::Operation *scope = mod.get();
+        operation scope = mod.get();
         if (query::constrained_scope()) {
-            return get_scope_operation(scope, cl::options->scope_name, process_scope);
+            return process_named_scope(scope, cl::options->scope_name, process_scope);
         } else {
             return process_scope(scope);
         }
