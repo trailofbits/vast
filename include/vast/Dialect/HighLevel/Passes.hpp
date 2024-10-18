@@ -18,8 +18,6 @@ VAST_UNRELAX_WARNINGS
 namespace vast::hl {
     std::unique_ptr< mlir::Pass > createHLLowerTypesPass();
 
-    std::unique_ptr< mlir::Pass > createExportFnInfoPass();
-
     std::unique_ptr< mlir::Pass > createDCEPass();
 
     std::unique_ptr< mlir::Pass > createUDEPass();
