@@ -61,6 +61,12 @@ namespace vast::cg {
         mlir_type VisitParenType(const clang::ParenType *ty);
         mlir_type VisitParenType(const clang::ParenType *ty, clang_qualifiers quals);
 
+        mlir_type VisitMacroQualifiedType(const clang::MacroQualifiedType *ty);
+        mlir_type VisitMacroQualifiedType(const clang::MacroQualifiedType *ty, clang_qualifiers quals);
+
+        mlir_type VisitCountAttributedType(const clang::CountAttributedType *ty);
+        mlir_type VisitCountAttributedType(const clang::CountAttributedType *ty, clang_qualifiers quals);
+
         mlir_type VisitFunctionType(const clang::FunctionType *ty);
 
         mlir_type VisitFunctionProtoType(const clang::FunctionProtoType *ty);

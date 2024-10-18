@@ -160,6 +160,14 @@ namespace vast::cg {
             return VisitParenType(t, quals);
         }
 
+        if (auto t = llvm::dyn_cast< clang::MacroQualifiedType >(underlying)) {
+            return VisitMacroQualifiedType(t, quals);
+        }
+
+        if (auto t = llvm::dyn_cast< clang::CountAttributedType >(underlying)) {
+            return VisitCountAttributedType(t, quals);
+        }
+
         if (auto t = llvm::dyn_cast< clang::FunctionProtoType >(underlying)) {
             return VisitFunctionProtoType(t, quals);
         }
@@ -342,6 +350,34 @@ namespace vast::cg {
 
     mlir_type default_type_visitor::VisitParenType(const clang::ParenType *ty, clang_qualifiers quals) {
         return hl::ParenType::get(&mctx, self.visit(ty->getInnerType()));
+    }
+
+    mlir_type default_type_visitor::VisitMacroQualifiedType(const clang::MacroQualifiedType *ty) {
+        return VisitMacroQualifiedType(ty, ty->desugar().getLocalQualifiers());
+    }
+
+    mlir_type default_type_visitor::VisitMacroQualifiedType(const clang::MacroQualifiedType *ty, clang_qualifiers quals) {
+        return hl::MacroQualifiedType::get(&mctx, self.visit(ty->getUnderlyingType()));
+    }
+
+    mlir_type default_type_visitor::VisitCountAttributedType(const clang::CountAttributedType *ty) {
+        return VisitCountAttributedType(ty, ty->desugar().getLocalQualifiers());
+    }
+
+    mlir_type default_type_visitor::VisitCountAttributedType(const clang::CountAttributedType *ty, clang_qualifiers quals) {
+        auto get_kind = [](auto kind) {
+            switch (kind) {
+                case clang::CountAttributedType::DynamicCountPointerKind::CountedBy:
+                    return hl::CountType::CountedBy;
+                case clang::CountAttributedType::DynamicCountPointerKind::SizedBy:
+                    return hl::CountType::SizedBy;
+                case clang::CountAttributedType::DynamicCountPointerKind::CountedByOrNull:
+                    return hl::CountType::CountedByOrNull;
+                case clang::CountAttributedType::DynamicCountPointerKind::SizedByOrNull:
+                    return hl::CountType::SizedByOrNull;
+            }
+        };
+        return hl::CountAttributedType::get(&mctx, get_kind(ty->getKind()), self.visit(ty->desugar()));
     }
 
     mlir_type default_type_visitor::VisitFunctionType(const clang::FunctionType *ty) {
