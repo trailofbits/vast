@@ -6,6 +6,7 @@
 include "mlir/IR/OpBase.td"
 
 include "vast/Dialect/Core/Utils.td"
+include "vast/Dialect/Parser/Types.td"
 
 class Parser_Op< string mnemonic, list< Trait > traits = [] >
   : Op< Parser_Dialect, mnemonic, traits >;
@@ -13,22 +14,22 @@ class Parser_Op< string mnemonic, list< Trait > traits = [] >
 def Parser_Source
   : Parser_Op< "source" >
   , Arguments< (ins Variadic<AnyType>:$arguments) >
-  , Results< (outs Variadic<AnyType>:$result) >
+  , Results< (outs Variadic<Parser_DataType>:$result) >
 {
   let summary = "Source of parsed data.";
 }
 
 def Paser_Sink
   : Parser_Op< "sink" >
-  , Arguments< (ins Variadic<AnyType>:$arguments) >
-  , Results< (outs Variadic<AnyType>:$result) >
+  , Arguments< (ins Variadic<Parser_MaybeDataType>:$arguments) >
+  , Results< (outs Variadic<Parser_NoDataType>:$result) >
 {
   let summary = "Sink of parsed data.";
 }
 
 def Parser_Parse
   : Parser_Op< "parse" >
-  , Arguments< (ins Variadic<AnyType>:$arguments) >
+  , Arguments< (ins Variadic<Parser_MaybeDataType>:$arguments) >
   , Results< (outs Variadic<AnyType>:$result) >
 {
   let summary = "Parsing operation data.";
@@ -36,8 +37,8 @@ def Parser_Parse
 
 def Parse_NoParse
   : Parser_Op< "noparse" >
-  , Arguments< (ins Variadic<AnyType>:$arguments) >
-  , Results< (outs Variadic<AnyType>:$result) >
+  , Arguments< (ins Variadic<Parser_NoDataType>:$arguments) >
+  , Results< (outs Variadic<Parser_NoDataType>:$result) >
 {
   let summary = "Non-parsing operation data.";
 }
