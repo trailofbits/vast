@@ -19,6 +19,12 @@ namespace vast::core {
     // Use TypeID of Interfaces that defines the symbol
     using symbol_kind = mlir::TypeID;
 
+    using symbol_use_range = ::mlir::SymbolTable::UseRange;
+
+    std::optional< symbol_use_range > get_symbol_uses(
+        operation symbol, operation from
+    );
+
 } // namespace vast::core
 
 /// Include the generated interface declarations.

@@ -153,7 +153,6 @@ namespace vast::query
     }
 
     logical_result do_show_users(auto scope) {
-        VAST_UNIMPLEMENTED;
         // auto &name = cl::options->show_symbol_users;
         // util::yield_users(name.getValue(), scope, [](auto user) {
         //     user->print(llvm::outs());
@@ -161,6 +160,7 @@ namespace vast::query
         // });
 
         // return mlir::success();
+        VAST_UNIMPLEMENTED;
     }
 } // namespace vast::query
 

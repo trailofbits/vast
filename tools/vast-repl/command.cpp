@@ -101,9 +101,10 @@ namespace cmd {
             state.raise_tower(std::move(root));
         }
 
-        util::symbols(state.current_module(), [&] (auto symbol) {
-            llvm::outs() << util::show_symbol_value(symbol) << "\n";
-        });
+        VAST_UNIMPLEMENTED;
+        // util::symbols(state.current_module(), [&] (auto symbol) {
+        //     llvm::outs() << util::show_symbol_value(symbol) << "\n";
+        // });
     }
 
     void show_pipelines(state_t &state) {
@@ -162,14 +163,15 @@ namespace cmd {
     void meta::add(state_t &state) const {
         using ::vast::meta::add_identifier;
 
-        auto name_param = get_param< symbol_param >(params);
-        util::symbols(state.current_module(), [&] (auto symbol) {
-            if (util::symbol_name(symbol) == name_param.value) {
-                auto id = get_param< identifier_param >(params);
-                add_identifier(symbol, id.value);
-                llvm::outs() << symbol << "\n";
-            }
-        });
+        VAST_UNIMPLEMENTED;
+        // auto name_param = get_param< symbol_param >(params);
+        // util::symbols(state.current_module(), [&] (auto symbol) {
+        //     if (util::symbol_name(symbol) == name_param.value) {
+        //         auto id = get_param< identifier_param >(params);
+        //         add_identifier(symbol, id.value);
+        //         llvm::outs() << symbol << "\n";
+        //     }
+        // });
     }
 
     void meta::get(state_t &state) const {

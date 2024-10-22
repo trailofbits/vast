@@ -37,6 +37,17 @@ def Core_Symbol : Core_OpInterface< "SymbolOpInterface" > {
                     op->setAttr("name", attr);
                 }
             }]
+        >,
+        InterfaceMethod< [{
+                Get all of the uses of the current symbol that are nested within
+                the given operation 'from'.
+                Note: See core::symbol_table::get_symbol_uses for more details.
+            }],
+            "::std::optional< ::mlir::SymbolTable::UseRange >", "getSymbolUses",
+            (ins "::mlir::Operation *":$from), [{}],
+            /*defaultImplementation=*/[{
+                return ::vast::core::get_symbol_uses(this->getOperation(), from);
+            }]
         >
     ];
 }

@@ -62,6 +62,7 @@ namespace vast {
     using mlir_attr    = mlir::Attribute;
     using maybe_attr_t = std::optional< mlir_attr >;
     using named_attr   = mlir::NamedAttribute;
+    using string_attr  = mlir::StringAttr;
 
     using integer_attr_t = mlir::IntegerAttr;
 
