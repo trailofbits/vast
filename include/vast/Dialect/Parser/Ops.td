@@ -10,4 +10,36 @@ include "vast/Dialect/Core/Utils.td"
 class Parser_Op< string mnemonic, list< Trait > traits = [] >
   : Op< Parser_Dialect, mnemonic, traits >;
 
+def Parser_Source
+  : Parser_Op< "source" >
+  , Arguments< (ins Variadic<AnyType>:$arguments) >
+  , Results< (outs Variadic<AnyType>:$result) >
+{
+  let summary = "Source of parsed data.";
+}
+
+def Paser_Sink
+  : Parser_Op< "sink" >
+  , Arguments< (ins Variadic<AnyType>:$arguments) >
+  , Results< (outs Variadic<AnyType>:$result) >
+{
+  let summary = "Sink of parsed data.";
+}
+
+def Parser_Parse
+  : Parser_Op< "parse" >
+  , Arguments< (ins Variadic<AnyType>:$arguments) >
+  , Results< (outs Variadic<AnyType>:$result) >
+{
+  let summary = "Parsing operation data.";
+}
+
+def Parse_NoParse
+  : Parser_Op< "noparse" >
+  , Arguments< (ins Variadic<AnyType>:$arguments) >
+  , Results< (outs Variadic<AnyType>:$result) >
+{
+  let summary = "Non-parsing operation data.";
+}
+
 #endif // VAST_DIALECT_PARSER_OPS
