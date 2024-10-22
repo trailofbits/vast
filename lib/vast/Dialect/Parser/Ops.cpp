@@ -19,7 +19,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Parser/Dialect.hpp"
 #include "vast/Dialect/Parser/Ops.hpp"
-#include "vast/Dialect/HighLevel/HighLevelTypes.hpp"
+#include "vast/Dialect/Parser/Types.hpp"
 
 using namespace vast::pr;
 
