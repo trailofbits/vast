@@ -435,6 +435,133 @@ jobs:
           path: ./linux_kernel_times.md
 
 #
+#     GZIP benchmark
+#
+  run_gzip_bench:
+    name: "Run gzip translation"
+    needs: build
+    strategy:
+      matrix:
+        llvm-version: [19]
+        image-version: [22.04]
+        gzip-version: ['1.10', '1.13']
+        vast-target: ['hl', 'llvm']
+        disable-unsup: [true, false]
+        exclude:
+            - vast-target: 'llvm'
+              disable-unsup: false
+            - vast-target: 'bin'
+              disable-unsup: false
+
+    runs-on: ubuntu-${{ matrix.image-version }}
+    timeout-minutes: 360
+    container:
+      image:
+        ghcr.io/trailofbits/vast-ubuntu-${{ matrix.image-version }}-llvm-${{ matrix.llvm-version }}-dev:latest
+
+    steps:
+      - name: Fetch VAST artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: VAST
+
+      - name: Unpack VAST
+        run: mkdir vast && tar -xf VAST-* -C vast --strip-components=1
+
+      - name: Export vast binaries
+        run: echo "${PWD}/vast/bin/" >> $GITHUB_PATH
+
+      - name: Install benchmark dependencies
+        run: |
+          apt-get update
+          apt-get -y install bear
+
+      - name: Download gzip and generate compile commands
+        run: |
+          wget https://ftp.gnu.org/gnu/gzip/gzip-${{ matrix.gzip-version }}.tar.gz
+          tar -xvf gzip-${{ matrix.gzip-version }}.tar.gz
+          cd gzip-${{ matrix.gzip-version }}
+          ./configure
+          bear -- make
+
+      - name: Clone vast benchmark directory
+        uses: actions/checkout@v4
+        with:
+          repository: trailofbits/vast-benchmarks
+          sparse-checkout: benchmarks/linux_kernel
+          ref: main
+          path: vast-benchmarks/
+          fetch-depth: 1
+
+      - name: Setup result suffix and vast arguments
+        run: |
+          if [ "${{ matrix.disable-unsup }}" = "false" ]; then
+            echo "VAST_RESULTS_SUFFIX=with_unsup" >> $GITHUB_ENV
+          else
+            echo "VAST_RESULTS_SUFFIX=without_unsup" >> $GITHUB_ENV
+            echo "VAST_DISABLE_UNSUPPORTED=-vast-disable-unsupported" >> $GITHUB_ENV
+          fi
+
+      - name: Run benchmarks
+        run: >
+          python3 ${PWD}/vast-benchmarks/benchmarks/linux_kernel/run_vast_benchmark.py
+          vast-front
+          ${PWD}/gzip-${{ matrix.gzip-version }}/compile_commands.json
+          --num_processes=$(nproc)
+          --vast_option="-xc"
+          --vast_option="-vast-emit-mlir=${{ matrix.vast-target }}"
+          --vast_option="${{ env.VAST_DISABLE_UNSUPPORTED }}"
+          --print_errors
+          > gzip_${{ matrix.gzip-version }}_${{ matrix.vast-target }}_${{ env.VAST_RESULTS_SUFFIX }}.tsv
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: gzip_${{ matrix.gzip-version }}_${{ matrix.vast-target }}_${{ env.VAST_RESULTS_SUFFIX }}.tsv
+          path: ./gzip_${{ matrix.gzip-version }}_${{ matrix.vast-target }}_${{ env.VAST_RESULTS_SUFFIX }}.tsv
+
+  convert_gzip_bench:
+    name: "Convert gzip results to Markdown"
+    needs: run_gzip_bench
+    strategy:
+      matrix:
+        image-version: [22.04]
+        gzip-version: ['1.10', '1.13']
+    runs-on: ubuntu-${{ matrix.image-version }}
+    steps:
+      - name: Fetch result artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: gzip_*
+          merge-multiple: true
+
+      - name: Install converter dependencies
+        run: pip3 install pandas scipy tabulate
+
+      - name: Clone vast benchmark directory
+        uses: actions/checkout@v4
+        with:
+          repository: trailofbits/vast-benchmarks
+          sparse-checkout: utils/
+          ref: main
+          path: vast-benchmarks/
+          fetch-depth: 1
+
+      - name: Generate gzip results
+        run: >
+          python3 vast-benchmarks/utils/to_markdown.py '{
+            "HighLevel with unsupported" : "gzip_${{ matrix.gzip-version }}_hl_with_unsup.tsv",
+            "HighLevel" : "gzip_${{ matrix.gzip-version }}_hl_without_unsup.tsv",
+            "LLVM" : "gzip_${{ matrix.gzip-version }}_llvm_without_unsup.tsv"
+          }' --output_filepath gzip_times_${{ matrix.gzip-version }}.md
+
+      - name: Post results as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: gzip_times_${{ matrix.gzip-version }}.md
+          path: ./gzip_times_${{ matrix.gzip-version }}.md
+
+#
 #     Webpage build
 #
   build_doc:
@@ -444,7 +571,7 @@ jobs:
         image-version: [22.04]
     name: "Build VAST doc"
     runs-on: ubuntu-${{ matrix.image-version }}
-    needs: [eval_llvm_ts, eval_svcomp, convert_linux_kernel_bench]
+    needs: [eval_llvm_ts, eval_svcomp, convert_linux_kernel_bench, convert_gzip_bench]
     timeout-minutes: 60
     container:
       image:
@@ -486,6 +613,17 @@ jobs:
           name: linux_kernel_times.md
           path: linux_kernel_times
 
+      - name: Fetch GZIP 1.10 benchmark results
+        uses: actions/download-artifact@v4
+        with:
+            name: gzip_times_1.10.md
+            path: gzip_times_1.10
+
+      - name: Fetch GZIP 1.13 benchmark results
+        uses: actions/download-artifact@v4
+        with:
+            name: gzip_times_1.13.md
+            path: gzip_times_1.13
       - name: Build Pages
         run: |
           sh ./www/setup.sh _site ./builds/ci/
