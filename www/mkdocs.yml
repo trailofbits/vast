@@ -29,6 +29,8 @@ nav:
     - LLVM Single Source: Benchmarks/single-source-results.md
     - SV-Comp: Benchmarks/sv-comp-results.md
     - Linux Kernel 6.11: Benchmarks/linux_kernel_times.md
+    - GZIP 1.10: Benchmarks/gzip_times_1.10.md
+    - GZIP 1.13: Benchmarks/gzip_times_1.13.md
   - About:
     - 'License': 'statement.md'
 
