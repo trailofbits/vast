@@ -67,6 +67,11 @@ class HighLevel_FlatSymbolReferringAttr<string name, string attr_mnemonic>
 
 def HighLevel_AnnotationAttr       : HighLevel_NameAttr< "Annotation", "annotation" >;
 def HighLevel_FormatAttr           : HighLevel_NameAttr< "Format", "format" >;
+def HighLevel_FormatArgAttr        : HighLevel_NameAttr< "FormatArg", "format_arg" >
+{
+  let parameters = (ins "unsigned":$format_idx);
+  let assemblyFormat = "`<` $format_idx `>`";
+}
 def HighLevel_SectionAttr          : HighLevel_NameAttr< "Section", "section" >;
 def HighLevel_AliasAttr            : HighLevel_NameAttr< "Alias", "alias" >;
 def HighLevel_ErrorAttr            : HighLevel_NameAttr< "Error", "error" >;

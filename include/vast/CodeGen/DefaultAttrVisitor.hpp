@@ -29,6 +29,7 @@ namespace vast::cg {
         mlir_attr VisitAliasAttr(const clang::AliasAttr *attr);
         mlir_attr VisitErrorAttr(const clang::ErrorAttr *attr);
         mlir_attr VisitFormatAttr(const clang::FormatAttr *attr);
+        mlir_attr VisitFormatArgAttr(const clang::FormatArgAttr *attr);
         mlir_attr VisitAnnotateAttr(const clang::AnnotateAttr *attr);
         mlir_attr VisitAlignedAttr(const clang::AlignedAttr *attr);
         mlir_attr VisitAlwaysInlineAttr(const clang::AlwaysInlineAttr *attr);
