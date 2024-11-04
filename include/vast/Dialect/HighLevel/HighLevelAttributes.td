@@ -81,7 +81,15 @@ def HighLevel_CleanupAttr          : HighLevel_SymbolReferringAttr< "Cleanup", "
 def HighLevel_AlignedAttr          : HighLevel_Attr< "Aligned", "aligned" >;
 def HighLevel_AlwaysInlineAttr     : HighLevel_Attr< "AlwaysInline", "always_inline" >;
 def HighLevel_ArtificialAttr       : HighLevel_Attr< "Artificial", "artificial" >;
+def HighLevel_Cold                 : HighLevel_Attr< "Cold", "cold" >;
+def HighLevel_Common               : HighLevel_Attr< "Common", "common" >;
 def HighLevel_ConstAttr            : HighLevel_Attr< "Const", "const" >;
+def HighLevel_ConstInitAttr        : HighLevel_Attr< "ConstInit", "constinit" >;
+def HighLevel_ConstructorAttr      : HighLevel_Attr< "Constructor", "constructor" >
+{
+  let parameters = (ins DefaultValuedParameter<"unsigned", "65535">:$priority);
+  let assemblyFormat = "`<` $priority `>`";
+}
 def HighLevel_LoaderUninitAttr     : HighLevel_Attr< "LoaderUninitialized", "loader_uninitialized" >;
 def HighLevel_NoInstrumentAttr     : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
 def HighLevel_PackedAttr           : HighLevel_Attr< "Packed", "packed" >;
@@ -115,7 +123,6 @@ def HighLevel_PassObjectSizeAttr
 }
 
 def HighLevel_LeafAttr             : HighLevel_Attr< "Leaf", "leaf" >;
-def HighLevel_ColdAttr             : HighLevel_Attr< "Cold", "cold" >;
 def HighLevel_TransparentUnionAttr : HighLevel_Attr< "TransparentUnion", "transparent_union" >;
 def HighLevel_UnavailableAttr      : HighLevel_NameAttr< "Unavailable", "unavailable" >;
 // FIXME: this is just a stub
