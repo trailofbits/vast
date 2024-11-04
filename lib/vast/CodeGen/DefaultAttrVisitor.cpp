@@ -6,10 +6,6 @@
 
 namespace vast::cg
 {
-    mlir_attr default_attr_visitor::VisitConstAttr(const clang::ConstAttr *attr) {
-        return make< hl::ConstAttr >();
-    }
-
     mlir_attr default_attr_visitor::VisitSectionAttr(const clang::SectionAttr *attr) {
         return make< hl::SectionAttr >(attr->getName());
     }
@@ -45,6 +41,26 @@ namespace vast::cg
 
     mlir_attr default_attr_visitor::VisitArtificialAttr(const clang::ArtificialAttr *attr) {
         return make< hl::ArtificialAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitColdAttr(const clang::ColdAttr *attr) {
+        return make< hl::ColdAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitCommonAttr(const clang::CommonAttr *attr) {
+        return make< hl::CommonAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitConstAttr(const clang::ConstAttr *attr) {
+        return make< hl::ConstAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitConstInitAttr(const clang::ConstInitAttr *attr) {
+        return make< hl::ConstInitAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitConstructorAttr(const clang::ConstructorAttr *attr) {
+        return make< hl::ConstructorAttr >(attr->getPriority());
     }
 
     mlir_attr default_attr_visitor::VisitLoaderUninitializedAttr(const clang::LoaderUninitializedAttr *) {
@@ -142,10 +158,6 @@ namespace vast::cg
 
     mlir_attr default_attr_visitor::VisitLeafAttr(const clang::LeafAttr *attr) {
         return make< hl::LeafAttr >();
-    }
-
-    mlir_attr default_attr_visitor::VisitColdAttr(const clang::ColdAttr *attr) {
-        return make< hl::ColdAttr >();
     }
 
     mlir_attr default_attr_visitor::VisitDeprecatedAttr(const clang::DeprecatedAttr *attr) {
