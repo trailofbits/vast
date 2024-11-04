@@ -32,6 +32,7 @@ namespace vast::cg {
         mlir_attr VisitAnnotateAttr(const clang::AnnotateAttr *attr);
         mlir_attr VisitAlignedAttr(const clang::AlignedAttr *attr);
         mlir_attr VisitAlwaysInlineAttr(const clang::AlwaysInlineAttr *attr);
+        mlir_attr VisitArtificialAttr(const clang::ArtificialAttr *attr);
         mlir_attr VisitNoInlineAttr(const clang::NoInlineAttr *attr);
         mlir_attr VisitLoaderUninitializedAttr(const clang::LoaderUninitializedAttr *attr);
         mlir_attr VisitNoInstrumentFunctionAttr(const clang::NoInstrumentFunctionAttr *attr);
@@ -40,7 +41,9 @@ namespace vast::cg {
         mlir_attr VisitWarnUnusedResultAttr(const clang::WarnUnusedResultAttr *attr);
         mlir_attr VisitRestrictAttr(const clang::RestrictAttr *attr);
         mlir_attr VisitNoThrowAttr(const clang::NoThrowAttr *attr);
+        mlir_attr VisitOverloadableAttr(const clang::OverloadableAttr *attr);
         mlir_attr VisitNonNullAttr(const clang::NonNullAttr *attr);
+        mlir_attr VisitPassObjectSizeAttr(const clang::PassObjectSizeAttr *attr);
         mlir_attr VisitModeAttr(const clang::ModeAttr *attr);
         mlir_attr VisitBuiltinAttr(const clang::BuiltinAttr *attr);
         mlir_attr VisitAsmLabelAttr(const clang::AsmLabelAttr *attr);
@@ -50,6 +53,7 @@ namespace vast::cg {
         mlir_attr VisitColdAttr(const clang::ColdAttr *attr);
         mlir_attr VisitDeprecatedAttr(const clang::DeprecatedAttr *attr);
         mlir_attr VisitTransparentUnionAttr(const clang::TransparentUnionAttr *attr);
+        mlir_attr VisitUnavailableAttr(const clang::UnavailableAttr *attr);
         mlir_attr VisitReturnsTwiceAttr(const clang::ReturnsTwiceAttr *attr);
         mlir_attr VisitMayAliasAttr(const clang::MayAliasAttr *attr);
         mlir_attr VisitUnusedAttr(const clang::UnusedAttr *attr);

@@ -40,6 +40,10 @@ namespace vast::cg
         return make< hl::AlwaysInlineAttr >();
     }
 
+    mlir_attr default_attr_visitor::VisitArtificialAttr(const clang::ArtificialAttr *attr) {
+        return make< hl::ArtificialAttr >();
+    }
+
     mlir_attr default_attr_visitor::VisitNoInlineAttr(const clang::NoInlineAttr *attr) {
         return make< hl::NoInlineAttr >();
     }
@@ -72,8 +76,16 @@ namespace vast::cg
         return make< hl::NoThrowAttr >();
     }
 
+    mlir_attr default_attr_visitor::VisitOverloadableAttr(const clang::OverloadableAttr *attr) {
+        return make< hl::OverloadableAttr >();
+    }
+
     mlir_attr default_attr_visitor::VisitNonNullAttr(const clang::NonNullAttr *) {
         return make< hl::NonNullAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitPassObjectSizeAttr(const clang::PassObjectSizeAttr *attr) {
+        return make< hl::PassObjectSizeAttr >(attr->getType(), attr->isDynamic());
     }
 
     mlir_attr default_attr_visitor::VisitModeAttr(const clang::ModeAttr *attr) {
@@ -111,6 +123,10 @@ namespace vast::cg
 
     mlir_attr default_attr_visitor::VisitTransparentUnionAttr(const clang::TransparentUnionAttr *attr) {
         return make< hl::TransparentUnionAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitUnavailableAttr(const clang::UnavailableAttr *attr) {
+        return make< hl::UnavailableAttr >(attr->getMessage());
     }
 
     mlir_attr default_attr_visitor::VisitReturnsTwiceAttr(const clang::ReturnsTwiceAttr *attr) {
