@@ -22,9 +22,12 @@ namespace vast::cg
         return make< hl::ErrorAttr >(attr->getUserDiagnostic());
     }
 
-
     mlir_attr default_attr_visitor::VisitFormatAttr(const clang::FormatAttr *attr) {
         return make< hl::FormatAttr >(attr->getType()->getName());
+    }
+
+    mlir_attr default_attr_visitor::VisitFormatArgAttr(const clang::FormatArgAttr *attr) {
+        return make< hl::FormatArgAttr >(attr->getFormatIdx().serialize());
     }
 
     mlir_attr default_attr_visitor::VisitAnnotateAttr(const clang::AnnotateAttr *attr) {
