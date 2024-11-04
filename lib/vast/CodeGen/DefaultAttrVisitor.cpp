@@ -81,7 +81,7 @@ namespace vast::cg
 
     mlir_attr default_attr_visitor::VisitOverloadableAttr(const clang::OverloadableAttr *attr) {
         return make< hl::OverloadableAttr >();
-    }
+}
 
     mlir_attr default_attr_visitor::VisitNonNullAttr(const clang::NonNullAttr *) {
         return make< hl::NonNullAttr >();
@@ -158,6 +158,14 @@ namespace vast::cg
 
     mlir_attr default_attr_visitor::VisitTransparentUnionAttr(const clang::TransparentUnionAttr *attr) {
         return make< hl::TransparentUnionAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitUnavailableAttr(const clang::UnavailableAttr *attr) {
+        return make< hl::UnavailableAttr >(attr->getMessage());
+    }
+
+    mlir_attr default_attr_visitor::VisitDiagnoseIfAttr(const clang::DiagnoseIfAttr *attr) {
+        return make< hl::DiagnoseIfAttr >();
     }
 
     mlir_attr default_attr_visitor::VisitReturnsTwiceAttr(const clang::ReturnsTwiceAttr *attr) {
