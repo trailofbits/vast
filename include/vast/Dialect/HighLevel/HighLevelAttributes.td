@@ -75,6 +75,7 @@ def HighLevel_CleanupAttr          : HighLevel_SymbolReferringAttr< "Cleanup", "
 // TODO(#595): Make aligned attribute keep the alignment value/expr
 def HighLevel_AlignedAttr          : HighLevel_Attr< "Aligned", "aligned" >;
 def HighLevel_AlwaysInlineAttr     : HighLevel_Attr< "AlwaysInline", "always_inline" >;
+def HighLevel_ArtificialAttr       : HighLevel_Attr< "Artificial", "artificial" >;
 def HighLevel_NoInlineAttr         : HighLevel_Attr< "NoInline", "noinline" >;
 def HighLevel_ConstAttr            : HighLevel_Attr< "Const", "const" >;
 def HighLevel_LoaderUninitAttr     : HighLevel_Attr< "LoaderUninitialized", "loader_uninitialized" >;
@@ -84,10 +85,20 @@ def HighLevel_PureAttr             : HighLevel_Attr< "Pure", "pure" >;
 def HighLevel_WarnUnusedResAttr    : HighLevel_Attr< "WarnUnusedResult", "warn_unused_result" >;
 def HighLevel_RestrictAttr         : HighLevel_Attr< "Restrict", "restrict" >;
 def HighLevel_NoThrowAttr          : HighLevel_Attr< "NoThrow", "nothrow" >;
+def HighLevel_OverloadableAttr     : HighLevel_Attr< "Overloadable", "overloadable" >;
 def HighLevel_NonNullAttr          : HighLevel_Attr< "NonNull", "nonnull" >;
+
+def HighLevel_PassObjectSizeAttr
+  : HighLevel_Attr< "PassObjectSize", "pass_object_size" >
+{
+  let parameters = (ins "int":$type, "bool":$dynamic);
+  let assemblyFormat = "`<` $type`,` $dynamic `>`";
+}
+
 def HighLevel_LeafAttr             : HighLevel_Attr< "Leaf", "leaf" >;
 def HighLevel_ColdAttr             : HighLevel_Attr< "Cold", "cold" >;
 def HighLevel_TransparentUnionAttr : HighLevel_Attr< "TransparentUnion", "transparent_union" >;
+def HighLevel_UnavailableAttr      : HighLevel_NameAttr< "Unavailable", "unavailable" >;
 def HighLevel_ReturnsTwiceAttr     : HighLevel_Attr< "ReturnsTwice", "returns_twice" >;
 def HighLevel_MayAliasAttr         : HighLevel_Attr< "MayAlias", "may_alias" >;
 def HighLevel_UnusedAttr           : HighLevel_Attr< "Unused", "unused" >;
