@@ -75,10 +75,6 @@ namespace vast::cg
         return make< hl::LoaderUninitializedAttr >();
     }
 
-    mlir_attr default_attr_visitor::VisitNoInstrumentFunctionAttr(const clang::NoInstrumentFunctionAttr *) {
-        return make< hl::NoInstrumentFunctionAttr >();
-    }
-
     mlir_attr default_attr_visitor::VisitPackedAttr(const clang::PackedAttr *) {
         return make< hl::PackedAttr >();
     }
@@ -129,6 +125,18 @@ namespace vast::cg
 
     mlir_attr default_attr_visitor::VisitAllocAlignAttr(const clang::AllocAlignAttr *attr) {
         return make< hl::AllocAlignAttr >(attr->getParamIndex().getSourceIndex());
+    }
+
+    mlir_attr default_attr_visitor::VisitNoInstrumentFunctionAttr(const clang::NoInstrumentFunctionAttr *) {
+        return make< hl::NoInstrumentFunctionAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitNoProfileFunctionAttr(const clang::NoProfileFunctionAttr *) {
+        return make< hl::NoProfileFunctionAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitNotTailCalledAttr(const clang::NotTailCalledAttr *) {
+        return make< hl::NotTailCalledAttr >();
     }
 
     mlir_attr default_attr_visitor::VisitAllocSizeAttr(const clang::AllocSizeAttr *attr) {
@@ -289,7 +297,4 @@ namespace vast::cg
         return make< hl::CleanupAttr >(attr->getFunctionDecl()->getName());
     }
 
-    mlir_attr default_attr_visitor::VisitNoProfileFunctionAttr(const clang::NoProfileFunctionAttr *attr) {
-        return make< hl::NoProfileInstrumentFunctionAttr >();
-    }
 } // namespace vast::cg
