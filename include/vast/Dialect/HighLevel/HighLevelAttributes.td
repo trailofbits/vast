@@ -194,7 +194,7 @@ def HighLevel_VisibilityAttr : EnumAttr< HighLevel_Dialect, HighLevel_Visibility
   let summary = "Visibility attribute";
   }
 
-def HighLevel_Attr
+def HighLevel_AssumeAlignedAttr
   : HighLevel_Attr< "AssumeAligned", "assume_aligned" >
 {
   // TODO: Add support for arbitrary subexpressions
