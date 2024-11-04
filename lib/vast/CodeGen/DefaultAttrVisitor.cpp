@@ -117,6 +117,30 @@ namespace vast::cg
         return make< hl::EnableIfAttr >();
     }
 
+    mlir_attr default_attr_visitor::VisitC11NoReturnAttr(const clang::C11NoReturnAttr *) {
+        return make< hl::C11NoReturnAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitCXX11NoReturnAttr(const clang::CXX11NoReturnAttr *) {
+        return make< hl::CXX11NoReturnAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitNonBlockingAttr(const clang::NonBlockingAttr *) {
+        return make< hl::NonBlockingAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitNonAllocatingAttr(const clang::NonAllocatingAttr *) {
+        return make< hl::NonAllocatingAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitBlockingAttr(const clang::BlockingAttr *) {
+        return make< hl::BlockingAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitAllocatingAttr(const clang::AllocatingAttr *) {
+        return make< hl::AllocatingAttr >();
+    }
+
     mlir_attr default_attr_visitor::VisitLeafAttr(const clang::LeafAttr *attr) {
         return make< hl::LeafAttr >();
     }
@@ -129,20 +153,48 @@ namespace vast::cg
         return make< hl::DeprecatedAttr >(attr->getMessage(), attr->getReplacement());
     }
 
+    mlir_attr default_attr_visitor::VisitDestructorAttr(const clang::DestructorAttr *attr) {
+        return make< hl::DestructorAttr >(attr->getPriority());
+    }
+
     mlir_attr default_attr_visitor::VisitTransparentUnionAttr(const clang::TransparentUnionAttr *attr) {
         return make< hl::TransparentUnionAttr >();
     }
 
-    mlir_attr default_attr_visitor::VisitUnavailableAttr(const clang::UnavailableAttr *attr) {
-        return make< hl::UnavailableAttr >(attr->getMessage());
-    }
-
-    mlir_attr default_attr_visitor::VisitDiagnoseIfAttr(const clang::DiagnoseIfAttr *attr) {
-        return make< hl::DiagnoseIfAttr >();
-    }
-
     mlir_attr default_attr_visitor::VisitReturnsTwiceAttr(const clang::ReturnsTwiceAttr *attr) {
         return make< hl::ReturnsTwiceAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitDisableTailCallsAttr(const clang::DisableTailCallsAttr *attr) {
+        return make< hl::DisableTailCallsAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitNoAliasAttr(const clang::NoAliasAttr *attr) {
+        return make< hl::NoAliasAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitNoCommonAttr(const clang::NoCommonAttr *attr) {
+        return make< hl::NoCommonAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitNoDebugAttr(const clang::NoDebugAttr *attr) {
+        return make< hl::NoDebugAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitStandaloneDebugAttr(const clang::StandaloneDebugAttr *attr) {
+        return make< hl::StandaloneDebugAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitNoDuplicateAttr(const clang::NoDuplicateAttr *attr) {
+        return make< hl::NoDuplicateAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitConvergentAttr(const clang::ConvergentAttr *attr) {
+        return make< hl::ConvergentAttr >();
+    }
+
+    mlir_attr default_attr_visitor::VisitNoInlineAttr(const clang::NoInlineAttr *attr) {
+        return make< hl::NoInlineAttr >();
     }
 
     mlir_attr default_attr_visitor::VisitMaxFieldAlignmentAttr(const clang::MaxFieldAlignmentAttr *attr) {
