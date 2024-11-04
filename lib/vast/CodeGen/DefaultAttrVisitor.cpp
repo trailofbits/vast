@@ -14,12 +14,20 @@ namespace vast::cg
         return make< hl::SectionAttr >(attr->getName());
     }
 
+    mlir_attr default_attr_visitor::VisitTargetAttr(const clang::TargetAttr *attr) {
+        return make< hl::TargetAttr >(attr->getFeaturesStr());
+    }
+
     mlir_attr default_attr_visitor::VisitAliasAttr(const clang::AliasAttr *attr) {
         return make< hl::AliasAttr >(attr->getAliasee());
     }
 
     mlir_attr default_attr_visitor::VisitErrorAttr(const clang::ErrorAttr *attr) {
         return make< hl::ErrorAttr >(attr->getUserDiagnostic());
+    }
+
+    mlir_attr default_attr_visitor::VisitFlattenAttr(const clang::FlattenAttr *attr) {
+        return make< hl::FlattenAttr >();
     }
 
     mlir_attr default_attr_visitor::VisitFormatAttr(const clang::FormatAttr *attr) {
