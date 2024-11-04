@@ -109,6 +109,10 @@ namespace vast::cg
         return make< hl::AllocSizeAttr >(attr->getElemSizeParam().getSourceIndex(), num);
     }
 
+    mlir_attr default_attr_visitor::VisitEnableIfAttr(const clang::EnableIfAttr *attr) {
+        return make< hl::EnableIfAttr >();
+    }
+
     mlir_attr default_attr_visitor::VisitLeafAttr(const clang::LeafAttr *attr) {
         return make< hl::LeafAttr >();
     }
@@ -127,6 +131,10 @@ namespace vast::cg
 
     mlir_attr default_attr_visitor::VisitUnavailableAttr(const clang::UnavailableAttr *attr) {
         return make< hl::UnavailableAttr >(attr->getMessage());
+    }
+
+    mlir_attr default_attr_visitor::VisitDiagnoseIfAttr(const clang::DiagnoseIfAttr *attr) {
+        return make< hl::DiagnoseIfAttr >();
     }
 
     mlir_attr default_attr_visitor::VisitReturnsTwiceAttr(const clang::ReturnsTwiceAttr *attr) {

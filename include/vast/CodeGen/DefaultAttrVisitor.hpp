@@ -49,11 +49,13 @@ namespace vast::cg {
         mlir_attr VisitAsmLabelAttr(const clang::AsmLabelAttr *attr);
         mlir_attr VisitAllocAlignAttr(const clang::AllocAlignAttr *attr);
         mlir_attr VisitAllocSizeAttr(const clang::AllocSizeAttr *attr);
+        mlir_attr VisitEnableIfAttr(const clang::EnableIfAttr *attr);
         mlir_attr VisitLeafAttr(const clang::LeafAttr *attr);
         mlir_attr VisitColdAttr(const clang::ColdAttr *attr);
         mlir_attr VisitDeprecatedAttr(const clang::DeprecatedAttr *attr);
         mlir_attr VisitTransparentUnionAttr(const clang::TransparentUnionAttr *attr);
         mlir_attr VisitUnavailableAttr(const clang::UnavailableAttr *attr);
+        mlir_attr VisitDiagnoseIfAttr(const clang::DiagnoseIfAttr *attr);
         mlir_attr VisitReturnsTwiceAttr(const clang::ReturnsTwiceAttr *attr);
         mlir_attr VisitMayAliasAttr(const clang::MayAliasAttr *attr);
         mlir_attr VisitUnusedAttr(const clang::UnusedAttr *attr);
