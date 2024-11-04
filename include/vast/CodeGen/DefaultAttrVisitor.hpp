@@ -39,7 +39,6 @@ namespace vast::cg {
         mlir_attr VisitConstInitAttr(const clang::ConstInitAttr *attr);
         mlir_attr VisitConstructorAttr(const clang::ConstructorAttr *attr);
         mlir_attr VisitLoaderUninitializedAttr(const clang::LoaderUninitializedAttr *attr);
-        mlir_attr VisitNoInstrumentFunctionAttr(const clang::NoInstrumentFunctionAttr *attr);
         mlir_attr VisitPackedAttr(const clang::PackedAttr *attr);
         mlir_attr VisitPureAttr(const clang::PureAttr *attr);
         mlir_attr VisitSwiftAttrAttr(const clang::SwiftAttrAttr *attr);
@@ -53,6 +52,9 @@ namespace vast::cg {
         mlir_attr VisitBuiltinAttr(const clang::BuiltinAttr *attr);
         mlir_attr VisitAsmLabelAttr(const clang::AsmLabelAttr *attr);
         mlir_attr VisitAllocAlignAttr(const clang::AllocAlignAttr *attr);
+        mlir_attr VisitNoInstrumentFunctionAttr(const clang::NoInstrumentFunctionAttr *attr);
+        mlir_attr VisitNoProfileFunctionAttr(const clang::NoProfileFunctionAttr *attr);
+        mlir_attr VisitNotTailCalledAttr(const clang::NotTailCalledAttr *attr);
         mlir_attr VisitAllocSizeAttr(const clang::AllocSizeAttr *attr);
         mlir_attr VisitEnableIfAttr(const clang::EnableIfAttr *attr);
         mlir_attr VisitC11NoReturnAttr(const clang::C11NoReturnAttr *attr);
@@ -89,7 +91,6 @@ namespace vast::cg {
         mlir_attr VisitAssumeAlignedAttr(const clang::AssumeAlignedAttr *attr);
         mlir_attr VisitCountedByAttr(const clang::CountedByAttr *attr);
         mlir_attr VisitCleanupAttr(const clang::CleanupAttr *attr);
-        mlir_attr VisitNoProfileFunctionAttr(const clang::NoProfileFunctionAttr *attr);
 
       private:
         template< typename attr_t, typename... args_t >
