@@ -184,8 +184,12 @@ def HighLevel_AllocSizeAttr
   let assemblyFormat = "`<` `size_pos` `:` $size_arg_pos (`,` `num_pos` `:` $num_arg_pos^)? `>`";
 }
 
-// FIXME: this is just a stub
-def HighLevel_EnableIfAttr         : HighLevel_Attr< "EnableIf", "enable_if" >;
+def HighLevel_C11NoReturn   : HighLevel_Attr< "C11NoReturn", "_Noreturn" >;
+def HighLevel_CXX11NoReturn : HighLevel_Attr< "CXX11NoReturn", "noreturn" >;
+def HighLevel_NonBlocking   : HighLevel_Attr< "NonBlocking", "nonblocking" >;
+def HighLevel_NonAllocating : HighLevel_Attr< "NonAllocating", "nonallocating" >;
+def HighLevel_Blocking      : HighLevel_Attr< "Blocking", "blocking" >;
+def HighLevel_Allocating    : HighLevel_Attr< "Allocating", "allocating" >;
 
 def HighLevel_DeprecatedAttr
   : HighLevel_Attr< "Deprecated", "deprecated" >
@@ -203,6 +207,16 @@ def HighLevel_DeprecatedAttr
 
   let assemblyFormat = "`<` `msg` `:` $message `,` `fix` `:` $fixit `>`";
 }
+
+def HighLevel_DestructorAttr
+  : HighLevel_Attr< "Destructor", "destructor" >
+{
+  let parameters = (ins DefaultValuedParameter<"unsigned", "65535">:$priority);
+  let assemblyFormat = "`<` $priority `>`";
+}
+
+// FIXME: this is just a stub
+def HighLevel_EnableIfAttr         : HighLevel_Attr< "EnableIf", "enable_if" >;
 
 def HighLevel_MaxFieldAlignmentAttr
   : HighLevel_Attr< "MaxFieldAlignment", "max_field_alignment" >
