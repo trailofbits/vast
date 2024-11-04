@@ -91,7 +91,6 @@ def HighLevel_ConstructorAttr      : HighLevel_Attr< "Constructor", "constructor
   let assemblyFormat = "`<` $priority `>`";
 }
 def HighLevel_LoaderUninitAttr     : HighLevel_Attr< "LoaderUninitialized", "loader_uninitialized" >;
-def HighLevel_NoInstrumentAttr     : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
 def HighLevel_PackedAttr           : HighLevel_Attr< "Packed", "packed" >;
 def HighLevel_PureAttr             : HighLevel_Attr< "Pure", "pure" >;
 def HighLevel_SwiftAttrAttr        : HighLevel_Attr< "SwiftAttr", "swift_attr" >
@@ -145,8 +144,6 @@ def HighLevel_AvailableOnlyInDefaultEvalMethodAttr
   : HighLevel_Attr< "AvailableOnlyInDefaultEvalMethod", "available_only_in_default_eval_method" >;
 def HighLevel_AvailabilityAttr     : HighLevel_Attr< "AvailabilityAttr", "availability" >;
 def HighLevel_FallthroughAttr      : HighLevel_Attr< "Fallthrough", "fallthrough" >;
-def HighLevel_NoProfileInstrumentFunctionAttr
-  : HighLevel_Attr< "NoProfileInstrumentFunction", "no_profile_instrument_function" >;
 
 def HighLevel_AsmLabelAttr
   : HighLevel_Attr< "AsmLabel", "asm" >
@@ -195,6 +192,10 @@ def HighLevel_AllocAlignAttr
   let parameters = (ins "int":$alignment);
   let assemblyFormat = "`<` $alignment `>`";
 }
+
+def HighLevel_NoInstrumentFunctionAttr : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
+def HighLevel_NoProfileFunctionAttr : HighLevel_Attr< "NoProfileFunction", "no_profile_instrument_function" >;
+def HighLevel_NotTailCalledAttr : HighLevel_Attr< "NotTailCalled", "not_tail_called" >;
 
 def HighLevel_AllocSizeAttr
   : HighLevel_Attr< "AllocSize", "alloc_size" >
