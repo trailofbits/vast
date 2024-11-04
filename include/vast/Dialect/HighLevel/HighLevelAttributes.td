@@ -66,6 +66,7 @@ class HighLevel_FlatSymbolReferringAttr<string name, string attr_mnemonic>
 }
 
 def HighLevel_AnnotationAttr       : HighLevel_NameAttr< "Annotation", "annotation" >;
+def HighLevel_FlattentAttr         : HighLevel_Attr< "Flatten", "flatten" >;
 def HighLevel_FormatAttr           : HighLevel_NameAttr< "Format", "format" >;
 def HighLevel_FormatArgAttr        : HighLevel_NameAttr< "FormatArg", "format_arg" >
 {
@@ -73,6 +74,23 @@ def HighLevel_FormatArgAttr        : HighLevel_NameAttr< "FormatArg", "format_ar
   let assemblyFormat = "`<` $format_idx `>`";
 }
 def HighLevel_SectionAttr          : HighLevel_NameAttr< "Section", "section" >;
+
+def HighLevel_TargetAttr           : HighLevel_Attr< "Target", "target" >
+{
+  let parameters = (ins "mlir::StringAttr":$features);
+
+  let builders = [
+    AttrBuilderWithInferredContext<(ins "::mlir::StringAttr":$features), [{
+      return get(features.getContext(), features);
+    }]>,
+    AttrBuilder<(ins "::mlir::StringRef":$features), [{
+      return get(mlir::StringAttr::get($_ctxt, features));
+    }]>,
+  ];
+
+  let assemblyFormat = "`<` $features `>`";
+}
+
 def HighLevel_AliasAttr            : HighLevel_NameAttr< "Alias", "alias" >;
 def HighLevel_ErrorAttr            : HighLevel_NameAttr< "Error", "error" >;
 def HighLevel_CountedByAttr        : HighLevel_Attr< "CountedBy", "counted_by" >;
