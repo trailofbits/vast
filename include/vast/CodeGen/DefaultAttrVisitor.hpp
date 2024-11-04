@@ -34,7 +34,6 @@ namespace vast::cg {
         mlir_attr VisitAlignedAttr(const clang::AlignedAttr *attr);
         mlir_attr VisitAlwaysInlineAttr(const clang::AlwaysInlineAttr *attr);
         mlir_attr VisitArtificialAttr(const clang::ArtificialAttr *attr);
-        mlir_attr VisitNoInlineAttr(const clang::NoInlineAttr *attr);
         mlir_attr VisitLoaderUninitializedAttr(const clang::LoaderUninitializedAttr *attr);
         mlir_attr VisitNoInstrumentFunctionAttr(const clang::NoInstrumentFunctionAttr *attr);
         mlir_attr VisitPackedAttr(const clang::PackedAttr *attr);
@@ -66,6 +65,14 @@ namespace vast::cg {
         mlir_attr VisitUnavailableAttr(const clang::UnavailableAttr *attr);
         mlir_attr VisitDiagnoseIfAttr(const clang::DiagnoseIfAttr *attr);
         mlir_attr VisitReturnsTwiceAttr(const clang::ReturnsTwiceAttr *attr);
+        mlir_attr VisitDisableTailCallsAttr(const clang::DisableTailCallsAttr *attr);
+        mlir_attr VisitNoAliasAttr(const clang::NoAliasAttr *attr);
+        mlir_attr VisitNoCommonAttr(const clang::NoCommonAttr *attr);
+        mlir_attr VisitNoDebugAttr(const clang::NoDebugAttr *attr);
+        mlir_attr VisitStandaloneDebugAttr(const clang::StandaloneDebugAttr *attr);
+        mlir_attr VisitNoDuplicateAttr(const clang::NoDuplicateAttr *attr);
+        mlir_attr VisitConvergentAttr(const clang::ConvergentAttr *attr);
+        mlir_attr VisitNoInlineAttr(const clang::NoInlineAttr *attr);
         mlir_attr VisitMayAliasAttr(const clang::MayAliasAttr *attr);
         mlir_attr VisitUnusedAttr(const clang::UnusedAttr *attr);
         mlir_attr VisitUsedAttr(const clang::UsedAttr *attr);
