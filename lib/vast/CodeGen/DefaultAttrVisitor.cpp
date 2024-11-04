@@ -47,10 +47,6 @@ namespace vast::cg
         return make< hl::ArtificialAttr >();
     }
 
-    mlir_attr default_attr_visitor::VisitNoInlineAttr(const clang::NoInlineAttr *attr) {
-        return make< hl::NoInlineAttr >();
-    }
-
     mlir_attr default_attr_visitor::VisitLoaderUninitializedAttr(const clang::LoaderUninitializedAttr *) {
         return make< hl::LoaderUninitializedAttr >();
     }

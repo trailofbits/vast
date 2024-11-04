@@ -81,7 +81,6 @@ def HighLevel_CleanupAttr          : HighLevel_SymbolReferringAttr< "Cleanup", "
 def HighLevel_AlignedAttr          : HighLevel_Attr< "Aligned", "aligned" >;
 def HighLevel_AlwaysInlineAttr     : HighLevel_Attr< "AlwaysInline", "always_inline" >;
 def HighLevel_ArtificialAttr       : HighLevel_Attr< "Artificial", "artificial" >;
-def HighLevel_NoInlineAttr         : HighLevel_Attr< "NoInline", "noinline" >;
 def HighLevel_ConstAttr            : HighLevel_Attr< "Const", "const" >;
 def HighLevel_LoaderUninitAttr     : HighLevel_Attr< "LoaderUninitialized", "loader_uninitialized" >;
 def HighLevel_NoInstrumentAttr     : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
@@ -122,6 +121,14 @@ def HighLevel_UnavailableAttr      : HighLevel_NameAttr< "Unavailable", "unavail
 // FIXME: this is just a stub
 def HighLevel_DiagnoseIfAttr       : HighLevel_Attr< "DiagnoseIf", "diagnose_if" >;
 def HighLevel_ReturnsTwiceAttr     : HighLevel_Attr< "ReturnsTwice", "returns_twice" >;
+def HighLevel_DisableTailCallsAttr : HighLevel_Attr< "DisableTailCalls", "disable_tail_calls" >;
+def HighLevel_NoAliasAttr          : HighLevel_Attr< "NoAlias", "noalias" >;
+def HighLevel_NoCommonAttr         : HighLevel_Attr< "NoCommon", "nocommon" >;
+def HighLevel_NoDebugAttr          : HighLevel_Attr< "NoDebug", "nodebug" >;
+def HighLevel_StandaloneDebug      : HighLevel_Attr< "StandaloneDebug", "standalone_debug" >;
+def HighLevel_NoDuplicateAttr      : HighLevel_Attr< "NoDuplicate", "noduplicate" >;
+def HighLevel_ConvergentAttr       : HighLevel_Attr< "Convergent", "convergent" >;
+def HighLevel_NoInlineAttr         : HighLevel_Attr< "NoInline", "noinline" >;
 def HighLevel_MayAliasAttr         : HighLevel_Attr< "MayAlias", "may_alias" >;
 def HighLevel_UnusedAttr           : HighLevel_Attr< "Unused", "unused" >;
 def HighLevel_UsedAttr             : HighLevel_Attr< "Used", "used" >;
