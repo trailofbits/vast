@@ -82,6 +82,21 @@ def HighLevel_LoaderUninitAttr     : HighLevel_Attr< "LoaderUninitialized", "loa
 def HighLevel_NoInstrumentAttr     : HighLevel_Attr< "NoInstrumentFunction", "no_instrument_function" >;
 def HighLevel_PackedAttr           : HighLevel_Attr< "Packed", "packed" >;
 def HighLevel_PureAttr             : HighLevel_Attr< "Pure", "pure" >;
+def HighLevel_SwiftAttrAttr        : HighLevel_Attr< "SwiftAttr", "swift_attr" >
+{
+  let parameters = (ins "::mlir::StringAttr":$attribute);
+
+  let builders = [
+    AttrBuilderWithInferredContext<(ins "::mlir::StringAttr":$attr), [{
+      return get(attr.getContext(), attr);
+    }]>,
+    AttrBuilder<(ins "::mlir::StringRef":$attr), [{
+      return get(mlir::StringAttr::get($_ctxt, attr));
+    }]>,
+  ];
+
+  let assemblyFormat = "`<` $attribute `>`";
+}
 def HighLevel_WarnUnusedResAttr    : HighLevel_Attr< "WarnUnusedResult", "warn_unused_result" >;
 def HighLevel_RestrictAttr         : HighLevel_Attr< "Restrict", "restrict" >;
 def HighLevel_NoThrowAttr          : HighLevel_Attr< "NoThrow", "nothrow" >;

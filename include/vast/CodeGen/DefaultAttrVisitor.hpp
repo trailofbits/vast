@@ -38,6 +38,7 @@ namespace vast::cg {
         mlir_attr VisitNoInstrumentFunctionAttr(const clang::NoInstrumentFunctionAttr *attr);
         mlir_attr VisitPackedAttr(const clang::PackedAttr *attr);
         mlir_attr VisitPureAttr(const clang::PureAttr *attr);
+        mlir_attr VisitSwiftAttrAttr(const clang::SwiftAttrAttr *attr);
         mlir_attr VisitWarnUnusedResultAttr(const clang::WarnUnusedResultAttr *attr);
         mlir_attr VisitRestrictAttr(const clang::RestrictAttr *attr);
         mlir_attr VisitNoThrowAttr(const clang::NoThrowAttr *attr);

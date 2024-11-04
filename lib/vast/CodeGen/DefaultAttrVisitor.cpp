@@ -64,6 +64,10 @@ namespace vast::cg
         return make< hl::PureAttr >();
     }
 
+    mlir_attr default_attr_visitor::VisitSwiftAttrAttr(const clang::SwiftAttrAttr *attr) {
+        return make< hl::SwiftAttrAttr >(attr->getAttribute());
+    }
+
     mlir_attr default_attr_visitor::VisitWarnUnusedResultAttr(const clang::WarnUnusedResultAttr *) {
         return make< hl::WarnUnusedResultAttr >();
     }
