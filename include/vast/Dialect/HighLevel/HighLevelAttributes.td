@@ -99,6 +99,8 @@ def HighLevel_LeafAttr             : HighLevel_Attr< "Leaf", "leaf" >;
 def HighLevel_ColdAttr             : HighLevel_Attr< "Cold", "cold" >;
 def HighLevel_TransparentUnionAttr : HighLevel_Attr< "TransparentUnion", "transparent_union" >;
 def HighLevel_UnavailableAttr      : HighLevel_NameAttr< "Unavailable", "unavailable" >;
+// FIXME: this is just a stub
+def HighLevel_DiagnoseIfAttr       : HighLevel_Attr< "DiagnoseIf", "diagnose_if" >;
 def HighLevel_ReturnsTwiceAttr     : HighLevel_Attr< "ReturnsTwice", "returns_twice" >;
 def HighLevel_MayAliasAttr         : HighLevel_Attr< "MayAlias", "may_alias" >;
 def HighLevel_UnusedAttr           : HighLevel_Attr< "Unused", "unused" >;
@@ -166,6 +168,9 @@ def HighLevel_AllocSizeAttr
   let parameters = (ins "int":$size_arg_pos, OptionalParameter< "int" >:$num_arg_pos);
   let assemblyFormat = "`<` `size_pos` `:` $size_arg_pos (`,` `num_pos` `:` $num_arg_pos^)? `>`";
 }
+
+// FIXME: this is just a stub
+def HighLevel_EnableIfAttr         : HighLevel_Attr< "EnableIf", "enable_if" >;
 
 def HighLevel_DeprecatedAttr
   : HighLevel_Attr< "Deprecated", "deprecated" >
