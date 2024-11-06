@@ -1,6 +1,6 @@
 # Copyright (c) 2022-present, Trail of Bits, Inc.
 
-
+add_subdirectory(Parser)
 
 set(VAST_TARGET_DEFINITIONS Passes.td)
 vast_tablegen(Passes.h.inc -gen-pass-decls -name Conversion)
