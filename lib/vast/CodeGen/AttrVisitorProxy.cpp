@@ -16,6 +16,16 @@ namespace vast::cg
 
         mlir_attr_list attrs = op->getAttrs();
 
+        llvm::errs() << "visiting attrs\n";
+        auto pp = clang::PrintingPolicy(clang::LangOptions());
+        for (auto &attr : decl->getAttrs()) {
+            if (llvm::isa< clang::BuiltinAttr >(attr)) {
+                auto fndecl = llvm::cast< clang::FunctionDecl >(decl);
+                llvm::errs() << "builtin attr. does it have id? " << fndecl->getBuiltinID();
+            }
+            attr->printPretty(llvm::errs(), pp);
+            llvm::errs() << "\n";
+        }
         auto filtered_attrs = decl->getAttrs() | std::ranges::views::filter([&] (auto attr) {
             return !util::is_one_of< excluded_attr_list >(attr);
         });

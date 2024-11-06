@@ -99,18 +99,6 @@ namespace vast::cg {
         //     return false;
         // }
 
-        // Detect the unusual situation where an inline version is shadowed by a
-        // non-inline version. In that case we should pick the external one
-        // everywhere. That's GCC behavior too. Unfortunately, I cannot find a way
-        // to detect that situation before we reach codegen, so do some late
-        // replacement.
-        for (const auto *prev = decl->getPreviousDecl(); prev; prev = prev->getPreviousDecl()) {
-            if (LLVM_UNLIKELY(prev->isInlineBuiltinDeclaration())) {
-                VAST_REPORT("Unsupported inline builtin declaration");
-                return true;
-            }
-        }
-
         return false;
     }
 
@@ -121,6 +109,22 @@ namespace vast::cg {
     operation default_decl_visitor::visit_prototype(const clang_function *decl) {
         if (unsupported(decl)) {
             return {};
+        }
+
+        // Detect the unusual situation where an inline version is shadowed by a
+        // non-inline version. In that case we should pick the external one
+        // everywhere. That's GCC behavior too. Unfortunately, I cannot find a way
+        // to detect that situation before we reach codegen, so do some late
+        // replacement. clang commit 6bfc85c217e44
+        if (!decl->isInlineBuiltinDeclaration()) {
+            for (const auto *prev = decl->getPreviousDecl(); prev; prev = prev->getPreviousDecl()) {
+                if (LLVM_UNLIKELY(prev->isInlineBuiltinDeclaration())) {
+                    if (auto func = self.scope.lookup_fun(prev)) {
+                        llvm::errs() << "removing\n";
+                        func->remove();
+                    }
+                }
+            }
         }
 
         return bld.compose< vast_function >()
