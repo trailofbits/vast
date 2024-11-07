@@ -22,20 +22,28 @@ namespace vast::conv
 {
     namespace pattern
     {
-        struct constant : one_to_one_conversion_pattern< hl::ConstantOp, pr::NoParse >
+        template< typename op_t >
+        struct ToNoParse : one_to_one_conversion_pattern< op_t, pr::NoParse >
         {
-            using base = one_to_one_conversion_pattern< hl::ConstantOp, pr::NoParse >;
+            using base = one_to_one_conversion_pattern< op_t, pr::NoParse >;
             using base::base;
 
-            using adaptor_t = hl::ConstantOp::Adaptor;
+            using adaptor_t = typename op_t::Adaptor;
 
             logical_result matchAndRewrite(
-                hl::ConstantOp op, adaptor_t adaptor, conversion_rewriter &rewriter
+                op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                rewriter.replaceOpWithNewOp< pr::NoParse >(op, op.getType(), adaptor.getOperands());
+                rewriter.replaceOpWithNewOp< pr::NoParse >(
+                    op, op.getType(), adaptor.getOperands()
+                );
                 return mlir::success();
             }
         };
+
+        using all = util::type_list<
+            ToNoParse< hl::ConstantOp >,
+            ToNoParse< hl::ImplicitCastOp >
+        >;
 
     } // namespace pattern
 
@@ -49,7 +57,7 @@ namespace vast::conv
         }
 
         static void populate_conversions(auto &cfg) {
-            base::populate_conversions< pattern::constant >(cfg);
+            base::populate_conversions< pattern::all >(cfg);
         }
     };
 
