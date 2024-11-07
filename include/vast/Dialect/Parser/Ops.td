@@ -37,10 +37,14 @@ def Parser_Parse
 
 def Parse_NoParse
   : Parser_Op< "noparse" >
-  , Arguments< (ins Variadic<Parser_NoDataType>:$arguments) >
-  , Results< (outs Variadic<Parser_NoDataType>:$result) >
+  , Arguments< (ins Variadic<AnyType>:$arguments) >
+  , Results< (outs Variadic<AnyType>:$result) >
 {
   let summary = "Non-parsing operation data.";
+
+  let assemblyFormat = [{
+    $arguments attr-dict `:` functional-type($arguments, $result)
+  }];
 }
 
 #endif // VAST_DIALECT_PARSER_OPS
