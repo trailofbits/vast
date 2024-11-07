@@ -204,7 +204,7 @@ namespace vast::cg {
         operation VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *expr);
         // operation VisitArrayTypeTraitExpr(const clang::ArrayTypeTraitExpr *expr)
         // operation VisitAsTypeExpr(const clang::AsTypeExpr *expr)
-        // operation VisitAtomicExpr(const clang::AtomicExpr *expr)
+        operation VisitAtomicExpr(const clang::AtomicExpr *expr);
         // operation VisitBlockExpr(const clang::BlockExpr *expr)
 
         // operation VisitCXXBindTemporaryExpr(const clang::CXXBindTemporaryExpr *expr);

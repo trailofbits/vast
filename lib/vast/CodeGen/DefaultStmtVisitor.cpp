@@ -930,7 +930,19 @@ namespace vast::cg
 
     // operation default_stmt_visitor::VisitArrayTypeTraitExpr(const clang::ArrayTypeTraitExpr *expr)
     // operation default_stmt_visitor::VisitAsTypeExpr(const clang::AsTypeExpr *expr)
-    // operation default_stmt_visitor::VisitAtomicExpr(const clang::AtomicExpr *expr)
+    operation default_stmt_visitor::VisitAtomicExpr(const clang::AtomicExpr *expr) {
+        std::vector< builder_callback > subexprs;
+        for (auto subexpr : expr->children()) {
+            subexprs.push_back(mk_region_builder(subexpr));
+        }
+        return bld.compose< hl::AtomicExpr >()
+            .bind(self.location(expr))
+            .bind(expr->getOpAsString())
+            .bind(self.visit(expr->getType()))
+            .bind(subexprs)
+            .freeze();
+
+    }
     // operation default_stmt_visitor::VisitBlockExpr(const clang::BlockExpr *expr)
 
     // operation default_stmt_visitor::VisitCXXBindTemporaryExpr(const clang::CXXBindTemporaryExpr *expr) { return {}; }
