@@ -1759,4 +1759,26 @@ def HighLevel_GenericSelectionExpr
   let assemblyFormat = [{ attr-dict `match` (`region` `:` $control^)? (`type` `:` $controlType^)? $body `->` type($result)}];
 }
 
+def HighLevel_AtomicExpr
+  : HighLevel_Op< "atomic_expr", [NoTerminator] >
+  , Arguments<(ins StrAttr:$name)>
+  , Results<(outs Optional< AnyType >:$result)>
+{
+    let summary = "VAST atomic expr";
+    let description = [{ VAST atomic expr stub}];
+
+    let regions = (region VariadicRegion< AnyRegion >:$subexprs);
+
+    let skipDefaultBuilders = 1;
+    let builders = [
+        OpBuilder<(ins
+            "llvm::StringRef":$name,
+            "Type":$rty,
+            "const std::vector< builder_callback > &":$builders
+        )>
+    ];
+
+    let assemblyFormat = [{ $name attr-dict `:` type($result) $subexprs}];
+}
+
 #endif // VAST_DIALECT_HIGHLEVEL_IR_HIGHLEVELOPS
