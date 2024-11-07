@@ -886,6 +886,24 @@ namespace vast::hl
     bool GenericSelectionExpr::isTypePredicate() {
         return (*this)->hasAttr("matchType");
     }
+
+    //
+    // AtomicExpr
+    //
+
+    void AtomicExpr::build(
+        Builder &bld,
+        State &st,
+        llvm::StringRef name,
+        mlir_type type,
+        const std::vector< builder_callback > &builders
+    ) {
+        InsertionGuard guard(bld);
+        st.addAttribute(getNameAttrName(st.name), bld.getStringAttr(name));
+        st.addTypes(type);
+        for (builder_callback_ref builder : builders)
+            build_region(bld, st, builder);
+    }
 }
 
 //===----------------------------------------------------------------------===//
