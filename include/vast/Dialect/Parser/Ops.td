@@ -42,6 +42,8 @@ def Parse_NoParse
 {
   let summary = "Non-parsing operation data.";
 
+  let hasFolder = 1;
+
   let assemblyFormat = [{
     $arguments attr-dict `:` functional-type($arguments, $result)
   }];
