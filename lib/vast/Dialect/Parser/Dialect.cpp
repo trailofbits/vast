@@ -1,7 +1,8 @@
 // Copyright (c) 2024-present, Trail of Bits, Inc.
-//
+
 #include "vast/Dialect/Parser/Dialect.hpp"
 #include "vast/Dialect/Parser/Ops.hpp"
+#include "vast/Dialect/Parser/Types.hpp"
 
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/DialectImplementation.h>
@@ -13,6 +14,8 @@ namespace vast::pr {
     using OpBuilder = mlir::OpBuilder;
 
     void ParserDialect::initialize() {
+        registerTypes();
+
         addOperations<
             #define GET_OP_LIST
             #include "vast/Dialect/Parser/Parser.cpp.inc"

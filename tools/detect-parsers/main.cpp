@@ -9,10 +9,10 @@ VAST_RELAX_WARNINGS
 #include "mlir/Tools/mlir-opt/MlirOptMain.h"
 VAST_UNRELAX_WARNINGS
 
-#include "vast/Conversion/Passes.hpp"
-
-#include "vast/Conversion/Passes.hpp"
+#include "vast/Conversion/Parser/Passes.hpp"
 #include "vast/Dialect/Dialects.hpp"
+
+#include "vast/Dialect/Parser/Dialect.hpp"
 
 int main(int argc, char **argv)
 {
@@ -21,7 +21,10 @@ int main(int argc, char **argv)
     vast::registerAllDialects(registry);
     mlir::registerAllDialects(registry);
 
-    return failed(
+    vast::registerParserConversionPasses();
+    registry.insert< vast::pr::ParserDialect >();
+
+    return mlir::asMainReturnCode(
         mlir::MlirOptMain(argc, argv, "VAST Parser Detection driver\n", registry)
     );
 }
