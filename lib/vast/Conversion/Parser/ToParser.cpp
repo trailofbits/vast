@@ -15,8 +15,31 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Conversion/Common/Mixins.hpp"
 #include "vast/Conversion/Common/Patterns.hpp"
 
+#include "vast/Dialect/Parser/Ops.hpp"
+#include "vast/Dialect/Parser/Types.hpp"
+
 namespace vast::conv
 {
+    namespace pattern
+    {
+        struct constant : one_to_one_conversion_pattern< hl::ConstantOp, pr::NoParse >
+        {
+            using base = one_to_one_conversion_pattern< hl::ConstantOp, pr::NoParse >;
+            using base::base;
+
+            using adaptor_t = hl::ConstantOp::Adaptor;
+
+            logical_result matchAndRewrite(
+                hl::ConstantOp op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                rewriter.replaceOpWithNewOp< pr::NoParse >(op, op.getType(), adaptor.getOperands());
+                return mlir::success();
+            }
+        };
+
+    } // namespace pattern
+
+
     struct HLToParserPass : ConversionPassMixin< HLToParserPass, HLToParserBase >
     {
         using base = ConversionPassMixin< HLToParserPass, HLToParserBase >;
@@ -25,7 +48,8 @@ namespace vast::conv
             return conversion_target(mctx);
         }
 
-        static void populate_conversions(auto &/* cfg */) {
+        static void populate_conversions(auto &cfg) {
+            base::populate_conversions< pattern::constant >(cfg);
         }
     };
 
