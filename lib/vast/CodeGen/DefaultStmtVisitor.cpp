@@ -938,7 +938,7 @@ namespace vast::cg
         return bld.compose< hl::AtomicExpr >()
             .bind(self.location(expr))
             .bind(expr->getOpAsString())
-            .bind(self.visit(expr->getType()))
+            .bind(visit_maybe_lvalue_result_type(expr))
             .bind(subexprs)
             .freeze();
 
