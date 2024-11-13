@@ -2,6 +2,9 @@
 
 sink:
   - printf
+  - fprintf
+  - perror
+  - exit
 
 source:
   - getchar
@@ -12,4 +15,8 @@ parse:
   - isspace
   - isdigit
 
-noparse: []
+noparse:
+  - fopen
+  - fclose
+  - malloc
+  - free
