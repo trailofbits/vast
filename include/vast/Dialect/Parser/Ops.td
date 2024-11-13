@@ -14,22 +14,22 @@ class Parser_Op< string mnemonic, list< Trait > traits = [] >
 def Parser_Source
   : Parser_Op< "source" >
   , Arguments< (ins Variadic<AnyType>:$arguments) >
-  , Results< (outs Variadic<Parser_DataType>:$result) >
+  , Results< (outs Variadic<AnyType>:$result) >
 {
   let summary = "Source of parsed data.";
 }
 
 def Paser_Sink
   : Parser_Op< "sink" >
-  , Arguments< (ins Variadic<Parser_MaybeDataType>:$arguments) >
-  , Results< (outs Variadic<Parser_NoDataType>:$result) >
+  , Arguments< (ins Variadic<AnyType>:$arguments) >
+  , Results< (outs Variadic<AnyType>:$result) >
 {
   let summary = "Sink of parsed data.";
 }
 
 def Parser_Parse
   : Parser_Op< "parse" >
-  , Arguments< (ins Variadic<Parser_MaybeDataType>:$arguments) >
+  , Arguments< (ins Variadic<AnyType>:$arguments) >
   , Results< (outs Variadic<AnyType>:$result) >
 {
   let summary = "Parsing operation data.";
