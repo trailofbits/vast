@@ -1,0 +1,15 @@
+# Copyright (c) 2024, Trail of Bits, Inc.
+
+sink:
+  - printf
+
+source:
+  - getchar
+  - scanf
+  - fgets
+
+parse:
+  - isspace
+  - isdigit
+
+noparse: []
