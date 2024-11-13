@@ -1,0 +1,9 @@
+// Copyright (c) 2024, Trail of Bits, Inc.
+
+#pragma once
+
+namespace vast::pr {
+
+    constexpr auto parsers_config_path = "@PARSER_CONFIG_DIR@/default-parsers-config.yaml";
+
+} // namespace vast::pr
