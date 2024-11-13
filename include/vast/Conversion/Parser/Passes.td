@@ -7,6 +7,12 @@ def HLToParser : Pass<"vast-hl-to-parser", "core::ModuleOp"> {
     let summary = "Transform hl to parser dialect.";
     let description = [{ WIP }];
 
+    let options = [
+        Option< "config", "config", "std::string", "",
+            "Configuration file for parser transformation."
+        >
+    ];
+
     let constructor = "vast::createHLToParserPass()";
     let dependentDialects = [
         "vast::pr::ParserDialect"

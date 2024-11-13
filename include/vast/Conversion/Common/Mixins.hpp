@@ -62,6 +62,9 @@ namespace vast {
     template< typename T >
     concept has_run_after_conversion = requires(T a) { a.run_after_conversion(); };
 
+    template< typename T >
+    concept has_setup = requires(T a) { a.setup_pass(); };
+
     using rewrite_pattern_set = mlir::RewritePatternSet;
 
     // base configuration class
@@ -133,7 +136,12 @@ namespace vast {
             return run_on_operation(std::move(cfg));
         }
 
+
         void runOnOperation() override {
+            if constexpr (has_setup< derived >) {
+                self().setup_pass();
+            }
+
             if (mlir::succeeded(self().run_on_operation())) {
                 if constexpr (has_run_after_conversion< derived >) {
                     self().run_after_conversion();
