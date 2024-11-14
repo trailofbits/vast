@@ -37,7 +37,10 @@ namespace vast {
 
         template< typename pattern >
         static void legalize(auto &cfg) {
-            if constexpr (has_legalize<pattern>) {
+            if constexpr (requires { pattern::legalize(cfg); }) {
+                pattern::legalize(cfg);
+            }
+            if constexpr (requires { pattern::legalize(cfg.target); }) {
                 pattern::legalize(cfg.target);
             }
         }
