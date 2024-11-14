@@ -37,9 +37,6 @@ namespace vast {
         return mlir::failure(); \
     } while (0)
 
-    template< typename T >
-    concept has_legalize = requires(T a) { a.legalize(std::declval< conversion_target & >()); };
-
     template< typename derived_pattern >
     struct mlir_pattern_mixin
     {
