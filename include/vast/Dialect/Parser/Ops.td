@@ -17,6 +17,10 @@ def Parser_Source
   , Results< (outs Variadic<AnyType>:$result) >
 {
   let summary = "Source of parsed data.";
+
+  let assemblyFormat = [{
+    $arguments attr-dict `:` functional-type($arguments, $result)
+  }];
 }
 
 def Paser_Sink
@@ -25,6 +29,10 @@ def Paser_Sink
   , Results< (outs Variadic<AnyType>:$result) >
 {
   let summary = "Sink of parsed data.";
+
+  let assemblyFormat = [{
+    $arguments attr-dict `:` functional-type($arguments, $result)
+  }];
 }
 
 def Parser_Parse
@@ -33,6 +41,10 @@ def Parser_Parse
   , Results< (outs Variadic<AnyType>:$result) >
 {
   let summary = "Parsing operation data.";
+
+  let assemblyFormat = [{
+    $arguments attr-dict `:` functional-type($arguments, $result)
+  }];
 }
 
 def Parse_NoParse
