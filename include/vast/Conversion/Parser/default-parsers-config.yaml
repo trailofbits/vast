@@ -1,22 +1,48 @@
 # Copyright (c) 2024, Trail of Bits, Inc.
 
-sink:
-  - printf
-  - fprintf
-  - perror
-  - exit
+#
+# Parser data sources
+#
 
-source:
-  - getchar
-  - scanf
-  - fgets
+# char * fgets(char * restrict str, int size, FILE * restrict stream);
+- function: fgets
+  model:
+    return_type: data
+    arguments:
+      - data    # char * restrict str
+      - nodata  # int size
+      - nodata  # FILE * restrict stream
+    category: source
 
-parse:
-  - isspace
-  - isdigit
+# char * gets(char * str);
+- function: gets
+  model:
+    return_type: data
+    arguments:
+      - data    # char * str
+    category: source
 
-noparse:
-  - fopen
-  - fclose
-  - malloc
-  - free
+# char * gets_s(char * str, rsize_t n);
+- function: gets_s
+  model:
+    return_type: data
+    arguments:
+      - data    # char * str
+      - nodata  # rsize_t n
+    category: source
+
+# int getchar(void);
+- function: getchar
+  model:
+    return_type: data
+    arguments: []
+    category: source
+
+# int scanf(const char * restrict format, ...);
+- function: scanf
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # const char * restrict format
+      - data    # ...
+    category: source
