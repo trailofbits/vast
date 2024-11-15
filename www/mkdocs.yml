@@ -24,6 +24,7 @@ nav:
     - Optimizer: Tools/vast-opt.md
     - Query: Tools/vast-query.md
     - REPL: Tools/vast-repl.md
+    - Detect Parsers: Tools/detect-parsers.md
   - Related Projects: Projects/related.md
   - Benchmarks:
     - LLVM Single Source: Benchmarks/single-source-results.md
