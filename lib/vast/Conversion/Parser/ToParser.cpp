@@ -15,86 +15,160 @@ VAST_UNRELAX_WARNINGS
 
 #include "PassesDetails.hpp"
 
-#include "vast/Util/Common.hpp"
 #include "vast/Conversion/Common/Mixins.hpp"
 #include "vast/Conversion/Common/Patterns.hpp"
+#include "vast/Util/Common.hpp"
 
 #include "vast/Dialect/Parser/Ops.hpp"
 #include "vast/Dialect/Parser/Types.hpp"
 
 #include "vast/Conversion/Parser/Config.hpp"
 
-namespace vast::conv
-{
-    using function_category_t = llvm::StringSet<>;
+#include <ranges>
 
-    struct function_categories
+namespace vast::conv {
+
+    enum class data_type { data, nodata, anydata };
+
+    mlir_type to_mlir_type(data_type type, mcontext_t *mctx) {
+        switch (type) {
+            case data_type::data: return pr::DataType::get(mctx);
+            case data_type::nodata: return pr::NoDataType::get(mctx);
+            case data_type::anydata: return pr::AnyDataType::get(mctx);
+        }
+    }
+
+    enum class function_category { sink, source, parser, nonparser };
+
+    struct function_model
     {
-        bool is_sink(string_ref name) const { return sinks.count(name); }
-        bool is_source(string_ref name) const { return sources.count(name); }
-        bool is_parser(string_ref name) const { return parsers.count(name); }
-        bool is_nonparser(string_ref name) const { return nonparsers.count(name); }
+        data_type return_type;
+        std::vector< data_type > arguments;
+        function_category category;
 
-        function_categories get_categories() const {
-            return { sinks, sources, parsers, nonparsers };
+        bool is_sink() const { return category == function_category::sink; }
+
+        bool is_source() const { return category == function_category::source; }
+
+        bool is_parser() const { return category == function_category::parser; }
+
+        bool is_nonparser() const { return category == function_category::nonparser; }
+
+        mlir_type get_return_type(mcontext_t *mctx) const {
+            return to_mlir_type(return_type, mctx);
         }
 
-        const function_category_t &sinks;
-        const function_category_t &sources;
-        const function_category_t &parsers;
-        const function_category_t &nonparsers;
+        std::vector< mlir_type > get_argument_types(mcontext_t *mctx) const {
+            std::vector< mlir_type > out;
+            out.reserve(arguments.size());
+            for (auto arg : arguments) {
+                out.push_back(to_mlir_type(arg, mctx));
+            }
+            return out;
+        }
     };
 
-    struct parser_conversion_config
-        : base_conversion_config
-        , function_categories
+    struct named_function_model {
+        std::string name;
+        function_model model;
+    };
+
+    using function_models = llvm::StringMap< function_model >;
+
+} // namespace vast::conv
+
+LLVM_YAML_IS_SEQUENCE_VECTOR(vast::conv::data_type);
+LLVM_YAML_IS_SEQUENCE_VECTOR(vast::conv::named_function_model);
+
+using llvm::yaml::IO;
+using llvm::yaml::MappingTraits;
+using llvm::yaml::ScalarEnumerationTraits;
+
+template<>
+struct ScalarEnumerationTraits< vast::conv::data_type >
+{
+    static void enumeration(IO &io, vast::conv::data_type &value) {
+        io.enumCase(value, "data", vast::conv::data_type::data);
+        io.enumCase(value, "nodata", vast::conv::data_type::nodata);
+        io.enumCase(value, "anydata", vast::conv::data_type::anydata);
+    }
+};
+
+template<>
+struct ScalarEnumerationTraits< vast::conv::function_category >
+{
+    static void enumeration(IO &io, vast::conv::function_category &value) {
+        io.enumCase(value, "sink", vast::conv::function_category::sink);
+        io.enumCase(value, "source", vast::conv::function_category::source);
+        io.enumCase(value, "parser", vast::conv::function_category::parser);
+        io.enumCase(value, "nonparser", vast::conv::function_category::nonparser);
+    }
+};
+
+template<>
+struct MappingTraits< vast::conv::function_model >
+{
+    static void mapping(IO &io, vast::conv::function_model &model) {
+        io.mapRequired("return_type", model.return_type);
+        io.mapRequired("arguments", model.arguments);
+        io.mapRequired("category", model.category);
+    }
+};
+
+template <>
+struct MappingTraits< ::vast::conv::named_function_model > {
+    static void mapping(IO &io, ::vast::conv::named_function_model &model) {
+        io.mapRequired("function", model.name);
+        io.mapRequired("model", model.model);
+    }
+};
+
+namespace vast::conv {
+
+    struct parser_conversion_config : base_conversion_config
     {
         using base = base_conversion_config;
 
-        using function_categories::get_categories;
-
         parser_conversion_config(
-              rewrite_pattern_set patterns
-            , conversion_target target
-            , function_categories categories
+            rewrite_pattern_set patterns, conversion_target target,
+            const function_models &models
         )
-            : base(std::move(patterns), std::move(target)), function_categories(categories)
+            : base(std::move(patterns), std::move(target)), models(models)
         {}
 
         template< typename pattern >
-        static constexpr bool requires_function_categories = std::is_constructible_v<
-            pattern, mcontext_t *, function_categories
-        >;
-
-        template< typename pattern >
-            requires requires_function_categories< pattern >
         void add_pattern() {
-            patterns.template add< pattern >(patterns.getContext(), get_categories());
+            auto ctx = patterns.getContext();
+            if constexpr (std::is_constructible_v< pattern, mcontext_t * >) {
+                patterns.template add< pattern >(ctx);
+            } else if constexpr (std::is_constructible_v< pattern, mcontext_t *, const function_models & >) {
+                patterns.template add< pattern >(ctx, models);
+            } else {
+                static_assert(false, "pattern does not have a valid constructor");
+            }
         }
 
-        template< typename pattern >
-        requires (!requires_function_categories< pattern >)
-        void add_pattern() {
-            patterns.template add< pattern >(patterns.getContext());
-        }
+        const function_models &models;
     };
 
-    namespace pattern
-    {
+    namespace pattern {
         template< typename op_t >
         struct parser_conversion_pattern_base
             : mlir_pattern_mixin< operation_conversion_pattern< op_t > >
-            , function_categories
             , mlir::OpConversionPattern< op_t >
         {
             using base = mlir::OpConversionPattern< op_t >;
-            using base::base;
 
-            parser_conversion_pattern_base(mcontext_t *mctx, function_categories categories)
-                : function_categories(categories), base(mctx)
+            parser_conversion_pattern_base(mcontext_t *mctx, const function_models &models)
+                : base(mctx), models(models)
             {}
+
+            const function_models &models;
         };
 
+        //
+        // Parser operation conversion patterns
+        //
         template< typename op_t >
         struct ToNoParse : one_to_one_conversion_pattern< op_t, pr::NoParse >
         {
@@ -113,72 +187,111 @@ namespace vast::conv
             }
         };
 
-        struct CallConversion
-            : parser_conversion_pattern_base< hl::CallOp >
+        struct CallConversion : parser_conversion_pattern_base< hl::CallOp >
         {
             using op_t = hl::CallOp;
             using base = parser_conversion_pattern_base< op_t >;
             using base::base;
-
-            using base::is_sink;
-            using base::is_source;
-            using base::is_parser;
-            using base::is_nonparser;
 
             using adaptor_t = typename op_t::Adaptor;
 
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                if (op.getCallee().empty())
-                    return mlir::failure();
-
-                auto callee = op.getCallee();
-
-                if (is_source(callee)) {
-                    return replace_with_new_op< pr::Source >(op, adaptor, rewriter);
-                } else if (is_sink(callee)) {
-                    return replace_with_new_op< pr::Sink >(op, adaptor, rewriter);
-                } else if (is_parser(callee)) {
-                    return replace_with_new_op< pr::Parse >(op, adaptor, rewriter);
-                } else if (is_nonparser(callee)) {
-                    return replace_with_new_op< pr::NoParse >(op, adaptor, rewriter);
-                } else {
+                if (op.getCallee().empty()) {
                     return mlir::failure();
                 }
+
+                auto callee = op.getCallee();
+                if (auto kv = models.find(callee); kv != models.end()) {
+                    const auto &[_, model] = *kv;
+                    auto modeled = create_op_from_model(model, op, adaptor, rewriter);
+                    rewriter.replaceOpWithNewOp< mlir::UnrealizedConversionCastOp >(
+                        op, op.getResultTypes(), modeled->getResult(0)
+                    );
+
+                    return mlir::success();
+                }
+
+                return mlir::failure();
             }
+
+            operation create_op_from_model(
+                function_model model, op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const {
+                auto rty = model.get_return_type(op.getContext());
+                std::vector< mlir_value > args;
+                auto arg_tys = model.get_argument_types(op.getContext());
+
+                if (arg_tys.size() < adaptor.getOperands().size()) {
+                    for (auto i = arg_tys.size(); i < adaptor.getOperands().size(); ++i) {
+                        arg_tys.push_back(arg_tys.back());
+                    }
+                }
+
+                VAST_ASSERT(arg_tys.size() == adaptor.getOperands().size());
+
+                for (auto [arg, ty] : llvm::zip(adaptor.getOperands(), arg_tys)) {
+                    auto converted = [&] {
+                        if (arg.getType() != ty) {
+                            return rewriter.create< mlir::UnrealizedConversionCastOp >(
+                                op.getLoc(), ty, arg
+                            ).getResult(0);
+                        } else {
+                            return arg;
+                        }
+                    } ();
+
+                    args.push_back(converted);
+                }
+
+                if (model.is_source()) {
+                    return rewriter.create< pr::Source >(op.getLoc(), rty, args);
+                }
+
+                if (model.is_sink()) {
+                    return rewriter.create< pr::Sink >(op.getLoc(), rty, args);
+                }
+
+                if (model.is_parser()) {
+                    return rewriter.create< pr::Parse >(op.getLoc(), rty, args);
+                }
+
+                if (model.is_nonparser()) {
+                    return rewriter.create< pr::NoParse >(op.getLoc(), rty, args);
+                }
+
+                VAST_UNREACHABLE("Unknown function category");
+            }
+
 
             template< typename new_op_t >
             logical_result replace_with_new_op(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const {
-                rewriter.replaceOpWithNewOp< new_op_t >(op, op.getResultTypes(), adaptor.getOperands());
+                auto model = models.lookup(op.getCallee());
+
+                rewriter.replaceOpWithNewOp< new_op_t >(
+                    op, op.getResultTypes(), adaptor.getOperands()
+                );
                 return mlir::success();
             }
 
-            static bool is_legal(op_t call, const function_categories &categories) {
-                auto callee = call.getCallee();
-                return !categories.is_source(callee)
-                    && !categories.is_sink(callee)
-                    && !categories.is_parser(callee)
-                    && !categories.is_nonparser(callee);
-            }
-
             static void legalize(parser_conversion_config &cfg) {
-                auto cats = cfg.get_categories();
                 cfg.target.addLegalOp< pr::NoParse, pr::Parse, pr::Source, pr::Sink >();
-                cfg.target.addDynamicallyLegalOp< op_t >([cats](op_t op) { return is_legal(op, cats); });
+                cfg.target.addDynamicallyLegalOp< op_t >([models = cfg.models](op_t op) {
+                    return models.count(op.getCallee()) == 0;
+                });
             }
         };
 
-        using all = util::type_list<
+        using operation_conversions = util::type_list<
             ToNoParse< hl::ConstantOp >,
             ToNoParse< hl::ImplicitCastOp >,
             CallConversion
         >;
 
     } // namespace pattern
-
 
     struct HLToParserPass : ConversionPassMixin< HLToParserPass, HLToParserBase >
     {
@@ -189,7 +302,7 @@ namespace vast::conv
         }
 
         static void populate_conversions(parser_conversion_config &cfg) {
-            base::populate_conversions< pattern::all >(cfg);
+            base::populate_conversions< pattern::operation_conversions >(cfg);
         }
 
         void setup_pass() {
@@ -207,79 +320,30 @@ namespace vast::conv
                 return;
             }
 
-            std::unique_ptr< llvm::MemoryBuffer > &buff = *file_or_err;
-            string_ref data = buff->getBuffer();
+            std::vector< named_function_model > functions;
 
-            llvm::SourceMgr smgr;
-            smgr.AddNewSourceBuffer(std::move(buff), llvm::SMLoc());
+            llvm::yaml::Input yin(file_or_err.get()->getBuffer());
+            yin >> functions;
 
-            llvm::yaml::Stream yaml_stream(data, smgr);
-            for (auto &doc : yaml_stream) {
-                auto root = llvm::dyn_cast< llvm::yaml::MappingNode >(doc.getRoot());
-                if (!root) {
-                    llvm::errs() << "Invalid YAML format: root node is not a mapping\n";
-                    return;
-                }
-
-                for (auto &kv : *root) {
-                    auto key = llvm::dyn_cast< llvm::yaml::ScalarNode >(kv.getKey());
-                    auto value = kv.getValue();
-
-                    if (!key || !value) {
-                        continue;
-                    }
-
-                    if (auto *function_list = llvm::dyn_cast< llvm::yaml::SequenceNode >(value)) {
-                        auto category = key->getRawValue();
-                        populate_function_set(category, function_list);
-                    }
-                }
+            if (yin.error()) {
+                llvm::errs() << "Error parsing config file: " << yin.error().message() << "\n";
+                return;
             }
-        }
 
-        void populate_function_set(string_ref category, llvm::yaml::SequenceNode *function_list) {
-            auto &target_set = get_category_set(category);
-
-            for (auto &function : *function_list) {
-                if (auto *function_name = llvm::dyn_cast< llvm::yaml::ScalarNode >(&function)) {
-                    target_set.insert(function_name->getRawValue().str());
-                }
-            }
-        }
-
-        function_category_t & get_category_set(string_ref category) {
-            if (category == "sink") {
-                return sinks;
-            } else if (category == "source") {
-                return sources;
-            } else if (category == "parse") {
-                return parsers;
-            } else if (category == "noparse") {
-                return nonparsers;
-            } else {
-                VAST_UNREACHABLE("Unknown category: {0}", category);
+            for (auto &&named : functions) {
+                models.insert_or_assign(std::move(named.name), std::move(named.model));
             }
         }
 
         parser_conversion_config make_config() {
             auto &ctx = getContext();
-            return {
-                rewrite_pattern_set(&ctx),
-                create_conversion_target(ctx),
-                function_categories{
-                    sinks, sources, parsers, nonparsers
-                }
-            };
+            return { rewrite_pattern_set(&ctx), create_conversion_target(ctx), models };
         }
 
-        function_category_t sources;
-        function_category_t sinks;
-        function_category_t parsers;
-        function_category_t nonparsers;
+        function_models models;
     };
 
 } // namespace vast::conv
-
 
 std::unique_ptr< mlir::Pass > vast::createHLToParserPass() {
     return std::make_unique< vast::conv::HLToParserPass >();
