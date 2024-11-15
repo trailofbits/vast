@@ -14,8 +14,8 @@ configure_file(
     ${CMAKE_CURRENT_BINARY_DIR}/Config.hpp
 )
 
-file(COPY
-        ${CMAKE_CURRENT_SOURCE_DIR}/default-parsers-config.yaml
-    DESTINATION
-        ${CMAKE_CURRENT_BINARY_DIR}
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/default-parsers-config.yaml
+    ${CMAKE_CURRENT_BINARY_DIR}/default-parsers-config.yaml
+    COPYONLY
 )
