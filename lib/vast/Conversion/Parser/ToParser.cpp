@@ -166,6 +166,41 @@ namespace vast::conv {
             const function_models &models;
         };
 
+        mlir_value cast_value(mlir_value val, mlir_type ty, conversion_rewriter &rewriter) {
+            return rewriter.create< mlir::UnrealizedConversionCastOp >(
+                val.getLoc(), ty, val
+            ).getResult(0);
+        }
+
+        std::vector< mlir_value > convert_value_types(
+            mlir::ValueRange values, mlir::TypeRange types, auto &rewriter
+        ) {
+            // One can provide more types for variadics
+            VAST_ASSERT(values.size() <= types.size());
+            std::vector< mlir_value > out;
+            out.reserve(values.size());
+
+            for (auto [val, ty] : llvm::zip(values, types)) {
+                out.push_back(val.getType() != ty ? cast_value(val, ty, rewriter) : val);
+            }
+
+            return out;
+        }
+
+        std::vector< mlir_value > convert_value_types(
+            mlir::ValueRange values, mlir_type type, conversion_rewriter &rewriter
+        ) {
+            std::vector< mlir_value > out;
+            out.reserve(values.size());
+
+            for (auto val : values) {
+                out.push_back(val.getType() != type ? cast_value(val, type, rewriter) : val);
+            }
+
+            return out;
+        }
+
+
         //
         // Parser operation conversion patterns
         //
@@ -180,10 +215,19 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                rewriter.replaceOpWithNewOp< pr::NoParse >(
-                    op, op.getType(), adaptor.getOperands()
+                auto rty = to_mlir_type(data_type::nodata, rewriter.getContext());
+                auto args = convert_value_types(adaptor.getOperands(), rty, rewriter);
+                auto converted = rewriter.create< pr::NoParse >(op.getLoc(), rty, args);
+                rewriter.replaceOpWithNewOp< mlir::UnrealizedConversionCastOp >(
+                    op, op.getType(), converted->getResult(0)
                 );
                 return mlir::success();
+            }
+
+            static void legalize(parser_conversion_config &cfg) {
+                cfg.target.addLegalOp< pr::NoParse >();
+                cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
+                cfg.target.addIllegalOp< op_t >();
             }
         };
 
@@ -220,8 +264,6 @@ namespace vast::conv {
                 function_model model, op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const {
                 auto rty = model.get_return_type(op.getContext());
-                std::vector< mlir_value > args;
-
                 auto arg_tys = model.get_argument_types(op.getContext());
                 // Add type padding for variadic functions
                 if (arg_tys.size() < adaptor.getOperands().size()) {
@@ -231,20 +273,7 @@ namespace vast::conv {
                 }
 
                 VAST_ASSERT(arg_tys.size() >= adaptor.getOperands().size());
-
-                for (auto [arg, ty] : llvm::zip(adaptor.getOperands(), arg_tys)) {
-                    auto converted = [&] {
-                        if (arg.getType() != ty) {
-                            return rewriter.create< mlir::UnrealizedConversionCastOp >(
-                                op.getLoc(), ty, arg
-                            ).getResult(0);
-                        } else {
-                            return arg;
-                        }
-                    } ();
-
-                    args.push_back(converted);
-                }
+                auto args = convert_value_types(adaptor.getOperands(), arg_tys, rewriter);
 
                 if (model.is_source()) {
                     return rewriter.create< pr::Source >(op.getLoc(), rty, args);
