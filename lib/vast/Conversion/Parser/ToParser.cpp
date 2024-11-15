@@ -279,6 +279,7 @@ namespace vast::conv {
 
             static void legalize(parser_conversion_config &cfg) {
                 cfg.target.addLegalOp< pr::NoParse, pr::Parse, pr::Source, pr::Sink >();
+                cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
                 cfg.target.addDynamicallyLegalOp< op_t >([models = cfg.models](op_t op) {
                     return models.count(op.getCallee()) == 0;
                 });
