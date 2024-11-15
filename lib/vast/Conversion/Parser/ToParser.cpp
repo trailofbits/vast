@@ -221,15 +221,16 @@ namespace vast::conv {
             ) const {
                 auto rty = model.get_return_type(op.getContext());
                 std::vector< mlir_value > args;
-                auto arg_tys = model.get_argument_types(op.getContext());
 
+                auto arg_tys = model.get_argument_types(op.getContext());
+                // Add type padding for variadic functions
                 if (arg_tys.size() < adaptor.getOperands().size()) {
                     for (auto i = arg_tys.size(); i < adaptor.getOperands().size(); ++i) {
                         arg_tys.push_back(arg_tys.back());
                     }
                 }
 
-                VAST_ASSERT(arg_tys.size() == adaptor.getOperands().size());
+                VAST_ASSERT(arg_tys.size() >= adaptor.getOperands().size());
 
                 for (auto [arg, ty] : llvm::zip(adaptor.getOperands(), arg_tys)) {
                     auto converted = [&] {
