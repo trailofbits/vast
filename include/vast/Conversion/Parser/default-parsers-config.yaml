@@ -46,3 +46,99 @@
       - nodata  # const char * restrict format
       - data    # ...
     category: source
+
+#
+# Parser data sinks
+#
+
+# int printf(const char * restrict format, ...);
+- function: printf
+  model:
+    return_type: nodata
+    arguments:
+      - anydata  # const char * restrict format
+      - anydata # ...
+    category: sink
+
+# int fprintf(FILE * restrict stream, const char * restrict format, ...);
+- function: fprintf
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # FILE * restrict stream
+      - anydata # const char * restrict format
+      - anydata # ...
+    category: sink
+
+# void perror(const char *s);
+- function: perror
+  model:
+    return_type: nodata
+    arguments:
+      - anydata  # const char *s
+    category: sink
+
+# void free(void * ptr);
+- function: free
+  model:
+    return_type: nodata
+    arguments:
+      - anydata  # void * ptr
+    category: sink
+
+# FILE * fopen(const char * restrict filename, const char * restrict mode);
+- function: fopen
+  model:
+    return_type: nodata
+    arguments:
+      - anydata  # const char * restrict filename
+      - anydata  # const char * restrict mode
+    category: sink
+
+#
+# Parser functions
+#
+
+# int isspace(int c);
+- function: isspace
+  model:
+    return_type: nodata
+    arguments:
+      - data  # int c
+    category: parser
+
+# int isdigit(int c);
+- function: isdigit
+  model:
+    return_type: nodata
+    arguments:
+      - data  # int c
+    category: parser
+
+#
+# Non-parser functions
+#
+
+# void exit(int status);
+- function: exit
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int status
+    category: nonparser
+
+# void * malloc(size_t size);
+- function: malloc
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # size_t size
+    category: nonparser
+
+# void fclose(FILE * stream);
+- function: fclose
+  model:
+    return_type: nodata
+    arguments:
+      - anydata  # FILE * stream
+    category: nonparser
