@@ -39,30 +39,9 @@ namespace vast::conv {
                     auto element_type = this->convert_type_to_type(type.getElementType());
                     return hl::PointerType::get(&mctx, *element_type);
                 });
-                addTargetMaterialization(
-                    [&](mlir::OpBuilder &builder, mlir::Type resultType,
-                        mlir::ValueRange inputs, mlir::Location loc) -> std::optional< Value > {
-                        if (inputs.size() != 1) {
-                            return std::nullopt;
-                        }
 
-                        return builder
-                            .create< mlir::UnrealizedConversionCastOp >(loc, resultType, inputs)
-                            .getResult(0);
-                    }
-                );
-                addSourceMaterialization(
-                    [&](mlir::OpBuilder &builder, mlir::Type resultType,
-                        mlir::ValueRange inputs, mlir::Location loc) -> std::optional< Value > {
-                        if (inputs.size() != 1) {
-                            return std::nullopt;
-                        }
-
-                        return builder
-                            .create< mlir::UnrealizedConversionCastOp >(loc, resultType, inputs)
-                            .getResult(0);
-                    }
-                );
+                addTargetMaterialization(tc::unrealized_materialization);
+                addSourceMaterialization(tc::unrealized_materialization);
             }
 
             using mixin_base = tc::mixins< value_category_type_converter >;

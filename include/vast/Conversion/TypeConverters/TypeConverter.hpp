@@ -45,6 +45,19 @@ namespace vast::conv::tc {
         }
     };
 
+    static inline constexpr auto unrealized_materialization = [] (
+        mlir::OpBuilder &builder, mlir::Type resultType,
+        mlir::ValueRange inputs, mlir::Location loc
+    ) -> std::optional< mlir::Value > {
+        if (inputs.size() != 1) {
+            return std::nullopt;
+        }
+
+        return builder
+            .create< mlir::UnrealizedConversionCastOp >(loc, resultType, inputs)
+            .getResult(0);
+    };
+
     struct identity_type_converter : base_type_converter
     {
         using base = base_type_converter;
