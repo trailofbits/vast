@@ -67,8 +67,8 @@
   model:
     return_type: nodata
     arguments:
-      - anydata  # const char * restrict format
-      - anydata # ...
+      - maybedata  # const char * restrict format
+      - maybedata # ...
     category: sink
 
 # int fprintf(FILE * restrict stream, const char * restrict format, ...);
@@ -77,8 +77,8 @@
     return_type: nodata
     arguments:
       - nodata  # FILE * restrict stream
-      - anydata # const char * restrict format
-      - anydata # ...
+      - maybedata # const char * restrict format
+      - maybedata # ...
     category: sink
 
 # void perror(const char *s);
@@ -86,7 +86,7 @@
   model:
     return_type: nodata
     arguments:
-      - anydata  # const char *s
+      - maybedata  # const char *s
     category: sink
 
 # void free(void * ptr);
@@ -94,7 +94,7 @@
   model:
     return_type: nodata
     arguments:
-      - anydata  # void * ptr
+      - maybedata  # void * ptr
     category: sink
 
 # FILE * fopen(const char * restrict filename, const char * restrict mode);
@@ -102,8 +102,8 @@
   model:
     return_type: nodata
     arguments:
-      - anydata  # const char * restrict filename
-      - anydata  # const char * restrict mode
+      - maybedata  # const char * restrict filename
+      - maybedata  # const char * restrict mode
     category: sink
 
 #
