@@ -17,16 +17,14 @@ def Parser_NoDataType : Parser_Type< "NoData", "nodata" > {
     let summary = "No data type.";
 }
 
-def Parser_MaybeDataType : Parser_Type< "AnyData", "anydata" > {
-    let summary = "Any data type.";
+def Parser_MaybeDataType : Parser_Type< "MaybeData", "maybedata" > {
+    let summary = "Maybe data type.";
 }
 
-def Parser_AnyDataType : Type<
-    Or< [
-        Parser_NoDataType.predicate,
-        Parser_DataType.predicate,
-        Parser_MaybeDataType.predicate
-    ]>
->;
+def Parser_AnyDataType : AnyTypeOf< [
+    Parser_NoDataType,
+    Parser_DataType,
+    Parser_MaybeDataType
+]>;
 
 #endif // VAST_DIALECT_PARSER_TYPES
