@@ -17,15 +17,15 @@ def Parser_NoDataType : Parser_Type< "NoData", "nodata" > {
     let summary = "No data type.";
 }
 
-def Parser_AnyDataType : Parser_Type< "AnyData", "anydata" > {
+def Parser_MaybeDataType : Parser_Type< "AnyData", "anydata" > {
     let summary = "Any data type.";
 }
 
-def Parser_MaybeDataType : Type<
+def Parser_AnyDataType : Type<
     Or< [
         Parser_NoDataType.predicate,
         Parser_DataType.predicate,
-        Parser_AnyDataType.predicate
+        Parser_MaybeDataType.predicate
     ]>
 >;
 

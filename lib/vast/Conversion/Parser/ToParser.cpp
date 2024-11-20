@@ -28,13 +28,13 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::conv {
 
-    enum class data_type { data, nodata, anydata };
+    enum class data_type { data, nodata, maybedata };
 
     mlir_type to_mlir_type(data_type type, mcontext_t *mctx) {
         switch (type) {
             case data_type::data: return pr::DataType::get(mctx);
             case data_type::nodata: return pr::NoDataType::get(mctx);
-            case data_type::anydata: return pr::AnyDataType::get(mctx);
+            case data_type::maybedata: return pr::MaybeDataType::get(mctx);
         }
     }
 
@@ -90,7 +90,7 @@ struct ScalarEnumerationTraits< vast::conv::data_type >
     static void enumeration(IO &io, vast::conv::data_type &value) {
         io.enumCase(value, "data", vast::conv::data_type::data);
         io.enumCase(value, "nodata", vast::conv::data_type::nodata);
-        io.enumCase(value, "anydata", vast::conv::data_type::anydata);
+        io.enumCase(value, "maybedata", vast::conv::data_type::maybedata);
     }
 };
 
