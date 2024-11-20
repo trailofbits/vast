@@ -12,6 +12,7 @@ VAST_UNRELAX_WARNINGS
 namespace vast {
 
     std::unique_ptr< mlir::Pass > createHLToParserPass();
+    std::unique_ptr< mlir::Pass > createParserSourceToSarifPass();
 
     // Generate the code for registering passes.
     #define GEN_PASS_REGISTRATION

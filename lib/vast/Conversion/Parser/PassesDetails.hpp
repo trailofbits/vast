@@ -14,6 +14,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Parser/Dialect.hpp"
+#include "vast/Dialect/Parser/Ops.hpp"
 
 #include "vast/Conversion/Passes.hpp"
 
