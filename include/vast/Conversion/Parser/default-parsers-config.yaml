@@ -151,5 +151,5 @@
   model:
     return_type: nodata
     arguments:
-      - anydata  # FILE * stream
+      - nodata  # FILE * stream
     category: nonparser
