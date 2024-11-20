@@ -5,6 +5,7 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
+include "mlir/Conversion/Passes.h"
 #include "mlir/IR/Dialect.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/InitAllDialects.h"
@@ -91,6 +92,7 @@ int main(int argc, char **argv) {
 
     vast::registerParserConversionPasses();
     vast::registerSarifPasses();
+    mlir::registerConversionPasses();
     registry.insert< vast::pr::ParserDialect >();
 
     return mlir::asMainReturnCode(
