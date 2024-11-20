@@ -9,6 +9,7 @@ include "mlir/IR/BuiltinAttributes.td"
 include "mlir/Interfaces/CastInterfaces.td"
 
 include "vast/Interfaces/TypeTraitExprInterface.td"
+include "vast/Dialect/Core/Interfaces/OperationInterfaces.td"
 include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 include "vast/Dialect/Core/Interfaces/SymbolTableInterface.td"
 include "vast/Dialect/Core/Interfaces/TypeDefinitionInterface.td"
@@ -832,7 +833,7 @@ class HighLevel_IsSub< string lhs, string rhs, string res >
 >;
 
 class HighLevel_ArithBinOp< string mnemonic, list< Trait > traits = [] >
-    : HighLevel_Op< mnemonic, traits >
+    : HighLevel_Op< mnemonic, !listconcat(traits, [Core_ArithBinOp]) >
     , Arguments<(ins AnyType:$lhs, AnyType:$rhs)>
     , Results<(outs AnyType:$result)>
 {
