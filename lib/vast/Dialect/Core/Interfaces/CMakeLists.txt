@@ -3,6 +3,7 @@ set(VAST_OPTIONAL_SOURCES
   DesugarTypeInterface.cpp
   FunctionInterface.cpp
   FunctionImplementation.cpp
+  OperationInterfaces.cpp
   SymbolInterface.cpp
   SymbolTableInterface.cpp
   SymbolRefInterface.cpp
@@ -20,6 +21,10 @@ add_vast_interface_library(DesugarTypeInterface
 add_vast_interface_library(FunctionInterface
     FunctionInterface.cpp
     FunctionImplementation.cpp
+)
+
+add_vast_interface_library(OperationInterfaces
+    OperationInterfaces.cpp
 )
 
 add_vast_interface_library(SymbolInterface
