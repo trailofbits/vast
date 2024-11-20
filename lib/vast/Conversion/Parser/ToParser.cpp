@@ -152,6 +152,35 @@ namespace vast::conv {
     };
 
     namespace pattern {
+
+        mlir_value cast_value(mlir_value val, mlir_type ty, conversion_rewriter &rewriter) {
+            if (auto cast = mlir::dyn_cast< mlir::UnrealizedConversionCastOp >(val.getDefiningOp())) {
+                if (cast->getOperand(0).getType() == ty) {
+                    return cast.getOperand(0);
+                }
+            }
+
+            return rewriter.create< mlir::UnrealizedConversionCastOp >(
+                val.getLoc(), ty, val
+            ).getResult(0);
+        }
+
+        std::vector< mlir_value > convert_value_types(
+            mlir::ValueRange values, mlir::TypeRange types, auto &rewriter
+        ) {
+            std::vector< mlir_value > out;
+            out.reserve(values.size());
+
+            for (size_t i = 0; i < values.size(); ++i) {
+                // use last type for variadic operations
+                auto ty = i < types.size() ? types[i] : types.back();
+                auto val = values[i];
+                out.push_back(val.getType() == ty ? val : cast_value(val, ty, rewriter));
+            }
+
+            return out;
+        }
+
         template< typename op_t >
         struct parser_conversion_pattern_base
             : mlir_pattern_mixin< operation_conversion_pattern< op_t > >
@@ -165,41 +194,6 @@ namespace vast::conv {
 
             const function_models &models;
         };
-
-        mlir_value cast_value(mlir_value val, mlir_type ty, conversion_rewriter &rewriter) {
-            return rewriter.create< mlir::UnrealizedConversionCastOp >(
-                val.getLoc(), ty, val
-            ).getResult(0);
-        }
-
-        std::vector< mlir_value > convert_value_types(
-            mlir::ValueRange values, mlir::TypeRange types, auto &rewriter
-        ) {
-            // One can provide more types for variadics
-            VAST_ASSERT(values.size() <= types.size());
-            std::vector< mlir_value > out;
-            out.reserve(values.size());
-
-            for (auto [val, ty] : llvm::zip(values, types)) {
-                out.push_back(val.getType() != ty ? cast_value(val, ty, rewriter) : val);
-            }
-
-            return out;
-        }
-
-        std::vector< mlir_value > convert_value_types(
-            mlir::ValueRange values, mlir_type type, conversion_rewriter &rewriter
-        ) {
-            std::vector< mlir_value > out;
-            out.reserve(values.size());
-
-            for (auto val : values) {
-                out.push_back(val.getType() != type ? cast_value(val, type, rewriter) : val);
-            }
-
-            return out;
-        }
-
 
         //
         // Parser operation conversion patterns
@@ -265,14 +259,6 @@ namespace vast::conv {
             ) const {
                 auto rty = model.get_return_type(op.getContext());
                 auto arg_tys = model.get_argument_types(op.getContext());
-                // Add type padding for variadic functions
-                if (arg_tys.size() < adaptor.getOperands().size()) {
-                    for (auto i = arg_tys.size(); i < adaptor.getOperands().size(); ++i) {
-                        arg_tys.push_back(arg_tys.back());
-                    }
-                }
-
-                VAST_ASSERT(arg_tys.size() >= adaptor.getOperands().size());
                 auto args = convert_value_types(adaptor.getOperands(), arg_tys, rewriter);
 
                 if (model.is_source()) {
@@ -292,19 +278,6 @@ namespace vast::conv {
                 }
 
                 VAST_UNREACHABLE("Unknown function category");
-            }
-
-
-            template< typename new_op_t >
-            logical_result replace_with_new_op(
-                op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
-            ) const {
-                auto model = models.lookup(op.getCallee());
-
-                rewriter.replaceOpWithNewOp< new_op_t >(
-                    op, op.getResultTypes(), adaptor.getOperands()
-                );
-                return mlir::success();
             }
 
             static void legalize(parser_conversion_config &cfg) {
