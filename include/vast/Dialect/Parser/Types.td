@@ -23,6 +23,7 @@ def Parser_AnyDataType : Parser_Type< "AnyData", "anydata" > {
 
 def Parser_MaybeDataType : Type<
     Or< [
+        Parser_NoDataType.predicate,
         Parser_DataType.predicate,
         Parser_AnyDataType.predicate
     ]>
