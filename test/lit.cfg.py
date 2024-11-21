@@ -64,6 +64,7 @@ tools = [
             "-nostdsysteminc"
         ]
     ),
+    ToolSubst('%detect-parsers', command = 'detect-parsers'),
     ToolSubst('%file-check', command = 'FileCheck'),
     ToolSubst('%cc', command = config.host_cc)
 ]
