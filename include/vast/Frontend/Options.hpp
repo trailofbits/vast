@@ -93,6 +93,7 @@ namespace vast::cc
 
         constexpr option_t show_locs = "show-locs";
         constexpr option_t locs_as_meta_ids = "locs-as-meta-ids";
+        constexpr option_t loc_attrs = "loc-attrs";
 
         constexpr option_t disable_unsupported = "disable-unsupported";
 
