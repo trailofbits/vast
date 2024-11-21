@@ -23,9 +23,9 @@ VAST_UNRELAX_WARNINGS
 #include "SarifPasses.hpp"
 
 namespace vast {
-    struct SarifWriter
-        : mlir::PassWrapper<
-              SarifWriter, mlir::OperationPass< mlir::ModuleOp > >
+
+#ifdef VAST_ENABLE_SARIF
+    struct SarifWriter : mlir::PassWrapper< SarifWriter, mlir::OperationPass< mlir::ModuleOp > >
     {
         std::vector< gap::sarif::result > results;
         std::string path;
@@ -76,6 +76,10 @@ namespace vast {
             }
         );
     }
+#else
+
+    void registerSarifPasses() {}
+#endif
 } // namespace vast
 
 int main(int argc, char **argv) {
