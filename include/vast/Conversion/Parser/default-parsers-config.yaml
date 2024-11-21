@@ -14,6 +14,17 @@
       - nodata  # FILE * restrict stream
     category: source
 
+# size_t fread(void * restrict buffer, size_t size, size_t count, FILE * restrict stream);
+- function: fread
+  model:
+    return_type: nodata
+    arguments:
+      - data    # void * restrict buffer
+      - nodata  # size_t size
+      - nodata  # size_t count
+      - nodata  # FILE * restrict stream
+    category: source
+
 # char * gets(char * str);
 - function: gets
   model:
