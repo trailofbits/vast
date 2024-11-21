@@ -35,6 +35,9 @@ Additional customization options include:
 - `-vast-locs-as-meta-ids`
   - Uses metadata identifiers instead of file locations for locations.
 
+- `-vast-loc-attrs`
+  - When used in conjunction with `-vast-show-locs`, emits location data as MLIR attributes.
+
 ## Debuging and diagnostics
 
 - `-vast-emit-crash-reproducer="reproducer.mlir"`
