@@ -41,6 +41,7 @@ namespace vast {
                 VAST_FATAL("Failed to open file for SARIF output: {}", ec.message());
             }
             gap::sarif::root root{
+                .version = gap::sarif::version::k2_1_0,
                 .runs{
                       {
                         {
