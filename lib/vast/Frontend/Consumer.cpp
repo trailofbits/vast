@@ -294,7 +294,9 @@ namespace vast::cc {
     void vast_stream_consumer::print_mlir_string_format(owning_mlir_module_ref mod) {
         // FIXME: we cannot roundtrip prettyForm=true right now.
         mlir::OpPrintingFlags flags;
-        flags.enableDebugInfo(vargs.has_option(opt::show_locs), /* prettyForm */ !vargs.has_option(opt::loc_attrs));
+        flags.enableDebugInfo(
+            vargs.has_option(opt::show_locs), /* prettyForm */ !vargs.has_option(opt::loc_attrs)
+        );
 
         mod->print(*output_stream, flags);
     }
