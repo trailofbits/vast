@@ -2,15 +2,16 @@
 
 #pragma once
 
-#include "vast/Util/Warnings.hpp"
+#ifdef VAST_ENABLE_SARIF
+    #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-#include <mlir/IR/BuiltinOps.h>
-#include <mlir/Pass/Pass.h>
-#include <mlir/Pass/PassManager.h>
+    #include <mlir/IR/BuiltinOps.h>
+    #include <mlir/Pass/Pass.h>
+    #include <mlir/Pass/PassManager.h>
 VAST_UNRELAX_WARNINGS
 
-#include <gap/sarif/sarif.hpp>
+    #include <gap/sarif/sarif.hpp>
 
 namespace vast {
     struct ParserSourceDetector
@@ -23,3 +24,4 @@ namespace vast {
         void runOnOperation() override;
     };
 } // namespace vast
+#endif

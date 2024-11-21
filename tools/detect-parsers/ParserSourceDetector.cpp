@@ -1,9 +1,10 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
-#include "SarifPasses.hpp"
+#ifdef VAST_ENABLE_SARIF
+    #include "SarifPasses.hpp"
 
-#include "vast/Dialect/Parser/Ops.hpp"
-#include "vast/Frontend/Sarif.hpp"
+    #include "vast/Dialect/Parser/Ops.hpp"
+    #include "vast/Frontend/Sarif.hpp"
 
 namespace vast {
     void ParserSourceDetector::runOnOperation() {
@@ -27,3 +28,4 @@ namespace vast {
         });
     }
 } // namespace vast
+#endif
