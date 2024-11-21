@@ -1,4 +1,6 @@
 // RUN: %vast-front -vast-emit-mlir=hl %s -o - | %file-check %s -check-prefix=HL
+// RUN: %vast-front -vast-show-locs -vast-loc-attrs -vast-emit-mlir=hl %s -o - | %detect-parsers -vast-hl-to-parser -parser-source-to-sarif=output=/dev/stdout -o /dev/null | %file-check %s -check-prefix=SARIF
+// REQUIRES: sarif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,10 +40,14 @@ void parse_binary_file(const char *filename) {
 
     // Read header (4 bytes) - contains length of compressed data
     uint32_t compressed_length;
+    // SARIF: "startColumn": 5,
+    // SARIF: "startLine": 45
     fread(&compressed_length, sizeof(uint32_t), 1, file);
 
     // Allocate memory for compressed data
     uint8_t *compressed_data = (uint8_t *)malloc(compressed_length);
+    // SARIF: "startColumn": 5,
+    // SARIF: "startLine": 51
     fread(compressed_data, sizeof(uint8_t), compressed_length, file);
 
     // Close the file after reading
