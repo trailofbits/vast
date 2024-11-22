@@ -41,6 +41,13 @@ namespace vast::conv {
         }
     }
 
+    template< typename... Ts >
+    auto is_one_of(mlir_type ty) { return (mlir::isa< Ts >(ty) || ...); }
+
+    bool is_parser_type(mlir_type ty) {
+        return is_one_of< pr::DataType, pr::NoDataType, pr::MaybeDataType >(ty);
+    }
+
     enum class function_category { sink, source, parser, nonparser };
 
     struct function_model
@@ -381,7 +388,11 @@ namespace vast::conv {
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
                 auto rewrite = [&] (auto ty) {
-                    rewriter.replaceOpWithNewOp< pr::Ref >(op, ty, op.getName());
+                    ty = is_parser_type(ty) ? ty : pr::MaybeDataType::get(rewriter.getContext());
+                    auto converted = rewriter.create< pr::Ref >(op.getLoc(), ty, op.getName());
+                    rewriter.replaceOpWithNewOp< mlir::UnrealizedConversionCastOp >(
+                        op, op.getType(), converted->getResult(0)
+                    );
                     return mlir::success();
                 };
 
