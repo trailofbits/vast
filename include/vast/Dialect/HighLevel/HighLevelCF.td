@@ -86,9 +86,13 @@ def HighLevel_TypeYieldOp
   let assemblyFormat = [{ attr-dict $result `:` type($result) }];
 }
 
-def HighLevel_IfOp
-  : HighLevel_ControlFlowOp< "if" >
-{
+def HighLevel_IfOp : HighLevel_ControlFlowOp< "if", [
+  NoTerminator, Core_ScopeLikeTrait,
+  Core_ShadowingSymbolTable< [
+    [Core_VarSymbol, Core_TypeSymbol, Core_EnumConstantSymbol],
+    [Core_ElaboratedTypeSymbol]
+  ] >
+] > {
   let summary = "VAST if statement";
   let description = [{
     The operation takes builders of two mandatory regions -- condition and then
@@ -293,9 +297,13 @@ def HighLevel_BinaryCondOp
   let assemblyFormat = [{ attr-dict `:` type(results) $commonRegion `,` $condRegion `?` $thenRegion `:` $elseRegion }];
 }
 
-def HighLevel_WhileOp
-  : HighLevel_ControlFlowOp< "while", [NoTerminator] >
-{
+def HighLevel_WhileOp : HighLevel_ControlFlowOp< "while", [
+  NoTerminator, Core_ScopeLikeTrait,
+  Core_ShadowingSymbolTable< [
+    [Core_VarSymbol, Core_TypeSymbol, Core_EnumConstantSymbol],
+    [Core_ElaboratedTypeSymbol]
+  ] >
+] > {
   let summary = "VAST while statement";
   let description = [{
     The operation takes builders of two mandatory regions -- condition and body
@@ -328,9 +336,13 @@ def HighLevel_WhileOp
 }
 
 
-def HighLevel_ForOp
-  : HighLevel_ControlFlowOp< "for" >
-{
+def HighLevel_ForOp : HighLevel_ControlFlowOp< "for", [
+  NoTerminator, Core_ScopeLikeTrait,
+  Core_ShadowingSymbolTable< [
+    [Core_VarSymbol, Core_TypeSymbol, Core_EnumConstantSymbol],
+    [Core_ElaboratedTypeSymbol]
+  ] >
+] > {
   let summary = "VAST for statement";
   let description = [{
     Operation represents a for-loop statement.
@@ -367,9 +379,14 @@ def HighLevel_ForOp
   }];
 }
 
-def HighLevel_DoOp
-  : HighLevel_ControlFlowOp< "do" >
-{
+def HighLevel_DoOp : HighLevel_ControlFlowOp< "do", [
+  NoTerminator, Core_ScopeLikeTrait,
+  // FIXME: cond region should not expose symbols to the body region
+  Core_ShadowingSymbolTable< [
+    [Core_VarSymbol, Core_TypeSymbol, Core_EnumConstantSymbol],
+    [Core_ElaboratedTypeSymbol]
+  ] >
+] > {
   let summary = "VAST do-while statement";
   let description = [{
     The operation represents a do-while statement.
@@ -420,9 +437,14 @@ def HighLevel_ContinueOp
   let assemblyFormat = [{ attr-dict }];
 }
 
-def HighLevel_SwitchOp
-  : HighLevel_ControlFlowOp< "switch" >
-{
+def HighLevel_SwitchOp : HighLevel_ControlFlowOp< "switch", [
+  NoTerminator, Core_ScopeLikeTrait,
+  // FIXME: look at proper scoping
+  Core_ShadowingSymbolTable< [
+    [Core_VarSymbol, Core_TypeSymbol, Core_EnumConstantSymbol],
+    [Core_ElaboratedTypeSymbol]
+  ] >
+] > {
   let summary = "VAST switch statement";
   let description = [{
     The operation represents a switch statement.

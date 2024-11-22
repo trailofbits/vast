@@ -421,8 +421,13 @@ def HighLevel_IndirectCallOp
   // TODO: add verifiers to check that callee type matches arg operands
 }
 
-def HighLevel_ExprOp
-  : HighLevel_Op< "expr", [SingleBlock] >
+def HighLevel_ExprOp: HighLevel_Op< "expr", [
+  NoTerminator, SingleBlock, Core_ScopeLikeTrait,
+  Core_ShadowingSymbolTable< [
+    [Core_VarSymbol, Core_TypeSymbol, Core_EnumConstantSymbol],
+    [Core_ElaboratedTypeSymbol]
+  ] >
+] >
   , Results<(outs AnyType:$result)>
 {
   let summary = "VAST expression";
