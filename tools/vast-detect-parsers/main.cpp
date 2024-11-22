@@ -47,7 +47,7 @@ namespace vast {
                         {
                             .tool{
                                 .driver{
-                                    .name{ "detect-parsers" },
+                                    .name{ "vast-detect-parsers" },
                                 },
                             },
                             .results{ results },

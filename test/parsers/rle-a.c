@@ -1,5 +1,5 @@
 // RUN: %vast-front -vast-emit-mlir=hl %s -o - | %file-check %s -check-prefix=HL
-// RUN: %vast-front -vast-show-locs -vast-loc-attrs -vast-emit-mlir=hl %s -o - | %detect-parsers -vast-hl-to-parser -parser-source-to-sarif=output=/dev/stdout -o /dev/null | %file-check %s -check-prefix=SARIF
+// RUN: %vast-front -vast-show-locs -vast-loc-attrs -vast-emit-mlir=hl %s -o - | %vast-detect-parsers -vast-hl-to-parser -parser-source-to-sarif=output=/dev/stdout -o /dev/null | %file-check %s -check-prefix=SARIF
 // REQUIRES: sarif
 
 #include <stdio.h>
