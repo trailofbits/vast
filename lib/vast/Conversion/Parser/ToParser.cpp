@@ -17,6 +17,9 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Conversion/Common/Mixins.hpp"
 #include "vast/Conversion/Common/Patterns.hpp"
+
+#include "vast/Conversion/TypeConverters/TypeConvertingPattern.hpp"
+
 #include "vast/Util/Common.hpp"
 
 #include "vast/Dialect/Parser/Ops.hpp"
@@ -56,6 +59,10 @@ namespace vast::conv {
 
         mlir_type get_return_type(mcontext_t *mctx) const {
             return to_mlir_type(return_type, mctx);
+        }
+
+        mlir_type get_argument_type(unsigned int idx, mcontext_t *mctx) const {
+            return to_mlir_type(idx < arguments.size() ? arguments[idx] : arguments.back(), mctx);
         }
 
         std::vector< mlir_type > get_argument_types(mcontext_t *mctx) const {
@@ -149,6 +156,58 @@ namespace vast::conv {
         }
 
         const function_models &models;
+    };
+
+    struct function_type_converter
+        : tc::identity_type_converter
+        , tc::mixins< function_type_converter >
+    {
+        mcontext_t &mctx;
+        std::optional< function_model > model;
+
+        using mixin_base = tc::mixins< function_type_converter >;
+        using mixin_base::convert_type_to_type;
+
+        explicit function_type_converter(mcontext_t &mctx, std::optional< function_model > model)
+            : mctx(mctx), model(model)
+        {
+            addConversion([this](tc::core_function_type ty) -> maybe_type_t {
+                return convert_type_to_type(ty);
+            });
+        }
+
+        maybe_type_t convert_arg_type(mlir_type ty, unsigned long idx) const {
+            return Maybe(model
+                ? model->get_argument_type(idx, &mctx)
+                : pr::MaybeDataType::get(&mctx)
+            ).template take_wrapped< maybe_type_t >();
+        }
+
+        maybe_type_t convert_type_to_type(tc::core_function_type ty) const {
+            auto sig = signature_conversion(ty.getInputs());
+            if (!sig) {
+                return std::nullopt;
+            }
+
+            auto rty = convert_types_to_types(ty.getResults());
+            if (!rty) {
+                return std::nullopt;
+            }
+
+            return tc::core_function_type::get(
+                ty.getContext(), sig->getConvertedTypes(), *rty, ty.isVarArg()
+            );
+        }
+
+        maybe_type_t convert_type_to_type(mlir_type ty) const {
+            if (auto ft = mlir::dyn_cast< tc::core_function_type >(ty)) {
+                return convert_type_to_type(ft);
+            }
+            return Maybe(model
+                ? model->get_return_type(&mctx)
+                : pr::MaybeDataType::get(&mctx)
+            ).template take_wrapped< maybe_type_t >();
+        }
     };
 
     namespace pattern {
@@ -289,9 +348,55 @@ namespace vast::conv {
             }
         };
 
+        struct FuncConversion
+            : parser_conversion_pattern_base< hl::FuncOp >
+            , tc::op_type_conversion< hl::FuncOp, function_type_converter >
+        {
+            using op_t = hl::FuncOp;
+            using base = parser_conversion_pattern_base< op_t >;
+            using base::base;
+
+            using adaptor_t = typename op_t::Adaptor;
+
+            static std::optional< function_model > get_model(
+                const function_models &models, op_t op
+            ) {
+                if (auto kv = models.find(op.getSymName()); kv != models.end()) {
+                    return kv->second;
+                }
+
+                return std::nullopt;
+            }
+
+            std::optional< function_model > get_model(op_t op) const {
+                return get_model(models, op);
+            }
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                auto tc = function_type_converter(*rewriter.getContext(), get_model(op));
+                if (auto func_op = mlir::dyn_cast< core::function_op_interface >(op.getOperation())) {
+                    return this->replace(func_op, rewriter, tc);
+                }
+
+                return mlir::failure();
+            }
+
+            static void legalize(parser_conversion_config &cfg) {
+                cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
+                cfg.target.addDynamicallyLegalOp< op_t >([models = cfg.models](op_t op) {
+                    return function_type_converter(
+                        *op.getContext(), get_model(models, op)
+                    ).isLegal(op.getFunctionType());
+                });
+            }
+        };
+
         using operation_conversions = util::type_list<
             ToNoParse< hl::ConstantOp >,
             ToNoParse< hl::ImplicitCastOp >,
+            FuncConversion,
             CallConversion
         >;
 
