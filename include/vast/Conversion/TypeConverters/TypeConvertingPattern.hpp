@@ -27,13 +27,7 @@ namespace vast::conv::tc {
             return replace_impl(op, rewriter, tc);
         }
 
-        logical_result replace(operation op, auto &rewriter) const {
-            auto tc = static_cast< const type_converter & >(*self().getTypeConverter());
-            return replace(op, rewriter, tc);
-        }
-
       private:
-        const auto &self() const { return static_cast< const derived & >(*this); }
 
         logical_result replace_impl(core::function_op_interface fn, auto &rewriter, const type_converter &tc) const {
             auto old_type = fn.getFunctionType();
@@ -81,8 +75,8 @@ namespace vast::conv::tc {
         }
 
         void fixup_entry_block(mlir::Block &block, const type_converter &tc) const {
-            for (auto arg : block.getArguments()) {
-                auto trg = tc.convert_type_to_type(arg.getType());
+            for (auto [idx, arg] : llvm::enumerate(block.getArguments())) {
+                auto trg = tc.convert_arg_type(arg.getType(), idx);
                 VAST_CHECK(trg, "Type conversion failed: {0}", arg);
                 arg.setType(*trg);
             }
@@ -114,7 +108,8 @@ namespace vast::conv::tc {
             operation op, mlir::ArrayRef< mlir::Value >,
             conversion_rewriter &rewriter
         ) const override {
-            return replace(op, rewriter);
+            auto tc = static_cast< const type_converter & >(*getTypeConverter());
+            return replace(op, rewriter, tc);
         }
     };
 
