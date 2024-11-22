@@ -1,4 +1,4 @@
-add_vast_executable(detect-parsers
+add_vast_executable(vast-detect-parsers
     main.cpp
     ParserSourceDetector.cpp
 

@@ -1,4 +1,4 @@
-add_subdirectory(detect-parsers)
+add_subdirectory(vast-detect-parsers)
 add_subdirectory(vast-front)
 add_subdirectory(vast-opt)
 add_subdirectory(vast-query)
