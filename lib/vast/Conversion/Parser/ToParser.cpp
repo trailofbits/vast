@@ -496,6 +496,7 @@ namespace vast::conv {
         using operation_conversions = util::type_list<
             ToNoParse< hl::ConstantOp >,
             ToNoParse< hl::ImplicitCastOp >,
+            ToNoParse< hl::CmpOp>, ToNoParse< hl::FCmpOp >,
             FuncConversion,
             ParamConversion,
             DeclRefConversion,
