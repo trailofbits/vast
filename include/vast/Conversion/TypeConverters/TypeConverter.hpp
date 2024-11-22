@@ -152,6 +152,10 @@ namespace vast::conv::tc {
                 .template take_wrapped< maybe_type_t >();
         }
 
+        maybe_type_t convert_arg_type(mlir_type t, unsigned long /* idx */) const {
+            return convert_type_to_type(t);
+        }
+
         auto appender(types_t &out) const {
             return [&](auto collection) {
                 out.insert(
@@ -178,8 +182,12 @@ namespace vast::conv::tc {
 
         maybe_signature_conversion_t signature_conversion(const auto &inputs) const {
             signature_conversion_t sc(inputs.size());
-            if (mlir::failed(self().convertSignatureArgs(inputs, sc))) {
-                return {};
+            for (auto [i, arg] : llvm::enumerate(inputs)) {
+                if (auto trg = self().convert_arg_type(arg, i)) {
+                    sc.addInputs(i, *trg);
+                } else {
+                    return {};
+                }
             }
             return { std::move(sc) };
         }
