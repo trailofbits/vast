@@ -88,4 +88,16 @@ def Parse_Decl
   }];
 }
 
+def Parse_Ref
+  : Parser_Op< "ref" >
+  , Arguments< (ins FlatSymbolRefAttr:$name) >
+  , Results< (outs Parser_AnyDataType:$result) >
+{
+  let summary = "Parser variable reference operation.";
+
+  let assemblyFormat = [{
+    $name attr-dict `:` type($result)
+  }];
+}
+
 #endif // VAST_DIALECT_PARSER_OPS
