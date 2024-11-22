@@ -153,3 +153,12 @@
     arguments:
       - nodata  # FILE * stream
     category: nonparser
+
+- function: main
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int argc
+      - data  # char * argv[]
+      - data  # char * envp[]
+    category: nonparser
