@@ -368,6 +368,35 @@ namespace vast::conv {
             }
         };
 
+        struct DeclRefConversion
+            : one_to_one_conversion_pattern< hl::DeclRefOp, pr::Ref >
+        {
+            using op_t = hl::DeclRefOp;
+            using base = one_to_one_conversion_pattern< op_t, pr::Ref >;
+            using base::base;
+
+            using adaptor_t = typename op_t::Adaptor;
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                auto rewrite = [&] (auto ty) {
+                    rewriter.replaceOpWithNewOp< pr::Ref >(op, ty, op.getName());
+                    return mlir::success();
+                };
+
+                if (auto vs = core::symbol_table::lookup< core::var_symbol >(op, op.getName())) {
+                    if (auto var = mlir::dyn_cast< hl::VarDeclOp >(vs)) {
+                        return rewrite(var.getType());
+                    } else if (auto par = mlir::dyn_cast< hl::ParmVarDeclOp >(vs)) {
+                        return rewrite(par.getParam().getType());
+                    }
+                }
+
+                return mlir::failure();
+            }
+        };
+
         struct FuncConversion
             : parser_conversion_pattern_base< hl::FuncOp >
             , tc::op_type_conversion< hl::FuncOp, function_type_converter >
@@ -418,6 +447,7 @@ namespace vast::conv {
             ToNoParse< hl::ImplicitCastOp >,
             FuncConversion,
             ParamConversion,
+            DeclRefConversion,
             CallConversion
         >;
 
