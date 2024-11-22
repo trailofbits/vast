@@ -5,7 +5,7 @@
 #include "vast/Util/Warnings.hpp"
 
 VAST_RELAX_WARNINGS
-include "mlir/Conversion/Passes.h"
+#include "mlir/Conversion/Passes.h"
 #include "mlir/IR/Dialect.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/InitAllDialects.h"
