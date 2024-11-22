@@ -348,6 +348,26 @@ namespace vast::conv {
             }
         };
 
+        struct ParamConversion
+            : one_to_one_conversion_pattern< hl::ParmVarDeclOp, pr::Decl >
+        {
+            using op_t = hl::ParmVarDeclOp;
+            using base = one_to_one_conversion_pattern< hl::ParmVarDeclOp, pr::Decl >;
+            using base::base;
+
+            using adaptor_t = typename op_t::Adaptor;
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                rewriter.replaceOpWithNewOp<  pr::Decl >(
+                    op, op.getSymName(), op.getParam().getType()
+                );
+
+                return mlir::success();
+            }
+        };
+
         struct FuncConversion
             : parser_conversion_pattern_base< hl::FuncOp >
             , tc::op_type_conversion< hl::FuncOp, function_type_converter >
@@ -397,6 +417,7 @@ namespace vast::conv {
             ToNoParse< hl::ConstantOp >,
             ToNoParse< hl::ImplicitCastOp >,
             FuncConversion,
+            ParamConversion,
             CallConversion
         >;
 
