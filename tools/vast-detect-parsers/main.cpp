@@ -1,4 +1,4 @@
-// Copyright (c) 2021-present, Trail of Bits, Inc.
+// Copyright (c) 2024, Trail of Bits, Inc.
 
 #include <string>
 
