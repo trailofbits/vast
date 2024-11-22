@@ -6,6 +6,7 @@
 include "mlir/IR/OpBase.td"
 
 include "vast/Dialect/Core/Utils.td"
+include "vast/Dialect/Core/Interfaces/SymbolInterface.td"
 include "vast/Dialect/Parser/Types.td"
 
 class Parser_Op< string mnemonic, list< Trait > traits = [] >
@@ -70,6 +71,20 @@ def Parse_ToMaybe
 
   let assemblyFormat = [{
     $arguments attr-dict `:` functional-type($arguments, $result)
+  }];
+}
+
+def Parse_Decl
+  : Parser_Op< "decl", [Core_VarSymbol] >
+  , Arguments< (ins
+    SymbolNameAttr:$sym_name,
+    TypeAttr:$type
+  ) >
+{
+  let summary = "Declaration operation.";
+
+  let assemblyFormat = [{
+    $sym_name attr-dict `:` $type
   }];
 }
 
