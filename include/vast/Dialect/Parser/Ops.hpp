@@ -11,6 +11,9 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Parser/Dialect.hpp"
 #include "vast/Dialect/Parser/Types.hpp"
+
+#include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
+
 #include "vast/Util/Common.hpp"
 
 #define GET_OP_CLASSES
