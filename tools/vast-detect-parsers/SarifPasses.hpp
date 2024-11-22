@@ -1,4 +1,4 @@
-// Copyright (c) 2022-present, Trail of Bits, Inc.
+// Copyright (c) 2024, Trail of Bits, Inc.
 
 #pragma once
 
