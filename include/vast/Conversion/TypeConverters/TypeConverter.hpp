@@ -45,7 +45,7 @@ namespace vast::conv::tc {
         }
     };
 
-    static inline constexpr auto unrealized_materialization = [] (
+    static inline auto unrealized_materialization(
         mlir::OpBuilder &builder, mlir::Type resultType,
         mlir::ValueRange inputs, mlir::Location loc
     ) -> std::optional< mlir::Value > {
