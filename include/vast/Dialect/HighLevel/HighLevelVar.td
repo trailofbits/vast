@@ -47,7 +47,7 @@ def HighLevel_VarDeclOp
   ];
 
   let assemblyFormat = [{
-    $sym_name attr-dict (`,`$linkage^)? (`constant` $constant^):(``)? custom< StorageClasses >($storageClass, $threadStorageClass)
+    $sym_name attr-dict (`,`$linkage^)? (`constant` $constant^)? custom< StorageClasses >($storageClass, $threadStorageClass)
       `:` $type
       (`=` $initializer^)?
       (`allocation_size` $allocation_size^)?
