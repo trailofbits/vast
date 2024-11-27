@@ -499,7 +499,7 @@ namespace vast::conv {
             ToNoParse< hl::CmpOp>, ToNoParse< hl::FCmpOp >,
             FuncConversion,
             ParamConversion,
-            DeclRefConversion,
+            // DeclRefConversion,
             ReturnConversion,
             CallConversion
         >;
