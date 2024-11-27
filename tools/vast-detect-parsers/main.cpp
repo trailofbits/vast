@@ -73,7 +73,7 @@ namespace vast {
             "parser-source-to-sarif", "Dumps all pr.source locations to a SARIF file.",
             [](mlir::OpPassManager &pm, const SarifOptions &opts) {
                 auto writer = std::make_unique< SarifWriter >(opts.out_path);
-                pm.addPass(std::make_unique< vast::ParserSourceDetector >(writer->results));
+                pm.addPass(std::make_unique< vast::ParserCategoryDetector >(writer->results));
                 pm.addPass(std::move(writer));
             }
         );

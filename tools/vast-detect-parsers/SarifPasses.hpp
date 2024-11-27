@@ -14,12 +14,12 @@ VAST_UNRELAX_WARNINGS
     #include <gap/sarif/sarif.hpp>
 
 namespace vast {
-    struct ParserSourceDetector
-        : mlir::PassWrapper< ParserSourceDetector, mlir::OperationPass< mlir::ModuleOp > >
+    struct ParserCategoryDetector
+        : mlir::PassWrapper< ParserCategoryDetector, mlir::OperationPass< mlir::ModuleOp > >
     {
         std::vector< gap::sarif::result > &results;
 
-        ParserSourceDetector(std::vector< gap::sarif::result > &results) : results(results) {}
+        ParserCategoryDetector(std::vector< gap::sarif::result > &results) : results(results) {}
 
         void runOnOperation() override;
     };
