@@ -56,15 +56,15 @@ namespace vast::cc {
     }
 
     void vast_consumer::HandleCXXStaticMemberVarInstantiation(clang::VarDecl * /* decl */) {
-        // VAST_UNIMPLEMENTED;
+        VAST_UNIMPLEMENTED;
     }
 
     void vast_consumer::HandleInlineFunctionDefinition(clang::FunctionDecl * /* decl */) {
-        // VAST_UNIMPLEMENTED;
+        VAST_UNIMPLEMENTED;
     }
 
     void vast_consumer::HandleInterestingDecl(clang::DeclGroupRef /* decl */) {
-        // VAST_UNIMPLEMENTED;
+        VAST_UNIMPLEMENTED;
     }
 
     void vast_consumer::HandleTranslationUnit(acontext_t &actx) {
@@ -84,12 +84,12 @@ namespace vast::cc {
         // For MSVC compatibility, treat declarations of static data members with
         // inline initializers as definitions.
         if (actx.getTargetInfo().getCXXABI().isMicrosoft()) {
-            // VAST_UNIMPLEMENTED;
+            VAST_UNIMPLEMENTED;
         }
 
         // For OpenMP emit declare reduction functions, if required.
         if (actx.getLangOpts().OpenMP) {
-            // VAST_UNIMPLEMENTED;
+            VAST_UNIMPLEMENTED;
         }
     }
 
@@ -100,12 +100,10 @@ namespace vast::cc {
     void vast_consumer::CompleteTentativeDefinition(clang::VarDecl * /* decl */) {}
 
     void vast_consumer::AssignInheritanceModel(clang::CXXRecordDecl * /* decl */) {
-        // VAST_UNIMPLEMENTED;
+        VAST_UNIMPLEMENTED;
     }
 
-    void vast_consumer::HandleVTable(clang::CXXRecordDecl * /* decl */) {
-        // VAST_UNIMPLEMENTED;
-    }
+    void vast_consumer::HandleVTable(clang::CXXRecordDecl * /* decl */) { VAST_UNIMPLEMENTED; }
 
     owning_mlir_module_ref vast_consumer::result() { return driver->freeze(); }
 
