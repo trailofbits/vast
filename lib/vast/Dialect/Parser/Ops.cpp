@@ -18,7 +18,17 @@ namespace vast::pr {
     using fold_result_t = ::llvm::SmallVectorImpl< ::mlir::OpFoldResult >;
 
     logical_result NoParse::fold(FoldAdaptor adaptor, fold_result_t &results) {
-        return mlir::failure();
+        auto change = mlir::failure();
+        auto op = getOperation();
+
+        for (auto [idx, operand] : llvm::reverse(llvm::enumerate(getOperands()))) {
+            if (auto noparse = mlir::dyn_cast< NoParse >(operand.getDefiningOp())) {
+                op->eraseOperand(idx);
+                change = mlir::success();
+            }
+        }
+
+        return change;
     }
 
 } // namespace vast::pr
