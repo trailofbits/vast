@@ -11,6 +11,7 @@ VAST_RELAX_WARNINGS
 #include "mlir/InitAllDialects.h"
 #include "mlir/Pass/PassOptions.h"
 #include "mlir/Tools/mlir-opt/MlirOptMain.h"
+#include "mlir/Transforms/Passes.h"
 
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/raw_ostream.h>
@@ -93,6 +94,7 @@ int main(int argc, char **argv) {
     vast::registerParserConversionPasses();
     vast::registerSarifPasses();
     mlir::registerConversionPasses();
+    mlir::registerTransformsPasses();
     registry.insert< vast::pr::ParserDialect >();
 
     return mlir::asMainReturnCode(
