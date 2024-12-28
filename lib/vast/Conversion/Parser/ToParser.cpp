@@ -13,6 +13,7 @@ VAST_RELAX_WARNINGS
 #include <mlir/Transforms/GreedyPatternRewriteDriver.h>
 VAST_UNRELAX_WARNINGS
 
+
 #include "PassesDetails.hpp"
 
 #include "vast/Conversion/Common/Mixins.hpp"
@@ -321,6 +322,10 @@ namespace vast::conv {
                 }
 
                 auto callee = op.getCallee();
+                
+                // TODO: remove after function sig check
+                op.print(llvm::outs());
+
                 if (auto kv = models.find(callee); kv != models.end()) {
                     const auto &[_, model] = *kv;
                     auto modeled = create_op_from_model(model, op, adaptor, rewriter);

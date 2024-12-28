@@ -58,6 +58,15 @@
       - data    # ...
     category: source
 
+# !GNU
+# TODO: Verify 
+# const char* getprogname(void);
+- function: getprogname
+  model:
+    return_type: nodata
+    arguments: []
+  category: source
+
 #
 # Parser data sinks
 #
@@ -79,6 +88,26 @@
       - nodata  # FILE * restrict stream
       - maybedata # const char * restrict format
       - maybedata # ...
+    category: sink
+
+# int rpl_fprintf(FILE * restrict stream, const char * restrict format, ...);
+- function: rpl_fprintf
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # FILE * restrict stream
+      - maybedata # const char * restrict format
+      - maybedata # ...
+    category: sink
+
+# int rpl_vfprintf(FILE * restrict stream, const char * restrict format, va_list ap);
+- function: rpl_vfprintf
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # FILE * restrict stream
+      - maybedata # const char * restrict format
+      - maybedata # va_list ap
     category: sink
 
 # void perror(const char *s);
@@ -104,6 +133,91 @@
     arguments:
       - maybedata  # const char * restrict filename
       - maybedata  # const char * restrict mode
+    category: sink    
+
+# int creat (const char *__file, mode_t __mode)
+- function: creat
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # const char * __file
+      - maybedata  # mode_t __mode
+    category: sink   
+
+# !GNU
+# https://github.com/coreutils/gnulib/blob/master/lib/openat.c
+# int rpl_openat (int dfd, char const *filename, int flags, ...)
+- function: rpl_openat
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # int dfd
+      - maybedata  # char const* filename
+      - maybedata  # int flags
+      - maybedata # ...
+    category: sink    
+
+# TODO! Verify is sink.
+
+# size_t strlen(const char* s);
+- function: strlen
+  model:
+    return_type: maybedata  # TODO! verify. 
+    arguments:
+      - maybedata  # const char *s
+    category: sink
+
+# size_t strlen(const char* s, size_t maxlen);
+- function: strlen
+  model:
+    return_type: maybedata # TODO! verify
+    arguments:
+      - maybedata  # const char * s
+      - nodata  # size_t maxlen
+    category: sink
+
+# !GCC
+# uint32_t __builtin_bswap32(uint32_t x);
+- function: __builtin_bswap32
+  model:
+    return_type: maybedata
+    arguments:
+      - maybedata  # uint32_t x
+    category: sink
+
+# uint64_t __builtin_bswap64(uint64_t x);
+- function: __builtin_bswap64
+  model:
+    return_type: maybedata
+    arguments:
+      - maybedata  # uint64_t x
+    category: sink
+
+# int fileno(FILE *stream);
+- function: fileno
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # FILE *stream
+    category: sink
+
+# !GNULIB
+# https://github.com/coreutils/gnulib/blob/496033868c1ed8c8c204bc3bc306ac114d441f93/lib/fflush.c#L127
+# int rpl_fflush(FILE *stream);
+- function: rpl_fflush
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # FILE *stream
+    category: sink
+
+# int putc(int c, FILE *stream);
+- function: putc
+  model:
+    return_type: nodata
+    arguments: 
+      - maybedata # int c
+      - maybedata # FILE *stream
     category: sink
 
 #
@@ -126,6 +240,25 @@
       - data  # int c
     category: parser
 
+# size_t strspn(const char *s, const char *accept);
+- function: strspn
+  model: 
+    return_type: data #TODO: verify, may be NODATA?
+    arguments:
+      - data  # const char* s
+      - data # const char* accept
+    category: parser
+
+# void *memchr(const void *s, int c, size_t n);
+- function: strspn
+  model:
+    return_type: data # TODO: verify that it's ok that it may be NULL.
+    arguments:
+      - data  # const void* s
+      - data # int c
+      - data # size_t n
+    category: parser
+
 #
 # Non-parser functions
 #
@@ -146,12 +279,137 @@
       - nodata  # size_t size
     category: nonparser
 
+# void * calloc(size_t count, size_t size);
+- function: calloc
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # size_t count
+      - nodata  # size_t size
+    category: nonparser
+
 # void fclose(FILE * stream);
 - function: fclose
   model:
     return_type: nodata
     arguments:
       - nodata  # FILE * stream
+    category: nonparser
+
+# int chdir(const char *path);
+- function: chdir
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # const char *path
+    category: nonparser
+
+# int fchdir(int fd);
+- function: fchdir
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int fd
+    category: nonparser
+
+# int close(int fd);
+- function: close
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int fd
+    category: nonparser
+
+# !GCC
+# long __builtin_expect (long exp, long c);
+- function: __builtin_expect
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # long exp
+      - maybedata # long c
+    category: nonparser
+
+# !Unknown
+# void __error(void);
+- function: __error
+  model:
+    return_type: nodata
+    arguemnts: []
+    category: nonparser
+
+# !AppleLibC
+# !Multiple!
+# TODO: Could be that we have data for the assertions. Maybedata?
+# __assert_rtn(const char *func, const char *file, int line, const char *failedexpr)
+- function: __assert_rtn
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # const char* func
+      - maybedata # const char* file
+      - nodata # int line (of code, not file)
+      - nodata # const char* failedexpr
+    category: nonparser
+
+# int cdb_free(struct cdb *c);
+- function: cdb_free
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # struct cdb *c
+    category: nonparser
+
+# !VARIADIC
+# int fcntl(int fd, int op, ...);
+- function: fcntl
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int fd
+      - nodata # int op
+      - nodata # ...
+    category: nonparser
+
+# size_t __builtin_object_size (const void * ptr, int type)
+- function: __builtin_object_size
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # const void* ptr
+      - nodata # int type
+    category: nonparser
+
+# void * __builtin___memset_chk (void *s, int c, size_t n, size_t os);
+- function: __bulitin___memset_chk
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # void* s
+      - nodata # int c
+      - nodata # size_t n
+      - nodata # size_t os
+    category: nonparser
+
+# void * __builtin___memcpy_chk (void *dest, const void *src, size_t n, size_t os);
+- function: __bulitin___memcpy_chk
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # void* dest
+      - nodata # const void* src
+      - nodata # size_t n
+      - nodata # size_t os
+    category: nonparser
+
+# int rpl_strerror_r (int __errnum, char *__strerrbuf, size_t __buflen);
+- function: rpl_strerror_r 
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # int __errnum
+      - nodata # __strerrbuf
+      - nodata # size_t buflen
     category: nonparser
 
 - function: main

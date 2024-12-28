@@ -61,3 +61,8 @@ _CPack_Packages/*
 install/*
 
 CMakeUserPresets.json
+
+# Shin - remove later (after cleaning up dir)
+vcpkg
+analysis.yaml
+*.mlir
