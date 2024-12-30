@@ -65,7 +65,25 @@
   model:
     return_type: nodata
     arguments: []
-  category: source
+    category: source
+
+# TODO: Verify
+# char* getcwd(char* buf, size_t size);
+- function: getcwd
+  model:
+    return_type: nodata
+    arguments:
+      - data # char* buf
+      - nodata # size_t size
+    category: source
+
+# char* getenv(const char* name)
+- function: getenv
+  model:
+    return_type: data
+    arguments:
+      - data # const char* name
+    category: source
 
 #
 # Parser data sinks
@@ -105,9 +123,20 @@
   model:
     return_type: nodata
     arguments:
-      - nodata  # FILE * restrict stream
-      - maybedata # const char * restrict format
+      - maybedata  # FILE * restrict stream
+      - nodata # const char * restrict format
       - maybedata # va_list ap
+    category: sink
+
+# size_t fwrite(const void *restrict ptr, size_t size, size_t nitems, FILE *restrict stream);
+- function: fwrite
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # const void *restrict ptr
+      - nodata # size_t size
+      - nodata # size_t nitems
+      - maybedata # FILE *restrict stream
     category: sink
 
 # void perror(const char *s);
@@ -116,6 +145,14 @@
     return_type: nodata
     arguments:
       - maybedata  # const char *s
+    category: sink
+
+# void fseterr(FILE *fp);
+- function: fseterr
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # FILE *fp
     category: sink
 
 # void free(void * ptr);
@@ -135,8 +172,91 @@
       - maybedata  # const char * restrict mode
     category: sink    
 
+# !GNULIB (gcc - __freading)
+# bool freading (FILE *fp)
+- function: freading
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # FILE* p
+    category: sink
+
+# off_t lseek(int fildes, off_t offset, int whence);
+- function: lseek
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # FILE* stream
+      # DONE TEMP
+    category: sink
+
+# int fseeko(FILE *stream, off_t offset, int whence);
+- function: fseeko
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # FILE* stream
+      - nodata # off_t offset
+      - nodata # whence
+    category: sink
+
+# long ftello(FILE *stream);
+- function: ftello
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # FILE* stream
+    category: sink
+
+# int dirfd(DIR *dirp);
+- function: dirfd 
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # DIR *dirp
+    category: sink
+
+# !GNULIB
+# int cdb_advance_fd(struct cd_buf *cdb, char const *dir);
+- function: fdb_advance_fd
+  model: 
+    return_type: nodata
+    arguments:
+      - maybedata # struct cd-buf *cdb
+      - maybedata # char const* dir
+    category: sink  
+
+
+# int access(const char* file, int mode);
+- function: access
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # const char* file
+      - maybedata # int mode
+    category: sink
+
+# !GNULIB
+# size_t dirlen(char const* file);
+- function: dirlen
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # char const *file
+    category: sink
+
+# TODO! Verify
 # int creat (const char *__file, mode_t __mode)
 - function: creat
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # const char * __file
+      - maybedata  # mode_t __mode
+    category: sink   
+
+# int creat (const char *__file, mode_t __mode)
+- function: \01_creat
   model:
     return_type: nodata
     arguments:
@@ -162,7 +282,7 @@
 # size_t strlen(const char* s);
 - function: strlen
   model:
-    return_type: maybedata  # TODO! verify. 
+    return_type: nodata  # TODO! verify. 
     arguments:
       - maybedata  # const char *s
     category: sink
@@ -170,7 +290,7 @@
 # size_t strlen(const char* s, size_t maxlen);
 - function: strlen
   model:
-    return_type: maybedata # TODO! verify
+    return_type: nodata # TODO! verify
     arguments:
       - maybedata  # const char * s
       - nodata  # size_t maxlen
@@ -180,7 +300,7 @@
 # uint32_t __builtin_bswap32(uint32_t x);
 - function: __builtin_bswap32
   model:
-    return_type: maybedata
+    return_type: nodata
     arguments:
       - maybedata  # uint32_t x
     category: sink
@@ -188,7 +308,7 @@
 # uint64_t __builtin_bswap64(uint64_t x);
 - function: __builtin_bswap64
   model:
-    return_type: maybedata
+    return_type: nodata
     arguments:
       - maybedata  # uint64_t x
     category: sink
@@ -201,14 +321,55 @@
       - maybedata  # FILE *stream
     category: sink
 
+# void flockfile(FILE *filehandle);
+- function: flockfile
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # FILE *filehandle
+    category: sink
+
+# void funlockfile(FILE *file);
+- function: flockfile
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # FILE *file
+    category: sink
+
+# int fflush(FILE *stream);
+- function: fflush
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # FILE *stream;
+    category: sink
+
+# int fpurge(FILE *stream);
+- function: fpurge
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # FILE *stream;
+    category: sink
+
 # !GNULIB
-# https://github.com/coreutils/gnulib/blob/496033868c1ed8c8c204bc3bc306ac114d441f93/lib/fflush.c#L127
 # int rpl_fflush(FILE *stream);
 - function: rpl_fflush
   model:
     return_type: nodata
     arguments:
       - maybedata  # FILE *stream
+    category: sink
+
+# ! GNULIB
+# TODO: Verify not source
+# void clear_ungetc_buffer(FILE *fp);
+- function: clear_ungetc_buffer
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # FILE *fp
     category: sink
 
 # int putc(int c, FILE *stream);
@@ -223,6 +384,22 @@
 #
 # Parser functions
 #
+
+# int isascii(int c)
+- function: isascii
+  model:
+    return_type: nodata
+    arguments:
+      - data # int c
+    category: parser
+
+# int isupper(int c);
+- function: isupper
+  model:
+    return_type: nodata
+    arguments:
+      - data # int c
+    category: parser
 
 # int isspace(int c);
 - function: isspace
@@ -250,13 +427,31 @@
     category: parser
 
 # void *memchr(const void *s, int c, size_t n);
-- function: strspn
+- function: memchr
   model:
     return_type: data # TODO: verify that it's ok that it may be NULL.
     arguments:
       - data  # const void* s
       - data # int c
       - data # size_t n
+    category: parser
+
+# size_t base_len(char const *name);
+# technically parsing the directory name? lol. TODO Verify
+- function: base_len
+  model:
+    return_type: data
+    arguments:
+      - data # char const *name
+    category: parser
+
+# char* last_component(char const* name);
+# also technically parsing and getting last component
+- function: last_compnent
+  model:
+    return_type: data
+    arguments:
+      - data # char const* name
     category: parser
 
 #
@@ -271,12 +466,38 @@
       - nodata  # int status
     category: nonparser
 
+# void __builtin_unreachable(void);
+- function: __builtin_unreachable
+  model:
+    return_type: nodata
+    arguments: []
+    category: nonparser
+
 # void * malloc(size_t size);
 - function: malloc
   model:
     return_type: nodata
     arguments:
       - nodata  # size_t size
+    category: nonparser
+
+# !GNULIB
+# void* xmalloc(size_t s);
+- function: xmalloc
+  model:
+    return_type: nodata
+    arguments:
+    - nodata # size_t s
+    category: nonparser
+
+# !GNULIB
+# void* xrealloc(void* p, size_t s);
+- function: xrealloc
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # void* p
+      - nodata # size_t s
     category: nonparser
 
 # void * calloc(size_t count, size_t size);
@@ -296,12 +517,81 @@
       - nodata  # FILE * stream
     category: nonparser
 
+# int fd_safer(int fd);
+- function: fd_safer
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int fd
+    category: nonparser
+
+# int fd_safer_flag(int fd, int flag);
+- function: fd_safer_flag
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int fd
+      - nodata # int flag
+    category: nonparser
+
+# int is_open(int fd)
+- function: is_open
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int fd
+    category: nonparser
+
+# int futimens(int fd, const struct timespec timespec[2]);
+- function: futimens
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int fd
+      - nodata # const struct timespec timespec[2]
+    category: nonparser
+
+# int futimes(int fildes, const struct timespec timespec[2]);
+- function: futimes
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int fildes
+      - nodata # const struct timespec timespec[2]
+    category: nonparser
+
+# int fdutimens(int fd, char const *file, struct timespec const timespec[2]);
+- function: fdutimens
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int fd
+      - nodata # char const *file
+      - nodata # struct timespec const timespec[2]
+    category: nonparser
+
+# sturct timespec get_stat_atime(struct stat const* st);
+- function: get_stat_atime
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # struct stat const* st
+    category: nonparser
+
 # int chdir(const char *path);
 - function: chdir
   model:
     return_type: nodata
     arguments:
       - nodata  # const char *path
+    category: nonparser
+
+# int chdir_long(char *dir);
+- function: chdir_long
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # char *dir
     category: nonparser
 
 # int fchdir(int fd);
@@ -312,6 +602,14 @@
       - nodata  # int fd
     category: nonparser
 
+# int cdb_fchdir(struct cd_buf const *cdb);
+- function: cdb_fchdir
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # struct cd_buf const *cdb;
+    category: nonparser
+
 # int close(int fd);
 - function: close
   model:
@@ -320,14 +618,110 @@
       - nodata  # int fd
     category: nonparser
 
+# TODO: LLVM Call Sig -> \01. should this be handled differently?
+# int \01_close(int fd);
+- function: \01_close
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int fd
+    category: nonparser
+
+# TODO: LLVM Call Sig -> \01. should this be handled differently?
+# int \01_closedir(DIR* dirp);
+- function: \01_close
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # DIR* dirp
+    category: nonparser
+
 # !GCC
 # long __builtin_expect (long exp, long c);
 - function: __builtin_expect
   model:
     return_type: nodata
     arguments:
-      - maybedata  # long exp
-      - maybedata # long c
+      - nodata  # long exp TODO: Verify nodata, we can't have maybedata
+      - nodata # long c
+    category: nonparser
+
+# !Apple
+# int __istype(__darwin_ct_rune_t _c,   unsigned long _f);
+# TODO: looks like type checking, *maybe* parsing?
+- function: __istype
+  model:
+    return_type: nodata
+    arguments: 
+      - nodata # __darwin_ct_rune_t _c
+      - nodata # unsigned long _f
+    category: nonparser
+
+#! Apple
+# __darwin_ct_rune_t __isctype(__darwin_ct_rune_t _c, unsigned long _f);
+- function: __isctype
+  model:
+    return_type: nodata
+    arguments: 
+      - nodata # __darwin_ct_rune_t _c
+      - nodata # unsigned long _f
+    category: nonparser
+
+#! Apple
+# int __maskrune(__darwin_ct_rune_t _c, unsigned long _f);
+- function: __maskrune
+  model:
+    return_type: nodata
+    arguments: 
+      - nodata # __darwin_ct_rune_t _c
+      - nodata # unsigned long _f
+    category: nonparser
+
+#! Apple
+# __darwin_ct_rune_t __tolower(__darwin_ct_rune_t _c);
+- function: __tolower
+  model:
+    return_type: nodata
+    arguments: 
+      - nodata # __darwin_ct_rune_t _c
+    category: nonparser
+  
+#! Apple
+# __darwin_ct_rune_t __toupper(__darwin_ct_rune_t _c);
+- function: __toupper
+  model:
+    return_type: nodata
+    arguments: 
+      - nodata # __darwin_ct_rune_t _c
+    category: nonparser
+
+# ! GNU
+# const char* _getopt_initialize(int argc, char **argv, const char* optstring, struct _getopt_data *d, int posixly_correct);
+- function: _getopt_initialize
+  model:
+    return_type: nodata
+    arguments:
+      - data # int argc
+      - data # char** argv
+      - data # const char* optstring 
+      - data # struct _getopt_data* d
+      - nodata # int posixly_correct
+    category: nonparser
+
+# ! GNU
+# int _getopt_internal_r (int ___argc, char **___argv, const char *__shortopts, const struct option *__longopts, int *__longind, int __long_only, struct _getopt_data *__data, int __posixly_correct);
+- function: _getopt_internal_r
+  model:
+    return_type: nodata
+    arguments:
+      - data # int ___argc
+      - data # char** ___argv
+      - data # const char* __shortopts 
+      - data # const struct option *__longopts
+      - nodata # int *__longind
+      - nodata # int __long_only
+      - data # struct _getopt_data *__data
+      - nodata # int __posixly_correct
     category: nonparser
 
 # !Unknown
@@ -335,7 +729,26 @@
 - function: __error
   model:
     return_type: nodata
-    arguemnts: []
+    arguments: []
+    category: nonparser
+
+# void error(int status, int errnum, const char* format, ...);
+- function: error
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int status
+      - nodata # int errnum
+      - nodata # const char* format
+      - nodata # ...
+    category: nonparser
+
+# !GNULIB
+# void xalloc_die(void);
+- function: xalloc_die
+  model:
+    return_type: nodata
+    arguments: []
     category: nonparser
 
 # !AppleLibC
@@ -346,12 +759,30 @@
   model:
     return_type: nodata
     arguments:
-      - maybedata  # const char* func
-      - maybedata # const char* file
+      - nodata  # const char* func
+      - nodata # const char* file
       - nodata # int line (of code, not file)
       - nodata # const char* failedexpr
     category: nonparser
 
+# libc
+# void abort(void);
+- function: abort
+  model:
+    return_type: nodata
+    arguments: []
+    category: nonparser
+
+# !GNULIB
+# void cdb_init(struct cd_buf *cdb);
+- function: cdb_init
+  model:
+    return_type: nodata
+    arguments: 
+      - nodata # struct cd_buf *cdb;
+    category: nonparser
+
+# !GNULIB
 # int cdb_free(struct cdb *c);
 - function: cdb_free
   model:
@@ -359,6 +790,7 @@
     arguments:
       - nodata  # struct cdb *c
     category: nonparser
+  
 
 # !VARIADIC
 # int fcntl(int fd, int op, ...);
@@ -371,12 +803,24 @@
       - nodata # ...
     category: nonparser
 
+# !VARIADIC
+# int \01_fcntl(int fd, int op, ...);
+- function: \01_fcntl
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int fd
+      - nodata # int op
+      - nodata # ...
+    category: nonparser
+
+
 # size_t __builtin_object_size (const void * ptr, int type)
 - function: __builtin_object_size
   model:
     return_type: nodata
     arguments:
-      - maybedata  # const void* ptr
+      - nodata  # const void* ptr TODO: maybedata??
       - nodata # int type
     category: nonparser
 
@@ -402,14 +846,78 @@
       - nodata # size_t os
     category: nonparser
 
+# int __builtin___snprintf_chk(char* s, size_t maxlen, int flag, size_t os, const char* fmt, ...);
+- function: __builtin___snprintf_chk
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # char* s
+      - nodata # size_t maxlen
+      - nodata # int flag
+      - nodata # size_t os
+      - nodata # const char* fmt
+      - nodata # ...
+    category: nonparser
+
+# int __builtin___sprintf_chk(char* s, int flag, size_t os, const char* fmt, ...);
+- function: __builtin___sprintf_chk
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # char* s
+      - nodata # int flag
+      - nodata # size_t os
+      - nodata # const char* fmt
+      - nodata # ...
+    category: nonparser
+
+# SOURCE: https://www.ibm.com/docs/en/xl-c-and-cpp-linux/16.1.0?topic=functions-builtin-chk TODO: Verify and does need cite?
+# char* __builtin___stpcpy_chk(char* dest, const char* src, size_t os);
+- function: __builtin___stpcpy_chk
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # char* dest
+      - nodata # const char* src
+      - nodata # size_t os
+    category: nonparser
+
+# char* __builtin___strcpy_chk(char* dest, const char* src, size_t os);
+- function: __builtin___strcpy_chk
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # char* dest
+      - nodata # const char* src
+      - nodata # size_t os
+    category: nonparser
+
 # int rpl_strerror_r (int __errnum, char *__strerrbuf, size_t __buflen);
 - function: rpl_strerror_r 
   model:
     return_type: nodata
     arguments:
-      - maybedata  # int __errnum
+      - nodata  # int __errnum
       - nodata # __strerrbuf
       - nodata # size_t buflen
+    category: nonparser
+
+# void gettime(struct timespec *ts);
+- function: gettime
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # struct timespec *ts
+    category: nonparser
+
+# libc
+# int clock_getime(clockid_t clock_id, struct timespec *tp);
+- function: clock_gettime
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # clockid_t clock_id
+      - nodata # struct timespec* tp
     category: nonparser
 
 - function: main

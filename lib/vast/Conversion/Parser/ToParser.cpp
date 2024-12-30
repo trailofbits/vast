@@ -317,14 +317,16 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
+                llvm::outs() << "replacing " << op << "...\n";
                 if (op.getCallee().empty()) {
+                    llvm::outs() << op << " empty callee\n";
                     return mlir::failure();
                 }
 
                 auto callee = op.getCallee();
                 
                 // TODO: remove after function sig check
-                op.print(llvm::outs());
+                llvm::outs() << callee << "\n";
 
                 if (auto kv = models.find(callee); kv != models.end()) {
                     const auto &[_, model] = *kv;
@@ -476,10 +478,13 @@ namespace vast::conv {
 
             using adaptor_t = typename op_t::Adaptor;
 
-
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
+                
+                // TODO: remove after function sig check
+                // llvm::outs()
+
                 auto tc = function_type_converter(*rewriter.getContext(), get_model(op.getSymName()));
                 if (auto func_op = mlir::dyn_cast< core::function_op_interface >(op.getOperation())) {
                     return this->replace(func_op, rewriter, tc);
