@@ -58,8 +58,6 @@
       - data    # ...
     category: source
 
-# !GNU
-# TODO: Verify 
 # const char* getprogname(void);
 - function: getprogname
   model:
@@ -67,7 +65,6 @@
     arguments: []
     category: source
 
-# TODO: Verify
 # char* getcwd(char* buf, size_t size);
 - function: getcwd
   model:
@@ -139,6 +136,17 @@
       - maybedata # FILE *restrict stream
     category: sink
 
+# TODO! verify NOT Parser
+# int memcmp(const void *s1, const void *s2, size_t n);
+- function: memcmp
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # const void* s1
+      - maybedata # const void* s2
+      - nodata # size_t n
+    category: sink
+
 # void perror(const char *s);
 - function: perror
   model:
@@ -172,6 +180,88 @@
       - maybedata  # const char * restrict mode
     category: sink    
 
+# !GNULIB
+# int orig_open(const char *filename, int flags, mode_t mode)
+- function: orig_open
+  model:
+    return_type: nodata
+    arguments: 
+      - maybedata # const char* filename
+      - maybedata # int flags
+      - maybedata # mode_t mode
+    category: sink
+
+# !GNULIB
+# int orig_openat(int fd, char const *filename, int flags, mode_t mode);
+- function: orig_openat
+  model:
+    return_type: nodata
+    arguments: 
+      - nodata # int fd
+      - maybedata # const char* filename
+      - maybedata # int flags
+      - maybedata # mode_t mode
+    category: sink
+
+# GNULIB
+# int orig_stat(const char* filename, struct stat *buf);
+- function: orig_stat
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # const char* filename
+      - nodata # struct stat *buf
+    category: sink
+
+# int orig_fstatat(int fd, char const *filename, struct stat *buf, int flags)
+- function: orig_fstatat
+  model:
+    return_type: nodata
+    arguments: 
+      - nodata # int fd
+      - maybedata # char const *filename
+      - nodata # struct stat *buf
+      - maybedata # int flags
+    category: sink
+
+# int orig_lstat(const char *filename, struct stat *buf)
+- function: orig_lstat
+  model:
+    return_type: nodata
+    arguments: 
+      - maybedata # char const *filename
+      - nodata # struct stat *buf
+    category: sink
+
+# int normal_fstatat(int fd, char const *file, struct stat *st, int flag)
+- function: normal_fstatat
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int fd
+      - maybedata # char const *file
+      - nodata # struct stat *st
+      - maybedata # int flag
+    category: sink
+
+# int open_safer(char const *file, int flags, ...)
+- function: open_safer
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # char const *file
+      - maybedata # int flags
+      - nodata # ...
+    category: sink
+
+# DIR *opendir_safer(const char* name);
+- function: opendir_safer
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # const char *name
+    category: sink
+
 # !GNULIB (gcc - __freading)
 # bool freading (FILE *fp)
 - function: freading
@@ -187,7 +277,8 @@
     return_type: nodata
     arguments:
       - maybedata # FILE* stream
-      # DONE TEMP
+      - nodata # off_t offset
+      - nodata # int whence
     category: sink
 
 # int fseeko(FILE *stream, off_t offset, int whence);
@@ -276,6 +367,7 @@
       - maybedata  # int flags
       - maybedata # ...
     category: sink    
+
 
 # TODO! Verify is sink.
 
@@ -425,11 +517,21 @@
       - data  # const char* s
       - data # const char* accept
     category: parser
-
+  
 # void *memchr(const void *s, int c, size_t n);
 - function: memchr
   model:
     return_type: data # TODO: verify that it's ok that it may be NULL.
+    arguments:
+      - data  # const void* s
+      - data # int c
+      - data # size_t n
+    category: parser
+
+# void *memrchr(const void *s, int c, size_t n);
+- function: memrchr
+  model:
+    return_type: data 
     arguments:
       - data  # const void* s
       - data # int c
@@ -464,6 +566,32 @@
     return_type: nodata
     arguments:
       - nodata  # int status
+    category: nonparser
+
+# int close(int fd);
+- function: close
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int fd
+    category: nonparser
+
+# TODO: LLVM Call Sig -> \01. should this be handled differently?
+# Look at issue 753, 756
+# int \01_close(int fd);
+- function: \01_close
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int fd
+    category: nonparser
+
+# int \01_closedir(DIR* dirp);
+- function: \01_closedir
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # DIR* dirp
     category: nonparser
 
 # void __builtin_unreachable(void);
@@ -610,31 +738,17 @@
       - nodata  # struct cd_buf const *cdb;
     category: nonparser
 
-# int close(int fd);
-- function: close
+# !GNU
+# int lstatat(int fd, char const *name, struct stat *st)
+- function: lstatat
   model:
     return_type: nodata
     arguments:
-      - nodata  # int fd
+      - nodata # int fd
+      - nodata # char const *name
+      - nodata # struct stat *st
     category: nonparser
 
-# TODO: LLVM Call Sig -> \01. should this be handled differently?
-# int \01_close(int fd);
-- function: \01_close
-  model:
-    return_type: nodata
-    arguments:
-      - nodata  # int fd
-    category: nonparser
-
-# TODO: LLVM Call Sig -> \01. should this be handled differently?
-# int \01_closedir(DIR* dirp);
-- function: \01_close
-  model:
-    return_type: nodata
-    arguments:
-      - nodata  # DIR* dirp
-    category: nonparser
 
 # !GCC
 # long __builtin_expect (long exp, long c);
