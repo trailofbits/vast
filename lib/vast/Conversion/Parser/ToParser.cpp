@@ -317,9 +317,7 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                llvm::outs() << "replacing " << op << "...\n";
                 if (op.getCallee().empty()) {
-                    llvm::outs() << op << " empty callee\n";
                     return mlir::failure();
                 }
 
