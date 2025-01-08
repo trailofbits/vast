@@ -59,9 +59,12 @@ namespace vast {
     using string_ref     = llvm::StringRef;
     using logical_result = mlir::LogicalResult;
 
+    using symbol_ref_attr = mlir::SymbolRefAttr;
+
     using mlir_attr    = mlir::Attribute;
     using maybe_attr_t = std::optional< mlir_attr >;
     using named_attr   = mlir::NamedAttribute;
+    using string_attr  = mlir::StringAttr;
 
     using integer_attr_t = mlir::IntegerAttr;
 
