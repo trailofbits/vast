@@ -21,7 +21,7 @@ namespace vast::core {
 
     using symbol_use_range = ::mlir::SymbolTable::UseRange;
 
-    std::optional< symbol_use_range > get_symbol_uses(
+    symbol_use_range get_symbol_uses(
         operation symbol, operation from
     );
 

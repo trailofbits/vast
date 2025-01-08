@@ -169,64 +169,33 @@ namespace vast::core {
         // Note: These are adapted from mlir::SymbolTable,
         // try to keep them consistent when updating, or note the differences.
         //
-        // Get an iterator range for all of the uses, for any symbol, that are nested
-        // within the given operation 'from'. This does not traverse into any nested
-        // symbol tables. This function returns std::nullopt if there are any unknown
-        // operations that may potentially be symbol tables.
-        static std::optional< symbol_use_range > get_direct_symbol_uses(operation from);
-        static std::optional< symbol_use_range > get_direct_symbol_uses(region_ptr from);
+        // Get an iterator range for all of the uses, for any symbol, that are
+        // nested within the given operation 'from'. This does not traverse into
+        // any nested symbol tables.
+        static symbol_use_range get_direct_symbol_uses(operation from);
+        static symbol_use_range get_direct_symbol_uses(region_ptr from);
 
         // Get all of the uses of the given symbol that are nested within the given
         // operation 'from'. This does not traverse into any nested symbol tables.
-        // This function returns std::nullopt if there are any unknown operations
-        // that may potentially be symbol tables.
-        static std::optional< symbol_use_range > get_direct_symbol_uses(
-            operation symbol, operation from
-        );
-
-        static std::optional< symbol_use_range > get_direct_symbol_uses(
-            string_attr symbol, operation from
-        );
-
-        static std::optional< symbol_use_range > get_direct_symbol_uses(
-            operation symbol, region_ptr from
-        );
-
-        static std::optional< symbol_use_range > get_direct_symbol_uses(
-            string_attr symbol, region_ptr from
-        );
+        static symbol_use_range get_direct_symbol_uses(operation symbol, operation from);
+        static symbol_use_range get_direct_symbol_uses(string_attr symbol, operation from);
+        static symbol_use_range get_direct_symbol_uses(operation symbol, region_ptr from);
+        static symbol_use_range get_direct_symbol_uses(string_attr symbol, region_ptr from);
 
         // Get an iterator range for all of the uses, for any symbol, that are
         // nested within the given operation 'from'. In contrast to
-        // mlir::SymbolTable::getSymbolUses, this function traverses into nested
-        // symbol tables.
-        //
-        // This function returns std::nullopt if there are any unknown operations
-        // that may potentially be symbol tables.
-        static std::optional< symbol_use_range > get_symbol_uses(operation from);
-        static std::optional< symbol_use_range > get_symbol_uses(region_ptr from);
+        // mlir::SymbolTable::getSymbolUses and `get_direct_symbol_uses` this
+        // function traverses into nested symbol tables.
+        static symbol_use_range get_symbol_uses(operation from);
+        static symbol_use_range get_symbol_uses(region_ptr from);
 
         // Get all of the uses of the given symbol that are nested within the given
         // operation 'from'. In contrast to mlir::SymbolTable::getSymbolUses, this
         // function traverses into nested symbol tables.
-        //
-        // This function returns std::nullopt if there are any unknown operations
-        // that may potentially be symbol tables.
-        static std::optional< symbol_use_range > get_symbol_uses(
-            operation symbol, operation from
-        );
-
-        static std::optional< symbol_use_range > get_symbol_uses(
-            string_attr symbol, operation from
-        );
-
-        static std::optional< symbol_use_range > get_symbol_uses(
-            operation symbol, region_ptr from
-        );
-
-        static std::optional< symbol_use_range > get_symbol_uses(
-            string_attr symbol, region_ptr from
-        );
+        static symbol_use_range get_symbol_uses(operation symbol, operation from);
+        static symbol_use_range get_symbol_uses(string_attr symbol, operation from);
+        static symbol_use_range get_symbol_uses(operation symbol, region_ptr from);
+        static symbol_use_range get_symbol_uses(string_attr symbol, region_ptr from);
 
       protected:
 
