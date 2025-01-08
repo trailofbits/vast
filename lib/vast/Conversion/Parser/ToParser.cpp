@@ -13,7 +13,6 @@ VAST_RELAX_WARNINGS
 #include <mlir/Transforms/GreedyPatternRewriteDriver.h>
 VAST_UNRELAX_WARNINGS
 
-
 #include "PassesDetails.hpp"
 
 #include "vast/Conversion/Common/Mixins.hpp"
@@ -322,10 +321,6 @@ namespace vast::conv {
                 }
 
                 auto callee = op.getCallee();
-                
-                // TODO: remove after function sig check
-                llvm::outs() << callee << "\n";
-
                 if (auto kv = models.find(callee); kv != models.end()) {
                     const auto &[_, model] = *kv;
                     auto modeled = create_op_from_model(model, op, adaptor, rewriter);
@@ -476,13 +471,10 @@ namespace vast::conv {
 
             using adaptor_t = typename op_t::Adaptor;
 
+
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                
-                // TODO: remove after function sig check
-                // llvm::outs()
-
                 auto tc = function_type_converter(*rewriter.getContext(), get_model(op.getSymName()));
                 if (auto func_op = mlir::dyn_cast< core::function_op_interface >(op.getOperation())) {
                     return this->replace(func_op, rewriter, tc);
