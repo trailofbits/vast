@@ -89,4 +89,151 @@ namespace vast::core {
         return std::nullopt;
     }
 
+    //
+    // direct symbol uses
+    //
+
+    auto direct_regions(region_ptr root) {
+        return vws::single(root);
+    }
+
+    auto direct_regions(operation root) {
+        return vws::all(root->getRegions()) | addresses;
+    }
+
+    using symbol_use = mlir::SymbolTable::SymbolUse;
+
+    string_attr get_symbol_name(operation op) {
+        return op->getAttrOfType< string_attr >(symbol_attr_name());
+    }
+
+    bool has_symbol_ref_attr(operation op, symbol_ref_attr symbol) {
+        return op->getAttrDictionary().walk< mlir::WalkOrder::PreOrder >(
+            [symbol](mlir::SymbolRefAttr attr) {
+                if (attr.getRootReference() == symbol)
+                    return mlir::WalkResult::interrupt();
+                // Don't walk nested references.
+                return mlir::WalkResult::skip();
+            }
+        ) == mlir::WalkResult::interrupt();
+    }
+
+    auto operations(region_ptr region) { return vws::all(*region) | vws::join; }
+    auto operations(operation op) { return gmw::operations(op); }
+
+    auto symbol_uses_in_scope(symbol_ref_attr symbol, auto scope) -> gap::generator< symbol_use > {
+        for (auto &op : operations(scope)) {
+            if (has_symbol_ref_attr(&op, symbol)) {
+                co_yield symbol_use{ &op, symbol };
+            }
+        }
+    }
+
+    namespace detail {
+
+        std::optional< symbol_use_range > get_direct_symbol_uses_impl(
+            symbol_ref_attr symbol, auto root
+        ) {
+            VAST_ASSERT(symbol);
+            std::vector< symbol_use > uses;
+            for (auto use : symbol_uses_in_scope(symbol, root)) {
+                uses.push_back(use);
+            }
+            return symbol_use_range(std::move(uses));
+        }
+
+        std::optional< symbol_use_range > get_direct_symbol_uses_impl(
+            string_attr symbol, auto root
+        ) {
+            return get_direct_symbol_uses_impl(symbol_ref_attr::get(symbol), root);
+        }
+
+        std::optional< symbol_use_range > get_direct_symbol_uses_impl(
+            operation symbol, auto root
+        ) {
+            return get_direct_symbol_uses_impl(get_symbol_name(symbol), root);
+        }
+
+    } // namespace detail
+
+    std::optional< symbol_use_range > symbol_table::get_direct_symbol_uses(operation from) {
+        VAST_UNIMPLEMENTED;
+    }
+
+    std::optional< symbol_use_range > symbol_table::get_direct_symbol_uses(region_ptr from) {
+        VAST_UNIMPLEMENTED;
+    }
+
+    std::optional< symbol_use_range > symbol_table::get_direct_symbol_uses(
+        operation symbol, operation from
+    ) {
+        return detail::get_direct_symbol_uses_impl(symbol, from);
+    }
+
+    std::optional< symbol_use_range >  symbol_table::get_direct_symbol_uses(
+        string_attr symbol, operation from
+    ) {
+        return detail::get_direct_symbol_uses_impl(symbol, from);
+    }
+
+    std::optional< symbol_use_range >  symbol_table::get_direct_symbol_uses(
+        operation symbol, region_ptr from
+    ) {
+        return detail::get_direct_symbol_uses_impl(symbol, from);
+    }
+
+    std::optional< symbol_use_range > symbol_table::get_direct_symbol_uses(
+        string_attr symbol, region_ptr from
+    ) {
+        return detail::get_direct_symbol_uses_impl(symbol, from);
+    }
+
+    //
+    // symbol uses
+    //
+
+    namespace detail {
+        std::optional< symbol_use_range > get_symbol_uses_impl(auto symbol, auto scope) {
+            VAST_UNIMPLEMENTED;
+        }
+    } // namespace detail
+
+    std::optional< symbol_use_range > symbol_table::get_symbol_uses(operation from) {
+        VAST_UNIMPLEMENTED;
+    }
+
+    std::optional< symbol_use_range > symbol_table::get_symbol_uses(region_ptr from) {
+        VAST_UNIMPLEMENTED;
+    }
+
+    std::optional< symbol_use_range > symbol_table::get_symbol_uses(
+        operation symbol, operation from
+    ) {
+        return detail::get_symbol_uses_impl(symbol, from);
+    }
+
+    std::optional< symbol_use_range > symbol_table::get_symbol_uses(
+        string_attr symbol, operation from
+    ) {
+        return detail::get_symbol_uses_impl(symbol, from);
+    }
+
+    std::optional< symbol_use_range > symbol_table::get_symbol_uses(
+        operation symbol, region_ptr from
+    ) {
+        return detail::get_symbol_uses_impl(symbol, from);
+    }
+
+    std::optional< symbol_use_range > symbol_table::get_symbol_uses(
+        string_attr symbol, region_ptr from
+    ) {
+        return detail::get_symbol_uses_impl(symbol, from);
+    }
+
+    std::optional< symbol_use_range > get_symbol_uses(
+        operation symbol, operation from
+    ) {
+        return symbol_table::get_symbol_uses(symbol, from);
+    }
+
 } // namespace vast::core
