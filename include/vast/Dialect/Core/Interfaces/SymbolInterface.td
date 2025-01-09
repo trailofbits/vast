@@ -43,7 +43,7 @@ def Core_Symbol : Core_OpInterface< "SymbolOpInterface" > {
                 the given operation 'from'.
                 Note: See core::symbol_table::get_symbol_uses for more details.
             }],
-            "::std::optional< ::mlir::SymbolTable::UseRange >", "getSymbolUses",
+            "::mlir::SymbolTable::UseRange", "getSymbolUses",
             (ins "::mlir::Operation *":$from), [{}],
             /*defaultImplementation=*/[{
                 return ::vast::core::get_symbol_uses(this->getOperation(), from);

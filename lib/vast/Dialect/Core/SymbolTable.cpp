@@ -110,8 +110,12 @@ namespace vast::core {
     bool has_symbol_ref_attr(operation op, symbol_ref_attr symbol) {
         return op->getAttrDictionary().walk< mlir::WalkOrder::PreOrder >(
             [symbol](mlir::SymbolRefAttr attr) {
-                if (attr.getRootReference() == symbol)
+                VAST_ASSERT(attr.getNestedReferences().empty());
+                VAST_ASSERT(symbol.getNestedReferences().empty());
+                if (attr.getRootReference() == symbol.getRootReference()) {
                     return mlir::WalkResult::interrupt();
+                }
+
                 // Don't walk nested references.
                 return mlir::WalkResult::skip();
             }
@@ -121,7 +125,7 @@ namespace vast::core {
     auto operations(region_ptr region) { return vws::all(*region) | vws::join; }
     auto operations(operation op) { return gmw::operations(op); }
 
-    auto symbol_uses_in_scope(symbol_ref_attr symbol, auto scope) -> gap::generator< symbol_use > {
+    auto direct_symbol_uses_in_scope(symbol_ref_attr symbol, auto scope) -> gap::generator< symbol_use > {
         for (auto &op : operations(scope)) {
             if (has_symbol_ref_attr(&op, symbol)) {
                 co_yield symbol_use{ &op, symbol };
@@ -134,7 +138,7 @@ namespace vast::core {
         symbol_use_range get_direct_symbol_uses_impl(symbol_ref_attr symbol, auto root) {
             VAST_ASSERT(symbol);
             std::vector< symbol_use > uses;
-            for (auto use : symbol_uses_in_scope(symbol, root)) {
+            for (auto use : direct_symbol_uses_in_scope(symbol, root)) {
                 uses.push_back(use);
             }
             return symbol_use_range(std::move(uses));
@@ -187,8 +191,40 @@ namespace vast::core {
     //
 
     namespace detail {
-        symbol_use_range get_symbol_uses_impl(auto symbol, auto scope) {
-            VAST_UNIMPLEMENTED;
+        auto nested_scopes(operation root) -> gap::recursive_generator< region_ptr >;
+
+        auto nested_scopes(region_ptr root) -> gap::recursive_generator< region_ptr > {
+            co_yield root;
+            for (auto &op : operations(root)) {
+                co_yield nested_scopes(&op);
+            }
+        }
+
+        auto nested_scopes(operation root) -> gap::recursive_generator< region_ptr > {
+            if (root->getNumRegions() == 0)
+                co_return;
+            for (auto region : direct_regions(root)) {
+                co_yield nested_scopes(region);
+            }
+        }
+
+        symbol_use_range get_symbol_uses_impl(symbol_ref_attr symbol, auto root) {
+            VAST_ASSERT(symbol);
+            std::vector< symbol_use > uses;
+            for (auto scope : nested_scopes(root)) {
+                for (auto use : direct_symbol_uses_in_scope(symbol, scope)) {
+                    uses.push_back(use);
+                }
+            }
+            return symbol_use_range(std::move(uses));
+        }
+
+        symbol_use_range get_symbol_uses_impl(string_attr symbol, auto root) {
+            return get_symbol_uses_impl(symbol_ref_attr::get(symbol), root);
+        }
+
+        symbol_use_range get_symbol_uses_impl(operation symbol, auto root) {
+            return get_symbol_uses_impl(get_symbol_name(symbol), root);
         }
     } // namespace detail
 
