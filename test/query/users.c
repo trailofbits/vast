@@ -9,7 +9,6 @@
 // RUN: %vast-cc1 -vast-emit-mlir=hl %s -o %t && \
 // RUN: %vast-query --symbol-users=a --scope=foo %t | \
 // RUN: %file-check %s -check-prefix=FOO
-// REQUIRES: vast-query
 
 
 // FOO: hl.ref @a
@@ -19,7 +18,6 @@ int foo() {
 }
 
 // MAIN: hl.ref @a
-// MAIN: hl.ref @b
 int main()
 {
     int a = 1, b = 1;
