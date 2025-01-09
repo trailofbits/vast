@@ -20,6 +20,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Dialects.hpp"
 #include "vast/Dialect/Core/CoreOps.hpp"
+#include "vast/Dialect/Core/SymbolTable.hpp"
 #include "vast/Dialect/HighLevel/HighLevelAttributes.hpp"
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
@@ -153,14 +154,16 @@ namespace vast::query
     }
 
     logical_result do_show_users(auto scope) {
-        VAST_UNIMPLEMENTED;
-        // auto &name = cl::options->show_symbol_users;
-        // util::yield_users(name.getValue(), scope, [](auto user) {
-        //     user->print(llvm::outs());
-        //     llvm::outs() << util::show_location(*user) << "\n";
-        // });
+        auto &name = cl::options->show_symbol_users;
+        auto name_attr = string_attr::get(scope->getContext(), name);
 
-        // return mlir::success();
+        for (auto use : core::symbol_table::get_symbol_uses(name_attr, scope)) {
+            auto user = use.getUser();
+            user->print(llvm::outs());
+            llvm::outs() << show_location(*user) << "\n";
+        }
+
+        return mlir::success();
     }
 } // namespace vast::query
 
