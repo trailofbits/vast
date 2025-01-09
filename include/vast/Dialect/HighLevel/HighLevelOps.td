@@ -462,7 +462,7 @@ def HighLevel_ReturnOp
 
 def HighLevel_DeclRefOp
   : HighLevel_Op< "ref" >
-  , Arguments<(ins FlatSymbolRefAttr:$name)>
+  , Arguments<(ins Core_VarSymbolRefAttr:$name)>
   , Results<(outs AnyType:$result)>
 {
   let summary = "VAST variable reference declaration";
