@@ -36,4 +36,11 @@ namespace vast::core {
         Printer &printer, mlir::Operation *op, core::StorageClassAttr storage_class, core::TSClassAttr thread_storage_class
     );
 
+    //
+    // Symbol Reference Attributes
+    //
+    struct VarSymbolRefAttr : mlir::FlatSymbolRefAttr {};
+
+    using var_symbol_ref_attr = VarSymbolRefAttr;
+
 } // namespace vast::core
