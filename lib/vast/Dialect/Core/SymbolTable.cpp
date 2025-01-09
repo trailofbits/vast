@@ -156,14 +156,6 @@ namespace vast::core {
 
     } // namespace detail
 
-    symbol_use_range symbol_table::get_direct_symbol_uses(operation from) {
-        VAST_UNIMPLEMENTED;
-    }
-
-    symbol_use_range symbol_table::get_direct_symbol_uses(region_ptr from) {
-        VAST_UNIMPLEMENTED;
-    }
-
     symbol_use_range symbol_table::get_direct_symbol_uses(
         operation symbol, operation from
     ) {
@@ -229,14 +221,6 @@ namespace vast::core {
             return get_symbol_uses_impl(get_symbol_name(symbol), root);
         }
     } // namespace detail
-
-    symbol_use_range symbol_table::get_symbol_uses(operation from) {
-        VAST_UNIMPLEMENTED;
-    }
-
-    symbol_use_range symbol_table::get_symbol_uses(region_ptr from) {
-        VAST_UNIMPLEMENTED;
-    }
 
     symbol_use_range symbol_table::get_symbol_uses(
         operation symbol, operation from
