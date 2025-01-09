@@ -97,8 +97,10 @@ namespace vast::core {
         return vws::single(root);
     }
 
-    auto direct_regions(operation root) {
-        return vws::all(root->getRegions()) | addresses;
+    auto direct_regions(operation root) -> gap::generator< region_ptr > {
+        for (auto &region : root->getRegions()) {
+            co_yield &region;
+        }
     }
 
     using symbol_use = mlir::SymbolTable::SymbolUse;
