@@ -78,3 +78,11 @@ namespace vast::core
     }
 
 } // namespace vast::core
+
+MLIR_DEFINE_EXPLICIT_TYPE_ID(vast::core::VarSymbolRefAttr);
+MLIR_DEFINE_EXPLICIT_TYPE_ID(vast::core::TypeSymbolRefAttr);
+MLIR_DEFINE_EXPLICIT_TYPE_ID(vast::core::FuncSymbolRefAttr);
+MLIR_DEFINE_EXPLICIT_TYPE_ID(vast::core::LabelSymbolRefAttr);
+MLIR_DEFINE_EXPLICIT_TYPE_ID(vast::core::EnumConstantSymbolRefAttr);
+MLIR_DEFINE_EXPLICIT_TYPE_ID(vast::core::MemberVarSymbolRefAttr);
+MLIR_DEFINE_EXPLICIT_TYPE_ID(vast::core::ElaboratedTypeSymbolRefAttr);

@@ -40,7 +40,27 @@ namespace vast::core {
     // Symbol Reference Attributes
     //
     struct VarSymbolRefAttr : mlir::FlatSymbolRefAttr {};
+    struct TypeSymbolRefAttr : mlir::FlatSymbolRefAttr {};
+    struct FuncSymbolRefAttr : mlir::FlatSymbolRefAttr {};
+    struct LabelSymbolRefAttr : mlir::FlatSymbolRefAttr {};
+    struct EnumConstantSymbolRefAttr : mlir::FlatSymbolRefAttr {};
+    struct MemberVarSymbolRefAttr : mlir::FlatSymbolRefAttr {};
+    struct ElaboratedTypeSymbolRefAttr : mlir::FlatSymbolRefAttr {};
 
-    using var_symbol_ref_attr = VarSymbolRefAttr;
+    using var_symbol_ref_attr             = VarSymbolRefAttr;
+    using type_symbol_ref_attr            = TypeSymbolRefAttr;
+    using func_symbol_ref_attr            = FuncSymbolRefAttr;
+    using label_symbol_ref_attr           = LabelSymbolRefAttr;
+    using enum_constant_symbol_ref_attr   = EnumConstantSymbolRefAttr;
+    using member_var_symbol_ref_attr      = MemberVarSymbolRefAttr;
+    using elaborated_type_symbol_ref_attr = ElaboratedTypeSymbolRefAttr;
 
 } // namespace vast::core
+
+MLIR_DECLARE_EXPLICIT_TYPE_ID(vast::core::VarSymbolRefAttr);
+MLIR_DECLARE_EXPLICIT_TYPE_ID(vast::core::TypeSymbolRefAttr);
+MLIR_DECLARE_EXPLICIT_TYPE_ID(vast::core::FuncSymbolRefAttr);
+MLIR_DECLARE_EXPLICIT_TYPE_ID(vast::core::LabelSymbolRefAttr);
+MLIR_DECLARE_EXPLICIT_TYPE_ID(vast::core::EnumConstantSymbolRefAttr);
+MLIR_DECLARE_EXPLICIT_TYPE_ID(vast::core::MemberVarSymbolRefAttr);
+MLIR_DECLARE_EXPLICIT_TYPE_ID(vast::core::ElaboratedTypeSymbolRefAttr);
