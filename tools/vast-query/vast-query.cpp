@@ -155,13 +155,23 @@ namespace vast::query
 
     logical_result do_show_users(auto scope) {
         auto &name = cl::options->show_symbol_users;
-        auto name_attr = string_attr::get(scope->getContext(), name);
 
-        for (auto use : core::symbol_table::get_symbol_uses(name_attr, scope)) {
-            auto user = use.getUser();
-            user->print(llvm::outs());
-            llvm::outs() << show_location(*user) << "\n";
-        }
+        auto show_users = [scope] (operation decl) {
+            for (auto use : core::symbol_table::get_symbol_uses(decl, scope)) {
+                auto user = use.getUser();
+                user->print(llvm::outs());
+                llvm::outs() << show_location(*user) << "\n";
+            }
+        };
+
+        // TODO: walk decl above the scope
+        core::symbols< core::symbol >(scope, [&] (auto decl) {
+            if (decl.getSymbolName() == name) {
+                show_value(decl);
+                show_users(decl);
+            }
+        });
+
 
         return mlir::success();
     }
