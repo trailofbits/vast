@@ -48,23 +48,6 @@ class HighLevel_SymbolReferringAttr<string name, string attr_mnemonic>
   let assemblyFormat = "`<` $symbol `>`";
 }
 
-class HighLevel_FlatSymbolReferringAttr<string name, string attr_mnemonic>
-  : HighLevel_Attr< name, attr_mnemonic >
-{
-  let parameters = (ins "::mlir::FlatSymbolRefAttr":$symbol);
-
-  let builders = [
-    AttrBuilderWithInferredContext<(ins "::mlir::FlatSymbolRefAttr":$symbol), [{
-      return get(symbol.getContext(), symbol);
-    }]>,
-    AttrBuilder<(ins "::mlir::StringRef":$symbol), [{
-      return get(mlir::FlatSymbolRefAttr::get($_ctxt, symbol));
-    }]>,
-  ];
-
-  let assemblyFormat = "`<` $symbol `>`";
-}
-
 def HighLevel_AnnotationAttr       : HighLevel_NameAttr< "Annotation", "annotation" >;
 def HighLevel_FlattentAttr         : HighLevel_Attr< "Flatten", "flatten" >;
 def HighLevel_FormatAttr           : HighLevel_NameAttr< "Format", "format" >;
