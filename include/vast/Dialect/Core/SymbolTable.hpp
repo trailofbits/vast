@@ -14,6 +14,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Util/Common.hpp"
 #include "vast/Util/TypeList.hpp"
 
+#include "vast/Dialect/Core/CoreAttributes.hpp"
 #include "vast/Dialect/Core/Interfaces/SymbolInterface.hpp"
 
 #include <gap/coro/generator.hpp>
@@ -168,18 +169,14 @@ namespace vast::core {
 
         // Get all of the uses of the given symbol that are nested within the given
         // operation 'from'. This does not traverse into any nested symbol tables.
-        static symbol_use_range get_direct_symbol_uses(operation symbol, operation from);
-        static symbol_use_range get_direct_symbol_uses(string_attr symbol, operation from);
-        static symbol_use_range get_direct_symbol_uses(operation symbol, region_ptr from);
-        static symbol_use_range get_direct_symbol_uses(string_attr symbol, region_ptr from);
+        static symbol_use_range get_direct_symbol_uses(operation symbol, operation scope);
+        static symbol_use_range get_direct_symbol_uses(operation symbol, region_ptr scope);
 
         // Get all of the uses of the given symbol that are nested within the given
         // operation 'from'. In contrast to mlir::SymbolTable::getSymbolUses, this
         // function traverses into nested symbol tables.
-        static symbol_use_range get_symbol_uses(operation symbol, operation from);
-        static symbol_use_range get_symbol_uses(string_attr symbol, operation from);
-        static symbol_use_range get_symbol_uses(operation symbol, region_ptr from);
-        static symbol_use_range get_symbol_uses(string_attr symbol, region_ptr from);
+        static symbol_use_range get_symbol_uses(operation symbol, operation scope);
+        static symbol_use_range get_symbol_uses(operation symbol, region_ptr scope);
 
       protected:
 
