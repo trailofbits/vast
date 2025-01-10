@@ -339,7 +339,7 @@ def HighLevel_FieldDeclOp
 
 def HighLevel_RecordMemberOp
   : HighLevel_Op< "member" >
-  , Arguments<(ins AnyType:$record, FlatSymbolRefAttr:$field)>
+  , Arguments<(ins AnyType:$record, Core_MemberVarSymbolRefAttr:$field)>
   , Results<(outs AnyType:$element)>
 {
   let summary = "VAST record element access operation";
@@ -358,7 +358,7 @@ def HighLevel_CallOp
       DeclareOpInterfaceMethods<VastCallOpInterface, ["resolveCallable", "resolveCallableInTable"]>
     ] >
   , Arguments<(ins
-      FlatSymbolRefAttr:$callee,
+      Core_FuncSymbolRefAttr:$callee,
       Variadic<AnyType>:$argOperands
     ) >
   , Results<(outs Variadic<AnyType>:$results)>
@@ -473,7 +473,7 @@ def HighLevel_DeclRefOp
 
 def HighLevel_FuncRefOp
   : HighLevel_Op< "funcref" >
-  , Arguments<(ins FlatSymbolRefAttr:$function)>
+  , Arguments<(ins Core_FuncSymbolRefAttr:$function)>
   , Results<(outs AnyType:$result)>
 {
   let summary = "VAST function reference declaration";
@@ -484,7 +484,7 @@ def HighLevel_FuncRefOp
 
 def HighLevel_EnumRefOp
   : HighLevel_Op< "enumref" >
-  , Arguments<(ins FlatSymbolRefAttr:$name)>
+  , Arguments<(ins Core_EnumConstantSymbolRefAttr:$name)>
   , Results<(outs AnyType:$result)>
 {
   let summary = "VAST enum constant reference declaration";
