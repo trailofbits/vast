@@ -63,7 +63,7 @@ namespace vast::conv {
         }
 
         auto cond_yield(mlir::Block *block) {
-            auto cond_yield = mlir::cast< hl::CondYieldOp >(hard_terminator_t::get(*block).value());
+            auto cond_yield = mlir::cast< hl::CondYieldOp >(hard_terminator::get(*block).value());
             VAST_CHECK(cond_yield, "Block does not have a hl::CondYieldOp as terminator.");
             return cond_yield;
         }
@@ -98,7 +98,7 @@ namespace vast::conv {
 
     namespace pattern {
         auto get_cond_yield(mlir::Block &block) {
-            return terminator_t< hl::CondYieldOp >::get(block).op();
+            return terminator< hl::CondYieldOp >::get(block).op();
         }
 
         // We do not use patterns, because for example `hl.continue` in for loop is kinda tricky
@@ -214,7 +214,7 @@ namespace vast::conv {
 
             static logical_result
             tie(auto &&bld, auto loc, mlir::Block &from, mlir::Block &to) {
-                if (!empty(from) && any_terminator_t::get(from)) {
+                if (!empty(from) && any_terminator::get(from)) {
                     return mlir::success();
                 }
 
@@ -287,7 +287,7 @@ namespace vast::conv {
                 // verification.
                 // We are using any_terminator as it can have for example `hl.return`
                 // or other soft terminator that will get eliminated in this pass.
-                if (!any_terminator_t::has(*tail_block)) {
+                if (!any_terminator::has(*tail_block)) {
                     bld.guarded_at_end(tail_block, [&]() {
                         bld->template create< ll::ScopeRet >(op.getLoc());
                     });

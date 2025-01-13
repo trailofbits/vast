@@ -358,7 +358,7 @@ namespace vast::conv {
                 if (!body)
                     return logical_result::success();
 
-                auto yield = terminator_t< yield_op_t >::get(*body);
+                auto yield = terminator< yield_op_t >::get(*body);
                 VAST_PATTERN_CHECK(yield, "Expected yield in: {0}", op);
 
                 rewriter.inlineBlockBefore(body, op);

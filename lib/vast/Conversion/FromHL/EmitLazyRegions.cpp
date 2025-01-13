@@ -39,7 +39,7 @@ namespace vast
 
             auto lazy_op = [&]
             {
-                if (!terminator_t< hl::ValueYieldOp >::get(side.front()))
+                if (!terminator< hl::ValueYieldOp >::get(side.front()))
                 {
                     return mk_lazy_op(mlir::NoneType::get(rewriter.getContext()));
                 }
@@ -93,7 +93,7 @@ namespace vast
             VAST_PATTERN_CHECK(conv::size(op.getCondRegion()) == 1,
                                "Unsupported shape of cond region of hl::CondOp:\n{0}", op);
 
-            auto yield = terminator_t< hl::CondYieldOp >::get(cond_block);
+            auto yield = terminator< hl::CondYieldOp >::get(cond_block);
             VAST_PATTERN_CHECK(yield, "Was not able to retrieve cond yield, {0}.", op);
 
             rewriter.inlineBlockBefore(&cond_block, op, std::nullopt);
