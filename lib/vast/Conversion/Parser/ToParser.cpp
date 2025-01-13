@@ -21,6 +21,7 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Conversion/TypeConverters/TypeConvertingPattern.hpp"
 
 #include "vast/Util/Common.hpp"
+#include "vast/Util/Terminator.hpp"
 
 #include "vast/Dialect/Parser/Ops.hpp"
 #include "vast/Dialect/Parser/Types.hpp"
@@ -493,13 +494,46 @@ namespace vast::conv {
             }
         };
 
+        struct ExprConversion
+            : parser_conversion_pattern_base< hl::ExprOp >
+        {
+            using op_t = hl::ExprOp;
+            using base = parser_conversion_pattern_base< op_t >;
+            using base::base;
+
+            using adaptor_t = typename op_t::Adaptor;
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                auto body = op.getBody();
+                if (!body) {
+                    return mlir::failure();
+                }
+
+                auto yield = terminator< hl::ValueYieldOp >::get(*body);
+                VAST_PATTERN_CHECK(yield, "Expected yield in: {0}", op);
+
+                rewriter.inlineBlockBefore(body, op);
+                rewriter.replaceOp(op, yield.op().getResult());
+                rewriter.eraseOp(yield.op());
+
+                return mlir::success();
+            }
+
+            static void legalize(parser_conversion_config &cfg) {
+                cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
+            }
+        };
+
         using operation_conversions = util::type_list<
             ToNoParse< hl::ConstantOp >,
             ToNoParse< hl::ImplicitCastOp >,
             ToNoParse< hl::CmpOp>, ToNoParse< hl::FCmpOp >,
+            ExprConversion,
             FuncConversion,
             ParamConversion,
-            // DeclRefConversion,
+            DeclRefConversion,
             ReturnConversion,
             CallConversion
         >;
