@@ -529,7 +529,16 @@ namespace vast::conv {
         using operation_conversions = util::type_list<
             ToNoParse< hl::ConstantOp >,
             ToNoParse< hl::ImplicitCastOp >,
-            ToNoParse< hl::CmpOp>, ToNoParse< hl::FCmpOp >,
+            ToNoParse< hl::CmpOp >, ToNoParse< hl::FCmpOp >,
+            // Integer arithmetic
+            ToNoParse< hl::MulIOp >,
+            ToNoParse< hl::DivSOp >, ToNoParse< hl::DivUOp >,
+            ToNoParse< hl::RemSOp >, ToNoParse< hl::RemUOp >,
+            // Floating point arithmetic
+            ToNoParse< hl::AddFOp >, ToNoParse< hl::SubFOp >,
+            ToNoParse< hl::MulFOp >, ToNoParse< hl::DivFOp >,
+            ToNoParse< hl::RemFOp >,
+            // Other operations
             ExprConversion,
             FuncConversion,
             ParamConversion,
