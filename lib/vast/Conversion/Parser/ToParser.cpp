@@ -232,8 +232,10 @@ namespace vast::conv {
             ).getResult(0);
         }
 
+        using value_range = mlir::ValueRange;
+
         std::vector< mlir_value > convert_value_types(
-            mlir::ValueRange values, mlir::TypeRange types, auto &rewriter
+            value_range values, mlir::TypeRange types, auto &rewriter
         ) {
             std::vector< mlir_value > out;
             out.reserve(values.size());
@@ -246,6 +248,33 @@ namespace vast::conv {
             }
 
             return out;
+        }
+
+        std::vector< mlir_value > realized_operand_values(value_range values) {
+            std::vector< mlir_value > out;
+            out.reserve(values.size());
+            for (auto val : values) {
+                if (auto cast = mlir::dyn_cast< mlir::UnrealizedConversionCastOp >(val.getDefiningOp())) {
+                    out.push_back(cast.getOperand(0));
+                } else {
+                    out.push_back(val);
+                }
+            }
+            return out;
+        }
+
+        mlir_type join(mlir_type lhs, mlir_type rhs) {
+            if (!lhs)
+                return rhs;
+            return lhs == rhs ? lhs : pr::MaybeDataType::get(lhs.getContext());
+        }
+
+        mlir_type top_type(value_range values) {
+            mlir_type ty;
+            for (auto val : values) {
+                ty = join(ty, val.getType());
+            }
+            return ty;
         }
 
         template< typename op_t >
@@ -300,6 +329,42 @@ namespace vast::conv {
             }
 
             static void legalize(parser_conversion_config &cfg) {
+                cfg.target.addLegalOp< pr::NoParse >();
+                cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
+                cfg.target.addIllegalOp< op_t >();
+            }
+        };
+
+        template< typename op_t >
+        struct ToMaybeParse : operation_conversion_pattern< op_t >
+        {
+            using base = operation_conversion_pattern< op_t >;
+            using base::base;
+
+            using adaptor_t = typename op_t::Adaptor;
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                auto args = realized_operand_values(adaptor.getOperands());
+                auto rty = top_type(args);
+
+                auto converted = [&] () -> operation {
+                    auto matches_return_type = [rty] (auto val) { return val.getType() == rty; };
+                    if (mlir::isa< pr::NoDataType >(rty) && llvm::all_of(args, matches_return_type))
+                        return rewriter.create< pr::NoParse >(op.getLoc(), rty, args);
+                    return rewriter.create< pr::MaybeParse >(op.getLoc(), rty, args);
+                } ();
+
+                rewriter.replaceOpWithNewOp< mlir::UnrealizedConversionCastOp >(
+                    op, op.getType(), converted->getResult(0)
+                );
+
+                return mlir::success();
+            }
+
+            static void legalize(parser_conversion_config &cfg) {
+                cfg.target.addLegalOp< pr::MaybeParse >();
                 cfg.target.addLegalOp< pr::NoParse >();
                 cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
                 cfg.target.addIllegalOp< op_t >();
@@ -572,6 +637,8 @@ namespace vast::conv {
             ToNoParse< hl::ImplicitCastOp >,
             ToNoParse< hl::CmpOp >, ToNoParse< hl::FCmpOp >,
             // Integer arithmetic
+            ToMaybeParse< hl::AddIOp >, ToMaybeParse< hl::SubIOp >,
+            // Non-parsing integer arithmetic operations
             ToNoParse< hl::MulIOp >,
             ToNoParse< hl::DivSOp >, ToNoParse< hl::DivUOp >,
             ToNoParse< hl::RemSOp >, ToNoParse< hl::RemUOp >,
