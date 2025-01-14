@@ -526,6 +526,47 @@ namespace vast::conv {
             }
         };
 
+        struct VarDeclConversion
+            : parser_conversion_pattern_base< hl::VarDeclOp >
+        {
+            using op_t = hl::VarDeclOp;
+            using base = parser_conversion_pattern_base< op_t >;
+            using base::base;
+
+            using adaptor_t = typename op_t::Adaptor;
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                auto maybe = to_mlir_type(data_type::maybedata, rewriter.getContext());
+                /* auto decl = */ rewriter.create< pr::Decl >(op.getLoc(), op.getSymName(), maybe);
+
+                if (auto &init_region = op.getInitializer(); !init_region.empty()) {
+                    VAST_PATTERN_CHECK(init_region.getBlocks().size() == 1, "Expected single block in: {0}", op);
+                    auto &init_block  = init_region.back();
+                    auto yield = terminator< hl::ValueYieldOp >::get(init_block);
+                    VAST_PATTERN_CHECK(yield, "Expected yield in: {0}", op);
+
+                    rewriter.inlineBlockBefore(&init_block, op);
+                    rewriter.setInsertionPointAfter(op);
+                    auto ref = rewriter.create< pr::Ref >(op.getLoc(), maybe, op.getSymName());
+                    auto value = rewriter.create< mlir::UnrealizedConversionCastOp >(
+                        yield.op().getLoc(), maybe, yield.op().getResult()
+                    );
+                    rewriter.create< pr::Assign >(yield.op().getLoc(), value.getResult(0), ref);
+                    rewriter.eraseOp(yield.op());
+                }
+
+                rewriter.eraseOp(op);
+                return mlir::success();
+            }
+
+            static void legalize(parser_conversion_config &cfg) {
+                cfg.target.addLegalOp< pr::Decl, pr::Ref, pr::Assign >();
+                cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
+            }
+        };
+
         using operation_conversions = util::type_list<
             ToNoParse< hl::ConstantOp >,
             ToNoParse< hl::ImplicitCastOp >,
@@ -543,6 +584,7 @@ namespace vast::conv {
             FuncConversion,
             ParamConversion,
             DeclRefConversion,
+            VarDeclConversion,
             ReturnConversion,
             CallConversion
         >;
