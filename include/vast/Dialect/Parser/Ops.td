@@ -100,4 +100,19 @@ def Parse_Ref
   }];
 }
 
+// TODO: Types should match
+def Parse_Assign
+  : Parser_Op< "assign" >
+  , Arguments< (ins
+    Parser_AnyDataType:$value,
+    Parser_AnyDataType:$target
+  ) >
+{
+  let summary = "Assignment to referenced value.";
+
+  let assemblyFormat = [{
+    $value `to` $target attr-dict functional-type($value, $target)
+  }];
+}
+
 #endif // VAST_DIALECT_PARSER_OPS
