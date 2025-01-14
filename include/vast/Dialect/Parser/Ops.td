@@ -62,6 +62,18 @@ def Parse_NoParse
   }];
 }
 
+def Parse_MaybeParse
+  : Parser_Op< "maybeparse" >
+  , Arguments< (ins Variadic<Parser_AnyDataType>:$arguments) >
+  , Results< (outs Variadic<Parser_AnyDataType>:$result) >
+{
+  let summary = "Maybe parsing operation data.";
+
+  let assemblyFormat = [{
+    $arguments attr-dict `:` functional-type($arguments, $result)
+  }];
+}
+
 def Parse_ToMaybe
   : Parser_Op< "to_maybe" >
   , Arguments< (ins Parser_AnyDataType:$arguments) >
