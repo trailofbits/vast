@@ -477,9 +477,11 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                rewriter.replaceOpWithNewOp<  pr::Decl >(
+                rewriter.replaceOpWithNewOp< pr::Decl >(
                     op, op.getSymName(), op.getParam().getType()
                 );
+                auto ref = rewriter.create< pr::Ref >(op.getLoc(), adaptor.getParam().getType(), op.getSymName());
+                rewriter.create< pr::Assign >(op.getLoc(), adaptor.getParam(), ref);
 
                 return mlir::success();
             }
