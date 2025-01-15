@@ -552,6 +552,24 @@ namespace vast::conv {
             }
         };
 
+        struct AssignConversion
+            : one_to_one_conversion_pattern< hl::AssignOp, pr::Assign >
+        {
+            using op_t = hl::AssignOp;
+            using base = one_to_one_conversion_pattern< op_t, pr::Assign >;
+            using base::base;
+
+            using adaptor_t = typename op_t::Adaptor;
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                auto args = realized_operand_values(adaptor.getOperands(), rewriter);
+                rewriter.replaceOpWithNewOp< pr::Assign >(op, std::vector< mlir_type >(), args);
+                return mlir::success();
+            }
+        };
+
         struct ExprConversion
             : parser_conversion_pattern_base< hl::ExprOp >
         {
@@ -643,6 +661,7 @@ namespace vast::conv {
             ToNoParse< hl::MulFOp >, ToNoParse< hl::DivFOp >,
             ToNoParse< hl::RemFOp >,
             // Other operations
+            AssignConversion,
             ExprConversion,
             FuncConversion,
             ParamConversion,
