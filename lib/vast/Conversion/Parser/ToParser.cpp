@@ -232,9 +232,6 @@ namespace vast::conv {
             ).getResult(0);
         }
 
-        using value_range = mlir::ValueRange;
-        using type_range = mlir::TypeRange;
-
         std::vector< mlir_value > convert_value_types(
             value_range values, type_range types, auto &rewriter
         ) {
