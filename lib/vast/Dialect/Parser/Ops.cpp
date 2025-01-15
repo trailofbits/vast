@@ -15,20 +15,53 @@ using namespace vast::pr;
 
 namespace vast::pr {
 
-    using fold_result_t = ::llvm::SmallVectorImpl< ::mlir::OpFoldResult >;
+    using fold_result = ::mlir::OpFoldResult;
+    using fold_results = ::llvm::SmallVectorImpl< fold_result >;
 
-    logical_result NoParse::fold(FoldAdaptor adaptor, fold_result_t &results) {
-        auto change = mlir::failure();
-        auto op = getOperation();
-
-        for (auto [idx, operand] : llvm::reverse(llvm::enumerate(getOperands()))) {
-            if (auto noparse = mlir::dyn_cast< NoParse >(operand.getDefiningOp())) {
-                op->eraseOperand(idx);
-                change = mlir::success();
+    template< typename op_t >
+    logical_result forward_same_operation(
+        op_t op, auto adaptor, fold_results &results
+    ) {
+        if (op.getNumOperands() == 1 && op.getNumResults() == 1) {
+            if (auto operand = op.getOperand(0); mlir::isa< op_t >(operand.getDefiningOp())) {
+                if (operand.getType() == op->getOpResult(0).getType()) {
+                    results.push_back(operand);
+                    return mlir::success();
+                }
             }
         }
 
-        return change;
+        return mlir::failure();
+    }
+
+    logical_result Source::fold(FoldAdaptor adaptor, fold_results &results) {
+        return forward_same_operation(*this, adaptor, results);
+    }
+
+    logical_result Sink::fold(FoldAdaptor adaptor, fold_results &results) {
+        return forward_same_operation(*this, adaptor, results);
+    }
+
+    logical_result Parse::fold(FoldAdaptor adaptor, fold_results &results) {
+        return forward_same_operation(*this, adaptor, results);
+    }
+
+    logical_result NoParse::fold(FoldAdaptor adaptor, fold_results &results) {
+        return forward_same_operation(*this, adaptor, results);
+    }
+
+    logical_result MaybeParse::fold(FoldAdaptor adaptor, fold_results &results) {
+        return forward_same_operation(*this, adaptor, results);
+    }
+
+    fold_result Cast::fold(FoldAdaptor adaptor) {
+        if (auto operand = getOperand(); mlir::isa< Cast >(operand.getDefiningOp())) {
+            if (operand.getType() == getType()) {
+                return operand;
+            }
+        }
+
+        return {};
     }
 
 } // namespace vast::pr
