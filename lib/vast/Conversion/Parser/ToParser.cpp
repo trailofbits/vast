@@ -634,11 +634,14 @@ namespace vast::conv {
 
         using operation_conversions = util::type_list<
             ToNoParse< hl::ConstantOp >,
-            ToNoParse< hl::ImplicitCastOp >,
+            ToMaybeParse< hl::ImplicitCastOp >,
             ToNoParse< hl::CmpOp >, ToNoParse< hl::FCmpOp >,
+            ToMaybeParse< hl::Deref >,
             // Integer arithmetic
             ToMaybeParse< hl::AddIOp >, ToMaybeParse< hl::SubIOp >,
-            // Non-parsing integer arithmetic operations
+            ToMaybeParse< hl::PostIncOp >, ToMaybeParse< hl::PostDecOp >,
+            ToMaybeParse< hl::PreIncOp >, ToMaybeParse< hl::PreDecOp >,
+            // Non-parsing integer arithmetic
             ToNoParse< hl::MulIOp >,
             ToNoParse< hl::DivSOp >, ToNoParse< hl::DivUOp >,
             ToNoParse< hl::RemSOp >, ToNoParse< hl::RemUOp >,
