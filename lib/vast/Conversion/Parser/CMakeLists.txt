@@ -2,4 +2,5 @@
 
 add_vast_conversion_library(ParserConversionPasses
     ToParser.cpp
+    ReconcileCasts.cpp
 )
