@@ -565,8 +565,40 @@ namespace vast::conv {
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
                 auto args = realized_operand_values(adaptor.getOperands(), rewriter);
-                rewriter.replaceOpWithNewOp< pr::Assign >(op, std::vector< mlir_type >(), args);
+                rewriter.create< pr::Assign >(op.getLoc(), std::vector< mlir_type >(), args);
+                rewriter.replaceAllUsesWith(op, args[0]);
+                rewriter.eraseOp(op);
                 return mlir::success();
+            }
+        };
+
+        struct CondYieldConversion
+            : parser_conversion_pattern_base< hl::CondYieldOp >
+        {
+            using op_t = hl::CondYieldOp;
+            using base = parser_conversion_pattern_base< op_t >;
+            using base::base;
+
+            using adaptor_t = typename op_t::Adaptor;
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                auto operand = adaptor.getResult().getDefiningOp();
+                if (auto cast = mlir::dyn_cast< mlir::UnrealizedConversionCastOp >(operand)) {
+                    if (pr::is_parser_type(cast.getOperand(0).getType())) {
+                        rewriter.replaceOpWithNewOp< op_t >(op, cast.getOperand(0));
+                        return mlir::success();
+                    }
+                }
+
+                return mlir::success();
+            }
+
+            static void legalize(parser_conversion_config &cfg) {
+                cfg.target.addDynamicallyLegalOp< op_t >([](op_t op) {
+                    return pr::is_parser_type(op.getResult().getType());
+                });
             }
         };
 
@@ -662,6 +694,7 @@ namespace vast::conv {
             ToNoParse< hl::RemFOp >,
             // Other operations
             AssignConversion,
+            CondYieldConversion,
             ExprConversion,
             FuncConversion,
             ParamConversion,
