@@ -390,7 +390,14 @@ namespace vast::conv {
                     return mlir::success();
                 }
 
-                return mlir::failure();
+                auto rty = pr::MaybeDataType::get(rewriter.getContext());
+                VAST_ASSERT(op.getNumResults() == 1);
+                auto args = realized_operand_values(adaptor.getOperands(), rewriter);
+                auto converted = rewriter.create< hl::CallOp >(op.getLoc(), callee, rty, args);
+                rewriter.replaceOpWithNewOp< mlir::UnrealizedConversionCastOp >(
+                    op, op.getType(0), converted->getResult(0)
+                );
+                return mlir::success();
             }
 
             operation create_op_from_model(
@@ -423,7 +430,23 @@ namespace vast::conv {
                 cfg.target.addLegalOp< pr::NoParse, pr::Parse, pr::Source, pr::Sink >();
                 cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
                 cfg.target.addDynamicallyLegalOp< op_t >([models = cfg.models](op_t op) {
-                    return models.count(op.getCallee()) == 0;
+                    if (models.count(op.getCallee())) {
+                        return false;
+                    }
+
+                    for (auto res : op.getResults()) {
+                        if (!pr::is_parser_type(res.getType())) {
+                            return false;
+                        }
+                    }
+
+                    for (auto arg : op.getArgOperands()) {
+                        if (!pr::is_parser_type(arg.getType())) {
+                            return false;
+                        }
+                    }
+
+                    return true;
                 });
             }
         };
@@ -678,6 +701,7 @@ namespace vast::conv {
         using operation_conversions = util::type_list<
             ToNoParse< hl::ConstantOp >,
             ToMaybeParse< hl::ImplicitCastOp >,
+            ToMaybeParse< hl::AddressOf >,
             ToNoParse< hl::CmpOp >, ToNoParse< hl::FCmpOp >,
             ToMaybeParse< hl::Deref >,
             // Integer arithmetic
