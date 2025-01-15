@@ -74,12 +74,12 @@ def Parse_MaybeParse
   }];
 }
 
-def Parse_ToMaybe
-  : Parser_Op< "to_maybe" >
+def Parse_Cast
+  : Parser_Op< "cast" >
   , Arguments< (ins Parser_AnyDataType:$arguments) >
-  , Results< (outs Parser_MaybeDataType:$result) >
+  , Results< (outs Parser_AnyDataType:$result) >
 {
-  let summary = "Casting operation to maybe type.";
+  let summary = "Casting operation.";
 
   let assemblyFormat = [{
     $arguments attr-dict `:` functional-type($arguments, $result)
