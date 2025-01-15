@@ -233,9 +233,10 @@ namespace vast::conv {
         }
 
         using value_range = mlir::ValueRange;
+        using type_range = mlir::TypeRange;
 
         std::vector< mlir_value > convert_value_types(
-            value_range values, mlir::TypeRange types, auto &rewriter
+            value_range values, type_range types, auto &rewriter
         ) {
             std::vector< mlir_value > out;
             out.reserve(values.size());
@@ -250,15 +251,25 @@ namespace vast::conv {
             return out;
         }
 
-        std::vector< mlir_value > realized_operand_values(value_range values) {
+        std::vector< mlir_value > realized_operand_values(value_range values, auto &rewriter) {
             std::vector< mlir_value > out;
             out.reserve(values.size());
             for (auto val : values) {
-                if (auto cast = mlir::dyn_cast< mlir::UnrealizedConversionCastOp >(val.getDefiningOp())) {
-                    out.push_back(cast.getOperand(0));
-                } else {
-                    out.push_back(val);
-                }
+                out.push_back([&] () -> mlir_value {
+                    if (auto cast = mlir::dyn_cast< mlir::UnrealizedConversionCastOp >(val.getDefiningOp())) {
+                        if (is_parser_type(cast.getOperand(0).getType())) {
+                            return cast.getOperand(0);
+                        }
+                    }
+
+                    if (!is_parser_type(val.getType())) {
+                        return rewriter.template create< mlir::UnrealizedConversionCastOp >(
+                            val.getLoc(), pr::MaybeDataType::get(val.getContext()), val
+                        ).getResult(0);
+                    }
+
+                    return val;
+                }());
             }
             return out;
         }
@@ -346,7 +357,7 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                auto args = realized_operand_values(adaptor.getOperands());
+                auto args = realized_operand_values(adaptor.getOperands(), rewriter);
                 auto rty = top_type(args);
 
                 auto converted = [&] () -> operation {
