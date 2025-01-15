@@ -104,4 +104,7 @@ namespace vast {
     using maybe_builder_callback_ref = std::optional< builder_callback_ref >;
     using builder_callback           = std::function< void(mlir_builder &, loc_t) >;
 
+    using value_range = mlir::ValueRange;
+    using type_range = mlir::TypeRange;
+
 } // namespace vast
