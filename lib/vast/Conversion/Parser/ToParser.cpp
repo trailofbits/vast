@@ -176,6 +176,20 @@ namespace vast::conv {
             ).template take_wrapped< maybe_type_t >();
         }
 
+        maybe_types_t convert_types_to_types(auto types) const {
+            types_t out;
+
+            for (auto t : types) {
+                if (auto ty = convert_type_to_type(t)) {
+                    out.push_back(ty.value());
+                } else {
+                    return {};
+                }
+            }
+
+            return { out };
+        }
+
         maybe_type_t convert_type_to_type(tc::core_function_type ty) const {
             auto sig = signature_conversion(ty.getInputs());
             if (!sig) {
