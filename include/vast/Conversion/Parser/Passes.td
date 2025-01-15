@@ -19,4 +19,14 @@ def HLToParser : Pass<"vast-hl-to-parser", "core::ModuleOp"> {
     ];
 }
 
+def ParserReconcileCasts : Pass<"vast-parser-reconcile-casts", "core::ModuleOp"> {
+    let summary = "Reconcile casts in parser dialect.";
+    let description = [{ WIP }];
+
+    let constructor = "vast::createParserReconcileCastsPass()";
+    let dependentDialects = [
+        "vast::pr::ParserDialect"
+    ];
+}
+
 #endif // VAST_CONVERSION_PARSER_PASSES_TD
