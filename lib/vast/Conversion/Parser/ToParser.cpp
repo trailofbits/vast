@@ -14,6 +14,7 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "PassesDetails.hpp"
+#include "Utils.hpp"
 
 #include "vast/Conversion/Common/Mixins.hpp"
 #include "vast/Conversion/Common/Patterns.hpp"
@@ -32,29 +33,13 @@ VAST_UNRELAX_WARNINGS
 
 namespace vast::conv {
 
-    enum class data_type { data, nodata, maybedata };
-
-    mlir_type to_mlir_type(data_type type, mcontext_t *mctx) {
-        switch (type) {
-            case data_type::data: return pr::DataType::get(mctx);
-            case data_type::nodata: return pr::NoDataType::get(mctx);
-            case data_type::maybedata: return pr::MaybeDataType::get(mctx);
-        }
-    }
-
-    template< typename... Ts >
-    auto is_one_of(mlir_type ty) { return (mlir::isa< Ts >(ty) || ...); }
-
-    bool is_parser_type(mlir_type ty) {
-        return is_one_of< pr::DataType, pr::NoDataType, pr::MaybeDataType >(ty);
-    }
 
     enum class function_category { sink, source, parser, nonparser };
 
     struct function_model
     {
-        data_type return_type;
-        std::vector< data_type > arguments;
+        pr::data_type return_type;
+        std::vector< pr::data_type > arguments;
         function_category category;
 
         bool is_sink() const { return category == function_category::sink; }
@@ -92,7 +77,7 @@ namespace vast::conv {
 
 } // namespace vast::conv
 
-LLVM_YAML_IS_SEQUENCE_VECTOR(vast::conv::data_type);
+LLVM_YAML_IS_SEQUENCE_VECTOR(vast::pr::data_type);
 LLVM_YAML_IS_SEQUENCE_VECTOR(vast::conv::named_function_model);
 
 using llvm::yaml::IO;
@@ -100,12 +85,12 @@ using llvm::yaml::MappingTraits;
 using llvm::yaml::ScalarEnumerationTraits;
 
 template<>
-struct ScalarEnumerationTraits< vast::conv::data_type >
+struct ScalarEnumerationTraits< vast::pr::data_type >
 {
-    static void enumeration(IO &io, vast::conv::data_type &value) {
-        io.enumCase(value, "data", vast::conv::data_type::data);
-        io.enumCase(value, "nodata", vast::conv::data_type::nodata);
-        io.enumCase(value, "maybedata", vast::conv::data_type::maybedata);
+    static void enumeration(IO &io, vast::pr::data_type &value) {
+        io.enumCase(value, "data", vast::pr::data_type::data);
+        io.enumCase(value, "nodata", vast::pr::data_type::nodata);
+        io.enumCase(value, "maybedata", vast::pr::data_type::maybedata);
     }
 };
 
@@ -254,12 +239,12 @@ namespace vast::conv {
             for (auto val : values) {
                 out.push_back([&] () -> mlir_value {
                     if (auto cast = mlir::dyn_cast< mlir::UnrealizedConversionCastOp >(val.getDefiningOp())) {
-                        if (is_parser_type(cast.getOperand(0).getType())) {
+                        if (pr::is_parser_type(cast.getOperand(0).getType())) {
                             return cast.getOperand(0);
                         }
                     }
 
-                    if (!is_parser_type(val.getType())) {
+                    if (!pr::is_parser_type(val.getType())) {
                         return rewriter.template create< mlir::UnrealizedConversionCastOp >(
                             val.getLoc(), pr::MaybeDataType::get(val.getContext()), val
                         ).getResult(0);
@@ -327,7 +312,7 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                auto rty = to_mlir_type(data_type::nodata, rewriter.getContext());
+                auto rty = to_mlir_type(pr::data_type::nodata, rewriter.getContext());
                 auto args = convert_value_types(adaptor.getOperands(), rty, rewriter);
                 auto converted = rewriter.create< pr::NoParse >(op.getLoc(), rty, args);
                 rewriter.replaceOpWithNewOp< mlir::UnrealizedConversionCastOp >(
@@ -476,7 +461,7 @@ namespace vast::conv {
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
                 auto rewrite = [&] (auto ty) {
-                    ty = is_parser_type(ty) ? ty : pr::MaybeDataType::get(rewriter.getContext());
+                    ty = pr::is_parser_type(ty) ? ty : pr::MaybeDataType::get(rewriter.getContext());
                     auto converted = rewriter.create< pr::Ref >(op.getLoc(), ty, op.getName());
                     rewriter.replaceOpWithNewOp< mlir::UnrealizedConversionCastOp >(
                         op, op.getType(), converted->getResult(0)
@@ -526,7 +511,7 @@ namespace vast::conv {
                 cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
                 cfg.target.addDynamicallyLegalOp< op_t >([](op_t op) {
                     for (auto ty : op.getResult().getType()) {
-                        if (!is_parser_type(ty)) {
+                        if (!pr::is_parser_type(ty)) {
                             return false;
                         }
                     }
@@ -611,7 +596,7 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                auto maybe = to_mlir_type(data_type::maybedata, rewriter.getContext());
+                auto maybe = to_mlir_type(pr::data_type::maybedata, rewriter.getContext());
                 /* auto decl = */ rewriter.create< pr::Decl >(op.getLoc(), op.getSymName(), maybe);
 
                 if (auto &init_region = op.getInitializer(); !init_region.empty()) {
