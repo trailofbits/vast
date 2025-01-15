@@ -19,6 +19,8 @@ def Parser_Source
 {
   let summary = "Source of parsed data.";
 
+  let hasFolder = 1;
+
   let assemblyFormat = [{
     $arguments attr-dict `:` functional-type($arguments, $result)
   }];
@@ -31,6 +33,8 @@ def Paser_Sink
 {
   let summary = "Sink of parsed data.";
 
+  let hasFolder = 1;
+
   let assemblyFormat = [{
     $arguments attr-dict `:` functional-type($arguments, $result)
   }];
@@ -42,6 +46,8 @@ def Parser_Parse
   , Results< (outs Variadic<Parser_AnyDataType>:$result) >
 {
   let summary = "Parsing operation data.";
+
+  let hasFolder = 1;
 
   let assemblyFormat = [{
     $arguments attr-dict `:` functional-type($arguments, $result)
@@ -69,6 +75,8 @@ def Parse_MaybeParse
 {
   let summary = "Maybe parsing operation data.";
 
+  let hasFolder = 1;
+
   let assemblyFormat = [{
     $arguments attr-dict `:` functional-type($arguments, $result)
   }];
@@ -76,13 +84,15 @@ def Parse_MaybeParse
 
 def Parse_Cast
   : Parser_Op< "cast" >
-  , Arguments< (ins Parser_AnyDataType:$arguments) >
+  , Arguments< (ins Parser_AnyDataType:$operand) >
   , Results< (outs Parser_AnyDataType:$result) >
 {
   let summary = "Casting operation.";
 
+  let hasFolder = 1;
+
   let assemblyFormat = [{
-    $arguments attr-dict `:` functional-type($arguments, $result)
+    $operand attr-dict `:` functional-type($operand, $result)
   }];
 }
 
