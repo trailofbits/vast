@@ -270,20 +270,6 @@ namespace vast::conv {
             return out;
         }
 
-        mlir_type join(mlir_type lhs, mlir_type rhs) {
-            if (!lhs)
-                return rhs;
-            return lhs == rhs ? lhs : pr::MaybeDataType::get(lhs.getContext());
-        }
-
-        mlir_type top_type(value_range values) {
-            mlir_type ty;
-            for (auto val : values) {
-                ty = join(ty, val.getType());
-            }
-            return ty;
-        }
-
         template< typename op_t >
         struct parser_conversion_pattern_base
             : mlir_pattern_mixin< operation_conversion_pattern< op_t > >
@@ -354,7 +340,7 @@ namespace vast::conv {
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
                 auto args = realized_operand_values(adaptor.getOperands(), rewriter);
-                auto rty = top_type(args);
+                auto rty  = pr::top_type(args);
 
                 auto converted = [&] () -> operation {
                     auto matches_return_type = [rty] (auto val) { return val.getType() == rty; };
