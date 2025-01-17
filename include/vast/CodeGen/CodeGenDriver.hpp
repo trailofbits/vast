@@ -14,8 +14,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Dialect/HighLevel/HighLevelDialect.hpp"
 #include "vast/Dialect/HighLevel/HighLevelOps.hpp"
 
-#include "vast/CodeGen/ScopeContext.hpp"
 #include "vast/CodeGen/CodeGenModule.hpp"
+#include "vast/CodeGen/ScopeContext.hpp"
 
 #include "vast/Frontend/Options.hpp"
 
@@ -26,43 +26,39 @@ namespace vast::cg {
 
     std::unique_ptr< codegen_builder > mk_codegen_builder(mcontext_t &mctx);
 
-    std::shared_ptr< meta_generator > mk_meta_generator(
-        acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs
-    );
+    std::shared_ptr< meta_generator >
+    mk_meta_generator(acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs);
 
-    std::shared_ptr< symbol_generator > mk_symbol_generator(
-        acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs
-    );
+    std::shared_ptr< symbol_generator >
+    mk_symbol_generator(acontext_t &actx, mcontext_t &mctx, const cc::vast_args &vargs);
 
     std::unique_ptr< mcontext_t > mk_mcontext();
 
     void set_target_triple(core::module mod, std::string triple);
     void set_source_language(core::module mod, cc::source_language lang);
 
-    owning_mlir_module_ref mk_wrapping_module(mcontext_t &mctx);
+    owning_mlir_module_ref mk_wrapping_module(acontext_t &actx, mcontext_t &mctx);
 
     core::module mk_module(acontext_t &actx, mlir_module top);
-    core::module mk_module_with_attrs(acontext_t &actx, mlir_module top, cc::source_language lang);
+    core::module
+    mk_module_with_attrs(acontext_t &actx, mlir_module top, cc::source_language lang);
 
     struct driver
     {
         explicit driver(
-              acontext_t &_actx
-            , mcontext_t &_mctx
-            , std::unique_ptr< codegen_builder > _bld
-            , std::shared_ptr< visitor_base > _visitor
+            acontext_t &_actx, mcontext_t &_mctx, std::unique_ptr< codegen_builder > _bld,
+            std::shared_ptr< visitor_base > _visitor
         )
             : actx(_actx)
             , mctx(_mctx)
             , bld(std::move(_bld))
             , visitor(std::move(_visitor))
-            , top(mk_wrapping_module(mctx))
+            , top(mk_wrapping_module(actx, mctx))
             , mod(mk_module_with_attrs(
-                actx, top.get(), cc::get_source_language(actx.getLangOpts())
-            ))
+                  actx, top.get(), cc::get_source_language(actx.getLangOpts())
+              ))
             , scope(symbols)
-            , generator(*bld, scoped_visitor_view(*visitor, scope))
-        {
+            , generator(*bld, scoped_visitor_view(*visitor, scope)) {
             bld->module = mod;
             bld->set_insertion_point_to_start(&mod.getBodyRegion());
         }
@@ -80,6 +76,7 @@ namespace vast::cg {
         owning_mlir_module_ref freeze();
 
         mcontext_t &mcontext() { return mctx; }
+
         acontext_t &acontext() { return actx; }
 
         virtual bool verify();
@@ -115,6 +112,6 @@ namespace vast::cg {
     };
 
     std::unique_ptr< driver > mk_default_driver(
-        cc::action_options &opts, const cc::vast_args &vargs,
-        acontext_t &actx, mcontext_t &mctx);
+        cc::action_options &opts, const cc::vast_args &vargs, acontext_t &actx, mcontext_t &mctx
+    );
 } // namespace vast::cg
