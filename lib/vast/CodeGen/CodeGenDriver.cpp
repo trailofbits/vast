@@ -34,13 +34,13 @@ namespace vast::cg {
 
     owning_mlir_module_ref driver::freeze() { return std::move(top); }
 
-    // TODO this should not be needed the data layout should be emitted from cached types directly
-    dl::DataLayoutBlueprint emit_data_layout_blueprint(
-        const acontext_t &actx, const type_caching_proxy &types
-    ) {
+    // TODO this should not be needed the data layout should be emitted from cached types
+    // directly
+    dl::DataLayoutBlueprint
+    emit_data_layout_blueprint(const acontext_t &actx, const type_caching_proxy &types) {
         dl::DataLayoutBlueprint dl;
 
-        auto store_layout = [&] (const clang_type *orig, mlir_type vast_type) {
+        auto store_layout = [&](const clang_type *orig, mlir_type vast_type) {
             if (orig->isFunctionType()) {
                 return;
             }
@@ -83,7 +83,9 @@ namespace vast::cg {
         auto list = std::dynamic_pointer_cast< visitor_list >(visitor);
         for (auto node = list->head; node; node = node->next) {
             if (auto types = std::dynamic_pointer_cast< type_caching_proxy >(node)) {
-                ::vast::cg::emit_data_layout(mctx, mod, emit_data_layout_blueprint(actx, *types));
+                ::vast::cg::emit_data_layout(
+                    mctx, mod, emit_data_layout_blueprint(actx, *types)
+                );
             }
         }
     }
@@ -94,9 +96,8 @@ namespace vast::cg {
         return std::make_unique< codegen_builder >(&mctx);
     }
 
-    std::shared_ptr< meta_generator > mk_meta_generator(
-        acontext_t *actx, mcontext_t *mctx, const cc::vast_args &vargs
-    ) {
+    std::shared_ptr< meta_generator >
+    mk_meta_generator(acontext_t *actx, mcontext_t *mctx, const cc::vast_args &vargs) {
         if (vargs.has_option(cc::opt::locs_as_meta_ids)) {
             return std::make_shared< id_meta_gen >(actx, mctx);
         }
@@ -123,28 +124,23 @@ namespace vast::cg {
         // setup visitor list
         const bool enable_unsupported = !vargs.has_option(cc::opt::disable_unsupported);
 
-        auto mg = mk_meta_generator(&actx, &mctx, vargs);
+        auto mg         = mk_meta_generator(&actx, &mctx, vargs);
         auto invalid_mg = mk_invalid_meta_generator(&mctx);
-        auto sg = mk_symbol_generator(actx);
-        auto policy = mk_codegen_policy(opts);
+        auto sg         = mk_symbol_generator(actx);
+        auto policy     = mk_codegen_policy(opts);
 
         auto visitors = std::make_shared< visitor_list >()
-            | as_node_with_list_ref< attr_visitor_proxy >()
-            | as_node< type_caching_proxy >()
+            | as_node_with_list_ref< attr_visitor_proxy >() | as_node< type_caching_proxy >()
             | as_node_with_list_ref< default_visitor >(
-                mctx, actx, *bld, std::move(mg), std::move(sg), std::move(policy)
+                            mctx, actx, *bld, std::move(mg), std::move(sg), std::move(policy)
             )
             | optional(enable_unsupported,
-                as_node_with_list_ref< unsup_visitor >(
-                    mctx, *bld, std::move(invalid_mg)
-                )
+                       as_node_with_list_ref< unsup_visitor >(mctx, *bld, std::move(invalid_mg))
             )
             | as_node< unreach_visitor >();
 
         // setup driver
-        auto drv = std::make_unique< driver >(
-            actx, mctx, std::move(bld), visitors
-        );
+        auto drv = std::make_unique< driver >(actx, mctx, std::move(bld), visitors);
 
         drv->enable_verifier(!vargs.has_option(cc::opt::disable_vast_verifier));
         return drv;
@@ -181,8 +177,9 @@ namespace vast::cg {
         }
     } // namespace detail
 
-    owning_mlir_module_ref mk_wrapping_module(mcontext_t &mctx) {
-        return mlir::ModuleOp::create(mlir::UnknownLoc::get(&mctx));
+    owning_mlir_module_ref mk_wrapping_module(acontext_t &actx, mcontext_t &mctx) {
+        auto [loc, _] = detail::module_loc_name(mctx, actx);
+        return mlir::ModuleOp::create(loc);
     }
 
     core::module mk_module(acontext_t &actx, mlir_module top) {
@@ -190,15 +187,13 @@ namespace vast::cg {
         bld.setInsertionPointToStart(top.getBody());
 
         // TODO use symbol generator
-        auto mctx = top.getContext();
+        auto mctx        = top.getContext();
         auto [loc, name] = detail::module_loc_name(*mctx, actx);
         return bld.create< core::module >(loc, name);
     }
 
-    core::module mk_module_with_attrs(
-        acontext_t &actx, mlir_module top,
-        cc::source_language lang
-    ) {
+    core::module
+    mk_module_with_attrs(acontext_t &actx, mlir_module top, cc::source_language lang) {
         auto mod = mk_module(actx, top);
 
         set_target_triple(mod, actx.getTargetInfo().getTriple().str());
