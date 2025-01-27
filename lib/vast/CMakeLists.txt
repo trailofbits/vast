@@ -14,5 +14,7 @@ if (VAST_BUILD_FRONTEND)
     add_subdirectory(Frontend)
 endif()
 
+add_subdirectory(server)
+
 add_subdirectory(Tower)
 add_subdirectory(Util)
