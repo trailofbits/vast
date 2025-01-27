@@ -4,6 +4,8 @@
 
 #include "vast/Util/Warnings.hpp"
 
+#include "vast/server/server.hpp"
+
 VAST_RELAX_WARNINGS
 #include <mlir/Pass/Pass.h>
 #include <mlir/Pass/PassManager.h>
