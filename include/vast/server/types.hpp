@@ -4,10 +4,33 @@
 
 #include <concepts>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <variant>
 
 #include <nlohmann/json.hpp>
+
+namespace nlohmann {
+    template< typename T >
+    struct adl_serializer< std::optional< T > >
+    {
+        static void to_json(json &j, const std::optional< T > &opt) {
+            if (!opt.has_value()) {
+                j = nullptr;
+            } else {
+                j = *opt;
+            }
+        }
+
+        static void from_json(const json &j, std::optional< T > &opt) {
+            if (j.is_null()) {
+                opt = std::nullopt;
+            } else {
+                opt = j.template get< T >();
+            }
+        }
+    };
+} // namespace nlohmann
 
 namespace vast::server {
     template< typename T >
@@ -88,6 +111,22 @@ namespace vast::server {
     template< request_like request >
     using result_type = std::variant< typename request::response_type, error< request > >;
 
+    struct position
+    {
+        unsigned int line;
+        unsigned int character;
+
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(position, line, character)
+    };
+
+    struct range
+    {
+        position start;
+        position end;
+
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(range, start, end)
+    };
+
     struct input_request
     {
         static constexpr const char *method   = "input";
@@ -95,7 +134,10 @@ namespace vast::server {
 
         nlohmann::json type;
         std::string text;
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(input_request, type, text)
+        std::optional< std::string > filePath;
+        std::optional< range > range;
+
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(input_request, type, text, filePath, range)
 
         struct response_type
         {

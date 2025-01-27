@@ -10,6 +10,9 @@ def HLToParser : Pass<"vast-hl-to-parser", "core::ModuleOp"> {
     let options = [
         Option< "config", "config", "std::string", "",
             "Configuration file for parser transformation."
+        >,
+        Option< "socket", "socket", "std::string", "",
+            "Unix socket path to use for server"
         >
     ];
 
