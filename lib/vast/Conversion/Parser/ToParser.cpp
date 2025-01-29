@@ -566,8 +566,12 @@ namespace vast::conv {
             ) const override {
                 auto args = realized_operand_values(adaptor.getOperands(), rewriter);
                 rewriter.create< pr::Assign >(op.getLoc(), std::vector< mlir_type >(), args);
-                rewriter.replaceAllUsesWith(op, args[0]);
-                rewriter.eraseOp(op);
+
+                if (!op->getUsers().empty()) {
+                    rewriter.replaceOp(op, args[0]);
+                } else {
+                    rewriter.eraseOp(op);
+                }
                 return mlir::success();
             }
         };
