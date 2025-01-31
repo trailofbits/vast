@@ -588,14 +588,24 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                auto operand = adaptor.getResult().getDefiningOp();
-                if (auto cast = mlir::dyn_cast< mlir::UnrealizedConversionCastOp >(operand)) {
+                auto operand = adaptor.getResult();
+
+                if (auto cast = mlir::dyn_cast< mlir::UnrealizedConversionCastOp >(operand.getDefiningOp())) {
                     if (pr::is_parser_type(cast.getOperand(0).getType())) {
                         rewriter.replaceOpWithNewOp< op_t >(op, cast.getOperand(0));
                         return mlir::success();
                     }
                 }
 
+                if (pr::is_parser_type(operand.getType())) {
+                    rewriter.replaceOpWithNewOp< op_t >(op, operand);
+                    return mlir::success();
+                }
+
+                auto cast = rewriter.create< mlir::UnrealizedConversionCastOp >(
+                    op.getLoc(), pr::MaybeDataType::get(op.getContext()), operand
+                );
+                rewriter.replaceOpWithNewOp< op_t >(op, cast.getResult(0));
                 return mlir::success();
             }
 
