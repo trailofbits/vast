@@ -281,18 +281,19 @@ namespace vast::conv {
                 : base(mctx), models(models)
             {}
 
-            static std::optional< function_model > get_model(
-                const function_models &models, string_ref name
-            ) {
-                if (auto kv = models.find(name); kv != models.end()) {
+            static std::optional< function_model >
+            get_model(const function_models &models, core::function_op_interface op) {
+                auto sym = mlir::dyn_cast< core::SymbolOpInterface >(op.getOperation());
+                VAST_ASSERT(sym);
+                if (auto kv = models.find(sym.getSymbolName()); kv != models.end()) {
                     return kv->second;
                 }
 
                 return std::nullopt;
             }
 
-            std::optional< function_model > get_model(string_ref name) const {
-                return get_model(models, name);
+            std::optional< function_model > get_model(core::function_op_interface op) const {
+                return get_model(models, op);
             }
 
             const function_models &models;
@@ -494,7 +495,7 @@ namespace vast::conv {
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
                 auto func = op->getParentOfType< hl::FuncOp >();
-                auto model = get_model(func.getSymName());
+                auto model = get_model(func);
 
                 auto rty = model
                     ? model->get_return_type(rewriter.getContext())
@@ -534,7 +535,7 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                auto tc = function_type_converter(*rewriter.getContext(), get_model(op.getSymName()));
+                auto tc = function_type_converter(*rewriter.getContext(), get_model(op));
                 if (auto func_op = mlir::dyn_cast< core::function_op_interface >(op.getOperation())) {
                     return this->replace(func_op, rewriter, tc);
                 }
@@ -545,9 +546,8 @@ namespace vast::conv {
             static void legalize(parser_conversion_config &cfg) {
                 cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
                 cfg.target.addDynamicallyLegalOp< op_t >([models = cfg.models](op_t op) {
-                    return function_type_converter(
-                        *op.getContext(), get_model(models, op.getSymName())
-                    ).isLegal(op.getFunctionType());
+                    return function_type_converter(*op.getContext(), get_model(models, op))
+                        .isLegal(op.getFunctionType());
                 });
             }
         };
