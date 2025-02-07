@@ -57,6 +57,16 @@ namespace vast::conv {
         return std::make_tuple(head, body);
     }
 
+    template< typename op_t, typename bld_t >
+    auto split_after_op(op_t op, bld_t &bld) {
+        auto it   = mlir::Block::iterator(op);
+        auto head = op->getBlock();
+
+        auto body = bld.splitBlock(head, ++it);
+
+        return std::make_tuple(head, body);
+    }
+
     template< typename bld_t >
     mlir::Block *inline_region(bld_t &bld, mlir::Region &region, mlir::Region &dest) {
         auto begin = &region.front();
@@ -73,11 +83,11 @@ namespace vast::conv {
     }
 
     static inline std::size_t size(mlir::Block &block) {
-        return std::distance(block.begin(), block.end());
+        return static_cast< size_t >(std::distance(block.begin(), block.end()));
     }
 
     static inline std::size_t size(mlir::Region &region) {
-        return std::distance(region.begin(), region.end());
+        return static_cast< size_t >(std::distance(region.begin(), region.end()));
     }
 
     static inline bool empty(mlir::Block &block) { return size(block) == 0; }

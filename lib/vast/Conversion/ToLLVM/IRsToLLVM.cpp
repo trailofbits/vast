@@ -1,6 +1,8 @@
 // Copyright (c) 2021-present, Trail of Bits, Inc.
 
+#include "vast/Conversion/Common/Block.hpp"
 #include "vast/Conversion/Passes.hpp"
+#include "mlir/Support/LLVM.h"
 
 VAST_RELAX_WARNINGS
 #include <mlir/Analysis/DataLayoutAnalysis.h>
@@ -39,8 +41,7 @@ VAST_UNRELAX_WARNINGS
 
 #include "LLCFToLLVM.hpp"
 
-namespace vast::conv::irstollvm
-{
+namespace vast::conv::irstollvm {
     namespace LLVM = mlir::LLVM;
 
     tc::lower_to_llvm_options mk_default_opts(mcontext_t *mctx) {
@@ -71,14 +72,13 @@ namespace vast::conv::irstollvm
         }
 
         mlir_type convert_element_type(operation from, mlir_type type) const {
-            return tc(from).convert_type_to_type(
-                mlir::cast< ElementTypeInterface >(type).getElementType()
-            ).value();
+            return tc(from)
+                .convert_type_to_type(mlir::cast< ElementTypeInterface >(type).getElementType())
+                .value();
         }
 
         auto mk_index(auto loc, std::size_t idx, auto &rewriter) const
-            -> mlir::LLVM::ConstantOp
-        {
+            -> mlir::LLVM::ConstantOp {
             mlir::LLVMTypeConverter tc(rewriter.getContext());
             auto index_type = tc.convertType(rewriter.getIndexType());
             return rewriter.template create< mlir::LLVM::ConstantOp >(
@@ -104,9 +104,8 @@ namespace vast::conv::irstollvm
         using base::base;
         using adaptor_t = typename src_t::Adaptor;
 
-        logical_result matchAndRewrite(
-            src_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(src_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             auto target_ty = this->convert_type_to_type(op, op.getType());
             auto new_op = rewriter.create< trg_t >(op.getLoc(), target_ty, ops.getOperands());
             rewriter.replaceOp(op, new_op);
@@ -132,14 +131,11 @@ namespace vast::conv::irstollvm
     using operands_forwarding_patterns = util::type_list<
         operands_forwarding_pattern< hl::PredefinedExpr >,
         operands_forwarding_pattern< hl::AddressOf >,
-        operands_forwarding_pattern< hl::NullStmt >
-    >;
+        operands_forwarding_pattern< hl::NullStmt > >;
 
     using erase_patterns = util::type_list<
-        erase_pattern< hl::StructDeclOp >,
-        erase_pattern< hl::UnionDeclOp >,
-        erase_pattern< hl::TypeDeclOp >
-    >;
+        erase_pattern< hl::StructDeclOp >, erase_pattern< hl::UnionDeclOp >,
+        erase_pattern< hl::TypeDeclOp > >;
 
     // `InitListExpr` will construct more complicated types from its elements and if
     // there is some nesting (nested structures for example) there will be a chain of
@@ -152,7 +148,6 @@ namespace vast::conv::irstollvm
         const self_t &self() const { return static_cast< const self_t & >(*this); }
 
       protected:
-
         mlir_value get_only_result(operation op) const {
             VAST_ASSERT(op);
             VAST_CHECK(op->getResults().size() == 1, "Unexpected number of results: {0}", *op);
@@ -160,10 +155,11 @@ namespace vast::conv::irstollvm
         }
 
         mlir_value construct_value(auto &rewriter, mlir_value val) const {
-            if (auto bb_arg = mlir::dyn_cast< mlir::BlockArgument >(val))
+            if (auto bb_arg = mlir::dyn_cast< mlir::BlockArgument >(val)) {
                 return bb_arg;
+            }
 
-            auto op = val.getDefiningOp();
+            auto op       = val.getDefiningOp();
             auto trg_type = self().convert_type_to_type(op, get_only_result(op).getType());
             return construct_value(rewriter, op, trg_type);
         }
@@ -174,40 +170,40 @@ namespace vast::conv::irstollvm
                 return get_only_result(op);
             }
             auto trg_type = self().convert_type_to_type(op, type);
-            return construct_value(rewriter, init_list.getLoc(), init_list.getElements(), trg_type);
+            return construct_value(
+                rewriter, init_list.getLoc(), init_list.getElements(), trg_type
+            );
         }
 
         mlir_value construct_value(
             auto &rewriter, auto loc, const auto &operands, mlir_type trg_type
         ) const {
-            if (mlir::isa< mlir::LLVM::LLVMArrayType, mlir::LLVM::LLVMStructType >(trg_type))
+            if (mlir::isa< mlir::LLVM::LLVMArrayType, mlir::LLVM::LLVMStructType >(trg_type)) {
                 return construct_aggregate_value(rewriter, loc, operands, trg_type);
+            }
             VAST_FATAL("Not implemented yet.");
         }
 
         mlir_value construct_aggregate_value(
-            auto &rewriter, auto loc, const auto &operands,
-            mlir_type aggregate_type
+            auto &rewriter, auto loc, const auto &operands, mlir_type aggregate_type
         ) const {
             // Currently we are only supporting this type of initialization so
             // better be defensive about it.
             mlir_value init = self().undef(rewriter, loc, aggregate_type);
             for (auto [idx, element] : llvm::enumerate(operands)) {
                 auto elem = construct_value(rewriter, element);
-                init = rewriter.template create< mlir::LLVM::InsertValueOp >(
-                    loc, init, elem, idx
-                );
+                init =
+                    rewriter.template create< mlir::LLVM::InsertValueOp >(loc, init, elem, idx);
             }
             return init;
         }
 
         mlir_value construct_aggregate_value(
-            auto &rewriter, hl::InitListExpr init_list,
-            mlir_type aggregate_type
+            auto &rewriter, hl::InitListExpr init_list, mlir_type aggregate_type
         ) const {
             return construct_aggregate_value(
-                rewriter, init_list.getLoc(),
-                init_list.getElements(), aggregate_type);
+                rewriter, init_list.getLoc(), init_list.getElements(), aggregate_type
+            );
         }
 
         mlir_value undef(auto &rewriter, auto loc, auto type) const {
@@ -217,15 +213,14 @@ namespace vast::conv::irstollvm
 
     struct ll_struct_gep : llvm_conversion_pattern< ll::StructGEPOp >
     {
-        using op_t = ll::StructGEPOp;
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = ll::StructGEPOp;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             std::vector< mlir::LLVM::GEPArg > indices{ 0ul, ops.getIdx() };
 
             auto ptr = mlir::dyn_cast< hl::PointerType >(op.getRecord().getType());
@@ -234,11 +229,8 @@ namespace vast::conv::irstollvm
             auto tc = this->tc(op);
 
             auto gep = rewriter.create< mlir::LLVM::GEPOp >(
-                op.getLoc(),
-                tc.convert_type_to_type(op.getType()).value(),
-                tc.convert_type_to_type(ptr.getElementType()).value(),
-                ops.getRecord(),
-                indices
+                op.getLoc(), tc.convert_type_to_type(op.getType()).value(),
+                tc.convert_type_to_type(ptr.getElementType()).value(), ops.getRecord(), indices
             );
 
             rewriter.replaceOp(op, gep);
@@ -248,26 +240,25 @@ namespace vast::conv::irstollvm
 
     struct ll_extract : llvm_conversion_pattern< ll::Extract >
     {
-        using op_t = ll::Extract;
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = ll::Extract;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             auto loc = op.getLoc();
 
             auto value = ops.getArg();
-            auto from = op.from();
+            auto from  = op.from();
 
             auto shift = rewriter.create< mlir::LLVM::LShrOp >(
                 loc, value, iN(rewriter, loc, value.getType(), from)
             );
 
             auto trg_type = convert_type_to_type(op, op.getType());
-            auto trunc = rewriter.create< mlir::LLVM::TruncOp >(loc, trg_type, shift);
+            auto trunc    = rewriter.create< mlir::LLVM::TruncOp >(loc, trg_type, shift);
             rewriter.replaceOp(op, trunc);
             return mlir::success();
         }
@@ -275,8 +266,8 @@ namespace vast::conv::irstollvm
 
     struct ll_concat : llvm_conversion_pattern< ll::Concat >
     {
-        using op_t = ll::Concat;
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = ll::Concat;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
@@ -289,9 +280,8 @@ namespace vast::conv::irstollvm
             );
         }
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             auto loc = op.getLoc();
 
             auto resize = [&](auto w) -> mlir_value {
@@ -319,11 +309,7 @@ namespace vast::conv::irstollvm
         }
     };
 
-    using ll_generic_patterns = util::type_list<
-        ll_struct_gep,
-        ll_extract,
-        ll_concat
-    >;
+    using ll_generic_patterns = util::type_list< ll_struct_gep, ll_extract, ll_concat >;
 
     template< typename Op >
     struct inline_region_from_op : operation_conversion_pattern< Op >
@@ -346,36 +332,194 @@ namespace vast::conv::irstollvm
         }
     };
 
-    using label_stmt = cf::region_to_block_conversion_pattern< hl::LabelStmt >;
-    using scope_op   = cf::region_to_block_conversion_pattern< core::ScopeOp >;
-
-    using label_patterns = util::type_list< erase_pattern< hl::LabelDeclOp >, label_stmt >;
-
-    // TODO(conv): Figure out if these can be somehow unified.
-    using inline_region_from_op_conversions = util::type_list<
-        inline_region_from_op< hl::TranslationUnitOp >, scope_op
-    >;
-
-    template< typename op_t >
-    struct subscript_like : llvm_conversion_pattern< op_t >
+    struct label_stmt : llvm_conversion_pattern< hl::LabelStmt >
     {
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = hl::LabelStmt;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
-            auto trg_type = this->convert_type_to_type(op, op.getType());
+        block_t *start_block(op_t op) const { return &op.getBody().front(); }
+
+        void replace_gotos(op_t op, block_t *entry_point, conversion_rewriter &rewriter) const {
+            auto list_gotos = [&](op_t op) -> std::vector< operation > {
+                std::vector< operation > op_vec;
+                auto label_val = op.getLabelMutable().get();
+                for (auto user : label_val.getUsers()) {
+                    if (mlir::isa< hl::GotoStmt >(user)) {
+                        op_vec.emplace_back(user);
+                    }
+                }
+                return op_vec;
+            };
+            for (auto stmt : list_gotos(op)) {
+                stmt->dump();
+                auto [head_block, tail_block] = split_after_op(stmt, rewriter);
+                rewriter.setInsertionPointToEnd(head_block);
+                make_after_op< LLVM::BrOp >(
+                    rewriter, stmt, stmt->getLoc(), std::vector< mlir::Value >{}, entry_point
+                );
+
+                //                rewriter.setInsertionPointToEnd(head_block);
+                // rewriter.eraseOp(stmt);
+            }
+        }
+
+        logical_result
+        replace_terminator(auto &rewriter, block_t &block, block_t &start, block_t &end) const {
+            auto &last = block.back();
+            std::vector< mlir::Value > no_vals;
+
+            if (mlir::isa< ll::ScopeRet >(last)) {
+                make_after_op< LLVM::BrOp >(rewriter, &last, last.getLoc(), no_vals, &end);
+            } else if (mlir::isa< ll::ScopeRecurse >(last)) {
+                make_after_op< LLVM::BrOp >(rewriter, &last, last.getLoc(), no_vals, &start);
+            } else if (auto ret = mlir::dyn_cast< ll::CondScopeRet >(last)) {
+                make_after_op< LLVM::CondBrOp >(
+                    rewriter, &last, last.getLoc(), ret.getCond(), ret.getDest(),
+                    ret.getDestOperands(), &end, no_vals
+                );
+            } else {
+                // Nothing to do (do not erase, since it is a standard branching).
+                return mlir::success();
+            }
+
+            rewriter.eraseOp(&last);
+            return mlir::success();
+        }
+
+        logical_result
+        handle_multiblock(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const {
+            auto [head_block, tail_block] = split_at_op(op, rewriter);
+
+            if (!start_block(op)) {
+                return mlir::failure();
+            }
+
+            for (auto &block : op.getBody()) {
+                auto s = replace_terminator(rewriter, block, *start_block(op), *tail_block);
+                if (mlir::failed(s)) {
+                    return mlir::failure();
+                }
+            }
+
+            auto op_entry_block = &*op.getBody().begin();
+            replace_gotos(op, op_entry_block, rewriter);
+            rewriter.setInsertionPointToEnd(head_block);
+            rewriter.create< mlir::LLVM::BrOp >(
+                op.getLoc(), std::vector< mlir::Value >{}, op_entry_block
+            );
+
+            inline_region_blocks(rewriter, op.getBody(), mlir::Region::iterator(tail_block));
+            rewriter.eraseOp(op);
+            return mlir::success();
+        }
+
+        logical_result
+        handle_singleblock(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const {
+            auto parent = op->getParentRegion();
+
+            rewriter.inlineRegionBefore(op.getBody(), *parent, parent->end());
+
+            // splice newly created translation unit block in the module
+            auto &unit_block = parent->back();
+            rewriter.inlineBlockBefore(&unit_block, op, {});
+            replace_gotos(op, op->getBlock(), rewriter);
+            rewriter.eraseOp(op);
+            return mlir::success();
+        }
+
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
+            if (op.getBody().empty()) {
+                rewriter.eraseOp(op);
+                return logical_result::success();
+            }
+
+            // If we do not have any branching inside, we can just "inline" the op.
+            if (op.getBody().hasOneBlock()) {
+                return handle_singleblock(op, ops, rewriter);
+            }
+
+            return handle_multiblock(op, ops, rewriter);
+#if 0
+            auto target_block = [&](op_t op) -> block_t * {
+                auto label_val = op.getLabelMutable().get();
+                for (auto user : label_val.getUsers()) {
+                    if (mlir::isa< hl::LabelStmt >(user)) {
+                        return user->getBlock();
+                    }
+                }
+                return nullptr;
+            };
+
+            auto parent = op->getParentRegion();
+            (void) parent;
+
+            /*auto parent_region = [&](op_t op) -> region_t * {
+                auto operand = ops.getODSOperands(0);
+            };*/
+
+            auto tgt_block                = target_block(op);
+            auto [head_block, tail_block] = split_after_op(op, rewriter);
+            rewriter.setInsertionPointToEnd(head_block);
+            rewriter.create< mlir::LLVM::BrOp >(
+                op.getLoc(), std::vector< mlir::Value >{}, tgt_block
+            );
+            rewriter.eraseOp(op);
+            return mlir::success();
+#endif
+        }
+    };
+
+#if 0
+    struct goto_stmt : llvm_conversion_pattern< hl::GotoStmt >
+    {
+        using op_t      = hl::GotoStmt;
+        using base      = llvm_conversion_pattern< op_t >;
+        using adaptor_t = typename op_t::Adaptor;
+
+        using base::base;
+
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
+            auto label_val = op.getLabelMutable().get();
+            (void) label_val;
+            return mlir::success();
+        }
+    };
+#endif
+
+    // using label_stmt = cf::region_to_block_conversion_pattern< hl::LabelStmt >;
+    using scope_op = cf::region_to_block_conversion_pattern< core::ScopeOp >;
+
+    // using label_patterns = util::type_list< erase_pattern< hl::LabelDeclOp >, label_stmt >;
+
+    using label_patterns = util::type_list<
+        erase_pattern< hl::LabelDeclOp >, label_stmt, erase_pattern< hl::GotoStmt > >;
+
+    // TODO(conv): Figure out if these can be somehow unified.
+    using inline_region_from_op_conversions =
+        util::type_list< inline_region_from_op< hl::TranslationUnitOp >, scope_op >;
+
+    template< typename op_t >
+    struct subscript_like : llvm_conversion_pattern< op_t >
+    {
+        using base      = llvm_conversion_pattern< op_t >;
+        using adaptor_t = typename op_t::Adaptor;
+
+        using base::base;
+
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
+            auto trg_type     = this->convert_type_to_type(op, op.getType());
             auto element_type = this->convert_element_type(op, op.getType());
 
             VAST_PATTERN_CHECK(trg_type, "Could not convert vardecl type");
 
             auto gep = rewriter.create< mlir::LLVM::GEPOp >(
-                op.getLoc(),
-                trg_type, element_type,
-                ops.getArray(), ops.getIndex()
+                op.getLoc(), trg_type, element_type, ops.getArray(), ops.getIndex()
             );
 
             rewriter.replaceOp(op, gep);
@@ -387,20 +531,17 @@ namespace vast::conv::irstollvm
         : llvm_conversion_pattern< hl::InitListExpr >
         , value_builder< init_list_expr >
     {
-        using op_t = hl::InitListExpr;
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = hl::InitListExpr;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             VAST_PATTERN_CHECK(op.getNumResults() == 1, "Unexpected number of results");
             auto trg_type = convert_type_to_type(op, op.getType(0));
-            auto value = construct_value(
-                rewriter, op.getLoc(), ops.getOperands(), trg_type
-            );
+            auto value    = construct_value(rewriter, op.getLoc(), ops.getOperands(), trg_type);
 
             rewriter.replaceOp(op, value);
             return mlir::success();
@@ -409,16 +550,15 @@ namespace vast::conv::irstollvm
 
     struct vardecl : llvm_conversion_pattern< hl::VarDeclOp >
     {
-        using op_t = hl::VarDeclOp;
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = hl::VarDeclOp;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
-            auto t = mlir::dyn_cast< hl::PointerType >(op.getType());
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
+            auto t           = mlir::dyn_cast< hl::PointerType >(op.getType());
             auto target_type = convert_type_to_type(op, t.getElementType());
 
             // So we know this is a global, otherwise it would be in `ll:`.
@@ -433,70 +573,59 @@ namespace vast::conv::irstollvm
             }
 
             auto gop = rewriter.create< mlir::LLVM::GlobalOp >(
-                    op.getLoc(),
-                    target_type,
-                    op.getConstant(),
-                    core::convert_linkage_to_llvm(linkage.value()),
-                    op.getSymbolName(),
-                    mlir::Attribute()
+                op.getLoc(), target_type, op.getConstant(),
+                core::convert_linkage_to_llvm(linkage.value()), op.getSymbolName(),
+                mlir::Attribute()
             );
 
             // We could probably try to analyze the region to see if it isn't
             // a case where we can just do an attribute, but for now let's
             // just use the initializer.
             auto &region = gop.getInitializerRegion();
-            rewriter.inlineRegionBefore(op.getInitializer(),
-                                        region, region.begin());
+            rewriter.inlineRegionBefore(op.getInitializer(), region, region.begin());
 
             auto &gop_init = gop.getInitializer();
-            if (gop_init.empty() && op.getStorageDuration() == core::StorageDuration::sd_static) {
-                auto guard = insertion_guard(rewriter);
+            if (gop_init.empty() && op.getStorageDuration() == core::StorageDuration::sd_static)
+            {
+                auto guard       = insertion_guard(rewriter);
                 auto &init_block = gop_init.emplaceBlock();
                 rewriter.setInsertionPoint(&init_block, init_block.begin());
-                auto zero_init = rewriter.create< mlir::LLVM::ZeroOp >(op.getLoc(), gop.getType());
+                auto zero_init =
+                    rewriter.create< mlir::LLVM::ZeroOp >(op.getLoc(), gop.getType());
                 rewriter.create< mlir::LLVM::ReturnOp >(op.getLoc(), zero_init);
             }
             rewriter.eraseOp(op);
             return logical_result::success();
         }
-
     };
 
     struct global_ref : llvm_conversion_pattern< hl::DeclRefOp >
     {
-        using op_t = hl::DeclRefOp;
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = hl::DeclRefOp;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             auto target_type = convert_type_to_type(op, op.getType());
 
             auto addr_of = rewriter.template create< mlir::LLVM::AddressOfOp >(
-                op.getLoc(),
-                target_type,
-                op.getName()
+                op.getLoc(), target_type, op.getName()
             );
 
             rewriter.replaceOp(op, addr_of);
             return logical_result::success();
         }
-
     };
 
-    using init_conversions = util::type_list<
-        init_list_expr,
-        vardecl,
-        global_ref
-    >;
+    using init_conversions = util::type_list< init_list_expr, vardecl, global_ref >;
 
     template< typename op_t >
     struct func_op : llvm_conversion_pattern< op_t >
     {
-        using base = llvm_conversion_pattern< op_t >;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
@@ -506,10 +635,10 @@ namespace vast::conv::irstollvm
         logical_result matchAndRewrite(
             op_t func_op, adaptor_t ops, conversion_rewriter &rewriter
         ) const override {
-            auto tc = this->tc(func_op);
+            auto tc                = this->tc(func_op);
             auto maybe_target_type = tc.convert_fn_t(func_op.getFunctionType());
             // TODO(irs-to-llvm): Handle varargs.
-            auto maybe_signature = tc.get_conversion_signature(func_op, /* variadic */ true);
+            auto maybe_signature   = tc.get_conversion_signature(func_op, /* variadic */ true);
 
             // Type converter failed.
             if (!maybe_target_type || !*maybe_target_type || !maybe_signature) {
@@ -519,21 +648,18 @@ namespace vast::conv::irstollvm
             }
 
             auto target_type = *maybe_target_type;
-            auto signature = *maybe_signature;
+            auto signature   = *maybe_signature;
 
             // TODO(irs-to-llvm): Currently it is unclear what to do with the
             //                    arg/res attributes as it looks like we may not
             //                    want to lower them all.
 
-
             auto linkage = func_op.getLinkage();
             VAST_CHECK(linkage, "Attempting lower function without set linkage {0}", func_op);
             auto new_func = rewriter.create< llvm_func_op >(
-                func_op.getLoc(),
-                func_op.getSymbolName(),
-                target_type,
-                core::convert_linkage_to_llvm(linkage.value()),
-                func_op.isVarArg(), LLVM::CConv::C
+                func_op.getLoc(), func_op.getSymbolName(), target_type,
+                core::convert_linkage_to_llvm(linkage.value()), func_op.isVarArg(),
+                LLVM::CConv::C
             );
 
             rewriter.inlineRegionBefore(func_op.getBody(), new_func.getBody(), new_func.end());
@@ -547,15 +673,15 @@ namespace vast::conv::irstollvm
             return logical_result::success();
         }
 
-        logical_result args_to_allocas(
-            llvm_func_op fn, conversion_rewriter &rewriter
-        ) const {
-            if (fn.empty())
+        logical_result args_to_allocas(llvm_func_op fn, conversion_rewriter &rewriter) const {
+            if (fn.empty()) {
                 return logical_result::success();
+            }
 
             auto &block = fn.front();
-            if (!block.isEntryBlock())
+            if (!block.isEntryBlock()) {
                 return logical_result::failure();
+            }
 
             return logical_result::success();
         }
@@ -565,8 +691,8 @@ namespace vast::conv::irstollvm
 
     struct constant : llvm_conversion_pattern< hl::ConstantOp >
     {
-        using op_t = hl::ConstantOp;
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = hl::ConstantOp;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
@@ -575,15 +701,16 @@ namespace vast::conv::irstollvm
 
         std::string next_strlit_name(core::module mod) const {
             std::size_t current = 0;
-            for (auto &op : mod.getOps())
-            {
+            for (auto &op : mod.getOps()) {
                 auto global = mlir::dyn_cast< mlir::LLVM::GlobalOp >(op);
-                if (!global)
+                if (!global) {
                     continue;
+                }
 
                 auto name = global.getName();
-                if (!name.consume_front(strlit_global_var_prefix))
+                if (!name.consume_front(strlit_global_var_prefix)) {
                     continue;
+                }
 
                 std::size_t idx = 0;
                 name.getAsInteger(10, idx);
@@ -609,29 +736,28 @@ namespace vast::conv::irstollvm
             return logical_result::failure();
         }
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             if (mlir::isa< mlir::NoneType >(op.getResult().getType())) {
                 return handle_void_const(op, rewriter);
             }
 
             auto val = make_from(op, rewriter, this->tc(op));
-            if (!val)
+            if (!val) {
                 return mlir::failure();
+            }
 
             rewriter.replaceOp(op, val);
             return logical_result::success();
         }
 
-        mlir::Attribute convert_attr(
-            auto attr, auto op, conversion_rewriter &rewriter
-        ) const {
+        mlir::Attribute convert_attr(auto attr, auto op, conversion_rewriter &rewriter) const {
             auto target_type = convert_type_to_type(op, attr.getType());
-            auto dla = mlir::DataLayoutAnalysis(op);
-            const auto &dl = dla.getAtOrAbove(op);
-            if (!target_type)
+            auto dla         = mlir::DataLayoutAnalysis(op);
+            const auto &dl   = dla.getAtOrAbove(op);
+            if (!target_type) {
                 return {};
+            }
 
             if (auto float_attr = mlir::dyn_cast< core::FloatAttr >(attr)) {
                 // NOTE(lukas): We cannot simply forward the return value of `getValue()`
@@ -644,13 +770,13 @@ namespace vast::conv::irstollvm
             }
 
             if (auto int_attr = mlir::dyn_cast< core::IntegerAttr >(attr)) {
-                auto size = dl.getTypeSizeInBits(target_type);
+                auto size    = dl.getTypeSizeInBits(target_type);
                 auto coerced = int_attr.getValue().sextOrTrunc(size);
                 return rewriter.getIntegerAttr(target_type, coerced);
             }
 
-            VAST_UNREACHABLE("Trying to convert attr that is not supported, {0} in op {1}",
-                attr, op
+            VAST_UNREACHABLE(
+                "Trying to convert attr that is not supported, {0} in op {1}", attr, op
             );
 
             return {};
@@ -661,25 +787,21 @@ namespace vast::conv::irstollvm
         ) const {
             // We need to include the terminating `0` which will not happen
             // if we "just" pass the value in.
-            auto twine = llvm::Twine(std::string_view(
-                str_lit.getValue().data(), str_lit.getValue().size() + 1)
+            auto twine = llvm::Twine(
+                std::string_view(str_lit.getValue().data(), str_lit.getValue().size() + 1)
             );
 
             auto converted_attr = mlir::StringAttr::get(op->getContext(), twine);
 
-            auto mod = op->getParentOfType< core::module >();
+            auto mod  = op->getParentOfType< core::module >();
             auto name = next_strlit_name(mod);
 
             auto element_type = this->convert_element_type(op, op.getType());
             rewriter.guarded([&]() {
                 rewriter->setInsertionPoint(&*mod.begin());
                 rewriter->template create< mlir::LLVM::GlobalOp >(
-                    op.getLoc(),
-                    element_type,
-                    true, /* is constant */
-                    LLVM::Linkage::Internal,
-                    name,
-                    converted_attr
+                    op.getLoc(), element_type, true, /* is constant */
+                    LLVM::Linkage::Internal, name, converted_attr
                 );
             });
 
@@ -709,7 +831,7 @@ namespace vast::conv::irstollvm
     template< typename op_t >
     struct ret : operation_conversion_pattern< op_t >
     {
-        using base = operation_conversion_pattern< op_t >;
+        using base      = operation_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
@@ -727,7 +849,7 @@ namespace vast::conv::irstollvm
 
         logical_result matchAndRewrite(
             op_t ret_op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override{
+        ) const override {
             rewriter.create< LLVM::ReturnOp >(
                 ret_op.getLoc(), filter_out_void(ops.getOperands())
             );
@@ -737,20 +859,20 @@ namespace vast::conv::irstollvm
     };
 
     using return_conversions = util::type_list<
-          ret< hl::ReturnOp >
-        , ret< ll::ReturnOp >
-        , ret< mlir::func::ReturnOp >
+        ret< hl::ReturnOp >, ret< ll::ReturnOp >,
+        ret< mlir::func::ReturnOp >
         // Special case is if void is returned. Since `core.void` is actually a value
         // we need to handle it when lowering constants. For now we also handle return there
         // but we should consider whether instead not ignore the constant if it is void and
         // let the users handle that special case.
-        , ret< core::ImplicitReturnOp >
-    >;
+        ,
+        ret< core::ImplicitReturnOp > >;
 
-    logical_result match_and_rewrite_cast(auto &pattern, auto op, auto adaptor, auto &rewriter) {
+    logical_result
+    match_and_rewrite_cast(auto &pattern, auto op, auto adaptor, auto &rewriter) {
         auto dst_type = pattern.convert_type_to_type(op, op.getType());
 
-        auto src = adaptor.getValue();
+        auto src      = adaptor.getValue();
         auto src_type = src.getType();
 
         auto orig_dst_type = op.getType();
@@ -844,7 +966,7 @@ namespace vast::conv::irstollvm
         auto float_to_bool = [&] {
             // Check if float is not equal to zero.
             auto zero = pattern.constant(rewriter, op.getLoc(), src_type, 0.0);
-            auto cmp = rewriter.template create< LLVM::FCmpOp >(
+            auto cmp  = rewriter.template create< LLVM::FCmpOp >(
                 op.getLoc(), LLVM::FCmpPredicate::une, src, zero
             );
 
@@ -866,7 +988,7 @@ namespace vast::conv::irstollvm
             auto dst_bw = dst_type.getIntOrFloatBitWidth();
 
             if (src_bw > dst_bw) {
-                rewriter.template replaceOpWithNewOp< LLVM::FPTruncOp >(op , dst_type, src);
+                rewriter.template replaceOpWithNewOp< LLVM::FPTruncOp >(op, dst_type, src);
             } else {
                 rewriter.template replaceOpWithNewOp< LLVM::FPExtOp >(op, dst_type, src);
             }
@@ -884,23 +1006,23 @@ namespace vast::conv::irstollvm
             case hl::CastKind::NoOp:
                 return noop();
 
-            // case hl::CastKind::BaseToDerived:
-            // case hl::CastKind::DerivedToBase:
-            // case hl::CastKind::UncheckedDerivedToBase:
-            // case hl::CastKind::Dynamic:
-            // case hl::CastKind::ToUnion:
+                // case hl::CastKind::BaseToDerived:
+                // case hl::CastKind::DerivedToBase:
+                // case hl::CastKind::UncheckedDerivedToBase:
+                // case hl::CastKind::Dynamic:
+                // case hl::CastKind::ToUnion:
 
             case hl::CastKind::ArrayToPointerDecay:
                 return arr_to_ptr_decay();
             // case hl::CastKind::FunctionToPointerDecay:
             case hl::CastKind::NullToPointer:
                 return null_to_ptr();
-            // case hl::CastKind::NullToMemberPointer:
-            // case hl::CastKind::BaseToDerivedMemberPointer:
-            // case hl::CastKind::DerivedToBaseMemberPointer:
-            // case hl::CastKind::MemberPointerToBoolean:
-            // case hl::CastKind::UserDefinedConversion:
-            // case hl::CastKind::ConstructorConversion:
+                // case hl::CastKind::NullToMemberPointer:
+                // case hl::CastKind::BaseToDerivedMemberPointer:
+                // case hl::CastKind::DerivedToBaseMemberPointer:
+                // case hl::CastKind::MemberPointerToBoolean:
+                // case hl::CastKind::UserDefinedConversion:
+                // case hl::CastKind::ConstructorConversion:
 
             case hl::CastKind::IntegralToPointer:
                 return int_to_ptr();
@@ -973,8 +1095,8 @@ namespace vast::conv::irstollvm
 
     struct implicit_cast : llvm_conversion_pattern< hl::ImplicitCastOp >
     {
-        using op_t = hl::ImplicitCastOp;
-        using base = llvm_conversion_pattern< hl::ImplicitCastOp >;
+        using op_t      = hl::ImplicitCastOp;
+        using base      = llvm_conversion_pattern< hl::ImplicitCastOp >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
@@ -986,11 +1108,10 @@ namespace vast::conv::irstollvm
         }
     };
 
-    struct cstyle_cast
-        : llvm_conversion_pattern< hl::CStyleCastOp >
+    struct cstyle_cast : llvm_conversion_pattern< hl::CStyleCastOp >
     {
-        using op_t = hl::CStyleCastOp;
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = hl::CStyleCastOp;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
@@ -1005,13 +1126,12 @@ namespace vast::conv::irstollvm
     template< typename src_t, typename trg_t >
     struct shift_op : llvm_conversion_pattern< src_t >
     {
-        using base = llvm_conversion_pattern< src_t >;
+        using base      = llvm_conversion_pattern< src_t >;
         using adaptor_t = typename src_t::Adaptor;
         using base::base;
 
-        logical_result matchAndRewrite(
-            src_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(src_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             auto target_ty = this->convert_type_to_type(op, op.getType());
             auto rhs       = base::insert_trunc_or_ext(ops.getRhs(), target_ty, rewriter);
             auto new_op = rewriter.create< trg_t >(op.getLoc(), target_ty, ops.getLhs(), rhs);
@@ -1021,10 +1141,8 @@ namespace vast::conv::irstollvm
     };
 
     using shift_conversions = util::type_list<
-        shift_op< hl::BinShlOp, LLVM::ShlOp >,
-        shift_op< hl::BinLShrOp, LLVM::LShrOp >,
-        shift_op< hl::BinAShrOp, LLVM::AShrOp >
-    >;
+        shift_op< hl::BinShlOp, LLVM::ShlOp >, shift_op< hl::BinLShrOp, LLVM::LShrOp >,
+        shift_op< hl::BinAShrOp, LLVM::AShrOp > >;
 
     using one_to_one_conversions = util::type_list<
         llvm_one_to_one_conversion_pattern< hl::AddIOp, LLVM::AddOp >,
@@ -1045,20 +1163,18 @@ namespace vast::conv::irstollvm
 
         llvm_one_to_one_conversion_pattern< hl::BinOrOp, LLVM::OrOp >,
         llvm_one_to_one_conversion_pattern< hl::BinAndOp, LLVM::AndOp >,
-        llvm_one_to_one_conversion_pattern< hl::BinXorOp, LLVM::XOrOp >
-    >;
+        llvm_one_to_one_conversion_pattern< hl::BinXorOp, LLVM::XOrOp > >;
 
     struct call : llvm_conversion_pattern< hl::CallOp >
     {
-        using op_t = hl::CallOp;
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = hl::CallOp;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             auto caller = mlir::dyn_cast< VastCallOpInterface >(op.getOperation());
             if (!caller) {
                 return logical_result::failure();
@@ -1079,9 +1195,8 @@ namespace vast::conv::irstollvm
             }
 
             auto mk_fty = [&] {
-                mlir_type rty = rtys->empty()
-                    ? mlir::LLVM::LLVMVoidType::get(op.getContext())
-                    : rtys->front();
+                mlir_type rty = rtys->empty() ? mlir::LLVM::LLVMVoidType::get(op.getContext())
+                                              : rtys->front();
                 return mlir::LLVM::LLVMFunctionType::get(rty, atys.value(), fty.isVarArg());
             };
 
@@ -1090,45 +1205,62 @@ namespace vast::conv::irstollvm
             );
 
             // The result gets removed when return type is void,
-            // because the number of results is mismatched, we can't use replace (triggers assert)
-            // Removing the op is ok, since in llvm dialect a void value can't be used anyway
-            if (call.getResult())
+            // because the number of results is mismatched, we can't use replace (triggers
+            // assert) Removing the op is ok, since in llvm dialect a void value can't be used
+            // anyway
+            if (call.getResult()) {
                 rewriter.replaceOp(op, call.getResults());
-            else
+            } else {
                 rewriter.eraseOp(op);
+            }
 
             return logical_result::success();
         }
     };
 
-    struct logical_not : llvm_conversion_pattern< hl::LNotOp >
+    /*struct goto_stmt : llvm_conversion_pattern< hl::GotoStmt >
     {
-        using op_t = hl::LNotOp;
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = hl::GotoStmt;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        Operation * create_cmp(conversion_rewriter &rewriter, op_t op, Value lhs, Value rhs) const {
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
+            auto label = mlir::dyn_cast< hl::LabelDeclOp >(ops.getLabel());
+
+            (void) label;
+            // rewriter.create< LLVM::BrOp >(op.getLoc(), ops.getLabel(), op.getODSResults(0));
+            rewriter.eraseOp(op);
+            return logical_result::success();
+        }
+    };*/
+
+    struct logical_not : llvm_conversion_pattern< hl::LNotOp >
+    {
+        using op_t      = hl::LNotOp;
+        using base      = llvm_conversion_pattern< op_t >;
+        using adaptor_t = typename op_t::Adaptor;
+
+        using base::base;
+
+        Operation *
+        create_cmp(conversion_rewriter &rewriter, op_t op, Value lhs, Value rhs) const {
             auto lhs_type = lhs.getType();
 
             if (llvm::isa< mlir::FloatType >(lhs_type)) {
-                auto i1 = mlir::IntegerType::get(
-                    op.getContext(), 1, mlir::IntegerType::Signless
-                );
+                auto i1 =
+                    mlir::IntegerType::get(op.getContext(), 1, mlir::IntegerType::Signless);
 
                 return rewriter.create< LLVM::FCmpOp >(
-                    op.getLoc(), i1,
-                    LLVM::FCmpPredicate::une,
-                    lhs, rhs
+                    op.getLoc(), i1, LLVM::FCmpPredicate::une, lhs, rhs
                 );
             }
 
             if (llvm::isa< mlir::IntegerType >(lhs_type)) {
                 return rewriter.create< LLVM::ICmpOp >(
-                    op.getLoc(),
-                    LLVM::ICmpPredicate::ne,
-                    lhs, rhs
+                    op.getLoc(), LLVM::ICmpPredicate::ne, lhs, rhs
                 );
             }
             VAST_UNREACHABLE("Unknwon cmp type.");
@@ -1142,11 +1274,13 @@ namespace vast::conv::irstollvm
             auto cmp = create_cmp(rewriter, op, adaptor.getArg(), zero);
 
             auto true_i1 = this->iN(rewriter, op.getLoc(), cmp->getResult(0).getType(), 1);
-            auto xor_val = rewriter.create< LLVM::XOrOp >(op.getLoc(), cmp->getResult(0), true_i1);
+            auto xor_val =
+                rewriter.create< LLVM::XOrOp >(op.getLoc(), cmp->getResult(0), true_i1);
 
             auto res_type = convert_type_to_type(op, op.getResult().getType());
-            if (!res_type)
+            if (!res_type) {
                 return logical_result::failure();
+            }
             if (res_type != xor_val.getType()) {
                 rewriter.replaceOpWithNewOp< LLVM::ZExtOp >(op, res_type, xor_val);
             } else {
@@ -1154,13 +1288,14 @@ namespace vast::conv::irstollvm
             }
             return logical_result::success();
         }
-
     };
 
-    struct bin_not : operation_conversion_pattern< hl::NotOp >, llvm_pattern_utils
+    struct bin_not
+        : operation_conversion_pattern< hl::NotOp >
+        , llvm_pattern_utils
     {
-        using op_t = hl::NotOp;
-        using base = operation_conversion_pattern< op_t >;
+        using op_t      = hl::NotOp;
+        using base      = operation_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
@@ -1174,15 +1309,12 @@ namespace vast::conv::irstollvm
         }
     };
 
-    using unary_in_place_conversions = util::type_list<
-        logical_not,
-        bin_not
-    >;
+    using unary_in_place_conversions = util::type_list< logical_not, bin_not >;
 
     struct minus : llvm_conversion_pattern< hl::MinusOp >
     {
-        using op_t = hl::MinusOp;
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = hl::MinusOp;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
@@ -1190,29 +1322,29 @@ namespace vast::conv::irstollvm
         logical_result matchAndRewrite(
             op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
         ) const override {
-            auto arg = adaptor.getArg();
+            auto arg      = adaptor.getArg();
             auto arg_type = convert_type_to_type(op, arg.getType());
 
             auto zero = this->constant(rewriter, op.getLoc(), arg_type, 0);
 
-            if (llvm::isa< mlir::FloatType >(arg_type))
+            if (llvm::isa< mlir::FloatType >(arg_type)) {
                 rewriter.replaceOpWithNewOp< LLVM::FSubOp >(op, zero, arg);
-            else
+            } else {
                 rewriter.replaceOpWithNewOp< LLVM::SubOp >(op, zero, arg);
+            }
 
             return logical_result::success();
         }
     };
 
-    using sign_conversions = util::type_list<
-        minus,
-        operands_forwarding_pattern< hl::PlusOp >
-    >;
+    using sign_conversions =
+        util::type_list< minus, operands_forwarding_pattern< hl::PlusOp > >;
 
-    template< typename src_t, typename trg_t, typename src_predicate_t, typename trg_predicate_t >
+    template<
+        typename src_t, typename trg_t, typename src_predicate_t, typename trg_predicate_t >
     struct cmp_base : llvm_conversion_pattern< src_t >
     {
-        using base = llvm_conversion_pattern< src_t >;
+        using base      = llvm_conversion_pattern< src_t >;
         using adaptor_t = typename src_t::Adaptor;
 
         using base::base;
@@ -1224,9 +1356,8 @@ namespace vast::conv::irstollvm
         ) const override {
             auto pred = convert_predicate(op.getPredicate());
 
-            auto new_cmp = rewriter.create< trg_t >(
-                op.getLoc(), pred, adaptor.getLhs(), adaptor.getRhs()
-            );
+            auto new_cmp =
+                rewriter.create< trg_t >(op.getLoc(), pred, adaptor.getLhs(), adaptor.getRhs());
 
             auto dst_type = this->convert_type_to_type(op, op.getType());
             this->replace_with_trunc_or_ext(op, new_cmp, new_cmp.getType(), dst_type, rewriter);
@@ -1236,6 +1367,7 @@ namespace vast::conv::irstollvm
     };
 
     using icmp_base = cmp_base< hl::CmpOp, LLVM::ICmpOp, hl::Predicate, LLVM::ICmpPredicate >;
+
     struct icmp : icmp_base
     {
         using base = icmp_base;
@@ -1268,6 +1400,7 @@ namespace vast::conv::irstollvm
     };
 
     using fcmp_base = cmp_base< hl::FCmpOp, LLVM::FCmpOp, hl::FPredicate, LLVM::FCmpPredicate >;
+
     struct fcmp : fcmp_base
     {
         using base = fcmp_base;
@@ -1313,19 +1446,17 @@ namespace vast::conv::irstollvm
 
     struct deref : llvm_conversion_pattern< hl::Deref >
     {
-        using op_t = hl::Deref;
-        using base = llvm_conversion_pattern< hl::Deref >;
+        using op_t      = hl::Deref;
+        using base      = llvm_conversion_pattern< hl::Deref >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             auto trg_type = convert_type_to_type(op, op.getType());
-            auto loaded = rewriter.create< mlir::LLVM::LoadOp >(
-                op.getLoc(), trg_type, ops.getAddr()
-            );
+            auto loaded =
+                rewriter.create< mlir::LLVM::LoadOp >(op.getLoc(), trg_type, ops.getAddr());
 
             rewriter.replaceOp(op, loaded);
             return logical_result::success();
@@ -1335,17 +1466,17 @@ namespace vast::conv::irstollvm
     template< typename op_t, typename yield_op_t >
     struct propagate_yield : non_legalizing_llvm_conversion_pattern< op_t >
     {
-        using base = non_legalizing_llvm_conversion_pattern< op_t >;
+        using base      = non_legalizing_llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             auto body = op.getBody();
-            if (!body)
+            if (!body) {
                 return logical_result::success();
+            }
 
             auto yield = terminator< yield_op_t >::get(*body);
             VAST_PATTERN_CHECK(yield, "Expected yield in: {0}", op);
@@ -1361,19 +1492,19 @@ namespace vast::conv::irstollvm
         : non_legalizing_llvm_conversion_pattern< hl::ValueYieldOp >
         , value_builder< value_yield_in_global_var >
     {
-        using op_t = hl::ValueYieldOp;
-        using base = non_legalizing_llvm_conversion_pattern< op_t >;
+        using op_t      = hl::ValueYieldOp;
+        using base      = non_legalizing_llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override
-        {
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             auto gv = mlir::dyn_cast< mlir::LLVM::GlobalOp >(op->getParentOp());
             // It has a very different conversion outside of global op.
-            if (!gv)
+            if (!gv) {
                 return logical_result::failure();
+            }
 
             // Here we need to build the final value to be returned.
             auto trg_type = convert_type_to_type(op, gv.getType());
@@ -1387,65 +1518,47 @@ namespace vast::conv::irstollvm
 
     struct sizeof_pattern : llvm_conversion_pattern< hl::SizeOfTypeOp >
     {
-        using op_t = hl::SizeOfTypeOp;
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = hl::SizeOfTypeOp;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             // TODO mimic: clang/lib/CodeGen/CGExprScalar.cpp:VisitUnaryExprOrTypeTraitExpr
             // This does not consider type alignment and VLA types
             auto target_type = convert_type_to_type(op, op.getType());
-            auto dla = mlir::DataLayoutAnalysis(op);
-            const auto &dl = dla.getAtOrAbove(op);
-            auto attr = rewriter.getIntegerAttr(
-                target_type, dl.getTypeSize(op.getArg())
-            );
-            auto cons = rewriter.create< LLVM::ConstantOp >(
-                op.getLoc(), target_type, attr
-            );
+            auto dla         = mlir::DataLayoutAnalysis(op);
+            const auto &dl   = dla.getAtOrAbove(op);
+            auto attr = rewriter.getIntegerAttr(target_type, dl.getTypeSize(op.getArg()));
+            auto cons = rewriter.create< LLVM::ConstantOp >(op.getLoc(), target_type, attr);
             rewriter.replaceOp(op, cons);
             return logical_result::success();
         }
     };
 
     using base_op_conversions = util::type_list<
-        func_op< hl::FuncOp >,
-        func_op< ll::FuncOp >,
-        constant,
-        implicit_cast,
-        cstyle_cast,
-        call,
-        icmp,
-        fcmp,
-        deref,
-        subscript_like< ll::Subscript >,
-        subscript_like< hl::SubscriptOp >,
-        sizeof_pattern,
-        propagate_yield< hl::ExprOp, hl::ValueYieldOp >,
-        value_yield_in_global_var
-    >;
+        func_op< hl::FuncOp >, func_op< ll::FuncOp >, constant, implicit_cast, cstyle_cast,
+        call, icmp, fcmp, deref, subscript_like< ll::Subscript >,
+        subscript_like< hl::SubscriptOp >, sizeof_pattern,
+        propagate_yield< hl::ExprOp, hl::ValueYieldOp >, value_yield_in_global_var >;
 
     // Drop types of operations that will be processed by pass for core(lazy) operations.
     template< typename LazyOp >
     struct lazy_op_type : non_legalizing_llvm_conversion_pattern< LazyOp >
     {
-        using op_t = LazyOp;
-        using base = non_legalizing_llvm_conversion_pattern< op_t >;
+        using op_t      = LazyOp;
+        using base      = non_legalizing_llvm_conversion_pattern< op_t >;
         using adaptor_t = typename LazyOp::Adaptor;
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             // It does have regions, we cannot use `clone` as it will screw the
             // queue of ops that needs to be converted conversion to-be done.
             if (op->getNumRegions()) {
-                auto lower_res_type = [&]()
-                {
+                auto lower_res_type = [&]() {
                     for (std::size_t i = 0; i < op->getNumResults(); ++i) {
                         auto result = op->getResult(i);
                         result.setType(this->convert_type_to_type(op, result.getType()));
@@ -1466,20 +1579,20 @@ namespace vast::conv::irstollvm
     template< typename yield_like >
     struct fixup_yield_types : non_legalizing_llvm_conversion_pattern< yield_like >
     {
-        using op_t = yield_like;
-        using base = non_legalizing_llvm_conversion_pattern< yield_like >;
+        using op_t      = yield_like;
+        using base      = non_legalizing_llvm_conversion_pattern< yield_like >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
             // TODO(conv:irstollvm): If we have more patterns to same op
             //                       that are exclusive, can we have one
             //                       place to "dispatch" them?
-            if (mlir::isa< mlir::LLVM::GlobalOp >(op->getParentOp()))
+            if (mlir::isa< mlir::LLVM::GlobalOp >(op->getParentOp())) {
                 return logical_result::failure();
+            }
 
             // Some operations need to keep it even with void value.
             if (!mlir::isa< core::LazyOp >(op->getParentOp())) {
@@ -1497,7 +1610,7 @@ namespace vast::conv::irstollvm
 
             // TODO: What would it take to make this work `updateRootInPlace`?
             auto tc = this->tc(op);
-            return update_via_clone(rewriter, op, ops.getOperands(),tc);
+            return update_via_clone(rewriter, op, ops.getOperands(), tc);
         }
     };
 
@@ -1524,27 +1637,23 @@ namespace vast::conv::irstollvm
     };
 
     using lazy_op_type_conversions = util::type_list<
-        lazy_op_type< core::LazyOp >,
-        lazy_op_type< core::BinLAndOp >,
-        lazy_op_type< core::BinLOrOp >,
-        lazy_op_type< core::SelectOp >,
-        fixup_yield_types< hl::ValueYieldOp >
-    >;
+        lazy_op_type< core::LazyOp >, lazy_op_type< core::BinLAndOp >,
+        lazy_op_type< core::BinLOrOp >, lazy_op_type< core::SelectOp >,
+        fixup_yield_types< hl::ValueYieldOp > >;
 
     // `ll.` memory operations
 
     struct ll_load : llvm_conversion_pattern< ll::Load >
     {
-        using op_t = ll::Load;
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = ll::Load;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
-            auto trg = convert_type_to_type(op, op.getResult().getType());
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
+            auto trg  = convert_type_to_type(op, op.getResult().getType());
             auto load = rewriter.create< mlir::LLVM::LoadOp >(op.getLoc(), trg, ops.getPtr());
 
             rewriter.replaceOp(op, load);
@@ -1554,18 +1663,16 @@ namespace vast::conv::irstollvm
 
     struct ll_store : operation_conversion_pattern< ll::Store >
     {
-        using op_t = ll::Store;
-        using base = operation_conversion_pattern< op_t >;
+        using op_t      = ll::Store;
+        using base      = operation_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
-            auto store = rewriter.create< LLVM::StoreOp >(
-                op.getLoc(), ops.getVal(), ops.getPtr()
-            );
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
+            auto store =
+                rewriter.create< LLVM::StoreOp >(op.getLoc(), ops.getVal(), ops.getPtr());
             rewriter.replaceOp(op, store);
             return mlir::success();
         }
@@ -1573,21 +1680,19 @@ namespace vast::conv::irstollvm
 
     struct ll_alloca : llvm_conversion_pattern< ll::Alloca >
     {
-        using op_t = ll::Alloca;
-        using base = llvm_conversion_pattern< op_t >;
+        using op_t      = ll::Alloca;
+        using base      = llvm_conversion_pattern< op_t >;
         using adaptor_t = typename op_t::Adaptor;
 
         using base::base;
 
-        logical_result matchAndRewrite(
-            op_t op, adaptor_t ops, conversion_rewriter &rewriter
-        ) const override {
-            auto ty = convert_type_to_type(op, op.getType());
-            auto et = convert_element_type(op, op.getType());
+        logical_result
+        matchAndRewrite(op_t op, adaptor_t ops, conversion_rewriter &rewriter) const override {
+            auto ty    = convert_type_to_type(op, op.getType());
+            auto et    = convert_element_type(op, op.getType());
             auto count = mk_index(op.getLoc(), 1, rewriter);
-            auto alloca = rewriter.template create< LLVM::AllocaOp >(
-                op.getLoc(), ty, et, count, 0
-            );
+            auto alloca =
+                rewriter.template create< LLVM::AllocaOp >(op.getLoc(), ty, et, count, 0);
             rewriter.replaceOp(op, alloca);
 
             return mlir::success();
@@ -1609,30 +1714,33 @@ namespace vast::conv::irstollvm
             target.addLegalDialect< mlir::LLVM::LLVMDialect >();
 
             auto has_legal_return_type = [](auto op) {
-                auto dla = mlir::DataLayoutAnalysis(op);
+                auto dla  = mlir::DataLayoutAnalysis(op);
                 auto opts = mk_default_opts(op->getContext());
-                return tc::llvm_type_converter(op->getContext(), dla, opts, op).has_legal_return_type(op);
+                return tc::llvm_type_converter(op->getContext(), dla, opts, op)
+                    .has_legal_return_type(op);
             };
 
             auto has_legal_operand_types = [](auto op) {
-                auto dla = mlir::DataLayoutAnalysis(op);
+                auto dla  = mlir::DataLayoutAnalysis(op);
                 auto opts = mk_default_opts(op->getContext());
-                return tc::llvm_type_converter(op->getContext(), dla, opts, op).has_legal_operand_types(op);
+                return tc::llvm_type_converter(op->getContext(), dla, opts, op)
+                    .has_legal_operand_types(op);
             };
 
-            target.addDynamicallyLegalOp< core::LazyOp    >(has_legal_return_type);
+            target.addDynamicallyLegalOp< core::LazyOp >(has_legal_return_type);
             target.addDynamicallyLegalOp< core::BinLAndOp >(has_legal_return_type);
-            target.addDynamicallyLegalOp< core::BinLOrOp  >(has_legal_return_type);
-            target.addDynamicallyLegalOp< core::SelectOp  >(has_legal_return_type);
+            target.addDynamicallyLegalOp< core::BinLOrOp >(has_legal_return_type);
+            target.addDynamicallyLegalOp< core::SelectOp >(has_legal_return_type);
 
             target.addDynamicallyLegalOp< hl::ValueYieldOp >([&](hl::ValueYieldOp op) {
-                return mlir::isa< core::LazyOp >(op->getParentOp()) && has_legal_operand_types(op);
+                return mlir::isa< core::LazyOp >(op->getParentOp())
+                    && has_legal_operand_types(op);
             });
 
             target.addIllegalOp< mlir::func::FuncOp >();
 
-            target.markUnknownOpDynamicallyLegal([&] (auto op) {
-                auto dla = mlir::DataLayoutAnalysis(op);
+            target.markUnknownOpDynamicallyLegal([&](auto op) {
+                auto dla  = mlir::DataLayoutAnalysis(op);
                 auto opts = mk_default_opts(&mctx);
                 tc::llvm_type_converter tc(op->getContext(), dla, opts, op);
                 return tc.get_is_type_conversion_legal()(op);
@@ -1651,35 +1759,25 @@ namespace vast::conv::irstollvm
             rewrite_pattern_set patterns(&mctx);
             patterns.add< module_conversion >(&mctx);
 
-            if (mlir::failed(mlir::applyPartialConversion(getOperation(), target, std::move(patterns)))) {
+            if (mlir::failed(
+                    mlir::applyPartialConversion(getOperation(), target, std::move(patterns))
+                ))
+            {
                 return signalPassFailure();
             }
         }
 
         static void populate_conversions(auto &cfg) {
             base::populate_conversions<
-                one_to_one_conversions,
-                shift_conversions,
-                inline_region_from_op_conversions,
-                return_conversions,
-                unary_in_place_conversions,
-                sign_conversions,
-                init_conversions,
-                base_op_conversions,
-                operands_forwarding_patterns,
-                erase_patterns,
-                label_patterns,
-                lazy_op_type_conversions,
-                ll_generic_patterns,
-                cf::patterns,
-                ll_memory_ops
-            >(cfg);
+                one_to_one_conversions, shift_conversions, inline_region_from_op_conversions,
+                return_conversions, unary_in_place_conversions, sign_conversions,
+                init_conversions, base_op_conversions, operands_forwarding_patterns,
+                erase_patterns, label_patterns, lazy_op_type_conversions, ll_generic_patterns,
+                cf::patterns, ll_memory_ops >(cfg);
         }
     };
-} // namespace vast::conv
+} // namespace vast::conv::irstollvm
 
-
-std::unique_ptr< mlir::Pass > vast::createIRsToLLVMPass()
-{
+std::unique_ptr< mlir::Pass > vast::createIRsToLLVMPass() {
     return std::make_unique< vast::conv::irstollvm::IRsToLLVMPass >();
 }

@@ -4,9 +4,9 @@
 
 VAST_RELAX_WARNINGS
 #include <clang/AST/GlobalDecl.h>
-#include <clang/Basic/TargetInfo.h>
 #include <clang/AST/Stmt.h>
 #include <clang/AST/StmtCXX.h>
+#include <clang/Basic/TargetInfo.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/CodeGenBlock.hpp"
@@ -19,9 +19,9 @@ VAST_UNRELAX_WARNINGS
 
 #include "vast/Dialect/Builtin/Ops.hpp"
 
-namespace vast::cg
-{
-    mlir_visibility get_function_visibility(const clang_function *decl, std::optional< linkage_kind > linkage) {
+namespace vast::cg {
+    mlir_visibility
+    get_function_visibility(const clang_function *decl, std::optional< linkage_kind > linkage) {
         if (!linkage) {
             return mlir_visibility::Private;
         }
@@ -111,7 +111,7 @@ namespace vast::cg
             }
 
             return mk_prototype(*this, decl);
-        } ();
+        }();
 
         if (decl->isThisDeclarationADefinition()) {
             // Unsupported functions might produce unsupported decl
@@ -143,10 +143,11 @@ namespace vast::cg
         return prototype;
     }
 
-    void function_generator::declare_function_params(const clang_function *decl, vast_function fn) {
+    void
+    function_generator::declare_function_params(const clang_function *decl, vast_function fn) {
         auto *entry_block = fn.addEntryBlock();
-        auto params = llvm::zip(decl->parameters(), entry_block->getArguments());
-        auto _ = bld.scoped_insertion_at_start(entry_block);
+        auto params       = llvm::zip(decl->parameters(), entry_block->getArguments());
+        auto _            = bld.scoped_insertion_at_start(entry_block);
         for (const auto &[param, earg] : params) {
             // TODO set alignment
 
@@ -165,7 +166,7 @@ namespace vast::cg
     }
 
     void function_generator::emit_body(const clang_function *decl, vast_function prototype) {
-        auto _ = bld.scoped_insertion_at_end(&prototype.getBody());
+        auto _    = bld.scoped_insertion_at_end(&prototype.getBody());
         auto body = decl->getBody();
 
         if (clang::isa< clang::CoroutineBodyStmt >(body)) {
@@ -181,7 +182,6 @@ namespace vast::cg
         VAST_ASSERT(mlir::succeeded(prototype.verifyBody()));
     }
 
-
     void function_generator::emit_implicit_return_zero(const clang_function *decl) {
         auto loc = visitor.location(decl).value();
         auto rty = visitor.visit(decl->getFunctionType()->getReturnType());
@@ -191,11 +191,12 @@ namespace vast::cg
     }
 
     void function_generator::emit_implicit_void_return(const clang_function *decl) {
-        VAST_CHECK( decl->getReturnType()->isVoidType(),
+        VAST_CHECK(
+            decl->getReturnType()->isVoidType(),
             "Can't emit implicit void return in non-void function."
         );
 
-        auto loc = visitor.location(decl).value();
+        auto loc   = visitor.location(decl).value();
         auto value = bld.constant(loc);
         bld.create< core::ImplicitReturnOp >(loc, value);
     }
@@ -219,12 +220,13 @@ namespace vast::cg
     }
 
     bool function_generator::should_final_emit_unreachable(const clang_function *decl) const {
-        auto rty  = decl->getReturnType();
+        auto rty   = decl->getReturnType();
         auto &actx = decl->getASTContext();
         return policy->emit_strict_function_return(decl) || may_drop_function_return(rty, actx);
     }
 
-    void function_generator::deal_with_missing_return(const clang_function *decl, vast_function fn) {
+    void
+    function_generator::deal_with_missing_return(const clang_function *decl, vast_function fn) {
         auto rty = decl->getReturnType();
 
         auto _ = bld.scoped_insertion_at_end(&fn.getBody().back());
@@ -276,7 +278,7 @@ namespace vast::cg
 
     void function_generator::emit_epilogue(const clang_function *decl, vast_function fn) {
         auto &last_block = fn.getBody().back();
-        if (!has_return(last_block)) {
+        if (!has_return(last_block) && policy->emit_strict_function_return(decl)) {
             deal_with_missing_return(decl, fn);
         }
 
