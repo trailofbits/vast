@@ -698,6 +698,9 @@ namespace vast::conv {
             ToMaybeParse< hl::AddIOp >, ToMaybeParse< hl::SubIOp >,
             ToMaybeParse< hl::PostIncOp >, ToMaybeParse< hl::PostDecOp >,
             ToMaybeParse< hl::PreIncOp >, ToMaybeParse< hl::PreDecOp >,
+            // Shift operations
+            ToMaybeParse< hl::BinShlOp >, ToMaybeParse< hl::BinLShrOp >,
+            ToMaybeParse< hl::BinAShrOp >,
             // Non-parsing integer arithmetic
             ToNoParse< hl::MulIOp >,
             ToNoParse< hl::DivSOp >, ToNoParse< hl::DivUOp >,
