@@ -192,10 +192,28 @@ namespace vast::conv {
             );
         }
 
+        maybe_types_t convert_types_to_types(auto types) const {
+            types_t out;
+            for (auto t : types) {
+                if (auto c = convert_type_to_type(t)) {
+                    out.push_back(*c);
+                } else {
+                    return {};
+                }
+            }
+
+            return { out };
+        }
+
         maybe_type_t convert_type_to_type(mlir_type ty) const {
+            if (mlir::isa< hl::VoidType >(ty)) {
+                return pr::NoDataType::get(&mctx);
+            }
+
             if (auto ft = mlir::dyn_cast< tc::core_function_type >(ty)) {
                 return convert_type_to_type(ft);
             }
+
             return Maybe(model
                 ? model->get_return_type(&mctx)
                 : pr::MaybeDataType::get(&mctx)
@@ -390,7 +408,20 @@ namespace vast::conv {
                     return mlir::success();
                 }
 
-                return mlir::failure();
+                auto args = realized_operand_values(adaptor.getOperands(), rewriter);
+                auto rty  = return_type(op, callee);
+                rewriter.replaceOpWithNewOp< hl::CallOp >(op, callee, rty, args);
+                return mlir::success();
+            }
+
+            mlir_type return_type(op_t op, string_ref callee) const {
+                assert(op.getNumResults() == 1);
+                auto rty = op.getResult(0).getType();
+                if (isa< hl::VoidType >(rty)) {
+                    return pr::NoDataType::get(op.getContext());
+                }
+
+                return pr::MaybeDataType::get(op.getContext());
             }
 
             operation create_op_from_model(
@@ -422,8 +453,13 @@ namespace vast::conv {
             static void legalize(parser_conversion_config &cfg) {
                 cfg.target.addLegalOp< pr::NoParse, pr::Parse, pr::Source, pr::Sink >();
                 cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
-                cfg.target.addDynamicallyLegalOp< op_t >([models = cfg.models](op_t op) {
-                    return models.count(op.getCallee()) == 0;
+                cfg.target.addDynamicallyLegalOp< hl::CallOp >([](hl::CallOp op) {
+                    for (auto arg : op.getOperands()) {
+                        if (!pr::is_parser_type(arg.getType())) {
+                            return false;
+                        }
+                    }
+                    return true;
                 });
             }
         };
@@ -481,19 +517,21 @@ namespace vast::conv {
             }
         };
 
-        struct ReturnConversion
-            : parser_conversion_pattern_base< hl::ReturnOp >
+        template< typename SourceOp >
+        struct ReturnConversion : parser_conversion_pattern_base< SourceOp >
         {
-            using op_t = hl::ReturnOp;
+            using op_t = SourceOp;
             using base = parser_conversion_pattern_base< op_t >;
             using base::base;
+
+            using base::get_model;
 
             using adaptor_t = typename op_t::Adaptor;
 
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                auto func = op->getParentOfType< hl::FuncOp >();
+                auto func  = op->template getParentOfType< hl::FuncOp >();
                 auto model = get_model(func.getSymName());
 
                 auto rty = model
@@ -545,9 +583,11 @@ namespace vast::conv {
             static void legalize(parser_conversion_config &cfg) {
                 cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
                 cfg.target.addDynamicallyLegalOp< op_t >([models = cfg.models](op_t op) {
-                    return function_type_converter(
+                    auto tc = function_type_converter(
                         *op.getContext(), get_model(models, op.getSymName())
-                    ).isLegal(op.getFunctionType());
+                    );
+
+                    return tc.isSignatureLegal(op.getFunctionType());
                 });
             }
         };
@@ -616,6 +656,48 @@ namespace vast::conv {
             }
         };
 
+        struct ValueYieldConversion : parser_conversion_pattern_base< hl::ValueYieldOp >
+        {
+            using op_t = hl::ValueYieldOp;
+            using base = parser_conversion_pattern_base< op_t >;
+            using base::base;
+
+            using adaptor_t = typename op_t::Adaptor;
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                auto operand = adaptor.getResult();
+
+                if (auto cast = mlir::dyn_cast< mlir::UnrealizedConversionCastOp >(
+                        operand.getDefiningOp()
+                    ))
+                {
+                    if (pr::is_parser_type(cast.getOperand(0).getType())) {
+                        rewriter.replaceOpWithNewOp< op_t >(op, cast.getOperand(0));
+                        return mlir::success();
+                    }
+                }
+
+                if (pr::is_parser_type(operand.getType())) {
+                    rewriter.replaceOpWithNewOp< op_t >(op, operand);
+                    return mlir::success();
+                }
+
+                auto cast = rewriter.create< mlir::UnrealizedConversionCastOp >(
+                    op.getLoc(), pr::MaybeDataType::get(op.getContext()), operand
+                );
+                rewriter.replaceOpWithNewOp< op_t >(op, cast.getResult(0));
+                return mlir::success();
+            }
+
+            static void legalize(parser_conversion_config &cfg) {
+                cfg.target.addDynamicallyLegalOp< op_t >([](op_t op) {
+                    return pr::is_parser_type(op.getResult().getType());
+                });
+            }
+        };
+
         struct ExprConversion
             : parser_conversion_pattern_base< hl::ExprOp >
         {
@@ -637,6 +719,37 @@ namespace vast::conv {
                 VAST_PATTERN_CHECK(yield, "Expected yield in: {0}", op);
 
                 rewriter.inlineBlockBefore(body, op);
+                rewriter.replaceOp(op, yield.op().getResult());
+                rewriter.eraseOp(yield.op());
+
+                return mlir::success();
+            }
+
+            static void legalize(parser_conversion_config &cfg) {
+                cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
+            }
+        };
+
+        struct LazyConversion : parser_conversion_pattern_base< core::LazyOp >
+        {
+            using op_t = core::LazyOp;
+            using base = parser_conversion_pattern_base< op_t >;
+            using base::base;
+
+            using adaptor_t = typename op_t::Adaptor;
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                auto &body = op.getLazy().front();
+                if (body.empty()) {
+                    return mlir::failure();
+                }
+
+                auto yield = terminator< hl::ValueYieldOp >::get(body);
+                VAST_PATTERN_CHECK(yield, "Expected yield in: {0}", op);
+
+                rewriter.inlineBlockBefore(&body, op);
                 rewriter.replaceOp(op, yield.op().getResult());
                 rewriter.eraseOp(yield.op());
 
@@ -700,28 +813,31 @@ namespace vast::conv {
             ToMaybeParse< hl::AddIOp >, ToMaybeParse< hl::SubIOp >,
             ToMaybeParse< hl::PostIncOp >, ToMaybeParse< hl::PostDecOp >,
             ToMaybeParse< hl::PreIncOp >, ToMaybeParse< hl::PreDecOp >,
+            // Logic operations
+            ToMaybeParse< hl::BinXorOp >, ToMaybeParse< hl::BinAndOp >,
+            ToMaybeParse< hl::BinOrOp >, ToMaybeParse< hl::LNotOp >,
+            ToMaybeParse< core::BinLOrOp >, ToMaybeParse< core::BinLAndOp >,
+            ToMaybeParse< hl::BinLOrOp >, ToMaybeParse< hl::BinLAndOp >,
+            ToMaybeParse< hl::BinComma >,
             // Shift operations
             ToMaybeParse< hl::BinShlOp >, ToMaybeParse< hl::BinLShrOp >,
             ToMaybeParse< hl::BinAShrOp >,
             // Non-parsing integer arithmetic
-            ToNoParse< hl::MulIOp >,
-            ToNoParse< hl::DivSOp >, ToNoParse< hl::DivUOp >,
+            ToNoParse< hl::MulIOp >, ToNoParse< hl::DivSOp >, ToNoParse< hl::DivUOp >,
             ToNoParse< hl::RemSOp >, ToNoParse< hl::RemUOp >,
             // Floating point arithmetic
-            ToNoParse< hl::AddFOp >, ToNoParse< hl::SubFOp >,
-            ToNoParse< hl::MulFOp >, ToNoParse< hl::DivFOp >,
-            ToNoParse< hl::RemFOp >,
+            ToNoParse< hl::AddFOp >, ToNoParse< hl::SubFOp >, ToNoParse< hl::MulFOp >,
+            ToNoParse< hl::DivFOp >, ToNoParse< hl::RemFOp >, ToNoParse< hl::RealOp >,
+            ToNoParse< hl::ImagOp >,
+            // Arrays
+            ToMaybeParse< hl::SubscriptOp >, ToMaybeParse< hl::AddressOf >,
+            ToMaybeParse< hl::RecordMemberOp >,
             // Other operations
-            AssignConversion,
-            CondYieldConversion,
-            ExprConversion,
-            FuncConversion,
-            ParamConversion,
-            DeclRefConversion,
-            VarDeclConversion,
-            ReturnConversion,
-            CallConversion
-        >;
+            AssignConversion, CondYieldConversion, ValueYieldConversion, ExprConversion,
+            FuncConversion, ParamConversion, DeclRefConversion, VarDeclConversion,
+            CallConversion, LazyConversion,
+            // Return
+            ReturnConversion< hl::ReturnOp >, ReturnConversion< core::ImplicitReturnOp > >;
 
     } // namespace pattern
 

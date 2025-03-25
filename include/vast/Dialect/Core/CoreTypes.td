@@ -50,8 +50,8 @@ def Core_FunctionType : Core_Type< "Function", "fn" > {
     Example:
 
     ```mlir
-    !core.fn<!hl.bool ()>
-    !core.fn<!hl.int (!hl.char, !hl.char)>
+    !core.fn<() -> !hl.bool>
+    !core.fn<(!hl.char, !hl.char) -> !hl.int>
     !core.fn<!i32 (!i32, ...)>
     ```
   }];
