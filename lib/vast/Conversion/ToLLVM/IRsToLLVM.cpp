@@ -537,7 +537,7 @@ namespace vast::conv::irstollvm
             );
 
             rewriter.inlineRegionBefore(func_op.getBody(), new_func.getBody(), new_func.end());
-            tc::convert_region_types(func_op, new_func, signature);
+            tc::convert_region_types(new_func, signature);
 
             if (mlir::failed(args_to_allocas(new_func, rewriter))) {
                 VAST_PATTERN_FAIL("Failed to convert func arguments");
