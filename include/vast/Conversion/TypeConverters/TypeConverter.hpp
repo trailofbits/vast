@@ -252,9 +252,9 @@ namespace vast::conv::tc {
     //              would prefer to use mlir native solutions.
     // NOTE(lukas): This may break the contract that all modifications happen
     //              via rewriter.
-    void convert_region_types(auto old_fn, auto new_fn, auto signature_conversion) {
-        auto orig_count = new_fn.getBody().getNumArguments();
-        auto &block     = new_fn.getBody();
+    void convert_region_types(auto fn, auto signature_conversion) {
+        auto orig_count = fn.getBody().getNumArguments();
+        auto &block     = fn.getBody();
         for (std::size_t i = 0; i < orig_count; ++i) {
             auto new_arg = block.addArgument(
                 signature_conversion.getConvertedTypes()[i], block.getArgument(i).getLoc()

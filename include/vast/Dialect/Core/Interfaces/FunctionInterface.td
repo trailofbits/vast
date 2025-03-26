@@ -32,7 +32,6 @@ def Core_FunctionOpInterface : OpInterface<"FunctionOpInterface", [
     This interfaces provides support for interacting with operations that
     behave like functions. In particular, these operations:
 
-      - must be symbols, i.e. have the `Symbol` trait.
       - must have a single region, that may be comprised with multiple blocks,
         that corresponds to the function body.
         * when this region is empty, the operation corresponds to an external

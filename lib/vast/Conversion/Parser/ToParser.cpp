@@ -151,6 +151,9 @@ namespace vast::conv {
         const function_models &models;
     };
 
+    using signature_conversion_t       = mlir::TypeConverter::SignatureConversion;
+    using maybe_signature_conversion_t = std::optional< signature_conversion_t >;
+
     struct function_type_converter
         : tc::identity_type_converter
         , tc::mixins< function_type_converter >
@@ -165,6 +168,9 @@ namespace vast::conv {
             : mctx(mctx), model(model)
         {
             addConversion([this](tc::core_function_type ty) -> maybe_type_t {
+                return convert_type_to_type(ty);
+            });
+            addConversion([this](mlir_type ty) -> maybe_type_t {
                 return convert_type_to_type(ty);
             });
         }
@@ -182,7 +188,8 @@ namespace vast::conv {
                 return std::nullopt;
             }
 
-            auto rty = convert_types_to_types(ty.getResults());
+            VAST_ASSERT(ty.getNumResults() == 1);
+            auto rty = convert_type_to_type(ty.getResult(0));
             if (!rty) {
                 return std::nullopt;
             }
@@ -192,20 +199,11 @@ namespace vast::conv {
             );
         }
 
-        maybe_types_t convert_types_to_types(auto types) const {
-            types_t out;
-            for (auto t : types) {
-                if (auto c = convert_type_to_type(t)) {
-                    out.push_back(*c);
-                } else {
-                    return {};
-                }
+        maybe_type_t convert_type_to_type(mlir_type ty) const {
+            if (pr::is_parser_type(ty)) {
+                return ty;
             }
 
-            return { out };
-        }
-
-        maybe_type_t convert_type_to_type(mlir_type ty) const {
             if (mlir::isa< hl::VoidType >(ty)) {
                 return pr::NoDataType::get(&mctx);
             }
@@ -218,6 +216,21 @@ namespace vast::conv {
                 ? model->get_return_type(&mctx)
                 : pr::MaybeDataType::get(&mctx)
             ).template take_wrapped< maybe_type_t >();
+        }
+
+        maybe_signature_conversion_t
+        get_conversion_signature(core::function_op_interface fn, bool variadic) {
+            signature_conversion_t conversion(fn.getNumArguments());
+            auto fty = mlir::dyn_cast< core::FunctionType >(fn.getFunctionType());
+            VAST_ASSERT(fty);
+            for (auto arg : llvm::enumerate(fty.getInputs())) {
+                auto cty = convert_arg_type(arg.value(), arg.index());
+                if (!cty) {
+                    return {};
+                }
+                conversion.addInputs(arg.index(), *cty);
+            }
+            return { std::move(conversion) };
         }
     };
 
@@ -573,11 +586,23 @@ namespace vast::conv {
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
                 auto tc = function_type_converter(*rewriter.getContext(), get_model(op.getSymName()));
-                if (auto func_op = mlir::dyn_cast< core::function_op_interface >(op.getOperation())) {
-                    return this->replace(func_op, rewriter, tc);
+                auto fty               = op.getFunctionType();
+                auto maybe_target_type = tc.convert_type_to_type(fty);
+                auto maybe_signature   = tc.get_conversion_signature(op, fty.isVarArg());
+                if (!maybe_target_type || !*maybe_target_type || !maybe_signature) {
+                    VAST_PATTERN_FAIL("Failed to convert function type: {0}", fty);
                 }
 
-                return mlir::failure();
+                auto signature = *maybe_signature;
+
+                rewriter.modifyOpInPlace(op, [&]() {
+                    op.setType(*maybe_target_type);
+                    if (!op.getBlocks().empty()) {
+                        tc::convert_region_types(op, signature);
+                    }
+                });
+
+                return mlir::success();
             }
 
             static void legalize(parser_conversion_config &cfg) {
@@ -586,7 +611,6 @@ namespace vast::conv {
                     auto tc = function_type_converter(
                         *op.getContext(), get_model(models, op.getSymName())
                     );
-
                     return tc.isSignatureLegal(op.getFunctionType());
                 });
             }
