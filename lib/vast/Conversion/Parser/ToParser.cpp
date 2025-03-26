@@ -489,10 +489,10 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                rewriter.replaceOpWithNewOp<  pr::Decl >(
-                    op, op.getSymName(), op.getParam().getType()
-                );
-
+                auto ty = adaptor.getParam().getType();
+                rewriter.replaceOpWithNewOp< pr::Decl >(op, adaptor.getSymName(), ty);
+                auto ref = rewriter.create< pr::Ref >(op.getLoc(), ty, adaptor.getSymName());
+                rewriter.create< pr::Assign >(op.getLoc(), adaptor.getParam(), ref);
                 return mlir::success();
             }
         };
