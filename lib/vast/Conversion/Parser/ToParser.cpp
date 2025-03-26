@@ -308,6 +308,11 @@ namespace vast::conv {
     using signature_conversion_t       = mlir::TypeConverter::SignatureConversion;
     using maybe_signature_conversion_t = std::optional< signature_conversion_t >;
 
+    template< typename Range >
+    bool all_of_parser_types(const Range &types) {
+        return llvm::all_of(types, pr::is_parser_type);
+    }
+
     struct function_type_converter
         : tc::identity_type_converter
         , tc::mixins< function_type_converter >
@@ -710,14 +715,11 @@ namespace vast::conv {
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
                 auto func  = op->template getParentOfType< hl::FuncOp >();
-                auto model = get_model(func);
-
-                auto rty = model
-                    ? model->get_return_type(rewriter.getContext())
-                    : pr::MaybeDataType::get(rewriter.getContext());
+                auto tc    = function_type_converter(*rewriter.getContext(), get_model(func));
+                auto rty   = tc.convert_types_to_types(op.getResult().getType());
 
                 rewriter.replaceOpWithNewOp< op_t >(
-                    op, convert_value_types(adaptor.getOperands(), rty, rewriter)
+                    op, convert_value_types(adaptor.getOperands(), *rty, rewriter)
                 );
 
                 return mlir::success();
@@ -726,12 +728,7 @@ namespace vast::conv {
             static void legalize(parser_conversion_config &cfg) {
                 cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
                 cfg.target.addDynamicallyLegalOp< op_t >([](op_t op) {
-                    for (auto ty : op.getResult().getType()) {
-                        if (!pr::is_parser_type(ty)) {
-                            return false;
-                        }
-                    }
-                    return true;
+                    return all_of_parser_types(op.getResult().getType());
                 });
             }
         };
@@ -770,14 +767,12 @@ namespace vast::conv {
                 return mlir::success();
             }
 
-            static void
-            legalize(parser_conversion_config &cfg, vast::server::server_base *server) {
+            static void legalize(parser_conversion_config &cfg) {
                 cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
-                cfg.target.addDynamicallyLegalOp< op_t >([&cfg, server](op_t op) {
-                    auto tc = function_type_converter(
-                        *op.getContext(), get_model(cfg.models, op, server)
-                    );
-                    return tc.isSignatureLegal(op.getFunctionType());
+                cfg.target.addDynamicallyLegalOp< op_t >([](op_t op) {
+                    auto fty = op.getFunctionType();
+                    return all_of_parser_types(fty.getInputs())
+                        && all_of_parser_types(fty.getResults());
                 });
             }
         };
