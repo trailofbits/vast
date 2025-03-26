@@ -37,7 +37,9 @@ namespace vast::conv {
                     return mlir::failure();
                 }
 
-                auto src = mlir::dyn_cast< mlir::UnrealizedConversionCastOp >(op.getOperand(0).getDefiningOp());
+                auto src = mlir::dyn_cast_or_null< mlir::UnrealizedConversionCastOp >(
+                    op.getOperand(0).getDefiningOp()
+                );
 
                 if (!src || src.getNumOperands() != 1) {
                     return mlir::failure();
