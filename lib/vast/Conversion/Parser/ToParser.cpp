@@ -1027,9 +1027,9 @@ namespace vast::conv {
             ToMaybeParse< hl::SubscriptOp >, ToMaybeParse< hl::AddressOf >,
             ToMaybeParse< hl::RecordMemberOp >,
             // Other operations
-            AssignConversion, CondYieldConversion, ValueYieldConversion, ExprConversion,
-            FuncConversion, ParamConversion, DeclRefConversion, VarDeclConversion,
-            CallConversion, LazyConversion,
+            ToMaybeParse< core::SelectOp >, AssignConversion, CondYieldConversion,
+            ValueYieldConversion, ExprConversion, FuncConversion, ParamConversion,
+            DeclRefConversion, VarDeclConversion, CallConversion, LazyConversion,
             // Return
             ReturnConversion< hl::ReturnOp >, ReturnConversion< core::ImplicitReturnOp > >;
 
