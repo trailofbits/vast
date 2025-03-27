@@ -1,4 +1,6 @@
 // RUN: %vast-front -vast-emit-mlir=hl %s -o - | %file-check %s -check-prefix=HL
+// RUN: %vast-front -vast-show-locs -vast-loc-attrs -vast-emit-mlir=hl %s -o - | %vast-opt -vast-hl-to-lazy-regions -o %t.mlir
+// RUN: %vast-detect-parsers -vast-hl-to-parser -vast-parser-reconcile-casts -reconcile-unrealized-casts %t.mlir -o - | %file-check %s -check-prefix=PARSER
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,12 +9,14 @@
 
 // Function to read a 4-byte big-endian integer from a buffer
 // HL: hl.func @read_uint32_be
+// PARSER: hl.func @read_uint32_be
 uint32_t read_uint32_be(uint8_t *buffer) {
     return (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
 }
 
 // Function to parse the IHDR chunk of a PNG file
 // HL: hl.func @parse_png_ihdr_chunk
+// PARSER: hl.func @parse_png_ihdr_chunk
 void parse_png_ihdr_chunk(FILE *file) {
     uint8_t length_bytes[4];
     fread(length_bytes, sizeof(uint8_t), 4, file);
@@ -55,6 +59,7 @@ void parse_png_ihdr_chunk(FILE *file) {
 
 // Function to parse a basic PNG file
 // HL: hl.func @parse_png
+// PARSE: hl.func @parse_png
 void parse_png(const char *filename) {
     FILE *file = fopen(filename, "rb");
     if (!file) {

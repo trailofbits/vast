@@ -1,4 +1,6 @@
 // RUN: %vast-front -vast-emit-mlir=hl %s -o - | %file-check %s -check-prefix=HL
+// RUN: %vast-front -vast-show-locs -vast-loc-attrs -vast-emit-mlir=hl %s -o - | %vast-opt -vast-hl-to-lazy-regions -o %t.mlir
+// RUN: %vast-detect-parsers -vast-hl-to-parser -vast-parser-reconcile-casts -reconcile-unrealized-casts %t.mlir -o - | %file-check %s -check-prefix=PARSER
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +13,7 @@ int parse_csv_line(char *line, char *fields[]);
 
 // Non-parsing part: file handling and utility functions
 // HL: hl.func @read_csv_file
+// PARSER: hl.func @read_csv_file
 void read_csv_file(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (!file) {

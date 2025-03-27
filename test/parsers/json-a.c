@@ -1,4 +1,6 @@
 // RUN: %vast-front -vast-emit-mlir=hl %s -o - | %file-check %s -check-prefix=HL
+// RUN: %vast-front -vast-show-locs -vast-loc-attrs -vast-emit-mlir=hl %s -o - | %vast-opt -vast-hl-to-lazy-regions -o %t.mlir
+// RUN: %vast-detect-parsers -vast-hl-to-parser -vast-parser-reconcile-casts -reconcile-unrealized-casts %t.mlir -o - | %file-check %s -check-prefix=PARSER
 
 #include <stdio.h>
 #include <string.h>
@@ -39,6 +41,7 @@ char *trim_whitespace(char *str) {
 
 // Parsing part: Parse a key-value pair from a line like '"key": "value"'
 // HL: hl.func @parse_key_value_pair
+// PARSER: hl.func @parse_key_value_pair
 KeyValuePair parse_key_value_pair(char *line) {
     KeyValuePair kvp = {NULL, NULL};
 
@@ -68,6 +71,7 @@ KeyValuePair parse_key_value_pair(char *line) {
 
 // Parsing part: Parse a JSON-like object from multiple lines
 // HL: hl.func @parse_json_object
+// PARSER: hl.func @parse_json_object
 JsonObject parse_json_object(FILE *file) {
     JsonObject obj;
     obj.pairs = NULL;
@@ -113,6 +117,7 @@ void handle_json_object(JsonObject obj) {
 
 // Non-parsing part: Free memory allocated for a JsonObject
 // HL: hl.func @free_json_object
+// PARSER: hl.func @free_json_object
 void free_json_object(JsonObject obj) {
     for (size_t i = 0; i < obj.pair_count; ++i) {
         free(obj.pairs[i].key);

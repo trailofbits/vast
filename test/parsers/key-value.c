@@ -1,4 +1,6 @@
 // RUN: %vast-front -vast-emit-mlir=hl %s -o - | %file-check %s -check-prefix=HL
+// RUN: %vast-front -vast-show-locs -vast-loc-attrs -vast-emit-mlir=hl %s -o - | %vast-opt -vast-hl-to-lazy-regions -o %t.mlir
+// RUN: %vast-detect-parsers -vast-hl-to-parser -vast-parser-reconcile-casts -reconcile-unrealized-casts %t.mlir -o - | %file-check %s -check-prefix=PARSER
 
 #include <stdio.h>
 #include <string.h>
@@ -33,6 +35,7 @@ char *trim_whitespace(char *str) {
 
 // Parsing part: A function to parse a key-value pair
 // HL: hl.func @parse_key_value
+// PARSER: hl.func @parse_key_value
 KeyValuePair parse_key_value(char *line) {
     KeyValuePair kvp;
     char *delimiter = strchr(line, '=');
@@ -53,6 +56,7 @@ KeyValuePair parse_key_value(char *line) {
 
 // Non-parsing part: Handling the parsed data
 // HL: hl.func @handle_key_value
+// PARSER: hl.func @handle_key_value
 void handle_key_value(KeyValuePair kvp) {
     if (kvp.key && kvp.value) {
         printf("Key: %s, Value: %s\n", kvp.key, kvp.value);

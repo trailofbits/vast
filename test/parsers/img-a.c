@@ -1,4 +1,6 @@
 // RUN: %vast-front -vast-emit-mlir=hl %s -o - | %file-check %s -check-prefix=HL
+// RUN: %vast-front -vast-show-locs -vast-loc-attrs -vast-emit-mlir=hl %s -o - | %vast-opt -vast-hl-to-lazy-regions -o %t.mlir
+// RUN: %vast-detect-parsers -vast-hl-to-parser -vast-parser-reconcile-casts -reconcile-unrealized-casts %t.mlir -o - | %file-check %s -check-prefix=PARSER
 
 #include <stdio.h>
 #include <string.h>
@@ -7,6 +9,7 @@
 
 // Function to display the image as ASCII (for grayscale images)
 // HL: hl.func @display_ascii_image
+// PARSER: hl.func @display_ascii_image
 void display_ascii_image(uint8_t *pixel_data, uint16_t width, uint16_t height) {
     printf("Displaying image as ASCII:\n");
     for (uint16_t y = 0; y < height; ++y) {
@@ -22,6 +25,7 @@ void display_ascii_image(uint8_t *pixel_data, uint16_t width, uint16_t height) {
 
 // Function to parse a binary file containing a SIMPL image
 // HL: hl.func @parse_simpl_image
+// PARSER: hl.func @parse_simpl_image
 void parse_simpl_image(const char *filename) {
     FILE *file = fopen(filename, "rb");
     if (!file) {
