@@ -550,8 +550,9 @@ namespace vast::conv {
                     return rewriter.create< pr::MaybeParse >(op.getLoc(), rty, args);
                 } ();
 
+                VAST_ASSERT(op->getNumResults() == 1);
                 rewriter.replaceOpWithNewOp< mlir::UnrealizedConversionCastOp >(
-                    op, op.getType(), converted->getResult(0)
+                    op, op->getOpResult(0).getType(), converted->getResult(0)
                 );
 
                 return mlir::success();
@@ -593,7 +594,15 @@ namespace vast::conv {
 
                 auto args = realized_operand_values(adaptor.getOperands(), rewriter);
                 auto rty  = return_type(op, callee);
-                rewriter.replaceOpWithNewOp< hl::CallOp >(op, callee, rty, args);
+                auto converted = rewriter.create< hl::CallOp >(op.getLoc(), callee, rty, args);
+                if (converted->getNumResults() == 1) {
+                    rewriter.replaceOpWithNewOp< mlir::UnrealizedConversionCastOp >(
+                        op, op.getResultTypes(), converted->getResult(0)
+                    );
+                } else {
+                    rewriter.eraseOp(op);
+                }
+
                 return mlir::success();
             }
 
