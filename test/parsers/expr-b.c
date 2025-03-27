@@ -1,4 +1,6 @@
 // RUN: %vast-front -vast-emit-mlir=hl %s -o - | %file-check %s -check-prefix=HL
+// RUN: %vast-front -vast-show-locs -vast-loc-attrs -vast-emit-mlir=hl %s -o - | %vast-opt -vast-hl-to-lazy-regions -o %t.mlir
+// RUN: %vast-detect-parsers -vast-hl-to-parser -vast-parser-reconcile-casts -reconcile-unrealized-casts %t.mlir -o - | %file-check %s -check-prefix=PARSER
 
 #include <stdio.h>
 #include <ctype.h>
@@ -13,6 +15,7 @@ typedef struct {
 const char *input;
 
 // HL: hl.func @get_next_token
+// PARSER: hl.func @get_next_token
 Token get_next_token() {
     while (isspace(*input)) input++; // Skip spaces
 
@@ -52,6 +55,7 @@ int parse_term() {
 }
 
 // HL: hl.func @parse_factor
+// PARSER: hl.func @parse_factor
 // Parsing a factor (number)
 int parse_factor() {
     Token token = get_next_token();
@@ -62,6 +66,7 @@ int parse_factor() {
 }
 
 // HL: hl.func @parse_expression
+// PARSER: hl.func @parse_expression
 // Parsing an expression (term possibly with '+' or '-')
 int parse_expression() {
     int result = parse_term();

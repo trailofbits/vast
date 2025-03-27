@@ -1,4 +1,6 @@
 // RUN: %vast-front -vast-emit-mlir=hl %s -o - | %file-check %s -check-prefix=HL
+// RUN: %vast-front -vast-show-locs -vast-loc-attrs -vast-emit-mlir=hl %s -o - | %vast-opt -vast-hl-to-lazy-regions -o %t.mlir
+// RUN: %vast-detect-parsers -vast-hl-to-parser -vast-parser-reconcile-casts -reconcile-unrealized-casts %t.mlir -o - | %file-check %s -check-prefix=PARSER
 
 #include <stdio.h>
 #include <string.h>
@@ -6,6 +8,7 @@
 
 // Parsing part: A function to split a CSV line into tokens
 // HL: hl.func @parse_csv_line
+// PARSER: hl.func @parse_csv_line
 char **parse_csv_line(char *line, int *count) {
     int capacity = 10; // Initial capacity for fields
     char **fields = malloc(capacity * sizeof(char *));
