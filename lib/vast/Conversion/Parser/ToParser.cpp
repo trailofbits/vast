@@ -44,6 +44,7 @@ namespace vast::conv {
         pr::data_type return_type;
         std::vector< pr::data_type > arguments;
         function_category category;
+        bool is_stdlib = true;
 
         bool is_sink() const { return category == function_category::sink; }
 
@@ -118,18 +119,26 @@ namespace vast::conv {
         }
     }
 
-    function_category
+    std::pair< function_category, bool >
     ask_user_for_category(vast::server::server_base &server, core::function_op_interface op) {
+        using namespace vast::server;
+
         auto loc = op.getLoc();
         auto sym = mlir::dyn_cast< core::SymbolOpInterface >(op.getOperation());
         VAST_ASSERT(sym);
         auto name = sym.getSymbolName().str();
 
-        vast::server::input_request req{
+        input_request req{
             .type = {"nonparser", "sink", "source", "parser",},
             .text = "Please choose category for function `" + name + '`',
             .filePath = std::nullopt,
             .range = std::nullopt,
+            .properties = input_request::properties_bag{
+                .functionName = name,
+                .type = request_type::function_category,
+                .argumentName = std::nullopt,
+                .argumentIndex = std::nullopt,
+            },
         };
 
         if (auto req_loc = get_location(loc)) {
@@ -140,32 +149,41 @@ namespace vast::conv {
         auto response = server.send_request(req);
         if (auto result = std::get_if< vast::server::input_request::response_type >(&response))
         {
+            bool is_stdlib = result->isStdlib && *(result->isStdlib);
             if (result->value == "nonparser") {
-                return function_category::nonparser;
+                return { function_category::nonparser, is_stdlib };
             } else if (result->value == "sink") {
-                return function_category::sink;
+                return { function_category::sink, is_stdlib };
             } else if (result->value == "source") {
-                return function_category::source;
+                return { function_category::source, is_stdlib };
             } else if (result->value == "parser") {
-                return function_category::parser;
+                return { function_category::parser, is_stdlib };
             }
         }
-        return function_category::nonparser;
+        return { function_category::nonparser, false };
     }
 
     pr::data_type ask_user_for_return_type(
         vast::server::server_base &server, core::function_op_interface op
     ) {
+        using namespace vast::server;
+
         auto loc = op.getLoc();
         auto sym = mlir::dyn_cast< core::SymbolOpInterface >(op.getOperation());
         VAST_ASSERT(sym);
         auto name = sym.getSymbolName().str();
 
-        vast::server::input_request req{
-            .type     = { "maybedata", "nodata", "data" },
+        input_request req{
+            .type     = {"maybedata",               "nodata","data"                                              },
             .text     = "Please choose return type for function `" + name + '`',
             .filePath = std::nullopt,
             .range    = std::nullopt,
+            .properties =
+                input_request::properties_bag{
+                         .functionName  = name,
+                         .type          = request_type::return_type,
+                         .argumentName  = std::nullopt, .argumentIndex = std::nullopt,
+                         },
         };
 
         if (auto req_loc = get_location(loc)) {
@@ -174,8 +192,7 @@ namespace vast::conv {
         }
 
         auto response = server.send_request(req);
-        if (auto result = std::get_if< vast::server::input_request::response_type >(&response))
-        {
+        if (auto result = std::get_if< input_request::response_type >(&response)) {
             return parse_type_name(result->value);
         }
         return pr::data_type::maybedata;
@@ -184,17 +201,25 @@ namespace vast::conv {
     pr::data_type ask_user_for_argument_type(
         vast::server::server_base &server, core::function_op_interface op, unsigned int idx
     ) {
+        using namespace vast::server;
+
         auto num_body_args = op.getFunctionBody().getNumArguments();
         auto sym           = mlir::dyn_cast< core::SymbolOpInterface >(op.getOperation());
         VAST_ASSERT(sym);
         auto name = sym.getSymbolName().str();
 
-        vast::server::input_request req{
-            .type = { "maybedata", "nodata", "data" },
+        input_request req{
+            .type = {"maybedata",           "nodata","data"                                          },
             .text = "Please choose a type for argument " + std::to_string(idx)
                 + " of function `" + name + '`',
             .filePath = std::nullopt,
             .range    = std::nullopt,
+            .properties =
+                input_request::properties_bag{
+                     .functionName  = name,
+                     .type          = request_type::return_type,
+                     .argumentName  = std::nullopt, .argumentIndex = idx,
+                     },
         };
 
         if (idx < num_body_args) {
@@ -207,8 +232,7 @@ namespace vast::conv {
         }
 
         auto response = server.send_request(req);
-        if (auto result = std::get_if< vast::server::input_request::response_type >(&response))
-        {
+        if (auto result = std::get_if< input_request::response_type >(&response)) {
             return parse_type_name(result->value);
         }
         return pr::data_type::maybedata;
@@ -222,7 +246,9 @@ namespace vast::conv {
         for (unsigned int i = 0; i < op.getNumArguments(); ++i) {
             model.arguments.push_back(ask_user_for_argument_type(server, op, i));
         }
-        model.category = ask_user_for_category(server, op);
+        auto [cat, is_stdlib] = ask_user_for_category(server, op);
+        model.category        = cat;
+        model.is_stdlib       = is_stdlib;
         return model;
     }
 

@@ -127,22 +127,52 @@ namespace vast::server {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(range, start, end)
     };
 
+    enum class request_type {
+        function_category,
+        return_type,
+        argument_type,
+    };
+
+    NLOHMANN_JSON_SERIALIZE_ENUM(
+        request_type,
+        {
+            { request_type::function_category, "functionCategory" },
+            {       request_type::return_type,       "returnType" },
+            {     request_type::argument_type,     "argumentType" },
+    }
+    )
+
     struct input_request
     {
         static constexpr const char *method   = "input";
         static constexpr bool is_notification = false;
 
+        struct properties_bag
+        {
+            std::string functionName;
+            request_type type;
+            std::optional< std::string > argumentName;
+            std::optional< int > argumentIndex;
+
+            NLOHMANN_DEFINE_TYPE_INTRUSIVE(
+                properties_bag, functionName, type, argumentName, argumentIndex
+            )
+        };
+
         nlohmann::json type;
         std::string text;
         std::optional< std::string > filePath;
         std::optional< range > range;
+        std::optional< properties_bag > properties;
 
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(input_request, type, text, filePath, range)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(input_request, type, text, filePath, range, properties)
 
         struct response_type
         {
             nlohmann::json value;
-            NLOHMANN_DEFINE_TYPE_INTRUSIVE(response_type, value)
+            std::optional< bool > isStdlib;
+            std::optional< std::string > source;
+            NLOHMANN_DEFINE_TYPE_INTRUSIVE(response_type, value, isStdlib, source)
         };
     };
 
