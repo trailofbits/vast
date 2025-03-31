@@ -77,7 +77,20 @@ namespace vast::conv {
         function_model model;
     };
 
-    using function_models = llvm::StringMap< function_model >;
+    struct function_models
+    {
+        std::shared_ptr< llvm::raw_ostream > os;
+        llvm::StringMap< function_model > data;
+
+        std::optional< function_model > get(llvm::StringRef name) const {
+            if (auto kv = data.find(name); kv != data.end()) {
+                return { kv->second };
+            }
+            return std::nullopt;
+        }
+
+        void add(llvm::StringRef name, const function_model &model);
+    };
 
     struct location
     {
@@ -302,6 +315,22 @@ struct MappingTraits< ::vast::conv::named_function_model > {
 
 namespace vast::conv {
 
+    void function_models::add(llvm::StringRef name, const function_model &model) {
+        data[name] = model;
+        if (os && model.is_stdlib) {
+            named_function_model nmodel{ name.str(), model };
+            llvm::yaml::Output out(*os);
+            llvm::yaml::EmptyContext Ctx;
+            void *SaveInfo;
+            out.beginSequence();
+            if (out.preflightElement(0, SaveInfo)) {
+                llvm::yaml::yamlize(out, nmodel, true, Ctx);
+                out.postflightElement(SaveInfo);
+            }
+            os->flush();
+        }
+    }
+
     struct parser_conversion_config : base_conversion_config
     {
         using base = base_conversion_config;
@@ -504,13 +533,13 @@ namespace vast::conv {
             ) {
                 auto sym = mlir::dyn_cast< core::SymbolOpInterface >(op.getOperation());
                 VAST_ASSERT(sym);
-                if (auto kv = models.find(sym.getSymbolName()); kv != models.end()) {
-                    return kv->second;
+                if (auto model = models.get(sym.getSymbolName())) {
+                    return *model;
                 }
 
                 if (server) {
                     auto model                  = ask_user_for_function_model(*server, op);
-                    models[sym.getSymbolName()] = model;
+                    models.add(sym.getSymbolName(), model);
                     return model;
                 }
 
@@ -571,8 +600,11 @@ namespace vast::conv {
 
                 auto converted = [&] () -> operation {
                     auto matches_return_type = [rty] (auto val) { return val.getType() == rty; };
-                    if (mlir::isa< pr::NoDataType >(rty) && llvm::all_of(args, matches_return_type))
+                    if (rty && mlir::isa< pr::NoDataType >(rty)
+                        && llvm::all_of(args, matches_return_type))
+                    {
                         return rewriter.create< pr::NoParse >(op.getLoc(), rty, args);
+                    }
                     return rewriter.create< pr::MaybeParse >(op.getLoc(), rty, args);
                 } ();
 
@@ -608,9 +640,8 @@ namespace vast::conv {
                 }
 
                 auto callee = op.getCallee();
-                if (auto kv = models.find(callee); kv != models.end()) {
-                    const auto &[_, model] = *kv;
-                    auto modeled = create_op_from_model(model, op, adaptor, rewriter);
+                if (auto model = models.get(callee)) {
+                    auto modeled = create_op_from_model(*model, op, adaptor, rewriter);
                     rewriter.replaceOpWithNewOp< mlir::UnrealizedConversionCastOp >(
                         op, op.getResultTypes(), modeled->getResult(0)
                     );
@@ -1083,6 +1114,15 @@ namespace vast::conv {
                 load_and_parse(config);
             }
 
+            if (!yaml_out.empty()) {
+                std::error_code ec;
+                models.os = std::make_shared< llvm::raw_fd_ostream >(yaml_out, ec);
+
+                if (ec) {
+                    VAST_FATAL("Could not open YAML output file: {0}", ec.message());
+                }
+            }
+
             if (!socket.empty()) {
                 server = std::make_shared< vast::server::server< server_handler > >(
                     vast::server::sock_adapter::create_unix_socket(socket)
@@ -1108,7 +1148,7 @@ namespace vast::conv {
             }
 
             for (auto &&named : functions) {
-                models.insert_or_assign(std::move(named.name), std::move(named.model));
+                models.data.insert_or_assign(std::move(named.name), std::move(named.model));
             }
         }
 
