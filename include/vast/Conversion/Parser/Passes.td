@@ -12,7 +12,10 @@ def HLToParser : Pass<"vast-hl-to-parser", "core::ModuleOp"> {
             "Configuration file for parser transformation."
         >,
         Option< "socket", "socket", "std::string", "",
-            "Unix socket path to use for server"
+            "Unix socket path to use for server."
+        >,
+        Option< "yaml_out", "yaml-out", "std::string", "",
+            "Path to YAML output file for models got from user."
         >
     ];
 
