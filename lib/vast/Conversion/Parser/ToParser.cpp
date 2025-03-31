@@ -34,10 +34,30 @@ VAST_UNRELAX_WARNINGS
 
 #include <ranges>
 
+namespace vast::pr {
+    NLOHMANN_JSON_SERIALIZE_ENUM(
+        data_type,
+        {
+            {      data_type::data,      "data" },
+            {    data_type::nodata,    "nodata" },
+            { data_type::maybedata, "maybedata" },
+    }
+    )
+}
+
 namespace vast::conv {
 
 
     enum class function_category { sink, source, parser, nonparser };
+    NLOHMANN_JSON_SERIALIZE_ENUM(
+        function_category,
+        {
+            {      function_category::sink,      "sink" },
+            {    function_category::source,    "source" },
+            {    function_category::parser,    "parser" },
+            { function_category::nonparser, "nonparser" },
+    }
+    )
 
     struct function_model
     {
@@ -70,6 +90,10 @@ namespace vast::conv {
             }
             return out;
         }
+
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(
+            function_model, return_type, arguments, category, is_stdlib
+        )
     };
 
     struct named_function_model {
@@ -132,142 +156,59 @@ namespace vast::conv {
         }
     }
 
-    std::pair< function_category, bool >
-    ask_user_for_category(vast::server::server_base &server, core::function_op_interface op) {
-        using namespace vast::server;
+    struct input_request
+    {
+        static constexpr const char *method   = "input";
+        static constexpr bool is_notification = false;
 
-        auto loc = op.getLoc();
-        auto sym = mlir::dyn_cast< core::SymbolOpInterface >(op.getOperation());
-        VAST_ASSERT(sym);
-        auto name = sym.getSymbolName().str();
+        std::string functionName;
+        unsigned int numberOfArguments;
+        std::optional< std::string > filePath;
+        std::optional< server::range > range;
 
-        input_request req{
-            .type = {"nonparser", "sink", "source", "parser",},
-            .text = "Please choose category for function `" + name + '`',
-            .filePath = std::nullopt,
-            .range = std::nullopt,
-            .properties = input_request::properties_bag{
-                .functionName = name,
-                .type = request_type::function_category,
-                .argumentName = std::nullopt,
-                .argumentIndex = std::nullopt,
-            },
-        };
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(
+            input_request, functionName, numberOfArguments, filePath, range
+        )
 
-        if (auto req_loc = get_location(loc)) {
-            req.filePath = req_loc->filePath;
-            req.range    = req_loc->range;
-        }
-
-        auto response = server.send_request(req);
-        if (auto result = std::get_if< vast::server::input_request::response_type >(&response))
-        {
-            bool is_stdlib = result->isStdlib && *(result->isStdlib);
-            if (result->value == "nonparser") {
-                return { function_category::nonparser, is_stdlib };
-            } else if (result->value == "sink") {
-                return { function_category::sink, is_stdlib };
-            } else if (result->value == "source") {
-                return { function_category::source, is_stdlib };
-            } else if (result->value == "parser") {
-                return { function_category::parser, is_stdlib };
-            }
-        }
-        return { function_category::nonparser, false };
-    }
-
-    pr::data_type ask_user_for_return_type(
-        vast::server::server_base &server, core::function_op_interface op
-    ) {
-        using namespace vast::server;
-
-        auto loc = op.getLoc();
-        auto sym = mlir::dyn_cast< core::SymbolOpInterface >(op.getOperation());
-        VAST_ASSERT(sym);
-        auto name = sym.getSymbolName().str();
-
-        input_request req{
-            .type     = {"maybedata",               "nodata","data"                                              },
-            .text     = "Please choose return type for function `" + name + '`',
-            .filePath = std::nullopt,
-            .range    = std::nullopt,
-            .properties =
-                input_request::properties_bag{
-                         .functionName  = name,
-                         .type          = request_type::return_type,
-                         .argumentName  = std::nullopt, .argumentIndex = std::nullopt,
-                         },
-        };
-
-        if (auto req_loc = get_location(loc)) {
-            req.filePath = req_loc->filePath;
-            req.range    = req_loc->range;
-        }
-
-        auto response = server.send_request(req);
-        if (auto result = std::get_if< input_request::response_type >(&response)) {
-            return parse_type_name(result->value);
-        }
-        return pr::data_type::maybedata;
-    }
-
-    pr::data_type ask_user_for_argument_type(
-        vast::server::server_base &server, core::function_op_interface op, unsigned int idx
-    ) {
-        using namespace vast::server;
-
-        auto loc           = op.getLoc();
-        auto num_body_args = op.getFunctionBody().getNumArguments();
-        auto sym           = mlir::dyn_cast< core::SymbolOpInterface >(op.getOperation());
-        VAST_ASSERT(sym);
-        auto name = sym.getSymbolName().str();
-
-        input_request req{
-            .type = {"maybedata",           "nodata","data"                                          },
-            .text = "Please choose a type for argument " + std::to_string(idx)
-                + " of function `" + name + '`',
-            .filePath = std::nullopt,
-            .range    = std::nullopt,
-            .properties =
-                input_request::properties_bag{
-                     .functionName  = name,
-                     .type          = request_type::return_type,
-                     .argumentName  = std::nullopt, .argumentIndex = idx,
-                     },
-        };
-
-        if (auto req_loc = get_location(loc)) {
-            req.filePath = req_loc->filePath;
-            req.range    = req_loc->range;
-        }
-
-        if (idx < num_body_args) {
-            auto arg = op.getArgument(idx);
-            auto loc = arg.getLoc();
-            if (auto req_loc = get_location(loc)) {
-                req.filePath = req_loc->filePath;
-                req.range    = req_loc->range;
-            }
-        }
-
-        auto response = server.send_request(req);
-        if (auto result = std::get_if< input_request::response_type >(&response)) {
-            return parse_type_name(result->value);
-        }
-        return pr::data_type::maybedata;
-    }
+        using response_type = function_model;
+    };
 
     function_model ask_user_for_function_model(
         vast::server::server_base &server, core::function_op_interface op
     ) {
-        function_model model;
-        model.return_type = ask_user_for_return_type(server, op);
-        for (unsigned int i = 0; i < op.getNumArguments(); ++i) {
-            model.arguments.push_back(ask_user_for_argument_type(server, op, i));
+        function_model model{
+            .return_type = pr::data_type::maybedata,
+            .arguments   = {},
+            .category    = function_category::nonparser,
+            .is_stdlib   = false,
+        };
+
+        auto loc = op.getLoc();
+        auto sym = mlir::dyn_cast< core::SymbolOpInterface >(op.getOperation());
+        VAST_ASSERT(sym);
+        auto name = sym.getSymbolName().str();
+
+        input_request req{
+            .functionName      = name,
+            .numberOfArguments = op.getNumArguments(),
+            .filePath          = std::nullopt,
+            .range             = std::nullopt,
+        };
+
+        if (auto req_loc = get_location(loc)) {
+            req.filePath = req_loc->filePath;
+            req.range    = req_loc->range;
         }
-        auto [cat, is_stdlib] = ask_user_for_category(server, op);
-        model.category        = cat;
-        model.is_stdlib       = is_stdlib;
+
+        auto response = server.send_request(req);
+        if (auto result = std::get_if< input_request::response_type >(&response)) {
+            VAST_ASSERT(result->arguments.size() == op.getNumArguments());
+            model = *result;
+        } else {
+            for (unsigned int i = 0; i < op.getNumArguments(); ++i) {
+                model.arguments.push_back(pr::data_type::maybedata);
+            }
+        }
         return model;
     }
 
