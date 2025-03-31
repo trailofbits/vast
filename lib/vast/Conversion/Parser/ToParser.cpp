@@ -216,6 +216,7 @@ namespace vast::conv {
     ) {
         using namespace vast::server;
 
+        auto loc           = op.getLoc();
         auto num_body_args = op.getFunctionBody().getNumArguments();
         auto sym           = mlir::dyn_cast< core::SymbolOpInterface >(op.getOperation());
         VAST_ASSERT(sym);
@@ -234,6 +235,11 @@ namespace vast::conv {
                      .argumentName  = std::nullopt, .argumentIndex = idx,
                      },
         };
+
+        if (auto req_loc = get_location(loc)) {
+            req.filePath = req_loc->filePath;
+            req.range    = req_loc->range;
+        }
 
         if (idx < num_body_args) {
             auto arg = op.getArgument(idx);
