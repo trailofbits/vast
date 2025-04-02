@@ -161,4 +161,2300 @@
       - nodata  # int argc
       - data  # char * argv[]
       - data  # char * envp[]
-    category: nonparser
+    category: sink
+
+#
+# AI-generated models
+#
+
+- function:        __builtin_bswap32
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        __builtin_bswap64
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        renameat
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+      - maybedata
+      - maybedata
+    category:        sink
+
+- function:        renamex_np
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+      - nodata
+    category:        sink
+
+- function:        renameatx_np
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+      - maybedata
+      - maybedata
+      - nodata
+    category:        sink
+
+- function:        clearerr
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        feof
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        ferror
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        fflush
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        fgetc
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+    category:        source
+
+- function:        fgetpos
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        fputc
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+    category:        sink
+
+- function:        "\x01_fputs"
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+    category:        sink
+
+- function:        "\x01_freopen"
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - maybedata
+      - maybedata
+    category:        source
+
+- function:        fscanf
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - nodata
+    category:        parser
+
+- function:        fseek
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        fsetpos
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        ftell
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        fwrite
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+      - nodata
+      - nodata
+    category:        sink
+
+- function:        getc
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+    category:        source
+
+- function:        putc
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - nodata
+    category:        maybeparser
+
+- function:        putchar
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+    category:        sink
+
+- function:        puts
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+    category:        sink
+
+- function:        remove
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+    category:        sink
+
+- function:        rename
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+    category:        sink
+
+- function:        rewind
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        setbuf
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - maybedata
+    category:        sink
+
+- function:        setvbuf
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        sprintf
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - maybedata
+    category:        sink
+
+- function:        sscanf
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - maybedata
+    category:        parser
+
+- function:        tmpfile
+  model:
+    return_type:     maybedata
+    arguments:       []
+    category:        source
+
+- function:        tmpnam
+  model:
+    return_type:     data
+    arguments:
+      - data
+    category:        source
+
+- function:        ungetc
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - nodata
+    category:        maybeparser
+
+- function:        vfprintf
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - maybedata
+      - maybedata
+    category:        sink
+
+- function:        vprintf
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+    category:        sink
+
+- function:        vsprintf
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - maybedata
+      - maybedata
+    category:        sink
+
+- function:        ctermid
+  model:
+    return_type:     data
+    arguments:
+      - data
+    category:        source
+
+- function:        "\x01_fdopen"
+  model:
+    return_type:     maybedata
+    arguments:
+      - nodata
+      - maybedata
+    category:        maybeparser
+
+- function:        fileno
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        pclose
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        sink
+
+- function:        "\x01_popen"
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+    category:        sink
+
+- function:        __srget
+  model:
+    return_type:     data
+    arguments:
+      - maybedata
+    category:        source
+
+- function:        __svfscanf
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - maybedata
+      - data
+    category:        parser
+
+- function:        __swbuf
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - nodata
+    category:        maybeparser
+
+- function:        __sputc
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - nodata
+    category:        maybeparser
+
+- function:        flockfile
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        ftrylockfile
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        funlockfile
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        getc_unlocked
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+    category:        source
+
+- function:        getchar_unlocked
+  model:
+    return_type:     data
+    arguments:       []
+    category:        source
+
+- function:        putc_unlocked
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+    category:        sink
+
+- function:        putchar_unlocked
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+    category:        maybeparser
+
+- function:        getw
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+    category:        source
+
+- function:        putw
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+    category:        sink
+
+- function:        "\x01_tempnam"
+  model:
+    return_type:     data
+    arguments:
+      - maybedata
+      - maybedata
+    category:        maybeparser
+
+- function:        fseeko
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - maybedata
+      - nodata
+    category:        sink
+
+- function:        ftello
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        snprintf
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - nodata
+      - maybedata
+    category:        sink
+
+- function:        vfscanf
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+      - maybedata
+    category:        maybeparser
+
+- function:        vscanf
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - data
+    category:        source
+
+- function:        vsnprintf
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - nodata
+      - maybedata
+      - maybedata
+    category:        sink
+
+- function:        vsscanf
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - maybedata
+      - nodata
+    category:        parser
+
+- function:        dprintf
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - maybedata
+    category:        sink
+
+- function:        vdprintf
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - maybedata
+      - maybedata
+    category:        sink
+
+- function:        getdelim
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+      - nodata
+      - nodata
+    category:        source
+
+- function:        getline
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        source
+
+- function:        fmemopen
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - nodata
+      - nodata
+    category:        maybeparser
+
+- function:        open_memstream
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - data
+    category:        sink
+
+- function:        asprintf
+  model:
+    return_type:     maybedata
+    arguments:
+      - data
+      - maybedata
+    category:        maybeparser
+
+- function:        ctermid_r
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        fgetln
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+      - nodata
+    category:        source
+
+- function:        fmtcheck
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - maybedata
+    category:        maybeparser
+
+- function:        setbuffer
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - maybedata
+      - nodata
+    category:        sink
+
+- function:        setlinebuf
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+    category:        sink
+
+- function:        vasprintf
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - maybedata
+      - maybedata
+    category:        sink
+
+- function:        funopen
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+      - maybedata
+      - maybedata
+      - maybedata
+    category:        maybeparser
+
+- function:        __sprintf_chk
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - nodata
+      - nodata
+      - maybedata
+    category:        sink
+
+- function:        __snprintf_chk
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - nodata
+      - nodata
+      - nodata
+      - maybedata
+    category:        sink
+
+- function:        __vsprintf_chk
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - nodata
+      - nodata
+      - maybedata
+      - maybedata
+    category:        sink
+
+- function:        __vsnprintf_chk
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - nodata
+      - nodata
+      - nodata
+      - maybedata
+      - maybedata
+    category:        sink
+
+- function:        signal
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        getpriority
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        getiopolicy_np
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        "\x01_getrlimit"
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        getrusage
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - data
+    category:        source
+
+- function:        setpriority
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        sink
+
+- function:        setiopolicy_np
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        sink
+
+- function:        "\x01_setrlimit"
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - maybedata
+    category:        sink
+
+- function:        _OSSwapInt16
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        _OSSwapInt32
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        _OSSwapInt64
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        "\x01_wait"
+  model:
+    return_type:     maybedata
+    arguments:
+      - nodata
+    category:        source
+
+- function:        "\x01_waitpid"
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        "\x01_waitid"
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        malloc_type_zone_free
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+      - nodata
+    category:        sink
+
+- function:        malloc_type_zone_realloc
+  model:
+    return_type:     maybedata
+    arguments:
+      - nodata
+      - maybedata
+      - nodata
+      - nodata
+    category:        maybeparser
+
+- function:        malloc_type_zone_valloc
+  model:
+    return_type:     maybedata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        source
+
+- function:        malloc_type_zone_memalign
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        calloc
+  model:
+    return_type:     maybedata
+    arguments:
+      - nodata
+      - nodata
+    category:        source
+
+- function:        realloc
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - nodata
+    category:        maybeparser
+
+- function:        reallocf
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - nodata
+    category:        maybeparser
+
+- function:        valloc
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        aligned_alloc
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        posix_memalign
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+      - maybedata
+    category:        source
+
+- function:        abort
+  model:
+    return_type:     nodata
+    arguments:       []
+    category:        nonparser
+
+- function:        abs
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        atexit
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        at_quick_exit
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        atof
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+    category:        parser
+
+- function:        atoi
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+    category:        parser
+
+- function:        atol
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+    category:        parser
+
+- function:        atoll
+  model:
+    return_type:     maybedata
+    arguments:
+      - data
+    category:        maybeparser
+
+- function:        bsearch
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        div
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        getenv
+  model:
+    return_type:     data
+    arguments:
+      - maybedata
+    category:        source
+
+- function:        labs
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        ldiv
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        llabs
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        lldiv
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        mblen
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - maybedata
+    category:        parser
+
+- function:        mbstowcs
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        parser
+
+- function:        mbtowc
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - data
+      - nodata
+    category:        parser
+
+- function:        qsort
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+      - nodata
+      - nodata
+    category:        sink
+
+- function:        quick_exit
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        rand
+  model:
+    return_type:     nodata
+    arguments:       []
+    category:        nonparser
+
+- function:        srand
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        strtod
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - data
+    category:        parser
+
+- function:        strtof
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - data
+    category:        parser
+
+- function:        strtol
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        parser
+
+- function:        strtold
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - data
+    category:        parser
+
+- function:        strtoll
+  model:
+    return_type:     maybedata
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        parser
+
+- function:        strtoul
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        parser
+
+- function:        strtoull
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        parser
+
+- function:        "\x01_system"
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+    category:        sink
+
+- function:        wcstombs
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        parser
+
+- function:        wctomb
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - data
+    category:        parser
+
+- function:        _Exit
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        a64l
+  model:
+    return_type:     data
+    arguments:
+      - data
+    category:        parser
+
+- function:        drand48
+  model:
+    return_type:     data
+    arguments:       []
+    category:        source
+
+- function:        ecvt
+  model:
+    return_type:     data
+    arguments:
+      - maybedata
+      - nodata
+      - data
+      - data
+    category:        parser
+
+- function:        erand48
+  model:
+    return_type:     data
+    arguments:
+      - maybedata
+    category:        source
+
+- function:        fcvt
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+      - nodata
+      - data
+      - data
+    category:        source
+
+- function:        gcvt
+  model:
+    return_type:     data
+    arguments:
+      - maybedata
+      - nodata
+      - nodata
+    category:        source
+
+- function:        getsubopt
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - data
+      - data
+    category:        parser
+
+- function:        grantpt
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+    category:        sink
+
+- function:        initstate
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - data
+      - nodata
+    category:        sink
+
+- function:        jrand48
+  model:
+    return_type:     data
+    arguments:
+      - maybedata
+    category:        source
+
+- function:        l64a
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+    category:        source
+
+- function:        lcong48
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        lrand48
+  model:
+    return_type:     data
+    arguments:       []
+    category:        source
+
+- function:        mktemp
+  model:
+    return_type:     data
+    arguments:
+      - data
+    category:        source
+
+- function:        mkstemp
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+    category:        sink
+
+- function:        mrand48
+  model:
+    return_type:     data
+    arguments:       []
+    category:        source
+
+- function:        nrand48
+  model:
+    return_type:     maybedata
+    arguments:
+      - nodata
+    category:        source
+
+- function:        posix_openpt
+  model:
+    return_type:     maybedata
+    arguments:
+      - nodata
+    category:        source
+
+- function:        ptsname
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+    category:        source
+
+- function:        ptsname_r
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - data
+      - nodata
+    category:        sink
+
+- function:        "\x01_putenv"
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+    category:        sink
+
+- function:        random
+  model:
+    return_type:     data
+    arguments:       []
+    category:        source
+
+- function:        rand_r
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+    category:        source
+
+- function:        "\x01_realpath$DARWIN_EXTSN"
+  model:
+    return_type:     data
+    arguments:
+      - maybedata
+      - data
+    category:        parser
+
+- function:        seed48
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+    category:        sink
+
+- function:        "\x01_setkey"
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+    category:        maybeparser
+
+- function:        setstate
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        maybeparser
+
+- function:        srand48
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        srandom
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        unlockpt
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        sink
+
+- function:        "\x01_unsetenv"
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+    category:        sink
+
+- function:        arc4random
+  model:
+    return_type:     data
+    arguments:       []
+    category:        source
+
+- function:        arc4random_addrandom
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+    category:        sink
+
+- function:        arc4random_buf
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - nodata
+    category:        source
+
+- function:        arc4random_stir
+  model:
+    return_type:     nodata
+    arguments:       []
+    category:        nonparser
+
+- function:        arc4random_uniform
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+    category:        source
+
+- function:        atexit_b
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        bsearch_b
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - maybedata
+      - nodata
+      - nodata
+      - nodata
+    category:        maybeparser
+
+- function:        cgetcap
+  model:
+    return_type:     data
+    arguments:
+      - maybedata
+      - data
+      - nodata
+    category:        maybeparser
+
+- function:        cgetclose
+  model:
+    return_type:     nodata
+    arguments:       []
+    category:        nonparser
+
+- function:        cgetent
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - maybedata
+      - maybedata
+    category:        maybeparser
+
+- function:        cgetfirst
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+    category:        maybeparser
+
+- function:        cgetmatch
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        cgetnext
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - data
+    category:        maybeparser
+
+- function:        cgetnum
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+      - data
+    category:        parser
+
+- function:        cgetset
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+    category:        sink
+
+- function:        cgetstr
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+      - data
+    category:        maybeparser
+
+- function:        cgetustr
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - maybedata
+      - data
+    category:        parser
+
+- function:        "\x01_daemon"
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        devname
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+      - nodata
+    category:        source
+
+- function:        devname_r
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+      - nodata
+      - data
+      - nodata
+    category:        maybeparser
+
+- function:        getbsize
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+      - nodata
+    category:        parser
+
+- function:        getloadavg
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        getprogname
+  model:
+    return_type:     nodata
+    arguments:       []
+    category:        nonparser
+
+- function:        setprogname
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+    category:        sink
+
+- function:        heapsort
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+      - nodata
+      - nodata
+    category:        maybeparser
+
+- function:        heapsort_b
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+      - nodata
+      - nodata
+    category:        maybeparser
+
+- function:        mergesort
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+      - nodata
+      - nodata
+    category:        maybeparser
+
+- function:        mergesort_b
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        psort
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+      - nodata
+      - nodata
+    category:        maybeparser
+
+- function:        psort_b
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        psort_r
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+      - nodata
+      - maybedata
+      - nodata
+    category:        maybeparser
+
+- function:        qsort_b
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+      - nodata
+      - nodata
+    category:        maybeparser
+
+- function:        qsort_r
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        radixsort
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        rpmatch
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+    category:        parser
+
+- function:        sradixsort
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+      - maybedata
+      - nodata
+    category:        parser
+
+- function:        sranddev
+  model:
+    return_type:     nodata
+    arguments:       []
+    category:        source
+
+- function:        srandomdev
+  model:
+    return_type:     nodata
+    arguments:       []
+    category:        source
+
+- function:        strtonum
+  model:
+    return_type:     maybedata
+    arguments:
+      - data
+      - nodata
+      - nodata
+      - data
+    category:        parser
+
+- function:        strtoq
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        parser
+
+- function:        strtouq
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        parser
+
+- function:        memchr
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - maybedata
+      - nodata
+    category:        maybeparser
+
+- function:        memcmp
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        memcpy
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - maybedata
+      - nodata
+    category:        maybeparser
+
+- function:        memmove
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - maybedata
+      - nodata
+    category:        maybeparser
+
+- function:        memset
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        strcat
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+    category:        maybeparser
+
+- function:        strchr
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - nodata
+    category:        parser
+
+- function:        strcmp
+  model:
+    return_type:     maybedata
+    arguments:
+      - data
+      - data
+    category:        maybeparser
+
+- function:        strcoll
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        strcpy
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+    category:        maybeparser
+
+- function:        strcspn
+  model:
+    return_type:     maybedata
+    arguments:
+      - data
+      - data
+    category:        parser
+
+- function:        strerror
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+    category:        source
+
+- function:        strlen
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        strncat
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        maybeparser
+
+- function:        strncmp
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        strncpy
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        maybeparser
+
+- function:        strpbrk
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - maybedata
+    category:        maybeparser
+
+- function:        strrchr
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - nodata
+    category:        parser
+
+- function:        strspn
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - data
+    category:        parser
+
+- function:        strstr
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+    category:        parser
+
+- function:        strtok
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+    category:        parser
+
+- function:        strxfrm
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+      - nodata
+    category:        maybeparser
+
+- function:        strtok_r
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+      - data
+    category:        parser
+
+- function:        strerror_r
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - data
+      - nodata
+    category:        sink
+
+- function:        strdup
+  model:
+    return_type:     data
+    arguments:
+      - maybedata
+    category:        maybeparser
+
+- function:        memccpy
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - maybedata
+      - nodata
+      - nodata
+    category:        maybeparser
+
+- function:        stpcpy
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+    category:        maybeparser
+
+- function:        stpncpy
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        sink
+
+- function:        strndup
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - nodata
+    category:        source
+
+- function:        strsignal
+  model:
+    return_type:     data
+    arguments:
+      - nodata
+    category:        source
+
+- function:        memset_s
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+      - nodata
+    category:        sink
+
+- function:        memmem
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - nodata
+      - maybedata
+      - nodata
+    category:        maybeparser
+
+- function:        memset_pattern4
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        memset_pattern8
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        memset_pattern16
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        strcasestr
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+    category:        parser
+
+- function:        strnstr
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        parser
+
+- function:        strlcat
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        sink
+
+- function:        strlcpy
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - maybedata
+      - nodata
+    category:        maybeparser
+
+- function:        strmode
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        strsep
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - maybedata
+    category:        parser
+
+- function:        swab
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        timingsafe_bcmp
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - data
+      - nodata
+    category:        parser
+
+- function:        strsignal_r
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - data
+      - nodata
+    category:        sink
+
+- function:        bcmp
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+      - nodata
+    category:        sink
+
+- function:        bcopy
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+      - nodata
+    category:        maybeparser
+
+- function:        bzero
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+    category:        sink
+
+- function:        index
+  model:
+    return_type:     data
+    arguments:
+      - data
+      - nodata
+    category:        maybeparser
+
+- function:        rindex
+  model:
+    return_type:     data
+    arguments:
+      - maybedata
+      - nodata
+    category:        maybeparser
+
+- function:        ffs
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        strcasecmp
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - data
+    category:        maybeparser
+
+- function:        strncasecmp
+  model:
+    return_type:     nodata
+    arguments:
+      - data
+      - data
+      - data
+    category:        maybeparser
+
+- function:        ffsl
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        ffsll
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        fls
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        flsl
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        flsll
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        fpurge
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+    category:        sink
+
+- function:        wait3
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+      - nodata
+    category:        sink
+
+- function:        wait4
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - maybedata
+      - nodata
+      - maybedata
+    category:        maybeparser
+
+- function:        alloca
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+    category:        nonparser
+
+- function:        malloc_type_malloc
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        malloc_type_calloc
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        source
+
+- function:        malloc_type_free
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+    category:        sink
+
+- function:        malloc_type_realloc
+  model:
+    return_type:     maybedata
+    arguments:
+      - maybedata
+      - nodata
+      - nodata
+    category:        maybeparser
+
+- function:        malloc_type_valloc
+  model:
+    return_type:     maybedata
+    arguments:
+      - nodata
+      - nodata
+    category:        source
+
+- function:        malloc_type_aligned_alloc
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        malloc_type_posix_memalign
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        malloc_type_zone_malloc
+  model:
+    return_type:     nodata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+    category:        nonparser
+
+- function:        malloc_type_zone_calloc
+  model:
+    return_type:     maybedata
+    arguments:
+      - nodata
+      - nodata
+      - nodata
+      - nodata
+    category:        source
+
+- function:        "\x01_setenv"
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - maybedata
+      - nodata
+    category:        sink
+
+- function:        strnlen
+  model:
+    return_type:     nodata
+    arguments:
+      - maybedata
+      - nodata
+    category:        sink
