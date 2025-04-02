@@ -47,15 +47,15 @@ namespace vast::pr {
 
 namespace vast::conv {
 
-
-    enum class function_category { sink, source, parser, nonparser };
+    enum class function_category { sink, source, parser, nonparser, maybeparser };
     NLOHMANN_JSON_SERIALIZE_ENUM(
         function_category,
         {
-            {      function_category::sink,      "sink" },
-            {    function_category::source,    "source" },
-            {    function_category::parser,    "parser" },
-            { function_category::nonparser, "nonparser" },
+            {        function_category::sink,        "sink" },
+            {      function_category::source,      "source" },
+            {      function_category::parser,      "parser" },
+            {   function_category::nonparser,   "nonparser" },
+            { function_category::maybeparser, "maybeparser" },
     }
     )
 
@@ -73,6 +73,8 @@ namespace vast::conv {
         bool is_parser() const { return category == function_category::parser; }
 
         bool is_nonparser() const { return category == function_category::nonparser; }
+
+        bool is_maybeparser() const { return category == function_category::maybeparser; }
 
         mlir_type get_return_type(mcontext_t *mctx) const {
             return to_mlir_type(return_type, mctx);
@@ -239,6 +241,7 @@ struct ScalarEnumerationTraits< vast::conv::function_category >
         io.enumCase(value, "source", vast::conv::function_category::source);
         io.enumCase(value, "parser", vast::conv::function_category::parser);
         io.enumCase(value, "nonparser", vast::conv::function_category::nonparser);
+        io.enumCase(value, "maybeparser", vast::conv::function_category::maybeparser);
     }
 };
 
@@ -641,6 +644,10 @@ namespace vast::conv {
 
                 if (model.is_nonparser()) {
                     return rewriter.create< pr::NoParse >(op.getLoc(), rty, args);
+                }
+
+                if (model.is_maybeparser()) {
+                    return rewriter.create< pr::MaybeParse >(op.getLoc(), rty, args);
                 }
 
                 VAST_UNREACHABLE("Unknown function category");
