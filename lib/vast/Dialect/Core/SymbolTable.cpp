@@ -57,9 +57,11 @@ namespace vast::core {
                 co_yield op;
             }
 
-            for ([[maybe_unused]] auto op : symbols_unrecognized_by_nested_symbol_tables(st)) {
-                VAST_UNIMPLEMENTED_MSG("recursively yield the nested symbol tables of the nested symbol table");
-            }
+            // for ([[maybe_unused]] auto op : symbols_unrecognized_by_nested_symbol_tables(st))
+            // {
+            //    VAST_UNIMPLEMENTED_MSG("recursively yield the nested symbol tables of the
+            //    nested symbol table");
+            // }
         }
     }
 
