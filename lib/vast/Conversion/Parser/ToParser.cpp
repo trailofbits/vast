@@ -1050,8 +1050,36 @@ namespace vast::conv {
     {
         using base = ConversionPassMixin< HLToParserPass, HLToParserBase >;
 
+        struct get_function_model_request
+        {
+            static constexpr const char *method   = "get_function_model";
+            static constexpr bool is_notification = false;
+
+            std::string functionName;
+
+            NLOHMANN_DEFINE_TYPE_INTRUSIVE(get_function_model_request, functionName)
+
+            using response_type = function_model;
+        };
+
         struct server_handler
-        {};
+        {
+            function_models &models;
+
+            server::result_type< get_function_model_request >
+            operator()(server::server_base &server, const get_function_model_request &req) {
+                if (auto model = models.get(req.functionName)) {
+                    return *model;
+                } else {
+                    return server::error< get_function_model_request >{
+                        .code    = 0,
+                        .message = "No model for function " + req.functionName + " available"
+                    };
+                }
+            }
+        };
+
+        static_assert(server::request_like< get_function_model_request >);
 
         static conversion_target create_conversion_target(mcontext_t &mctx) {
             return conversion_target(mctx);
@@ -1078,8 +1106,10 @@ namespace vast::conv {
             }
 
             if (!socket.empty()) {
-                server = std::make_shared< vast::server::server< server_handler > >(
-                    vast::server::sock_adapter::create_unix_socket(socket)
+                server = std::make_shared<
+                    vast::server::server< server_handler, get_function_model_request > >(
+                    vast::server::sock_adapter::create_unix_socket(socket), 1,
+                    server_handler{ models }
                 );
             }
         }
@@ -1113,7 +1143,8 @@ namespace vast::conv {
         }
 
         function_models models;
-        std::shared_ptr< vast::server::server< server_handler > > server;
+        std::shared_ptr< vast::server::server< server_handler, get_function_model_request > >
+            server;
     };
 
 } // namespace vast::conv
