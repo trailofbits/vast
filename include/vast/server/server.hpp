@@ -82,45 +82,42 @@ namespace vast::server {
       public:
         void send_error(int64_t code, const std::string &message, const json &id) {
             send_message({
-                { "jsonrpc","2.0"            },
+                { "jsonrpc","2.0"                            },
+                {      "id",    id },
                 {   "error",
                  {
-                 { "id", id },
                  { "code", code },
                  { "message", message },
-                 } }
+                 }                }
             });
         }
 
         void
         send_error(int64_t code, const std::string &message, const json &id, const json &data) {
             send_message({
-                { "jsonrpc","2.0"            },
+                { "jsonrpc","2.0"                            },
+                {      "id",    id },
                 {   "error",
                  {
-                 { "id", id },
                  { "code", code },
                  { "message", message },
                  { "data", data },
-                 } }
+                 }                }
             });
         }
 
         void send_response(const json &id, const json &data) {
             send_message({
-                { "jsonrpc","2.0"            },
-                {   "error",
-                 {
-                 { "id", id },
-                 { "result", data },
-                 } }
+                { "jsonrpc", "2.0" },
+                {      "id",    id },
+                {  "result",  data }
             });
         }
 
         template< request_with_error_like request >
         void send_result(const json &id, const result_type< request > &result) {
             if (auto res = std::get_if< typename request::response_type >(&result)) {
-                send_response(id, result);
+                send_response(id, *res);
             } else if (auto err = std::get_if< error< request > >(&result)) {
                 send_error(err->code, err->message, id, err->body);
             }
@@ -129,7 +126,7 @@ namespace vast::server {
         template< request_like request >
         void send_result(const json &id, const result_type< request > &result) {
             if (auto res = std::get_if< typename request::response_type >(&result)) {
-                send_response(id, result);
+                send_response(id, *res);
             } else if (auto err = std::get_if< error< request > >(&result)) {
                 send_error(err->code, err->message, id);
             }
@@ -338,6 +335,9 @@ namespace vast::server {
             if (msg.find("method") != msg.end() && msg.find("params") != msg.end()) {
                 requests.enqueue(msg);
             } else if (msg.find("result") != msg.end() || msg.find("error") != msg.end()) {
+                if (id == nullptr) {
+                    VAST_FATAL("JSONRPC Error: {0}", msg.dump(2));
+                }
                 responses.insert(id, msg);
             } else {
                 send_error(JSONRPC_INVALID_REQUEST, "Invalid message", id);
