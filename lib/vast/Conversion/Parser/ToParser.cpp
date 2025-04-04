@@ -1039,7 +1039,7 @@ namespace vast::conv {
         };
 
         using operation_conversions = util::type_list<
-            ToNoParse< hl::ConstantOp >,
+            ToNoParse< hl::ConstantOp >, ToNoParse< hl::EnumRefOp >, ToNoParse< hl::FuncRefOp >,
             // Cast operations
             ToMaybeParse< hl::ImplicitCastOp >, ToMaybeParse< hl::BuiltinBitCastOp >,
             ToMaybeParse< hl::CStyleCastOp >,
