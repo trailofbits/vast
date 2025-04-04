@@ -548,6 +548,10 @@ namespace vast::conv {
                 auto args = realized_operand_values(adaptor.getOperands(), rewriter);
                 auto rty = top_type(args);
 
+                if (!rty && op->getNumResults() == 1) {
+                    rty = pr::NoDataType::get(op.getContext());
+                }
+
                 auto converted = [&] () -> operation {
                     auto matches_return_type = [rty] (auto val) { return val.getType() == rty; };
                     if (rty && mlir::isa< pr::NoDataType >(rty)
@@ -555,6 +559,7 @@ namespace vast::conv {
                     {
                         return rewriter.create< pr::NoParse >(op.getLoc(), rty, args);
                     }
+
                     return rewriter.create< pr::MaybeParse >(op.getLoc(), rty, args);
                 } ();
 
