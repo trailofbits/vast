@@ -935,6 +935,37 @@ namespace vast::conv {
             }
         };
 
+        struct StmtExprConversion : parser_conversion_pattern_base< hl::StmtExprOp >
+        {
+            using op_t = hl::StmtExprOp;
+            using base = parser_conversion_pattern_base< op_t >;
+            using base::base;
+
+            using adaptor_t = typename op_t::Adaptor;
+
+            logical_result matchAndRewrite(
+                op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                auto body = op.getBody();
+                if (!body) {
+                    return mlir::failure();
+                }
+
+                auto yield = terminator< hl::ValueYieldOp >::get(*body);
+                VAST_PATTERN_CHECK(yield, "Expected yield in: {0}", op);
+
+                rewriter.inlineBlockBefore(body, op);
+                rewriter.replaceOp(op, yield.op().getResult());
+                rewriter.eraseOp(yield.op());
+
+                return mlir::success();
+            }
+
+            static void legalize(parser_conversion_config &cfg) {
+                cfg.target.addLegalOp< mlir::UnrealizedConversionCastOp >();
+            }
+        };
+
         struct LazyConversion : parser_conversion_pattern_base< core::LazyOp >
         {
             using op_t = core::LazyOp;
@@ -1038,9 +1069,9 @@ namespace vast::conv {
             ToMaybeParse< hl::SubscriptOp >, ToMaybeParse< hl::AddressOf >,
             ToMaybeParse< hl::RecordMemberOp >,
             // Other operations
-            ToMaybeParse< core::SelectOp >, AssignConversion, CondYieldConversion,
-            ValueYieldConversion, ExprConversion, FuncConversion, ParamConversion,
-            DeclRefConversion, VarDeclConversion, CallConversion, LazyConversion,
+            CondYieldConversion, StmtExprConversion, ValueYieldConversion, ExprConversion,
+            FuncConversion, ParamConversion, DeclRefConversion, VarDeclConversion,
+            CallConversion, LazyConversion,
             // Return
             ReturnConversion< hl::ReturnOp >, ReturnConversion< core::ImplicitReturnOp > >;
 
