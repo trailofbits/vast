@@ -704,8 +704,8 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                auto rewrite = [&] (auto ty) {
-                    ty = pr::is_parser_type(ty) ? ty : pr::MaybeDataType::get(rewriter.getContext());
+                auto rewrite = [&](auto ty) {
+                    ty = ty && pr::is_parser_type(ty) ? ty : pr::MaybeDataType::get(rewriter.getContext());
                     auto converted = rewriter.create< pr::Ref >(op.getLoc(), ty, op.getName());
                     rewriter.replaceOpWithNewOp< mlir::UnrealizedConversionCastOp >(
                         op, op.getType(), converted->getResult(0)
@@ -721,7 +721,8 @@ namespace vast::conv {
                     }
                 }
 
-                return mlir::failure();
+                // If we can't find the symbol, we assume it's maybe type
+                return rewrite(mlir_type{});
             }
         };
 
