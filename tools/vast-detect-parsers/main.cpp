@@ -18,7 +18,9 @@ VAST_RELAX_WARNINGS
 VAST_UNRELAX_WARNINGS
 
 #include "vast/Conversion/Parser/Passes.hpp"
+#include "vast/Conversion/Passes.hpp"
 #include "vast/Dialect/Dialects.hpp"
+#include "vast/Dialect/HighLevel/Passes.hpp"
 
 #include "vast/Dialect/Parser/Dialect.hpp"
 
@@ -94,7 +96,9 @@ int main(int argc, char **argv) {
     vast::registerParserConversionPasses();
     vast::registerSarifPasses();
     mlir::registerConversionPasses();
+    vast::registerConversionPasses();
     mlir::registerTransformsPasses();
+    vast::hl::registerHighLevelPasses();
     registry.insert< vast::pr::ParserDialect >();
 
     return mlir::asMainReturnCode(
