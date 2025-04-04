@@ -46,7 +46,7 @@ namespace vast::pr {
 
     static bool is_noparse_region(mlir::Region *region);
 
-    static bool is_noparse_op(mlir::Operation &op) {
+    static bool is_noparse_op(mlir::Operation *op) {
         if (mlir::isa< pr::NoParse >(op)) {
             return true;
         }
@@ -103,7 +103,7 @@ namespace vast::pr {
 
         for (auto &block : *region) {
             for (auto &op : block) {
-                if (!is_noparse_op(op)) {
+                if (!is_noparse_op(&op)) {
                     return false;
                 }
             }

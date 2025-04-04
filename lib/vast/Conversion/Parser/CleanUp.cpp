@@ -51,9 +51,56 @@ namespace vast::conv {
             }
         };
 
-        struct RefineParsingSwitch : operation_conversion_pattern< hl::SwitchOp >
+        // struct RefineParsingSwitch : operation_conversion_pattern< hl::SwitchOp >
+        // {
+        //     using op_t = hl::SwitchOp;
+        //     using base = operation_conversion_pattern< op_t >;
+        //     using base::base;
+
+        //     using adaptor_t = typename op_t::Adaptor;
+
+        //     logical_result matchAndRewrite(
+        //         op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
+        //     ) const override {
+        //         auto &cond = op.getCondRegion().front();
+        //         auto yield = terminator< hl::ValueYieldOp >::get(cond);
+
+        //         // // rewriter.inlineBlockBefore(&cond, op);
+        //         // rewriter.create< pr::Sink >(
+        //         //     op.getLoc(), pr::NoDataType::get(op.getContext()),
+        //         //     yield.op()->getOperands()
+        //         // );
+        //         // rewriter.eraseOp(yield.op());
+        //         rewriter.eraseOp(op);
+        //         return mlir::success();
+        //     }
+
+        //     static bool has_only_nonparse_cases(hl::SwitchOp op) {
+        //         for (auto &case_region : op.getCases()) {
+        //             if (!pr::is_noparse_region(&case_region)) {
+        //                 return false;
+        //             }
+        //         }
+        //         return true;
+        //     }
+
+        //     static void legalize(base_conversion_config &cfg) {
+        //         cfg.target.addDynamicallyLegalOp< op_t >([](op_t op) {
+        //             auto &cond   = op.getCondRegion();
+        //             auto yield   = terminator< hl::ValueYieldOp >::get(cond.front());
+        //             auto yielded = yield.op()->getOperand(0);
+        //             if (pr::is_maybedata(yielded) || pr::is_data(yielded)) {
+        //                 return !has_only_nonparse_cases(op);
+        //             }
+
+        //             return true;
+        //         });
+        //     }
+        // };
+
+        template< typename op_t >
+        struct RefineCase : operation_conversion_pattern< op_t >
         {
-            using op_t = hl::SwitchOp;
             using base = operation_conversion_pattern< op_t >;
             using base::base;
 
@@ -62,43 +109,22 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                auto &cond = op.getCondRegion().front();
-                auto yield = terminator< hl::ValueYieldOp >::get(cond);
-                // rewriter.inlineBlockBefore(&cond, op);
-                rewriter.create< pr::Sink >(
-                    op.getLoc(), pr::NoDataType::get(op.getContext()), yield.op()->getOperands()
-                );
-                rewriter.eraseOp(yield.op());
                 rewriter.eraseOp(op);
                 return mlir::success();
             }
 
-            static bool has_only_nonparse_cases(hl::SwitchOp op) {
-                for (auto &case_region : op.getCases()) {
-                    if (!pr::is_noparse_region(&case_region)) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
             static void legalize(base_conversion_config &cfg) {
                 cfg.target.addDynamicallyLegalOp< op_t >([](op_t op) {
-                    auto &cond   = op.getCondRegion();
-                    auto yield   = terminator< hl::ValueYieldOp >::get(cond.front());
-                    auto yielded = yield.op()->getOperand(0);
-                    if (pr::is_maybedata(yielded) || pr::is_data(yielded)) {
-                        return !has_only_nonparse_cases(op);
-                    }
-
-                    return true;
+                    return !pr::is_noparse_op(op);
                 });
             }
         };
 
         // clang-format off
         using refines = util::type_list<
-            EmptyDefaultOpElimination
+            EmptyDefaultOpElimination,
+            RefineCase< hl::CaseOp >,
+            RefineCase< hl::DefaultOp >
             // RefineParsingSwitch
         >;
         // clang-format on
