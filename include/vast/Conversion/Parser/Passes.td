@@ -35,4 +35,14 @@ def ParserReconcileCasts : Pass<"vast-parser-reconcile-casts", "core::ModuleOp">
     ];
 }
 
+def ParserRefine : Pass<"vast-parser-refine", "core::ModuleOp"> {
+    let summary = "Refine parser dialect.";
+    let description = [{ WIP }];
+
+    let constructor = "vast::createParserRefinePass()";
+    let dependentDialects = [
+        "vast::pr::ParserDialect"
+    ];
+}
+
 #endif // VAST_CONVERSION_PARSER_PASSES_TD
