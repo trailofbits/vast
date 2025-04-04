@@ -21,6 +21,13 @@ namespace vast::conv {
 
     namespace pattern {
 
+        template< typename op_t >
+        struct DefinitionElimination : erase_pattern< op_t >
+        {
+            using base = erase_pattern< op_t >;
+            using base::base;
+        };
+
         struct DeadNoParseElimination : operation_conversion_pattern< pr::NoParse >
         {
             using op_t = pr::NoParse;
@@ -47,7 +54,13 @@ namespace vast::conv {
             }
         };
 
-        using refines = util::type_list< DeadNoParseElimination >;
+        using refines = util::type_list<
+            DeadNoParseElimination,
+            DefinitionElimination< hl::EnumDeclOp >,
+            DefinitionElimination< hl::StructDeclOp >,
+            DefinitionElimination< hl::UnionDeclOp >,
+            DefinitionElimination< hl::TypeDeclOp >
+        >;
 
     } // namespace pattern
 
