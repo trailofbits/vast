@@ -45,4 +45,14 @@ def ParserRefine : Pass<"vast-parser-refine", "core::ModuleOp"> {
     ];
 }
 
+def ParserRefineCleanUp : Pass<"vast-parser-refine-cleanup", "core::ModuleOp"> {
+    let summary = "Refine parser dialect.";
+    let description = [{ WIP }];
+
+    let constructor = "vast::createParserRefineCleanUpPass()";
+    let dependentDialects = [
+        "vast::pr::ParserDialect"
+    ];
+}
+
 #endif // VAST_CONVERSION_PARSER_PASSES_TD
