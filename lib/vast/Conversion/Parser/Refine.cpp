@@ -21,6 +21,25 @@ namespace vast::conv {
 
     namespace pattern {
 
+        static bool is_nodata(mlir_type type) { return mlir::isa< pr::NoDataType >(type); }
+
+        static bool is_nodata(mlir_value value) { return is_nodata(value.getType()); }
+
+        static bool is_nodata(mlir::ValueRange values) {
+            for (auto value : values) {
+                if (!is_nodata(value)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        static bool is_maybedata(mlir_type type) {
+            return mlir::isa< pr::MaybeDataType >(type);
+        }
+
+        static bool is_maybedata(mlir_value value) { return is_maybedata(value.getType()); }
+
         template< typename op_t >
         struct DefinitionElimination : erase_pattern< op_t >
         {
@@ -50,19 +69,6 @@ namespace vast::conv {
                 }
 
                 return mlir::failure();
-            }
-
-            static bool is_nodata(mlir_type type) { return mlir::isa< pr::NoDataType >(type); }
-
-            static bool is_nodata(mlir_value value) { return is_nodata(value.getType()); }
-
-            static bool is_nodata(mlir::ValueRange values) {
-                for (auto value : values) {
-                    if (!is_nodata(value)) {
-                        return false;
-                    }
-                }
-                return true;
             }
 
             static bool is_noparse_op(mlir::Operation &op) {
@@ -136,9 +142,49 @@ namespace vast::conv {
             }
         };
 
-        struct DeadNoParseElimination : operation_conversion_pattern< pr::NoParse >
+        struct RefineReturn : operation_conversion_pattern< hl::ReturnOp >
         {
-            using op_t = pr::NoParse;
+            using base = operation_conversion_pattern< hl::ReturnOp >;
+            using base::base;
+
+            using adaptor_t = typename hl::ReturnOp::Adaptor;
+
+            logical_result matchAndRewrite(
+                hl::ReturnOp op, adaptor_t adaptor, conversion_rewriter &rewriter
+            ) const override {
+                auto cast = adaptor.getResult().front().getDefiningOp();
+                VAST_CHECK(mlir::isa< pr::Cast >(cast), "Expected cast op");
+                rewriter.create< hl::ReturnOp >(op.getLoc(), cast->getOperand(0));
+
+                auto cast_users = cast->getUsers();
+                auto num_users  = std::distance(cast_users.begin(), cast_users.end());
+                if (num_users == 1) {
+                    rewriter.eraseOp(cast);
+                }
+
+                rewriter.eraseOp(op);
+                return mlir::success();
+            }
+
+            static void legalize(base_conversion_config &cfg) {
+                cfg.target.addDynamicallyLegalOp< hl::ReturnOp >([](hl::ReturnOp op) {
+                    if (is_maybedata(op->getOperand(0))) {
+                        auto result = op->getOperand(0).getDefiningOp();
+                        if (auto cast = mlir::dyn_cast< pr::Cast >(result)) {
+                            if (is_nodata(cast.getOperand())) {
+                                return false;
+                            }
+                        }
+                    }
+
+                    return true;
+                });
+            }
+        };
+
+        template< typename op_t >
+        struct DeadOpElimination : operation_conversion_pattern< op_t >
+        {
             using base = operation_conversion_pattern< op_t >;
             using base::base;
 
@@ -162,19 +208,23 @@ namespace vast::conv {
             }
         };
 
+        // clang-format off
         using refines = util::type_list<
-            DeadNoParseElimination,
+            DeadOpElimination< pr::NoParse >,
+            DeadOpElimination< pr::Cast >,
             NoParseFold< hl::IfOp >,
             NoParseFold< hl::WhileOp >,
             NoParseFold< hl::ForOp >,
             NoParseFold< hl::DoOp >,
             NoParseFold< hl::ChooseExprOp >,
             NoParseFold< hl::BinaryCondOp >,
+            RefineReturn,
             DefinitionElimination< hl::EnumDeclOp >,
             DefinitionElimination< hl::StructDeclOp >,
             DefinitionElimination< hl::UnionDeclOp >,
             DefinitionElimination< hl::TypeDeclOp >
         >;
+        // clang-format on
 
     } // namespace pattern
 
