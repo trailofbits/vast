@@ -114,21 +114,8 @@ namespace vast::hl
         return {};
     }
 
-    FoldResult AddIOp::fold(FoldAdaptor adaptor) {
-        return checked_int_arithmetic(getType(), adaptor,
-            [] (const ap_sint &lhs, const ap_sint &rhs) -> std::optional< ap_sint > {
-                if (lhs.isUnsigned()) {
-                    return lhs + rhs;
-                }
-
-                bool overflow = false;
-                if (auto result = lhs.sadd_ov(rhs, overflow); !overflow) {
-                    return llvm::APSInt(result);
-                }
-
-                return {};
-            }
-        );
+    FoldResult AddIOp::fold(FoldAdaptor /* adaptor */) { 
+        return {}; 
     }
 
     FoldResult SubIOp::fold(FoldAdaptor /* adaptor */) {
