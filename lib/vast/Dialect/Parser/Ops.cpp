@@ -31,6 +31,19 @@ namespace vast::pr {
             }
         }
 
+        if (op.getNumOperands() > 0) {
+            auto ty               = op.getOperand(0).getType();
+            auto is_same_type     = [ty](auto val) { return val.getType() == ty; };
+            auto all_of_same_type = [is_same_type](const auto &rng) {
+                return llvm::all_of(rng, is_same_type);
+            };
+
+            if (all_of_same_type(op.getOperands()) && all_of_same_type(op.getResults())) {
+                results.push_back(op.getOperand(0));
+                return mlir::success();
+            }
+        }
+
         return mlir::failure();
     }
 
