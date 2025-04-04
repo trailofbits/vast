@@ -14,6 +14,8 @@ VAST_UNRELAX_WARNINGS
 #include "vast/Conversion/Common/Mixins.hpp"
 #include "vast/Conversion/Common/Patterns.hpp"
 
+#include "vast/Util/Terminator.hpp"
+
 #include "vast/Dialect/Parser/Ops.hpp"
 #include "vast/Dialect/Parser/Types.hpp"
 
@@ -34,11 +36,83 @@ namespace vast::conv {
             return true;
         }
 
+        static bool is_data(mlir_type type) { return mlir::isa< pr::DataType >(type); }
+
+        static bool is_data(mlir_value value) { return is_data(value.getType()); }
+
         static bool is_maybedata(mlir_type type) {
             return mlir::isa< pr::MaybeDataType >(type);
         }
 
         static bool is_maybedata(mlir_value value) { return is_maybedata(value.getType()); }
+
+        static bool is_noparse_region(mlir::Region *region);
+
+        static bool is_noparse_op(mlir::Operation &op) {
+            if (mlir::isa< pr::NoParse >(op)) {
+                return true;
+            }
+
+            if (mlir::isa< hl::NullStmt >(op)) {
+                return true;
+            }
+
+            if (mlir::isa< hl::BreakOp >(op)) {
+                return true;
+            }
+
+            if (mlir::isa< hl::ContinueOp >(op)) {
+                return true;
+            }
+
+            if (auto yield = mlir::dyn_cast< hl::CondYieldOp >(op)) {
+                if (is_nodata(yield.getResult())) {
+                    return true;
+                }
+            }
+
+            if (auto yield = mlir::dyn_cast< hl::ValueYieldOp >(op)) {
+                if (is_nodata(yield.getResult())) {
+                    return true;
+                }
+            }
+
+            if (auto ret = mlir::dyn_cast< hl::ReturnOp >(op)) {
+                if (is_nodata(ret.getResult())) {
+                    return true;
+                }
+            }
+
+            if (auto call = mlir::dyn_cast< hl::CallOp >(op)) {
+                return is_nodata(call.getArgOperands()) && is_nodata(call.getResults());
+            }
+
+            if (auto d = mlir::dyn_cast< hl::DefaultOp >(op)) {
+                return is_noparse_region(&d.getBody());
+            }
+
+            if (auto c = mlir::dyn_cast< hl::CaseOp >(op)) {
+                return is_noparse_region(&c.getBody()) && is_noparse_region(&c.getLhs());
+            }
+
+            return false;
+        }
+
+        static bool is_noparse_region(mlir::Region *region) {
+            if (region->empty()) {
+                return true;
+            }
+
+            for (auto &block : *region) {
+                for (auto &op : block) {
+                    if (!is_noparse_op(op)) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
 
         template< typename op_t >
         struct DefinitionElimination : erase_pattern< op_t >
@@ -69,64 +143,6 @@ namespace vast::conv {
                 }
 
                 return mlir::failure();
-            }
-
-            static bool is_noparse_op(mlir::Operation &op) {
-                if (mlir::isa< pr::NoParse >(op)) {
-                    return true;
-                }
-
-                if (mlir::isa< hl::NullStmt >(op)) {
-                    return true;
-                }
-
-                if (mlir::isa< hl::BreakOp >(op)) {
-                    return true;
-                }
-
-                if (mlir::isa< hl::ContinueOp >(op)) {
-                    return true;
-                }
-
-                if (auto yield = mlir::dyn_cast< hl::CondYieldOp >(op)) {
-                    if (is_nodata(yield.getResult())) {
-                        return true;
-                    }
-                }
-
-                if (auto yield = mlir::dyn_cast< hl::ValueYieldOp >(op)) {
-                    if (is_nodata(yield.getResult())) {
-                        return true;
-                    }
-                }
-
-                if (auto ret = mlir::dyn_cast< hl::ReturnOp >(op)) {
-                    if (is_nodata(ret.getResult())) {
-                        return true;
-                    }
-                }
-
-                if (auto call = mlir::dyn_cast< hl::CallOp >(op)) {
-                    return is_nodata(call.getArgOperands()) && is_nodata(call.getResults());
-                }
-
-                return false;
-            }
-
-            static bool is_noparse_region(mlir::Region *region) {
-                if (region->empty()) {
-                    return true;
-                }
-
-                for (auto &block : *region) {
-                    for (auto &op : block) {
-                        if (!is_noparse_op(op)) {
-                            return false;
-                        }
-                    }
-                }
-
-                return true;
             }
 
             static void legalize(base_conversion_config &cfg) {
