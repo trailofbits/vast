@@ -1049,12 +1049,25 @@ namespace vast::conv {
             ToMaybeParse< hl::AddIOp >, ToMaybeParse< hl::SubIOp >,
             ToMaybeParse< hl::PostIncOp >, ToMaybeParse< hl::PostDecOp >,
             ToMaybeParse< hl::PreIncOp >, ToMaybeParse< hl::PreDecOp >,
+            ToMaybeParse< hl::MinusOp >, ToMaybeParse< hl::PlusOp >,
+            // Assignment operations
+            ToMaybeParse< hl::AssignOp >, ToMaybeParse< hl::AddIAssignOp >,
+            ToMaybeParse< hl::SubIAssignOp >, ToMaybeParse< hl::BinAndAssignOp >,
+            ToMaybeParse< hl::BinOrAssignOp >, ToMaybeParse< hl::BinXorAssignOp >,
+            ToMaybeParse< hl::BinShlAssignOp >, ToMaybeParse< hl::BinLShrAssignOp >,
+            ToMaybeParse< hl::BinAShrAssignOp >,
+            // Non-parsing assignment operations
+            ToNoParse< hl::AddFAssignOp >, ToNoParse< hl::SubFAssignOp >,
+            ToNoParse< hl::MulIAssignOp >, ToNoParse< hl::MulFAssignOp >,
+            ToNoParse< hl::DivSAssignOp >, ToNoParse< hl::DivUAssignOp >,
+            ToNoParse< hl::DivFAssignOp >, ToNoParse< hl::RemSAssignOp >,
+            ToNoParse< hl::RemUAssignOp >, ToNoParse< hl::RemFAssignOp >,
             // Logic operations
             ToMaybeParse< hl::BinXorOp >, ToMaybeParse< hl::BinAndOp >,
             ToMaybeParse< hl::BinOrOp >, ToMaybeParse< hl::LNotOp >,
             ToMaybeParse< core::BinLOrOp >, ToMaybeParse< core::BinLAndOp >,
             ToMaybeParse< hl::BinLOrOp >, ToMaybeParse< hl::BinLAndOp >,
-            ToMaybeParse< hl::BinComma >,
+            ToMaybeParse< hl::BinComma >, ToMaybeParse< hl::NotOp >,
             // Shift operations
             ToMaybeParse< hl::BinShlOp >, ToMaybeParse< hl::BinLShrOp >,
             ToMaybeParse< hl::BinAShrOp >,
@@ -1067,8 +1080,10 @@ namespace vast::conv {
             ToNoParse< hl::ImagOp >,
             // Arrays
             ToMaybeParse< hl::SubscriptOp >, ToMaybeParse< hl::AddressOf >,
-            ToMaybeParse< hl::RecordMemberOp >,
+            ToMaybeParse< hl::RecordMemberOp >, ToMaybeParse< hl::InitListExpr >,
             // Other operations
+            ToMaybeParse< core::SelectOp >, ToMaybeParse< hl::IndirectCallOp >,
+            ToNoParse< hl::ExtensionOp >, ToNoParse< hl::PredefinedExpr >, AssignConversion,
             CondYieldConversion, StmtExprConversion, ValueYieldConversion, ExprConversion,
             FuncConversion, ParamConversion, DeclRefConversion, VarDeclConversion,
             CallConversion, LazyConversion,
