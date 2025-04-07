@@ -152,7 +152,6 @@ namespace vast::conv {
             logical_result matchAndRewrite(
                 op_t op, adaptor_t adaptor, conversion_rewriter &rewriter
             ) const override {
-                op->dump();
                 rewriter.modifyOpInPlace(op, [&] { op.setType(assigned_type(op)); });
                 return mlir::success();
             }
