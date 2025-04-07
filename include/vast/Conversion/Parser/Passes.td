@@ -55,4 +55,14 @@ def ParserRefineCleanUp : Pass<"vast-parser-refine-cleanup", "core::ModuleOp"> {
     ];
 }
 
+def PruneDeadCode : Pass<"vast-prune-dead-code", "core::ModuleOp"> {
+    let summary = "Prune dead code for parser analysis.";
+    let description = [{ WIP }];
+
+    let constructor = "vast::createPruneDeadCodePass()";
+    let dependentDialects = [
+        "vast::pr::ParserDialect"
+    ];
+}
+
 #endif // VAST_CONVERSION_PARSER_PASSES_TD

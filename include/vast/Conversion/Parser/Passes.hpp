@@ -18,6 +18,7 @@ namespace vast {
     std::unique_ptr< mlir::Pass > createParserRefinePass();
     std::unique_ptr< mlir::Pass > createParserRefineCleanUpPass();
     std::unique_ptr< mlir::Pass > createParserSourceToSarifPass();
+    std::unique_ptr< mlir::Pass > createPruneDeadCodePass();
 
     // Generate the code for registering passes.
     #define GEN_PASS_REGISTRATION
