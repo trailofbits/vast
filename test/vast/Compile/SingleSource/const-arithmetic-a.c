@@ -2,7 +2,7 @@
 // RUN: %file-check --input-file=%t.mlir %s -check-prefix=HL
 // RUN: %vast-cc1 -triple x86_64-unknown-linux-gnu -vast-emit-mlir=hl -vast-canonicalize %s -o %t.mlir
 // RUN: %file-check --input-file=%t.mlir %s -check-prefix=CAN
-// REQUIRE: vast-const-fold
+// REQUIRES: vast-const-fold
 
 int arithmetic() {
     return 5 + 10;
