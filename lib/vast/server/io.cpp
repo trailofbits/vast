@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <system_error>
 
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -11,13 +12,20 @@ namespace vast::server {
     union addr {
         sockaddr base;
         sockaddr_un unix;
+        sockaddr_in net;
     };
 
     struct descriptor
     {
         int fd;
 
-        explicit descriptor(int fd) : fd(fd) {}
+        explicit descriptor() : fd(-1) {}
+
+        explicit descriptor(int fd) : fd(fd) {
+            if (fd < 0) {
+                throw std::system_error(errno, std::generic_category());
+            }
+        }
 
         descriptor(const descriptor &)            = delete;
         descriptor &operator=(const descriptor &) = delete;
@@ -53,8 +61,8 @@ namespace vast::server {
     sock_adapter::~sock_adapter() = default;
 
     void sock_adapter::close() {
-        pimpl->clientd = descriptor{ -1 };
-        pimpl->serverd = descriptor{ -1 };
+        pimpl->clientd = descriptor{};
+        pimpl->serverd = descriptor{};
     }
 
     size_t sock_adapter::read_some(std::span< char > dst) {
@@ -73,15 +81,29 @@ namespace vast::server {
         return static_cast< size_t >(res);
     }
 
+    static descriptor bind_and_accept(
+        descriptor &serverd, addr &sockaddr_server, size_t socklen_server,
+        sockaddr *sockaddr_client, socklen_t *socklen_client
+    ) {
+        int rc = bind(serverd, &sockaddr_server.base, static_cast< socklen_t >(socklen_server));
+        if (rc < 0) {
+            throw std::system_error(errno, std::generic_category());
+        }
+
+        rc = listen(serverd, 1);
+        if (rc < 0) {
+            throw std::system_error(errno, std::generic_category());
+        }
+
+        return descriptor{ accept(serverd, sockaddr_client, socklen_client) };
+    }
+
     std::unique_ptr< sock_adapter > sock_adapter::create_unix_socket(const std::string &path) {
         if (path.size() > (sizeof(sockaddr_un::sun_path) - 1)) {
             throw std::runtime_error("Unix socket pathname is too long");
         }
 
         descriptor serverd{ socket(AF_UNIX, SOCK_STREAM, 0) };
-        if (serverd < 0) {
-            throw std::system_error(errno, std::generic_category());
-        }
 
         addr sock_addr{};
         sock_addr.unix.sun_family = AF_UNIX;
@@ -95,18 +117,29 @@ namespace vast::server {
         if (unlink(path.c_str()) < 0 && errno != ENOENT) {
             throw std::system_error(errno, std::generic_category());
         }
-        int rc =
-            bind(serverd, &sock_addr.base, static_cast< socklen_t >(SUN_LEN(&sock_addr.unix)));
-        if (rc < 0) {
-            throw std::system_error(errno, std::generic_category());
-        }
 
-        rc = listen(serverd, 1);
-        if (rc < 0) {
-            throw std::system_error(errno, std::generic_category());
-        }
+        auto clientd =
+            bind_and_accept(serverd, sock_addr, sizeof(sock_addr.unix), nullptr, nullptr);
 
-        descriptor clientd{ accept(serverd, nullptr, nullptr) };
+        return std::unique_ptr< sock_adapter >(new sock_adapter{
+            std::make_unique< impl >(std::move(serverd), std::move(clientd)) });
+    }
+
+    std::unique_ptr< sock_adapter >
+    sock_adapter::create_tcp_server_socket(uint32_t host, uint16_t port) {
+        descriptor serverd{ socket(AF_INET, SOCK_STREAM, 0) };
+
+        addr sock_addr{};
+        sock_addr.net.sin_family      = AF_INET;
+        sock_addr.net.sin_addr.s_addr = htonl(host);
+        sock_addr.net.sin_port        = htons(port);
+
+        addr client_addr{};
+        socklen_t client_addr_size = sizeof(client_addr.net);
+
+        auto clientd = bind_and_accept(
+            serverd, sock_addr, sizeof(sock_addr.net), &client_addr.base, &client_addr_size
+        );
 
         return std::unique_ptr< sock_adapter >(new sock_adapter{
             std::make_unique< impl >(std::move(serverd), std::move(clientd)) });

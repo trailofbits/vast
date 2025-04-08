@@ -14,6 +14,12 @@ def HLToParser : Pass<"vast-hl-to-parser", "core::ModuleOp"> {
         Option< "socket", "socket", "std::string", "",
             "Unix socket path to use for server."
         >,
+        Option< "tcp_port", "tcp-port", "int", "-1",
+            "TCP port to use for server."
+        >,
+        Option< "tcp_host", "tcp-host", "int", "0",
+            "TCP host to use for server."
+        >,
         Option< "yaml_out", "yaml-out", "std::string", "",
             "Path to YAML output file for models got from user."
         >

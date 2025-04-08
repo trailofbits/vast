@@ -1163,6 +1163,12 @@ namespace vast::conv {
                     vast::server::sock_adapter::create_unix_socket(socket), 1,
                     server_handler{ models }
                 );
+            } else if (tcp_port >= 0) {
+                server = std::make_shared<
+                    vast::server::server< server_handler, get_function_model_request > >(
+                    vast::server::sock_adapter::create_tcp_server_socket(tcp_host, tcp_port), 1,
+                    server_handler{ models }
+                );
             }
         }
 
