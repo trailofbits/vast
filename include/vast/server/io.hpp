@@ -95,6 +95,8 @@ namespace vast::server {
         void close() override;
 
         static std::unique_ptr< sock_adapter > create_unix_socket(const std::string &path);
+        static std::unique_ptr< sock_adapter >
+        create_tcp_server_socket(uint32_t host, uint16_t port);
 
       private:
         std::unique_ptr< struct impl > pimpl;
