@@ -59,9 +59,7 @@ namespace vast::cc {
         VAST_UNIMPLEMENTED;
     }
 
-    void vast_consumer::HandleInlineFunctionDefinition(clang::FunctionDecl * /* decl */) {
-        VAST_UNIMPLEMENTED;
-    }
+    void vast_consumer::HandleInlineFunctionDefinition(clang::FunctionDecl * /* decl */) {}
 
     void vast_consumer::HandleInterestingDecl(clang::DeclGroupRef /* decl */) {
         VAST_UNIMPLEMENTED;
