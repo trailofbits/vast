@@ -208,7 +208,9 @@ namespace vast::server {
                         return;
                     }
 
-                    server.send_result(j["id"], h(server, j["params"]));
+                    server.send_result(
+                        j["id"], h(server, j["params"].template get< message_type >())
+                    );
                 } else {
                     dispatch_handler< messages... > dispatcher;
                     return dispatcher(h, server, j);

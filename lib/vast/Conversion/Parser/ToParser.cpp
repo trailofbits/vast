@@ -32,7 +32,9 @@ VAST_UNRELAX_WARNINGS
 #include "vast/server/server.hpp"
 #include "vast/server/types.hpp"
 
+#include <fstream>
 #include <ranges>
+#include <streambuf>
 
 namespace vast::pr {
     NLOHMANN_JSON_SERIALIZE_ENUM(
@@ -1114,6 +1116,18 @@ namespace vast::conv {
             using response_type = function_model;
         };
 
+        struct read_file_request
+        {
+            static constexpr const char *method   = "read_file";
+            static constexpr bool is_notification = false;
+
+            std::string fileName;
+
+            NLOHMANN_DEFINE_TYPE_INTRUSIVE(read_file_request, fileName)
+
+            using response_type = std::string;
+        };
+
         struct server_handler
         {
             function_models &models;
@@ -1129,9 +1143,24 @@ namespace vast::conv {
                     };
                 }
             }
+
+            server::result_type< read_file_request >
+            operator()(server::server_base &server, const read_file_request &req) {
+                std::ifstream is{ req.fileName };
+                if (!is) {
+                    return server::error< read_file_request >{ .code = 0, .message = "" };
+                }
+                std::string str{ std::istreambuf_iterator< char >(is),
+                                 std::istreambuf_iterator< char >() };
+                return str;
+            }
         };
 
         static_assert(server::request_like< get_function_model_request >);
+        static_assert(server::request_like< read_file_request >);
+
+        using server_t = vast::server::server<
+            server_handler, get_function_model_request, read_file_request >;
 
         static conversion_target create_conversion_target(mcontext_t &mctx) {
             return conversion_target(mctx);
@@ -1158,14 +1187,12 @@ namespace vast::conv {
             }
 
             if (!socket.empty()) {
-                server = std::make_shared<
-                    vast::server::server< server_handler, get_function_model_request > >(
+                server = std::make_shared< server_t >(
                     vast::server::sock_adapter::create_unix_socket(socket), 1,
                     server_handler{ models }
                 );
             } else if (tcp_port >= 0) {
-                server = std::make_shared<
-                    vast::server::server< server_handler, get_function_model_request > >(
+                server = std::make_shared< server_t >(
                     vast::server::sock_adapter::create_tcp_server_socket(tcp_host, tcp_port), 1,
                     server_handler{ models }
                 );
@@ -1201,8 +1228,7 @@ namespace vast::conv {
         }
 
         function_models models;
-        std::shared_ptr< vast::server::server< server_handler, get_function_model_request > >
-            server;
+        std::shared_ptr< server_t > server;
     };
 
 } // namespace vast::conv
