@@ -64,6 +64,25 @@ namespace vast {
             }
             results.push_back(result);
         });
+
+        getOperation().walk([&](pr::MaybeParse op) {
+            gap::sarif::result result{
+                .ruleId{ "pr-maybeparse" },
+                .ruleIndex = 0,
+                .kind      = gap::sarif::kind::kInformational,
+                .level     = gap::sarif::level::kNote,
+                .message{
+                    .text{ { "Potential parsing operation detected" } },
+                },
+                .locations{},
+            };
+            if (auto loc = cc::sarif::mk_location(op.getLoc());
+                loc.physicalLocation.has_value())
+            {
+                result.locations.push_back(std::move(loc));
+            }
+            results.push_back(result);
+        });
     }
 } // namespace vast
 #endif
