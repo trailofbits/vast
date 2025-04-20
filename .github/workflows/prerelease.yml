@@ -55,11 +55,13 @@ jobs:
           WITH_V: true # Prefix v to the tag
           DEFAULT_BUMP: patch
 
-      - name: Configure build
-        run: cmake --preset ci
-
-      - name: Build release
-        run: cmake --build --preset ci-release -j $(nproc)
+      - name: Download build artifacts
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: build.yml
+          workflow_conclusion: success
+          name: vast-build-Release-nosarif
+          path: ./builds/ci-nosarif
 
       - name: Package
         run: cpack --preset ci
