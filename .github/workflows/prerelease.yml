@@ -42,7 +42,7 @@ jobs:
 
     steps:
       - name: Clone the VAST repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: true
           fetch-depth: '0' # Required by the tag action
@@ -107,7 +107,7 @@ jobs:
 
     steps:
      - name: Fetch VAST artifact
-       uses: actions/download-artifact@v4
+       uses: actions/download-artifact@v5
        with:
          name: VAST
 
@@ -124,7 +124,7 @@ jobs:
           pip3 install lit psutil
 
      - name: Clone test suite repository
-       uses: actions/checkout@v4
+       uses: actions/checkout@v5
        with:
         repository: trailofbits/vast-llvm-test-suite
         ref: main
@@ -178,7 +178,7 @@ jobs:
     runs-on: ubuntu-${{ matrix.image-version }}
     steps:
       - name: Fetch result artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           pattern: results-llvm-ts-*
           merge-multiple: true
@@ -187,7 +187,7 @@ jobs:
         run:  pip3 install pandas scipy tabulate
 
       - name: Clone test suite repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: trailofbits/vast-llvm-test-suite
           sparse-checkout: utils/vast_compare.py
@@ -230,7 +230,7 @@ jobs:
 
     steps:
      - name: Fetch VAST artifact
-       uses: actions/download-artifact@v4
+       uses: actions/download-artifact@v5
        with:
          name: VAST
 
@@ -244,7 +244,7 @@ jobs:
        run: git clone --depth=1 https://gitlab.com/sosy-lab/benchmarking/sv-benchmarks.git
 
      - name: Clone patch repository
-       uses: actions/checkout@v4
+       uses: actions/checkout@v5
        with:
         repository: trailofbits/sv-bench-patch
         ref: ci-version
@@ -284,7 +284,7 @@ jobs:
     runs-on: ubuntu-${{ matrix.image-version }}
     steps:
       - name: Fetch result artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           pattern: results-sv-*
 
@@ -292,7 +292,7 @@ jobs:
         run: pip3 install pandas scipy tabulate
 
       - name: Clone patch repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: trailofbits/sv-bench-patch
           sparse-checkout: make_table.py
@@ -334,7 +334,7 @@ jobs:
 
     steps:
       - name: Fetch VAST artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: VAST
 
@@ -361,7 +361,7 @@ jobs:
           python3 ./scripts/clang-tools/gen_compile_commands.py
 
       - name: Clone vast benchmark directory
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: trailofbits/vast-benchmarks
           sparse-checkout: benchmarks/linux_kernel
@@ -405,7 +405,7 @@ jobs:
     runs-on: ubuntu-${{ matrix.image-version }}
     steps:
       - name: Fetch result artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           pattern: vast_linux_kernel_times_*
           merge-multiple: true
@@ -414,7 +414,7 @@ jobs:
         run: pip3 install pandas scipy tabulate
 
       - name: Clone vast benchmark directory
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: trailofbits/vast-benchmarks
           sparse-checkout: utils/
@@ -461,7 +461,7 @@ jobs:
 
     steps:
       - name: Fetch VAST artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: VAST
 
@@ -485,7 +485,7 @@ jobs:
           bear -- make
 
       - name: Clone vast benchmark directory
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: trailofbits/vast-benchmarks
           sparse-checkout: benchmarks/linux_kernel
@@ -530,7 +530,7 @@ jobs:
     runs-on: ubuntu-${{ matrix.image-version }}
     steps:
       - name: Fetch result artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           pattern: gzip_*
           merge-multiple: true
@@ -539,7 +539,7 @@ jobs:
         run: pip3 install pandas scipy tabulate
 
       - name: Clone vast benchmark directory
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: trailofbits/vast-benchmarks
           sparse-checkout: utils/
@@ -584,7 +584,7 @@ jobs:
 
     steps:
       - name: Clone the VAST repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: true
           fetch-depth: 1
@@ -596,31 +596,31 @@ jobs:
         run: cmake --build --preset ci-release --target vast-doc
 
       - name: Fetch LLVM test suite results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: llvm-test-suite-results
           path: llvm-test-suite-results
 
       - name: Fetch SV-Comp benchmarks results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: sv-comp-results
           path: sv-comp-results
 
       - name: Fetch Linux kernel benchmark results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: linux_kernel_times.md
           path: linux_kernel_times
 
       - name: Fetch GZIP 1.10 benchmark results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
             name: gzip_times_1.10.md
             path: gzip_times_1.10
 
       - name: Fetch GZIP 1.13 benchmark results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
             name: gzip_times_1.13.md
             path: gzip_times_1.13
