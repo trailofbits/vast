@@ -58,6 +58,30 @@
       - data    # ...
     category: source
 
+# const char* getprogname(void);
+- function: getprogname
+  model:
+    return_type: data
+    arguments: []
+    category: source
+
+# char* getcwd(char* buf, size_t size);
+- function: getcwd
+  model:
+    return_type: data
+    arguments:
+      - data # char* buf
+      - nodata # size_t size
+    category: source
+
+# char* getenv(const char* name)
+- function: getenv
+  model:
+    return_type: data
+    arguments:
+      - data # const char* name
+    category: source
+
 #
 # Parser data sinks
 #
@@ -79,6 +103,27 @@
       - nodata  # FILE * restrict stream
       - maybedata # const char * restrict format
       - maybedata # ...
+    category: sink
+
+# int sprintf(char * restrict str, const char * restrict format, ...);
+- function: sprintf
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # char * restrict str
+      - maybedata # const char * restrict format
+      - maybedata # ...
+    category: sink
+
+# size_t fwrite(const void *restrict ptr, size_t size, size_t nitems, FILE *restrict stream);
+- function: fwrite
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # const void *restrict ptr
+      - maybedata # size_t size
+      - maybedata # size_t nitems
+      - nodata # FILE *restrict stream
     category: sink
 
 # void perror(const char *s);
@@ -104,11 +149,213 @@
     arguments:
       - maybedata  # const char * restrict filename
       - maybedata  # const char * restrict mode
+    category: sink    
+
+# off_t lseek(int fildes, off_t offset, int whence);
+- function: lseek
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int fildes
+      - maybedata # off_t offset
+      - maybedata # int whence
+    category: sink
+
+# int fseeko(FILE *stream, off_t offset, int whence);
+- function: fseeko
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # FILE* stream
+      - maybedata # off_t offset
+      - maybedata # whence
+    category: sink
+
+# long ftello(FILE *stream);
+- function: ftello
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # FILE* stream
+    category: sink
+
+# int dirfd(DIR *dirp);
+- function: dirfd 
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # DIR *dirp
+    category: sink
+
+# int access(const char* file, int mode);
+- function: access
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # const char* file
+      - maybedata # int mode
+    category: sink
+
+# int creat (const char *path, mode_t mode)
+- function: creat
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # const char * path
+      - maybedata  # mode_t mode
+    category: sink   
+
+# TODO! Remove when issue 753 is resolved.
+# int \01_creat (const char *path, mode_t mode)
+- function: \01_creat
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # const char * path
+      - maybedata  # mode_t mode
+    category: sink   
+
+# size_t strlen(const char* s);
+- function: strlen
+  model:
+    return_type: nodata 
+    arguments:
+      - maybedata  # const char *s
+    category: sink
+
+# size_t strnlen(const char* s, size_t maxlen);
+- function: strnlen
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # const char * s
+      - nodata  # size_t maxlen
+    category: sink
+
+# uint32_t __builtin_bswap32(uint32_t x);
+- function: __builtin_bswap32
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # uint32_t x
+    category: sink
+
+# uint64_t __builtin_bswap64(uint64_t x);
+- function: __builtin_bswap64
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # uint64_t x
+    category: sink
+
+# int fileno(FILE *stream);
+- function: fileno
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata  # FILE *stream
+    category: sink
+
+# void flockfile(FILE *file);
+- function: flockfile
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # FILE *file
+    category: sink
+
+# void funlockfile(FILE *file);
+- function: flockfile
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # FILE *file
+    category: sink
+
+# int fflush(FILE *stream);
+- function: fflush
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # FILE *stream;
+    category: sink
+
+# int fpurge(FILE *stream);
+- function: fpurge
+  model:
+    return_type: nodata
+    arguments:
+      - maybedata # FILE *stream;
+    category: sink
+
+# int putc(int c, FILE *stream);
+- function: putc
+  model:
+    return_type: nodata
+    arguments: 
+      - maybedata # int c
+      - maybedata # FILE *stream
+    category: sink
+
+# void qsort(void *base, size_t nel, size_t width, int (*compar)(const void*, const void*));
+- function: qsort
+  model:  
+    return_type: nodata
+    arguments:
+      - maybedata # void* base
+      - nodata # size_t nel
+      - nodata # size_t width
+      - maybedata # int (*compar)(const void*, const void*)
     category: sink
 
 #
 # Parser functions
-#
+# 
+
+# int memcmp(const void *s1, const void *s2, size_t n);
+- function: memcmp
+  model:
+    return_type: nodata
+    arguments:
+      - data # const void* s1
+      - data # const void* s2
+      - data # size_t n
+    category: parser
+
+# int strcmp(const char *s1, const char *s2);
+- function: strcmp
+  model:
+    return_type: nodata
+    arguments:
+      - data # const char* s1
+      - data # const char* s2
+    category: parser
+
+# int strncmp(const char *s1, const char *s2, size_t n);
+- function: strncmp
+  model:
+    return_type: nodata
+    arguments:
+      - data # const char* s1
+      - data # const char* s2
+      - data # size_t n
+    category: parser
+
+# int isascii(int c)
+- function: isascii
+  model:
+    return_type: nodata
+    arguments:
+      - data # int c
+    category: parser
+
+# int isupper(int c);
+- function: isupper
+  model:
+    return_type: nodata
+    arguments:
+      - data # int c
+    category: parser
 
 # int isspace(int c);
 - function: isspace
@@ -126,6 +373,70 @@
       - data  # int c
     category: parser
 
+# size_t strspn(const char *s, const char *accept);
+- function: strspn
+  model: 
+    return_type: data
+    arguments:
+      - data  # const char* s
+      - data # const char* accept
+    category: parser
+
+# size_t strcspn(const char *s, const char *charset);
+- function: strcspn
+  model: 
+    return_type: data 
+    arguments:
+      - data  # const char* s
+      - data # const char* charset
+    category: parser
+
+# char *strchr(const char* s, int c);
+- function: strchr
+  model:
+    return_type: data
+    arguments:
+      - data # const char* s
+      - data # int c
+    category: parser
+
+# char *strrchr(const char* s, int c);
+- function: strrchr
+  model:
+    return_type: data
+    arguments:
+      - data # const char* s
+      - data # int c
+    category: parser
+  
+# void *memchr(const void *s, int c, size_t n);
+- function: memchr
+  model:
+    return_type: data
+    arguments:
+      - data  # const void* s
+      - data # int c
+      - data # size_t n
+    category: parser
+
+# void *memrchr(const void *s, int c, size_t n);
+- function: memrchr
+  model:
+    return_type: data 
+    arguments:
+      - data  # const void* s
+      - data # int c
+      - data # size_t n
+    category: parser
+
+# int tolower(int c);
+- function: tolower
+  model:
+    return_type: maybedata
+    arguments:
+      - maybedata  # int c
+    category: parser
+
 #
 # Non-parser functions
 #
@@ -138,11 +449,61 @@
       - nodata  # int status
     category: nonparser
 
+# int close(int fd);
+- function: close
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int fd
+    category: nonparser
+
+# TODO: Remove when issue 753, 756 is resolved
+# int \01_close(int fd);
+- function: \01_close
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int fd
+    category: nonparser
+
+# int \01_closedir(DIR* dirp);
+- function: \01_closedir
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # DIR* dirp
+    category: nonparser
+
+# void __builtin_unreachable(void);
+- function: __builtin_unreachable
+  model:
+    return_type: nodata
+    arguments: []
+    category: nonparser
+
 # void * malloc(size_t size);
 - function: malloc
   model:
     return_type: nodata
     arguments:
+      - nodata  # size_t size
+    category: nonparser
+
+# void *realloc(void* ptr, size_t size);
+- function: realloc
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # void* ptr
+      - nodata # size_t size
+    category: nonparser
+
+# void * calloc(size_t count, size_t size);
+- function: calloc
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # size_t count
       - nodata  # size_t size
     category: nonparser
 
@@ -152,6 +513,253 @@
     return_type: nodata
     arguments:
       - nodata  # FILE * stream
+    category: nonparser
+
+# int futimens(int fd, const struct timespec timespec[2]);
+- function: futimens
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int fd
+      - nodata # const struct timespec timespec[2]
+    category: nonparser
+
+# int utimensat(int fd, const char *path, const struct timespec times[2], int flag);
+- function: utimensat
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int fd
+      - nodata # const char *path
+      - nodata # const struct timespec times[2]
+      - nodata # int flag
+    category: nonparser
+
+# int utimes(const char *path, const struct timespec times[2]);
+- function: utimes
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # const char *path
+      - nodata # const struct timespec timespec[2]
+    category: nonparser
+
+# int futimes(int fildes, const struct timespec timespec[2]);
+- function: futimes
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int fildes
+      - nodata # const struct timespec timespec[2]
+    category: nonparser
+
+# int fdutimens(int fd, char const *file, struct timespec const timespec[2]);
+- function: fdutimens
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int fd
+      - nodata # char const *file
+      - nodata # struct timespec const timespec[2]
+    category: nonparser
+
+# int pipe(int pipefd[2]);
+- function: pipe
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int pipefd[2]
+    category: nonparser
+
+# int chdir(const char *path);
+- function: chdir
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # const char *path
+    category: nonparser
+
+# int fchdir(int fd);
+- function: fchdir
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int fd
+    category: nonparser
+
+# long __builtin_expect (long exp, long c);
+- function: __builtin_expect
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # long exp
+      - nodata # long c
+    category: nonparser
+
+# void __error(void);
+- function: __error
+  model:
+    return_type: nodata
+    arguments: []
+    category: nonparser
+
+# void error(int status, int errnum, const char* format, ...);
+- function: error
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int status
+      - nodata # int errnum
+      - nodata # const char* format
+      - nodata # ...
+    category: nonparser
+
+# void abort(void);
+- function: abort
+  model:
+    return_type: nodata
+    arguments: []
+    category: nonparser
+
+# int fcntl(int fd, int op, ...);
+- function: fcntl
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int fd
+      - nodata # int op
+      - nodata # ...
+    category: nonparser
+
+# int \01_fcntl(int fd, int op, ...);
+- function: \01_fcntl
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int fd
+      - nodata # int op
+      - nodata # ...
+    category: nonparser
+
+# int unlink(char const *name);
+- function: unlink
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # char const *name
+    category: nonparser
+
+# int unlinkat(int fd, const char *path, int flag);
+- function: unlinkat
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int fd
+      - nodata # const char *path
+      - nodata # int flag
+    category: nonparser
+
+# size_t __builtin_object_size (const void * ptr, int type)
+- function: __builtin_object_size
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # const void* ptr
+      - nodata # int type
+    category: nonparser
+
+# void * __builtin___memset_chk (void *s, int c, size_t n, size_t os);
+- function: __bulitin___memset_chk
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # void* s
+      - nodata # int c
+      - nodata # size_t n
+      - nodata # size_t os
+    category: nonparser
+
+# void * __builtin___memcpy_chk (void *dest, const void *src, size_t n, size_t os);
+- function: __bulitin___memcpy_chk
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # void* dest
+      - nodata # const void* src
+      - nodata # size_t n
+      - nodata # size_t os
+    category: nonparser
+
+# int __builtin___snprintf_chk(char* s, size_t maxlen, int flag, size_t os, const char* fmt, ...);
+- function: __builtin___snprintf_chk
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # char* s
+      - nodata # size_t maxlen
+      - nodata # int flag
+      - nodata # size_t os
+      - nodata # const char* fmt
+      - nodata # ...
+    category: nonparser
+
+# int __builtin___sprintf_chk(char* s, int flag, size_t os, const char* fmt, ...);
+- function: __builtin___sprintf_chk
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # char* s
+      - nodata # int flag
+      - nodata # size_t os
+      - nodata # const char* fmt
+      - nodata # ...
+    category: nonparser
+
+# char* __builtin___stpcpy_chk(char* dest, const char* src, size_t os);
+- function: __builtin___stpcpy_chk
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # char* dest
+      - nodata # const char* src
+      - nodata # size_t os
+    category: nonparser
+
+# char* __builtin___strcpy_chk(char* dest, const char* src, size_t os);
+- function: __builtin___strcpy_chk
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # char* dest
+      - nodata # const char* src
+      - nodata # size_t os
+    category: nonparser
+
+# int strerror_r (int errnum, char *strerrbuf, size_t buflen);
+- function: strerror_r 
+  model:
+    return_type: nodata
+    arguments:
+      - nodata  # int errnum
+      - nodata # strerrbuf
+      - nodata # size_t buflen
+    category: nonparser
+
+# char *strerror(int errnum);
+- function: strerror
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # int errnum
+    category: nonparser
+
+# int clock_getime(clockid_t clock_id, struct timespec *tp);
+- function: clock_gettime
+  model:
+    return_type: nodata
+    arguments:
+      - nodata # clockid_t clock_id
+      - nodata # struct timespec* tp
     category: nonparser
 
 - function: main
