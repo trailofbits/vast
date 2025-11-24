@@ -42,7 +42,7 @@ jobs:
 
     steps:
       - name: Clone the VAST repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: '0' # Required by the tag action
@@ -124,7 +124,7 @@ jobs:
           pip3 install lit psutil
 
      - name: Clone test suite repository
-       uses: actions/checkout@v5
+       uses: actions/checkout@v6
        with:
         repository: trailofbits/vast-llvm-test-suite
         ref: main
@@ -187,7 +187,7 @@ jobs:
         run:  pip3 install pandas scipy tabulate
 
       - name: Clone test suite repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: trailofbits/vast-llvm-test-suite
           sparse-checkout: utils/vast_compare.py
@@ -244,7 +244,7 @@ jobs:
        run: git clone --depth=1 https://gitlab.com/sosy-lab/benchmarking/sv-benchmarks.git
 
      - name: Clone patch repository
-       uses: actions/checkout@v5
+       uses: actions/checkout@v6
        with:
         repository: trailofbits/sv-bench-patch
         ref: ci-version
@@ -292,7 +292,7 @@ jobs:
         run: pip3 install pandas scipy tabulate
 
       - name: Clone patch repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: trailofbits/sv-bench-patch
           sparse-checkout: make_table.py
@@ -361,7 +361,7 @@ jobs:
           python3 ./scripts/clang-tools/gen_compile_commands.py
 
       - name: Clone vast benchmark directory
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: trailofbits/vast-benchmarks
           sparse-checkout: benchmarks/linux_kernel
@@ -414,7 +414,7 @@ jobs:
         run: pip3 install pandas scipy tabulate
 
       - name: Clone vast benchmark directory
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: trailofbits/vast-benchmarks
           sparse-checkout: utils/
@@ -485,7 +485,7 @@ jobs:
           bear -- make
 
       - name: Clone vast benchmark directory
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: trailofbits/vast-benchmarks
           sparse-checkout: benchmarks/linux_kernel
@@ -539,7 +539,7 @@ jobs:
         run: pip3 install pandas scipy tabulate
 
       - name: Clone vast benchmark directory
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: trailofbits/vast-benchmarks
           sparse-checkout: utils/
@@ -584,7 +584,7 @@ jobs:
 
     steps:
       - name: Clone the VAST repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 1
