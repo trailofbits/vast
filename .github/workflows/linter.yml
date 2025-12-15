@@ -38,7 +38,7 @@ jobs:
         run: git config --global --add safe.directory '*'
 
       - name: Clone the vast repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 1
