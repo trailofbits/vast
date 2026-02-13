@@ -1,0 +1,2213 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../single-source-results/">
+      
+      
+        <link rel="next" href="../linux_kernel_times/">
+      
+      
+      <link rel="icon" href="../../img/favicon.ico">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.17">
+    
+    
+      
+        <title>SV-Comp - VAST: MLIR for Program Analysis</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.bcfcd587.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="VAST: MLIR for Program Analysis" class="md-header__button md-logo" aria-label="VAST: MLIR for Program Analysis" data-md-component="logo">
+      
+  <img src="../../img/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            VAST: MLIR for Program Analysis
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              SV-Comp
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9h-1.9M20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69m-9.15 3.96h2.3L12 9l-1.15 3.65Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="pink"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/trailofbits/vast" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="VAST: MLIR for Program Analysis" class="md-nav__button md-logo" aria-label="VAST: MLIR for Program Analysis" data-md-component="logo">
+      
+  <img src="../../img/logo.png" alt="logo">
+
+    </a>
+    VAST: MLIR for Program Analysis
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/trailofbits/vast" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../GettingStarted/build/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Build & Run
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../GettingStarted/debug/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Debug
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CONTRIBUTING/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    How to contribute
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../GettingStarted/extend/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    How to create a new dialect
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../GettingStarted/integration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Driver integration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Dialects
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Dialects
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dialects/ABI/ABI/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ABI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dialects/Core/Core/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Core
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dialects/HighLevel/HighLevel/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High Level
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dialects/LowLevel/LowLevel/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Low Level
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dialects/Meta/Meta/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Meta
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dialects/Unsupported/Unsupported/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Unsupported
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Passes
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Passes
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dialects/HighLevelPasses/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High Level
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dialects/LowLevelPasses/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Low Level
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Tools
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Tools
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Tools/vast-front/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Compiler Driver
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Tools/vast-lsp-server/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LSP Server
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Tools/vast-opt/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Optimizer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Tools/vast-query/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Query
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Tools/vast-repl/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    REPL
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Tools/vast-detect-parsers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Detect Parsers
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Projects/related/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Related Projects
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Benchmarks
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Benchmarks
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../single-source-results/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LLVM Single Source
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    SV-Comp
+  </span>
+  
+
+      </a>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linux_kernel_times/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Linux Kernel 6.11
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gzip_times_1.10/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GZIP 1.10
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gzip_times_1.13/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GZIP 1.13
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    About
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../statement/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    License
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>SV-Comp</h1>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"></th>
+<th style="text-align: left;">HighLevel with Unsupported</th>
+<th style="text-align: left;">HighLevel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Total</td>
+<td style="text-align: left;">26298/27152</td>
+<td style="text-align: left;">26298/27152</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/array-cav19</td>
+<td style="text-align: left;">13/13</td>
+<td style="text-align: left;">13/13</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/array-crafted</td>
+<td style="text-align: left;">43/43</td>
+<td style="text-align: left;">43/43</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/array-examples</td>
+<td style="text-align: left;">96/96</td>
+<td style="text-align: left;">96/96</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/array-fpi</td>
+<td style="text-align: left;">151/151</td>
+<td style="text-align: left;">151/151</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/array-industry-pattern</td>
+<td style="text-align: left;">17/17</td>
+<td style="text-align: left;">17/17</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/array-lopstr16</td>
+<td style="text-align: left;">11/11</td>
+<td style="text-align: left;">11/11</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/array-memsafety-realloc</td>
+<td style="text-align: left;">3/3</td>
+<td style="text-align: left;">3/3</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/array-memsafety</td>
+<td style="text-align: left;">65/65</td>
+<td style="text-align: left;">65/65</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/array-multidimensional</td>
+<td style="text-align: left;">20/20</td>
+<td style="text-align: left;">20/20</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/array-patterns</td>
+<td style="text-align: left;">37/37</td>
+<td style="text-align: left;">37/37</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/array-programs</td>
+<td style="text-align: left;">16/16</td>
+<td style="text-align: left;">16/16</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/array-tiling</td>
+<td style="text-align: left;">29/29</td>
+<td style="text-align: left;">29/29</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/aws-c-common</td>
+<td style="text-align: left;">356/356</td>
+<td style="text-align: left;">356/356</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/bitvector-loops</td>
+<td style="text-align: left;">3/3</td>
+<td style="text-align: left;">3/3</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/bitvector-regression</td>
+<td style="text-align: left;">10/10</td>
+<td style="text-align: left;">10/10</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/bitvector</td>
+<td style="text-align: left;">70/70</td>
+<td style="text-align: left;">70/70</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/busybox-1.22.0-todo</td>
+<td style="text-align: left;">16/16</td>
+<td style="text-align: left;">16/16</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/busybox-1.22.0</td>
+<td style="text-align: left;">79/79</td>
+<td style="text-align: left;">79/79</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/combinations</td>
+<td style="text-align: left;">671/671</td>
+<td style="text-align: left;">671/671</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/coreutils-v8.31</td>
+<td style="text-align: left;">0/104</td>
+<td style="text-align: left;">0/104</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/coreutils-v9.5-units</td>
+<td style="text-align: left;">48/48</td>
+<td style="text-align: left;">48/48</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ddv-machzwd</td>
+<td style="text-align: left;">13/13</td>
+<td style="text-align: left;">13/13</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/eca-programs</td>
+<td style="text-align: left;">106/106</td>
+<td style="text-align: left;">106/106</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/eca-rers2012</td>
+<td style="text-align: left;">1140/1140</td>
+<td style="text-align: left;">1140/1140</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/eca-rers2018</td>
+<td style="text-align: left;">9/9</td>
+<td style="text-align: left;">9/9</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/float-benchs</td>
+<td style="text-align: left;">82/82</td>
+<td style="text-align: left;">82/82</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/float-newlib</td>
+<td style="text-align: left;">265/265</td>
+<td style="text-align: left;">265/265</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/floats-cbmc-regression</td>
+<td style="text-align: left;">31/31</td>
+<td style="text-align: left;">31/31</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/floats-cdfpl</td>
+<td style="text-align: left;">40/40</td>
+<td style="text-align: left;">40/40</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/floats-esbmc-regression</td>
+<td style="text-align: left;">44/44</td>
+<td style="text-align: left;">44/44</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/floats-nonlinear</td>
+<td style="text-align: left;">15/15</td>
+<td style="text-align: left;">15/15</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/forester-heap</td>
+<td style="text-align: left;">40/40</td>
+<td style="text-align: left;">40/40</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/fuzzle-programs</td>
+<td style="text-align: left;">15/15</td>
+<td style="text-align: left;">15/15</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/goblint-coreutils</td>
+<td style="text-align: left;">0/24</td>
+<td style="text-align: left;">0/24</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/goblint-regression</td>
+<td style="text-align: left;">215/215</td>
+<td style="text-align: left;">215/215</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/hardness</td>
+<td style="text-align: left;">6800/6800</td>
+<td style="text-align: left;">6800/6800</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/hardware-verification-array</td>
+<td style="text-align: left;">12/12</td>
+<td style="text-align: left;">12/12</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/hardware-verification-bv</td>
+<td style="text-align: left;">2436/2436</td>
+<td style="text-align: left;">2436/2436</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/heap-data</td>
+<td style="text-align: left;">10/10</td>
+<td style="text-align: left;">10/10</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/heap-manipulation</td>
+<td style="text-align: left;">13/13</td>
+<td style="text-align: left;">13/13</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/infeasible-control-flow</td>
+<td style="text-align: left;">10/10</td>
+<td style="text-align: left;">10/10</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/intel-tdx-module</td>
+<td style="text-align: left;">836/836</td>
+<td style="text-align: left;">836/836</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-challenges-todo</td>
+<td style="text-align: left;">2/2</td>
+<td style="text-align: left;">2/2</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-challenges</td>
+<td style="text-align: left;">178/199</td>
+<td style="text-align: left;">178/199</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-commit-tester-todo</td>
+<td style="text-align: left;">1/1</td>
+<td style="text-align: left;">1/1</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-commit-tester</td>
+<td style="text-align: left;">19/33</td>
+<td style="text-align: left;">19/33</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-consumption</td>
+<td style="text-align: left;">144/161</td>
+<td style="text-align: left;">144/161</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-3.0-todo</td>
+<td style="text-align: left;">1/1</td>
+<td style="text-align: left;">1/1</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-3.0</td>
+<td style="text-align: left;">34/38</td>
+<td style="text-align: left;">34/38</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-3.12-rc1-todo</td>
+<td style="text-align: left;">4/4</td>
+<td style="text-align: left;">4/4</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-3.12-rc1</td>
+<td style="text-align: left;">30/33</td>
+<td style="text-align: left;">30/33</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-3.14-races</td>
+<td style="text-align: left;">6/6</td>
+<td style="text-align: left;">6/6</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-3.14-todo</td>
+<td style="text-align: left;">0/1</td>
+<td style="text-align: left;">0/1</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-3.14</td>
+<td style="text-align: left;">308/320</td>
+<td style="text-align: left;">308/320</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-3.16-rc1-todo</td>
+<td style="text-align: left;">57/63</td>
+<td style="text-align: left;">57/63</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-3.16-rc1</td>
+<td style="text-align: left;">84/93</td>
+<td style="text-align: left;">84/93</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-3.4-simple</td>
+<td style="text-align: left;">1089/1157</td>
+<td style="text-align: left;">1089/1157</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-3.7.3</td>
+<td style="text-align: left;">11/11</td>
+<td style="text-align: left;">11/11</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-4.0-rc1-mav-todo</td>
+<td style="text-align: left;">14/23</td>
+<td style="text-align: left;">14/23</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-4.0-rc1-mav</td>
+<td style="text-align: left;">60/76</td>
+<td style="text-align: left;">60/76</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-4.2-rc1-todo</td>
+<td style="text-align: left;">2/4</td>
+<td style="text-align: left;">2/4</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-linux-4.2-rc1</td>
+<td style="text-align: left;">303/422</td>
+<td style="text-align: left;">303/422</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-memsafety-bitfields</td>
+<td style="text-align: left;">10/10</td>
+<td style="text-align: left;">10/10</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-memsafety</td>
+<td style="text-align: left;">95/95</td>
+<td style="text-align: left;">95/95</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-multiproperty-todo</td>
+<td style="text-align: left;">0/1</td>
+<td style="text-align: left;">0/1</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-multiproperty</td>
+<td style="text-align: left;">75/98</td>
+<td style="text-align: left;">75/98</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-races</td>
+<td style="text-align: left;">19/19</td>
+<td style="text-align: left;">19/19</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-regression</td>
+<td style="text-align: left;">88/88</td>
+<td style="text-align: left;">88/88</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-sets</td>
+<td style="text-align: left;">8/8</td>
+<td style="text-align: left;">8/8</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-validator-v0.6-todo</td>
+<td style="text-align: left;">9/10</td>
+<td style="text-align: left;">9/10</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-validator-v0.6</td>
+<td style="text-align: left;">9/11</td>
+<td style="text-align: left;">9/11</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-validator-v0.8-todo</td>
+<td style="text-align: left;">5/6</td>
+<td style="text-align: left;">5/6</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ldv-validator-v0.8</td>
+<td style="text-align: left;">15/17</td>
+<td style="text-align: left;">15/17</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/libvsync</td>
+<td style="text-align: left;">19/19</td>
+<td style="text-align: left;">19/19</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/list-ext-properties</td>
+<td style="text-align: left;">21/21</td>
+<td style="text-align: left;">21/21</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/list-ext2-properties</td>
+<td style="text-align: left;">6/6</td>
+<td style="text-align: left;">6/6</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/list-ext3-properties</td>
+<td style="text-align: left;">16/16</td>
+<td style="text-align: left;">16/16</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/list-properties</td>
+<td style="text-align: left;">13/13</td>
+<td style="text-align: left;">13/13</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/list-simple</td>
+<td style="text-align: left;">40/40</td>
+<td style="text-align: left;">40/40</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/locks</td>
+<td style="text-align: left;">13/13</td>
+<td style="text-align: left;">13/13</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/longjmp</td>
+<td style="text-align: left;">34/34</td>
+<td style="text-align: left;">34/34</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/loop-acceleration</td>
+<td style="text-align: left;">44/44</td>
+<td style="text-align: left;">44/44</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/loop-crafted</td>
+<td style="text-align: left;">9/9</td>
+<td style="text-align: left;">9/9</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/loop-floats-scientific-comp</td>
+<td style="text-align: left;">7/7</td>
+<td style="text-align: left;">7/7</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/loop-industry-pattern</td>
+<td style="text-align: left;">18/18</td>
+<td style="text-align: left;">18/18</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/loop-invariants</td>
+<td style="text-align: left;">10/10</td>
+<td style="text-align: left;">10/10</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/loop-invariants64</td>
+<td style="text-align: left;">1/1</td>
+<td style="text-align: left;">1/1</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/loop-invgen</td>
+<td style="text-align: left;">29/29</td>
+<td style="text-align: left;">29/29</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/loop-lit</td>
+<td style="text-align: left;">33/33</td>
+<td style="text-align: left;">33/33</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/loop-new</td>
+<td style="text-align: left;">11/11</td>
+<td style="text-align: left;">11/11</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/loop-simple</td>
+<td style="text-align: left;">8/8</td>
+<td style="text-align: left;">8/8</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/loop-zilu</td>
+<td style="text-align: left;">58/58</td>
+<td style="text-align: left;">58/58</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/loops-crafted-1</td>
+<td style="text-align: left;">55/55</td>
+<td style="text-align: left;">55/55</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/loops</td>
+<td style="text-align: left;">0/0</td>
+<td style="text-align: left;">0/0</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/loops/todo</td>
+<td style="text-align: left;">77/77</td>
+<td style="text-align: left;">77/77</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/memory-alloca</td>
+<td style="text-align: left;">1/1</td>
+<td style="text-align: left;">1/1</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/memory-model</td>
+<td style="text-align: left;">2/2</td>
+<td style="text-align: left;">2/2</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/memsafety-bftpd</td>
+<td style="text-align: left;">3/3</td>
+<td style="text-align: left;">3/3</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/memsafety-broom</td>
+<td style="text-align: left;">31/31</td>
+<td style="text-align: left;">31/31</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/memsafety-cve</td>
+<td style="text-align: left;">108/108</td>
+<td style="text-align: left;">108/108</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/memsafety-ext</td>
+<td style="text-align: left;">8/8</td>
+<td style="text-align: left;">8/8</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/memsafety-ext2</td>
+<td style="text-align: left;">10/10</td>
+<td style="text-align: left;">10/10</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/memsafety-ext3</td>
+<td style="text-align: left;">18/18</td>
+<td style="text-align: left;">18/18</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/memsafety</td>
+<td style="text-align: left;">43/43</td>
+<td style="text-align: left;">43/43</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/neural-networks</td>
+<td style="text-align: left;">916/916</td>
+<td style="text-align: left;">916/916</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/nla-digbench-scaling</td>
+<td style="text-align: left;">0/0</td>
+<td style="text-align: left;">0/0</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/nla-digbench-scaling/todo</td>
+<td style="text-align: left;">479/479</td>
+<td style="text-align: left;">479/479</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/nla-digbench</td>
+<td style="text-align: left;">0/0</td>
+<td style="text-align: left;">0/0</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/nla-digbench/todo</td>
+<td style="text-align: left;">57/57</td>
+<td style="text-align: left;">57/57</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/nondet-memory-examples</td>
+<td style="text-align: left;">2/2</td>
+<td style="text-align: left;">2/2</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ntdrivers-simplified</td>
+<td style="text-align: left;">10/10</td>
+<td style="text-align: left;">10/10</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/ntdrivers</td>
+<td style="text-align: left;">12/12</td>
+<td style="text-align: left;">12/12</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/openbsd-6.2</td>
+<td style="text-align: left;">5/5</td>
+<td style="text-align: left;">5/5</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/openssl-simplified</td>
+<td style="text-align: left;">26/26</td>
+<td style="text-align: left;">26/26</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/openssl</td>
+<td style="text-align: left;">36/36</td>
+<td style="text-align: left;">36/36</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/product-lines</td>
+<td style="text-align: left;">597/597</td>
+<td style="text-align: left;">597/597</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/psyco</td>
+<td style="text-align: left;">11/11</td>
+<td style="text-align: left;">11/11</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/pthread-C-DAC</td>
+<td style="text-align: left;">5/5</td>
+<td style="text-align: left;">5/5</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/pthread-atomic</td>
+<td style="text-align: left;">19/19</td>
+<td style="text-align: left;">19/19</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/pthread-complex</td>
+<td style="text-align: left;">7/7</td>
+<td style="text-align: left;">7/7</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/pthread-deagle</td>
+<td style="text-align: left;">24/24</td>
+<td style="text-align: left;">24/24</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/pthread-divine</td>
+<td style="text-align: left;">16/16</td>
+<td style="text-align: left;">16/16</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/pthread-driver-races</td>
+<td style="text-align: left;">30/30</td>
+<td style="text-align: left;">30/30</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/pthread-ext</td>
+<td style="text-align: left;">76/76</td>
+<td style="text-align: left;">76/76</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/pthread-lit</td>
+<td style="text-align: left;">14/14</td>
+<td style="text-align: left;">14/14</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/pthread-memsafety</td>
+<td style="text-align: left;">3/3</td>
+<td style="text-align: left;">3/3</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/pthread-nondet</td>
+<td style="text-align: left;">6/6</td>
+<td style="text-align: left;">6/6</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/pthread-race-challenges</td>
+<td style="text-align: left;">64/64</td>
+<td style="text-align: left;">64/64</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/pthread-theta</td>
+<td style="text-align: left;">13/13</td>
+<td style="text-align: left;">13/13</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/pthread-wmm</td>
+<td style="text-align: left;">283/283</td>
+<td style="text-align: left;">283/283</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/pthread</td>
+<td style="text-align: left;">65/65</td>
+<td style="text-align: left;">65/65</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/recursified_loop-crafted</td>
+<td style="text-align: left;">9/9</td>
+<td style="text-align: left;">9/9</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/recursified_loop-invariants</td>
+<td style="text-align: left;">9/9</td>
+<td style="text-align: left;">9/9</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/recursified_loop-simple</td>
+<td style="text-align: left;">8/8</td>
+<td style="text-align: left;">8/8</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/recursified_nla-digbench</td>
+<td style="text-align: left;">0/0</td>
+<td style="text-align: left;">0/0</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/recursified_nla-digbench/todo</td>
+<td style="text-align: left;">57/57</td>
+<td style="text-align: left;">57/57</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/recursive-simple</td>
+<td style="text-align: left;">77/77</td>
+<td style="text-align: left;">77/77</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/recursive-with-pointer</td>
+<td style="text-align: left;">2/2</td>
+<td style="text-align: left;">2/2</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/recursive</td>
+<td style="text-align: left;">29/29</td>
+<td style="text-align: left;">29/29</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/reducercommutativity</td>
+<td style="text-align: left;">50/50</td>
+<td style="text-align: left;">50/50</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/regression</td>
+<td style="text-align: left;">4043/4438</td>
+<td style="text-align: left;">4043/4438</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/seq-mthreaded-reduced</td>
+<td style="text-align: left;">316/316</td>
+<td style="text-align: left;">316/316</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/seq-mthreaded</td>
+<td style="text-align: left;">192/192</td>
+<td style="text-align: left;">192/192</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/seq-pthread</td>
+<td style="text-align: left;">20/20</td>
+<td style="text-align: left;">20/20</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/signedintegeroverflow-regression</td>
+<td style="text-align: left;">15/15</td>
+<td style="text-align: left;">15/15</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/sqlite</td>
+<td style="text-align: left;">1/1</td>
+<td style="text-align: left;">1/1</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/systemc</td>
+<td style="text-align: left;">62/62</td>
+<td style="text-align: left;">62/62</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-15-todo</td>
+<td style="text-align: left;">2/2</td>
+<td style="text-align: left;">2/2</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-15</td>
+<td style="text-align: left;">62/62</td>
+<td style="text-align: left;">62/62</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-bwb</td>
+<td style="text-align: left;">41/41</td>
+<td style="text-align: left;">41/41</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-crafted-lit-todo</td>
+<td style="text-align: left;">7/7</td>
+<td style="text-align: left;">7/7</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-crafted-lit</td>
+<td style="text-align: left;">159/159</td>
+<td style="text-align: left;">159/159</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-crafted-todo</td>
+<td style="text-align: left;">6/6</td>
+<td style="text-align: left;">6/6</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-crafted</td>
+<td style="text-align: left;">118/118</td>
+<td style="text-align: left;">118/118</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-dietlibc</td>
+<td style="text-align: left;">32/32</td>
+<td style="text-align: left;">32/32</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-memory-alloca-todo</td>
+<td style="text-align: left;">56/56</td>
+<td style="text-align: left;">56/56</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-memory-alloca</td>
+<td style="text-align: left;">147/147</td>
+<td style="text-align: left;">147/147</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-memory-linkedlists-todo</td>
+<td style="text-align: left;">4/4</td>
+<td style="text-align: left;">4/4</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-memory-linkedlists</td>
+<td style="text-align: left;">19/19</td>
+<td style="text-align: left;">19/19</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-nla</td>
+<td style="text-align: left;">78/78</td>
+<td style="text-align: left;">78/78</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-numeric</td>
+<td style="text-align: left;">23/23</td>
+<td style="text-align: left;">23/23</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-recursive-malloc</td>
+<td style="text-align: left;">28/28</td>
+<td style="text-align: left;">28/28</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-restricted-15-todo</td>
+<td style="text-align: left;">82/82</td>
+<td style="text-align: left;">82/82</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/termination-restricted-15</td>
+<td style="text-align: left;">103/103</td>
+<td style="text-align: left;">103/103</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/unsignedintegeroverflow-sas23</td>
+<td style="text-align: left;">5/5</td>
+<td style="text-align: left;">5/5</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/uthash-2.0.2</td>
+<td style="text-align: left;">32/32</td>
+<td style="text-align: left;">32/32</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/validation-crafted</td>
+<td style="text-align: left;">7/7</td>
+<td style="text-align: left;">7/7</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/verifythis</td>
+<td style="text-align: left;">14/14</td>
+<td style="text-align: left;">14/14</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/weaver</td>
+<td style="text-align: left;">176/176</td>
+<td style="text-align: left;">176/176</td>
+</tr>
+<tr>
+<td style="text-align: left;">sv-benchmarks/c/xcsp</td>
+<td style="text-align: left;">119/119</td>
+<td style="text-align: left;">119/119</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://slack.empirehacking.nyc/" target="_blank" rel="noopener" title="slack.empirehacking.nyc" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M94.12 315.1c0 25.9-21.16 47.06-47.06 47.06S0 341 0 315.1c0-25.9 21.16-47.06 47.06-47.06h47.06v47.06zm23.72 0c0-25.9 21.16-47.06 47.06-47.06s47.06 21.16 47.06 47.06v117.84c0 25.9-21.16 47.06-47.06 47.06s-47.06-21.16-47.06-47.06V315.1zm47.06-188.98c-25.9 0-47.06-21.16-47.06-47.06S139 32 164.9 32s47.06 21.16 47.06 47.06v47.06H164.9zm0 23.72c25.9 0 47.06 21.16 47.06 47.06s-21.16 47.06-47.06 47.06H47.06C21.16 243.96 0 222.8 0 196.9s21.16-47.06 47.06-47.06H164.9zm188.98 47.06c0-25.9 21.16-47.06 47.06-47.06 25.9 0 47.06 21.16 47.06 47.06s-21.16 47.06-47.06 47.06h-47.06V196.9zm-23.72 0c0 25.9-21.16 47.06-47.06 47.06-25.9 0-47.06-21.16-47.06-47.06V79.06c0-25.9 21.16-47.06 47.06-47.06 25.9 0 47.06 21.16 47.06 47.06V196.9zM283.1 385.88c25.9 0 47.06 21.16 47.06 47.06 0 25.9-21.16 47.06-47.06 47.06-25.9 0-47.06-21.16-47.06-47.06v-47.06h47.06zm0-23.72c-25.9 0-47.06-21.16-47.06-47.06 0-25.9 21.16-47.06 47.06-47.06h117.84c25.9 0 47.06 21.16 47.06 47.06 0 25.9-21.16 47.06-47.06 47.06H283.1z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+      <div class="md-consent" data-md-component="consent" id="__consent" hidden>
+        <div class="md-consent__overlay"></div>
+        <aside class="md-consent__inner">
+          <form class="md-consent__form md-grid md-typeset" name="consent">
+            
+
+
+  
+    
+  
+
+
+
+  
+
+
+<h4>Cookie consent</h4>
+<p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. With your consent, you're helping us to make our documentation better.</p>
+<input class="md-toggle" type="checkbox" id="__settings" >
+<div class="md-consent__settings">
+  <ul class="task-list">
+    
+      
+      
+        
+        
+      
+      <li class="task-list-item">
+        <label class="task-list-control">
+          <input type="checkbox" name="github" checked>
+          <span class="task-list-indicator"></span>
+          GitHub
+        </label>
+      </li>
+    
+  </ul>
+</div>
+<div class="md-consent__controls">
+  
+    
+      <button class="md-button md-button--primary">Accept</button>
+    
+    
+    
+  
+    
+    
+    
+      <label class="md-button" for="__settings">Manage settings</label>
+    
+  
+</div>
+          </form>
+        </aside>
+      </div>
+      <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout(function(){document.querySelector("[data-md-component=consent]").hidden=!1},250);var action,form=document.forms.consent;for(action of["submit","reset"])form.addEventListener(action,function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map(function(e){return[e,!0]}))),location.hash="",location.reload()})</script>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.path", "navigation.indexes", "search.suggest", "search.highlight", "search.share"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
+      
+    
+  </body>
+</html>
