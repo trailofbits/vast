@@ -385,4 +385,10 @@ def LowLevel_FuncOp : Core_FuncBaseOp< LowLevel_Dialect, "func", [
     IsolatedFromAbove
 ] > {}
 
+def LowLevel_MemcpyOp : LowLevel_Op < "memcpy" >
+    , Arguments<(ins AnyType:$dst, AnyType:$src, TypedAttrInterface:$size, BoolAttr:$isVolatile)>
+{
+  let summary = "Memcopy intrinsic.";
+}
+
 #endif // VAST_DIALECT_IR_LOWLEVELOPS

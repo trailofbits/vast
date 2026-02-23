@@ -452,12 +452,28 @@ namespace vast
             {
                 auto loc = indirect.getLoc();
                 auto mctx = indirect.getContext();
-                auto type = hl::PointerType::get(mctx, indirect.getValue().getType());
-
+                auto indirect_val = indirect.getValue();
+                auto type = hl::PointerType::get(mctx, indirect_val.getType());
                 auto var = state.rewriter.template create< ll::Alloca >(
                     indirect.getLoc(), type);
+
                 // Now we initilizae before yielding the ptr
-                state.rewriter.template create< ll::Store >(loc, indirect.getValue(), var);
+                if (auto load = mlir::dyn_cast< ll::Load >(indirect_val.getDefiningOp())) {
+                    size_t bits = dl.getTypeSizeInBits(indirect_val.getType());
+                    size_t bytes = dl.getTypeSize(indirect_val.getType());
+                    state.rewriter.template create< ll::MemcpyOp >(
+                            loc,
+                            load.getPtr(),
+                            var,
+                            mlir::IntegerAttr::get(mlir::IntegerType::get(mctx, bytes), bits),
+                            // FIXME:
+                            mlir::BoolAttr::get(mctx, false) /*isVolatile*/
+                    );
+                    state.rewriter.eraseOp(load);
+
+                } else {
+                    state.rewriter.template create< ll::Store >(loc, indirect_val, var);
+                }
                 co_yield var;
             }
         };
